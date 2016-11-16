@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch added
- to -mm tree
-Date: Tue, 15 Nov 2016 16:55:01 -0800
-Message-ID: <582bae65.hZUs6z/Pvp0gsbQZ%akpm@linux-foundation.org>
+ ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+ added to -mm tree
+Date: Tue, 15 Nov 2016 16:55:11 -0800
+Message-ID: <582bae6f.dAJypRyhCCDZTK+3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36334 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754025AbcKPA42 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:56:28 -0500
+        with ESMTP id S1754082AbcKPA5E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:57:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: ima: get the kexec buffer passed by the previous kernel
+     Subject: ima: maintain memory size needed for serializing the measurement list
 has been added to the -mm tree.  Its filename is
-     powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+     ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,64 +40,18 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: ima: get the kexec buffer passed by the previous kernel
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: ima: maintain memory size needed for serializing the measurement list
 
-Patch series "ima: carry the measurement list across kexec", v10.
+In preparation for serializing the binary_runtime_measurements, this patch
+maintains the amount of memory required.
 
-The TPM PCRs are only reset on a hard reboot.  In order to validate a
-TPM's quote after a soft reboot (eg. kexec -e), the IMA measurement list
-of the running kernel must be saved and then restored on the subsequent
-boot, possibly of a different architecture.
-
-The existing securityfs binary_runtime_measurements file conveniently
-provides a serialized format of the IMA measurement list. This patch
-set serializes the measurement list in this format and restores it.
-
-Up to now, the binary_runtime_measurements was defined as architecture
-native format.  The assumption being that userspace could and would
-handle any architecture conversions.  With the ability of carrying the
-measurement list across kexec, possibly from one architecture to a
-different one, the per boot architecture information is lost and with it
-the ability of recalculating the template digest hash.  To resolve this
-problem, without breaking the existing ABI, this patch set introduces
-the boot command line option "ima_canonical_fmt", which is arbitrarily
-defined as little endian.
-
-The need for this boot command line option will be limited to the
-existing version 1 format of the binary_runtime_measurements.
-Subsequent formats will be defined as canonical format (eg. TPM 2.0
-support for larger digests).
-
-A simplified method of Thiago Bauermann's "kexec buffer handover" patch
-series for carrying the IMA measurement list across kexec is included
-in this patch set.  The simplified method requires all file measurements
-be taken prior to executing the kexec load, as subsequent measurements
-will not be carried across the kexec and restored.
-
-
-
-This patch (of 10):
-
-The IMA kexec buffer allows the currently running kernel to pass
-the measurement list via a kexec segment to the kernel that will be
-kexec'd. The second kernel can check whether the previous kernel sent
-the buffer and retrieve it.
-
-This is the architecture-specific part which enables IMA to receive the
-measurement list passed by the previous kernel. It will be used in the
-next patch.
-
-The change in machine_kexec_64.c is to factor out the logic of removing
-an FDT memory reservation so that it can be used by remove_ima_buffer.
-
-Link: http://lkml.kernel.org/r/1478789780-17719-2-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: http://lkml.kernel.org/r/1478789780-17719-5-git-send-email-zohar@linux.vnet.ibm.com
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -105,269 +59,151 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
-
+Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                                |    3 
- arch/powerpc/Kconfig                        |    1 
- arch/powerpc/include/asm/ima.h              |   13 +
- arch/powerpc/include/asm/kexec.h            |    1 
- arch/powerpc/kernel/Makefile                |    4 
- arch/powerpc/kernel/ima_kexec.c             |  132 ++++++++++++++++++
- arch/powerpc/kernel/machine_kexec_file_64.c |    5 
- 7 files changed, 158 insertions(+), 1 deletion(-)
+ security/integrity/ima/Kconfig     |   12 ++++++
+ security/integrity/ima/ima.h       |    1 
+ security/integrity/ima/ima_queue.c |   53 +++++++++++++++++++++++++--
+ 3 files changed, 64 insertions(+), 2 deletions(-)
 
-diff -puN arch/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/Kconfig
---- a/arch/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/Kconfig
-@@ -16,6 +16,9 @@ config HAVE_KEXEC_FILE_PIE_PURGATORY
- 	  If an architecture builds a PIE purgatory it should select
- 	  this symbol.
+diff -puN security/integrity/ima/Kconfig~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/Kconfig
+--- a/security/integrity/ima/Kconfig~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
++++ a/security/integrity/ima/Kconfig
+@@ -27,6 +27,18 @@ config IMA
+ 	  to learn more about IMA.
+ 	  If unsure, say N.
  
-+config HAVE_IMA_KEXEC
-+	bool
++config IMA_KEXEC
++	bool "Enable carrying the IMA measurement list across a soft boot"
++	depends on IMA && TCG_TPM && HAVE_IMA_KEXEC
++	default n
++	help
++	   TPM PCRs are only reset on a hard reboot.  In order to validate
++	   a TPM's quote after a soft boot, the IMA measurement list of the
++	   running kernel must be saved and restored on boot.
 +
- config OPROFILE
- 	tristate "OProfile system profiling"
- 	depends on PROFILING
-diff -puN arch/powerpc/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/powerpc/Kconfig
-@@ -458,6 +458,7 @@ config KEXEC
- config KEXEC_FILE
- 	bool "kexec file based system call"
- 	select KEXEC_CORE
-+	select HAVE_IMA_KEXEC
- 	select HAVE_KEXEC_FILE_PIE_PURGATORY
- 	select BUILD_BIN2C
- 	depends on PPC64
-diff -puN /dev/null arch/powerpc/include/asm/ima.h
---- /dev/null
-+++ a/arch/powerpc/include/asm/ima.h
-@@ -0,0 +1,13 @@
-+#ifndef _ASM_POWERPC_IMA_H
-+#define _ASM_POWERPC_IMA_H
++	   Depending on the IMA policy, the measurement list can grow to
++	   be very large.
 +
-+int ima_get_kexec_buffer(void **addr, size_t *size);
-+int ima_free_kexec_buffer(void);
-+
-+#ifdef CONFIG_IMA
-+void remove_ima_buffer(void *fdt, int chosen_node);
+ config IMA_MEASURE_PCR_IDX
+ 	int
+ 	depends on IMA
+diff -puN security/integrity/ima/ima.h~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/ima.h
+--- a/security/integrity/ima/ima.h~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
++++ a/security/integrity/ima/ima.h
+@@ -143,6 +143,7 @@ void ima_print_digest(struct seq_file *m
+ struct ima_template_desc *ima_template_desc_current(void);
+ int ima_restore_measurement_entry(struct ima_template_entry *entry);
+ int ima_restore_measurement_list(loff_t bufsize, void *buf);
++unsigned long ima_get_binary_runtime_size(void);
+ int ima_init_template(void);
+ 
+ /*
+diff -puN security/integrity/ima/ima_queue.c~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/ima_queue.c
+--- a/security/integrity/ima/ima_queue.c~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
++++ a/security/integrity/ima/ima_queue.c
+@@ -29,6 +29,11 @@
+ #define AUDIT_CAUSE_LEN_MAX 32
+ 
+ LIST_HEAD(ima_measurements);	/* list of all measurements */
++#ifdef CONFIG_IMA_KEXEC
++static unsigned long binary_runtime_size;
 +#else
-+static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
++static unsigned long binary_runtime_size = ULONG_MAX;
 +#endif
-+
-+#endif /* _ASM_POWERPC_IMA_H */
-diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/include/asm/kexec.h
---- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -101,6 +101,7 @@ int setup_purgatory(struct kimage *image
- 		    unsigned long fdt_load_addr, unsigned long stack_top);
- int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
- 		  unsigned long initrd_len, const char *cmdline);
-+int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
- #endif /* CONFIG_KEXEC_FILE */
  
- #else /* !CONFIG_KEXEC_CORE */
-diff -puN arch/powerpc/kernel/Makefile~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/kernel/Makefile
---- a/arch/powerpc/kernel/Makefile~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/powerpc/kernel/Makefile
-@@ -111,6 +111,10 @@ obj-$(CONFIG_KEXEC_CORE)	+= machine_kexe
- 				   machine_kexec_$(BITS).o
- obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o elf_util.o \
- 				   kexec_elf_$(BITS).o
-+ifeq ($(CONFIG_HAVE_IMA_KEXEC)$(CONFIG_IMA),yy)
-+obj-y				+= ima_kexec.o
-+endif
-+
- obj-$(CONFIG_AUDIT)		+= audit.o
- obj64-$(CONFIG_AUDIT)		+= compat_audit.o
+ /* key: inode (before secure-hashing a file) */
+ struct ima_h_table ima_htable = {
+@@ -64,6 +69,24 @@ static struct ima_queue_entry *ima_looku
+ 	return ret;
+ }
  
-diff -puN /dev/null arch/powerpc/kernel/ima_kexec.c
---- /dev/null
-+++ a/arch/powerpc/kernel/ima_kexec.c
-@@ -0,0 +1,132 @@
 +/*
-+ * Copyright (C) 2016 IBM Corporation
-+ *
-+ * Authors:
-+ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Calculate the memory required for serializing a single
++ * binary_runtime_measurement list entry, which contains a
++ * couple of variable length fields (e.g template name and data).
 + */
-+
-+#include <linux/slab.h>
-+#include <linux/kexec.h>
-+#include <linux/of.h>
-+#include <linux/memblock.h>
-+#include <linux/libfdt.h>
-+
-+static int get_addr_size_cells(int *addr_cells, int *size_cells)
++static int get_binary_runtime_size(struct ima_template_entry *entry)
 +{
-+	struct device_node *root;
++	int size = 0;
 +
-+	root = of_find_node_by_path("/");
-+	if (!root)
-+		return -EINVAL;
-+
-+	*addr_cells = of_n_addr_cells(root);
-+	*size_cells = of_n_size_cells(root);
-+
-+	of_node_put(root);
-+
-+	return 0;
++	size += sizeof(u32);	/* pcr */
++	size += sizeof(entry->digest);
++	size += sizeof(int);	/* template name size field */
++	size += strlen(entry->template_desc->name) + 1;
++	size += sizeof(entry->template_data_len);
++	size += entry->template_data_len;
++	return size;
 +}
 +
-+static int do_get_kexec_buffer(const void *prop, int len, unsigned long *addr,
-+			       size_t *size)
-+{
-+	int ret, addr_cells, size_cells;
-+
-+	ret = get_addr_size_cells(&addr_cells, &size_cells);
-+	if (ret)
-+		return ret;
-+
-+	if (len < 4 * (addr_cells + size_cells))
-+		return -ENOENT;
-+
-+	*addr = of_read_number(prop, addr_cells);
-+	*size = of_read_number(prop + 4 * addr_cells, size_cells);
-+
-+	return 0;
-+}
-+
-+/**
-+ * ima_get_kexec_buffer - get IMA buffer from the previous kernel
-+ * @addr:	On successful return, set to point to the buffer contents.
-+ * @size:	On successful return, set to the buffer size.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int ima_get_kexec_buffer(void **addr, size_t *size)
-+{
-+	int ret, len;
-+	unsigned long tmp_addr;
-+	size_t tmp_size;
-+	const void *prop;
-+
-+	prop = of_get_property(of_chosen, "linux,ima-kexec-buffer", &len);
-+	if (!prop)
-+		return -ENOENT;
-+
-+	ret = do_get_kexec_buffer(prop, len, &tmp_addr, &tmp_size);
-+	if (ret)
-+		return ret;
-+
-+	*addr = __va(tmp_addr);
-+	*size = tmp_size;
-+
-+	return 0;
-+}
-+
-+/**
-+ * ima_free_kexec_buffer - free memory used by the IMA buffer
-+ */
-+int ima_free_kexec_buffer(void)
-+{
-+	int ret;
-+	unsigned long addr;
-+	size_t size;
-+	struct property *prop;
-+
-+	prop = of_find_property(of_chosen, "linux,ima-kexec-buffer", NULL);
-+	if (!prop)
-+		return -ENOENT;
-+
-+	ret = do_get_kexec_buffer(prop->value, prop->length, &addr, &size);
-+	if (ret)
-+		return ret;
-+
-+	ret = of_remove_property(of_chosen, prop);
-+	if (ret)
-+		return ret;
-+
-+	return memblock_free(addr, size);
-+
-+}
-+
-+/**
-+ * remove_ima_buffer - remove the IMA buffer property and reservation from @fdt
-+ *
-+ * The IMA measurement buffer is of no use to a subsequent kernel, so we always
-+ * remove it from the device tree.
-+ */
-+void remove_ima_buffer(void *fdt, int chosen_node)
-+{
-+	int ret, len;
-+	unsigned long addr;
-+	size_t size;
-+	const void *prop;
-+
-+	prop = fdt_getprop(fdt, chosen_node, "linux,ima-kexec-buffer", &len);
-+	if (!prop)
-+		return;
-+
-+	ret = do_get_kexec_buffer(prop, len, &addr, &size);
-+	fdt_delprop(fdt, chosen_node, "linux,ima-kexec-buffer");
-+	if (ret)
-+		return;
-+
-+	ret = delete_fdt_mem_rsv(fdt, addr, size);
-+	if (!ret)
-+		pr_debug("Removed old IMA buffer reservation.\n");
-+}
-diff -puN arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/kernel/machine_kexec_file_64.c
---- a/arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/powerpc/kernel/machine_kexec_file_64.c
-@@ -28,6 +28,7 @@
- #include <linux/of_fdt.h>
- #include <linux/libfdt.h>
- #include <asm/elf_util.h>
-+#include <asm/ima.h>
- 
- #define SLAVE_CODE_SIZE		256
- 
-@@ -420,7 +421,7 @@ int setup_purgatory(struct kimage *image
-  *
-  * Return: 0 on success, or negative errno on error.
-  */
--static int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size)
-+int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size)
- {
- 	int i, ret, num_rsvs = fdt_num_mem_rsv(fdt);
- 
-@@ -568,6 +569,8 @@ int setup_new_fdt(void *fdt, unsigned lo
- 		}
+ /* ima_add_template_entry helper function:
+  * - Add template entry to the measurement list and hash table, for
+  *   all entries except those carried across kexec.
+@@ -91,9 +114,30 @@ static int ima_add_digest_entry(struct i
+ 		key = ima_hash_key(entry->digest);
+ 		hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
  	}
- 
-+	remove_ima_buffer(fdt, chosen_node);
 +
- 	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
- 	if (ret) {
- 		pr_err("Error setting up the new device tree.\n");
++	if (binary_runtime_size != ULONG_MAX) {
++		int size;
++
++		size = get_binary_runtime_size(entry);
++		binary_runtime_size = (binary_runtime_size < ULONG_MAX - size) ?
++		     binary_runtime_size + size : ULONG_MAX;
++	}
+ 	return 0;
+ }
+ 
++/*
++ * Return the amount of memory required for serializing the
++ * entire binary_runtime_measurement list, including the ima_kexec_hdr
++ * structure.
++ */
++unsigned long ima_get_binary_runtime_size(void)
++{
++	if (binary_runtime_size >= (ULONG_MAX - sizeof(struct ima_kexec_hdr)))
++		return ULONG_MAX;
++	else
++		return binary_runtime_size + sizeof(struct ima_kexec_hdr);
++};
++
+ static int ima_pcr_extend(const u8 *hash, int pcr)
+ {
+ 	int result = 0;
+@@ -107,8 +151,13 @@ static int ima_pcr_extend(const u8 *hash
+ 	return result;
+ }
+ 
+-/* Add template entry to the measurement list and hash table,
+- * and extend the pcr.
++/*
++ * Add template entry to the measurement list and hash table, and
++ * extend the pcr.
++ *
++ * On systems which support carrying the IMA measurement list across
++ * kexec, maintain the total memory size required for serializing the
++ * binary_runtime_measurements.
+  */
+ int ima_add_template_entry(struct ima_template_entry *entry, int violation,
+ 			   const char *op, struct inode *inode,
 _
 
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-kexec_file-add-support-for-purgatory-built-as-pie.patch
-powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-powerpc-implement-kexec_file_load.patch
-powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+ima-on-soft-reboot-restore-the-measurement-list.patch
+ima-permit-duplicate-measurement-list-entries.patch
+ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
 powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+ima-on-soft-reboot-save-the-measurement-list.patch
+ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+ima-support-restoring-multiple-template-formats.patch
+ima-define-a-canonical-binary_runtime_measurements-list-format.patch
 
