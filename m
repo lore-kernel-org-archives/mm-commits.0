@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec_file-add-support-for-purgatory-built-as-pie.patch added
- to -mm tree
-Date: Tue, 15 Nov 2016 16:54:32 -0800
-Message-ID: <582bae48.9p4nq7PsBGv2ioOc%akpm@linux-foundation.org>
+Subject: +
+ powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch added to -mm tree
+Date: Tue, 15 Nov 2016 16:54:36 -0800
+Message-ID: <582bae4c.DsIc3Zz8qkYm9PJ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751396AbcKPAyv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:54:51 -0500
+        with ESMTP id S1751396AbcKPAy5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:54:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: add support for purgatory built as PIE
+     Subject: powerpc: change places using CONFIG_KEXEC to use CONFIG_KEXEC_CORE instead
 has been added to the -mm tree.  Its filename is
-     kexec_file-add-support-for-purgatory-built-as-pie.patch
+     powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-add-support-for-purgatory-built-as-pie.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-add-support-for-purgatory-built-as-pie.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +40,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: kexec_file: add support for purgatory built as PIE
+Subject: powerpc: change places using CONFIG_KEXEC to use CONFIG_KEXEC_CORE instead
 
-powerpc's purgatory.ro has 12 relocation types when built as a relocatable
-object.  To implement support for them requires
-arch_kexec_apply_relocations_add to duplicate a lot of code with
-module_64.c:apply_relocate_add.
+Commit 2965faa5e03d ("kexec: split kexec_load syscall from kexec core
+code") introduced CONFIG_KEXEC_CORE so that CONFIG_KEXEC means whether the
+kexec_load system call should be compiled-in and CONFIG_KEXEC_FILE means
+whether the kexec_file_load system call should be compiled-in.  These
+options can be set independently from each other.
 
-When built as a Position Independent Executable there are only 4
-relocation types in purgatory.ro, so it becomes practical for the powerpc
-implementation of kexec_file to have its own relocation implementation.
+Since until now powerpc only supported kexec_load, CONFIG_KEXEC and
+CONFIG_KEXEC_CORE were synonyms.  That is not the case anymore, so we need
+to make a distinction.  Almost all places where CONFIG_KEXEC was being
+used should be using CONFIG_KEXEC_CORE instead, since kexec_file_load also
+needs that code compiled in.
 
-Also, the purgatory is an executable and not an intermediary output from
-the compiler so it makes sense conceptually that it is easier to build it
-as a PIE than as a partially linked object.
-
-Apart from the greatly reduced number of relocations, there are two
-differences between a relocatable object and a PIE:
-
-1. __kexec_load_purgatory needs to use the program headers rather than the
-   section headers to figure out how to load the binary.
-2. Symbol values are absolute addresses instead of relative to the
-   start of the section.
-
-This patch adds the support needed in generic code for the differences
-above and allows powerpc to load and relocate a position independent
-purgatory.
-
-Link: http://lkml.kernel.org/r/1478748449-3894-5-git-send-email-bauerman@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1478748449-3894-6-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Suggested-by: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -77,6 +63,7 @@ Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
@@ -88,468 +75,407 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig          |   11 +
- include/linux/kexec.h |    4 
- kernel/kexec_file.c   |  314 ++++++++++++++++++++++++++++++----------
- 3 files changed, 253 insertions(+), 76 deletions(-)
+ arch/powerpc/Kconfig                          |    2 +-
+ arch/powerpc/include/asm/debug.h              |    2 +-
+ arch/powerpc/include/asm/kexec.h              |    6 +++---
+ arch/powerpc/include/asm/machdep.h            |    4 ++--
+ arch/powerpc/include/asm/smp.h                |    2 +-
+ arch/powerpc/kernel/Makefile                  |    4 ++--
+ arch/powerpc/kernel/head_64.S                 |    2 +-
+ arch/powerpc/kernel/misc_32.S                 |    2 +-
+ arch/powerpc/kernel/misc_64.S                 |    6 +++---
+ arch/powerpc/kernel/prom.c                    |    2 +-
+ arch/powerpc/kernel/setup_64.c                |    4 ++--
+ arch/powerpc/kernel/smp.c                     |    6 +++---
+ arch/powerpc/kernel/traps.c                   |    2 +-
+ arch/powerpc/platforms/85xx/corenet_generic.c |    2 +-
+ arch/powerpc/platforms/85xx/smp.c             |    8 ++++----
+ arch/powerpc/platforms/cell/spu_base.c        |    2 +-
+ arch/powerpc/platforms/powernv/setup.c        |    6 +++---
+ arch/powerpc/platforms/ps3/setup.c            |    4 ++--
+ arch/powerpc/platforms/pseries/Makefile       |    2 +-
+ arch/powerpc/platforms/pseries/setup.c        |    4 ++--
+ 20 files changed, 36 insertions(+), 36 deletions(-)
 
-diff -puN arch/Kconfig~kexec_file-add-support-for-purgatory-built-as-pie arch/Kconfig
---- a/arch/Kconfig~kexec_file-add-support-for-purgatory-built-as-pie
-+++ a/arch/Kconfig
-@@ -5,6 +5,17 @@
- config KEXEC_CORE
- 	bool
+diff -puN arch/powerpc/Kconfig~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/Kconfig
+@@ -489,7 +489,7 @@ config CRASH_DUMP
  
-+config HAVE_KEXEC_FILE_PIE_PURGATORY
-+	bool
-+	help
-+	  By default, the purgatory binary is built as a relocatable
-+	  object, but on some architectures it might be an advantage
-+	  to build it as a Position Independent Executable to reduce
-+	  the types of relocation that have to be dealt with.
-+
-+	  If an architecture builds a PIE purgatory it should select
-+	  this symbol.
-+
- config OPROFILE
- 	tristate "OProfile system profiling"
- 	depends on PROFILING
-diff -puN include/linux/kexec.h~kexec_file-add-support-for-purgatory-built-as-pie include/linux/kexec.h
---- a/include/linux/kexec.h~kexec_file-add-support-for-purgatory-built-as-pie
-+++ a/include/linux/kexec.h
-@@ -112,6 +112,10 @@ struct compat_kexec_segment {
- #endif
+ config FA_DUMP
+ 	bool "Firmware-assisted dump"
+-	depends on PPC64 && PPC_RTAS && CRASH_DUMP && KEXEC
++	depends on PPC64 && PPC_RTAS && CRASH_DUMP && KEXEC_CORE
+ 	help
+ 	  A robust mechanism to get reliable kernel crash dump with
+ 	  assistance from firmware. This approach does not use kexec,
+diff -puN arch/powerpc/include/asm/debug.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/debug.h
+--- a/arch/powerpc/include/asm/debug.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/debug.h
+@@ -10,7 +10,7 @@ struct pt_regs;
  
- #ifdef CONFIG_KEXEC_FILE
-+#ifndef PURGATORY_ELF_TYPE
-+#define PURGATORY_ELF_TYPE ET_REL
-+#endif
-+
- struct purgatory_info {
- 	/* Pointer to elf header of read only purgatory */
- 	Elf_Ehdr *ehdr;
-diff -puN kernel/kexec_file.c~kexec_file-add-support-for-purgatory-built-as-pie kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec_file-add-support-for-purgatory-built-as-pie
-+++ a/kernel/kexec_file.c
-@@ -633,68 +633,139 @@ out:
- 	return ret;
- }
+ extern struct dentry *powerpc_debugfs_root;
  
--/* Actually load purgatory. Lot of code taken from kexec-tools */
--static int __kexec_load_purgatory(struct kimage *image, unsigned long min,
--				  unsigned long max, int top_down)
-+#ifdef CONFIG_HAVE_KEXEC_FILE_PIE_PURGATORY
-+/*
-+ * Load position independent executable purgatory using program header
-+ * information.
-+ */
-+static int __kexec_really_load_purgatory(const Elf_Ehdr *ehdr,
-+					 Elf_Shdr *sechdrs,
-+					 struct kexec_buf *kbuf,
-+					 unsigned long *entry_addr)
- {
--	struct purgatory_info *pi = &image->purgatory_info;
--	unsigned long align, bss_align, bss_sz, bss_pad;
--	unsigned long entry, load_addr, curr_load_addr, bss_addr, offset;
--	unsigned char *buf_addr, *src;
--	int i, ret = 0, entry_sidx = -1;
--	const Elf_Shdr *sechdrs_c;
--	Elf_Shdr *sechdrs = NULL;
--	struct kexec_buf kbuf = { .image = image, .bufsz = 0, .buf_align = 1,
--				  .buf_min = min, .buf_max = max,
--				  .top_down = top_down };
-+	int ret;
-+	unsigned long entry, dst_mem;
-+	void *dst;
-+	const Elf_Phdr *phdr, *first_load_seg = NULL, *last_load_seg = NULL;
-+	const Elf_Phdr *prev_load_seg;
-+	const Elf_Phdr *phdrs = (const void *) ehdr + ehdr->e_phoff;
-+
-+	/* Determine how much memory is needed to load the executable. */
-+	for (phdr = phdrs; phdr < phdrs + ehdr->e_phnum; phdr++) {
-+		if (phdr->p_type != PT_LOAD)
-+			continue;
+-#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC_CORE)
  
--	/*
--	 * sechdrs_c points to section headers in purgatory and are read
--	 * only. No modifications allowed.
--	 */
--	sechdrs_c = (void *)pi->ehdr + pi->ehdr->e_shoff;
-+		if (!first_load_seg)
-+			first_load_seg = phdr;
+ extern int (*__debugger)(struct pt_regs *regs);
+ extern int (*__debugger_ipi)(struct pt_regs *regs);
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -53,7 +53,7 @@
  
--	/*
--	 * We can not modify sechdrs_c[] and its fields. It is read only.
--	 * Copy it over to a local copy where one can store some temporary
--	 * data and free it at the end. We need to modify ->sh_addr and
--	 * ->sh_offset fields to keep track of permanent and temporary
--	 * locations of sections.
--	 */
--	sechdrs = vzalloc(pi->ehdr->e_shnum * sizeof(Elf_Shdr));
--	if (!sechdrs)
--		return -ENOMEM;
-+		if (kbuf->buf_align < phdr->p_align)
-+			kbuf->buf_align = phdr->p_align;
+ typedef void (*crash_shutdown_t)(void);
  
--	memcpy(sechdrs, sechdrs_c, pi->ehdr->e_shnum * sizeof(Elf_Shdr));
-+		last_load_seg = phdr;
-+	}
- 
--	/*
--	 * We seem to have multiple copies of sections. First copy is which
--	 * is embedded in kernel in read only section. Some of these sections
--	 * will be copied to a temporary buffer and relocated. And these
--	 * sections will finally be copied to their final destination at
--	 * segment load time.
--	 *
--	 * Use ->sh_offset to reflect section address in memory. It will
--	 * point to original read only copy if section is not allocatable.
--	 * Otherwise it will point to temporary copy which will be relocated.
--	 *
--	 * Use ->sh_addr to contain final address of the section where it
--	 * will go during execution time.
--	 */
--	for (i = 0; i < pi->ehdr->e_shnum; i++) {
--		if (sechdrs[i].sh_type == SHT_NOBITS)
-+	kbuf->memsz = kbuf->bufsz = last_load_seg->p_paddr +
-+					    last_load_seg->p_memsz -
-+					    first_load_seg->p_paddr +
-+					    first_load_seg->p_offset;
-+
-+	/* Allocate buffer for purgatory. */
-+	kbuf->buffer = vzalloc(kbuf->bufsz);
-+	if (!kbuf->buffer) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* Add buffer to segment list. */
-+	ret = kexec_add_buffer(kbuf);
-+	if (ret)
-+		goto out;
-+
-+	/* Load executable. */
-+	prev_load_seg = NULL;
-+	entry = ehdr->e_entry;
-+	dst = kbuf->buffer;
-+	dst_mem = kbuf->mem;
-+	for (phdr = phdrs; phdr < phdrs + ehdr->e_phnum; phdr++) {
-+		const void *src;
-+		int i;
-+		unsigned long p_offset;
-+
-+		if (phdr->p_type != PT_LOAD)
- 			continue;
- 
--		sechdrs[i].sh_offset = (unsigned long)pi->ehdr +
--						sechdrs[i].sh_offset;
-+		if (!prev_load_seg)
-+			p_offset = phdr->p_offset;
-+		else
-+			p_offset = phdr->p_paddr - prev_load_seg->p_paddr;
-+
-+		src = (const void *) ehdr + phdr->p_offset;
-+		dst += p_offset;
-+		dst_mem += p_offset;
-+		memcpy(dst, src, phdr->p_filesz);
-+
-+		/*
-+		 * If the entry point is in this segment, find its final
-+		 * location in memory.
-+		 */
-+		if (entry >= phdr->p_paddr &&
-+		    entry < phdr->p_paddr + phdr->p_memsz)
-+			entry = dst_mem + entry - phdr->p_paddr;
-+
-+		/*
-+		 * Find sections within this segment and update their
-+		 * ->sh_offset to point to within the buffer.
-+		 */
-+		for (i = 0; i < ehdr->e_shnum; i++) {
-+			Elf_Shdr *sechdr = &sechdrs[i];
-+			Elf_Addr start = sechdr->sh_addr;
-+			Elf_Addr size = sechdr->sh_size;
-+
-+			if (!(sechdr->sh_flags & SHF_ALLOC))
-+				continue;
-+
-+			if (start >= phdr->p_paddr &&
-+			    start + size <= phdr->p_paddr + phdr->p_memsz) {
-+				unsigned long s_offset = start - phdr->p_paddr;
-+				void *p = dst + s_offset;
-+
-+				sechdr->sh_addr = dst_mem + s_offset;
-+				sechdr->sh_offset = (unsigned long long) p;
-+			}
-+		}
-+
-+		prev_load_seg = phdr;
- 	}
- 
-+	*entry_addr = entry;
-+
-+	return 0;
-+out:
-+	vfree(kbuf->buffer);
-+
-+	return ret;
-+}
-+#else /* CONFIG_HAVE_KEXEC_FILE_PIE_PURGATORY */
-+/*
-+ * Load relocatable object purgatory using the section header information.
-+ * A lot of code taken from kexec-tools.
-+ */
-+static int __kexec_really_load_purgatory(const Elf_Ehdr *ehdr,
-+					 Elf_Shdr *sechdrs,
-+					 struct kexec_buf *kbuf,
-+					 unsigned long *entry_addr)
-+{
-+	unsigned long align, bss_align, bss_sz, bss_pad;
-+	unsigned long entry, load_addr, curr_load_addr, bss_addr, offset;
-+	unsigned char *buf_addr, *src;
-+	int i, ret, entry_sidx = -1;
-+
- 	/*
- 	 * Identify entry point section and make entry relative to section
- 	 * start.
- 	 */
--	entry = pi->ehdr->e_entry;
--	for (i = 0; i < pi->ehdr->e_shnum; i++) {
-+	entry = ehdr->e_entry;
-+	for (i = 0; i < ehdr->e_shnum; i++) {
- 		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
- 			continue;
- 
-@@ -702,9 +773,9 @@ static int __kexec_load_purgatory(struct
- 			continue;
- 
- 		/* Make entry section relative */
--		if (sechdrs[i].sh_addr <= pi->ehdr->e_entry &&
-+		if (sechdrs[i].sh_addr <= ehdr->e_entry &&
- 		    ((sechdrs[i].sh_addr + sechdrs[i].sh_size) >
--		     pi->ehdr->e_entry)) {
-+		     ehdr->e_entry)) {
- 			entry_sidx = i;
- 			entry -= sechdrs[i].sh_addr;
- 			break;
-@@ -715,16 +786,16 @@ static int __kexec_load_purgatory(struct
- 	bss_align = 1;
- 	bss_sz = 0;
- 
--	for (i = 0; i < pi->ehdr->e_shnum; i++) {
-+	for (i = 0; i < ehdr->e_shnum; i++) {
- 		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
- 			continue;
- 
- 		align = sechdrs[i].sh_addralign;
- 		if (sechdrs[i].sh_type != SHT_NOBITS) {
--			if (kbuf.buf_align < align)
--				kbuf.buf_align = align;
--			kbuf.bufsz = ALIGN(kbuf.bufsz, align);
--			kbuf.bufsz += sechdrs[i].sh_size;
-+			if (kbuf->buf_align < align)
-+				kbuf->buf_align = align;
-+			kbuf->bufsz = ALIGN(kbuf->bufsz, align);
-+			kbuf->bufsz += sechdrs[i].sh_size;
- 		} else {
- 			/* bss section */
- 			if (bss_align < align)
-@@ -736,33 +807,32 @@ static int __kexec_load_purgatory(struct
- 
- 	/* Determine the bss padding required to align bss properly */
- 	bss_pad = 0;
--	if (kbuf.bufsz & (bss_align - 1))
--		bss_pad = bss_align - (kbuf.bufsz & (bss_align - 1));
-+	if (kbuf->bufsz & (bss_align - 1))
-+		bss_pad = bss_align - (kbuf->bufsz & (bss_align - 1));
- 
--	kbuf.memsz = kbuf.bufsz + bss_pad + bss_sz;
-+	kbuf->memsz = kbuf->bufsz + bss_pad + bss_sz;
- 
- 	/* Allocate buffer for purgatory */
--	kbuf.buffer = vzalloc(kbuf.bufsz);
--	if (!kbuf.buffer) {
-+	kbuf->buffer = vzalloc(kbuf->bufsz);
-+	if (!kbuf->buffer) {
- 		ret = -ENOMEM;
- 		goto out;
- 	}
- 
--	if (kbuf.buf_align < bss_align)
--		kbuf.buf_align = bss_align;
-+	if (kbuf->buf_align < bss_align)
-+		kbuf->buf_align = bss_align;
- 
- 	/* Add buffer to segment list */
--	ret = kexec_add_buffer(&kbuf);
-+	ret = kexec_add_buffer(kbuf);
- 	if (ret)
- 		goto out;
--	pi->purgatory_load_addr = kbuf.mem;
- 
- 	/* Load SHF_ALLOC sections */
--	buf_addr = kbuf.buffer;
--	load_addr = curr_load_addr = pi->purgatory_load_addr;
--	bss_addr = load_addr + kbuf.bufsz + bss_pad;
-+	buf_addr = kbuf->buffer;
-+	load_addr = curr_load_addr = kbuf->mem;
-+	bss_addr = load_addr + kbuf->bufsz + bss_pad;
- 
--	for (i = 0; i < pi->ehdr->e_shnum; i++) {
-+	for (i = 0; i < ehdr->e_shnum; i++) {
- 		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
- 			continue;
- 
-@@ -796,8 +866,76 @@ static int __kexec_load_purgatory(struct
- 	if (entry_sidx >= 0)
- 		entry += sechdrs[entry_sidx].sh_addr;
- 
--	/* Make kernel jump to purgatory after shutdown */
--	image->start = entry;
-+	*entry_addr = entry;
-+
-+	return 0;
-+out:
-+	vfree(kbuf->buffer);
-+
-+	return ret;
-+}
-+#endif /* CONFIG_HAVE_KEXEC_FILE_PIE_PURGATORY */
-+
-+/*
-+ * Adjust the section headers to point to the temporary copy of their contents
-+ * and load the purgatory binary.
-+ */
-+static int __kexec_load_purgatory(struct kimage *image, unsigned long min,
-+				  unsigned long max, int top_down)
-+{
-+	struct purgatory_info *pi = &image->purgatory_info;
-+	const Elf_Shdr *sechdrs_c;
-+	Elf_Shdr *sechdrs;
-+	int i, ret;
-+	struct kexec_buf kbuf = { .image = image, .buf_align = 1,
-+				  .buf_min = min, .buf_max = max,
-+				  .top_down = top_down };
-+
-+	/*
-+	 * sechdrs_c points to section headers in purgatory and are read
-+	 * only. No modifications allowed.
-+	 */
-+	sechdrs_c = (void *)pi->ehdr + pi->ehdr->e_shoff;
-+
-+	/*
-+	 * We can not modify sechdrs_c[] and its fields. It is read only.
-+	 * Copy it over to a local copy where one can store some temporary
-+	 * data and free it at the end. We need to modify ->sh_addr and
-+	 * ->sh_offset fields to keep track of permanent and temporary
-+	 * locations of sections.
-+	 */
-+	sechdrs = vzalloc(pi->ehdr->e_shnum * sizeof(Elf_Shdr));
-+	if (!sechdrs)
-+		return -ENOMEM;
-+
-+	memcpy(sechdrs, sechdrs_c, pi->ehdr->e_shnum * sizeof(Elf_Shdr));
-+
-+	/*
-+	 * We seem to have multiple copies of sections. First copy is which
-+	 * is embedded in kernel in read only section. Some of these sections
-+	 * will be copied to a temporary buffer and relocated. And these
-+	 * sections will finally be copied to their final destination at
-+	 * segment load time.
-+	 *
-+	 * Use ->sh_offset to reflect section address in memory. It will
-+	 * point to original read only copy if section is not allocatable.
-+	 * Otherwise it will point to temporary copy which will be relocated.
-+	 *
-+	 * Use ->sh_addr to contain final address of the section where it
-+	 * will go during execution time.
-+	 */
-+	for (i = 0; i < pi->ehdr->e_shnum; i++) {
-+		if (sechdrs[i].sh_type == SHT_NOBITS)
-+			continue;
-+
-+		sechdrs[i].sh_offset = (unsigned long)pi->ehdr +
-+						sechdrs[i].sh_offset;
-+	}
-+
-+	ret = __kexec_really_load_purgatory(pi->ehdr, sechdrs, &kbuf,
-+					    &image->start);
-+	if (ret)
-+		goto out;
- 
- 	/* Used later to get/set symbol values */
- 	pi->sechdrs = sechdrs;
-@@ -807,10 +945,12 @@ static int __kexec_load_purgatory(struct
- 	 * from checksumming.
- 	 */
- 	pi->purgatory_buf = kbuf.buffer;
--	return ret;
-+	pi->purgatory_load_addr = kbuf.mem;
-+
-+	return 0;
- out:
- 	vfree(sechdrs);
--	vfree(kbuf.buffer);
-+
- 	return ret;
- }
- 
-@@ -886,7 +1026,7 @@ int kexec_load_purgatory(struct kimage *
- 	pi->ehdr = (Elf_Ehdr *)kexec_purgatory;
- 
- 	if (memcmp(pi->ehdr->e_ident, ELFMAG, SELFMAG) != 0
--	    || pi->ehdr->e_type != ET_REL
-+	    || pi->ehdr->e_type != PURGATORY_ELF_TYPE
- 	    || !elf_check_arch(pi->ehdr)
- 	    || pi->ehdr->e_shentsize != sizeof(Elf_Shdr))
- 		return -ENOEXEC;
-@@ -915,6 +1055,28 @@ out:
- 	return ret;
- }
- 
-+/**
-+ * sym_value_offset - return symbol value as a section-relative offset
-+ *
-+ * In position-independent executables the symbol value is an absolute address,
-+ * so convert it to a section-relative offset. In relocatable objects the symbol
-+ * value already is a section-relative offset.
-+ */
-+static Elf_Addr sym_value_offset(struct purgatory_info *pi, Elf_Sym *sym)
-+{
-+	Elf_Addr base_addr;
-+
-+	if (IS_ENABLED(CONFIG_HAVE_KEXEC_FILE_PIE_PURGATORY)) {
-+		const Elf_Shdr *sechdrs_c;
-+
-+		sechdrs_c = (const void *) pi->ehdr + pi->ehdr->e_shoff;
-+		base_addr = sechdrs_c[sym->st_shndx].sh_addr;
-+	} else
-+		base_addr = 0;
-+
-+	return sym->st_value - base_addr;
-+}
-+
- static Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
- 					    const char *name)
- {
-@@ -979,7 +1141,7 @@ void *kexec_purgatory_get_symbol_addr(st
- 	 * Returns the address where symbol will finally be loaded after
- 	 * kexec_load_segment()
- 	 */
--	return (void *)(sechdr->sh_addr + sym->st_value);
-+	return (void *)(sechdr->sh_addr + sym_value_offset(pi, sym));
- }
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
  
  /*
-@@ -1013,7 +1175,7 @@ int kexec_purgatory_get_set_symbol(struc
+  * This function is responsible for capturing register states if coming
+@@ -91,7 +91,7 @@ static inline bool kdump_in_progress(voi
+ 	return crashing_cpu >= 0;
+ }
+ 
+-#else /* !CONFIG_KEXEC */
++#else /* !CONFIG_KEXEC_CORE */
+ static inline void crash_kexec_secondary(struct pt_regs *regs) { }
+ 
+ static inline int overlaps_crashkernel(unsigned long start, unsigned long size)
+@@ -116,7 +116,7 @@ static inline bool kdump_in_progress(voi
+ 	return false;
+ }
+ 
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ #endif /* ! __ASSEMBLY__ */
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_KEXEC_H */
+diff -puN arch/powerpc/include/asm/machdep.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/machdep.h
+--- a/arch/powerpc/include/asm/machdep.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/machdep.h
+@@ -183,7 +183,7 @@ struct machdep_calls {
+ 	 */
+ 	void (*machine_shutdown)(void);
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	void (*kexec_cpu_down)(int crash_shutdown, int secondary);
+ 
+ 	/* Called to do what every setup is needed on image and the
+@@ -198,7 +198,7 @@ struct machdep_calls {
+ 	 * no return.
+ 	 */
+ 	void (*machine_kexec)(struct kimage *image);
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ 
+ #ifdef CONFIG_SUSPEND
+ 	/* These are called to disable and enable, respectively, IRQs when
+diff -puN arch/powerpc/include/asm/smp.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/smp.h
+--- a/arch/powerpc/include/asm/smp.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/smp.h
+@@ -176,7 +176,7 @@ static inline void set_hard_smp_processo
+ #endif /* !CONFIG_SMP */
+ #endif /* !CONFIG_PPC64 */
+ 
+-#if defined(CONFIG_PPC64) && (defined(CONFIG_SMP) || defined(CONFIG_KEXEC))
++#if defined(CONFIG_PPC64) && (defined(CONFIG_SMP) || defined(CONFIG_KEXEC_CORE))
+ extern void smp_release_cpus(void);
+ #else
+ static inline void smp_release_cpus(void) { };
+diff -puN arch/powerpc/kernel/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/Makefile
+@@ -107,7 +107,7 @@ pci64-$(CONFIG_PPC64)		+= pci_dn.o pci-h
+ obj-$(CONFIG_PCI)		+= pci_$(BITS).o $(pci64-y) \
+ 				   pci-common.o pci_of_scan.o
+ obj-$(CONFIG_PCI_MSI)		+= msi.o
+-obj-$(CONFIG_KEXEC)		+= machine_kexec.o crash.o \
++obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(BITS).o
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ obj64-$(CONFIG_AUDIT)		+= compat_audit.o
+@@ -128,7 +128,7 @@ obj64-$(CONFIG_PPC_TRANSACTIONAL_MEM)	+=
+ obj-$(CONFIG_PPC64)		+= $(obj64-y)
+ obj-$(CONFIG_PPC32)		+= $(obj32-y)
+ 
+-ifneq ($(CONFIG_XMON)$(CONFIG_KEXEC),)
++ifneq ($(CONFIG_XMON)$(CONFIG_KEXEC_CORE),)
+ obj-y				+= ppc_save_regs.o
+ endif
+ 
+diff -puN arch/powerpc/kernel/head_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/head_64.S
+--- a/arch/powerpc/kernel/head_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/head_64.S
+@@ -153,7 +153,7 @@ __secondary_hold:
+ 	cmpdi	0,r12,0
+ 	beq	100b
+ 
+-#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC_CORE)
+ #ifdef CONFIG_PPC_BOOK3E
+ 	tovirt(r12,r12)
+ #endif
+diff -puN arch/powerpc/kernel/misc_32.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/misc_32.S
+--- a/arch/powerpc/kernel/misc_32.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/misc_32.S
+@@ -614,7 +614,7 @@ _GLOBAL(start_secondary_resume)
+ _GLOBAL(__main)
+ 	blr
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	/*
+ 	 * Must be relocatable PIC code callable as a C function.
+ 	 */
+diff -puN arch/powerpc/kernel/misc_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/misc_64.S
+--- a/arch/powerpc/kernel/misc_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/misc_64.S
+@@ -478,7 +478,7 @@ _GLOBAL(kexec_wait)
+ 	addi	r5,r5,kexec_flag-1b
+ 
+ 99:	HMT_LOW
+-#ifdef CONFIG_KEXEC		/* use no memory without kexec */
++#ifdef CONFIG_KEXEC_CORE	/* use no memory without kexec */
+ 	lwz	r4,0(r5)
+ 	cmpwi	0,r4,0
+ 	beq	99b
+@@ -503,7 +503,7 @@ kexec_flag:
+ 	.long	0
+ 
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ #ifdef CONFIG_PPC_BOOK3E
+ /*
+  * BOOK3E has no real MMU mode, so we have to setup the initial TLB
+@@ -716,4 +716,4 @@ _GLOBAL(kexec_sequence)
+ 	mtlr	4
+ 	li	r5,0
+ 	blr	/* image->start(physid, image->start, 0); */
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+diff -puN arch/powerpc/kernel/prom.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/prom.c
+--- a/arch/powerpc/kernel/prom.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/prom.c
+@@ -427,7 +427,7 @@ static int __init early_init_dt_scan_cho
+ 		tce_alloc_end = *lprop;
+ #endif
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	lprop = of_get_flat_dt_prop(node, "linux,crashkernel-base", NULL);
+ 	if (lprop)
+ 		crashk_res.start = *lprop;
+diff -puN arch/powerpc/kernel/setup_64.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/setup_64.c
+--- a/arch/powerpc/kernel/setup_64.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/setup_64.c
+@@ -346,7 +346,7 @@ void early_setup_secondary(void)
+ 
+ #endif /* CONFIG_SMP */
+ 
+-#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC_CORE)
+ static bool use_spinloop(void)
+ {
+ 	if (!IS_ENABLED(CONFIG_PPC_BOOK3E))
+@@ -391,7 +391,7 @@ void smp_release_cpus(void)
+ 
+ 	DBG(" <- smp_release_cpus()\n");
+ }
+-#endif /* CONFIG_SMP || CONFIG_KEXEC */
++#endif /* CONFIG_SMP || CONFIG_KEXEC_CORE */
+ 
+ /*
+  * Initialize some remaining members of the ppc64_caches and systemcfg
+diff -puN arch/powerpc/kernel/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/smp.c
+--- a/arch/powerpc/kernel/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/smp.c
+@@ -193,7 +193,7 @@ int smp_request_message_ipi(int virq, in
+ 	if (msg < 0 || msg > PPC_MSG_DEBUGGER_BREAK) {
+ 		return -EINVAL;
  	}
+-#if !defined(CONFIG_DEBUGGER) && !defined(CONFIG_KEXEC)
++#if !defined(CONFIG_DEBUGGER) && !defined(CONFIG_KEXEC_CORE)
+ 	if (msg == PPC_MSG_DEBUGGER_BREAK) {
+ 		return 1;
+ 	}
+@@ -325,7 +325,7 @@ void tick_broadcast(const struct cpumask
+ }
+ #endif
  
- 	sym_buf = (unsigned char *)sechdrs[sym->st_shndx].sh_offset +
--					sym->st_value;
-+					sym_value_offset(pi, sym);
+-#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC_CORE)
+ void smp_send_debugger_break(void)
+ {
+ 	int cpu;
+@@ -340,7 +340,7 @@ void smp_send_debugger_break(void)
+ }
+ #endif
  
- 	if (get_value)
- 		memcpy((void *)buf, sym_buf, size);
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ void crash_send_ipi(void (*crash_ipi_callback)(struct pt_regs *))
+ {
+ 	crash_ipi_function_ptr = crash_ipi_callback;
+diff -puN arch/powerpc/kernel/traps.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/traps.c
+--- a/arch/powerpc/kernel/traps.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/traps.c
+@@ -65,7 +65,7 @@
+ #include <asm/hmi.h>
+ #include <sysdev/fsl_pci.h>
+ 
+-#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC_CORE)
+ int (*__debugger)(struct pt_regs *regs) __read_mostly;
+ int (*__debugger_ipi)(struct pt_regs *regs) __read_mostly;
+ int (*__debugger_bpt)(struct pt_regs *regs) __read_mostly;
+diff -puN arch/powerpc/platforms/85xx/corenet_generic.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/85xx/corenet_generic.c
+--- a/arch/powerpc/platforms/85xx/corenet_generic.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/85xx/corenet_generic.c
+@@ -220,7 +220,7 @@ define_machine(corenet_generic) {
+  *
+  * Likewise, problems have been seen with kexec when coreint is enabled.
+  */
+-#if defined(CONFIG_HOTPLUG_CPU) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_HOTPLUG_CPU) || defined(CONFIG_KEXEC_CORE)
+ 	.get_irq		= mpic_get_irq,
+ #else
+ 	.get_irq		= mpic_get_coreint_irq,
+diff -puN arch/powerpc/platforms/85xx/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/85xx/smp.c
+--- a/arch/powerpc/platforms/85xx/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/85xx/smp.c
+@@ -349,13 +349,13 @@ struct smp_ops_t smp_85xx_ops = {
+ 	.cpu_disable	= generic_cpu_disable,
+ 	.cpu_die	= generic_cpu_die,
+ #endif
+-#if defined(CONFIG_KEXEC) && !defined(CONFIG_PPC64)
++#if defined(CONFIG_KEXEC_CORE) && !defined(CONFIG_PPC64)
+ 	.give_timebase	= smp_generic_give_timebase,
+ 	.take_timebase	= smp_generic_take_timebase,
+ #endif
+ };
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ #ifdef CONFIG_PPC32
+ atomic_t kexec_down_cpus = ATOMIC_INIT(0);
+ 
+@@ -458,7 +458,7 @@ static void mpc85xx_smp_machine_kexec(st
+ 
+ 	default_machine_kexec(image);
+ }
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ 
+ static void smp_85xx_basic_setup(int cpu_nr)
+ {
+@@ -512,7 +512,7 @@ void __init mpc85xx_smp_init(void)
+ #endif
+ 	smp_ops = &smp_85xx_ops;
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	ppc_md.kexec_cpu_down = mpc85xx_smp_kexec_cpu_down;
+ 	ppc_md.machine_kexec = mpc85xx_smp_machine_kexec;
+ #endif
+diff -puN arch/powerpc/platforms/cell/spu_base.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/cell/spu_base.c
+--- a/arch/powerpc/platforms/cell/spu_base.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/cell/spu_base.c
+@@ -676,7 +676,7 @@ static ssize_t spu_stat_show(struct devi
+ 
+ static DEVICE_ATTR(stat, 0444, spu_stat_show, NULL);
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 
+ struct crash_spu_info {
+ 	struct spu *spu;
+diff -puN arch/powerpc/platforms/powernv/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/powernv/setup.c
+--- a/arch/powerpc/platforms/powernv/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/powernv/setup.c
+@@ -174,7 +174,7 @@ static void pnv_shutdown(void)
+ 	opal_shutdown();
+ }
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ static void pnv_kexec_wait_secondaries_down(void)
+ {
+ 	int my_cpu, i, notified = -1;
+@@ -245,7 +245,7 @@ static void pnv_kexec_cpu_down(int crash
+ 		opal_reinit_cpus(OPAL_REINIT_CPUS_HILE_BE);
+ 	}
+ }
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ static unsigned long pnv_memory_block_size(void)
+@@ -311,7 +311,7 @@ define_machine(powernv) {
+ 	.machine_shutdown	= pnv_shutdown,
+ 	.power_save             = NULL,
+ 	.calibrate_decr		= generic_calibrate_decr,
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	.kexec_cpu_down		= pnv_kexec_cpu_down,
+ #endif
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+diff -puN arch/powerpc/platforms/ps3/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/ps3/setup.c
+--- a/arch/powerpc/platforms/ps3/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/ps3/setup.c
+@@ -250,7 +250,7 @@ static int __init ps3_probe(void)
+ 	return 1;
+ }
+ 
+-#if defined(CONFIG_KEXEC)
++#if defined(CONFIG_KEXEC_CORE)
+ static void ps3_kexec_cpu_down(int crash_shutdown, int secondary)
+ {
+ 	int cpu = smp_processor_id();
+@@ -276,7 +276,7 @@ define_machine(ps3) {
+ 	.progress			= ps3_progress,
+ 	.restart			= ps3_restart,
+ 	.halt				= ps3_halt,
+-#if defined(CONFIG_KEXEC)
++#if defined(CONFIG_KEXEC_CORE)
+ 	.kexec_cpu_down			= ps3_kexec_cpu_down,
+ #endif
+ };
+diff -puN arch/powerpc/platforms/pseries/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/pseries/Makefile
+--- a/arch/powerpc/platforms/pseries/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/pseries/Makefile
+@@ -8,7 +8,7 @@ obj-y			:= lpar.o hvCall.o nvram.o recon
+ 			   pci.o pci_dlpar.o eeh_pseries.o msi.o
+ obj-$(CONFIG_SMP)	+= smp.o
+ obj-$(CONFIG_SCANLOG)	+= scanlog.o
+-obj-$(CONFIG_KEXEC)	+= kexec.o
++obj-$(CONFIG_KEXEC_CORE)	+= kexec.o
+ obj-$(CONFIG_PSERIES_ENERGY)	+= pseries_energy.o
+ 
+ obj-$(CONFIG_HOTPLUG_CPU)	+= hotplug-cpu.o
+diff -puN arch/powerpc/platforms/pseries/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/pseries/setup.c
+--- a/arch/powerpc/platforms/pseries/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/pseries/setup.c
+@@ -367,7 +367,7 @@ void pseries_disable_reloc_on_exc(void)
+ }
+ EXPORT_SYMBOL(pseries_disable_reloc_on_exc);
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ static void pSeries_machine_kexec(struct kimage *image)
+ {
+ 	if (firmware_has_feature(FW_FEATURE_SET_MODE))
+@@ -725,7 +725,7 @@ define_machine(pseries) {
+ 	.progress		= rtas_progress,
+ 	.system_reset_exception = pSeries_system_reset_exception,
+ 	.machine_check_exception = pSeries_machine_check_exception,
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	.machine_kexec          = pSeries_machine_kexec,
+ 	.kexec_cpu_down         = pseries_kexec_cpu_down,
+ #endif
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
