@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ima-on-soft-reboot-restore-the-measurement-list.patch added to
- -mm tree
-Date: Tue, 15 Nov 2016 16:55:04 -0800
-Message-ID: <582bae68.Ncxq1JJ5B4pU0l8t%akpm@linux-foundation.org>
+Subject: + powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+ added to -mm tree
+Date: Tue, 15 Nov 2016 16:55:14 -0800
+Message-ID: <582bae72.7jAKroDI2hJiv5Sb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36598 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933145AbcKPA4n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:56:43 -0500
+        with ESMTP id S933205AbcKPA5W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:57:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: on soft reboot, restore the measurement list
+     Subject: powerpc: ima: send the kexec buffer to the next kernel
 has been added to the -mm tree.  Its filename is
-     ima-on-soft-reboot-restore-the-measurement-list.patch
+     powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +40,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: on soft reboot, restore the measurement list
+Subject: powerpc: ima: send the kexec buffer to the next kernel
 
-The TPM PCRs are only reset on a hard reboot.  In order to validate a
-TPM's quote after a soft reboot (eg. kexec -e), the IMA measurement list
-of the running kernel must be saved and restored on boot.  This patch
-restores the measurement list.
 
-Link: http://lkml.kernel.org/r/1478789780-17719-3-git-send-email-zohar@linux.vnet.ibm.com
+The IMA kexec buffer allows the currently running kernel to pass
+the measurement list via a kexec segment to the kernel that will be
+kexec'd.
+
+This is the architecture-specific part of setting up the IMA kexec
+buffer for the next kernel. It will be used in the next patch.
+
+Link: http://lkml.kernel.org/r/1478789780-17719-6-git-send-email-zohar@linux.vnet.ibm.com
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -60,346 +64,225 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
-Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/Makefile       |    1 
- security/integrity/ima/ima.h          |   21 ++
- security/integrity/ima/ima_init.c     |    2 
- security/integrity/ima/ima_kexec.c    |   44 +++++
- security/integrity/ima/ima_queue.c    |   10 +
- security/integrity/ima/ima_template.c |  177 ++++++++++++++++++++++++
- 6 files changed, 255 insertions(+)
+ arch/powerpc/include/asm/ima.h              |   16 +++
+ arch/powerpc/include/asm/kexec.h            |   14 ++
+ arch/powerpc/kernel/ima_kexec.c             |   91 ++++++++++++++++++
+ arch/powerpc/kernel/kexec_elf_64.c          |    2 
+ arch/powerpc/kernel/machine_kexec_file_64.c |   12 +-
+ 5 files changed, 129 insertions(+), 6 deletions(-)
 
-diff -puN security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/Makefile
---- a/security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/Makefile
-@@ -8,4 +8,5 @@ obj-$(CONFIG_IMA) += ima.o
- ima-y := ima_fs.o ima_queue.o ima_init.o ima_main.o ima_crypto.o ima_api.o \
- 	 ima_policy.o ima_template.o ima_template_lib.o
- ima-$(CONFIG_IMA_APPRAISE) += ima_appraise.o
-+ima-$(CONFIG_HAVE_IMA_KEXEC) += ima_kexec.o
- obj-$(CONFIG_IMA_BLACKLIST_KEYRING) += ima_mok.o
-diff -puN security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima.h
-@@ -28,6 +28,10 @@
+diff -puN arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/ima.h
+--- a/arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/include/asm/ima.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_POWERPC_IMA_H
+ #define _ASM_POWERPC_IMA_H
  
- #include "../integrity.h"
++struct kimage;
++
+ int ima_get_kexec_buffer(void **addr, size_t *size);
+ int ima_free_kexec_buffer(void);
  
-+#ifdef CONFIG_HAVE_IMA_KEXEC
-+#include <asm/ima.h>
+@@ -10,4 +12,18 @@ void remove_ima_buffer(void *fdt, int ch
+ static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
+ #endif
+ 
++#ifdef CONFIG_IMA_KEXEC
++int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
++			      size_t size);
++
++int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node);
++#else
++static inline int setup_ima_buffer(const struct kimage *image, void *fdt,
++				   int chosen_node)
++{
++	remove_ima_buffer(fdt, chosen_node);
++	return 0;
++}
++#endif /* CONFIG_IMA_KEXEC */
++
+ #endif /* _ASM_POWERPC_IMA_H */
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -96,11 +96,21 @@ static inline bool kdump_in_progress(voi
+ 
+ extern struct kexec_file_ops kexec_elf64_ops;
+ 
++#ifdef CONFIG_IMA_KEXEC
++#define ARCH_HAS_KIMAGE_ARCH
++
++struct kimage_arch {
++	phys_addr_t ima_buffer_addr;
++	size_t ima_buffer_size;
++};
 +#endif
 +
- enum ima_show_type { IMA_SHOW_BINARY, IMA_SHOW_BINARY_NO_FIELD_LEN,
- 		     IMA_SHOW_BINARY_OLD_STRING_FMT, IMA_SHOW_ASCII };
- enum tpm_pcrs { TPM_PCR0 = 0, TPM_PCR8 = 8 };
-@@ -102,6 +106,21 @@ struct ima_queue_entry {
- };
- extern struct list_head ima_measurements;	/* list of all measurements */
+ int setup_purgatory(struct kimage *image, const void *slave_code,
+ 		    const void *fdt, unsigned long kernel_load_addr,
+ 		    unsigned long fdt_load_addr, unsigned long stack_top);
+-int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
+-		  unsigned long initrd_len, const char *cmdline);
++int setup_new_fdt(const struct kimage *image, void *fdt,
++		  unsigned long initrd_load_addr, unsigned long initrd_len,
++		  const char *cmdline);
+ int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
+ #endif /* CONFIG_KEXEC_FILE */
  
-+/* Some details preceding the binary serialized measurement list */
-+struct ima_kexec_hdr {
-+	u16 version;
-+	u16 _reserved0;
-+	u32 _reserved1;
-+	u64 buffer_size;
-+	u64 count;
-+};
-+
-+#ifdef CONFIG_HAVE_IMA_KEXEC
-+void ima_load_kexec_buffer(void);
-+#else
-+static inline void ima_load_kexec_buffer(void) {}
-+#endif /* CONFIG_HAVE_IMA_KEXEC */
-+
- /* Internal IMA function definitions */
- int ima_init(void);
- int ima_fs_init(void);
-@@ -122,6 +141,8 @@ int ima_init_crypto(void);
- void ima_putc(struct seq_file *m, void *data, int datalen);
- void ima_print_digest(struct seq_file *m, u8 *digest, u32 size);
- struct ima_template_desc *ima_template_desc_current(void);
-+int ima_restore_measurement_entry(struct ima_template_entry *entry);
-+int ima_restore_measurement_list(loff_t bufsize, void *buf);
- int ima_init_template(void);
- 
- /*
-diff -puN security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_init.c
---- a/security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_init.c
-@@ -128,6 +128,8 @@ int __init ima_init(void)
- 	if (rc != 0)
- 		return rc;
- 
-+	ima_load_kexec_buffer();
-+
- 	rc = ima_add_boot_aggregate();	/* boot aggregate must be first entry */
- 	if (rc != 0)
- 		return rc;
-diff -puN /dev/null security/integrity/ima/ima_kexec.c
---- /dev/null
-+++ a/security/integrity/ima/ima_kexec.c
-@@ -0,0 +1,44 @@
-+/*
-+ * Copyright (C) 2016 IBM Corporation
-+ *
-+ * Authors:
-+ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-+ * Mimi Zohar <zohar@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include "ima.h"
-+
-+/*
-+ * Restore the measurement list from the previous kernel.
-+ */
-+void ima_load_kexec_buffer(void)
-+{
-+	void *kexec_buffer = NULL;
-+	size_t kexec_buffer_size = 0;
-+	int rc;
-+
-+	rc = ima_get_kexec_buffer(&kexec_buffer, &kexec_buffer_size);
-+	switch (rc) {
-+	case 0:
-+		rc = ima_restore_measurement_list(kexec_buffer_size,
-+						  kexec_buffer);
-+		if (rc != 0)
-+			pr_err("Failed to restore the measurement list: %d\n",
-+				rc);
-+
-+		ima_free_kexec_buffer();
-+		break;
-+	case -ENOTSUPP:
-+		pr_debug("Restoring the measurement list not supported\n");
-+		break;
-+	case -ENOENT:
-+		pr_debug("No measurement list to restore\n");
-+		break;
-+	default:
-+		pr_debug("Error restoring the measurement list: %d\n", rc);
-+	}
-+}
-diff -puN security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_queue.c
---- a/security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_queue.c
-@@ -149,3 +149,13 @@ out:
- 			    op, audit_cause, result, audit_info);
- 	return result;
+diff -puN arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/ima_kexec.c
+--- a/arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/kernel/ima_kexec.c
+@@ -130,3 +130,94 @@ void remove_ima_buffer(void *fdt, int ch
+ 	if (!ret)
+ 		pr_debug("Removed old IMA buffer reservation.\n");
  }
 +
-+int ima_restore_measurement_entry(struct ima_template_entry *entry)
++#ifdef CONFIG_IMA_KEXEC
++/**
++ * arch_ima_add_kexec_buffer - do arch-specific steps to add the IMA buffer
++ *
++ * Architectures should use this function to pass on the IMA buffer
++ * information to the next kernel.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
++			      size_t size)
 +{
-+	int result = 0;
++	image->arch.ima_buffer_addr = load_addr;
++	image->arch.ima_buffer_size = size;
 +
-+	mutex_lock(&ima_extend_list_mutex);
-+	result = ima_add_digest_entry(entry);
-+	mutex_unlock(&ima_extend_list_mutex);
-+	return result;
-+}
-diff -puN security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_template.c
-@@ -37,6 +37,7 @@ static struct ima_template_field support
- 	{.field_id = "sig", .field_init = ima_eventsig_init,
- 	 .field_show = ima_show_template_sig},
- };
-+#define MAX_TEMPLATE_NAME_LEN 15
- 
- static struct ima_template_desc *ima_template;
- static struct ima_template_desc *lookup_template_desc(const char *name);
-@@ -205,3 +206,179 @@ int __init ima_init_template(void)
- 
- 	return result;
- }
-+
-+static int ima_restore_template_data(struct ima_template_desc *template_desc,
-+				     void *template_data,
-+				     int template_data_size,
-+				     struct ima_template_entry **entry)
-+{
-+	struct binary_field_data {
-+		u32 len;
-+		u8 data[0];
-+	} __packed;
-+
-+	struct binary_field_data *field_data;
-+	int offset = 0;
-+	int ret = 0;
-+	int i;
-+
-+	*entry = kzalloc(sizeof(**entry) +
-+		    template_desc->num_fields * sizeof(struct ima_field_data),
-+		    GFP_NOFS);
-+	if (!*entry)
-+		return -ENOMEM;
-+
-+	(*entry)->template_desc = template_desc;
-+	for (i = 0; i < template_desc->num_fields; i++) {
-+		field_data = template_data + offset;
-+
-+		/* Each field of the template data is prefixed with a length. */
-+		if (offset > (template_data_size - sizeof(field_data->len))) {
-+			pr_err("Restoring the template field failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		offset += sizeof(field_data->len);
-+
-+		if (offset > (template_data_size - field_data->len)) {
-+			pr_err("Restoring the template field data failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		offset += field_data->len;
-+
-+		(*entry)->template_data[i].len = field_data->len;
-+		(*entry)->template_data_len += sizeof(field_data->len);
-+
-+		(*entry)->template_data[i].data =
-+			kzalloc(field_data->len + 1, GFP_KERNEL);
-+		if (!(*entry)->template_data[i].data) {
-+			ret = -ENOMEM;
-+			break;
-+		}
-+		memcpy((*entry)->template_data[i].data, field_data->data,
-+			field_data->len);
-+		(*entry)->template_data_len += field_data->len;
-+	}
-+
-+	if (ret < 0) {
-+		ima_free_template_entry(*entry);
-+		*entry = NULL;
-+	}
-+
-+	return ret;
++	return 0;
 +}
 +
-+/* Restore the serialized binary measurement list without extending PCRs. */
-+int ima_restore_measurement_list(loff_t size, void *buf)
++static int write_number(void *p, u64 value, int cells)
 +{
-+	struct binary_hdr_v1 {
-+		u32 pcr;
-+		u8 digest[TPM_DIGEST_SIZE];
-+		u32 template_name_len;
-+		char template_name[0];
-+	} __packed;
-+	char template_name[MAX_TEMPLATE_NAME_LEN];
++	if (cells == 1) {
++		u32 tmp;
 +
-+	struct binary_data_v1 {
-+		u32 template_data_size;
-+		char template_data[0];
-+	} __packed;
++		if (value > U32_MAX)
++			return -EINVAL;
 +
-+	struct ima_kexec_hdr *khdr = buf;
-+	struct binary_hdr_v1 *hdr_v1;
-+	struct binary_data_v1 *data_v1;
++		tmp = cpu_to_be32(value);
++		memcpy(p, &tmp, sizeof(tmp));
++	} else if (cells == 2) {
++		u64 tmp;
 +
-+	void *bufp = buf + sizeof(*khdr);
-+	void *bufendp = buf + khdr->buffer_size;
-+	struct ima_template_entry *entry;
-+	struct ima_template_desc *template_desc;
-+	unsigned long count = 0;
-+	int ret = 0;
++		tmp = cpu_to_be64(value);
++		memcpy(p, &tmp, sizeof(tmp));
++	} else
++		return -EINVAL;
 +
-+	if (!buf || size < sizeof(*khdr))
++	return 0;
++}
++
++/**
++ * setup_ima_buffer - add IMA buffer information to the fdt
++ * @image:		kexec image being loaded.
++ * @fdt:		Flattened device tree for the next kernel.
++ * @chosen_node:	Offset to the chosen node.
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node)
++{
++	int ret, addr_cells, size_cells, entry_size;
++	u8 value[16];
++
++	remove_ima_buffer(fdt, chosen_node);
++	if (!image->arch.ima_buffer_size)
 +		return 0;
 +
-+	if (khdr->version != 1) {
-+		pr_err("attempting to restore a incompatible measurement list");
++	ret = get_addr_size_cells(&addr_cells, &size_cells);
++	if (ret)
++		return ret;
++
++	entry_size = 4 * (addr_cells + size_cells);
++
++	if (entry_size > sizeof(value))
 +		return -EINVAL;
-+	}
 +
-+	if (khdr->count > ULONG_MAX - 1) {
-+		pr_err("attempting to restore too many measurements");
++	ret = write_number(value, image->arch.ima_buffer_addr, addr_cells);
++	if (ret)
++		return ret;
++
++	ret = write_number(value + 4 * addr_cells, image->arch.ima_buffer_size,
++			   size_cells);
++	if (ret)
++		return ret;
++
++	ret = fdt_setprop(fdt, chosen_node, "linux,ima-kexec-buffer", value,
++			  entry_size);
++	if (ret < 0)
 +		return -EINVAL;
-+	}
 +
-+	/*
-+	 * ima kexec buffer prefix: version, buffer size, count
-+	 * v1 format: pcr, digest, template-name-len, template-name,
-+	 *	      template-data-size, template-data
-+	 */
-+	while ((bufp < bufendp) && (count++ < khdr->count)) {
-+		hdr_v1 = bufp;
-+		if (bufp > (bufendp - sizeof(*hdr_v1))) {
-+			pr_err("attempting to restore partial measurement\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		bufp += sizeof(*hdr_v1);
++	ret = fdt_add_mem_rsv(fdt, image->arch.ima_buffer_addr,
++			      image->arch.ima_buffer_size);
++	if (ret)
++		return -EINVAL;
 +
-+		if ((hdr_v1->template_name_len >= MAX_TEMPLATE_NAME_LEN) ||
-+		    (bufp > (bufendp - hdr_v1->template_name_len))) {
-+			pr_err("attempting to restore a template name \
-+				that is too long\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		data_v1 = bufp += (u_int8_t)hdr_v1->template_name_len;
++	pr_debug("IMA buffer at 0x%llx, size = 0x%zx\n",
++		 image->arch.ima_buffer_addr, image->arch.ima_buffer_size);
 +
-+		/* template name is not null terminated */
-+		memcpy(template_name, hdr_v1->template_name,
-+		       hdr_v1->template_name_len);
-+		template_name[hdr_v1->template_name_len] = 0;
-+
-+		if (strcmp(template_name, "ima") == 0) {
-+			pr_err("attempting to restore an unsupported \
-+				template \"%s\" failed\n", template_name);
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		/* get template format */
-+		template_desc = lookup_template_desc(template_name);
-+		if (!template_desc) {
-+			pr_err("template \"%s\" not found\n", template_name);
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (bufp > (bufendp - sizeof(data_v1->template_data_size))) {
-+			pr_err("restoring the template data size failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		bufp += (u_int8_t) sizeof(data_v1->template_data_size);
-+
-+		if (bufp > (bufendp - data_v1->template_data_size)) {
-+			pr_err("restoring the template data failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		bufp += data_v1->template_data_size;
-+
-+		ret = ima_restore_template_data(template_desc,
-+						data_v1->template_data,
-+						data_v1->template_data_size,
-+						&entry);
-+		if (ret < 0)
-+			break;
-+
-+		memcpy(entry->digest, hdr_v1->digest, TPM_DIGEST_SIZE);
-+		entry->pcr = hdr_v1->pcr;
-+		ret = ima_restore_measurement_entry(entry);
-+		if (ret < 0)
-+			break;
-+
-+	}
-+	return ret;
++	return 0;
 +}
++#endif /* CONFIG_IMA_KEXEC */
+diff -puN arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/kexec_elf_64.c
+--- a/arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/kernel/kexec_elf_64.c
+@@ -206,7 +206,7 @@ static void *elf64_load(struct kimage *i
+ 		goto out;
+ 	}
+ 
+-	ret = setup_new_fdt(fdt, initrd_load_addr, initrd_len, cmdline);
++	ret = setup_new_fdt(image, fdt, initrd_load_addr, initrd_len, cmdline);
+ 	if (ret)
+ 		goto out;
+ 
+diff -puN arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/machine_kexec_file_64.c
+--- a/arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/kernel/machine_kexec_file_64.c
+@@ -450,6 +450,7 @@ int delete_fdt_mem_rsv(void *fdt, unsign
+ 
+ /*
+  * setup_new_fdt - modify /chosen and memory reservation for the next kernel
++ * @image:		kexec image being loaded.
+  * @fdt:		Flattened device tree for the next kernel.
+  * @initrd_load_addr:	Address where the next initrd will be loaded.
+  * @initrd_len:		Size of the next initrd, or 0 if there will be none.
+@@ -458,8 +459,9 @@ int delete_fdt_mem_rsv(void *fdt, unsign
+  *
+  * Return: 0 on success, or negative errno on error.
+  */
+-int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
+-		  unsigned long initrd_len, const char *cmdline)
++int setup_new_fdt(const struct kimage *image, void *fdt,
++		  unsigned long initrd_load_addr, unsigned long initrd_len,
++		  const char *cmdline)
+ {
+ 	int ret, chosen_node;
+ 	const void *prop;
+@@ -569,7 +571,11 @@ int setup_new_fdt(void *fdt, unsigned lo
+ 		}
+ 	}
+ 
+-	remove_ima_buffer(fdt, chosen_node);
++	ret = setup_ima_buffer(image, fdt, chosen_node);
++	if (ret) {
++		pr_err("Error setting up the new device tree.\n");
++		return ret;
++	}
+ 
+ 	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
+ 	if (ret) {
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
