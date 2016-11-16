@@ -1,41 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ima-store-the-builtin-custom-template-definitions-in-a-list.patch removed
- from -mm tree
-Date: Tue, 15 Nov 2016 16:38:36 -0800
-Message-ID: <582baa8c.SV8x+jrCXTMLbjBK%akpm@linux-foundation.org>
+ ima-support-restoring-multiple-template-formats.patch removed from -mm tree
+Date: Tue, 15 Nov 2016 16:38:38 -0800
+Message-ID: <582baa8e.lO5yRg+GyVtNetQa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752648AbcKPAjE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:39:04 -0500
+        with ESMTP id S1752648AbcKPAjH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:39:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: store the builtin/custom template definitions in a list
+     Subject: ima: support restoring multiple template formats
 has been removed from the -mm tree.  Its filename was
-     ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+     ima-support-restoring-multiple-template-formats.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: store the builtin/custom template definitions in a list
+Subject: ima: support restoring multiple template formats
 
-The builtin and single custom templates are currently stored in an array. 
-In preparation for being able to restore a measurement list containing
-multiple builtin/custom templates, this patch stores the builtin and
-custom templates as a linked list.  This will permit defining more than
-one custom template per boot.
+The configured IMA measurement list template format can be replaced at
+runtime on the boot command line, including a custom template format. 
+This patch adds support for restoring a measuremement list containing
+multiple builtin/custom template formats.
 
-Link: http://lkml.kernel.org/r/1477017898-10375-8-git-send-email-bauerman@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1477017898-10375-9-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
@@ -46,156 +44,93 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima.h          |    2 
- security/integrity/ima/ima_main.c     |    1 
- security/integrity/ima/ima_template.c |   52 ++++++++++++++++++------
- 3 files changed, 44 insertions(+), 11 deletions(-)
+ security/integrity/ima/ima_template.c |   53 ++++++++++++++++++++++--
+ 1 file changed, 50 insertions(+), 3 deletions(-)
 
-diff -puN security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima.h
-@@ -85,6 +85,7 @@ struct ima_template_field {
- 
- /* IMA template descriptor definition */
- struct ima_template_desc {
-+	struct list_head list;
- 	char *name;
- 	char *fmt;
- 	int num_fields;
-@@ -146,6 +147,7 @@ int ima_restore_measurement_list(loff_t
- int ima_measurements_show(struct seq_file *m, void *v);
- unsigned long ima_get_binary_runtime_size(void);
- int ima_init_template(void);
-+void ima_init_template_list(void);
- 
- /*
-  * used to protect h_table and sha_table
-diff -puN security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_main.c
---- a/security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima_main.c
-@@ -418,6 +418,7 @@ static int __init init_ima(void)
- {
- 	int error;
- 
-+	ima_init_template_list();
- 	hash_setup(CONFIG_IMA_DEFAULT_HASH);
- 	error = ima_init();
- 	if (!error) {
-diff -puN security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list
+diff -puN security/integrity/ima/ima_template.c~ima-support-restoring-multiple-template-formats security/integrity/ima/ima_template.c
+--- a/security/integrity/ima/ima_template.c~ima-support-restoring-multiple-template-formats
 +++ a/security/integrity/ima/ima_template.c
-@@ -15,16 +15,20 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/rculist.h>
- #include "ima.h"
- #include "ima_template_lib.h"
- 
--static struct ima_template_desc defined_templates[] = {
-+static struct ima_template_desc builtin_templates[] = {
- 	{.name = IMA_TEMPLATE_IMA_NAME, .fmt = IMA_TEMPLATE_IMA_FMT},
- 	{.name = "ima-ng", .fmt = "d-ng|n-ng"},
- 	{.name = "ima-sig", .fmt = "d-ng|n-ng|sig"},
- 	{.name = "", .fmt = ""},	/* placeholder for a custom format */
- };
- 
-+static LIST_HEAD(defined_templates);
-+static DEFINE_SPINLOCK(template_list);
-+
- static struct ima_template_field supported_fields[] = {
- 	{.field_id = "d", .field_init = ima_eventdigest_init,
- 	 .field_show = ima_show_template_digest},
-@@ -53,6 +57,8 @@ static int __init ima_template_setup(cha
- 	if (ima_template)
- 		return 1;
- 
-+	ima_init_template_list();
-+
- 	/*
- 	 * Verify that a template with the supplied name exists.
- 	 * If not, use CONFIG_IMA_DEFAULT_TEMPLATE.
-@@ -81,7 +87,7 @@ __setup("ima_template=", ima_template_se
- 
- static int __init ima_template_fmt_setup(char *str)
+@@ -155,9 +155,14 @@ static int template_desc_init_fields(con
  {
--	int num_templates = ARRAY_SIZE(defined_templates);
-+	int num_templates = ARRAY_SIZE(builtin_templates);
+ 	const char *template_fmt_ptr;
+ 	struct ima_template_field *found_fields[IMA_TEMPLATE_NUM_FIELDS_MAX];
+-	int template_num_fields = template_fmt_size(template_fmt);
++	int template_num_fields;
+ 	int i, len;
  
- 	if (ima_template)
- 		return 1;
-@@ -92,22 +98,28 @@ static int __init ima_template_fmt_setup
- 		return 1;
- 	}
- 
--	defined_templates[num_templates - 1].fmt = str;
--	ima_template = defined_templates + num_templates - 1;
-+	builtin_templates[num_templates - 1].fmt = str;
-+	ima_template = builtin_templates + num_templates - 1;
++	if (num_fields && *num_fields > 0) /* already initialized? */
++		return 0;
 +
- 	return 1;
- }
- __setup("ima_template_fmt=", ima_template_fmt_setup);
- 
- static struct ima_template_desc *lookup_template_desc(const char *name)
- {
--	int i;
-+	struct ima_template_desc *template_desc;
-+	int found = 0;
- 
--	for (i = 0; i < ARRAY_SIZE(defined_templates); i++) {
--		if (strcmp(defined_templates[i].name, name) == 0)
--			return defined_templates + i;
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(template_desc, &defined_templates, list) {
-+		if ((strcmp(template_desc->name, name) == 0) ||
-+		    (strcmp(template_desc->fmt, name) == 0)) {
-+			found = 1;
-+			break;
-+		}
- 	}
--
--	return NULL;
-+	rcu_read_unlock();
-+	return found ? template_desc : NULL;
++	template_num_fields = template_fmt_size(template_fmt);
++
+ 	if (template_num_fields > IMA_TEMPLATE_NUM_FIELDS_MAX) {
+ 		pr_err("format string '%s' contains too many fields\n",
+ 		       template_fmt);
+@@ -237,6 +242,35 @@ int __init ima_init_template(void)
+ 	return result;
  }
  
- static struct ima_template_field *lookup_template_field(const char *field_id)
-@@ -183,11 +195,29 @@ static int template_desc_init_fields(con
- 	return 0;
- }
- 
-+void ima_init_template_list(void)
++static struct ima_template_desc *restore_template_fmt(char *template_name)
 +{
-+	int i;
++	struct ima_template_desc *template_desc = NULL;
++	int ret;
 +
-+	if (!list_empty(&defined_templates))
-+		return;
++	ret = template_desc_init_fields(template_name, NULL, NULL);
++	if (ret < 0) {
++		pr_err("attempting to initialize the template \"%s\" failed\n",
++			template_name);
++		goto out;
++	}
++
++	template_desc = kzalloc(sizeof(*template_desc), GFP_KERNEL);
++	if (!template_desc)
++		goto out;
++
++	template_desc->name = "";
++	template_desc->fmt = kstrdup(template_name, GFP_KERNEL);
++	if (!template_desc->fmt)
++		goto out;
 +
 +	spin_lock(&template_list);
-+	for (i = 0; i < ARRAY_SIZE(builtin_templates); i++) {
-+		list_add_tail_rcu(&builtin_templates[i].list,
-+				  &defined_templates);
-+	}
++	list_add_tail_rcu(&template_desc->list, &defined_templates);
 +	spin_unlock(&template_list);
 +	synchronize_rcu();
++out:
++	return template_desc;
 +}
 +
- struct ima_template_desc *ima_template_desc_current(void)
- {
--	if (!ima_template)
-+	if (!ima_template) {
-+		ima_init_template_list();
- 		ima_template =
- 		    lookup_template_desc(CONFIG_IMA_DEFAULT_TEMPLATE);
-+	}
- 	return ima_template;
- }
+ static int ima_restore_template_data(struct ima_template_desc *template_desc,
+ 				     void *template_data,
+ 				     int template_data_size,
+@@ -367,10 +401,23 @@ int ima_restore_measurement_list(loff_t
+ 		}
+ 		data_v1 = bufp += (u_int8_t)hdr_v1->template_name_len;
  
+-		/* get template format */
+ 		template_desc = lookup_template_desc(template_name);
+ 		if (!template_desc) {
+-			pr_err("template \"%s\" not found\n", template_name);
++			template_desc = restore_template_fmt(template_name);
++			if (!template_desc)
++				break;
++		}
++
++		/*
++		 * Only the running system's template format is initialized
++		 * on boot.  As needed, initialize the other template formats.
++		 */
++		ret = template_desc_init_fields(template_desc->fmt,
++						&(template_desc->fields),
++						&(template_desc->num_fields));
++		if (ret < 0) {
++			pr_err("attempting to restore the template fmt \"%s\" \
++				failed\n", template_desc->fmt);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-ima-support-restoring-multiple-template-formats.patch
 ima-define-a-canonical-binary_runtime_measurements-list-format.patch
 
