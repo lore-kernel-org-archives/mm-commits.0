@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ima-support-restoring-multiple-template-formats.patch added to
- -mm tree
-Date: Tue, 15 Nov 2016 16:55:25 -0800
-Message-ID: <582bae7d.v/+Fnstau53BuOxE%akpm@linux-foundation.org>
+Subject: + ima-platform-independent-hash-value.patch added to -mm tree
+Date: Tue, 15 Nov 2016 16:55:32 -0800
+Message-ID: <582bae84.ZQvhEFZpYi49Xys0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37732 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750979AbcKPA6G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:58:06 -0500
+        with ESMTP id S1751951AbcKPA62 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:58:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: support restoring multiple template formats
+     Subject: ima: platform-independent hash value
 has been added to the -mm tree.  Its filename is
-     ima-support-restoring-multiple-template-formats.patch
+     ima-platform-independent-hash-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-support-restoring-multiple-template-formats.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-platform-independent-hash-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-support-restoring-multiple-template-formats.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-platform-independent-hash-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +38,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: support restoring multiple template formats
+From: Andreas Steffen <andreas.steffen@strongswan.org>
+Subject: ima: platform-independent hash value
 
-The configured IMA measurement list template format can be replaced at
-runtime on the boot command line, including a custom template format.
-This patch adds support for restoring a measuremement list containing
-multiple builtin/custom template formats.
+For remote attestion it is important for the ima measurement values
+to be platform-independent. Therefore integer fields to be hashed
+must be converted to canonical format.
 
-Link: http://lkml.kernel.org/r/1478789780-17719-9-git-send-email-zohar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1478789780-17719-11-git-send-email-zohar@linux.vnet.ibm.com
+Signed-off-by: Andreas Steffen <andreas.steffen@strongswan.org>
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -60,108 +59,40 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Andreas Steffen <andreas.steffen@strongswan.org>
 Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_template.c |   52 ++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 3 deletions(-)
+ security/integrity/ima/ima_crypto.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN security/integrity/ima/ima_template.c~ima-support-restoring-multiple-template-formats security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-support-restoring-multiple-template-formats
-+++ a/security/integrity/ima/ima_template.c
-@@ -155,9 +155,14 @@ static int template_desc_init_fields(con
- {
- 	const char *template_fmt_ptr;
- 	struct ima_template_field *found_fields[IMA_TEMPLATE_NUM_FIELDS_MAX];
--	int template_num_fields = template_fmt_size(template_fmt);
-+	int template_num_fields;
- 	int i, len;
+diff -puN security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value security/integrity/ima/ima_crypto.c
+--- a/security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value
++++ a/security/integrity/ima/ima_crypto.c
+@@ -477,11 +477,13 @@ static int ima_calc_field_array_hash_tfm
+ 		u8 buffer[IMA_EVENT_NAME_LEN_MAX + 1] = { 0 };
+ 		u8 *data_to_hash = field_data[i].data;
+ 		u32 datalen = field_data[i].len;
++		u32 datalen_to_hash =
++		    !ima_canonical_fmt ? datalen : cpu_to_le32(datalen);
  
-+	if (num_fields && *num_fields > 0) /* already initialized? */
-+		return 0;
-+
-+	template_num_fields = template_fmt_size(template_fmt);
-+
- 	if (template_num_fields > IMA_TEMPLATE_NUM_FIELDS_MAX) {
- 		pr_err("format string '%s' contains too many fields\n",
- 		       template_fmt);
-@@ -236,6 +241,34 @@ int __init ima_init_template(void)
- 	return result;
- }
- 
-+static struct ima_template_desc *restore_template_fmt(char *template_name)
-+{
-+	struct ima_template_desc *template_desc = NULL;
-+	int ret;
-+
-+	ret = template_desc_init_fields(template_name, NULL, NULL);
-+	if (ret < 0) {
-+		pr_err("attempting to initialize the template \"%s\" failed\n",
-+			template_name);
-+		goto out;
-+	}
-+
-+	template_desc = kzalloc(sizeof(*template_desc), GFP_KERNEL);
-+	if (!template_desc)
-+		goto out;
-+
-+	template_desc->name = "";
-+	template_desc->fmt = kstrdup(template_name, GFP_KERNEL);
-+	if (!template_desc->fmt)
-+		goto out;
-+
-+	spin_lock(&template_list);
-+	list_add_tail_rcu(&template_desc->list, &defined_templates);
-+	spin_unlock(&template_list);
-+out:
-+	return template_desc;
-+}
-+
- static int ima_restore_template_data(struct ima_template_desc *template_desc,
- 				     void *template_data,
- 				     int template_data_size,
-@@ -373,10 +406,23 @@ int ima_restore_measurement_list(loff_t
- 			break;
- 		}
- 
--		/* get template format */
- 		template_desc = lookup_template_desc(template_name);
- 		if (!template_desc) {
--			pr_err("template \"%s\" not found\n", template_name);
-+			template_desc = restore_template_fmt(template_name);
-+			if (!template_desc)
-+				break;
-+		}
-+
-+		/*
-+		 * Only the running system's template format is initialized
-+		 * on boot.  As needed, initialize the other template formats.
-+		 */
-+		ret = template_desc_init_fields(template_desc->fmt,
-+						&(template_desc->fields),
-+						&(template_desc->num_fields));
-+		if (ret < 0) {
-+			pr_err("attempting to restore the template fmt \"%s\" \
-+				failed\n", template_desc->fmt);
- 			ret = -EINVAL;
- 			break;
- 		}
+ 		if (strcmp(td->name, IMA_TEMPLATE_IMA_NAME) != 0) {
+ 			rc = crypto_shash_update(shash,
+-						(const u8 *) &field_data[i].len,
+-						sizeof(field_data[i].len));
++						(const u8 *) &datalen_to_hash,
++						sizeof(datalen_to_hash));
+ 			if (rc)
+ 				break;
+ 		} else if (strcmp(td->fields[i]->field_id, "n") == 0) {
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from andreas.steffen@strongswan.org are
 
-ima-on-soft-reboot-restore-the-measurement-list.patch
-ima-permit-duplicate-measurement-list-entries.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
-ima-on-soft-reboot-save-the-measurement-list.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-ima-support-restoring-multiple-template-formats.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+ima-platform-independent-hash-value.patch
 
