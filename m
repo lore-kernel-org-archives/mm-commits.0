@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+Subject: +
+ powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
  added to -mm tree
-Date: Tue, 15 Nov 2016 16:54:53 -0800
-Message-ID: <582bae5d.U+iW28oEz4t9itWi%akpm@linux-foundation.org>
+Date: Tue, 15 Nov 2016 16:54:49 -0800
+Message-ID: <582bae59.m4u4RWDclAKQwv+g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751951AbcKPAz3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:55:29 -0500
+        with ESMTP id S1751166AbcKPAzZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:55:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add purgatory for kexec_file_load implementation
+     Subject: powerpc: add support for loading ELF kernels with kexec_file_load
 has been added to the -mm tree.  Its filename is
-     powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+     powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: add purgatory for kexec_file_load implementation
+Subject: powerpc: add support for loading ELF kernels with kexec_file_load
 
-This purgatory implementation comes from kexec-tools and was trimmed
-down a bit.
+This uses all the infrastructure built up by the previous patches in the
+series to load an ELF vmlinux file and an initrd.  It uses the flattened
+device tree at initial_boot_params as a base and adjusts memory
+reservations and its /chosen node for the next kernel.
 
-It uses the memset, memcpy and memcmp implementations from lib/string.c.
-It's not straightforward to #include "lib/string.c" so we simply
-copy those functions.
-
-The changes made to the purgatory code relative to the version in
-kexec-tools were:
-
-The support for printing messages to the console was removed.
-
-Also, since we don't support loading a crashdump kernel via
-kexec_file_load yet, the code related to that functionality has been
-removed for now.
-
-The sha256_regions global variable was renamed to sha_regions to match
-what kexec_file_load expects, and to use the sha256.c file from x86's
-purgatory (this avoids adding yet another SHA-256 implementation).
-
-The global variables in purgatory.c and purgatory-ppc64.c now use a
-__section attribute to put them in the .data section instead of being
-initialized to zero. It doesn't matter what their initial value is,
-because they will be set by the kernel when preparing the kexec image.
-
-Finally, some checkpatch.pl warnings were fixed.
-
-Link: http://lkml.kernel.org/r/1478748449-3894-10-git-send-email-bauerman@linux.vnet.ibm.com
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/1478748449-3894-9-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -90,478 +70,641 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Makefile                          |    1 
- arch/powerpc/purgatory/.gitignore              |    2 
- arch/powerpc/purgatory/Makefile                |   40 ++++
- arch/powerpc/purgatory/crtsavres.S             |    5 
- arch/powerpc/purgatory/kexec-sha256.h          |   11 +
- arch/powerpc/purgatory/purgatory-ppc64.c       |   36 ++++
- arch/powerpc/purgatory/purgatory.c             |   48 +++++
- arch/powerpc/purgatory/purgatory.h             |   10 +
- arch/powerpc/purgatory/sha256.c                |    6 
- arch/powerpc/purgatory/sha256.h                |    1 
- arch/powerpc/purgatory/string.c                |   60 ++++++
- arch/powerpc/purgatory/v2wrap.S                |  132 +++++++++++++++
- arch/powerpc/scripts/check-purgatory-relocs.sh |   47 +++++
- 13 files changed, 399 insertions(+)
+ arch/powerpc/include/asm/kexec.h            |   12 
+ arch/powerpc/kernel/Makefile                |    3 
+ arch/powerpc/kernel/kexec_elf_64.c          |  279 +++++++++++++++++
+ arch/powerpc/kernel/machine_kexec_file_64.c |  281 +++++++++++++++++-
+ 4 files changed, 572 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation arch/powerpc/Makefile
---- a/arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation
-+++ a/arch/powerpc/Makefile
-@@ -249,6 +249,7 @@ core-y				+= arch/powerpc/kernel/ \
- core-$(CONFIG_XMON)		+= arch/powerpc/xmon/
- core-$(CONFIG_KVM) 		+= arch/powerpc/kvm/
- core-$(CONFIG_PERF_EVENTS)	+= arch/powerpc/perf/
-+core-$(CONFIG_KEXEC_FILE)	+= arch/powerpc/purgatory/
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -91,6 +91,18 @@ static inline bool kdump_in_progress(voi
+ 	return crashing_cpu >= 0;
+ }
  
- drivers-$(CONFIG_OPROFILE)	+= arch/powerpc/oprofile/
++#ifdef CONFIG_KEXEC_FILE
++#define PURGATORY_ELF_TYPE ET_EXEC
++
++extern struct kexec_file_ops kexec_elf64_ops;
++
++int setup_purgatory(struct kimage *image, const void *slave_code,
++		    const void *fdt, unsigned long kernel_load_addr,
++		    unsigned long fdt_load_addr, unsigned long stack_top);
++int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
++		  unsigned long initrd_len, const char *cmdline);
++#endif /* CONFIG_KEXEC_FILE */
++
+ #else /* !CONFIG_KEXEC_CORE */
+ static inline void crash_kexec_secondary(struct pt_regs *regs) { }
  
-diff -puN /dev/null arch/powerpc/purgatory/.gitignore
+diff -puN arch/powerpc/kernel/Makefile~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load
++++ a/arch/powerpc/kernel/Makefile
+@@ -109,7 +109,8 @@ obj-$(CONFIG_PCI)		+= pci_$(BITS).o $(pc
+ obj-$(CONFIG_PCI_MSI)		+= msi.o
+ obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(BITS).o
+-obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o elf_util.o
++obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o elf_util.o \
++				   kexec_elf_$(BITS).o
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ obj64-$(CONFIG_AUDIT)		+= compat_audit.o
+ 
+diff -puN /dev/null arch/powerpc/kernel/kexec_elf_64.c
 --- /dev/null
-+++ a/arch/powerpc/purgatory/.gitignore
-@@ -0,0 +1,2 @@
-+kexec-purgatory.c
-+purgatory.ro
-diff -puN /dev/null arch/powerpc/purgatory/Makefile
---- /dev/null
-+++ a/arch/powerpc/purgatory/Makefile
-@@ -0,0 +1,40 @@
-+OBJECT_FILES_NON_STANDARD := y
++++ a/arch/powerpc/kernel/kexec_elf_64.c
+@@ -0,0 +1,279 @@
++/*
++ * Load ELF vmlinux file for the kexec_file_load syscall.
++ *
++ * Copyright (C) 2004  Adam Litke (agl@us.ibm.com)
++ * Copyright (C) 2004  IBM Corp.
++ * Copyright (C) 2005  R Sharada (sharada@in.ibm.com)
++ * Copyright (C) 2006  Mohan Kumar M (mohan@in.ibm.com)
++ * Copyright (C) 2016  IBM Corporation
++ *
++ * Based on kexec-tools' kexec-elf-exec.c and kexec-elf-ppc64.c.
++ * Heavily modified for the kernel by
++ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation (version 2 of the License).
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
-+purgatory-y := purgatory.o string.o v2wrap.o purgatory-ppc64.o crtsavres.o \
-+		sha256.o
++#define pr_fmt(fmt)	"kexec_elf: " fmt
 +
-+targets += $(purgatory-y)
-+PURGATORY_OBJS = $(addprefix $(obj)/,$(purgatory-y))
++#include <linux/types.h>
++#include <linux/slab.h>
++#include <linux/elf.h>
++#include <linux/kexec.h>
++#include <linux/of_fdt.h>
++#include <linux/libfdt.h>
++#include <asm/elf_util.h>
 +
-+LDFLAGS_purgatory.ro := -pie --no-dynamic-linker -e purgatory_start \
-+			--no-undefined -nostartfiles -nostdlib -nodefaultlibs
-+targets += purgatory.ro
++#define PURGATORY_STACK_SIZE	(16 * 1024)
 +
-+KBUILD_CFLAGS := $(filter-out $(CC_FLAGS_FTRACE), $(KBUILD_CFLAGS))
++/**
++ * build_elf_exec_info - read ELF executable and check that we can use it
++ */
++static int build_elf_exec_info(const char *buf, size_t len, struct elfhdr *ehdr,
++			       struct elf_info *elf_info)
++{
++	int i;
++	int ret;
 +
-+KBUILD_CFLAGS += -fno-zero-initialized-in-bss -fno-builtin -ffreestanding \
-+		 -fno-stack-protector -fno-exceptions -fpie
-+KBUILD_AFLAGS += -fno-exceptions -msoft-float -fpie
++	ret = elf_read_from_buffer(buf, len, ehdr, elf_info);
++	if (ret)
++		return ret;
 +
-+$(obj)/purgatory.ro: $(PURGATORY_OBJS) FORCE
-+		$(call if_changed,ld)
++	/* Big endian vmlinux has type ET_DYN. */
++	if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN) {
++		pr_err("Not an ELF executable.\n");
++		goto error;
++	} else if (!elf_info->proghdrs) {
++		pr_err("No ELF program header.\n");
++		goto error;
++	}
 +
-+targets += kexec-purgatory.c
++	for (i = 0; i < ehdr->e_phnum; i++) {
++		/*
++		 * Kexec does not support loading interpreters.
++		 * In addition this check keeps us from attempting
++		 * to kexec ordinay executables.
++		 */
++		if (elf_info->proghdrs[i].p_type == PT_INTERP) {
++			pr_err("Requires an ELF interpreter.\n");
++			goto error;
++		}
++	}
 +
-+quiet_cmd_relocs_check = CALL    $<
-+      cmd_relocs_check = $(CONFIG_SHELL) $< "$(OBJDUMP)" "$(obj)/purgatory.ro"
++	return 0;
++error:
++	elf_free_info(elf_info);
++	return -ENOEXEC;
++}
 +
-+PHONY += relocs_check
-+relocs_check: arch/powerpc/scripts/check-purgatory-relocs.sh $(obj)/purgatory.ro
-+	$(call cmd,relocs_check)
++static int elf64_probe(const char *buf, unsigned long len)
++{
++	struct elfhdr ehdr;
++	struct elf_info elf_info;
++	int ret;
 +
-+CMD_BIN2C = $(objtree)/scripts/basic/bin2c
-+quiet_cmd_bin2c = BIN2C   $@
-+      cmd_bin2c = $(CMD_BIN2C) kexec_purgatory < $< > $@
++	ret = build_elf_exec_info(buf, len, &ehdr, &elf_info);
++	if (ret)
++		return ret;
 +
-+$(obj)/kexec-purgatory.c: $(obj)/purgatory.ro relocs_check FORCE
-+	$(call if_changed,bin2c)
-+	@:
++	elf_free_info(&elf_info);
 +
++	return elf_check_arch(&ehdr) ? 0 : -ENOEXEC;
++}
 +
-+obj-$(CONFIG_KEXEC_FILE)	+= kexec-purgatory.o
-diff -puN /dev/null arch/powerpc/purgatory/crtsavres.S
---- /dev/null
-+++ a/arch/powerpc/purgatory/crtsavres.S
-@@ -0,0 +1,5 @@
-+#ifndef CONFIG_CC_OPTIMIZE_FOR_SIZE
-+#define CONFIG_CC_OPTIMIZE_FOR_SIZE 1
-+#endif
++/**
++ * elf_exec_load - load ELF executable image
++ * @lowest_load_addr:	On return, will be the address where the first PT_LOAD
++ *			section will be loaded in memory.
++ *
++ * Return:
++ * 0 on success, negative value on failure.
++ */
++static int elf_exec_load(struct kimage *image, struct elfhdr *ehdr,
++			 struct elf_info *elf_info,
++			 unsigned long *lowest_load_addr)
++{
++	unsigned long base = 0, lowest_addr = UINT_MAX;
++	int ret;
++	size_t i;
++	struct kexec_buf kbuf = { .image = image, .buf_max = ppc64_rma_size,
++				  .top_down = false };
 +
-+#include "../lib/crtsavres.S"
-diff -puN /dev/null arch/powerpc/purgatory/kexec-sha256.h
---- /dev/null
-+++ a/arch/powerpc/purgatory/kexec-sha256.h
-@@ -0,0 +1,11 @@
-+#ifndef KEXEC_SHA256_H
-+#define KEXEC_SHA256_H
++	/* Read in the PT_LOAD segments. */
++	for (i = 0; i < ehdr->e_phnum; i++) {
++		unsigned long load_addr;
++		size_t size;
++		const struct elf_phdr *phdr;
 +
-+struct kexec_sha_region {
-+	unsigned long start;
-+	unsigned long len;
++		phdr = &elf_info->proghdrs[i];
++		if (phdr->p_type != PT_LOAD)
++			continue;
++
++		size = phdr->p_filesz;
++		if (size > phdr->p_memsz)
++			size = phdr->p_memsz;
++
++		kbuf.buffer = (void *) elf_info->buffer + phdr->p_offset;
++		kbuf.bufsz = size;
++		kbuf.memsz = phdr->p_memsz;
++		kbuf.buf_align = phdr->p_align;
++		kbuf.buf_min = phdr->p_paddr + base;
++		ret = kexec_add_buffer(&kbuf);
++		if (ret)
++			goto out;
++		load_addr = kbuf.mem;
++
++		if (load_addr < lowest_addr)
++			lowest_addr = load_addr;
++	}
++
++	/* Update entry point to reflect new load address. */
++	ehdr->e_entry += base;
++
++	*lowest_load_addr = lowest_addr;
++	ret = 0;
++ out:
++	return ret;
++}
++
++static void *elf64_load(struct kimage *image, char *kernel_buf,
++			unsigned long kernel_len, char *initrd,
++			unsigned long initrd_len, char *cmdline,
++			unsigned long cmdline_len)
++{
++	int i, ret;
++	unsigned int fdt_size;
++	unsigned long kernel_load_addr, purgatory_load_addr;
++	unsigned long initrd_load_addr = 0, fdt_load_addr, stack_top;
++	void *fdt;
++	const void *slave_code;
++	struct elfhdr ehdr;
++	struct elf_info elf_info;
++	struct fdt_reserve_entry *rsvmap;
++	struct kexec_buf kbuf = { .image = image, .buf_min = 0,
++				  .buf_max = ppc64_rma_size };
++
++	ret = build_elf_exec_info(kernel_buf, kernel_len, &ehdr, &elf_info);
++	if (ret)
++		goto out;
++
++	ret = elf_exec_load(image, &ehdr, &elf_info, &kernel_load_addr);
++	if (ret)
++		goto out;
++
++	pr_debug("Loaded the kernel at 0x%lx\n", kernel_load_addr);
++
++	ret = kexec_load_purgatory(image, 0, ppc64_rma_size, true,
++				   &purgatory_load_addr);
++	if (ret) {
++		pr_err("Loading purgatory failed.\n");
++		goto out;
++	}
++
++	pr_debug("Loaded purgatory at 0x%lx\n", purgatory_load_addr);
++
++	if (initrd != NULL) {
++		kbuf.buffer = initrd;
++		kbuf.bufsz = kbuf.memsz = initrd_len;
++		kbuf.buf_align = PAGE_SIZE;
++		kbuf.top_down = false;
++		ret = kexec_add_buffer(&kbuf);
++		if (ret)
++			goto out;
++		initrd_load_addr = kbuf.mem;
++
++		pr_debug("Loaded initrd at 0x%lx\n", initrd_load_addr);
++	}
++
++	fdt_size = fdt_totalsize(initial_boot_params) * 2;
++	fdt = kmalloc(fdt_size, GFP_KERNEL);
++	if (!fdt) {
++		pr_err("Not enough memory for the device tree.\n");
++		ret = -ENOMEM;
++		goto out;
++	}
++	ret = fdt_open_into(initial_boot_params, fdt, fdt_size);
++	if (ret < 0) {
++		pr_err("Error setting up the new device tree.\n");
++		ret = -EINVAL;
++		goto out;
++	}
++
++	ret = setup_new_fdt(fdt, initrd_load_addr, initrd_len, cmdline);
++	if (ret)
++		goto out;
++
++	/*
++	 * Documentation/devicetree/booting-without-of.txt says we need to
++	 * add a reservation entry for the device tree block, but
++	 * early_init_fdt_reserve_self reserves the memory even if there's no
++	 * such entry. We'll add a reservation entry anyway, to be safe and
++	 * compliant.
++	 *
++	 * Use dummy values, we will correct them in a moment.
++	 */
++	ret = fdt_add_mem_rsv(fdt, 1, 1);
++	if (ret) {
++		pr_err("Error reserving device tree memory: %s\n",
++		       fdt_strerror(ret));
++		ret = -EINVAL;
++		goto out;
++	}
++	fdt_pack(fdt);
++
++	kbuf.buffer = fdt;
++	kbuf.bufsz = kbuf.memsz = fdt_size;
++	kbuf.buf_align = PAGE_SIZE;
++	kbuf.top_down = true;
++	ret = kexec_add_buffer(&kbuf);
++	if (ret)
++		goto out;
++	fdt_load_addr = kbuf.mem;
++
++	/*
++	 * Fix fdt reservation, now that we now where it will be loaded
++	 * and how big it is.
++	 */
++	rsvmap = fdt + fdt_off_mem_rsvmap(fdt);
++	i = fdt_num_mem_rsv(fdt) - 1;
++	rsvmap[i].address = cpu_to_fdt64(fdt_load_addr);
++	rsvmap[i].size = cpu_to_fdt64(fdt_totalsize(fdt));
++
++	pr_debug("Loaded device tree at 0x%lx\n", fdt_load_addr);
++
++	kbuf.memsz = PURGATORY_STACK_SIZE;
++	kbuf.buf_align = PAGE_SIZE;
++	kbuf.top_down = true;
++	ret = kexec_locate_mem_hole(&kbuf);
++	if (ret) {
++		pr_err("Couldn't find free memory for the purgatory stack.\n");
++		ret = -ENOMEM;
++		goto out;
++	}
++	stack_top = kbuf.mem + PURGATORY_STACK_SIZE - 1;
++	pr_debug("Purgatory stack is at 0x%lx\n", stack_top);
++
++	slave_code = elf_info.buffer + elf_info.proghdrs[0].p_offset;
++	ret = setup_purgatory(image, slave_code, fdt, kernel_load_addr,
++			      fdt_load_addr, stack_top);
++	if (ret)
++		pr_err("Error setting up the purgatory.\n");
++
++out:
++	elf_free_info(&elf_info);
++
++	/* Make kimage_file_post_load_cleanup free the fdt buffer for us. */
++	return ret ? ERR_PTR(ret) : fdt;
++}
++
++struct kexec_file_ops kexec_elf64_ops = {
++	.probe = elf64_probe,
++	.load = elf64_load,
 +};
-+
-+#define SHA256_REGIONS 16
-+
-+#endif /* KEXEC_SHA256_H */
-diff -puN /dev/null arch/powerpc/purgatory/purgatory-ppc64.c
---- /dev/null
-+++ a/arch/powerpc/purgatory/purgatory-ppc64.c
-@@ -0,0 +1,36 @@
-+/*
-+ * kexec: Linux boots Linux
-+ *
-+ * Created by: Mohan Kumar M (mohan@in.ibm.com)
-+ *
-+ * Copyright (C) IBM Corporation, 2005. All rights reserved
-+ *
-+ * Code taken from kexec-tools.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation (version 2 of the License).
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/compiler.h>
-+#include "purgatory.h"
-+
-+unsigned long stack __section(".data");
-+unsigned long dt_offset __section(".data");
-+unsigned long my_toc __section(".data");
-+unsigned long kernel __section(".data");
-+unsigned long opal_base __section(".data");
-+unsigned long opal_entry __section(".data");
-+
-+void setup_arch(void)
-+{
+diff -puN arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load arch/powerpc/kernel/machine_kexec_file_64.c
+--- a/arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load
++++ a/arch/powerpc/kernel/machine_kexec_file_64.c
+@@ -3,11 +3,12 @@
+  *
+  * Copyright (C) 2004  Adam Litke (agl@us.ibm.com)
+  * Copyright (C) 2004  IBM Corp.
++ * Copyright (C) 2004,2005  Milton D Miller II, IBM Corporation
+  * Copyright (C) 2005  R Sharada (sharada@in.ibm.com)
+  * Copyright (C) 2006  Mohan Kumar M (mohan@in.ibm.com)
+  * Copyright (C) 2016  IBM Corporation
+  *
+- * Based on kexec-tools' kexec-elf-ppc64.c.
++ * Based on kexec-tools' kexec-elf-ppc64.c, fs2dt.c.
+  * Heavily modified for the kernel by
+  * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
+  *
+@@ -24,11 +25,15 @@
+ #include <linux/slab.h>
+ #include <linux/kexec.h>
+ #include <linux/memblock.h>
++#include <linux/of_fdt.h>
+ #include <linux/libfdt.h>
++#include <asm/elf_util.h>
+ 
+ #define SLAVE_CODE_SIZE		256
+ 
+-static struct kexec_file_ops *kexec_file_loaders[] = { };
++static struct kexec_file_ops *kexec_file_loaders[] = {
++	&kexec_elf64_ops,
++};
+ 
+ int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
+ 				  unsigned long buf_len)
+@@ -298,4 +303,276 @@ int arch_kexec_apply_relocations_add(con
+ 	}
+ 
+ 	return 0;
 +}
 +
-+void post_verification_setup_arch(void)
-+{
-+}
-diff -puN /dev/null arch/powerpc/purgatory/purgatory.c
---- /dev/null
-+++ a/arch/powerpc/purgatory/purgatory.c
-@@ -0,0 +1,48 @@
-+/*
-+ * Code taken from kexec-tools.
++/**
++ * setup_purgatory - initialize the purgatory's global variables
++ * @image:		kexec image.
++ * @slave_code:		Slave code for the purgatory.
++ * @fdt:		Flattened device tree for the next kernel.
++ * @kernel_load_addr:	Address where the kernel is loaded.
++ * @fdt_load_addr:	Address where the flattened device tree is loaded.
++ * @stack_top:		Address where the purgatory can place its stack.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation (version 2 of the License).
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ * Return: 0 on success, or negative errno on error.
 + */
-+
-+#include "purgatory.h"
-+#include "sha256.h"
-+#include "kexec-sha256.h"
-+
-+struct kexec_sha_region sha_regions[SHA256_REGIONS] __section(".data");
-+u8 sha256_digest[SHA256_DIGEST_SIZE] __section(".data");
-+
-+int verify_sha256_digest(void)
++int setup_purgatory(struct kimage *image, const void *slave_code,
++		    const void *fdt, unsigned long kernel_load_addr,
++		    unsigned long fdt_load_addr, unsigned long stack_top)
 +{
-+	struct kexec_sha_region *ptr, *end;
-+	u8 digest[SHA256_DIGEST_SIZE];
-+	struct sha256_state sctx;
++	int i, ret, tree_node;
++	const void *prop;
++	unsigned long opal_base, opal_entry, toc;
++	unsigned int *slave_code_buf, master_entry;
++	const struct purgatory_info *pi = &image->purgatory_info;
++	const Elf_Shdr *sechdrs = pi->sechdrs;
++	const char *shstrtab;
 +
-+	sha256_init(&sctx);
-+	end = &sha_regions[sizeof(sha_regions)/sizeof(sha_regions[0])];
-+	for (ptr = sha_regions; ptr < end; ptr++)
-+		sha256_update(&sctx, (uint8_t *)(ptr->start), ptr->len);
-+	sha256_final(&sctx, digest);
++	slave_code_buf = kmalloc(SLAVE_CODE_SIZE, GFP_KERNEL);
++	if (!slave_code_buf)
++		return -ENOMEM;
 +
-+	if (memcmp(digest, sha256_digest, sizeof(digest)))
-+		return 1;
++	/* Get the slave code from the new kernel and put it in purgatory. */
++	ret = kexec_purgatory_get_set_symbol(image, "purgatory_start",
++					     slave_code_buf, SLAVE_CODE_SIZE,
++					     true);
++	if (ret) {
++		kfree(slave_code_buf);
++		return ret;
++	}
++
++	master_entry = slave_code_buf[0];
++	memcpy(slave_code_buf, slave_code, SLAVE_CODE_SIZE);
++	slave_code_buf[0] = master_entry;
++	ret = kexec_purgatory_get_set_symbol(image, "purgatory_start",
++					     slave_code_buf, SLAVE_CODE_SIZE,
++					     false);
++	kfree(slave_code_buf);
++
++	ret = kexec_purgatory_get_set_symbol(image, "kernel", &kernel_load_addr,
++					     sizeof(kernel_load_addr), false);
++	if (ret)
++		return ret;
++	ret = kexec_purgatory_get_set_symbol(image, "dt_offset", &fdt_load_addr,
++					     sizeof(fdt_load_addr), false);
++	if (ret)
++		return ret;
++
++	tree_node = fdt_path_offset(fdt, "/ibm,opal");
++	if (tree_node >= 0) {
++		prop = fdt_getprop(fdt, tree_node, "opal-base-address", NULL);
++		if (!prop) {
++			pr_err("OPAL address not found in the device tree.\n");
++			return -EINVAL;
++		}
++		opal_base = fdt64_to_cpu((const fdt64_t *) prop);
++
++		prop = fdt_getprop(fdt, tree_node, "opal-entry-address", NULL);
++		if (!prop) {
++			pr_err("OPAL address not found in the device tree.\n");
++			return -EINVAL;
++		}
++		opal_entry = fdt64_to_cpu((const fdt64_t *) prop);
++
++		ret = kexec_purgatory_get_set_symbol(image, "opal_base",
++						     &opal_base,
++						     sizeof(opal_base), false);
++		if (ret)
++			return ret;
++		ret = kexec_purgatory_get_set_symbol(image, "opal_entry",
++						     &opal_entry,
++						     sizeof(opal_entry), false);
++		if (ret)
++			return ret;
++	}
++
++	ret = kexec_purgatory_get_set_symbol(image, "stack", &stack_top,
++					     sizeof(stack_top), false);
++	if (ret)
++		return ret;
++
++	/* Section header string table. */
++	shstrtab = (const char *) sechdrs[pi->ehdr->e_shstrndx].sh_offset;
++
++	/* Find the TOC address by looking for the .got section. */
++	for (i = 0; i < pi->ehdr->e_shnum; i++)
++		if (!strcmp(&shstrtab[sechdrs[i].sh_name], ".got")) {
++			toc = sechdrs[i].sh_addr + 0x8000;
++
++			break;
++		}
++
++	if (i == pi->ehdr->e_shnum)
++		return -EINVAL;
++
++	ret = kexec_purgatory_get_set_symbol(image, "my_toc", &toc, sizeof(toc),
++					     false);
++	if (ret)
++		return ret;
++
++	pr_debug("Purgatory TOC is at 0x%lx\n", toc);
 +
 +	return 0;
 +}
 +
-+void purgatory(void)
++/**
++ * delete_fdt_mem_rsv - delete memory reservation with given address and size
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++static int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size)
 +{
-+	setup_arch();
-+	if (verify_sha256_digest()) {
-+		/* loop forever */
-+		for (;;)
-+			;
++	int i, ret, num_rsvs = fdt_num_mem_rsv(fdt);
++
++	for (i = 0; i < num_rsvs; i++) {
++		uint64_t rsv_start, rsv_size;
++
++		ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
++		if (ret) {
++			pr_err("Malformed device tree.\n");
++			return -EINVAL;
++		}
++
++		if (rsv_start == start && rsv_size == size) {
++			ret = fdt_del_mem_rsv(fdt, i);
++			if (ret) {
++				pr_err("Error deleting device tree reservation.\n");
++				return -EINVAL;
++			}
++
++			return 0;
++		}
 +	}
-+	post_verification_setup_arch();
++
++	return -ENOENT;
 +}
-diff -puN /dev/null arch/powerpc/purgatory/purgatory.h
---- /dev/null
-+++ a/arch/powerpc/purgatory/purgatory.h
-@@ -0,0 +1,10 @@
-+#ifndef PURGATORY_H
-+#define PURGATORY_H
 +
-+#include <linux/types.h>
-+
-+int memcmp(const void *cs, const void *ct, size_t count);
-+void setup_arch(void);
-+void post_verification_setup_arch(void);
-+
-+#endif /* PURGATORY_H */
-diff -puN /dev/null arch/powerpc/purgatory/sha256.c
---- /dev/null
-+++ a/arch/powerpc/purgatory/sha256.c
-@@ -0,0 +1,6 @@
-+#include "../boot/string.h"
-+
-+/* Avoid including x86's boot/string.h in sha256.c. */
-+#define BOOT_STRING_H
-+
-+#include "../../x86/purgatory/sha256.c"
-diff -puN /dev/null arch/powerpc/purgatory/sha256.h
---- /dev/null
-+++ a/arch/powerpc/purgatory/sha256.h
-@@ -0,0 +1 @@
-+#include "../../x86/purgatory/sha256.h"
-diff -puN /dev/null arch/powerpc/purgatory/string.c
---- /dev/null
-+++ a/arch/powerpc/purgatory/string.c
-@@ -0,0 +1,60 @@
 +/*
-+ * Copied from linux/lib/string.c.
-+ */
-+
-+#include <linux/types.h>
-+
-+/**
-+ * memset - Fill a region of memory with the given value
-+ * @s: Pointer to the start of the area.
-+ * @c: The byte to fill the area with
-+ * @count: The size of the area.
++ * setup_new_fdt - modify /chosen and memory reservation for the next kernel
++ * @fdt:		Flattened device tree for the next kernel.
++ * @initrd_load_addr:	Address where the next initrd will be loaded.
++ * @initrd_len:		Size of the next initrd, or 0 if there will be none.
++ * @cmdline:		Command line for the next kernel, or NULL if there will
++ *			be none.
 + *
-+ * Do not use memset() to access IO space, use memset_io() instead.
++ * Return: 0 on success, or negative errno on error.
 + */
-+void *memset(void *s, int c, size_t count)
++int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
++		  unsigned long initrd_len, const char *cmdline)
 +{
-+	char *xs = s;
++	int ret, chosen_node;
++	const void *prop;
 +
-+	while (count--)
-+		*xs++ = c;
-+	return s;
-+}
++	/* Remove memory reservation for the current device tree. */
++	ret = delete_fdt_mem_rsv(fdt, __pa(initial_boot_params),
++				 fdt_totalsize(initial_boot_params));
++	if (ret == 0)
++		pr_debug("Removed old device tree reservation.\n");
++	else if (ret != -ENOENT)
++		return ret;
 +
-+/**
-+ * memcpy - Copy one area of memory to another
-+ * @dest: Where to copy to
-+ * @src: Where to copy from
-+ * @count: The size of the area.
-+ *
-+ * You should not use this function to access IO space, use memcpy_toio()
-+ * or memcpy_fromio() instead.
-+ */
-+void *memcpy(void *dest, const void *src, size_t count)
-+{
-+	char *tmp = dest;
-+	const char *s = src;
-+
-+	while (count--)
-+		*tmp++ = *s++;
-+	return dest;
-+}
-+
-+/**
-+ * memcmp - Compare two areas of memory
-+ * @cs: One area of memory
-+ * @ct: Another area of memory
-+ * @count: The size of the area.
-+ */
-+int memcmp(const void *cs, const void *ct, size_t count)
-+{
-+	const unsigned char *su1, *su2;
-+	int res = 0;
-+
-+	for (su1 = cs, su2 = ct; count > 0; ++su1, ++su2, count--) {
-+		res = *su1 - *su2;
-+		if (res != 0)
-+			break;
++	chosen_node = fdt_path_offset(fdt, "/chosen");
++	if (chosen_node == -FDT_ERR_NOTFOUND) {
++		chosen_node = fdt_add_subnode(fdt, fdt_path_offset(fdt, "/"),
++					      "chosen");
++		if (chosen_node < 0) {
++			pr_err("Error creating /chosen.\n");
++			return -EINVAL;
++		}
++	} else if (chosen_node < 0) {
++		pr_err("Malformed device tree: error reading /chosen.\n");
++		return -EINVAL;
 +	}
-+	return res;
-+}
-diff -puN /dev/null arch/powerpc/purgatory/v2wrap.S
---- /dev/null
-+++ a/arch/powerpc/purgatory/v2wrap.S
-@@ -0,0 +1,132 @@
-+#
-+#  kexec: Linux boots Linux
-+#
-+#  Copyright (C) 2004 - 2005, Milton D Miller II, IBM Corporation
-+#  Copyright (C) 2006, Mohan Kumar M (mohan@in.ibm.com), IBM Corporation
-+#
-+# Code taken from kexec-tools.
-+#
-+#  This program is free software; you can redistribute it and/or modify
-+#  it under the terms of the GNU General Public License as published by
-+#  the Free Software Foundation (version 2 of the License).
-+#
-+#  This program is distributed in the hope that it will be useful,
-+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+#  GNU General Public License for more details.
 +
-+# v2wrap.S
-+# a wrapper to call purgatory code to backup first
-+# 32kB of first kernel into the backup region
-+# reserved by kexec-tools.
-+# Invokes ppc64 kernel with the expected arguments
-+# of kernel(device-tree, phys-offset, 0)
++	/* Did we boot using an initrd? */
++	prop = fdt_getprop(fdt, chosen_node, "linux,initrd-start", NULL);
++	if (prop) {
++		uint64_t tmp_start, tmp_end, tmp_size;
 +
-+#
-+# calling convention:
-+#   r3 = physical number of this cpu (all cpus)
-+#   r4 = address of this chunk (master only)
-+# master enters at purgatory_start (aka first byte of this chunk)
-+# slaves (additional cpus), if any, enter a copy of the
-+# first 0x100 bytes of this code relocated to 0x0
-+#
-+# in other words,
-+#   a copy of the first 0x100 bytes of this code is copied to 0
-+#   and the slaves are sent to address 0x60
-+#   with r3 = their physical cpu number.
++		tmp_start = fdt64_to_cpu(*((const fdt64_t *) prop));
 +
-+#define LOADADDR(rn,name) \
-+	lis     rn,name##@highest;      \
-+	ori     rn,rn,name##@higher;    \
-+	rldicr  rn,rn,32,31;            \
-+	oris    rn,rn,name##@h;         \
-+	ori     rn,rn,name##@l
++		prop = fdt_getprop(fdt, chosen_node, "linux,initrd-end", NULL);
++		if (!prop) {
++			pr_err("Malformed device tree.\n");
++			return -EINVAL;
++		}
++		tmp_end = fdt64_to_cpu(*((const fdt64_t *) prop));
 +
-+	.machine ppc64
-+	.align 8
-+	.globl purgatory_start
-+purgatory_start:	b	master
-+	.org purgatory_start + 0x5c     # ABI: possible run_at_load flag at 0x5c
-+	.globl run_at_load
-+run_at_load:
-+	.long 0
-+	.size run_at_load, . - run_at_load
-+	.org purgatory_start + 0x60     # ABI: slaves start at 60 with r3=phys
-+slave:	b $
-+	.org purgatory_start + 0x100    # ABI: end of copied region
-+	.size purgatory_start, . - purgatory_start
++		/*
++		 * kexec reserves exact initrd size, while firmware may
++		 * reserve a multiple of PAGE_SIZE, so check for both.
++		 */
++		tmp_size = tmp_end - tmp_start;
++		ret = delete_fdt_mem_rsv(fdt, tmp_start, tmp_size);
++		if (ret == -ENOENT)
++			ret = delete_fdt_mem_rsv(fdt, tmp_start,
++						 round_up(tmp_size, PAGE_SIZE));
++		if (ret == 0)
++			pr_debug("Removed old initrd reservation.\n");
++		else if (ret != -ENOENT)
++			return ret;
 +
-+#
-+# The above 0x100 bytes at purgatory_start are replaced with the
-+# code from the kernel (or next stage) by kexec/arch/ppc64/kexec-elf-ppc64.c
-+#
++		/* If there's no new initrd, delete the old initrd's info. */
++		if (initrd_len == 0) {
++			ret = fdt_delprop(fdt, chosen_node,
++					  "linux,initrd-start");
++			if (ret) {
++				pr_err("Error deleting linux,initrd-start.\n");
++				return -EINVAL;
++			}
 +
-+master:
-+	or	1,1,1		# low priority to let other threads catchup
-+	isync
-+	mr      17,3            # save cpu id to r17
-+	mr      15,4            # save physical address in reg15
++			ret = fdt_delprop(fdt, chosen_node, "linux,initrd-end");
++			if (ret) {
++				pr_err("Error deleting linux,initrd-end.\n");
++				return -EINVAL;
++			}
++		}
++	}
 +
-+	LOADADDR(6,my_toc)
-+	ld      2,0(6)          #setup toc
++	if (initrd_len) {
++		ret = fdt_setprop_u64(fdt, chosen_node,
++				      "linux,initrd-start",
++				      initrd_load_addr);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
 +
-+	LOADADDR(6,stack)
-+	ld      1,0(6)          #setup stack
++		/* initrd-end is the first address after the initrd image. */
++		ret = fdt_setprop_u64(fdt, chosen_node, "linux,initrd-end",
++				      initrd_load_addr + initrd_len);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
 +
-+	subi    1,1,112
-+	bl      purgatory
-+	nop
++		ret = fdt_add_mem_rsv(fdt, initrd_load_addr, initrd_len);
++		if (ret) {
++			pr_err("Error reserving initrd memory: %s\n",
++			       fdt_strerror(ret));
++			return -EINVAL;
++		}
++	}
 +
-+	or	3,3,3		# ok now to high priority, lets boot
-+	lis	6,0x1
-+	mtctr	6		# delay a bit for slaves to catch up
-+83:	bdnz	83b		# before we overwrite 0-100 again
++	if (cmdline != NULL) {
++		ret = fdt_setprop_string(fdt, chosen_node, "bootargs", cmdline);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
++	} else {
++		ret = fdt_delprop(fdt, chosen_node, "bootargs");
++		if (ret && ret != -FDT_ERR_NOTFOUND) {
++			pr_err("Error deleting bootargs.\n");
++			return -EINVAL;
++		}
++	}
 +
-+	LOADADDR(16, dt_offset)
-+	ld      3,0(16)         # load device-tree address
-+	mr      16,3            # save dt address in reg16
-+#ifdef __BIG_ENDIAN__
-+	lwz     6,20(3)         # fetch version number
-+#else
-+	li	4,20
-+	lwbrx	6,3,4		# fetch BE version number
-+#endif
-+	cmpwi   0,6,2           # v2 ?
-+	blt     80f
-+#ifdef __BIG_ENDIAN__
-+	stw     17,28(3)        # save my cpu number as boot_cpu_phys
-+#else
-+	li	4,28
-+	stwbrx	17,3,4		# Store my cpu as BE value
-+#endif
-+80:
-+	LOADADDR(6,opal_base)	# For OPAL early debug
-+	ld      8,0(6)          # load the OPAL base address in r8
-+	LOADADDR(6,opal_entry)	# For OPAL early debug
-+	ld      9,0(6)          # load the OPAL entry address in r9
-+	LOADADDR(6,kernel)
-+	ld      4,0(6)          # load the kernel address
-+	LOADADDR(6,run_at_load) # the load flag
-+	lwz	7,0(6)		# possibly patched by kexec-elf-ppc64
-+	stw	7,0x5c(4)	# and patch it into the kernel
-+	mr      3,16            # restore dt address
++	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
++	if (ret) {
++		pr_err("Error setting up the new device tree.\n");
++		return -EINVAL;
++	}
 +
-+	mfmsr	5
-+	andi.	10,5,1		# test MSR_LE
-+	bne	little_endian
-+
-+	li	5,0		# r5 will be 0 for kernel
-+	mtctr	4		# prepare branch to
-+	bctr			# start kernel
-+
-+little_endian:			# book3s-only
-+	mtsrr0	4		# prepare branch to
-+
-+	clrrdi	5,5,1		# clear MSR_LE
-+	mtsrr1	5
-+
-+	li	5,0		# r5 will be 0 for kernel
-+
-+				# skip cache flush, do we care?
-+
-+	rfid			# update MSR and start kernel
-diff -puN /dev/null arch/powerpc/scripts/check-purgatory-relocs.sh
---- /dev/null
-+++ a/arch/powerpc/scripts/check-purgatory-relocs.sh
-@@ -0,0 +1,47 @@
-+#!/bin/sh
-+
-+# Copyright © 2016 IBM Corporation
-+
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License
-+# as published by the Free Software Foundation; either version
-+# 2 of the License, or (at your option) any later version.
-+
-+# This script checks the relocations of a purgatory executable for
-+# relocations that are not handled by the kernel.
-+
-+# Based on relocs_check.sh.
-+# Copyright © 2015 IBM Corporation
-+
-+if [ $# -lt 2 ]; then
-+	echo "$0 [path to objdump] [path to purgatory.ro]" 1>&2
-+	exit 1
-+fi
-+
-+# Have Kbuild supply the path to objdump so we handle cross compilation.
-+objdump="$1"
-+purgatory="$2"
-+
-+bad_relocs=$(
-+"$objdump" -R "$purgatory" |
-+	# Only look at relocation lines.
-+	grep -E '\<R_' |
-+	# These relocations are okay
-+	# On PPC64:
-+	#	R_PPC64_ADDR16_LO, R_PPC64_ADDR16_HI,
-+	#	R_PPC64_ADDR16_HIGHER, R_PPC64_ADDR16_HIGHEST,
-+	#	R_PPC64_RELATIVE
-+	grep -F -w -v 'R_PPC64_ADDR16_LO
-+R_PPC64_ADDR16_HI
-+R_PPC64_ADDR16_HIGHER
-+R_PPC64_ADDR16_HIGHEST
-+R_PPC64_RELATIVE'
-+)
-+
-+if [ -z "$bad_relocs" ]; then
-+	exit 0
-+fi
-+
-+num_bad=$(echo "$bad_relocs" | wc -l)
-+echo "WARNING: $num_bad bad relocations in $2"
-+echo "$bad_relocs"
++	return 0;
+ }
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
