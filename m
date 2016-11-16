@@ -1,439 +1,464 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- powerpc-factor-out-relocation-code-in-module_64c.patch removed from -mm
- tree
-Date: Tue, 15 Nov 2016 16:38:11 -0800
-Message-ID: <582baa73.0VQdKHQfuvav592J%akpm@linux-foundation.org>
+ powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch removed from -mm tree
+Date: Tue, 15 Nov 2016 16:38:09 -0800
+Message-ID: <582baa71.Gpwe1qtIIRAVEB0A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46124 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932833AbcKPAiP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:38:15 -0500
+        with ESMTP id S932833AbcKPAiN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:38:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: factor out relocation code in module_64.c
+     Subject: powerpc: change places using CONFIG_KEXEC to use CONFIG_KEXEC_CORE instead
 has been removed from the -mm tree.  Its filename was
-     powerpc-factor-out-relocation-code-in-module_64c.patch
+     powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: factor out relocation code in module_64.c
+Subject: powerpc: change places using CONFIG_KEXEC to use CONFIG_KEXEC_CORE instead
 
-The kexec_file_load system call needs to relocate the purgatory, so factor
-out the module relocation code so that it can be shared.
+Commit 2965faa5e03d ("kexec: split kexec_load syscall from kexec core
+code") introduced CONFIG_KEXEC_CORE so that CONFIG_KEXEC means whether the
+kexec_load system call should be compiled-in and CONFIG_KEXEC_FILE means
+whether the kexec_file_load system call should be compiled-in.  These
+options can be set independently from each other.
 
-This patch's purpose is to move the ELF relocation logic from
-apply_relocate_add to the new function elf64_apply_relocate_add_item with
-as few changes as possible.  The following changes were needed:
+Since until now powerpc only supported kexec_load, CONFIG_KEXEC and
+CONFIG_KEXEC_CORE were synonyms.  That is not the case anymore, so we need
+to make a distinction.  Almost all places where CONFIG_KEXEC was being
+used should be using CONFIG_KEXEC_CORE instead, since kexec_file_load also
+needs that code compiled in.
 
-elf64_apply_relocate_add_item takes a my_r2 argument because the kexec
-code can't use the my_r2 function since it doesn't have a struct module to
-pass to it.  For the same reason, it also takes an obj_name argument to
-use in error messages.  It still takes a pointer to struct module
-argument, but kexec code can just pass NULL because except for the TOC
-symbol, the purgatory doesn't have undefined symbols so the module pointer
-isn't used.
-
-Apart from what is described in the paragraph above, the code has no
-functional changes.
-
-Link: http://lkml.kernel.org/r/1477017617-8540-6-git-send-email-bauerman@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1477017617-8540-5-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Suggested-by: Michael Ellerman <mpe@ellerman.id.au>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/module_64.c |  344 +++++++++++++++---------------
- 1 file changed, 182 insertions(+), 162 deletions(-)
+ arch/powerpc/Kconfig                          |    2 +-
+ arch/powerpc/include/asm/debug.h              |    2 +-
+ arch/powerpc/include/asm/kexec.h              |    6 +++---
+ arch/powerpc/include/asm/machdep.h            |    4 ++--
+ arch/powerpc/include/asm/smp.h                |    2 +-
+ arch/powerpc/kernel/Makefile                  |    4 ++--
+ arch/powerpc/kernel/head_64.S                 |    2 +-
+ arch/powerpc/kernel/misc_32.S                 |    2 +-
+ arch/powerpc/kernel/misc_64.S                 |    6 +++---
+ arch/powerpc/kernel/prom.c                    |    2 +-
+ arch/powerpc/kernel/setup_64.c                |    4 ++--
+ arch/powerpc/kernel/smp.c                     |    6 +++---
+ arch/powerpc/kernel/traps.c                   |    2 +-
+ arch/powerpc/platforms/85xx/corenet_generic.c |    2 +-
+ arch/powerpc/platforms/85xx/smp.c             |    8 ++++----
+ arch/powerpc/platforms/cell/spu_base.c        |    2 +-
+ arch/powerpc/platforms/powernv/setup.c        |    6 +++---
+ arch/powerpc/platforms/ps3/setup.c            |    4 ++--
+ arch/powerpc/platforms/pseries/Makefile       |    2 +-
+ arch/powerpc/platforms/pseries/setup.c        |    4 ++--
+ 20 files changed, 36 insertions(+), 36 deletions(-)
 
-diff -puN arch/powerpc/kernel/module_64.c~powerpc-factor-out-relocation-code-in-module_64c arch/powerpc/kernel/module_64.c
---- a/arch/powerpc/kernel/module_64.c~powerpc-factor-out-relocation-code-in-module_64c
-+++ a/arch/powerpc/kernel/module_64.c
-@@ -507,6 +507,181 @@ static int restore_r2(u32 *instruction,
+diff -puN arch/powerpc/Kconfig~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/Kconfig
+@@ -489,7 +489,7 @@ config CRASH_DUMP
+ 
+ config FA_DUMP
+ 	bool "Firmware-assisted dump"
+-	depends on PPC64 && PPC_RTAS && CRASH_DUMP && KEXEC
++	depends on PPC64 && PPC_RTAS && CRASH_DUMP && KEXEC_CORE
+ 	help
+ 	  A robust mechanism to get reliable kernel crash dump with
+ 	  assistance from firmware. This approach does not use kexec,
+diff -puN arch/powerpc/include/asm/debug.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/debug.h
+--- a/arch/powerpc/include/asm/debug.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/debug.h
+@@ -10,7 +10,7 @@ struct pt_regs;
+ 
+ extern struct dentry *powerpc_debugfs_root;
+ 
+-#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC_CORE)
+ 
+ extern int (*__debugger)(struct pt_regs *regs);
+ extern int (*__debugger_ipi)(struct pt_regs *regs);
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -53,7 +53,7 @@
+ 
+ typedef void (*crash_shutdown_t)(void);
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 
+ /*
+  * This function is responsible for capturing register states if coming
+@@ -91,7 +91,7 @@ static inline bool kdump_in_progress(voi
+ 	return crashing_cpu >= 0;
+ }
+ 
+-#else /* !CONFIG_KEXEC */
++#else /* !CONFIG_KEXEC_CORE */
+ static inline void crash_kexec_secondary(struct pt_regs *regs) { }
+ 
+ static inline int overlaps_crashkernel(unsigned long start, unsigned long size)
+@@ -116,7 +116,7 @@ static inline bool kdump_in_progress(voi
+ 	return false;
+ }
+ 
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ #endif /* ! __ASSEMBLY__ */
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_KEXEC_H */
+diff -puN arch/powerpc/include/asm/machdep.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/machdep.h
+--- a/arch/powerpc/include/asm/machdep.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/machdep.h
+@@ -183,7 +183,7 @@ struct machdep_calls {
+ 	 */
+ 	void (*machine_shutdown)(void);
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	void (*kexec_cpu_down)(int crash_shutdown, int secondary);
+ 
+ 	/* Called to do what every setup is needed on image and the
+@@ -198,7 +198,7 @@ struct machdep_calls {
+ 	 * no return.
+ 	 */
+ 	void (*machine_kexec)(struct kimage *image);
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ 
+ #ifdef CONFIG_SUSPEND
+ 	/* These are called to disable and enable, respectively, IRQs when
+diff -puN arch/powerpc/include/asm/smp.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/include/asm/smp.h
+--- a/arch/powerpc/include/asm/smp.h~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/include/asm/smp.h
+@@ -176,7 +176,7 @@ static inline void set_hard_smp_processo
+ #endif /* !CONFIG_SMP */
+ #endif /* !CONFIG_PPC64 */
+ 
+-#if defined(CONFIG_PPC64) && (defined(CONFIG_SMP) || defined(CONFIG_KEXEC))
++#if defined(CONFIG_PPC64) && (defined(CONFIG_SMP) || defined(CONFIG_KEXEC_CORE))
+ extern void smp_release_cpus(void);
+ #else
+ static inline void smp_release_cpus(void) { };
+diff -puN arch/powerpc/kernel/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/Makefile
+@@ -107,7 +107,7 @@ pci64-$(CONFIG_PPC64)		+= pci_dn.o pci-h
+ obj-$(CONFIG_PCI)		+= pci_$(BITS).o $(pci64-y) \
+ 				   pci-common.o pci_of_scan.o
+ obj-$(CONFIG_PCI_MSI)		+= msi.o
+-obj-$(CONFIG_KEXEC)		+= machine_kexec.o crash.o \
++obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(BITS).o
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ obj64-$(CONFIG_AUDIT)		+= compat_audit.o
+@@ -128,7 +128,7 @@ obj64-$(CONFIG_PPC_TRANSACTIONAL_MEM)	+=
+ obj-$(CONFIG_PPC64)		+= $(obj64-y)
+ obj-$(CONFIG_PPC32)		+= $(obj32-y)
+ 
+-ifneq ($(CONFIG_XMON)$(CONFIG_KEXEC),)
++ifneq ($(CONFIG_XMON)$(CONFIG_KEXEC_CORE),)
+ obj-y				+= ppc_save_regs.o
+ endif
+ 
+diff -puN arch/powerpc/kernel/head_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/head_64.S
+--- a/arch/powerpc/kernel/head_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/head_64.S
+@@ -153,7 +153,7 @@ __secondary_hold:
+ 	cmpdi	0,r12,0
+ 	beq	100b
+ 
+-#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC_CORE)
+ #ifdef CONFIG_PPC_BOOK3E
+ 	tovirt(r12,r12)
+ #endif
+diff -puN arch/powerpc/kernel/misc_32.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/misc_32.S
+--- a/arch/powerpc/kernel/misc_32.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/misc_32.S
+@@ -614,7 +614,7 @@ _GLOBAL(start_secondary_resume)
+ _GLOBAL(__main)
+ 	blr
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	/*
+ 	 * Must be relocatable PIC code callable as a C function.
+ 	 */
+diff -puN arch/powerpc/kernel/misc_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/misc_64.S
+--- a/arch/powerpc/kernel/misc_64.S~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/misc_64.S
+@@ -478,7 +478,7 @@ _GLOBAL(kexec_wait)
+ 	addi	r5,r5,kexec_flag-1b
+ 
+ 99:	HMT_LOW
+-#ifdef CONFIG_KEXEC		/* use no memory without kexec */
++#ifdef CONFIG_KEXEC_CORE	/* use no memory without kexec */
+ 	lwz	r4,0(r5)
+ 	cmpwi	0,r4,0
+ 	beq	99b
+@@ -503,7 +503,7 @@ kexec_flag:
+ 	.long	0
+ 
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ #ifdef CONFIG_PPC_BOOK3E
+ /*
+  * BOOK3E has no real MMU mode, so we have to setup the initial TLB
+@@ -716,4 +716,4 @@ _GLOBAL(kexec_sequence)
+ 	mtlr	4
+ 	li	r5,0
+ 	blr	/* image->start(physid, image->start, 0); */
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+diff -puN arch/powerpc/kernel/prom.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/prom.c
+--- a/arch/powerpc/kernel/prom.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/prom.c
+@@ -427,7 +427,7 @@ static int __init early_init_dt_scan_cho
+ 		tce_alloc_end = *lprop;
+ #endif
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	lprop = of_get_flat_dt_prop(node, "linux,crashkernel-base", NULL);
+ 	if (lprop)
+ 		crashk_res.start = *lprop;
+diff -puN arch/powerpc/kernel/setup_64.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/setup_64.c
+--- a/arch/powerpc/kernel/setup_64.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/setup_64.c
+@@ -346,7 +346,7 @@ void early_setup_secondary(void)
+ 
+ #endif /* CONFIG_SMP */
+ 
+-#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_SMP) || defined(CONFIG_KEXEC_CORE)
+ static bool use_spinloop(void)
+ {
+ 	if (!IS_ENABLED(CONFIG_PPC_BOOK3E))
+@@ -391,7 +391,7 @@ void smp_release_cpus(void)
+ 
+ 	DBG(" <- smp_release_cpus()\n");
+ }
+-#endif /* CONFIG_SMP || CONFIG_KEXEC */
++#endif /* CONFIG_SMP || CONFIG_KEXEC_CORE */
+ 
+ /*
+  * Initialize some remaining members of the ppc64_caches and systemcfg
+diff -puN arch/powerpc/kernel/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/smp.c
+--- a/arch/powerpc/kernel/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/smp.c
+@@ -193,7 +193,7 @@ int smp_request_message_ipi(int virq, in
+ 	if (msg < 0 || msg > PPC_MSG_DEBUGGER_BREAK) {
+ 		return -EINVAL;
+ 	}
+-#if !defined(CONFIG_DEBUGGER) && !defined(CONFIG_KEXEC)
++#if !defined(CONFIG_DEBUGGER) && !defined(CONFIG_KEXEC_CORE)
+ 	if (msg == PPC_MSG_DEBUGGER_BREAK) {
+ 		return 1;
+ 	}
+@@ -325,7 +325,7 @@ void tick_broadcast(const struct cpumask
+ }
+ #endif
+ 
+-#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC_CORE)
+ void smp_send_debugger_break(void)
+ {
+ 	int cpu;
+@@ -340,7 +340,7 @@ void smp_send_debugger_break(void)
+ }
+ #endif
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ void crash_send_ipi(void (*crash_ipi_callback)(struct pt_regs *))
+ {
+ 	crash_ipi_function_ptr = crash_ipi_callback;
+diff -puN arch/powerpc/kernel/traps.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/kernel/traps.c
+--- a/arch/powerpc/kernel/traps.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/kernel/traps.c
+@@ -65,7 +65,7 @@
+ #include <asm/hmi.h>
+ #include <sysdev/fsl_pci.h>
+ 
+-#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_DEBUGGER) || defined(CONFIG_KEXEC_CORE)
+ int (*__debugger)(struct pt_regs *regs) __read_mostly;
+ int (*__debugger_ipi)(struct pt_regs *regs) __read_mostly;
+ int (*__debugger_bpt)(struct pt_regs *regs) __read_mostly;
+diff -puN arch/powerpc/platforms/85xx/corenet_generic.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/85xx/corenet_generic.c
+--- a/arch/powerpc/platforms/85xx/corenet_generic.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/85xx/corenet_generic.c
+@@ -220,7 +220,7 @@ define_machine(corenet_generic) {
+  *
+  * Likewise, problems have been seen with kexec when coreint is enabled.
+  */
+-#if defined(CONFIG_HOTPLUG_CPU) || defined(CONFIG_KEXEC)
++#if defined(CONFIG_HOTPLUG_CPU) || defined(CONFIG_KEXEC_CORE)
+ 	.get_irq		= mpic_get_irq,
+ #else
+ 	.get_irq		= mpic_get_coreint_irq,
+diff -puN arch/powerpc/platforms/85xx/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/85xx/smp.c
+--- a/arch/powerpc/platforms/85xx/smp.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/85xx/smp.c
+@@ -349,13 +349,13 @@ struct smp_ops_t smp_85xx_ops = {
+ 	.cpu_disable	= generic_cpu_disable,
+ 	.cpu_die	= generic_cpu_die,
+ #endif
+-#if defined(CONFIG_KEXEC) && !defined(CONFIG_PPC64)
++#if defined(CONFIG_KEXEC_CORE) && !defined(CONFIG_PPC64)
+ 	.give_timebase	= smp_generic_give_timebase,
+ 	.take_timebase	= smp_generic_take_timebase,
+ #endif
+ };
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ #ifdef CONFIG_PPC32
+ atomic_t kexec_down_cpus = ATOMIC_INIT(0);
+ 
+@@ -458,7 +458,7 @@ static void mpc85xx_smp_machine_kexec(st
+ 
+ 	default_machine_kexec(image);
+ }
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ 
+ static void smp_85xx_basic_setup(int cpu_nr)
+ {
+@@ -512,7 +512,7 @@ void __init mpc85xx_smp_init(void)
+ #endif
+ 	smp_ops = &smp_85xx_ops;
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	ppc_md.kexec_cpu_down = mpc85xx_smp_kexec_cpu_down;
+ 	ppc_md.machine_kexec = mpc85xx_smp_machine_kexec;
+ #endif
+diff -puN arch/powerpc/platforms/cell/spu_base.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/cell/spu_base.c
+--- a/arch/powerpc/platforms/cell/spu_base.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/cell/spu_base.c
+@@ -676,7 +676,7 @@ static ssize_t spu_stat_show(struct devi
+ 
+ static DEVICE_ATTR(stat, 0444, spu_stat_show, NULL);
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 
+ struct crash_spu_info {
+ 	struct spu *spu;
+diff -puN arch/powerpc/platforms/powernv/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/powernv/setup.c
+--- a/arch/powerpc/platforms/powernv/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/powernv/setup.c
+@@ -174,7 +174,7 @@ static void pnv_shutdown(void)
+ 	opal_shutdown();
+ }
+ 
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ static void pnv_kexec_wait_secondaries_down(void)
+ {
+ 	int my_cpu, i, notified = -1;
+@@ -245,7 +245,7 @@ static void pnv_kexec_cpu_down(int crash
+ 		opal_reinit_cpus(OPAL_REINIT_CPUS_HILE_BE);
+ 	}
+ }
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_KEXEC_CORE */
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ static unsigned long pnv_memory_block_size(void)
+@@ -311,7 +311,7 @@ define_machine(powernv) {
+ 	.machine_shutdown	= pnv_shutdown,
+ 	.power_save             = NULL,
+ 	.calibrate_decr		= generic_calibrate_decr,
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	.kexec_cpu_down		= pnv_kexec_cpu_down,
+ #endif
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+diff -puN arch/powerpc/platforms/ps3/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/ps3/setup.c
+--- a/arch/powerpc/platforms/ps3/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/ps3/setup.c
+@@ -250,7 +250,7 @@ static int __init ps3_probe(void)
  	return 1;
  }
  
-+static int elf64_apply_relocate_add_item(const Elf64_Shdr *sechdrs,
-+					 const char *strtab,
-+					 const Elf64_Rela *rela,
-+					 const Elf64_Sym *sym,
-+					 unsigned long *location,
-+					 unsigned long value,
-+					 unsigned long my_r2,
-+					 const char *obj_name,
-+					 struct module *me)
-+{
-+	switch (ELF64_R_TYPE(rela->r_info)) {
-+	case R_PPC64_ADDR32:
-+		/* Simply set it */
-+		*(u32 *)location = value;
-+		break;
-+
-+	case R_PPC64_ADDR64:
-+		/* Simply set it */
-+		*(unsigned long *)location = value;
-+		break;
-+
-+	case R_PPC64_TOC:
-+		*(unsigned long *)location = my_r2;
-+		break;
-+
-+	case R_PPC64_TOC16:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		if (value + 0x8000 > 0xffff) {
-+			pr_err("%s: bad TOC16 relocation (0x%lx)\n",
-+			       obj_name, value);
-+			return -ENOEXEC;
-+		}
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC64_TOC16_LO:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC64_TOC16_DS:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		if ((value & 3) != 0 || value + 0x8000 > 0xffff) {
-+			pr_err("%s: bad TOC16_DS relocation (0x%lx)\n",
-+			       obj_name, value);
-+			return -ENOEXEC;
-+		}
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xfffc)
-+			| (value & 0xfffc);
-+		break;
-+
-+	case R_PPC64_TOC16_LO_DS:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		if ((value & 3) != 0) {
-+			pr_err("%s: bad TOC16_LO_DS relocation (0x%lx)\n",
-+			       obj_name, value);
-+			return -ENOEXEC;
-+		}
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xfffc)
-+			| (value & 0xfffc);
-+		break;
-+
-+	case R_PPC64_TOC16_HA:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		value = ((value + 0x8000) >> 16);
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC_REL24:
-+		/* FIXME: Handle weak symbols here --RR */
-+		if (sym->st_shndx == SHN_UNDEF) {
-+			/* External: go via stub */
-+			value = stub_for_addr(sechdrs, value, me);
-+			if (!value)
-+				return -ENOENT;
-+			if (!restore_r2((u32 *)location + 1, me))
-+				return -ENOEXEC;
-+
-+			squash_toc_save_inst(strtab + sym->st_name, value);
-+		} else
-+			value += local_entry_offset(sym);
-+
-+		/* Convert value to relative */
-+		value -= (unsigned long)location;
-+		if (value + 0x2000000 > 0x3ffffff || (value & 3) != 0) {
-+			pr_err("%s: REL24 %li out of range!\n",
-+			       obj_name, (long int)value);
-+			return -ENOEXEC;
-+		}
-+
-+		/* Only replace bits 2 through 26 */
-+		*(uint32_t *)location
-+			= (*(uint32_t *)location & ~0x03fffffc)
-+			| (value & 0x03fffffc);
-+		break;
-+
-+	case R_PPC64_REL64:
-+		/* 64 bits relative (used by features fixups) */
-+		*location = value - (unsigned long)location;
-+		break;
-+
-+	case R_PPC64_TOCSAVE:
-+		/*
-+		 * Marker reloc indicates we don't have to save r2.
-+		 * That would only save us one instruction, so ignore
-+		 * it.
-+		 */
-+		break;
-+
-+	case R_PPC64_ENTRY:
-+		/*
-+		 * Optimize ELFv2 large code model entry point if
-+		 * the TOC is within 2GB range of current location.
-+		 */
-+		value = my_r2 - (unsigned long)location;
-+		if (value + 0x80008000 > 0xffffffff)
-+			break;
-+		/*
-+		 * Check for the large code model prolog sequence:
-+		 *	ld r2, ...(r12)
-+		 *	add r2, r2, r12
-+		 */
-+		if ((((uint32_t *)location)[0] & ~0xfffc)
-+		    != 0xe84c0000)
-+			break;
-+		if (((uint32_t *)location)[1] != 0x7c426214)
-+			break;
-+		/*
-+		 * If found, replace it with:
-+		 *	addis r2, r12, (.TOC.-func)@ha
-+		 *	addi r2, r12, (.TOC.-func)@l
-+		 */
-+		((uint32_t *)location)[0] = 0x3c4c0000 + PPC_HA(value);
-+		((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
-+		break;
-+
-+	case R_PPC64_REL16_HA:
-+		/* Subtract location pointer */
-+		value -= (unsigned long)location;
-+		value = ((value + 0x8000) >> 16);
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC64_REL16_LO:
-+		/* Subtract location pointer */
-+		value -= (unsigned long)location;
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	default:
-+		pr_err("%s: Unknown ADD relocation: %lu\n", obj_name,
-+		       (unsigned long)ELF64_R_TYPE(rela->r_info));
-+		return -ENOEXEC;
-+	}
-+
-+	return 0;
-+}
-+
- int apply_relocate_add(Elf64_Shdr *sechdrs,
- 		       const char *strtab,
- 		       unsigned int symindex,
-@@ -514,6 +689,7 @@ int apply_relocate_add(Elf64_Shdr *sechd
- 		       struct module *me)
+-#if defined(CONFIG_KEXEC)
++#if defined(CONFIG_KEXEC_CORE)
+ static void ps3_kexec_cpu_down(int crash_shutdown, int secondary)
  {
- 	unsigned int i;
-+	int ret;
- 	Elf64_Rela *rela = (void *)sechdrs[relsec].sh_addr;
- 	Elf64_Sym *sym;
- 	unsigned long *location;
-@@ -548,168 +724,12 @@ int apply_relocate_add(Elf64_Shdr *sechd
- 		/* `Everything is relative'. */
- 		value = sym->st_value + rela[i].r_addend;
+ 	int cpu = smp_processor_id();
+@@ -276,7 +276,7 @@ define_machine(ps3) {
+ 	.progress			= ps3_progress,
+ 	.restart			= ps3_restart,
+ 	.halt				= ps3_halt,
+-#if defined(CONFIG_KEXEC)
++#if defined(CONFIG_KEXEC_CORE)
+ 	.kexec_cpu_down			= ps3_kexec_cpu_down,
+ #endif
+ };
+diff -puN arch/powerpc/platforms/pseries/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/pseries/Makefile
+--- a/arch/powerpc/platforms/pseries/Makefile~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/pseries/Makefile
+@@ -8,7 +8,7 @@ obj-y			:= lpar.o hvCall.o nvram.o recon
+ 			   pci.o pci_dlpar.o eeh_pseries.o msi.o
+ obj-$(CONFIG_SMP)	+= smp.o
+ obj-$(CONFIG_SCANLOG)	+= scanlog.o
+-obj-$(CONFIG_KEXEC)	+= kexec.o
++obj-$(CONFIG_KEXEC_CORE)	+= kexec.o
+ obj-$(CONFIG_PSERIES_ENERGY)	+= pseries_energy.o
  
--		switch (ELF64_R_TYPE(rela[i].r_info)) {
--		case R_PPC64_ADDR32:
--			/* Simply set it */
--			*(u32 *)location = value;
--			break;
--
--		case R_PPC64_ADDR64:
--			/* Simply set it */
--			*(unsigned long *)location = value;
--			break;
--
--		case R_PPC64_TOC:
--			*(unsigned long *)location = my_r2(sechdrs, me);
--			break;
--
--		case R_PPC64_TOC16:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			if (value + 0x8000 > 0xffff) {
--				pr_err("%s: bad TOC16 relocation (0x%lx)\n",
--				       me->name, value);
--				return -ENOEXEC;
--			}
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC64_TOC16_LO:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC64_TOC16_DS:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			if ((value & 3) != 0 || value + 0x8000 > 0xffff) {
--				pr_err("%s: bad TOC16_DS relocation (0x%lx)\n",
--				       me->name, value);
--				return -ENOEXEC;
--			}
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xfffc)
--				| (value & 0xfffc);
--			break;
--
--		case R_PPC64_TOC16_LO_DS:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			if ((value & 3) != 0) {
--				pr_err("%s: bad TOC16_LO_DS relocation (0x%lx)\n",
--				       me->name, value);
--				return -ENOEXEC;
--			}
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xfffc)
--				| (value & 0xfffc);
--			break;
--
--		case R_PPC64_TOC16_HA:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			value = ((value + 0x8000) >> 16);
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC_REL24:
--			/* FIXME: Handle weak symbols here --RR */
--			if (sym->st_shndx == SHN_UNDEF) {
--				/* External: go via stub */
--				value = stub_for_addr(sechdrs, value, me);
--				if (!value)
--					return -ENOENT;
--				if (!restore_r2((u32 *)location + 1, me))
--					return -ENOEXEC;
--
--				squash_toc_save_inst(strtab + sym->st_name, value);
--			} else
--				value += local_entry_offset(sym);
--
--			/* Convert value to relative */
--			value -= (unsigned long)location;
--			if (value + 0x2000000 > 0x3ffffff || (value & 3) != 0){
--				pr_err("%s: REL24 %li out of range!\n",
--				       me->name, (long int)value);
--				return -ENOEXEC;
--			}
--
--			/* Only replace bits 2 through 26 */
--			*(uint32_t *)location
--				= (*(uint32_t *)location & ~0x03fffffc)
--				| (value & 0x03fffffc);
--			break;
--
--		case R_PPC64_REL64:
--			/* 64 bits relative (used by features fixups) */
--			*location = value - (unsigned long)location;
--			break;
--
--		case R_PPC64_TOCSAVE:
--			/*
--			 * Marker reloc indicates we don't have to save r2.
--			 * That would only save us one instruction, so ignore
--			 * it.
--			 */
--			break;
--
--		case R_PPC64_ENTRY:
--			/*
--			 * Optimize ELFv2 large code model entry point if
--			 * the TOC is within 2GB range of current location.
--			 */
--			value = my_r2(sechdrs, me) - (unsigned long)location;
--			if (value + 0x80008000 > 0xffffffff)
--				break;
--			/*
--			 * Check for the large code model prolog sequence:
--		         *	ld r2, ...(r12)
--			 *	add r2, r2, r12
--			 */
--			if ((((uint32_t *)location)[0] & ~0xfffc)
--			    != 0xe84c0000)
--				break;
--			if (((uint32_t *)location)[1] != 0x7c426214)
--				break;
--			/*
--			 * If found, replace it with:
--			 *	addis r2, r12, (.TOC.-func)@ha
--			 *	addi r2, r12, (.TOC.-func)@l
--			 */
--			((uint32_t *)location)[0] = 0x3c4c0000 + PPC_HA(value);
--			((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
--			break;
--
--		case R_PPC64_REL16_HA:
--			/* Subtract location pointer */
--			value -= (unsigned long)location;
--			value = ((value + 0x8000) >> 16);
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC64_REL16_LO:
--			/* Subtract location pointer */
--			value -= (unsigned long)location;
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		default:
--			pr_err("%s: Unknown ADD relocation: %lu\n",
--			       me->name,
--			       (unsigned long)ELF64_R_TYPE(rela[i].r_info));
--			return -ENOEXEC;
--		}
-+		ret = elf64_apply_relocate_add_item(sechdrs, strtab, &rela[i],
-+						    sym, location, value,
-+						    my_r2(sechdrs, me),
-+						    me->name, me);
-+		if (ret)
-+			return ret;
- 	}
+ obj-$(CONFIG_HOTPLUG_CPU)	+= hotplug-cpu.o
+diff -puN arch/powerpc/platforms/pseries/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead arch/powerpc/platforms/pseries/setup.c
+--- a/arch/powerpc/platforms/pseries/setup.c~powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead
++++ a/arch/powerpc/platforms/pseries/setup.c
+@@ -367,7 +367,7 @@ void pseries_disable_reloc_on_exc(void)
+ }
+ EXPORT_SYMBOL(pseries_disable_reloc_on_exc);
  
- 	return 0;
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ static void pSeries_machine_kexec(struct kimage *image)
+ {
+ 	if (firmware_has_feature(FW_FEATURE_SET_MODE))
+@@ -725,7 +725,7 @@ define_machine(pseries) {
+ 	.progress		= rtas_progress,
+ 	.system_reset_exception = pSeries_system_reset_exception,
+ 	.machine_check_exception = pSeries_machine_check_exception,
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_KEXEC_CORE
+ 	.machine_kexec          = pSeries_machine_kexec,
+ 	.kexec_cpu_down         = pseries_kexec_cpu_down,
+ #endif
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
 
+powerpc-factor-out-relocation-code-in-module_64c.patch
 powerpc-implement-kexec_file_load.patch
 powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
 powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
