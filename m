@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arch-arc-add-option-to-skip-sync-on-dma-mapping.patch added to
+Subject: + arch-avr32-add-option-to-skip-sync-on-dma-map.patch added to
  -mm tree
-Date: Fri, 18 Nov 2016 15:30:18 -0800
-Message-ID: <582f8f0a.TKQ/dKOOKrZeLE2E%akpm@linux-foundation.org>
+Date: Fri, 18 Nov 2016 15:30:22 -0800
+Message-ID: <582f8f0e.ghaQik6JbtQTmqHd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42414 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753596AbcKRXaY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:30:24 -0500
+        with ESMTP id S1754002AbcKRXaX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:30:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, egtvedt@samfundet.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/arc: add option to skip sync on DMA mapping
+     Subject: arch/avr32: add option to skip sync on DMA map
 has been added to the -mm tree.  Its filename is
-     arch-arc-add-option-to-skip-sync-on-dma-mapping.patch
+     arch-avr32-add-option-to-skip-sync-on-dma-map.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-arc-add-option-to-skip-sync-on-dma-mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-avr32-add-option-to-skip-sync-on-dma-map.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-arc-add-option-to-skip-sync-on-dma-mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-avr32-add-option-to-skip-sync-on-dma-map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +40,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/arc: add option to skip sync on DMA mapping
+Subject: arch/avr32: add option to skip sync on DMA map
 
-Patch series "Add support for DMA writable pages being writable by the
-network stack", v3.
+The use of DMA_ATTR_SKIP_CPU_SYNC was not consistent across all of the DMA
+APIs in the arch/arm folder.  This change is meant to correct that so that
+we get consistent behavior.
 
-The first 19 patches in the set add support for the DMA attribute
-DMA_ATTR_SKIP_CPU_SYNC on multiple platforms/architectures.  This is
-needed so that we can flag the calls to dma_map/unmap_page so that we do
-not invalidate cache lines that do not currently belong to the device. 
-Instead we have to take care of this in the driver via a call to
-sync_single_range_for_cpu prior to freeing the Rx page.
-
-Patch 20 adds support for dma_map_page_attrs and dma_unmap_page_attrs so
-that we can unmap and map a page using the DMA_ATTR_SKIP_CPU_SYNC
-attribute.
-
-Patch 21 adds support for freeing a page that has multiple references
-being held by a single caller.  This way we can free page fragments that
-were allocated by a given driver.
-
-The last 2 patches use these updates in the igb driver, and lay the
-groundwork to allow for us to reimplement the use of build_skb.
-
-
-
-This patch (of 23):
-
-This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
-avoid invoking cache line invalidation if the driver will just handle it
-later via a sync_for_cpu or sync_for_device call.
-
-Link: http://lkml.kernel.org/r/20161110113419.76501.38491.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113430.76501.79737.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Acked-by: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/dma.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/avr32/mm/dma-coherent.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/arc/mm/dma.c~arch-arc-add-option-to-skip-sync-on-dma-mapping arch/arc/mm/dma.c
---- a/arch/arc/mm/dma.c~arch-arc-add-option-to-skip-sync-on-dma-mapping
-+++ a/arch/arc/mm/dma.c
-@@ -158,7 +158,10 @@ static dma_addr_t arc_dma_map_page(struc
- 		unsigned long attrs)
+diff -puN arch/avr32/mm/dma-coherent.c~arch-avr32-add-option-to-skip-sync-on-dma-map arch/avr32/mm/dma-coherent.c
+--- a/arch/avr32/mm/dma-coherent.c~arch-avr32-add-option-to-skip-sync-on-dma-map
++++ a/arch/avr32/mm/dma-coherent.c
+@@ -146,7 +146,8 @@ static dma_addr_t avr32_dma_map_page(str
  {
- 	phys_addr_t paddr = page_to_phys(page) + offset;
--	_dma_cache_sync(paddr, size, dir);
-+
+ 	void *cpu_addr = page_address(page) + offset;
+ 
+-	dma_cache_sync(dev, cpu_addr, size, direction);
 +	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		_dma_cache_sync(paddr, size, dir);
-+
- 	return plat_phys_to_dma(dev, paddr);
++		dma_cache_sync(dev, cpu_addr, size, direction);
+ 	return virt_to_bus(cpu_addr);
  }
+ 
+@@ -162,6 +163,10 @@ static int avr32_dma_map_sg(struct devic
+ 
+ 		sg->dma_address = page_to_bus(sg_page(sg)) + sg->offset;
+ 		virt = sg_virt(sg);
++
++		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
++			continue;
++
+ 		dma_cache_sync(dev, virt, sg->length, direction);
+ 	}
  
 _
 
