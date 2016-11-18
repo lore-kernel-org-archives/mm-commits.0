@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
+Subject: + igb-update-code-to-better-handle-incrementing-page-count.patch
  added to -mm tree
-Date: Fri, 18 Nov 2016 15:31:02 -0800
-Message-ID: <582f8f36.fGspJAnyhykRRVll%akpm@linux-foundation.org>
+Date: Fri, 18 Nov 2016 15:31:05 -0800
+Message-ID: <582f8f39.PKWj9o/esG82x3q8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42658 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753752AbcKRXbF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:31:05 -0500
+        with ESMTP id S1753510AbcKRXbH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:31:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexander.h.duyck@intel.com, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, geert@linux-m68k.org, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jeffrey.t.kirsher@intel.com, jejb@parisc-linux.org, jonas@southpole.se, keguang.zhang@gmail.com, lftan@altera.com, linux@armlinux.org.uk, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, ralf@linux-mips.org, realmz6@gmail.com, rkuo@codeaurora.org, tklauser@distanz.ch, vgupta@synopsys.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: igb: update driver to make use of DMA_ATTR_SKIP_CPU_SYNC
+     Subject: igb: update code to better handle incrementing page count
 has been added to the -mm tree.  Its filename is
-     igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
+     igb-update-code-to-better-handle-incrementing-page-count.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/igb-update-code-to-better-handle-incrementing-page-count.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/igb-update-code-to-better-handle-incrementing-page-count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,23 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: igb: update driver to make use of DMA_ATTR_SKIP_CPU_SYNC
+Subject: igb: update code to better handle incrementing page count
 
-The ARM architecture provides a mechanism for deferring cache line
-invalidation in the case of map/unmap.  This patch makes use of this
-mechanism to avoid unnecessary synchronization.
+Update the driver code so that we do bulk updates of the page reference
+count instead of just incrementing it by one reference at a time.  The
+advantage to doing this is that we cut down on atomic operations and this
+in turn should give us a slight improvement in cycles per packet.  In
+addition if we eventually move this over to using build_skb the gains will
+be more noticeable.
 
-A secondary effect of this change is that the portion of the page that has
-been synchronized for use by the CPU should be writable and could be
-passed up the stack (at least on ARM).
-
-The last bit that occurred to me is that on architectures where the
-sync_for_cpu call invalidates cache lines we were prefetching and then
-invalidating the first 128 bytes of the packet.  To avoid that I have
-moved the sync up to before we perform the prefetch and allocate the
-skbuff so that we can actually make use of it.
-
-Link: http://lkml.kernel.org/r/20161110113611.76501.98897.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113616.76501.17072.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
 Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -85,113 +78,107 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/intel/igb/igb_main.c |   53 ++++++++++++--------
- 1 file changed, 33 insertions(+), 20 deletions(-)
+ drivers/net/ethernet/intel/igb/igb.h      |    7 ++++-
+ drivers/net/ethernet/intel/igb/igb_main.c |   26 +++++++++++++-------
+ 2 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/ethernet/intel/igb/igb_main.c~igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync drivers/net/ethernet/intel/igb/igb_main.c
---- a/drivers/net/ethernet/intel/igb/igb_main.c~igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync
-+++ a/drivers/net/ethernet/intel/igb/igb_main.c
-@@ -3943,10 +3943,21 @@ static void igb_clean_rx_ring(struct igb
- 		if (!buffer_info->page)
- 			continue;
+diff -puN drivers/net/ethernet/intel/igb/igb.h~igb-update-code-to-better-handle-incrementing-page-count drivers/net/ethernet/intel/igb/igb.h
+--- a/drivers/net/ethernet/intel/igb/igb.h~igb-update-code-to-better-handle-incrementing-page-count
++++ a/drivers/net/ethernet/intel/igb/igb.h
+@@ -210,7 +210,12 @@ struct igb_tx_buffer {
+ struct igb_rx_buffer {
+ 	dma_addr_t dma;
+ 	struct page *page;
+-	unsigned int page_offset;
++#if (BITS_PER_LONG > 32) || (PAGE_SIZE >= 65536)
++	__u32 page_offset;
++#else
++	__u16 page_offset;
++#endif
++	__u16 pagecnt_bias;
+ };
  
--		dma_unmap_page(rx_ring->dev,
--			       buffer_info->dma,
--			       PAGE_SIZE,
--			       DMA_FROM_DEVICE);
-+		/* Invalidate cache lines that may have been written to by
-+		 * device so that we avoid corrupting memory.
-+		 */
-+		dma_sync_single_range_for_cpu(rx_ring->dev,
-+					      buffer_info->dma,
-+					      buffer_info->page_offset,
-+					      IGB_RX_BUFSZ,
-+					      DMA_FROM_DEVICE);
-+
-+		/* free resources associated with mapping */
-+		dma_unmap_page_attrs(rx_ring->dev,
-+				     buffer_info->dma,
-+				     PAGE_SIZE,
-+				     DMA_FROM_DEVICE,
-+				     DMA_ATTR_SKIP_CPU_SYNC);
- 		__free_page(buffer_info->page);
+ struct igb_tx_queue_stats {
+diff -puN drivers/net/ethernet/intel/igb/igb_main.c~igb-update-code-to-better-handle-incrementing-page-count drivers/net/ethernet/intel/igb/igb_main.c
+--- a/drivers/net/ethernet/intel/igb/igb_main.c~igb-update-code-to-better-handle-incrementing-page-count
++++ a/drivers/net/ethernet/intel/igb/igb_main.c
+@@ -3958,7 +3958,8 @@ static void igb_clean_rx_ring(struct igb
+ 				     PAGE_SIZE,
+ 				     DMA_FROM_DEVICE,
+ 				     DMA_ATTR_SKIP_CPU_SYNC);
+-		__free_page(buffer_info->page);
++		__page_frag_drain(buffer_info->page, 0,
++				  buffer_info->pagecnt_bias);
  
  		buffer_info->page = NULL;
-@@ -6815,12 +6826,6 @@ static void igb_reuse_rx_page(struct igb
- 
- 	/* transfer page from old buffer to new buffer */
- 	*new_buff = *old_buff;
--
--	/* sync the buffer for use by the device */
--	dma_sync_single_range_for_device(rx_ring->dev, old_buff->dma,
--					 old_buff->page_offset,
--					 IGB_RX_BUFSZ,
--					 DMA_FROM_DEVICE);
- }
- 
- static inline bool igb_page_is_reserved(struct page *page)
-@@ -6941,6 +6946,13 @@ static struct sk_buff *igb_fetch_rx_buff
- 	page = rx_buffer->page;
- 	prefetchw(page);
- 
-+	/* we are reusing so sync this buffer for CPU use */
-+	dma_sync_single_range_for_cpu(rx_ring->dev,
-+				      rx_buffer->dma,
-+				      rx_buffer->page_offset,
-+				      size,
-+				      DMA_FROM_DEVICE);
+ 	}
+@@ -6837,13 +6838,15 @@ static bool igb_can_reuse_rx_page(struct
+ 				  struct page *page,
+ 				  unsigned int truesize)
+ {
++	unsigned int pagecnt_bias = rx_buffer->pagecnt_bias--;
 +
- 	if (likely(!skb)) {
- 		void *page_addr = page_address(page) +
- 				  rx_buffer->page_offset;
-@@ -6965,21 +6977,15 @@ static struct sk_buff *igb_fetch_rx_buff
- 		prefetchw(skb->data);
+ 	/* avoid re-using remote pages */
+ 	if (unlikely(igb_page_is_reserved(page)))
+ 		return false;
+ 
+ #if (PAGE_SIZE < 8192)
+ 	/* if we are only owner of page we can reuse it */
+-	if (unlikely(page_count(page) != 1))
++	if (unlikely(page_ref_count(page) != pagecnt_bias))
+ 		return false;
+ 
+ 	/* flip page offset to other buffer */
+@@ -6856,10 +6859,14 @@ static bool igb_can_reuse_rx_page(struct
+ 		return false;
+ #endif
+ 
+-	/* Even if we own the page, we are not allowed to use atomic_set()
+-	 * This would break get_page_unless_zero() users.
+-	 */
+-	page_ref_inc(page);
++	/* If we have drained the page fragment pool we need to update
++	 * the pagecnt_bias and page count so that we fully restock the
++	 * number of references the driver holds.
++	 */
++	if (unlikely(pagecnt_bias == 1)) {
++		page_ref_add(page, USHRT_MAX);
++		rx_buffer->pagecnt_bias = USHRT_MAX;
++	}
+ 
+ 	return true;
+ }
+@@ -6911,7 +6918,6 @@ static bool igb_add_rx_frag(struct igb_r
+ 			return true;
+ 
+ 		/* this page cannot be reused so discard it */
+-		__free_page(page);
+ 		return false;
  	}
  
--	/* we are reusing so sync this buffer for CPU use */
--	dma_sync_single_range_for_cpu(rx_ring->dev,
--				      rx_buffer->dma,
--				      rx_buffer->page_offset,
--				      size,
--				      DMA_FROM_DEVICE);
--
- 	/* pull page into skb */
- 	if (igb_add_rx_frag(rx_ring, rx_buffer, size, rx_desc, skb)) {
+@@ -6982,10 +6988,13 @@ static struct sk_buff *igb_fetch_rx_buff
  		/* hand second half of page back to the ring */
  		igb_reuse_rx_page(rx_ring, rx_buffer);
  	} else {
- 		/* we are not reusing the buffer so unmap it */
--		dma_unmap_page(rx_ring->dev, rx_buffer->dma,
--			       PAGE_SIZE, DMA_FROM_DEVICE);
-+		dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
-+				     PAGE_SIZE, DMA_FROM_DEVICE,
-+				     DMA_ATTR_SKIP_CPU_SYNC);
+-		/* we are not reusing the buffer so unmap it */
++		/* We are not reusing the buffer so unmap it and free
++		 * any references we are holding to it
++		 */
+ 		dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
+ 				     PAGE_SIZE, DMA_FROM_DEVICE,
+ 				     DMA_ATTR_SKIP_CPU_SYNC);
++		__page_frag_drain(page, 0, rx_buffer->pagecnt_bias);
  	}
  
  	/* clear contents of rx_buffer */
-@@ -7237,7 +7243,8 @@ static bool igb_alloc_mapped_page(struct
- 	}
+@@ -7259,6 +7268,7 @@ static bool igb_alloc_mapped_page(struct
+ 	bi->dma = dma;
+ 	bi->page = page;
+ 	bi->page_offset = 0;
++	bi->pagecnt_bias = 1;
  
- 	/* map page for use */
--	dma = dma_map_page(rx_ring->dev, page, 0, PAGE_SIZE, DMA_FROM_DEVICE);
-+	dma = dma_map_page_attrs(rx_ring->dev, page, 0, PAGE_SIZE,
-+				 DMA_FROM_DEVICE, DMA_ATTR_SKIP_CPU_SYNC);
- 
- 	/* if mapping failed free memory back to system since
- 	 * there isn't much point in holding memory we can't use
-@@ -7278,6 +7285,12 @@ void igb_alloc_rx_buffers(struct igb_rin
- 		if (!igb_alloc_mapped_page(rx_ring, bi))
- 			break;
- 
-+		/* sync the buffer for use by the device */
-+		dma_sync_single_range_for_device(rx_ring->dev, bi->dma,
-+						 bi->page_offset,
-+						 IGB_RX_BUFSZ,
-+						 DMA_FROM_DEVICE);
-+
- 		/* Refresh the desc even if buffer_addrs didn't change
- 		 * because each write-back erases this info.
- 		 */
+ 	return true;
+ }
 _
 
 Patches currently in -mm which might be from alexander.h.duyck@intel.com are
