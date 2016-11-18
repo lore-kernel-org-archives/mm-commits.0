@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch added to -mm tree
-Date: Fri, 18 Nov 2016 15:30:55 -0800
-Message-ID: <582f8f2f.OdnDmOCiB/PVRc+n%akpm@linux-foundation.org>
+ dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch added
+ to -mm tree
+Date: Fri, 18 Nov 2016 15:30:57 -0800
+Message-ID: <582f8f31.1EROdP1mAvVxJhQ4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42522 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753899AbcKRXa4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:30:56 -0500
+        with ESMTP id S1753752AbcKRXa6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:30:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/xtensa: add option to skip DMA sync as a part of mapping
+     Subject: dma: add calls for dma_map_page_attrs and dma_unmap_page_attrs
 has been added to the -mm tree.  Its filename is
-     arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+     dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +41,77 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/xtensa: add option to skip DMA sync as a part of mapping
+Subject: dma: add calls for dma_map_page_attrs and dma_unmap_page_attrs
 
-This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
-avoid invoking cache line invalidation if the driver will just handle it
-via a sync_for_cpu or sync_for_device call.
+Add support for mapping and unmapping a page with attributes.  The primary
+use for this is currently to allow for us to pass the
+DMA_ATTR_SKIP_CPU_SYNC attribute when mapping and unmapping a page.  On
+some architectures such as ARM the synchronization has significant
+overhead and if we are already taking care of the sync_for_cpu and
+sync_for_device from the driver there isn't much need to handle this in
+the map/unmap calls as well.
 
-Link: http://lkml.kernel.org/r/20161110113555.76501.52536.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113601.76501.46095.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/pci-dma.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/dma-mapping.h |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN arch/xtensa/kernel/pci-dma.c~arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping arch/xtensa/kernel/pci-dma.c
---- a/arch/xtensa/kernel/pci-dma.c~arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping
-+++ a/arch/xtensa/kernel/pci-dma.c
-@@ -189,7 +189,9 @@ static dma_addr_t xtensa_map_page(struct
- {
- 	dma_addr_t dma_handle = page_to_phys(page) + offset;
- 
--	xtensa_sync_single_for_device(dev, dma_handle, size, dir);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		xtensa_sync_single_for_device(dev, dma_handle, size, dir);
-+
- 	return dma_handle;
+diff -puN include/linux/dma-mapping.h~dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs
++++ a/include/linux/dma-mapping.h
+@@ -243,29 +243,33 @@ static inline void dma_unmap_sg_attrs(st
+ 		ops->unmap_sg(dev, sg, nents, dir, attrs);
  }
  
-@@ -197,7 +199,8 @@ static void xtensa_unmap_page(struct dev
- 			      size_t size, enum dma_data_direction dir,
- 			      unsigned long attrs)
+-static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
+-				      size_t offset, size_t size,
+-				      enum dma_data_direction dir)
++static inline dma_addr_t dma_map_page_attrs(struct device *dev,
++					    struct page *page,
++					    size_t offset, size_t size,
++					    enum dma_data_direction dir,
++					    unsigned long attrs)
  {
--	xtensa_sync_single_for_cpu(dev, dma_handle, size, dir);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		xtensa_sync_single_for_cpu(dev, dma_handle, size, dir);
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 	dma_addr_t addr;
+ 
+ 	kmemcheck_mark_initialized(page_address(page) + offset, size);
+ 	BUG_ON(!valid_dma_direction(dir));
+-	addr = ops->map_page(dev, page, offset, size, dir, 0);
++	addr = ops->map_page(dev, page, offset, size, dir, attrs);
+ 	debug_dma_map_page(dev, page, offset, size, dir, addr, false);
+ 
+ 	return addr;
  }
  
- static int xtensa_map_sg(struct device *dev, struct scatterlist *sg,
+-static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
+-				  size_t size, enum dma_data_direction dir)
++static inline void dma_unmap_page_attrs(struct device *dev,
++					dma_addr_t addr, size_t size,
++					enum dma_data_direction dir,
++					unsigned long attrs)
+ {
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+ 
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	if (ops->unmap_page)
+-		ops->unmap_page(dev, addr, size, dir, 0);
++		ops->unmap_page(dev, addr, size, dir, attrs);
+ 	debug_dma_unmap_page(dev, addr, size, dir, false);
+ }
+ 
+@@ -385,6 +389,8 @@ dma_sync_sg_for_device(struct device *de
+ #define dma_unmap_single(d, a, s, r) dma_unmap_single_attrs(d, a, s, r, 0)
+ #define dma_map_sg(d, s, n, r) dma_map_sg_attrs(d, s, n, r, 0)
+ #define dma_unmap_sg(d, s, n, r) dma_unmap_sg_attrs(d, s, n, r, 0)
++#define dma_map_page(d, p, o, s, r) dma_map_page_attrs(d, p, o, s, r, 0)
++#define dma_unmap_page(d, a, s, r) dma_unmap_page_attrs(d, a, s, r, 0)
+ 
+ extern int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
+ 			   void *cpu_addr, dma_addr_t dma_addr, size_t size);
 _
 
 Patches currently in -mm which might be from alexander.h.duyck@intel.com are
