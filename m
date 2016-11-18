@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
+Subject: + arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
  added to -mm tree
-Date: Fri, 18 Nov 2016 15:05:35 -0800
-Message-ID: <582f893f.EbYCWMHYmpI/LfQ1%akpm@linux-foundation.org>
+Date: Fri, 18 Nov 2016 15:30:20 -0800
+Message-ID: <582f8f0c.fY1CXuB5TKv/FDJJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42408 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751716AbcKRXFh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:05:37 -0500
+        with ESMTP id S1753596AbcKRXaV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:30:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie.huang@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, gerald.schaefer@de.ibm.com, kaly.xin@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2
+     Subject: arch/arm: add option to skip sync on DMA map and unmap
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
+     arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,102 +39,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Shijie <shijie.huang@arm.com>
-Subject: mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: arch/arm: add option to skip sync on DMA map and unmap
 
-Since the huge_nodemask() is changed, we have to change this function a
-little.
+The use of DMA_ATTR_SKIP_CPU_SYNC was not consistent across all of the DMA
+APIs in the arch/arm folder.  This change is meant to correct that so that
+we get consistent behavior.
 
-Link: http://lkml.kernel.org/r/1479279304-31379-1-git-send-email-shijie.huang@arm.com
-Signed-off-by: Huang Shijie <shijie.huang@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kirill A . Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Kaly Xin <kaly.xin@arm.com>
+Link: http://lkml.kernel.org/r/20161110113424.76501.2715.stgit@ahduyck-blue-test.jf.intel.com
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Russell King <linux@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ arch/arm/common/dmabounce.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2 mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2
-+++ a/mm/hugetlb.c
-@@ -1507,19 +1507,19 @@ int dissolve_free_huge_pages(unsigned lo
-  *    the gigantic page.
-  *
-  * 2. The NUMA is enabled, but the vma is NULL.
-- *    Create a @nodes_allowed, use alloc_fresh_gigantic_page() to get
-+ *    Create a @nodes_allowed, and use alloc_fresh_gigantic_page() to get
-  *    the gigantic page.
-  *
-  * 3. The NUMA is enabled, and the vma is valid.
-  *    Use the @vma's memory policy.
-- *    Get @nodes_mask by huge_nodemask(), and use alloc_fresh_gigantic_page()
-+ *    Get @nodes_allowed by huge_nodemask(), and use alloc_fresh_gigantic_page()
-  *    to get the gigantic page.
-  */
- static struct page *__hugetlb_alloc_gigantic_page(struct hstate *h,
- 		struct vm_area_struct *vma, unsigned long addr, int nid)
+diff -puN arch/arm/common/dmabounce.c~arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap arch/arm/common/dmabounce.c
+--- a/arch/arm/common/dmabounce.c~arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap
++++ a/arch/arm/common/dmabounce.c
+@@ -243,7 +243,8 @@ static int needs_bounce(struct device *d
+ }
+ 
+ static inline dma_addr_t map_single(struct device *dev, void *ptr, size_t size,
+-		enum dma_data_direction dir)
++				    enum dma_data_direction dir,
++				    unsigned long attrs)
  {
--	struct page *page;
--	nodemask_t *nodes_mask;
-+	NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | __GFP_NORETRY);
-+	struct page *page = NULL;
+ 	struct dmabounce_device_info *device_info = dev->archdata.dmabounce;
+ 	struct safe_buffer *buf;
+@@ -262,7 +263,8 @@ static inline dma_addr_t map_single(stru
+ 		__func__, buf->ptr, virt_to_dma(dev, buf->ptr),
+ 		buf->safe, buf->safe_dma_addr);
  
- 	/* Not NUMA */
- 	if (!IS_ENABLED(CONFIG_NUMA)) {
-@@ -1530,14 +1530,12 @@ static struct page *__hugetlb_alloc_giga
- 		if (page)
- 			prep_compound_gigantic_page(page, huge_page_order(h));
+-	if (dir == DMA_TO_DEVICE || dir == DMA_BIDIRECTIONAL) {
++	if ((dir == DMA_TO_DEVICE || dir == DMA_BIDIRECTIONAL) &&
++	    !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
+ 		dev_dbg(dev, "%s: copy unsafe %p to safe %p, size %d\n",
+ 			__func__, ptr, buf->safe, size);
+ 		memcpy(buf->safe, ptr, size);
+@@ -272,7 +274,8 @@ static inline dma_addr_t map_single(stru
+ }
  
-+		NODEMASK_FREE(nodes_allowed);
- 		return page;
+ static inline void unmap_single(struct device *dev, struct safe_buffer *buf,
+-		size_t size, enum dma_data_direction dir)
++				size_t size, enum dma_data_direction dir,
++				unsigned long attrs)
+ {
+ 	BUG_ON(buf->size != size);
+ 	BUG_ON(buf->direction != dir);
+@@ -283,7 +286,8 @@ static inline void unmap_single(struct d
+ 
+ 	DO_STATS(dev->archdata.dmabounce->bounce_count++);
+ 
+-	if (dir == DMA_FROM_DEVICE || dir == DMA_BIDIRECTIONAL) {
++	if ((dir == DMA_FROM_DEVICE || dir == DMA_BIDIRECTIONAL) &&
++	    !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
+ 		void *ptr = buf->ptr;
+ 
+ 		dev_dbg(dev, "%s: copy back safe %p to unsafe %p size %d\n",
+@@ -334,7 +338,7 @@ static dma_addr_t dmabounce_map_page(str
+ 		return DMA_ERROR_CODE;
  	}
  
- 	/* NUMA && !vma */
- 	if (!vma) {
--		NODEMASK_ALLOC(nodemask_t, nodes_allowed,
--				GFP_KERNEL | __GFP_NORETRY);
--
- 		if (nid == NUMA_NO_NODE) {
- 			if (!init_nodemask_of_mempolicy(nodes_allowed)) {
- 				NODEMASK_FREE(nodes_allowed);
-@@ -1558,13 +1556,11 @@ static struct page *__hugetlb_alloc_giga
- 	}
- 
- 	/* NUMA && vma */
--	nodes_mask = huge_nodemask(vma, addr);
--	if (nodes_mask) {
--		page = alloc_fresh_gigantic_page(h, nodes_mask, true);
--		if (page)
--			return page;
--	}
--	return NULL;
-+	if (huge_nodemask(vma, addr, nodes_allowed))
-+		page = alloc_fresh_gigantic_page(h, nodes_allowed, true);
-+
-+	NODEMASK_FREE(nodes_allowed);
-+	return page;
+-	return map_single(dev, page_address(page) + offset, size, dir);
++	return map_single(dev, page_address(page) + offset, size, dir, attrs);
  }
  
  /*
+@@ -357,7 +361,7 @@ static void dmabounce_unmap_page(struct
+ 		return;
+ 	}
+ 
+-	unmap_single(dev, buf, size, dir);
++	unmap_single(dev, buf, size, dir, attrs);
+ }
+ 
+ static int __dmabounce_sync_for_cpu(struct device *dev, dma_addr_t addr,
 _
 
-Patches currently in -mm which might be from shijie.huang@arm.com are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
-mm-hugetlb-rename-some-allocation-functions.patch
-mm-hugetlb-add-a-new-parameter-for-some-functions.patch
-mm-hugetlb-change-the-return-type-for-alloc_fresh_gigantic_page.patch
-mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
-mm-mempolicy-intruduce-a-helper-huge_nodemask-v2.patch
-mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page.patch
-mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
-mm-hugetlb-support-gigantic-surplus-pages.patch
+arch-arc-add-option-to-skip-sync-on-dma-mapping.patch
+arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
+arch-avr32-add-option-to-skip-sync-on-dma-map.patch
+arch-blackfin-add-option-to-skip-sync-on-dma-map.patch
+arch-c6x-add-option-to-skip-sync-on-dma-map-and-unmap.patch
+arch-frv-add-option-to-skip-sync-on-dma-map.patch
+arch-hexagon-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+arch-nios2-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+arch-openrisc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+arch-parisc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+arch-sh-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+arch-tile-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch
+mm-add-support-for-releasing-multiple-instances-of-a-page.patch
+igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
+igb-update-code-to-better-handle-incrementing-page-count.patch
 
