@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mle-releases-issue-fix.patch added to -mm tree
-Date: Fri, 18 Nov 2016 14:51:26 -0800
-Message-ID: <582f85ee.c7TadnMTdwh6e38p%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch added to -mm tree
+Date: Fri, 18 Nov 2016 14:59:44 -0800
+Message-ID: <582f87e0.Bkd2eRtTmxCNhthy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40812 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752302AbcKRWv1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 17:51:27 -0500
+        with ESMTP id S1752444AbcKRW7p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 17:59:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ge.changwei@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: guozhonghua@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mle-releases-issue-fix
+     Subject: ocfs2: old mle put and release after the function dlm_add_migration_mle called
 has been added to the -mm tree.  Its filename is
-     mle-releases-issue-fix.patch
+     ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mle-releases-issue-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mle-releases-issue-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,65 +39,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mle-releases-issue-fix
+From: Guozhonghua <guozhonghua@h3c.com>
+Subject: ocfs2: old mle put and release after the function dlm_add_migration_mle called
 
-cleanups
+If the old mle is found after the dlm_add_migration_mle called, it should
+be put once.  If the return value is not - EEXIST and its type is BLOCK,
+it should be put again to release it to avoid memory leak, for it had been
+unhashed from the map.
 
-Cc: Gechangwei <ge.changwei@h3c.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4A3D4B7FE@H3CMLB12-EX.srv.huawei-3com.com
+Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: gechangwei <ge.changwei@h3c.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |   62 ++++++++++++++++++++++++++-----------
+ 1 file changed, 44 insertions(+), 18 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~mle-releases-issue-fix fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~mle-releases-issue-fix
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called
 +++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1935,7 +1935,7 @@ ok:
+@@ -2612,20 +2612,45 @@ static int dlm_migrate_lockres(struct dl
+ 	spin_lock(&dlm->master_lock);
+ 	ret = dlm_add_migration_mle(dlm, res, mle, &oldmle, name,
+ 				    namelen, target, dlm->node_num);
++	if (ret == -EEXIST) {
++		if(oldmle)
++			__dlm_put_mle(oldmle);
++
++		spin_unlock(&dlm->master_lock);
++		spin_unlock(&dlm->spinlock);
++		mlog(0, "another process is already migrating it\n");
++		goto fail;
++	}
++
++	/* If an old one mle found, it should be put. if its type is BLOCK,
++	 * it should be put again. Because it had been unhasded from the map
++	 * in the function dlm_add_migration_mle.
++	 * otherwise the memory will be leaked. It will not found it again from
++	 * the hash map.
++	 */
++	if (oldmle) {
++		/* master is known, detach if not already detached */
++		__dlm_mle_detach_hb_events(dlm, oldmle);
++		__dlm_put_mle(oldmle);
++
++		/* if the type of the mle is BLOCK, should put it once for release.
++		 * otherwise memory leak may be caused because oldmle had been unhashed
++		 * from the hash map, it will not be found anymore.
++		 */
++		if (oldmle->type == DLM_MLE_BLOCK)
++			__dlm_put_mle(oldmle);
++       }
++
+ 	/* get an extra reference on the mle.
+ 	 * otherwise the assert_master from the new
+ 	 * master will destroy this.
+ 	 */
+ 	dlm_get_mle_inuse(mle);
++	mle_added = 1;
++
+ 	spin_unlock(&dlm->master_lock);
+ 	spin_unlock(&dlm->spinlock);
  
- 		spin_lock(&mle->spinlock);
- 		if (mle->type == DLM_MLE_BLOCK || mle->type == DLM_MLE_MIGRATION)
--			extra_ref = test_bit(assert->node_idx, mle->maybe_map) ? 1 : 0;
-+			extra_ref = test_bit(assert->node_idx, mle->maybe_map);
- 		else {
- 			/* MASTER mle: if any bits set in the response map
- 			 * then the calling node needs to re-assert to clear
-@@ -3338,7 +3338,7 @@ static void dlm_clean_block_mle(struct d
- 		mlog(0, "mle found, but dead node %u would not have been "
- 		     "master\n", dead_node);
- 		spin_unlock(&mle->spinlock);
--	} else if(mle->master != O2NM_MAX_NODES){
-+	} else if (mle->master != O2NM_MAX_NODES) {
- 		mlog(ML_NOTICE, "mle found, master assert received, master has "
- 			"already set to %d.\n ", mle->master);
- 		spin_unlock(&mle->spinlock);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-mle-releases-issue-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
-scripts-checkpatchpl-fix-spelling.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+-	if (ret == -EEXIST) {
+-		mlog(0, "another process is already migrating it\n");
+-		goto fail;
+-	}
+-	mle_added = 1;
+-
+ 	/*
+ 	 * set the MIGRATING flag and flush asts
+ 	 * if we fail after this we need to re-dirty the lockres
+@@ -2642,12 +2667,6 @@ static int dlm_migrate_lockres(struct dl
+ 	}
+ 
+ fail:
+-	if (ret != -EEXIST && oldmle) {
+-		/* master is known, detach if not already detached */
+-		dlm_mle_detach_hb_events(dlm, oldmle);
+-		dlm_put_mle(oldmle);
+-	}
+-
+ 	if (ret < 0) {
+ 		if (mle_added) {
+ 			dlm_mle_detach_hb_events(dlm, mle);
+@@ -3182,16 +3201,23 @@ int dlm_migrate_request_handler(struct o
+ 	if (ret < 0)
+ 		kmem_cache_free(dlm_mle_cache, mle);
+ 
++	/* If an old one mle found, it should be put. if its type is BLOCK,
++	 * it should be put again. Because it had been unhasded from the map
++	 * in the function dlm_add_migration_mle.
++	 * otherwise the memory will be leaked. It will not found it again from
++	 * the hash map.
++	 */
++	if (oldmle) {
++		__dlm_mle_detach_hb_events(dlm, oldmle);
++		__dlm_put_mle(oldmle);
++		if (ret >= 0 && oldmle->type == DLM_MLE_BLOCK)
++			__dlm_put_mle(oldmle);
++	}
++
+ 	spin_unlock(&dlm->master_lock);
+ unlock:
+ 	spin_unlock(&dlm->spinlock);
+ 
+-	if (oldmle) {
+-		/* master is known, detach if not already detached */
+-		dlm_mle_detach_hb_events(dlm, oldmle);
+-		dlm_put_mle(oldmle);
+-	}
