@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch added to
- -mm tree
-Date: Fri, 18 Nov 2016 15:30:32 -0800
-Message-ID: <582f8f18.m49OOqIbHhIigqX1%akpm@linux-foundation.org>
+ arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+ added to -mm tree
+Date: Fri, 18 Nov 2016 15:30:34 -0800
+Message-ID: <582f8f1a.ZNHcMtLp/CBK+CQE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42442 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42448 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754068AbcKRXad (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:30:33 -0500
+        with ESMTP id S1754147AbcKRXag (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 18:30:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, james.hogan@imgtec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/m68k: add option to skip DMA sync as a part of mapping
+     Subject: arch/metag: add option to skip DMA sync as a part of map and unmap
 has been added to the -mm tree.  Its filename is
-     arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+     arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,46 +41,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/m68k: add option to skip DMA sync as a part of mapping
+Subject: arch/metag: add option to skip DMA sync as a part of map and unmap
 
 This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
 avoid invoking cache line invalidation if the driver will just handle it
-later via a sync_for_cpu or sync_for_device call.
+via a sync_for_cpu or sync_for_device call.
 
-Link: http://lkml.kernel.org/r/20161110113457.76501.77603.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113503.76501.80809.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/dma.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/metag/kernel/dma.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN arch/m68k/kernel/dma.c~arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping arch/m68k/kernel/dma.c
---- a/arch/m68k/kernel/dma.c~arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping
-+++ a/arch/m68k/kernel/dma.c
-@@ -134,7 +134,9 @@ static dma_addr_t m68k_dma_map_page(stru
+diff -puN arch/metag/kernel/dma.c~arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/metag/kernel/dma.c
+--- a/arch/metag/kernel/dma.c~arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
++++ a/arch/metag/kernel/dma.c
+@@ -484,8 +484,9 @@ static dma_addr_t metag_dma_map_page(str
+ 		unsigned long offset, size_t size,
+ 		enum dma_data_direction direction, unsigned long attrs)
  {
- 	dma_addr_t handle = page_to_phys(page) + offset;
- 
--	dma_sync_single_for_device(dev, handle, size, dir);
+-	dma_sync_for_device((void *)(page_to_phys(page) + offset), size,
+-			    direction);
 +	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		dma_sync_single_for_device(dev, handle, size, dir);
-+
- 	return handle;
++		dma_sync_for_device((void *)(page_to_phys(page) + offset),
++				    size, direction);
+ 	return page_to_phys(page) + offset;
  }
  
-@@ -146,6 +148,10 @@ static int m68k_dma_map_sg(struct device
+@@ -493,7 +494,8 @@ static void metag_dma_unmap_page(struct
+ 		size_t size, enum dma_data_direction direction,
+ 		unsigned long attrs)
+ {
+-	dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
++	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
++		dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
+ }
  
- 	for_each_sg(sglist, sg, nents, i) {
+ static int metag_dma_map_sg(struct device *dev, struct scatterlist *sglist,
+@@ -507,6 +509,10 @@ static int metag_dma_map_sg(struct devic
+ 		BUG_ON(!sg_page(sg));
+ 
  		sg->dma_address = sg_phys(sg);
 +
 +		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
 +			continue;
 +
- 		dma_sync_single_for_device(dev, sg->dma_address, sg->length,
- 					   dir);
+ 		dma_sync_for_device(sg_virt(sg), sg->length, direction);
  	}
+ 
+@@ -525,6 +531,10 @@ static void metag_dma_unmap_sg(struct de
+ 		BUG_ON(!sg_page(sg));
+ 
+ 		sg->dma_address = sg_phys(sg);
++
++		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
++			continue;
++
+ 		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from alexander.h.duyck@intel.com are
