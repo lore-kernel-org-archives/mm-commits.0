@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-m32r_pcc-check-return-from-request_irq.patch added to
- -mm tree
-Date: Fri, 18 Nov 2016 14:34:17 -0800
-Message-ID: <582f81e9.LnbvGlnuxtISd7kI%akpm@linux-foundation.org>
+Subject: + pcmcia-m32r_pcc-use-common-error-path.patch added to -mm tree
+Date: Fri, 18 Nov 2016 14:34:20 -0800
+Message-ID: <582f81ec.dZmyCBr1LQKMDGHL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40218 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752168AbcKRWeT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 17:34:19 -0500
+        with ESMTP id S1752550AbcKRWeV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 17:34:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/pcmcia/m32r_pcc.c: check return from request_irq
+     Subject: drivers/pcmcia/m32r_pcc.c: use common error path
 has been added to the -mm tree.  Its filename is
-     pcmcia-m32r_pcc-check-return-from-request_irq.patch
+     pcmcia-m32r_pcc-use-common-error-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pcmcia-m32r_pcc-check-return-from-request_irq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pcmcia-m32r_pcc-use-common-error-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pcmcia-m32r_pcc-check-return-from-request_irq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pcmcia-m32r_pcc-use-common-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +39,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: drivers/pcmcia/m32r_pcc.c: check return from request_irq
+Subject: drivers/pcmcia/m32r_pcc.c: use common error path
 
-While building m32r allmodconfig we were getting warning:
+Use a common error path for the failure.
 
-drivers/pcmcia/m32r_pcc.c:331:2:
- warning: ignoring return value of 'request_irq',
- declared with attribute warn_unused_result
-
-request_irq() can fail and we should always be checking the result from
-it. Check the result and return it to the caller.
-
-Link: http://lkml.kernel.org/r/1474237304-897-1-git-send-email-sudipm.mukherjee@gmail.com
+Link: http://lkml.kernel.org/r/1474237304-897-2-git-send-email-sudipm.mukherjee@gmail.com
 Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/m32r_pcc.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/pcmcia/m32r_pcc.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-check-return-from-request_irq drivers/pcmcia/m32r_pcc.c
---- a/drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-check-return-from-request_irq
+diff -puN drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-use-common-error-path drivers/pcmcia/m32r_pcc.c
+--- a/drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-use-common-error-path
 +++ a/drivers/pcmcia/m32r_pcc.c
-@@ -296,10 +296,11 @@ static int __init is_alive(u_short sock)
+@@ -689,10 +689,8 @@ static int __init init_m32r_pcc(void)
+ 		return ret;
+ 
+ 	ret = platform_device_register(&pcc_device);
+-	if (ret){
+-		platform_driver_unregister(&pcc_driver);
+-		return ret;
+-	}
++	if (ret)
++		goto unreg_driv;
+ 
+ 	printk(KERN_INFO "m32r PCC probe:\n");
+ 
+@@ -706,9 +704,8 @@ static int __init init_m32r_pcc(void)
+ 
+ 	if (pcc_sockets == 0) {
+ 		printk("socket is not found.\n");
+-		platform_device_unregister(&pcc_device);
+-		platform_driver_unregister(&pcc_driver);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto unreg_dev;
+ 	}
+ 
+ 	/* Set up interrupt handler(s) */
+@@ -734,6 +731,12 @@ static int __init init_m32r_pcc(void)
+ 	}
+ 
  	return 0;
- }
++
++unreg_dev:
++	platform_device_unregister(&pcc_device);
++unreg_driv:
++	platform_driver_unregister(&pcc_driver);
++	return ret;
+ } /* init_m32r_pcc */
  
--static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
--			   unsigned int ioaddr)
-+static int add_pcc_socket(ulong base, int irq, ulong mapaddr,
-+			  unsigned int ioaddr)
- {
-   	pcc_socket_t *t = &socket[pcc_sockets];
-+	int err;
- 
- 	/* add sockets */
- 	t->ioaddr = ioaddr;
-@@ -328,11 +329,16 @@ static void add_pcc_socket(ulong base, i
- 	t->socket.irq_mask = 0;
- 	t->socket.pci_irq = 2 + pcc_sockets; /* XXX */
- 
--	request_irq(irq, pcc_interrupt, 0, "m32r-pcc", pcc_interrupt);
-+	err = request_irq(irq, pcc_interrupt, 0, "m32r-pcc", pcc_interrupt);
-+	if (err) {
-+		if (t->base > 0)
-+			release_region(t->base, 0x20);
-+		return err;
-+	}
- 
- 	pcc_sockets++;
- 
--	return;
-+	return 0;
- }
- 
- 
+ static void __exit exit_m32r_pcc(void)
 _
 
 Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
