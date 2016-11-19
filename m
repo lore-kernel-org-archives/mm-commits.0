@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + lib-radix-tree-update-callback-for-changing-leaf-nodes.patch
+Subject: +
+ lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace.patch
  added to -mm tree
-Date: Fri, 18 Nov 2016 16:45:45 -0800
-Message-ID: <582fa0b9.X++dL8KOuuntObmk%akpm@linux-foundation.org>
+Date: Fri, 18 Nov 2016 16:45:43 -0800
+Message-ID: <582fa0b7.qCepbLDl2iSzTLB2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45490 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753270AbcKSApq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 19:45:46 -0500
+        with ESMTP id S1752813AbcKSApo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 19:45:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@linuxonhyperv.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: radix-tree: update callback for changing leaf nodes
+     Subject: lib: radix-tree: add entry deletion support to __radix_tree_replace()
 has been added to the -mm tree.  Its filename is
-     lib-radix-tree-update-callback-for-changing-leaf-nodes.patch
+     lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-radix-tree-update-callback-for-changing-leaf-nodes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-radix-tree-update-callback-for-changing-leaf-nodes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +41,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: lib: radix-tree: update callback for changing leaf nodes
+Subject: lib: radix-tree: add entry deletion support to __radix_tree_replace()
 
-Support handing __radix_tree_replace() a callback that gets invoked for
-all leaf nodes that change or get freed as a result of the slot
-replacement, to assist users tracking nodes with node->private_list.
+Page cache shadow entry handling will be a lot simpler when it can use a
+single generic replacement function for pages, shadow entries, and
+emptying slots.
 
-This prepares for putting page cache shadow entries into the radix tree
-root again and drastically simplifying the shadow tracking.
+Make __radix_tree_replace() properly account insertions and deletions in
+node->count and garbage collect nodes as they become empty.  Then
+re-implement radix_tree_delete() on top of it.
 
-Link: http://lkml.kernel.org/r/20161117193134.GD23430@cmpxchg.org
+Link: http://lkml.kernel.org/r/20161117193058.GC23430@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -59,180 +60,290 @@ Cc: Matthew Wilcox <mawilcox@linuxonhyperv.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                   |    3 +-
- include/linux/radix-tree.h |    4 ++-
- lib/radix-tree.c           |   42 ++++++++++++++++++++++++-----------
- mm/shmem.c                 |    3 +-
- 4 files changed, 36 insertions(+), 16 deletions(-)
+ lib/radix-tree.c |  227 ++++++++++++++++++++++-----------------------
+ 1 file changed, 116 insertions(+), 111 deletions(-)
 
-diff -puN fs/dax.c~lib-radix-tree-update-callback-for-changing-leaf-nodes fs/dax.c
---- a/fs/dax.c~lib-radix-tree-update-callback-for-changing-leaf-nodes
-+++ a/fs/dax.c
-@@ -649,7 +649,8 @@ static void *dax_insert_mapping_entry(st
- 
- 		ret = __radix_tree_lookup(page_tree, index, &node, &slot);
- 		WARN_ON_ONCE(ret != entry);
--		__radix_tree_replace(page_tree, node, slot, new_entry);
-+		__radix_tree_replace(page_tree, node, slot,
-+				     new_entry, NULL, NULL);
- 	}
- 	if (vmf->flags & FAULT_FLAG_WRITE)
- 		radix_tree_tag_set(page_tree, index, PAGECACHE_TAG_DIRTY);
-diff -puN include/linux/radix-tree.h~lib-radix-tree-update-callback-for-changing-leaf-nodes include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~lib-radix-tree-update-callback-for-changing-leaf-nodes
-+++ a/include/linux/radix-tree.h
-@@ -263,9 +263,11 @@ void *__radix_tree_lookup(struct radix_t
- 			  struct radix_tree_node **nodep, void ***slotp);
- void *radix_tree_lookup(struct radix_tree_root *, unsigned long);
- void **radix_tree_lookup_slot(struct radix_tree_root *, unsigned long);
-+typedef void (*radix_tree_update_node_t)(struct radix_tree_node *, void *);
- void __radix_tree_replace(struct radix_tree_root *root,
- 			  struct radix_tree_node *node,
--			  void **slot, void *item);
-+			  void **slot, void *item,
-+			  radix_tree_update_node_t update_node, void *private);
- void radix_tree_replace_slot(struct radix_tree_root *root,
- 			     void **slot, void *item);
- bool __radix_tree_delete_node(struct radix_tree_root *root,
-diff -puN lib/radix-tree.c~lib-radix-tree-update-callback-for-changing-leaf-nodes lib/radix-tree.c
---- a/lib/radix-tree.c~lib-radix-tree-update-callback-for-changing-leaf-nodes
+diff -puN lib/radix-tree.c~lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace
 +++ a/lib/radix-tree.c
-@@ -325,7 +325,6 @@ static void radix_tree_node_rcu_free(str
- 		tag_clear(node, i, 0);
- 
- 	node->slots[0] = NULL;
--	node->count = 0;
- 
- 	kmem_cache_free(radix_tree_node_cachep, node);
+@@ -539,6 +539,107 @@ out:
  }
-@@ -542,7 +541,9 @@ out:
-  *	radix_tree_shrink    -    shrink radix tree to minimum height
-  *	@root		radix tree root
-  */
--static inline bool radix_tree_shrink(struct radix_tree_root *root)
-+static inline bool radix_tree_shrink(struct radix_tree_root *root,
-+				     radix_tree_update_node_t update_node,
-+				     void *private)
- {
- 	bool shrunk = false;
- 
-@@ -597,8 +598,12 @@ static inline bool radix_tree_shrink(str
- 		 * also results in a stale slot). So tag the slot as indirect
- 		 * to force callers to retry.
- 		 */
--		if (!radix_tree_is_internal_node(child))
-+		node->count = 0;
-+		if (!radix_tree_is_internal_node(child)) {
- 			node->slots[0] = RADIX_TREE_RETRY;
-+			if (update_node)
-+				update_node(node, private);
-+		}
- 
- 		radix_tree_node_free(node);
- 		shrunk = true;
-@@ -608,7 +613,8 @@ static inline bool radix_tree_shrink(str
- }
- 
- static bool delete_node(struct radix_tree_root *root,
--			struct radix_tree_node *node)
-+			struct radix_tree_node *node,
-+			radix_tree_update_node_t update_node, void *private)
- {
- 	bool deleted = false;
- 
-@@ -617,7 +623,8 @@ static bool delete_node(struct radix_tre
- 
- 		if (node->count) {
- 			if (node == entry_to_node(root->rnode))
--				deleted |= radix_tree_shrink(root);
-+				deleted |= radix_tree_shrink(root, update_node,
-+							     private);
- 			return deleted;
- 		}
- 
-@@ -880,17 +887,20 @@ static void replace_slot(struct radix_tr
  
  /**
-  * __radix_tree_replace		- replace item in a slot
-- * @root:	radix tree root
-- * @node:	pointer to tree node
-- * @slot:	pointer to slot in @node
-- * @item:	new item to store in the slot.
-+ * @root:		radix tree root
-+ * @node:		pointer to tree node
-+ * @slot:		pointer to slot in @node
-+ * @item:		new item to store in the slot.
-+ * @update_node:	callback for changing leaf nodes
-+ * @private:		private data to pass to @update_node
-  *
-  * For use with __radix_tree_lookup().  Caller must hold tree write locked
-  * across slot lookup and replacement.
-  */
- void __radix_tree_replace(struct radix_tree_root *root,
- 			  struct radix_tree_node *node,
--			  void **slot, void *item)
-+			  void **slot, void *item,
-+			  radix_tree_update_node_t update_node, void *private)
++ *	radix_tree_shrink    -    shrink radix tree to minimum height
++ *	@root		radix tree root
++ */
++static inline bool radix_tree_shrink(struct radix_tree_root *root)
++{
++	bool shrunk = false;
++
++	for (;;) {
++		struct radix_tree_node *node = root->rnode;
++		struct radix_tree_node *child;
++
++		if (!radix_tree_is_internal_node(node))
++			break;
++		node = entry_to_node(node);
++
++		/*
++		 * The candidate node has more than one child, or its child
++		 * is not at the leftmost slot, or the child is a multiorder
++		 * entry, we cannot shrink.
++		 */
++		if (node->count != 1)
++			break;
++		child = node->slots[0];
++		if (!child)
++			break;
++		if (!radix_tree_is_internal_node(child) && node->shift)
++			break;
++
++		if (radix_tree_is_internal_node(child))
++			entry_to_node(child)->parent = NULL;
++
++		/*
++		 * We don't need rcu_assign_pointer(), since we are simply
++		 * moving the node from one part of the tree to another: if it
++		 * was safe to dereference the old pointer to it
++		 * (node->slots[0]), it will be safe to dereference the new
++		 * one (root->rnode) as far as dependent read barriers go.
++		 */
++		root->rnode = child;
++
++		/*
++		 * We have a dilemma here. The node's slot[0] must not be
++		 * NULLed in case there are concurrent lookups expecting to
++		 * find the item. However if this was a bottom-level node,
++		 * then it may be subject to the slot pointer being visible
++		 * to callers dereferencing it. If item corresponding to
++		 * slot[0] is subsequently deleted, these callers would expect
++		 * their slot to become empty sooner or later.
++		 *
++		 * For example, lockless pagecache will look up a slot, deref
++		 * the page pointer, and if the page has 0 refcount it means it
++		 * was concurrently deleted from pagecache so try the deref
++		 * again. Fortunately there is already a requirement for logic
++		 * to retry the entire slot lookup -- the indirect pointer
++		 * problem (replacing direct root node with an indirect pointer
++		 * also results in a stale slot). So tag the slot as indirect
++		 * to force callers to retry.
++		 */
++		if (!radix_tree_is_internal_node(child))
++			node->slots[0] = RADIX_TREE_RETRY;
++
++		radix_tree_node_free(node);
++		shrunk = true;
++	}
++
++	return shrunk;
++}
++
++static bool delete_node(struct radix_tree_root *root,
++			struct radix_tree_node *node)
++{
++	bool deleted = false;
++
++	do {
++		struct radix_tree_node *parent;
++
++		if (node->count) {
++			if (node == entry_to_node(root->rnode))
++				deleted |= radix_tree_shrink(root);
++			return deleted;
++		}
++
++		parent = node->parent;
++		if (parent) {
++			parent->slots[node->offset] = NULL;
++			parent->count--;
++		} else {
++			root_tag_clear_all(root);
++			root->rnode = NULL;
++		}
++
++		radix_tree_node_free(node);
++		deleted = true;
++
++		node = parent;
++	} while (node);
++
++	return deleted;
++}
++
++/**
+  *	__radix_tree_create	-	create a slot in a radix tree
+  *	@root:		radix tree root
+  *	@index:		index key
+@@ -759,18 +860,20 @@ static void replace_slot(struct radix_tr
+ 			 bool warn_typeswitch)
+ {
+ 	void *old = rcu_dereference_raw(*slot);
+-	int exceptional;
++	int count, exceptional;
+ 
+ 	WARN_ON_ONCE(radix_tree_is_internal_node(item));
+-	WARN_ON_ONCE(!!item - !!old);
+ 
++	count = !!item - !!old;
+ 	exceptional = !!radix_tree_exceptional_entry(item) -
+ 		      !!radix_tree_exceptional_entry(old);
+ 
+-	WARN_ON_ONCE(warn_typeswitch && exceptional);
++	WARN_ON_ONCE(warn_typeswitch && (count || exceptional));
+ 
+-	if (node)
++	if (node) {
++		node->count += count;
+ 		node->exceptional += exceptional;
++	}
+ 
+ 	rcu_assign_pointer(*slot, item);
+ }
+@@ -790,12 +893,14 @@ void __radix_tree_replace(struct radix_t
+ 			  void **slot, void *item)
  {
  	/*
- 	 * This function supports replacing exceptional entries and
-@@ -900,7 +910,13 @@ void __radix_tree_replace(struct radix_t
+-	 * This function supports replacing exceptional entries, but
+-	 * that needs accounting against the node unless the slot is
+-	 * root->rnode.
++	 * This function supports replacing exceptional entries and
++	 * deleting entries, but that needs accounting against the
++	 * node unless the slot is root->rnode.
+ 	 */
  	replace_slot(root, node, slot, item,
  		     !node && slot != (void **)&root->rnode);
- 
--	delete_node(root, node);
-+	if (!node)
-+		return;
 +
-+	if (update_node)
-+		update_node(node, private);
-+
-+	delete_node(root, node, update_node, private);
++	delete_node(root, node);
  }
  
  /**
-@@ -1585,7 +1601,7 @@ unsigned long radix_tree_locate_item(str
+@@ -810,8 +915,8 @@ void __radix_tree_replace(struct radix_t
+  *
+  * NOTE: This cannot be used to switch between non-entries (empty slots),
+  * regular entries, and exceptional entries, as that requires accounting
+- * inside the radix tree node. When switching from one type of entry to
+- * another, use __radix_tree_lookup() and __radix_tree_replace().
++ * inside the radix tree node. When switching from one type of entry or
++ * deleting, use __radix_tree_lookup() and __radix_tree_replace().
+  */
+ void radix_tree_replace_slot(struct radix_tree_root *root,
+ 			     void **slot, void *item)
+@@ -1467,75 +1572,6 @@ unsigned long radix_tree_locate_item(str
+ #endif /* CONFIG_SHMEM && CONFIG_SWAP */
+ 
+ /**
+- *	radix_tree_shrink    -    shrink radix tree to minimum height
+- *	@root		radix tree root
+- */
+-static inline bool radix_tree_shrink(struct radix_tree_root *root)
+-{
+-	bool shrunk = false;
+-
+-	for (;;) {
+-		struct radix_tree_node *node = root->rnode;
+-		struct radix_tree_node *child;
+-
+-		if (!radix_tree_is_internal_node(node))
+-			break;
+-		node = entry_to_node(node);
+-
+-		/*
+-		 * The candidate node has more than one child, or its child
+-		 * is not at the leftmost slot, or the child is a multiorder
+-		 * entry, we cannot shrink.
+-		 */
+-		if (node->count != 1)
+-			break;
+-		child = node->slots[0];
+-		if (!child)
+-			break;
+-		if (!radix_tree_is_internal_node(child) && node->shift)
+-			break;
+-
+-		if (radix_tree_is_internal_node(child))
+-			entry_to_node(child)->parent = NULL;
+-
+-		/*
+-		 * We don't need rcu_assign_pointer(), since we are simply
+-		 * moving the node from one part of the tree to another: if it
+-		 * was safe to dereference the old pointer to it
+-		 * (node->slots[0]), it will be safe to dereference the new
+-		 * one (root->rnode) as far as dependent read barriers go.
+-		 */
+-		root->rnode = child;
+-
+-		/*
+-		 * We have a dilemma here. The node's slot[0] must not be
+-		 * NULLed in case there are concurrent lookups expecting to
+-		 * find the item. However if this was a bottom-level node,
+-		 * then it may be subject to the slot pointer being visible
+-		 * to callers dereferencing it. If item corresponding to
+-		 * slot[0] is subsequently deleted, these callers would expect
+-		 * their slot to become empty sooner or later.
+-		 *
+-		 * For example, lockless pagecache will look up a slot, deref
+-		 * the page pointer, and if the page has 0 refcount it means it
+-		 * was concurrently deleted from pagecache so try the deref
+-		 * again. Fortunately there is already a requirement for logic
+-		 * to retry the entire slot lookup -- the indirect pointer
+-		 * problem (replacing direct root node with an indirect pointer
+-		 * also results in a stale slot). So tag the slot as indirect
+-		 * to force callers to retry.
+-		 */
+-		if (!radix_tree_is_internal_node(child))
+-			node->slots[0] = RADIX_TREE_RETRY;
+-
+-		radix_tree_node_free(node);
+-		shrunk = true;
+-	}
+-
+-	return shrunk;
+-}
+-
+-/**
+  *	__radix_tree_delete_node    -    try to free node after clearing a slot
+  *	@root:		radix tree root
+  *	@node:		node containing @index
+@@ -1549,33 +1585,7 @@ static inline bool radix_tree_shrink(str
  bool __radix_tree_delete_node(struct radix_tree_root *root,
  			      struct radix_tree_node *node)
  {
--	return delete_node(root, node);
-+	return delete_node(root, node, NULL, NULL);
+-	bool deleted = false;
+-
+-	do {
+-		struct radix_tree_node *parent;
+-
+-		if (node->count) {
+-			if (node == entry_to_node(root->rnode))
+-				deleted |= radix_tree_shrink(root);
+-			return deleted;
+-		}
+-
+-		parent = node->parent;
+-		if (parent) {
+-			parent->slots[node->offset] = NULL;
+-			parent->count--;
+-		} else {
+-			root_tag_clear_all(root);
+-			root->rnode = NULL;
+-		}
+-
+-		radix_tree_node_free(node);
+-		deleted = true;
+-
+-		node = parent;
+-	} while (node);
+-
+-	return deleted;
++	return delete_node(root, node);
  }
  
  static inline void delete_sibling_entries(struct radix_tree_node *node,
-@@ -1642,7 +1658,7 @@ void *radix_tree_delete_item(struct radi
+@@ -1632,12 +1642,7 @@ void *radix_tree_delete_item(struct radi
  		node_tag_clear(root, node, tag, offset);
  
  	delete_sibling_entries(node, node_to_entry(slot), offset);
--	__radix_tree_replace(root, node, slot, NULL);
-+	__radix_tree_replace(root, node, slot, NULL, NULL, NULL);
- 
- 	return entry;
- }
-diff -puN mm/shmem.c~lib-radix-tree-update-callback-for-changing-leaf-nodes mm/shmem.c
---- a/mm/shmem.c~lib-radix-tree-update-callback-for-changing-leaf-nodes
-+++ a/mm/shmem.c
-@@ -311,7 +311,8 @@ static int shmem_radix_tree_replace(stru
- 		return -ENOENT;
- 	if (item != expected)
- 		return -ENOENT;
--	__radix_tree_replace(&mapping->page_tree, node, pslot, replacement);
-+	__radix_tree_replace(&mapping->page_tree, node, pslot,
-+			     replacement, NULL, NULL);
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-mm-khugepaged-close-use-after-free-race-during-shmem-collapsing.patch
-mm-khugepaged-fix-radix-tree-node-leak-in-shmem-collapse-error-path.patch
-mm-workingset-turn-shadow-node-shrinker-bugs-into-warnings.patch
-lib-radix-tree-native-accounting-of-exceptional-entries.patch
-lib-radix-tree-check-accounting-of-existing-slot-replacement-users.patch
-lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace.patch
-lib-radix-tree-update-callback-for-changing-leaf-nodes.patch
-mm-workingset-move-shadow-entry-tracking-to-radix-tree-exceptional-tracking.patch
-mm-workingset-restore-refault-tracking-for-single-page-files.patch
-
+-	node->slots[offset] = NULL;
+-	node->count--;
+-	if (radix_tree_exceptional_entry(entry))
+-		node->exceptional--;
