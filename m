@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-workingset-update-shadow-limit-to-reflect-bigger-active-list.patch added to -mm tree
-Date: Fri, 18 Nov 2016 16:46:57 -0800
-Message-ID: <582fa101.stAiEW0ebC2EtXF/%akpm@linux-foundation.org>
+ ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch added
+ to -mm tree
+Date: Mon, 21 Nov 2016 20:53:39 -0800
+Message-ID: <5833cf53.2jSVBuBDsDS4WGua%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752897AbcKSAq6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2016 19:46:58 -0500
+        with ESMTP id S1755024AbcKVExl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2016 23:53:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, jiangqi903@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: workingset: update shadow limit to reflect bigger active list
+     Subject: ocfs2: clean up unused 'page' parameter in ocfs2_write_end_nolock()
 has been added to the -mm tree.  Its filename is
-     mm-workingset-update-shadow-limit-to-reflect-bigger-active-list.patch
+     ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-update-shadow-limit-to-reflect-bigger-active-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-update-shadow-limit-to-reflect-bigger-active-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,109 +40,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: workingset: update shadow limit to reflect bigger active list
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2: clean up unused 'page' parameter in ocfs2_write_end_nolock()
 
-Since 59dc76b0d4df ("mm: vmscan: reduce size of inactive file list") the
-size of the active file list is no longer limited to half of memory. 
-Increase the shadow node limit accordingly to avoid throwing out shadow
-entries that might still result in eligible refaults.
+'page' parameter in ocfs2_write_end_nolock() is never used.
 
-The exact size of the active list now depends on the overall size of the
-page cache, but converges toward taking up most of the space:
-
-In mm/vmscan.c::inactive_list_is_low(),
-
- * total     target    max
- * memory    ratio     inactive
- * -------------------------------------
- *   10MB       1         5MB
- *  100MB       1        50MB
- *    1GB       3       250MB
- *   10GB      10       0.9GB
- *  100GB      31         3GB
- *    1TB     101        10GB
- *   10TB     320        32GB
-
-It would be possible to apply the same precise ratios when determining the
-limit for radix tree nodes containing shadow entries, but since it is
-merely an approximation of the oldest refault distances in the wild and
-the code also makes assumptions about the node population density, keep it
-simple and always target the full cache size.
-
-While at it, clarify the comment and the formula for memory footprint.
-
-Link: http://lkml.kernel.org/r/20161117214701.29000-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+Link: http://lkml.kernel.org/r/582FD91A.5000902@huawei.com
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |   44 +++++++++++++++++++++++++-------------------
- 1 file changed, 25 insertions(+), 19 deletions(-)
+ fs/ocfs2/aops.c |    7 +++----
+ fs/ocfs2/aops.h |    3 +--
+ fs/ocfs2/mmap.c |    3 +--
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN mm/workingset.c~mm-workingset-update-shadow-limit-to-reflect-bigger-active-list mm/workingset.c
---- a/mm/workingset.c~mm-workingset-update-shadow-limit-to-reflect-bigger-active-list
-+++ a/mm/workingset.c
-@@ -369,40 +369,46 @@ static unsigned long count_shadow_nodes(
+diff -puN fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/aops.c
+@@ -1950,8 +1950,7 @@ static void ocfs2_write_end_inline(struc
+ }
+ 
+ int ocfs2_write_end_nolock(struct address_space *mapping,
+-			   loff_t pos, unsigned len, unsigned copied,
+-			   struct page *page, void *fsdata)
++			   loff_t pos, unsigned len, unsigned copied, void *fsdata)
  {
- 	unsigned long max_nodes;
- 	unsigned long nodes;
--	unsigned long pages;
-+	unsigned long cache;
+ 	int i, ret;
+ 	unsigned from, to, start = pos & (PAGE_SIZE - 1);
+@@ -2064,7 +2063,7 @@ static int ocfs2_write_end(struct file *
+ 	int ret;
+ 	struct inode *inode = mapping->host;
  
- 	/* list_lru lock nests inside IRQ-safe mapping->tree_lock */
- 	local_irq_disable();
- 	nodes = list_lru_shrink_count(&shadow_nodes, sc);
- 	local_irq_enable();
+-	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, page, fsdata);
++	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, fsdata);
  
--	if (memcg_kmem_enabled()) {
--		pages = mem_cgroup_node_nr_lru_pages(sc->memcg, sc->nid,
--						     LRU_ALL_FILE);
--	} else {
--		pages = node_page_state(NODE_DATA(sc->nid), NR_ACTIVE_FILE) +
--			node_page_state(NODE_DATA(sc->nid), NR_INACTIVE_FILE);
--	}
--
- 	/*
--	 * Active cache pages are limited to 50% of memory, and shadow
--	 * entries that represent a refault distance bigger than that
--	 * do not have any effect.  Limit the number of shadow nodes
--	 * such that shadow entries do not exceed the number of active
--	 * cache pages, assuming a worst-case node population density
--	 * of 1/8th on average.
-+	 * Approximate a reasonable limit for the radix tree nodes
-+	 * containing shadow entries. We don't need to keep more
-+	 * shadow entries than possible pages on the active list,
-+	 * since refault distances bigger than that are dismissed.
-+	 *
-+	 * The size of the active list converges toward 100% of
-+	 * overall page cache as memory grows, with only a tiny
-+	 * inactive list. Assume the total cache size for that.
-+	 *
-+	 * Nodes might be sparsely populated, with only one shadow
-+	 * entry in the extreme case. Obviously, we cannot keep one
-+	 * node for every eligible shadow entry, so compromise on a
-+	 * worst-case density of 1/8th. Below that, not all eligible
-+	 * refaults can be detected anymore.
- 	 *
- 	 * On 64-bit with 7 radix_tree_nodes per page and 64 slots
- 	 * each, this will reclaim shadow entries when they consume
--	 * ~2% of available memory:
-+	 * ~1.8% of available memory:
- 	 *
--	 * PAGE_SIZE / radix_tree_nodes / node_entries / PAGE_SIZE
-+	 * PAGE_SIZE / radix_tree_nodes / node_entries * 8 / PAGE_SIZE
- 	 */
--	max_nodes = pages >> (1 + RADIX_TREE_MAP_SHIFT - 3);
-+	if (memcg_kmem_enabled()) {
-+		cache = mem_cgroup_node_nr_lru_pages(sc->memcg, sc->nid,
-+						     LRU_ALL_FILE);
-+	} else {
-+		cache = node_page_state(NODE_DATA(sc->nid), NR_ACTIVE_FILE) +
-+			node_page_state(NODE_DATA(sc->nid), NR_INACTIVE_FILE);
-+	}
-+	max_nodes = cache >> (RADIX_TREE_MAP_SHIFT - 3);
+ 	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 	ocfs2_inode_unlock(inode, 1);
+@@ -2241,7 +2240,7 @@ static int ocfs2_dio_get_block(struct in
+ 		dwc->dw_zero_count++;
+ 	}
  
- 	if (nodes <= max_nodes)
- 		return 0;
+-	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, NULL, wc);
++	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, wc);
+ 	BUG_ON(ret != len);
+ 	ret = 0;
+ unlock:
+diff -puN fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/aops.h
+@@ -44,8 +44,7 @@ int walk_page_buffers(	handle_t *handle,
+ 					struct buffer_head *bh));
+ 
+ int ocfs2_write_end_nolock(struct address_space *mapping,
+-			   loff_t pos, unsigned len, unsigned copied,
+-			   struct page *page, void *fsdata);
++			   loff_t pos, unsigned len, unsigned copied, void *fsdata);
+ 
+ typedef enum {
+ 	OCFS2_WRITE_BUFFER = 0,
+diff -puN fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/mmap.c
+--- a/fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/mmap.c
+@@ -120,8 +120,7 @@ static int __ocfs2_page_mkwrite(struct f
+ 		ret = VM_FAULT_NOPAGE;
+ 		goto out;
+ 	}
+-	ret = ocfs2_write_end_nolock(mapping, pos, len, len, locked_page,
+-				     fsdata);
++	ret = ocfs2_write_end_nolock(mapping, pos, len, len, fsdata);
+ 	BUG_ON(ret != len);
+ 	ret = VM_FAULT_LOCKED;
+ out:
+_
+
+Patches currently in -mm which might be from piaojun@huawei.com are
+
+ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler.patch
+ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler.patch
+ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
+
