@@ -1,100 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] mm-add-zone_device-statistics-to-smaps.patch removed from -mm tree
-Date: Mon, 21 Nov 2016 22:46:38 -0800
-Message-ID: <5833e9ce.wfWd5RUry6w1Xr2I%akpm@linux-foundation.org>
+Subject: + proc-mm-export-pte-sizes-directly-in-smaps-v2.patch added to
+ -mm tree
+Date: Mon, 21 Nov 2016 22:46:47 -0800
+Message-ID: <5833e9d7.rl4d63qJSsaWHaG+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32966 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751559AbcKVGqk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:46:40 -0500
+        with ESMTP id S1752159AbcKVGqs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:46:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@intel.com, hch@lst.de, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: dave@sr71.net, dan.j.williams@intel.com, hch@lst.de, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add ZONE_DEVICE statistics to smaps
-has been removed from the -mm tree.  Its filename was
-     mm-add-zone_device-statistics-to-smaps.patch
+     Subject: proc: mm: export PTE sizes directly in smaps
+has been added to the -mm tree.  Its filename is
+     proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: add ZONE_DEVICE statistics to smaps
+From: Dave Hansen <dave@sr71.net>
+Subject: proc: mm: export PTE sizes directly in smaps
 
-ZONE_DEVICE pages are mapped into a process via the filesystem-dax and
-device-dax mechanisms.  There are also proposals to use ZONE_DEVICE pages
-for other usages outside of dax.  Add statistics to smaps so applications
-can debug that they are obtaining the mappings they expect, or otherwise
-accounting them.
+/proc/$pid/smaps has a number of fields that are intended to imply the
+kinds of PTEs used to map memory.  "AnonHugePages" obviously tells you how
+many PMDs are being used.  "MMUPageSize" along with the "Hugetlb" fields
+tells you how many PTEs you have for a huge page.
 
-Link: http://lkml.kernel.org/r/147881591739.39198.1358237993213024627.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The current mechanisms work fine when we have one or two page sizes.  But,
+they start to get a bit muddled when we mix page sizes inside one VMA. 
+For instance, the DAX folks were proposing adding a set of fields like:
+
+	DevicePages:
+	DeviceHugePages:
+	DeviceGiganticPages:
+	DeviceGinormousPages:
+
+to unmuddle things when page sizes get mixed.  That's fine, but it does
+require userspace know the mapping from our various arbitrary names to
+hardware page sizes on each architecture and kernel configuration.  That
+seems rather suboptimal.
+
+What folks really want is to know how much memory is mapped with each page
+size.  How about we just do *that*?
+
+Patch attached.  Seems harmless enough.  Seems to compile on a bunch of
+random architectures.  Makes smaps look like this:
+
+Private_Hugetlb:       0 kB
+Swap:                  0 kB
+SwapPss:               0 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Locked:                0 kB
+Ptes@4kB:	      32 kB
+Ptes@2MB:	    2048 kB
+
+The format I used here should be unlikely to break smaps parsers unless
+they're looking for "kB" and now match the 'Ptes@4kB' instead of the one
+at the end of the line.
+
+1. I'd like to thank Dan Williams for showing me a mirror as I
+   complained about the bozo that introduced 'AnonHugePages'.
+
+Link: http://lkml.kernel.org/r/20161117002851.C7BACB98@viggo.jf.intel.com
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |    6 ++
+ fs/proc/task_mmu.c                 |   81 ++++++++++++++++++++++++++-
+ 2 files changed, 85 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-add-zone_device-statistics-to-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-add-zone_device-statistics-to-smaps
+diff -puN Documentation/filesystems/proc.txt~proc-mm-export-pte-sizes-directly-in-smaps-v2 Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-mm-export-pte-sizes-directly-in-smaps-v2
++++ a/Documentation/filesystems/proc.txt
+@@ -418,6 +418,9 @@ SwapPss:               0 kB
+ KernelPageSize:        4 kB
+ MMUPageSize:           4 kB
+ Locked:                0 kB
++Ptes@4kB:	       4 kB
++Ptes@2MB:	    8192 kB
++
+ VmFlags: rd ex mr mw me dw
+ 
+ the first of these lines shows the same information as is displayed for the
+@@ -450,6 +453,9 @@ replaced by copy-on-write) part of the u
+ "SwapPss" shows proportional swap share of this mapping. Unlike "Swap", this
+ does not take into account swapped out page of underlying shmem objects.
+ "Locked" indicates whether the mapping is locked in memory or not.
++"Ptes@..." lines show how many page table entries are currently in place and
++pointing to memory.  There is an entry for each size present in the hardware
++page tables for this mapping.
+ 
+ "VmFlags" field deserves a separate description. This member represents the kernel
+ flags associated with the particular virtual memory area in two letter encoded
+diff -puN fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v2 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v2
 +++ a/fs/proc/task_mmu.c
-@@ -445,6 +445,8 @@ struct mem_size_stats {
+@@ -445,6 +445,9 @@ struct mem_size_stats {
  	unsigned long swap;
  	unsigned long shared_hugetlb;
  	unsigned long private_hugetlb;
-+	unsigned long device;
-+	unsigned long device_huge;
++	unsigned long rss_pte;
++	unsigned long rss_pmd;
++	unsigned long rss_pud;
  	u64 pss;
  	u64 swap_pss;
  	bool check_shmem_swap;
-@@ -458,6 +460,8 @@ static void smaps_account(struct mem_siz
+@@ -519,6 +522,7 @@ static void smaps_pte_entry(pte_t *pte,
  
- 	if (PageAnon(page))
- 		mss->anonymous += size;
-+	else if (is_zone_device_page(page))
-+		mss->device += size;
+ 	if (pte_present(*pte)) {
+ 		page = vm_normal_page(vma, addr, *pte);
++		mss->rss_pte += PAGE_SIZE;
+ 	} else if (is_swap_pte(*pte)) {
+ 		swp_entry_t swpent = pte_to_swp_entry(*pte);
  
- 	mss->resident += size;
- 	/* Accumulate the size in pages that have been accessed. */
-@@ -575,7 +579,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	else if (PageSwapBacked(page))
- 		mss->shmem_thp += HPAGE_PMD_SIZE;
- 	else if (is_zone_device_page(page))
--		/* pass */;
-+		mss->device_huge += HPAGE_PMD_SIZE;
+@@ -578,6 +582,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 		/* pass */;
  	else
  		VM_BUG_ON_PAGE(1, page);
++	mss->rss_pmd += PMD_SIZE;
  	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
-@@ -774,6 +778,8 @@ static int show_smap(struct seq_file *m,
- 		   "ShmemPmdMapped: %8lu kB\n"
- 		   "Shared_Hugetlb: %8lu kB\n"
- 		   "Private_Hugetlb: %7lu kB\n"
-+		   "Device:         %8lu kB\n"
-+		   "DeviceHugePages: %7lu kB\n"
- 		   "Swap:           %8lu kB\n"
- 		   "SwapPss:        %8lu kB\n"
- 		   "KernelPageSize: %8lu kB\n"
-@@ -792,6 +798,8 @@ static int show_smap(struct seq_file *m,
- 		   mss.shmem_thp >> 10,
- 		   mss.shared_hugetlb >> 10,
- 		   mss.private_hugetlb >> 10,
-+		   mss.device >> 10,
-+		   mss.device_huge >> 10,
- 		   mss.swap >> 10,
- 		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
- 		   vma_kernel_pagesize(vma) >> 10,
+ }
+ #else
+@@ -702,11 +707,13 @@ static int smaps_hugetlb_range(pte_t *pt
+ 	}
+ 	if (page) {
+ 		int mapcount = page_mapcount(page);
++		unsigned long hpage_size = huge_page_size(hstate_vma(vma));
+ 
++		mss->rss_pud += hpage_size;
+ 		if (mapcount >= 2)
+-			mss->shared_hugetlb += huge_page_size(hstate_vma(vma));
++			mss->shared_hugetlb += hpage_size;
+ 		else
+-			mss->private_hugetlb += huge_page_size(hstate_vma(vma));
++			mss->private_hugetlb += hpage_size;
+ 	}
+ 	return 0;
+ }
+@@ -716,6 +723,75 @@ void __weak arch_show_smap(struct seq_fi
+ {
+ }
+ 
++/*
++ * What units should we use for a given number?  We want
++ * 2048 to be 2k, so we return 'k'.  1048576 should be
++ * 1M, so we return 'M'.
++ */
++static char size_unit(unsigned long long nr)
++{
++	/*
++	 * This ' ' might look a bit goofy in the output.  But, why
++	 * bother doing anything.  Do we even have a <1k page size?
++	 */
++	if (nr < (1ULL<<10))
++		return ' ';
++	if (nr < (1ULL<<20))
++		return 'k';
++	if (nr < (1ULL<<30))
++		return 'M';
++	if (nr < (1ULL<<40))
++		return 'G';
++	if (nr < (1ULL<<50))
++		return 'T';
++	if (nr < (1ULL<<60))
++		return 'P';
++	return 'E';
++}
++
++/*
++ * How should we shift down a a given number to scale it
++ * with the units we are printing it as? 2048 to be 2k,
++ * so we want it shifted down by 10.  1048576 should be
++ * 1M, so we want it shifted down by 20.
++ */
++static int size_shift(unsigned long long nr)
++{
++	if (nr < (1ULL<<10))
++		return 0;
++	if (nr < (1ULL<<20))
++		return 10;
++	if (nr < (1ULL<<30))
++		return 20;
++	if (nr < (1ULL<<40))
++		return 30;
++	if (nr < (1ULL<<50))
++		return 40;
++	if (nr < (1ULL<<60))
++		return 50;
++	return 60;
++}
++
++static void show_one_smap_pte(struct seq_file *m, unsigned long bytes_rss,
++		unsigned long pte_size)
++{
++	seq_printf(m, "Ptes@%ld%cB:	%8lu kB\n",
++			pte_size >> size_shift(pte_size),
++			size_unit(pte_size),
++			bytes_rss >> 10);
++}
++
++static void show_smap_ptes(struct seq_file *m, struct mem_size_stats *mss)
++{
++	/* Only print the entries for page sizes present in the VMA */
++	if (mss->rss_pte)
++		show_one_smap_pte(m, mss->rss_pte, PAGE_SIZE);
++	if (mss->rss_pmd)
++		show_one_smap_pte(m, mss->rss_pmd, PMD_SIZE);
++	if (mss->rss_pud)
++		show_one_smap_pte(m, mss->rss_pud, PUD_SIZE);
++}
++
+ static int show_smap(struct seq_file *m, void *v, int is_pid)
+ {
+ 	struct vm_area_struct *vma = v;
+@@ -799,6 +875,7 @@ static int show_smap(struct seq_file *m,
+ 		   (vma->vm_flags & VM_LOCKED) ?
+ 			(unsigned long)(mss.pss >> (10 + PSS_SHIFT)) : 0);
+ 
++	show_smap_ptes(m, &mss);
+ 	arch_show_smap(m, vma);
+ 	show_smap_vma_flags(m, vma);
+ 	m_cache_vma(m, vma);
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from dave@sr71.net are
 
-mm-disable-numa-migration-faults-for-dax-vmas.patch
+proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
 
