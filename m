@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch added to -mm tree
-Date: Mon, 21 Nov 2016 22:25:15 -0800
-Message-ID: <5833e4cb.ND6hi457SI826HIg%akpm@linux-foundation.org>
+Subject: + binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz.patch added to -mm tree
+Date: Mon, 21 Nov 2016 22:37:49 -0800
+Message-ID: <5833e7bd.6I5tTdNyYdYVayHS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60862 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752541AbcKVGZR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:25:17 -0500
+        with ESMTP id S1752376AbcKVGhu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:37:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, kirill.shutemov@linux.intel.com, mikey@neuling.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: jbaron@akamai.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move vma_is_anonymous check within pmd_move_must_withdraw
+     Subject: binfmt_elf: use vmalloc() for allocation of vma_filesz
 has been added to the -mm tree.  Its filename is
-     mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch
+     binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,114 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: move vma_is_anonymous check within pmd_move_must_withdraw
+From: Jason Baron <jbaron@akamai.com>
+Subject: binfmt_elf: use vmalloc() for allocation of vma_filesz
 
-Independent of whether the vma is for anonymous memory, some arches like
-ppc64 would like to override pmd_move_must_withdraw().  One option is to
-encapsulate the vma_is_anonymous() check for general architectures inside
-pmd_move_must_withdraw() so that is always called and architectures that
-need unconditional overriding can override this function.  ppc64 needs to
-override the function when the MMU is configured to use hash PTE's.
+We have observed page allocations failures of order 4 during core dump
+while trying to allocate vma_filesz.  This results in a useless core file
+of size 0.  To improve reliability use vmalloc().
 
-[bsingharora@gmail.com: reworked changelog]
-Link: http://lkml.kernel.org/r/20161113150025.17942-1-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Neuling <mikey@neuling.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Note that the vmalloc() allocation is bounded by sysctl_max_map_count,
+which is 65,530 by default.  So with a 4k page size, and 8 bytes per seg,
+this is a max of 128 pages or an order 7 allocation.  Other parts of the
+core dump path, such as fill_files_note() are already using vmalloc() for
+presumably similar reasons.
+
+Link: http://lkml.kernel.org/r/1479745791-17611-1-git-send-email-jbaron@akamai.com
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |    3 +-
- include/asm-generic/pgtable.h                |   12 -----------
- mm/huge_memory.c                             |   18 +++++++++++++++--
- 3 files changed, 18 insertions(+), 15 deletions(-)
+ fs/binfmt_elf.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1009,7 +1009,8 @@ static inline void pmdp_huge_split_prepa
- #define pmd_move_must_withdraw pmd_move_must_withdraw
- struct spinlock;
- static inline int pmd_move_must_withdraw(struct spinlock *new_pmd_ptl,
--					 struct spinlock *old_pmd_ptl)
-+					 struct spinlock *old_pmd_ptl,
-+					 struct vm_area_struct *vma)
- {
- 	if (radix_enabled())
- 		return false;
-diff -puN include/asm-generic/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw
-+++ a/include/asm-generic/pgtable.h
-@@ -653,18 +653,6 @@ static inline pmd_t pmd_read_atomic(pmd_
- }
- #endif
+diff -puN fs/binfmt_elf.c~binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz
++++ a/fs/binfmt_elf.c
+@@ -2204,7 +2204,9 @@ static int elf_core_dump(struct coredump
  
--#ifndef pmd_move_must_withdraw
--static inline int pmd_move_must_withdraw(spinlock_t *new_pmd_ptl,
--					 spinlock_t *old_pmd_ptl)
--{
--	/*
--	 * With split pmd lock we also need to move preallocated
--	 * PTE page table if new_pmd is on different PMD page table.
--	 */
--	return new_pmd_ptl != old_pmd_ptl;
--}
--#endif
--
- /*
-  * This function is meant to be used by sites walking pagetables with
-  * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
-diff -puN mm/huge_memory.c~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw mm/huge_memory.c
---- a/mm/huge_memory.c~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw
-+++ a/mm/huge_memory.c
-@@ -1428,6 +1428,21 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	return 1;
- }
+ 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
  
-+#ifndef pmd_move_must_withdraw
-+static inline int pmd_move_must_withdraw(spinlock_t *new_pmd_ptl,
-+					 spinlock_t *old_pmd_ptl,
-+					 struct vm_area_struct *vma)
-+{
-+	/*
-+	 * With split pmd lock we also need to move preallocated
-+	 * PTE page table if new_pmd is on different PMD page table.
-+	 *
-+	 * We also don't deposit and withdraw tables for file pages.
-+	 */
-+	return (new_pmd_ptl != old_pmd_ptl) && vma_is_anonymous(vma);
-+}
-+#endif
-+
- bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		  unsigned long new_addr, unsigned long old_end,
- 		  pmd_t *old_pmd, pmd_t *new_pmd, bool *need_flush)
-@@ -1465,8 +1480,7 @@ bool move_huge_pmd(struct vm_area_struct
- 		pmd = pmdp_huge_get_and_clear(mm, old_addr, old_pmd);
- 		VM_BUG_ON(!pmd_none(*new_pmd));
+-	vma_filesz = kmalloc_array(segs - 1, sizeof(*vma_filesz), GFP_KERNEL);
++	if (segs - 1 > ULONG_MAX / sizeof(*vma_filesz))
++		goto end_coredump;
++	vma_filesz = vmalloc((segs - 1) * sizeof(*vma_filesz));
+ 	if (!vma_filesz)
+ 		goto end_coredump;
  
--		if (pmd_move_must_withdraw(new_ptl, old_ptl) &&
--				vma_is_anonymous(vma)) {
-+		if (pmd_move_must_withdraw(new_ptl, old_ptl, vma)) {
- 			pgtable_t pgtable;
- 			pgtable = pgtable_trans_huge_withdraw(mm, old_pmd);
- 			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
+@@ -2311,7 +2313,7 @@ end_coredump:
+ cleanup:
+ 	free_note_info(&info);
+ 	kfree(shdr4extnum);
+-	kfree(vma_filesz);
++	vfree(vma_filesz);
+ 	kfree(phdr4note);
+ 	kfree(elf);
+ out:
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from jbaron@akamai.com are
 
-mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
-mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
-mm-use-the-correct-page-size-when-removing-the-page.patch
-mm-update-mmu_gather-range-correctly.patch
-mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
-mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
-mm-remove-the-page-size-change-check-in-tlb_remove_page.patch
-mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch
-mm-thp-page-cache-support-for-ppc64.patch
+binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz.patch
 
