@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-refactor-__purge_vmap_area_lazy.patch added to -mm tree
-Date: Mon, 21 Nov 2016 22:10:30 -0800
-Message-ID: <5833e156.BtsvfyukgMivkhTV%akpm@linux-foundation.org>
+Subject: + mm-add-vfree_atomic.patch added to -mm tree
+Date: Mon, 21 Nov 2016 22:10:38 -0800
+Message-ID: <5833e15e.pq+G2RCy5fNmD9Dg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751892AbcKVGKb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:10:31 -0500
+        with ESMTP id S1751487AbcKVGKj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:10:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, aryabinin@virtuozzo.com, chris@chris-wilson.co.uk, hpa@zytor.com, joaodias@google.com, joelaf@google.com, jszhang@marvell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, chris@chris-wilson.co.uk, hch@lst.de, hpa@zytor.com, joaodias@google.com, joelaf@google.com, jszhang@marvell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: refactor __purge_vmap_area_lazy()
+     Subject: mm: add vfree_atomic()
 has been added to the -mm tree.  Its filename is
-     mm-refactor-__purge_vmap_area_lazy.patch
+     mm-add-vfree_atomic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-refactor-__purge_vmap_area_lazy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-vfree_atomic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-refactor-__purge_vmap_area_lazy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-vfree_atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,21 +38,19 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: refactor __purge_vmap_area_lazy()
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm: add vfree_atomic()
 
-Move the purge_lock synchronization to the callers, move the call to
-purge_fragmented_blocks_allcpus at the beginning of the function to
-the callers that need it, move the force_flush behavior to the caller
-that needs it, and pass start and end by value instead of by reference.
+We are going to use sleeping lock for freeing vmap. However some
+vfree() users want to free memory from atomic (but not from interrupt)
+context. For this we add vfree_atomic() - deferred variation of vfree()
+which can be used in any atomic context (except NMIs).
 
-No change in behavior.
-
-Link: http://lkml.kernel.org/r/1479474236-4139-4-git-send-email-hch@lst.de
+Link: http://lkml.kernel.org/r/1479474236-4139-5-git-send-email-hch@lst.de
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Jisheng Zhang <jszhang@marvell.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Joel Fernandes <joelaf@google.com>
+Cc: Jisheng Zhang <jszhang@marvell.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: John Dias <joaodias@google.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -61,150 +59,79 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   80 +++++++++++++++++++++----------------------------
- 1 file changed, 35 insertions(+), 45 deletions(-)
+ include/linux/vmalloc.h |    1 +
+ mm/vmalloc.c            |   36 ++++++++++++++++++++++++++++++------
+ 2 files changed, 31 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-refactor-__purge_vmap_area_lazy mm/vmalloc.c
---- a/mm/vmalloc.c~mm-refactor-__purge_vmap_area_lazy
+diff -puN include/linux/vmalloc.h~mm-add-vfree_atomic include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-add-vfree_atomic
++++ a/include/linux/vmalloc.h
+@@ -82,6 +82,7 @@ extern void *__vmalloc_node_range(unsign
+ 			const void *caller);
+ 
+ extern void vfree(const void *addr);
++extern void vfree_atomic(const void *addr);
+ 
+ extern void *vmap(struct page **pages, unsigned int count,
+ 			unsigned long flags, pgprot_t prot);
+diff -puN mm/vmalloc.c~mm-add-vfree_atomic mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-add-vfree_atomic
 +++ a/mm/vmalloc.c
-@@ -601,6 +601,13 @@ static unsigned long lazy_max_pages(void
- 
- static atomic_t vmap_lazy_nr = ATOMIC_INIT(0);
- 
-+/*
-+ * Serialize vmap purging.  There is no actual criticial section protected
-+ * by this look, but we want to avoid concurrent calls for performance
-+ * reasons and to make the pcpu_get_vm_areas more deterministic.
-+ */
-+static DEFINE_SPINLOCK(vmap_purge_lock);
+@@ -1486,7 +1486,33 @@ static void __vunmap(const void *addr, i
+ 	kfree(area);
+ 	return;
+ }
+- 
 +
- /* for per-CPU blocks */
- static void purge_fragmented_blocks_allcpus(void);
++static inline void __vfree_deferred(const void *addr)
++{
++	struct vfree_deferred *p = this_cpu_ptr(&vfree_deferred);
++
++	if (llist_add((struct llist_node *)addr, &p->list))
++		schedule_work(&p->wq);
++}
++
++/**
++ *	vfree_atomic  -  release memory allocated by vmalloc()
++ *	@addr:		memory base address
++ *
++ *	This one is just like vfree() but can be called in any atomic context
++ *	except NMIs.
++ */
++void vfree_atomic(const void *addr)
++{
++	BUG_ON(in_nmi());
++
++	kmemleak_free(addr);
++
++	if (!addr)
++		return;
++	__vfree_deferred(addr);
++}
++
+ /**
+  *	vfree  -  release memory allocated by vmalloc()
+  *	@addr:		memory base address
+@@ -1509,11 +1535,9 @@ void vfree(const void *addr)
  
-@@ -615,59 +622,36 @@ void set_iounmap_nonlazy(void)
- 
- /*
-  * Purges all lazily-freed vmap areas.
-- *
-- * If sync is 0 then don't purge if there is already a purge in progress.
-- * If force_flush is 1, then flush kernel TLBs between *start and *end even
-- * if we found no lazy vmap areas to unmap (callers can use this to optimise
-- * their own TLB flushing).
-- * Returns with *start = min(*start, lowest purged address)
-- *              *end = max(*end, highest purged address)
-  */
--static void __purge_vmap_area_lazy(unsigned long *start, unsigned long *end,
--					int sync, int force_flush)
-+static bool __purge_vmap_area_lazy(unsigned long start, unsigned long end)
- {
--	static DEFINE_SPINLOCK(purge_lock);
- 	struct llist_node *valist;
- 	struct vmap_area *va;
- 	struct vmap_area *n_va;
- 	int nr = 0;
- 
--	/*
--	 * If sync is 0 but force_flush is 1, we'll go sync anyway but callers
--	 * should not expect such behaviour. This just simplifies locking for
--	 * the case that isn't actually used at the moment anyway.
--	 */
--	if (!sync && !force_flush) {
--		if (!spin_trylock(&purge_lock))
--			return;
+ 	if (!addr)
+ 		return;
+-	if (unlikely(in_interrupt())) {
+-		struct vfree_deferred *p = this_cpu_ptr(&vfree_deferred);
+-		if (llist_add((struct llist_node *)addr, &p->list))
+-			schedule_work(&p->wq);
 -	} else
--		spin_lock(&purge_lock);
--
--	if (sync)
--		purge_fragmented_blocks_allcpus();
-+	lockdep_assert_held(&vmap_purge_lock);
- 
- 	valist = llist_del_all(&vmap_purge_list);
- 	llist_for_each_entry(va, valist, purge_list) {
--		if (va->va_start < *start)
--			*start = va->va_start;
--		if (va->va_end > *end)
--			*end = va->va_end;
-+		if (va->va_start < start)
-+			start = va->va_start;
-+		if (va->va_end > end)
-+			end = va->va_end;
- 		nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
- 	}
- 
--	if (nr)
--		atomic_sub(nr, &vmap_lazy_nr);
-+	if (!nr)
-+		return false;
- 
--	if (nr || force_flush)
--		flush_tlb_kernel_range(*start, *end);
-+	atomic_sub(nr, &vmap_lazy_nr);
-+	flush_tlb_kernel_range(start, end);
- 
--	if (nr) {
--		spin_lock(&vmap_area_lock);
--		llist_for_each_entry_safe(va, n_va, valist, purge_list)
--			__free_vmap_area(va);
--		spin_unlock(&vmap_area_lock);
--	}
--	spin_unlock(&purge_lock);
-+	spin_lock(&vmap_area_lock);
-+	llist_for_each_entry_safe(va, n_va, valist, purge_list)
-+		__free_vmap_area(va);
-+	spin_unlock(&vmap_area_lock);
-+	return true;
++	if (unlikely(in_interrupt()))
++		__vfree_deferred(addr);
++	else
+ 		__vunmap(addr, 1);
  }
- 
- /*
-@@ -676,9 +660,10 @@ static void __purge_vmap_area_lazy(unsig
-  */
- static void try_purge_vmap_area_lazy(void)
- {
--	unsigned long start = ULONG_MAX, end = 0;
--
--	__purge_vmap_area_lazy(&start, &end, 0, 0);
-+	if (spin_trylock(&vmap_purge_lock)) {
-+		__purge_vmap_area_lazy(ULONG_MAX, 0);
-+		spin_unlock(&vmap_purge_lock);
-+	}
- }
- 
- /*
-@@ -686,9 +671,10 @@ static void try_purge_vmap_area_lazy(voi
-  */
- static void purge_vmap_area_lazy(void)
- {
--	unsigned long start = ULONG_MAX, end = 0;
--
--	__purge_vmap_area_lazy(&start, &end, 1, 0);
-+	spin_lock(&vmap_purge_lock);
-+	purge_fragmented_blocks_allcpus();
-+	__purge_vmap_area_lazy(ULONG_MAX, 0);
-+	spin_unlock(&vmap_purge_lock);
- }
- 
- /*
-@@ -1075,7 +1061,11 @@ void vm_unmap_aliases(void)
- 		rcu_read_unlock();
- 	}
- 
--	__purge_vmap_area_lazy(&start, &end, 1, flush);
-+	spin_lock(&vmap_purge_lock);
-+	purge_fragmented_blocks_allcpus();
-+	if (!__purge_vmap_area_lazy(start, end) && flush)
-+		flush_tlb_kernel_range(start, end);
-+	spin_unlock(&vmap_purge_lock);
- }
- EXPORT_SYMBOL_GPL(vm_unmap_aliases);
- 
+ EXPORT_SYMBOL(vfree);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-mm-remove-free_unmap_vmap_area_noflush.patch
-mm-remove-free_unmap_vmap_area_addr.patch
-mm-refactor-__purge_vmap_area_lazy.patch
-mm-warn-about-vfree-from-atomic-context.patch
-mm-mark-all-calls-into-the-vmalloc-subsystem-as-potentially-sleeping.patch
-mm-turn-vmap_purge_lock-into-a-mutex.patch
+mm-add-vfree_atomic.patch
+kernel-fork-use-vfree_atomic-to-free-thread-stack.patch
+x86-ldt-use-vfree_atomic-to-free-ldt-entries.patch
 
