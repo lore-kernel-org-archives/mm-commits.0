@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-preempt-points-into-__purge_vmap_area_lazy.patch added
- to -mm tree
-Date: Mon, 21 Nov 2016 22:11:57 -0800
-Message-ID: <5833e1ad.PNQgQuW7IE/ybwFs%akpm@linux-foundation.org>
+Subject: + mm-thp-page-cache-support-for-ppc64.patch added to -mm tree
+Date: Mon, 21 Nov 2016 22:25:18 -0800
+Message-ID: <5833e4ce.VRQNGWzm1Hv/32jP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57768 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59436 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751892AbcKVGL6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:11:58 -0500
+        with ESMTP id S1752541AbcKVGZT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 01:25:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joelaf@google.com, aryabinin@virtuozzo.com, chris@chris-wilson.co.uk, hch@lst.de, hpa@zytor.com, joaodias@google.com, jszhang@marvell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, kirill.shutemov@linux.intel.com, mikey@neuling.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add preempt points into __purge_vmap_area_lazy()
+     Subject: mm: THP page cache support for ppc64
 has been added to the -mm tree.  Its filename is
-     mm-add-preempt-points-into-__purge_vmap_area_lazy.patch
+     mm-thp-page-cache-support-for-ppc64.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-preempt-points-into-__purge_vmap_area_lazy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-page-cache-support-for-ppc64.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-preempt-points-into-__purge_vmap_area_lazy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-page-cache-support-for-ppc64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +38,313 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joel Fernandes <joelaf@google.com>
-Subject: mm: add preempt points into __purge_vmap_area_lazy()
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm: THP page cache support for ppc64
 
-Use cond_resched_lock to avoid holding the vmap_area_lock for a
-potentially long time and thus creating bad latencies for various
-workloads.
+Add arch specific callback in the generic THP page cache code that will
+deposit and withdarw preallocated page table.  Archs like ppc64 use this
+preallocated table to store the hash pte slot information.
 
-[hch: split from a larger patch by Joel, wrote the crappy changelog]
-Link: http://lkml.kernel.org/r/1479474236-4139-11-git-send-email-hch@lst.de
-Signed-off-by: Joel Fernandes <joelaf@google.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Jisheng Zhang <jszhang@marvell.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: John Dias <joaodias@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Testing:
+kernel build of the patch series on tmpfs mounted with option huge=always
+
+The related thp stat:
+thp_fault_alloc 72939
+thp_fault_fallback 60547
+thp_collapse_alloc 603
+thp_collapse_alloc_failed 0
+thp_file_alloc 253763
+thp_file_mapped 4251
+thp_split_page 51518
+thp_split_page_failed 1
+thp_deferred_split_page 73566
+thp_split_pmd 665
+thp_zero_page_alloc 3
+thp_zero_page_alloc_failed 0
+
+Link: http://lkml.kernel.org/r/20161113150025.17942-2-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Neuling <mikey@neuling.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   10 ++
+ include/asm-generic/pgtable.h                |    3 
+ mm/Kconfig                                   |    6 -
+ mm/huge_memory.c                             |   17 ++++
+ mm/khugepaged.c                              |   21 +++++
+ mm/memory.c                                  |   60 ++++++++++++++---
+ 6 files changed, 100 insertions(+), 17 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-add-preempt-points-into-__purge_vmap_area_lazy mm/vmalloc.c
---- a/mm/vmalloc.c~mm-add-preempt-points-into-__purge_vmap_area_lazy
-+++ a/mm/vmalloc.c
-@@ -628,7 +628,7 @@ static bool __purge_vmap_area_lazy(unsig
- 	struct llist_node *valist;
- 	struct vmap_area *va;
- 	struct vmap_area *n_va;
--	int nr = 0;
-+	bool do_free = false;
- 
- 	lockdep_assert_held(&vmap_purge_lock);
- 
-@@ -638,18 +638,22 @@ static bool __purge_vmap_area_lazy(unsig
- 			start = va->va_start;
- 		if (va->va_end > end)
- 			end = va->va_end;
--		nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
-+		do_free = true;
- 	}
- 
--	if (!nr)
-+	if (!do_free)
- 		return false;
- 
--	atomic_sub(nr, &vmap_lazy_nr);
- 	flush_tlb_kernel_range(start, end);
- 
- 	spin_lock(&vmap_area_lock);
--	llist_for_each_entry_safe(va, n_va, valist, purge_list)
-+	llist_for_each_entry_safe(va, n_va, valist, purge_list) {
-+		int nr = (va->va_end - va->va_start) >> PAGE_SHIFT;
-+
- 		__free_vmap_area(va);
-+		atomic_sub(nr, &vmap_lazy_nr);
-+		cond_resched_lock(&vmap_area_lock);
-+	}
- 	spin_unlock(&vmap_area_lock);
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~mm-thp-page-cache-support-for-ppc64 arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-thp-page-cache-support-for-ppc64
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1021,6 +1021,16 @@ static inline int pmd_move_must_withdraw
+ 	 */
  	return true;
  }
++
++
++#define arch_needs_pgtable_deposit arch_needs_pgtable_deposit
++static inline bool arch_needs_pgtable_deposit(void)
++{
++	if (radix_enabled())
++		return false;
++	return true;
++}
++
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif /* __ASSEMBLY__ */
+ #endif /* _ASM_POWERPC_BOOK3S_64_PGTABLE_H_ */
+diff -puN include/asm-generic/pgtable.h~mm-thp-page-cache-support-for-ppc64 include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-page-cache-support-for-ppc64
++++ a/include/asm-generic/pgtable.h
+@@ -653,6 +653,9 @@ static inline pmd_t pmd_read_atomic(pmd_
+ }
+ #endif
+ 
++#ifndef arch_needs_pgtable_deposit
++#define arch_needs_pgtable_deposit() (false)
++#endif
+ /*
+  * This function is meant to be used by sites walking pagetables with
+  * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
+diff -puN mm/Kconfig~mm-thp-page-cache-support-for-ppc64 mm/Kconfig
+--- a/mm/Kconfig~mm-thp-page-cache-support-for-ppc64
++++ a/mm/Kconfig
+@@ -447,13 +447,9 @@ choice
+ 	  benefit.
+ endchoice
+ 
+-#
+-# We don't deposit page tables on file THP mapping,
+-# but Power makes use of them to address MMU quirk.
+-#
+ config	TRANSPARENT_HUGE_PAGECACHE
+ 	def_bool y
+-	depends on TRANSPARENT_HUGEPAGE && !PPC
++	depends on TRANSPARENT_HUGEPAGE
+ 
+ #
+ # UP and nommu archs use km based percpu allocator
+diff -puN mm/huge_memory.c~mm-thp-page-cache-support-for-ppc64 mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-page-cache-support-for-ppc64
++++ a/mm/huge_memory.c
+@@ -1379,6 +1379,15 @@ out_unlocked:
+ 	return ret;
+ }
+ 
++static inline void zap_deposited_table(struct mm_struct *mm, pmd_t *pmd)
++{
++	pgtable_t pgtable;
++
++	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
++	pte_free(mm, pgtable);
++	atomic_long_dec(&mm->nr_ptes);
++}
++
+ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 		 pmd_t *pmd, unsigned long addr)
+ {
+@@ -1420,6 +1429,8 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 			atomic_long_dec(&tlb->mm->nr_ptes);
+ 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+ 		} else {
++			if (arch_needs_pgtable_deposit())
++				zap_deposited_table(tlb->mm, pmd);
+ 			add_mm_counter(tlb->mm, MM_FILEPAGES, -HPAGE_PMD_NR);
+ 		}
+ 		spin_unlock(ptl);
+@@ -1606,6 +1617,12 @@ static void __split_huge_pmd_locked(stru
+ 
+ 	if (!vma_is_anonymous(vma)) {
+ 		_pmd = pmdp_huge_clear_flush_notify(vma, haddr, pmd);
++		/*
++		 * We are going to unmap this huge page. So
++		 * just go ahead and zap it
++		 */
++		if (arch_needs_pgtable_deposit())
++			zap_deposited_table(mm, pmd);
+ 		if (vma_is_dax(vma))
+ 			return;
+ 		page = pmd_page(_pmd);
+diff -puN mm/khugepaged.c~mm-thp-page-cache-support-for-ppc64 mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-thp-page-cache-support-for-ppc64
++++ a/mm/khugepaged.c
+@@ -1242,6 +1242,7 @@ static void retract_page_tables(struct a
+ 	struct vm_area_struct *vma;
+ 	unsigned long addr;
+ 	pmd_t *pmd, _pmd;
++	bool deposited = false;
+ 
+ 	i_mmap_lock_write(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+@@ -1266,10 +1267,26 @@ static void retract_page_tables(struct a
+ 			spinlock_t *ptl = pmd_lock(vma->vm_mm, pmd);
+ 			/* assume page table is clear */
+ 			_pmd = pmdp_collapse_flush(vma, addr, pmd);
++			/*
++			 * now deposit the pgtable for arch that need it
++			 * otherwise free it.
++			 */
++			if (arch_needs_pgtable_deposit()) {
++				/*
++				 * The deposit should be visibile only after
++				 * collapse is seen by others.
++				 */
++				smp_wmb();
++				pgtable_trans_huge_deposit(vma->vm_mm, pmd,
++							   pmd_pgtable(_pmd));
++				deposited = true;
++			}
+ 			spin_unlock(ptl);
+ 			up_write(&vma->vm_mm->mmap_sem);
+-			atomic_long_dec(&vma->vm_mm->nr_ptes);
+-			pte_free(vma->vm_mm, pmd_pgtable(_pmd));
++			if (!deposited) {
++				atomic_long_dec(&vma->vm_mm->nr_ptes);
++				pte_free(vma->vm_mm, pmd_pgtable(_pmd));
++			}
+ 		}
+ 	}
+ 	i_mmap_unlock_write(mapping);
+diff -puN mm/memory.c~mm-thp-page-cache-support-for-ppc64 mm/memory.c
+--- a/mm/memory.c~mm-thp-page-cache-support-for-ppc64
++++ a/mm/memory.c
+@@ -2935,6 +2935,19 @@ static inline bool transhuge_vma_suitabl
+ 	return true;
+ }
+ 
++static void deposit_prealloc_pte(struct fault_env *fe)
++{
++	struct vm_area_struct *vma = fe->vma;
++
++	pgtable_trans_huge_deposit(vma->vm_mm, fe->pmd, fe->prealloc_pte);
++	/*
++	 * We are going to consume the prealloc table,
++	 * count that as nr_ptes.
++	 */
++	atomic_long_inc(&vma->vm_mm->nr_ptes);
++	fe->prealloc_pte = 0;
++}
++
+ static int do_set_pmd(struct fault_env *fe, struct page *page)
+ {
+ 	struct vm_area_struct *vma = fe->vma;
+@@ -2949,6 +2962,17 @@ static int do_set_pmd(struct fault_env *
+ 	ret = VM_FAULT_FALLBACK;
+ 	page = compound_head(page);
+ 
++	/*
++	 * Archs like ppc64 need additonal space to store information
++	 * related to pte entry. Use the preallocated table for that.
++	 */
++	if (arch_needs_pgtable_deposit() && !fe->prealloc_pte) {
++		fe->prealloc_pte = pte_alloc_one(vma->vm_mm, fe->address);
++		if (!fe->prealloc_pte)
++			return VM_FAULT_OOM;
++		smp_wmb(); /* See comment in __pte_alloc() */
++	}
++
+ 	fe->ptl = pmd_lock(vma->vm_mm, fe->pmd);
+ 	if (unlikely(!pmd_none(*fe->pmd)))
+ 		goto out;
+@@ -2962,6 +2986,11 @@ static int do_set_pmd(struct fault_env *
+ 
+ 	add_mm_counter(vma->vm_mm, MM_FILEPAGES, HPAGE_PMD_NR);
+ 	page_add_file_rmap(page, true);
++	/*
++	 * deposit and withdraw with pmd lock held
++	 */
++	if (arch_needs_pgtable_deposit())
++		deposit_prealloc_pte(fe);
+ 
+ 	set_pmd_at(vma->vm_mm, haddr, fe->pmd, entry);
+ 
+@@ -2971,6 +3000,13 @@ static int do_set_pmd(struct fault_env *
+ 	ret = 0;
+ 	count_vm_event(THP_FILE_MAPPED);
+ out:
++	/*
++	 * If we are going to fallback to pte mapping, do a
++	 * withdraw with pmd lock held.
++	 */
++	if (arch_needs_pgtable_deposit() && (ret == VM_FAULT_FALLBACK))
++		fe->prealloc_pte = pgtable_trans_huge_withdraw(vma->vm_mm,
++							       fe->pmd);
+ 	spin_unlock(fe->ptl);
+ 	return ret;
+ }
+@@ -3010,18 +3046,20 @@ int alloc_set_pte(struct fault_env *fe,
+ 
+ 		ret = do_set_pmd(fe, page);
+ 		if (ret != VM_FAULT_FALLBACK)
+-			return ret;
++			goto fault_handled;
+ 	}
+ 
+ 	if (!fe->pte) {
+ 		ret = pte_alloc_one_map(fe);
+ 		if (ret)
+-			return ret;
++			goto fault_handled;
+ 	}
+ 
+ 	/* Re-check under ptl */
+-	if (unlikely(!pte_none(*fe->pte)))
+-		return VM_FAULT_NOPAGE;
++	if (unlikely(!pte_none(*fe->pte))) {
++		ret = VM_FAULT_NOPAGE;
++		goto fault_handled;
++	}
+ 
+ 	flush_icache_page(vma, page);
+ 	entry = mk_pte(page, vma->vm_page_prot);
+@@ -3041,8 +3079,15 @@ int alloc_set_pte(struct fault_env *fe,
+ 
+ 	/* no need to invalidate: a not-present page won't be cached */
+ 	update_mmu_cache(vma, fe->address, fe->pte);
++	ret = 0;
+ 
+-	return 0;
++fault_handled:
++	/* preallocated pagetable is unused: free it */
++	if (fe->prealloc_pte) {
++		pte_free(fe->vma->vm_mm, fe->prealloc_pte);
++		fe->prealloc_pte = 0;
++	}
++	return ret;
+ }
+ 
+ static unsigned long fault_around_bytes __read_mostly =
+@@ -3141,11 +3186,6 @@ static int do_fault_around(struct fault_
+ 
+ 	fe->vma->vm_ops->map_pages(fe, start_pgoff, end_pgoff);
+ 
+-	/* preallocated pagetable is unused: free it */
+-	if (fe->prealloc_pte) {
+-		pte_free(fe->vma->vm_mm, fe->prealloc_pte);
+-		fe->prealloc_pte = 0;
+-	}
+ 	/* Huge page is mapped? Page fault is solved */
+ 	if (pmd_trans_huge(*fe->pmd)) {
+ 		ret = VM_FAULT_NOPAGE;
 _
 
-Patches currently in -mm which might be from joelaf@google.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-mm-add-preempt-points-into-__purge_vmap_area_lazy.patch
+mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
+mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
+mm-use-the-correct-page-size-when-removing-the-page.patch
+mm-update-mmu_gather-range-correctly.patch
+mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
+mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
+mm-remove-the-page-size-change-check-in-tlb_remove_page.patch
+mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch
+mm-thp-page-cache-support-for-ppc64.patch
 
