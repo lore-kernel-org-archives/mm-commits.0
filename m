@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch added
- to -mm tree
-Date: Mon, 21 Nov 2016 20:53:39 -0800
-Message-ID: <5833cf53.2jSVBuBDsDS4WGua%akpm@linux-foundation.org>
+Subject: + printk-add-kconfig-option-to-set-default-console-loglevel.patch added to -mm tree
+Date: Mon, 21 Nov 2016 20:55:20 -0800
+Message-ID: <5833cfb8.xAfd0C4j9HZ0wniG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52532 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755024AbcKVExl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2016 23:53:41 -0500
+        with ESMTP id S1755204AbcKVEzV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2016 23:55:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, jiangqi903@gmail.com, mm-commits@vger.kernel.org
+To: olof@lixom.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up unused 'page' parameter in ocfs2_write_end_nolock()
+     Subject: printk: add Kconfig option to set default console loglevel
 has been added to the -mm tree.  Its filename is
-     ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
+     printk-add-kconfig-option-to-set-default-console-loglevel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-kconfig-option-to-set-default-console-loglevel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-kconfig-option-to-set-default-console-loglevel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,84 +38,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: clean up unused 'page' parameter in ocfs2_write_end_nolock()
+From: Olof Johansson <olof@lixom.net>
+Subject: printk: add Kconfig option to set default console loglevel
 
-'page' parameter in ocfs2_write_end_nolock() is never used.
+Add a configuration option to set the default console loglevel.  This is,
+as before, still possible to override at runtime through bootargs
+(loglevel=<x>), sysrq and /proc/printk.
 
-Link: http://lkml.kernel.org/r/582FD91A.5000902@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+There are cases where adding additional arguments on the commandline is
+impractical, and changing the default for the kernel when being built
+makes more sense.  Provide such a method here, for those who choose to do
+so.
+
+Also, while touching this code, clarify the difference between
+MESSAGE_LOGLEVEL_DEFAULT and CONSOLE_LOGLEVEL_DEFAULT.
+
+Link: http://lkml.kernel.org/r/1479676829-30031-1-git-send-email-olof@lixom.net
+Signed-off-by: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    7 +++----
- fs/ocfs2/aops.h |    3 +--
- fs/ocfs2/mmap.c |    3 +--
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ include/linux/printk.h |    7 ++++++-
+ lib/Kconfig.debug      |   19 +++++++++++++++++++
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
-+++ a/fs/ocfs2/aops.c
-@@ -1950,8 +1950,7 @@ static void ocfs2_write_end_inline(struc
- }
+diff -puN include/linux/printk.h~printk-add-kconfig-option-to-set-default-console-loglevel include/linux/printk.h
+--- a/include/linux/printk.h~printk-add-kconfig-option-to-set-default-console-loglevel
++++ a/include/linux/printk.h
+@@ -50,10 +50,15 @@ static inline const char *printk_skip_he
+ #define CONSOLE_LOGLEVEL_SILENT  0 /* Mum's the word */
+ #define CONSOLE_LOGLEVEL_MIN	 1 /* Minimum loglevel we let people use */
+ #define CONSOLE_LOGLEVEL_QUIET	 4 /* Shhh ..., when booted with "quiet" */
+-#define CONSOLE_LOGLEVEL_DEFAULT 7 /* anything MORE serious than KERN_DEBUG */
+ #define CONSOLE_LOGLEVEL_DEBUG	10 /* issue debug messages */
+ #define CONSOLE_LOGLEVEL_MOTORMOUTH 15	/* You can't shut this one up */
  
- int ocfs2_write_end_nolock(struct address_space *mapping,
--			   loff_t pos, unsigned len, unsigned copied,
--			   struct page *page, void *fsdata)
-+			   loff_t pos, unsigned len, unsigned copied, void *fsdata)
- {
- 	int i, ret;
- 	unsigned from, to, start = pos & (PAGE_SIZE - 1);
-@@ -2064,7 +2063,7 @@ static int ocfs2_write_end(struct file *
- 	int ret;
- 	struct inode *inode = mapping->host;
++/*
++ * Default used to be hard-coded at 7, we're now allowing it to be set from
++ * kernel config.
++ */
++#define CONSOLE_LOGLEVEL_DEFAULT CONFIG_CONSOLE_LOGLEVEL_DEFAULT
++
+ extern int console_printk[];
  
--	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, page, fsdata);
-+	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, fsdata);
+ #define console_loglevel (console_printk[0])
+diff -puN lib/Kconfig.debug~printk-add-kconfig-option-to-set-default-console-loglevel lib/Kconfig.debug
+--- a/lib/Kconfig.debug~printk-add-kconfig-option-to-set-default-console-loglevel
++++ a/lib/Kconfig.debug
+@@ -15,6 +15,21 @@ config PRINTK_TIME
+ 	  The behavior is also controlled by the kernel command line
+ 	  parameter printk.time=1. See Documentation/kernel-parameters.txt
  
- 	up_write(&OCFS2_I(inode)->ip_alloc_sem);
- 	ocfs2_inode_unlock(inode, 1);
-@@ -2241,7 +2240,7 @@ static int ocfs2_dio_get_block(struct in
- 		dwc->dw_zero_count++;
- 	}
++config CONSOLE_LOGLEVEL_DEFAULT
++	int "Default console loglevel (1-15)"
++	range 1 15
++	default "7"
++	help
++	  Default loglevel to determine what will be printed on the console.
++
++	  Setting a default here is equivalent to passing in loglevel=<x> in
++	  the kernel bootargs. loglevel=<x> continues to override whatever
++	  value is specified here as well.
++
++	  Note: This does not affect the log level of un-prefixed prink()
++	  usage in the kernel. That is controlled by the MESSAGE_LOGLEVEL_DEFAULT
++	  option.
++
+ config MESSAGE_LOGLEVEL_DEFAULT
+ 	int "Default message log level (1-7)"
+ 	range 1 7
+@@ -26,6 +41,10 @@ config MESSAGE_LOGLEVEL_DEFAULT
+ 	  that are auditing their logs closely may want to set it to a lower
+ 	  priority.
  
--	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, NULL, wc);
-+	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, wc);
- 	BUG_ON(ret != len);
- 	ret = 0;
- unlock:
-diff -puN fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.h
---- a/fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
-+++ a/fs/ocfs2/aops.h
-@@ -44,8 +44,7 @@ int walk_page_buffers(	handle_t *handle,
- 					struct buffer_head *bh));
- 
- int ocfs2_write_end_nolock(struct address_space *mapping,
--			   loff_t pos, unsigned len, unsigned copied,
--			   struct page *page, void *fsdata);
-+			   loff_t pos, unsigned len, unsigned copied, void *fsdata);
- 
- typedef enum {
- 	OCFS2_WRITE_BUFFER = 0,
-diff -puN fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/mmap.c
---- a/fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
-+++ a/fs/ocfs2/mmap.c
-@@ -120,8 +120,7 @@ static int __ocfs2_page_mkwrite(struct f
- 		ret = VM_FAULT_NOPAGE;
- 		goto out;
- 	}
--	ret = ocfs2_write_end_nolock(mapping, pos, len, len, locked_page,
--				     fsdata);
-+	ret = ocfs2_write_end_nolock(mapping, pos, len, len, fsdata);
- 	BUG_ON(ret != len);
- 	ret = VM_FAULT_LOCKED;
- out:
++	  Note: This does not affect what message level gets printed on the console
++	  by default. To change that, use loglevel=<x> in the kernel bootargs,
++	  or pick a different CONSOLE_LOGLEVEL_DEFAULT configuration value.
++
+ config BOOT_PRINTK_DELAY
+ 	bool "Delay each boot printk message by N milliseconds"
+ 	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from olof@lixom.net are
 
-ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler.patch
-ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler.patch
-ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
+printk-add-kconfig-option-to-set-default-console-loglevel.patch
 
