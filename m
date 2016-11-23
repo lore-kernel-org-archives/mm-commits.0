@@ -1,172 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 23 Nov 2016 10:26:37 -0800
-Message-ID: <5835df5d.VX3rz8/Q1jMbpTht%akpm@linux-foundation.org>
+Subject: +
+ mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
+ added to -mm tree
+Date: Wed, 23 Nov 2016 10:51:34 -0800
+Message-ID: <5835e536.OJWqwjQj30tqLwaQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59376 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751824AbcKWS0i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2016 13:26:38 -0500
+        with ESMTP id S933484AbcKWSvf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2016 13:51:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, doug.nelson@intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm: fix false-positive WARN_ON() in truncate/invalidate for hugetlb
+has been added to the -mm tree.  Its filename is
+     mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix false-positive WARN_ON() in truncate/invalidate for hugetlb
 
+Hugetlb pages have ->index in size of the huge pages (PMD_SIZE or
+PUD_SIZE), not in PAGE_SIZE as other types of pages.  This means we cannot
+user page_to_pgoff() to check whether we've got the right page for the
+radix-tree index.
+
+Let's introduce page_to_index() which would return radix-tree index for
+given page.
+
+We will be able to get rid of this once hugetlb will be switched to
+multi-order entries.
+
+Fixes: fc127da085c2 ("truncate: handle file thp")
+Link: http://lkml.kernel.org/r/20161123093053.mjbnvn5zwxw5e6lk@black.fi.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Doug Nelson <doug.nelson@intel.com>
+Tested-by: Doug Nelson <doug.nelson@intel.com>
+Cc: <stable@vger.kernel.org>	[4.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/stmicro/stmmac/dwmac4_descs.c |   18 -----------
- drivers/net/ethernet/stmicro/stmmac/stmmac_main.c  |    9 -----
- include/linux/bpf_verifier.h                       |    3 -
- kernel/bpf/verifier.c                              |    4 --
- 4 files changed, 34 deletions(-)
+ include/linux/pagemap.h |   21 +++++++++++++++------
+ mm/truncate.c           |    8 ++++----
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/ethernet/stmicro/stmmac/dwmac4_descs.c~linux-next-git-rejects drivers/net/ethernet/stmicro/stmmac/dwmac4_descs.c
---- a/drivers/net/ethernet/stmicro/stmmac/dwmac4_descs.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/stmicro/stmmac/dwmac4_descs.c
-@@ -213,19 +213,11 @@ static void dwmac4_rd_enable_tx_timestam
- static int dwmac4_wrback_get_tx_timestamp_status(struct dma_desc *p)
+diff -puN include/linux/pagemap.h~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb
++++ a/include/linux/pagemap.h
+@@ -374,16 +374,13 @@ static inline struct page *read_mapping_
+ }
+ 
+ /*
+- * Get the offset in PAGE_SIZE.
+- * (TODO: hugepage should have ->index in PAGE_SIZE)
++ * Get index of the page with in radix-tree
++ * (TODO: remove once hugetlb pages will have ->index in PAGE_SIZE)
+  */
+-static inline pgoff_t page_to_pgoff(struct page *page)
++static inline pgoff_t page_to_index(struct page *page)
  {
- 	/* Context type from W/B descriptor must be zero */
--<<<<<<< HEAD
--	if (p->des3 & TDES3_CONTEXT_TYPE)
--		return -EINVAL;
+ 	pgoff_t pgoff;
+ 
+-	if (unlikely(PageHeadHuge(page)))
+-		return page->index << compound_order(page);
 -
--	/* Tx Timestamp Status is 1 so des0 and des1'll have valid values */
--	if (p->des3 & TDES3_TIMESTAMP_STATUS)
--=======
- 	if (le32_to_cpu(p->des3) & TDES3_CONTEXT_TYPE)
- 		return -EINVAL;
+ 	if (likely(!PageTransTail(page)))
+ 		return page->index;
  
- 	/* Tx Timestamp Status is 1 so des0 and des1'll have valid values */
- 	if (le32_to_cpu(p->des3) & TDES3_TIMESTAMP_STATUS)
-->>>>>>> linux-next/akpm-base
- 		return 0;
+@@ -397,6 +394,18 @@ static inline pgoff_t page_to_pgoff(stru
+ }
  
- 	return 1;
-@@ -249,13 +241,8 @@ static int dwmac4_rx_check_timestamp(voi
- 	u32 own, ctxt;
- 	int ret = 1;
+ /*
++ * Get the offset in PAGE_SIZE.
++ * (TODO: hugepage should have ->index in PAGE_SIZE)
++ */
++static inline pgoff_t page_to_pgoff(struct page *page)
++{
++	if (unlikely(PageHeadHuge(page)))
++		return page->index << compound_order(page);
++
++	return page_to_index(page);
++}
++
++/*
+  * Return byte-offset into filesystem object for page.
+  */
+ static inline loff_t page_offset(struct page *page)
+diff -puN mm/truncate.c~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb mm/truncate.c
+--- a/mm/truncate.c~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb
++++ a/mm/truncate.c
+@@ -283,7 +283,7 @@ void truncate_inode_pages_range(struct a
  
--<<<<<<< HEAD
--	own = p->des3 & RDES3_OWN;
--	ctxt = ((p->des3 & RDES3_CONTEXT_DESCRIPTOR)
--=======
- 	own = le32_to_cpu(p->des3) & RDES3_OWN;
- 	ctxt = ((le32_to_cpu(p->des3) & RDES3_CONTEXT_DESCRIPTOR)
-->>>>>>> linux-next/akpm-base
- 		>> RDES3_CONTEXT_DESCRIPTOR_SHIFT);
+ 			if (!trylock_page(page))
+ 				continue;
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
+ 			if (PageWriteback(page)) {
+ 				unlock_page(page);
+ 				continue;
+@@ -371,7 +371,7 @@ void truncate_inode_pages_range(struct a
+ 			}
  
- 	if (likely(!own && ctxt)) {
-@@ -277,13 +264,8 @@ static int dwmac4_wrback_get_rx_timestam
- 	int ret = -EINVAL;
+ 			lock_page(page);
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
+ 			wait_on_page_writeback(page);
+ 			truncate_inode_page(mapping, page);
+ 			unlock_page(page);
+@@ -492,7 +492,7 @@ unsigned long invalidate_mapping_pages(s
+ 			if (!trylock_page(page))
+ 				continue;
  
- 	/* Get the status from normal w/b descriptor */
--<<<<<<< HEAD
--	if (likely(p->des3 & TDES3_RS1V)) {
--		if (likely(p->des1 & RDES1_TIMESTAMP_AVAILABLE)) {
--=======
- 	if (likely(le32_to_cpu(p->des3) & TDES3_RS1V)) {
- 		if (likely(le32_to_cpu(p->des1) & RDES1_TIMESTAMP_AVAILABLE)) {
-->>>>>>> linux-next/akpm-base
- 			int i = 0;
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
  
- 			/* Check if timestamp is OK from context descriptor */
-diff -puN drivers/net/ethernet/stmicro/stmmac/stmmac_main.c~linux-next-git-rejects drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
---- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-@@ -2493,11 +2493,7 @@ static int stmmac_rx(struct stmmac_priv
- 	if (netif_msg_rx_status(priv)) {
- 		void *rx_head;
+ 			/* Middle of THP: skip */
+ 			if (PageTransTail(page)) {
+@@ -612,7 +612,7 @@ int invalidate_inode_pages2_range(struct
+ 			}
  
--<<<<<<< HEAD
--		pr_info(">>>>>> %s: descriptor ring:\n", __func__);
--=======
- 		netdev_info(priv->dev, ">>>>>> %s: descriptor ring:\n", __func__);
-->>>>>>> linux-next/akpm-base
- 		if (priv->extend_desc)
- 			rx_head = (void *)priv->dma_erx;
- 		else
-@@ -2584,13 +2580,8 @@ static int stmmac_rx(struct stmmac_priv
- 				frame_len -= ETH_FCS_LEN;
- 
- 			if (netif_msg_rx_status(priv)) {
--<<<<<<< HEAD
--				pr_info("\tdesc: %p [entry %d] buff=0x%x\n",
--					p, entry, des);
--=======
- 				netdev_info(priv->dev, "\tdesc: %p [entry %d] buff=0x%x\n",
- 					    p, entry, des);
-->>>>>>> linux-next/akpm-base
- 				if (frame_len > ETH_FRAME_LEN)
- 					netdev_dbg(priv->dev, "frame size %d, COE: %d\n",
- 						   frame_len, status);
-diff -puN include/linux/bpf_verifier.h~linux-next-git-rejects include/linux/bpf_verifier.h
---- a/include/linux/bpf_verifier.h~linux-next-git-rejects
-+++ a/include/linux/bpf_verifier.h
-@@ -24,10 +24,7 @@ struct bpf_reg_state {
- 	 */
- 	s64 min_value;
- 	u64 max_value;
--<<<<<<< HEAD
--=======
- 	u32 id;
-->>>>>>> linux-next/akpm-base
- 	union {
- 		/* valid when type == CONST_IMM | PTR_TO_STACK | UNKNOWN_VALUE */
- 		s64 imm;
-diff -puN kernel/bpf/verifier.c~linux-next-git-rejects kernel/bpf/verifier.c
---- a/kernel/bpf/verifier.c~linux-next-git-rejects
-+++ a/kernel/bpf/verifier.c
-@@ -1501,10 +1501,6 @@ static void adjust_reg_min_max_vals(stru
- 	struct bpf_reg_state *regs = env->cur_state.regs, *dst_reg;
- 	s64 min_val = BPF_REGISTER_MIN_RANGE;
- 	u64 max_val = BPF_REGISTER_MAX_RANGE;
--<<<<<<< HEAD
--	bool min_set = false, max_set = false;
--=======
-->>>>>>> linux-next/akpm-base
- 	u8 opcode = BPF_OP(insn->code);
- 
- 	dst_reg = &regs[insn->dst_reg];
+ 			lock_page(page);
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
+ 			if (page->mapping != mapping) {
+ 				unlock_page(page);
+ 				continue;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
-include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
-mm-thp-page-cache-support-for-ppc64-fix.patch
-scripts-checkpatchpl-fix-spelling.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-bug-in-munlock_vma_pages_range.patch
+mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
+filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert.patch
 
