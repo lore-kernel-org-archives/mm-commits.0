@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mle-releases-issue.patch removed from -mm tree
-Date: Tue, 22 Nov 2016 16:36:34 -0800
-Message-ID: <5834e492.rcGXJGjdLP6gi+8t%akpm@linux-foundation.org>
+Subject: [withdrawn] mle-releases-issue.patch removed from -mm tree
+Date: Tue, 22 Nov 2016 16:38:39 -0800
+Message-ID: <5834e50f.U71+dOTcEdG2Sflu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39862 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755650AbcKWAnx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 19:43:53 -0500
+        with ESMTP id S1755847AbcKWAsx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 19:48:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ge.changwei@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
@@ -21,7 +21,7 @@ The patch titled
 has been removed from the -mm tree.  Its filename was
      mle-releases-issue.patch
 
-This patch was dropped because it was folded into ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Gechangwei <ge.changwei@h3c.com>
@@ -59,6 +59,7 @@ dlm_clean_block_mle will decease MLE reference count, thus, in the
 following get_resouce procedure, the reference count is going to be
 negative.
 
+[akpm@linux-foundation.org: cleanups]
 Link: http://lkml.kernel.org/r/63ADC13FD55D6546B7DECE290D39E373220C9A5B@H3CMLB12-EX.srv.huawei-3com.com
 Signed-off-by: gechangwei <ge.changwei@h3c.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
@@ -79,7 +80,7 @@ diff -puN fs/ocfs2/dlm/dlmmaster.c~mle-releases-issue fs/ocfs2/dlm/dlmmaster.c
  		spin_lock(&mle->spinlock);
  		if (mle->type == DLM_MLE_BLOCK || mle->type == DLM_MLE_MIGRATION)
 -			extra_ref = 1;
-+			extra_ref = test_bit(assert->node_idx, mle->maybe_map) ? 1 : 0;
++			extra_ref = test_bit(assert->node_idx, mle->maybe_map);
  		else {
  			/* MASTER mle: if any bits set in the response map
  			 * then the calling node needs to re-assert to clear
@@ -87,7 +88,7 @@ diff -puN fs/ocfs2/dlm/dlmmaster.c~mle-releases-issue fs/ocfs2/dlm/dlmmaster.c
  		mlog(0, "mle found, but dead node %u would not have been "
  		     "master\n", dead_node);
  		spin_unlock(&mle->spinlock);
-+	} else if(mle->master != O2NM_MAX_NODES){
++	} else if (mle->master != O2NM_MAX_NODES) {
 +		mlog(ML_NOTICE, "mle found, master assert received, master has "
 +			"already set to %d.\n ", mle->master);
 +		spin_unlock(&mle->spinlock);
@@ -105,5 +106,4 @@ _
 
 Patches currently in -mm which might be from ge.changwei@h3c.com are
 
-ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
 
