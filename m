@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
- added to -mm tree
-Date: Tue, 22 Nov 2016 16:15:28 -0800
-Message-ID: <5834dfa0.53Us7VWLRYHadkrC%akpm@linux-foundation.org>
+Subject: + mm-provide-helper-for-finishing-mkwrite-faults.patch added to
+ -mm tree
+Date: Tue, 22 Nov 2016 16:15:30 -0800
+Message-ID: <5834dfa2.XQKSiGHMzoTXxtoH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36610 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755690AbcKWAP2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 19:15:28 -0500
+        with ESMTP id S1755690AbcKWAPa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2016 19:15:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move part of wp_page_reuse() into the single call site
+     Subject: mm: provide helper for finishing mkwrite faults
 has been added to the -mm tree.  Its filename is
-     mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
+     mm-provide-helper-for-finishing-mkwrite-faults.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-provide-helper-for-finishing-mkwrite-faults.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-provide-helper-for-finishing-mkwrite-faults.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: move part of wp_page_reuse() into the single call site
+Subject: mm: provide helper for finishing mkwrite faults
 
-wp_page_reuse() handles write shared faults which is needed only in
-wp_page_shared().  Move the handling only into that location to make
-wp_page_reuse() simpler and avoid a strange situation when we sometimes
-pass in locked page, sometimes unlocked etc.
+Provide a helper function for finishing write faults due to PTE being
+read-only.  The helper will be used by DAX to avoid the need of
+complicating generic MM code with DAX locking specifics.
 
-Link: http://lkml.kernel.org/r/1479460644-25076-15-git-send-email-jack@suse.cz
+Link: http://lkml.kernel.org/r/1479460644-25076-16-git-send-email-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -55,74 +54,123 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ include/linux/mm.h |    1 
+ mm/memory.c        |   67 +++++++++++++++++++++++++------------------
+ 2 files changed, 41 insertions(+), 27 deletions(-)
 
-diff -puN mm/memory.c~mm-move-part-of-wp_page_reuse-into-the-single-call-site mm/memory.c
---- a/mm/memory.c~mm-move-part-of-wp_page_reuse-into-the-single-call-site
+diff -puN include/linux/mm.h~mm-provide-helper-for-finishing-mkwrite-faults include/linux/mm.h
+--- a/include/linux/mm.h~mm-provide-helper-for-finishing-mkwrite-faults
++++ a/include/linux/mm.h
+@@ -615,6 +615,7 @@ static inline pte_t maybe_mkwrite(pte_t
+ int alloc_set_pte(struct vm_fault *vmf, struct mem_cgroup *memcg,
+ 		struct page *page);
+ int finish_fault(struct vm_fault *vmf);
++int finish_mkwrite_fault(struct vm_fault *vmf);
+ #endif
+ 
+ /*
+diff -puN mm/memory.c~mm-provide-helper-for-finishing-mkwrite-faults mm/memory.c
+--- a/mm/memory.c~mm-provide-helper-for-finishing-mkwrite-faults
 +++ a/mm/memory.c
-@@ -2102,8 +2102,7 @@ static void fault_dirty_shared_page(stru
-  * case, all we need to do here is to mark the page as writable and update
-  * any related book-keeping.
-  */
--static inline int wp_page_reuse(struct vm_fault *vmf,
--				int page_mkwrite, int dirty_shared)
-+static inline void wp_page_reuse(struct vm_fault *vmf)
+@@ -2269,6 +2269,38 @@ oom:
+ 	return VM_FAULT_OOM;
+ }
+ 
++/**
++ * finish_mkwrite_fault - finish page fault for a shared mapping, making PTE
++ *			  writeable once the page is prepared
++ *
++ * @vmf: structure describing the fault
++ *
++ * This function handles all that is needed to finish a write page fault in a
++ * shared mapping due to PTE being read-only once the mapped page is prepared.
++ * It handles locking of PTE and modifying it. The function returns
++ * VM_FAULT_WRITE on success, 0 when PTE got changed before we acquired PTE
++ * lock.
++ *
++ * The function expects the page to be locked or other protection against
++ * concurrent faults / writeback (such as DAX radix tree locks).
++ */
++int finish_mkwrite_fault(struct vm_fault *vmf)
++{
++	WARN_ON_ONCE(!(vmf->vma->vm_flags & VM_SHARED));
++	vmf->pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd, vmf->address,
++				       &vmf->ptl);
++	/*
++	 * We might have raced with another page fault while we released the
++	 * pte_offset_map_lock.
++	 */
++	if (!pte_same(*vmf->pte, vmf->orig_pte)) {
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++		return 0;
++	}
++	wp_page_reuse(vmf);
++	return VM_FAULT_WRITE;
++}
++
+ /*
+  * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
+  * mapping
+@@ -2285,16 +2317,7 @@ static int wp_pfn_shared(struct vm_fault
+ 		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
+ 		if (ret & VM_FAULT_ERROR)
+ 			return ret;
+-		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+-				vmf->address, &vmf->ptl);
+-		/*
+-		 * We might have raced with another page fault while we
+-		 * released the pte_offset_map_lock.
+-		 */
+-		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
+-			pte_unmap_unlock(vmf->pte, vmf->ptl);
+-			return 0;
+-		}
++		return finish_mkwrite_fault(vmf);
+ 	}
+ 	wp_page_reuse(vmf);
+ 	return VM_FAULT_WRITE;
+@@ -2304,7 +2327,6 @@ static int wp_page_shared(struct vm_faul
  	__releases(vmf->ptl)
  {
  	struct vm_area_struct *vma = vmf->vma;
-@@ -2123,16 +2122,6 @@ static inline int wp_page_reuse(struct v
- 	if (ptep_set_access_flags(vma, vmf->address, vmf->pte, entry, 1))
- 		update_mmu_cache(vma, vmf->address, vmf->pte);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--
--	if (dirty_shared) {
--		if (!page_mkwrite)
--			lock_page(page);
--
--		fault_dirty_shared_page(vma, page);
--		put_page(page);
+-	int page_mkwrite = 0;
+ 
+ 	get_page(vmf->page);
+ 
+@@ -2318,26 +2340,17 @@ static int wp_page_shared(struct vm_faul
+ 			put_page(vmf->page);
+ 			return tmp;
+ 		}
+-		/*
+-		 * Since we dropped the lock we need to revalidate
+-		 * the PTE as someone else may have changed it.  If
+-		 * they did, we just return, as we can count on the
+-		 * MMU to tell us if they didn't also make it writable.
+-		 */
+-		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+-						vmf->address, &vmf->ptl);
+-		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
++		tmp = finish_mkwrite_fault(vmf);
++		if (unlikely(!tmp || (tmp &
++				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+ 			unlock_page(vmf->page);
+-			pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 			put_page(vmf->page);
+-			return 0;
++			return tmp;
+ 		}
+-		page_mkwrite = 1;
 -	}
 -
--	return VM_FAULT_WRITE;
- }
+-	wp_page_reuse(vmf);
+-	if (!page_mkwrite)
++	} else {
++		wp_page_reuse(vmf);
+ 		lock_page(vmf->page);
++	}
+ 	fault_dirty_shared_page(vma, vmf->page);
+ 	put_page(vmf->page);
  
- /*
-@@ -2307,7 +2296,8 @@ static int wp_pfn_shared(struct vm_fault
- 			return 0;
- 		}
- 	}
--	return wp_page_reuse(vmf, 0, 0);
-+	wp_page_reuse(vmf);
-+	return VM_FAULT_WRITE;
- }
- 
- static int wp_page_shared(struct vm_fault *vmf)
-@@ -2345,7 +2335,13 @@ static int wp_page_shared(struct vm_faul
- 		page_mkwrite = 1;
- 	}
- 
--	return wp_page_reuse(vmf, page_mkwrite, 1);
-+	wp_page_reuse(vmf);
-+	if (!page_mkwrite)
-+		lock_page(vmf->page);
-+	fault_dirty_shared_page(vma, vmf->page);
-+	put_page(vmf->page);
-+
-+	return VM_FAULT_WRITE;
- }
- 
- /*
-@@ -2420,7 +2416,8 @@ static int do_wp_page(struct vm_fault *v
- 				page_move_anon_rmap(vmf->page, vma);
- 			}
- 			unlock_page(vmf->page);
--			return wp_page_reuse(vmf, 0, 0);
-+			wp_page_reuse(vmf);
-+			return VM_FAULT_WRITE;
- 		}
- 		unlock_page(vmf->page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
