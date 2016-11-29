@@ -1,82 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: +
- posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch added to -mm tree
-Date: Tue, 29 Nov 2016 15:32:48 -0800
-Message-ID: <583e1020.ywWaPZNsbJw+CKeW%akpm@linux-foundation.org>
+Subject: [alternative-merged] kernel-time-fix-build.patch removed from -mm tree
+Date: Tue, 29 Nov 2016 15:32:54 -0800
+Message-ID: <583e1026.hAFXxcfnRCjgollR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754270AbcK2Xce (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:32:34 -0500
+        with ESMTP id S1754678AbcK2Xck (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:32:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.pitre@linaro.org, josh@joshtriplett.org, nico@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nico@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: posix-timers: give lazy compilers some help optimizing code away
-has been added to the -mm tree.  Its filename is
-     posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
+     Subject: kernel/time: fix build
+has been removed from the -mm tree.  Its filename was
+     kernel-time-fix-build.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: posix-timers: give lazy compilers some help optimizing code away
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/time: fix build
 
-The OpenRISC compiler (so far) fails to optimize away a large portion
-of code containing a reference to posix_timer_event in alarmtimer.c when
-CONFIG_POSIX_TIMERS is unset. Let's give it a direct clue to let the build
-succeed.
+kernel/built-in.o: In function `alarm_handle_timer':
+alarmtimer.c:(.text+0x2a3ba): undefined reference to `posix_timer_event'
 
-This fixes
-[linux-next:master 6682/7183] alarmtimer.c:undefined reference to `posix_timer_event'
-reported by kbuild test robot.
+May or may not be correct...
 
-Signed-off-by: Nicolas Pitre <nico@linaro.org>
+Cc: Nicolas Pitre <nico@linaro.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Josh Triplett <josh@joshtriplett.org>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/alarmtimer.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/time/posix-stubs.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/time/alarmtimer.c~posix-timers-give-lazy-compilers-some-help-optimizing-code-away kernel/time/alarmtimer.c
---- a/kernel/time/alarmtimer.c~posix-timers-give-lazy-compilers-some-help-optimizing-code-away
-+++ a/kernel/time/alarmtimer.c
-@@ -483,7 +483,8 @@ static enum alarmtimer_restart alarm_han
- 
- 	spin_lock_irqsave(&ptr->it_lock, flags);
- 	if ((ptr->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE) {
--		if (posix_timer_event(ptr, 0) != 0)
-+		if (IS_ENABLED(CONFIG_POSIX_TIMERS) &&
-+		    posix_timer_event(ptr, 0) != 0)
- 			ptr->it_overrun++;
- 	}
- 
+diff -puN kernel/time/posix-stubs.c~kernel-time-fix-build kernel/time/posix-stubs.c
+--- a/kernel/time/posix-stubs.c~kernel-time-fix-build
++++ a/kernel/time/posix-stubs.c
+@@ -121,3 +121,8 @@ long clock_nanosleep_restart(struct rest
+ 	return hrtimer_nanosleep_restart(restart_block);
+ }
+ #endif
++
++int posix_timer_event(struct k_itimer *timr, int si_private)
++{
++	return 0;
++}
 _
 
-Patches currently in -mm which might be from nicolas.pitre@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
+filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
+include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
+mm-thp-page-cache-support-for-ppc64-fix.patch
+scripts-checkpatchpl-fix-spelling.patch
+debug-more-properly-delay-for-secondary-cpus-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
+ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
+mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
