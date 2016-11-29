@@ -1,47 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch removed from -mm tree
-Date: Tue, 29 Nov 2016 10:59:23 -0800
-Message-ID: <583dd00b.VyDgEOaMTFpIdtnV%akpm@linux-foundation.org>
+Subject: +
+ kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+ added to -mm tree
+Date: Tue, 29 Nov 2016 11:06:12 -0800
+Message-ID: <583dd1a4.Uin0PobWMnDt0bHZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34750 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34990 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754516AbcK2S7K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 13:59:10 -0500
+        with ESMTP id S1750754AbcK2TF7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 14:05:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: enable CONFIG_KEXEC_FILE in powerpc server defconfigs
-has been removed from the -mm tree.  Its filename was
-     powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+     Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
+has been added to the -mm tree.  Its filename is
+     kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: enable CONFIG_KEXEC_FILE in powerpc server defconfigs
+Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
 
-Enable CONFIG_KEXEC_FILE in powernv_defconfig, ppc64_defconfig and
-pseries_defconfig.
+Patch series "powerpc: Implement kexec_file_load()", v11.
 
-It depends on CONFIG_CRYPTO_SHA256=y, so add that as well.
+This patch series implements the kexec_file_load system call on PowerPC.
 
-Link: http://lkml.kernel.org/r/1478748449-3894-11-git-send-email-bauerman@linux.vnet.ibm.com
+This system call moves the reading of the kernel, initrd and the device tree
+from the userspace kexec tool to the kernel. This is needed if you want to
+do one or both of the following:
+
+1. only allow loading of signed kernels.
+2. "measure" (i.e., record the hashes of) the kernel, initrd, kernel
+   command line and other boot inputs for the Integrity Measurement
+   Architecture subsystem.
+
+The above are the functions kexec already has built into kexec_file_load.
+Yesterday I posted a set of patches which allows a third feature:
+
+3. have IMA pass-on its event log (where integrity measurements are
+   registered) accross kexec to the second kernel, so that the event
+   history is preserved.
+
+Because OpenPower uses an intermediary Linux instance as a boot loader
+(skiroot), feature 1 is needed to implement secure boot for the platform,
+while features 2 and 3 are needed to implement trusted boot.
+
+This patch series starts by removing an x86 assumption from kexec_file:
+kexec_add_buffer uses iomem to find reserved memory ranges, but PowerPC
+uses the memblock subsystem.  A hook is added so that each arch can
+specify how memory ranges can be found.
+
+Also, the memory-walking logic in kexec_add_buffer is useful in this
+implementation to find a free area for the purgatory's stack, so the
+next patch moves that logic to kexec_locate_mem_hole.
+
+The kexec_file_load system call needs to apply relocations to the
+purgatory but adding code for that would duplicate functionality with
+the module loading mechanism, which also needs to apply relocations to
+the kernel modules.  Therefore, this patch series factors out the module
+relocation code so that it can be shared.
+
+One thing that is still missing is crashkernel support, which I intend
+to submit shortly. For now, arch_kexec_kernel_image_probe rejects crash
+kernels.
+
+This code is based on kexec-tools, but with many modifications to adapt
+it to the kernel environment and facilities.
+
+
+This patch (of 8):
+
+Allow architectures to specify a different memory walking function for
+kexec_add_buffer.  x86 uses iomem to track reserved memory ranges, but
+PowerPC uses the memblock subsystem.
+
+Link: http://lkml.kernel.org/r/1480423554-6411-2-git-send-email-mpe@ellerman.id.au
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Dave Young <dyoung@redhat.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
@@ -53,72 +117,116 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/configs/powernv_defconfig |    2 ++
- arch/powerpc/configs/ppc64_defconfig   |    2 ++
- arch/powerpc/configs/pseries_defconfig |    2 ++
- 3 files changed, 6 insertions(+)
+ include/linux/kexec.h   |   29 ++++++++++++++++++++++++++++-
+ kernel/kexec_file.c     |   30 ++++++++++++++++++++++--------
+ kernel/kexec_internal.h |   16 ----------------
+ 3 files changed, 50 insertions(+), 25 deletions(-)
 
-diff -puN arch/powerpc/configs/powernv_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs arch/powerpc/configs/powernv_defconfig
---- a/arch/powerpc/configs/powernv_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs
-+++ a/arch/powerpc/configs/powernv_defconfig
-@@ -49,6 +49,7 @@ CONFIG_BINFMT_MISC=m
- CONFIG_PPC_TRANSACTIONAL_MEM=y
- CONFIG_HOTPLUG_CPU=y
- CONFIG_KEXEC=y
-+CONFIG_KEXEC_FILE=y
- CONFIG_IRQ_ALL_CPUS=y
- CONFIG_NUMA=y
- CONFIG_MEMORY_HOTPLUG=y
-@@ -301,6 +302,7 @@ CONFIG_CRYPTO_CCM=m
- CONFIG_CRYPTO_PCBC=m
- CONFIG_CRYPTO_HMAC=y
- CONFIG_CRYPTO_MICHAEL_MIC=m
-+CONFIG_CRYPTO_SHA256=y
- CONFIG_CRYPTO_TGR192=m
- CONFIG_CRYPTO_WP512=m
- CONFIG_CRYPTO_ANUBIS=m
-diff -puN arch/powerpc/configs/ppc64_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs arch/powerpc/configs/ppc64_defconfig
---- a/arch/powerpc/configs/ppc64_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs
-+++ a/arch/powerpc/configs/ppc64_defconfig
-@@ -46,6 +46,7 @@ CONFIG_HZ_100=y
- CONFIG_BINFMT_MISC=m
- CONFIG_PPC_TRANSACTIONAL_MEM=y
- CONFIG_KEXEC=y
-+CONFIG_KEXEC_FILE=y
- CONFIG_CRASH_DUMP=y
- CONFIG_IRQ_ALL_CPUS=y
- CONFIG_MEMORY_HOTREMOVE=y
-@@ -336,6 +337,7 @@ CONFIG_CRYPTO_TEST=m
- CONFIG_CRYPTO_PCBC=m
- CONFIG_CRYPTO_HMAC=y
- CONFIG_CRYPTO_MICHAEL_MIC=m
-+CONFIG_CRYPTO_SHA256=y
- CONFIG_CRYPTO_TGR192=m
- CONFIG_CRYPTO_WP512=m
- CONFIG_CRYPTO_ANUBIS=m
-diff -puN arch/powerpc/configs/pseries_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs arch/powerpc/configs/pseries_defconfig
---- a/arch/powerpc/configs/pseries_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs
-+++ a/arch/powerpc/configs/pseries_defconfig
-@@ -52,6 +52,7 @@ CONFIG_HZ_100=y
- CONFIG_BINFMT_MISC=m
- CONFIG_PPC_TRANSACTIONAL_MEM=y
- CONFIG_KEXEC=y
-+CONFIG_KEXEC_FILE=y
- CONFIG_IRQ_ALL_CPUS=y
- CONFIG_MEMORY_HOTPLUG=y
- CONFIG_MEMORY_HOTREMOVE=y
-@@ -303,6 +304,7 @@ CONFIG_CRYPTO_TEST=m
- CONFIG_CRYPTO_PCBC=m
- CONFIG_CRYPTO_HMAC=y
- CONFIG_CRYPTO_MICHAEL_MIC=m
-+CONFIG_CRYPTO_SHA256=y
- CONFIG_CRYPTO_TGR192=m
- CONFIG_CRYPTO_WP512=m
- CONFIG_CRYPTO_ANUBIS=m
-_
-
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
-
-powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
-powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
-
+diff -puN include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/include/linux/kexec.h
+@@ -148,7 +148,34 @@ struct kexec_file_ops {
+ 	kexec_verify_sig_t *verify_sig;
+ #endif
+ };
+-#endif
++
++/**
++ * struct kexec_buf - parameters for finding a place for a buffer in memory
++ * @image:	kexec image in which memory to search.
++ * @buffer:	Contents which will be copied to the allocated memory.
++ * @bufsz:	Size of @buffer.
++ * @mem:	On return will have address of the buffer in memory.
++ * @memsz:	Size for the buffer in memory.
++ * @buf_align:	Minimum alignment needed.
++ * @buf_min:	The buffer can't be placed below this address.
++ * @buf_max:	The buffer can't be placed above this address.
++ * @top_down:	Allocate from top of memory.
++ */
++struct kexec_buf {
++	struct kimage *image;
++	char *buffer;
++	unsigned long bufsz;
++	unsigned long mem;
++	unsigned long memsz;
++	unsigned long buf_align;
++	unsigned long buf_min;
++	unsigned long buf_max;
++	bool top_down;
++};
++
++int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
++			       int (*func)(u64, u64, void *));
++#endif /* CONFIG_KEXEC_FILE */
+ 
+ struct kimage {
+ 	kimage_entry_t head;
+diff -puN kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/kernel/kexec_file.c
+@@ -428,6 +428,27 @@ static int locate_mem_hole_callback(u64
+ 	return locate_mem_hole_bottom_up(start, end, kbuf);
+ }
+ 
++/**
++ * arch_kexec_walk_mem - call func(data) on free memory regions
++ * @kbuf:	Context info for the search. Also passed to @func.
++ * @func:	Function to call for each memory region.
++ *
++ * Return: The memory walk will stop when func returns a non-zero value
++ * and that value will be returned. If all free regions are visited without
++ * func returning non-zero, then zero will be returned.
++ */
++int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
++			       int (*func)(u64, u64, void *))
++{
++	if (kbuf->image->type == KEXEC_TYPE_CRASH)
++		return walk_iomem_res_desc(crashk_res.desc,
++					   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
++					   crashk_res.start, crashk_res.end,
++					   kbuf, func);
++	else
++		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
++}
++
+ /*
+  * Helper function for placing a buffer in a kexec segment. This assumes
+  * that kexec_mutex is held.
+@@ -474,14 +495,7 @@ int kexec_add_buffer(struct kimage *imag
+ 	kbuf->top_down = top_down;
+ 
+ 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
+-	if (image->type == KEXEC_TYPE_CRASH)
+-		ret = walk_iomem_res_desc(crashk_res.desc,
+-				IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
+-				crashk_res.start, crashk_res.end, kbuf,
+-				locate_mem_hole_callback);
+-	else
+-		ret = walk_system_ram_res(0, -1, kbuf,
+-					  locate_mem_hole_callback);
++	ret = arch_kexec_walk_mem(kbuf, locate_mem_hole_callback);
+ 	if (ret != 1) {
+ 		/* A suitable memory range could not be found for buffer */
+ 		return -EADDRNOTAVAIL;
+diff -puN kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_internal.h
+--- a/kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/kernel/kexec_internal.h
+@@ -20,22 +20,6 @@ struct kexec_sha_region {
+ 	unsigned long len;
+ };
+ 
+-/*
+- * Keeps track of buffer parameters as provided by caller for requesting
+- * memory placement of buffer.
+- */
+-struct kexec_buf {
+-	struct kimage *image;
+-	char *buffer;
+-	unsigned long bufsz;
+-	unsigned long mem;
+-	unsigned long memsz;
+-	unsigned long buf_align;
+-	unsigned long buf_min;
+-	unsigned long buf_max;
+-	bool top_down;		/* allocate from top of memory hole */
+-};
