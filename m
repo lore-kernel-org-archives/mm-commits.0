@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-support-use-after-scope-detection-v3.patch added to -mm
- tree
-Date: Tue, 29 Nov 2016 15:27:33 -0800
-Message-ID: <583e0ee5.A9G0D0KFuosoZ18I%akpm@linux-foundation.org>
+Subject: +
+ posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch added to -mm tree
+Date: Tue, 29 Nov 2016 15:32:48 -0800
+Message-ID: <583e1020.ywWaPZNsbJw+CKeW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50394 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752395AbcK2X1U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:27:20 -0500
+        with ESMTP id S1754270AbcK2Xce (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:32:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: nicolas.pitre@linaro.org, josh@joshtriplett.org, nico@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-support-use-after-scope-detection-v3
+     Subject: posix-timers: give lazy compilers some help optimizing code away
 has been added to the -mm tree.  Its filename is
-     kasan-support-use-after-scope-detection-v3.patch
+     posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-support-use-after-scope-detection-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-support-use-after-scope-detection-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan-support-use-after-scope-detection-v3
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: posix-timers: give lazy compilers some help optimizing code away
 
- - added comment to test_kasan.c re noinline
- - fixed a typo in comment: s/go into of scope/go into scope/
- - added cc stable
+The OpenRISC compiler (so far) fails to optimize away a large portion
+of code containing a reference to posix_timer_event in alarmtimer.c when
+CONFIG_POSIX_TIMERS is unset. Let's give it a direct clue to let the build
+succeed.
 
-Link: http://lkml.kernel.org/r/1479998292-144502-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+This fixes
+[linux-next:master 6682/7183] alarmtimer.c:undefined reference to `posix_timer_event'
+reported by kbuild test robot.
+
+Signed-off-by: Nicolas Pitre <nico@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Josh Triplett <josh@joshtriplett.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    5 +++++
- mm/kasan/kasan.c |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ kernel/time/alarmtimer.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/test_kasan.c~kasan-support-use-after-scope-detection-v3 lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-support-use-after-scope-detection-v3
-+++ a/lib/test_kasan.c
-@@ -20,6 +20,11 @@
- #include <linux/uaccess.h>
- #include <linux/module.h>
+diff -puN kernel/time/alarmtimer.c~posix-timers-give-lazy-compilers-some-help-optimizing-code-away kernel/time/alarmtimer.c
+--- a/kernel/time/alarmtimer.c~posix-timers-give-lazy-compilers-some-help-optimizing-code-away
++++ a/kernel/time/alarmtimer.c
+@@ -483,7 +483,8 @@ static enum alarmtimer_restart alarm_han
  
-+/*
-+ * Note: test functions are marked noinline so that their names appear in
-+ * reports.
-+ */
-+
- static noinline void __init kmalloc_oob_right(void)
- {
- 	char *ptr;
-diff -puN mm/kasan/kasan.c~kasan-support-use-after-scope-detection-v3 mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-support-use-after-scope-detection-v3
-+++ a/mm/kasan/kasan.c
-@@ -776,7 +776,7 @@ void __asan_poison_stack_memory(const vo
- }
- EXPORT_SYMBOL(__asan_poison_stack_memory);
+ 	spin_lock_irqsave(&ptr->it_lock, flags);
+ 	if ((ptr->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE) {
+-		if (posix_timer_event(ptr, 0) != 0)
++		if (IS_ENABLED(CONFIG_POSIX_TIMERS) &&
++		    posix_timer_event(ptr, 0) != 0)
+ 			ptr->it_overrun++;
+ 	}
  
--/* Emitted by compiler to unpoison large objects when they go into of scope. */
-+/* Emitted by compiler to unpoison large objects when they go into scope. */
- void __asan_unpoison_stack_memory(const void *addr, size_t size)
- {
- 	kasan_unpoison_shadow(addr, size);
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from nicolas.pitre@linaro.org are
 
-kasan-update-kasan_global-for-gcc-7.patch
-kasan-support-use-after-scope-detection.patch
-kasan-support-use-after-scope-detection-v3.patch
-kasan-support-panic_on_warn.patch
-kasan-eliminate-long-stalls-during-quarantine-reduction.patch
+posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
 
