@@ -1,77 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch removed
- from -mm tree
-Date: Tue, 29 Nov 2016 13:50:56 -0800
-Message-ID: <583df840.LmQIUl4UJWmYxXXA%akpm@linux-foundation.org>
+Subject: +
+ mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch added to -mm tree
+Date: Tue, 29 Nov 2016 15:08:51 -0800
+Message-ID: <583e0a83.eDvv8/WbfOQuqA8x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48530 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753838AbcK2Vup (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 16:50:45 -0500
+        with ESMTP id S1752872AbcK2XIh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:08:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: fangwei1@huawei.com, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: don't fail kernel build if z3fold_header is too big
-has been removed from the -mm tree.  Its filename was
-     z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch
+     Subject: mm/filemap.c: fix a NULL dereference crash while accessing bdev->bd_disk
+has been added to the -mm tree.  Its filename is
+     mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: don't fail kernel build if z3fold_header is too big
+From: Wei Fang <fangwei1@huawei.com>
+Subject: mm/filemap.c: fix a NULL dereference crash while accessing bdev->bd_disk
 
-Currently the whole kernel build will be stopped if the size of struct
-z3fold_header is greater than the size of one chunk, which is 64 bytes by
-default.  This may stand in the way of automated test/debug builds so
-let's remove that and just fail the z3fold initialization in such case
-instead.
+->bd_disk is assigned to NULL in __blkdev_put() when no one is holding the
+bdev.  After that, ->bd_inode still can be touched in the
+blockdev_superblock->s_inodes list before the final iput.  So
+iterate_bdevs() can still get this inode, and start writeback on mapping
+dirty pages.  ->bd_disk will be dereferenced in
+mapping_cap_writeback_dirty() in this case, and a NULL dereference crash
+will be triggered:
 
-Link: http://lkml.kernel.org/r/20161115170030.f0396011fa00423ff711a3b4@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Unable to handle kernel NULL pointer dereference at virtual address 00000388
+...
+[<ffff8000004cb1e4>] blk_get_backing_dev_info+0x1c/0x28
+[<ffff8000001c879c>] __filemap_fdatawrite_range+0x54/0x98
+[<ffff8000001c8804>] filemap_fdatawrite+0x24/0x2c
+[<ffff80000027e7a4>] fdatawrite_one_bdev+0x20/0x28
+[<ffff800000288b44>] iterate_bdevs+0xec/0x144
+[<ffff80000027eb50>] sys_sync+0x84/0xd0
+
+Since mapping_cap_writeback_dirty() is always return true about block
+device inodes, no need to check it if the inode is a block device inode.
+
+Link: http://lkml.kernel.org/r/1480125982-8497-1-git-send-email-fangwei1@huawei.com
+Signed-off-by: Wei Fang <fangwei1@huawei.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/filemap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big mm/z3fold.c
---- a/mm/z3fold.c~z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big
-+++ a/mm/z3fold.c
-@@ -870,10 +870,15 @@ MODULE_ALIAS("zpool-z3fold");
+diff -puN mm/filemap.c~mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk mm/filemap.c
+--- a/mm/filemap.c~mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk
++++ a/mm/filemap.c
+@@ -383,8 +383,9 @@ int __filemap_fdatawrite_range(struct ad
+ 		.range_end = end,
+ 	};
  
- static int __init init_z3fold(void)
- {
--	/* Make sure the z3fold header will fit in one chunk */
--	BUILD_BUG_ON(sizeof(struct z3fold_header) > ZHDR_SIZE_ALIGNED);
--	zpool_register_driver(&z3fold_zpool_driver);
-+	/* Fail the initialization if z3fold header won't fit in one chunk */
-+	if (sizeof(struct z3fold_header) > ZHDR_SIZE_ALIGNED) {
-+		pr_err("z3fold: z3fold_header size (%d) is bigger than "
-+			"the chunk size (%d), can't proceed\n",
-+			sizeof(struct z3fold_header) , ZHDR_SIZE_ALIGNED);
-+		return -E2BIG;
-+	}
+-	if (!mapping_cap_writeback_dirty(mapping))
+-		return 0;
++	if (!sb_is_blkdev_sb(mapping->host->i_sb))
++		if (!mapping_cap_writeback_dirty(mapping))
++			return 0;
  
-+	zpool_register_driver(&z3fold_zpool_driver);
- 	return 0;
- }
- 
+ 	wbc_attach_fdatawrite_inode(&wbc, mapping->host);
+ 	ret = do_writepages(mapping, &wbc);
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from fangwei1@huawei.com are
 
-z3fold-make-pages_nr-atomic.patch
-z3fold-extend-compaction-function.patch
-z3fold-use-per-page-spinlock.patch
-z3fold-discourage-use-of-pages-that-werent-compacted.patch
+mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
 
