@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-add-purgatory-for-kexec_file_load-implementation.patch
- added to -mm tree
-Date: Tue, 29 Nov 2016 11:06:30 -0800
-Message-ID: <583dd1b6.HLAsPCaxGaBXO60X%akpm@linux-foundation.org>
+Subject: + powerpc-kexec-enable-kexec_file_load-syscall.patch added to -mm tree
+Date: Tue, 29 Nov 2016 11:06:33 -0800
+Message-ID: <583dd1b9.aAnkZWmRQBnHcW5x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35160 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754294AbcK2TGR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 14:06:17 -0500
+        with ESMTP id S1751918AbcK2TGV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 14:06:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add purgatory for kexec_file_load() implementation
+     Subject: powerpc/kexec: enable kexec_file_load() syscall
 has been added to the -mm tree.  Its filename is
-     powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+     powerpc-kexec-enable-kexec_file_load-syscall.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-kexec-enable-kexec_file_load-syscall.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-kexec-enable-kexec_file_load-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: add purgatory for kexec_file_load() implementation
+Subject: powerpc/kexec: enable kexec_file_load() syscall
 
-This purgatory implementation is based on the versions from kexec-tools
-and kexec-lite, with additional changes.
+Define the Kconfig symbol so that the kexec_file_load() code can be
+built, and wire up the syscall so that it can be called.
 
-Link: http://lkml.kernel.org/r/1480423554-6411-7-git-send-email-mpe@ellerman.id.au
+Link: http://lkml.kernel.org/r/1480423554-6411-8-git-send-email-mpe@ellerman.id.au
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
@@ -65,193 +64,65 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Makefile                  |    1 
- arch/powerpc/kernel/machine_kexec_64.c |    2 
- arch/powerpc/purgatory/.gitignore      |    2 
- arch/powerpc/purgatory/Makefile        |   15 ++
- arch/powerpc/purgatory/trampoline.S    |  128 +++++++++++++++++++++++
- 5 files changed, 147 insertions(+), 1 deletion(-)
+ arch/powerpc/Kconfig                   |   13 +++++++++++++
+ arch/powerpc/include/asm/systbl.h      |    1 +
+ arch/powerpc/include/asm/unistd.h      |    2 +-
+ arch/powerpc/include/uapi/asm/unistd.h |    1 +
+ 4 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation arch/powerpc/Makefile
---- a/arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation
-+++ a/arch/powerpc/Makefile
-@@ -249,6 +249,7 @@ core-y				+= arch/powerpc/kernel/ \
- core-$(CONFIG_XMON)		+= arch/powerpc/xmon/
- core-$(CONFIG_KVM) 		+= arch/powerpc/kvm/
- core-$(CONFIG_PERF_EVENTS)	+= arch/powerpc/perf/
-+core-$(CONFIG_KEXEC_FILE)	+= arch/powerpc/purgatory/
+diff -puN arch/powerpc/Kconfig~powerpc-kexec-enable-kexec_file_load-syscall arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-kexec-enable-kexec_file_load-syscall
++++ a/arch/powerpc/Kconfig
+@@ -455,6 +455,19 @@ config KEXEC
+ 	  interface is strongly in flux, so no good recommendation can be
+ 	  made.
  
- drivers-$(CONFIG_OPROFILE)	+= arch/powerpc/oprofile/
++config KEXEC_FILE
++	bool "kexec file based system call"
++	select KEXEC_CORE
++	select BUILD_BIN2C
++	depends on PPC64
++	depends on CRYPTO=y
++	depends on CRYPTO_SHA256=y
++	help
++	  This is a new version of the kexec system call. This call is
++	  file based and takes in file descriptors as system call arguments
++	  for kernel and initramfs as opposed to a list of segments as is the
++	  case for the older kexec call.
++
+ config RELOCATABLE
+ 	bool "Build a relocatable kernel"
+ 	depends on (PPC64 && !COMPILE_TEST) || (FLATMEM && (44x || FSL_BOOKE))
+diff -puN arch/powerpc/include/asm/systbl.h~powerpc-kexec-enable-kexec_file_load-syscall arch/powerpc/include/asm/systbl.h
+--- a/arch/powerpc/include/asm/systbl.h~powerpc-kexec-enable-kexec_file_load-syscall
++++ a/arch/powerpc/include/asm/systbl.h
+@@ -386,3 +386,4 @@ SYSCALL(mlock2)
+ SYSCALL(copy_file_range)
+ COMPAT_SYS_SPU(preadv2)
+ COMPAT_SYS_SPU(pwritev2)
++SYSCALL(kexec_file_load)
+diff -puN arch/powerpc/include/asm/unistd.h~powerpc-kexec-enable-kexec_file_load-syscall arch/powerpc/include/asm/unistd.h
+--- a/arch/powerpc/include/asm/unistd.h~powerpc-kexec-enable-kexec_file_load-syscall
++++ a/arch/powerpc/include/asm/unistd.h
+@@ -12,7 +12,7 @@
+ #include <uapi/asm/unistd.h>
  
-diff -puN arch/powerpc/kernel/machine_kexec_64.c~powerpc-add-purgatory-for-kexec_file_load-implementation arch/powerpc/kernel/machine_kexec_64.c
---- a/arch/powerpc/kernel/machine_kexec_64.c~powerpc-add-purgatory-for-kexec_file_load-implementation
-+++ a/arch/powerpc/kernel/machine_kexec_64.c
-@@ -310,7 +310,7 @@ void default_machine_kexec(struct kimage
- 	if (!kdump_in_progress())
- 		kexec_prepare_cpus();
  
--	pr_debug("kexec: Starting switchover sequence.\n");
-+	printk("kexec: Starting switchover sequence.\n");
+-#define NR_syscalls		382
++#define NR_syscalls		383
  
- 	/* switch to a staticly allocated stack.  Based on irq stack code.
- 	 * We setup preempt_count to avoid using VMX in memcpy.
-diff -puN /dev/null arch/powerpc/purgatory/.gitignore
---- /dev/null
-+++ a/arch/powerpc/purgatory/.gitignore
-@@ -0,0 +1,2 @@
-+kexec-purgatory.c
-+purgatory.ro
-diff -puN /dev/null arch/powerpc/purgatory/Makefile
---- /dev/null
-+++ a/arch/powerpc/purgatory/Makefile
-@@ -0,0 +1,15 @@
-+targets += trampoline.o purgatory.ro kexec-purgatory.c
-+
-+LDFLAGS_purgatory.ro := -e purgatory_start -r --no-undefined
-+
-+$(obj)/purgatory.ro: $(obj)/trampoline.o FORCE
-+		$(call if_changed,ld)
-+
-+CMD_BIN2C = $(objtree)/scripts/basic/bin2c
-+quiet_cmd_bin2c = BIN2C   $@
-+      cmd_bin2c = $(CMD_BIN2C) kexec_purgatory < $< > $@
-+
-+$(obj)/kexec-purgatory.c: $(obj)/purgatory.ro FORCE
-+	$(call if_changed,bin2c)
-+
-+obj-y	+= kexec-purgatory.o
-diff -puN /dev/null arch/powerpc/purgatory/trampoline.S
---- /dev/null
-+++ a/arch/powerpc/purgatory/trampoline.S
-@@ -0,0 +1,128 @@
-+/*
-+ * kexec trampoline
-+ *
-+ * Based on code taken from kexec-tools and kexec-lite.
-+ *
-+ * Copyright (C) 2004 - 2005, Milton D Miller II, IBM Corporation
-+ * Copyright (C) 2006, Mohan Kumar M, IBM Corporation
-+ * Copyright (C) 2013, Anton Blanchard, IBM Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it under
-+ * the terms of the GNU General Public License as published by the Free
-+ * Software Foundation (version 2 of the License).
-+ */
-+
-+#if defined(__LITTLE_ENDIAN__)
-+#define STWX_BE	stwbrx
-+#define LWZX_BE	lwbrx
-+#elif defined(__BIG_ENDIAN__)
-+#define STWX_BE	stwx
-+#define LWZX_BE	lwzx
-+#else
-+#error no endianness defined!
-+#endif
-+
-+	.machine ppc64
-+	.balign 256
-+	.globl purgatory_start
-+purgatory_start:
-+	b	master
-+
-+	/* ABI: possible run_at_load flag at 0x5c */
-+	.org purgatory_start + 0x5c
-+	.globl run_at_load
-+run_at_load:
-+	.long 0
-+	.size run_at_load, . - run_at_load
-+
-+	/* ABI: slaves start at 60 with r3=phys */
-+	.org purgatory_start + 0x60
-+slave:
-+	b .
-+	/* ABI: end of copied region */
-+	.org purgatory_start + 0x100
-+	.size purgatory_start, . - purgatory_start
-+
-+/*
-+ * The above 0x100 bytes at purgatory_start are replaced with the
-+ * code from the kernel (or next stage) by setup_purgatory().
-+ */
-+
-+master:
-+	or	%r1,%r1,%r1	/* low priority to let other threads catchup */
-+	isync
-+	mr	%r17,%r3	/* save cpu id to r17 */
-+	mr	%r15,%r4	/* save physical address in reg15 */
-+
-+	or	%r3,%r3,%r3	/* ok now to high priority, lets boot */
-+	lis	%r6,0x1
-+	mtctr	%r6		/* delay a bit for slaves to catch up */
-+	bdnz	.		/* before we overwrite 0-100 again */
-+
-+	bl	0f		/* Work out where we're running */
-+0:	mflr	%r18
-+
-+	/* load device-tree address */
-+	ld	%r3, (dt_offset - 0b)(%r18)
-+	mr	%r16,%r3	/* save dt address in reg16 */
-+	li	%r4,20
-+	LWZX_BE	%r6,%r3,%r4	/* fetch __be32 version number at byte 20 */
-+	cmpwi	%r0,%r6,2	/* v2 or later? */
-+	blt	1f
-+	li	%r4,28
-+	STWX_BE	%r17,%r3,%r4	/* Store my cpu as __be32 at byte 28 */
-+1:
-+	/* load the kernel address */
-+	ld	%r4,(kernel - 0b)(%r18)
-+
-+	/* load the run_at_load flag */
-+	/* possibly patched by kexec */
-+	ld	%r6,(run_at_load - 0b)(%r18)
-+	/* and patch it into the kernel */
-+	stw	%r6,(0x5c)(%r4)
-+
-+	mr	%r3,%r16	/* restore dt address */
-+
-+	li	%r5,0		/* r5 will be 0 for kernel */
-+
-+	mfmsr	%r11
-+	andi.	%r10,%r11,1	/* test MSR_LE */
-+	bne	.Little_endian
-+
-+	mtctr	%r4		/* prepare branch to */
-+	bctr			/* start kernel */
-+
-+.Little_endian:
-+	mtsrr0	%r4		/* prepare branch to */
-+
-+	clrrdi	%r11,%r11,1	/* clear MSR_LE */
-+	mtsrr1	%r11
-+
-+	rfid			/* update MSR and start kernel */
-+
-+
-+	.balign 8
-+	.globl kernel
-+kernel:
-+	.llong  0x0
-+	.size kernel, . - kernel
-+
-+	.balign 8
-+	.globl dt_offset
-+dt_offset:
-+	.llong  0x0
-+	.size dt_offset, . - dt_offset
-+
-+
-+	.data
-+	.balign 8
-+.globl sha256_digest
-+sha256_digest:
-+	.skip	32
-+	.size sha256_digest, . - sha256_digest
-+
-+	.balign 8
-+.globl sha_regions
-+sha_regions:
-+	.skip	8 * 2 * 16
-+	.size sha_regions, . - sha_regions
+ #define __NR__exit __NR_exit
+ 
+diff -puN arch/powerpc/include/uapi/asm/unistd.h~powerpc-kexec-enable-kexec_file_load-syscall arch/powerpc/include/uapi/asm/unistd.h
+--- a/arch/powerpc/include/uapi/asm/unistd.h~powerpc-kexec-enable-kexec_file_load-syscall
++++ a/arch/powerpc/include/uapi/asm/unistd.h
+@@ -392,5 +392,6 @@
+ #define __NR_copy_file_range	379
+ #define __NR_preadv2		380
+ #define __NR_pwritev2		381
++#define __NR_kexec_file_load	382
+ 
+ #endif /* _UAPI_ASM_POWERPC_UNISTD_H_ */
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
