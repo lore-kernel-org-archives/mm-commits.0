@@ -1,359 +1,447 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2016-11-23-12-08 uploaded
-Date: Wed, 23 Nov 2016 12:09:22 -0800
-Message-ID: <5835f772.vhB1Ky9+Zg1NNMsy%akpm@linux-foundation.org>
+Subject: [withdrawn] powerpc-implement-kexec_file_load.patch removed from
+ -mm tree
+Date: Tue, 29 Nov 2016 10:57:11 -0800
+Message-ID: <583dcf87.OSwz+7t495Hg4VK8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755376AbcKWUJX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2016 15:09:23 -0500
+        with ESMTP id S1754371AbcK2S47 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 13:56:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2016-11-23-12-08 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: powerpc: implement kexec_file_load
+has been removed from the -mm tree.  Its filename was
+     powerpc-implement-kexec_file_load.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch was dropped because it was withdrawn
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Subject: powerpc: implement kexec_file_load
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+Add arch-specific functions needed by the generic kexec_file code.
 
-To rebase a branch with older patches to a new mmotm release:
+Link: http://lkml.kernel.org/r/1478748449-3894-7-git-send-email-bauerman@linux.vnet.ibm.com
+Signed-off-by: Josh Sklar <sklar@linux.vnet.ibm.com>
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+ arch/powerpc/Kconfig                        |   14 
+ arch/powerpc/include/asm/systbl.h           |    1 
+ arch/powerpc/include/asm/unistd.h           |    2 
+ arch/powerpc/include/uapi/asm/unistd.h      |    1 
+ arch/powerpc/kernel/Makefile                |    1 
+ arch/powerpc/kernel/machine_kexec_file_64.c |  301 ++++++++++++++++++
+ 6 files changed, 319 insertions(+), 1 deletion(-)
 
+diff -puN arch/powerpc/Kconfig~powerpc-implement-kexec_file_load arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-implement-kexec_file_load
++++ a/arch/powerpc/Kconfig
+@@ -455,6 +455,20 @@ config KEXEC
+ 	  interface is strongly in flux, so no good recommendation can be
+ 	  made.
+ 
++config KEXEC_FILE
++	bool "kexec file based system call"
++	select KEXEC_CORE
++	select HAVE_KEXEC_FILE_PIE_PURGATORY
++	select BUILD_BIN2C
++	depends on PPC64
++	depends on CRYPTO=y
++	depends on CRYPTO_SHA256=y
++	help
++	  This is a new version of the kexec system call. This call is
++	  file based and takes in file descriptors as system call arguments
++	  for kernel and initramfs as opposed to a list of segments as is the
++	  case for the older kexec call.
++
+ config RELOCATABLE
+ 	bool "Build a relocatable kernel"
+ 	depends on (PPC64 && !COMPILE_TEST) || (FLATMEM && (44x || FSL_BOOKE))
+diff -puN arch/powerpc/include/asm/systbl.h~powerpc-implement-kexec_file_load arch/powerpc/include/asm/systbl.h
+--- a/arch/powerpc/include/asm/systbl.h~powerpc-implement-kexec_file_load
++++ a/arch/powerpc/include/asm/systbl.h
+@@ -386,3 +386,4 @@ SYSCALL(mlock2)
+ SYSCALL(copy_file_range)
+ COMPAT_SYS_SPU(preadv2)
+ COMPAT_SYS_SPU(pwritev2)
++SYSCALL(kexec_file_load)
+diff -puN arch/powerpc/include/asm/unistd.h~powerpc-implement-kexec_file_load arch/powerpc/include/asm/unistd.h
+--- a/arch/powerpc/include/asm/unistd.h~powerpc-implement-kexec_file_load
++++ a/arch/powerpc/include/asm/unistd.h
+@@ -12,7 +12,7 @@
+ #include <uapi/asm/unistd.h>
+ 
+ 
+-#define NR_syscalls		382
++#define NR_syscalls		383
+ 
+ #define __NR__exit __NR_exit
+ 
+diff -puN arch/powerpc/include/uapi/asm/unistd.h~powerpc-implement-kexec_file_load arch/powerpc/include/uapi/asm/unistd.h
+--- a/arch/powerpc/include/uapi/asm/unistd.h~powerpc-implement-kexec_file_load
++++ a/arch/powerpc/include/uapi/asm/unistd.h
+@@ -392,5 +392,6 @@
+ #define __NR_copy_file_range	379
+ #define __NR_preadv2		380
+ #define __NR_pwritev2		381
++#define __NR_kexec_file_load	382
+ 
+ #endif /* _UAPI_ASM_POWERPC_UNISTD_H_ */
+diff -puN arch/powerpc/kernel/Makefile~powerpc-implement-kexec_file_load arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~powerpc-implement-kexec_file_load
++++ a/arch/powerpc/kernel/Makefile
+@@ -109,6 +109,7 @@ obj-$(CONFIG_PCI)		+= pci_$(BITS).o $(pc
+ obj-$(CONFIG_PCI_MSI)		+= msi.o
+ obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(BITS).o
++obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ obj64-$(CONFIG_AUDIT)		+= compat_audit.o
+ 
+diff -puN /dev/null arch/powerpc/kernel/machine_kexec_file_64.c
+--- /dev/null
++++ a/arch/powerpc/kernel/machine_kexec_file_64.c
+@@ -0,0 +1,301 @@
++/*
++ * ppc64 code to implement the kexec_file_load syscall
++ *
++ * Copyright (C) 2004  Adam Litke (agl@us.ibm.com)
++ * Copyright (C) 2004  IBM Corp.
++ * Copyright (C) 2005  R Sharada (sharada@in.ibm.com)
++ * Copyright (C) 2006  Mohan Kumar M (mohan@in.ibm.com)
++ * Copyright (C) 2016  IBM Corporation
++ *
++ * Based on kexec-tools' kexec-elf-ppc64.c.
++ * Heavily modified for the kernel by
++ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation (version 2 of the License).
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/slab.h>
++#include <linux/kexec.h>
++#include <linux/memblock.h>
++#include <linux/libfdt.h>
++
++#define SLAVE_CODE_SIZE		256
++
++static struct kexec_file_ops *kexec_file_loaders[] = { };
++
++int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
++				  unsigned long buf_len)
++{
++	int i, ret = -ENOEXEC;
++	struct kexec_file_ops *fops;
++
++	/* We don't support crash kernels yet. */
++	if (image->type == KEXEC_TYPE_CRASH)
++		return -ENOTSUPP;
++
++	for (i = 0; i < ARRAY_SIZE(kexec_file_loaders); i++) {
++		fops = kexec_file_loaders[i];
++		if (!fops || !fops->probe)
++			continue;
++
++		ret = fops->probe(buf, buf_len);
++		if (!ret) {
++			image->fops = fops;
++			return ret;
++		}
++	}
++
++	return ret;
++}
++
++void *arch_kexec_kernel_image_load(struct kimage *image)
++{
++	if (!image->fops || !image->fops->load)
++		return ERR_PTR(-ENOEXEC);
++
++	return image->fops->load(image, image->kernel_buf,
++				 image->kernel_buf_len, image->initrd_buf,
++				 image->initrd_buf_len, image->cmdline_buf,
++				 image->cmdline_buf_len);
++}
++
++int arch_kimage_file_post_load_cleanup(struct kimage *image)
++{
++	if (!image->fops || !image->fops->cleanup)
++		return 0;
++
++	return image->fops->cleanup(image->image_loader_data);
++}
++
++/**
++ * arch_kexec_walk_mem - call func(data) for each unreserved memory block
++ * @kbuf:	Context info for the search. Also passed to @func.
++ * @func:	Function to call for each memory block.
++ *
++ * This function is used by kexec_add_buffer and kexec_locate_mem_hole
++ * to find unreserved memory to load kexec segments into.
++ *
++ * Return: The memory walk will stop when func returns a non-zero value
++ * and that value will be returned. If all free regions are visited without
++ * func returning non-zero, then zero will be returned.
++ */
++int arch_kexec_walk_mem(struct kexec_buf *kbuf, int (*func)(u64, u64, void *))
++{
++	int ret = 0;
++	u64 i;
++	phys_addr_t mstart, mend;
++
++	if (kbuf->top_down) {
++		for_each_free_mem_range_reverse(i, NUMA_NO_NODE, 0,
++						&mstart, &mend, NULL) {
++			/*
++			 * In memblock, end points to the first byte after the
++			 * range while in kexec, end points to the last byte
++			 * in the range.
++			 */
++			ret = func(mstart, mend - 1, kbuf);
++			if (ret)
++				break;
++		}
++	} else {
++		for_each_free_mem_range(i, NUMA_NO_NODE, 0, &mstart, &mend,
++					NULL) {
++			/*
++			 * In memblock, end points to the first byte after the
++			 * range while in kexec, end points to the last byte
++			 * in the range.
++			 */
++			ret = func(mstart, mend - 1, kbuf);
++			if (ret)
++				break;
++		}
++	}
++
++	return ret;
++}
++
++/**
++ * arch_kexec_apply_relocations_add - apply purgatory relocations
++ * @ehdr:	Pointer to ELF headers.
++ * @sechdrs:	Pointer to section headers.
++ * @relsec:	Section index of SHT_RELA section.
++ *
++ * Elf64_Shdr.sh_offset has been modified to keep the pointer to the section
++ * contents, while Elf64_Shdr.sh_addr points to the final address of the
++ * section in memory.
++ */
++int arch_kexec_apply_relocations_add(const Elf64_Ehdr *ehdr,
++				     Elf64_Shdr *sechdrs, unsigned int relsec)
++{
++	unsigned int i;
++	unsigned long reloc_type;
++	unsigned long *location;
++	unsigned long address;
++	unsigned long value;
++	const char *name;
++	Elf64_Sym *sym;
++	/* Section containing the relocation entries. */
++	Elf64_Shdr *rel_section = &sechdrs[relsec];
++	const Elf64_Rela *rela = (const Elf64_Rela *) rel_section->sh_offset;
++	/* Section to which relocations apply. */
++	Elf64_Shdr *target_section = &sechdrs[rel_section->sh_info];
++	/* Associated symbol table. */
++	Elf64_Shdr *symtabsec = &sechdrs[rel_section->sh_link];
++	void *syms_base = (void *) symtabsec->sh_offset;
++	void *loc_base = (void *) target_section->sh_offset;
++	Elf64_Addr addr_base = target_section->sh_addr;
++	Elf64_Addr orig_addr_base;
++	const Elf_Phdr *phdrs = (const void *) ehdr + ehdr->e_phoff;
++	const Elf_Phdr *phdr;
++	unsigned long sec_base;
++	unsigned long purgatory_load_addr;
++	unsigned long orig_load_addr;
++	const char *strtab;
++	const char *shstrtab;
++	const Elf_Shdr *sechdrs_c;
++
++	if (symtabsec->sh_link >= ehdr->e_shnum) {
++		/* Invalid strtab section number */
++		pr_err("Invalid string table section index %d\n",
++		       symtabsec->sh_link);
++		return -ENOEXEC;
++	}
++
++	/*
++	 * The original section header was modified by __kexec_load_purgatory
++	 * so that the ->sh_addr and ->sh_offset fields point to the permanent
++	 * and temporary locations of sections.
++	 */
++	sechdrs_c = (const void *) ehdr + ehdr->e_shoff;
++	orig_addr_base = sechdrs_c[rel_section->sh_info].sh_addr;
++
++	/* Find the address where the purgatory was built to be loaded in. */
++	for (phdr = phdrs; phdr < phdrs + ehdr->e_phnum; phdr++) {
++		if (phdr->p_type != PT_LOAD)
++			continue;
++
++		orig_load_addr = phdr->p_paddr - phdr->p_offset;
++		break;
++	}
++
++	/*
++	 * Find the address where we will load the purgatory.
++	 * This is simply the reverse of the calculation done when modifying
++	 * ->sh_addr in __kexec_really_load_purgatory.
++	 */
++	purgatory_load_addr = addr_base - orig_addr_base + orig_load_addr;
++
++	/* String table for the associated symbol table. */
++	strtab = (const char *) sechdrs[symtabsec->sh_link].sh_offset;
++
++	/* Section header string table. */
++	shstrtab = (const char *) sechdrs[ehdr->e_shstrndx].sh_offset;
++
++	for (i = 0; i < rel_section->sh_size / sizeof(Elf64_Rela); i++) {
++		Elf64_Addr r_offset = rela[i].r_offset - orig_addr_base;
++		long addend = rela[i].r_addend;
++		Elf64_Addr orig_sec_base;
++
++		/*
++		 * rels[i].r_offset contains the byte offset from the beginning
++		 * of section to the storage unit affected.
++		 *
++		 * This is the location to update in the temporary buffer where
++		 * the section is currently loaded. The section will finally
++		 * be loaded to a different address later, pointed to by
++		 * addr_base.
++		 */
++		location = loc_base + r_offset;
++
++		/* Final address of the location. */
++		address = addr_base + r_offset;
++
++		/* This is the symbol the relocation is referring to. */
++		sym = (Elf64_Sym *) syms_base + ELF64_R_SYM(rela[i].r_info);
++		orig_sec_base = sechdrs_c[sym->st_shndx].sh_addr;
++
++		if (sym->st_name)
++			name = strtab + sym->st_name;
++		else if (sym->st_value == orig_sec_base)
++			name = &shstrtab[sechdrs[sym->st_shndx].sh_name];
++		else
++			name = "<unnamed symbol>";
++
++		reloc_type = ELF64_R_TYPE(rela[i].r_info);
++
++		pr_debug("RELOC at %p: %lu-type as %s (0x%lx) + %li\n",
++		       location, reloc_type, name, (unsigned long)sym->st_value,
++		       (long)rela[i].r_addend);
++
++		if ((void *) location >= loc_base + target_section->sh_size) {
++			pr_err("Location %p is %llx bytes beyond the end of the section.\n",
++			       location, (void *) location - loc_base +
++						target_section->sh_size - 1);
++			return -ENOEXEC;
++		}
++
++		/*
++		 * Function descriptor symbols appear as undefined but
++		 * should be resolved as well, so allow them to be processed.
++		 */
++		if (sym->st_shndx == SHN_UNDEF &&
++				reloc_type != R_PPC64_RELATIVE) {
++			pr_err("Undefined symbol: %s\n", name);
++			return -ENOEXEC;
++		} else if (sym->st_shndx == SHN_COMMON) {
++			pr_err("Symbol '%s' in common section.\n",
++			       name);
++			return -ENOEXEC;
++		}
++
++		if (sym->st_shndx != SHN_ABS) {
++			if (sym->st_shndx >= ehdr->e_shnum) {
++				pr_err("Invalid section %d for symbol %s\n",
++				       sym->st_shndx, name);
++				return -ENOEXEC;
++			}
++
++			sec_base = sechdrs[sym->st_shndx].sh_addr;
++		} else
++			sec_base = orig_sec_base = 0;
++
++		/* `Everything is relative'. */
++		value = sym->st_value - orig_sec_base + sec_base + addend;
++
++		switch (reloc_type) {
++		case R_PPC64_ADDR16_LO:
++			*(uint16_t *) location = value & 0xffff;
++			break;
++
++		case R_PPC64_ADDR16_HI:
++			*(uint16_t *) location = (value >> 16) & 0xffff;
++			break;
++
++		case R_PPC64_ADDR16_HIGHER:
++			*(uint16_t *) location = (((uint64_t) value >> 32) &
++						  0xffff);
++			break;
++
++		case R_PPC64_ADDR16_HIGHEST:
++			*(uint16_t *) location = (((uint64_t) value >> 48) &
++						  0xffff);
++			break;
++		case R_PPC64_RELATIVE:
++			*location = purgatory_load_addr + addend - orig_load_addr;
++			break;
++		default:
++			pr_err("kexec purgatory: Unknown ADD relocation: %lu\n",
++			       reloc_type);
++			return -ENOEXEC;
++		}
++	}
++
++	return 0;
++}
+_
 
+Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
 
+kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
+kexec_file-add-support-for-purgatory-built-as-pie.patch
+powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is available at
-
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
-
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-
-
-This mmotm tree contains the following patches against 4.9-rc6:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  i-need-old-gcc.patch
-* mm-thp-propagation-of-conditional-compilation-in-khugepagedc.patch
-* mm-bug-in-munlock_vma_pages_range.patch
-* zram-fix-unbalanced-idr-management-at-hot-removal.patch
-* lib-debugobjects-export-for-use-in-modules.patch
-* mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* prctl-remove-one-shot-limitation-for-changing-exe-link.patch
-* prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-* kbuild-simpler-generation-of-assembly-constants.patch
-* scripts-bloat-o-meter-dont-use-readlines.patch
-* scripts-bloat-o-meter-compile-number-regex.patch
-* m32r-add-simple-dma.patch
-* m32r-fix-build-warning.patch
-* pcmcia-m32r_pcc-check-return-from-request_irq.patch
-* pcmcia-m32r_pcc-use-common-error-path.patch
-* pcmcia-m32r_pcc-check-return-from-add_pcc_socket.patch
-* ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler.patch
-* ocfs2-delete-redundant-code-and-set-the-node-bit-into-maybe_map-directly.patch
-* ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler.patch
-* ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
-  mm.patch
-* mm-memcontrol-use-special-workqueue-for-creating-per-memcg-caches.patch
-* slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
-* slub-avoid-false-postive-warning.patch
-* mm-check-kmem_create_cache-flags-are-commons.patch
-* mm-slab-faster-active-and-free-stats.patch
-* dont-touch-single-threaded-ptes-which-are-on-the-right-node.patch
-* dont-touch-single-threaded-ptes-which-are-on-the-right-node-v3.patch
-* vmscan-set-correct-defer-count-for-shrinker.patch
-* mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
-* mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-* mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
-* mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
-* mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
-* kmemleak-fix-reference-to-documentation.patch
-* mm-dont-steal-highatomic-pageblock.patch
-* mm-prevent-double-decrease-of-nr_reserved_highatomic.patch
-* mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
-* mm-make-unreserve-highatomic-functions-reliable.patch
-* mm-vmallocc-simplify-proc-vmallocinfo-implementation.patch
-* mm-thp-avoid-unlikely-branches-for-split_huge_pmd.patch
-* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
-* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-* mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch
-* shmem-avoid-maybe-uninitialized-warning.patch
-* mm-use-the-correct-page-size-when-removing-the-page.patch
-* mm-update-mmu_gather-range-correctly.patch
-* mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
-* mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
-* mm-remove-the-page-size-change-check-in-tlb_remove_page.patch
-* mm-fixup-get_user_pages-comments.patch
-* mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
-* mm-hugetlb-rename-some-allocation-functions.patch
-* mm-hugetlb-add-a-new-parameter-for-some-functions.patch
-* mm-hugetlb-change-the-return-type-for-alloc_fresh_gigantic_page.patch
-* mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
-* mm-mempolicy-intruduce-a-helper-huge_nodemask-v2.patch
-* mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page.patch
-* mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
-* mm-hugetlb-support-gigantic-surplus-pages.patch
-* powerpc-mm-allow-memory-hotplug-into-a-memoryless-node.patch
-* mm-remove-x86-only-restriction-of-movable_node.patch
-* mm-enable-config_movable_node-on-non-x86-arches.patch
-* of-fdt-mark-hotpluggable-memory.patch
-* dt-add-documentation-of-hotpluggable-memory-property.patch
-* mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected.patch
-* mm-disable-numa-migration-faults-for-dax-vmas.patch
-* mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-* mm-cma-make-linux-cmah-standalone-includible.patch
-* proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
-* filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert.patch
-* filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
-* writeback-remove-redundant-if-check.patch
-* shmem-fix-compilation-warnings-on-unused-functions.patch
-* mm-dont-cap-request-size-based-on-read-ahead-setting.patch
-* include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
-* mm-khugepaged-close-use-after-free-race-during-shmem-collapsing.patch
-* mm-khugepaged-fix-radix-tree-node-leak-in-shmem-collapse-error-path.patch
-* mm-workingset-turn-shadow-node-shrinker-bugs-into-warnings.patch
-* lib-radix-tree-native-accounting-of-exceptional-entries.patch
-* lib-radix-tree-check-accounting-of-existing-slot-replacement-users.patch
-* lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace.patch
-* lib-radix-tree-update-callback-for-changing-leaf-nodes.patch
-* mm-workingset-move-shadow-entry-tracking-to-radix-tree-exceptional-tracking.patch
-* mm-workingset-restore-refault-tracking-for-single-page-files.patch
-* mm-workingset-update-shadow-limit-to-reflect-bigger-active-list.patch
-* mm-support-anonymous-stable-page.patch
-* mm-remove-free_unmap_vmap_area_noflush.patch
-* mm-remove-free_unmap_vmap_area_addr.patch
-* mm-refactor-__purge_vmap_area_lazy.patch
-* mm-add-vfree_atomic.patch
-* kernel-fork-use-vfree_atomic-to-free-thread-stack.patch
-* x86-ldt-use-vfree_atomic-to-free-ldt-entries.patch
-* mm-mark-all-calls-into-the-vmalloc-subsystem-as-potentially-sleeping.patch
-* mm-turn-vmap_purge_lock-into-a-mutex.patch
-* mm-add-preempt-points-into-__purge_vmap_area_lazy.patch
-* mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch
-* mm-thp-page-cache-support-for-ppc64.patch
-* mm-thp-page-cache-support-for-ppc64-fix.patch
-* z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
-* z3fold-make-pages_nr-atomic.patch
-* z3fold-extend-compaction-function.patch
-* z3fold-use-per-page-spinlock.patch
-* z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch
-* z3fold-discourage-use-of-pages-that-werent-compacted.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* kasan-support-panic_on_warn.patch
-* kasan-eliminate-long-stalls-during-quarantine-reduction.patch
-* kasan-update-kasan_global-for-gcc-7.patch
-* kasan-support-use-after-scope-detection.patch
-* mm-percpuc-fix-panic-triggered-by-bug_on-falsely.patch
-* proc-report-no_new_privs-state.patch
-* proc-make-struct-pid_entry-len-unsigned.patch
-* proc-make-struct-struct-map_files_info-len-unsigned-int.patch
-* proc-just-list_del-struct-pde_opener.patch
-* proc-fix-type-of-struct-pde_opener-closing-field.patch
-* proc-kmalloc-struct-pde_opener.patch
-* proc-tweak-comments-about-2-stage-open-and-everything.patch
-* fs-proc-arrayc-slightly-improve-render_sigset_t.patch
-* hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
-* compiler-gcch-use-proved-instead-of-proofed.patch
-* printk-nmi-handle-continuous-lines-and-missing-newline.patch
-* printk-kdb-handle-more-message-headers.patch
-* printk-btrfs-handle-more-message-headers.patch
-* printk-btrfs-handle-more-message-headers-fix.patch
-* printk-sound-handle-more-message-headers.patch
-* printk-sound-handle-more-message-headers-fix.patch
-* printk-add-kconfig-option-to-set-default-console-loglevel.patch
-* get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
-* maintainers-add-b-for-uri-where-to-file-bugs.patch
-* maintainers-add-drm-and-drm-i915-bug-filing-info.patch
-* maintainers-add-c-for-uri-for-chat-where-developers-hang-out.patch
-* maintainers-add-drm-and-drm-i915-irc-channels.patch
-* let-config_strict_devmem-depends-on-config_devmem.patch
-* lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color.patch
-* lib-ida-document-locking-requirements-a-bit-better-v2.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given.patch
-* scripts-checkpatchpl-fix-spelling.patch
-* checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
-* checkpatch-avoid-multiple-line-dereferences.patch
-* binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz.patch
-* vfs-change-d_manage-to-take-a-struct-path.patch
-* vfs-add-path_is_mountpoint-helper.patch
-* vfs-add-path_is_mountpoint-helper-fix.patch
-* vfs-add-path_has_submounts.patch
-* autofs-change-autofs4_expire_wait-to-take-struct-path.patch
-* autofs-change-autofs4_wait-to-take-struct-path.patch
-* autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
-* autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
-* vfs-remove-unused-have_submounts-function.patch
-* signals-avoid-unnecessary-taking-of-sighand-siglock.patch
-* coredump-clarify-unsafe-core_pattern-warning.patch
-* revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
-* kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch
-* kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-* kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-* kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-* kexec_file-add-support-for-purgatory-built-as-pie.patch
-* powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-* powerpc-implement-kexec_file_load.patch
-* powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-* powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-* powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-* powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-* powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
-* ima-on-soft-reboot-restore-the-measurement-list.patch
-* ima-permit-duplicate-measurement-list-entries.patch
-* ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-* powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
-* ima-on-soft-reboot-save-the-measurement-list.patch
-* ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-* ima-support-restoring-multiple-template-formats.patch
-* ima-define-a-canonical-binary_runtime_measurements-list-format.patch
-* ima-platform-independent-hash-value.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* arch-arc-add-option-to-skip-sync-on-dma-mapping.patch
-* arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
-* arch-avr32-add-option-to-skip-sync-on-dma-map.patch
-* arch-blackfin-add-option-to-skip-sync-on-dma-map.patch
-* arch-c6x-add-option-to-skip-sync-on-dma-map-and-unmap.patch
-* arch-frv-add-option-to-skip-sync-on-dma-map.patch
-* arch-hexagon-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-nios2-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-openrisc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-parisc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-sh-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-tile-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch
-* mm-add-support-for-releasing-multiple-instances-of-a-page.patch
-* igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
-* igb-update-code-to-better-handle-incrementing-page-count.patch
-* relay-check-array-offset-before-using-it.patch
-* kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
-* kconfig-lib-kconfigubsan-fix-reference-to-ubsan-documentation.patch
-* debug-more-properly-delay-for-secondary-cpus.patch
-* debug-more-properly-delay-for-secondary-cpus-fix.patch
-* initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile.patch
-* initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm.patch
-* ipc-semc-avoid-using-spin_unlock_wait.patch
-* ipc-sem-add-hysteresis.patch
-* ipc-msg-make-msgrcv-work-with-long_min.patch
-* ipc-fixed-warnings.patch
-  linux-next.patch
-  linux-next-rejects.patch
-* kernel-time-fix-build.patch
-* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-* ktestpl-fix-english.patch
-* watchdog-move-shared-definitions-to-nmih.patch
-* watchdog-move-hardlockup-detector-to-separate-file.patch
-* sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable.patch
-* ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
-* ipc-sem-rework-task-wakeups.patch
-* ipc-sem-rework-task-wakeups-fix.patch
-* ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-* ipc-sem-optimize-perform_atomic_semop.patch
-* ipc-sem-optimize-perform_atomic_semop-fix.patch
-* ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-* ipc-sem-explicitly-inline-check_restart.patch
-* ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
-* ipc-sem-simplify-wait-wake-loop.patch
-* ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-* ipc-sem-avoid-idr-tree-lookup-for-interrupted-semop.patch
-* mm-add-locked-parameter-to-get_user_pages_remote.patch
-* mm-add-locked-parameter-to-get_user_pages_remote-fix.patch
-* mm-unexport-__get_user_pages_unlocked.patch
-* mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-* mm-join-struct-fault_env-and-vm_fault.patch
-* mm-use-vmf-address-instead-of-of-vmf-virtual_address.patch
-* mm-use-pgoff-in-struct-vm_fault-instead-of-passing-it-separately.patch
-* mm-use-passed-vm_fault-structure-in-__do_fault.patch
-* mm-trim-__do_fault-arguments.patch
-* mm-use-passed-vm_fault-structure-for-in-wp_pfn_shared.patch
-* mm-add-orig_pte-field-into-vm_fault.patch
-* mm-allow-full-handling-of-cow-faults-in-fault-handlers.patch
-* mm-factor-out-functionality-to-finish-page-faults.patch
-* mm-move-handling-of-cow-faults-into-dax-code.patch
-* mm-factor-out-common-parts-of-write-fault-handling.patch
-* mm-pass-vm_fault-structure-into-do_page_mkwrite.patch
-* mm-use-vmf-page-during-wp-faults.patch
-* mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
-* mm-provide-helper-for-finishing-mkwrite-faults.patch
-* mm-change-return-values-of-finish_mkwrite_fault.patch
-* mm-export-follow_pte.patch
-* dax-make-cache-flushing-protected-by-entry-lock.patch
-* dax-protect-pte-modification-on-wp-fault-by-radix-tree-entry-lock.patch
-* dax-clear-dirty-entry-tags-on-cache-flush.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
