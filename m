@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch added to -mm tree
-Date: Tue, 29 Nov 2016 15:08:51 -0800
-Message-ID: <583e0a83.eDvv8/WbfOQuqA8x%akpm@linux-foundation.org>
+Subject: + kasan-support-use-after-scope-detection-v3.patch added to -mm
+ tree
+Date: Tue, 29 Nov 2016 15:27:33 -0800
+Message-ID: <583e0ee5.A9G0D0KFuosoZ18I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50226 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752872AbcK2XIh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:08:37 -0500
+        with ESMTP id S1752395AbcK2X1U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:27:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fangwei1@huawei.com, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap.c: fix a NULL dereference crash while accessing bdev->bd_disk
+     Subject: kasan-support-use-after-scope-detection-v3
 has been added to the -mm tree.  Its filename is
-     mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
+     kasan-support-use-after-scope-detection-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-support-use-after-scope-detection-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-support-use-after-scope-detection-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +39,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Fang <fangwei1@huawei.com>
-Subject: mm/filemap.c: fix a NULL dereference crash while accessing bdev->bd_disk
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan-support-use-after-scope-detection-v3
 
-->bd_disk is assigned to NULL in __blkdev_put() when no one is holding the
-bdev.  After that, ->bd_inode still can be touched in the
-blockdev_superblock->s_inodes list before the final iput.  So
-iterate_bdevs() can still get this inode, and start writeback on mapping
-dirty pages.  ->bd_disk will be dereferenced in
-mapping_cap_writeback_dirty() in this case, and a NULL dereference crash
-will be triggered:
+ - added comment to test_kasan.c re noinline
+ - fixed a typo in comment: s/go into of scope/go into scope/
+ - added cc stable
 
-Unable to handle kernel NULL pointer dereference at virtual address 00000388
-...
-[<ffff8000004cb1e4>] blk_get_backing_dev_info+0x1c/0x28
-[<ffff8000001c879c>] __filemap_fdatawrite_range+0x54/0x98
-[<ffff8000001c8804>] filemap_fdatawrite+0x24/0x2c
-[<ffff80000027e7a4>] fdatawrite_one_bdev+0x20/0x28
-[<ffff800000288b44>] iterate_bdevs+0xec/0x144
-[<ffff80000027eb50>] sys_sync+0x84/0xd0
-
-Since mapping_cap_writeback_dirty() is always return true about block
-device inodes, no need to check it if the inode is a block device inode.
-
-Link: http://lkml.kernel.org/r/1480125982-8497-1-git-send-email-fangwei1@huawei.com
-Signed-off-by: Wei Fang <fangwei1@huawei.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1479998292-144502-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/test_kasan.c |    5 +++++
+ mm/kasan/kasan.c |    2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk mm/filemap.c
---- a/mm/filemap.c~mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk
-+++ a/mm/filemap.c
-@@ -383,8 +383,9 @@ int __filemap_fdatawrite_range(struct ad
- 		.range_end = end,
- 	};
+diff -puN lib/test_kasan.c~kasan-support-use-after-scope-detection-v3 lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-support-use-after-scope-detection-v3
++++ a/lib/test_kasan.c
+@@ -20,6 +20,11 @@
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
  
--	if (!mapping_cap_writeback_dirty(mapping))
--		return 0;
-+	if (!sb_is_blkdev_sb(mapping->host->i_sb))
-+		if (!mapping_cap_writeback_dirty(mapping))
-+			return 0;
++/*
++ * Note: test functions are marked noinline so that their names appear in
++ * reports.
++ */
++
+ static noinline void __init kmalloc_oob_right(void)
+ {
+ 	char *ptr;
+diff -puN mm/kasan/kasan.c~kasan-support-use-after-scope-detection-v3 mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-support-use-after-scope-detection-v3
++++ a/mm/kasan/kasan.c
+@@ -776,7 +776,7 @@ void __asan_poison_stack_memory(const vo
+ }
+ EXPORT_SYMBOL(__asan_poison_stack_memory);
  
- 	wbc_attach_fdatawrite_inode(&wbc, mapping->host);
- 	ret = do_writepages(mapping, &wbc);
+-/* Emitted by compiler to unpoison large objects when they go into of scope. */
++/* Emitted by compiler to unpoison large objects when they go into scope. */
+ void __asan_unpoison_stack_memory(const void *addr, size_t size)
+ {
+ 	kasan_unpoison_shadow(addr, size);
 _
 
-Patches currently in -mm which might be from fangwei1@huawei.com are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-mm-fix-a-null-dereference-crash-while-accessing-bdev-bd_disk.patch
+kasan-update-kasan_global-for-gcc-7.patch
+kasan-support-use-after-scope-detection.patch
+kasan-support-use-after-scope-detection-v3.patch
+kasan-support-panic_on_warn.patch
+kasan-eliminate-long-stalls-during-quarantine-reduction.patch
 
