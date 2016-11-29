@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
- added to -mm tree
-Date: Tue, 29 Nov 2016 15:55:54 -0800
-Message-ID: <583e158a.AIQTMBgQsn55I76y%akpm@linux-foundation.org>
+Subject: + z3fold-fix-header-size-related-issues.patch added to -mm tree
+Date: Tue, 29 Nov 2016 15:56:12 -0800
+Message-ID: <583e159c.PiOhGeSrYK//TEfW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51598 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752099AbcK2Xzk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:55:40 -0500
+        with ESMTP id S1752099AbcK2Xz6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:55:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, arnd@arndb.de, dan.carpenter@oracle.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/base.c: save decrement during lookup/readdir in /proc/$PID
+     Subject: z3fold: fix header size related issues
 has been added to the -mm tree.  Its filename is
-     proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
+     z3fold-fix-header-size-related-issues.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-fix-header-size-related-issues.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-fix-header-size-related-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +38,270 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/proc/base.c: save decrement during lookup/readdir in /proc/$PID
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold: fix header size related issues
 
-Comparison for "<" works equally well as comparison for "<="
-but one SUB/LEA is saved (no, it is not optimised away, at least here).
+Currently the whole kernel build will be stopped if the size of struct
+z3fold_header is greater than the size of one chunk, which is 64 bytes by
+default.  This patch instead defines the offset for z3fold objects as the
+size of the z3fold header in chunks.
 
-Link: http://lkml.kernel.org/r/20161122195143.GA29812@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Fixed also are the calculation of num_free_chunks() and the address to
+move the middle chunk to in case of in-page compaction in
+z3fold_compact_page().
+
+This patch is to be applied on top of commit 570931c ("z3fold: use
+per-page spinlock"), substituting commit 50a50d2 ("z3fold: don't fail
+kernel build is z3fold_header is too big").
+
+Link: http://lkml.kernel.org/r/20161126201735.d0577eedf81c64498a22d998@gmail.com
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/z3fold.c |  161 +++++++++++++++++++++++++++-----------------------
+ 1 file changed, 87 insertions(+), 74 deletions(-)
 
-diff -puN fs/proc/base.c~proc-save-decrement-during-lookup-readdir-in-proc-pid fs/proc/base.c
---- a/fs/proc/base.c~proc-save-decrement-during-lookup-readdir-in-proc-pid
-+++ a/fs/proc/base.c
-@@ -2412,14 +2412,14 @@ static struct dentry *proc_pident_lookup
- 	 * Yes, it does not scale. And it should not. Don't add
- 	 * new entries into /proc/<tgid>/ without very good reasons.
+diff -puN mm/z3fold.c~z3fold-fix-header-size-related-issues mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-fix-header-size-related-issues
++++ a/mm/z3fold.c
+@@ -34,29 +34,60 @@
+ /*****************
+  * Structures
+ *****************/
++struct z3fold_pool;
++struct z3fold_ops {
++	int (*evict)(struct z3fold_pool *pool, unsigned long handle);
++};
++
++enum buddy {
++	HEADLESS = 0,
++	FIRST,
++	MIDDLE,
++	LAST,
++	BUDDIES_MAX
++};
++
++/*
++ * struct z3fold_header - z3fold page metadata occupying the first chunk of each
++ *			z3fold page, except for HEADLESS pages
++ * @buddy:	links the z3fold page into the relevant list in the pool
++ * @page_lock:		per-page lock
++ * @first_chunks:	the size of the first buddy in chunks, 0 if free
++ * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
++ * @last_chunks:	the size of the last buddy in chunks, 0 if free
++ * @first_num:		the starting number (for the first handle)
++ */
++struct z3fold_header {
++	struct list_head buddy;
++	raw_spinlock_t page_lock;
++	unsigned short first_chunks;
++	unsigned short middle_chunks;
++	unsigned short last_chunks;
++	unsigned short start_middle;
++	unsigned short first_num:2;
++};
++
+ /*
+  * NCHUNKS_ORDER determines the internal allocation granularity, effectively
+  * adjusting internal fragmentation.  It also determines the number of
+  * freelists maintained in each pool. NCHUNKS_ORDER of 6 means that the
+- * allocation granularity will be in chunks of size PAGE_SIZE/64. As one chunk
+- * in allocated page is occupied by z3fold header, NCHUNKS will be calculated
+- * to 63 which shows the max number of free chunks in z3fold page, also there
+- * will be 63 freelists per pool.
++ * allocation granularity will be in chunks of size PAGE_SIZE/64. Some chunks
++ * in the beginning of an allocated page are occupied by z3fold header, so
++ * NCHUNKS will be calculated to 63 (or 62 in case CONFIG_DEBUG_SPINLOCK=y),
++ * which shows the max number of free chunks in z3fold page, also there will
++ * be 63, or 62, respectively, freelists per pool.
+  */
+ #define NCHUNKS_ORDER	6
+ 
+ #define CHUNK_SHIFT	(PAGE_SHIFT - NCHUNKS_ORDER)
+ #define CHUNK_SIZE	(1 << CHUNK_SHIFT)
+-#define ZHDR_SIZE_ALIGNED CHUNK_SIZE
++#define ZHDR_SIZE_ALIGNED round_up(sizeof(struct z3fold_header), CHUNK_SIZE)
++#define ZHDR_CHUNKS	(ZHDR_SIZE_ALIGNED >> CHUNK_SHIFT)
++#define TOTAL_CHUNKS	(PAGE_SIZE >> CHUNK_SHIFT)
+ #define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
+ 
+ #define BUDDY_MASK	(0x3)
+ 
+-struct z3fold_pool;
+-struct z3fold_ops {
+-	int (*evict)(struct z3fold_pool *pool, unsigned long handle);
+-};
+-
+ /**
+  * struct z3fold_pool - stores metadata for each z3fold pool
+  * @lock:	protects all pool fields and first|last_chunk fields of any
+@@ -86,33 +117,6 @@ struct z3fold_pool {
+ 	const struct zpool_ops *zpool_ops;
+ };
+ 
+-enum buddy {
+-	HEADLESS = 0,
+-	FIRST,
+-	MIDDLE,
+-	LAST,
+-	BUDDIES_MAX
+-};
+-
+-/*
+- * struct z3fold_header - z3fold page metadata occupying the first chunk of each
+- *			z3fold page, except for HEADLESS pages
+- * @buddy:	links the z3fold page into the relevant list in the pool
+- * @page_lock:		per-page lock
+- * @first_chunks:	the size of the first buddy in chunks, 0 if free
+- * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
+- * @last_chunks:	the size of the last buddy in chunks, 0 if free
+- * @first_num:		the starting number (for the first handle)
+- */
+-struct z3fold_header {
+-	struct list_head buddy;
+-	raw_spinlock_t page_lock;
+-	unsigned short first_chunks;
+-	unsigned short middle_chunks;
+-	unsigned short last_chunks;
+-	unsigned short start_middle;
+-	unsigned short first_num:2;
+-};
+ 
+ /*
+  * Internal z3fold page flags
+@@ -123,6 +127,7 @@ enum z3fold_page_flags {
+ 	MIDDLE_CHUNK_MAPPED,
+ };
+ 
++
+ /*****************
+  * Helpers
+ *****************/
+@@ -220,9 +225,10 @@ static int num_free_chunks(struct z3fold
  	 */
--	last = &ents[nents - 1];
--	for (p = ents; p <= last; p++) {
-+	last = &ents[nents];
-+	for (p = ents; p < last; p++) {
- 		if (p->len != dentry->d_name.len)
- 			continue;
- 		if (!memcmp(dentry->d_name.name, p->name, p->len))
- 			break;
+ 	if (zhdr->middle_chunks != 0) {
+ 		int nfree_before = zhdr->first_chunks ?
+-			0 : zhdr->start_middle - 1;
++			0 : zhdr->start_middle - ZHDR_CHUNKS;
+ 		int nfree_after = zhdr->last_chunks ?
+-			0 : NCHUNKS - zhdr->start_middle - zhdr->middle_chunks;
++			0 : TOTAL_CHUNKS -
++				(zhdr->start_middle + zhdr->middle_chunks);
+ 		nfree = max(nfree_before, nfree_after);
+ 	} else
+ 		nfree = NCHUNKS - zhdr->first_chunks - zhdr->last_chunks;
+@@ -287,40 +293,47 @@ static int z3fold_compact_page(struct z3
+ 	int ret = 0;
+ 
+ 	if (test_bit(MIDDLE_CHUNK_MAPPED, &page->private))
+-		goto out;
++		goto out; /* can't move middle chunk, it's used */
+ 
+-	if (zhdr->middle_chunks != 0) {
+-		if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
+-			mchunk_memmove(zhdr, 1); /* move to the beginning */
+-			zhdr->first_chunks = zhdr->middle_chunks;
+-			zhdr->middle_chunks = 0;
+-			zhdr->start_middle = 0;
+-			zhdr->first_num++;
+-			ret = 1;
+-			goto out;
+-		}
++	if (zhdr->middle_chunks == 0)
++		goto out; /* nothing to compact */
+ 
+-		/*
+-		 * moving data is expensive, so let's only do that if
+-		 * there's substantial gain (at least BIG_CHUNK_GAP chunks)
+-		 */
+-		if (zhdr->first_chunks != 0 && zhdr->last_chunks == 0 &&
+-		    zhdr->start_middle > zhdr->first_chunks + BIG_CHUNK_GAP) {
+-			mchunk_memmove(zhdr, zhdr->first_chunks + 1);
+-			zhdr->start_middle = zhdr->first_chunks + 1;
+-			ret = 1;
+-			goto out;
+-		}
+-		if (zhdr->last_chunks != 0 && zhdr->first_chunks == 0 &&
+-		    zhdr->middle_chunks + zhdr->last_chunks <=
+-		    NCHUNKS - zhdr->start_middle - BIG_CHUNK_GAP) {
+-			unsigned short new_start = NCHUNKS - zhdr->last_chunks -
+-				zhdr->middle_chunks;
+-			mchunk_memmove(zhdr, new_start);
+-			zhdr->start_middle = new_start;
+-			ret = 1;
+-			goto out;
+-		}
++	if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
++		/* move to the beginning */
++		mchunk_memmove(zhdr, ZHDR_CHUNKS);
++		zhdr->first_chunks = zhdr->middle_chunks;
++		zhdr->middle_chunks = 0;
++		zhdr->start_middle = 0;
++		zhdr->first_num++;
++		ret = 1;
++		goto out;
++	}
++
++	/*
++	 * moving data is expensive, so let's only do that if
++	 * there's substantial gain (at least BIG_CHUNK_GAP chunks)
++	 */
++	if (zhdr->first_chunks != 0 && zhdr->last_chunks == 0 &&
++	    zhdr->start_middle - (zhdr->first_chunks + ZHDR_CHUNKS) >=
++	    BIG_CHUNK_GAP) {
++		/* new_start: right after 1st chunk */
++		unsigned short new_start = zhdr->first_chunks + ZHDR_CHUNKS;
++		mchunk_memmove(zhdr, new_start);
++		zhdr->start_middle = new_start;
++		ret = 1;
++		goto out;
++	}
++	if (zhdr->last_chunks != 0 && zhdr->first_chunks == 0 &&
++	    TOTAL_CHUNKS -
++	    (zhdr->last_chunks + zhdr->start_middle + zhdr->middle_chunks) >=
++	    BIG_CHUNK_GAP) {
++		/* new_start: right before last chunk */
++		unsigned short new_start = TOTAL_CHUNKS -
++			(zhdr->last_chunks + zhdr->middle_chunks);
++		mchunk_memmove(zhdr, new_start);
++		zhdr->start_middle = new_start;
++		ret = 1;
++		goto out;
  	}
--	if (p > last)
-+	if (p >= last)
- 		goto out;
+ out:
+ 	return ret;
+@@ -425,7 +438,7 @@ found:
+ 		zhdr->last_chunks = chunks;
+ 	else {
+ 		zhdr->middle_chunks = chunks;
+-		zhdr->start_middle = zhdr->first_chunks + 1;
++		zhdr->start_middle = zhdr->first_chunks + ZHDR_CHUNKS;
+ 	}
  
- 	error = proc_pident_instantiate(dir, dentry, task, p);
-@@ -2444,7 +2444,7 @@ static int proc_pident_readdir(struct fi
- 	if (ctx->pos >= nents + 2)
- 		goto out;
+ 	spin_lock(&pool->lock);
+@@ -882,8 +895,8 @@ MODULE_ALIAS("zpool-z3fold");
  
--	for (p = ents + (ctx->pos - 2); p <= ents + nents - 1; p++) {
-+	for (p = ents + (ctx->pos - 2); p < ents + nents; p++) {
- 		if (!proc_fill_cache(file, ctx, p->name, p->len,
- 				proc_pident_instantiate, task, p))
- 			break;
+ static int __init init_z3fold(void)
+ {
+-	/* Make sure the z3fold header will fit in one chunk */
+-	BUILD_BUG_ON(sizeof(struct z3fold_header) > ZHDR_SIZE_ALIGNED);
++	/* Make sure the z3fold header is not larger than the page size */
++	BUILD_BUG_ON(ZHDR_SIZE_ALIGNED > PAGE_SIZE);
+ 	zpool_register_driver(&z3fold_zpool_driver);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-kbuild-simpler-generation-of-assembly-constants.patch
-scripts-bloat-o-meter-dont-use-readlines.patch
-scripts-bloat-o-meter-compile-number-regex.patch
-proc-make-struct-pid_entry-len-unsigned.patch
-proc-make-struct-struct-map_files_info-len-unsigned-int.patch
-proc-just-list_del-struct-pde_opener.patch
-proc-fix-type-of-struct-pde_opener-closing-field.patch
-proc-kmalloc-struct-pde_opener.patch
-proc-tweak-comments-about-2-stage-open-and-everything.patch
-proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
-coredump-clarify-unsafe-core_pattern-warning.patch
+z3fold-make-pages_nr-atomic.patch
+z3fold-extend-compaction-function.patch
+z3fold-use-per-page-spinlock.patch
+z3fold-discourage-use-of-pages-that-werent-compacted.patch
+z3fold-fix-header-size-related-issues.patch
+z3fold-fix-locking-issues.patch
 
