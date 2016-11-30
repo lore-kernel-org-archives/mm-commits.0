@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-calculate-proc-and-proc-task-nlink-at-init-time.patch
- added to -mm tree
-Date: Tue, 29 Nov 2016 15:58:54 -0800
-Message-ID: <583e163e.qSzgwkSWjP52fdt3%akpm@linux-foundation.org>
+Subject: + mm-debug-print-raw-struct-page-data-in-__dump_page.patch added
+ to -mm tree
+Date: Tue, 29 Nov 2016 16:56:08 -0800
+Message-ID: <583e23a8.KFYk2/OdR9yscfyO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56056 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755055AbcK2X6k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 18:58:40 -0500
+        with ESMTP id S1753383AbcK3Azy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2016 19:55:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aryabinin@virtuozzo.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc: calculate /proc/* and /proc/*/task/* nlink at init time
+     Subject: mm, debug: print raw struct page data in __dump_page()
 has been added to the -mm tree.  Its filename is
-     proc-calculate-proc-and-proc-task-nlink-at-init-time.patch
+     mm-debug-print-raw-struct-page-data-in-__dump_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-calculate-proc-and-proc-task-nlink-at-init-time.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-print-raw-struct-page-data-in-__dump_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-calculate-proc-and-proc-task-nlink-at-init-time.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-print-raw-struct-page-data-in-__dump_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,120 +39,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/proc: calculate /proc/* and /proc/*/task/* nlink at init time
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, debug: print raw struct page data in __dump_page()
 
-Runtime nlink calculation works but meh. I don't know how to do it
-at compile time, but I know how to do it at init time.
+__dump_page() is used when a page metadata inconsistency is detected,
+either by standard runtime checks, or extra checks in CONFIG_DEBUG_VM
+builds.  It prints some of the relevant metadata, but not the whole struct
+page, which is based on unions and interpretation is dependent on the
+context.
 
-Shift "2+" part into init time as a bonus.
+This means that sometimes e.g.  a VM_BUG_ON_PAGE() checks certain field,
+which is however not printed by __dump_page() and the resulting bug report
+may then lack clues that could help in determining the root cause.  This
+patch solves the problem by simply printing the whole struct page word by
+word, so no part is missing, but the interpretation of the data is left to
+developers.  This is similar to e.g.  x86_64 raw stack dumps.
 
-Link: http://lkml.kernel.org/r/20161122195549.GB29812@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reviewed-by: Vegard Nossum <vegard.nossum@oracle.com>
+Example output:
+
+ page:ffffea00000475c0 count:1 mapcount:0 mapping:          (null) index:0x0
+ flags: 0x100000000000400(reserved)
+ raw: 0100000000000400 0000000000000000 0000000000000000 00000001ffffffff
+ raw: ffffea00000475e0 ffffea00000475e0 0000000000000000 0000000000000000
+ page dumped because: VM_BUG_ON_PAGE(1)
+
+[aryabinin@virtuozzo.com: suggested print_hex_dump()]
+Link: http://lkml.kernel.org/r/2ff83214-70fe-741e-bf05-fe4a4073ec3e@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |   19 +++++++++++++------
- fs/proc/internal.h |    1 +
- fs/proc/root.c     |    1 +
- 3 files changed, 15 insertions(+), 6 deletions(-)
+ mm/debug.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/proc/base.c~proc-calculate-proc-and-proc-task-nlink-at-init-time fs/proc/base.c
---- a/fs/proc/base.c~proc-calculate-proc-and-proc-task-nlink-at-init-time
-+++ a/fs/proc/base.c
-@@ -104,6 +104,9 @@
-  *	in /proc for a task before it execs a suid executable.
-  */
+diff -puN mm/debug.c~mm-debug-print-raw-struct-page-data-in-__dump_page mm/debug.c
+--- a/mm/debug.c~mm-debug-print-raw-struct-page-data-in-__dump_page
++++ a/mm/debug.c
+@@ -59,6 +59,10 @@ void __dump_page(struct page *page, cons
  
-+static u8 nlink_tid;
-+static u8 nlink_tgid;
+ 	pr_emerg("flags: %#lx(%pGp)\n", page->flags, &page->flags);
+ 
++	print_hex_dump(KERN_ALERT, "raw: ", DUMP_PREFIX_NONE, 32,
++			sizeof(unsigned long), page,
++			sizeof(struct page), false);
 +
- struct pid_entry {
- 	const char *name;
- 	unsigned int len;
-@@ -139,13 +142,13 @@ struct pid_entry {
-  * Count the number of hardlinks for the pid_entry table, excluding the .
-  * and .. links.
-  */
--static unsigned int pid_entry_count_dirs(const struct pid_entry *entries,
-+static unsigned int __init pid_entry_nlink(const struct pid_entry *entries,
- 	unsigned int n)
- {
- 	unsigned int i;
- 	unsigned int count;
+ 	if (reason)
+ 		pr_alert("page dumped because: %s\n", reason);
  
--	count = 0;
-+	count = 2;
- 	for (i = 0; i < n; ++i) {
- 		if (S_ISDIR(entries[i].mode))
- 			++count;
-@@ -3068,8 +3071,7 @@ static int proc_pid_instantiate(struct i
- 	inode->i_fop = &proc_tgid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
- 
--	set_nlink(inode, 2 + pid_entry_count_dirs(tgid_base_stuff,
--						  ARRAY_SIZE(tgid_base_stuff)));
-+	set_nlink(inode, nlink_tgid);
- 
- 	d_set_d_op(dentry, &pid_dentry_operations);
- 
-@@ -3361,8 +3363,7 @@ static int proc_task_instantiate(struct
- 	inode->i_fop = &proc_tid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
- 
--	set_nlink(inode, 2 + pid_entry_count_dirs(tid_base_stuff,
--						  ARRAY_SIZE(tid_base_stuff)));
-+	set_nlink(inode, nlink_tid);
- 
- 	d_set_d_op(dentry, &pid_dentry_operations);
- 
-@@ -3552,3 +3553,9 @@ static const struct file_operations proc
- 	.iterate_shared	= proc_task_readdir,
- 	.llseek		= generic_file_llseek,
- };
-+
-+void __init set_proc_pid_nlink(void)
-+{
-+	nlink_tid = pid_entry_nlink(tid_base_stuff, ARRAY_SIZE(tid_base_stuff));
-+	nlink_tgid = pid_entry_nlink(tgid_base_stuff, ARRAY_SIZE(tgid_base_stuff));
-+}
-diff -puN fs/proc/internal.h~proc-calculate-proc-and-proc-task-nlink-at-init-time fs/proc/internal.h
---- a/fs/proc/internal.h~proc-calculate-proc-and-proc-task-nlink-at-init-time
-+++ a/fs/proc/internal.h
-@@ -211,6 +211,7 @@ extern const struct inode_operations pro
- extern const struct inode_operations proc_pid_link_inode_operations;
- 
- extern void proc_init_inodecache(void);
-+void set_proc_pid_nlink(void);
- extern struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
- extern int proc_fill_super(struct super_block *, void *data, int flags);
- extern void proc_entry_rundown(struct proc_dir_entry *);
-diff -puN fs/proc/root.c~proc-calculate-proc-and-proc-task-nlink-at-init-time fs/proc/root.c
---- a/fs/proc/root.c~proc-calculate-proc-and-proc-task-nlink-at-init-time
-+++ a/fs/proc/root.c
-@@ -122,6 +122,7 @@ void __init proc_root_init(void)
- 	int err;
- 
- 	proc_init_inodecache();
-+	set_proc_pid_nlink();
- 	err = register_filesystem(&proc_fs_type);
- 	if (err)
- 		return;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-kbuild-simpler-generation-of-assembly-constants.patch
-scripts-bloat-o-meter-dont-use-readlines.patch
-scripts-bloat-o-meter-compile-number-regex.patch
-proc-make-struct-pid_entry-len-unsigned.patch
-proc-make-struct-struct-map_files_info-len-unsigned-int.patch
-proc-just-list_del-struct-pde_opener.patch
-proc-fix-type-of-struct-pde_opener-closing-field.patch
-proc-kmalloc-struct-pde_opener.patch
-proc-tweak-comments-about-2-stage-open-and-everything.patch
-proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
-proc-calculate-proc-and-proc-task-nlink-at-init-time.patch
-coredump-clarify-unsafe-core_pattern-warning.patch
+mm-debug-print-raw-struct-page-data-in-__dump_page.patch
 
