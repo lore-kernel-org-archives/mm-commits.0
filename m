@@ -1,108 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/7] zram: fix unbalanced idr management at hot removal
-Date: Wed, 30 Nov 2016 15:54:08 -0800
-Message-ID: <583f66a0.9xoMuZi8OO/kMiUN%akpm__36048.4878918671$1480550036$gmane$org@linux-foundation.org>
+Subject: [patch 6/7] kasan: support use-after-scope detection
+Date: Wed, 30 Nov 2016 15:54:16 -0800
+Message-ID: <583f66a8.lmFsNNLLUrSFJUPm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43278 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43306 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754561AbcK3Xxw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 18:53:52 -0500
+        with ESMTP id S1754830AbcK3XyA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 18:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tiwai@suse.de, ddiss@suse.de, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, stable@vger.kernel.org
 
-From: Takashi Iwai <tiwai@suse.de>
-Subject: zram: fix unbalanced idr management at hot removal
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: support use-after-scope detection
 
-The zram hot removal code calls idr_remove() even when zram_remove()
-returns an error (typically -EBUSY).  This results in a leftover at the
-device release, eventually leading to a crash when the module is reloaded.
+Gcc revision 241896 implements use-after-scope detection.  Will be
+available in gcc 7.  Support it in KASAN.
 
-As described in the bug report below, the following procedure would cause
-an Oops with zram:
+Gcc emits 2 new callbacks to poison/unpoison large stack objects when they
+go in/out of scope.  Implement the callbacks and add a test.
 
-- provision three zram devices via modprobe zram num_devices=3
-- configure a size for each device
-  + echo "1G" > /sys/block/$zram_name/disksize
-- mkfs and mount zram0 only
-- attempt to hot remove all three devices
-  + echo 2 > /sys/class/zram-control/hot_remove
-  + echo 1 > /sys/class/zram-control/hot_remove
-  + echo 0 > /sys/class/zram-control/hot_remove
-     - zram0 removal fails with EBUSY, as expected
-- unmount zram0
-- try zram0 hot remove again
-  + echo 0 > /sys/class/zram-control/hot_remove
-     - fails with ENODEV (unexpected)
-- unload zram kernel module
-  + completes successfully
-- zram0 device node still exists
-- attempt to mount /dev/zram0
-  + mount command is killed
-  + following BUG is encountered
-
- BUG: unable to handle kernel paging request at ffffffffa0002ba0
- IP: [<ffffffff812eead6>] get_disk+0x16/0x50
- Oops: 0000 [#1] SMP
- CPU: 0 PID: 252 Comm: mount Not tainted 4.9.0-rc6 #176
- task: ffff88001a9f2800 task.stack: ffffc90000300000
- RIP: 0010:[<ffffffff812eead6>]  [<ffffffff812eead6>] get_disk+0x16/0x50
- Call Trace:
-  [<ffffffff812eeb1c>] exact_lock+0xc/0x20
-  [<ffffffff813b3e1c>] kobj_lookup+0xdc/0x160
-  [<ffffffff812edce0>] ? disk_map_sector_rcu+0x70/0x70
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff812eef4f>] get_gendisk+0x2f/0x110
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff81126e2c>] __blkdev_get+0x10c/0x3c0
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff8112727d>] blkdev_get+0x19d/0x2e0
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff81127466>] blkdev_open+0x56/0x70
-  [<ffffffff810f3e0f>] do_dentry_open.isra.19+0x1ff/0x310
-  [<ffffffff810f4aa3>] vfs_open+0x43/0x60
-  [<ffffffff81103009>] path_openat+0x2c9/0xf30
-  [<ffffffff81023c00>] ? __save_stack_trace+0x40/0xd0
-  [<ffffffff81104b79>] do_filp_open+0x79/0xd0
-  [<ffffffff81538219>] ? kmemleak_alloc+0x49/0xa0
-  [<ffffffff810f4e44>] do_sys_open+0x114/0x1e0
-  [<ffffffff810f4f29>] SyS_open+0x19/0x20
-  [<ffffffff8153c2e0>] entry_SYSCALL_64_fastpath+0x13/0x94
-
-This patch adds the proper error check in hot_remove_store() not to
-call idr_remove() unconditionally.
-
-Fixes: 17ec4cd98578 ("zram: don't call idr_remove() from zram_remove()")
-Bugzilla: https://bugzilla.opensuse.org/show_bug.cgi?id=1010970
-Link: http://lkml.kernel.org/r/20161121132140.12683-1-tiwai@suse.de
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Reviewed-by: David Disseldorp <ddiss@suse.de>
-Reported-by: David Disseldorp <ddiss@suse.de>
-Tested-by: David Disseldorp <ddiss@suse.de>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: <stable@vger.kernel.org>    [4.4+]
+[dvyukov@google.com: v3]
+  Link: http://lkml.kernel.org/r/1479998292-144502-1-git-send-email-dvyukov@google.com
+Link: http://lkml.kernel.org/r/1479226045-145148-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/test_kasan.c  |   29 +++++++++++++++++++++++++++++
+ mm/kasan/kasan.c  |   19 +++++++++++++++++++
+ mm/kasan/kasan.h  |    1 +
+ mm/kasan/report.c |    3 +++
+ 4 files changed, 52 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-fix-unbalanced-idr-management-at-hot-removal drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-fix-unbalanced-idr-management-at-hot-removal
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1403,7 +1403,8 @@ static ssize_t hot_remove_store(struct c
- 	zram = idr_find(&zram_index_idr, dev_id);
- 	if (zram) {
- 		ret = zram_remove(zram);
--		idr_remove(&zram_index_idr, dev_id);
-+		if (!ret)
-+			idr_remove(&zram_index_idr, dev_id);
- 	} else {
- 		ret = -ENODEV;
+diff -puN lib/test_kasan.c~kasan-support-use-after-scope-detection lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-support-use-after-scope-detection
++++ a/lib/test_kasan.c
+@@ -20,6 +20,11 @@
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
+ 
++/*
++ * Note: test functions are marked noinline so that their names appear in
++ * reports.
++ */
++
+ static noinline void __init kmalloc_oob_right(void)
+ {
+ 	char *ptr;
+@@ -411,6 +416,29 @@ static noinline void __init copy_user_te
+ 	kfree(kmem);
+ }
+ 
++static noinline void __init use_after_scope_test(void)
++{
++	volatile char *volatile p;
++
++	pr_info("use-after-scope on int\n");
++	{
++		int local = 0;
++
++		p = (char *)&local;
++	}
++	p[0] = 1;
++	p[3] = 1;
++
++	pr_info("use-after-scope on array\n");
++	{
++		char local[1024] = {0};
++
++		p = local;
++	}
++	p[0] = 1;
++	p[1023] = 1;
++}
++
+ static int __init kmalloc_tests_init(void)
+ {
+ 	kmalloc_oob_right();
+@@ -436,6 +464,7 @@ static int __init kmalloc_tests_init(voi
+ 	kasan_global_oob();
+ 	ksize_unpoisons_memory();
+ 	copy_user_test();
++	use_after_scope_test();
+ 	return -EAGAIN;
+ }
+ 
+diff -puN mm/kasan/kasan.c~kasan-support-use-after-scope-detection mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-support-use-after-scope-detection
++++ a/mm/kasan/kasan.c
+@@ -764,6 +764,25 @@ EXPORT_SYMBOL(__asan_storeN_noabort);
+ void __asan_handle_no_return(void) {}
+ EXPORT_SYMBOL(__asan_handle_no_return);
+ 
++/* Emitted by compiler to poison large objects when they go out of scope. */
++void __asan_poison_stack_memory(const void *addr, size_t size)
++{
++	/*
++	 * Addr is KASAN_SHADOW_SCALE_SIZE-aligned and the object is surrounded
++	 * by redzones, so we simply round up size to simplify logic.
++	 */
++	kasan_poison_shadow(addr, round_up(size, KASAN_SHADOW_SCALE_SIZE),
++			    KASAN_USE_AFTER_SCOPE);
++}
++EXPORT_SYMBOL(__asan_poison_stack_memory);
++
++/* Emitted by compiler to unpoison large objects when they go into scope. */
++void __asan_unpoison_stack_memory(const void *addr, size_t size)
++{
++	kasan_unpoison_shadow(addr, size);
++}
++EXPORT_SYMBOL(__asan_unpoison_stack_memory);
++
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ static int kasan_mem_notifier(struct notifier_block *nb,
+ 			unsigned long action, void *data)
+diff -puN mm/kasan/kasan.h~kasan-support-use-after-scope-detection mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-support-use-after-scope-detection
++++ a/mm/kasan/kasan.h
+@@ -21,6 +21,7 @@
+ #define KASAN_STACK_MID         0xF2
+ #define KASAN_STACK_RIGHT       0xF3
+ #define KASAN_STACK_PARTIAL     0xF4
++#define KASAN_USE_AFTER_SCOPE   0xF8
+ 
+ /* Don't break randconfig/all*config builds */
+ #ifndef KASAN_ABI_VERSION
+diff -puN mm/kasan/report.c~kasan-support-use-after-scope-detection mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-support-use-after-scope-detection
++++ a/mm/kasan/report.c
+@@ -90,6 +90,9 @@ static void print_error_description(stru
+ 	case KASAN_KMALLOC_FREE:
+ 		bug_type = "use-after-free";
+ 		break;
++	case KASAN_USE_AFTER_SCOPE:
++		bug_type = "use-after-scope";
++		break;
  	}
+ 
+ 	pr_err("BUG: KASAN: %s in %pS at addr %p\n",
 _
