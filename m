@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-add-description-for-alloc_gigantic_page.patch added
- to -mm tree
-Date: Wed, 30 Nov 2016 13:34:35 -0800
-Message-ID: <583f45eb.HowpNnBe+kuDjA9A%akpm@linux-foundation.org>
+Subject: + proc-mm-export-pte-sizes-directly-in-smaps-v3.patch added to
+ -mm tree
+Date: Wed, 30 Nov 2016 13:42:53 -0800
+Message-ID: <583f47dd.UCjWwlG022Iw+d9h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758678AbcK3VeT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 16:34:19 -0500
+        with ESMTP id S1751086AbcK3Vmh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 16:42:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie.huang@arm.com, mm-commits@vger.kernel.org
+To: dave.hansen@linux.intel.com, dan.j.williams@intel.com, hch@lst.de, khandual@linux.vnet.ibm.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: add description for alloc_gigantic_page()
+     Subject: proc-mm-export-pte-sizes-directly-in-smaps-v3
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-description-for-alloc_gigantic_page.patch
+     proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-description-for-alloc_gigantic_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-description-for-alloc_gigantic_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Shijie <shijie.huang@arm.com>
-Subject: mm: hugetlb: add description for alloc_gigantic_page()
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: proc-mm-export-pte-sizes-directly-in-smaps-v3
 
-This patch adds the description for function alloc_gigantic_page().
+Changes from v2:
+ * Do not assume (wrongly) that smaps_hugetlb_range() always uses
+   PUDs.  (Thanks for pointing this out, Vlastimil).  Also handle
+   hstates that are not exactly at PMD/PUD sizes.
 
-Link: http://lkml.kernel.org/r/1480487431-26181-1-git-send-email-shijie.huang@arm.com
-Signed-off-by: Huang Shijie <shijie.huang@arm.com>
+Link: http://lkml.kernel.org/r/20161129201703.CE9D5054@viggo.jf.intel.com
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/proc/task_mmu.c |   27 ++++++++++++++++++++++++++-
+ mm/hugetlb.c       |   11 +++++++++++
+ 2 files changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-description-for-alloc_gigantic_page mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-description-for-alloc_gigantic_page
-+++ a/mm/hugetlb.c
-@@ -1089,6 +1089,12 @@ static bool zone_spans_last_pfn(const st
- 	return zone_spans_pfn(zone, last_pfn);
+diff -puN fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v3 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v3
++++ a/fs/proc/task_mmu.c
+@@ -689,6 +689,30 @@ static void show_smap_vma_flags(struct s
  }
  
+ #ifdef CONFIG_HUGETLB_PAGE
 +/*
-+ * Allocate a gigantic page from @nid node.
++ * Most architectures have a 1:1 mapping of PTEs to hugetlb page
++ * sizes, but there are some outliers like arm64 that use
++ * multiple hardware PTEs to make a hugetlb "page".  Do not
++ * assume that all 'hpage_size's are not exactly at a page table
++ * size boundary.  Instead, accept arbitrary 'hpage_size's and
++ * assume they are made up of the next-smallest size.  We do not
++ * handle PGD-sized hpages and hugetlb_add_hstate() will WARN()
++ * if it sees one.
 + *
-+ * Scan the zones of @nid node, and try to allocate a number of contiguous
-+ * pages (1 << order).
++ * Note also that the page walker code only calls us once per
++ * huge 'struct page', *not* once per PTE in the page tables.
 + */
- static struct page *alloc_gigantic_page(int nid, unsigned int order)
- {
- 	unsigned long nr_pages = 1 << order;
++static void smaps_hugetlb_present_hpage(struct mem_size_stats *mss,
++					unsigned long hpage_size)
++{
++	if (hpage_size >= PUD_SIZE)
++		mss->rss_pud += hpage_size;
++	else if (hpage_size >= PMD_SIZE)
++		mss->rss_pmd += hpage_size;
++	else
++		mss->rss_pte += hpage_size;
++}
++
+ static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
+ 				 unsigned long addr, unsigned long end,
+ 				 struct mm_walk *walk)
+@@ -709,7 +733,8 @@ static int smaps_hugetlb_range(pte_t *pt
+ 		int mapcount = page_mapcount(page);
+ 		unsigned long hpage_size = huge_page_size(hstate_vma(vma));
+ 
+-		mss->rss_pud += hpage_size;
++		smaps_hugetlb_present_hpage(mss, hpage_size);
++
+ 		if (mapcount >= 2)
+ 			mss->shared_hugetlb += hpage_size;
+ 		else
+diff -puN mm/hugetlb.c~proc-mm-export-pte-sizes-directly-in-smaps-v3 mm/hugetlb.c
+--- a/mm/hugetlb.c~proc-mm-export-pte-sizes-directly-in-smaps-v3
++++ a/mm/hugetlb.c
+@@ -2905,6 +2905,17 @@ void __init hugetlb_add_hstate(unsigned
+ 					huge_page_size(h)/1024);
+ 
+ 	parsed_hstate = h;
++
++	/*
++	 * PGD_SIZE isn't widely made available by architecures,
++	 * so use PUD_SIZE*PTRS_PER_PUD as a substitute.
++	 *
++	 * Check for sizes that might be mapped by a PGD.  There
++	 * are none of these known today, but be on the lookout.
++	 * If this trips, we will need to update the mss->rss_*
++	 * code in fs/proc/task_mmu.c.
++	 */
++	WARN_ON_ONCE((PAGE_SIZE << order) >= PUD_SIZE * PTRS_PER_PUD);
+ }
+ 
+ static int __init hugetlb_nrpages_setup(char *s)
 _
 
-Patches currently in -mm which might be from shijie.huang@arm.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-mm-hugetlb-rename-some-allocation-functions.patch
-mm-hugetlb-add-a-new-parameter-for-some-functions.patch
-mm-hugetlb-change-the-return-type-for-alloc_fresh_gigantic_page.patch
-mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
-mm-mempolicy-intruduce-a-helper-huge_nodemask-v2.patch
-mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page.patch
-mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
-mm-hugetlb-support-gigantic-surplus-pages.patch
-mm-hugetlb-add-description-for-alloc_gigantic_page.patch
+proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
+proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
 
