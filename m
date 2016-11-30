@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu.patch
- added to -mm tree
-Date: Wed, 30 Nov 2016 14:25:32 -0800
-Message-ID: <583f51dc.Borizh48ig9fhdhZ%akpm@linux-foundation.org>
+Subject: +
+ autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait.patch added to -mm tree
+Date: Wed, 30 Nov 2016 14:25:37 -0800
+Message-ID: <583f51e1.ICp9UFCtzrxb1sPt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35866 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751301AbcK3W0m (ORCPT
+        with ESMTP id S1754354AbcK3W0m (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:26:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: ikent@redhat.com, ebiederm@xmission.com, osandov@osandov.com, raven@themaw.n
 
 
 The patch titled
-     Subject: vfs: merge path_is_mountpoint() and path_is_mountpoint_rcu()
+     Subject: autofs: change struct path to const in autofs4_expire_wait() and autofs4_wait()
 has been added to the -mm tree.  Its filename is
-     vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu.patch
+     autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ian Kent <ikent@redhat.com>
-Subject: vfs: merge path_is_mountpoint() and path_is_mountpoint_rcu()
+Subject: autofs: change struct path to const in autofs4_expire_wait() and autofs4_wait()
 
-Forgetting that the rcu lock allows nesting I added a superfluous rcu
-version of path_is_mountpoint().
+The functions autofs4_expire_wait() and autofs4_wait() don't modify
+the passed struct path so change it to a const.
 
-Merge it and the rcu version, make the common case (d_mountpoint()
-returning true) inline and change the path parameter to a const.
-
-Also move the function definition to include/linux/mount.h as it seems a
-more sensible place for it.
-
-Link: http://lkml.kernel.org/r/148029910861.27779.4517883721395202453.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/148029911911.27779.6329959807249612394.stgit@pluto.themaw.net
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -59,144 +53,106 @@ Cc: Omar Sandoval <osandov@osandov.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c     |   11 ++--------
- fs/namespace.c        |   41 +++++++++++++---------------------------
- include/linux/fs.h    |    2 -
- include/linux/mount.h |   11 ++++++++++
- 4 files changed, 28 insertions(+), 37 deletions(-)
+ fs/autofs4/autofs_i.h |    5 +++--
+ fs/autofs4/expire.c   |    4 ++--
+ fs/autofs4/root.c     |    6 +++---
+ fs/autofs4/waitq.c    |    4 ++--
+ 4 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN fs/autofs4/root.c~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu fs/autofs4/root.c
---- a/fs/autofs4/root.c~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu
+diff -puN fs/autofs4/autofs_i.h~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait
++++ a/fs/autofs4/autofs_i.h
+@@ -145,7 +145,7 @@ void autofs4_free_ino(struct autofs_info
+ 
+ /* Expiration */
+ int is_autofs4_dentry(struct dentry *);
+-int autofs4_expire_wait(struct path *path, int rcu_walk);
++int autofs4_expire_wait(const struct path *path, int rcu_walk);
+ int autofs4_expire_run(struct super_block *, struct vfsmount *,
+ 		       struct autofs_sb_info *,
+ 		       struct autofs_packet_expire __user *);
+@@ -217,7 +217,8 @@ static inline int autofs_prepare_pipe(st
+ 
+ /* Queue management functions */
+ 
+-int autofs4_wait(struct autofs_sb_info *, struct path *, enum autofs_notify);
++int autofs4_wait(struct autofs_sb_info *,
++		 const struct path *, enum autofs_notify);
+ int autofs4_wait_release(struct autofs_sb_info *, autofs_wqt_t, int);
+ void autofs4_catatonic_mode(struct autofs_sb_info *);
+ 
+diff -puN fs/autofs4/expire.c~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait
++++ a/fs/autofs4/expire.c
+@@ -495,7 +495,7 @@ found:
+ 	return expired;
+ }
+ 
+-int autofs4_expire_wait(struct path *path, int rcu_walk)
++int autofs4_expire_wait(const struct path *path, int rcu_walk)
+ {
+ 	struct dentry *dentry = path->dentry;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+@@ -593,7 +593,7 @@ int autofs4_do_expire_multi(struct super
+ 
+ 	if (dentry) {
+ 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
+-		struct path path = { .mnt = mnt, .dentry = dentry };
++		const struct path path = { .mnt = mnt, .dentry = dentry };
+ 
+ 		/* This is synchronous because it makes the daemon a
+ 		 * little easier
+diff -puN fs/autofs4/root.c~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait
 +++ a/fs/autofs4/root.c
-@@ -437,13 +437,8 @@ static int autofs4_d_manage(struct path
- 
- 	/* The daemon never waits. */
- 	if (autofs4_oz_mode(sbi)) {
--		if (rcu_walk) {
--			if (!path_is_mountpoint_rcu(path))
--				return -EISDIR;
--		} else {
--			if (!path_is_mountpoint(path))
--				return -EISDIR;
--		}
-+		if (!path_is_mountpoint(path))
-+			return -EISDIR;
- 		return 0;
- 	}
- 
-@@ -471,7 +466,7 @@ static int autofs4_d_manage(struct path
- 
- 		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
- 			return 0;
--		if (path_is_mountpoint_rcu(path))
-+		if (path_is_mountpoint(path))
- 			return 0;
- 		inode = d_inode_rcu(dentry);
- 		if (inode && S_ISLNK(inode->i_mode))
-diff -puN fs/namespace.c~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu fs/namespace.c
---- a/fs/namespace.c~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu
-+++ a/fs/namespace.c
-@@ -1159,12 +1159,23 @@ struct vfsmount *mntget(struct vfsmount
+@@ -272,7 +272,7 @@ next:
+ 	return NULL;
  }
- EXPORT_SYMBOL(mntget);
  
--static bool __path_is_mountpoint(struct path *path)
-+/* __path_is_mountpoint() - Check if path is a mount in the current
-+ *                          namespace.
-+ *
-+ *  d_mountpoint() can only be used reliably to establish if a dentry is
-+ *  not mounted in any namespace and that common case is handled inline.
-+ *  d_mountpoint() isn't aware of the possibility there may be multiple
-+ *  mounts using a given dentry in a different namespace. This function
-+ *  checks if the passed in path is a mountpoint rather than the dentry
-+ *  alone.
-+ */
-+bool __path_is_mountpoint(const struct path *path)
+-static int autofs4_mount_wait(struct path *path, bool rcu_walk)
++static int autofs4_mount_wait(const struct path *path, bool rcu_walk)
  {
- 	struct mount *mount;
- 	struct vfsmount *mnt;
- 	unsigned seq;
- 
-+	rcu_read_lock();
- 	do {
- 		seq = read_seqbegin(&mount_lock);
- 		mount = __lookup_mnt(path->mnt, path->dentry);
-@@ -1172,35 +1183,11 @@ static bool __path_is_mountpoint(struct
- 	} while (mnt &&
- 		 !(mnt->mnt_flags & MNT_SYNC_UMOUNT) &&
- 		 read_seqretry(&mount_lock, seq));
--
--	return mnt != NULL;
--}
--
--/* Check if path is a mount in current namespace */
--bool path_is_mountpoint(struct path *path)
--{
--	bool res;
--
--	if (!d_mountpoint(path->dentry))
--		return false;
--
--	rcu_read_lock();
--	res = __path_is_mountpoint(path);
- 	rcu_read_unlock();
- 
--	return res;
--}
--EXPORT_SYMBOL(path_is_mountpoint);
--
--/* Check if path is a mount in current namespace */
--bool path_is_mountpoint_rcu(struct path *path)
--{
--	if (!d_mountpoint(path->dentry))
--		return false;
--
--	return __path_is_mountpoint(path);
-+	return mnt != NULL;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(path->dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(path->dentry);
+@@ -289,7 +289,7 @@ static int autofs4_mount_wait(struct pat
+ 	return status;
  }
--EXPORT_SYMBOL(path_is_mountpoint_rcu);
-+EXPORT_SYMBOL(__path_is_mountpoint);
  
- struct vfsmount *mnt_clone_internal(struct path *path)
+-static int do_expire_wait(struct path *path, bool rcu_walk)
++static int do_expire_wait(const struct path *path, bool rcu_walk)
  {
-diff -puN include/linux/fs.h~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu include/linux/fs.h
---- a/include/linux/fs.h~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu
-+++ a/include/linux/fs.h
-@@ -2134,8 +2134,6 @@ extern int vfs_ustat(dev_t, struct kstat
- extern int freeze_super(struct super_block *super);
- extern int thaw_super(struct super_block *super);
- extern bool our_mnt(struct vfsmount *mnt);
--extern bool path_is_mountpoint(struct path *);
--extern bool path_is_mountpoint_rcu(struct path *);
+ 	struct dentry *dentry = path->dentry;
+ 	struct dentry *expiring;
+@@ -300,7 +300,7 @@ static int do_expire_wait(struct path *p
+ 	if (!expiring)
+ 		return autofs4_expire_wait(path, rcu_walk);
+ 	else {
+-		struct path this = { .mnt = path->mnt, .dentry = expiring };
++		const struct path this = { .mnt = path->mnt, .dentry = expiring };
+ 		/*
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete, but the directory has been removed
+diff -puN fs/autofs4/waitq.c~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait
++++ a/fs/autofs4/waitq.c
+@@ -250,7 +250,7 @@ autofs4_find_wait(struct autofs_sb_info
+ static int validate_request(struct autofs_wait_queue **wait,
+ 			    struct autofs_sb_info *sbi,
+ 			    const struct qstr *qstr,
+-			    struct path *path, enum autofs_notify notify)
++			    const struct path *path, enum autofs_notify notify)
+ {
+ 	struct dentry *dentry = path->dentry;
+ 	struct autofs_wait_queue *wq;
+@@ -349,7 +349,7 @@ static int validate_request(struct autof
+ }
  
- extern int current_umask(void);
- 
-diff -puN include/linux/mount.h~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu include/linux/mount.h
---- a/include/linux/mount.h~vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu
-+++ a/include/linux/mount.h
-@@ -15,6 +15,8 @@
- #include <linux/spinlock.h>
- #include <linux/seqlock.h>
- #include <linux/atomic.h>
-+#include <linux/path.h>
-+#include <linux/dcache.h>
- 
- struct super_block;
- struct vfsmount;
-@@ -98,4 +100,13 @@ extern dev_t name_to_dev_t(const char *n
- 
- extern unsigned int sysctl_mount_max;
- 
-+extern bool __path_is_mountpoint(const struct path *path);
-+static inline bool path_is_mountpoint(const struct path *path)
-+{
-+	if (!d_mountpoint(path->dentry))
-+		return 0;
-+
-+	return __path_is_mountpoint(path);
-+}
-+
- #endif /* _LINUX_MOUNT_H */
+ int autofs4_wait(struct autofs_sb_info *sbi,
+-		 struct path *path, enum autofs_notify notify)
++		 const struct path *path, enum autofs_notify notify)
+ {
+ 	struct dentry *dentry = path->dentry;
+ 	struct autofs_wait_queue *wq;
 _
 
 Patches currently in -mm which might be from ikent@redhat.com are
