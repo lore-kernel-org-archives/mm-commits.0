@@ -1,104 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] printk-fix-spinlock-deadlock-in-printk-reenty.patch
- removed from -mm tree
-Date: Wed, 30 Nov 2016 13:24:31 -0800
-Message-ID: <583f438f.In6/g1vg0xBo5ChM%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-add-description-for-alloc_gigantic_page.patch added
+ to -mm tree
+Date: Wed, 30 Nov 2016 13:34:35 -0800
+Message-ID: <583f45eb.HowpNnBe+kuDjA9A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750831AbcK3VYQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 16:24:16 -0500
+        with ESMTP id S1758678AbcK3VeT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 16:34:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kejinling@huawei.com, a.p.zijlstra@chello.nl, bp@suse.de, mingo@elte.hu, pmladek@suse.com, sergey.senozhatsky@gmail.com, tj@kernel.org, treding@nvidia.com, mm-commits@vger.kernel.org
+To: shijie.huang@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: fix spinlock deadlock in printk reenty
-has been removed from the -mm tree.  Its filename was
-     printk-fix-spinlock-deadlock-in-printk-reenty.patch
+     Subject: mm: hugetlb: add description for alloc_gigantic_page()
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-add-description-for-alloc_gigantic_page.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-description-for-alloc_gigantic_page.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-description-for-alloc_gigantic_page.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jinling Ke <kejinling@huawei.com>
-Subject: printk: fix spinlock deadlock in printk reenty
+From: Huang Shijie <shijie.huang@arm.com>
+Subject: mm: hugetlb: add description for alloc_gigantic_page()
 
-When Oops in printk, printk will call zap_locks() to reinitialize spinlock
-to prevent deadlock.  In arm, arm64, x86 or other architecture smp cpu,
-race condition will occur in printk spinlock logbuf_lock and then it will
-result other cpu that is waiting printk spinlock in deadlock(in function
-raw_spin_lock).  Because the cpus deadlock, you can see the error printk
-log:
+This patch adds the description for function alloc_gigantic_page().
 
-"SMP: failed to stop secondary CPUs"
-
-In arm, arm64, x86 or other architecture, spinlock variable is divided
-into 2 parts, for example they are 'owner' and 'next' in arm.  When get a
-spinlock, the 'next' part will add 1 and wait 'next' being equal to
-'owner'.  However, at this moment, the 'next' part is local variable, but
-'owner' part value is get from global variable logbuf_lock. 
-However,raw_spin_lock_init(&logbuf_lock) will set 'owner' part and 'next'
-part to zero, the result is that cpu deadlock in function raw_spin_lock(
-while loop in function arch_spin_lock ).
-
-	struct of arm spinlock
-	 	union {
-			u32 slock;
-			struct __raw_tickets {
-				u16 owner;
-				u16 next;
-			} tickets;
-		};
-	} arch_spinlock_t;
-	static inline void arch_spin_lock(arch_spinlock_t *lock)
-	{...
-		<--- At the moment, other cpu call zap_locks()->spin_lock_init(),
-		<--- set the 'owner' part to zero, but lockval.tickets.next is a
-	        <--- local variable
-		while (lockval.tickets.next != lockval.tickets.owner) {
-			lockval.tickets.owner = ACCESS_ONCE(lock->tickets.owner);
-		}
-	...
-	}
-
-The solution is that in zap_locks(), replace
-raw_spin_lock_init(&logbuf_lock) with raw_spin_unlock(&logbuf_lock), to
-let the spinlock stay in unlocked state.
-
-Link: http://lkml.kernel.org/r/1480490119-63559-1-git-send-email-linyongting@huawei.com
-Signed-off-by: Jinling Ke <kejinling@huawei.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: http://lkml.kernel.org/r/1480487431-26181-1-git-send-email-shijie.huang@arm.com
+Signed-off-by: Huang Shijie <shijie.huang@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/printk/printk.c~printk-fix-spinlock-deadlock-in-printk-reenty kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-fix-spinlock-deadlock-in-printk-reenty
-+++ a/kernel/printk/printk.c
-@@ -1603,7 +1603,7 @@ static void zap_locks(void)
- 
- 	debug_locks_off();
- 	/* If a crash is occurring, make sure we can't deadlock */
--	raw_spin_lock_init(&logbuf_lock);
-+	raw_spin_unlock(&logbuf_lock);
- 	/* And make sure that we print immediately */
- 	sema_init(&console_sem, 1);
+diff -puN mm/hugetlb.c~mm-hugetlb-add-description-for-alloc_gigantic_page mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-description-for-alloc_gigantic_page
++++ a/mm/hugetlb.c
+@@ -1089,6 +1089,12 @@ static bool zone_spans_last_pfn(const st
+ 	return zone_spans_pfn(zone, last_pfn);
  }
+ 
++/*
++ * Allocate a gigantic page from @nid node.
++ *
++ * Scan the zones of @nid node, and try to allocate a number of contiguous
++ * pages (1 << order).
++ */
+ static struct page *alloc_gigantic_page(int nid, unsigned int order)
+ {
+ 	unsigned long nr_pages = 1 << order;
 _
 
-Patches currently in -mm which might be from kejinling@huawei.com are
+Patches currently in -mm which might be from shijie.huang@arm.com are
 
+mm-hugetlb-rename-some-allocation-functions.patch
+mm-hugetlb-add-a-new-parameter-for-some-functions.patch
+mm-hugetlb-change-the-return-type-for-alloc_fresh_gigantic_page.patch
+mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
+mm-mempolicy-intruduce-a-helper-huge_nodemask-v2.patch
+mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page.patch
+mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
+mm-hugetlb-support-gigantic-surplus-pages.patch
+mm-hugetlb-add-description-for-alloc_gigantic_page.patch
 
