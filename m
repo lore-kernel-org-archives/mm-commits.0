@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus.patch added to
+ kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted.patch added to
  -mm tree
-Date: Wed, 30 Nov 2016 13:52:08 -0800
-Message-ID: <583f4a08.wrHCDxiBzwT7PzlZ%akpm@linux-foundation.org>
+Date: Wed, 30 Nov 2016 13:52:11 -0800
+Message-ID: <583f4a0b.zBOKD231a0HBsoVx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58968 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751301AbcK3Vvx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 16:51:53 -0500
+        with ESMTP id S1751301AbcK3Vv4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 16:51:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pmladek@suse.com, daniel.thompson@linaro.org, jason.wessel@windriver.com, peterz@infradead.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdb: properly synchronize vkdb_printf() calls with other CPUs
+     Subject: kdb: call vkdb_printf() from vprintk_default() only when wanted
 has been added to the -mm tree.  Its filename is
-     kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus.patch
+     kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,128 +41,146 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: kdb: properly synchronize vkdb_printf() calls with other CPUs
+Subject: kdb: call vkdb_printf() from vprintk_default() only when wanted
 
-kdb_printf_lock does not prevent other CPUs from entering the critical
-section because it is ignored when KDB_STATE_PRINTF_LOCK is set.
+kdb_trap_printk allows to pass normal printk() messages to kdb via
+vkdb_printk().  For example, it is used to get backtrace using the classic
+show_stack(), see kdb_show_stack().
 
-The problematic situation might look like:
+vkdb_printf() tries to avoid a potential infinite loop by disabling the
+trap.  But this approach is racy, for example:
 
-CPU0					CPU1
+CPU1					CPU2
 
 vkdb_printf()
-  if (!KDB_STATE(PRINTF_LOCK))
-    KDB_STATE_SET(PRINTF_LOCK);
-    spin_lock_irqsave(&kdb_printf_lock, flags);
+  // assume that kdb_trap_printk == 0
+  saved_trap_printk = kdb_trap_printk;
+  kdb_trap_printk = 0;
 
-					vkdb_printf()
-					  if (!KDB_STATE(PRINTF_LOCK))
+					kdb_show_stack()
+					  kdb_trap_printk++;
 
-BANG: The PRINTF_LOCK state is set and CPU1 is entering the critical
-section without spinning on the lock.
+Problem1: Now, a nested printk() on CPU0 calls vkdb_printf()
+	  even when it should have been disabled. It will not
+	  cause a deadlock but...
 
-The problem is that the code tries to implement locking using two state
-variables that are not handled atomically.  Well, we need a custom locking
-because we want to allow reentering the critical section on the very same
-CPU.
+   // using the outdated saved value: 0
+   kdb_trap_printk = saved_trap_printk;
 
-Let's use solution from Petr Zijlstra that was proposed for a similar
-scenario, see
-https://lkml.kernel.org/r/20161018171513.734367391@infradead.org
+					  kdb_trap_printk--;
 
-This patch uses the same trick with cmpxchg().  The only difference is
-that we want to handle only recursion from the same context and therefore
-we disable interrupts.
+Problem2: Now, kdb_trap_printk == -1 and will stay like this.
+   It means that all messages will get passed to kdb from
+   now on.
 
-In addition, KDB_STATE_PRINTF_LOCK is removed. In fact, we are not
-able to set it a non-racy way.
+This patch removes the racy saved_trap_printk handling.  Instead, the
+recursion is prevented by a check for the locked CPU.
 
-Link: http://lkml.kernel.org/r/1480412276-16690-3-git-send-email-pmladek@suse.com
+The solution is still kind of racy.  A non-related printk(), from another
+process, might get trapped by vkdb_printf().  And the wanted printk()
+might not get trapped because kdb_printf_cpu is assigned.  But this
+problem existed even with the original code.
+
+A proper solution would be to get_cpu() before setting kdb_trap_printk and
+trap messages only from this CPU.  I am not sure if it is worth the
+effort, though.
+
+In fact, the race is very theoretical.  When kdb is running any of the
+commands that use kdb_trap_printk there is a single active CPU and the
+other CPUs should be in a holding pen inside kgdb_cpu_enter().
+
+The only time this is violated is when there is a timeout waiting for the
+other CPUs to report to the holding pen.
+
+Finally, note that the situation is a bit schizophrenic.  vkdb_printf()
+explicitly allows recursion but only from KDB code that calls kdb_printf()
+directly.  On the other hand, the generic printk() recursion is not
+allowed because it might cause an infinite loop.  This is why we could not
+hide the decision inside vkdb_printf() easily.
+
+Link: http://lkml.kernel.org/r/1480412276-16690-4-git-send-email-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/kdb/kdb_io.c      |   30 +++++++++++++-----------------
- kernel/debug/kdb/kdb_private.h |    1 -
- 2 files changed, 13 insertions(+), 18 deletions(-)
+ include/linux/kdb.h       |    1 +
+ kernel/debug/kdb/kdb_io.c |    9 ++-------
+ kernel/printk/printk.c    |    3 ++-
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN kernel/debug/kdb/kdb_io.c~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus kernel/debug/kdb/kdb_io.c
---- a/kernel/debug/kdb/kdb_io.c~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus
+diff -puN include/linux/kdb.h~kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted include/linux/kdb.h
+--- a/include/linux/kdb.h~kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted
++++ a/include/linux/kdb.h
+@@ -161,6 +161,7 @@ enum kdb_msgsrc {
+ };
+ 
+ extern int kdb_trap_printk;
++extern int kdb_printf_cpu;
+ extern __printf(2, 0) int vkdb_printf(enum kdb_msgsrc src, const char *fmt,
+ 				      va_list args);
+ extern __printf(1, 2) int kdb_printf(const char *, ...);
+diff -puN kernel/debug/kdb/kdb_io.c~kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted kernel/debug/kdb/kdb_io.c
+--- a/kernel/debug/kdb/kdb_io.c~kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted
 +++ a/kernel/debug/kdb/kdb_io.c
-@@ -555,16 +555,16 @@ int vkdb_printf(enum kdb_msgsrc src, con
+@@ -30,6 +30,7 @@
+ char kdb_prompt_str[CMD_BUFLEN];
+ 
+ int kdb_trap_printk;
++int kdb_printf_cpu = -1;
+ 
+ static int kgdb_transition_check(char *buffer)
+ {
+@@ -554,24 +555,19 @@ int vkdb_printf(enum kdb_msgsrc src, con
+ 	int linecount;
  	int colcount;
  	int logging, saved_loglevel = 0;
- 	int saved_trap_printk;
--	int got_printf_lock = 0;
+-	int saved_trap_printk;
  	int retlen = 0;
  	int fnd, len;
-+	int this_cpu, old_cpu;
-+	static int kdb_printf_cpu = -1;
+ 	int this_cpu, old_cpu;
+-	static int kdb_printf_cpu = -1;
  	char *cp, *cp2, *cphold = NULL, replaced_byte = ' ';
  	char *moreprompt = "more> ";
  	struct console *c = console_drivers;
--	static DEFINE_SPINLOCK(kdb_printf_lock);
  	unsigned long uninitialized_var(flags);
  
--	preempt_disable();
-+	local_irq_save(flags);
- 	saved_trap_printk = kdb_trap_printk;
- 	kdb_trap_printk = 0;
- 
-@@ -572,12 +572,13 @@ int vkdb_printf(enum kdb_msgsrc src, con
+-	local_irq_save(flags);
+-	saved_trap_printk = kdb_trap_printk;
+-	kdb_trap_printk = 0;
+-
+ 	/* Serialize kdb_printf if multiple cpus try to write at once.
  	 * But if any cpu goes recursive in kdb, just print the output,
  	 * even if it is interleaved with any other text.
  	 */
--	if (!KDB_STATE(PRINTF_LOCK)) {
--		KDB_STATE_SET(PRINTF_LOCK);
--		spin_lock_irqsave(&kdb_printf_lock, flags);
--		got_printf_lock = 1;
--	} else {
--		__acquire(kdb_printf_lock);
-+	this_cpu = smp_processor_id();
-+	for (;;) {
-+		old_cpu = cmpxchg(&kdb_printf_cpu, -1, this_cpu);
-+		if (old_cpu == -1 || old_cpu == this_cpu)
-+			break;
-+
-+		cpu_relax();
- 	}
- 
- 	diag = kdbgetintenv("LINES", &linecount);
-@@ -846,15 +847,10 @@ kdb_print_out:
- 	suspend_grep = 0; /* end of what may have been a recursive call */
- 	if (logging)
++	local_irq_save(flags);
+ 	this_cpu = smp_processor_id();
+ 	for (;;) {
+ 		old_cpu = cmpxchg(&kdb_printf_cpu, -1, this_cpu);
+@@ -849,7 +845,6 @@ kdb_print_out:
  		console_loglevel = saved_loglevel;
--	if (KDB_STATE(PRINTF_LOCK) && got_printf_lock) {
--		got_printf_lock = 0;
--		spin_unlock_irqrestore(&kdb_printf_lock, flags);
--		KDB_STATE_CLEAR(PRINTF_LOCK);
--	} else {
--		__release(kdb_printf_lock);
--	}
-+	/* kdb_printf_cpu locked the code above. */
-+	smp_store_release(&kdb_printf_cpu, old_cpu);
- 	kdb_trap_printk = saved_trap_printk;
--	preempt_enable();
-+	local_irq_restore(flags);
+ 	/* kdb_printf_cpu locked the code above. */
+ 	smp_store_release(&kdb_printf_cpu, old_cpu);
+-	kdb_trap_printk = saved_trap_printk;
+ 	local_irq_restore(flags);
  	return retlen;
  }
+diff -puN kernel/printk/printk.c~kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted kernel/printk/printk.c
+--- a/kernel/printk/printk.c~kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted
++++ a/kernel/printk/printk.c
+@@ -1926,7 +1926,8 @@ int vprintk_default(const char *fmt, va_
+ 	int r;
  
-diff -puN kernel/debug/kdb/kdb_private.h~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus kernel/debug/kdb/kdb_private.h
---- a/kernel/debug/kdb/kdb_private.h~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus
-+++ a/kernel/debug/kdb/kdb_private.h
-@@ -132,7 +132,6 @@ extern int kdb_state;
- #define KDB_STATE_PAGER		0x00000400	/* pager is available */
- #define KDB_STATE_GO_SWITCH	0x00000800	/* go is switching
- 						 * back to initial cpu */
--#define KDB_STATE_PRINTF_LOCK	0x00001000	/* Holds kdb_printf lock */
- #define KDB_STATE_WAIT_IPI	0x00002000	/* Waiting for kdb_ipi() NMI */
- #define KDB_STATE_RECURSE	0x00004000	/* Recursive entry to kdb */
- #define KDB_STATE_IP_ADJUSTED	0x00008000	/* Restart IP has been
+ #ifdef CONFIG_KGDB_KDB
+-	if (unlikely(kdb_trap_printk)) {
++	/* Allow to pass printk() to kdb but avoid a recursion. */
++	if (unlikely(kdb_trap_printk && kdb_printf_cpu < 0)) {
+ 		r = vkdb_printf(KDB_MSGSRC_PRINTK, fmt, args);
+ 		return r;
+ 	}
 _
 
 Patches currently in -mm which might be from pmladek@suse.com are
