@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-dont-hold-spin-lock-over-direct-mount-expire.patch added to -mm tree
-Date: Wed, 30 Nov 2016 14:25:44 -0800
-Message-ID: <583f51e8.tlbDcN0SEWiDIOWf%akpm@linux-foundation.org>
+Subject: +
+ vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
+ added to -mm tree
+Date: Wed, 30 Nov 2016 14:27:11 -0800
+Message-ID: <583f523f.BzeHUEDxTsT8bVI2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36136 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751631AbcK3W0n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:26:43 -0500
+        with ESMTP id S1753174AbcK3W0z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:26:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ikent@redhat.com, ebiederm@xmission.com, osandov@osandov.com, raven@themaw.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ikent@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: don't hold spinlock over direct mount expire
+     Subject: vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     autofs-dont-hold-spin-lock-over-direct-mount-expire.patch
+     vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-dont-hold-spin-lock-over-direct-mount-expire.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-dont-hold-spin-lock-over-direct-mount-expire.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,90 +40,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Kent <ikent@redhat.com>
-Subject: autofs: don't hold spinlock over direct mount expire
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes
 
-Commit 7cbdb4a286 ("autofs: use dentry flags to block walks during
-expire") altered the autofs indirect mount expire to not hold a spin lock
-during the expire check.
+WARNING: 'minumum' may be misspelled - perhaps 'minimum'?
+#114: FILE: fs/namespace.c:1367:
++	 * to the tree at mnt is one greater than the minumum
 
-The direct mount expire needs the same treatment because to
-make autofs expires namespace aware may_umount_tree() needs to
-to use a similar method to may_umount() when checking if a mount
-tree is in use.
+WARNING: function definition argument 'struct mount *' should also have an identifier name
+#168: FILE: fs/pnode.h:41:
++struct mount *propagation_next(struct mount *, struct mount *);
 
-This means may_umount_tree() will end up taking the namespace_sem
-for the check so the autofs direct mount expire won't be allowed
-to hold a spin lock over the check.
+WARNING: function definition argument 'struct mount *' should also have an identifier name
+#168: FILE: fs/pnode.h:41:
++struct mount *propagation_next(struct mount *, struct mount *);
 
-Link: http://lkml.kernel.org/r/148029913453.27779.15747032937407838983.stgit@pluto.themaw.net
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Omar Sandoval <osandov@osandov.com>
+total: 0 errors, 3 warnings, 125 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/vfs-make-may_umount_tree-mount-propogation-aware.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/expire.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ fs/namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/expire.c~autofs-dont-hold-spin-lock-over-direct-mount-expire fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs-dont-hold-spin-lock-over-direct-mount-expire
-+++ a/fs/autofs4/expire.c
-@@ -310,26 +310,29 @@ struct dentry *autofs4_expire_direct(str
- 	now = jiffies;
- 	timeout = sbi->exp_timeout;
- 
--	spin_lock(&sbi->fs_lock);
--	ino = autofs4_dentry_ino(root);
--	/* No point expiring a pending mount */
--	if (ino->flags & AUTOFS_INF_PENDING)
--		goto out;
- 	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
-+		spin_lock(&sbi->fs_lock);
-+		ino = autofs4_dentry_ino(root);
-+		/* No point expiring a pending mount */
-+		if (ino->flags & AUTOFS_INF_PENDING) {
-+			spin_unlock(&sbi->fs_lock);
-+			goto out;
-+		}
- 		ino->flags |= AUTOFS_INF_WANT_EXPIRE;
- 		spin_unlock(&sbi->fs_lock);
- 		synchronize_rcu();
--		spin_lock(&sbi->fs_lock);
- 		if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
-+			spin_lock(&sbi->fs_lock);
- 			ino->flags |= AUTOFS_INF_EXPIRING;
- 			init_completion(&ino->expire_complete);
- 			spin_unlock(&sbi->fs_lock);
- 			return root;
- 		}
-+		spin_lock(&sbi->fs_lock);
- 		ino->flags &= ~AUTOFS_INF_WANT_EXPIRE;
-+		spin_unlock(&sbi->fs_lock);
- 	}
- out:
--	spin_unlock(&sbi->fs_lock);
- 	dput(root);
- 
- 	return NULL;
+diff -puN fs/namespace.c~vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes fs/namespace.c
+--- a/fs/namespace.c~vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes
++++ a/fs/namespace.c
+@@ -1364,7 +1364,7 @@ int may_umount_tree(struct vfsmount *m)
+ 	mnt_get_tree_refs(&mtr);
+ 	/*
+ 	 * Caller holds a mount reference so minimum references
+-	 * to the tree at mnt is one greater than the minumum
++	 * to the tree at mnt is one greater than the minimum
+ 	 * references.
+ 	 */
+ 	mtr.min_refs++;
 _
 
-Patches currently in -mm which might be from ikent@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-change-d_manage-to-take-a-struct-path.patch
-vfs-add-path_is_mountpoint-helper.patch
-vfs-add-path_has_submounts.patch
-autofs-change-autofs4_expire_wait-to-take-struct-path.patch
-autofs-change-autofs4_wait-to-take-struct-path.patch
-autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
-autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
-vfs-remove-unused-have_submounts-function.patch
-vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu.patch
-autofs-make-struct-path-const-in-autofs4_dir_open.patch
-autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait.patch
-vfs-change-struct-path-to-const-in-d_manage.patch
-vfs-constify-path-parameter-of-path_has_submounts.patch
-autofs-dont-hold-spin-lock-over-direct-mount-expire.patch
-vfs-make-may_umount_tree-mount-propogation-aware.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
+filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
+include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
+mm-thp-page-cache-support-for-ppc64-fix.patch
+scripts-checkpatchpl-fix-spelling.patch
+vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
+debug-more-properly-delay-for-secondary-cpus-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
+ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
+mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
