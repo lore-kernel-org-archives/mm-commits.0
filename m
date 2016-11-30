@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + printk-fix-spinlock-deadlock-in-printk-reenty.patch added to
- -mm tree
-Date: Wed, 30 Nov 2016 12:57:02 -0800
-Message-ID: <583f3d1e.xreVm/IBl3sLnAeJ%akpm@linux-foundation.org>
+Subject: [nacked] printk-fix-spinlock-deadlock-in-printk-reenty.patch
+ removed from -mm tree
+Date: Wed, 30 Nov 2016 13:24:31 -0800
+Message-ID: <583f438f.In6/g1vg0xBo5ChM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45660 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756555AbcK3U4r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 15:56:47 -0500
+        with ESMTP id S1750831AbcK3VYQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 16:24:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kejinling@huawei.com, a.p.zijlstra@chello.nl, bp@suse.de, mingo@elte.hu, pmladek@suse.com, sergey.senozhatsky@gmail.com, tj@kernel.org, treding@nvidia.com, mm-commits@vger.kernel.org
@@ -19,24 +19,10 @@ To: kejinling@huawei.com, a.p.zijlstra@chello.nl, bp@suse.de, mingo@elte.hu, pml
 
 The patch titled
      Subject: printk: fix spinlock deadlock in printk reenty
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      printk-fix-spinlock-deadlock-in-printk-reenty.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-fix-spinlock-deadlock-in-printk-reenty.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-fix-spinlock-deadlock-in-printk-reenty.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Jinling Ke <kejinling@huawei.com>
@@ -115,5 +101,4 @@ _
 
 Patches currently in -mm which might be from kejinling@huawei.com are
 
-printk-fix-spinlock-deadlock-in-printk-reenty.patch
 
