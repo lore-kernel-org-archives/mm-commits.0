@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-dont-check-c99-types-like-uint8_t-under-tools.patch
- added to -mm tree
-Date: Wed, 30 Nov 2016 14:51:21 -0800
-Message-ID: <583f57e9.Z8ETLaRlU8S+6v9P%akpm@linux-foundation.org>
+Subject: + mm-rmap-handle-anon_vma_prepare-common-case-inline.patch added
+ to -mm tree
+Date: Wed, 30 Nov 2016 14:57:42 -0800
+Message-ID: <583f5966.pTaf7P0RMQIEDLj5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37708 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38694 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751086AbcK3WvF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:51:05 -0500
+        with ESMTP id S1752856AbcK3W50 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:57:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomas.winkler@intel.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: don't check c99 types like uint8_t under tools
+     Subject: mm, rmap: handle anon_vma_prepare() common case inline
 has been added to the -mm tree.  Its filename is
-     checkpatch-dont-check-c99-types-like-uint8_t-under-tools.patch
+     mm-rmap-handle-anon_vma_prepare-common-case-inline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-dont-check-c99-types-like-uint8_t-under-tools.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-handle-anon_vma_prepare-common-case-inline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-dont-check-c99-types-like-uint8_t-under-tools.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-handle-anon_vma_prepare-common-case-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +39,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tomas Winkler <tomas.winkler@intel.com>
-Subject: checkpatch: don't check c99 types like uint8_t under tools
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, rmap: handle anon_vma_prepare() common case inline
 
-Tools contains user space code so uintX_t types are just fine.
+anon_vma_prepare() is mostly a large "if (unlikely(...))" block, as the
+expected common case is that an anon_vma already exists.  We could turn
+the condition around and return 0, but it also makes sense to do it inline
+and avoid a call for the common case.
 
-Link: http://lkml.kernel.org/r/1479286379-853-1-git-send-email-tomas.winkler@intel.com
-Signed-off-by: Tomas Winkler <tomas.winkler@intel.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Bloat-o-meter naturally shows that inlining the check has some code size
+costs:
+
+add/remove: 1/1 grow/shrink: 4/0 up/down: 475/-373 (102)
+function                                     old     new   delta
+__anon_vma_prepare                             -     359    +359
+handle_mm_fault                             2744    2796     +52
+hugetlb_cow                                 1146    1170     +24
+hugetlb_fault                               2123    2145     +22
+wp_page_copy                                1469    1487     +18
+anon_vma_prepare                             373       -    -373
+
+Checking the asm however confirms that the hot paths now avoid a call,
+which is moved away.
+
+Link: http://lkml.kernel.org/r/20161116074005.22768-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/rmap.h |   10 +++++
+ mm/rmap.c            |   73 ++++++++++++++++++++---------------------
+ 2 files changed, 45 insertions(+), 38 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-check-c99-types-like-uint8_t-under-tools scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-check-c99-types-like-uint8_t-under-tools
-+++ a/scripts/checkpatch.pl
-@@ -5560,8 +5560,9 @@ sub process {
- 			      "Using weak declarations can have unintended link defects\n" . $herecurr);
- 		}
+diff -puN include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline
++++ a/include/linux/rmap.h
+@@ -137,11 +137,19 @@ static inline void anon_vma_unlock_read(
+  * anon_vma helper functions.
+  */
+ void anon_vma_init(void);	/* create anon_vma_cachep */
+-int  anon_vma_prepare(struct vm_area_struct *);
++int  __anon_vma_prepare(struct vm_area_struct *);
+ void unlink_anon_vmas(struct vm_area_struct *);
+ int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
+ int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
  
--# check for c99 types like uint8_t used outside of uapi/
-+# check for c99 types like uint8_t used outside of uapi/ and tools/
- 		if ($realfile !~ m@\binclude/uapi/@ &&
-+		    $realfile !~ m@\btools/@ &&
- 		    $line =~ /\b($Declare)\s*$Ident\s*[=;,\[]/) {
- 			my $type = $1;
- 			if ($type =~ /\b($typeC99Typedefs)\b/) {
-_
-
-Patches currently in -mm which might be from tomas.winkler@intel.com are
-
-checkpatch-dont-check-c99-types-like-uint8_t-under-tools.patch
-
++static inline int anon_vma_prepare(struct vm_area_struct * vma)
++{
++	if (likely(vma->anon_vma))
++		return 0;
++
++	return __anon_vma_prepare(vma);
++}
++
+ static inline void anon_vma_merge(struct vm_area_struct *vma,
+ 				  struct vm_area_struct *next)
+ {
+diff -puN mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline
++++ a/mm/rmap.c
+@@ -141,14 +141,15 @@ static void anon_vma_chain_link(struct v
+ }
+ 
+ /**
+- * anon_vma_prepare - attach an anon_vma to a memory region
++ * __anon_vma_prepare - attach an anon_vma to a memory region
+  * @vma: the memory region in question
+  *
+  * This makes sure the memory mapping described by 'vma' has
+  * an 'anon_vma' attached to it, so that we can associate the
+  * anonymous pages mapped into it with that anon_vma.
+  *
+- * The common case will be that we already have one, but if
++ * The common case will be that we already have one, which
++ * is handled inline by anon_vma_prepare(). But if
+  * not we either need to find an adjacent mapping that we
+  * can re-use the anon_vma from (very common when the only
+  * reason for splitting a vma has been mprotect()), or we
+@@ -167,48 +168,46 @@ static void anon_vma_chain_link(struct v
+  *
+  * This must be called with the mmap_sem held for reading.
+  */
+-int anon_vma_prepare(struct vm_area_struct *vma)
++int __anon_vma_prepare(struct vm_area_struct *vma)
+ {
+-	struct anon_vma *anon_vma = vma->anon_vma;
++	struct mm_struct *mm = vma->vm_mm;
++	struct anon_vma *anon_vma, *allocated;
+ 	struct anon_vma_chain *avc;
+ 
+ 	might_sleep();
+-	if (unlikely(!anon_vma)) {
+-		struct mm_struct *mm = vma->vm_mm;
+-		struct anon_vma *allocated;
+-
+-		avc = anon_vma_chain_alloc(GFP_KERNEL);
+-		if (!avc)
+-			goto out_enomem;
+ 
+-		anon_vma = find_mergeable_anon_vma(vma);
++	avc = anon_vma_chain_alloc(GFP_KERNEL);
++	if (!avc)
++		goto out_enomem;
++
++	anon_vma = find_mergeable_anon_vma(vma);
++	allocated = NULL;
++	if (!anon_vma) {
++		anon_vma = anon_vma_alloc();
++		if (unlikely(!anon_vma))
++			goto out_enomem_free_avc;
++		allocated = anon_vma;
++	}
++
++	anon_vma_lock_write(anon_vma);
++	/* page_table_lock to protect against threads */
++	spin_lock(&mm->page_table_lock);
++	if (likely(!vma->anon_vma)) {
++		vma->anon_vma = anon_vma;
++		anon_vma_chain_link(vma, avc, anon_vma);
++		/* vma reference or self-parent link for new root */
++		anon_vma->degree++;
+ 		allocated = NULL;
+-		if (!anon_vma) {
+-			anon_vma = anon_vma_alloc();
+-			if (unlikely(!anon_vma))
+-				goto out_enomem_free_avc;
+-			allocated = anon_vma;
+-		}
+-
+-		anon_vma_lock_write(anon_vma);
+-		/* page_table_lock to protect against threads */
+-		spin_lock(&mm->page_table_lock);
+-		if (likely(!vma->anon_vma)) {
+-			vma->anon_vma = anon_vma;
+-			anon_vma_chain_link(vma, avc, anon_vma);
+-			/* vma reference or self-parent link for new root */
+-			anon_vma->degree++;
+-			allocated = NULL;
+-			avc = NULL;
+-		}
+-		spin_unlock(&mm->page_table_lock);
+-		anon_vma_unlock_write(anon_vma);
