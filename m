@@ -1,103 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-add-__printf-attributes.patch added to -mm tree
-Date: Wed, 30 Nov 2016 14:27:59 -0800
-Message-ID: <583f526f.ZqFZ1nDP2giAjnH0%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-support-anonymous-stable-page.patch removed
+ from -mm tree
+Date: Wed, 30 Nov 2016 14:48:14 -0800
+Message-ID: <583f572e.55E4rfKJXuHnBL2O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37662 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753078AbcK3W1n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:27:43 -0500
+        with ESMTP id S1753834AbcK3Wr7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:47:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, pmladek@suse.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, darrick.wong@oracle.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: add __printf attributes
-has been added to the -mm tree.  Its filename is
-     kthread-add-__printf-attributes.patch
+     Subject: mm: support anonymous stable page
+has been removed from the -mm tree.  Its filename was
+     mm-support-anonymous-stable-page.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kthread-add-__printf-attributes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-add-__printf-attributes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: kthread: add __printf attributes
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: support anonymous stable page
 
-When commit fbae2d44aa1d ("kthread: add kthread_create_worker*()")
-introduced some kthread_create_...() functions which were taking
-printf-like parametter, it introduced __printf attributes to some
-functions (e.g.  kthread_create_worker()).  Nevertheless some new
-functions were forgotten (they have been detected thanks to
--Wmissing-format-attribute warning flag).
+For developemnt for zram-swap asynchronous writeback, I found strange
+corruption of compressed page.  With investigation, it reveals currently
+stable page doesn't support anonymous page.  IOW, reuse_swap_page can
+reuse the page without waiting writeback completion so that it can corrupt
+data during zram compression.  It can affect every swap device which
+supports asynchronous writeback and CRC checking as well as zRAM.
 
-Add the missing __printf attributes to the newly-introduced functions in
-order to detect formatting issues at build-time with -Wformat flag.
+Unfortunately, reuse_swap_page should be atomic so that we cannot wait on
+writeback in there so the approach in this patch is simply return false if
+we found it needs stable page.  Although it increases memory footprint
+temporarily, it happens rarely and it should be reclaimed easily althoug
+it happened.  Also, It would be better than waiting of IO completion,
+which is critial path for application latency.
 
-Link: http://lkml.kernel.org/r/20161126193543.22672-1-nicolas.iooss_linux@m4x.org
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+Link: http://lkml.kernel.org/r/20161120233015.GA14113@bbox
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |    2 +-
- kernel/kthread.c        |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/swap.h |    3 ++-
+ mm/swapfile.c        |   20 +++++++++++++++++++-
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kthread.h~kthread-add-__printf-attributes include/linux/kthread.h
---- a/include/linux/kthread.h~kthread-add-__printf-attributes
-+++ a/include/linux/kthread.h
-@@ -174,7 +174,7 @@ __printf(2, 3)
- struct kthread_worker *
- kthread_create_worker(unsigned int flags, const char namefmt[], ...);
+diff -puN include/linux/swap.h~mm-support-anonymous-stable-page include/linux/swap.h
+--- a/include/linux/swap.h~mm-support-anonymous-stable-page
++++ a/include/linux/swap.h
+@@ -150,8 +150,9 @@ enum {
+ 	SWP_FILE	= (1 << 7),	/* set after swap_activate success */
+ 	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
+ 	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
++	SWP_STABLE_WRITES = (1 << 10),	/* no overwrite PG_writeback pages */
+ 					/* add others here before... */
+-	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
++	SWP_SCANNING	= (1 << 11),	/* refcount in scan_swap_map */
+ };
  
--struct kthread_worker *
-+__printf(3, 4) struct kthread_worker *
- kthread_create_worker_on_cpu(int cpu, unsigned int flags,
- 			     const char namefmt[], ...);
- 
-diff -puN kernel/kthread.c~kthread-add-__printf-attributes kernel/kthread.c
---- a/kernel/kthread.c~kthread-add-__printf-attributes
-+++ a/kernel/kthread.c
-@@ -244,7 +244,8 @@ static void create_kthread(struct kthrea
+ #define SWAP_CLUSTER_MAX 32UL
+diff -puN mm/swapfile.c~mm-support-anonymous-stable-page mm/swapfile.c
+--- a/mm/swapfile.c~mm-support-anonymous-stable-page
++++ a/mm/swapfile.c
+@@ -943,11 +943,25 @@ bool reuse_swap_page(struct page *page,
+ 	count = page_trans_huge_mapcount(page, total_mapcount);
+ 	if (count <= 1 && PageSwapCache(page)) {
+ 		count += page_swapcount(page);
+-		if (count == 1 && !PageWriteback(page)) {
++		if (count != 1)
++			goto out;
++		if (!PageWriteback(page)) {
+ 			delete_from_swap_cache(page);
+ 			SetPageDirty(page);
++		} else {
++			swp_entry_t entry;
++			struct swap_info_struct *p;
++
++			entry.val = page_private(page);
++			p = swap_info_get(entry);
++			if (p->flags & SWP_STABLE_WRITES) {
++				spin_unlock(&p->lock);
++				return false;
++			}
++			spin_unlock(&p->lock);
+ 		}
  	}
++out:
+ 	return count <= 1;
  }
  
--static struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
-+static __printf(4, 0)
-+struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
- 						    void *data, int node,
- 						    const char namefmt[],
- 						    va_list args)
-@@ -630,7 +631,7 @@ repeat:
- }
- EXPORT_SYMBOL_GPL(kthread_worker_fn);
+@@ -2449,6 +2463,10 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		error = -ENOMEM;
+ 		goto bad_swap;
+ 	}
++
++	if (bdi_cap_stable_pages_required(inode_to_bdi(inode)))
++		p->flags |= SWP_STABLE_WRITES;
++
+ 	if (p->bdev && blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+ 		int cpu;
  
--static struct kthread_worker *
-+static __printf(3, 0) struct kthread_worker *
- __kthread_create_worker(int cpu, unsigned int flags,
- 			const char namefmt[], va_list args)
- {
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-kthread-add-__printf-attributes.patch
+mm-dont-steal-highatomic-pageblock.patch
+mm-prevent-double-decrease-of-nr_reserved_highatomic.patch
+mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
+mm-make-unreserve-highatomic-functions-reliable.patch
 
