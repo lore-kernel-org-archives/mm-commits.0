@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-make-struct-path-const-in-autofs4_dir_open.patch added
+Subject: + vfs-constify-path-parameter-of-path_has_submounts.patch added
  to -mm tree
-Date: Wed, 30 Nov 2016 14:25:35 -0800
-Message-ID: <583f51df.xhO1BlRq5kcyzYl0%akpm@linux-foundation.org>
+Date: Wed, 30 Nov 2016 14:25:42 -0800
+Message-ID: <583f51e6.Ofa+yrmquBRLshN1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35968 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751631AbcK3W0m (ORCPT
+        with ESMTP id S1754830AbcK3W0m (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 17:26:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: ikent@redhat.com, ebiederm@xmission.com, osandov@osandov.com, raven@themaw.n
 
 
 The patch titled
-     Subject: autofs: make struct path const in autofs4_dir_open()
+     Subject: vfs: constify path parameter of path_has_submounts()
 has been added to the -mm tree.  Its filename is
-     autofs-make-struct-path-const-in-autofs4_dir_open.patch
+     vfs-constify-path-parameter-of-path_has_submounts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-make-struct-path-const-in-autofs4_dir_open.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-constify-path-parameter-of-path_has_submounts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-make-struct-path-const-in-autofs4_dir_open.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-constify-path-parameter-of-path_has_submounts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ian Kent <ikent@redhat.com>
-Subject: autofs: make struct path const in autofs4_dir_open()
+Subject: vfs: constify path parameter of path_has_submounts()
 
-There's no reason to copy the file->f_path in autofs4_dir_open() and
-f_path is not modified so change it to a "const struct path *".
+path_has_submounts() doesn't modify the passed in path parameter,
+and shouldn't need to, make that usage explicit.
 
-Link: http://lkml.kernel.org/r/148029911386.27779.14131036159082881283.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/148029912941.27779.3775940087450770440.stgit@pluto.themaw.net
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -53,38 +53,34 @@ Cc: Omar Sandoval <osandov@osandov.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/dcache.c            |    2 +-
+ include/linux/dcache.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs-make-struct-path-const-in-autofs4_dir_open fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-make-struct-path-const-in-autofs4_dir_open
-+++ a/fs/autofs4/root.c
-@@ -107,14 +107,14 @@ static int autofs4_dir_open(struct inode
+diff -puN fs/dcache.c~vfs-constify-path-parameter-of-path_has_submounts fs/dcache.c
+--- a/fs/dcache.c~vfs-constify-path-parameter-of-path_has_submounts
++++ a/fs/dcache.c
+@@ -1298,7 +1298,7 @@ static enum d_walk_ret path_check_mount(
+  * Return true if the parent or its subdirectories contain
+  * a mount point in the current namespace.
+  */
+-int path_has_submounts(struct path *parent)
++int path_has_submounts(const struct path *parent)
  {
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct path path;
-+	const struct path *path;
+ 	struct check_mount data = { .mnt = parent->mnt, .mounted = 0 };
  
- 	pr_debug("file=%p dentry=%p %pd\n", file, dentry, dentry);
+diff -puN include/linux/dcache.h~vfs-constify-path-parameter-of-path_has_submounts include/linux/dcache.h
+--- a/include/linux/dcache.h~vfs-constify-path-parameter-of-path_has_submounts
++++ a/include/linux/dcache.h
+@@ -254,7 +254,7 @@ extern struct dentry *d_find_alias(struc
+ extern void d_prune_aliases(struct inode *);
  
- 	if (autofs4_oz_mode(sbi))
- 		goto out;
+ /* test whether we have any submounts in a subdir tree */
+-extern int path_has_submounts(struct path *);
++extern int path_has_submounts(const struct path *);
  
--	path = file->f_path;
-+	path = &file->f_path;
- 
- 	/*
- 	 * An empty directory in an autofs file system is always a
-@@ -126,7 +126,7 @@ static int autofs4_dir_open(struct inode
- 	 * it.
- 	 */
- 	spin_lock(&sbi->lookup_lock);
--	if (!path_is_mountpoint(&path) && simple_empty(dentry)) {
-+	if (!path_is_mountpoint(path) && simple_empty(dentry)) {
- 		spin_unlock(&sbi->lookup_lock);
- 		return -ENOENT;
- 	}
+ /*
+  * This adds the entry to the hash queues.
 _
 
 Patches currently in -mm which might be from ikent@redhat.com are
