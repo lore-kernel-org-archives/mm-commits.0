@@ -1,81 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] kasan-support-use-after-scope-detection-v3.patch
- removed from -mm tree
-Date: Wed, 30 Nov 2016 15:48:44 -0800
-Message-ID: <583f655c.ccgmyu9eK6cAd9wI%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-thp-propagation-of-conditional-compilation-in-khugepagedc.patch removed
+ from -mm tree
+Date: Thu, 01 Dec 2016 12:06:41 -0800
+Message-ID: <584082d1.wBHQ5K4fWzUs2hSY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752031AbcK3Xy7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2016 18:54:59 -0500
+        with ESMTP id S1757484AbcLAUGm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2016 15:06:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: jeremy.lefaure@lse.epita.fr, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-support-use-after-scope-detection-v3
+     Subject: mm, thp: propagation of conditional compilation in khugepaged.c
 has been removed from the -mm tree.  Its filename was
-     kasan-support-use-after-scope-detection-v3.patch
+     mm-thp-propagation-of-conditional-compilation-in-khugepagedc.patch
 
-This patch was dropped because it was folded into kasan-support-use-after-scope-detection.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan-support-use-after-scope-detection-v3
+From: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+Subject: mm, thp: propagation of conditional compilation in khugepaged.c
 
- - added comment to test_kasan.c re noinline
- - fixed a typo in comment: s/go into of scope/go into scope/
- - added cc stable
+Commit b46e756f5e47 ("thp: extract khugepaged from mm/huge_memory.c")
+moved code from huge_memory.c to khugepaged.c. Some of this code should
+be compiled only when CONFIG_SYSFS is enabled but the condition around
+this code was not moved into khugepaged.c. The result is a compilation
+error when CONFIG_SYSFS is disabled:
 
-Link: http://lkml.kernel.org/r/1479998292-144502-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+mm/built-in.o: In function `khugepaged_defrag_store':
+khugepaged.c:(.text+0x2d095): undefined reference to
+`single_hugepage_flag_store'
+mm/built-in.o: In function `khugepaged_defrag_show':
+khugepaged.c:(.text+0x2d0ab): undefined reference to
+`single_hugepage_flag_show'
+
+This commit adds the #ifdef CONFIG_SYSFS around the code related to
+sysfs.
+
+Link: http://lkml.kernel.org/r/20161114203448.24197-1-jeremy.lefaure@lse.epita.fr
+Signed-off-by: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    5 +++++
- mm/kasan/kasan.c |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/test_kasan.c~kasan-support-use-after-scope-detection-v3 lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-support-use-after-scope-detection-v3
-+++ a/lib/test_kasan.c
-@@ -20,6 +20,11 @@
- #include <linux/uaccess.h>
- #include <linux/module.h>
+diff -puN mm/khugepaged.c~mm-thp-propagation-of-conditional-compilation-in-khugepagedc mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-thp-propagation-of-conditional-compilation-in-khugepagedc
++++ a/mm/khugepaged.c
+@@ -103,6 +103,7 @@ static struct khugepaged_scan khugepaged
+ 	.mm_head = LIST_HEAD_INIT(khugepaged_scan.mm_head),
+ };
  
-+/*
-+ * Note: test functions are marked noinline so that their names appear in
-+ * reports.
-+ */
-+
- static noinline void __init kmalloc_oob_right(void)
- {
- 	char *ptr;
-diff -puN mm/kasan/kasan.c~kasan-support-use-after-scope-detection-v3 mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-support-use-after-scope-detection-v3
-+++ a/mm/kasan/kasan.c
-@@ -776,7 +776,7 @@ void __asan_poison_stack_memory(const vo
- }
- EXPORT_SYMBOL(__asan_poison_stack_memory);
++#ifdef CONFIG_SYSFS
+ static ssize_t scan_sleep_millisecs_show(struct kobject *kobj,
+ 					 struct kobj_attribute *attr,
+ 					 char *buf)
+@@ -295,6 +296,7 @@ struct attribute_group khugepaged_attr_g
+ 	.attrs = khugepaged_attr,
+ 	.name = "khugepaged",
+ };
++#endif /* CONFIG_SYSFS */
  
--/* Emitted by compiler to unpoison large objects when they go into of scope. */
-+/* Emitted by compiler to unpoison large objects when they go into scope. */
- void __asan_unpoison_stack_memory(const void *addr, size_t size)
- {
- 	kasan_unpoison_shadow(addr, size);
+ #define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
+ 
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from jeremy.lefaure@lse.epita.fr are
 
-kasan-update-kasan_global-for-gcc-7.patch
-kasan-support-use-after-scope-detection.patch
-kasan-support-panic_on_warn.patch
-kasan-eliminate-long-stalls-during-quarantine-reduction.patch
+shmem-fix-compilation-warnings-on-unused-functions.patch
 
