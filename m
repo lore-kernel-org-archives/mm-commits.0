@@ -1,165 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-support-use-after-scope-detection.patch removed
- from -mm tree
-Date: Thu, 01 Dec 2016 12:06:55 -0800
-Message-ID: <584082df.pqTT0aFnLh5zE9JB%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
+ removed from -mm tree
+Date: Thu, 01 Dec 2016 12:06:58 -0800
+Message-ID: <584082e2.lk3zmH3Ysg7TVHCh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44602 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759436AbcLAUG4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2016 15:06:56 -0500
+        with ESMTP id S1757523AbcLAUG7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2016 15:06:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, doug.nelson@intel.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: support use-after-scope detection
+     Subject: mm: fix false-positive WARN_ON() in truncate/invalidate for hugetlb
 has been removed from the -mm tree.  Its filename was
-     kasan-support-use-after-scope-detection.patch
+     mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: support use-after-scope detection
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix false-positive WARN_ON() in truncate/invalidate for hugetlb
 
-Gcc revision 241896 implements use-after-scope detection.  Will be
-available in gcc 7.  Support it in KASAN.
+Hugetlb pages have ->index in size of the huge pages (PMD_SIZE or
+PUD_SIZE), not in PAGE_SIZE as other types of pages.  This means we cannot
+user page_to_pgoff() to check whether we've got the right page for the
+radix-tree index.
 
-Gcc emits 2 new callbacks to poison/unpoison large stack objects when they
-go in/out of scope.  Implement the callbacks and add a test.
+Let's introduce page_to_index() which would return radix-tree index for
+given page.
 
-[dvyukov@google.com: v3]
-  Link: http://lkml.kernel.org/r/1479998292-144502-1-git-send-email-dvyukov@google.com
-Link: http://lkml.kernel.org/r/1479226045-145148-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: <stable@vger.kernel.org>	[4.0+]
+We will be able to get rid of this once hugetlb will be switched to
+multi-order entries.
+
+Fixes: fc127da085c2 ("truncate: handle file thp")
+Link: http://lkml.kernel.org/r/20161123093053.mjbnvn5zwxw5e6lk@black.fi.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Doug Nelson <doug.nelson@intel.com>
+Tested-by: Doug Nelson <doug.nelson@intel.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>	[4.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c  |   29 +++++++++++++++++++++++++++++
- mm/kasan/kasan.c  |   19 +++++++++++++++++++
- mm/kasan/kasan.h  |    1 +
- mm/kasan/report.c |    3 +++
- 4 files changed, 52 insertions(+)
+ include/linux/pagemap.h |   21 +++++++++++++++------
+ mm/truncate.c           |    8 ++++----
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN lib/test_kasan.c~kasan-support-use-after-scope-detection lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-support-use-after-scope-detection
-+++ a/lib/test_kasan.c
-@@ -20,6 +20,11 @@
- #include <linux/uaccess.h>
- #include <linux/module.h>
+diff -puN include/linux/pagemap.h~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb
++++ a/include/linux/pagemap.h
+@@ -374,16 +374,13 @@ static inline struct page *read_mapping_
+ }
  
-+/*
-+ * Note: test functions are marked noinline so that their names appear in
-+ * reports.
+ /*
+- * Get the offset in PAGE_SIZE.
+- * (TODO: hugepage should have ->index in PAGE_SIZE)
++ * Get index of the page with in radix-tree
++ * (TODO: remove once hugetlb pages will have ->index in PAGE_SIZE)
+  */
+-static inline pgoff_t page_to_pgoff(struct page *page)
++static inline pgoff_t page_to_index(struct page *page)
+ {
+ 	pgoff_t pgoff;
+ 
+-	if (unlikely(PageHeadHuge(page)))
+-		return page->index << compound_order(page);
+-
+ 	if (likely(!PageTransTail(page)))
+ 		return page->index;
+ 
+@@ -397,6 +394,18 @@ static inline pgoff_t page_to_pgoff(stru
+ }
+ 
+ /*
++ * Get the offset in PAGE_SIZE.
++ * (TODO: hugepage should have ->index in PAGE_SIZE)
 + */
-+
- static noinline void __init kmalloc_oob_right(void)
- {
- 	char *ptr;
-@@ -411,6 +416,29 @@ static noinline void __init copy_user_te
- 	kfree(kmem);
- }
- 
-+static noinline void __init use_after_scope_test(void)
++static inline pgoff_t page_to_pgoff(struct page *page)
 +{
-+	volatile char *volatile p;
++	if (unlikely(PageHeadHuge(page)))
++		return page->index << compound_order(page);
 +
-+	pr_info("use-after-scope on int\n");
-+	{
-+		int local = 0;
-+
-+		p = (char *)&local;
-+	}
-+	p[0] = 1;
-+	p[3] = 1;
-+
-+	pr_info("use-after-scope on array\n");
-+	{
-+		char local[1024] = {0};
-+
-+		p = local;
-+	}
-+	p[0] = 1;
-+	p[1023] = 1;
++	return page_to_index(page);
 +}
 +
- static int __init kmalloc_tests_init(void)
- {
- 	kmalloc_oob_right();
-@@ -436,6 +464,7 @@ static int __init kmalloc_tests_init(voi
- 	kasan_global_oob();
- 	ksize_unpoisons_memory();
- 	copy_user_test();
-+	use_after_scope_test();
- 	return -EAGAIN;
- }
++/*
+  * Return byte-offset into filesystem object for page.
+  */
+ static inline loff_t page_offset(struct page *page)
+diff -puN mm/truncate.c~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb mm/truncate.c
+--- a/mm/truncate.c~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb
++++ a/mm/truncate.c
+@@ -283,7 +283,7 @@ void truncate_inode_pages_range(struct a
  
-diff -puN mm/kasan/kasan.c~kasan-support-use-after-scope-detection mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-support-use-after-scope-detection
-+++ a/mm/kasan/kasan.c
-@@ -764,6 +764,25 @@ EXPORT_SYMBOL(__asan_storeN_noabort);
- void __asan_handle_no_return(void) {}
- EXPORT_SYMBOL(__asan_handle_no_return);
+ 			if (!trylock_page(page))
+ 				continue;
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
+ 			if (PageWriteback(page)) {
+ 				unlock_page(page);
+ 				continue;
+@@ -371,7 +371,7 @@ void truncate_inode_pages_range(struct a
+ 			}
  
-+/* Emitted by compiler to poison large objects when they go out of scope. */
-+void __asan_poison_stack_memory(const void *addr, size_t size)
-+{
-+	/*
-+	 * Addr is KASAN_SHADOW_SCALE_SIZE-aligned and the object is surrounded
-+	 * by redzones, so we simply round up size to simplify logic.
-+	 */
-+	kasan_poison_shadow(addr, round_up(size, KASAN_SHADOW_SCALE_SIZE),
-+			    KASAN_USE_AFTER_SCOPE);
-+}
-+EXPORT_SYMBOL(__asan_poison_stack_memory);
-+
-+/* Emitted by compiler to unpoison large objects when they go into scope. */
-+void __asan_unpoison_stack_memory(const void *addr, size_t size)
-+{
-+	kasan_unpoison_shadow(addr, size);
-+}
-+EXPORT_SYMBOL(__asan_unpoison_stack_memory);
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int kasan_mem_notifier(struct notifier_block *nb,
- 			unsigned long action, void *data)
-diff -puN mm/kasan/kasan.h~kasan-support-use-after-scope-detection mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-support-use-after-scope-detection
-+++ a/mm/kasan/kasan.h
-@@ -21,6 +21,7 @@
- #define KASAN_STACK_MID         0xF2
- #define KASAN_STACK_RIGHT       0xF3
- #define KASAN_STACK_PARTIAL     0xF4
-+#define KASAN_USE_AFTER_SCOPE   0xF8
+ 			lock_page(page);
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
+ 			wait_on_page_writeback(page);
+ 			truncate_inode_page(mapping, page);
+ 			unlock_page(page);
+@@ -492,7 +492,7 @@ unsigned long invalidate_mapping_pages(s
+ 			if (!trylock_page(page))
+ 				continue;
  
- /* Don't break randconfig/all*config builds */
- #ifndef KASAN_ABI_VERSION
-diff -puN mm/kasan/report.c~kasan-support-use-after-scope-detection mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-support-use-after-scope-detection
-+++ a/mm/kasan/report.c
-@@ -90,6 +90,9 @@ static void print_error_description(stru
- 	case KASAN_KMALLOC_FREE:
- 		bug_type = "use-after-free";
- 		break;
-+	case KASAN_USE_AFTER_SCOPE:
-+		bug_type = "use-after-scope";
-+		break;
- 	}
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
  
- 	pr_err("BUG: KASAN: %s in %pS at addr %p\n",
+ 			/* Middle of THP: skip */
+ 			if (PageTransTail(page)) {
+@@ -612,7 +612,7 @@ int invalidate_inode_pages2_range(struct
+ 			}
+ 
+ 			lock_page(page);
+-			WARN_ON(page_to_pgoff(page) != index);
++			WARN_ON(page_to_index(page) != index);
+ 			if (page->mapping != mapping) {
+ 				unlock_page(page);
+ 				continue;
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-kasan-support-panic_on_warn.patch
-kasan-eliminate-long-stalls-during-quarantine-reduction.patch
+filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert.patch
 
