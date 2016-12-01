@@ -1,122 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-fix-unbalanced-idr-management-at-hot-removal.patch
- removed from -mm tree
-Date: Thu, 01 Dec 2016 12:06:47 -0800
-Message-ID: <584082d7.4EgbbNERgSUUyPkW%akpm@linux-foundation.org>
+Subject: [merged] lib-debugobjects-export-for-use-in-modules.patch removed from -mm tree
+Date: Thu, 01 Dec 2016 12:06:50 -0800
+Message-ID: <584082da.Ufecrtb5a8tdWCL7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759174AbcLAUGs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2016 15:06:48 -0500
+        with ESMTP id S1759196AbcLAUGv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2016 15:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tiwai@suse.de, ddiss@suse.de, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: chris@chris-wilson.co.uk, borntraeger@de.ibm.com, changbin.du@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix unbalanced idr management at hot removal
+     Subject: lib/debugobjects: export for use in modules
 has been removed from the -mm tree.  Its filename was
-     zram-fix-unbalanced-idr-management-at-hot-removal.patch
+     lib-debugobjects-export-for-use-in-modules.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Takashi Iwai <tiwai@suse.de>
-Subject: zram: fix unbalanced idr management at hot removal
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: lib/debugobjects: export for use in modules
 
-The zram hot removal code calls idr_remove() even when zram_remove()
-returns an error (typically -EBUSY).  This results in a leftover at the
-device release, eventually leading to a crash when the module is reloaded.
+Drivers, or other modules, that use a mixture of objects (especially
+objects embedded within other objects) would like to take advantage of
+the debugobjects facilities to help catch misuse. Currently, the
+debugobjects interface is only available to builtin drivers and requires
+a set of EXPORT_SYMBOL_GPL for use by modules.
 
-As described in the bug report below, the following procedure would cause
-an Oops with zram:
+I am using the debugobjects in i915.ko to try and catch some invalid
+operations on embedded objects.  The problem currently only presents
+itself across module unload so forcing i915 to be builtin is not an
+option.
 
-- provision three zram devices via modprobe zram num_devices=3
-- configure a size for each device
-  + echo "1G" > /sys/block/$zram_name/disksize
-- mkfs and mount zram0 only
-- attempt to hot remove all three devices
-  + echo 2 > /sys/class/zram-control/hot_remove
-  + echo 1 > /sys/class/zram-control/hot_remove
-  + echo 0 > /sys/class/zram-control/hot_remove
-     - zram0 removal fails with EBUSY, as expected
-- unmount zram0
-- try zram0 hot remove again
-  + echo 0 > /sys/class/zram-control/hot_remove
-     - fails with ENODEV (unexpected)
-- unload zram kernel module
-  + completes successfully
-- zram0 device node still exists
-- attempt to mount /dev/zram0
-  + mount command is killed
-  + following BUG is encountered
-
- BUG: unable to handle kernel paging request at ffffffffa0002ba0
- IP: [<ffffffff812eead6>] get_disk+0x16/0x50
- Oops: 0000 [#1] SMP
- CPU: 0 PID: 252 Comm: mount Not tainted 4.9.0-rc6 #176
- task: ffff88001a9f2800 task.stack: ffffc90000300000
- RIP: 0010:[<ffffffff812eead6>]  [<ffffffff812eead6>] get_disk+0x16/0x50
- Call Trace:
-  [<ffffffff812eeb1c>] exact_lock+0xc/0x20
-  [<ffffffff813b3e1c>] kobj_lookup+0xdc/0x160
-  [<ffffffff812edce0>] ? disk_map_sector_rcu+0x70/0x70
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff812eef4f>] get_gendisk+0x2f/0x110
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff81126e2c>] __blkdev_get+0x10c/0x3c0
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff8112727d>] blkdev_get+0x19d/0x2e0
-  [<ffffffff81127410>] ? blkdev_get_by_dev+0x50/0x50
-  [<ffffffff81127466>] blkdev_open+0x56/0x70
-  [<ffffffff810f3e0f>] do_dentry_open.isra.19+0x1ff/0x310
-  [<ffffffff810f4aa3>] vfs_open+0x43/0x60
-  [<ffffffff81103009>] path_openat+0x2c9/0xf30
-  [<ffffffff81023c00>] ? __save_stack_trace+0x40/0xd0
-  [<ffffffff81104b79>] do_filp_open+0x79/0xd0
-  [<ffffffff81538219>] ? kmemleak_alloc+0x49/0xa0
-  [<ffffffff810f4e44>] do_sys_open+0x114/0x1e0
-  [<ffffffff810f4f29>] SyS_open+0x19/0x20
-  [<ffffffff8153c2e0>] entry_SYSCALL_64_fastpath+0x13/0x94
-
-This patch adds the proper error check in hot_remove_store() not to
-call idr_remove() unconditionally.
-
-Fixes: 17ec4cd98578 ("zram: don't call idr_remove() from zram_remove()")
-Bugzilla: https://bugzilla.opensuse.org/show_bug.cgi?id=1010970
-Link: http://lkml.kernel.org/r/20161121132140.12683-1-tiwai@suse.de
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Reviewed-by: David Disseldorp <ddiss@suse.de>
-Reported-by: David Disseldorp <ddiss@suse.de>
-Tested-by: David Disseldorp <ddiss@suse.de>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: <stable@vger.kernel.org>    [4.4+]
+Link: http://lkml.kernel.org/r/20161122143039.6433-1-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: "Du, Changbin" <changbin.du@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/debugobjects.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-fix-unbalanced-idr-management-at-hot-removal drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-fix-unbalanced-idr-management-at-hot-removal
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1403,7 +1403,8 @@ static ssize_t hot_remove_store(struct c
- 	zram = idr_find(&zram_index_idr, dev_id);
- 	if (zram) {
- 		ret = zram_remove(zram);
--		idr_remove(&zram_index_idr, dev_id);
-+		if (!ret)
-+			idr_remove(&zram_index_idr, dev_id);
- 	} else {
- 		ret = -ENODEV;
+diff -puN lib/debugobjects.c~lib-debugobjects-export-for-use-in-modules lib/debugobjects.c
+--- a/lib/debugobjects.c~lib-debugobjects-export-for-use-in-modules
++++ a/lib/debugobjects.c
+@@ -362,6 +362,7 @@ void debug_object_init(void *addr, struc
+ 
+ 	__debug_object_init(addr, descr, 0);
+ }
++EXPORT_SYMBOL_GPL(debug_object_init);
+ 
+ /**
+  * debug_object_init_on_stack - debug checks when an object on stack is
+@@ -376,6 +377,7 @@ void debug_object_init_on_stack(void *ad
+ 
+ 	__debug_object_init(addr, descr, 1);
+ }
++EXPORT_SYMBOL_GPL(debug_object_init_on_stack);
+ 
+ /**
+  * debug_object_activate - debug checks when an object is activated
+@@ -449,6 +451,7 @@ int debug_object_activate(void *addr, st
  	}
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(debug_object_activate);
+ 
+ /**
+  * debug_object_deactivate - debug checks when an object is deactivated
+@@ -496,6 +499,7 @@ void debug_object_deactivate(void *addr,
+ 
+ 	raw_spin_unlock_irqrestore(&db->lock, flags);
+ }
++EXPORT_SYMBOL_GPL(debug_object_deactivate);
+ 
+ /**
+  * debug_object_destroy - debug checks when an object is destroyed
+@@ -542,6 +546,7 @@ void debug_object_destroy(void *addr, st
+ out_unlock:
+ 	raw_spin_unlock_irqrestore(&db->lock, flags);
+ }
++EXPORT_SYMBOL_GPL(debug_object_destroy);
+ 
+ /**
+  * debug_object_free - debug checks when an object is freed
+@@ -582,6 +587,7 @@ void debug_object_free(void *addr, struc
+ out_unlock:
+ 	raw_spin_unlock_irqrestore(&db->lock, flags);
+ }
++EXPORT_SYMBOL_GPL(debug_object_free);
+ 
+ /**
+  * debug_object_assert_init - debug checks when object should be init-ed
+@@ -626,6 +632,7 @@ void debug_object_assert_init(void *addr
+ 
+ 	raw_spin_unlock_irqrestore(&db->lock, flags);
+ }
++EXPORT_SYMBOL_GPL(debug_object_assert_init);
+ 
+ /**
+  * debug_object_active_state - debug checks object usage state machine
+@@ -673,6 +680,7 @@ debug_object_active_state(void *addr, st
+ 
+ 	raw_spin_unlock_irqrestore(&db->lock, flags);
+ }
++EXPORT_SYMBOL_GPL(debug_object_active_state);
+ 
+ #ifdef CONFIG_DEBUG_OBJECTS_FREE
+ static void __debug_check_no_obj_freed(const void *address, unsigned long size)
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from chris@chris-wilson.co.uk are
 
 
