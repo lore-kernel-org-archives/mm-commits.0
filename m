@@ -1,86 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [failures] proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
+Subject: [failures] proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
  removed from -mm tree
-Date: Fri, 02 Dec 2016 15:54:33 -0800
-Message-ID: <584209b9.RC0sxbGXhSSG+1cj%akpm@linux-foundation.org>
+Date: Fri, 02 Dec 2016 15:54:36 -0800
+Message-ID: <584209bc.+ZTvURTn3+kvah+5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59234 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751577AbcLBXyN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 18:54:13 -0500
+        with ESMTP id S1751577AbcLBXyP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 18:54:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, andy.shevchenko@gmail.com, dan.j.williams@intel.com, hch@lst.de, khandual@linux.vnet.ibm.com, linux@roeck-us.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: dave.hansen@linux.intel.com, andy.shevchenko@gmail.com, dan.j.williams@intel.com, hch@lst.de, khandual@linux.vnet.ibm.com, linux@roeck-us.net, sfr@canb.auug.org.au, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: mm: export PTE sizes directly in smaps
+     Subject: proc-mm-export-pte-sizes-directly-in-smaps-v3
 has been removed from the -mm tree.  Its filename was
-     proc-mm-export-pte-sizes-directly-in-smaps-v2.patch
+     proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: proc: mm: export PTE sizes directly in smaps
+Subject: proc-mm-export-pte-sizes-directly-in-smaps-v3
 
-/proc/$pid/smaps has a number of fields that are intended to imply the
-kinds of PTEs used to map memory.  "AnonHugePages" obviously tells you how
-many PMDs are being used.  "MMUPageSize" along with the "Hugetlb" fields
-tells you how many PTEs you have for a huge page.
+Changes from v2:
+ * Do not assume (wrongly) that smaps_hugetlb_range() always uses
+   PUDs.  (Thanks for pointing this out, Vlastimil).  Also handle
+   hstates that are not exactly at PMD/PUD sizes.
 
-The current mechanisms work fine when we have one or two page sizes.  But,
-they start to get a bit muddled when we mix page sizes inside one VMA. 
-For instance, the DAX folks were proposing adding a set of fields like:
-
-	DevicePages:
-	DeviceHugePages:
-	DeviceGiganticPages:
-	DeviceGinormousPages:
-
-to unmuddle things when page sizes get mixed.  That's fine, but it does
-require userspace know the mapping from our various arbitrary names to
-hardware page sizes on each architecture and kernel configuration.  That
-seems rather suboptimal.
-
-What folks really want is to know how much memory is mapped with each page
-size.  How about we just do *that* instead?
-
-Patch attached.  Seems harmless enough.  Seems to compile on a bunch of
-random architectures.  Makes smaps look like this:
-
-Private_Hugetlb:       0 kB
-Swap:                  0 kB
-SwapPss:               0 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Locked:                0 kB
-Ptes@4kB:	      32 kB
-Ptes@2MB:	    2048 kB
-
-The format I used here should be unlikely to break smaps parsers unless
-they're looking for "kB" and now match the 'Ptes@4kB' instead of the one
-at the end of the line.
-
-Note: hugetlbfs PTEs are unusual.  We can have more than one "pte_t" for
-each hugetlbfs "page".  arm64 has this configuration, and probably others.
-The code should now handle when an hstate's size is not equal to one of
-the page table entry sizes.  For instance, it assumes that hstates between
-PMD_SIZE and PUD_SIZE are made up of multiple PMDs and prints them as
-such.
-
-I've tested this on x86 with normal 4k ptes, anonymous huge pages,
-1G hugetlbfs and 2M hugetlbfs pages.
-
-1. I'd like to thank Dan Williams for showing me a mirror as I
-   complained about the bozo that introduced 'AnonHugePages'.
-
-Link: http://lkml.kernel.org/r/20161117002851.C7BACB98@viggo.jf.intel.com
+Link: http://lkml.kernel.org/r/20161129201703.CE9D5054@viggo.jf.intel.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
@@ -90,165 +45,77 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    6 ++
- fs/proc/task_mmu.c                 |   81 ++++++++++++++++++++++++++-
- 2 files changed, 85 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |   27 ++++++++++++++++++++++++++-
+ mm/hugetlb.c       |   11 +++++++++++
+ 2 files changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-mm-export-pte-sizes-directly-in-smaps-v2 Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-mm-export-pte-sizes-directly-in-smaps-v2
-+++ a/Documentation/filesystems/proc.txt
-@@ -418,6 +418,9 @@ SwapPss:               0 kB
- KernelPageSize:        4 kB
- MMUPageSize:           4 kB
- Locked:                0 kB
-+Ptes@4kB:	       4 kB
-+Ptes@2MB:	    8192 kB
-+
- VmFlags: rd ex mr mw me dw
- 
- the first of these lines shows the same information as is displayed for the
-@@ -450,6 +453,9 @@ replaced by copy-on-write) part of the u
- "SwapPss" shows proportional swap share of this mapping. Unlike "Swap", this
- does not take into account swapped out page of underlying shmem objects.
- "Locked" indicates whether the mapping is locked in memory or not.
-+"Ptes@..." lines show how many page table entries are currently in place and
-+pointing to memory.  There is an entry for each size present in the hardware
-+page tables for this mapping.
- 
- "VmFlags" field deserves a separate description. This member represents the kernel
- flags associated with the particular virtual memory area in two letter encoded
-diff -puN fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v2 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v2
+diff -puN fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v3 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v3
 +++ a/fs/proc/task_mmu.c
-@@ -445,6 +445,9 @@ struct mem_size_stats {
- 	unsigned long swap;
- 	unsigned long shared_hugetlb;
- 	unsigned long private_hugetlb;
-+	unsigned long rss_pte;
-+	unsigned long rss_pmd;
-+	unsigned long rss_pud;
- 	u64 pss;
- 	u64 swap_pss;
- 	bool check_shmem_swap;
-@@ -519,6 +522,7 @@ static void smaps_pte_entry(pte_t *pte,
- 
- 	if (pte_present(*pte)) {
- 		page = vm_normal_page(vma, addr, *pte);
-+		mss->rss_pte += PAGE_SIZE;
- 	} else if (is_swap_pte(*pte)) {
- 		swp_entry_t swpent = pte_to_swp_entry(*pte);
- 
-@@ -578,6 +582,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 		/* pass */;
- 	else
- 		VM_BUG_ON_PAGE(1, page);
-+	mss->rss_pmd += PMD_SIZE;
- 	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
+@@ -689,6 +689,30 @@ static void show_smap_vma_flags(struct s
  }
- #else
-@@ -702,11 +707,13 @@ static int smaps_hugetlb_range(pte_t *pt
- 	}
- 	if (page) {
- 		int mapcount = page_mapcount(page);
-+		unsigned long hpage_size = huge_page_size(hstate_vma(vma));
  
+ #ifdef CONFIG_HUGETLB_PAGE
++/*
++ * Most architectures have a 1:1 mapping of PTEs to hugetlb page
++ * sizes, but there are some outliers like arm64 that use
++ * multiple hardware PTEs to make a hugetlb "page".  Do not
++ * assume that all 'hpage_size's are not exactly at a page table
++ * size boundary.  Instead, accept arbitrary 'hpage_size's and
++ * assume they are made up of the next-smallest size.  We do not
++ * handle PGD-sized hpages and hugetlb_add_hstate() will WARN()
++ * if it sees one.
++ *
++ * Note also that the page walker code only calls us once per
++ * huge 'struct page', *not* once per PTE in the page tables.
++ */
++static void smaps_hugetlb_present_hpage(struct mem_size_stats *mss,
++					unsigned long hpage_size)
++{
++	if (hpage_size >= PUD_SIZE)
 +		mss->rss_pud += hpage_size;
++	else if (hpage_size >= PMD_SIZE)
++		mss->rss_pmd += hpage_size;
++	else
++		mss->rss_pte += hpage_size;
++}
++
+ static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
+ 				 unsigned long addr, unsigned long end,
+ 				 struct mm_walk *walk)
+@@ -709,7 +733,8 @@ static int smaps_hugetlb_range(pte_t *pt
+ 		int mapcount = page_mapcount(page);
+ 		unsigned long hpage_size = huge_page_size(hstate_vma(vma));
+ 
+-		mss->rss_pud += hpage_size;
++		smaps_hugetlb_present_hpage(mss, hpage_size);
++
  		if (mapcount >= 2)
--			mss->shared_hugetlb += huge_page_size(hstate_vma(vma));
-+			mss->shared_hugetlb += hpage_size;
+ 			mss->shared_hugetlb += hpage_size;
  		else
--			mss->private_hugetlb += huge_page_size(hstate_vma(vma));
-+			mss->private_hugetlb += hpage_size;
- 	}
- 	return 0;
- }
-@@ -716,6 +723,75 @@ void __weak arch_show_smap(struct seq_fi
- {
- }
+diff -puN mm/hugetlb.c~proc-mm-export-pte-sizes-directly-in-smaps-v3 mm/hugetlb.c
+--- a/mm/hugetlb.c~proc-mm-export-pte-sizes-directly-in-smaps-v3
++++ a/mm/hugetlb.c
+@@ -2905,6 +2905,17 @@ void __init hugetlb_add_hstate(unsigned
+ 					huge_page_size(h)/1024);
  
-+/*
-+ * What units should we use for a given number?  We want
-+ * 2048 to be 2k, so we return 'k'.  1048576 should be
-+ * 1M, so we return 'M'.
-+ */
-+static char size_unit(unsigned long long nr)
-+{
+ 	parsed_hstate = h;
++
 +	/*
-+	 * This ' ' might look a bit goofy in the output.  But, why
-+	 * bother doing anything.  Do we even have a <1k page size?
++	 * PGD_SIZE isn't widely made available by architecures,
++	 * so use PUD_SIZE*PTRS_PER_PUD as a substitute.
++	 *
++	 * Check for sizes that might be mapped by a PGD.  There
++	 * are none of these known today, but be on the lookout.
++	 * If this trips, we will need to update the mss->rss_*
++	 * code in fs/proc/task_mmu.c.
 +	 */
-+	if (nr < (1ULL<<10))
-+		return ' ';
-+	if (nr < (1ULL<<20))
-+		return 'k';
-+	if (nr < (1ULL<<30))
-+		return 'M';
-+	if (nr < (1ULL<<40))
-+		return 'G';
-+	if (nr < (1ULL<<50))
-+		return 'T';
-+	if (nr < (1ULL<<60))
-+		return 'P';
-+	return 'E';
-+}
-+
-+/*
-+ * How should we shift down a a given number to scale it
-+ * with the units we are printing it as? 2048 to be 2k,
-+ * so we want it shifted down by 10.  1048576 should be
-+ * 1M, so we want it shifted down by 20.
-+ */
-+static int size_shift(unsigned long long nr)
-+{
-+	if (nr < (1ULL<<10))
-+		return 0;
-+	if (nr < (1ULL<<20))
-+		return 10;
-+	if (nr < (1ULL<<30))
-+		return 20;
-+	if (nr < (1ULL<<40))
-+		return 30;
-+	if (nr < (1ULL<<50))
-+		return 40;
-+	if (nr < (1ULL<<60))
-+		return 50;
-+	return 60;
-+}
-+
-+static void show_one_smap_pte(struct seq_file *m, unsigned long bytes_rss,
-+		unsigned long pte_size)
-+{
-+	seq_printf(m, "Ptes@%ld%cB:	%8lu kB\n",
-+			pte_size >> size_shift(pte_size),
-+			size_unit(pte_size),
-+			bytes_rss >> 10);
-+}
-+
-+static void show_smap_ptes(struct seq_file *m, struct mem_size_stats *mss)
-+{
-+	/* Only print the entries for page sizes present in the VMA */
-+	if (mss->rss_pte)
-+		show_one_smap_pte(m, mss->rss_pte, PAGE_SIZE);
-+	if (mss->rss_pmd)
-+		show_one_smap_pte(m, mss->rss_pmd, PMD_SIZE);
-+	if (mss->rss_pud)
-+		show_one_smap_pte(m, mss->rss_pud, PUD_SIZE);
-+}
-+
- static int show_smap(struct seq_file *m, void *v, int is_pid)
- {
- 	struct vm_area_struct *vma = v;
-@@ -799,6 +875,7 @@ static int show_smap(struct seq_file *m,
- 		   (vma->vm_flags & VM_LOCKED) ?
- 			(unsigned long)(mss.pss >> (10 + PSS_SHIFT)) : 0);
++	WARN_ON_ONCE((PAGE_SIZE << order) >= PUD_SIZE * PTRS_PER_PUD);
+ }
  
-+	show_smap_ptes(m, &mss);
- 	arch_show_smap(m, vma);
- 	show_smap_vma_flags(m, vma);
- 	m_cache_vma(m, vma);
+ static int __init hugetlb_nrpages_setup(char *s)
 _
 
 Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
 
