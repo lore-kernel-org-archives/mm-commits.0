@@ -1,143 +1,218 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
+ kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
  removed from -mm tree
-Date: Thu, 01 Dec 2016 12:06:58 -0800
-Message-ID: <584082e2.lk3zmH3Ysg7TVHCh%akpm@linux-foundation.org>
+Date: Fri, 02 Dec 2016 15:45:33 -0800
+Message-ID: <5842079d.Cm99KO7Xl3mX4DQy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757523AbcLAUG7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2016 15:06:59 -0500
+        with ESMTP id S1753364AbcLBXpd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 18:45:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, doug.nelson@intel.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix false-positive WARN_ON() in truncate/invalidate for hugetlb
+     Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
 has been removed from the -mm tree.  Its filename was
-     mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb.patch
+     kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix false-positive WARN_ON() in truncate/invalidate for hugetlb
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
 
-Hugetlb pages have ->index in size of the huge pages (PMD_SIZE or
-PUD_SIZE), not in PAGE_SIZE as other types of pages.  This means we cannot
-user page_to_pgoff() to check whether we've got the right page for the
-radix-tree index.
+Patch series "powerpc: Implement kexec_file_load()", v11.
 
-Let's introduce page_to_index() which would return radix-tree index for
-given page.
+This patch series implements the kexec_file_load system call on PowerPC.
 
-We will be able to get rid of this once hugetlb will be switched to
-multi-order entries.
+This system call moves the reading of the kernel, initrd and the device tree
+from the userspace kexec tool to the kernel. This is needed if you want to
+do one or both of the following:
 
-Fixes: fc127da085c2 ("truncate: handle file thp")
-Link: http://lkml.kernel.org/r/20161123093053.mjbnvn5zwxw5e6lk@black.fi.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Doug Nelson <doug.nelson@intel.com>
-Tested-by: Doug Nelson <doug.nelson@intel.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>	[4.8+]
+1. only allow loading of signed kernels.
+2. "measure" (i.e., record the hashes of) the kernel, initrd, kernel
+   command line and other boot inputs for the Integrity Measurement
+   Architecture subsystem.
+
+The above are the functions kexec already has built into kexec_file_load.
+Yesterday I posted a set of patches which allows a third feature:
+
+3. have IMA pass-on its event log (where integrity measurements are
+   registered) accross kexec to the second kernel, so that the event
+   history is preserved.
+
+Because OpenPower uses an intermediary Linux instance as a boot loader
+(skiroot), feature 1 is needed to implement secure boot for the platform,
+while features 2 and 3 are needed to implement trusted boot.
+
+This patch series starts by removing an x86 assumption from kexec_file:
+kexec_add_buffer uses iomem to find reserved memory ranges, but PowerPC
+uses the memblock subsystem.  A hook is added so that each arch can
+specify how memory ranges can be found.
+
+Also, the memory-walking logic in kexec_add_buffer is useful in this
+implementation to find a free area for the purgatory's stack, so the
+next patch moves that logic to kexec_locate_mem_hole.
+
+The kexec_file_load system call needs to apply relocations to the
+purgatory but adding code for that would duplicate functionality with
+the module loading mechanism, which also needs to apply relocations to
+the kernel modules.  Therefore, this patch series factors out the module
+relocation code so that it can be shared.
+
+One thing that is still missing is crashkernel support, which I intend
+to submit shortly. For now, arch_kexec_kernel_image_probe rejects crash
+kernels.
+
+This code is based on kexec-tools, but with many modifications to adapt
+it to the kernel environment and facilities.
+
+
+This patch (of 8):
+
+Allow architectures to specify a different memory walking function for
+kexec_add_buffer.  x86 uses iomem to track reserved memory ranges, but
+PowerPC uses the memblock subsystem.
+
+Link: http://lkml.kernel.org/r/1480423554-6411-2-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Dave Young <dyoung@redhat.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   21 +++++++++++++++------
- mm/truncate.c           |    8 ++++----
- 2 files changed, 19 insertions(+), 10 deletions(-)
+ include/linux/kexec.h   |   29 ++++++++++++++++++++++++++++-
+ kernel/kexec_file.c     |   30 ++++++++++++++++++++++--------
+ kernel/kexec_internal.h |   16 ----------------
+ 3 files changed, 50 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb
-+++ a/include/linux/pagemap.h
-@@ -374,16 +374,13 @@ static inline struct page *read_mapping_
- }
- 
- /*
-- * Get the offset in PAGE_SIZE.
-- * (TODO: hugepage should have ->index in PAGE_SIZE)
-+ * Get index of the page with in radix-tree
-+ * (TODO: remove once hugetlb pages will have ->index in PAGE_SIZE)
-  */
--static inline pgoff_t page_to_pgoff(struct page *page)
-+static inline pgoff_t page_to_index(struct page *page)
- {
- 	pgoff_t pgoff;
- 
--	if (unlikely(PageHeadHuge(page)))
--		return page->index << compound_order(page);
--
- 	if (likely(!PageTransTail(page)))
- 		return page->index;
- 
-@@ -397,6 +394,18 @@ static inline pgoff_t page_to_pgoff(stru
- }
- 
- /*
-+ * Get the offset in PAGE_SIZE.
-+ * (TODO: hugepage should have ->index in PAGE_SIZE)
-+ */
-+static inline pgoff_t page_to_pgoff(struct page *page)
-+{
-+	if (unlikely(PageHeadHuge(page)))
-+		return page->index << compound_order(page);
+diff -puN include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/include/linux/kexec.h
+@@ -148,7 +148,34 @@ struct kexec_file_ops {
+ 	kexec_verify_sig_t *verify_sig;
+ #endif
+ };
+-#endif
 +
-+	return page_to_index(page);
++/**
++ * struct kexec_buf - parameters for finding a place for a buffer in memory
++ * @image:	kexec image in which memory to search.
++ * @buffer:	Contents which will be copied to the allocated memory.
++ * @bufsz:	Size of @buffer.
++ * @mem:	On return will have address of the buffer in memory.
++ * @memsz:	Size for the buffer in memory.
++ * @buf_align:	Minimum alignment needed.
++ * @buf_min:	The buffer can't be placed below this address.
++ * @buf_max:	The buffer can't be placed above this address.
++ * @top_down:	Allocate from top of memory.
++ */
++struct kexec_buf {
++	struct kimage *image;
++	char *buffer;
++	unsigned long bufsz;
++	unsigned long mem;
++	unsigned long memsz;
++	unsigned long buf_align;
++	unsigned long buf_min;
++	unsigned long buf_max;
++	bool top_down;
++};
++
++int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
++			       int (*func)(u64, u64, void *));
++#endif /* CONFIG_KEXEC_FILE */
+ 
+ struct kimage {
+ 	kimage_entry_t head;
+diff -puN kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/kernel/kexec_file.c
+@@ -428,6 +428,27 @@ static int locate_mem_hole_callback(u64
+ 	return locate_mem_hole_bottom_up(start, end, kbuf);
+ }
+ 
++/**
++ * arch_kexec_walk_mem - call func(data) on free memory regions
++ * @kbuf:	Context info for the search. Also passed to @func.
++ * @func:	Function to call for each memory region.
++ *
++ * Return: The memory walk will stop when func returns a non-zero value
++ * and that value will be returned. If all free regions are visited without
++ * func returning non-zero, then zero will be returned.
++ */
++int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
++			       int (*func)(u64, u64, void *))
++{
++	if (kbuf->image->type == KEXEC_TYPE_CRASH)
++		return walk_iomem_res_desc(crashk_res.desc,
++					   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
++					   crashk_res.start, crashk_res.end,
++					   kbuf, func);
++	else
++		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
 +}
 +
-+/*
-  * Return byte-offset into filesystem object for page.
-  */
- static inline loff_t page_offset(struct page *page)
-diff -puN mm/truncate.c~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb mm/truncate.c
---- a/mm/truncate.c~mm-fix-false-positive-warn_on-in-truncate-invalidate-for-hugetlb
-+++ a/mm/truncate.c
-@@ -283,7 +283,7 @@ void truncate_inode_pages_range(struct a
+ /*
+  * Helper function for placing a buffer in a kexec segment. This assumes
+  * that kexec_mutex is held.
+@@ -474,14 +495,7 @@ int kexec_add_buffer(struct kimage *imag
+ 	kbuf->top_down = top_down;
  
- 			if (!trylock_page(page))
- 				continue;
--			WARN_ON(page_to_pgoff(page) != index);
-+			WARN_ON(page_to_index(page) != index);
- 			if (PageWriteback(page)) {
- 				unlock_page(page);
- 				continue;
-@@ -371,7 +371,7 @@ void truncate_inode_pages_range(struct a
- 			}
+ 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
+-	if (image->type == KEXEC_TYPE_CRASH)
+-		ret = walk_iomem_res_desc(crashk_res.desc,
+-				IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
+-				crashk_res.start, crashk_res.end, kbuf,
+-				locate_mem_hole_callback);
+-	else
+-		ret = walk_system_ram_res(0, -1, kbuf,
+-					  locate_mem_hole_callback);
++	ret = arch_kexec_walk_mem(kbuf, locate_mem_hole_callback);
+ 	if (ret != 1) {
+ 		/* A suitable memory range could not be found for buffer */
+ 		return -EADDRNOTAVAIL;
+diff -puN kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_internal.h
+--- a/kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/kernel/kexec_internal.h
+@@ -20,22 +20,6 @@ struct kexec_sha_region {
+ 	unsigned long len;
+ };
  
- 			lock_page(page);
--			WARN_ON(page_to_pgoff(page) != index);
-+			WARN_ON(page_to_index(page) != index);
- 			wait_on_page_writeback(page);
- 			truncate_inode_page(mapping, page);
- 			unlock_page(page);
-@@ -492,7 +492,7 @@ unsigned long invalidate_mapping_pages(s
- 			if (!trylock_page(page))
- 				continue;
- 
--			WARN_ON(page_to_pgoff(page) != index);
-+			WARN_ON(page_to_index(page) != index);
- 
- 			/* Middle of THP: skip */
- 			if (PageTransTail(page)) {
-@@ -612,7 +612,7 @@ int invalidate_inode_pages2_range(struct
- 			}
- 
- 			lock_page(page);
--			WARN_ON(page_to_pgoff(page) != index);
-+			WARN_ON(page_to_index(page) != index);
- 			if (page->mapping != mapping) {
- 				unlock_page(page);
- 				continue;
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert.patch
-
+-/*
+- * Keeps track of buffer parameters as provided by caller for requesting
+- * memory placement of buffer.
+- */
+-struct kexec_buf {
+-	struct kimage *image;
+-	char *buffer;
+-	unsigned long bufsz;
+-	unsigned long mem;
+-	unsigned long memsz;
+-	unsigned long buf_align;
+-	unsigned long buf_min;
+-	unsigned long buf_max;
+-	bool top_down;		/* allocate from top of memory hole */
+-};
