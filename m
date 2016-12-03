@@ -1,123 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: + mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch added to -mm tree
-Date: Fri, 02 Dec 2016 16:08:00 -0800
-Message-ID: <58420ce0.UWgJgeH+iGqFamwA%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-hugetlb-rename-some-allocation-functions.patch removed from -mm tree
+Date: Fri, 02 Dec 2016 16:37:08 -0800
+Message-ID: <584213b4.wPYtbFM1Ui4uhium%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33222 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754591AbcLCAHj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:07:39 -0500
+        with ESMTP id S1753440AbcLCAgs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:36:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, bsingharora@gmail.com, hannes@cmpxchg.org, marmarek@mimuw.edu.pl, stable@vger.kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: shijie.huang@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, gerald.schaefer@de.ibm.com, kaly.xin@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
-has been added to the -mm tree.  Its filename is
-     mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
+     Subject: mm: hugetlb: rename some allocation functions
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-rename-some-allocation-functions.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
+From: Huang Shijie <shijie.huang@arm.com>
+Subject: mm: hugetlb: rename some allocation functions
 
-0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
-has made the workingset shadow nodes shrinker memcg aware. The
-implementation is not correct though because memcg_kmem_enabled() might
-become true while we are doing a global reclaim when the sc->memcg might
-be NULL which is exactly what Marek has seen:
+Patch series "mm: fix the "counter.sh" failure for libhugetlbfs", v2.
 
-[   15.665196] BUG: unable to handle kernel NULL pointer dereference at 0000000000000400
-[   15.665213] IP: [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
-[   15.665225] PGD 0
-[   15.665230] Oops: 0000 [#1] SMP
-[   15.665285] CPU: 0 PID: 60 Comm: kswapd0 Tainted: G           O   4.8.10-12.pvops.qubes.x86_64 #1
-[   15.665292] task: ffff880011863b00 task.stack: ffff880011868000
-[   15.665297] RIP: e030:[<ffffffff8122d520>]  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
-[   15.665307] RSP: e02b:ffff88001186bc70  EFLAGS: 00010293
-[   15.665311] RAX: 0000000000000000 RBX: ffff88001186bd20 RCX: 0000000000000002
-[   15.665317] RDX: 000000000000000c RSI: 0000000000000000 RDI: 0000000000000000
-[   15.665322] RBP: ffff88001186bc70 R08: 28f5c28f5c28f5c3 R09: 0000000000000000
-[   15.665327] R10: 0000000000006c34 R11: 0000000000000333 R12: 00000000000001f6
-[   15.665332] R13: ffffffff81c6f6a0 R14: 0000000000000000 R15: 0000000000000000
-[   15.665343] FS:  0000000000000000(0000) GS:ffff880013c00000(0000) knlGS:ffff880013d00000
-[   15.665351] CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   15.665358] CR2: 0000000000000400 CR3: 00000000122f2000 CR4: 0000000000042660
-[   15.665366] Stack:
-[   15.665371]  ffff88001186bc98 ffffffff811e0dda 00000000000002eb 0000000000000080
-[   15.665384]  ffffffff81c6f6a0 ffff88001186bd70 ffffffff811c36d9 0000000000000000
-[   15.665397]  ffff88001186bcb0 ffff88001186bcb0 ffff88001186bcc0 000000000000abc5
-[   15.665410] Call Trace:
-[   15.665419]  [<ffffffff811e0dda>] count_shadow_nodes+0x9a/0xa0
-[   15.665428]  [<ffffffff811c36d9>] shrink_slab.part.42+0x119/0x3e0
-[   15.666049]  [<ffffffff811c83ec>] shrink_node+0x22c/0x320
-[   15.666049]  [<ffffffff811c928c>] kswapd+0x32c/0x700
-[   15.666049]  [<ffffffff811c8f60>] ? mem_cgroup_shrink_node+0x180/0x180
-[   15.666049]  [<ffffffff810c1b08>] kthread+0xd8/0xf0
-[   15.666049]  [<ffffffff817a3abf>] ret_from_fork+0x1f/0x40
-[   15.666049]  [<ffffffff810c1a30>] ? kthread_create_on_node+0x190/0x190
-[   15.666049] Code: 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 3b 35 dd eb b1 00 55 48 89 e5 73 2c 89 d2 31 c9 31 c0 4c 63 ce 48 0f a3 ca 73 13 <4a> 8b b4 cf 00 04 00 00 41 89 c8 4a 03 84 c6 80 00 00 00 83 c1
-[   15.666049] RIP  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
-[   15.666049]  RSP <ffff88001186bc70>
-[   15.666049] CR2: 0000000000000400
-[   15.666049] ---[ end trace 100494b9edbdfc4d ]---
+(1) Background
+   For the arm64, the hugetlb page size can be 32M (PMD + Contiguous bit).
+   In the 4K page environment, the max page order is 10 (max_order - 1),
+   so 32M page is the gigantic page.    
 
-This patch fixes the issue by checking sc->memcg rather than memcg_kmem_enabled()
-which is sufficient because shrink_slab makes sure that only memcg aware shrinkers
-will get non-NULL memcgs and only if memcg_kmem_enabled is true.
+   The arm64 MMU supports a Contiguous bit which is a hint that the TTE
+   is one of a set of contiguous entries which can be cached in a single
+   TLB entry.  Please refer to the arm64v8 mannul :
+       DDI0487A_f_armv8_arm.pdf (in page D4-1811)
 
-Fixes: 0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
-Link: http://lkml.kernel.org/r/20161201132156.21450-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
-Tested-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Cc: <stable@vger.kernel.org>	[4.6+]
+(2) The bug   
+   After I tested the libhugetlbfs, I found the test case "counter.sh"
+   will fail with the gigantic page (32M page in arm64 board).
+
+   This patch set adds support for gigantic surplus hugetlb pages,
+   allowing the counter.sh unit test to pass.   
+
+The counter.sh is just a wrapper for counter.c, available at
+  https://github.com/libhugetlbfs/libhugetlbfs/blob/master/tests/counters.c
+  https://github.com/libhugetlbfs/libhugetlbfs/blob/master/tests/counters.sh
+
+ The "counter.sh" test case will fail when we test the ARM64 32M gigantic page.
+ The error shows below:
+
+ ----------------------------------------------------------
+        ...........................................
+	LD_PRELOAD=libhugetlbfs.so shmoverride_unlinked (32M: 64):	PASS
+	LD_PRELOAD=libhugetlbfs.so HUGETLB_SHM=yes shmoverride_unlinked (32M: 64):	PASS
+	quota.sh (32M: 64):	PASS
+	counters.sh (32M: 64):	FAIL mmap failed: Invalid argument
+	********** TEST SUMMARY
+	*                      32M           
+	*                      32-bit 64-bit 
+	*     Total testcases:     0     87   
+	*             Skipped:     0      0   
+	*                PASS:     0     86   
+	*                FAIL:     0      1   
+	*    Killed by signal:     0      0   
+	*   Bad configuration:     0      0   
+	*       Expected FAIL:     0      0   
+	*     Unexpected PASS:     0      0   
+	* Strange test result:     0      0   
+	**********
+ ----------------------------------------------------------
+
+The failure is caused by:
+ 1) kernel fails to allocate a gigantic page for the surplus case.
+    And the gather_surplus_pages() will return NULL in the end.
+
+ 2) The condition checks for some functions are wrong:
+     return_unused_surplus_pages()
+     nr_overcommit_hugepages_store()
+     hugetlb_overcommit_handler()
+
+
+
+This patch (of 6):
+
+After a future patch __alloc_buddy_huge_page() will not necessarily use
+the buddy allocator.
+
+So remove the "buddy" from these functions:
+
+	__alloc_buddy_huge_page -> __alloc_huge_page
+	__alloc_buddy_huge_page_no_mpol -> __alloc_huge_page_no_mpol
+	__alloc_buddy_huge_page_with_mpol -> __alloc_huge_page_with_mpol
+
+This patch si in preparation for the later patch.
+
+Link: http://lkml.kernel.org/r/1479107259-2011-2-git-send-email-shijie.huang@arm.com
+Signed-off-by: Huang Shijie <shijie.huang@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A . Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Kaly Xin <kaly.xin@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-diff -puN mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes mm/workingset.c
---- a/mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes
-+++ a/mm/workingset.c
-@@ -348,7 +348,7 @@ static unsigned long count_shadow_nodes(
- 	shadow_nodes = list_lru_shrink_count(&workingset_shadow_nodes, sc);
- 	local_irq_enable();
+diff -puN mm/hugetlb.c~mm-hugetlb-rename-some-allocation-functions mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-rename-some-allocation-functions
++++ a/mm/hugetlb.c
+@@ -1157,6 +1157,10 @@ static int alloc_fresh_gigantic_page(str
  
--	if (memcg_kmem_enabled()) {
-+	if (sc->memcg) {
- 		pages = mem_cgroup_node_nr_lru_pages(sc->memcg, sc->nid,
- 						     LRU_ALL_FILE);
- 	} else {
+ static inline bool gigantic_page_supported(void) { return true; }
+ #else
++static inline struct page *alloc_gigantic_page(int nid, unsigned int order)
++{
++	return NULL;
++}
+ static inline bool gigantic_page_supported(void) { return false; }
+ static inline void free_gigantic_page(struct page *page, unsigned int order) { }
+ static inline void destroy_compound_gigantic_page(struct page *page,
+@@ -1568,7 +1572,7 @@ static struct page *__hugetlb_alloc_budd
+  * For (2), we ignore 'vma' and 'addr' and use 'nid' exclusively. This
+  * implies that memory policies will not be taken in to account.
+  */
+-static struct page *__alloc_buddy_huge_page(struct hstate *h,
++static struct page *__alloc_huge_page(struct hstate *h,
+ 		struct vm_area_struct *vma, unsigned long addr, int nid)
+ {
+ 	struct page *page;
+@@ -1649,21 +1653,21 @@ static struct page *__alloc_buddy_huge_p
+  * anywhere.
+  */
+ static
+-struct page *__alloc_buddy_huge_page_no_mpol(struct hstate *h, int nid)
++struct page *__alloc_huge_page_no_mpol(struct hstate *h, int nid)
+ {
+ 	unsigned long addr = -1;
+ 
+-	return __alloc_buddy_huge_page(h, NULL, addr, nid);
++	return __alloc_huge_page(h, NULL, addr, nid);
+ }
+ 
+ /*
+  * Use the VMA's mpolicy to allocate a huge page from the buddy.
+  */
+ static
+-struct page *__alloc_buddy_huge_page_with_mpol(struct hstate *h,
++struct page *__alloc_huge_page_with_mpol(struct hstate *h,
+ 		struct vm_area_struct *vma, unsigned long addr)
+ {
+-	return __alloc_buddy_huge_page(h, vma, addr, NUMA_NO_NODE);
++	return __alloc_huge_page(h, vma, addr, NUMA_NO_NODE);
+ }
+ 
+ /*
+@@ -1681,7 +1685,7 @@ struct page *alloc_huge_page_node(struct
+ 	spin_unlock(&hugetlb_lock);
+ 
+ 	if (!page)
+-		page = __alloc_buddy_huge_page_no_mpol(h, nid);
++		page = __alloc_huge_page_no_mpol(h, nid);
+ 
+ 	return page;
+ }
+@@ -1711,7 +1715,7 @@ static int gather_surplus_pages(struct h
+ retry:
+ 	spin_unlock(&hugetlb_lock);
+ 	for (i = 0; i < needed; i++) {
+-		page = __alloc_buddy_huge_page_no_mpol(h, NUMA_NO_NODE);
++		page = __alloc_huge_page_no_mpol(h, NUMA_NO_NODE);
+ 		if (!page) {
+ 			alloc_ok = false;
+ 			break;
+@@ -2027,7 +2031,7 @@ struct page *alloc_huge_page(struct vm_a
+ 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, gbl_chg);
+ 	if (!page) {
+ 		spin_unlock(&hugetlb_lock);
+-		page = __alloc_buddy_huge_page_with_mpol(h, vma, addr);
++		page = __alloc_huge_page_with_mpol(h, vma, addr);
+ 		if (!page)
+ 			goto out_uncharge_cgroup;
+ 		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
+@@ -2285,7 +2289,7 @@ static unsigned long set_max_huge_pages(
+ 	 * First take pages out of surplus state.  Then make up the
+ 	 * remaining difference by allocating fresh huge pages.
+ 	 *
+-	 * We might race with __alloc_buddy_huge_page() here and be unable
++	 * We might race with __alloc_huge_page() here and be unable
+ 	 * to convert a surplus huge page to a normal huge page. That is
+ 	 * not critical, though, it just means the overall size of the
+ 	 * pool might be one hugepage larger than it needs to be, but
+@@ -2331,7 +2335,7 @@ static unsigned long set_max_huge_pages(
+ 	 * By placing pages into the surplus state independent of the
+ 	 * overcommit value, we are allowing the surplus pool size to
+ 	 * exceed overcommit. There are few sane options here. Since
+-	 * __alloc_buddy_huge_page() is checking the global counter,
++	 * __alloc_huge_page() is checking the global counter,
+ 	 * though, we'll note that we're not allowed to exceed surplus
+ 	 * and won't grow the pool anywhere else. Not until one of the
+ 	 * sysctls are changed, or the surplus pages go out of use.
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from shijie.huang@arm.com are
 
-mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
+mm-hugetlb-add-a-new-parameter-for-some-functions.patch
+mm-hugetlb-change-the-return-type-for-alloc_fresh_gigantic_page.patch
+mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
+mm-mempolicy-intruduce-a-helper-huge_nodemask-v2.patch
+mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page.patch
+mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
+mm-hugetlb-support-gigantic-surplus-pages.patch
+mm-hugetlb-add-description-for-alloc_gigantic_page.patch
 
