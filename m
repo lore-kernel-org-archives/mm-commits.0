@@ -1,119 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch added
- to -mm tree
-Date: Fri, 02 Dec 2016 16:55:52 -0800
-Message-ID: <58421818.wo4yZYrwrf048Gaf%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ ima-permit-duplicate-measurement-list-entries.patch removed from -mm tree
+Date: Fri, 02 Dec 2016 17:13:43 -0800
+Message-ID: <58421c47.Zz8cjfs0sFzveAe9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34006 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755299AbcLCAzb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:55:31 -0500
+        with ESMTP id S932360AbcLCBNX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 20:13:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, bb@kernelpanic.ru, buczek@molgen.mpg.de, caker@theshore.net, pmenzel@molgen.mpg.de, mm-commits@vger.kernel.org
+To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dmitry.kasatkin@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: add cond_resched() into shrink_node_memcg()
-has been added to the -mm tree.  Its filename is
-     mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
+     Subject: ima: permit duplicate measurement list entries
+has been removed from the -mm tree.  Its filename was
+     ima-permit-duplicate-measurement-list-entries.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: add cond_resched() into shrink_node_memcg()
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: ima: permit duplicate measurement list entries
 
-Boris Zhmurov has reported RCU stalls during the kswapd reclaim:
-17511.573645] INFO: rcu_sched detected stalls on CPUs/tasks:
-[17511.573699]  23-...: (22 ticks this GP) idle=92f/140000000000000/0 softirq=2638404/2638404 fqs=23
-[17511.573740]  (detected by 4, t=6389 jiffies, g=786259, c=786258, q=42115)
-[17511.573776] Task dump for CPU 23:
-[17511.573777] kswapd1         R  running task        0   148      2 0x00000008
-[17511.573781]  0000000000000000 ffff8efe5f491400 ffff8efe44523e68 ffff8f16a7f49000
-[17511.573782]  0000000000000000 ffffffffafb67482 0000000000000000 0000000000000000
-[17511.573784]  0000000000000000 0000000000000000 ffff8efe44523e58 00000000016dbbee
-[17511.573786] Call Trace:
-[17511.573796]  [<ffffffffafb67482>] ? shrink_node+0xd2/0x2f0
-[17511.573798]  [<ffffffffafb683ab>] ? kswapd+0x2cb/0x6a0
-[17511.573800]  [<ffffffffafb680e0>] ? mem_cgroup_shrink_node+0x160/0x160
-[17511.573806]  [<ffffffffafa8b63d>] ? kthread+0xbd/0xe0
-[17511.573810]  [<ffffffffafa2967a>] ? __switch_to+0x1fa/0x5c0
-[17511.573813]  [<ffffffffaff9095f>] ? ret_from_fork+0x1f/0x40
-[17511.573815]  [<ffffffffafa8b580>] ? kthread_create_on_node+0x180/0x180
+Measurements carried across kexec need to be added to the IMA
+measurement list, but should not prevent measurements of the newly
+booted kernel from being added to the measurement list. This patch
+adds support for allowing duplicate measurements.
 
-a closer code inspection has shown that we might indeed miss all the
-scheduling points in the reclaim path if no pages can be isolated from
-the LRU list. This is a pathological case but other reports from Donald
-Buczek have shown that we might indeed hit such a path:
-        clusterd-989   [009] .... 118023.654491: mm_vmscan_direct_reclaim_end: nr_reclaimed=193
-         kswapd1-86    [001] dN.. 118023.987475: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239830 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118024.320968: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239844 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118024.654375: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239858 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118024.987036: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239872 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118025.319651: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239886 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118025.652248: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239900 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118025.984870: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239914 nr_taken=0 file=1
-[...]
-         kswapd1-86    [001] dN.. 118084.274403: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4241133 nr_taken=0 file=1
+The "boot_aggregate" measurement entry is the delimiter between soft
+boots.
 
-this is minute long snapshot which didn't take a single page from the
-LRU. It is not entirely clear why only 1303 pages have been scanned
-during that time (maybe there was a heavy IRQ activity interfering).
-
-In any case it looks like we can really hit long periods without
-scheduling on non preemptive kernels so an explicit cond_resched() in
-shrink_node_memcg which is independent on the reclaim operation is due.
-
-Link: http://lkml.kernel.org/r/20161202095841.16648-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Boris Zhmurov <bb@kernelpanic.ru>
-Tested-by: Boris Zhmurov <bb@kernelpanic.ru>
-Reported-by: Donald Buczek <buczek@molgen.mpg.de>
-Reported-by: "Christopher S. Aker" <caker@theshore.net>
-Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Link: http://lkml.kernel.org/r/1478789780-17719-4-git-send-email-zohar@linux.vnet.ibm.com
+Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Acked-by: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
+Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Andreas Steffen <andreas.steffen@strongswan.org>
+Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ security/integrity/ima/ima_queue.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-add-cond_resched-into-shrink_node_memcg mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-add-cond_resched-into-shrink_node_memcg
-+++ a/mm/vmscan.c
-@@ -2354,6 +2354,8 @@ static void shrink_node_memcg(struct pgl
- 			}
+diff -puN security/integrity/ima/ima_queue.c~ima-permit-duplicate-measurement-list-entries security/integrity/ima/ima_queue.c
+--- a/security/integrity/ima/ima_queue.c~ima-permit-duplicate-measurement-list-entries
++++ a/security/integrity/ima/ima_queue.c
+@@ -65,11 +65,13 @@ static struct ima_queue_entry *ima_looku
+ }
+ 
+ /* ima_add_template_entry helper function:
+- * - Add template entry to measurement list and hash table.
++ * - Add template entry to the measurement list and hash table, for
++ *   all entries except those carried across kexec.
+  *
+  * (Called with ima_extend_list_mutex held.)
+  */
+-static int ima_add_digest_entry(struct ima_template_entry *entry)
++static int ima_add_digest_entry(struct ima_template_entry *entry,
++				bool update_htable)
+ {
+ 	struct ima_queue_entry *qe;
+ 	unsigned int key;
+@@ -85,8 +87,10 @@ static int ima_add_digest_entry(struct i
+ 	list_add_tail_rcu(&qe->later, &ima_measurements);
+ 
+ 	atomic_long_inc(&ima_htable.len);
+-	key = ima_hash_key(entry->digest);
+-	hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
++	if (update_htable) {
++		key = ima_hash_key(entry->digest);
++		hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
++	}
+ 	return 0;
+ }
+ 
+@@ -126,7 +130,7 @@ int ima_add_template_entry(struct ima_te
  		}
+ 	}
  
-+		cond_resched();
-+
- 		if (nr_reclaimed < nr_to_reclaim || scan_adjusted)
- 			continue;
+-	result = ima_add_digest_entry(entry);
++	result = ima_add_digest_entry(entry, 1);
+ 	if (result < 0) {
+ 		audit_cause = "ENOMEM";
+ 		audit_info = 0;
+@@ -155,7 +159,7 @@ int ima_restore_measurement_entry(struct
+ 	int result = 0;
  
+ 	mutex_lock(&ima_extend_list_mutex);
+-	result = ima_add_digest_entry(entry);
++	result = ima_add_digest_entry(entry, 0);
+ 	mutex_unlock(&ima_extend_list_mutex);
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
-mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
+ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+ima-on-soft-reboot-save-the-measurement-list.patch
+ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+ima-support-restoring-multiple-template-formats.patch
+ima-define-a-canonical-binary_runtime_measurements-list-format.patch
 
