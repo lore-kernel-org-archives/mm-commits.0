@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
- added to -mm tree
-Date: Fri, 02 Dec 2016 17:22:02 -0800
-Message-ID: <58421e3a.jR9bjZcizf9Q1YOv%akpm@linux-foundation.org>
+Subject: + ima-platform-independent-hash-value.patch added to -mm tree
+Date: Fri, 02 Dec 2016 17:22:20 -0800
+Message-ID: <58421e4c.maISyugZHCFRPftm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34532 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753283AbcLCBW3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 20:22:29 -0500
+        with ESMTP id S1755479AbcLCBWa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 20:22:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, dmitry.kasatkin@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, paulus@samba.org, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, dmitry.kasatkin@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, paulus@samba.org, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: maintain memory size needed for serializing the measurement list
+     Subject: ima: platform-independent hash value
 has been added to the -mm tree.  Its filename is
-     ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+     ima-platform-independent-hash-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-platform-independent-hash-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-platform-independent-hash-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +38,19 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: maintain memory size needed for serializing the measurement list
+From: Andreas Steffen <andreas.steffen@strongswan.org>
+Subject: ima: platform-independent hash value
 
-In preparation for serializing the binary_runtime_measurements, this patch
-maintains the amount of memory required.
+For remote attestion it is important for the ima measurement values to be
+platform-independent.  Therefore integer fields to be hashed must be
+converted to canonical format.
 
-Link: http://lkml.kernel.org/r/1480554346-29071-5-git-send-email-zohar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1480554346-29071-11-git-send-email-zohar@linux.vnet.ibm.com
+Signed-off-by: Andreas Steffen <andreas.steffen@strongswan.org>
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Acked-by: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
 Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andreas Steffen <andreas.steffen@strongswan.org>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
@@ -63,140 +62,31 @@ Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/Kconfig     |   12 ++++++
- security/integrity/ima/ima.h       |    1 
- security/integrity/ima/ima_queue.c |   53 +++++++++++++++++++++++++--
- 3 files changed, 64 insertions(+), 2 deletions(-)
+ security/integrity/ima/ima_crypto.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN security/integrity/ima/Kconfig~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/Kconfig
---- a/security/integrity/ima/Kconfig~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
-+++ a/security/integrity/ima/Kconfig
-@@ -27,6 +27,18 @@ config IMA
- 	  to learn more about IMA.
- 	  If unsure, say N.
+diff -puN security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value security/integrity/ima/ima_crypto.c
+--- a/security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value
++++ a/security/integrity/ima/ima_crypto.c
+@@ -477,11 +477,13 @@ static int ima_calc_field_array_hash_tfm
+ 		u8 buffer[IMA_EVENT_NAME_LEN_MAX + 1] = { 0 };
+ 		u8 *data_to_hash = field_data[i].data;
+ 		u32 datalen = field_data[i].len;
++		u32 datalen_to_hash =
++		    !ima_canonical_fmt ? datalen : cpu_to_le32(datalen);
  
-+config IMA_KEXEC
-+	bool "Enable carrying the IMA measurement list across a soft boot"
-+	depends on IMA && TCG_TPM && HAVE_IMA_KEXEC
-+	default n
-+	help
-+	   TPM PCRs are only reset on a hard reboot.  In order to validate
-+	   a TPM's quote after a soft boot, the IMA measurement list of the
-+	   running kernel must be saved and restored on boot.
-+
-+	   Depending on the IMA policy, the measurement list can grow to
-+	   be very large.
-+
- config IMA_MEASURE_PCR_IDX
- 	int
- 	depends on IMA
-diff -puN security/integrity/ima/ima.h~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
-+++ a/security/integrity/ima/ima.h
-@@ -143,6 +143,7 @@ void ima_print_digest(struct seq_file *m
- struct ima_template_desc *ima_template_desc_current(void);
- int ima_restore_measurement_entry(struct ima_template_entry *entry);
- int ima_restore_measurement_list(loff_t bufsize, void *buf);
-+unsigned long ima_get_binary_runtime_size(void);
- int ima_init_template(void);
- 
- /*
-diff -puN security/integrity/ima/ima_queue.c~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/ima_queue.c
---- a/security/integrity/ima/ima_queue.c~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
-+++ a/security/integrity/ima/ima_queue.c
-@@ -29,6 +29,11 @@
- #define AUDIT_CAUSE_LEN_MAX 32
- 
- LIST_HEAD(ima_measurements);	/* list of all measurements */
-+#ifdef CONFIG_IMA_KEXEC
-+static unsigned long binary_runtime_size;
-+#else
-+static unsigned long binary_runtime_size = ULONG_MAX;
-+#endif
- 
- /* key: inode (before secure-hashing a file) */
- struct ima_h_table ima_htable = {
-@@ -64,6 +69,24 @@ static struct ima_queue_entry *ima_looku
- 	return ret;
- }
- 
-+/*
-+ * Calculate the memory required for serializing a single
-+ * binary_runtime_measurement list entry, which contains a
-+ * couple of variable length fields (e.g template name and data).
-+ */
-+static int get_binary_runtime_size(struct ima_template_entry *entry)
-+{
-+	int size = 0;
-+
-+	size += sizeof(u32);	/* pcr */
-+	size += sizeof(entry->digest);
-+	size += sizeof(int);	/* template name size field */
-+	size += strlen(entry->template_desc->name) + 1;
-+	size += sizeof(entry->template_data_len);
-+	size += entry->template_data_len;
-+	return size;
-+}
-+
- /* ima_add_template_entry helper function:
-  * - Add template entry to the measurement list and hash table, for
-  *   all entries except those carried across kexec.
-@@ -91,9 +114,30 @@ static int ima_add_digest_entry(struct i
- 		key = ima_hash_key(entry->digest);
- 		hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
- 	}
-+
-+	if (binary_runtime_size != ULONG_MAX) {
-+		int size;
-+
-+		size = get_binary_runtime_size(entry);
-+		binary_runtime_size = (binary_runtime_size < ULONG_MAX - size) ?
-+		     binary_runtime_size + size : ULONG_MAX;
-+	}
- 	return 0;
- }
- 
-+/*
-+ * Return the amount of memory required for serializing the
-+ * entire binary_runtime_measurement list, including the ima_kexec_hdr
-+ * structure.
-+ */
-+unsigned long ima_get_binary_runtime_size(void)
-+{
-+	if (binary_runtime_size >= (ULONG_MAX - sizeof(struct ima_kexec_hdr)))
-+		return ULONG_MAX;
-+	else
-+		return binary_runtime_size + sizeof(struct ima_kexec_hdr);
-+};
-+
- static int ima_pcr_extend(const u8 *hash, int pcr)
- {
- 	int result = 0;
-@@ -107,8 +151,13 @@ static int ima_pcr_extend(const u8 *hash
- 	return result;
- }
- 
--/* Add template entry to the measurement list and hash table,
-- * and extend the pcr.
-+/*
-+ * Add template entry to the measurement list and hash table, and
-+ * extend the pcr.
-+ *
-+ * On systems which support carrying the IMA measurement list across
-+ * kexec, maintain the total memory size required for serializing the
-+ * binary_runtime_measurements.
-  */
- int ima_add_template_entry(struct ima_template_entry *entry, int violation,
- 			   const char *op, struct inode *inode,
+ 		if (strcmp(td->name, IMA_TEMPLATE_IMA_NAME) != 0) {
+ 			rc = crypto_shash_update(shash,
+-						(const u8 *) &field_data[i].len,
+-						sizeof(field_data[i].len));
++						(const u8 *) &datalen_to_hash,
++						sizeof(datalen_to_hash));
+ 			if (rc)
+ 				break;
+ 		} else if (strcmp(td->fields[i]->field_id, "n") == 0) {
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from andreas.steffen@strongswan.org are
 
-ima-on-soft-reboot-restore-the-measurement-list.patch
-ima-permit-duplicate-measurement-list-entries.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-ima-on-soft-reboot-save-the-measurement-list.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-ima-support-restoring-multiple-template-formats.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+ima-platform-independent-hash-value.patch
 
