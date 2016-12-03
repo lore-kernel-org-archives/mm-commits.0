@@ -1,127 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-hugetlb-support-gigantic-surplus-pages.patch
- removed from -mm tree
-Date: Fri, 02 Dec 2016 16:37:28 -0800
-Message-ID: <584213c8.QwPQ9Utnuc4EdV2h%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-hugetlb-add-description-for-alloc_gigantic_page.patch removed from -mm
+ tree
+Date: Fri, 02 Dec 2016 16:37:31 -0800
+Message-ID: <584213cb.MJebiaCovwxnhZ53%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33338 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756968AbcLCAhH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:37:07 -0500
+        with ESMTP id S1758179AbcLCAhK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:37:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie.huang@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, gerald.schaefer@de.ibm.com, kaly.xin@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: shijie.huang@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: support gigantic surplus pages
+     Subject: mm: hugetlb: add description for alloc_gigantic_page()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-support-gigantic-surplus-pages.patch
+     mm-hugetlb-add-description-for-alloc_gigantic_page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Huang Shijie <shijie.huang@arm.com>
-Subject: mm: hugetlb: support gigantic surplus pages
+Subject: mm: hugetlb: add description for alloc_gigantic_page()
 
-When testing the gigantic page whose order is too large for the buddy
-allocator, the libhugetlbfs test case "counter.sh" will fail.
+This patch adds the description for function alloc_gigantic_page().
 
-The failure is caused by:
- 1) kernel fails to allocate a gigantic page for the surplus case.
-    And the gather_surplus_pages() will return NULL in the end.
-
- 2) The condition checks for "over-commit" is wrong.
-
-This patch uses __hugetlb_alloc_gigantic_page() to allocate the
-gigantic page in the __alloc_huge_page(). After this patch,
- gather_surplus_pages() can return a gigantic page for the surplus case.
-
-This patch also changes the condition checks for:
-
-     return_unused_surplus_pages()
-     nr_overcommit_hugepages_store()
-     hugetlb_overcommit_handler()
-
-After this patch, the counter.sh test can pass for the gigantic page.
-
-Link: http://lkml.kernel.org/r/1479107259-2011-7-git-send-email-shijie.huang@arm.com
+Link: http://lkml.kernel.org/r/1480487431-26181-1-git-send-email-shijie.huang@arm.com
 Signed-off-by: Huang Shijie <shijie.huang@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kirill A . Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Kaly Xin <kaly.xin@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-support-gigantic-surplus-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-support-gigantic-surplus-pages
+diff -puN mm/hugetlb.c~mm-hugetlb-add-description-for-alloc_gigantic_page mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-description-for-alloc_gigantic_page
 +++ a/mm/hugetlb.c
-@@ -1643,7 +1643,7 @@ static struct page *__alloc_huge_page(st
- 	struct page *page;
- 	unsigned int r_nid;
+@@ -1089,6 +1089,12 @@ static bool zone_spans_last_pfn(const st
+ 	return zone_spans_pfn(zone, last_pfn);
+ }
  
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return NULL;
- 
- 	/*
-@@ -1688,7 +1688,10 @@ static struct page *__alloc_huge_page(st
- 	}
- 	spin_unlock(&hugetlb_lock);
- 
--	page = __hugetlb_alloc_buddy_huge_page(h, vma, addr, nid);
-+	if (hstate_is_gigantic(h))
-+		page = __hugetlb_alloc_gigantic_page(h, vma, addr, nid);
-+	else
-+		page = __hugetlb_alloc_buddy_huge_page(h, vma, addr, nid);
- 
- 	spin_lock(&hugetlb_lock);
- 	if (page) {
-@@ -1855,8 +1858,7 @@ static void return_unused_surplus_pages(
- 	/* Uncommit the reservation */
- 	h->resv_huge_pages -= unused_resv_pages;
- 
--	/* Cannot return gigantic pages currently */
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return;
- 
- 	nr_pages = min(unused_resv_pages, h->surplus_huge_pages);
-@@ -2573,7 +2575,7 @@ static ssize_t nr_overcommit_hugepages_s
- 	unsigned long input;
- 	struct hstate *h = kobj_to_hstate(kobj, NULL);
- 
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return -EINVAL;
- 
- 	err = kstrtoul(buf, 10, &input);
-@@ -3014,7 +3016,7 @@ int hugetlb_overcommit_handler(struct ct
- 
- 	tmp = h->nr_overcommit_huge_pages;
- 
--	if (write && hstate_is_gigantic(h))
-+	if (write && hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return -EINVAL;
- 
- 	table->data = &tmp;
++/*
++ * Allocate a gigantic page from @nid node.
++ *
++ * Scan the zones of @nid node, and try to allocate a number of contiguous
++ * pages (1 << order).
++ */
+ static struct page *alloc_gigantic_page(int nid, unsigned int order)
+ {
+ 	unsigned long nr_pages = 1 << order;
 _
 
 Patches currently in -mm which might be from shijie.huang@arm.com are
 
-mm-hugetlb-add-description-for-alloc_gigantic_page.patch
 
