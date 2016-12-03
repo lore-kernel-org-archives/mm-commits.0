@@ -1,39 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-mempolicy-intruduce-a-helper-huge_nodemask-v2.patch removed from -mm
- tree
-Date: Fri, 02 Dec 2016 16:37:19 -0800
-Message-ID: <584213bf.Ftvjk7mR1UPgz1FF%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-hugetlb-support-gigantic-surplus-pages.patch
+ removed from -mm tree
+Date: Fri, 02 Dec 2016 16:37:28 -0800
+Message-ID: <584213c8.QwPQ9Utnuc4EdV2h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33282 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33332 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757062AbcLCAg6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:36:58 -0500
+        with ESMTP id S1756968AbcLCAhH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:37:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: shijie.huang@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, gerald.schaefer@de.ibm.com, kaly.xin@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mempolicy: intruduce a helper huge_nodemask()
+     Subject: mm: hugetlb: support gigantic surplus pages
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-intruduce-a-helper-huge_nodemask-v2.patch
+     mm-hugetlb-support-gigantic-surplus-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Huang Shijie <shijie.huang@arm.com>
-Subject: mm: mempolicy: intruduce a helper huge_nodemask()
+Subject: mm: hugetlb: support gigantic surplus pages
 
-The previous version does not treat the MPOL_PREFERRED/MPOL_INTERLEAVE
-cases.  This patch adds the code to set proper node mask for
-MPOL_PREFERRED/MPOL_INTERLEAVE.
+When testing the gigantic page whose order is too large for the buddy
+allocator, the libhugetlbfs test case "counter.sh" will fail.
 
-Link: http://lkml.kernel.org/r/1479279182-31294-1-git-send-email-shijie.huang@arm.com
+The failure is caused by:
+ 1) kernel fails to allocate a gigantic page for the surplus case.
+    And the gather_surplus_pages() will return NULL in the end.
+
+ 2) The condition checks for "over-commit" is wrong.
+
+This patch uses __hugetlb_alloc_gigantic_page() to allocate the
+gigantic page in the __alloc_huge_page(). After this patch,
+ gather_surplus_pages() can return a gigantic page for the surplus case.
+
+This patch also changes the condition checks for:
+
+     return_unused_surplus_pages()
+     nr_overcommit_hugepages_store()
+     hugetlb_overcommit_handler()
+
+After this patch, the counter.sh test can pass for the gigantic page.
+
+Link: http://lkml.kernel.org/r/1479107259-2011-7-git-send-email-shijie.huang@arm.com
 Signed-off-by: Huang Shijie <shijie.huang@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -48,108 +64,64 @@ Cc: Kaly Xin <kaly.xin@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   10 +++----
- mm/mempolicy.c            |   47 ++++++++++++++++++++++++++++--------
- 2 files changed, 42 insertions(+), 15 deletions(-)
+ mm/hugetlb.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-mempolicy-intruduce-a-helper-huge_nodemask-v2 include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-mempolicy-intruduce-a-helper-huge_nodemask-v2
-+++ a/include/linux/mempolicy.h
-@@ -145,8 +145,8 @@ extern void mpol_rebind_task(struct task
- 				enum mpol_rebind_step step);
- extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
+diff -puN mm/hugetlb.c~mm-hugetlb-support-gigantic-surplus-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-support-gigantic-surplus-pages
++++ a/mm/hugetlb.c
+@@ -1643,7 +1643,7 @@ static struct page *__alloc_huge_page(st
+ 	struct page *page;
+ 	unsigned int r_nid;
  
--extern nodemask_t *huge_nodemask(struct vm_area_struct *vma,
--				unsigned long addr);
-+extern bool huge_nodemask(struct vm_area_struct *vma,
-+				unsigned long addr, nodemask_t *mask);
- extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
- 				unsigned long addr, gfp_t gfp_flags,
- 				struct mempolicy **mpol, nodemask_t **nodemask);
-@@ -263,10 +263,10 @@ static inline void mpol_rebind_mm(struct
- {
- }
+-	if (hstate_is_gigantic(h))
++	if (hstate_is_gigantic(h) && !gigantic_page_supported())
+ 		return NULL;
  
--static inline nodemask_t *huge_nodemask(struct vm_area_struct *vma,
--				unsigned long addr)
-+static inline bool huge_nodemask(struct vm_area_struct *vma,
-+				unsigned long addr, nodemask_t *mask)
- {
--	return NULL;
-+	return false;
- }
+ 	/*
+@@ -1688,7 +1688,10 @@ static struct page *__alloc_huge_page(st
+ 	}
+ 	spin_unlock(&hugetlb_lock);
  
- static inline struct zonelist *huge_zonelist(struct vm_area_struct *vma,
-diff -puN mm/mempolicy.c~mm-mempolicy-intruduce-a-helper-huge_nodemask-v2 mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-intruduce-a-helper-huge_nodemask-v2
-+++ a/mm/mempolicy.c
-@@ -1800,23 +1800,50 @@ static inline unsigned interleave_nid(st
+-	page = __hugetlb_alloc_buddy_huge_page(h, vma, addr, nid);
++	if (hstate_is_gigantic(h))
++		page = __hugetlb_alloc_gigantic_page(h, vma, addr, nid);
++	else
++		page = __hugetlb_alloc_buddy_huge_page(h, vma, addr, nid);
  
- #ifdef CONFIG_HUGETLBFS
- /*
-- * huge_nodemask(@vma, @addr)
-+ * huge_nodemask(@vma, @addr, @mask)
-  * @vma: virtual memory area whose policy is sought
-- * @addr: address in @vma for shared policy lookup and interleave policy
-+ * @addr: address in @vma
-+ * @mask: a nodemask pointer
-  *
-- * If the effective policy is BIND, returns a pointer to the mempolicy's
-- * @nodemask.
-+ * Return true if we can succeed in extracting the policy nodemask
-+ * for 'bind' or 'interleave' policy into the argument @mask, or
-+ * initializing the argument @mask to contain the single node for
-+ * 'preferred' or 'local' policy.
-  */
--nodemask_t *huge_nodemask(struct vm_area_struct *vma, unsigned long addr)
-+bool huge_nodemask(struct vm_area_struct *vma, unsigned long addr,
-+			nodemask_t *mask)
- {
--	nodemask_t *nodes_mask = NULL;
--	struct mempolicy *mpol = get_vma_policy(vma, addr);
-+	struct mempolicy *mpol;
-+	bool ret = true;
-+	int nid;
+ 	spin_lock(&hugetlb_lock);
+ 	if (page) {
+@@ -1855,8 +1858,7 @@ static void return_unused_surplus_pages(
+ 	/* Uncommit the reservation */
+ 	h->resv_huge_pages -= unused_resv_pages;
  
--	if (mpol->mode == MPOL_BIND)
--		nodes_mask = &mpol->v.nodes;
-+	if (!mask)
-+		return false;
-+
-+	mpol = get_vma_policy(vma, addr);
-+
-+	switch (mpol->mode) {
-+	case MPOL_PREFERRED:
-+		if (mpol->flags & MPOL_F_LOCAL)
-+			nid = numa_node_id();
-+		else
-+			nid = mpol->v.preferred_node;
-+		init_nodemask_of_node(mask, nid);
-+		break;
-+
-+	case MPOL_BIND:
-+		/* Fall through */
-+	case MPOL_INTERLEAVE:
-+		*mask = mpol->v.nodes;
-+		break;
-+
-+	default:
-+		ret = false;
-+		break;
-+	}
- 	mpol_cond_put(mpol);
+-	/* Cannot return gigantic pages currently */
+-	if (hstate_is_gigantic(h))
++	if (hstate_is_gigantic(h) && !gigantic_page_supported())
+ 		return;
  
--	return nodes_mask;
-+	return ret;
- }
+ 	nr_pages = min(unused_resv_pages, h->surplus_huge_pages);
+@@ -2573,7 +2575,7 @@ static ssize_t nr_overcommit_hugepages_s
+ 	unsigned long input;
+ 	struct hstate *h = kobj_to_hstate(kobj, NULL);
  
- /*
+-	if (hstate_is_gigantic(h))
++	if (hstate_is_gigantic(h) && !gigantic_page_supported())
+ 		return -EINVAL;
+ 
+ 	err = kstrtoul(buf, 10, &input);
+@@ -3014,7 +3016,7 @@ int hugetlb_overcommit_handler(struct ct
+ 
+ 	tmp = h->nr_overcommit_huge_pages;
+ 
+-	if (write && hstate_is_gigantic(h))
++	if (write && hstate_is_gigantic(h) && !gigantic_page_supported())
+ 		return -EINVAL;
+ 
+ 	table->data = &tmp;
 _
 
 Patches currently in -mm which might be from shijie.huang@arm.com are
 
-mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page.patch
-mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page-v2.patch
-mm-hugetlb-support-gigantic-surplus-pages.patch
 mm-hugetlb-add-description-for-alloc_gigantic_page.patch
 
