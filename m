@@ -1,121 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [failures] proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
- removed from -mm tree
-Date: Fri, 02 Dec 2016 15:54:36 -0800
-Message-ID: <584209bc.+ZTvURTn3+kvah+5%akpm@linux-foundation.org>
+Subject: + mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch added to -mm tree
+Date: Fri, 02 Dec 2016 16:08:00 -0800
+Message-ID: <58420ce0.UWgJgeH+iGqFamwA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59234 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60066 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751577AbcLBXyP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 18:54:15 -0500
+        with ESMTP id S1754591AbcLCAHj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Dec 2016 19:07:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, andy.shevchenko@gmail.com, dan.j.williams@intel.com, hch@lst.de, khandual@linux.vnet.ibm.com, linux@roeck-us.net, sfr@canb.auug.org.au, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, bsingharora@gmail.com, hannes@cmpxchg.org, marmarek@mimuw.edu.pl, stable@vger.kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-mm-export-pte-sizes-directly-in-smaps-v3
-has been removed from the -mm tree.  Its filename was
-     proc-mm-export-pte-sizes-directly-in-smaps-v3.patch
+     Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
+has been added to the -mm tree.  Its filename is
+     mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: proc-mm-export-pte-sizes-directly-in-smaps-v3
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
 
-Changes from v2:
- * Do not assume (wrongly) that smaps_hugetlb_range() always uses
-   PUDs.  (Thanks for pointing this out, Vlastimil).  Also handle
-   hstates that are not exactly at PMD/PUD sizes.
+0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
+has made the workingset shadow nodes shrinker memcg aware. The
+implementation is not correct though because memcg_kmem_enabled() might
+become true while we are doing a global reclaim when the sc->memcg might
+be NULL which is exactly what Marek has seen:
 
-Link: http://lkml.kernel.org/r/20161129201703.CE9D5054@viggo.jf.intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+[   15.665196] BUG: unable to handle kernel NULL pointer dereference at 0000000000000400
+[   15.665213] IP: [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
+[   15.665225] PGD 0
+[   15.665230] Oops: 0000 [#1] SMP
+[   15.665285] CPU: 0 PID: 60 Comm: kswapd0 Tainted: G           O   4.8.10-12.pvops.qubes.x86_64 #1
+[   15.665292] task: ffff880011863b00 task.stack: ffff880011868000
+[   15.665297] RIP: e030:[<ffffffff8122d520>]  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
+[   15.665307] RSP: e02b:ffff88001186bc70  EFLAGS: 00010293
+[   15.665311] RAX: 0000000000000000 RBX: ffff88001186bd20 RCX: 0000000000000002
+[   15.665317] RDX: 000000000000000c RSI: 0000000000000000 RDI: 0000000000000000
+[   15.665322] RBP: ffff88001186bc70 R08: 28f5c28f5c28f5c3 R09: 0000000000000000
+[   15.665327] R10: 0000000000006c34 R11: 0000000000000333 R12: 00000000000001f6
+[   15.665332] R13: ffffffff81c6f6a0 R14: 0000000000000000 R15: 0000000000000000
+[   15.665343] FS:  0000000000000000(0000) GS:ffff880013c00000(0000) knlGS:ffff880013d00000
+[   15.665351] CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   15.665358] CR2: 0000000000000400 CR3: 00000000122f2000 CR4: 0000000000042660
+[   15.665366] Stack:
+[   15.665371]  ffff88001186bc98 ffffffff811e0dda 00000000000002eb 0000000000000080
+[   15.665384]  ffffffff81c6f6a0 ffff88001186bd70 ffffffff811c36d9 0000000000000000
+[   15.665397]  ffff88001186bcb0 ffff88001186bcb0 ffff88001186bcc0 000000000000abc5
+[   15.665410] Call Trace:
+[   15.665419]  [<ffffffff811e0dda>] count_shadow_nodes+0x9a/0xa0
+[   15.665428]  [<ffffffff811c36d9>] shrink_slab.part.42+0x119/0x3e0
+[   15.666049]  [<ffffffff811c83ec>] shrink_node+0x22c/0x320
+[   15.666049]  [<ffffffff811c928c>] kswapd+0x32c/0x700
+[   15.666049]  [<ffffffff811c8f60>] ? mem_cgroup_shrink_node+0x180/0x180
+[   15.666049]  [<ffffffff810c1b08>] kthread+0xd8/0xf0
+[   15.666049]  [<ffffffff817a3abf>] ret_from_fork+0x1f/0x40
+[   15.666049]  [<ffffffff810c1a30>] ? kthread_create_on_node+0x190/0x190
+[   15.666049] Code: 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 3b 35 dd eb b1 00 55 48 89 e5 73 2c 89 d2 31 c9 31 c0 4c 63 ce 48 0f a3 ca 73 13 <4a> 8b b4 cf 00 04 00 00 41 89 c8 4a 03 84 c6 80 00 00 00 83 c1
+[   15.666049] RIP  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
+[   15.666049]  RSP <ffff88001186bc70>
+[   15.666049] CR2: 0000000000000400
+[   15.666049] ---[ end trace 100494b9edbdfc4d ]---
+
+This patch fixes the issue by checking sc->memcg rather than memcg_kmem_enabled()
+which is sufficient because shrink_slab makes sure that only memcg aware shrinkers
+will get non-NULL memcgs and only if memcg_kmem_enabled is true.
+
+Fixes: 0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
+Link: http://lkml.kernel.org/r/20161201132156.21450-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
+Tested-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   27 ++++++++++++++++++++++++++-
- mm/hugetlb.c       |   11 +++++++++++
- 2 files changed, 37 insertions(+), 1 deletion(-)
+ mm/workingset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v3 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-mm-export-pte-sizes-directly-in-smaps-v3
-+++ a/fs/proc/task_mmu.c
-@@ -689,6 +689,30 @@ static void show_smap_vma_flags(struct s
- }
+diff -puN mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes
++++ a/mm/workingset.c
+@@ -348,7 +348,7 @@ static unsigned long count_shadow_nodes(
+ 	shadow_nodes = list_lru_shrink_count(&workingset_shadow_nodes, sc);
+ 	local_irq_enable();
  
- #ifdef CONFIG_HUGETLB_PAGE
-+/*
-+ * Most architectures have a 1:1 mapping of PTEs to hugetlb page
-+ * sizes, but there are some outliers like arm64 that use
-+ * multiple hardware PTEs to make a hugetlb "page".  Do not
-+ * assume that all 'hpage_size's are not exactly at a page table
-+ * size boundary.  Instead, accept arbitrary 'hpage_size's and
-+ * assume they are made up of the next-smallest size.  We do not
-+ * handle PGD-sized hpages and hugetlb_add_hstate() will WARN()
-+ * if it sees one.
-+ *
-+ * Note also that the page walker code only calls us once per
-+ * huge 'struct page', *not* once per PTE in the page tables.
-+ */
-+static void smaps_hugetlb_present_hpage(struct mem_size_stats *mss,
-+					unsigned long hpage_size)
-+{
-+	if (hpage_size >= PUD_SIZE)
-+		mss->rss_pud += hpage_size;
-+	else if (hpage_size >= PMD_SIZE)
-+		mss->rss_pmd += hpage_size;
-+	else
-+		mss->rss_pte += hpage_size;
-+}
-+
- static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
- 				 unsigned long addr, unsigned long end,
- 				 struct mm_walk *walk)
-@@ -709,7 +733,8 @@ static int smaps_hugetlb_range(pte_t *pt
- 		int mapcount = page_mapcount(page);
- 		unsigned long hpage_size = huge_page_size(hstate_vma(vma));
- 
--		mss->rss_pud += hpage_size;
-+		smaps_hugetlb_present_hpage(mss, hpage_size);
-+
- 		if (mapcount >= 2)
- 			mss->shared_hugetlb += hpage_size;
- 		else
-diff -puN mm/hugetlb.c~proc-mm-export-pte-sizes-directly-in-smaps-v3 mm/hugetlb.c
---- a/mm/hugetlb.c~proc-mm-export-pte-sizes-directly-in-smaps-v3
-+++ a/mm/hugetlb.c
-@@ -2905,6 +2905,17 @@ void __init hugetlb_add_hstate(unsigned
- 					huge_page_size(h)/1024);
- 
- 	parsed_hstate = h;
-+
-+	/*
-+	 * PGD_SIZE isn't widely made available by architecures,
-+	 * so use PUD_SIZE*PTRS_PER_PUD as a substitute.
-+	 *
-+	 * Check for sizes that might be mapped by a PGD.  There
-+	 * are none of these known today, but be on the lookout.
-+	 * If this trips, we will need to update the mss->rss_*
-+	 * code in fs/proc/task_mmu.c.
-+	 */
-+	WARN_ON_ONCE((PAGE_SIZE << order) >= PUD_SIZE * PTRS_PER_PUD);
- }
- 
- static int __init hugetlb_nrpages_setup(char *s)
+-	if (memcg_kmem_enabled()) {
++	if (sc->memcg) {
+ 		pages = mem_cgroup_node_nr_lru_pages(sc->memcg, sc->nid,
+ 						     LRU_ALL_FILE);
+ 	} else {
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
 
