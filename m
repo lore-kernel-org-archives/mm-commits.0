@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-add-some-more-functionality.patch added
- to -mm tree
-Date: Tue, 06 Dec 2016 12:51:20 -0800
-Message-ID: <584724c8.J6phXukA/GsyCq7+%akpm@linux-foundation.org>
+Subject: + idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch added to -mm tree
+Date: Tue, 06 Dec 2016 12:51:18 -0800
+Message-ID: <584724c6.VrkpKUS04ougsC9I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37082 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752273AbcLFUuv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:51 -0500
+        with ESMTP id S1752262AbcLFUut (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: add some more functionality
+     Subject: idr: reduce the number of bits per level from 8 to 6
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-add-some-more-functionality.patch
+     idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-add-some-more-functionality.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-add-some-more-functionality.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix tree test suite: add some more functionality
+Subject: idr: reduce the number of bits per level from 8 to 6
 
-IDR needs more functionality from the kernel: kmalloc()/kfree(), and xchg().
+In preparation for merging the IDR and radix tree, reduce the fanout at
+each level from 256 to 64.  If this causes a performance problem then a
+bisect will point to this commit, and we'll have a better idea about what
+we might do to fix it.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-67-git-send-email-mawilcox@linuxonhyperv.com
+Link: http://lkml.kernel.org/r/1480369871-5271-66-git-send-email-mawilcox@linuxonhyperv.com
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -52,67 +54,29 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux.c        |   15 +++++++++++++++
- tools/testing/radix-tree/linux/kernel.h |    3 +++
- tools/testing/radix-tree/linux/slab.h   |    3 +++
- 3 files changed, 21 insertions(+)
+ include/linux/idr.h |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN tools/testing/radix-tree/linux.c~radix-tree-test-suite-add-some-more-functionality tools/testing/radix-tree/linux.c
---- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-add-some-more-functionality
-+++ a/tools/testing/radix-tree/linux.c
-@@ -54,6 +54,21 @@ void kmem_cache_free(struct kmem_cache *
- 	free(objp);
- }
+diff -puN include/linux/idr.h~idr-reduce-the-number-of-bits-per-level-from-8-to-6 include/linux/idr.h
+--- a/include/linux/idr.h~idr-reduce-the-number-of-bits-per-level-from-8-to-6
++++ a/include/linux/idr.h
+@@ -18,12 +18,11 @@
+ #include <linux/rcupdate.h>
  
-+void *kmalloc(size_t size, gfp_t gfp)
-+{
-+	void *ret = malloc(size);
-+	uatomic_inc(&nr_allocated);
-+	return ret;
-+}
-+
-+void kfree(void *p)
-+{
-+	if (!p)
-+		return;
-+	uatomic_dec(&nr_allocated);
-+	free(p);
-+}
-+
- struct kmem_cache *
- kmem_cache_create(const char *name, size_t size, size_t offset,
- 	unsigned long flags, void (*ctor)(void *))
-diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-some-more-functionality tools/testing/radix-tree/linux/kernel.h
---- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-some-more-functionality
-+++ a/tools/testing/radix-tree/linux/kernel.h
-@@ -8,6 +8,7 @@
- #include <limits.h>
+ /*
+- * We want shallower trees and thus more bits covered at each layer.  8
+- * bits gives us large enough first layer for most use cases and maximum
+- * tree depth of 4.  Each idr_layer is slightly larger than 2k on 64bit and
+- * 1k on 32bit.
++ * Using 6 bits at each layer allows us to allocate 7 layers out of each page.
++ * 8 bits only gave us 3 layers out of every pair of pages, which is less
++ * efficient except for trees with a largest element between 192-255 inclusive.
+  */
+-#define IDR_BITS 8
++#define IDR_BITS 6
+ #define IDR_SIZE (1 << IDR_BITS)
+ #define IDR_MASK ((1 << IDR_BITS)-1)
  
- #include "../../include/linux/compiler.h"
-+#include "../../include/linux/err.h"
- #include "../../../include/linux/kconfig.h"
- 
- #ifdef BENCHMARK
-@@ -58,4 +59,6 @@ static inline int in_interrupt(void)
- #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
- #define round_down(x, y) ((x) & ~__round_mask(x, y))
- 
-+#define xchg(ptr, x)	uatomic_xchg(ptr, x)
-+
- #endif /* _KERNEL_H */
-diff -puN tools/testing/radix-tree/linux/slab.h~radix-tree-test-suite-add-some-more-functionality tools/testing/radix-tree/linux/slab.h
---- a/tools/testing/radix-tree/linux/slab.h~radix-tree-test-suite-add-some-more-functionality
-+++ a/tools/testing/radix-tree/linux/slab.h
-@@ -7,6 +7,9 @@
- #define SLAB_PANIC 2
- #define SLAB_RECLAIM_ACCOUNT    0x00020000UL            /* Objects are reclaimable */
- 
-+void *kmalloc(size_t size, gfp_t);
-+void kfree(void *);
-+
- struct kmem_cache {
- 	int size;
- 	void (*ctor)(void *);
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
