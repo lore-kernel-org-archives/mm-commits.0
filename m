@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-fix-compilation.patch added to -mm tree
-Date: Tue, 06 Dec 2016 12:48:40 -0800
-Message-ID: <58472428.Nf3bD2fRuaBocfc7%akpm@linux-foundation.org>
+Subject: + tools-add-warn_on_once.patch added to -mm tree
+Date: Tue, 06 Dec 2016 12:50:10 -0800
+Message-ID: <58472482.28z0Uv707PzHxPo8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36846 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750813AbcLFUsK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:48:10 -0500
+        with ESMTP id S1751905AbcLFUtk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:49:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: fix compilation
+     Subject: tools: add WARN_ON_ONCE
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-fix-compilation.patch
+     tools-add-warn_on_once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-fix-compilation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-add-warn_on_once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-fix-compilation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-add-warn_on_once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,71 +38,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix tree test suite: fix compilation
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: tools: add WARN_ON_ONCE
 
-Patch "lib/radix-tree: Convert to hotplug state machine" breaks the test
-suite as it adds a call to cpuhp_setup_state_nocalls() which is not
-currently emulated in the test suite.  Add it, and delete the emulation of
-the old CPU hotplug mechanism.
+Patch series "Radix tree patches for 4.10", v3.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-36-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Mostly these are improvements; the only bug fixes in here relate to
+multiorder entries (which are unused in the 4.9 tree).
+
+
+This patch (of 32):
+
+The radix tree uses its own buggy WARN_ON_ONCE.  Replace it with the
+definition from asm-generic/bug.h
+
+Link: http://lkml.kernel.org/r/1480369871-5271-37-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c                          |    1 
- tools/testing/radix-tree/linux/cpu.h      |   22 --------------------
- tools/testing/radix-tree/linux/notifier.h |    8 -------
- 3 files changed, 1 insertion(+), 30 deletions(-)
+ tools/include/asm/bug.h                |   11 +++++++++++
+ tools/testing/radix-tree/Makefile      |    2 +-
+ tools/testing/radix-tree/linux/bug.h   |    2 +-
+ tools/testing/radix-tree/linux/types.h |    2 --
+ 4 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-test-suite-fix-compilation lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-test-suite-fix-compilation
-+++ a/lib/radix-tree.c
-@@ -30,7 +30,6 @@
- #include <linux/percpu.h>
- #include <linux/slab.h>
- #include <linux/kmemleak.h>
--#include <linux/notifier.h>
- #include <linux/cpu.h>
- #include <linux/string.h>
- #include <linux/bitops.h>
-diff -puN tools/testing/radix-tree/linux/cpu.h~radix-tree-test-suite-fix-compilation tools/testing/radix-tree/linux/cpu.h
---- a/tools/testing/radix-tree/linux/cpu.h~radix-tree-test-suite-fix-compilation
-+++ a/tools/testing/radix-tree/linux/cpu.h
-@@ -1,21 +1 @@
--
--#define hotcpu_notifier(a, b)
--
--#define CPU_ONLINE		0x0002 /* CPU (unsigned)v is up */
--#define CPU_UP_PREPARE		0x0003 /* CPU (unsigned)v coming up */
--#define CPU_UP_CANCELED		0x0004 /* CPU (unsigned)v NOT coming up */
--#define CPU_DOWN_PREPARE	0x0005 /* CPU (unsigned)v going down */
--#define CPU_DOWN_FAILED		0x0006 /* CPU (unsigned)v NOT going down */
--#define CPU_DEAD		0x0007 /* CPU (unsigned)v dead */
--#define CPU_POST_DEAD		0x0009 /* CPU (unsigned)v dead, cpu_hotplug
--					* lock is dropped */
--#define CPU_BROKEN		0x000C /* CPU (unsigned)v did not die properly,
--					* perhaps due to preemption. */
--#define CPU_TASKS_FROZEN	0x0010
--
--#define CPU_ONLINE_FROZEN	(CPU_ONLINE | CPU_TASKS_FROZEN)
--#define CPU_UP_PREPARE_FROZEN	(CPU_UP_PREPARE | CPU_TASKS_FROZEN)
--#define CPU_UP_CANCELED_FROZEN  (CPU_UP_CANCELED | CPU_TASKS_FROZEN)
--#define CPU_DOWN_PREPARE_FROZEN (CPU_DOWN_PREPARE | CPU_TASKS_FROZEN)
--#define CPU_DOWN_FAILED_FROZEN  (CPU_DOWN_FAILED | CPU_TASKS_FROZEN)
--#define CPU_DEAD_FROZEN		(CPU_DEAD | CPU_TASKS_FROZEN)
-+#define cpuhp_setup_state_nocalls(a, b, c, d)	(0)
-diff -puN tools/testing/radix-tree/linux/notifier.h~radix-tree-test-suite-fix-compilation /dev/null
---- a/tools/testing/radix-tree/linux/notifier.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _NOTIFIER_H
--#define _NOTIFIER_H
--
--struct notifier_block;
--
--#define NOTIFY_OK              0x0001          /* Suits me */
+diff -puN tools/include/asm/bug.h~tools-add-warn_on_once tools/include/asm/bug.h
+--- a/tools/include/asm/bug.h~tools-add-warn_on_once
++++ a/tools/include/asm/bug.h
+@@ -12,6 +12,17 @@
+ 	unlikely(__ret_warn_on);		\
+ })
+ 
++#define WARN_ON_ONCE(condition) ({			\
++	static int __warned;				\
++	int __ret_warn_once = !!(condition);		\
++							\
++	if (unlikely(__ret_warn_once && !__warned)) {	\
++		__warned = true;			\
++		WARN_ON(1);				\
++	}						\
++	unlikely(__ret_warn_once);			\
++})
++
+ #define WARN_ONCE(condition, format...)	({	\
+ 	static int __warned;			\
+ 	int __ret_warn_once = !!(condition);	\
+diff -puN tools/testing/radix-tree/Makefile~tools-add-warn_on_once tools/testing/radix-tree/Makefile
+--- a/tools/testing/radix-tree/Makefile~tools-add-warn_on_once
++++ a/tools/testing/radix-tree/Makefile
+@@ -1,5 +1,5 @@
+ 
+-CFLAGS += -I. -g -O2 -Wall -D_LGPL_SOURCE
++CFLAGS += -I. -I../../include -g -O2 -Wall -D_LGPL_SOURCE
+ LDFLAGS += -lpthread -lurcu
+ TARGETS = main
+ OFILES = main.o radix-tree.o linux.o test.o tag_check.o find_next_bit.o \
+diff -puN tools/testing/radix-tree/linux/bug.h~tools-add-warn_on_once tools/testing/radix-tree/linux/bug.h
+--- a/tools/testing/radix-tree/linux/bug.h~tools-add-warn_on_once
++++ a/tools/testing/radix-tree/linux/bug.h
+@@ -1 +1 @@
+-#define WARN_ON_ONCE(x)		assert(x)
++#include "asm/bug.h"
+diff -puN tools/testing/radix-tree/linux/types.h~tools-add-warn_on_once tools/testing/radix-tree/linux/types.h
+--- a/tools/testing/radix-tree/linux/types.h~tools-add-warn_on_once
++++ a/tools/testing/radix-tree/linux/types.h
+@@ -6,8 +6,6 @@
+ #define __rcu
+ #define __read_mostly
+ 
+-#define BITS_PER_LONG (sizeof(long) * 8)
