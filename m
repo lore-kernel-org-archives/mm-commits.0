@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-iteration-test-misuses-rcu.patch added to -mm tree
-Date: Tue, 06 Dec 2016 12:50:20 -0800
-Message-ID: <5847248c.+PsA7K9gmLEYy9/w%akpm@linux-foundation.org>
+Subject: + radix-tree-test-suite-benchmark-for-iterator.patch added to -mm tree
+Date: Tue, 06 Dec 2016 12:50:22 -0800
+Message-ID: <5847248e.tBGgRVFj+xL2/zJy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36886 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751905AbcLFUtu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:49:50 -0500
+        with ESMTP id S1751905AbcLFUtw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:49:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: iteration test misuses RCU
+     Subject: radix tree test suite: benchmark for iterator
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-iteration-test-misuses-rcu.patch
+     radix-tree-test-suite-benchmark-for-iterator.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-iteration-test-misuses-rcu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-benchmark-for-iterator.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-iteration-test-misuses-rcu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-benchmark-for-iterator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,136 +38,189 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix tree test suite: iteration test misuses RCU
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: radix tree test suite: benchmark for iterator
 
-Each thread needs to register itself with RCU, otherwise the reading
-thread's read lock has no effect and the freeing thread will free the
-memory in the tree without waiting for the read lock to be dropped.
+This adds simple benchmark for iterator similar to one I've used for
+commit 78c1d78 ("radix-tree: introduce bit-optimized iterator")
 
-Link: http://lkml.kernel.org/r/1480369871-5271-42-git-send-email-mawilcox@linuxonhyperv.com
+Building with make BENCHMARK=1 set radix tree order to 6, this allows
+to get performance comparable to in kernel performance.
+
+Link: http://lkml.kernel.org/r/1480369871-5271-43-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/iteration_check.c |   28 +++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+ tools/testing/radix-tree/Makefile       |    6 +
+ tools/testing/radix-tree/benchmark.c    |   98 ++++++++++++++++++++++
+ tools/testing/radix-tree/linux/kernel.h |    4 
+ tools/testing/radix-tree/main.c         |    2 
+ tools/testing/radix-tree/test.h         |    1 
+ 5 files changed, 110 insertions(+), 1 deletion(-)
 
-diff -puN tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-iteration-test-misuses-rcu tools/testing/radix-tree/iteration_check.c
---- a/tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-iteration-test-misuses-rcu
-+++ a/tools/testing/radix-tree/iteration_check.c
-@@ -29,6 +29,8 @@ static void *add_entries_fn(void *arg)
- {
- 	int pgoff;
- 
-+	rcu_register_thread();
+diff -puN tools/testing/radix-tree/Makefile~radix-tree-test-suite-benchmark-for-iterator tools/testing/radix-tree/Makefile
+--- a/tools/testing/radix-tree/Makefile~radix-tree-test-suite-benchmark-for-iterator
++++ a/tools/testing/radix-tree/Makefile
+@@ -4,7 +4,11 @@ LDFLAGS += -lpthread -lurcu
+ TARGETS = main
+ OFILES = main.o radix-tree.o linux.o test.o tag_check.o find_next_bit.o \
+ 	 regression1.o regression2.o regression3.o multiorder.o \
+-	 iteration_check.o
++	 iteration_check.o benchmark.o
 +
- 	while (!test_complete) {
- 		for (pgoff = 0; pgoff < 100; pgoff++) {
- 			pthread_mutex_lock(&tree_lock);
-@@ -38,6 +40,8 @@ static void *add_entries_fn(void *arg)
- 		}
- 	}
++ifdef BENCHMARK
++	CFLAGS += -DBENCHMARK=1
++endif
  
-+	rcu_unregister_thread();
+ targets: $(TARGETS)
+ 
+diff -puN /dev/null tools/testing/radix-tree/benchmark.c
+--- /dev/null
++++ a/tools/testing/radix-tree/benchmark.c
+@@ -0,0 +1,98 @@
++/*
++ * benchmark.c:
++ * Author: Konstantin Khlebnikov <koct9i@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include <linux/radix-tree.h>
++#include <linux/slab.h>
++#include <linux/errno.h>
++#include <time.h>
++#include "test.h"
 +
- 	return NULL;
- }
- 
-@@ -53,6 +57,8 @@ static void *tagged_iteration_fn(void *a
- 	struct radix_tree_iter iter;
- 	void **slot;
- 
-+	rcu_register_thread();
++#define NSEC_PER_SEC	1000000000L
 +
- 	while (!test_complete) {
- 		rcu_read_lock();
- 		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG) {
-@@ -72,12 +78,18 @@ static void *tagged_iteration_fn(void *a
- 				continue;
- 			}
- 
--			if (rand_r(&seeds[0]) % 50 == 0)
-+			if (rand_r(&seeds[0]) % 50 == 0) {
- 				slot = radix_tree_iter_next(&iter);
-+				rcu_read_unlock();
-+				rcu_barrier();
-+				rcu_read_lock();
-+			}
- 		}
- 		rcu_read_unlock();
- 	}
- 
-+	rcu_unregister_thread();
++static long long benchmark_iter(struct radix_tree_root *root, bool tagged)
++{
++	volatile unsigned long sink = 0;
++	struct radix_tree_iter iter;
++	struct timespec start, finish;
++	long long nsec;
++	int l, loops = 1;
++	void **slot;
 +
- 	return NULL;
- }
- 
-@@ -93,6 +105,8 @@ static void *untagged_iteration_fn(void
- 	struct radix_tree_iter iter;
- 	void **slot;
- 
-+	rcu_register_thread();
++#ifdef BENCHMARK
++again:
++#endif
++	clock_gettime(CLOCK_MONOTONIC, &start);
++	for (l = 0; l < loops; l++) {
++		if (tagged) {
++			radix_tree_for_each_tagged(slot, root, &iter, 0, 0)
++				sink ^= (unsigned long)slot;
++		} else {
++			radix_tree_for_each_slot(slot, root, &iter, 0)
++				sink ^= (unsigned long)slot;
++		}
++	}
++	clock_gettime(CLOCK_MONOTONIC, &finish);
 +
- 	while (!test_complete) {
- 		rcu_read_lock();
- 		radix_tree_for_each_slot(slot, &tree, &iter, 0) {
-@@ -112,12 +126,18 @@ static void *untagged_iteration_fn(void
- 				continue;
- 			}
- 
--			if (rand_r(&seeds[1]) % 50 == 0)
-+			if (rand_r(&seeds[1]) % 50 == 0) {
- 				slot = radix_tree_iter_next(&iter);
-+				rcu_read_unlock();
-+				rcu_barrier();
-+				rcu_read_lock();
-+			}
- 		}
- 		rcu_read_unlock();
- 	}
- 
-+	rcu_unregister_thread();
++	nsec = (finish.tv_sec - start.tv_sec) * NSEC_PER_SEC +
++	       (finish.tv_nsec - start.tv_nsec);
 +
- 	return NULL;
- }
- 
-@@ -127,6 +147,8 @@ static void *untagged_iteration_fn(void
-  */
- static void *remove_entries_fn(void *arg)
- {
-+	rcu_register_thread();
++#ifdef BENCHMARK
++	if (loops == 1 && nsec * 5 < NSEC_PER_SEC) {
++		loops = NSEC_PER_SEC / nsec / 4 + 1;
++		goto again;
++	}
++#endif
 +
- 	while (!test_complete) {
- 		int pgoff;
- 
-@@ -137,6 +159,8 @@ static void *remove_entries_fn(void *arg
- 		pthread_mutex_unlock(&tree_lock);
- 	}
- 
-+	rcu_unregister_thread();
++	nsec /= loops;
++	return nsec;
++}
 +
- 	return NULL;
- }
++static void benchmark_size(unsigned long size, unsigned long step, int order)
++{
++	RADIX_TREE(tree, GFP_KERNEL);
++	long long normal, tagged;
++	unsigned long index;
++
++	for (index = 0 ; index < size ; index += step) {
++		item_insert_order(&tree, index, order);
++		radix_tree_tag_set(&tree, index, 0);
++	}
++
++	tagged = benchmark_iter(&tree, true);
++	normal = benchmark_iter(&tree, false);
++
++	printf("Size %ld, step %6ld, order %d tagged %10lld ns, normal %10lld ns\n",
++		size, step, order, tagged, normal);
++
++	item_kill_tree(&tree);
++	rcu_barrier();
++}
++
++void benchmark(void)
++{
++	unsigned long size[] = {1 << 10, 1 << 20, 0};
++	unsigned long step[] = {1, 2, 7, 15, 63, 64, 65,
++				128, 256, 512, 12345, 0};
++	int c, s;
++
++	printf("starting benchmarks\n");
++	printf("RADIX_TREE_MAP_SHIFT = %d\n", RADIX_TREE_MAP_SHIFT);
++
++	for (c = 0; size[c]; c++)
++		for (s = 0; step[s]; s++)
++			benchmark_size(size[c], step[s], 0);
++
++	for (c = 0; size[c]; c++)
++		for (s = 0; step[s]; s++)
++			benchmark_size(size[c], step[s] << 9, 9);
++}
+diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-benchmark-for-iterator tools/testing/radix-tree/linux/kernel.h
+--- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-benchmark-for-iterator
++++ a/tools/testing/radix-tree/linux/kernel.h
+@@ -10,7 +10,11 @@
+ #include "../../include/linux/compiler.h"
+ #include "../../../include/linux/kconfig.h"
  
++#ifdef BENCHMARK
++#define RADIX_TREE_MAP_SHIFT	6
++#else
+ #define RADIX_TREE_MAP_SHIFT	3
++#endif
+ 
+ #ifndef NULL
+ #define NULL	0
+diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-benchmark-for-iterator tools/testing/radix-tree/main.c
+--- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-benchmark-for-iterator
++++ a/tools/testing/radix-tree/main.c
+@@ -352,6 +352,8 @@ int main(int argc, char **argv)
+ 	/* Free any remaining preallocated nodes */
+ 	radix_tree_cpu_dead(0);
+ 
++	benchmark();
++
+ 	sleep(1);
+ 	printf("after sleep(1): %d allocated, preempt %d\n",
+ 		nr_allocated, preempt_count);
+diff -puN tools/testing/radix-tree/test.h~radix-tree-test-suite-benchmark-for-iterator tools/testing/radix-tree/test.h
+--- a/tools/testing/radix-tree/test.h~radix-tree-test-suite-benchmark-for-iterator
++++ a/tools/testing/radix-tree/test.h
+@@ -28,6 +28,7 @@ void item_kill_tree(struct radix_tree_ro
+ void tag_check(void);
+ void multiorder_checks(void);
+ void iteration_test(void);
++void benchmark(void);
+ 
+ struct item *
+ item_tag_set(struct radix_tree_root *root, unsigned long index, int tag);
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-radix-tree-test-suite-fix-compilation.patch
-radix-tree-test-suite-iteration-test-misuses-rcu.patch
-radix-tree-test-suite-use-rcu_barrier.patch
-radix-tree-test-suite-handle-exceptional-entries.patch
-radix-tree-test-suite-record-order-in-each-item.patch
-btrfs-fix-race-in-btrfs_free_dummy_fs_info.patch
-radix-tree-improve-multiorder-iterators.patch
-radix-tree-delete-radix_tree_locate_item.patch
-radix-tree-delete-radix_tree_range_tag_if_tagged.patch
-radix-tree-fix-replacement-for-multiorder-entries.patch
-radix-tree-test-suite-check-multiorder-iteration.patch
-tpm-use-idr_find-not-idr_find_slowpath.patch
-rxrpc-abstract-away-knowledge-of-idr-internals.patch
+radix-tree-test-suite-benchmark-for-iterator.patch
 
