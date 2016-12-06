@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-use-idr_find-not-idr_find_slowpath.patch added to -mm tree
-Date: Tue, 06 Dec 2016 12:51:13 -0800
-Message-ID: <584724c1.ZeHebSvZqm3W9UN3%akpm@linux-foundation.org>
+Subject: + rxrpc-abstract-away-knowledge-of-idr-internals.patch added to
+ -mm tree
+Date: Tue, 06 Dec 2016 12:51:15 -0800
+Message-ID: <584724c3.Ez+ORMyRQ9kgh+Ye%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37076 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751726AbcLFUuo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:44 -0500
+        with ESMTP id S1752207AbcLFUuq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, jarkko.sakkinen@linux.intel.com, jgunthorpe@obsidianresearch.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, peterhuewe@gmx.de, ross.zwisler@linux.intel.com, tpmdd@selhorst.net, mm-commits@vger.kernel.org
+To: mawilcox@microsoft.com, dhowells@redhat.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tpm: use idr_find(), not idr_find_slowpath()
+     Subject: rxrpc: abstract away knowledge of IDR internals
 has been added to the -mm tree.  Its filename is
-     tpm-use-idr_find-not-idr_find_slowpath.patch
+     rxrpc-abstract-away-knowledge-of-idr-internals.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tpm-use-idr_find-not-idr_find_slowpath.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rxrpc-abstract-away-knowledge-of-idr-internals.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tpm-use-idr_find-not-idr_find_slowpath.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rxrpc-abstract-away-knowledge-of-idr-internals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +40,105 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: tpm: use idr_find(), not idr_find_slowpath()
+Subject: rxrpc: abstract away knowledge of IDR internals
 
-idr_find_slowpath() is not intended to be part of the public API, it's an
-implementation detail.  There's no reason to skip straight to the slowpath
-here.
+Add idr_get_cursor() / idr_set_cursor() APIs, and remove the reference
+to IDR_SIZE.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-64-git-send-email-mawilcox@linuxonhyperv.com
+Link: http://lkml.kernel.org/r/1480369871-5271-65-git-send-email-mawilcox@linuxonhyperv.com
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: David Howells <dhowells@redhat.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Peter Huewe <peterhuewe@gmx.de>
-Cc: Marcel Selhorst <tpmdd@selhorst.net>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm-chip.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/idr.h     |   26 ++++++++++++++++++++++++++
+ net/rxrpc/af_rxrpc.c    |   11 ++++++-----
+ net/rxrpc/conn_client.c |    4 ++--
+ 3 files changed, 34 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/tpm/tpm-chip.c~tpm-use-idr_find-not-idr_find_slowpath drivers/char/tpm/tpm-chip.c
---- a/drivers/char/tpm/tpm-chip.c~tpm-use-idr_find-not-idr_find_slowpath
-+++ a/drivers/char/tpm/tpm-chip.c
-@@ -84,7 +84,7 @@ EXPORT_SYMBOL_GPL(tpm_put_ops);
-  *
-  * The return'd chip has been tpm_try_get_ops'd and must be released via
-  * tpm_put_ops
--  */
+diff -puN include/linux/idr.h~rxrpc-abstract-away-knowledge-of-idr-internals include/linux/idr.h
+--- a/include/linux/idr.h~rxrpc-abstract-away-knowledge-of-idr-internals
++++ a/include/linux/idr.h
+@@ -56,6 +56,32 @@ struct idr {
+ #define DEFINE_IDR(name)	struct idr name = IDR_INIT(name)
+ 
+ /**
++ * idr_get_cursor - Return the current position of the cyclic allocator
++ * @idr: idr handle
++ *
++ * The value returned is the value that will be next returned from
++ * idr_alloc_cyclic() if it is free (otherwise the search will start from
++ * this position).
 + */
- struct tpm_chip *tpm_chip_find_get(int chip_num)
++static inline unsigned int idr_get_cursor(struct idr *idr)
++{
++	return READ_ONCE(idr->cur);
++}
++
++/**
++ * idr_set_cursor - Set the current position of the cyclic allocator
++ * @idr: idr handle
++ * @val: new position
++ *
++ * The next call to idr_alloc_cyclic() will return @val if it is free
++ * (otherwise the search will start from this position).
++ */
++static inline void idr_set_cursor(struct idr *idr, unsigned int val)
++{
++	WRITE_ONCE(idr->cur, val);
++}
++
++/**
+  * DOC: idr sync
+  * idr synchronization (stolen from radix-tree.h)
+  *
+diff -puN net/rxrpc/af_rxrpc.c~rxrpc-abstract-away-knowledge-of-idr-internals net/rxrpc/af_rxrpc.c
+--- a/net/rxrpc/af_rxrpc.c~rxrpc-abstract-away-knowledge-of-idr-internals
++++ a/net/rxrpc/af_rxrpc.c
+@@ -762,16 +762,17 @@ static const struct net_proto_family rxr
+ static int __init af_rxrpc_init(void)
  {
- 	struct tpm_chip *chip, *res = NULL;
-@@ -103,7 +103,7 @@ struct tpm_chip *tpm_chip_find_get(int c
- 			}
- 		} while (chip_prev != chip_num);
- 	} else {
--		chip = idr_find_slowpath(&dev_nums_idr, chip_num);
-+		chip = idr_find(&dev_nums_idr, chip_num);
- 		if (chip && !tpm_try_get_ops(chip))
- 			res = chip;
- 	}
+ 	int ret = -1;
++	unsigned int tmp;
+ 
+ 	BUILD_BUG_ON(sizeof(struct rxrpc_skb_priv) > FIELD_SIZEOF(struct sk_buff, cb));
+ 
+ 	get_random_bytes(&rxrpc_epoch, sizeof(rxrpc_epoch));
+ 	rxrpc_epoch |= RXRPC_RANDOM_EPOCH;
+-	get_random_bytes(&rxrpc_client_conn_ids.cur,
+-			 sizeof(rxrpc_client_conn_ids.cur));
+-	rxrpc_client_conn_ids.cur &= 0x3fffffff;
+-	if (rxrpc_client_conn_ids.cur == 0)
+-		rxrpc_client_conn_ids.cur = 1;
++	get_random_bytes(&tmp, sizeof(tmp));
++	tmp &= 0x3fffffff;
++	if (tmp == 0)
++		tmp = 1;
++	idr_set_cursor(&rxrpc_client_conn_ids, tmp);
+ 
+ 	ret = -ENOMEM;
+ 	rxrpc_call_jar = kmem_cache_create(
+diff -puN net/rxrpc/conn_client.c~rxrpc-abstract-away-knowledge-of-idr-internals net/rxrpc/conn_client.c
+--- a/net/rxrpc/conn_client.c~rxrpc-abstract-away-knowledge-of-idr-internals
++++ a/net/rxrpc/conn_client.c
+@@ -263,12 +263,12 @@ static bool rxrpc_may_reuse_conn(struct
+ 	 * times the maximum number of client conns away from the current
+ 	 * allocation point to try and keep the IDs concentrated.
+ 	 */
+-	id_cursor = READ_ONCE(rxrpc_client_conn_ids.cur);
++	id_cursor = idr_get_cursor(&rxrpc_client_conn_ids);
+ 	id = conn->proto.cid >> RXRPC_CIDSHIFT;
+ 	distance = id - id_cursor;
+ 	if (distance < 0)
+ 		distance = -distance;
+-	limit = round_up(rxrpc_max_client_connections, IDR_SIZE) * 4;
++	limit = max(rxrpc_max_client_connections * 4, 1024U);
+ 	if (distance > limit)
+ 		goto mark_dont_reuse;
+ 
 _
 
 Patches currently in -mm which might be from mawilcox@microsoft.com are
