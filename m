@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-check-multiorder-iteration.patch added to -mm tree
-Date: Tue, 06 Dec 2016 12:51:07 -0800
-Message-ID: <584724bb.RvuvRtT2yM0XQYJm%akpm@linux-foundation.org>
+Subject: + idr-add-ida_is_empty.patch added to -mm tree
+Date: Tue, 06 Dec 2016 12:51:10 -0800
+Message-ID: <584724be.jQXqO0DGe0pM6TZI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37038 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37046 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752117AbcLFUui (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:38 -0500
+        with ESMTP id S1752207AbcLFUul (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, balbi@kernel.org, gregkh@linuxfoundation.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mina86@mina86.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: check multiorder iteration
+     Subject: idr: add ida_is_empty
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-check-multiorder-iteration.patch
+     idr-add-ida_is_empty.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-check-multiorder-iteration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/idr-add-ida_is_empty.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-check-multiorder-iteration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/idr-add-ida_is_empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,263 +38,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix tree test suite: check multiorder iteration
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: idr: add ida_is_empty
 
-The random iteration test only inserts order-0 entries currently.  Update
-it to insert entries of order between 7 and 0.  Also make the maximum
-index configurable, make some variables static, make the test duration
-variable, remove some useless spinning, and add a fifth thread which calls
-tag_tagged_items().
+Two of the USB Gadgets were poking around in the internals of struct ida
+in order to determine if it is empty.  Add the appropriate abstraction.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-62-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/1480369871-5271-63-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Acked-by: Konstantin Khlebnikov <koct9i@gmail.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Felipe Balbi <balbi@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/iteration_check.c |   80 +++++++++++--------
- tools/testing/radix-tree/main.c            |    3 
- tools/testing/radix-tree/multiorder.c      |   23 +++++
- tools/testing/radix-tree/test.h            |    2 
- 4 files changed, 73 insertions(+), 35 deletions(-)
+ drivers/usb/gadget/function/f_hid.c     |    6 +++---
+ drivers/usb/gadget/function/f_printer.c |    6 +++---
+ include/linux/idr.h                     |    5 +++++
+ 3 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-check-multiorder-iteration tools/testing/radix-tree/iteration_check.c
---- a/tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-check-multiorder-iteration
-+++ a/tools/testing/radix-tree/iteration_check.c
-@@ -16,26 +16,36 @@
- #include <pthread.h>
- #include "test.h"
+diff -puN drivers/usb/gadget/function/f_hid.c~idr-add-ida_is_empty drivers/usb/gadget/function/f_hid.c
+--- a/drivers/usb/gadget/function/f_hid.c~idr-add-ida_is_empty
++++ a/drivers/usb/gadget/function/f_hid.c
+@@ -905,7 +905,7 @@ static void hidg_free_inst(struct usb_fu
+ 	mutex_lock(&hidg_ida_lock);
  
--#define NUM_THREADS 4
--#define TAG 0
-+#define NUM_THREADS	5
-+#define MAX_IDX		100
-+#define TAG		0
-+#define NEW_TAG		1
-+
- static pthread_mutex_t tree_lock = PTHREAD_MUTEX_INITIALIZER;
- static pthread_t threads[NUM_THREADS];
- static unsigned int seeds[3];
--RADIX_TREE(tree, GFP_KERNEL);
--bool test_complete;
-+static RADIX_TREE(tree, GFP_KERNEL);
-+static bool test_complete;
-+static int max_order;
+ 	hidg_put_minor(opts->minor);
+-	if (idr_is_empty(&hidg_ida.idr))
++	if (ida_is_empty(&hidg_ida))
+ 		ghid_cleanup();
  
- /* relentlessly fill the tree with tagged entries */
- static void *add_entries_fn(void *arg)
- {
--	int pgoff;
--
- 	rcu_register_thread();
+ 	mutex_unlock(&hidg_ida_lock);
+@@ -931,7 +931,7 @@ static struct usb_function_instance *hid
  
- 	while (!test_complete) {
--		for (pgoff = 0; pgoff < 100; pgoff++) {
-+		unsigned long pgoff;
-+		int order;
-+
-+		for (pgoff = 0; pgoff < MAX_IDX; pgoff++) {
- 			pthread_mutex_lock(&tree_lock);
--			if (item_insert(&tree, pgoff) == 0)
--				item_tag_set(&tree, pgoff, TAG);
-+			for (order = max_order; order >= 0; order--) {
-+				if (item_insert_order(&tree, pgoff, order)
-+						== 0) {
-+					item_tag_set(&tree, pgoff, TAG);
-+					break;
-+				}
-+			}
- 			pthread_mutex_unlock(&tree_lock);
- 		}
+ 	mutex_lock(&hidg_ida_lock);
+ 
+-	if (idr_is_empty(&hidg_ida.idr)) {
++	if (ida_is_empty(&hidg_ida)) {
+ 		status = ghid_setup(NULL, HIDG_MINORS);
+ 		if (status)  {
+ 			ret = ERR_PTR(status);
+@@ -944,7 +944,7 @@ static struct usb_function_instance *hid
+ 	if (opts->minor < 0) {
+ 		ret = ERR_PTR(opts->minor);
+ 		kfree(opts);
+-		if (idr_is_empty(&hidg_ida.idr))
++		if (ida_is_empty(&hidg_ida))
+ 			ghid_cleanup();
+ 		goto unlock;
  	}
-@@ -62,14 +72,7 @@ static void *tagged_iteration_fn(void *a
- 	while (!test_complete) {
- 		rcu_read_lock();
- 		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG) {
--			void *entry;
--			int i;
--
--			/* busy wait to let removals happen */
--			for (i = 0; i < 1000000; i++)
--				;
--
--			entry = radix_tree_deref_slot(slot);
-+			void *entry = radix_tree_deref_slot(slot);
- 			if (unlikely(!entry))
- 				continue;
+diff -puN drivers/usb/gadget/function/f_printer.c~idr-add-ida_is_empty drivers/usb/gadget/function/f_printer.c
+--- a/drivers/usb/gadget/function/f_printer.c~idr-add-ida_is_empty
++++ a/drivers/usb/gadget/function/f_printer.c
+@@ -1265,7 +1265,7 @@ static void gprinter_free_inst(struct us
+ 	mutex_lock(&printer_ida_lock);
  
-@@ -110,14 +113,7 @@ static void *untagged_iteration_fn(void
- 	while (!test_complete) {
- 		rcu_read_lock();
- 		radix_tree_for_each_slot(slot, &tree, &iter, 0) {
--			void *entry;
--			int i;
--
--			/* busy wait to let removals happen */
--			for (i = 0; i < 1000000; i++)
--				;
--
--			entry = radix_tree_deref_slot(slot);
-+			void *entry = radix_tree_deref_slot(slot);
- 			if (unlikely(!entry))
- 				continue;
+ 	gprinter_put_minor(opts->minor);
+-	if (idr_is_empty(&printer_ida.idr))
++	if (ida_is_empty(&printer_ida))
+ 		gprinter_cleanup();
  
-@@ -152,7 +148,7 @@ static void *remove_entries_fn(void *arg
- 	while (!test_complete) {
- 		int pgoff;
+ 	mutex_unlock(&printer_ida_lock);
+@@ -1289,7 +1289,7 @@ static struct usb_function_instance *gpr
  
--		pgoff = rand_r(&seeds[2]) % 100;
-+		pgoff = rand_r(&seeds[2]) % MAX_IDX;
+ 	mutex_lock(&printer_ida_lock);
  
- 		pthread_mutex_lock(&tree_lock);
- 		item_delete(&tree, pgoff);
-@@ -164,36 +160,54 @@ static void *remove_entries_fn(void *arg
- 	return NULL;
+-	if (idr_is_empty(&printer_ida.idr)) {
++	if (ida_is_empty(&printer_ida)) {
+ 		status = gprinter_setup(PRINTER_MINORS);
+ 		if (status) {
+ 			ret = ERR_PTR(status);
+@@ -1302,7 +1302,7 @@ static struct usb_function_instance *gpr
+ 	if (opts->minor < 0) {
+ 		ret = ERR_PTR(opts->minor);
+ 		kfree(opts);
+-		if (idr_is_empty(&printer_ida.idr))
++		if (ida_is_empty(&printer_ida))
+ 			gprinter_cleanup();
+ 		goto unlock;
+ 	}
+diff -puN include/linux/idr.h~idr-add-ida_is_empty include/linux/idr.h
+--- a/include/linux/idr.h~idr-add-ida_is_empty
++++ a/include/linux/idr.h
+@@ -195,6 +195,11 @@ static inline int ida_get_new(struct ida
+ 	return ida_get_new_above(ida, 0, p_id);
  }
  
-+static void *tag_entries_fn(void *arg)
++static inline bool ida_is_empty(struct ida *ida)
 +{
-+	rcu_register_thread();
-+
-+	while (!test_complete) {
-+		tag_tagged_items(&tree, &tree_lock, 0, MAX_IDX, 10, TAG,
-+					NEW_TAG);
-+	}
-+	rcu_unregister_thread();
-+	return NULL;
++	return idr_is_empty(&ida->idr);
 +}
 +
- /* This is a unit test for a bug found by the syzkaller tester */
--void iteration_test(void)
-+void iteration_test(unsigned order, unsigned test_duration)
- {
- 	int i;
+ void __init idr_init_cache(void);
  
--	printf("Running iteration tests for 10 seconds\n");
-+	printf("Running %siteration tests for %d seconds\n",
-+			order > 0 ? "multiorder " : "", test_duration);
- 
-+	max_order = order;
- 	test_complete = false;
- 
- 	for (i = 0; i < 3; i++)
- 		seeds[i] = rand();
- 
- 	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
--		perror("pthread_create");
-+		perror("create tagged iteration thread");
- 		exit(1);
- 	}
- 	if (pthread_create(&threads[1], NULL, untagged_iteration_fn, NULL)) {
--		perror("pthread_create");
-+		perror("create untagged iteration thread");
- 		exit(1);
- 	}
- 	if (pthread_create(&threads[2], NULL, add_entries_fn, NULL)) {
--		perror("pthread_create");
-+		perror("create add entry thread");
- 		exit(1);
- 	}
- 	if (pthread_create(&threads[3], NULL, remove_entries_fn, NULL)) {
--		perror("pthread_create");
-+		perror("create remove entry thread");
-+		exit(1);
-+	}
-+	if (pthread_create(&threads[4], NULL, tag_entries_fn, NULL)) {
-+		perror("create tag entry thread");
- 		exit(1);
- 	}
- 
--	sleep(10);
-+	sleep(test_duration);
- 	test_complete = true;
- 
- 	for (i = 0; i < NUM_THREADS; i++) {
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-check-multiorder-iteration tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-check-multiorder-iteration
-+++ a/tools/testing/radix-tree/main.c
-@@ -350,7 +350,8 @@ int main(int argc, char **argv)
- 	regression1_test();
- 	regression2_test();
- 	regression3_test();
--	iteration_test();
-+	iteration_test(0, 10);
-+	iteration_test(7, 20);
- 	single_thread_tests(long_run);
- 
- 	/* Free any remaining preallocated nodes */
-diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-test-suite-check-multiorder-iteration tools/testing/radix-tree/multiorder.c
---- a/tools/testing/radix-tree/multiorder.c~radix-tree-test-suite-check-multiorder-iteration
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -75,8 +75,27 @@ static void __multiorder_tag_test(int in
- 	item_kill_tree(&tree);
- }
- 
-+static void __multiorder_tag_test2(unsigned order, unsigned long index2)
-+{
-+	RADIX_TREE(tree, GFP_KERNEL);
-+	unsigned long index = (1 << order);
-+	index2 += index;
-+
-+	assert(item_insert_order(&tree, 0, order) == 0);
-+	assert(item_insert(&tree, index2) == 0);
-+
-+	assert(radix_tree_tag_set(&tree, 0, 0));
-+	assert(radix_tree_tag_set(&tree, index2, 0));
-+
-+	assert(tag_tagged_items(&tree, NULL, 0, ~0UL, 10, 0, 1) == 2);
-+
-+	item_kill_tree(&tree);
-+}
-+
- static void multiorder_tag_tests(void)
- {
-+	int i, j;
-+
- 	/* test multi-order entry for indices 0-7 with no sibling pointers */
- 	__multiorder_tag_test(0, 3);
- 	__multiorder_tag_test(5, 3);
-@@ -116,6 +135,10 @@ static void multiorder_tag_tests(void)
- 	__multiorder_tag_test(300, 8);
- 
- 	__multiorder_tag_test(0x12345678UL, 8);
-+
-+	for (i = 1; i < 10; i++)
-+		for (j = 0; j < (10 << i); j++)
-+			__multiorder_tag_test2(i, j);
- }
- 
- static void multiorder_check(unsigned long index, int order)
-diff -puN tools/testing/radix-tree/test.h~radix-tree-test-suite-check-multiorder-iteration tools/testing/radix-tree/test.h
---- a/tools/testing/radix-tree/test.h~radix-tree-test-suite-check-multiorder-iteration
-+++ a/tools/testing/radix-tree/test.h
-@@ -32,7 +32,7 @@ unsigned long find_item(struct radix_tre
- 
- void tag_check(void);
- void multiorder_checks(void);
--void iteration_test(void);
-+void iteration_test(unsigned order, unsigned duration);
- void benchmark(void);
- 
- struct item *
+ #endif /* __IDR_H__ */
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-radix-tree-test-suite-fix-compilation.patch
-radix-tree-test-suite-iteration-test-misuses-rcu.patch
-radix-tree-test-suite-use-rcu_barrier.patch
-radix-tree-test-suite-handle-exceptional-entries.patch
-radix-tree-test-suite-record-order-in-each-item.patch
-btrfs-fix-race-in-btrfs_free_dummy_fs_info.patch
-radix-tree-improve-multiorder-iterators.patch
-radix-tree-delete-radix_tree_locate_item.patch
-radix-tree-delete-radix_tree_range_tag_if_tagged.patch
-radix-tree-fix-replacement-for-multiorder-entries.patch
-radix-tree-test-suite-check-multiorder-iteration.patch
-tpm-use-idr_find-not-idr_find_slowpath.patch
-rxrpc-abstract-away-knowledge-of-idr-internals.patch
+tools-add-warn_on_once.patch
+radix-tree-test-suite-allow-gfp_atomic-allocations-to-fail.patch
+tools-add-more-bitmap-functions.patch
+radix-tree-test-suite-use-common-find-bit-code.patch
+radix-tree-fix-typo.patch
+radix-tree-create-node_tag_set.patch
+radix-tree-make-radix_tree_find_next_bit-more-useful.patch
+radix-tree-add-radix_tree_join.patch
+radix-tree-add-radix_tree_split.patch
+radix-tree-add-radix_tree_split_preload.patch
+idr-add-ida_is_empty.patch
+idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
+radix-tree-test-suite-add-some-more-functionality.patch
+reimplement-idr-and-ida-using-the-radix-tree.patch
 
