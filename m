@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-three-more-cond_resched-in-swapoff.patch added to -mm
- tree
-Date: Tue, 06 Dec 2016 13:32:03 -0800
-Message-ID: <58472e53.XLM4wh/PrA95Igwx%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-dont-emit-unified-diff-error-for-rename-only-patches.patch added to -mm tree
+Date: Tue, 06 Dec 2016 13:43:54 -0800
+Message-ID: <5847311a.uu1LSJ1oP3V+5SZy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751427AbcLFVlY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 16:41:24 -0500
+        with ESMTP id S1750813AbcLFVoL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 16:44:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, edumazet@google.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: andrew@aj.id.au, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add three more cond_resched() in swapoff
+     Subject: checkpatch: don't emit unified-diff error for rename-only patches
 has been added to the -mm tree.  Its filename is
-     mm-add-three-more-cond_resched-in-swapoff.patch
+     checkpatch-dont-emit-unified-diff-error-for-rename-only-patches.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-three-more-cond_resched-in-swapoff.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-dont-emit-unified-diff-error-for-rename-only-patches.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-three-more-cond_resched-in-swapoff.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-dont-emit-unified-diff-error-for-rename-only-patches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: add three more cond_resched() in swapoff
+From: Andrew Jeffery <andrew@aj.id.au>
+Subject: checkpatch: don't emit unified-diff error for rename-only patches
 
-Add a cond_resched() in the unuse_pmd_range() loop (so as to call it even
-when pmd none or trans_huge, like zap_pmd_range() does); and in the
-unuse_mm() loop (since that might skip over many vmas).  shmem_unuse() and
-radix_tree_locate_item() look good enough already.
+I generated a patch with `git format-patch` which checkpatch thinks is
+invalid:
 
-Those were the obvious places, but in fact the stalls came from
-find_next_to_unuse(), which sometimes scans through many unused entries. 
-Apply scan_swap_map()'s LATENCY_LIMIT of 256 there too; and only go off to
-test frontswap_map when a used entry is found.
+    $ ./scripts/checkpatch.pl lpc-dt/0006-mfd-dt-Move-syscon-bindings-to-syscon-subdirectory.patch
+    WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+     Documentation/devicetree/bindings/mfd/{ => syscon}/aspeed-scu.txt         | 0
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1612052155140.13021@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Eric Dumazet <edumazet@google.com>
-Cc: David Rientjes <rientjes@google.com>
+    ERROR: Does not appear to be a unified-diff format patch
+
+    total: 1 errors, 1 warnings, 0 lines checked
+
+    NOTE: For some of the reported defects, checkpatch may be able to
+          mechanically convert to the typical style using --fix or --fix-inplace.
+
+    lpc-dt/0006-mfd-dt-Move-syscon-bindings-to-syscon-subdirectory.patch has style problems, please review.
+
+    NOTE: If any of the errors are false positives, please report
+          them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+The patch in question was all renames with no edits, giving 100% similarity and
+thus no diff markers.
+
+Set '$is_patch = 1;' in the add/remove/rename detection to avoid
+generating spurious warnings.
+
+Link: http://lkml.kernel.org/r/20161205232224.22685-1-andrew@aj.id.au
+Signed-off-by: Andrew Jeffery <andrew@aj.id.au>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/swapfile.c~mm-add-three-more-cond_resched-in-swapoff mm/swapfile.c
---- a/mm/swapfile.c~mm-add-three-more-cond_resched-in-swapoff
-+++ a/mm/swapfile.c
-@@ -1234,6 +1234,7 @@ static inline int unuse_pmd_range(struct
- 
- 	pmd = pmd_offset(pud, addr);
- 	do {
-+		cond_resched();
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
- 			continue;
-@@ -1313,6 +1314,7 @@ static int unuse_mm(struct mm_struct *mm
- 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 		if (vma->anon_vma && (ret = unuse_vma(vma, entry, page)))
- 			break;
-+		cond_resched();
- 	}
- 	up_read(&mm->mmap_sem);
- 	return (ret < 0)? ret: 0;
-@@ -1350,15 +1352,12 @@ static unsigned int find_next_to_unuse(s
- 			prev = 0;
- 			i = 1;
- 		}
--		if (frontswap) {
--			if (frontswap_test(si, i))
--				break;
--			else
--				continue;
--		}
- 		count = READ_ONCE(si->swap_map[i]);
- 		if (count && swap_count(count) != SWAP_MAP_BAD)
--			break;
-+			if (!frontswap || frontswap_test(si, i))
-+				break;
-+		if ((i % LATENCY_LIMIT) == 0)
-+			cond_resched();
- 	}
- 	return i;
- }
+diff -puN scripts/checkpatch.pl~checkpatch-dont-emit-unified-diff-error-for-rename-only-patches scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-dont-emit-unified-diff-error-for-rename-only-patches
++++ a/scripts/checkpatch.pl
+@@ -2589,6 +2589,7 @@ sub process {
+ 		     $line =~ /^rename (?:from|to) [\w\/\.\-]+\s*$/ ||
+ 		     ($line =~ /\{\s*([\w\/\.\-]*)\s*\=\>\s*([\w\/\.\-]*)\s*\}/ &&
+ 		      (defined($1) || defined($2))))) {
++			$is_patch = 1;
+ 			$reported_maintainer_file = 1;
+ 			WARN("FILE_PATH_CHANGES",
+ 			     "added, moved or deleted file(s), does MAINTAINERS need updating?\n" . $herecurr);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from andrew@aj.id.au are
 
-mm-add-three-more-cond_resched-in-swapoff.patch
+checkpatch-dont-emit-unified-diff-error-for-rename-only-patches.patch
 
