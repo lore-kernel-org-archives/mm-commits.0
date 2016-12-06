@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-handle-exceptional-entries.patch added to -mm tree
-Date: Tue, 06 Dec 2016 12:50:27 -0800
-Message-ID: <58472493.tqId80IWDNlpd+Sp%akpm@linux-foundation.org>
+Subject: + tools-add-more-bitmap-functions.patch added to -mm tree
+Date: Tue, 06 Dec 2016 12:50:31 -0800
+Message-ID: <58472497.8zgvGAMOYMxQrEJY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36926 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751905AbcLFUt5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:49:57 -0500
+        with ESMTP id S1751905AbcLFUuB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: handle exceptional entries
+     Subject: tools: add more bitmap functions
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-handle-exceptional-entries.patch
+     tools-add-more-bitmap-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-handle-exceptional-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-add-more-bitmap-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-handle-exceptional-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-add-more-bitmap-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,60 +38,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix tree test suite: handle exceptional entries
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: tools: add more bitmap functions
 
-item_kill_tree() assumes that everything in the tree is a pointer to a
-struct item, which is annoying when testing the behaviour of exceptional
-entries.  Fix it to delete exceptional entries on the assumption they
-don't need to be freed.
+I need the following functions for the radix tree:
 
-Link: http://lkml.kernel.org/r/1480369871-5271-45-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+bitmap_fill
+bitmap_empty
+bitmap_full
+
+Copy the implementations from include/linux/bitmap.h
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/test.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ tools/include/linux/bitmap.h |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff -puN tools/testing/radix-tree/test.c~radix-tree-test-suite-handle-exceptional-entries tools/testing/radix-tree/test.c
---- a/tools/testing/radix-tree/test.c~radix-tree-test-suite-handle-exceptional-entries
-+++ a/tools/testing/radix-tree/test.c
-@@ -200,9 +200,16 @@ void verify_tag_consistency(struct radix
+diff -puN tools/include/linux/bitmap.h~tools-add-more-bitmap-functions tools/include/linux/bitmap.h
+--- a/tools/include/linux/bitmap.h~tools-add-more-bitmap-functions
++++ a/tools/include/linux/bitmap.h
+@@ -35,6 +35,32 @@ static inline void bitmap_zero(unsigned
+ 	}
+ }
  
- void item_kill_tree(struct radix_tree_root *root)
- {
-+	struct radix_tree_iter iter;
-+	void **slot;
- 	struct item *items[32];
- 	int nfound;
- 
-+	radix_tree_for_each_slot(slot, root, &iter, 0) {
-+		if (radix_tree_exceptional_entry(*slot))
-+			radix_tree_delete(root, iter.index);
++static inline void bitmap_fill(unsigned long *dst, unsigned int nbits)
++{
++	unsigned int nlongs = BITS_TO_LONGS(nbits);
++	if (!small_const_nbits(nbits)) {
++		unsigned int len = (nlongs - 1) * sizeof(unsigned long);
++		memset(dst, 0xff,  len);
 +	}
++	dst[nlongs - 1] = BITMAP_LAST_WORD_MASK(nbits);
++}
 +
- 	while ((nfound = radix_tree_gang_lookup(root, (void **)items, 0, 32))) {
- 		int i;
- 
++static inline int bitmap_empty(const unsigned long *src, unsigned nbits)
++{
++	if (small_const_nbits(nbits))
++		return ! (*src & BITMAP_LAST_WORD_MASK(nbits));
++
++	return find_first_bit(src, nbits) == nbits;
++}
++
++static inline int bitmap_full(const unsigned long *src, unsigned int nbits)
++{
++	if (small_const_nbits(nbits))
++		return ! (~(*src) & BITMAP_LAST_WORD_MASK(nbits));
++
++	return find_first_zero_bit(src, nbits) == nbits;
++}
++
+ static inline int bitmap_weight(const unsigned long *src, int nbits)
+ {
+ 	if (small_const_nbits(nbits))
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-radix-tree-test-suite-fix-compilation.patch
-radix-tree-test-suite-iteration-test-misuses-rcu.patch
-radix-tree-test-suite-use-rcu_barrier.patch
-radix-tree-test-suite-handle-exceptional-entries.patch
-radix-tree-test-suite-record-order-in-each-item.patch
-btrfs-fix-race-in-btrfs_free_dummy_fs_info.patch
-radix-tree-improve-multiorder-iterators.patch
-radix-tree-delete-radix_tree_locate_item.patch
-radix-tree-delete-radix_tree_range_tag_if_tagged.patch
-radix-tree-fix-replacement-for-multiorder-entries.patch
-radix-tree-test-suite-check-multiorder-iteration.patch
-tpm-use-idr_find-not-idr_find_slowpath.patch
-rxrpc-abstract-away-knowledge-of-idr-internals.patch
+tools-add-warn_on_once.patch
+radix-tree-test-suite-allow-gfp_atomic-allocations-to-fail.patch
+tools-add-more-bitmap-functions.patch
+radix-tree-test-suite-use-common-find-bit-code.patch
+radix-tree-fix-typo.patch
+radix-tree-create-node_tag_set.patch
+radix-tree-make-radix_tree_find_next_bit-more-useful.patch
+radix-tree-add-radix_tree_join.patch
+radix-tree-add-radix_tree_split.patch
+radix-tree-add-radix_tree_split_preload.patch
+idr-add-ida_is_empty.patch
+idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
+radix-tree-test-suite-add-some-more-functionality.patch
+reimplement-idr-and-ida-using-the-radix-tree.patch
 
