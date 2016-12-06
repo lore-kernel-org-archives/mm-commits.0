@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-record-order-in-each-item.patch added to
+Subject: + radix-tree-test-suite-use-common-find-bit-code.patch added to
  -mm tree
-Date: Tue, 06 Dec 2016 12:50:29 -0800
-Message-ID: <58472495.n3Gz4rF9apCyrMlC%akpm@linux-foundation.org>
+Date: Tue, 06 Dec 2016 12:50:33 -0800
+Message-ID: <58472499.ulrY2eawJ0fLzrds%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36934 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751905AbcLFUt7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:49:59 -0500
+        with ESMTP id S1751905AbcLFUuD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:50:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: record order in each item
+     Subject: radix tree test suite: use common find-bit code
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-record-order-in-each-item.patch
+     radix-tree-test-suite-use-common-find-bit-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-record-order-in-each-item.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-use-common-find-bit-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-record-order-in-each-item.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-use-common-find-bit-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,151 +39,310 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix tree test suite: record order in each item
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: radix tree test suite: use common find-bit code
 
-This probably doubles the size of each item allocated by the test suite
-but it lets us check a few more things, and may be needed for upcoming API
-changes that require the caller pass in the order of the entry.
+Remove the old find_next_bit code in favour of linking in the find_bit
+code from tools/lib.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-46-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/1480369871-5271-48-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/multiorder.c |    2 -
- tools/testing/radix-tree/test.c       |   29 +++++++++++++++---------
- tools/testing/radix-tree/test.h       |    6 ++--
- 3 files changed, 23 insertions(+), 14 deletions(-)
+ tools/testing/radix-tree/Makefile                  |    7 +
+ tools/testing/radix-tree/find_next_bit.c           |   57 -----------
+ tools/testing/radix-tree/linux/bitops.h            |   42 +++++---
+ tools/testing/radix-tree/linux/bitops/non-atomic.h |   13 +-
+ tools/testing/radix-tree/linux/kernel.h            |   11 ++
+ 5 files changed, 49 insertions(+), 81 deletions(-)
 
-diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-test-suite-record-order-in-each-item tools/testing/radix-tree/multiorder.c
---- a/tools/testing/radix-tree/multiorder.c~radix-tree-test-suite-record-order-in-each-item
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -125,7 +125,7 @@ static void multiorder_check(unsigned lo
- 	unsigned long min = index & ~((1UL << order) - 1);
- 	unsigned long max = min + (1UL << order);
- 	void **slot;
--	struct item *item2 = item_create(min);
-+	struct item *item2 = item_create(min, order);
- 	RADIX_TREE(tree, GFP_KERNEL);
+diff -puN tools/testing/radix-tree/Makefile~radix-tree-test-suite-use-common-find-bit-code tools/testing/radix-tree/Makefile
+--- a/tools/testing/radix-tree/Makefile~radix-tree-test-suite-use-common-find-bit-code
++++ a/tools/testing/radix-tree/Makefile
+@@ -18,7 +18,12 @@ main:	$(OFILES)
+ clean:
+ 	$(RM) -f $(TARGETS) *.o radix-tree.c
  
- 	printf("Multiorder index %ld, order %d\n", index, order);
-diff -puN tools/testing/radix-tree/test.c~radix-tree-test-suite-record-order-in-each-item tools/testing/radix-tree/test.c
---- a/tools/testing/radix-tree/test.c~radix-tree-test-suite-record-order-in-each-item
-+++ a/tools/testing/radix-tree/test.c
-@@ -24,21 +24,29 @@ int item_tag_get(struct radix_tree_root
- 	return radix_tree_tag_get(root, index, tag);
+-$(OFILES): *.h */*.h ../../../include/linux/radix-tree.h ../../include/linux/*.h
++find_next_bit.o: ../../lib/find_bit.c
++	$(CC) $(CFLAGS) -c -o $@ $<
++
++$(OFILES): *.h */*.h \
++	../../include/linux/*.h \
++	../../../include/linux/radix-tree.h
+ 
+ radix-tree.c: ../../../lib/radix-tree.c
+ 	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
+diff -puN tools/testing/radix-tree/find_next_bit.c~radix-tree-test-suite-use-common-find-bit-code /dev/null
+--- a/tools/testing/radix-tree/find_next_bit.c
++++ /dev/null
+@@ -1,57 +0,0 @@
+-/* find_next_bit.c: fallback find next bit implementation
+- *
+- * Copyright (C) 2004 Red Hat, Inc. All Rights Reserved.
+- * Written by David Howells (dhowells@redhat.com)
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version
+- * 2 of the License, or (at your option) any later version.
+- */
+-
+-#include <linux/types.h>
+-#include <linux/bitops.h>
+-
+-#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
+-
+-/*
+- * Find the next set bit in a memory region.
+- */
+-unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
+-			    unsigned long offset)
+-{
+-	const unsigned long *p = addr + BITOP_WORD(offset);
+-	unsigned long result = offset & ~(BITS_PER_LONG-1);
+-	unsigned long tmp;
+-
+-	if (offset >= size)
+-		return size;
+-	size -= result;
+-	offset %= BITS_PER_LONG;
+-	if (offset) {
+-		tmp = *(p++);
+-		tmp &= (~0UL << offset);
+-		if (size < BITS_PER_LONG)
+-			goto found_first;
+-		if (tmp)
+-			goto found_middle;
+-		size -= BITS_PER_LONG;
+-		result += BITS_PER_LONG;
+-	}
+-	while (size & ~(BITS_PER_LONG-1)) {
+-		if ((tmp = *(p++)))
+-			goto found_middle;
+-		result += BITS_PER_LONG;
+-		size -= BITS_PER_LONG;
+-	}
+-	if (!size)
+-		return result;
+-	tmp = *p;
+-
+-found_first:
+-	tmp &= (~0UL >> (BITS_PER_LONG - size));
+-	if (tmp == 0UL)		/* Are any bits set? */
+-		return result + size;	/* Nope. */
+-found_middle:
+-	return result + __ffs(tmp);
+-}
+diff -puN tools/testing/radix-tree/linux/bitops.h~radix-tree-test-suite-use-common-find-bit-code tools/testing/radix-tree/linux/bitops.h
+--- a/tools/testing/radix-tree/linux/bitops.h~radix-tree-test-suite-use-common-find-bit-code
++++ a/tools/testing/radix-tree/linux/bitops.h
+@@ -2,9 +2,14 @@
+ #define _ASM_GENERIC_BITOPS_NON_ATOMIC_H_
+ 
+ #include <linux/types.h>
+-
+-#define BITOP_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
+-#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
++#include <linux/bitops/find.h>
++#include <linux/bitops/hweight.h>
++#include <linux/kernel.h>
++
++#define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
++#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
++#define BITS_PER_BYTE		8
++#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
+ 
+ /**
+  * __set_bit - Set a bit in memory
+@@ -17,16 +22,16 @@
+  */
+ static inline void __set_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
+-	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++	unsigned long mask = BIT_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+ 
+ 	*p  |= mask;
  }
  
--int __item_insert(struct radix_tree_root *root, struct item *item,
--			unsigned order)
-+int __item_insert(struct radix_tree_root *root, struct item *item)
+ static inline void __clear_bit(int nr, volatile unsigned long *addr)
  {
--	return __radix_tree_insert(root, item->index, order, item);
-+	return __radix_tree_insert(root, item->index, item->order, item);
+-	unsigned long mask = BITOP_MASK(nr);
+-	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++	unsigned long mask = BIT_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+ 
+ 	*p &= ~mask;
+ }
+@@ -42,8 +47,8 @@ static inline void __clear_bit(int nr, v
+  */
+ static inline void __change_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
+-	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++	unsigned long mask = BIT_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+ 
+ 	*p ^= mask;
+ }
+@@ -59,8 +64,8 @@ static inline void __change_bit(int nr,
+  */
+ static inline int __test_and_set_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
+-	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++	unsigned long mask = BIT_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+ 	unsigned long old = *p;
+ 
+ 	*p = old | mask;
+@@ -78,8 +83,8 @@ static inline int __test_and_set_bit(int
+  */
+ static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
+-	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++	unsigned long mask = BIT_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+ 	unsigned long old = *p;
+ 
+ 	*p = old & ~mask;
+@@ -90,8 +95,8 @@ static inline int __test_and_clear_bit(i
+ static inline int __test_and_change_bit(int nr,
+ 					    volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
+-	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++	unsigned long mask = BIT_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+ 	unsigned long old = *p;
+ 
+ 	*p = old ^ mask;
+@@ -105,7 +110,7 @@ static inline int __test_and_change_bit(
+  */
+ static inline int test_bit(int nr, const volatile unsigned long *addr)
+ {
+-	return 1UL & (addr[BITOP_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
++	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
  }
  
- int item_insert(struct radix_tree_root *root, unsigned long index)
- {
--	return __item_insert(root, item_create(index), 0);
-+	return __item_insert(root, item_create(index, 0));
- }
+ /**
+@@ -147,4 +152,9 @@ unsigned long find_next_bit(const unsign
+ 			    unsigned long size,
+ 			    unsigned long offset);
  
- int item_insert_order(struct radix_tree_root *root, unsigned long index,
- 			unsigned order)
- {
--	return __item_insert(root, item_create(index), order);
-+	return __item_insert(root, item_create(index, order));
++static inline unsigned long hweight_long(unsigned long w)
++{
++	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
 +}
 +
-+void item_sanity(struct item *item, unsigned long index)
-+{
-+	unsigned long mask;
-+	assert(!radix_tree_is_internal_node(item));
-+	assert(item->order < BITS_PER_LONG);
-+	mask = (1UL << item->order) - 1;
-+	assert((item->index | mask) == (index | mask));
- }
+ #endif /* _ASM_GENERIC_BITOPS_NON_ATOMIC_H_ */
+diff -puN tools/testing/radix-tree/linux/bitops/non-atomic.h~radix-tree-test-suite-use-common-find-bit-code tools/testing/radix-tree/linux/bitops/non-atomic.h
+--- a/tools/testing/radix-tree/linux/bitops/non-atomic.h~radix-tree-test-suite-use-common-find-bit-code
++++ a/tools/testing/radix-tree/linux/bitops/non-atomic.h
+@@ -3,7 +3,6 @@
  
- int item_delete(struct radix_tree_root *root, unsigned long index)
-@@ -46,18 +54,19 @@ int item_delete(struct radix_tree_root *
- 	struct item *item = radix_tree_delete(root, index);
+ #include <asm/types.h>
  
- 	if (item) {
--		assert(item->index == index);
-+		item_sanity(item, index);
- 		free(item);
- 		return 1;
- 	}
+-#define BITOP_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
+ #define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
+ 
+ /**
+@@ -17,7 +16,7 @@
+  */
+ static inline void __set_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
++	unsigned long mask = BIT_MASK(nr);
+ 	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
+ 
+ 	*p  |= mask;
+@@ -25,7 +24,7 @@ static inline void __set_bit(int nr, vol
+ 
+ static inline void __clear_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
++	unsigned long mask = BIT_MASK(nr);
+ 	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
+ 
+ 	*p &= ~mask;
+@@ -42,7 +41,7 @@ static inline void __clear_bit(int nr, v
+  */
+ static inline void __change_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
++	unsigned long mask = BIT_MASK(nr);
+ 	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
+ 
+ 	*p ^= mask;
+@@ -59,7 +58,7 @@ static inline void __change_bit(int nr,
+  */
+ static inline int __test_and_set_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
++	unsigned long mask = BIT_MASK(nr);
+ 	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
+ 	unsigned long old = *p;
+ 
+@@ -78,7 +77,7 @@ static inline int __test_and_set_bit(int
+  */
+ static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
++	unsigned long mask = BIT_MASK(nr);
+ 	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
+ 	unsigned long old = *p;
+ 
+@@ -90,7 +89,7 @@ static inline int __test_and_clear_bit(i
+ static inline int __test_and_change_bit(int nr,
+ 					    volatile unsigned long *addr)
+ {
+-	unsigned long mask = BITOP_MASK(nr);
++	unsigned long mask = BIT_MASK(nr);
+ 	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
+ 	unsigned long old = *p;
+ 
+diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-use-common-find-bit-code tools/testing/radix-tree/linux/kernel.h
+--- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-use-common-find-bit-code
++++ a/tools/testing/radix-tree/linux/kernel.h
+@@ -47,4 +47,15 @@ static inline int in_interrupt(void)
+ {
  	return 0;
  }
- 
--struct item *item_create(unsigned long index)
-+struct item *item_create(unsigned long index, unsigned int order)
- {
- 	struct item *ret = malloc(sizeof(*ret));
- 
- 	ret->index = index;
-+	ret->order = order;
- 	return ret;
- }
- 
-@@ -66,8 +75,8 @@ void item_check_present(struct radix_tre
- 	struct item *item;
- 
- 	item = radix_tree_lookup(root, index);
--	assert(item != 0);
--	assert(item->index == index);
-+	assert(item != NULL);
-+	item_sanity(item, index);
- }
- 
- struct item *item_lookup(struct radix_tree_root *root, unsigned long index)
-@@ -80,7 +89,7 @@ void item_check_absent(struct radix_tree
- 	struct item *item;
- 
- 	item = radix_tree_lookup(root, index);
--	assert(item == 0);
-+	assert(item == NULL);
- }
- 
- /*
-diff -puN tools/testing/radix-tree/test.h~radix-tree-test-suite-record-order-in-each-item tools/testing/radix-tree/test.h
---- a/tools/testing/radix-tree/test.h~radix-tree-test-suite-record-order-in-each-item
-+++ a/tools/testing/radix-tree/test.h
-@@ -5,11 +5,11 @@
- 
- struct item {
- 	unsigned long index;
-+	unsigned int order;
- };
- 
--struct item *item_create(unsigned long index);
--int __item_insert(struct radix_tree_root *root, struct item *item,
--			unsigned order);
-+struct item *item_create(unsigned long index, unsigned int order);
-+int __item_insert(struct radix_tree_root *root, struct item *item);
- int item_insert(struct radix_tree_root *root, unsigned long index);
- int item_insert_order(struct radix_tree_root *root, unsigned long index,
- 			unsigned order);
++
++/*
++ * This looks more complex than it should be. But we need to
++ * get the type for the ~ right in round_down (it needs to be
++ * as wide as the result!), and we want to evaluate the macro
++ * arguments just once each.
++ */
++#define __round_mask(x, y) ((__typeof__(x))((y)-1))
++#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
++#define round_down(x, y) ((x) & ~__round_mask(x, y))
++
+ #endif /* _KERNEL_H */
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-radix-tree-test-suite-fix-compilation.patch
-radix-tree-test-suite-iteration-test-misuses-rcu.patch
-radix-tree-test-suite-use-rcu_barrier.patch
-radix-tree-test-suite-handle-exceptional-entries.patch
-radix-tree-test-suite-record-order-in-each-item.patch
-btrfs-fix-race-in-btrfs_free_dummy_fs_info.patch
-radix-tree-improve-multiorder-iterators.patch
-radix-tree-delete-radix_tree_locate_item.patch
-radix-tree-delete-radix_tree_range_tag_if_tagged.patch
-radix-tree-fix-replacement-for-multiorder-entries.patch
-radix-tree-test-suite-check-multiorder-iteration.patch
-tpm-use-idr_find-not-idr_find_slowpath.patch
-rxrpc-abstract-away-knowledge-of-idr-internals.patch
+tools-add-warn_on_once.patch
+radix-tree-test-suite-allow-gfp_atomic-allocations-to-fail.patch
+tools-add-more-bitmap-functions.patch
+radix-tree-test-suite-use-common-find-bit-code.patch
+radix-tree-fix-typo.patch
+radix-tree-create-node_tag_set.patch
+radix-tree-make-radix_tree_find_next_bit-more-useful.patch
+radix-tree-add-radix_tree_join.patch
+radix-tree-add-radix_tree_split.patch
+radix-tree-add-radix_tree_split_preload.patch
+idr-add-ida_is_empty.patch
+idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
+radix-tree-test-suite-add-some-more-functionality.patch
+reimplement-idr-and-ida-using-the-radix-tree.patch
 
