@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-make-runs-more-reproducible.patch added
- to -mm tree
-Date: Tue, 06 Dec 2016 12:50:18 -0800
-Message-ID: <5847248a.mFbmuMs/+xBYOYot%akpm@linux-foundation.org>
+Subject: + radix-tree-test-suite-iteration-test-misuses-rcu.patch added to -mm tree
+Date: Tue, 06 Dec 2016 12:50:20 -0800
+Message-ID: <5847248c.+PsA7K9gmLEYy9/w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36886 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751905AbcLFUts (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:49:48 -0500
+        with ESMTP id S1751905AbcLFUtu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 15:49:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@infradead.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: make runs more reproducible
+     Subject: radix tree test suite: iteration test misuses RCU
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-make-runs-more-reproducible.patch
+     radix-tree-test-suite-iteration-test-misuses-rcu.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-make-runs-more-reproducible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-iteration-test-misuses-rcu.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-make-runs-more-reproducible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-iteration-test-misuses-rcu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,121 +38,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: radix tree test suite: make runs more reproducible
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: radix tree test suite: iteration test misuses RCU
 
-Instead of reseeding the random number generator every time around the
-loop in big_gang_check(), seed it at the beginning of execution.  Use
-rand_r() and an independent base seed for each thread in iteration_test()
-so they don't stomp all over each others state.  Since this particular
-test depends on the kernel scheduler, the iteration test can't be
-reproduced based purely on the random seed, but at least it won't pollute
-the other tests.
+Each thread needs to register itself with RCU, otherwise the reading
+thread's read lock has no effect and the freeing thread will free the
+memory in the tree without waiting for the read lock to be dropped.
 
-Print the seed, and allow the seed to be specified so that a run which
-hits a problem can be reproduced.
-
-Link: http://lkml.kernel.org/r/1480369871-5271-41-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/1480369871-5271-42-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/iteration_check.c |   11 +++++++----
- tools/testing/radix-tree/main.c            |    9 +++++++--
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ tools/testing/radix-tree/iteration_check.c |   28 +++++++++++++++++--
+ 1 file changed, 26 insertions(+), 2 deletions(-)
 
-diff -puN tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-make-runs-more-reproducible tools/testing/radix-tree/iteration_check.c
---- a/tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-make-runs-more-reproducible
+diff -puN tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-iteration-test-misuses-rcu tools/testing/radix-tree/iteration_check.c
+--- a/tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-iteration-test-misuses-rcu
 +++ a/tools/testing/radix-tree/iteration_check.c
-@@ -20,6 +20,7 @@
- #define TAG 0
- static pthread_mutex_t tree_lock = PTHREAD_MUTEX_INITIALIZER;
- static pthread_t threads[NUM_THREADS];
-+static unsigned int seeds[3];
- RADIX_TREE(tree, GFP_KERNEL);
- bool test_complete;
+@@ -29,6 +29,8 @@ static void *add_entries_fn(void *arg)
+ {
+ 	int pgoff;
  
-@@ -71,7 +72,7 @@ static void *tagged_iteration_fn(void *a
++	rcu_register_thread();
++
+ 	while (!test_complete) {
+ 		for (pgoff = 0; pgoff < 100; pgoff++) {
+ 			pthread_mutex_lock(&tree_lock);
+@@ -38,6 +40,8 @@ static void *add_entries_fn(void *arg)
+ 		}
+ 	}
+ 
++	rcu_unregister_thread();
++
+ 	return NULL;
+ }
+ 
+@@ -53,6 +57,8 @@ static void *tagged_iteration_fn(void *a
+ 	struct radix_tree_iter iter;
+ 	void **slot;
+ 
++	rcu_register_thread();
++
+ 	while (!test_complete) {
+ 		rcu_read_lock();
+ 		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG) {
+@@ -72,12 +78,18 @@ static void *tagged_iteration_fn(void *a
  				continue;
  			}
  
--			if (rand() % 50 == 0)
-+			if (rand_r(&seeds[0]) % 50 == 0)
+-			if (rand_r(&seeds[0]) % 50 == 0)
++			if (rand_r(&seeds[0]) % 50 == 0) {
  				slot = radix_tree_iter_next(&iter);
++				rcu_read_unlock();
++				rcu_barrier();
++				rcu_read_lock();
++			}
  		}
  		rcu_read_unlock();
-@@ -111,7 +112,7 @@ static void *untagged_iteration_fn(void
+ 	}
+ 
++	rcu_unregister_thread();
++
+ 	return NULL;
+ }
+ 
+@@ -93,6 +105,8 @@ static void *untagged_iteration_fn(void
+ 	struct radix_tree_iter iter;
+ 	void **slot;
+ 
++	rcu_register_thread();
++
+ 	while (!test_complete) {
+ 		rcu_read_lock();
+ 		radix_tree_for_each_slot(slot, &tree, &iter, 0) {
+@@ -112,12 +126,18 @@ static void *untagged_iteration_fn(void
  				continue;
  			}
  
--			if (rand() % 50 == 0)
-+			if (rand_r(&seeds[1]) % 50 == 0)
+-			if (rand_r(&seeds[1]) % 50 == 0)
++			if (rand_r(&seeds[1]) % 50 == 0) {
  				slot = radix_tree_iter_next(&iter);
++				rcu_read_unlock();
++				rcu_barrier();
++				rcu_read_lock();
++			}
  		}
  		rcu_read_unlock();
-@@ -129,7 +130,7 @@ static void *remove_entries_fn(void *arg
+ 	}
+ 
++	rcu_unregister_thread();
++
+ 	return NULL;
+ }
+ 
+@@ -127,6 +147,8 @@ static void *untagged_iteration_fn(void
+  */
+ static void *remove_entries_fn(void *arg)
+ {
++	rcu_register_thread();
++
  	while (!test_complete) {
  		int pgoff;
  
--		pgoff = rand() % 100;
-+		pgoff = rand_r(&seeds[2]) % 100;
- 
- 		pthread_mutex_lock(&tree_lock);
- 		item_delete(&tree, pgoff);
-@@ -146,9 +147,11 @@ void iteration_test(void)
- 
- 	printf("Running iteration tests for 10 seconds\n");
- 
--	srand(time(0));
- 	test_complete = false;
- 
-+	for (i = 0; i < 3; i++)
-+		seeds[i] = rand();
-+
- 	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
- 		perror("pthread_create");
- 		exit(1);
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-make-runs-more-reproducible tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-make-runs-more-reproducible
-+++ a/tools/testing/radix-tree/main.c
-@@ -67,7 +67,6 @@ void big_gang_check(bool long_run)
- 
- 	for (i = 0; i < (long_run ? 1000 : 3); i++) {
- 		__big_gang_check();
--		srand(time(0));
- 		printf("%d ", i);
- 		fflush(stdout);
- 	}
-@@ -329,12 +328,18 @@ int main(int argc, char **argv)
- {
- 	bool long_run = false;
- 	int opt;
-+	unsigned int seed = time(NULL);
- 
--	while ((opt = getopt(argc, argv, "l")) != -1) {
-+	while ((opt = getopt(argc, argv, "ls:")) != -1) {
- 		if (opt == 'l')
- 			long_run = true;
-+		else if (opt == 's')
-+			seed = strtoul(optarg, NULL, 0);
+@@ -137,6 +159,8 @@ static void *remove_entries_fn(void *arg
+ 		pthread_mutex_unlock(&tree_lock);
  	}
  
-+	printf("random seed %u\n", seed);
-+	srand(seed);
++	rcu_unregister_thread();
 +
- 	rcu_register_thread();
- 	radix_tree_init();
+ 	return NULL;
+ }
  
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from mawilcox@microsoft.com are
 
-radix-tree-test-suite-track-preempt_count.patch
-radix-tree-test-suite-free-preallocated-nodes.patch
-radix-tree-test-suite-make-runs-more-reproducible.patch
-radix-tree-move-rcu_head-into-a-union-with-private_list.patch
-radix-tree-improve-dump-output.patch
+radix-tree-test-suite-fix-compilation.patch
+radix-tree-test-suite-iteration-test-misuses-rcu.patch
+radix-tree-test-suite-use-rcu_barrier.patch
+radix-tree-test-suite-handle-exceptional-entries.patch
+radix-tree-test-suite-record-order-in-each-item.patch
+btrfs-fix-race-in-btrfs_free_dummy_fs_info.patch
+radix-tree-improve-multiorder-iterators.patch
+radix-tree-delete-radix_tree_locate_item.patch
+radix-tree-delete-radix_tree_range_tag_if_tagged.patch
+radix-tree-fix-replacement-for-multiorder-entries.patch
+radix-tree-test-suite-check-multiorder-iteration.patch
+tpm-use-idr_find-not-idr_find_slowpath.patch
+rxrpc-abstract-away-knowledge-of-idr-internals.patch
 
