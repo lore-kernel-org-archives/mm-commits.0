@@ -1,60 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/3] zram: restrict add/remove attributes to root only
-Date: Wed, 07 Dec 2016 14:44:31 -0800
-Message-ID: <584890cf.oORz+Nnc3G2B55zs%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 07 Dec 2016 15:43:21 -0800
+Message-ID: <58489e99.K9TZhx0ysmVzLzN0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933635AbcLGWn7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 17:43:59 -0500
+        with ESMTP id S932632AbcLGXnL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 18:43:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sergey.senozhatsky@gmail.com, gregkh@linuxfoundation.org, minchan@kernel.org, stable@vger.kernel.org, steven@stebalien.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: restrict add/remove attributes to root only
 
-zram hot_add sysfs attribute is a very 'special' attribute - reading from
-it creates a new uninitialized zram device.  This file, by a mistake, can
-be read by a 'normal' user at the moment, while only root must be able to
-create a new zram device, therefore hot_add attribute must have S_IRUSR
-mode, not S_IRUGO.
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-[akpm@linux-foundation.org: s/sence/sense/, reflow comment to use 80 cols]
-Fixes: 6566d1a32bf72 ("zram: add dynamic device add/remove functionality")
-Link: http://lkml.kernel.org/r/20161205155845.20129-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Steven Allen <steven@stebalien.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>    [4.2+]
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/locking/rtmutex_common.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1413,8 +1413,14 @@ static ssize_t hot_remove_store(struct c
- 	return ret ? ret : count;
+diff -puN kernel/locking/rtmutex_common.h~linux-next-git-rejects kernel/locking/rtmutex_common.h
+--- a/kernel/locking/rtmutex_common.h~linux-next-git-rejects
++++ a/kernel/locking/rtmutex_common.h
+@@ -76,11 +76,7 @@ static inline struct task_struct *rt_mut
+ {
+ 	unsigned long owner = (unsigned long) READ_ONCE(lock->owner);
+ 
+-<<<<<<< HEAD
+-	return (struct task_struct *) (owner & ~RT_MUTEX_OWNER_MASKALL);
+-=======
+ 	return (struct task_struct *) (owner & ~RT_MUTEX_HAS_WAITERS);
+->>>>>>> linux-next/akpm-base
  }
  
-+/*
-+ * NOTE: hot_add attribute is not the usual read-only sysfs attribute. In a
-+ * sense that reading from this file does alter the state of your system -- it
-+ * creates a new un-initialized zram device and returns back this device's
-+ * device_id (or an error code if it fails to create a new device).
-+ */
- static struct class_attribute zram_control_class_attrs[] = {
--	__ATTR_RO(hot_add),
-+	__ATTR(hot_add, 0400, hot_add_show, NULL),
- 	__ATTR_WO(hot_remove),
- 	__ATTR_NULL,
- };
+ /*
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+mm.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
+filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
+include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
+mm-thp-page-cache-support-for-ppc64-fix.patch
+mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes.patch
+scripts-checkpatchpl-fix-spelling.patch
+init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
+debug-more-properly-delay-for-secondary-cpus-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+drivers-clk-uniphier-clk-uniphierh-fix-build-with-old-gcc.patch
+drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc.patch
+ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
+ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
+mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
