@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
+Subject: + zram-restrict-add-remove-attributes-to-root-only-fix.patch
  added to -mm tree
-Date: Wed, 07 Dec 2016 12:47:57 -0800
-Message-ID: <5848757d.ZFXA0ORjGHCJCbfi%akpm@linux-foundation.org>
+Date: Wed, 07 Dec 2016 14:21:39 -0800
+Message-ID: <58488b73.1vdcMEEwJJM6eUh+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60666 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932808AbcLGUrf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 15:47:35 -0500
+        with ESMTP id S932339AbcLGWVS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 17:21:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drzeus-list@drzeus.cx, hch@lst.de, js07.lee@samsung.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, steven@stebalien.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init-reduce-rootwait-polling-interval-time-to-5ms-fix
+     Subject: zram-restrict-add-remove-attributes-to-root-only-fix
 has been added to the -mm tree.  Its filename is
-     init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
+     zram-restrict-add-remove-attributes-to-root-only-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-restrict-add-remove-attributes-to-root-only-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-restrict-add-remove-attributes-to-root-only-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-reduce-rootwait-polling-interval-time-to-5ms-fix
+Subject: zram-restrict-add-remove-attributes-to-root-only-fix
 
-remove used-once #define
+s/sence/sense/, reflow comment to use 80 cols
 
-Cc: Jungseung Lee <js07.lee@samsung.com>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Steven Allen <steven@stebalien.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN init/do_mounts.c~init-reduce-rootwait-polling-interval-time-to-5ms-fix init/do_mounts.c
---- a/init/do_mounts.c~init-reduce-rootwait-polling-interval-time-to-5ms-fix
-+++ a/init/do_mounts.c
-@@ -543,8 +543,6 @@ void __init mount_root(void)
- #endif
+diff -puN drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only-fix drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only-fix
++++ a/drivers/block/zram/zram_drv.c
+@@ -1414,11 +1414,10 @@ static ssize_t hot_remove_store(struct c
  }
  
--#define ROOTWAIT_MSEC 5
--
  /*
-  * Prepare the namespace - decide what/where to mount, load ramdisks, etc.
+- * NOTE: hot_add attribute is not the usual read-only sysfs
+- * attribute. In a sence that reading from this file does alter
+- * the state of your system -- it creates a new un-initialized
+- * zram device and returns back this device's device_id (or an
+- * error code if it fails to create a new device).
++ * NOTE: hot_add attribute is not the usual read-only sysfs attribute. In a
++ * sense that reading from this file does alter the state of your system -- it
++ * creates a new un-initialized zram device and returns back this device's
++ * device_id (or an error code if it fails to create a new device).
   */
-@@ -590,7 +588,7 @@ void __init prepare_namespace(void)
- 			saved_root_name);
- 		while (driver_probe_done() != 0 ||
- 			(ROOT_DEV = name_to_dev_t(saved_root_name)) == 0)
--			msleep(ROOTWAIT_MSEC);
-+			msleep(5);
- 		async_synchronize_full();
- 	}
- 
+ static struct class_attribute zram_control_class_attrs[] = {
+ 	__ATTR(hot_add, 0400, hot_add_show, NULL),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+zram-restrict-add-remove-attributes-to-root-only-fix.patch
 i-need-old-gcc.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
