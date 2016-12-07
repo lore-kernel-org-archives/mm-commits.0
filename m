@@ -1,400 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2016-12-06-15-45 uploaded
-Date: Tue, 06 Dec 2016 15:46:21 -0800
-Message-ID: <58474dcd.FFK9fR7IOWVzh+eB%akpm__10659.7015205354$1481067975$gmane$org@linux-foundation.org>
+Subject: +
+ hotplug-make-register-and-unregister-notifier-api-symmetric.patch added to
+ -mm tree
+Date: Wed, 07 Dec 2016 08:56:23 -0800
+Message-ID: <58483f37.kwr3sSg/vT5FJn0D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46998 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751639AbcLFXqG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Dec 2016 18:46:06 -0500
+        with ESMTP id S932511AbcLGQ4Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 11:56:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2016-12-06-15-45 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: mhocko@suse.com, ddstreet@ieee.org, stable@vger.kernel.org, tglx@linutronix.de, yuzhao@google.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: hotplug: make register and unregister notifier API symmetric
+has been added to the -mm tree.  Its filename is
+     hotplug-make-register-and-unregister-notifier-api-symmetric.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/hotplug-make-register-and-unregister-notifier-api-symmetric.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/hotplug-make-register-and-unregister-notifier-api-symmetric.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Michal Hocko <mhocko@suse.com>
+Subject: hotplug: make register and unregister notifier API symmetric
 
+Yu Zhao has noticed that __unregister_cpu_notifier() only unregisters its
+notifiers when HOTPLUG_CPU=y while the registration might succeed even
+when HOTPLUG_CPU=n if MODULE is enabled.  This means that e.g.  zswap
+might keep a stale notifier on the list on the manual clean up during the
+pool tear down and thus corrupt the list.  Resulting in the following
 
+[  144.964346] BUG: unable to handle kernel paging request at ffff880658a2be78
+[  144.971337] IP: [<ffffffffa290b00b>] raw_notifier_chain_register+0x1b/0x40
+<snipped>
+[  145.122628] Call Trace:
+[  145.125086]  [<ffffffffa28e5cf8>] __register_cpu_notifier+0x18/0x20
+[  145.131350]  [<ffffffffa2a5dd73>] zswap_pool_create+0x273/0x400
+[  145.137268]  [<ffffffffa2a5e0fc>] __zswap_param_set+0x1fc/0x300
+[  145.143188]  [<ffffffffa2944c1d>] ? trace_hardirqs_on+0xd/0x10
+[  145.149018]  [<ffffffffa2908798>] ? kernel_param_lock+0x28/0x30
+[  145.154940]  [<ffffffffa2a3e8cf>] ? __might_fault+0x4f/0xa0
+[  145.160511]  [<ffffffffa2a5e237>] zswap_compressor_param_set+0x17/0x20
+[  145.167035]  [<ffffffffa2908d3c>] param_attr_store+0x5c/0xb0
+[  145.172694]  [<ffffffffa290848d>] module_attr_store+0x1d/0x30
+[  145.178443]  [<ffffffffa2b2b41f>] sysfs_kf_write+0x4f/0x70
+[  145.183925]  [<ffffffffa2b2a5b9>] kernfs_fop_write+0x149/0x180
+[  145.189761]  [<ffffffffa2a99248>] __vfs_write+0x18/0x40
+[  145.194982]  [<ffffffffa2a9a412>] vfs_write+0xb2/0x1a0
+[  145.200122]  [<ffffffffa2a9a732>] SyS_write+0x52/0xa0
+[  145.205177]  [<ffffffffa2ff4d97>] entry_SYSCALL_64_fastpath+0x12/0x17
 
+This can be even triggered manually by changing
+/sys/module/zswap/parameters/compressor multiple times.
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Fix this issue by making unregister APIs symmetric to the register so
+there are no surprises.
 
-A git copy of this tree is available at
+Fixes: 47e627bc8c9a ("[PATCH] hotplug: Allow modules to use the cpu hotplug notifiers even if !CONFIG_HOTPLUG_CPU")
+Link: http://lkml.kernel.org/r/20161207135438.4310-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Yu Zhao <yuzhao@google.com>
+Tested-by: Yu Zhao <yuzhao@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: <stable@vger.kernel.org>	[zswap requires for 4.3+]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+ include/linux/cpu.h |   15 ++++-----------
+ kernel/cpu.c        |    2 +-
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+diff -puN include/linux/cpu.h~hotplug-make-register-and-unregister-notifier-api-symmetric include/linux/cpu.h
+--- a/include/linux/cpu.h~hotplug-make-register-and-unregister-notifier-api-symmetric
++++ a/include/linux/cpu.h
+@@ -93,22 +93,16 @@ extern bool cpuhp_tasks_frozen;
+ 		{ .notifier_call = fn, .priority = pri };	\
+ 	__register_cpu_notifier(&fn##_nb);			\
+ }
+-#else /* #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
+-#define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
+-#define __cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
+-#endif /* #else #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
+ 
+-#ifdef CONFIG_HOTPLUG_CPU
+ extern int register_cpu_notifier(struct notifier_block *nb);
+ extern int __register_cpu_notifier(struct notifier_block *nb);
+ extern void unregister_cpu_notifier(struct notifier_block *nb);
+ extern void __unregister_cpu_notifier(struct notifier_block *nb);
+-#else
+ 
+-#ifndef MODULE
+-extern int register_cpu_notifier(struct notifier_block *nb);
+-extern int __register_cpu_notifier(struct notifier_block *nb);
+-#else
++#else /* #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
++#define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
++#define __cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
++
+ static inline int register_cpu_notifier(struct notifier_block *nb)
+ {
+ 	return 0;
+@@ -118,7 +112,6 @@ static inline int __register_cpu_notifie
+ {
+ 	return 0;
+ }
+-#endif
+ 
+ static inline void unregister_cpu_notifier(struct notifier_block *nb)
+ {
+diff -puN kernel/cpu.c~hotplug-make-register-and-unregister-notifier-api-symmetric kernel/cpu.c
+--- a/kernel/cpu.c~hotplug-make-register-and-unregister-notifier-api-symmetric
++++ a/kernel/cpu.c
+@@ -659,7 +659,6 @@ void __init cpuhp_threads_init(void)
+ 	kthread_unpark(this_cpu_read(cpuhp_state.thread));
+ }
+ 
+-#ifdef CONFIG_HOTPLUG_CPU
+ EXPORT_SYMBOL(register_cpu_notifier);
+ EXPORT_SYMBOL(__register_cpu_notifier);
+ void unregister_cpu_notifier(struct notifier_block *nb)
+@@ -676,6 +675,7 @@ void __unregister_cpu_notifier(struct no
+ }
+ EXPORT_SYMBOL(__unregister_cpu_notifier);
+ 
++#ifdef CONFIG_HOTPLUG_CPU
+ /**
+  * clear_tasks_mm_cpumask - Safely clear tasks' mm_cpumask for a CPU
+  * @cpu: a CPU id
+_
 
+Patches currently in -mm which might be from mhocko@suse.com are
 
-This mmotm tree contains the following patches against 4.9-rc8:
-(patches marked "*" will be included in linux-next)
+mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
+hotplug-make-register-and-unregister-notifier-api-symmetric.patch
 
-  origin.patch
-* zram-restrict-add-remove-attributes-to-root-only.patch
-* radix-tree-test-suite-fix-compilation.patch
-* kcov-add-missing-include-linux-schedh.patch
-  i-need-old-gcc.patch
-* kthread-add-__printf-attributes.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* prctl-remove-one-shot-limitation-for-changing-exe-link.patch
-* prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-* kbuild-simpler-generation-of-assembly-constants.patch
-* scripts-bloat-o-meter-dont-use-readlines.patch
-* scripts-bloat-o-meter-compile-number-regex.patch
-* scripts-tagssh-handle-omap-platforms-properly.patch
-* m32r-add-simple-dma.patch
-* m32r-fix-build-warning.patch
-* pcmcia-m32r_pcc-check-return-from-request_irq.patch
-* pcmcia-m32r_pcc-use-common-error-path.patch
-* pcmcia-m32r_pcc-check-return-from-add_pcc_socket.patch
-* ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler.patch
-* ocfs2-delete-redundant-code-and-set-the-node-bit-into-maybe_map-directly.patch
-* ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler.patch
-* ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
-* ocfs2-fix-double-put-of-recount-tree-in-ocfs2_lock_refcount_tree.patch
-* fs-ocfs2-use-time64_t-to-represent-orphan-scan-times.patch
-* fs-ocfs2-replace-current_time-macro.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
-  mm.patch
-* mm-memcontrol-use-special-workqueue-for-creating-per-memcg-caches.patch
-* slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
-* slub-avoid-false-postive-warning.patch
-* mm-check-kmem_create_cache-flags-are-commons.patch
-* mm-slab-faster-active-and-free-stats.patch
-* mm-slab-maintain-total-slab-count-instead-of-active-count.patch
-* dont-touch-single-threaded-ptes-which-are-on-the-right-node.patch
-* dont-touch-single-threaded-ptes-which-are-on-the-right-node-v3.patch
-* vmscan-set-correct-defer-count-for-shrinker.patch
-* mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
-* mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-* mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
-* mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
-* mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
-* kmemleak-fix-reference-to-documentation.patch
-* mm-dont-steal-highatomic-pageblock.patch
-* mm-prevent-double-decrease-of-nr_reserved_highatomic.patch
-* mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
-* mm-make-unreserve-highatomic-functions-reliable.patch
-* mm-vmallocc-simplify-proc-vmallocinfo-implementation.patch
-* mm-thp-avoid-unlikely-branches-for-split_huge_pmd.patch
-* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
-* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-* mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch
-* shmem-avoid-maybe-uninitialized-warning.patch
-* mm-use-the-correct-page-size-when-removing-the-page.patch
-* mm-update-mmu_gather-range-correctly.patch
-* mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
-* mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
-* mm-remove-the-page-size-change-check-in-tlb_remove_page.patch
-* mm-fixup-get_user_pages-comments.patch
-* mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
-* powerpc-mm-allow-memory-hotplug-into-a-memoryless-node.patch
-* mm-remove-x86-only-restriction-of-movable_node.patch
-* mm-enable-config_movable_node-on-non-x86-arches.patch
-* of-fdt-mark-hotpluggable-memory.patch
-* dt-add-documentation-of-hotpluggable-memory-property.patch
-* mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected.patch
-* mm-disable-numa-migration-faults-for-dax-vmas.patch
-* mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-* mm-cma-make-linux-cmah-standalone-includible.patch
-* filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert.patch
-* filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
-* writeback-remove-redundant-if-check.patch
-* shmem-fix-compilation-warnings-on-unused-functions.patch
-* mm-dont-cap-request-size-based-on-read-ahead-setting.patch
-* include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
-* mm-khugepaged-close-use-after-free-race-during-shmem-collapsing.patch
-* mm-khugepaged-fix-radix-tree-node-leak-in-shmem-collapse-error-path.patch
-* mm-workingset-turn-shadow-node-shrinker-bugs-into-warnings.patch
-* lib-radix-tree-native-accounting-of-exceptional-entries.patch
-* lib-radix-tree-check-accounting-of-existing-slot-replacement-users.patch
-* lib-radix-tree-add-entry-deletion-support-to-__radix_tree_replace.patch
-* lib-radix-tree-update-callback-for-changing-leaf-nodes.patch
-* mm-workingset-move-shadow-entry-tracking-to-radix-tree-exceptional-tracking.patch
-* mm-workingset-restore-refault-tracking-for-single-page-files.patch
-* mm-workingset-update-shadow-limit-to-reflect-bigger-active-list.patch
-* mm-remove-free_unmap_vmap_area_noflush.patch
-* mm-remove-free_unmap_vmap_area_addr.patch
-* mm-refactor-__purge_vmap_area_lazy.patch
-* mm-add-vfree_atomic.patch
-* kernel-fork-use-vfree_atomic-to-free-thread-stack.patch
-* x86-ldt-use-vfree_atomic-to-free-ldt-entries.patch
-* mm-mark-all-calls-into-the-vmalloc-subsystem-as-potentially-sleeping.patch
-* mm-turn-vmap_purge_lock-into-a-mutex.patch
-* mm-add-preempt-points-into-__purge_vmap_area_lazy.patch
-* mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw.patch
-* mm-thp-page-cache-support-for-ppc64.patch
-* mm-thp-page-cache-support-for-ppc64-fix.patch
-* mm-debug-print-raw-struct-page-data-in-__dump_page.patch
-* mm-rmap-handle-anon_vma_prepare-common-case-inline.patch
-* mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes.patch
-* mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted.patch
-* mm-add-three-more-cond_resched-in-swapoff.patch
-* mm-add-cond_resched-in-gather_pte_stats.patch
-* mm-make-transparent-hugepage-size-public.patch
-* z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
-* z3fold-make-pages_nr-atomic.patch
-* z3fold-extend-compaction-function.patch
-* z3fold-use-per-page-spinlock.patch
-* z3fold-discourage-use-of-pages-that-werent-compacted.patch
-* z3fold-fix-header-size-related-issues.patch
-* z3fold-fix-locking-issues.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* kasan-support-panic_on_warn.patch
-* kasan-eliminate-long-stalls-during-quarantine-reduction.patch
-* mm-percpuc-fix-panic-triggered-by-bug_on-falsely.patch
-* proc-report-no_new_privs-state.patch
-* proc-make-struct-pid_entry-len-unsigned.patch
-* proc-make-struct-struct-map_files_info-len-unsigned-int.patch
-* proc-just-list_del-struct-pde_opener.patch
-* proc-fix-type-of-struct-pde_opener-closing-field.patch
-* proc-kmalloc-struct-pde_opener.patch
-* proc-tweak-comments-about-2-stage-open-and-everything.patch
-* fs-proc-arrayc-slightly-improve-render_sigset_t.patch
-* proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
-* proc-calculate-proc-and-proc-task-nlink-at-init-time.patch
-* hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
-* compiler-gcch-use-proved-instead-of-proofed.patch
-* printk-nmi-handle-continuous-lines-and-missing-newline.patch
-* printk-kdb-handle-more-message-headers.patch
-* printk-btrfs-handle-more-message-headers.patch
-* printk-btrfs-handle-more-message-headers-fix.patch
-* printk-sound-handle-more-message-headers.patch
-* printk-sound-handle-more-message-headers-fix.patch
-* printk-add-kconfig-option-to-set-default-console-loglevel.patch
-* get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
-* maintainers-add-b-for-uri-where-to-file-bugs.patch
-* maintainers-add-drm-and-drm-i915-bug-filing-info.patch
-* maintainers-add-c-for-uri-for-chat-where-developers-hang-out.patch
-* maintainers-add-drm-and-drm-i915-irc-channels.patch
-* maintainers-clarify-that-b-is-the-uri-where-to-file-bugs.patch
-* let-config_strict_devmem-depends-on-config_devmem.patch
-* lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color.patch
-* lib-ida-document-locking-requirements-a-bit-better-v2.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given.patch
-* scripts-checkpatchpl-fix-spelling.patch
-* checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
-* checkpatch-avoid-multiple-line-dereferences.patch
-* checkpatch-dont-check-c99-types-like-uint8_t-under-tools.patch
-* checkpatch-dont-emit-unified-diff-error-for-rename-only-patches.patch
-* binfmt_elf-use-vmalloc-for-allocation-of-vma_filesz.patch
-* signals-avoid-unnecessary-taking-of-sighand-siglock.patch
-* coredump-clarify-unsafe-core_pattern-warning.patch
-* revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
-* kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* sysctl-add-kern_cont-to-deprecated_sysctl_warning.patch
-* arch-arc-add-option-to-skip-sync-on-dma-mapping.patch
-* arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
-* arch-avr32-add-option-to-skip-sync-on-dma-map.patch
-* arch-blackfin-add-option-to-skip-sync-on-dma-map.patch
-* arch-c6x-add-option-to-skip-sync-on-dma-map-and-unmap.patch
-* arch-frv-add-option-to-skip-sync-on-dma-map.patch
-* arch-hexagon-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-nios2-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-openrisc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-parisc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-sh-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-tile-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
-* arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
-* dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch
-* mm-add-support-for-releasing-multiple-instances-of-a-page.patch
-* igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
-* igb-update-code-to-better-handle-incrementing-page-count.patch
-* relay-check-array-offset-before-using-it.patch
-* kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
-* kconfig-lib-kconfigubsan-fix-reference-to-ubsan-documentation.patch
-* debug-more-properly-delay-for-secondary-cpus.patch
-* debug-more-properly-delay-for-secondary-cpus-fix.patch
-* kdb-remove-unused-kdb_event-handling.patch
-* kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus.patch
-* kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted.patch
-* initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile.patch
-* initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm.patch
-* ipc-semc-avoid-using-spin_unlock_wait.patch
-* ipc-sem-add-hysteresis.patch
-* ipc-msg-make-msgrcv-work-with-long_min.patch
-* ipc-fixed-warnings.patch
-  linux-next.patch
-  linux-next-rejects.patch
-* posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
-* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-* drivers-clk-uniphier-clk-uniphierh-fix-build-with-old-gcc.patch
-* drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc.patch
-* ktestpl-fix-english.patch
-* watchdog-move-shared-definitions-to-nmih.patch
-* watchdog-move-hardlockup-detector-to-separate-file.patch
-* sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable.patch
-* ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
-* ipc-sem-rework-task-wakeups.patch
-* ipc-sem-rework-task-wakeups-fix.patch
-* ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-* ipc-sem-optimize-perform_atomic_semop.patch
-* ipc-sem-optimize-perform_atomic_semop-fix.patch
-* ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-* ipc-sem-explicitly-inline-check_restart.patch
-* ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
-* ipc-sem-simplify-wait-wake-loop.patch
-* ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-* ipc-sem-avoid-idr-tree-lookup-for-interrupted-semop.patch
-* mm-add-locked-parameter-to-get_user_pages_remote.patch
-* mm-add-locked-parameter-to-get_user_pages_remote-fix.patch
-* mm-unexport-__get_user_pages_unlocked.patch
-* mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-* mm-join-struct-fault_env-and-vm_fault.patch
-* mm-use-vmf-address-instead-of-of-vmf-virtual_address.patch
-* mm-use-pgoff-in-struct-vm_fault-instead-of-passing-it-separately.patch
-* mm-use-passed-vm_fault-structure-in-__do_fault.patch
-* mm-trim-__do_fault-arguments.patch
-* mm-use-passed-vm_fault-structure-for-in-wp_pfn_shared.patch
-* mm-add-orig_pte-field-into-vm_fault.patch
-* mm-allow-full-handling-of-cow-faults-in-fault-handlers.patch
-* mm-factor-out-functionality-to-finish-page-faults.patch
-* mm-move-handling-of-cow-faults-into-dax-code.patch
-* mm-factor-out-common-parts-of-write-fault-handling.patch
-* mm-pass-vm_fault-structure-into-do_page_mkwrite.patch
-* mm-use-vmf-page-during-wp-faults.patch
-* mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
-* mm-provide-helper-for-finishing-mkwrite-faults.patch
-* mm-change-return-values-of-finish_mkwrite_fault.patch
-* mm-export-follow_pte.patch
-* dax-make-cache-flushing-protected-by-entry-lock.patch
-* dax-protect-pte-modification-on-wp-fault-by-radix-tree-entry-lock.patch
-* dax-clear-dirty-entry-tags-on-cache-flush.patch
-* powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
-* ima-on-soft-reboot-restore-the-measurement-list.patch
-* ima-permit-duplicate-measurement-list-entries.patch
-* ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-* powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
-* ima-on-soft-reboot-save-the-measurement-list.patch
-* ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-* ima-support-restoring-multiple-template-formats.patch
-* ima-define-a-canonical-binary_runtime_measurements-list-format.patch
-* ima-platform-independent-hash-value.patch
-* vfs-change-d_manage-to-take-a-struct-path.patch
-* vfs-add-path_is_mountpoint-helper.patch
-* vfs-add-path_is_mountpoint-helper-fix.patch
-* vfs-add-path_has_submounts.patch
-* autofs-change-autofs4_expire_wait-to-take-struct-path.patch
-* autofs-change-autofs4_wait-to-take-struct-path.patch
-* autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
-* autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
-* vfs-remove-unused-have_submounts-function.patch
-* vfs-merge-path_is_mountpoint-and-path_is_mountpoint_rcu.patch
-* autofs-make-struct-path-const-in-autofs4_dir_open.patch
-* autofs-change-struct-path-to-const-in-autofs4_expire_wait-and-autofs4_wait.patch
-* vfs-change-struct-path-to-const-in-d_manage.patch
-* vfs-constify-path-parameter-of-path_has_submounts.patch
-* autofs-dont-hold-spin-lock-over-direct-mount-expire.patch
-* vfs-make-may_umount_tree-mount-propogation-aware.patch
-* vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
-* tools-add-warn_on_once.patch
-* radix-tree-test-suite-allow-gfp_atomic-allocations-to-fail.patch
-* radix-tree-test-suite-track-preempt_count.patch
-* radix-tree-test-suite-free-preallocated-nodes.patch
-* radix-tree-test-suite-make-runs-more-reproducible.patch
-* radix-tree-test-suite-iteration-test-misuses-rcu.patch
-* radix-tree-test-suite-benchmark-for-iterator.patch
-* radix-tree-test-suite-use-rcu_barrier.patch
-* radix-tree-test-suite-handle-exceptional-entries.patch
-* radix-tree-test-suite-record-order-in-each-item.patch
-* tools-add-more-bitmap-functions.patch
-* radix-tree-test-suite-use-common-find-bit-code.patch
-* radix-tree-fix-typo.patch
-* radix-tree-move-rcu_head-into-a-union-with-private_list.patch
-* radix-tree-create-node_tag_set.patch
-* radix-tree-make-radix_tree_find_next_bit-more-useful.patch
-* radix-tree-improve-dump-output.patch
-* btrfs-fix-race-in-btrfs_free_dummy_fs_info.patch
-* radix-tree-improve-multiorder-iterators.patch
-* radix-tree-delete-radix_tree_locate_item.patch
-* radix-tree-delete-radix_tree_range_tag_if_tagged.patch
-* radix-tree-add-radix_tree_join.patch
-* radix-tree-add-radix_tree_split.patch
-* radix-tree-add-radix_tree_split_preload.patch
-* radix-tree-fix-replacement-for-multiorder-entries.patch
-* radix-tree-test-suite-check-multiorder-iteration.patch
-* idr-add-ida_is_empty.patch
-* tpm-use-idr_find-not-idr_find_slowpath.patch
-* rxrpc-abstract-away-knowledge-of-idr-internals.patch
-* idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
-* radix-tree-test-suite-add-some-more-functionality.patch
-* reimplement-idr-and-ida-using-the-radix-tree.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
