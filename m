@@ -1,92 +1,24 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- zram-restrict-add-remove-attributes-to-root-only-fix.patch removed from -mm tree
-Date: Wed, 07 Dec 2016 14:36:05 -0800
-Message-ID: <58488ed5.JZlYfFJufC50JxJs%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Wed, 7 Dec 2016 14:44:21 -0800
+Message-ID: <20161207144421.e19849292ff41b27921dcbda@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932705AbcLGWgT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 17:36:19 -0500
+        with ESMTP id S932362AbcLGWnt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 17:43:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, steven@stebalien.com, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
 
+3 fixes, based on ea5a9eff96fed8252f3a8c94a84959f981a93cae:
 
-The patch titled
-     Subject: zram-restrict-add-remove-attributes-to-root-only-fix
-has been removed from the -mm tree.  Its filename was
-     zram-restrict-add-remove-attributes-to-root-only-fix.patch
-
-This patch was dropped because it was folded into zram-restrict-add-remove-attributes-to-root-only.patch
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-restrict-add-remove-attributes-to-root-only-fix
-
-s/sence/sense/, reflow comment to use 80 cols
-
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Steven Allen <steven@stebalien.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/block/zram/zram_drv.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
-
-diff -puN drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only-fix drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only-fix
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1414,11 +1414,10 @@ static ssize_t hot_remove_store(struct c
- }
- 
- /*
-- * NOTE: hot_add attribute is not the usual read-only sysfs
-- * attribute. In a sence that reading from this file does alter
-- * the state of your system -- it creates a new un-initialized
-- * zram device and returns back this device's device_id (or an
-- * error code if it fails to create a new device).
-+ * NOTE: hot_add attribute is not the usual read-only sysfs attribute. In a
-+ * sense that reading from this file does alter the state of your system -- it
-+ * creates a new un-initialized zram device and returns back this device's
-+ * device_id (or an error code if it fails to create a new device).
-  */
- static struct class_attribute zram_control_class_attrs[] = {
- 	__ATTR(hot_add, 0400, hot_add_show, NULL),
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-zram-restrict-add-remove-attributes-to-root-only.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
-include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
-mm-thp-page-cache-support-for-ppc64-fix.patch
-mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes.patch
-scripts-checkpatchpl-fix-spelling.patch
-init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-drivers-clk-uniphier-clk-uniphierh-fix-build-with-old-gcc.patch
-drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+Subject: zram: restrict add/remove attributes to root only
+Subject: radix tree test suite: fix compilation
+Subject: kcov: add missing #include <linux/sched.h>
 
