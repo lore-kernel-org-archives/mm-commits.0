@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + zram-restrict-add-remove-attributes-to-root-only-fix.patch
- added to -mm tree
-Date: Wed, 07 Dec 2016 14:21:39 -0800
-Message-ID: <58488b73.1vdcMEEwJJM6eUh+%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ zram-restrict-add-remove-attributes-to-root-only-fix.patch removed from -mm tree
+Date: Wed, 07 Dec 2016 14:36:05 -0800
+Message-ID: <58488ed5.JZlYfFJufC50JxJs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60666 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60826 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932339AbcLGWVS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 17:21:18 -0500
+        with ESMTP id S932705AbcLGWgT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 17:36:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, steven@stebalien.com, mm-commits@vger.kernel.org
@@ -19,24 +19,10 @@ To: akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com,
 
 The patch titled
      Subject: zram-restrict-add-remove-attributes-to-root-only-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      zram-restrict-add-remove-attributes-to-root-only-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-restrict-add-remove-attributes-to-root-only-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-restrict-add-remove-attributes-to-root-only-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into zram-restrict-add-remove-attributes-to-root-only.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -76,7 +62,7 @@ _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-restrict-add-remove-attributes-to-root-only-fix.patch
+zram-restrict-add-remove-attributes-to-root-only.patch
 i-need-old-gcc.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
