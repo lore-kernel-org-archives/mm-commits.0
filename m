@@ -1,96 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 07 Dec 2016 15:43:21 -0800
-Message-ID: <58489e99.K9TZhx0ysmVzLzN0%akpm@linux-foundation.org>
+Subject: [merged] mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
+ removed from -mm tree
+Date: Fri, 09 Dec 2016 12:51:09 -0800
+Message-ID: <584b193d.sg8Y9PvxHek/pkNL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35518 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33842 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932632AbcLGXnL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2016 18:43:11 -0500
+        with ESMTP id S1751501AbcLIUvL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 15:51:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, bsingharora@gmail.com, hannes@cmpxchg.org, marmarek@mimuw.edu.pl, stable@vger.kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
+has been removed from the -mm tree.  Its filename was
+     mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
 
+0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
+has made the workingset shadow nodes shrinker memcg aware. The
+implementation is not correct though because memcg_kmem_enabled() might
+become true while we are doing a global reclaim when the sc->memcg might
+be NULL which is exactly what Marek has seen:
+
+[   15.665196] BUG: unable to handle kernel NULL pointer dereference at 0000000000000400
+[   15.665213] IP: [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
+[   15.665225] PGD 0
+[   15.665230] Oops: 0000 [#1] SMP
+[   15.665285] CPU: 0 PID: 60 Comm: kswapd0 Tainted: G           O   4.8.10-12.pvops.qubes.x86_64 #1
+[   15.665292] task: ffff880011863b00 task.stack: ffff880011868000
+[   15.665297] RIP: e030:[<ffffffff8122d520>]  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
+[   15.665307] RSP: e02b:ffff88001186bc70  EFLAGS: 00010293
+[   15.665311] RAX: 0000000000000000 RBX: ffff88001186bd20 RCX: 0000000000000002
+[   15.665317] RDX: 000000000000000c RSI: 0000000000000000 RDI: 0000000000000000
+[   15.665322] RBP: ffff88001186bc70 R08: 28f5c28f5c28f5c3 R09: 0000000000000000
+[   15.665327] R10: 0000000000006c34 R11: 0000000000000333 R12: 00000000000001f6
+[   15.665332] R13: ffffffff81c6f6a0 R14: 0000000000000000 R15: 0000000000000000
+[   15.665343] FS:  0000000000000000(0000) GS:ffff880013c00000(0000) knlGS:ffff880013d00000
+[   15.665351] CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   15.665358] CR2: 0000000000000400 CR3: 00000000122f2000 CR4: 0000000000042660
+[   15.665366] Stack:
+[   15.665371]  ffff88001186bc98 ffffffff811e0dda 00000000000002eb 0000000000000080
+[   15.665384]  ffffffff81c6f6a0 ffff88001186bd70 ffffffff811c36d9 0000000000000000
+[   15.665397]  ffff88001186bcb0 ffff88001186bcb0 ffff88001186bcc0 000000000000abc5
+[   15.665410] Call Trace:
+[   15.665419]  [<ffffffff811e0dda>] count_shadow_nodes+0x9a/0xa0
+[   15.665428]  [<ffffffff811c36d9>] shrink_slab.part.42+0x119/0x3e0
+[   15.666049]  [<ffffffff811c83ec>] shrink_node+0x22c/0x320
+[   15.666049]  [<ffffffff811c928c>] kswapd+0x32c/0x700
+[   15.666049]  [<ffffffff811c8f60>] ? mem_cgroup_shrink_node+0x180/0x180
+[   15.666049]  [<ffffffff810c1b08>] kthread+0xd8/0xf0
+[   15.666049]  [<ffffffff817a3abf>] ret_from_fork+0x1f/0x40
+[   15.666049]  [<ffffffff810c1a30>] ? kthread_create_on_node+0x190/0x190
+[   15.666049] Code: 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 3b 35 dd eb b1 00 55 48 89 e5 73 2c 89 d2 31 c9 31 c0 4c 63 ce 48 0f a3 ca 73 13 <4a> 8b b4 cf 00 04 00 00 41 89 c8 4a 03 84 c6 80 00 00 00 83 c1
+[   15.666049] RIP  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
+[   15.666049]  RSP <ffff88001186bc70>
+[   15.666049] CR2: 0000000000000400
+[   15.666049] ---[ end trace 100494b9edbdfc4d ]---
+
+This patch fixes the issue by checking sc->memcg rather than
+memcg_kmem_enabled() which is sufficient because shrink_slab makes sure
+that only memcg aware shrinkers will get non-NULL memcgs and only if
+memcg_kmem_enabled is true.
+
+Fixes: 0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
+Link: http://lkml.kernel.org/r/20161201132156.21450-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
+Tested-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/locking/rtmutex_common.h |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/workingset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/locking/rtmutex_common.h~linux-next-git-rejects kernel/locking/rtmutex_common.h
---- a/kernel/locking/rtmutex_common.h~linux-next-git-rejects
-+++ a/kernel/locking/rtmutex_common.h
-@@ -76,11 +76,7 @@ static inline struct task_struct *rt_mut
- {
- 	unsigned long owner = (unsigned long) READ_ONCE(lock->owner);
+diff -puN mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes
++++ a/mm/workingset.c
+@@ -348,7 +348,7 @@ static unsigned long count_shadow_nodes(
+ 	shadow_nodes = list_lru_shrink_count(&workingset_shadow_nodes, sc);
+ 	local_irq_enable();
  
--<<<<<<< HEAD
--	return (struct task_struct *) (owner & ~RT_MUTEX_OWNER_MASKALL);
--=======
- 	return (struct task_struct *) (owner & ~RT_MUTEX_HAS_WAITERS);
-->>>>>>> linux-next/akpm-base
- }
- 
- /*
+-	if (memcg_kmem_enabled()) {
++	if (sc->memcg) {
+ 		pages = mem_cgroup_node_nr_lru_pages(sc->memcg, sc->nid,
+ 						     LRU_ALL_FILE);
+ 	} else {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
-include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
-mm-thp-page-cache-support-for-ppc64-fix.patch
-mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes.patch
-scripts-checkpatchpl-fix-spelling.patch
-init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-drivers-clk-uniphier-clk-uniphierh-fix-build-with-old-gcc.patch
-drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
+hotplug-make-register-and-unregister-notifier-api-symmetric.patch
 
