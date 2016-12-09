@@ -1,106 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
+Subject: [merged] mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
  removed from -mm tree
-Date: Fri, 09 Dec 2016 12:51:09 -0800
-Message-ID: <584b193d.sg8Y9PvxHek/pkNL%akpm@linux-foundation.org>
+Date: Fri, 09 Dec 2016 12:51:13 -0800
+Message-ID: <584b1941.MeAG1I+AYNBJMpdM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33842 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33852 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751501AbcLIUvL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 15:51:11 -0500
+        with ESMTP id S1752200AbcLIUvO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 15:51:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, bsingharora@gmail.com, hannes@cmpxchg.org, marmarek@mimuw.edu.pl, stable@vger.kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, bb@kernelpanic.ru, buczek@molgen.mpg.de, caker@theshore.net, pmenzel@molgen.mpg.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
+     Subject: mm, vmscan: add cond_resched() into shrink_node_memcg()
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-fix-null-ptr-in-count_shadow_nodes.patch
+     mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: workingset: fix NULL ptr in count_shadow_nodes
+Subject: mm, vmscan: add cond_resched() into shrink_node_memcg()
 
-0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
-has made the workingset shadow nodes shrinker memcg aware. The
-implementation is not correct though because memcg_kmem_enabled() might
-become true while we are doing a global reclaim when the sc->memcg might
-be NULL which is exactly what Marek has seen:
+Boris Zhmurov has reported RCU stalls during the kswapd reclaim:
+17511.573645] INFO: rcu_sched detected stalls on CPUs/tasks:
+[17511.573699]  23-...: (22 ticks this GP) idle=92f/140000000000000/0 softirq=2638404/2638404 fqs=23
+[17511.573740]  (detected by 4, t=6389 jiffies, g=786259, c=786258, q=42115)
+[17511.573776] Task dump for CPU 23:
+[17511.573777] kswapd1         R  running task        0   148      2 0x00000008
+[17511.573781]  0000000000000000 ffff8efe5f491400 ffff8efe44523e68 ffff8f16a7f49000
+[17511.573782]  0000000000000000 ffffffffafb67482 0000000000000000 0000000000000000
+[17511.573784]  0000000000000000 0000000000000000 ffff8efe44523e58 00000000016dbbee
+[17511.573786] Call Trace:
+[17511.573796]  [<ffffffffafb67482>] ? shrink_node+0xd2/0x2f0
+[17511.573798]  [<ffffffffafb683ab>] ? kswapd+0x2cb/0x6a0
+[17511.573800]  [<ffffffffafb680e0>] ? mem_cgroup_shrink_node+0x160/0x160
+[17511.573806]  [<ffffffffafa8b63d>] ? kthread+0xbd/0xe0
+[17511.573810]  [<ffffffffafa2967a>] ? __switch_to+0x1fa/0x5c0
+[17511.573813]  [<ffffffffaff9095f>] ? ret_from_fork+0x1f/0x40
+[17511.573815]  [<ffffffffafa8b580>] ? kthread_create_on_node+0x180/0x180
 
-[   15.665196] BUG: unable to handle kernel NULL pointer dereference at 0000000000000400
-[   15.665213] IP: [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
-[   15.665225] PGD 0
-[   15.665230] Oops: 0000 [#1] SMP
-[   15.665285] CPU: 0 PID: 60 Comm: kswapd0 Tainted: G           O   4.8.10-12.pvops.qubes.x86_64 #1
-[   15.665292] task: ffff880011863b00 task.stack: ffff880011868000
-[   15.665297] RIP: e030:[<ffffffff8122d520>]  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
-[   15.665307] RSP: e02b:ffff88001186bc70  EFLAGS: 00010293
-[   15.665311] RAX: 0000000000000000 RBX: ffff88001186bd20 RCX: 0000000000000002
-[   15.665317] RDX: 000000000000000c RSI: 0000000000000000 RDI: 0000000000000000
-[   15.665322] RBP: ffff88001186bc70 R08: 28f5c28f5c28f5c3 R09: 0000000000000000
-[   15.665327] R10: 0000000000006c34 R11: 0000000000000333 R12: 00000000000001f6
-[   15.665332] R13: ffffffff81c6f6a0 R14: 0000000000000000 R15: 0000000000000000
-[   15.665343] FS:  0000000000000000(0000) GS:ffff880013c00000(0000) knlGS:ffff880013d00000
-[   15.665351] CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   15.665358] CR2: 0000000000000400 CR3: 00000000122f2000 CR4: 0000000000042660
-[   15.665366] Stack:
-[   15.665371]  ffff88001186bc98 ffffffff811e0dda 00000000000002eb 0000000000000080
-[   15.665384]  ffffffff81c6f6a0 ffff88001186bd70 ffffffff811c36d9 0000000000000000
-[   15.665397]  ffff88001186bcb0 ffff88001186bcb0 ffff88001186bcc0 000000000000abc5
-[   15.665410] Call Trace:
-[   15.665419]  [<ffffffff811e0dda>] count_shadow_nodes+0x9a/0xa0
-[   15.665428]  [<ffffffff811c36d9>] shrink_slab.part.42+0x119/0x3e0
-[   15.666049]  [<ffffffff811c83ec>] shrink_node+0x22c/0x320
-[   15.666049]  [<ffffffff811c928c>] kswapd+0x32c/0x700
-[   15.666049]  [<ffffffff811c8f60>] ? mem_cgroup_shrink_node+0x180/0x180
-[   15.666049]  [<ffffffff810c1b08>] kthread+0xd8/0xf0
-[   15.666049]  [<ffffffff817a3abf>] ret_from_fork+0x1f/0x40
-[   15.666049]  [<ffffffff810c1a30>] ? kthread_create_on_node+0x190/0x190
-[   15.666049] Code: 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 3b 35 dd eb b1 00 55 48 89 e5 73 2c 89 d2 31 c9 31 c0 4c 63 ce 48 0f a3 ca 73 13 <4a> 8b b4 cf 00 04 00 00 41 89 c8 4a 03 84 c6 80 00 00 00 83 c1
-[   15.666049] RIP  [<ffffffff8122d520>] mem_cgroup_node_nr_lru_pages+0x20/0x40
-[   15.666049]  RSP <ffff88001186bc70>
-[   15.666049] CR2: 0000000000000400
-[   15.666049] ---[ end trace 100494b9edbdfc4d ]---
+a closer code inspection has shown that we might indeed miss all the
+scheduling points in the reclaim path if no pages can be isolated from
+the LRU list. This is a pathological case but other reports from Donald
+Buczek have shown that we might indeed hit such a path:
+        clusterd-989   [009] .... 118023.654491: mm_vmscan_direct_reclaim_end: nr_reclaimed=193
+         kswapd1-86    [001] dN.. 118023.987475: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239830 nr_taken=0 file=1
+         kswapd1-86    [001] dN.. 118024.320968: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239844 nr_taken=0 file=1
+         kswapd1-86    [001] dN.. 118024.654375: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239858 nr_taken=0 file=1
+         kswapd1-86    [001] dN.. 118024.987036: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239872 nr_taken=0 file=1
+         kswapd1-86    [001] dN.. 118025.319651: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239886 nr_taken=0 file=1
+         kswapd1-86    [001] dN.. 118025.652248: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239900 nr_taken=0 file=1
+         kswapd1-86    [001] dN.. 118025.984870: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239914 nr_taken=0 file=1
+[...]
+         kswapd1-86    [001] dN.. 118084.274403: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4241133 nr_taken=0 file=1
 
-This patch fixes the issue by checking sc->memcg rather than
-memcg_kmem_enabled() which is sufficient because shrink_slab makes sure
-that only memcg aware shrinkers will get non-NULL memcgs and only if
-memcg_kmem_enabled is true.
+this is minute long snapshot which didn't take a single page from the
+LRU. It is not entirely clear why only 1303 pages have been scanned
+during that time (maybe there was a heavy IRQ activity interfering).
 
-Fixes: 0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
-Link: http://lkml.kernel.org/r/20161201132156.21450-1-mhocko@kernel.org
+In any case it looks like we can really hit long periods without
+scheduling on non preemptive kernels so an explicit cond_resched() in
+shrink_node_memcg which is independent on the reclaim operation is due.
+
+Link: http://lkml.kernel.org/r/20161202095841.16648-1-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
-Tested-by: Marek Marczykowski-Górecki <marmarek@mimuw.edu.pl>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Cc: <stable@vger.kernel.org>	[4.6+]
+Reported-by: Boris Zhmurov <bb@kernelpanic.ru>
+Tested-by: Boris Zhmurov <bb@kernelpanic.ru>
+Reported-by: Donald Buczek <buczek@molgen.mpg.de>
+Reported-by: "Christopher S. Aker" <caker@theshore.net>
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes mm/workingset.c
---- a/mm/workingset.c~mm-workingset-fix-null-ptr-in-count_shadow_nodes
-+++ a/mm/workingset.c
-@@ -348,7 +348,7 @@ static unsigned long count_shadow_nodes(
- 	shadow_nodes = list_lru_shrink_count(&workingset_shadow_nodes, sc);
- 	local_irq_enable();
+diff -puN mm/vmscan.c~mm-vmscan-add-cond_resched-into-shrink_node_memcg mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-add-cond_resched-into-shrink_node_memcg
++++ a/mm/vmscan.c
+@@ -2354,6 +2354,8 @@ static void shrink_node_memcg(struct pgl
+ 			}
+ 		}
  
--	if (memcg_kmem_enabled()) {
-+	if (sc->memcg) {
- 		pages = mem_cgroup_node_nr_lru_pages(sc->memcg, sc->nid,
- 						     LRU_ALL_FILE);
- 	} else {
++		cond_resched();
++
+ 		if (nr_reclaimed < nr_to_reclaim || scan_adjusted)
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
