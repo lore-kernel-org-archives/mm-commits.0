@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-turn-on-fsanitize-address-use-after-scope.patch added to
- -mm tree
-Date: Fri, 09 Dec 2016 13:41:19 -0800
-Message-ID: <584b24ff.ZZv8Nmc5svr+Va6E%akpm@linux-foundation.org>
+Subject: +
+ kexec-add-cond_resched-into-kimage_alloc_crash_control_pages.patch added to -mm tree
+Date: Fri, 09 Dec 2016 13:53:03 -0800
+Message-ID: <584b27bf.3A/NF52gM/LJaw8v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36554 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932094AbcLIVkm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 16:40:42 -0500
+        with ESMTP id S1751754AbcLIVw1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 16:52:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, andreyknvl@google.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, dyoung@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, xpang@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: turn on -fsanitize-address-use-after-scope
+     Subject: kexec: add cond_resched into kimage_alloc_crash_control_pages
 has been added to the -mm tree.  Its filename is
-     kasan-turn-on-fsanitize-address-use-after-scope.patch
+     kexec-add-cond_resched-into-kimage_alloc_crash_control_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-turn-on-fsanitize-address-use-after-scope.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-add-cond_resched-into-kimage_alloc_crash_control_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-turn-on-fsanitize-address-use-after-scope.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-add-cond_resched-into-kimage_alloc_crash_control_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan: turn on -fsanitize-address-use-after-scope
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: kexec: add cond_resched into kimage_alloc_crash_control_pages
 
-In the upcoming gcc7 release, the -fsanitize=kernel-address option at
-first implied new -fsanitize-address-use-after-scope option.  This would
-cause link errors on older kernels because they don't have two new
-functions required for use-after-scope support.  Therefore, gcc7 changed
-default to -fno-sanitize-address-use-after-scope.
+A soft lookup will occur when I run trinity in syscall kexec_load.  the
+corresponding stack information is as follows.
 
-Now the kernel has everything required for that feature since commit
-828347f8f9a5 ("kasan: support use-after-scope detection").  So, to make it
-work, we just have to enable use-after-scope in CFLAGS.
+[  237.235937] BUG: soft lockup - CPU#6 stuck for 22s! [trinity-c6:13859]
+[  237.242699] Kernel panic - not syncing: softlockup: hung tasks
+[  237.248573] CPU: 6 PID: 13859 Comm: trinity-c6 Tainted: G           O L ----V-------   3.10.0-327.28.3.35.zhongjiang.x86_64 #1
+[  237.259984] Hardware name: Huawei Technologies Co., Ltd. Tecal BH622 V2/BC01SRSA0, BIOS RMIBV386 06/30/2014
+[  237.269752]  ffffffff8187626b 0000000018cfde31 ffff88184c803e18 ffffffff81638f16
+[  237.277471]  ffff88184c803e98 ffffffff8163278f 0000000000000008 ffff88184c803ea8
+[  237.285190]  ffff88184c803e48 0000000018cfde31 ffff88184c803e67 0000000000000000
+[  237.292909] Call Trace:
+[  237.295404]  <IRQ>  [<ffffffff81638f16>] dump_stack+0x19/0x1b
+[  237.301352]  [<ffffffff8163278f>] panic+0xd8/0x214
+[  237.306196]  [<ffffffff8111d6fc>] watchdog_timer_fn+0x1cc/0x1e0
+[  237.312157]  [<ffffffff8111d530>] ? watchdog_enable+0xc0/0xc0
+[  237.317955]  [<ffffffff810aa182>] __hrtimer_run_queues+0xd2/0x260
+[  237.324087]  [<ffffffff810aa720>] hrtimer_interrupt+0xb0/0x1e0
+[  237.329963]  [<ffffffff8164ae5c>] ? call_softirq+0x1c/0x30
+[  237.335500]  [<ffffffff81049a77>] local_apic_timer_interrupt+0x37/0x60
+[  237.342228]  [<ffffffff8164bacf>] smp_apic_timer_interrupt+0x3f/0x60
+[  237.348771]  [<ffffffff8164a11d>] apic_timer_interrupt+0x6d/0x80
+[  237.354967]  <EOI>  [<ffffffff810f3a00>] ? kimage_alloc_control_pages+0x80/0x270
+[  237.362875]  [<ffffffff811c3ebe>] ? kmem_cache_alloc_trace+0x1ce/0x1f0
+[  237.369592]  [<ffffffff810f362f>] ? do_kimage_alloc_init+0x1f/0x90
+[  237.375992]  [<ffffffff810f3d1a>] kimage_alloc_init+0x12a/0x180
+[  237.382103]  [<ffffffff810f3f9a>] SyS_kexec_load+0x20a/0x260
+[  237.387957]  [<ffffffff816494c9>] system_call_fastpath+0x16/0x1b
 
-Link: http://lkml.kernel.org/r/1481207977-28654-1-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
+the first time allocation of control pages may take too much time because
+crash_res.end can be set to a higher value.  we need to add cond_resched
+to avoid the issue.
+
+The patch have been tested and above issue is not appear.
+
+Link: http://lkml.kernel.org/r/1481164674-42775-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Xunlei Pang <xpang@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |    2 ++
+ kernel/kexec_core.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN scripts/Makefile.kasan~kasan-turn-on-fsanitize-address-use-after-scope scripts/Makefile.kasan
---- a/scripts/Makefile.kasan~kasan-turn-on-fsanitize-address-use-after-scope
-+++ a/scripts/Makefile.kasan
-@@ -28,4 +28,6 @@ else
-         CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
-     endif
- endif
+diff -puN kernel/kexec_core.c~kexec-add-cond_resched-into-kimage_alloc_crash_control_pages kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-add-cond_resched-into-kimage_alloc_crash_control_pages
++++ a/kernel/kexec_core.c
+@@ -441,6 +441,8 @@ static struct page *kimage_alloc_crash_c
+ 	while (hole_end <= crashk_res.end) {
+ 		unsigned long i;
+ 
++		cond_resched();
 +
-+CFLAGS_KASAN += $(call cc-option, -fsanitize-address-use-after-scope)
- endif
+ 		if (hole_end > KEXEC_CRASH_CONTROL_MEMORY_LIMIT)
+ 			break;
+ 		/* See if I overlap any of the segments */
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from zhongjiang@huawei.com are
 
-mm-add-vfree_atomic.patch
-kernel-fork-use-vfree_atomic-to-free-thread-stack.patch
-x86-ldt-use-vfree_atomic-to-free-ldt-entries.patch
-kasan-turn-on-fsanitize-address-use-after-scope.patch
+z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+kexec-add-cond_resched-into-kimage_alloc_crash_control_pages.patch
 
