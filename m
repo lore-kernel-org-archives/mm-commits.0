@@ -1,74 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-restrict-add-remove-attributes-to-root-only.patch
- removed from -mm tree
-Date: Fri, 09 Dec 2016 12:51:16 -0800
-Message-ID: <584b1944.8U90fd6eJqbfvhJS%akpm@linux-foundation.org>
+Subject: [merged] kcov-add-missing-include-linux-schedh.patch removed from -mm tree
+Date: Fri, 09 Dec 2016 12:51:19 -0800
+Message-ID: <584b1947.WOBOHZrE1cBU5tPH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33870 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752291AbcLIUvR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 15:51:17 -0500
+        with ESMTP id S1752965AbcLIUvU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 15:51:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, gregkh@linuxfoundation.org, minchan@kernel.org, stable@vger.kernel.org, steven@stebalien.com, mm-commits@vger.kernel.org
+To: wangkefeng.wang@huawei.com, aryabinin@virtuozzo.com, dvyukov@google.com, james.morse@arm.com, mark.rutland@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: restrict add/remove attributes to root only
+     Subject: kcov: add missing #include <linux/sched.h>
 has been removed from the -mm tree.  Its filename was
-     zram-restrict-add-remove-attributes-to-root-only.patch
+     kcov-add-missing-include-linux-schedh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: restrict add/remove attributes to root only
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: kcov: add missing #include <linux/sched.h>
 
-zram hot_add sysfs attribute is a very 'special' attribute - reading from
-it creates a new uninitialized zram device.  This file, by a mistake, can
-be read by a 'normal' user at the moment, while only root must be able to
-create a new zram device, therefore hot_add attribute must have S_IRUSR
-mode, not S_IRUGO.
+  In __sanitizer_cov_trace_pc we use task_struct and fields within it,
+  but as we haven't included <linux/sched.h>, it is not guaranteed to be
+  defined. While we usually happen to acquire the definition through a
+  transitive include, this is fragile (and hasn't been true in the past,
+  causing issues with backports).
 
-[akpm@linux-foundation.org: s/sence/sense/, reflow comment to use 80 cols]
-Fixes: 6566d1a32bf72 ("zram: add dynamic device add/remove functionality")
-Link: http://lkml.kernel.org/r/20161205155845.20129-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Steven Allen <steven@stebalien.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>    [4.2+]
+  Include <linux/sched.h> to avoid any fragility.
+
+[mark.rutland@arm.com: rewrote changelog]
+Link: http://lkml.kernel.org/r/1481007384-27529-1-git-send-email-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: James Morse <james.morse@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/kcov.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1413,8 +1413,14 @@ static ssize_t hot_remove_store(struct c
- 	return ret ? ret : count;
- }
- 
-+/*
-+ * NOTE: hot_add attribute is not the usual read-only sysfs attribute. In a
-+ * sense that reading from this file does alter the state of your system -- it
-+ * creates a new un-initialized zram device and returns back this device's
-+ * device_id (or an error code if it fails to create a new device).
-+ */
- static struct class_attribute zram_control_class_attrs[] = {
--	__ATTR_RO(hot_add),
-+	__ATTR(hot_add, 0400, hot_add_show, NULL),
- 	__ATTR_WO(hot_remove),
- 	__ATTR_NULL,
- };
+diff -puN kernel/kcov.c~kcov-add-missing-include-linux-schedh kernel/kcov.c
+--- a/kernel/kcov.c~kcov-add-missing-include-linux-schedh
++++ a/kernel/kcov.c
+@@ -7,6 +7,7 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include <linux/printk.h>
++#include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/vmalloc.h>
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
