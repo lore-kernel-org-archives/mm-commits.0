@@ -1,104 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
+Subject: [merged] zram-restrict-add-remove-attributes-to-root-only.patch
  removed from -mm tree
-Date: Fri, 09 Dec 2016 12:51:13 -0800
-Message-ID: <584b1941.MeAG1I+AYNBJMpdM%akpm@linux-foundation.org>
+Date: Fri, 09 Dec 2016 12:51:16 -0800
+Message-ID: <584b1944.8U90fd6eJqbfvhJS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33862 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752200AbcLIUvO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 15:51:14 -0500
+        with ESMTP id S1752291AbcLIUvR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 15:51:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, bb@kernelpanic.ru, buczek@molgen.mpg.de, caker@theshore.net, pmenzel@molgen.mpg.de, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, gregkh@linuxfoundation.org, minchan@kernel.org, stable@vger.kernel.org, steven@stebalien.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: add cond_resched() into shrink_node_memcg()
+     Subject: zram: restrict add/remove attributes to root only
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-add-cond_resched-into-shrink_node_memcg.patch
+     zram-restrict-add-remove-attributes-to-root-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: add cond_resched() into shrink_node_memcg()
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: restrict add/remove attributes to root only
 
-Boris Zhmurov has reported RCU stalls during the kswapd reclaim:
-17511.573645] INFO: rcu_sched detected stalls on CPUs/tasks:
-[17511.573699]  23-...: (22 ticks this GP) idle=92f/140000000000000/0 softirq=2638404/2638404 fqs=23
-[17511.573740]  (detected by 4, t=6389 jiffies, g=786259, c=786258, q=42115)
-[17511.573776] Task dump for CPU 23:
-[17511.573777] kswapd1         R  running task        0   148      2 0x00000008
-[17511.573781]  0000000000000000 ffff8efe5f491400 ffff8efe44523e68 ffff8f16a7f49000
-[17511.573782]  0000000000000000 ffffffffafb67482 0000000000000000 0000000000000000
-[17511.573784]  0000000000000000 0000000000000000 ffff8efe44523e58 00000000016dbbee
-[17511.573786] Call Trace:
-[17511.573796]  [<ffffffffafb67482>] ? shrink_node+0xd2/0x2f0
-[17511.573798]  [<ffffffffafb683ab>] ? kswapd+0x2cb/0x6a0
-[17511.573800]  [<ffffffffafb680e0>] ? mem_cgroup_shrink_node+0x160/0x160
-[17511.573806]  [<ffffffffafa8b63d>] ? kthread+0xbd/0xe0
-[17511.573810]  [<ffffffffafa2967a>] ? __switch_to+0x1fa/0x5c0
-[17511.573813]  [<ffffffffaff9095f>] ? ret_from_fork+0x1f/0x40
-[17511.573815]  [<ffffffffafa8b580>] ? kthread_create_on_node+0x180/0x180
+zram hot_add sysfs attribute is a very 'special' attribute - reading from
+it creates a new uninitialized zram device.  This file, by a mistake, can
+be read by a 'normal' user at the moment, while only root must be able to
+create a new zram device, therefore hot_add attribute must have S_IRUSR
+mode, not S_IRUGO.
 
-a closer code inspection has shown that we might indeed miss all the
-scheduling points in the reclaim path if no pages can be isolated from
-the LRU list. This is a pathological case but other reports from Donald
-Buczek have shown that we might indeed hit such a path:
-        clusterd-989   [009] .... 118023.654491: mm_vmscan_direct_reclaim_end: nr_reclaimed=193
-         kswapd1-86    [001] dN.. 118023.987475: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239830 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118024.320968: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239844 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118024.654375: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239858 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118024.987036: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239872 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118025.319651: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239886 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118025.652248: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239900 nr_taken=0 file=1
-         kswapd1-86    [001] dN.. 118025.984870: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4239914 nr_taken=0 file=1
-[...]
-         kswapd1-86    [001] dN.. 118084.274403: mm_vmscan_lru_isolate: isolate_mode=0 classzone=0 order=0 nr_requested=32 nr_scanned=4241133 nr_taken=0 file=1
-
-this is minute long snapshot which didn't take a single page from the
-LRU. It is not entirely clear why only 1303 pages have been scanned
-during that time (maybe there was a heavy IRQ activity interfering).
-
-In any case it looks like we can really hit long periods without
-scheduling on non preemptive kernels so an explicit cond_resched() in
-shrink_node_memcg which is independent on the reclaim operation is due.
-
-Link: http://lkml.kernel.org/r/20161202095841.16648-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Boris Zhmurov <bb@kernelpanic.ru>
-Tested-by: Boris Zhmurov <bb@kernelpanic.ru>
-Reported-by: Donald Buczek <buczek@molgen.mpg.de>
-Reported-by: "Christopher S. Aker" <caker@theshore.net>
-Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+[akpm@linux-foundation.org: s/sence/sense/, reflow comment to use 80 cols]
+Fixes: 6566d1a32bf72 ("zram: add dynamic device add/remove functionality")
+Link: http://lkml.kernel.org/r/20161205155845.20129-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Steven Allen <steven@stebalien.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>    [4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/block/zram/zram_drv.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-add-cond_resched-into-shrink_node_memcg mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-add-cond_resched-into-shrink_node_memcg
-+++ a/mm/vmscan.c
-@@ -2354,6 +2354,8 @@ static void shrink_node_memcg(struct pgl
- 			}
- 		}
+diff -puN drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-restrict-add-remove-attributes-to-root-only
++++ a/drivers/block/zram/zram_drv.c
+@@ -1413,8 +1413,14 @@ static ssize_t hot_remove_store(struct c
+ 	return ret ? ret : count;
+ }
  
-+		cond_resched();
-+
- 		if (nr_reclaimed < nr_to_reclaim || scan_adjusted)
- 			continue;
- 
++/*
++ * NOTE: hot_add attribute is not the usual read-only sysfs attribute. In a
++ * sense that reading from this file does alter the state of your system -- it
++ * creates a new un-initialized zram device and returns back this device's
++ * device_id (or an error code if it fails to create a new device).
++ */
+ static struct class_attribute zram_control_class_attrs[] = {
+-	__ATTR_RO(hot_add),
++	__ATTR(hot_add, 0400, hot_add_show, NULL),
+ 	__ATTR_WO(hot_remove),
+ 	__ATTR_NULL,
+ };
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
-hotplug-make-register-and-unregister-notifier-api-symmetric.patch
 
