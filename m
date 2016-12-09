@@ -1,160 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc.patch
- removed from -mm tree
-Date: Fri, 09 Dec 2016 13:00:02 -0800
-Message-ID: <584b1b52.9wiDJERGaGPHIq/2%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
+ added to -mm tree
+Date: Fri, 09 Dec 2016 13:28:11 -0800
+Message-ID: <584b21eb.2b8uuZlseeFWwgGG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34780 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751610AbcLIVAE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 16:00:04 -0500
+        with ESMTP id S1751827AbcLIV1f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2016 16:27:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, robh@kernel.org, sboyd@codeaurora.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/clk/uniphier/clk-uniphier-mio.c: fix build for older gcc
-has been removed from the -mm tree.  Its filename was
-     drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc.patch
+     Subject: ocfs2: fix crash caused by stale lvb with fsdlm plugin
+has been added to the -mm tree.  Its filename is
+     ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/clk/uniphier/clk-uniphier-mio.c: fix build for older gcc
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix crash caused by stale lvb with fsdlm plugin
 
-gcc-4.4.4 (at least) has issues with anon union initializers.
+The crash happens rather often when we reset some cluster nodes while
+nodes contend fiercely to do truncate and append.
 
-drivers/clk/uniphier/clk-uniphier-mio.c:81: error: unknown field 'mux' specified in initializer
-drivers/clk/uniphier/clk-uniphier-mio.c:81: error: unknown field 'parent_names' specified in initializer
-drivers/clk/uniphier/clk-uniphier-mio.c:81: warning: missing braces around initializer
-drivers/clk/uniphier/clk-uniphier-mio.c:81: warning: (near initialization for 'uniphier_sld3_mio_clk_data[8].<anonymous>.cpugear.parent_names')
-drivers/clk/uniphier/clk-uniphier-mio.c:81: error: unknown field 'num_parents' specified in initializer
-drivers/clk/uniphier/clk-uniphier-mio.c:81: warning: excess elements in union initializer
-drivers/clk/uniphier/clk-uniphier-mio.c:81: warning: (near initialization for 'uniphier_sld3_mio_clk_data[8].<anonymous>')
-drivers/clk/uniphier/clk-uniphier-mio.c:81: error: unknown field 'reg' specified in initializer
-...
+The crash backtrace is below:
+"
+[  245.197849] dlm: C21CBDA5E0774F4BA5A9D4F317717495: dlm_recover_grant 1 locks on 971 resources
+[  245.197859] dlm: C21CBDA5E0774F4BA5A9D4F317717495: dlm_recover 9 generation 5 done: 4 ms
+[  245.198379] ocfs2: Begin replay journal (node 318952601, slot 2) on device (253,18)
+[  247.272338] ocfs2: End replay journal (node 318952601, slot 2) on device (253,18)
+[  247.547084] ocfs2: Beginning quota recovery on device (253,18) for slot 2
+[  247.683263] ocfs2: Finishing quota recovery on device (253,18) for slot 2
+[  247.833022] (truncate,30154,1):ocfs2_truncate_file:470 ERROR: bug expression: le64_to_cpu(fe->i_size) != i_size_read(inode)
+[  247.833029] (truncate,30154,1):ocfs2_truncate_file:470 ERROR: Inode 290321, inode i_size = 732 != di i_size = 937, i_flags = 0x1
+[  247.833074] ------------[ cut here ]------------
+[  247.833077] kernel BUG at /usr/src/linux/fs/ocfs2/file.c:470!
+[  247.833079] invalid opcode: 0000 [#1] SMP
+[  247.833081] Modules linked in: ocfs2_stack_user(OEN) ocfs2(OEN) ocfs2_nodemanager ocfs2_stackglue(OEN) quota_tree dlm(OEN) configfs fuse sd_mod    iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi af_packet iscsi_ibft iscsi_boot_sysfs softdog xfs libcrc32c ppdev parport_pc pcspkr parport      joydev virtio_balloon virtio_net i2c_piix4 acpi_cpufreq button processor ext4 crc16 jbd2 mbcache ata_generic cirrus virtio_blk ata_piix               drm_kms_helper ahci syscopyarea libahci sysfillrect sysimgblt fb_sys_fops ttm floppy libata drm virtio_pci virtio_ring uhci_hcd virtio ehci_hcd       usbcore serio_raw usb_common sg dm_multipath dm_mod scsi_dh_rdac scsi_dh_emc scsi_dh_alua scsi_mod autofs4
+[  247.833107] Supported: No, Unsupported modules are loaded
+[  247.833110] CPU: 1 PID: 30154 Comm: truncate Tainted: G           OE   N  4.4.21-69-default #1
+[  247.833111] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.8.1-0-g4adadbd-20151112_172657-sheep25 04/01/2014
+[  247.833112] task: ffff88004ff6d240 ti: ffff880074e68000 task.ti: ffff880074e68000
+[  247.833113] RIP: 0010:[<ffffffffa05c8c30>]  [<ffffffffa05c8c30>] ocfs2_truncate_file+0x640/0x6c0 [ocfs2]
+[  247.833151] RSP: 0018:ffff880074e6bd50  EFLAGS: 00010282
+[  247.833152] RAX: 0000000000000074 RBX: 000000000000029e RCX: 0000000000000000
+[  247.833153] RDX: 0000000000000001 RSI: 0000000000000246 RDI: 0000000000000246
+[  247.833154] RBP: ffff880074e6bda8 R08: 000000003675dc7a R09: ffffffff82013414
+[  247.833155] R10: 0000000000034c50 R11: 0000000000000000 R12: ffff88003aab3448
+[  247.833156] R13: 00000000000002dc R14: 0000000000046e11 R15: 0000000000000020
+[  247.833157] FS:  00007f839f965700(0000) GS:ffff88007fc80000(0000) knlGS:0000000000000000
+[  247.833158] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  247.833159] CR2: 00007f839f97e000 CR3: 0000000036723000 CR4: 00000000000006e0
+[  247.833164] Stack:
+[  247.833165]  00000000000003a9 0000000000000001 ffff880060554000 ffff88004fcaf000
+[  247.833167]  ffff88003aa7b090 1000000000000000 ffff88003aab3448 ffff880074e6beb0
+[  247.833169]  0000000000000001 0000000000002068 0000000000000020 0000000000000000
+[  247.833171] Call Trace:
+[  247.833208]  [<ffffffffa05cb1a8>] ocfs2_setattr+0x698/0xa90 [ocfs2]
+[  247.833225]  [<ffffffff8121587e>] notify_change+0x1ae/0x380
+[  247.833242]  [<ffffffff811f8bfe>] do_truncate+0x5e/0x90
+[  247.833246]  [<ffffffff811f8f58>] do_sys_ftruncate.constprop.11+0x108/0x160
+[  247.833257]  [<ffffffff815e142e>] entry_SYSCALL_64_fastpath+0x12/0x6d
+[  247.834724] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x6d
+[  247.834725]
+[  247.834726] Leftover inexact backtrace:
 
+[  247.834728] Code: 24 28 ba d6 01 00 00 48 c7 c6 30 43 62 a0 8b 41 2c 89 44 24 08 48 8b 41 20 48 c7 c1 78 a3 62 a0 48 89 04 24 31 c0 e8 a0 97 f9 ff <0f> 0b 3d 00 fe ff ff 0f 84 ab fd ff ff 83 f8 fc 0f 84 a2 fd ff
+[  247.834748] RIP  [<ffffffffa05c8c30>] ocfs2_truncate_file+0x640/0x6c0 [ocfs2]
+[  247.834774]  RSP <ffff880074e6bd50>
+"
 
-Fixes: 7f4d3b52b6b69f ("clk: uniphier: add clock data for UniPhier SoCs")
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+It's because ocfs2_inode_lock() get us stale LVB in which the i_size is
+not equal to the disk i_size.  We mistakenly trust the LVB because the
+underlaying fsdlm dlm_lock() doesn't set lkb_sbflags with
+DLM_SBF_VALNOTVALID properly for us.  But, why?
+
+The current code tries to downconvert lock without DLM_LKF_VALBLK flag to
+tell o2cb don't update RSB's LVB if it's a PR->NULL conversion, even if
+the lock resource type needs LVB.  This is not the right way for fsdlm.
+
+The fsdlm plugin behaves different on DLM_LKF_VALBLK, it depends on
+DLM_LKF_VALBLK to decide if we care about the LVB in the LKB.  If
+DLM_LKF_VALBLK is not set, fsdlm will skip recovering RSB's LVB from this
+lkb and set the right DLM_SBF_VALNOTVALID appropriately when node failure
+happens.
+
+The following diagram briefly illustrates how this crash happens:
+
+RSB1 is inode metadata lock resource with LOCK_TYPE_USES_LVB;
+
+The 1st round:
+
+             Node1                                    Node2
+RSB1: PR
+                                                  RSB1(master): NULL->EX
+ocfs2_downconvert_lock(PR->NULL, set_lvb==0)
+  ocfs2_dlm_lock(no DLM_LKF_VALBLK)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+dlm_lock(no DLM_LKF_VALBLK)
+  convert_lock(overwrite lkb->lkb_exflags
+               with no DLM_LKF_VALBLK)
+
+RSB1: NULL                                        RSB1: EX
+                                                  reset Node2
+dlm_recover_rsbs()
+  recover_lvb()
+
+/* The LVB is not trustable if the node with EX fails and
+ * no lock >= PR is left. We should set RSB_VALNOTVALID for RSB1.
+ */
+
+ if(!(kb_exflags & DLM_LKF_VALBLK)) /* This means we miss the chance to
+           return;                   * to invalid the LVB here.
+                                     */
+
+The 2nd round:
+
+         Node 1                                Node2
+RSB1(become master from recovery)
+
+ocfs2_setattr()
+  ocfs2_inode_lock(NULL->EX)
+    /* dlm_lock() return the stale lvb without setting DLM_SBF_VALNOTVALID */
+    ocfs2_meta_lvb_is_trustable() return 1 /* so we don't refresh inode from disk */
+  ocfs2_truncate_file()
+      mlog_bug_on_msg(disk isize != i_size_read(inode))  /* crash! */
+
+The fix is quite straightforward.  We keep to set DLM_LKF_VALBLK flag for
+dlm_lock() if the lock resource type needs LVB and the fsdlm plugin is
+uesed.
+
+Link: http://lkml.kernel.org/r/1481275846-6604-1-git-send-email-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clk/uniphier/clk-uniphier-mio.c |   66 +++++++++++-----------
- 1 file changed, 34 insertions(+), 32 deletions(-)
+ fs/ocfs2/dlmglue.c   |   10 ++++++++++
+ fs/ocfs2/stackglue.c |    6 ++++++
+ fs/ocfs2/stackglue.h |    3 +++
+ 3 files changed, 19 insertions(+)
 
-diff -puN drivers/clk/uniphier/clk-uniphier-mio.c~drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc drivers/clk/uniphier/clk-uniphier-mio.c
---- a/drivers/clk/uniphier/clk-uniphier-mio.c~drivers-clk-uniphier-clk-uniphier-mioc-fix-build-for-older-gcc
-+++ a/drivers/clk/uniphier/clk-uniphier-mio.c
-@@ -30,38 +30,40 @@
- 		.name = "sd" #ch "-sel",				\
- 		.type = UNIPHIER_CLK_TYPE_MUX,				\
- 		.idx = -1,						\
--		.mux = {						\
--			.parent_names = {				\
--				"sd-44m",				\
--				"sd-33m",				\
--				"sd-50m",				\
--				"sd-67m",				\
--				"sd-100m",				\
--				"sd-40m",				\
--				"sd-25m",				\
--				"sd-22m",				\
--			},						\
--			.num_parents = 8,				\
--			.reg = 0x30 + 0x200 * (ch),			\
--			.masks = {					\
--				0x00031000,				\
--				0x00031000,				\
--				0x00031000,				\
--				0x00031000,				\
--				0x00001300,				\
--				0x00001300,				\
--				0x00001300,				\
--				0x00001300,				\
--			},						\
--			.vals = {					\
--				0x00000000,				\
--				0x00010000,				\
--				0x00020000,				\
--				0x00030000,				\
--				0x00001000,				\
--				0x00001100,				\
--				0x00001200,				\
--				0x00001300,				\
-+		{							\
-+			.mux = {					\
-+				.parent_names = {			\
-+					"sd-44m",			\
-+					"sd-33m",			\
-+					"sd-50m",			\
-+					"sd-67m",			\
-+					"sd-100m",			\
-+					"sd-40m",			\
-+					"sd-25m",			\
-+					"sd-22m",			\
-+				},					\
-+				.num_parents = 8,			\
-+				.reg = 0x30 + 0x200 * (ch),		\
-+				.masks = {				\
-+					0x00031000,			\
-+					0x00031000,			\
-+					0x00031000,			\
-+					0x00031000,			\
-+					0x00001300,			\
-+					0x00001300,			\
-+					0x00001300,			\
-+					0x00001300,			\
-+				},					\
-+				.vals = {				\
-+					0x00000000,			\
-+					0x00010000,			\
-+					0x00020000,			\
-+					0x00030000,			\
-+					0x00001000,			\
-+					0x00001100,			\
-+					0x00001200,			\
-+					0x00001300,			\
-+				},					\
- 			},						\
- 		},							\
- 	},								\
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
++++ a/fs/ocfs2/dlmglue.c
+@@ -3303,6 +3303,16 @@ static int ocfs2_downconvert_lock(struct
+ 	mlog(ML_BASTS, "lockres %s, level %d => %d\n", lockres->l_name,
+ 	     lockres->l_level, new_level);
+ 
++	/*
++	 * On DLM_LKF_VALBLK, fsdlm behaves differently with o2cb. It always
++	 * expects DLM_LKF_VALBLK being set if the LKB has LVB, so that
++	 * we can recover correctly from node failure. Otherwise, we may get
++	 * invalid LVB in LKB, but without DLM_SBF_VALNOTVALID being set.
++	 */
++	if (!ocfs2_is_o2cb_active() &&
++	    lockres->l_ops->flags & LOCK_TYPE_USES_LVB)
++		lvb = 1;
++
+ 	if (lvb)
+ 		dlm_flags |= DLM_LKF_VALBLK;
+ 
+diff -puN fs/ocfs2/stackglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
++++ a/fs/ocfs2/stackglue.c
+@@ -48,6 +48,12 @@ static char ocfs2_hb_ctl_path[OCFS2_MAX_
+  */
+ static struct ocfs2_stack_plugin *active_stack;
+ 
++inline int ocfs2_is_o2cb_active(void)
++{
++	return !strcmp(active_stack->sp_name, OCFS2_STACK_PLUGIN_O2CB);
++}
++EXPORT_SYMBOL_GPL(ocfs2_is_o2cb_active);
++
+ static struct ocfs2_stack_plugin *ocfs2_stack_lookup(const char *name)
+ {
+ 	struct ocfs2_stack_plugin *p;
+diff -puN fs/ocfs2/stackglue.h~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/stackglue.h
+--- a/fs/ocfs2/stackglue.h~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
++++ a/fs/ocfs2/stackglue.h
+@@ -298,6 +298,9 @@ void ocfs2_stack_glue_set_max_proto_vers
+ int ocfs2_stack_glue_register(struct ocfs2_stack_plugin *plugin);
+ void ocfs2_stack_glue_unregister(struct ocfs2_stack_plugin *plugin);
+ 
++/* In ocfs2_downconvert_lock(), we need to know which stack we are using */
++int ocfs2_is_o2cb_active(void);
++
+ extern struct kset *ocfs2_kset;
+ 
+ #endif  /* STACKGLUE_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zren@suse.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-filemap-add-comment-for-confusing-logic-in-page_cache_tree_insert-fix.patch
-include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
-mm-thp-page-cache-support-for-ppc64-fix.patch
-mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes.patch
-scripts-checkpatchpl-fix-spelling.patch
-init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-vfs-make-may_umount_tree-mount-propogation-aware-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
 
