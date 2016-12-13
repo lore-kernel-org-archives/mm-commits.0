@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 055/123] fs/fs-writeback.c: remove redundant if check
-Date: Mon, 12 Dec 2016 16:43:20 -0800
-Message-ID: <584f4428.z9jq+SjQL2aXowYf%akpm@linux-foundation.org>
+Subject: [patch 056/123] shmem: fix compilation warnings on unused
+ functions
+Date: Mon, 12 Dec 2016 16:43:23 -0800
+Message-ID: <584f442b.GlYzrL1d2QG0xagb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752963AbcLMAnV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:21 -0500
+        with ESMTP id S1753140AbcLMAnY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tahsin@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jeremy.lefaure@lse.epita.fr, hughd@google.com
 
-From: Tahsin Erdogan <tahsin@google.com>
-Subject: fs/fs-writeback.c: remove redundant if check
+From: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+Subject: shmem: fix compilation warnings on unused functions
 
-b_more_io non-empty check is already preceded by an opposite check.
+Compiling shmem.c with CONFIG_SHMEM and CONFIG_TRANSAPRENT_HUGE_PAGECACHE
+enabled raises warnings on two unused functions when CONFIG_TMPFS and
+CONFIG_SYSFS are both disabled:
 
-Link: http://lkml.kernel.org/r/1478591249-30641-1-git-send-email-tahsin@google.com
-Signed-off-by: Tahsin Erdogan <tahsin@google.com>
+mm/shmem.c:390:20: warning: `shmem_format_huge' defined but not used
+[-Wunused-function]
+ static const char *shmem_format_huge(int huge)
+                    ^~~~~~~~~~~~~~~~~
+mm/shmem.c:373:12: warning: `shmem_parse_huge' defined but not used
+[-Wunused-function]
+ static int shmem_parse_huge(const char *str)
+             ^~~~~~~~~~~~~~~~
+
+A conditional compilation on tmpfs or sysfs removes the warnings.
+
+Link: http://lkml.kernel.org/r/20161118055749.11313-1-jeremy.lefaure@lse.epita.fr
+Signed-off-by: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ mm/shmem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/fs-writeback.c~writeback-remove-redundant-if-check fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-remove-redundant-if-check
-+++ a/fs/fs-writeback.c
-@@ -1769,15 +1769,13 @@ static long wb_writeback(struct bdi_writ
- 		 * become available for writeback. Otherwise
- 		 * we'll just busyloop.
- 		 */
--		if (!list_empty(&wb->b_more_io))  {
--			trace_writeback_wait(wb, work);
--			inode = wb_inode(wb->b_more_io.prev);
--			spin_lock(&inode->i_lock);
--			spin_unlock(&wb->list_lock);
--			/* This function drops i_lock... */
--			inode_sleep_on_writeback(inode);
--			spin_lock(&wb->list_lock);
--		}
-+		trace_writeback_wait(wb, work);
-+		inode = wb_inode(wb->b_more_io.prev);
-+		spin_lock(&inode->i_lock);
-+		spin_unlock(&wb->list_lock);
-+		/* This function drops i_lock... */
-+		inode_sleep_on_writeback(inode);
-+		spin_lock(&wb->list_lock);
+diff -puN mm/shmem.c~shmem-fix-compilation-warnings-on-unused-functions mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-compilation-warnings-on-unused-functions
++++ a/mm/shmem.c
+@@ -370,6 +370,7 @@ static bool shmem_confirm_swap(struct ad
+ 
+ int shmem_huge __read_mostly;
+ 
++#if defined(CONFIG_SYSFS) || defined(CONFIG_TMPFS)
+ static int shmem_parse_huge(const char *str)
+ {
+ 	if (!strcmp(str, "never"))
+@@ -407,6 +408,7 @@ static const char *shmem_format_huge(int
+ 		return "bad_val";
  	}
- 	spin_unlock(&wb->list_lock);
- 	blk_finish_plug(&plug);
+ }
++#endif
+ 
+ static unsigned long shmem_unused_huge_shrink(struct shmem_sb_info *sbinfo,
+ 		struct shrink_control *sc, unsigned long nr_to_split)
 _
