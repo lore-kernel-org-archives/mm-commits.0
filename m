@@ -1,86 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [patch 024/123] mm/mprotect.c: don't touch single threaded PTEs
- which are on the right node
-Date: Mon, 12 Dec 2016 16:41:47 -0800
-Message-ID: <584f43cb.G9mUvJkbyx0qjxmf%akpm@linux-foundation.org>
+Subject: [patch 025/123] mm/vmscan.c: set correct defer count for shrinker
+Date: Mon, 12 Dec 2016 16:41:50 -0800
+Message-ID: <584f43ce.0lEgcBghNJrYfWKp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40748 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40754 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbcLMAls (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:41:48 -0500
+        with ESMTP id S1753137AbcLMAlv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:41:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, mgorman@suse.de, peterz@infradead.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, shli@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, stable@vger.kernel.org, vdavydov@parallels.com
 
-From: Andi Kleen <ak@linux.intel.com>
-Subject: mm/mprotect.c: don't touch single threaded PTEs which are on the right node
+From: Shaohua Li <shli@fb.com>
+Subject: mm/vmscan.c: set correct defer count for shrinker
 
-We had some problems with pages getting unmapped in single threaded
-affinitized processes.  It was tracked down to NUMA scanning.
+Our system uses significantly more slab memory with memcg enabled with the
+latest kernel.  With 3.10 kernel, slab uses 2G memory, while with 4.6
+kernel, 6G memory is used.  The shrinker has problem.  Let's see we have
+two memcg for one shrinker.  In do_shrink_slab:
 
-In this case it doesn't make any sense to unmap pages if the process is
-single threaded and the page is already on the node the process is running
-on.
+1. Check cg1.  nr_deferred = 0, assume total_scan = 700.  batch size
+   is 1024, then no memory is freed.  nr_deferred = 700
 
-Add a check for this case into the numa protection code, and skip
-unmapping if true.
+2. Check cg2.  nr_deferred = 700.  Assume freeable = 20, then
+   total_scan = 10 or 40.  Let's assume it's 10.  No memory is freed. 
+   nr_deferred = 10.
 
-In theory the process could be migrated later, but we will eventually
-rescan and unmap and migrate then.
+The deferred share of cg1 is lost in this case.  kswapd will free no
+memory even run above steps again and again.
 
-In theory this could be made more fancy: remembering this state per
-process or even whole mm.  However that would need extra tracking and be
-more complicated, and the simple check seems to work fine so far.
+The fix makes sure one memcg's deferred share isn't lost.
 
-[ak@linux.intel.com: v3: Minor updates from Mel. Change code layout]
-  Link: http://lkml.kernel.org/r/1476382117-5440-1-git-send-email-andi@firstfloor.org
-Link: http://lkml.kernel.org/r/1476288949-20970-1-git-send-email-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: http://lkml.kernel.org/r/2414be961b5d25892060315fbb56bb19d81d0c07.1476227351.git.shli@fb.com
+Signed-off-by: Shaohua Li <shli@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/vmscan.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN mm/mprotect.c~dont-touch-single-threaded-ptes-which-are-on-the-right-node mm/mprotect.c
---- a/mm/mprotect.c~dont-touch-single-threaded-ptes-which-are-on-the-right-node
-+++ a/mm/mprotect.c
-@@ -69,11 +69,17 @@ static unsigned long change_pte_range(st
- 	pte_t *pte, oldpte;
- 	spinlock_t *ptl;
- 	unsigned long pages = 0;
-+	int target_node = NUMA_NO_NODE;
+diff -puN mm/vmscan.c~vmscan-set-correct-defer-count-for-shrinker mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-set-correct-defer-count-for-shrinker
++++ a/mm/vmscan.c
+@@ -291,6 +291,7 @@ static unsigned long do_shrink_slab(stru
+ 	int nid = shrinkctl->nid;
+ 	long batch_size = shrinker->batch ? shrinker->batch
+ 					  : SHRINK_BATCH;
++	long scanned = 0, next_deferred;
  
- 	pte = lock_pte_protection(vma, pmd, addr, prot_numa, &ptl);
- 	if (!pte)
- 		return 0;
+ 	freeable = shrinker->count_objects(shrinker, shrinkctl);
+ 	if (freeable == 0)
+@@ -312,7 +313,9 @@ static unsigned long do_shrink_slab(stru
+ 		pr_err("shrink_slab: %pF negative objects to delete nr=%ld\n",
+ 		       shrinker->scan_objects, total_scan);
+ 		total_scan = freeable;
+-	}
++		next_deferred = nr;
++	} else
++		next_deferred = total_scan;
  
-+	/* Get target node for single threaded private VMAs */
-+	if (prot_numa && !(vma->vm_flags & VM_SHARED) &&
-+	    atomic_read(&vma->vm_mm->mm_users) == 1)
-+		target_node = numa_node_id();
-+
- 	arch_enter_lazy_mmu_mode();
- 	do {
- 		oldpte = *pte;
-@@ -95,6 +101,13 @@ static unsigned long change_pte_range(st
- 				/* Avoid TLB flush if possible */
- 				if (pte_protnone(oldpte))
- 					continue;
-+
-+				/*
-+				 * Don't mess with PTEs if page is already on the node
-+				 * a single-threaded process is running on.
-+				 */
-+				if (target_node == page_to_nid(page))
-+					continue;
- 			}
+ 	/*
+ 	 * We need to avoid excessive windup on filesystem shrinkers
+@@ -369,17 +372,22 @@ static unsigned long do_shrink_slab(stru
  
- 			ptent = ptep_modify_prot_start(mm, addr, pte);
+ 		count_vm_events(SLABS_SCANNED, nr_to_scan);
+ 		total_scan -= nr_to_scan;
++		scanned += nr_to_scan;
+ 
+ 		cond_resched();
+ 	}
+ 
++	if (next_deferred >= scanned)
++		next_deferred -= scanned;
++	else
++		next_deferred = 0;
+ 	/*
+ 	 * move the unused scan count back into the shrinker in a
+ 	 * manner that handles concurrent updates. If we exhausted the
+ 	 * scan, there is no need to do an update.
+ 	 */
+-	if (total_scan > 0)
+-		new_nr = atomic_long_add_return(total_scan,
++	if (next_deferred > 0)
++		new_nr = atomic_long_add_return(next_deferred,
+ 						&shrinker->nr_deferred[nid]);
+ 	else
+ 		new_nr = atomic_long_read(&shrinker->nr_deferred[nid]);
 _
