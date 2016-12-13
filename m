@@ -1,55 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 010/123] drivers/pcmcia/m32r_pcc.c: check return from
- add_pcc_socket
-Date: Mon, 12 Dec 2016 16:41:05 -0800
-Message-ID: <584f43a1.fLpTvfgipJi/gzJU%akpm@linux-foundation.org>
+Subject: [patch 011/123] ocfs2/dlm: clean up useless BUG_ON default case
+ in dlm_finalize_reco_handler()
+Date: Mon, 12 Dec 2016 16:41:08 -0800
+Message-ID: <584f43a4.haQlfqOCFlcfQAcY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40416 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753038AbcLMAlG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:41:06 -0500
+        with ESMTP id S1753038AbcLMAlJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:41:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, piaojun@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: drivers/pcmcia/m32r_pcc.c: check return from add_pcc_socket
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2/dlm: clean up useless BUG_ON default case in dlm_finalize_reco_handler()
 
-If request_irq() fails it passes the error to the caller. The caller
-now checks it and jumps to the common error path on failure.
+The value of 'stage' must be between 1 and 2, so the switch can't reach
+the default case.
 
-Link: http://lkml.kernel.org/r/1474237304-897-3-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+Link: http://lkml.kernel.org/r/57FB5EB2.7050002@huawei.com
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/m32r_pcc.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-check-return-from-add_pcc_socket drivers/pcmcia/m32r_pcc.c
---- a/drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-check-return-from-add_pcc_socket
-+++ a/drivers/pcmcia/m32r_pcc.c
-@@ -696,10 +696,16 @@ static int __init init_m32r_pcc(void)
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2966,8 +2966,6 @@ int dlm_finalize_reco_handler(struct o2n
+ 			spin_unlock(&dlm->spinlock);
+ 			dlm_kick_recovery_thread(dlm);
+ 			break;
+-		default:
+-			BUG();
+ 	}
  
- 	pcc_sockets = 0;
- 
--	add_pcc_socket(M32R_PCC0_BASE, PCC0_IRQ, M32R_PCC0_MAPBASE, 0x1000);
-+	ret = add_pcc_socket(M32R_PCC0_BASE, PCC0_IRQ, M32R_PCC0_MAPBASE,
-+			     0x1000);
-+	if (ret)
-+		goto unreg_dev;
- 
- #ifdef CONFIG_M32RPCC_SLOT2
--	add_pcc_socket(M32R_PCC1_BASE, PCC1_IRQ, M32R_PCC1_MAPBASE, 0x2000);
-+	ret = add_pcc_socket(M32R_PCC1_BASE, PCC1_IRQ, M32R_PCC1_MAPBASE,
-+			     0x2000);
-+	if (ret)
-+		goto unreg_dev;
- #endif
- 
- 	if (pcc_sockets == 0) {
+ 	mlog(0, "%s: recovery done, reco master was %u, dead now %u, master now %u\n",
 _
