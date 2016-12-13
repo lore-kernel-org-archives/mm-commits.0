@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 050/123] dt: add documentation of "hotpluggable" memory
- property
-Date: Mon, 12 Dec 2016 16:43:06 -0800
-Message-ID: <584f441a.TKZ4Y9NiICK71vRu%akpm@linux-foundation.org>
+Subject: [patch 051/123] mm/pkeys: generate pkey system call code only if
+ ARCH_HAS_PKEYS is selected
+Date: Mon, 12 Dec 2016 16:43:09 -0800
+Message-ID: <584f441d.lPUw0a7d+HWVqMDH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41150 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752544AbcLMAnH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:07 -0500
+        with ESMTP id S1752544AbcLMAnK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, apopple@au1.ibm.com, benh@kernel.crashing.org, bharata@linux.vnet.ibm.com, bsingharora@gmail.com, frowand.list@gmail.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, nfont@linux.vnet.ibm.com, paulus@samba.org, robh+dt@kernel.org, stewart@linux.vnet.ibm.com, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, heiko.carstens@de.ibm.com, dave.hansen@linux.intel.com, mark.rutland@arm.com
 
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: dt: add documentation of "hotpluggable" memory property
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm/pkeys: generate pkey system call code only if ARCH_HAS_PKEYS is selected
 
-Summarize the "hotpluggable" property of dt memory nodes.
+Having code for the pkey_mprotect, pkey_alloc and pkey_free system calls
+makes only sense if ARCH_HAS_PKEYS is selected.  If not selected these
+system calls will always return -ENOSPC or -EINVAL.
 
-Link: http://lkml.kernel.org/r/1479160961-25840-6-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alistair Popple <apopple@au1.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+To simplify things and have less code generate the pkey system call code
+only if ARCH_HAS_PKEYS is selected.
+
+For architectures which have already wired up the system calls, but do not
+select ARCH_HAS_PKEYS this will result in less generated code and a
+different return code: the three system calls will now always return
+-ENOSYS, using the cond_syscall mechanism.
+
+For architectures which have not wired up the system calls less
+unreachable code will be generated.
+
+Link: http://lkml.kernel.org/r/20161114111251.70084-1-heiko.carstens@de.ibm.com
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/booting-without-of.txt |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/mprotect.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN Documentation/devicetree/booting-without-of.txt~dt-add-documentation-of-hotpluggable-memory-property Documentation/devicetree/booting-without-of.txt
---- a/Documentation/devicetree/booting-without-of.txt~dt-add-documentation-of-hotpluggable-memory-property
-+++ a/Documentation/devicetree/booting-without-of.txt
-@@ -974,6 +974,13 @@ compatibility.
-       4Gb. Some vendors prefer splitting those ranges into smaller
-       segments, but the kernel doesn't care.
+diff -puN mm/mprotect.c~mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected mm/mprotect.c
+--- a/mm/mprotect.c~mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected
++++ a/mm/mprotect.c
+@@ -497,6 +497,8 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
+ 	return do_mprotect_pkey(start, len, prot, -1);
+ }
  
-+  Additional properties:
++#ifdef CONFIG_ARCH_HAS_PKEYS
 +
-+    - hotpluggable : The presence of this property provides an explicit
-+      hint to the operating system that this memory may potentially be
-+      removed later. The kernel can take this into consideration when
-+      doing nonmovable allocations and when laying out memory zones.
+ SYSCALL_DEFINE4(pkey_mprotect, unsigned long, start, size_t, len,
+ 		unsigned long, prot, int, pkey)
+ {
+@@ -547,3 +549,5 @@ SYSCALL_DEFINE1(pkey_free, int, pkey)
+ 	 */
+ 	return ret;
+ }
 +
-   e) The /chosen node
- 
-   This node is a bit "special". Normally, that's where Open Firmware
++#endif /* CONFIG_ARCH_HAS_PKEYS */
 _
