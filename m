@@ -1,79 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes.patch
- removed from -mm tree
-Date: Mon, 12 Dec 2016 16:25:04 -0800
-Message-ID: <584f3fe0.lUjmBiZDWlwcqUhQ%akpm@linux-foundation.org>
+ printk-btrfs-handle-more-message-headers-fix.patch removed from -mm tree
+Date: Mon, 12 Dec 2016 16:25:45 -0800
+Message-ID: <584f4009.+aeHDYgbO3UhL5qe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38170 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932451AbcLMAYU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:24:20 -0500
+        with ESMTP id S1751615AbcLMAZC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:25:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: pmladek@suse.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes
+     Subject: printk/btrfs: Fix a check of the valid message level
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes.patch
+     printk-btrfs-handle-more-message-headers-fix.patch
 
-This patch was dropped because it was folded into mm-rmap-handle-anon_vma_prepare-common-case-inline.patch
+This patch was dropped because it was folded into printk-btrfs-handle-more-message-headers.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes
+From: Petr Mladek <pmladek@suse.com>
+Subject: printk/btrfs: Fix a check of the valid message level
 
-WARNING: function definition argument 'struct vm_area_struct *' should also have an identifier name
-#45: FILE: include/linux/rmap.h:140:
-+int  __anon_vma_prepare(struct vm_area_struct *);
+Huh, this was a childish mistake.
 
-ERROR: "foo * bar" should be "foo *bar"
-#50: FILE: include/linux/rmap.h:145:
-+static inline int anon_vma_prepare(struct vm_area_struct * vma)
-
-total: 1 errors, 1 warnings, 118 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-rmap-handle-anon_vma_prepare-common-case-inline.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/20161111183236.GD2145@dhcp128.suse.cz
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
+ fs/btrfs/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes include/linux/rmap.h
---- a/include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline-checkpatch-fixes
-+++ a/include/linux/rmap.h
-@@ -142,7 +142,7 @@ void unlink_anon_vmas(struct vm_area_str
- int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
- int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+diff -puN fs/btrfs/super.c~printk-btrfs-handle-more-message-headers-fix fs/btrfs/super.c
+--- a/fs/btrfs/super.c~printk-btrfs-handle-more-message-headers-fix
++++ a/fs/btrfs/super.c
+@@ -214,7 +214,7 @@ void btrfs_printk(const struct btrfs_fs_
+ 	while ((kern_level = printk_get_level(fmt)) != 0) {
+ 		size_t size = printk_skip_level(fmt) - fmt;
  
--static inline int anon_vma_prepare(struct vm_area_struct * vma)
-+static inline int anon_vma_prepare(struct vm_area_struct *vma)
- {
- 	if (likely(vma->anon_vma))
- 		return 0;
+-		if (kern_level >= '0' || kern_level <= '7') {
++		if (kern_level >= '0' && kern_level <= '7') {
+ 			memcpy(lvl, fmt,  size);
+ 			lvl[size] = '\0';
+ 			type = logtypes[kern_level - '0'];
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-include-linux-backing-dev-defsh-shrink-struct-backing_dev_info.patch
-mm-rmap-handle-anon_vma_prepare-common-case-inline.patch
-scripts-checkpatchpl-fix-spelling.patch
-init-reduce-rootwait-polling-interval-time-to-5ms-fix.patch
+printk-nmi-fix-up-handling-of-the-full-nmi-log-buffer.patch
+printk-nmi-handle-continuous-lines-and-missing-newline.patch
+printk-kdb-handle-more-message-headers.patch
+printk-btrfs-handle-more-message-headers.patch
+printk-sound-handle-more-message-headers.patch
+printk-sound-handle-more-message-headers-fix.patch
 
