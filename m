@@ -1,95 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: [patch 089/123] mm/percpu.c: fix panic triggered by BUG_ON()
- falsely
-Date: Mon, 12 Dec 2016 16:45:02 -0800
-Message-ID: <584f448e.W9rquJzY+YGdCCIw%akpm@linux-foundation.org>
+Subject: [patch 087/123] kasan: eliminate long stalls during quarantine
+ reduction
+Date: Mon, 12 Dec 2016 16:44:56 -0800
+Message-ID: <584f4488.vZLYHx1AEw725mbk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41674 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932475AbcLMApD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:45:03 -0500
+        with ESMTP id S932475AbcLMAo6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zijun_hu@htc.com, cl@linux.com, tj@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, andreyknvl@google.com, aryabinin@virtuozzo.com, edumazet@google.com, glider@google.com, gthelen@google.com
 
-From: zijun_hu <zijun_hu@htc.com>
-Subject: mm/percpu.c: fix panic triggered by BUG_ON() falsely
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: eliminate long stalls during quarantine reduction
 
-As shown by pcpu_build_alloc_info(), the number of units within a percpu
-group is deduced by rounding up the number of CPUs within the group to
-@upa boundary/ Therefore, the number of CPUs isn't equal to the units's if
-it isn't aligned to @upa normally.  However, pcpu_page_first_chunk() uses
-BUG_ON() to assert that one number is equal to the other roughly, so a
-panic is maybe triggered by the BUG_ON() incorrectly.
+Currently we dedicate 1/32 of RAM for quarantine and then reduce it by 1/4
+of total quarantine size.  This can be a significant amount of memory. 
+For example, with 4GB of RAM total quarantine size is 128MB and it is
+reduced by 32MB at a time.  With 128GB of RAM total quarantine size is 4GB
+and it is reduced by 1GB.  This leads to several problems:
 
-In order to fix this issue, the number of CPUs is rounded up then compared
-with units's and the BUG_ON() is replaced with a warning and return of an
-error code as well, to keep system alive as much as possible.
+ - freeing 1GB can take tens of seconds, causes rcu stall warnings
+   and just introduces unexpected long delays at random places
+ - if kmalloc() is called under a mutex, other threads stall on that
+   mutex while a thread reduces quarantine
+ - threads wait on quarantine_lock while one thread grabs a large
+   batch of objects to evict
+ - we walk the uncached list of object to free twice which makes
+   all of the above worse
+ - when a thread frees objects, they are already not accounted against
+   global_quarantine.bytes; as the result we can have quarantine_size
+   bytes in quarantine + unbounded amount of memory in large batches
+   in threads that are in process of freeing
 
-Link: http://lkml.kernel.org/r/57FCF07C.2020103@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Reduce size of quarantine in smaller batches to reduce the delays.  The
+only reason to reduce it in batches is amortization of overheads, the new
+batch size of 1MB should be well enough to amortize spinlock lock/unlock
+and few function calls.
+
+Plus organize quarantine as a FIFO array of batches.  This allows to not
+walk the list in quarantine_reduce() under quarantine_lock, which in turn
+reduces contention and is just faster.
+
+This improves performance of heavy load (syzkaller fuzzing) by ~20% with 4
+CPUs and 32GB of RAM.  Also this eliminates frequent (every 5 sec) drops
+of CPU consumption from ~400% to ~100% (one thread reduces quarantine
+while others are waiting on a mutex).
+
+Some reference numbers:
+1. Machine with 4 CPUs and 4GB of memory. Quarantine size 128MB.
+   Currently we free 32MB at at time.
+   With new code we free 1MB at a time (1024 batches, ~128 are used).
+2. Machine with 32 CPUs and 128GB of memory. Quarantine size 4GB.
+   Currently we free 1GB at at time.
+   With new code we free 8MB at a time (1024 batches, ~512 are used).
+3. Machine with 4096 CPUs and 1TB of memory. Quarantine size 32GB.
+   Currently we free 8GB at at time.
+   With new code we free 4MB at a time (16K batches, ~8K are used).
+
+Link: http://lkml.kernel.org/r/1478756952-18695-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ mm/kasan/quarantine.c |   94 ++++++++++++++++++++--------------------
+ 1 file changed, 48 insertions(+), 46 deletions(-)
 
-diff -puN mm/percpu.c~mm-percpuc-fix-panic-triggered-by-bug_on-falsely mm/percpu.c
---- a/mm/percpu.c~mm-percpuc-fix-panic-triggered-by-bug_on-falsely
-+++ a/mm/percpu.c
-@@ -2093,6 +2093,8 @@ int __init pcpu_page_first_chunk(size_t
- 	size_t pages_size;
- 	struct page **pages;
- 	int unit, i, j, rc;
-+	int upa;
-+	int nr_g0_units;
+diff -puN mm/kasan/quarantine.c~kasan-eliminate-long-stalls-during-quarantine-reduction mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~kasan-eliminate-long-stalls-during-quarantine-reduction
++++ a/mm/kasan/quarantine.c
+@@ -86,24 +86,9 @@ static void qlist_move_all(struct qlist_
+ 	qlist_init(from);
+ }
  
- 	snprintf(psize_str, sizeof(psize_str), "%luK", PAGE_SIZE >> 10);
+-static void qlist_move(struct qlist_head *from, struct qlist_node *last,
+-		struct qlist_head *to, size_t size)
+-{
+-	if (unlikely(last == from->tail)) {
+-		qlist_move_all(from, to);
+-		return;
+-	}
+-	if (qlist_empty(to))
+-		to->head = from->head;
+-	else
+-		to->tail->next = from->head;
+-	to->tail = last;
+-	from->head = last->next;
+-	last->next = NULL;
+-	from->bytes -= size;
+-	to->bytes += size;
+-}
+-
++#define QUARANTINE_PERCPU_SIZE (1 << 20)
++#define QUARANTINE_BATCHES \
++	(1024 > 4 * CONFIG_NR_CPUS ? 1024 : 4 * CONFIG_NR_CPUS)
  
-@@ -2100,7 +2102,12 @@ int __init pcpu_page_first_chunk(size_t
- 	if (IS_ERR(ai))
- 		return PTR_ERR(ai);
- 	BUG_ON(ai->nr_groups != 1);
--	BUG_ON(ai->groups[0].nr_units != num_possible_cpus());
-+	upa = ai->alloc_size/ai->unit_size;
-+	nr_g0_units = roundup(num_possible_cpus(), upa);
-+	if (unlikely(WARN_ON(ai->groups[0].nr_units != nr_g0_units))) {
-+		pcpu_free_alloc_info(ai);
-+		return -EINVAL;
-+	}
+ /*
+  * The object quarantine consists of per-cpu queues and a global queue,
+@@ -111,11 +96,22 @@ static void qlist_move(struct qlist_head
+  */
+ static DEFINE_PER_CPU(struct qlist_head, cpu_quarantine);
  
- 	unit_pages = ai->unit_size >> PAGE_SHIFT;
+-static struct qlist_head global_quarantine;
++/* Round-robin FIFO array of batches. */
++static struct qlist_head global_quarantine[QUARANTINE_BATCHES];
++static int quarantine_head;
++static int quarantine_tail;
++/* Total size of all objects in global_quarantine across all batches. */
++static unsigned long quarantine_size;
+ static DEFINE_SPINLOCK(quarantine_lock);
  
-@@ -2111,21 +2118,22 @@ int __init pcpu_page_first_chunk(size_t
+ /* Maximum size of the global queue. */
+-static unsigned long quarantine_size;
++static unsigned long quarantine_max_size;
++
++/*
++ * Target size of a batch in global_quarantine.
++ * Usually equal to QUARANTINE_PERCPU_SIZE unless we have too much RAM.
++ */
++static unsigned long quarantine_batch_size;
  
- 	/* allocate pages */
- 	j = 0;
--	for (unit = 0; unit < num_possible_cpus(); unit++)
-+	for (unit = 0; unit < num_possible_cpus(); unit++) {
-+		unsigned int cpu = ai->groups[0].cpu_map[unit];
- 		for (i = 0; i < unit_pages; i++) {
--			unsigned int cpu = ai->groups[0].cpu_map[unit];
- 			void *ptr;
+ /*
+  * The fraction of physical memory the quarantine is allowed to occupy.
+@@ -124,9 +120,6 @@ static unsigned long quarantine_size;
+  */
+ #define QUARANTINE_FRACTION 32
  
- 			ptr = alloc_fn(cpu, PAGE_SIZE, PAGE_SIZE);
- 			if (!ptr) {
- 				pr_warn("failed to allocate %s page for cpu%u\n",
--					psize_str, cpu);
-+						psize_str, cpu);
- 				goto enomem;
- 			}
- 			/* kmemleak tracks the percpu allocations separately */
- 			kmemleak_free(ptr);
- 			pages[j++] = virt_to_page(ptr);
- 		}
-+	}
+-#define QUARANTINE_LOW_SIZE (READ_ONCE(quarantine_size) * 3 / 4)
+-#define QUARANTINE_PERCPU_SIZE (1 << 20)
+-
+ static struct kmem_cache *qlink_to_cache(struct qlist_node *qlink)
+ {
+ 	return virt_to_head_page(qlink)->slab_cache;
+@@ -191,21 +184,30 @@ void quarantine_put(struct kasan_free_me
  
- 	/* allocate vm area, map the pages and copy static data */
- 	vm.flags = VM_ALLOC;
+ 	if (unlikely(!qlist_empty(&temp))) {
+ 		spin_lock_irqsave(&quarantine_lock, flags);
+-		qlist_move_all(&temp, &global_quarantine);
++		WRITE_ONCE(quarantine_size, quarantine_size + temp.bytes);
++		qlist_move_all(&temp, &global_quarantine[quarantine_tail]);
++		if (global_quarantine[quarantine_tail].bytes >=
++				READ_ONCE(quarantine_batch_size)) {
++			int new_tail;
++
++			new_tail = quarantine_tail + 1;
++			if (new_tail == QUARANTINE_BATCHES)
++				new_tail = 0;
++			if (new_tail != quarantine_head)
++				quarantine_tail = new_tail;
++		}
+ 		spin_unlock_irqrestore(&quarantine_lock, flags);
+ 	}
+ }
+ 
+ void quarantine_reduce(void)
+ {
+-	size_t new_quarantine_size, percpu_quarantines;
++	size_t total_size, new_quarantine_size, percpu_quarantines;
+ 	unsigned long flags;
+ 	struct qlist_head to_free = QLIST_INIT;
+-	size_t size_to_free = 0;
+-	struct qlist_node *last;
+ 
+-	if (likely(READ_ONCE(global_quarantine.bytes) <=
+-		   READ_ONCE(quarantine_size)))
++	if (likely(READ_ONCE(quarantine_size) <=
++		   READ_ONCE(quarantine_max_size)))
+ 		return;
+ 
+ 	spin_lock_irqsave(&quarantine_lock, flags);
+@@ -214,24 +216,23 @@ void quarantine_reduce(void)
+ 	 * Update quarantine size in case of hotplug. Allocate a fraction of
+ 	 * the installed memory to quarantine minus per-cpu queue limits.
+ 	 */
+-	new_quarantine_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
++	total_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
+ 		QUARANTINE_FRACTION;
+ 	percpu_quarantines = QUARANTINE_PERCPU_SIZE * num_online_cpus();
+-	new_quarantine_size = (new_quarantine_size < percpu_quarantines) ?
+-		0 : new_quarantine_size - percpu_quarantines;
+-	WRITE_ONCE(quarantine_size, new_quarantine_size);
+-
+-	last = global_quarantine.head;
+-	while (last) {
+-		struct kmem_cache *cache = qlink_to_cache(last);
+-
+-		size_to_free += cache->size;
+-		if (!last->next || size_to_free >
+-		    global_quarantine.bytes - QUARANTINE_LOW_SIZE)
+-			break;
+-		last = last->next;
++	new_quarantine_size = (total_size < percpu_quarantines) ?
++		0 : total_size - percpu_quarantines;
++	WRITE_ONCE(quarantine_max_size, new_quarantine_size);
++	/* Aim at consuming at most 1/2 of slots in quarantine. */
++	WRITE_ONCE(quarantine_batch_size, max((size_t)QUARANTINE_PERCPU_SIZE,
++		2 * total_size / QUARANTINE_BATCHES));
++
++	if (likely(quarantine_size > quarantine_max_size)) {
++		qlist_move_all(&global_quarantine[quarantine_head], &to_free);
++		WRITE_ONCE(quarantine_size, quarantine_size - to_free.bytes);
++		quarantine_head++;
++		if (quarantine_head == QUARANTINE_BATCHES)
++			quarantine_head = 0;
+ 	}
+-	qlist_move(&global_quarantine, last, &to_free, size_to_free);
+ 
+ 	spin_unlock_irqrestore(&quarantine_lock, flags);
+ 
+@@ -275,13 +276,14 @@ static void per_cpu_remove_cache(void *a
+ 
+ void quarantine_remove_cache(struct kmem_cache *cache)
+ {
+-	unsigned long flags;
++	unsigned long flags, i;
+ 	struct qlist_head to_free = QLIST_INIT;
+ 
+ 	on_each_cpu(per_cpu_remove_cache, cache, 1);
+ 
+ 	spin_lock_irqsave(&quarantine_lock, flags);
+-	qlist_move_cache(&global_quarantine, &to_free, cache);
++	for (i = 0; i < QUARANTINE_BATCHES; i++)
++		qlist_move_cache(&global_quarantine[i], &to_free, cache);
+ 	spin_unlock_irqrestore(&quarantine_lock, flags);
+ 
+ 	qlist_free_all(&to_free, cache);
 _
