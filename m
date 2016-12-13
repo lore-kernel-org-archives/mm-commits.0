@@ -1,59 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [patch 060/123] mm: khugepaged: fix radix tree node leak in shmem collapse error path
-Date: Mon, 12 Dec 2016 16:43:35 -0800
-Message-ID: <584f4437.vRexmzkwo/xQ1s1w%akpm@linux-foundation.org>
+Subject: [patch 061/123] mm: workingset: turn shadow node shrinker bugs
+ into warnings
+Date: Mon, 12 Dec 2016 16:43:38 -0800
+Message-ID: <584f443a.jXHuPNYlyjHfsze+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41252 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752801AbcLMAng (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:36 -0500
+        with ESMTP id S1752544AbcLMAnj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@linuxonhyperv.com
 
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: khugepaged: fix radix tree node leak in shmem collapse error path
+Subject: mm: workingset: turn shadow node shrinker bugs into warnings
 
-The radix tree counts valid entries in each tree node.  Entries stored in
-the tree cannot be removed by simpling storing NULL in the slot or the
-internal counters will be off and the node never gets freed again.
+When the shadow page shrinker tries to reclaim a radix tree node but finds
+it in an unexpected state - it should contain no pages, and non-zero
+shadow entries - there is no need to kill the executing task or even the
+entire system.  Warn about the invalid state, then leave that tree node
+be.  Simply don't put it back on the shadow LRU for future reclaim and
+move on.
 
-When collapsing a shmem page fails, restore the holes that were filled
-with radix_tree_insert() with a proper radix tree deletion.
-
-Fixes: f3f0e1d2150b ("khugepaged: add support of collapse for tmpfs/shmem pages")
-Link: http://lkml.kernel.org/r/20161117191138.22769-3-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20161117191138.22769-4-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Jan Kara <jack@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox <mawilcox@linuxonhyperv.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/workingset.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-khugepaged-fix-radix-tree-node-leak-in-shmem-collapse-error-path mm/khugepaged.c
---- a/mm/khugepaged.c~mm-khugepaged-fix-radix-tree-node-leak-in-shmem-collapse-error-path
-+++ a/mm/khugepaged.c
-@@ -1525,9 +1525,11 @@ tree_unlocked:
- 			if (!page || iter.index < page->index) {
- 				if (!nr_none)
- 					break;
--				/* Put holes back where they were */
--				radix_tree_replace_slot(slot, NULL);
- 				nr_none--;
-+				/* Put holes back where they were */
-+				radix_tree_delete(&mapping->page_tree,
-+						  iter.index);
-+				slot = radix_tree_iter_next(&iter);
- 				continue;
- 			}
+diff -puN mm/workingset.c~mm-workingset-turn-shadow-node-shrinker-bugs-into-warnings mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-turn-shadow-node-shrinker-bugs-into-warnings
++++ a/mm/workingset.c
+@@ -418,23 +418,27 @@ static enum lru_status shadow_lru_isolat
+ 	 * no pages, so we expect to be able to remove them all and
+ 	 * delete and free the empty node afterwards.
+ 	 */
+-	BUG_ON(!workingset_node_shadows(node));
+-	BUG_ON(workingset_node_pages(node));
+-
++	if (WARN_ON_ONCE(!workingset_node_shadows(node)))
++		goto out_invalid;
++	if (WARN_ON_ONCE(workingset_node_pages(node)))
++		goto out_invalid;
+ 	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++) {
+ 		if (node->slots[i]) {
+-			BUG_ON(!radix_tree_exceptional_entry(node->slots[i]));
++			if (WARN_ON_ONCE(!radix_tree_exceptional_entry(node->slots[i])))
++				goto out_invalid;
++			if (WARN_ON_ONCE(!mapping->nrexceptional))
++				goto out_invalid;
+ 			node->slots[i] = NULL;
+ 			workingset_node_shadows_dec(node);
+-			BUG_ON(!mapping->nrexceptional);
+ 			mapping->nrexceptional--;
+ 		}
+ 	}
+-	BUG_ON(workingset_node_shadows(node));
++	if (WARN_ON_ONCE(workingset_node_shadows(node)))
++		goto out_invalid;
+ 	inc_node_state(page_pgdat(virt_to_page(node)), WORKINGSET_NODERECLAIM);
+-	if (!__radix_tree_delete_node(&mapping->page_tree, node))
+-		BUG();
++	__radix_tree_delete_node(&mapping->page_tree, node);
  
++out_invalid:
+ 	spin_unlock(&mapping->tree_lock);
+ 	ret = LRU_REMOVED_RETRY;
+ out:
 _
