@@ -1,68 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 080/123] mm, debug: print raw struct page data in
- __dump_page()
-Date: Mon, 12 Dec 2016 16:44:35 -0800
-Message-ID: <584f4473.0u2Psug1COKbUy01%akpm@linux-foundation.org>
+Subject: [patch 082/123] mm, page_alloc: keep pcp count and list contents
+ in sync if struct page is corrupted
+Date: Mon, 12 Dec 2016 16:44:41 -0800
+Message-ID: <584f4479.3Amqr1QJHJYXC2yP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41582 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932282AbcLMAog (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:36 -0500
+        with ESMTP id S932298AbcLMAon (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, aryabinin@virtuozzo.com, kirill.shutemov@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, cl@linux.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, debug: print raw struct page data in __dump_page()
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: keep pcp count and list contents in sync if struct page is corrupted
 
-__dump_page() is used when a page metadata inconsistency is detected,
-either by standard runtime checks, or extra checks in CONFIG_DEBUG_VM
-builds.  It prints some of the relevant metadata, but not the whole struct
-page, which is based on unions and interpretation is dependent on the
-context.
+Vlastimil Babka pointed out that 479f854a207c ("mm, page_alloc: defer
+debugging checks of pages allocated from the PCP") will allow the per-cpu
+list counter to be out of sync with the per-cpu list contents if a struct
+page is corrupted.
 
-This means that sometimes e.g.  a VM_BUG_ON_PAGE() checks certain field,
-which is however not printed by __dump_page() and the resulting bug report
-may then lack clues that could help in determining the root cause.  This
-patch solves the problem by simply printing the whole struct page word by
-word, so no part is missing, but the interpretation of the data is left to
-developers.  This is similar to e.g.  x86_64 raw stack dumps.
+The consequence is an infinite loop if the per-cpu lists get fully drained
+by free_pcppages_bulk because all the lists are empty but the count is
+positive.  The infinite loop occurs here
 
-Example output:
+                do {
+                        batch_free++;
+                        if (++migratetype == MIGRATE_PCPTYPES)
+                                migratetype = 0;
+                        list = &pcp->lists[migratetype];
+                } while (list_empty(list));
 
- page:ffffea00000475c0 count:1 mapcount:0 mapping:          (null) index:0x0
- flags: 0x100000000000400(reserved)
- raw: 0100000000000400 0000000000000000 0000000000000000 00000001ffffffff
- raw: ffffea00000475e0 ffffea00000475e0 0000000000000000 0000000000000000
- page dumped because: VM_BUG_ON_PAGE(1)
+What the user sees is a bad page warning followed by a soft lockup with
+interrupts disabled in free_pcppages_bulk().
 
-[aryabinin@virtuozzo.com: suggested print_hex_dump()]
-Link: http://lkml.kernel.org/r/2ff83214-70fe-741e-bf05-fe4a4073ec3e@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+This patch keeps the accounting in sync.
+
+Fixes: 479f854a207c ("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
+Link: http://lkml.kernel.org/r/20161202112951.23346-2-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>	[4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/page_alloc.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN mm/debug.c~mm-debug-print-raw-struct-page-data-in-__dump_page mm/debug.c
---- a/mm/debug.c~mm-debug-print-raw-struct-page-data-in-__dump_page
-+++ a/mm/debug.c
-@@ -59,6 +59,10 @@ void __dump_page(struct page *page, cons
+diff -puN mm/page_alloc.c~mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted
++++ a/mm/page_alloc.c
+@@ -2218,7 +2218,7 @@ static int rmqueue_bulk(struct zone *zon
+ 			unsigned long count, struct list_head *list,
+ 			int migratetype, bool cold)
+ {
+-	int i;
++	int i, alloced = 0;
  
- 	pr_emerg("flags: %#lx(%pGp)\n", page->flags, &page->flags);
- 
-+	print_hex_dump(KERN_ALERT, "raw: ", DUMP_PREFIX_NONE, 32,
-+			sizeof(unsigned long), page,
-+			sizeof(struct page), false);
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+@@ -2243,13 +2243,21 @@ static int rmqueue_bulk(struct zone *zon
+ 		else
+ 			list_add_tail(&page->lru, list);
+ 		list = &page->lru;
++		alloced++;
+ 		if (is_migrate_cma(get_pcppage_migratetype(page)))
+ 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
+ 					      -(1 << order));
+ 	}
 +
- 	if (reason)
- 		pr_alert("page dumped because: %s\n", reason);
++	/*
++	 * i pages were removed from the buddy list even if some leak due
++	 * to check_pcp_refill failing so adjust NR_FREE_PAGES based
++	 * on i. Do not confuse with 'alloced' which is the number of
++	 * pages added to the pcp list.
++	 */
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+ 	spin_unlock(&zone->lock);
+-	return i;
++	return alloced;
+ }
  
+ #ifdef CONFIG_NUMA
 _
