@@ -1,75 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [patch 008/123] drivers/pcmcia/m32r_pcc.c: check return from
- request_irq
-Date: Mon, 12 Dec 2016 16:40:59 -0800
-Message-ID: <584f439b./xJimgpGZWIdRtPA%akpm@linux-foundation.org>
+Subject: [patch 007/123] m32r: fix build warning
+Date: Mon, 12 Dec 2016 16:40:57 -0800
+Message-ID: <584f4399.p4fp1zjaVQMdY0U5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40386 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753006AbcLMAlB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:41:01 -0500
+        with ESMTP id S1752963AbcLMAk6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:40:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk
 
 From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: drivers/pcmcia/m32r_pcc.c: check return from request_irq
+Subject: m32r: fix build warning
 
-While building m32r allmodconfig we were getting warning:
+While building m32r defconfig we got warnings:
 
-drivers/pcmcia/m32r_pcc.c:331:2:
- warning: ignoring return value of 'request_irq',
- declared with attribute warn_unused_result
+arch/m32r/platforms/m32700ut/setup.c:249:24: warning:
+  'm32700ut_lcdpld_irq_type' defined but not used [-Wunused-variable]
 
-request_irq() can fail and we should always be checking the result from
-it. Check the result and return it to the caller.
+m32700ut_lcdpld_irq_type is only used when CONFIG_USB is enabled.
+Modify the code to declare the related variables and functions only
+when CONFIG_USB is enabled.
 
-Link: http://lkml.kernel.org/r/1474237304-897-1-git-send-email-sudipm.mukherjee@gmail.com
+Link: http://lkml.kernel.org/r/1479244406-7507-1-git-send-email-sudipm.mukherjee@gmail.com
 Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/m32r_pcc.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ arch/m32r/platforms/m32700ut/setup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-check-return-from-request_irq drivers/pcmcia/m32r_pcc.c
---- a/drivers/pcmcia/m32r_pcc.c~pcmcia-m32r_pcc-check-return-from-request_irq
-+++ a/drivers/pcmcia/m32r_pcc.c
-@@ -296,10 +296,11 @@ static int __init is_alive(u_short sock)
- 	return 0;
- }
+diff -puN arch/m32r/platforms/m32700ut/setup.c~m32r-fix-build-warning arch/m32r/platforms/m32700ut/setup.c
+--- a/arch/m32r/platforms/m32700ut/setup.c~m32r-fix-build-warning
++++ a/arch/m32r/platforms/m32700ut/setup.c
+@@ -201,6 +201,7 @@ static struct irq_chip m32700ut_lanpld_i
+ #define lcdpldirq2port(x)	(unsigned long)((int)M32700UT_LCD_ICUCR1 + \
+ 				 (((x) - 1) * sizeof(unsigned short)))
  
--static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
--			   unsigned int ioaddr)
-+static int add_pcc_socket(ulong base, int irq, ulong mapaddr,
-+			  unsigned int ioaddr)
++#ifdef CONFIG_USB
+ static pld_icu_data_t lcdpld_icu_data[M32700UT_NUM_LCD_PLD_IRQ];
+ 
+ static void disable_m32700ut_lcdpld_irq(unsigned int irq)
+@@ -253,6 +254,7 @@ static struct irq_chip m32700ut_lcdpld_i
+ 	.irq_mask	= mask_m32700ut_lcdpld,
+ 	.irq_unmask	= unmask_m32700ut_lcdpld,
+ };
++#endif
+ 
+ void __init init_IRQ(void)
  {
-   	pcc_socket_t *t = &socket[pcc_sockets];
-+	int err;
- 
- 	/* add sockets */
- 	t->ioaddr = ioaddr;
-@@ -328,11 +329,16 @@ static void add_pcc_socket(ulong base, i
- 	t->socket.irq_mask = 0;
- 	t->socket.pci_irq = 2 + pcc_sockets; /* XXX */
- 
--	request_irq(irq, pcc_interrupt, 0, "m32r-pcc", pcc_interrupt);
-+	err = request_irq(irq, pcc_interrupt, 0, "m32r-pcc", pcc_interrupt);
-+	if (err) {
-+		if (t->base > 0)
-+			release_region(t->base, 0x20);
-+		return err;
-+	}
- 
- 	pcc_sockets++;
- 
--	return;
-+	return 0;
- }
- 
- 
 _
