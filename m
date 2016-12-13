@@ -1,101 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [patch 035/123] mm, thp: avoid unlikely branches for
- split_huge_pmd
-Date: Mon, 12 Dec 2016 16:42:20 -0800
-Message-ID: <584f43ec.4XD64CouRnxVvYIX%akpm@linux-foundation.org>
+Subject: [patch 036/123] mm, mempolicy: clean up __GFP_THISNODE confusion
+ in policy_zonelist
+Date: Mon, 12 Dec 2016 16:42:23 -0800
+Message-ID: <584f43ef.vQbb+lZeMe2p9OhT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752885AbcLMAmV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:42:21 -0500
+        with ESMTP id S1752903AbcLMAmY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:42:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, kirill.shutemov@linux.intel.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, khandual@linux.vnet.ibm.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz
 
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: avoid unlikely branches for split_huge_pmd
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, mempolicy: clean up __GFP_THISNODE confusion in policy_zonelist
 
-While doing MADV_DONTNEED on a large area of thp memory, I noticed we
-encountered many unlikely() branches in profiles for each backing
-hugepage.  This is because zap_pmd_range() would call split_huge_pmd(),
-which rechecked the conditions that were already validated, but as part of
-an unlikely() branch.
+__GFP_THISNODE is documented to enforce the allocation to be satisified
+from the requested node with no fallbacks or placement policy
+enforcements.  policy_zonelist seemingly breaks this semantic if the
+current policy is MPOL_MBIND and instead of taking the node it will
+fallback to the first node in the mask if the requested one is not in the
+mask.  This is confusing to say the least because it fact we shouldn't
+ever go that path.  First tasks shouldn't be scheduled on CPUs with nodes
+outside of their mempolicy binding.  And secondly policy_zonelist is
+called only from 3 places:
 
-Avoid the unlikely() branch when in a context where pmd is known to be
-good for __split_huge_pmd() directly.
+- huge_zonelist - never should do __GFP_THISNODE when going this path
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1610181600300.84525@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
+- alloc_pages_vma - which shouldn't depend on __GFP_THISNODE either
+
+- alloc_pages_current - which uses default_policy id __GFP_THISNODE is
+  used
+
+So we shouldn't even need to care about this possibility and can drop the
+confusing code.  Let's keep a WARN_ON_ONCE in place to catch potential
+users and fix them up properly (aka use a different allocation function
+which ignores mempolicy).
+
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20161013125958.32155-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 ++
- mm/memory.c             |    4 ++--
- mm/mempolicy.c          |    2 +-
- mm/mprotect.c           |    2 +-
- 4 files changed, 6 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-thp-avoid-unlikely-branches-for-split_huge_pmd include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-avoid-unlikely-branches-for-split_huge_pmd
-+++ a/include/linux/huge_mm.h
-@@ -189,6 +189,8 @@ static inline void deferred_split_huge_p
- #define split_huge_pmd(__vma, __pmd, __address)	\
- 	do { } while (0)
- 
-+static inline void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
-+		unsigned long address, bool freeze, struct page *page) {}
- static inline void split_huge_pmd_address(struct vm_area_struct *vma,
- 		unsigned long address, bool freeze, struct page *page) {}
- 
-diff -puN mm/memory.c~mm-thp-avoid-unlikely-branches-for-split_huge_pmd mm/memory.c
---- a/mm/memory.c~mm-thp-avoid-unlikely-branches-for-split_huge_pmd
-+++ a/mm/memory.c
-@@ -1240,7 +1240,7 @@ static inline unsigned long zap_pmd_rang
- 			if (next - addr != HPAGE_PMD_SIZE) {
- 				VM_BUG_ON_VMA(vma_is_anonymous(vma) &&
- 				    !rwsem_is_locked(&tlb->mm->mmap_sem), vma);
--				split_huge_pmd(vma, pmd, addr);
-+				__split_huge_pmd(vma, pmd, addr, false, NULL);
- 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
- 				goto next;
- 			/* fall through */
-@@ -3454,7 +3454,7 @@ static int wp_huge_pmd(struct fault_env
- 
- 	/* COW handled on pte level: split pmd */
- 	VM_BUG_ON_VMA(fe->vma->vm_flags & VM_SHARED, fe->vma);
--	split_huge_pmd(fe->vma, fe->pmd, fe->address);
-+	__split_huge_pmd(fe->vma, fe->pmd, fe->address, false, NULL);
- 
- 	return VM_FAULT_FALLBACK;
- }
-diff -puN mm/mempolicy.c~mm-thp-avoid-unlikely-branches-for-split_huge_pmd mm/mempolicy.c
---- a/mm/mempolicy.c~mm-thp-avoid-unlikely-branches-for-split_huge_pmd
+diff -puN mm/mempolicy.c~mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist
 +++ a/mm/mempolicy.c
-@@ -496,7 +496,7 @@ static int queue_pages_pte_range(pmd_t *
- 			page = pmd_page(*pmd);
- 			if (is_huge_zero_page(page)) {
- 				spin_unlock(ptl);
--				split_huge_pmd(vma, pmd, addr);
-+				__split_huge_pmd(vma, pmd, addr, false, NULL);
- 			} else {
- 				get_page(page);
- 				spin_unlock(ptl);
-diff -puN mm/mprotect.c~mm-thp-avoid-unlikely-branches-for-split_huge_pmd mm/mprotect.c
---- a/mm/mprotect.c~mm-thp-avoid-unlikely-branches-for-split_huge_pmd
-+++ a/mm/mprotect.c
-@@ -176,7 +176,7 @@ static inline unsigned long change_pmd_r
+@@ -1679,25 +1679,17 @@ static nodemask_t *policy_nodemask(gfp_t
+ static struct zonelist *policy_zonelist(gfp_t gfp, struct mempolicy *policy,
+ 	int nd)
+ {
+-	switch (policy->mode) {
+-	case MPOL_PREFERRED:
+-		if (!(policy->flags & MPOL_F_LOCAL))
+-			nd = policy->v.preferred_node;
+-		break;
+-	case MPOL_BIND:
++	if (policy->mode == MPOL_PREFERRED && !(policy->flags & MPOL_F_LOCAL))
++		nd = policy->v.preferred_node;
++	else {
+ 		/*
+-		 * Normally, MPOL_BIND allocations are node-local within the
+-		 * allowed nodemask.  However, if __GFP_THISNODE is set and the
+-		 * current node isn't part of the mask, we use the zonelist for
+-		 * the first node in the mask instead.
++		 * __GFP_THISNODE shouldn't even be used with the bind policy
++		 * because we might easily break the expectation to stay on the
++		 * requested node and not break the policy.
+ 		 */
+-		if (unlikely(gfp & __GFP_THISNODE) &&
+-				unlikely(!node_isset(nd, policy->v.nodes)))
+-			nd = first_node(policy->v.nodes);
+-		break;
+-	default:
+-		BUG();
++		WARN_ON_ONCE(policy->mode == MPOL_BIND && (gfp & __GFP_THISNODE));
+ 	}
++
+ 	return node_zonelist(nd, gfp);
+ }
  
- 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
--				split_huge_pmd(vma, pmd, addr);
-+				__split_huge_pmd(vma, pmd, addr, false, NULL);
- 				if (pmd_trans_unstable(pmd))
- 					continue;
- 			} else {
 _
