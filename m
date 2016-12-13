@@ -1,35 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: [patch 069/123] mm: remove free_unmap_vmap_area_noflush()
-Date: Mon, 12 Dec 2016 16:44:01 -0800
-Message-ID: <584f4451.FqAL+H9u+K5QN2FA%akpm@linux-foundation.org>
+Subject: [patch 070/123] mm: remove free_unmap_vmap_area_addr()
+Date: Mon, 12 Dec 2016 16:44:04 -0800
+Message-ID: <584f4454.WuLiSDQ0s+YEd5fm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41386 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753214AbcLMAoD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:03 -0500
+        with ESMTP id S1753214AbcLMAoG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de, aryabinin@virtuozzo.com, chris@chris-wilson.co.uk, hpa@zytor.com, joaodias@google.com, joelaf@google.com, jszhang@marvell.com, mingo@elte.hu, tglx@linutronix.de
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove free_unmap_vmap_area_noflush()
+Subject: mm: remove free_unmap_vmap_area_addr()
 
-Patch series "reduce latency in __purge_vmap_area_lazy", v2.
+Just inline it into the only caller.
 
-
-This patch (of 10):
-
-Sort out the long lock hold times in __purge_vmap_area_lazy.  It is based
-on a patch from Joel.
-
-
-Inline free_unmap_vmap_area_noflush() it into the only caller.
-
-Link: http://lkml.kernel.org/r/1479474236-4139-2-git-send-email-hch@lst.de
+Link: http://lkml.kernel.org/r/1479474236-4139-3-git-send-email-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Tested-by: Jisheng Zhang <jszhang@marvell.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -42,21 +33,53 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ mm/vmalloc.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-remove-free_unmap_vmap_area_noflush mm/vmalloc.c
---- a/mm/vmalloc.c~mm-remove-free_unmap_vmap_area_noflush
+diff -puN mm/vmalloc.c~mm-remove-free_unmap_vmap_area_addr mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-remove-free_unmap_vmap_area_addr
 +++ a/mm/vmalloc.c
-@@ -711,22 +711,13 @@ static void free_vmap_area_noflush(struc
+@@ -731,16 +731,6 @@ static struct vmap_area *find_vmap_area(
+ 	return va;
  }
  
- /*
-- * Free and unmap a vmap area, caller ensuring flush_cache_vunmap had been
-- * called for the correct range previously.
-- */
--static void free_unmap_vmap_area_noflush(struct vmap_area *va)
+-static void free_unmap_vmap_area_addr(unsigned long addr)
 -{
--	unmap_vmap_area(va);
--	free_vmap_area_noflush(va);
+-	struct vmap_area *va;
+-
+-	va = find_vmap_area(addr);
+-	BUG_ON(!va);
+-	free_unmap_vmap_area(va);
 -}
+-
+-
+ /*** Per cpu kva allocator ***/
+ 
+ /*
+@@ -1098,6 +1088,7 @@ void vm_unmap_ram(const void *mem, unsig
+ {
+ 	unsigned long size = (unsigned long)count << PAGE_SHIFT;
+ 	unsigned long addr = (unsigned long)mem;
++	struct vmap_area *va;
+ 
+ 	BUG_ON(!addr);
+ 	BUG_ON(addr < VMALLOC_START);
+@@ -1107,10 +1098,14 @@ void vm_unmap_ram(const void *mem, unsig
+ 	debug_check_no_locks_freed(mem, size);
+ 	vmap_debug_free_range(addr, addr+size);
+ 
+-	if (likely(count <= VMAP_MAX_ALLOC))
++	if (likely(count <= VMAP_MAX_ALLOC)) {
+ 		vb_free(mem, size);
+-	else
+-		free_unmap_vmap_area_addr(addr);
++		return;
++	}
++
++	va = find_vmap_area(addr);
++	BUG_ON(!va);
++	free_unmap_vmap_area(va);
+ }
+ EXPORT_SYMBOL(vm_unmap_ram);
+ 
+_
