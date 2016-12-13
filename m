@@ -1,60 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [patch 119/123] checkpatch: avoid multiple line dereferences
-Date: Mon, 12 Dec 2016 16:46:31 -0800
-Message-ID: <584f44e7.u8ZyjhUvC/AinFSK%akpm@linux-foundation.org>
+Subject: [patch 121/123] checkpatch: don't emit unified-diff error for
+ rename-only patches
+Date: Mon, 12 Dec 2016 16:46:37 -0800
+Message-ID: <584f44ed.wr2tt+6fk2RbtgZ7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932578AbcLMAqc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:46:32 -0500
+        with ESMTP id S1753137AbcLMAqi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:46:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andrew@aj.id.au, joe@perches.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: avoid multiple line dereferences
+From: Andrew Jeffery <andrew@aj.id.au>
+Subject: checkpatch: don't emit unified-diff error for rename-only patches
 
-Code that puts a single dereferencing identifier on multiple lines like:
+I generated a patch with `git format-patch` which checkpatch thinks is
+invalid:
 
-     struct_identifier->member[index].
-	member = <foo>;
+    $ ./scripts/checkpatch.pl lpc-dt/0006-mfd-dt-Move-syscon-bindings-to-syscon-subdirectory.patch
+    WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+     Documentation/devicetree/bindings/mfd/{ => syscon}/aspeed-scu.txt         | 0
 
-is generally hard to follow.
+    ERROR: Does not appear to be a unified-diff format patch
 
-Prefer that dereferencing identifiers be single line.
+    total: 1 errors, 1 warnings, 0 lines checked
 
-Link: http://lkml.kernel.org/r/e9c191ae3f41bedc8ffd5c0fbcc5a1cec1d1d2df.1478120869.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+    NOTE: For some of the reported defects, checkpatch may be able to
+          mechanically convert to the typical style using --fix or --fix-inplace.
+
+    lpc-dt/0006-mfd-dt-Move-syscon-bindings-to-syscon-subdirectory.patch has style problems, please review.
+
+    NOTE: If any of the errors are false positives, please report
+          them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+The patch in question was all renames with no edits, giving 100% similarity and
+thus no diff markers.
+
+Set '$is_patch = 1;' in the add/remove/rename detection to avoid
+generating spurious warnings.
+
+Link: http://lkml.kernel.org/r/20161205232224.22685-1-andrew@aj.id.au
+Signed-off-by: Andrew Jeffery <andrew@aj.id.au>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-avoid-multiple-line-dereferences scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-avoid-multiple-line-dereferences
+diff -puN scripts/checkpatch.pl~checkpatch-dont-emit-unified-diff-error-for-rename-only-patches scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-dont-emit-unified-diff-error-for-rename-only-patches
 +++ a/scripts/checkpatch.pl
-@@ -3440,6 +3440,18 @@ sub process {
- #ignore lines not being added
- 		next if ($line =~ /^[^\+]/);
- 
-+# check for dereferences that span multiple lines
-+		if ($prevline =~ /^\+.*$Lval\s*(?:\.|->)\s*$/ &&
-+		    $line =~ /^\+\s*(?!\#\s*(?!define\s+|if))\s*$Lval/) {
-+			$prevline =~ /($Lval\s*(?:\.|->))\s*$/;
-+			my $ref = $1;
-+			$line =~ /^.\s*($Lval)/;
-+			$ref .= $1;
-+			$ref =~ s/\s//g;
-+			WARN("MULTILINE_DEREFERENCE",
-+			     "Avoid multiple line dereference - prefer '$ref'\n" . $hereprev);
-+		}
-+
- # check for declarations of signed or unsigned without int
- 		while ($line =~ m{\b($Declare)\s*(?!char\b|short\b|int\b|long\b)\s*($Ident)?\s*[=,;\[\)\(]}g) {
- 			my $type = $1;
+@@ -2589,6 +2589,7 @@ sub process {
+ 		     $line =~ /^rename (?:from|to) [\w\/\.\-]+\s*$/ ||
+ 		     ($line =~ /\{\s*([\w\/\.\-]*)\s*\=\>\s*([\w\/\.\-]*)\s*\}/ &&
+ 		      (defined($1) || defined($2))))) {
++			$is_patch = 1;
+ 			$reported_maintainer_file = 1;
+ 			WARN("FILE_PATH_CHANGES",
+ 			     "added, moved or deleted file(s), does MAINTAINERS need updating?\n" . $herecurr);
 _
