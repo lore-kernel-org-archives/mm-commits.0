@@ -1,95 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [patch 082/123] mm, page_alloc: keep pcp count and list contents
- in sync if struct page is corrupted
-Date: Mon, 12 Dec 2016 16:44:41 -0800
-Message-ID: <584f4479.3Amqr1QJHJYXC2yP%akpm@linux-foundation.org>
+Subject: [patch 081/123] mm, rmap: handle anon_vma_prepare() common case
+ inline
+Date: Mon, 12 Dec 2016 16:44:38 -0800
+Message-ID: <584f4476.928TRqivUF2w74I6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41602 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932298AbcLMAon (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:43 -0500
+        with ESMTP id S932298AbcLMAok (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, cl@linux.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, riel@redhat.com
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: keep pcp count and list contents in sync if struct page is corrupted
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, rmap: handle anon_vma_prepare() common case inline
 
-Vlastimil Babka pointed out that 479f854a207c ("mm, page_alloc: defer
-debugging checks of pages allocated from the PCP") will allow the per-cpu
-list counter to be out of sync with the per-cpu list contents if a struct
-page is corrupted.
+anon_vma_prepare() is mostly a large "if (unlikely(...))" block, as the
+expected common case is that an anon_vma already exists.  We could turn
+the condition around and return 0, but it also makes sense to do it inline
+and avoid a call for the common case.
 
-The consequence is an infinite loop if the per-cpu lists get fully drained
-by free_pcppages_bulk because all the lists are empty but the count is
-positive.  The infinite loop occurs here
+Bloat-o-meter naturally shows that inlining the check has some code size
+costs:
 
-                do {
-                        batch_free++;
-                        if (++migratetype == MIGRATE_PCPTYPES)
-                                migratetype = 0;
-                        list = &pcp->lists[migratetype];
-                } while (list_empty(list));
+add/remove: 1/1 grow/shrink: 4/0 up/down: 475/-373 (102)
+function                                     old     new   delta
+__anon_vma_prepare                             -     359    +359
+handle_mm_fault                             2744    2796     +52
+hugetlb_cow                                 1146    1170     +24
+hugetlb_fault                               2123    2145     +22
+wp_page_copy                                1469    1487     +18
+anon_vma_prepare                             373       -    -373
 
-What the user sees is a bad page warning followed by a soft lockup with
-interrupts disabled in free_pcppages_bulk().
+Checking the asm however confirms that the hot paths now avoid a call,
+which is moved away.
 
-This patch keeps the accounting in sync.
-
-Fixes: 479f854a207c ("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
-Link: http://lkml.kernel.org/r/20161202112951.23346-2-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Christoph Lameter <cl@linux.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20161116074005.22768-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>	[4.7+]
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ include/linux/rmap.h |   10 +++++
+ mm/rmap.c            |   73 ++++++++++++++++++++---------------------
+ 2 files changed, 45 insertions(+), 38 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted
-+++ a/mm/page_alloc.c
-@@ -2218,7 +2218,7 @@ static int rmqueue_bulk(struct zone *zon
- 			unsigned long count, struct list_head *list,
- 			int migratetype, bool cold)
- {
--	int i;
-+	int i, alloced = 0;
+diff -puN include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline
++++ a/include/linux/rmap.h
+@@ -137,11 +137,19 @@ static inline void anon_vma_unlock_read(
+  * anon_vma helper functions.
+  */
+ void anon_vma_init(void);	/* create anon_vma_cachep */
+-int  anon_vma_prepare(struct vm_area_struct *);
++int  __anon_vma_prepare(struct vm_area_struct *);
+ void unlink_anon_vmas(struct vm_area_struct *);
+ int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
+ int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
  
- 	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
-@@ -2243,13 +2243,21 @@ static int rmqueue_bulk(struct zone *zon
- 		else
- 			list_add_tail(&page->lru, list);
- 		list = &page->lru;
-+		alloced++;
- 		if (is_migrate_cma(get_pcppage_migratetype(page)))
- 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
- 					      -(1 << order));
- 	}
++static inline int anon_vma_prepare(struct vm_area_struct *vma)
++{
++	if (likely(vma->anon_vma))
++		return 0;
 +
-+	/*
-+	 * i pages were removed from the buddy list even if some leak due
-+	 * to check_pcp_refill failing so adjust NR_FREE_PAGES based
-+	 * on i. Do not confuse with 'alloced' which is the number of
-+	 * pages added to the pcp list.
-+	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
- 	spin_unlock(&zone->lock);
--	return i;
-+	return alloced;
++	return __anon_vma_prepare(vma);
++}
++
+ static inline void anon_vma_merge(struct vm_area_struct *vma,
+ 				  struct vm_area_struct *next)
+ {
+diff -puN mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline
++++ a/mm/rmap.c
+@@ -141,14 +141,15 @@ static void anon_vma_chain_link(struct v
  }
  
- #ifdef CONFIG_NUMA
-_
+ /**
+- * anon_vma_prepare - attach an anon_vma to a memory region
++ * __anon_vma_prepare - attach an anon_vma to a memory region
+  * @vma: the memory region in question
+  *
+  * This makes sure the memory mapping described by 'vma' has
+  * an 'anon_vma' attached to it, so that we can associate the
+  * anonymous pages mapped into it with that anon_vma.
+  *
+- * The common case will be that we already have one, but if
++ * The common case will be that we already have one, which
++ * is handled inline by anon_vma_prepare(). But if
+  * not we either need to find an adjacent mapping that we
+  * can re-use the anon_vma from (very common when the only
+  * reason for splitting a vma has been mprotect()), or we
+@@ -167,48 +168,46 @@ static void anon_vma_chain_link(struct v
+  *
+  * This must be called with the mmap_sem held for reading.
+  */
+-int anon_vma_prepare(struct vm_area_struct *vma)
++int __anon_vma_prepare(struct vm_area_struct *vma)
+ {
+-	struct anon_vma *anon_vma = vma->anon_vma;
++	struct mm_struct *mm = vma->vm_mm;
++	struct anon_vma *anon_vma, *allocated;
+ 	struct anon_vma_chain *avc;
+ 
+ 	might_sleep();
+-	if (unlikely(!anon_vma)) {
+-		struct mm_struct *mm = vma->vm_mm;
+-		struct anon_vma *allocated;
+-
+-		avc = anon_vma_chain_alloc(GFP_KERNEL);
+-		if (!avc)
+-			goto out_enomem;
+ 
+-		anon_vma = find_mergeable_anon_vma(vma);
++	avc = anon_vma_chain_alloc(GFP_KERNEL);
++	if (!avc)
++		goto out_enomem;
++
++	anon_vma = find_mergeable_anon_vma(vma);
++	allocated = NULL;
++	if (!anon_vma) {
++		anon_vma = anon_vma_alloc();
++		if (unlikely(!anon_vma))
++			goto out_enomem_free_avc;
++		allocated = anon_vma;
++	}
++
++	anon_vma_lock_write(anon_vma);
++	/* page_table_lock to protect against threads */
++	spin_lock(&mm->page_table_lock);
++	if (likely(!vma->anon_vma)) {
++		vma->anon_vma = anon_vma;
++		anon_vma_chain_link(vma, avc, anon_vma);
++		/* vma reference or self-parent link for new root */
++		anon_vma->degree++;
+ 		allocated = NULL;
+-		if (!anon_vma) {
+-			anon_vma = anon_vma_alloc();
+-			if (unlikely(!anon_vma))
+-				goto out_enomem_free_avc;
+-			allocated = anon_vma;
+-		}
+-
+-		anon_vma_lock_write(anon_vma);
+-		/* page_table_lock to protect against threads */
+-		spin_lock(&mm->page_table_lock);
+-		if (likely(!vma->anon_vma)) {
+-			vma->anon_vma = anon_vma;
+-			anon_vma_chain_link(vma, avc, anon_vma);
+-			/* vma reference or self-parent link for new root */
+-			anon_vma->degree++;
+-			allocated = NULL;
+-			avc = NULL;
+-		}
+-		spin_unlock(&mm->page_table_lock);
+-		anon_vma_unlock_write(anon_vma);
