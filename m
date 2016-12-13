@@ -1,27 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [patch 039/123] mm: use the correct page size when removing the
- page
-Date: Mon, 12 Dec 2016 16:42:31 -0800
-Message-ID: <584f43f7.L5elj4L5gcrTCDN0%akpm@linux-foundation.org>
+Subject: [patch 040/123] mm: update mmu_gather range correctly
+Date: Mon, 12 Dec 2016 16:42:34 -0800
+Message-ID: <584f43fa.LlgF1EMd5BO+YsKL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40946 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752544AbcLMAmd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:42:33 -0500
+        with ESMTP id S1751615AbcLMAmg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:42:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dan.j.williams@intel.com, kirill@shutemov.name, ross.zwisler@linux.intel.com
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: use the correct page size when removing the page
+Subject: mm: update mmu_gather range correctly
 
-We are removing a pmd hugepage here. Use the correct page size.
+We use __tlb_adjust_range to update range convered by mmu_gather struct. 
+We later use the 'start' and 'end' to do a mmu_notifier_invalidate_range
+in tlb_flush_mmu_tlbonly().  Update the 'end' correctly in
+__tlb_adjust_range so that we call mmu_notifier_invalidate_range with the
+correct range values.
 
-Link: http://lkml.kernel.org/r/20161026084839.27299-2-aneesh.kumar@linux.vnet.ibm.com
+W.r.t to tlbflush, this should not have any impact, because a flush with
+correct start address will flush tlb mapping for the range.
+
+Also add comment w.r.t updating the range when we free pagetable pages. 
+For now we don't support a range based page table cache flush.
+
+Link: http://lkml.kernel.org/r/20161026084839.27299-3-aneesh.kumar@linux.vnet.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -29,25 +38,106 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-generic/tlb.h |   43 +++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-use-the-correct-page-size-when-removing-the-page mm/huge_memory.c
---- a/mm/huge_memory.c~mm-use-the-correct-page-size-when-removing-the-page
-+++ a/mm/huge_memory.c
-@@ -1399,12 +1399,12 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	if (vma_is_dax(vma)) {
- 		spin_unlock(ptl);
- 		if (is_huge_zero_pmd(orig_pmd))
--			tlb_remove_page(tlb, pmd_page(orig_pmd));
-+			tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
- 	} else if (is_huge_zero_pmd(orig_pmd)) {
- 		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
- 		atomic_long_dec(&tlb->mm->nr_ptes);
- 		spin_unlock(ptl);
--		tlb_remove_page(tlb, pmd_page(orig_pmd));
-+		tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
- 	} else {
- 		struct page *page = pmd_page(orig_pmd);
- 		page_remove_rmap(page, true);
+diff -puN include/asm-generic/tlb.h~mm-update-mmu_gather-range-correctly include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-update-mmu_gather-range-correctly
++++ a/include/asm-generic/tlb.h
+@@ -125,10 +125,11 @@ extern bool __tlb_remove_page_size(struc
+ 				   int page_size);
+ 
+ static inline void __tlb_adjust_range(struct mmu_gather *tlb,
+-				      unsigned long address)
++				      unsigned long address,
++				      unsigned int range_size)
+ {
+ 	tlb->start = min(tlb->start, address);
+-	tlb->end = max(tlb->end, address + PAGE_SIZE);
++	tlb->end = max(tlb->end, address + range_size);
+ 	/*
+ 	 * Track the last address with which we adjusted the range. This
+ 	 * will be used later to adjust again after a mmu_flush due to
+@@ -153,7 +154,7 @@ static inline void tlb_remove_page_size(
+ 	if (__tlb_remove_page_size(tlb, page, page_size)) {
+ 		tlb_flush_mmu(tlb);
+ 		tlb->page_size = page_size;
+-		__tlb_adjust_range(tlb, tlb->addr);
++		__tlb_adjust_range(tlb, tlb->addr, page_size);
+ 		__tlb_remove_page_size(tlb, page, page_size);
+ 	}
+ }
+@@ -177,7 +178,7 @@ static inline bool __tlb_remove_pte_page
+ 	/* active->nr should be zero when we call this */
+ 	VM_BUG_ON_PAGE(tlb->active->nr, page);
+ 	tlb->page_size = PAGE_SIZE;
+-	__tlb_adjust_range(tlb, tlb->addr);
++	__tlb_adjust_range(tlb, tlb->addr, PAGE_SIZE);
+ 	return __tlb_remove_page(tlb, page);
+ }
+ 
+@@ -215,7 +216,7 @@ static inline bool __tlb_remove_pte_page
+  */
+ #define tlb_remove_tlb_entry(tlb, ptep, address)		\
+ 	do {							\
+-		__tlb_adjust_range(tlb, address);		\
++		__tlb_adjust_range(tlb, address, PAGE_SIZE);	\
+ 		__tlb_remove_tlb_entry(tlb, ptep, address);	\
+ 	} while (0)
+ 
+@@ -227,29 +228,47 @@ static inline bool __tlb_remove_pte_page
+ #define __tlb_remove_pmd_tlb_entry(tlb, pmdp, address) do {} while (0)
+ #endif
+ 
+-#define tlb_remove_pmd_tlb_entry(tlb, pmdp, address)		\
+-	do {							\
+-		__tlb_adjust_range(tlb, address);		\
+-		__tlb_remove_pmd_tlb_entry(tlb, pmdp, address);	\
++#define tlb_remove_pmd_tlb_entry(tlb, pmdp, address)			\
++	do {								\
++		__tlb_adjust_range(tlb, address, HPAGE_PMD_SIZE);	\
++		__tlb_remove_pmd_tlb_entry(tlb, pmdp, address);		\
+ 	} while (0)
+ 
++/*
++ * For things like page tables caches (ie caching addresses "inside" the
++ * page tables, like x86 does), for legacy reasons, flushing an
++ * individual page had better flush the page table caches behind it. This
++ * is definitely how x86 works, for example. And if you have an
++ * architected non-legacy page table cache (which I'm not aware of
++ * anybody actually doing), you're going to have some architecturally
++ * explicit flushing for that, likely *separate* from a regular TLB entry
++ * flush, and thus you'd need more than just some range expansion..
++ *
++ * So if we ever find an architecture
++ * that would want something that odd, I think it is up to that
++ * architecture to do its own odd thing, not cause pain for others
++ * http://lkml.kernel.org/r/CA+55aFzBggoXtNXQeng5d_mRoDnaMBE5Y+URs+PHR67nUpMtaw@mail.gmail.com
++ *
++ * For now w.r.t page table cache, mark the range_size as PAGE_SIZE
++ */
++
+ #define pte_free_tlb(tlb, ptep, address)			\
+ 	do {							\
+-		__tlb_adjust_range(tlb, address);		\
++		__tlb_adjust_range(tlb, address, PAGE_SIZE);	\
+ 		__pte_free_tlb(tlb, ptep, address);		\
+ 	} while (0)
+ 
+ #ifndef __ARCH_HAS_4LEVEL_HACK
+ #define pud_free_tlb(tlb, pudp, address)			\
+ 	do {							\
+-		__tlb_adjust_range(tlb, address);		\
++		__tlb_adjust_range(tlb, address, PAGE_SIZE);	\
+ 		__pud_free_tlb(tlb, pudp, address);		\
+ 	} while (0)
+ #endif
+ 
+ #define pmd_free_tlb(tlb, pmdp, address)			\
+ 	do {							\
+-		__tlb_adjust_range(tlb, address);		\
++		__tlb_adjust_range(tlb, address, PAGE_SIZE);	\
+ 		__pmd_free_tlb(tlb, pmdp, address);		\
+ 	} while (0)
+ 
 _
