@@ -1,120 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [patch 105/123] printk/btrfs: handle more message headers
-Date: Mon, 12 Dec 2016 16:45:50 -0800
-Message-ID: <584f44be.i7oQz1KHHAp0TIZC%akpm@linux-foundation.org>
+Subject: [patch 107/123] printk: add Kconfig option to set default console loglevel
+Date: Mon, 12 Dec 2016 16:45:56 -0800
+Message-ID: <584f44c4.T4EjdrV/dBgdvAlh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41928 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbcLMApv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:45:51 -0500
+        with ESMTP id S1753137AbcLMAp5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:45:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, clm@fb.com, dsterba@suse.com, jason.wessel@windriver.com, jbacik@fb.com, joe@perches.com, perex@perex.cz, rostedt@goodmis.org, sergey.senozhatsky.work@gmail.com, tiwai@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, olof@lixom.net
 
-From: Petr Mladek <pmladek@suse.com>
-Subject: printk/btrfs: handle more message headers
+From: Olof Johansson <olof@lixom.net>
+Subject: printk: add Kconfig option to set default console loglevel
 
-4bcc595ccd80decb4245096e ("printk: reinstate KERN_CONT for printing
-continuation lines") allows to define more message headers for a single
-message.  The motivation is that continuous lines might get mixed. 
-Therefore it make sense to define the right log level for every piece of a
-cont line.
+Add a configuration option to set the default console loglevel.  This is,
+as before, still possible to override at runtime through bootargs
+(loglevel=<x>), sysrq and /proc/printk.
 
-The current btrfs_printk() macros do not support continuous lines at the
-moment.  But better be prepared for a custom messages and avoid potential
-"lvl" buffer overflow.
+There are cases where adding additional arguments on the commandline is
+impractical, and changing the default for the kernel when being built
+makes more sense.  Provide such a method here, for those who choose to do
+so.
 
-This patch iterates over the entire message header.  It is interested only
-into the message level like the original code.
+Also, while touching this code, clarify the difference between
+MESSAGE_LOGLEVEL_DEFAULT and CONSOLE_LOGLEVEL_DEFAULT.
 
-This patch also introduces PRINTK_MAX_SINGLE_HEADER_LEN.  Three bytes are
-enough for the message level header at the moment.  But it used to be
-three, see the commit 04d2c8c83d0e3ac5f ("printk: convert the format for
-KERN_<LEVEL> to a 2 byte pattern").
-
-Also I fixed the default ratelimit level.  It looked very strange when it
-was different from the default log level.
-
-[pmladek@suse.com: Fix a check of the valid message level]
-  Link: http://lkml.kernel.org/r/20161111183236.GD2145@dhcp128.suse.cz
-Link: http://lkml.kernel.org/r/1478695291-12169-4-git-send-email-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Acked-by: David Sterba <dsterba@suse.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <jbacik@fb.com>
+Link: http://lkml.kernel.org/r/1479676829-30031-1-git-send-email-olof@lixom.net
+Signed-off-by: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/super.c       |   26 +++++++++++++++-----------
- include/linux/printk.h |    2 ++
- 2 files changed, 17 insertions(+), 11 deletions(-)
+ include/linux/printk.h |    7 ++++++-
+ lib/Kconfig.debug      |   19 +++++++++++++++++++
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN fs/btrfs/super.c~printk-btrfs-handle-more-message-headers fs/btrfs/super.c
---- a/fs/btrfs/super.c~printk-btrfs-handle-more-message-headers
-+++ a/fs/btrfs/super.c
-@@ -202,27 +202,31 @@ static struct ratelimit_state printk_lim
- void btrfs_printk(const struct btrfs_fs_info *fs_info, const char *fmt, ...)
- {
- 	struct super_block *sb = fs_info->sb;
--	char lvl[4];
-+	char lvl[PRINTK_MAX_SINGLE_HEADER_LEN + 1];
- 	struct va_format vaf;
- 	va_list args;
--	const char *type = logtypes[4];
-+	const char *type = NULL;
- 	int kern_level;
- 	struct ratelimit_state *ratelimit;
- 
- 	va_start(args, fmt);
- 
--	kern_level = printk_get_level(fmt);
--	if (kern_level) {
-+	while ((kern_level = printk_get_level(fmt)) != 0) {
- 		size_t size = printk_skip_level(fmt) - fmt;
--		memcpy(lvl, fmt,  size);
--		lvl[size] = '\0';
-+
-+		if (kern_level >= '0' && kern_level <= '7') {
-+			memcpy(lvl, fmt,  size);
-+			lvl[size] = '\0';
-+			type = logtypes[kern_level - '0'];
-+			ratelimit = &printk_limits[kern_level - '0'];
-+		}
- 		fmt += size;
--		type = logtypes[kern_level - '0'];
--		ratelimit = &printk_limits[kern_level - '0'];
--	} else {
-+	}
-+
-+	if (!type) {
- 		*lvl = '\0';
--		/* Default to debug output */
--		ratelimit = &printk_limits[7];
-+		type = logtypes[4];
-+		ratelimit = &printk_limits[4];
- 	}
- 
- 	vaf.fmt = fmt;
-diff -puN include/linux/printk.h~printk-btrfs-handle-more-message-headers include/linux/printk.h
---- a/include/linux/printk.h~printk-btrfs-handle-more-message-headers
+diff -puN include/linux/printk.h~printk-add-kconfig-option-to-set-default-console-loglevel include/linux/printk.h
+--- a/include/linux/printk.h~printk-add-kconfig-option-to-set-default-console-loglevel
 +++ a/include/linux/printk.h
-@@ -10,6 +10,8 @@
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
+@@ -50,10 +50,15 @@ static inline const char *printk_skip_he
+ #define CONSOLE_LOGLEVEL_SILENT  0 /* Mum's the word */
+ #define CONSOLE_LOGLEVEL_MIN	 1 /* Minimum loglevel we let people use */
+ #define CONSOLE_LOGLEVEL_QUIET	 4 /* Shhh ..., when booted with "quiet" */
+-#define CONSOLE_LOGLEVEL_DEFAULT 7 /* anything MORE serious than KERN_DEBUG */
+ #define CONSOLE_LOGLEVEL_DEBUG	10 /* issue debug messages */
+ #define CONSOLE_LOGLEVEL_MOTORMOUTH 15	/* You can't shut this one up */
  
-+#define PRINTK_MAX_SINGLE_HEADER_LEN 2
++/*
++ * Default used to be hard-coded at 7, we're now allowing it to be set from
++ * kernel config.
++ */
++#define CONSOLE_LOGLEVEL_DEFAULT CONFIG_CONSOLE_LOGLEVEL_DEFAULT
 +
- static inline int printk_get_level(const char *buffer)
- {
- 	if (buffer[0] == KERN_SOH_ASCII && buffer[1]) {
+ extern int console_printk[];
+ 
+ #define console_loglevel (console_printk[0])
+diff -puN lib/Kconfig.debug~printk-add-kconfig-option-to-set-default-console-loglevel lib/Kconfig.debug
+--- a/lib/Kconfig.debug~printk-add-kconfig-option-to-set-default-console-loglevel
++++ a/lib/Kconfig.debug
+@@ -15,6 +15,21 @@ config PRINTK_TIME
+ 	  The behavior is also controlled by the kernel command line
+ 	  parameter printk.time=1. See Documentation/kernel-parameters.txt
+ 
++config CONSOLE_LOGLEVEL_DEFAULT
++	int "Default console loglevel (1-15)"
++	range 1 15
++	default "7"
++	help
++	  Default loglevel to determine what will be printed on the console.
++
++	  Setting a default here is equivalent to passing in loglevel=<x> in
++	  the kernel bootargs. loglevel=<x> continues to override whatever
++	  value is specified here as well.
++
++	  Note: This does not affect the log level of un-prefixed prink()
++	  usage in the kernel. That is controlled by the MESSAGE_LOGLEVEL_DEFAULT
++	  option.
++
+ config MESSAGE_LOGLEVEL_DEFAULT
+ 	int "Default message log level (1-7)"
+ 	range 1 7
+@@ -26,6 +41,10 @@ config MESSAGE_LOGLEVEL_DEFAULT
+ 	  that are auditing their logs closely may want to set it to a lower
+ 	  priority.
+ 
++	  Note: This does not affect what message level gets printed on the console
++	  by default. To change that, use loglevel=<x> in the kernel bootargs,
++	  or pick a different CONSOLE_LOGLEVEL_DEFAULT configuration value.
++
+ config BOOT_PRINTK_DELAY
+ 	bool "Delay each boot printk message by N milliseconds"
+ 	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY
 _
