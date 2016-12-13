@@ -1,164 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [patch 081/123] mm, rmap: handle anon_vma_prepare() common case
- inline
-Date: Mon, 12 Dec 2016 16:44:38 -0800
-Message-ID: <584f4476.928TRqivUF2w74I6%akpm@linux-foundation.org>
+Subject: [patch 083/123] mm: add three more cond_resched() in swapoff
+Date: Mon, 12 Dec 2016 16:44:44 -0800
+Message-ID: <584f447c.6CAetayjxvlSb11m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41626 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932298AbcLMAok (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:40 -0500
+        with ESMTP id S932380AbcLMAoq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, riel@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, edumazet@google.com, rientjes@google.com
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, rmap: handle anon_vma_prepare() common case inline
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: add three more cond_resched() in swapoff
 
-anon_vma_prepare() is mostly a large "if (unlikely(...))" block, as the
-expected common case is that an anon_vma already exists.  We could turn
-the condition around and return 0, but it also makes sense to do it inline
-and avoid a call for the common case.
+Add a cond_resched() in the unuse_pmd_range() loop (so as to call it even
+when pmd none or trans_huge, like zap_pmd_range() does); and in the
+unuse_mm() loop (since that might skip over many vmas).  shmem_unuse() and
+radix_tree_locate_item() look good enough already.
 
-Bloat-o-meter naturally shows that inlining the check has some code size
-costs:
+Those were the obvious places, but in fact the stalls came from
+find_next_to_unuse(), which sometimes scans through many unused entries. 
+Apply scan_swap_map()'s LATENCY_LIMIT of 256 there too; and only go off to
+test frontswap_map when a used entry is found.
 
-add/remove: 1/1 grow/shrink: 4/0 up/down: 475/-373 (102)
-function                                     old     new   delta
-__anon_vma_prepare                             -     359    +359
-handle_mm_fault                             2744    2796     +52
-hugetlb_cow                                 1146    1170     +24
-hugetlb_fault                               2123    2145     +22
-wp_page_copy                                1469    1487     +18
-anon_vma_prepare                             373       -    -373
-
-Checking the asm however confirms that the hot paths now avoid a call,
-which is moved away.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20161116074005.22768-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1612052155140.13021@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Eric Dumazet <edumazet@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   10 +++++
- mm/rmap.c            |   73 ++++++++++++++++++++---------------------
- 2 files changed, 45 insertions(+), 38 deletions(-)
+ mm/swapfile.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline include/linux/rmap.h
---- a/include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline
-+++ a/include/linux/rmap.h
-@@ -137,11 +137,19 @@ static inline void anon_vma_unlock_read(
-  * anon_vma helper functions.
-  */
- void anon_vma_init(void);	/* create anon_vma_cachep */
--int  anon_vma_prepare(struct vm_area_struct *);
-+int  __anon_vma_prepare(struct vm_area_struct *);
- void unlink_anon_vmas(struct vm_area_struct *);
- int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
- int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+diff -puN mm/swapfile.c~mm-add-three-more-cond_resched-in-swapoff mm/swapfile.c
+--- a/mm/swapfile.c~mm-add-three-more-cond_resched-in-swapoff
++++ a/mm/swapfile.c
+@@ -1234,6 +1234,7 @@ static inline int unuse_pmd_range(struct
  
-+static inline int anon_vma_prepare(struct vm_area_struct *vma)
-+{
-+	if (likely(vma->anon_vma))
-+		return 0;
-+
-+	return __anon_vma_prepare(vma);
-+}
-+
- static inline void anon_vma_merge(struct vm_area_struct *vma,
- 				  struct vm_area_struct *next)
- {
-diff -puN mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline mm/rmap.c
---- a/mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline
-+++ a/mm/rmap.c
-@@ -141,14 +141,15 @@ static void anon_vma_chain_link(struct v
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
++		cond_resched();
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			continue;
+@@ -1313,6 +1314,7 @@ static int unuse_mm(struct mm_struct *mm
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 		if (vma->anon_vma && (ret = unuse_vma(vma, entry, page)))
+ 			break;
++		cond_resched();
+ 	}
+ 	up_read(&mm->mmap_sem);
+ 	return (ret < 0)? ret: 0;
+@@ -1350,15 +1352,12 @@ static unsigned int find_next_to_unuse(s
+ 			prev = 0;
+ 			i = 1;
+ 		}
+-		if (frontswap) {
+-			if (frontswap_test(si, i))
+-				break;
+-			else
+-				continue;
+-		}
+ 		count = READ_ONCE(si->swap_map[i]);
+ 		if (count && swap_count(count) != SWAP_MAP_BAD)
+-			break;
++			if (!frontswap || frontswap_test(si, i))
++				break;
++		if ((i % LATENCY_LIMIT) == 0)
++			cond_resched();
+ 	}
+ 	return i;
  }
- 
- /**
-- * anon_vma_prepare - attach an anon_vma to a memory region
-+ * __anon_vma_prepare - attach an anon_vma to a memory region
-  * @vma: the memory region in question
-  *
-  * This makes sure the memory mapping described by 'vma' has
-  * an 'anon_vma' attached to it, so that we can associate the
-  * anonymous pages mapped into it with that anon_vma.
-  *
-- * The common case will be that we already have one, but if
-+ * The common case will be that we already have one, which
-+ * is handled inline by anon_vma_prepare(). But if
-  * not we either need to find an adjacent mapping that we
-  * can re-use the anon_vma from (very common when the only
-  * reason for splitting a vma has been mprotect()), or we
-@@ -167,48 +168,46 @@ static void anon_vma_chain_link(struct v
-  *
-  * This must be called with the mmap_sem held for reading.
-  */
--int anon_vma_prepare(struct vm_area_struct *vma)
-+int __anon_vma_prepare(struct vm_area_struct *vma)
- {
--	struct anon_vma *anon_vma = vma->anon_vma;
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct anon_vma *anon_vma, *allocated;
- 	struct anon_vma_chain *avc;
- 
- 	might_sleep();
--	if (unlikely(!anon_vma)) {
--		struct mm_struct *mm = vma->vm_mm;
--		struct anon_vma *allocated;
--
--		avc = anon_vma_chain_alloc(GFP_KERNEL);
--		if (!avc)
--			goto out_enomem;
- 
--		anon_vma = find_mergeable_anon_vma(vma);
-+	avc = anon_vma_chain_alloc(GFP_KERNEL);
-+	if (!avc)
-+		goto out_enomem;
-+
-+	anon_vma = find_mergeable_anon_vma(vma);
-+	allocated = NULL;
-+	if (!anon_vma) {
-+		anon_vma = anon_vma_alloc();
-+		if (unlikely(!anon_vma))
-+			goto out_enomem_free_avc;
-+		allocated = anon_vma;
-+	}
-+
-+	anon_vma_lock_write(anon_vma);
-+	/* page_table_lock to protect against threads */
-+	spin_lock(&mm->page_table_lock);
-+	if (likely(!vma->anon_vma)) {
-+		vma->anon_vma = anon_vma;
-+		anon_vma_chain_link(vma, avc, anon_vma);
-+		/* vma reference or self-parent link for new root */
-+		anon_vma->degree++;
- 		allocated = NULL;
--		if (!anon_vma) {
--			anon_vma = anon_vma_alloc();
--			if (unlikely(!anon_vma))
--				goto out_enomem_free_avc;
--			allocated = anon_vma;
--		}
--
--		anon_vma_lock_write(anon_vma);
--		/* page_table_lock to protect against threads */
--		spin_lock(&mm->page_table_lock);
--		if (likely(!vma->anon_vma)) {
--			vma->anon_vma = anon_vma;
--			anon_vma_chain_link(vma, avc, anon_vma);
--			/* vma reference or self-parent link for new root */
--			anon_vma->degree++;
--			allocated = NULL;
--			avc = NULL;
--		}
--		spin_unlock(&mm->page_table_lock);
--		anon_vma_unlock_write(anon_vma);
+_
