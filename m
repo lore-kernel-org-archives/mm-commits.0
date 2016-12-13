@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
-Subject: [patch 104/123] printk/kdb: handle more message headers
-Date: Mon, 12 Dec 2016 16:45:47 -0800
-Message-ID: <584f44bb.SE1HWOa8phV0a/lE%akpm@linux-foundation.org>
+Subject: [patch 106/123] printk/sound: handle more message headers
+Date: Mon, 12 Dec 2016 16:45:53 -0800
+Message-ID: <584f44c1.nnv6HXfZCU6a9PIH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbcLMAps (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:45:48 -0500
+        with ESMTP id S1753214AbcLMApy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, clm@fb.com, dsterba@suse.com, jason.wessel@windriver.com, jbacik@fb.com, joe@perches.com, perex@perex.cz, rostedt@goodmis.org, sergey.senozhatsky.work@gmail.com, tiwai@suse.com
 
 From: Petr Mladek <pmladek@suse.com>
-Subject: printk/kdb: handle more message headers
+Subject: printk/sound: handle more message headers
 
 4bcc595ccd80decb4245096e ("printk: reinstate KERN_CONT for printing
 continuation lines") allows to define more message headers for a single
@@ -24,12 +24,13 @@ message.  The motivation is that continuous lines might get mixed.
 Therefore it make sense to define the right log level for every piece of a
 cont line.
 
-This patch introduces printk_skip_headers() that will skip all headers and
-uses it in the kdb code instead of printk_skip_level().
+This patch allows to copy only the real message level.  We should ignore
+KERN_CONT because <filename:line> is added for each message.  By other
+words, we want to know where each piece of the line comes from.
 
-This approach helps to fix other printk_skip_level() users independently.
-
-Link: http://lkml.kernel.org/r/1478695291-12169-3-git-send-email-pmladek@suse.com
+[pmladek@suse.com: fix a check of the valid message level]
+  Link: http://lkml.kernel.org/r/20161111183444.GE2145@dhcp128.suse.cz
+Link: http://lkml.kernel.org/r/1478695291-12169-5-git-send-email-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
@@ -43,38 +44,47 @@ Cc: David Sterba <dsterba@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h    |    8 ++++++++
- kernel/debug/kdb/kdb_io.c |    2 +-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ sound/core/misc.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/printk.h~printk-kdb-handle-more-message-headers include/linux/printk.h
---- a/include/linux/printk.h~printk-kdb-handle-more-message-headers
-+++ a/include/linux/printk.h
-@@ -31,6 +31,14 @@ static inline const char *printk_skip_le
- 	return buffer;
- }
+diff -puN sound/core/misc.c~printk-sound-handle-more-message-headers sound/core/misc.c
+--- a/sound/core/misc.c~printk-sound-handle-more-message-headers
++++ a/sound/core/misc.c
+@@ -71,6 +71,7 @@ void __snd_printk(unsigned int level, co
+ 	int kern_level;
+ 	struct va_format vaf;
+ 	char verbose_fmt[] = KERN_DEFAULT "ALSA %s:%d %pV";
++	bool level_found = false;
+ #endif
  
-+static inline const char *printk_skip_headers(const char *buffer)
-+{
-+	while (printk_get_level(buffer))
-+		buffer = printk_skip_level(buffer);
-+
-+	return buffer;
-+}
-+
- #define CONSOLE_EXT_LOG_MAX	8192
+ #ifdef CONFIG_SND_DEBUG
+@@ -83,15 +84,22 @@ void __snd_printk(unsigned int level, co
+ 	vaf.fmt = format;
+ 	vaf.va = &args;
  
- /* printk's without a loglevel use this.. */
-diff -puN kernel/debug/kdb/kdb_io.c~printk-kdb-handle-more-message-headers kernel/debug/kdb/kdb_io.c
---- a/kernel/debug/kdb/kdb_io.c~printk-kdb-handle-more-message-headers
-+++ a/kernel/debug/kdb/kdb_io.c
-@@ -697,7 +697,7 @@ kdb_printit:
- 	 * Write to all consoles.
- 	 */
- 	retlen = strlen(kdb_buffer);
--	cp = (char *) printk_skip_level(kdb_buffer);
-+	cp = (char *) printk_skip_headers(kdb_buffer);
- 	if (!dbg_kdb_mode && kgdb_connected) {
- 		gdbstub_msg_write(cp, retlen - (cp - kdb_buffer));
- 	} else {
+-	kern_level = printk_get_level(format);
+-	if (kern_level) {
+-		const char *end_of_header = printk_skip_level(format);
+-		memcpy(verbose_fmt, format, end_of_header - format);
++	while ((kern_level = printk_get_level(vaf.fmt)) != 0) {
++		const char *end_of_header = printk_skip_level(vaf.fmt);
++
++		/* Ignore KERN_CONT. We print filename:line for each piece. */
++		if (kern_level >= '0' && kern_level <= '7') {
++			memcpy(verbose_fmt, vaf.fmt, end_of_header - vaf.fmt);
++			level_found = true;
++		}
++
+ 		vaf.fmt = end_of_header;
+-	} else if (level)
++	}
++
++	if (!level_found && level)
+ 		memcpy(verbose_fmt, KERN_DEBUG, sizeof(KERN_DEBUG) - 1);
+-	printk(verbose_fmt, sanity_file_name(path), line, &vaf);
+ 
++	printk(verbose_fmt, sanity_file_name(path), line, &vaf);
+ #else
+ 	vprintk(format, args);
+ #endif
 _
