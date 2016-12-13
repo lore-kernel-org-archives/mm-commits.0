@@ -1,53 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 013/123] ocfs2/dlm: clean up deadcode in
- dlm_master_request_handler()
-Date: Mon, 12 Dec 2016 16:41:14 -0800
-Message-ID: <584f43aa.e3Nzk7P9HlIE7Qx/%akpm@linux-foundation.org>
+Subject: [patch 014/123] ocfs2: clean up unused 'page' parameter in
+ ocfs2_write_end_nolock()
+Date: Mon, 12 Dec 2016 16:41:17 -0800
+Message-ID: <584f43ad.P99x+ihZWhYI899Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40464 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbcLMAlP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:41:15 -0500
+        with ESMTP id S1753137AbcLMAlS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:41:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, piaojun@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com
 
 From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/dlm: clean up deadcode in dlm_master_request_handler()
+Subject: ocfs2: clean up unused 'page' parameter in ocfs2_write_end_nolock()
 
-When 'dispatch_assert' is set, 'response' must be DLM_MASTER_RESP_YES, and
-'res' won't be null, so execution can't reach these two branch.
+'page' parameter in ocfs2_write_end_nolock() is never used.
 
-Link: http://lkml.kernel.org/r/58174C91.3040004@huawei.com
+Link: http://lkml.kernel.org/r/582FD91A.5000902@huawei.com
 Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/ocfs2/aops.c |    7 +++----
+ fs/ocfs2/aops.h |    3 +--
+ fs/ocfs2/mmap.c |    3 +--
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1641,12 +1641,6 @@ send_response:
- 	 * dlm_assert_master_worker() isn't called, we drop it here.
- 	 */
- 	if (dispatch_assert) {
--		if (response != DLM_MASTER_RESP_YES)
--			mlog(ML_ERROR, "invalid response %d\n", response);
--		if (!res) {
--			mlog(ML_ERROR, "bad lockres while trying to assert!\n");
--			BUG();
--		}
- 		mlog(0, "%u is the owner of %.*s, cleaning everyone else\n",
- 			     dlm->node_num, res->lockname.len, res->lockname.name);
- 		spin_lock(&res->spinlock);
+diff -puN fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/aops.c
+@@ -1950,8 +1950,7 @@ static void ocfs2_write_end_inline(struc
+ }
+ 
+ int ocfs2_write_end_nolock(struct address_space *mapping,
+-			   loff_t pos, unsigned len, unsigned copied,
+-			   struct page *page, void *fsdata)
++			   loff_t pos, unsigned len, unsigned copied, void *fsdata)
+ {
+ 	int i, ret;
+ 	unsigned from, to, start = pos & (PAGE_SIZE - 1);
+@@ -2064,7 +2063,7 @@ static int ocfs2_write_end(struct file *
+ 	int ret;
+ 	struct inode *inode = mapping->host;
+ 
+-	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, page, fsdata);
++	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, fsdata);
+ 
+ 	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 	ocfs2_inode_unlock(inode, 1);
+@@ -2241,7 +2240,7 @@ static int ocfs2_dio_get_block(struct in
+ 		dwc->dw_zero_count++;
+ 	}
+ 
+-	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, NULL, wc);
++	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, wc);
+ 	BUG_ON(ret != len);
+ 	ret = 0;
+ unlock:
+diff -puN fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/aops.h
+@@ -44,8 +44,7 @@ int walk_page_buffers(	handle_t *handle,
+ 					struct buffer_head *bh));
+ 
+ int ocfs2_write_end_nolock(struct address_space *mapping,
+-			   loff_t pos, unsigned len, unsigned copied,
+-			   struct page *page, void *fsdata);
++			   loff_t pos, unsigned len, unsigned copied, void *fsdata);
+ 
+ typedef enum {
+ 	OCFS2_WRITE_BUFFER = 0,
+diff -puN fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/mmap.c
+--- a/fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/mmap.c
+@@ -120,8 +120,7 @@ static int __ocfs2_page_mkwrite(struct f
+ 		ret = VM_FAULT_NOPAGE;
+ 		goto out;
+ 	}
+-	ret = ocfs2_write_end_nolock(mapping, pos, len, len, locked_page,
+-				     fsdata);
++	ret = ocfs2_write_end_nolock(mapping, pos, len, len, fsdata);
+ 	BUG_ON(ret != len);
+ 	ret = VM_FAULT_LOCKED;
+ out:
 _
