@@ -1,82 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [patch 077/123] mm: add preempt points into
- __purge_vmap_area_lazy()
-Date: Mon, 12 Dec 2016 16:44:26 -0800
-Message-ID: <584f446a.8cRmFtbYm/w+9nqb%akpm@linux-foundation.org>
+Subject: [patch 078/123] mm: move vma_is_anonymous check within
+ pmd_move_must_withdraw
+Date: Mon, 12 Dec 2016 16:44:29 -0800
+Message-ID: <584f446d.rDEpBFHjfWs02wHi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753087AbcLMAo2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:28 -0500
+        with ESMTP id S1753214AbcLMAob (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:44:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joelaf@google.com, aryabinin@virtuozzo.com, chris@chris-wilson.co.uk, hch@lst.de, hpa@zytor.com, joaodias@google.com, jszhang@marvell.com, mingo@elte.hu, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, kirill.shutemov@linux.intel.com, mikey@neuling.org, mpe@ellerman.id.au, paulus@samba.org
 
-From: Joel Fernandes <joelaf@google.com>
-Subject: mm: add preempt points into __purge_vmap_area_lazy()
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm: move vma_is_anonymous check within pmd_move_must_withdraw
 
-Use cond_resched_lock to avoid holding the vmap_area_lock for a
-potentially long time and thus creating bad latencies for various
-workloads.
+Independent of whether the vma is for anonymous memory, some arches like
+ppc64 would like to override pmd_move_must_withdraw().  One option is to
+encapsulate the vma_is_anonymous() check for general architectures inside
+pmd_move_must_withdraw() so that is always called and architectures that
+need unconditional overriding can override this function.  ppc64 needs to
+override the function when the MMU is configured to use hash PTE's.
 
-[hch: split from a larger patch by Joel, wrote the crappy changelog]
-Link: http://lkml.kernel.org/r/1479474236-4139-11-git-send-email-hch@lst.de
-Signed-off-by: Joel Fernandes <joelaf@google.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Jisheng Zhang <jszhang@marvell.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: John Dias <joaodias@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+[bsingharora@gmail.com: reworked changelog]
+Link: http://lkml.kernel.org/r/20161113150025.17942-1-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Neuling <mikey@neuling.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    3 +-
+ include/asm-generic/pgtable.h                |   12 -----------
+ mm/huge_memory.c                             |   18 +++++++++++++++--
+ 3 files changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-add-preempt-points-into-__purge_vmap_area_lazy mm/vmalloc.c
---- a/mm/vmalloc.c~mm-add-preempt-points-into-__purge_vmap_area_lazy
-+++ a/mm/vmalloc.c
-@@ -628,7 +628,7 @@ static bool __purge_vmap_area_lazy(unsig
- 	struct llist_node *valist;
- 	struct vmap_area *va;
- 	struct vmap_area *n_va;
--	int nr = 0;
-+	bool do_free = false;
- 
- 	lockdep_assert_held(&vmap_purge_lock);
- 
-@@ -638,18 +638,22 @@ static bool __purge_vmap_area_lazy(unsig
- 			start = va->va_start;
- 		if (va->va_end > end)
- 			end = va->va_end;
--		nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
-+		do_free = true;
- 	}
- 
--	if (!nr)
-+	if (!do_free)
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1009,7 +1009,8 @@ static inline void pmdp_huge_split_prepa
+ #define pmd_move_must_withdraw pmd_move_must_withdraw
+ struct spinlock;
+ static inline int pmd_move_must_withdraw(struct spinlock *new_pmd_ptl,
+-					 struct spinlock *old_pmd_ptl)
++					 struct spinlock *old_pmd_ptl,
++					 struct vm_area_struct *vma)
+ {
+ 	if (radix_enabled())
  		return false;
- 
--	atomic_sub(nr, &vmap_lazy_nr);
- 	flush_tlb_kernel_range(start, end);
- 
- 	spin_lock(&vmap_area_lock);
--	llist_for_each_entry_safe(va, n_va, valist, purge_list)
-+	llist_for_each_entry_safe(va, n_va, valist, purge_list) {
-+		int nr = (va->va_end - va->va_start) >> PAGE_SHIFT;
-+
- 		__free_vmap_area(va);
-+		atomic_sub(nr, &vmap_lazy_nr);
-+		cond_resched_lock(&vmap_area_lock);
-+	}
- 	spin_unlock(&vmap_area_lock);
- 	return true;
+diff -puN include/asm-generic/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw
++++ a/include/asm-generic/pgtable.h
+@@ -652,18 +652,6 @@ static inline pmd_t pmd_read_atomic(pmd_
  }
+ #endif
+ 
+-#ifndef pmd_move_must_withdraw
+-static inline int pmd_move_must_withdraw(spinlock_t *new_pmd_ptl,
+-					 spinlock_t *old_pmd_ptl)
+-{
+-	/*
+-	 * With split pmd lock we also need to move preallocated
+-	 * PTE page table if new_pmd is on different PMD page table.
+-	 */
+-	return new_pmd_ptl != old_pmd_ptl;
+-}
+-#endif
+-
+ /*
+  * This function is meant to be used by sites walking pagetables with
+  * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
+diff -puN mm/huge_memory.c~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-move-vma_is_anonymous-check-within-pmd_move_must_withdraw
++++ a/mm/huge_memory.c
+@@ -1429,6 +1429,21 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 	return 1;
+ }
+ 
++#ifndef pmd_move_must_withdraw
++static inline int pmd_move_must_withdraw(spinlock_t *new_pmd_ptl,
++					 spinlock_t *old_pmd_ptl,
++					 struct vm_area_struct *vma)
++{
++	/*
++	 * With split pmd lock we also need to move preallocated
++	 * PTE page table if new_pmd is on different PMD page table.
++	 *
++	 * We also don't deposit and withdraw tables for file pages.
++	 */
++	return (new_pmd_ptl != old_pmd_ptl) && vma_is_anonymous(vma);
++}
++#endif
++
+ bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 		  unsigned long new_addr, unsigned long old_end,
+ 		  pmd_t *old_pmd, pmd_t *new_pmd, bool *need_flush)
+@@ -1466,8 +1481,7 @@ bool move_huge_pmd(struct vm_area_struct
+ 			force_flush = true;
+ 		VM_BUG_ON(!pmd_none(*new_pmd));
+ 
+-		if (pmd_move_must_withdraw(new_ptl, old_ptl) &&
+-				vma_is_anonymous(vma)) {
++		if (pmd_move_must_withdraw(new_ptl, old_ptl, vma)) {
+ 			pgtable_t pgtable;
+ 			pgtable = pgtable_trans_huge_withdraw(mm, old_pmd);
+ 			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
 _
