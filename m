@@ -1,55 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 028/123] mm/hugetlb.c: use huge_pte_lock instead of
- opencoding the lock
-Date: Mon, 12 Dec 2016 16:41:59 -0800
-Message-ID: <584f43d7.qmMA0aGyE50fjlB8%akpm@linux-foundation.org>
+Subject: [patch 029/123] kmemleak: fix reference to Documentation
+Date: Mon, 12 Dec 2016 16:42:01 -0800
+Message-ID: <584f43d9.efpuCSF9rLd2i9pc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40788 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40792 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbcLMAmA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:42:00 -0500
+        with ESMTP id S1752544AbcLMAmD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:42:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andreas.platschek@opentech.at, catalin.marinas@arm.com
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/hugetlb.c: use huge_pte_lock instead of opencoding the lock
+From: Andreas Platschek <andreas.platschek@opentech.at>
+Subject: kmemleak: fix reference to Documentation
 
-No functional change by this patch.
+Documentation/kmemleak.txt was moved to Documentation/dev-tools/kmemleak.rst,
+this fixes the reference to the new location.
 
-Link: http://lkml.kernel.org/r/20161018090234.22574-1-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1476544946-18804-1-git-send-email-andreas.platschek@opentech.at
+Signed-off-by: Andreas Platschek <andreas.platschek@opentech.at>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/kmemleak.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock
-+++ a/mm/hugetlb.c
-@@ -3713,8 +3713,7 @@ retry:
- 		vma_end_reservation(h, vma, address);
- 	}
- 
--	ptl = huge_pte_lockptr(h, mm, ptep);
--	spin_lock(ptl);
-+	ptl = huge_pte_lock(h, mm, ptep);
- 	size = i_size_read(mapping->host) >> huge_page_shift(h);
- 	if (idx >= size)
- 		goto backout;
-@@ -4332,8 +4331,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (!spte)
- 		goto out;
- 
--	ptl = huge_pte_lockptr(hstate_vma(vma), mm, spte);
--	spin_lock(ptl);
-+	ptl = huge_pte_lock(hstate_vma(vma), mm, spte);
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
+diff -puN mm/kmemleak.c~kmemleak-fix-reference-to-documentation mm/kmemleak.c
+--- a/mm/kmemleak.c~kmemleak-fix-reference-to-documentation
++++ a/mm/kmemleak.c
+@@ -19,7 +19,7 @@
+  *
+  *
+  * For more information on the algorithm and kmemleak usage, please see
+- * Documentation/kmemleak.txt.
++ * Documentation/dev-tools/kmemleak.rst.
+  *
+  * Notes on locking
+  * ----------------
 _
