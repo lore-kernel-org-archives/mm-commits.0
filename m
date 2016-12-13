@@ -1,98 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [patch 107/123] printk: add Kconfig option to set default console loglevel
-Date: Mon, 12 Dec 2016 16:45:56 -0800
-Message-ID: <584f44c4.T4EjdrV/dBgdvAlh%akpm@linux-foundation.org>
+Subject: [patch 108/123] get_maintainer: look for arbitrary letter
+ prefixes in sections
+Date: Mon, 12 Dec 2016 16:45:59 -0800
+Message-ID: <584f44c7.o3Ab/BcImrtWn/ur%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41936 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753137AbcLMAp5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:45:57 -0500
+        with ESMTP id S932499AbcLMAqA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:46:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, olof@lixom.net
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, airlied@gmail.com, daniel@ffwll.ch, jani.nikula@intel.com
 
-From: Olof Johansson <olof@lixom.net>
-Subject: printk: add Kconfig option to set default console loglevel
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: look for arbitrary letter prefixes in sections
 
-Add a configuration option to set the default console loglevel.  This is,
-as before, still possible to override at runtime through bootargs
-(loglevel=<x>), sysrq and /proc/printk.
+Jani Nikula proposes patches to add a few new letter prefixes for "B:" bug
+reporting and "C:" maintainer chatting to the various sections of
+MAINTAINERS.
 
-There are cases where adding additional arguments on the commandline is
-impractical, and changing the default for the kernel when being built
-makes more sense.  Provide such a method here, for those who choose to do
-so.
+Add a generic mechanism to get_maintainer.pl to find sections that have
+any combination of "[A-Z]" letter prefix types in a section.
 
-Also, while touching this code, clarify the difference between
-MESSAGE_LOGLEVEL_DEFAULT and CONSOLE_LOGLEVEL_DEFAULT.
-
-Link: http://lkml.kernel.org/r/1479676829-30031-1-git-send-email-olof@lixom.net
-Signed-off-by: Olof Johansson <olof@lixom.net>
+Link: http://lkml.kernel.org/r/1477332323.1984.8.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Airlie <airlied@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    7 ++++++-
- lib/Kconfig.debug      |   19 +++++++++++++++++++
- 2 files changed, 25 insertions(+), 1 deletion(-)
+ scripts/get_maintainer.pl |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/printk.h~printk-add-kconfig-option-to-set-default-console-loglevel include/linux/printk.h
---- a/include/linux/printk.h~printk-add-kconfig-option-to-set-default-console-loglevel
-+++ a/include/linux/printk.h
-@@ -50,10 +50,15 @@ static inline const char *printk_skip_he
- #define CONSOLE_LOGLEVEL_SILENT  0 /* Mum's the word */
- #define CONSOLE_LOGLEVEL_MIN	 1 /* Minimum loglevel we let people use */
- #define CONSOLE_LOGLEVEL_QUIET	 4 /* Shhh ..., when booted with "quiet" */
--#define CONSOLE_LOGLEVEL_DEFAULT 7 /* anything MORE serious than KERN_DEBUG */
- #define CONSOLE_LOGLEVEL_DEBUG	10 /* issue debug messages */
- #define CONSOLE_LOGLEVEL_MOTORMOUTH 15	/* You can't shut this one up */
+diff -puN scripts/get_maintainer.pl~get_maintainer-look-for-arbitrary-letter-prefixes-in-sections scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-look-for-arbitrary-letter-prefixes-in-sections
++++ a/scripts/get_maintainer.pl
+@@ -49,6 +49,7 @@ my $scm = 0;
+ my $web = 0;
+ my $subsystem = 0;
+ my $status = 0;
++my $letters = "";
+ my $keywords = 1;
+ my $sections = 0;
+ my $file_emails = 0;
+@@ -241,6 +242,7 @@ if (!GetOptions(
+ 		'status!' => \$status,
+ 		'scm!' => \$scm,
+ 		'web!' => \$web,
++		'letters=s' => \$letters,
+ 		'pattern-depth=i' => \$pattern_depth,
+ 		'k|keywords!' => \$keywords,
+ 		'sections!' => \$sections,
+@@ -271,7 +273,8 @@ $output_multiline = 0 if ($output_separa
+ $output_rolestats = 1 if ($interactive);
+ $output_roles = 1 if ($output_rolestats);
  
-+/*
-+ * Default used to be hard-coded at 7, we're now allowing it to be set from
-+ * kernel config.
-+ */
-+#define CONSOLE_LOGLEVEL_DEFAULT CONFIG_CONSOLE_LOGLEVEL_DEFAULT
-+
- extern int console_printk[];
- 
- #define console_loglevel (console_printk[0])
-diff -puN lib/Kconfig.debug~printk-add-kconfig-option-to-set-default-console-loglevel lib/Kconfig.debug
---- a/lib/Kconfig.debug~printk-add-kconfig-option-to-set-default-console-loglevel
-+++ a/lib/Kconfig.debug
-@@ -15,6 +15,21 @@ config PRINTK_TIME
- 	  The behavior is also controlled by the kernel command line
- 	  parameter printk.time=1. See Documentation/kernel-parameters.txt
- 
-+config CONSOLE_LOGLEVEL_DEFAULT
-+	int "Default console loglevel (1-15)"
-+	range 1 15
-+	default "7"
-+	help
-+	  Default loglevel to determine what will be printed on the console.
-+
-+	  Setting a default here is equivalent to passing in loglevel=<x> in
-+	  the kernel bootargs. loglevel=<x> continues to override whatever
-+	  value is specified here as well.
-+
-+	  Note: This does not affect the log level of un-prefixed prink()
-+	  usage in the kernel. That is controlled by the MESSAGE_LOGLEVEL_DEFAULT
-+	  option.
-+
- config MESSAGE_LOGLEVEL_DEFAULT
- 	int "Default message log level (1-7)"
- 	range 1 7
-@@ -26,6 +41,10 @@ config MESSAGE_LOGLEVEL_DEFAULT
- 	  that are auditing their logs closely may want to set it to a lower
- 	  priority.
- 
-+	  Note: This does not affect what message level gets printed on the console
-+	  by default. To change that, use loglevel=<x> in the kernel bootargs,
-+	  or pick a different CONSOLE_LOGLEVEL_DEFAULT configuration value.
-+
- config BOOT_PRINTK_DELAY
- 	bool "Delay each boot printk message by N milliseconds"
- 	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY
+-if ($sections) {
++if ($sections || $letters ne "") {
++    $sections = 1;
+     $email = 0;
+     $email_list = 0;
+     $scm = 0;
+@@ -682,8 +685,10 @@ sub get_maintainers {
+ 			$line =~ s/\\\./\./g;       	##Convert \. to .
+ 			$line =~ s/\.\*/\*/g;       	##Convert .* to *
+ 		    }
+-		    $line =~ s/^([A-Z]):/$1:\t/g;
+-		    print("$line\n");
++		    my $count = $line =~ s/^([A-Z]):/$1:\t/g;
++		    if ($letters eq "" || (!$count || $letters =~ /$1/i)) {
++			print("$line\n");
++		    }
+ 		}
+ 		print("\n");
+ 	    }
+@@ -814,6 +819,7 @@ Other options:
+   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
+   --keywords => scan patch for keywords (default: $keywords)
+   --sections => print all of the subsystem sections with pattern matches
++  --letters => print all matching 'letter' types from all matching sections
+   --mailmap => use .mailmap file (default: $email_use_mailmap)
+   --version => show version
+   --help => show this help information
 _
