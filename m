@@ -1,38 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [patch 048/123] mm: enable CONFIG_MOVABLE_NODE on non-x86 arches
-Date: Mon, 12 Dec 2016 16:42:59 -0800
-Message-ID: <584f4413.pW8FbLqcvhq18d0k%akpm@linux-foundation.org>
+Subject: [patch 049/123] of/fdt: mark hotpluggable memory
+Date: Mon, 12 Dec 2016 16:43:02 -0800
+Message-ID: <584f4416.j0fo0ouEB+dguDX+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41114 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752425AbcLMAnA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:00 -0500
+        with ESMTP id S1752544AbcLMAnE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:43:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, apopple@au1.ibm.com, benh@kernel.crashing.org, bharata@linux.vnet.ibm.com, bsingharora@gmail.com, frowand.list@gmail.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, nfont@linux.vnet.ibm.com, paulus@samba.org, robh+dt@kernel.org, stewart@linux.vnet.ibm.com, tglx@linutronix.de
 
 From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: mm: enable CONFIG_MOVABLE_NODE on non-x86 arches
+Subject: of/fdt: mark hotpluggable memory
 
-To support movable memory nodes (CONFIG_MOVABLE_NODE), at least one of
-the following must be true:
+When movable nodes are enabled, any node containing only hotpluggable
+memory is made movable at boot time.
 
-1. This config has the capability to identify movable nodes at boot.
-   Right now, only x86 can do this.
+On x86, hotpluggable memory is discovered by parsing the ACPI SRAT,
+making corresponding calls to memblock_mark_hotplug().
 
-2. Our config supports memory hotplug, which means that a movable node
-   can be created by hotplugging all of its memory into ZONE_MOVABLE.
+If we introduce a dt property to describe memory as hotpluggable,
+configs supporting early fdt may then also do this marking and use
+movable nodes.
 
-Fix the Kconfig definition of CONFIG_MOVABLE_NODE, which currently
-recognizes (1), but not (2).
-
-Link: http://lkml.kernel.org/r/1479160961-25840-4-git-send-email-arbab@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1479160961-25840-5-git-send-email-arbab@linux.vnet.ibm.com
 Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Tested-by: Balbir Singh <bsingharora@gmail.com>
 Acked-by: Balbir Singh <bsingharora@gmail.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -51,18 +49,88 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/of/fdt.c       |   19 +++++++++++++++++++
+ include/linux/of_fdt.h |    1 +
+ mm/Kconfig             |    2 +-
+ 3 files changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN mm/Kconfig~mm-enable-config_movable_node-on-non-x86-arches mm/Kconfig
---- a/mm/Kconfig~mm-enable-config_movable_node-on-non-x86-arches
+diff -puN drivers/of/fdt.c~of-fdt-mark-hotpluggable-memory drivers/of/fdt.c
+--- a/drivers/of/fdt.c~of-fdt-mark-hotpluggable-memory
++++ a/drivers/of/fdt.c
+@@ -1015,6 +1015,7 @@ int __init early_init_dt_scan_memory(uns
+ 	const char *type = of_get_flat_dt_prop(node, "device_type", NULL);
+ 	const __be32 *reg, *endp;
+ 	int l;
++	bool hotpluggable;
+ 
+ 	/* We are scanning "memory" nodes only */
+ 	if (type == NULL) {
+@@ -1034,6 +1035,7 @@ int __init early_init_dt_scan_memory(uns
+ 		return 0;
+ 
+ 	endp = reg + (l / sizeof(__be32));
++	hotpluggable = of_get_flat_dt_prop(node, "hotpluggable", NULL);
+ 
+ 	pr_debug("memory scan node %s, reg size %d,\n", uname, l);
+ 
+@@ -1049,6 +1051,13 @@ int __init early_init_dt_scan_memory(uns
+ 		    (unsigned long long)size);
+ 
+ 		early_init_dt_add_memory_arch(base, size);
++
++		if (!hotpluggable)
++			continue;
++
++		if (early_init_dt_mark_hotplug_memory_arch(base, size))
++			pr_warn("failed to mark hotplug range 0x%llx - 0x%llx\n",
++				base, base + size);
+ 	}
+ 
+ 	return 0;
+@@ -1146,6 +1155,11 @@ void __init __weak early_init_dt_add_mem
+ 	memblock_add(base, size);
+ }
+ 
++int __init __weak early_init_dt_mark_hotplug_memory_arch(u64 base, u64 size)
++{
++	return memblock_mark_hotplug(base, size);
++}
++
+ int __init __weak early_init_dt_reserve_memory_arch(phys_addr_t base,
+ 					phys_addr_t size, bool nomap)
+ {
+@@ -1168,6 +1182,11 @@ void __init __weak early_init_dt_add_mem
+ 	WARN_ON(1);
+ }
+ 
++int __init __weak early_init_dt_mark_hotplug_memory_arch(u64 base, u64 size)
++{
++	return -ENOSYS;
++}
++
+ int __init __weak early_init_dt_reserve_memory_arch(phys_addr_t base,
+ 					phys_addr_t size, bool nomap)
+ {
+diff -puN include/linux/of_fdt.h~of-fdt-mark-hotpluggable-memory include/linux/of_fdt.h
+--- a/include/linux/of_fdt.h~of-fdt-mark-hotpluggable-memory
++++ a/include/linux/of_fdt.h
+@@ -71,6 +71,7 @@ extern int early_init_dt_scan_chosen_std
+ extern void early_init_fdt_scan_reserved_mem(void);
+ extern void early_init_fdt_reserve_self(void);
+ extern void early_init_dt_add_memory_arch(u64 base, u64 size);
++extern int early_init_dt_mark_hotplug_memory_arch(u64 base, u64 size);
+ extern int early_init_dt_reserve_memory_arch(phys_addr_t base, phys_addr_t size,
+ 					     bool no_map);
+ extern void * early_init_dt_alloc_memory_arch(u64 size, u64 align);
+diff -puN mm/Kconfig~of-fdt-mark-hotpluggable-memory mm/Kconfig
+--- a/mm/Kconfig~of-fdt-mark-hotpluggable-memory
 +++ a/mm/Kconfig
 @@ -153,7 +153,7 @@ config MOVABLE_NODE
  	bool "Enable to assign a node which has only movable memory"
  	depends on HAVE_MEMBLOCK
  	depends on NO_BOOTMEM
--	depends on X86_64
-+	depends on X86_64 || MEMORY_HOTPLUG
+-	depends on X86_64 || MEMORY_HOTPLUG
++	depends on X86_64 || OF_EARLY_FLATTREE || MEMORY_HOTPLUG
  	depends on NUMA
  	default n
  	help
