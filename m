@@ -1,75 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [patch 001/123] kthread: add __printf attributes
-Date: Mon, 12 Dec 2016 16:40:39 -0800
-Message-ID: <584f4387.+R8RhSkM33FzZxad%akpm@linux-foundation.org>
+Subject: [patch 002/123] prctl: remove one-shot limitation for changing
+ exe link
+Date: Mon, 12 Dec 2016 16:40:42 -0800
+Message-ID: <584f438a.3WY44VgQVh16iuXm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40348 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751615AbcLMAkk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:40:40 -0500
+        with ESMTP id S1751615AbcLMAko (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2016 19:40:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, nicolas.iooss_linux@m4x.org, pmladek@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, skinsbursky@virtuozzo.com, ebiederm@xmission.com, gorcunov@openvz.org, john.stultz@linaro.org, keescook@chromium.org, luto@amacapital.net, matthltc@us.ibm.com, mhocko@suse.com, mingo@redhat.com, oleg@redhat.com, peterz@infradead.org, vbabka@suse.cz, xemul@virtuozzo.com
 
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: kthread: add __printf attributes
+From: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
+Subject: prctl: remove one-shot limitation for changing exe link
 
-When commit fbae2d44aa1d ("kthread: add kthread_create_worker*()")
-introduced some kthread_create_...() functions which were taking
-printf-like parametter, it introduced __printf attributes to some
-functions (e.g.  kthread_create_worker()).  Nevertheless some new
-functions were forgotten (they have been detected thanks to
--Wmissing-format-attribute warning flag).
+This limitation came with the reason to remove "another way for malicious
+code to obscure a compromised program and masquerade as a benign process"
+by allowing "security-concious program can use this prctl once during its
+early initialization to ensure the prctl cannot later be abused for this
+purpose":
 
-Add the missing __printf attributes to the newly-introduced functions in
-order to detect formatting issues at build-time with -Wformat flag.
+http://marc.info/?l=linux-kernel&m=133160684517468&w=2
 
-Link: http://lkml.kernel.org/r/20161126193543.22672-1-nicolas.iooss_linux@m4x.org
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+This explanation doesn't look sufficient.  The only thing "exe" link is
+indicating is the file, used to execve, which is basically nothing and not
+reliable immediately after process has returned from execve system call.
+
+Moreover, to use this feture, all the mappings to previous exe file have
+to be unmapped and all the new exe file permissions must be satisfied.
+
+Which means, that changing exe link is very similar to calling execve on
+the binary.
+
+The need to remove this limitations comes from migration of NFS mount
+point, which is not accessible during restore and replaced by other file
+system.  Because of this exe link has to be changed twice.
+
+[akpm@linux-foundation.org: fix up comment]
+Link: http://lkml.kernel.org/r/20160927153755.9337.69650.stgit@localhost.localdomain
+Signed-off-by: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |    2 +-
- kernel/kthread.c        |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/sched.h |    6 +++++-
+ kernel/sys.c          |   10 ----------
+ 2 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/kthread.h~kthread-add-__printf-attributes include/linux/kthread.h
---- a/include/linux/kthread.h~kthread-add-__printf-attributes
-+++ a/include/linux/kthread.h
-@@ -175,7 +175,7 @@ __printf(2, 3)
- struct kthread_worker *
- kthread_create_worker(unsigned int flags, const char namefmt[], ...);
+diff -puN include/linux/sched.h~prctl-remove-one-shot-limitation-for-changing-exe-link include/linux/sched.h
+--- a/include/linux/sched.h~prctl-remove-one-shot-limitation-for-changing-exe-link
++++ a/include/linux/sched.h
+@@ -540,7 +540,11 @@ static inline int get_dumpable(struct mm
+ 					/* leave room for more dump flags */
+ #define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
+ #define MMF_VM_HUGEPAGE		17	/* set when VM_HUGEPAGE is set on vma */
+-#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
++/*
++ * This one-shot flag is dropped due to necessity of changing exe once again
++ * on NFS restore
++ */
++//#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
  
--struct kthread_worker *
-+__printf(3, 4) struct kthread_worker *
- kthread_create_worker_on_cpu(int cpu, unsigned int flags,
- 			     const char namefmt[], ...);
- 
-diff -puN kernel/kthread.c~kthread-add-__printf-attributes kernel/kthread.c
---- a/kernel/kthread.c~kthread-add-__printf-attributes
-+++ a/kernel/kthread.c
-@@ -261,7 +261,8 @@ static void create_kthread(struct kthrea
+ #define MMF_HAS_UPROBES		19	/* has uprobes */
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+diff -puN kernel/sys.c~prctl-remove-one-shot-limitation-for-changing-exe-link kernel/sys.c
+--- a/kernel/sys.c~prctl-remove-one-shot-limitation-for-changing-exe-link
++++ a/kernel/sys.c
+@@ -1696,16 +1696,6 @@ static int prctl_set_mm_exe_file(struct
+ 		fput(exe_file);
  	}
- }
  
--static struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
-+static __printf(4, 0)
-+struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
- 						    void *data, int node,
- 						    const char namefmt[],
- 						    va_list args)
-@@ -635,7 +636,7 @@ repeat:
- }
- EXPORT_SYMBOL_GPL(kthread_worker_fn);
- 
--static struct kthread_worker *
-+static __printf(3, 0) struct kthread_worker *
- __kthread_create_worker(int cpu, unsigned int flags,
- 			const char namefmt[], va_list args)
- {
-_
+-	/*
+-	 * The symlink can be changed only once, just to disallow arbitrary
+-	 * transitions malicious software might bring in. This means one
+-	 * could make a snapshot over all processes running and monitor
+-	 * /proc/pid/exe changes to notice unusual activity if needed.
+-	 */
+-	err = -EPERM;
+-	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
+-		goto exit;
