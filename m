@@ -1,68 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [patch 001/114] btrfs: better handle btrfs_printk() defaults
-Date: Wed, 14 Dec 2016 15:04:01 -0800
-Message-ID: <5851cfe1.WbJhr9mLB58gI1tp%akpm@linux-foundation.org>
+Subject: [patch 006/114] Revert "kdump, vmcoreinfo: report memory sections virtual addresses"
+Date: Wed, 14 Dec 2016 15:04:16 -0800
+Message-ID: <5851cff0.Uea9ruGlzhTpISjo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34358 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752959AbcLNXEk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:04:40 -0500
+        with ESMTP id S1754624AbcLNXEl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:04:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, dsterba@suse.com, geert@linux-m68k.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bhe@redhat.com, anderson@redhat.com, ats-kumagai@wm.jp.nec.com, d.hatayama@jp.fujitsu.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, panand@redhat.com, surovegin@google.com, takahiro.akashi@linaro.org, tglx@linutronix.de, thgarnie@google.com, vgoyal@redhat.com, xlpang@redhat.com
 
-From: Petr Mladek <pmladek@suse.com>
-Subject: btrfs: better handle btrfs_printk() defaults
+From: Baoquan He <bhe@redhat.com>
+Subject: Revert "kdump, vmcoreinfo: report memory sections virtual addresses"
 
-commit 262c5e86fec7cfd ("printk/btrfs: handle more message headers")
-triggers:
+This reverts 0549a3c02efb3507 ("kdump, vmcoreinfo: report memory sections
+virtual addresses").
 
-    warning: `ratelimit' may be used uninitialized in this function
+Commit 0549a3c tells the userspace utility makedumpfile the randomized
+base address of these memmory sections when mm kaslr is enabled.  However
+the following patch "kexec: export the value of phys_base instead of
+symbol address" makes makedumpfile not need these addresses any more.
 
-with gcc (4.1.2) and probably many other versions.  The code actually is
-correct but a bit twisted.  Let's make it more straightforward and set the
-default values at the beginning.
+Besides we should use VMCOREINFO_NUMBER to export the value of the
+variable so that we can use the existing number_table mechanism of
+Makedumpfile to fetch it.  So revert it now.  If needed we can add it later.
 
-Link: http://lkml.kernel.org/r/20161213135246.GQ3506@pathway.suse.cz
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: David Sterba <dsterba@suse.com>
+http://lists.infradead.org/pipermail/kexec/2016-October/017540.html
+Link: http://lkml.kernel.org/r/1478568596-30060-1-git-send-email-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Xunlei Pang <xlpang@redhat.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Eugene Surovegin <surovegin@google.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
+Cc: Atsushi Kumagai <ats-kumagai@wm.jp.nec.com>
+Cc: Dave Anderson <anderson@redhat.com>
+Cc: Pratyush Anand <panand@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/super.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |    3 ---
+ include/linux/kexec.h              |    6 ------
+ 2 files changed, 9 deletions(-)
 
-diff -puN fs/btrfs/super.c~btrfs-better-handle-btrfs_printk-defaults fs/btrfs/super.c
---- a/fs/btrfs/super.c~btrfs-better-handle-btrfs_printk-defaults
-+++ a/fs/btrfs/super.c
-@@ -202,12 +202,12 @@ static struct ratelimit_state printk_lim
- void btrfs_printk(const struct btrfs_fs_info *fs_info, const char *fmt, ...)
- {
- 	struct super_block *sb = fs_info->sb;
--	char lvl[PRINTK_MAX_SINGLE_HEADER_LEN + 1];
-+	char lvl[PRINTK_MAX_SINGLE_HEADER_LEN + 1] = "\0";
- 	struct va_format vaf;
- 	va_list args;
--	const char *type = NULL;
- 	int kern_level;
--	struct ratelimit_state *ratelimit;
-+	const char *type = logtypes[4];
-+	struct ratelimit_state *ratelimit = &printk_limits[4];
+diff -puN arch/x86/kernel/machine_kexec_64.c~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -337,9 +337,6 @@ void arch_crash_save_vmcoreinfo(void)
+ #endif
+ 	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
+ 			      kaslr_offset());
+-	VMCOREINFO_PAGE_OFFSET(PAGE_OFFSET);
+-	VMCOREINFO_VMALLOC_START(VMALLOC_START);
+-	VMCOREINFO_VMEMMAP_START(VMEMMAP_START);
+ }
  
- 	va_start(args, fmt);
+ /* arch-dependent functionality related to kexec file-based syscall */
+diff -puN include/linux/kexec.h~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses include/linux/kexec.h
+--- a/include/linux/kexec.h~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses
++++ a/include/linux/kexec.h
+@@ -259,12 +259,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ 	vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
+ #define VMCOREINFO_CONFIG(name) \
+ 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
+-#define VMCOREINFO_PAGE_OFFSET(value) \
+-	vmcoreinfo_append_str("PAGE_OFFSET=%lx\n", (unsigned long)value)
+-#define VMCOREINFO_VMALLOC_START(value) \
+-	vmcoreinfo_append_str("VMALLOC_START=%lx\n", (unsigned long)value)
+-#define VMCOREINFO_VMEMMAP_START(value) \
+-	vmcoreinfo_append_str("VMEMMAP_START=%lx\n", (unsigned long)value)
  
-@@ -223,12 +223,6 @@ void btrfs_printk(const struct btrfs_fs_
- 		fmt += size;
- 	}
- 
--	if (!type) {
--		*lvl = '\0';
--		type = logtypes[4];
--		ratelimit = &printk_limits[4];
--	}
+ extern struct kimage *kexec_image;
+ extern struct kimage *kexec_crash_image;
+_
