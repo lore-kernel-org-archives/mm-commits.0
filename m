@@ -1,259 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:24:33 -0800
-Message-ID: <58519c71.FSfWT4uOi7zG4+67%akpm@linux-foundation.org>
+Subject: [merged] mm-fixup-get_user_pages-comments.patch removed from -mm
+ tree
+Date: Wed, 14 Dec 2016 11:24:38 -0800
+Message-ID: <58519c76.3l5k5VS3ThwMHf1r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44236 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756541AbcLNTYe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:34 -0500
+        with ESMTP id S1756541AbcLNTYj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, dan.j.williams@intel.com, kirill@shutemov.name, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: lstoakes@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add tlb_remove_check_page_size_change to track page size change
+     Subject: mm: fix up get_user_pages* comments
 has been removed from the -mm tree.  Its filename was
-     mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
+     mm-fixup-get_user_pages-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: add tlb_remove_check_page_size_change to track page size change
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: fix up get_user_pages* comments
 
-With commit e77b0852b551 ("mm/mmu_gather: track page size with mmu gather
-and force flush if page size change") we added the ability to force a tlb
-flush when the page size change in a mmu_gather loop.  We did that by
-checking for a page size change every time we added a page to mmu_gather
-for lazy flush/remove.  We can improve that by moving the page size change
-check early and not doing it every time we add a page.
+In the previous round of get_user_pages* changes comments attached to
+__get_user_pages_unlocked() and get_user_pages_unlocked() were rendered
+incorrect, this patch corrects them.
 
-This also helps us to do tlb flush when invalidating a range covering dax
-mapping.  W.r.t dax mapping we don't have a backing struct page and hence
-we don't call tlb_remove_page, which earlier forced the tlb flush on page
-size change.  Moving the page size change check earlier means we will do
-the same even for dax mapping.
+In addition the get_user_pages_unlocked() comment seems to have already
+been outdated as it referred to tsk, mm parameters which were removed in
+c12d2da5 ("mm/gup: Remove the macro overload API migration helpers from
+the get_user*() APIs"), this patch fixes this also.
 
-We also avoid doing this check on architecture other than powerpc.
-
-In a later patch we will remove page size check from tlb_remove_page().
-
-Link: http://lkml.kernel.org/r/20161026084839.27299-5-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Link: http://lkml.kernel.org/r/20161025233435.5338-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlb.h     |    6 ++++++
- arch/ia64/include/asm/tlb.h    |    6 ++++++
- arch/powerpc/include/asm/tlb.h |   16 ++++++++++++++++
- arch/s390/include/asm/tlb.h    |    6 ++++++
- arch/sh/include/asm/tlb.h      |    6 ++++++
- arch/um/include/asm/tlb.h      |    6 ++++++
- include/asm-generic/tlb.h      |   16 ++++++++++++++++
- mm/huge_memory.c               |    4 ++++
- mm/hugetlb.c                   |    5 +++++
- mm/madvise.c                   |    1 +
- mm/memory.c                    |    7 ++++++-
- 11 files changed, 78 insertions(+), 1 deletion(-)
+ mm/gup.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN arch/arm/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change arch/arm/include/asm/tlb.h
---- a/arch/arm/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/arch/arm/include/asm/tlb.h
-@@ -286,5 +286,11 @@ tlb_remove_pmd_tlb_entry(struct mmu_gath
+diff -puN mm/gup.c~mm-fixup-get_user_pages-comments mm/gup.c
+--- a/mm/gup.c~mm-fixup-get_user_pages-comments
++++ a/mm/gup.c
+@@ -858,14 +858,12 @@ long get_user_pages_locked(unsigned long
+ EXPORT_SYMBOL(get_user_pages_locked);
  
- #define tlb_migrate_finish(mm)		do { } while (0)
- 
-+#define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
-+static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-+						     unsigned int page_size)
-+{
-+}
-+
- #endif /* CONFIG_MMU */
- #endif
-diff -puN arch/ia64/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change arch/ia64/include/asm/tlb.h
---- a/arch/ia64/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/arch/ia64/include/asm/tlb.h
-@@ -286,6 +286,12 @@ do {							\
- #define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
- 	tlb_remove_tlb_entry(tlb, ptep, address)
- 
-+#define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
-+static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-+						     unsigned int page_size)
-+{
-+}
-+
- #define pte_free_tlb(tlb, ptep, address)		\
- do {							\
- 	tlb->need_flush = 1;				\
-diff -puN arch/powerpc/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change arch/powerpc/include/asm/tlb.h
---- a/arch/powerpc/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/arch/powerpc/include/asm/tlb.h
-@@ -28,6 +28,7 @@
- #define tlb_start_vma(tlb, vma)	do { } while (0)
- #define tlb_end_vma(tlb, vma)	do { } while (0)
- #define __tlb_remove_tlb_entry	__tlb_remove_tlb_entry
-+#define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
- 
- extern void tlb_flush(struct mmu_gather *tlb);
- 
-@@ -46,6 +47,21 @@ static inline void __tlb_remove_tlb_entr
- #endif
- }
- 
-+static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-+						     unsigned int page_size)
-+{
-+	if (!tlb->page_size)
-+		tlb->page_size = page_size;
-+	else if (tlb->page_size != page_size) {
-+		tlb_flush_mmu(tlb);
-+		/*
-+		 * update the page size after flush for the new
-+		 * mmu_gather.
-+		 */
-+		tlb->page_size = page_size;
-+	}
-+}
-+
- #ifdef CONFIG_SMP
- static inline int mm_is_core_local(struct mm_struct *mm)
- {
-diff -puN arch/s390/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change arch/s390/include/asm/tlb.h
---- a/arch/s390/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/arch/s390/include/asm/tlb.h
-@@ -165,4 +165,10 @@ static inline void pud_free_tlb(struct m
- #define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
- 	tlb_remove_tlb_entry(tlb, ptep, address)
- 
-+#define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
-+static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-+						     unsigned int page_size)
-+{
-+}
-+
- #endif /* _S390_TLB_H */
-diff -puN arch/sh/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change arch/sh/include/asm/tlb.h
---- a/arch/sh/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/arch/sh/include/asm/tlb.h
-@@ -130,6 +130,12 @@ static inline void tlb_remove_page_size(
- 	return tlb_remove_page(tlb, page);
- }
- 
-+#define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
-+static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-+						     unsigned int page_size)
-+{
-+}
-+
- #define pte_free_tlb(tlb, ptep, addr)	pte_free((tlb)->mm, ptep)
- #define pmd_free_tlb(tlb, pmdp, addr)	pmd_free((tlb)->mm, pmdp)
- #define pud_free_tlb(tlb, pudp, addr)	pud_free((tlb)->mm, pudp)
-diff -puN arch/um/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change arch/um/include/asm/tlb.h
---- a/arch/um/include/asm/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/arch/um/include/asm/tlb.h
-@@ -144,6 +144,12 @@ static inline void tlb_remove_page_size(
- #define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
- 	tlb_remove_tlb_entry(tlb, ptep, address)
- 
-+#define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
-+static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-+						     unsigned int page_size)
-+{
-+}
-+
- #define pte_free_tlb(tlb, ptep, addr) __pte_free_tlb(tlb, ptep, addr)
- 
- #define pud_free_tlb(tlb, pudp, addr) __pud_free_tlb(tlb, pudp, addr)
-diff -puN include/asm-generic/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/include/asm-generic/tlb.h
-@@ -182,6 +182,22 @@ static inline bool __tlb_remove_pte_page
- 	return __tlb_remove_page(tlb, page);
- }
- 
-+#ifndef tlb_remove_check_page_size_change
-+#define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
-+static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-+						     unsigned int page_size)
-+{
-+	/*
-+	 * We don't care about page size change, just update
-+	 * mmu_gather page size here so that debug checks
-+	 * doesn't throw false warning.
-+	 */
-+#ifdef CONFIG_DEBUG_VM
-+	tlb->page_size = page_size;
-+#endif
-+}
-+#endif
-+
  /*
-  * In the case of tlb vma handling, we can optimise these away in the
-  * case where we're doing a full MM flush.  When we're doing a munmap,
-diff -puN mm/huge_memory.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change mm/huge_memory.c
---- a/mm/huge_memory.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/mm/huge_memory.c
-@@ -1323,6 +1323,8 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 	struct mm_struct *mm = tlb->mm;
- 	bool ret = false;
- 
-+	tlb_remove_check_page_size_change(tlb, HPAGE_PMD_SIZE);
-+
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (!ptl)
- 		goto out_unlocked;
-@@ -1384,6 +1386,8 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	pmd_t orig_pmd;
- 	spinlock_t *ptl;
- 
-+	tlb_remove_check_page_size_change(tlb, HPAGE_PMD_SIZE);
-+
- 	ptl = __pmd_trans_huge_lock(pmd, vma);
- 	if (!ptl)
- 		return 0;
-diff -puN mm/hugetlb.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change mm/hugetlb.c
---- a/mm/hugetlb.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/mm/hugetlb.c
-@@ -3286,6 +3286,11 @@ void __unmap_hugepage_range(struct mmu_g
- 	BUG_ON(start & ~huge_page_mask(h));
- 	BUG_ON(end & ~huge_page_mask(h));
- 
-+	/*
-+	 * This is a hugetlb vma, all the pte entries should point
-+	 * to huge page.
-+	 */
-+	tlb_remove_check_page_size_change(tlb, sz);
- 	tlb_start_vma(tlb, vma);
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	address = start;
-diff -puN mm/madvise.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change mm/madvise.c
---- a/mm/madvise.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/mm/madvise.c
-@@ -281,6 +281,7 @@ static int madvise_free_pte_range(pmd_t
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
- 
-+	tlb_remove_check_page_size_change(tlb, PAGE_SIZE);
- 	orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
- 	arch_enter_lazy_mmu_mode();
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
-diff -puN mm/memory.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change mm/memory.c
---- a/mm/memory.c~mm-add-tlb_remove_check_page_size_change-to-track-page-size-change
-+++ a/mm/memory.c
-@@ -528,7 +528,11 @@ void free_pgd_range(struct mmu_gather *t
- 		end -= PMD_SIZE;
- 	if (addr > end - 1)
- 		return;
+- * Same as get_user_pages_unlocked(...., FOLL_TOUCH) but it allows to
+- * pass additional gup_flags as last parameter (like FOLL_HWPOISON).
++ * Same as get_user_pages_unlocked(...., FOLL_TOUCH) but it allows for
++ * tsk, mm to be specified.
+  *
+  * NOTE: here FOLL_TOUCH is not set implicitly and must be set by the
+- * caller if required (just like with __get_user_pages). "FOLL_GET",
+- * "FOLL_WRITE" and "FOLL_FORCE" are set implicitly as needed
+- * according to the parameters "pages", "write", "force"
+- * respectively.
++ * caller if required (just like with __get_user_pages). "FOLL_GET"
++ * is set implicitly if "pages" is non-NULL.
+  */
+ __always_inline long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
+ 					       unsigned long start, unsigned long nr_pages,
+@@ -895,10 +893,8 @@ EXPORT_SYMBOL(__get_user_pages_unlocked)
+  *      get_user_pages_unlocked(tsk, mm, ..., pages);
+  *
+  * It is functionally equivalent to get_user_pages_fast so
+- * get_user_pages_fast should be used instead, if the two parameters
+- * "tsk" and "mm" are respectively equal to current and current->mm,
+- * or if "force" shall be set to 1 (get_user_pages_fast misses the
+- * "force" parameter).
++ * get_user_pages_fast should be used instead if specific gup_flags
++ * (e.g. FOLL_FORCE) are not required.
+  */
+ long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+ 			     struct page **pages, unsigned int gup_flags)
+_
+
+Patches currently in -mm which might be from lstoakes@gmail.com are
+
+mm-add-locked-parameter-to-get_user_pages_remote.patch
+mm-unexport-__get_user_pages_unlocked.patch
+
