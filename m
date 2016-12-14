@@ -1,226 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/114] ipc/sem: optimize perform_atomic_semop()
-Date: Wed, 14 Dec 2016 15:06:37 -0800
-Message-ID: <5851d07d.3h2J0oc6dEEGidbM%akpm@linux-foundation.org>
+Subject: [patch 058/114] mm: add locked parameter to
+ get_user_pages_remote()
+Date: Wed, 14 Dec 2016 15:06:52 -0800
+Message-ID: <5851d08c.Ix6SXE5uaL5Yyjwo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35092 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752959AbcLNXH0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:07:26 -0500
+        with ESMTP id S1754707AbcLNXH1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:07:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dave@stgolabs.net, colin.king@canonical.com, dbueso@suse.de, manfred@colorfullife.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, lstoakes@gmail.com, dave.hansen@linux.intel.com, hughd@google.com, jack@suse.cz, mgorman@techsingularity.net, mhocko@suse.com, pbonzini@redhat.com, riel@redhat.com, rkrcmar@redhat.com, sfr@canb.auug.org.au
 
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: ipc/sem: optimize perform_atomic_semop()
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: add locked parameter to get_user_pages_remote()
 
-This is the main workhorse that deals with semop user calls such that the
-waitforzero or semval update operations, on the set, can complete on not
-as the sma currently stands.  Currently, the set is iterated twice
-(setting semval, then backwards for the sempid value).  Slowpaths, and
-particularly SEM_UNDO calls, must undo any altered sem when it is detected
-that the caller must block or has errored-out.
+Patch series "mm: unexport __get_user_pages_unlocked()".
 
-With larger sets, there can occur situations where this involves a lot of
-cycles and can obviously be a suboptimal use of cached resources in shared
-memory.  Ie, discarding CPU caches that are also calling semop and have
-the sembuf cached (and can complete), while the current lock holder doing
-the semop will block, error, or does a waitforzero operation.
+This patch series continues the cleanup of get_user_pages*() functions taking
+advantage of the fact we can now pass gup_flags as we please.
 
-This patch proposes still iterating the set twice, but the first scan is
-read-only, and we perform the actual updates afterward, once we know that
-the call will succeed.  In order to not suffer from the overhead of
-dealing with sops that act on the same sem_num, such (rare) cases use
-perform_atomic_semop_slow(), which is exactly what we have now. 
-Duplicates are detected before grabbing sem_lock, and uses simple a
-32/64-bit hash array variable to based on the sem_num we are working on.
+It firstly adds an additional 'locked' parameter to get_user_pages_remote() to
+allow for its callers to utilise VM_FAULT_RETRY functionality. This is necessary
+as the invocation of __get_user_pages_unlocked() in process_vm_rw_single_vec()
+makes use of this and no other existing higher level function would allow it to
+do so.
 
-In addition add some comments to when we expect to the caller to block.
+Secondly existing callers of __get_user_pages_unlocked() are replaced with the
+appropriate higher-level replacement - get_user_pages_unlocked() if the current
+task and memory descriptor are referenced, or get_user_pages_remote() if other
+task/memory descriptors are referenced (having acquiring mmap_sem.)
 
-[akpm@linux-foundation.org: coding-style fixes]
-[colin.king@canonical.com: ensure we left shift a ULL rather than a 32 bit integer]
-  Link: http://lkml.kernel.org/r/20161028181129.7311-1-colin.king@canonical.com
-Link: http://lkml.kernel.org/r/20160921194603.GB21438@linux-80c1.suse
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+
+This patch (of 2):
+
+Add a int *locked parameter to get_user_pages_remote() to allow
+VM_FAULT_RETRY faulting behaviour similar to get_user_pages_[un]locked().
+
+Taking into account the previous adjustments to get_user_pages*()
+functions allowing for the passing of gup_flags, we are now in a position
+where __get_user_pages_unlocked() need only be exported for his ability to
+allow VM_FAULT_RETRY behaviour, this adjustment allows us to subsequently
+unexport __get_user_pages_unlocked() as well as allowing for future
+flexibility in the use of get_user_pages_remote().
+
+[sfr@canb.auug.org.au: merge fix for get_user_pages_remote API change]
+  Link: http://lkml.kernel.org/r/20161122210511.024ec341@canb.auug.org.au
+Link: http://lkml.kernel.org/r/20161027095141.2569-2-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Radim Krcmar <rkrcmar@redhat.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |  112 +++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 102 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c   |    2 +-
+ drivers/gpu/drm/i915/i915_gem_userptr.c |    2 +-
+ drivers/infiniband/core/umem_odp.c      |    2 +-
+ drivers/vfio/vfio_iommu_type1.c         |    2 +-
+ fs/exec.c                               |    2 +-
+ include/linux/mm.h                      |    2 +-
+ kernel/events/uprobes.c                 |    4 ++--
+ mm/gup.c                                |   12 ++++++++----
+ mm/memory.c                             |    2 +-
+ security/tomoyo/domain.c                |    2 +-
+ 10 files changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN ipc/sem.c~ipc-sem-optimize-perform_atomic_semop ipc/sem.c
---- a/ipc/sem.c~ipc-sem-optimize-perform_atomic_semop
-+++ a/ipc/sem.c
-@@ -115,7 +115,8 @@ struct sem_queue {
- 	struct sembuf		*sops;	 /* array of pending operations */
- 	struct sembuf		*blocking; /* the operation that blocked */
- 	int			nsops;	 /* number of operations */
--	int			alter;	 /* does *sops alter the array? */
-+	bool			alter;	 /* does *sops alter the array? */
-+	bool                    dupsop;	 /* sops on more than one sem_num */
- };
+diff -puN drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-add-locked-parameter-to-get_user_pages_remote drivers/gpu/drm/etnaviv/etnaviv_gem.c
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+@@ -759,7 +759,7 @@ static struct page **etnaviv_gem_userptr
+ 	down_read(&mm->mmap_sem);
+ 	while (pinned < npages) {
+ 		ret = get_user_pages_remote(task, mm, ptr, npages - pinned,
+-					    flags, pvec + pinned, NULL);
++					    flags, pvec + pinned, NULL, NULL);
+ 		if (ret < 0)
+ 			break;
  
- /* Each task has a list of undo requests. They are executed automatically
-@@ -587,15 +588,23 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
- }
+diff -puN drivers/gpu/drm/i915/i915_gem_userptr.c~mm-add-locked-parameter-to-get_user_pages_remote drivers/gpu/drm/i915/i915_gem_userptr.c
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -515,7 +515,7 @@ __i915_gem_userptr_get_pages_worker(stru
+ 					 obj->userptr.ptr + pinned * PAGE_SIZE,
+ 					 npages - pinned,
+ 					 flags,
+-					 pvec + pinned, NULL);
++					 pvec + pinned, NULL, NULL);
+ 				if (ret < 0)
+ 					break;
  
- /**
-- * perform_atomic_semop - Perform (if possible) a semaphore operation
-+ * perform_atomic_semop[_slow] - Attempt to perform semaphore
-+ *                               operations on a given array.
-  * @sma: semaphore array
-  * @q: struct sem_queue that describes the operation
+diff -puN drivers/infiniband/core/umem_odp.c~mm-add-locked-parameter-to-get_user_pages_remote drivers/infiniband/core/umem_odp.c
+--- a/drivers/infiniband/core/umem_odp.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/drivers/infiniband/core/umem_odp.c
+@@ -578,7 +578,7 @@ int ib_umem_odp_map_dma_pages(struct ib_
+ 		 */
+ 		npages = get_user_pages_remote(owning_process, owning_mm,
+ 				user_virt, gup_num_pages,
+-				flags, local_page_list, NULL);
++				flags, local_page_list, NULL, NULL);
+ 		up_read(&owning_mm->mmap_sem);
+ 
+ 		if (npages < 0)
+diff -puN drivers/vfio/vfio_iommu_type1.c~mm-add-locked-parameter-to-get_user_pages_remote drivers/vfio/vfio_iommu_type1.c
+--- a/drivers/vfio/vfio_iommu_type1.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/drivers/vfio/vfio_iommu_type1.c
+@@ -362,7 +362,7 @@ static int vaddr_get_pfn(struct mm_struc
+ 
+ 		down_read(&mm->mmap_sem);
+ 		ret = get_user_pages_remote(NULL, mm, vaddr, 1, flags, page,
+-					    NULL);
++					    NULL, NULL);
+ 		up_read(&mm->mmap_sem);
+ 	}
+ 
+diff -puN fs/exec.c~mm-add-locked-parameter-to-get_user_pages_remote fs/exec.c
+--- a/fs/exec.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/fs/exec.c
+@@ -209,7 +209,7 @@ static struct page *get_arg_page(struct
+ 	 * doing the exec and bprm->mm is the new process's mm.
+ 	 */
+ 	ret = get_user_pages_remote(current, bprm->mm, pos, 1, gup_flags,
+-			&page, NULL);
++			&page, NULL, NULL);
+ 	if (ret <= 0)
+ 		return NULL;
+ 
+diff -puN include/linux/mm.h~mm-add-locked-parameter-to-get_user_pages_remote include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/include/linux/mm.h
+@@ -1274,7 +1274,7 @@ extern int access_remote_vm(struct mm_st
+ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ 			    unsigned long start, unsigned long nr_pages,
+ 			    unsigned int gup_flags, struct page **pages,
+-			    struct vm_area_struct **vmas);
++			    struct vm_area_struct **vmas, int *locked);
+ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 			    unsigned int gup_flags, struct page **pages,
+ 			    struct vm_area_struct **vmas);
+diff -puN kernel/events/uprobes.c~mm-add-locked-parameter-to-get_user_pages_remote kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/kernel/events/uprobes.c
+@@ -301,7 +301,7 @@ int uprobe_write_opcode(struct mm_struct
+ retry:
+ 	/* Read the page with vaddr into memory */
+ 	ret = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &old_page,
+-			&vma);
++			&vma, NULL);
+ 	if (ret <= 0)
+ 		return ret;
+ 
+@@ -1712,7 +1712,7 @@ static int is_trap_at_addr(struct mm_str
+ 	 * essentially a kernel access to the memory.
+ 	 */
+ 	result = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &page,
+-			NULL);
++			NULL, NULL);
+ 	if (result < 0)
+ 		return result;
+ 
+diff -puN mm/gup.c~mm-add-locked-parameter-to-get_user_pages_remote mm/gup.c
+--- a/mm/gup.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/mm/gup.c
+@@ -917,6 +917,9 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  *		only intends to ensure the pages are faulted in.
+  * @vmas:	array of pointers to vmas corresponding to each page.
+  *		Or NULL if the caller does not require them.
++ * @locked:	pointer to lock flag indicating whether lock is held and
++ *		subsequently whether VM_FAULT_RETRY functionality can be
++ *		utilised. Lock must initially be held.
   *
-+ * Caller blocking are as follows, based the value
-+ * indicated by the semaphore operation (sem_op):
-+ *
-+ *  (1) >0 never blocks.
-+ *  (2)  0 (wait-for-zero operation): semval is non-zero.
-+ *  (3) <0 attempting to decrement semval to a value smaller than zero.
-+ *
-  * Returns 0 if the operation was possible.
-  * Returns 1 if the operation is impossible, the caller must sleep.
-- * Negative values are error codes.
-+ * Returns <0 for error codes.
-  */
--static int perform_atomic_semop(struct sem_array *sma, struct sem_queue *q)
-+static int perform_atomic_semop_slow(struct sem_array *sma, struct sem_queue *q)
+  * Returns number of pages pinned. This may be fewer than the number
+  * requested. If nr_pages is 0 or negative, returns 0. If no pages
+@@ -960,10 +963,10 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ 		unsigned long start, unsigned long nr_pages,
+ 		unsigned int gup_flags, struct page **pages,
+-		struct vm_area_struct **vmas)
++		struct vm_area_struct **vmas, int *locked)
  {
- 	int result, sem_op, nsops, pid;
- 	struct sembuf *sop;
-@@ -666,6 +675,72 @@ undo:
- 	return result;
+ 	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
+-				       NULL, false,
++				       locked, true,
+ 				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
  }
+ EXPORT_SYMBOL(get_user_pages_remote);
+@@ -971,8 +974,9 @@ EXPORT_SYMBOL(get_user_pages_remote);
+ /*
+  * This is the same as get_user_pages_remote(), just with a
+  * less-flexible calling convention where we assume that the task
+- * and mm being operated on are the current task's.  We also
+- * obviously don't pass FOLL_REMOTE in here.
++ * and mm being operated on are the current task's and don't allow
++ * passing of a locked parameter.  We also obviously don't pass
++ * FOLL_REMOTE in here.
+  */
+ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 		unsigned int gup_flags, struct page **pages,
+diff -puN mm/memory.c~mm-add-locked-parameter-to-get_user_pages_remote mm/memory.c
+--- a/mm/memory.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/mm/memory.c
+@@ -3919,7 +3919,7 @@ static int __access_remote_vm(struct tas
+ 		struct page *page = NULL;
  
-+static int perform_atomic_semop(struct sem_array *sma, struct sem_queue *q)
-+{
-+	int result, sem_op, nsops;
-+	struct sembuf *sop;
-+	struct sem *curr;
-+	struct sembuf *sops;
-+	struct sem_undo *un;
-+
-+	sops = q->sops;
-+	nsops = q->nsops;
-+	un = q->undo;
-+
-+	if (unlikely(q->dupsop))
-+		return perform_atomic_semop_slow(sma, q);
-+
-+	/*
-+	 * We scan the semaphore set twice, first to ensure that the entire
-+	 * operation can succeed, therefore avoiding any pointless writes
-+	 * to shared memory and having to undo such changes in order to block
-+	 * until the operations can go through.
-+	 */
-+	for (sop = sops; sop < sops + nsops; sop++) {
-+		curr = sma->sem_base + sop->sem_num;
-+		sem_op = sop->sem_op;
-+		result = curr->semval;
-+
-+		if (!sem_op && result)
-+			goto would_block; /* wait-for-zero */
-+
-+		result += sem_op;
-+		if (result < 0)
-+			goto would_block;
-+
-+		if (result > SEMVMX)
-+			return -ERANGE;
-+
-+		if (sop->sem_flg & SEM_UNDO) {
-+			int undo = un->semadj[sop->sem_num] - sem_op;
-+
-+			/* Exceeding the undo range is an error. */
-+			if (undo < (-SEMAEM - 1) || undo > SEMAEM)
-+				return -ERANGE;
-+		}
-+	}
-+
-+	for (sop = sops; sop < sops + nsops; sop++) {
-+		curr = sma->sem_base + sop->sem_num;
-+		sem_op = sop->sem_op;
-+		result = curr->semval;
-+
-+		if (sop->sem_flg & SEM_UNDO) {
-+			int undo = un->semadj[sop->sem_num] - sem_op;
-+
-+			un->semadj[sop->sem_num] = undo;
-+		}
-+		curr->semval += sem_op;
-+		curr->sempid = q->pid;
-+	}
-+
-+	return 0;
-+
-+would_block:
-+	q->blocking = sop;
-+	return sop->sem_flg & IPC_NOWAIT ? -EAGAIN : 1;
-+}
-+
- static inline void wake_up_sem_queue_prepare(struct sem_queue *q, int error,
- 					     struct wake_q_head *wake_q)
- {
-@@ -1720,9 +1795,10 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 	struct sembuf fast_sops[SEMOPM_FAST];
- 	struct sembuf *sops = fast_sops, *sop;
- 	struct sem_undo *un;
--	int undos = 0, alter = 0, max, locknum;
-+	int max, locknum;
-+	bool undos = false, alter = false, dupsop = false;
- 	struct sem_queue queue;
--	unsigned long jiffies_left = 0;
-+	unsigned long dup = 0, jiffies_left = 0;
- 	struct ipc_namespace *ns;
- 
- 	ns = current->nsproxy->ipc_ns;
-@@ -1736,10 +1812,12 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 		if (sops == NULL)
- 			return -ENOMEM;
- 	}
-+
- 	if (copy_from_user(sops, tsops, nsops * sizeof(*tsops))) {
- 		error =  -EFAULT;
- 		goto out_free;
- 	}
-+
- 	if (timeout) {
- 		struct timespec _timeout;
- 		if (copy_from_user(&_timeout, timeout, sizeof(*timeout))) {
-@@ -1753,17 +1831,30 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 		}
- 		jiffies_left = timespec_to_jiffies(&_timeout);
- 	}
-+
- 	max = 0;
- 	for (sop = sops; sop < sops + nsops; sop++) {
-+		unsigned long mask = 1ULL << ((sop->sem_num) % BITS_PER_LONG);
-+
- 		if (sop->sem_num >= max)
- 			max = sop->sem_num;
- 		if (sop->sem_flg & SEM_UNDO)
--			undos = 1;
--		if (sop->sem_op != 0)
--			alter = 1;
-+			undos = true;
-+		if (dup & mask) {
-+			/*
-+			 * There was a previous alter access that appears
-+			 * to have accessed the same semaphore, thus use
-+			 * the dupsop logic. "appears", because the detection
-+			 * can only check % BITS_PER_LONG.
-+			 */
-+			dupsop = true;
-+		}
-+		if (sop->sem_op != 0) {
-+			alter = true;
-+			dup |= mask;
-+		}
- 	}
- 
+ 		ret = get_user_pages_remote(tsk, mm, addr, 1,
+-				gup_flags, &page, &vma);
++				gup_flags, &page, &vma, NULL);
+ 		if (ret <= 0) {
+ #ifndef CONFIG_HAVE_IOREMAP_PROT
+ 			break;
+diff -puN security/tomoyo/domain.c~mm-add-locked-parameter-to-get_user_pages_remote security/tomoyo/domain.c
+--- a/security/tomoyo/domain.c~mm-add-locked-parameter-to-get_user_pages_remote
++++ a/security/tomoyo/domain.c
+@@ -881,7 +881,7 @@ bool tomoyo_dump_page(struct linux_binpr
+ 	 * the execve().
+ 	 */
+ 	if (get_user_pages_remote(current, bprm->mm, pos, 1,
+-				FOLL_FORCE, &page, NULL) <= 0)
++				FOLL_FORCE, &page, NULL, NULL) <= 0)
+ 		return false;
+ #else
+ 	page = bprm->page[pos / PAGE_SIZE];
+_
