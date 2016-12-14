@@ -1,68 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fix-type-of-struct-pde_opener-closing-field.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:26:52 -0800
-Message-ID: <58519cfc.jVruW/Kgb2cZsc3V%akpm@linux-foundation.org>
+Subject: [merged] proc-kmalloc-struct-pde_opener.patch removed from -mm
+ tree
+Date: Wed, 14 Dec 2016 11:26:54 -0800
+Message-ID: <58519cfe.82g76rveuRY49G01%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45600 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756653AbcLNT0x (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:53 -0500
+        with ESMTP id S1756653AbcLNT0z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix type of struct pde_opener::closing field
+     Subject: proc: kmalloc struct pde_opener
 has been removed from the -mm tree.  Its filename was
-     proc-fix-type-of-struct-pde_opener-closing-field.patch
+     proc-kmalloc-struct-pde_opener.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: fix type of struct pde_opener::closing field
+Subject: proc: kmalloc struct pde_opener
 
-struct pde_opener::closing is boolean.
+kzalloc is too much, half of the fields will be reinitialized anyway.
 
-Link: http://lkml.kernel.org/r/20161029155439.GB1246@avx2
+If proc file doesn't have ->release hook (some still do not), clearing
+is unnecessary because it will be freed immediately.
+
+Link: http://lkml.kernel.org/r/20161029155747.GC1246@avx2
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c    |    2 +-
- fs/proc/internal.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/inode.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/inode.c~proc-fix-type-of-struct-pde_opener-closing-field fs/proc/inode.c
---- a/fs/proc/inode.c~proc-fix-type-of-struct-pde_opener-closing-field
+diff -puN fs/proc/inode.c~proc-kmalloc-struct-pde_opener fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-kmalloc-struct-pde_opener
 +++ a/fs/proc/inode.c
-@@ -147,7 +147,7 @@ static void close_pdeo(struct proc_dir_e
+@@ -321,7 +321,7 @@ static int proc_reg_open(struct inode *i
+ 	 * by hand in remove_proc_entry(). For this, save opener's credentials
+ 	 * for later.
+ 	 */
+-	pdeo = kzalloc(sizeof(struct pde_opener), GFP_KERNEL);
++	pdeo = kmalloc(sizeof(struct pde_opener), GFP_KERNEL);
+ 	if (!pdeo)
+ 		return -ENOMEM;
+ 
+@@ -338,6 +338,8 @@ static int proc_reg_open(struct inode *i
+ 	if (rv == 0 && release) {
+ 		/* To know what to release. */
+ 		pdeo->file = file;
++		pdeo->closing = false;
++		pdeo->c = NULL;
+ 		/* Strictly for "too late" ->release in proc_reg_release(). */
  		spin_lock(&pde->pde_unload_lock);
- 	} else {
- 		struct file *file;
--		pdeo->closing = 1;
-+		pdeo->closing = true;
- 		spin_unlock(&pde->pde_unload_lock);
- 		file = pdeo->file;
- 		pde->proc_fops->release(file_inode(file), file);
-diff -puN fs/proc/internal.h~proc-fix-type-of-struct-pde_opener-closing-field fs/proc/internal.h
---- a/fs/proc/internal.h~proc-fix-type-of-struct-pde_opener-closing-field
-+++ a/fs/proc/internal.h
-@@ -203,7 +203,7 @@ struct proc_dir_entry *proc_create_mount
- struct pde_opener {
- 	struct file *file;
- 	struct list_head lh;
--	int closing;
-+	bool closing;
- 	struct completion *c;
- };
- extern const struct inode_operations proc_link_inode_operations;
+ 		list_add(&pdeo->lh, &pde->pde_openers);
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
