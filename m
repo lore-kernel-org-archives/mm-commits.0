@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [patch 087/114] radix tree test suite: use rcu_barrier
-Date: Wed, 14 Dec 2016 15:08:17 -0800
-Message-ID: <5851d0e1.U5NuSTpwIB4K4Rwz%akpm@linux-foundation.org>
+Subject: [patch 088/114] radix tree test suite: handle exceptional entries
+Date: Wed, 14 Dec 2016 15:08:20 -0800
+Message-ID: <5851d0e4.is1vMFT/NQ7npuNL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35304 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753350AbcLNXIS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:08:18 -0500
+        with ESMTP id S934101AbcLNXIV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:08:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix tree test suite: use rcu_barrier
+Subject: radix tree test suite: handle exceptional entries
 
-Calling rcu_barrier() allows all of the rcu-freed memory to be actually
-returned to the pool, and allows nr_allocated to return to 0.  As well as
-allowing diffs between runs to be more useful, it also lets us pinpoint
-leaks more effectively.
+item_kill_tree() assumes that everything in the tree is a pointer to a
+struct item, which is annoying when testing the behaviour of exceptional
+entries.  Fix it to delete exceptional entries on the assumption they
+don't need to be freed.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-44-git-send-email-mawilcox@linuxonhyperv.com
+Link: http://lkml.kernel.org/r/1480369871-5271-45-git-send-email-mawilcox@linuxonhyperv.com
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -32,90 +32,27 @@ Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/main.c      |   12 ++++++++++--
- tools/testing/radix-tree/tag_check.c |    5 +++++
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ tools/testing/radix-tree/test.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-use-rcu_barrier tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-use-rcu_barrier
-+++ a/tools/testing/radix-tree/main.c
-@@ -295,24 +295,31 @@ static void single_thread_tests(bool lon
- 	printf("starting single_thread_tests: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	multiorder_checks();
-+	rcu_barrier();
- 	printf("after multiorder_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	locate_check();
-+	rcu_barrier();
- 	printf("after locate_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	tag_check();
-+	rcu_barrier();
- 	printf("after tag_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	gang_check();
-+	rcu_barrier();
- 	printf("after gang_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	add_and_check();
-+	rcu_barrier();
- 	printf("after add_and_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	dynamic_height_check();
-+	rcu_barrier();
- 	printf("after dynamic_height_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	big_gang_check(long_run);
-+	rcu_barrier();
- 	printf("after big_gang_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	for (i = 0; i < (long_run ? 2000 : 3); i++) {
-@@ -320,6 +327,7 @@ static void single_thread_tests(bool lon
- 		printf("%d ", i);
- 		fflush(stdout);
- 	}
-+	rcu_barrier();
- 	printf("after copy_tag_check: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- }
-@@ -354,8 +362,8 @@ int main(int argc, char **argv)
+diff -puN tools/testing/radix-tree/test.c~radix-tree-test-suite-handle-exceptional-entries tools/testing/radix-tree/test.c
+--- a/tools/testing/radix-tree/test.c~radix-tree-test-suite-handle-exceptional-entries
++++ a/tools/testing/radix-tree/test.c
+@@ -200,9 +200,16 @@ void verify_tag_consistency(struct radix
  
- 	benchmark();
+ void item_kill_tree(struct radix_tree_root *root)
+ {
++	struct radix_tree_iter iter;
++	void **slot;
+ 	struct item *items[32];
+ 	int nfound;
  
--	sleep(1);
--	printf("after sleep(1): %d allocated, preempt %d\n",
-+	rcu_barrier();
-+	printf("after rcu_barrier: %d allocated, preempt %d\n",
- 		nr_allocated, preempt_count);
- 	rcu_unregister_thread();
++	radix_tree_for_each_slot(slot, root, &iter, 0) {
++		if (radix_tree_exceptional_entry(*slot))
++			radix_tree_delete(root, iter.index);
++	}
++
+ 	while ((nfound = radix_tree_gang_lookup(root, (void **)items, 0, 32))) {
+ 		int i;
  
-diff -puN tools/testing/radix-tree/tag_check.c~radix-tree-test-suite-use-rcu_barrier tools/testing/radix-tree/tag_check.c
---- a/tools/testing/radix-tree/tag_check.c~radix-tree-test-suite-use-rcu_barrier
-+++ a/tools/testing/radix-tree/tag_check.c
-@@ -51,6 +51,7 @@ void simple_checks(void)
- 	verify_tag_consistency(&tree, 1);
- 	printf("before item_kill_tree: %d allocated\n", nr_allocated);
- 	item_kill_tree(&tree);
-+	rcu_barrier();
- 	printf("after item_kill_tree: %d allocated\n", nr_allocated);
- }
- 
-@@ -331,12 +332,16 @@ void tag_check(void)
- 	single_check();
- 	extend_checks();
- 	contract_checks();
-+	rcu_barrier();
- 	printf("after extend_checks: %d allocated\n", nr_allocated);
- 	__leak_check();
- 	leak_check();
-+	rcu_barrier();
- 	printf("after leak_check: %d allocated\n", nr_allocated);
- 	simple_checks();
-+	rcu_barrier();
- 	printf("after simple_checks: %d allocated\n", nr_allocated);
- 	thrash_tags();
-+	rcu_barrier();
- 	printf("after thrash_tags: %d allocated\n", nr_allocated);
- }
 _
