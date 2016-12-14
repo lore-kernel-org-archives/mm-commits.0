@@ -1,142 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [patch 039/114] kdb: properly synchronize vkdb_printf() calls
- with other CPUs
-Date: Wed, 14 Dec 2016 15:05:55 -0800
-Message-ID: <5851d053.VXxyeiUssOTgA7rv%akpm@linux-foundation.org>
+Subject: [patch 051/114] ipc/sem: do not call wake_sem_queue_do()
+ prematurely
+Date: Wed, 14 Dec 2016 15:06:31 -0800
+Message-ID: <5851d077.RM3s5sgM6hi1zDLB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34702 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34890 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753350AbcLNXGX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:06:23 -0500
+        with ESMTP id S1756928AbcLNXGc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:06:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, daniel.thompson@linaro.org, jason.wessel@windriver.com, peterz@infradead.org, sergey.senozhatsky@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com
 
-From: Petr Mladek <pmladek@suse.com>
-Subject: kdb: properly synchronize vkdb_printf() calls with other CPUs
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc/sem: do not call wake_sem_queue_do() prematurely
 
-kdb_printf_lock does not prevent other CPUs from entering the critical
-section because it is ignored when KDB_STATE_PRINTF_LOCK is set.
+... as this call should obviously be paired with its _prepare()
+counterpart. At least whenever possible, as there is no harm in
+calling it bogusly as we do now in a few places. Immediate error
+semop(2) paths that are far from ever having the task block can
+be simplified and avoid a few unnecessary loads on their way out
+of the call as it is not deeply nested.
 
-The problematic situation might look like:
-
-CPU0					CPU1
-
-vkdb_printf()
-  if (!KDB_STATE(PRINTF_LOCK))
-    KDB_STATE_SET(PRINTF_LOCK);
-    spin_lock_irqsave(&kdb_printf_lock, flags);
-
-					vkdb_printf()
-					  if (!KDB_STATE(PRINTF_LOCK))
-
-BANG: The PRINTF_LOCK state is set and CPU1 is entering the critical
-section without spinning on the lock.
-
-The problem is that the code tries to implement locking using two state
-variables that are not handled atomically.  Well, we need a custom locking
-because we want to allow reentering the critical section on the very same
-CPU.
-
-Let's use solution from Petr Zijlstra that was proposed for a similar
-scenario, see
-https://lkml.kernel.org/r/20161018171513.734367391@infradead.org
-
-This patch uses the same trick with cmpxchg().  The only difference is
-that we want to handle only recursion from the same context and therefore
-we disable interrupts.
-
-In addition, KDB_STATE_PRINTF_LOCK is removed. In fact, we are not
-able to set it a non-racy way.
-
-Link: http://lkml.kernel.org/r/1480412276-16690-3-git-send-email-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/1474225896-10066-2-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/kdb/kdb_io.c      |   30 +++++++++++++-----------------
- kernel/debug/kdb/kdb_private.h |    1 -
- 2 files changed, 13 insertions(+), 18 deletions(-)
+ ipc/sem.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN kernel/debug/kdb/kdb_io.c~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus kernel/debug/kdb/kdb_io.c
---- a/kernel/debug/kdb/kdb_io.c~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus
-+++ a/kernel/debug/kdb/kdb_io.c
-@@ -555,16 +555,16 @@ int vkdb_printf(enum kdb_msgsrc src, con
- 	int colcount;
- 	int logging, saved_loglevel = 0;
- 	int saved_trap_printk;
--	int got_printf_lock = 0;
- 	int retlen = 0;
- 	int fnd, len;
-+	int this_cpu, old_cpu;
-+	static int kdb_printf_cpu = -1;
- 	char *cp, *cp2, *cphold = NULL, replaced_byte = ' ';
- 	char *moreprompt = "more> ";
- 	struct console *c = console_drivers;
--	static DEFINE_SPINLOCK(kdb_printf_lock);
- 	unsigned long uninitialized_var(flags);
- 
--	preempt_disable();
-+	local_irq_save(flags);
- 	saved_trap_printk = kdb_trap_printk;
- 	kdb_trap_printk = 0;
- 
-@@ -572,12 +572,13 @@ int vkdb_printf(enum kdb_msgsrc src, con
- 	 * But if any cpu goes recursive in kdb, just print the output,
- 	 * even if it is interleaved with any other text.
- 	 */
--	if (!KDB_STATE(PRINTF_LOCK)) {
--		KDB_STATE_SET(PRINTF_LOCK);
--		spin_lock_irqsave(&kdb_printf_lock, flags);
--		got_printf_lock = 1;
--	} else {
--		__acquire(kdb_printf_lock);
-+	this_cpu = smp_processor_id();
-+	for (;;) {
-+		old_cpu = cmpxchg(&kdb_printf_cpu, -1, this_cpu);
-+		if (old_cpu == -1 || old_cpu == this_cpu)
-+			break;
-+
-+		cpu_relax();
+diff -puN ipc/sem.c~ipc-sem-do-not-call-wake_sem_queue_do-prematurely ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-do-not-call-wake_sem_queue_do-prematurely
++++ a/ipc/sem.c
+@@ -1887,16 +1887,22 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
  	}
  
- 	diag = kdbgetintenv("LINES", &linecount);
-@@ -846,15 +847,10 @@ kdb_print_out:
- 	suspend_grep = 0; /* end of what may have been a recursive call */
- 	if (logging)
- 		console_loglevel = saved_loglevel;
--	if (KDB_STATE(PRINTF_LOCK) && got_printf_lock) {
--		got_printf_lock = 0;
--		spin_unlock_irqrestore(&kdb_printf_lock, flags);
--		KDB_STATE_CLEAR(PRINTF_LOCK);
--	} else {
--		__release(kdb_printf_lock);
--	}
-+	/* kdb_printf_cpu locked the code above. */
-+	smp_store_release(&kdb_printf_cpu, old_cpu);
- 	kdb_trap_printk = saved_trap_printk;
--	preempt_enable();
-+	local_irq_restore(flags);
- 	return retlen;
- }
+ 	error = -EFBIG;
+-	if (max >= sma->sem_nsems)
+-		goto out_rcu_wakeup;
++	if (max >= sma->sem_nsems) {
++		rcu_read_unlock();
++		goto out_free;
++	}
  
-diff -puN kernel/debug/kdb/kdb_private.h~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus kernel/debug/kdb/kdb_private.h
---- a/kernel/debug/kdb/kdb_private.h~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus
-+++ a/kernel/debug/kdb/kdb_private.h
-@@ -132,7 +132,6 @@ extern int kdb_state;
- #define KDB_STATE_PAGER		0x00000400	/* pager is available */
- #define KDB_STATE_GO_SWITCH	0x00000800	/* go is switching
- 						 * back to initial cpu */
--#define KDB_STATE_PRINTF_LOCK	0x00001000	/* Holds kdb_printf lock */
- #define KDB_STATE_WAIT_IPI	0x00002000	/* Waiting for kdb_ipi() NMI */
- #define KDB_STATE_RECURSE	0x00004000	/* Recursive entry to kdb */
- #define KDB_STATE_IP_ADJUSTED	0x00008000	/* Restart IP has been
+ 	error = -EACCES;
+-	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO))
+-		goto out_rcu_wakeup;
++	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO)) {
++		rcu_read_unlock();
++		goto out_free;
++	}
+ 
+ 	error = security_sem_semop(sma, sops, nsops, alter);
+-	if (error)
+-		goto out_rcu_wakeup;
++	if (error) {
++		rcu_read_unlock();
++		goto out_free;
++	}
+ 
+ 	error = -EIDRM;
+ 	locknum = sem_lock(sma, sops, nsops);
+@@ -2039,7 +2045,6 @@ sleep_again:
+ 
+ out_unlock_free:
+ 	sem_unlock(sma, locknum);
+-out_rcu_wakeup:
+ 	rcu_read_unlock();
+ 	wake_up_sem_queue_do(&tasks);
+ out_free:
 _
