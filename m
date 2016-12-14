@@ -1,172 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-rmap-handle-anon_vma_prepare-common-case-inline.patch removed from -mm tree
-Date: Wed, 14 Dec 2016 11:26:20 -0800
-Message-ID: <58519cdc.Inw/aG9srxM4B08S%akpm@linux-foundation.org>
+Subject: [merged] mm-turn-vmap_purge_lock-into-a-mutex.patch removed from
+ -mm tree
+Date: Wed, 14 Dec 2016 11:26:06 -0800
+Message-ID: <58519cce.hpaWQCjdrsJTjHrL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45204 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755280AbcLNT00 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:26 -0500
+        with ESMTP id S1755280AbcLNT0W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: hch@lst.de, aryabinin@virtuozzo.com, chris@chris-wilson.co.uk, hpa@zytor.com, joaodias@google.com, joelaf@google.com, jszhang@marvell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, rmap: handle anon_vma_prepare() common case inline
+     Subject: mm: turn vmap_purge_lock into a mutex
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-handle-anon_vma_prepare-common-case-inline.patch
+     mm-turn-vmap_purge_lock-into-a-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, rmap: handle anon_vma_prepare() common case inline
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: turn vmap_purge_lock into a mutex
 
-anon_vma_prepare() is mostly a large "if (unlikely(...))" block, as the
-expected common case is that an anon_vma already exists.  We could turn
-the condition around and return 0, but it also makes sense to do it inline
-and avoid a call for the common case.
+The purge_lock spinlock causes high latencies with non RT kernel. This
+has been reported multiple times on lkml [1] [2] and affects
+applications like audio.
 
-Bloat-o-meter naturally shows that inlining the check has some code size
-costs:
+This patch replaces it with a mutex to allow preemption while holding
+the lock.
 
-add/remove: 1/1 grow/shrink: 4/0 up/down: 475/-373 (102)
-function                                     old     new   delta
-__anon_vma_prepare                             -     359    +359
-handle_mm_fault                             2744    2796     +52
-hugetlb_cow                                 1146    1170     +24
-hugetlb_fault                               2123    2145     +22
-wp_page_copy                                1469    1487     +18
-anon_vma_prepare                             373       -    -373
+Thanks to Joel Fernandes for the detailed report and analysis as well
+as an earlier attempt at fixing this issue.
 
-Checking the asm however confirms that the hot paths now avoid a call,
-which is moved away.
+[1] http://lists.openwall.net/linux-kernel/2016/03/23/29
+[2] https://lkml.org/lkml/2016/10/9/59
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20161116074005.22768-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Link: http://lkml.kernel.org/r/1479474236-4139-10-git-send-email-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Jisheng Zhang <jszhang@marvell.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Joel Fernandes <joelaf@google.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: John Dias <joaodias@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   10 +++++
- mm/rmap.c            |   73 ++++++++++++++++++++---------------------
- 2 files changed, 45 insertions(+), 38 deletions(-)
+ mm/vmalloc.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline include/linux/rmap.h
---- a/include/linux/rmap.h~mm-rmap-handle-anon_vma_prepare-common-case-inline
-+++ a/include/linux/rmap.h
-@@ -137,11 +137,19 @@ static inline void anon_vma_unlock_read(
-  * anon_vma helper functions.
+diff -puN mm/vmalloc.c~mm-turn-vmap_purge_lock-into-a-mutex mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-turn-vmap_purge_lock-into-a-mutex
++++ a/mm/vmalloc.c
+@@ -606,7 +606,7 @@ static atomic_t vmap_lazy_nr = ATOMIC_IN
+  * by this look, but we want to avoid concurrent calls for performance
+  * reasons and to make the pcpu_get_vm_areas more deterministic.
   */
- void anon_vma_init(void);	/* create anon_vma_cachep */
--int  anon_vma_prepare(struct vm_area_struct *);
-+int  __anon_vma_prepare(struct vm_area_struct *);
- void unlink_anon_vmas(struct vm_area_struct *);
- int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
- int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+-static DEFINE_SPINLOCK(vmap_purge_lock);
++static DEFINE_MUTEX(vmap_purge_lock);
  
-+static inline int anon_vma_prepare(struct vm_area_struct *vma)
-+{
-+	if (likely(vma->anon_vma))
-+		return 0;
-+
-+	return __anon_vma_prepare(vma);
-+}
-+
- static inline void anon_vma_merge(struct vm_area_struct *vma,
- 				  struct vm_area_struct *next)
+ /* for per-CPU blocks */
+ static void purge_fragmented_blocks_allcpus(void);
+@@ -660,9 +660,9 @@ static bool __purge_vmap_area_lazy(unsig
+  */
+ static void try_purge_vmap_area_lazy(void)
  {
-diff -puN mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline mm/rmap.c
---- a/mm/rmap.c~mm-rmap-handle-anon_vma_prepare-common-case-inline
-+++ a/mm/rmap.c
-@@ -141,14 +141,15 @@ static void anon_vma_chain_link(struct v
+-	if (spin_trylock(&vmap_purge_lock)) {
++	if (mutex_trylock(&vmap_purge_lock)) {
+ 		__purge_vmap_area_lazy(ULONG_MAX, 0);
+-		spin_unlock(&vmap_purge_lock);
++		mutex_unlock(&vmap_purge_lock);
+ 	}
  }
  
- /**
-- * anon_vma_prepare - attach an anon_vma to a memory region
-+ * __anon_vma_prepare - attach an anon_vma to a memory region
-  * @vma: the memory region in question
-  *
-  * This makes sure the memory mapping described by 'vma' has
-  * an 'anon_vma' attached to it, so that we can associate the
-  * anonymous pages mapped into it with that anon_vma.
-  *
-- * The common case will be that we already have one, but if
-+ * The common case will be that we already have one, which
-+ * is handled inline by anon_vma_prepare(). But if
-  * not we either need to find an adjacent mapping that we
-  * can re-use the anon_vma from (very common when the only
-  * reason for splitting a vma has been mprotect()), or we
-@@ -167,48 +168,46 @@ static void anon_vma_chain_link(struct v
-  *
-  * This must be called with the mmap_sem held for reading.
+@@ -671,10 +671,10 @@ static void try_purge_vmap_area_lazy(voi
   */
--int anon_vma_prepare(struct vm_area_struct *vma)
-+int __anon_vma_prepare(struct vm_area_struct *vma)
+ static void purge_vmap_area_lazy(void)
  {
--	struct anon_vma *anon_vma = vma->anon_vma;
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct anon_vma *anon_vma, *allocated;
- 	struct anon_vma_chain *avc;
+-	spin_lock(&vmap_purge_lock);
++	mutex_lock(&vmap_purge_lock);
+ 	purge_fragmented_blocks_allcpus();
+ 	__purge_vmap_area_lazy(ULONG_MAX, 0);
+-	spin_unlock(&vmap_purge_lock);
++	mutex_unlock(&vmap_purge_lock);
+ }
  
- 	might_sleep();
--	if (unlikely(!anon_vma)) {
--		struct mm_struct *mm = vma->vm_mm;
--		struct anon_vma *allocated;
--
--		avc = anon_vma_chain_alloc(GFP_KERNEL);
--		if (!avc)
--			goto out_enomem;
+ /*
+@@ -1063,11 +1063,11 @@ void vm_unmap_aliases(void)
+ 		rcu_read_unlock();
+ 	}
  
--		anon_vma = find_mergeable_anon_vma(vma);
-+	avc = anon_vma_chain_alloc(GFP_KERNEL);
-+	if (!avc)
-+		goto out_enomem;
-+
-+	anon_vma = find_mergeable_anon_vma(vma);
-+	allocated = NULL;
-+	if (!anon_vma) {
-+		anon_vma = anon_vma_alloc();
-+		if (unlikely(!anon_vma))
-+			goto out_enomem_free_avc;
-+		allocated = anon_vma;
-+	}
-+
-+	anon_vma_lock_write(anon_vma);
-+	/* page_table_lock to protect against threads */
-+	spin_lock(&mm->page_table_lock);
-+	if (likely(!vma->anon_vma)) {
-+		vma->anon_vma = anon_vma;
-+		anon_vma_chain_link(vma, avc, anon_vma);
-+		/* vma reference or self-parent link for new root */
-+		anon_vma->degree++;
- 		allocated = NULL;
--		if (!anon_vma) {
--			anon_vma = anon_vma_alloc();
--			if (unlikely(!anon_vma))
--				goto out_enomem_free_avc;
--			allocated = anon_vma;
--		}
--
--		anon_vma_lock_write(anon_vma);
--		/* page_table_lock to protect against threads */
--		spin_lock(&mm->page_table_lock);
--		if (likely(!vma->anon_vma)) {
--			vma->anon_vma = anon_vma;
--			anon_vma_chain_link(vma, avc, anon_vma);
--			/* vma reference or self-parent link for new root */
--			anon_vma->degree++;
--			allocated = NULL;
--			avc = NULL;
--		}
--		spin_unlock(&mm->page_table_lock);
--		anon_vma_unlock_write(anon_vma);
+-	spin_lock(&vmap_purge_lock);
++	mutex_lock(&vmap_purge_lock);
+ 	purge_fragmented_blocks_allcpus();
+ 	if (!__purge_vmap_area_lazy(start, end) && flush)
+ 		flush_tlb_kernel_range(start, end);
+-	spin_unlock(&vmap_purge_lock);
++	mutex_unlock(&vmap_purge_lock);
+ }
+ EXPORT_SYMBOL_GPL(vm_unmap_aliases);
+ 
+_
+
+Patches currently in -mm which might be from hch@lst.de are
+
+
