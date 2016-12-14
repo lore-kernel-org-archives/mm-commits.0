@@ -1,109 +1,193 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:24:15 -0800
-Message-ID: <58519c5f.ngN035uU8eGE0Mbl%akpm@linux-foundation.org>
+ mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch removed
+ from -mm tree
+Date: Wed, 14 Dec 2016 11:24:18 -0800
+Message-ID: <58519c62.a83UV1lvTrqocY0Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44166 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756530AbcLNTYQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:16 -0500
+        with ESMTP id S1756543AbcLNTYT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, khandual@linux.vnet.ibm.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ming.ling@spreadtrum.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mempolicy: clean up __GFP_THISNODE confusion in policy_zonelist
+     Subject: mm, compaction: fix NR_ISOLATED_* stats for pfn based migration
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
+     mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, mempolicy: clean up __GFP_THISNODE confusion in policy_zonelist
+From: Ming Ling <ming.ling@spreadtrum.com>
+Subject: mm, compaction: fix NR_ISOLATED_* stats for pfn based migration
 
-__GFP_THISNODE is documented to enforce the allocation to be satisified
-from the requested node with no fallbacks or placement policy
-enforcements.  policy_zonelist seemingly breaks this semantic if the
-current policy is MPOL_MBIND and instead of taking the node it will
-fallback to the first node in the mask if the requested one is not in the
-mask.  This is confusing to say the least because it fact we shouldn't
-ever go that path.  First tasks shouldn't be scheduled on CPUs with nodes
-outside of their mempolicy binding.  And secondly policy_zonelist is
-called only from 3 places:
+Since bda807d44454 ("mm: migrate: support non-lru movable page migration")
+isolate_migratepages_block) can isolate !PageLRU pages which would
+acct_isolated account as NR_ISOLATED_*.  Accounting these non-lru pages
+NR_ISOLATED_{ANON,FILE} doesn't make any sense and it can misguide
+heuristics based on those counters such as pgdat_reclaimable_pages resp. 
+too_many_isolated which would lead to unexpected stalls during the direct
+reclaim without any good reason.  Note that __alloc_contig_migrate_range
+can isolate a lot of pages at once.
 
-- huge_zonelist - never should do __GFP_THISNODE when going this path
+On mobile devices such as 512M ram android Phone, it may use a big zram
+swap.  In some cases zram(zsmalloc) uses too many non-lru but migratedable
+pages, such as:
 
-- alloc_pages_vma - which shouldn't depend on __GFP_THISNODE either
+      MemTotal: 468148 kB
+      Normal free:5620kB
+      Free swap:4736kB
+      Total swap:409596kB
+      ZRAM: 164616kB(zsmalloc non-lru pages)
+      active_anon:60700kB
+      inactive_anon:60744kB
+      active_file:34420kB
+      inactive_file:37532kB
 
-- alloc_pages_current - which uses default_policy id __GFP_THISNODE is
-  used
+Fix this by only accounting lru pages to NR_ISOLATED_* in
+isolate_migratepages_block right after they were isolated and we still
+know they were on LRU.  Drop acct_isolated because it is called after the
+fact and we've lost that information.  Batching per-cpu counter doesn't
+make much improvement anyway.  Also make sure that we uncharge only LRU
+pages when putting them back on the LRU in putback_movable_pages resp. 
+when unmap_and_move migrates the page.
 
-So we shouldn't even need to care about this possibility and can drop the
-confusing code.  Let's keep a WARN_ON_ONCE in place to catch potential
-users and fix them up properly (aka use a different allocation function
-which ignores mempolicy).
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20161013125958.32155-1-mhocko@kernel.org
+[mhocko@suse.com: replace acct_isolated() with direct counting]
+Fixes: bda807d44454 ("mm: migrate: support non-lru movable page migration")
+Link: http://lkml.kernel.org/r/20161019080240.9682-1-mhocko@kernel.org
+Signed-off-by: Ming Ling <ming.ling@spreadtrum.com>
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+ mm/compaction.c |   25 +++----------------------
+ mm/migrate.c    |   15 +++++++++++----
+ 2 files changed, 14 insertions(+), 26 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist
-+++ a/mm/mempolicy.c
-@@ -1679,25 +1679,17 @@ static nodemask_t *policy_nodemask(gfp_t
- static struct zonelist *policy_zonelist(gfp_t gfp, struct mempolicy *policy,
- 	int nd)
- {
--	switch (policy->mode) {
--	case MPOL_PREFERRED:
--		if (!(policy->flags & MPOL_F_LOCAL))
--			nd = policy->v.preferred_node;
--		break;
--	case MPOL_BIND:
-+	if (policy->mode == MPOL_PREFERRED && !(policy->flags & MPOL_F_LOCAL))
-+		nd = policy->v.preferred_node;
-+	else {
- 		/*
--		 * Normally, MPOL_BIND allocations are node-local within the
--		 * allowed nodemask.  However, if __GFP_THISNODE is set and the
--		 * current node isn't part of the mask, we use the zonelist for
--		 * the first node in the mask instead.
-+		 * __GFP_THISNODE shouldn't even be used with the bind policy
-+		 * because we might easily break the expectation to stay on the
-+		 * requested node and not break the policy.
- 		 */
--		if (unlikely(gfp & __GFP_THISNODE) &&
--				unlikely(!node_isset(nd, policy->v.nodes)))
--			nd = first_node(policy->v.nodes);
--		break;
--	default:
--		BUG();
-+		WARN_ON_ONCE(policy->mode == MPOL_BIND && (gfp & __GFP_THISNODE));
- 	}
-+
- 	return node_zonelist(nd, gfp);
+diff -puN mm/compaction.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration
++++ a/mm/compaction.c
+@@ -634,22 +634,6 @@ isolate_freepages_range(struct compact_c
+ 	return pfn;
  }
  
+-/* Update the number of anon and file isolated pages in the zone */
+-static void acct_isolated(struct zone *zone, struct compact_control *cc)
+-{
+-	struct page *page;
+-	unsigned int count[2] = { 0, };
+-
+-	if (list_empty(&cc->migratepages))
+-		return;
+-
+-	list_for_each_entry(page, &cc->migratepages, lru)
+-		count[!!page_is_file_cache(page)]++;
+-
+-	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_ANON, count[0]);
+-	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, count[1]);
+-}
+-
+ /* Similar to reclaim, but different enough that they don't share logic */
+ static bool too_many_isolated(struct zone *zone)
+ {
+@@ -866,6 +850,8 @@ isolate_migratepages_block(struct compac
+ 
+ 		/* Successfully isolated */
+ 		del_page_from_lru_list(page, lruvec, page_lru(page));
++		inc_node_page_state(page,
++				NR_ISOLATED_ANON + page_is_file_cache(page));
+ 
+ isolate_success:
+ 		list_add(&page->lru, &cc->migratepages);
+@@ -902,7 +888,6 @@ isolate_fail:
+ 				spin_unlock_irqrestore(zone_lru_lock(zone), flags);
+ 				locked = false;
+ 			}
+-			acct_isolated(zone, cc);
+ 			putback_movable_pages(&cc->migratepages);
+ 			cc->nr_migratepages = 0;
+ 			cc->last_migrated_pfn = 0;
+@@ -988,7 +973,6 @@ isolate_migratepages_range(struct compac
+ 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
+ 			break;
+ 	}
+-	acct_isolated(cc->zone, cc);
+ 
+ 	return pfn;
+ }
+@@ -1258,10 +1242,8 @@ static isolate_migrate_t isolate_migrate
+ 		low_pfn = isolate_migratepages_block(cc, low_pfn,
+ 						block_end_pfn, isolate_mode);
+ 
+-		if (!low_pfn || cc->contended) {
+-			acct_isolated(zone, cc);
++		if (!low_pfn || cc->contended)
+ 			return ISOLATE_ABORT;
+-		}
+ 
+ 		/*
+ 		 * Either we isolated something and proceed with migration. Or
+@@ -1271,7 +1253,6 @@ static isolate_migrate_t isolate_migrate
+ 		break;
+ 	}
+ 
+-	acct_isolated(zone, cc);
+ 	/* Record where migration scanner will be restarted. */
+ 	cc->migrate_pfn = low_pfn;
+ 
+diff -puN mm/migrate.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration mm/migrate.c
+--- a/mm/migrate.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration
++++ a/mm/migrate.c
+@@ -168,8 +168,6 @@ void putback_movable_pages(struct list_h
+ 			continue;
+ 		}
+ 		list_del(&page->lru);
+-		dec_node_page_state(page, NR_ISOLATED_ANON +
+-				page_is_file_cache(page));
+ 		/*
+ 		 * We isolated non-lru movable page so here we can use
+ 		 * __PageMovable because LRU page's mapping cannot have
+@@ -186,6 +184,8 @@ void putback_movable_pages(struct list_h
+ 			put_page(page);
+ 		} else {
+ 			putback_lru_page(page);
++			dec_node_page_state(page, NR_ISOLATED_ANON +
++					page_is_file_cache(page));
+ 		}
+ 	}
+ }
+@@ -1121,8 +1121,15 @@ out:
+ 		 * restored.
+ 		 */
+ 		list_del(&page->lru);
+-		dec_node_page_state(page, NR_ISOLATED_ANON +
+-				page_is_file_cache(page));
++
++		/*
++		 * Compaction can migrate also non-LRU pages which are
++		 * not accounted to NR_ISOLATED_*. They can be recognized
++		 * as __PageMovable
++		 */
++		if (likely(!__PageMovable(page)))
++			dec_node_page_state(page, NR_ISOLATED_ANON +
++					page_is_file_cache(page));
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from ming.ling@spreadtrum.com are
 
-mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
 
