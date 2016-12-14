@@ -1,117 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- proc-tweak-comments-about-2-stage-open-and-everything.patch removed from
+ proc-save-decrement-during-lookup-readdir-in-proc-pid.patch removed from
  -mm tree
-Date: Wed, 14 Dec 2016 11:26:56 -0800
-Message-ID: <58519d00.+MLqEtP68CXK67Yx%akpm@linux-foundation.org>
+Date: Wed, 14 Dec 2016 11:27:01 -0800
+Message-ID: <58519d05.B7d4WEOO2LGognKa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45606 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45620 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754266AbcLNT05 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:57 -0500
+        with ESMTP id S1752786AbcLNT1C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:27:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: tweak comments about 2 stage open and everything
+     Subject: fs/proc/base.c: save decrement during lookup/readdir in /proc/$PID
 has been removed from the -mm tree.  Its filename was
-     proc-tweak-comments-about-2-stage-open-and-everything.patch
+     proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: tweak comments about 2 stage open and everything
+Subject: fs/proc/base.c: save decrement during lookup/readdir in /proc/$PID
 
-Some comments were obsoleted since 05c0ae21c034a6f ("try a saner locking
-for pde_opener...").
+Comparison for "<" works equally well as comparison for "<="
+but one SUB/LEA is saved (no, it is not optimised away, at least here).
 
-Some new comments added.
-
-Some confusing comments replaced with equally confusing ones.
-
-Link: http://lkml.kernel.org/r/20161029160231.GD1246@avx2
+Link: http://lkml.kernel.org/r/20161122195143.GA29812@avx2
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |   29 +++++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ fs/proc/base.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-tweak-comments-about-2-stage-open-and-everything fs/proc/inode.c
---- a/fs/proc/inode.c~proc-tweak-comments-about-2-stage-open-and-everything
-+++ a/fs/proc/inode.c
-@@ -138,6 +138,16 @@ static void unuse_pde(struct proc_dir_en
- /* pde is locked */
- static void close_pdeo(struct proc_dir_entry *pde, struct pde_opener *pdeo)
- {
-+	/*
-+	 * close() (proc_reg_release()) can't delete an entry and proceed:
-+	 * ->release hook needs to be available at the right moment.
-+	 *
-+	 * rmmod (remove_proc_entry() et al) can't delete an entry and proceed:
-+	 * "struct file" needs to be available at the right moment.
-+	 *
-+	 * Therefore, first process to enter this function does ->release() and
-+	 * signals its completion to the other process which does nothing.
-+	 */
- 	if (pdeo->closing) {
- 		/* somebody else is doing that, just wait */
- 		DECLARE_COMPLETION_ONSTACK(c);
-@@ -152,6 +162,7 @@ static void close_pdeo(struct proc_dir_e
- 		file = pdeo->file;
- 		pde->proc_fops->release(file_inode(file), file);
- 		spin_lock(&pde->pde_unload_lock);
-+		/* After ->release. */
- 		list_del(&pdeo->lh);
- 		if (pdeo->c)
- 			complete(pdeo->c);
-@@ -167,6 +178,8 @@ void proc_entry_rundown(struct proc_dir_
- 	if (atomic_add_return(BIAS, &de->in_use) != BIAS)
- 		wait_for_completion(&c);
- 
-+	/* ->pde_openers list can't grow from now on. */
-+
- 	spin_lock(&de->pde_unload_lock);
- 	while (!list_empty(&de->pde_openers)) {
- 		struct pde_opener *pdeo;
-@@ -312,14 +325,15 @@ static int proc_reg_open(struct inode *i
- 	struct pde_opener *pdeo;
- 
- 	/*
--	 * What for, you ask? Well, we can have open, rmmod, remove_proc_entry
--	 * sequence. ->release won't be called because ->proc_fops will be
--	 * cleared. Depending on complexity of ->release, consequences vary.
-+	 * Ensure that
-+	 * 1) PDE's ->release hook will be called no matter what
-+	 *    either normally by close()/->release, or forcefully by
-+	 *    rmmod/remove_proc_entry.
-+	 *
-+	 * 2) rmmod isn't blocked by opening file in /proc and sitting on
-+	 *    the descriptor (including "rmmod foo </proc/foo" scenario).
- 	 *
--	 * We can't wait for mercy when close will be done for real, it's
--	 * deadlockable: rmmod foo </proc/foo . So, we're going to do ->release
--	 * by hand in remove_proc_entry(). For this, save opener's credentials
--	 * for later.
-+	 * Save every "struct file" with custom ->release hook.
+diff -puN fs/proc/base.c~proc-save-decrement-during-lookup-readdir-in-proc-pid fs/proc/base.c
+--- a/fs/proc/base.c~proc-save-decrement-during-lookup-readdir-in-proc-pid
++++ a/fs/proc/base.c
+@@ -2412,14 +2412,14 @@ static struct dentry *proc_pident_lookup
+ 	 * Yes, it does not scale. And it should not. Don't add
+ 	 * new entries into /proc/<tgid>/ without very good reasons.
  	 */
- 	pdeo = kmalloc(sizeof(struct pde_opener), GFP_KERNEL);
- 	if (!pdeo)
-@@ -340,7 +354,6 @@ static int proc_reg_open(struct inode *i
- 		pdeo->file = file;
- 		pdeo->closing = false;
- 		pdeo->c = NULL;
--		/* Strictly for "too late" ->release in proc_reg_release(). */
- 		spin_lock(&pde->pde_unload_lock);
- 		list_add(&pdeo->lh, &pde->pde_openers);
- 		spin_unlock(&pde->pde_unload_lock);
+-	last = &ents[nents - 1];
+-	for (p = ents; p <= last; p++) {
++	last = &ents[nents];
++	for (p = ents; p < last; p++) {
+ 		if (p->len != dentry->d_name.len)
+ 			continue;
+ 		if (!memcmp(dentry->d_name.name, p->name, p->len))
+ 			break;
+ 	}
+-	if (p > last)
++	if (p >= last)
+ 		goto out;
+ 
+ 	error = proc_pident_instantiate(dir, dentry, task, p);
+@@ -2444,7 +2444,7 @@ static int proc_pident_readdir(struct fi
+ 	if (ctx->pos >= nents + 2)
+ 		goto out;
+ 
+-	for (p = ents + (ctx->pos - 2); p <= ents + nents - 1; p++) {
++	for (p = ents + (ctx->pos - 2); p < ents + nents; p++) {
+ 		if (!proc_fill_cache(file, ctx, p->name, p->len,
+ 				proc_pident_instantiate, task, p))
+ 			break;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
