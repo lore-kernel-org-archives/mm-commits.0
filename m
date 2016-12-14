@@ -1,109 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: [patch 044/114] ipc/shm.c: coding style fixes
-Date: Wed, 14 Dec 2016 15:06:10 -0800
-Message-ID: <5851d062.WocgzRXav7GP0Z+h%akpm@linux-foundation.org>
+Subject: [patch 042/114] initramfs: allow again choice of the embedded
+ initram compression algorithm
+Date: Wed, 14 Dec 2016 15:06:04 -0800
+Message-ID: <5851d05c.S7WIQqDa2ZyPERvc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34804 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34798 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754682AbcLNXGY (ORCPT
+        with ESMTP id S1754657AbcLNXGY (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:06:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, p.shailesh@samsung.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, klondike@klondike.es, pebolle@tiscali.nl, ppandit@redhat.com
 
-From: Shailesh Pandey <p.shailesh@samsung.com>
-Subject: ipc/shm.c: coding style fixes
+From: Francisco Blas Izquierdo Riera (klondike) <klondike@klondike.es>
+Subject: initramfs: allow again choice of the embedded initram compression algorithm
 
-This patch fixes below warnings
-WARNING: Missing a blank line after declarations
-WARNING: Block comments use a trailing */ on a separate line
-ERROR: spaces required around that '=' (ctx:WxV)
+Choosing the appropriate compression option when using an embedded
+initramfs can result in significant size differences in the resulting
+data.
 
-Above warnings were reported by checkpatch.pl
+This is caused by avoiding double compression of the initramfs contents. 
+For example on my tests, choosing CONFIG_INITRAMFS_COMPRESSION_NONE when
+compressing the kernel using XZ) results in up to 500KiB differences (9MiB
+to 8.5MiB) in the kernel size as the dictionary will not get polluted with
+uncomprensible data and may reuse kernel data too.
 
-Link: http://lkml.kernel.org/r/1478604980-18062-1-git-send-email-p.shailesh@samsung.com
-Signed-off-by: Shailesh Pandey <p.shailesh@samsung.com>
+Despite embedding an uncompressed initramfs, a user may want to allow for
+a compressed extra initramfs to be passed using the rd system, for example
+to boot a recovery system.  9ba4bcb645898d ("initramfs: read CONFIG_RD_
+variables for initramfs compression") broke that behavior by making the
+choice based on CONFIG_RD_* instead of adding
+CONFIG_INITRAMFS_COMPRESSION_LZ4.  Saddly, CONFIG_RD_* is also used to
+choose the supported RD compression algorithms by the kernel and a user
+may want to support more than one.
+
+This patch also reverses 3e4e0f0a875 ("initramfs: remove "compression
+mode" choice") restoring back the "compression mode" choice and includes
+the CONFIG_INITRAMFS_COMPRESSION_LZ4 option which was never added.
+
+As a result the following options are added or readed affecting the embedded
+initramfs compression:
+INITRAMFS_COMPRESSION_NONE Do no compression
+INITRAMFS_COMPRESSION_GZIP Compress using gzip
+INITRAMFS_COMPRESSION_BZIP2 Compress using bzip2
+INITRAMFS_COMPRESSION_LZMA Compress using lzma
+INITRAMFS_COMPRESSION_XZ Compress using xz
+INITRAMFS_COMPRESSION_LZO Compress using lzo
+INITRAMFS_COMPRESSION_LZ4 Compress using lz4
+
+These depend on the corresponding CONFIG_RD_* option being set (except NONE
+which has no dependencies).
+
+This patch depends on the previous one (the previous version didn't) to
+simplify the way in which the algorithm is chosen and keep backwards
+compatibility with the behaviour introduced by 9ba4bcb645898 ("initramfs:
+read CONFIG_RD_ variables for initramfs compression").
+
+Link: http://lkml.kernel.org/r/57EAD77B.7090607@klondike.es
+Signed-off-by: Francisco Blas Izquierdo Riera (klondike) <klondike@klondike.es>
+Cc: P J P <ppandit@redhat.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ usr/Kconfig |  117 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 117 insertions(+)
 
-diff -puN ipc/shm.c~ipc-fixed-warnings ipc/shm.c
---- a/ipc/shm.c~ipc-fixed-warnings
-+++ a/ipc/shm.c
-@@ -89,6 +89,7 @@ void shm_init_ns(struct ipc_namespace *n
- static void do_shm_rmid(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp)
- {
- 	struct shmid_kernel *shp;
-+
- 	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
+diff -puN usr/Kconfig~initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm usr/Kconfig
+--- a/usr/Kconfig~initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm
++++ a/usr/Kconfig
+@@ -99,8 +99,125 @@ config RD_LZ4
+ 	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
+ 	  If unsure, say N.
  
- 	if (shp->shm_nattch) {
-@@ -387,6 +388,7 @@ static int shm_set_policy(struct vm_area
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
- 	int err = 0;
++choice
++	prompt "Built-in initramfs compression mode"
++	depends on INITRAMFS_SOURCE!=""
++	optional
++	help
++	  This option allows you to decide by which algorithm the builtin
++	  initramfs will be compressed.  Several compression algorithms are
++	  available, which differ in efficiency, compression and
++	  decompression speed.  Compression speed is only relevant
++	  when building a kernel.  Decompression speed is relevant at
++	  each boot. Also the memory usage during decompression may become
++	  relevant on memory constrained systems. This is usually based on the
++	  dictionary size of the algorithm with algorithms like XZ and LZMA
++	  featuring large dictionary sizes.
 +
- 	if (sfd->vm_ops->set_policy)
- 		err = sfd->vm_ops->set_policy(vma, new);
- 	return err;
-@@ -417,7 +419,7 @@ static int shm_mmap(struct file *file, s
- 	 * In case of remap_file_pages() emulation, the file can represent
- 	 * removed IPC ID: propogate shm_lock() error to caller.
- 	 */
--	ret =__shm_open(vma);
-+	ret = __shm_open(vma);
- 	if (ret)
- 		return ret;
- 
-@@ -468,6 +470,7 @@ static unsigned long shm_get_unmapped_ar
- 	unsigned long flags)
- {
- 	struct shm_file_data *sfd = shm_file_data(file);
++	  High compression options are mostly useful for users who are
++	  low on RAM, since it reduces the memory consumption during
++	  boot.
 +
- 	return sfd->file->f_op->get_unmapped_area(sfd->file, addr, len,
- 						pgoff, flags);
- }
-@@ -766,6 +769,7 @@ static void shm_add_rss_swap(struct shmi
- 	} else {
- #ifdef CONFIG_SHMEM
- 		struct shmem_inode_info *info = SHMEM_I(inode);
++	  Keep in mind that your build system needs to provide the appropriate
++	  compression tool to compress the generated initram cpio file for
++	  embedding.
 +
- 		spin_lock_irq(&info->lock);
- 		*rss_add += inode->i_mapping->nrpages;
- 		*swp_add += info->swapped;
-@@ -1028,6 +1032,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 
- 		if (!ns_capable(ns->user_ns, CAP_IPC_LOCK)) {
- 			kuid_t euid = current_euid();
++	  If in doubt, select 'None'
 +
- 			if (!uid_eq(euid, shp->shm_perm.uid) &&
- 			    !uid_eq(euid, shp->shm_perm.cuid)) {
- 				err = -EPERM;
-@@ -1045,6 +1050,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 
- 		if (cmd == SHM_LOCK) {
- 			struct user_struct *user = current_user();
++config INITRAMFS_COMPRESSION_NONE
++	bool "None"
++	help
++	  Do not compress the built-in initramfs at all. This may sound wasteful
++	  in space, but, you should be aware that the built-in initramfs will be
++	  compressed at a later stage anyways along with the rest of the kernel,
++	  on those architectures that support this. However, not compressing the
++	  initramfs may lead to slightly higher memory consumption during a
++	  short time at boot, while both the cpio image and the unpacked
++	  filesystem image will be present in memory simultaneously
 +
- 			err = shmem_lock(shm_file, 1, user);
- 			if (!err && !(shp->shm_perm.mode & SHM_LOCKED)) {
- 				shp->shm_perm.mode |= SHM_LOCKED;
-@@ -1354,9 +1360,10 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 		vma = next;
- 	}
- 
--#else /* CONFIG_MMU */
-+#else	/* CONFIG_MMU */
- 	/* under NOMMU conditions, the exact address to be destroyed must be
--	 * given */
-+	 * given
-+	 */
- 	if (vma && vma->vm_start == addr && vma->vm_ops == &shm_vm_ops) {
- 		do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
- 		retval = 0;
++config INITRAMFS_COMPRESSION_GZIP
++	bool "Gzip"
++	depends on RD_GZIP
++	help
++	  Use the old and well tested gzip compression algorithm. Gzip provides
++	  a good balance between compression ratio and decompression speed and
++	  has a reasonable compression speed. It is also more likely to be
++	  supported by your build system as the gzip tool is present by default
++	  on most distros.
++
++config INITRAMFS_COMPRESSION_BZIP2
++	bool "Bzip2"
++	depends on RD_BZIP2
++	help
++	  It's compression ratio and speed is intermediate. Decompression speed
++	  is slowest among the choices. The initramfs size is about 10% smaller
++	  with bzip2, in comparison to gzip. Bzip2 uses a large amount of
++	  memory. For modern kernels you will need at least 8MB RAM or more for
++	  booting.
++
++	  If you choose this, keep in mind that you need to have the bzip2 tool
++	  available to be able to compress the initram.
++
++config INITRAMFS_COMPRESSION_LZMA
++	bool "LZMA"
++	depends on RD_LZMA
++	help
++	  This algorithm's compression ratio is best but has a large dictionary
++	  size which might cause issues in memory constrained systems.
++	  Decompression speed is between the other choices. Compression is
++	  slowest. The initramfs size is about 33% smaller with LZMA in
++	  comparison to gzip.
++
++	  If you choose this, keep in mind that you may need to install the xz
++	  or lzma tools to be able to compress the initram.
++
++config INITRAMFS_COMPRESSION_XZ
++	bool "XZ"
++	depends on RD_XZ
++	help
++	  XZ uses the LZMA2 algorithm and has a large dictionary which may cause
++	  problems on memory constrained systems. The initramfs size is about
++	  30% smaller with XZ in comparison to gzip. Decompression speed is
++	  better than that of bzip2 but worse than gzip and LZO. Compression is
++	  slow.
++
++	  If you choose this, keep in mind that you may need to install the xz
++	  tool to be able to compress the initram.
++
++config INITRAMFS_COMPRESSION_LZO
++	bool "LZO"
++	depends on RD_LZO
++	help
++	  It's compression ratio is the second poorest amongst the choices. The
++	  kernel size is about 10% bigger than gzip. Despite that, it's
++	  decompression speed is the second fastest and it's compression speed
++	  is quite fast too.
++
++	  If you choose this, keep in mind that you may need to install the lzop
++	  tool to be able to compress the initram.
++
++config INITRAMFS_COMPRESSION_LZ4
++	bool "LZ4"
++	depends on RD_LZ4
++	help
++	  It's compression ratio is the poorest amongst the choices. The kernel
++	  size is about 15% bigger than gzip; however its decompression speed
++	  is the fastest.
++
++	  If you choose this, keep in mind that most distros don't provide lz4
++	  by default which could cause a build failure.
++
++endchoice
++
+ config INITRAMFS_COMPRESSION
+ 	string
++	default ""      if INITRAMFS_COMPRESSION_NONE
++	default ".gz"   if INITRAMFS_COMPRESSION_GZIP
++	default ".bz2"  if INITRAMFS_COMPRESSION_BZIP2
++	default ".lzma" if INITRAMFS_COMPRESSION_LZMA
++	default ".xz"   if INITRAMFS_COMPRESSION_XZ
++	default ".lzo"  if INITRAMFS_COMPRESSION_LZO
++	default ".lz4"  if INITRAMFS_COMPRESSION_LZ4
+ 	default ".gz"   if RD_GZIP
+ 	default ".lz4"  if RD_LZ4
+ 	default ".lzo"  if RD_LZO
 _
