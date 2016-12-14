@@ -1,79 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-save-decrement-during-lookup-readdir-in-proc-pid.patch removed from
- -mm tree
-Date: Wed, 14 Dec 2016 11:27:01 -0800
-Message-ID: <58519d05.B7d4WEOO2LGognKa%akpm@linux-foundation.org>
+Subject: [merged] fs-proc-arrayc-slightly-improve-render_sigset_t.patch
+ removed from -mm tree
+Date: Wed, 14 Dec 2016 11:26:58 -0800
+Message-ID: <58519d02.Srrkdd8HWhlBD2CG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45610 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752786AbcLNT1C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:27:02 -0500
+        with ESMTP id S1752786AbcLNT07 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, adobriyan@gmail.com, avagin@openvz.org, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/base.c: save decrement during lookup/readdir in /proc/$PID
+     Subject: fs/proc/array.c: slightly improve render_sigset_t
 has been removed from the -mm tree.  Its filename was
-     proc-save-decrement-during-lookup-readdir-in-proc-pid.patch
+     fs-proc-arrayc-slightly-improve-render_sigset_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/proc/base.c: save decrement during lookup/readdir in /proc/$PID
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: fs/proc/array.c: slightly improve render_sigset_t
 
-Comparison for "<" works equally well as comparison for "<="
-but one SUB/LEA is saved (no, it is not optimised away, at least here).
+format_decode and vsnprintf occasionally show up in perf top, so I went
+looking for places that might not need the full printf power.  With the
+help of kprobes, I gathered some statistics on which format strings we
+mostly pass to vsnprintf.  On a trivial desktop workload, I hit "%x" 25%
+of the time, so something apparently reads /proc/pid/status (which does
+5*16 printf("%x") calls) a lot.
 
-Link: http://lkml.kernel.org/r/20161122195143.GA29812@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+With this patch, reading /proc/pid/status is 30% faster according to
+this microbenchmark:
+
+	char buf[4096];
+	int i, fd;
+	for (i = 0; i < 10000; ++i) {
+		fd = open("/proc/self/status", O_RDONLY);
+		read(fd, buf, sizeof(buf));
+		close(fd);
+	}
+
+Link: http://lkml.kernel.org/r/1474410485-1305-1-git-send-email-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Andrei Vagin <avagin@openvz.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/array.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~proc-save-decrement-during-lookup-readdir-in-proc-pid fs/proc/base.c
---- a/fs/proc/base.c~proc-save-decrement-during-lookup-readdir-in-proc-pid
-+++ a/fs/proc/base.c
-@@ -2412,14 +2412,14 @@ static struct dentry *proc_pident_lookup
- 	 * Yes, it does not scale. And it should not. Don't add
- 	 * new entries into /proc/<tgid>/ without very good reasons.
- 	 */
--	last = &ents[nents - 1];
--	for (p = ents; p <= last; p++) {
-+	last = &ents[nents];
-+	for (p = ents; p < last; p++) {
- 		if (p->len != dentry->d_name.len)
- 			continue;
- 		if (!memcmp(dentry->d_name.name, p->name, p->len))
- 			break;
- 	}
--	if (p > last)
-+	if (p >= last)
- 		goto out;
+diff -puN fs/proc/array.c~fs-proc-arrayc-slightly-improve-render_sigset_t fs/proc/array.c
+--- a/fs/proc/array.c~fs-proc-arrayc-slightly-improve-render_sigset_t
++++ a/fs/proc/array.c
+@@ -245,7 +245,7 @@ void render_sigset_t(struct seq_file *m,
+ 		if (sigismember(set, i+2)) x |= 2;
+ 		if (sigismember(set, i+3)) x |= 4;
+ 		if (sigismember(set, i+4)) x |= 8;
+-		seq_printf(m, "%x", x);
++		seq_putc(m, hex_asc[x]);
+ 	} while (i >= 4);
  
- 	error = proc_pident_instantiate(dir, dentry, task, p);
-@@ -2444,7 +2444,7 @@ static int proc_pident_readdir(struct fi
- 	if (ctx->pos >= nents + 2)
- 		goto out;
- 
--	for (p = ents + (ctx->pos - 2); p <= ents + nents - 1; p++) {
-+	for (p = ents + (ctx->pos - 2); p < ents + nents; p++) {
- 		if (!proc_fill_cache(file, ctx, p->name, p->len,
- 				proc_pident_instantiate, task, p))
- 			break;
+ 	seq_putc(m, '\n');
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-kbuild-simpler-generation-of-assembly-constants.patch
-coredump-clarify-unsafe-core_pattern-warning.patch
 
