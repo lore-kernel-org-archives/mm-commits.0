@@ -1,80 +1,104 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:24:40 -0800
-Message-ID: <58519c78.SEiqU5fFZalwUFPS%akpm@linux-foundation.org>
+ powerpc-mm-allow-memory-hotplug-into-a-memoryless-node.patch removed from
+ -mm tree
+Date: Wed, 14 Dec 2016 11:24:43 -0800
+Message-ID: <58519c7b.AM0jOeXavKXGQTox%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44266 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756541AbcLNTYl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:41 -0500
+        with ESMTP id S1756541AbcLNTYo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kwapulinski.piotr@gmail.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, liangchen.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, nzimmer@sgi.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, apopple@au1.ibm.com, benh@kernel.crashing.org, bharata@linux.vnet.ibm.com, bsingharora@gmail.com, frowand.list@gmail.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, nfont@linux.vnet.ibm.com, paulus@samba.org, robh+dt@kernel.org, stewart@linux.vnet.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: forbid static or relative flags for local NUMA mode
+     Subject: powerpc/mm: allow memory hotplug into a memoryless node
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
+     powerpc-mm-allow-memory-hotplug-into-a-memoryless-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
-Subject: mm/mempolicy.c: forbid static or relative flags for local NUMA mode
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: powerpc/mm: allow memory hotplug into a memoryless node
 
-The MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES flags are irrelevant
-when setting them for MPOL_LOCAL NUMA memory policy via set_mempolicy or
-mbind.
+Patch series "enable movable nodes on non-x86 configs", v7.
 
-Return the "invalid argument" from set_mempolicy and mbind whenever any of
-these flags is passed along with MPOL_LOCAL.
+This patchset allows more configs to make use of movable nodes. When
+CONFIG_MOVABLE_NODE is selected, there are two ways to introduce such
+nodes into the system:
 
-It is consistent with MPOL_PREFERRED passed with empty nodemask.
+1. Discover movable nodes at boot. Currently this is only possible on
+   x86, but we will enable configs supporting fdt to do the same.
 
-It slightly shortens the execution time in paths where these flags are
-used e.g.  when trying to rebind the NUMA nodes for changes in cgroups
-cpuset mems (mpol_rebind_preferred()) or when just printing the mempolicy
-structure (/proc/PID/numa_maps).  Isolated tests done.
+2. Hotplug and online all of a node's memory using online_movable. This
+   is already possible on any config supporting memory hotplug, not
+   just x86, but the Kconfig doesn't say so. We will fix that.
 
-Link: http://lkml.kernel.org/r/20161027163037.4089-1-kwapulinski.piotr@gmail.com
-Signed-off-by: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Liang Chen <liangchen.linux@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
+We'll also remove some cruft on power which would prevent (2).
+
+
+
+This patch (of 5):
+
+Remove the check which prevents us from hotplugging into an empty node.
+
+The original commit b226e4621245 ("[PATCH] powerpc: don't add memory to
+empty node/zone"), states that this was intended to be a temporary measure.
+It is a workaround for an oops which no longer occurs.
+
+Link: http://lkml.kernel.org/r/1479160961-25840-2-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alistair Popple <apopple@au1.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Bharata B Rao <bharata@linux.vnet.ibm.com>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/numa.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode
-+++ a/mm/mempolicy.c
-@@ -276,7 +276,9 @@ static struct mempolicy *mpol_new(unsign
- 				return ERR_PTR(-EINVAL);
- 		}
- 	} else if (mode == MPOL_LOCAL) {
--		if (!nodes_empty(*nodes))
-+		if (!nodes_empty(*nodes) ||
-+		    (flags & MPOL_F_STATIC_NODES) ||
-+		    (flags & MPOL_F_RELATIVE_NODES))
- 			return ERR_PTR(-EINVAL);
- 		mode = MPOL_PREFERRED;
- 	} else if (nodes_empty(*nodes))
-_
-
-Patches currently in -mm which might be from kwapulinski.piotr@gmail.com are
-
-
+diff -puN arch/powerpc/mm/numa.c~powerpc-mm-allow-memory-hotplug-into-a-memoryless-node arch/powerpc/mm/numa.c
+--- a/arch/powerpc/mm/numa.c~powerpc-mm-allow-memory-hotplug-into-a-memoryless-node
++++ a/arch/powerpc/mm/numa.c
+@@ -1085,7 +1085,7 @@ static int hot_add_node_scn_to_nid(unsig
+ int hot_add_scn_to_nid(unsigned long scn_addr)
+ {
+ 	struct device_node *memory = NULL;
+-	int nid, found = 0;
++	int nid;
+ 
+ 	if (!numa_enabled || (min_common_depth < 0))
+ 		return first_online_node;
+@@ -1101,17 +1101,6 @@ int hot_add_scn_to_nid(unsigned long scn
+ 	if (nid < 0 || !node_online(nid))
+ 		nid = first_online_node;
+ 
+-	if (NODE_DATA(nid)->node_spanned_pages)
+-		return nid;
+-
+-	for_each_online_node(nid) {
+-		if (NODE_DATA(nid)->node_spanned_pages) {
+-			found = 1;
+-			break;
+-		}
+-	}
