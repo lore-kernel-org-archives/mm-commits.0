@@ -1,92 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: + btrfs-better-handle-btrfs_printk-defaults.patch added to -mm
- tree
-Date: Wed, 14 Dec 2016 12:36:52 -0800
-Message-ID: <5851ad64.tVKG13YTLU2UDiug%akpm@linux-foundation.org>
+Subject: [withdrawn] kbuild-simpler-generation-of-assembly-constants.patch removed from -mm tree
+Date: Wed, 14 Dec 2016 12:52:35 -0800
+Message-ID: <5851b113.Ym4q4C6q4Vd2kAU9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753891AbcLNUgG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 15:36:06 -0500
+        with ESMTP id S1751764AbcLNUwd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 15:52:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, dsterba@suse.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mmarek@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: btrfs: better handle btrfs_printk() defaults
-has been added to the -mm tree.  Its filename is
-     btrfs-better-handle-btrfs_printk-defaults.patch
+     Subject: kbuild: simpler generation of assembly constants
+has been removed from the -mm tree.  Its filename was
+     kbuild-simpler-generation-of-assembly-constants.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/btrfs-better-handle-btrfs_printk-defaults.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/btrfs-better-handle-btrfs_printk-defaults.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: btrfs: better handle btrfs_printk() defaults
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: kbuild: simpler generation of assembly constants
 
-commit 262c5e86fec7cfd ("printk/btrfs: handle more message headers")
-triggers:
+gcc doesn't really look inside "asm" statements and more or less
+directly emits it into assembly. So pretend "#define" is CPU
+instruction.
 
-    warning: `ratelimit' may be used uninitialized in this function
+C++ comment can't be used because sparc assembler doesn't understand it.
 
-with gcc (4.1.2) and probably many other versions.  The code actually is
-correct but a bit twisted.  Let's make it more straightforward and set the
-default values at the beginning.
-
-Link: http://lkml.kernel.org/r/20161213135246.GQ3506@pathway.suse.cz
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: David Sterba <dsterba@suse.com>
+Link: http://lkml.kernel.org/r/20160713173646.GA1910@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/super.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ Kbuild                                     |   12 +-----------
+ arch/ia64/kernel/Makefile                  |    8 +-------
+ arch/um/Makefile                           |    2 +-
+ arch/x86/um/shared/sysdep/kernel-offsets.h |    2 +-
+ arch/x86/um/user-offsets.c                 |    4 ++--
+ include/linux/kbuild.h                     |    2 +-
+ scripts/mod/Makefile                       |   11 +----------
+ 7 files changed, 8 insertions(+), 33 deletions(-)
 
-diff -puN fs/btrfs/super.c~btrfs-better-handle-btrfs_printk-defaults fs/btrfs/super.c
---- a/fs/btrfs/super.c~btrfs-better-handle-btrfs_printk-defaults
-+++ a/fs/btrfs/super.c
-@@ -202,12 +202,12 @@ static struct ratelimit_state printk_lim
- void btrfs_printk(const struct btrfs_fs_info *fs_info, const char *fmt, ...)
+diff -puN Kbuild~kbuild-simpler-generation-of-assembly-constants Kbuild
+--- a/Kbuild~kbuild-simpler-generation-of-assembly-constants
++++ a/Kbuild
+@@ -7,14 +7,6 @@
+ # 4) Check for missing system calls
+ # 5) Generate constants.py (may need bounds.h)
+ 
+-# Default sed regexp - multiline due to syntax constraints
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
+-
+ # Use filechk to avoid rebuilds when a header changes, but the resulting file
+ # does not
+ define filechk_offsets
+@@ -26,9 +18,7 @@ define filechk_offsets
+ 	 echo " *"; \
+ 	 echo " * This file was generated by Kbuild"; \
+ 	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y); \
+-	 echo ""; \
++	 sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//;p;}'; \
+ 	 echo "#endif" )
+ endef
+ 
+diff -puN arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants arch/ia64/kernel/Makefile
+--- a/arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/ia64/kernel/Makefile
+@@ -50,10 +50,6 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f
+ # The gate DSO image is built using a special linker script.
+ include $(src)/Makefile.gate
+ 
+-# Calculate NR_IRQ = max(IA64_NATIVE_NR_IRQS, XEN_NR_IRQS, ...) based on config
+-define sed-y
+-	"/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"
+-endef
+ quiet_cmd_nr_irqs = GEN     $@
+ define cmd_nr_irqs
+ 	(set -e; \
+@@ -65,9 +61,7 @@ define cmd_nr_irqs
+ 	 echo " * This file was generated by Kbuild"; \
+ 	 echo " *"; \
+ 	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y) $<; \
+-	 echo ""; \
++	 sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//p;}' $<; \
+ 	 echo "#endif" ) > $@
+ endef
+ 
+diff -puN arch/um/Makefile~kbuild-simpler-generation-of-assembly-constants arch/um/Makefile
+--- a/arch/um/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/um/Makefile
+@@ -158,7 +158,7 @@ define filechk_gen-asm-offsets
+          echo " *"; \
+          echo " */"; \
+          echo ""; \
+-         sed -ne "/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"; \
++         sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//p;}'; \
+          echo ""; )
+ endef
+ 
+diff -puN arch/x86/um/shared/sysdep/kernel-offsets.h~kbuild-simpler-generation-of-assembly-constants arch/x86/um/shared/sysdep/kernel-offsets.h
+--- a/arch/x86/um/shared/sysdep/kernel-offsets.h~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/x86/um/shared/sysdep/kernel-offsets.h
+@@ -5,7 +5,7 @@
+ #include <asm/mman.h>
+ 
+ #define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
+ 
+ #define BLANK() asm volatile("\n->" : : )
+ 
+diff -puN arch/x86/um/user-offsets.c~kbuild-simpler-generation-of-assembly-constants arch/x86/um/user-offsets.c
+--- a/arch/x86/um/user-offsets.c~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/x86/um/user-offsets.c
+@@ -21,10 +21,10 @@ static char syscalls[] = {
+ #endif
+ 
+ #define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
+ 
+ #define DEFINE_LONGS(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val/sizeof(unsigned long)))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val / sizeof(unsigned long)))
+ 
+ void foo(void)
  {
- 	struct super_block *sb = fs_info->sb;
--	char lvl[PRINTK_MAX_SINGLE_HEADER_LEN + 1];
-+	char lvl[PRINTK_MAX_SINGLE_HEADER_LEN + 1] = "\0";
- 	struct va_format vaf;
- 	va_list args;
--	const char *type = NULL;
- 	int kern_level;
--	struct ratelimit_state *ratelimit;
-+	const char *type = logtypes[4];
-+	struct ratelimit_state *ratelimit = &printk_limits[4];
+diff -puN include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants include/linux/kbuild.h
+--- a/include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants
++++ a/include/linux/kbuild.h
+@@ -2,7 +2,7 @@
+ #define __LINUX_KBUILD_H
  
- 	va_start(args, fmt);
+ #define DEFINE(sym, val) \
+-        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
  
-@@ -223,12 +223,6 @@ void btrfs_printk(const struct btrfs_fs_
- 		fmt += size;
- 	}
+ #define BLANK() asm volatile("\n->" : : )
  
--	if (!type) {
--		*lvl = '\0';
--		type = logtypes[4];
--		ratelimit = &printk_limits[4];
--	}
+diff -puN scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants scripts/mod/Makefile
+--- a/scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/scripts/mod/Makefile
+@@ -7,13 +7,6 @@ modpost-objs	:= modpost.o file2alias.o s
+ 
+ devicetable-offsets-file := devicetable-offsets.h
+ 
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
