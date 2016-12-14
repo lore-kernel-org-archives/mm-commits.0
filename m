@@ -1,101 +1,252 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-report-no_new_privs-state.patch removed from -mm
- tree
-Date: Wed, 14 Dec 2016 11:26:43 -0800
-Message-ID: <58519cf3.xQYJuJTA0xB+0PtX%akpm@linux-foundation.org>
+Subject: [merged]
+ kasan-eliminate-long-stalls-during-quarantine-reduction.patch removed from
+ -mm tree
+Date: Wed, 14 Dec 2016 11:26:35 -0800
+Message-ID: <58519ceb.oyNKB7MsTi3jTzL0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45516 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756475AbcLNT0p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:45 -0500
+        with ESMTP id S1756641AbcLNT0h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, adobriyan@gmail.com, corbet@lwn.net, hannes@cmpxchg.org, hughd@google.com, jann@thejh.net, jmarchan@redhat.com, joe@perches.com, john.stultz@linaro.org, koct9i@gmail.com, luto@kernel.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rfreire@redhat.com, rjones@redhat.com, robert.hu@intel.com, ross.zwisler@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: dvyukov@google.com, andreyknvl@google.com, aryabinin@virtuozzo.com, edumazet@google.com, glider@google.com, gthelen@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: report no_new_privs state
+     Subject: kasan: eliminate long stalls during quarantine reduction
 has been removed from the -mm tree.  Its filename was
-     proc-report-no_new_privs-state.patch
+     kasan-eliminate-long-stalls-during-quarantine-reduction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: proc: report no_new_privs state
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: eliminate long stalls during quarantine reduction
 
-Similar to being able to examine if a process has been correctly confined
-with seccomp, the state of no_new_privs is equally interesting, so this
-adds it to /proc/$pid/status.
+Currently we dedicate 1/32 of RAM for quarantine and then reduce it by 1/4
+of total quarantine size.  This can be a significant amount of memory. 
+For example, with 4GB of RAM total quarantine size is 128MB and it is
+reduced by 32MB at a time.  With 128GB of RAM total quarantine size is 4GB
+and it is reduced by 1GB.  This leads to several problems:
 
-Link: http://lkml.kernel.org/r/20161103214041.GA58566@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Jann Horn <jann@thejh.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rodrigo Freire <rfreire@redhat.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Robert Ho <robert.hu@intel.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Richard W.M. Jones" <rjones@redhat.com>
-Cc: Joe Perches <joe@perches.com>
+ - freeing 1GB can take tens of seconds, causes rcu stall warnings
+   and just introduces unexpected long delays at random places
+ - if kmalloc() is called under a mutex, other threads stall on that
+   mutex while a thread reduces quarantine
+ - threads wait on quarantine_lock while one thread grabs a large
+   batch of objects to evict
+ - we walk the uncached list of object to free twice which makes
+   all of the above worse
+ - when a thread frees objects, they are already not accounted against
+   global_quarantine.bytes; as the result we can have quarantine_size
+   bytes in quarantine + unbounded amount of memory in large batches
+   in threads that are in process of freeing
+
+Reduce size of quarantine in smaller batches to reduce the delays.  The
+only reason to reduce it in batches is amortization of overheads, the new
+batch size of 1MB should be well enough to amortize spinlock lock/unlock
+and few function calls.
+
+Plus organize quarantine as a FIFO array of batches.  This allows to not
+walk the list in quarantine_reduce() under quarantine_lock, which in turn
+reduces contention and is just faster.
+
+This improves performance of heavy load (syzkaller fuzzing) by ~20% with 4
+CPUs and 32GB of RAM.  Also this eliminates frequent (every 5 sec) drops
+of CPU consumption from ~400% to ~100% (one thread reduces quarantine
+while others are waiting on a mutex).
+
+Some reference numbers:
+1. Machine with 4 CPUs and 4GB of memory. Quarantine size 128MB.
+   Currently we free 32MB at at time.
+   With new code we free 1MB at a time (1024 batches, ~128 are used).
+2. Machine with 32 CPUs and 128GB of memory. Quarantine size 4GB.
+   Currently we free 1GB at at time.
+   With new code we free 8MB at a time (1024 batches, ~512 are used).
+3. Machine with 4096 CPUs and 1TB of memory. Quarantine size 32GB.
+   Currently we free 8GB at at time.
+   With new code we free 4MB at a time (16K batches, ~8K are used).
+
+Link: http://lkml.kernel.org/r/1478756952-18695-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 ++
- fs/proc/array.c                    |    5 +++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ mm/kasan/quarantine.c |   94 ++++++++++++++++++++--------------------
+ 1 file changed, 48 insertions(+), 46 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-report-no_new_privs-state Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-report-no_new_privs-state
-+++ a/Documentation/filesystems/proc.txt
-@@ -191,6 +191,7 @@ read the file /proc/PID/status:
-   CapPrm: 0000000000000000
-   CapEff: 0000000000000000
-   CapBnd: ffffffffffffffff
-+  NoNewPrivs:     0
-   Seccomp:        0
-   voluntary_ctxt_switches:        0
-   nonvoluntary_ctxt_switches:     1
-@@ -262,6 +263,7 @@ Table 1-2: Contents of the status files
-  CapPrm                      bitmap of permitted capabilities
-  CapEff                      bitmap of effective capabilities
-  CapBnd                      bitmap of capabilities bounding set
-+ NoNewPrivs                  no_new_privs, like prctl(PR_GET_NO_NEW_PRIV, ...)
-  Seccomp                     seccomp mode, like prctl(PR_GET_SECCOMP, ...)
-  Cpus_allowed                mask of CPUs on which this process may run
-  Cpus_allowed_list           Same as previous, but in "list format"
-diff -puN fs/proc/array.c~proc-report-no_new_privs-state fs/proc/array.c
---- a/fs/proc/array.c~proc-report-no_new_privs-state
-+++ a/fs/proc/array.c
-@@ -342,10 +342,11 @@ static inline void task_cap(struct seq_f
- 
- static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
- {
-+	seq_put_decimal_ull(m, "NoNewPrivs:\t", task_no_new_privs(p));
- #ifdef CONFIG_SECCOMP
--	seq_put_decimal_ull(m, "Seccomp:\t", p->seccomp.mode);
--	seq_putc(m, '\n');
-+	seq_put_decimal_ull(m, "\nSeccomp:\t", p->seccomp.mode);
- #endif
-+	seq_putc(m, '\n');
+diff -puN mm/kasan/quarantine.c~kasan-eliminate-long-stalls-during-quarantine-reduction mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~kasan-eliminate-long-stalls-during-quarantine-reduction
++++ a/mm/kasan/quarantine.c
+@@ -86,24 +86,9 @@ static void qlist_move_all(struct qlist_
+ 	qlist_init(from);
  }
  
- static inline void task_context_switch_counts(struct seq_file *m,
+-static void qlist_move(struct qlist_head *from, struct qlist_node *last,
+-		struct qlist_head *to, size_t size)
+-{
+-	if (unlikely(last == from->tail)) {
+-		qlist_move_all(from, to);
+-		return;
+-	}
+-	if (qlist_empty(to))
+-		to->head = from->head;
+-	else
+-		to->tail->next = from->head;
+-	to->tail = last;
+-	from->head = last->next;
+-	last->next = NULL;
+-	from->bytes -= size;
+-	to->bytes += size;
+-}
+-
++#define QUARANTINE_PERCPU_SIZE (1 << 20)
++#define QUARANTINE_BATCHES \
++	(1024 > 4 * CONFIG_NR_CPUS ? 1024 : 4 * CONFIG_NR_CPUS)
+ 
+ /*
+  * The object quarantine consists of per-cpu queues and a global queue,
+@@ -111,11 +96,22 @@ static void qlist_move(struct qlist_head
+  */
+ static DEFINE_PER_CPU(struct qlist_head, cpu_quarantine);
+ 
+-static struct qlist_head global_quarantine;
++/* Round-robin FIFO array of batches. */
++static struct qlist_head global_quarantine[QUARANTINE_BATCHES];
++static int quarantine_head;
++static int quarantine_tail;
++/* Total size of all objects in global_quarantine across all batches. */
++static unsigned long quarantine_size;
+ static DEFINE_SPINLOCK(quarantine_lock);
+ 
+ /* Maximum size of the global queue. */
+-static unsigned long quarantine_size;
++static unsigned long quarantine_max_size;
++
++/*
++ * Target size of a batch in global_quarantine.
++ * Usually equal to QUARANTINE_PERCPU_SIZE unless we have too much RAM.
++ */
++static unsigned long quarantine_batch_size;
+ 
+ /*
+  * The fraction of physical memory the quarantine is allowed to occupy.
+@@ -124,9 +120,6 @@ static unsigned long quarantine_size;
+  */
+ #define QUARANTINE_FRACTION 32
+ 
+-#define QUARANTINE_LOW_SIZE (READ_ONCE(quarantine_size) * 3 / 4)
+-#define QUARANTINE_PERCPU_SIZE (1 << 20)
+-
+ static struct kmem_cache *qlink_to_cache(struct qlist_node *qlink)
+ {
+ 	return virt_to_head_page(qlink)->slab_cache;
+@@ -191,21 +184,30 @@ void quarantine_put(struct kasan_free_me
+ 
+ 	if (unlikely(!qlist_empty(&temp))) {
+ 		spin_lock_irqsave(&quarantine_lock, flags);
+-		qlist_move_all(&temp, &global_quarantine);
++		WRITE_ONCE(quarantine_size, quarantine_size + temp.bytes);
++		qlist_move_all(&temp, &global_quarantine[quarantine_tail]);
++		if (global_quarantine[quarantine_tail].bytes >=
++				READ_ONCE(quarantine_batch_size)) {
++			int new_tail;
++
++			new_tail = quarantine_tail + 1;
++			if (new_tail == QUARANTINE_BATCHES)
++				new_tail = 0;
++			if (new_tail != quarantine_head)
++				quarantine_tail = new_tail;
++		}
+ 		spin_unlock_irqrestore(&quarantine_lock, flags);
+ 	}
+ }
+ 
+ void quarantine_reduce(void)
+ {
+-	size_t new_quarantine_size, percpu_quarantines;
++	size_t total_size, new_quarantine_size, percpu_quarantines;
+ 	unsigned long flags;
+ 	struct qlist_head to_free = QLIST_INIT;
+-	size_t size_to_free = 0;
+-	struct qlist_node *last;
+ 
+-	if (likely(READ_ONCE(global_quarantine.bytes) <=
+-		   READ_ONCE(quarantine_size)))
++	if (likely(READ_ONCE(quarantine_size) <=
++		   READ_ONCE(quarantine_max_size)))
+ 		return;
+ 
+ 	spin_lock_irqsave(&quarantine_lock, flags);
+@@ -214,24 +216,23 @@ void quarantine_reduce(void)
+ 	 * Update quarantine size in case of hotplug. Allocate a fraction of
+ 	 * the installed memory to quarantine minus per-cpu queue limits.
+ 	 */
+-	new_quarantine_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
++	total_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
+ 		QUARANTINE_FRACTION;
+ 	percpu_quarantines = QUARANTINE_PERCPU_SIZE * num_online_cpus();
+-	new_quarantine_size = (new_quarantine_size < percpu_quarantines) ?
+-		0 : new_quarantine_size - percpu_quarantines;
+-	WRITE_ONCE(quarantine_size, new_quarantine_size);
+-
+-	last = global_quarantine.head;
+-	while (last) {
+-		struct kmem_cache *cache = qlink_to_cache(last);
+-
+-		size_to_free += cache->size;
+-		if (!last->next || size_to_free >
+-		    global_quarantine.bytes - QUARANTINE_LOW_SIZE)
+-			break;
+-		last = last->next;
++	new_quarantine_size = (total_size < percpu_quarantines) ?
++		0 : total_size - percpu_quarantines;
++	WRITE_ONCE(quarantine_max_size, new_quarantine_size);
++	/* Aim at consuming at most 1/2 of slots in quarantine. */
++	WRITE_ONCE(quarantine_batch_size, max((size_t)QUARANTINE_PERCPU_SIZE,
++		2 * total_size / QUARANTINE_BATCHES));
++
++	if (likely(quarantine_size > quarantine_max_size)) {
++		qlist_move_all(&global_quarantine[quarantine_head], &to_free);
++		WRITE_ONCE(quarantine_size, quarantine_size - to_free.bytes);
++		quarantine_head++;
++		if (quarantine_head == QUARANTINE_BATCHES)
++			quarantine_head = 0;
+ 	}
+-	qlist_move(&global_quarantine, last, &to_free, size_to_free);
+ 
+ 	spin_unlock_irqrestore(&quarantine_lock, flags);
+ 
+@@ -275,13 +276,14 @@ static void per_cpu_remove_cache(void *a
+ 
+ void quarantine_remove_cache(struct kmem_cache *cache)
+ {
+-	unsigned long flags;
++	unsigned long flags, i;
+ 	struct qlist_head to_free = QLIST_INIT;
+ 
+ 	on_each_cpu(per_cpu_remove_cache, cache, 1);
+ 
+ 	spin_lock_irqsave(&quarantine_lock, flags);
+-	qlist_move_cache(&global_quarantine, &to_free, cache);
++	for (i = 0; i < QUARANTINE_BATCHES; i++)
++		qlist_move_cache(&global_quarantine[i], &to_free, cache);
+ 	spin_unlock_irqrestore(&quarantine_lock, flags);
+ 
+ 	qlist_free_all(&to_free, cache);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from dvyukov@google.com are
 
 
