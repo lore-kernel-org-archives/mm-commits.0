@@ -1,109 +1,108 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:23:13 -0800
-Message-ID: <58519c21.nBIrH0TxtztmO6Cq%akpm@linux-foundation.org>
+ fs-ocfs2-use-time64_t-to-represent-orphan-scan-times.patch removed from -mm tree
+Date: Wed, 14 Dec 2016 11:23:19 -0800
+Message-ID: <58519c27.Bf/y7DycKaMaAcJu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43890 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43916 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756499AbcLNTXO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:14 -0500
+        with ESMTP id S1754107AbcLNTXU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: deepa.kernel@gmail.com, arnd@arndb.de, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up unused 'page' parameter in ocfs2_write_end_nolock()
+     Subject: ocfs2: use time64_t to represent orphan scan times
 has been removed from the -mm tree.  Its filename was
-     ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock.patch
+     fs-ocfs2-use-time64_t-to-represent-orphan-scan-times.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: clean up unused 'page' parameter in ocfs2_write_end_nolock()
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: ocfs2: use time64_t to represent orphan scan times
 
-'page' parameter in ocfs2_write_end_nolock() is never used.
+struct timespec is not y2038 safe.  Use time64_t which is y2038 safe to
+represent orphan scan times.  time64_t is sufficient here as only the
+seconds delta times are relevant.
 
-Link: http://lkml.kernel.org/r/582FD91A.5000902@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Also use appropriate time functions that return time in time64_t format. 
+Time functions now return monotonic time instead of real time as only
+delta scan times are relevant and these values are not persistent across
+reboots.
+
+The format string for the debug print is still using long as this is only
+the time elapsed since the last scan and long is sufficient to represent
+this value.
+
+Link: http://lkml.kernel.org/r/1475365138-20567-1-git-send-email-deepa.kernel@gmail.com
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    7 +++----
- fs/ocfs2/aops.h |    3 +--
- fs/ocfs2/mmap.c |    3 +--
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ fs/ocfs2/journal.c |    4 ++--
+ fs/ocfs2/ocfs2.h   |    2 +-
+ fs/ocfs2/super.c   |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
-+++ a/fs/ocfs2/aops.c
-@@ -1950,8 +1950,7 @@ static void ocfs2_write_end_inline(struc
- }
- 
- int ocfs2_write_end_nolock(struct address_space *mapping,
--			   loff_t pos, unsigned len, unsigned copied,
--			   struct page *page, void *fsdata)
-+			   loff_t pos, unsigned len, unsigned copied, void *fsdata)
- {
- 	int i, ret;
- 	unsigned from, to, start = pos & (PAGE_SIZE - 1);
-@@ -2064,7 +2063,7 @@ static int ocfs2_write_end(struct file *
- 	int ret;
- 	struct inode *inode = mapping->host;
- 
--	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, page, fsdata);
-+	ret = ocfs2_write_end_nolock(mapping, pos, len, copied, fsdata);
- 
- 	up_write(&OCFS2_I(inode)->ip_alloc_sem);
- 	ocfs2_inode_unlock(inode, 1);
-@@ -2241,7 +2240,7 @@ static int ocfs2_dio_get_block(struct in
- 		dwc->dw_zero_count++;
- 	}
- 
--	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, NULL, wc);
-+	ret = ocfs2_write_end_nolock(inode->i_mapping, pos, len, len, wc);
- 	BUG_ON(ret != len);
- 	ret = 0;
+diff -puN fs/ocfs2/journal.c~fs-ocfs2-use-time64_t-to-represent-orphan-scan-times fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~fs-ocfs2-use-time64_t-to-represent-orphan-scan-times
++++ a/fs/ocfs2/journal.c
+@@ -1947,7 +1947,7 @@ static void ocfs2_queue_orphan_scan(stru
+ 	 */
+ 	seqno++;
+ 	os->os_count++;
+-	os->os_scantime = CURRENT_TIME;
++	os->os_scantime = ktime_get_seconds();
  unlock:
-diff -puN fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/aops.h
---- a/fs/ocfs2/aops.h~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
-+++ a/fs/ocfs2/aops.h
-@@ -44,8 +44,7 @@ int walk_page_buffers(	handle_t *handle,
- 					struct buffer_head *bh));
- 
- int ocfs2_write_end_nolock(struct address_space *mapping,
--			   loff_t pos, unsigned len, unsigned copied,
--			   struct page *page, void *fsdata);
-+			   loff_t pos, unsigned len, unsigned copied, void *fsdata);
- 
- typedef enum {
- 	OCFS2_WRITE_BUFFER = 0,
-diff -puN fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock fs/ocfs2/mmap.c
---- a/fs/ocfs2/mmap.c~ocfs2-clean-up-unused-page-parameter-in-ocfs2_write_end_nolock
-+++ a/fs/ocfs2/mmap.c
-@@ -120,8 +120,7 @@ static int __ocfs2_page_mkwrite(struct f
- 		ret = VM_FAULT_NOPAGE;
- 		goto out;
- 	}
--	ret = ocfs2_write_end_nolock(mapping, pos, len, len, locked_page,
--				     fsdata);
-+	ret = ocfs2_write_end_nolock(mapping, pos, len, len, fsdata);
- 	BUG_ON(ret != len);
- 	ret = VM_FAULT_LOCKED;
+ 	ocfs2_orphan_scan_unlock(osb, seqno);
  out:
+@@ -2004,7 +2004,7 @@ void ocfs2_orphan_scan_start(struct ocfs
+ 	struct ocfs2_orphan_scan *os;
+ 
+ 	os = &osb->osb_orphan_scan;
+-	os->os_scantime = CURRENT_TIME;
++	os->os_scantime = ktime_get_seconds();
+ 	if (ocfs2_is_hard_readonly(osb) || ocfs2_mount_local(osb))
+ 		atomic_set(&os->os_state, ORPHAN_SCAN_INACTIVE);
+ 	else {
+diff -puN fs/ocfs2/ocfs2.h~fs-ocfs2-use-time64_t-to-represent-orphan-scan-times fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~fs-ocfs2-use-time64_t-to-represent-orphan-scan-times
++++ a/fs/ocfs2/ocfs2.h
+@@ -224,7 +224,7 @@ struct ocfs2_orphan_scan {
+ 	struct ocfs2_super 	*os_osb;
+ 	struct ocfs2_lock_res 	os_lockres;     /* lock to synchronize scans */
+ 	struct delayed_work 	os_orphan_scan_work;
+-	struct timespec		os_scantime;  /* time this node ran the scan */
++	time64_t		os_scantime;  /* time this node ran the scan */
+ 	u32			os_count;      /* tracks node specific scans */
+ 	u32  			os_seqno;       /* tracks cluster wide scans */
+ 	atomic_t		os_state;              /* ACTIVE or INACTIVE */
+diff -puN fs/ocfs2/super.c~fs-ocfs2-use-time64_t-to-represent-orphan-scan-times fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~fs-ocfs2-use-time64_t-to-represent-orphan-scan-times
++++ a/fs/ocfs2/super.c
+@@ -337,7 +337,7 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 		out += snprintf(buf + out, len - out, "Disabled\n");
+ 	else
+ 		out += snprintf(buf + out, len - out, "%lu seconds ago\n",
+-				(get_seconds() - os->os_scantime.tv_sec));
++				(unsigned long)(ktime_get_seconds() - os->os_scantime));
+ 
+ 	out += snprintf(buf + out, len - out, "%10s => %3s  %10s\n",
+ 			"Slots", "Num", "RecoGen");
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from deepa.kernel@gmail.com are
 
 
