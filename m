@@ -1,66 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] let-config_strict_devmem-depends-on-config_devmem.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:27:40 -0800
-Message-ID: <58519d2c.rCvNQnWElU4er3HK%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-ida-document-locking-requirements-a-bit-better-v2.patch removed from
+ -mm tree
+Date: Wed, 14 Dec 2016 11:27:45 -0800
+Message-ID: <58519d31.rpnwcXsyx5jzeN9W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45842 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45830 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756686AbcLNT2B (ORCPT
+        with ESMTP id S1752366AbcLNT2B (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:28:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dyoung@redhat.com, aryabinin@virtuozzo.com, dan.j.williams@intel.com, dvyukov@google.com, jpoimboe@redhat.com, keescook@chromium.org, mingo@kernel.org, nikolay@cumulusnetworks.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: daniel.vetter@ffwll.ch, daniel.vetter@intel.com, mgorman@techsingularity.net, mhocko@suse.com, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: make CONFIG_STRICT_DEVMEM depend on CONFIG_DEVMEM
+     Subject: lib/ida: document locking requirements a bit better
 has been removed from the -mm tree.  Its filename was
-     let-config_strict_devmem-depends-on-config_devmem.patch
+     lib-ida-document-locking-requirements-a-bit-better-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Young <dyoung@redhat.com>
-Subject: lib/Kconfig.debug: make CONFIG_STRICT_DEVMEM depend on CONFIG_DEVMEM
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: lib/ida: document locking requirements a bit better
 
-With CONFIG_DEVMEM not set, CONFIG_STRICT_DEVMEM will be useless even if
-it is set =y, thus let's update the dependency in Kconfig.
+I wanted to wrap a bunch of ida_simple_get calls into their own locking,
+until I dug around and read the original commit message.  Stuff like this
+should imo be added to the kernel doc, let's do that.
 
-Link: http://lkml.kernel.org/r/20161006051217.GA31027@dhcp-128-65.nay.redhat.com
-Signed-off-by: Dave Young <dyoung@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20161027072216.20411-1-daniel.vetter@ffwll.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/idr.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN lib/Kconfig.debug~let-config_strict_devmem-depends-on-config_devmem lib/Kconfig.debug
---- a/lib/Kconfig.debug~let-config_strict_devmem-depends-on-config_devmem
-+++ a/lib/Kconfig.debug
-@@ -2005,7 +2005,7 @@ config ARCH_HAS_DEVMEM_IS_ALLOWED
- 
- config STRICT_DEVMEM
- 	bool "Filter access to /dev/mem"
--	depends on MMU
-+	depends on MMU && DEVMEM
- 	depends on ARCH_HAS_DEVMEM_IS_ALLOWED
- 	default y if TILE || PPC
- 	---help---
+diff -puN lib/idr.c~lib-ida-document-locking-requirements-a-bit-better-v2 lib/idr.c
+--- a/lib/idr.c~lib-ida-document-locking-requirements-a-bit-better-v2
++++ a/lib/idr.c
+@@ -927,6 +927,9 @@ EXPORT_SYMBOL(ida_pre_get);
+  * and go back to the ida_pre_get() call.  If the ida is full, it will
+  * return %-ENOSPC.
+  *
++ * Note that callers must ensure that concurrent access to @ida is not possible.
++ * See ida_simple_get() for a varaint which takes care of locking.
++ *
+  * @p_id returns a value in the range @starting_id ... %0x7fffffff.
+  */
+ int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
+@@ -1073,6 +1076,9 @@ EXPORT_SYMBOL(ida_destroy);
+  * Allocates an id in the range start <= id < end, or returns -ENOSPC.
+  * On memory allocation failure, returns -ENOMEM.
+  *
++ * Compared to ida_get_new_above() this function does its own locking, and
++ * should be used unless there are special requirements.
++ *
+  * Use ida_simple_remove() to get rid of an id.
+  */
+ int ida_simple_get(struct ida *ida, unsigned int start, unsigned int end,
+@@ -1119,6 +1125,11 @@ EXPORT_SYMBOL(ida_simple_get);
+  * ida_simple_remove - remove an allocated id.
+  * @ida: the (initialized) ida.
+  * @id: the id returned by ida_simple_get.
++ *
++ * Use to release an id allocated with ida_simple_get().
++ *
++ * Compared to ida_remove() this function does its own locking, and should be
++ * used unless there are special requirements.
+  */
+ void ida_simple_remove(struct ida *ida, unsigned int id)
+ {
 _
 
-Patches currently in -mm which might be from dyoung@redhat.com are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
 
