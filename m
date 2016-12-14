@@ -1,124 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color.patch removed from
- -mm tree
-Date: Wed, 14 Dec 2016 11:27:43 -0800
-Message-ID: <58519d2f.LimMqJ56VSfxWHcu%akpm@linux-foundation.org>
+ checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given.patch
+ removed from -mm tree
+Date: Wed, 14 Dec 2016 11:27:48 -0800
+Message-ID: <58519d34.I+80KH+m+PLrbH23%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45844 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756556AbcLNT2B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:28:01 -0500
+        with ESMTP id S1756690AbcLNT2C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:28:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fykcee1@gmail.com, guangrong.xiao@linux.intel.com, weiyang@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: jerome.forissier@linaro.org, computersforpeace@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rbtree.c: fix typo in comment of ____rb_erase_color
+     Subject: checkpatch: don't try to get maintained status when --no-tree is given
 has been removed from the -mm tree.  Its filename was
-     lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color.patch
+     checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jie Chen <fykcee1@gmail.com>
-Subject: lib/rbtree.c: fix typo in comment of ____rb_erase_color
+From: Jerome Forissier <jerome.forissier@linaro.org>
+Subject: checkpatch: don't try to get maintained status when --no-tree is given
 
-In Case 3 of `sibling == parent->rb_right':
+Fixes the following warning:
+Use of uninitialized value $root in concatenation (.) or string at /path/to/checkpatch.pl line 764.
 
-Right rotation will not change color of sl and S in the diagram
-(i.e. should not change "sl" to "Sl", "S" to "s")
-
-In Case 3 of `sibling == parent->rb_left':
-
-     (p)           (p)
-     / \           / \
-    S   N    -->  sr  N
-   / \           /
-  Sl  sr        S
-               /
-              Sl
-
-  This is actually left rotation at "S", not right rotation.
-
-In Case 4 of `sibling == parent->rb_left':
-
-     (p)             (s)
-     / \             / \
-    S   N     -->   Sl  P
-   / \                 / \
-  sl (sr)            (sr) N
-
-  This is actually right rotation at "(p)" + color flips, not left
-  rotation + color flips.
-
-Link: http://lkml.kernel.org/r/1472391115-3702-1-git-send-email-fykcee1@gmail.com
-Signed-off-by: Jie Chen <fykcee1@gmail.com>
-Cc: Wei Yang <weiyang@linux.vnet.ibm.com>
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+Link: http://lkml.kernel.org/r/1476719709-16668-1-git-send-email-jerome.forissier@linaro.org
+Signed-off-by: Jerome Forissier <jerome.forissier@linaro.org>
+Reviewed-by: Brian Norris <computersforpeace@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/rbtree.c~lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color lib/rbtree.c
---- a/lib/rbtree.c~lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color
-+++ a/lib/rbtree.c
-@@ -296,11 +296,26 @@ ____rb_erase_color(struct rb_node *paren
- 				 *
- 				 *   (p)           (p)
- 				 *   / \           / \
--				 *  N   S    -->  N   Sl
-+				 *  N   S    -->  N   sl
- 				 *     / \             \
--				 *    sl  Sr            s
-+				 *    sl  Sr            S
- 				 *                       \
- 				 *                        Sr
-+				 *
-+				 * Note: p might be red, and then both
-+				 * p and sl are red after rotation(which
-+				 * breaks property 4). This is fixed in
-+				 * Case 4 (in __rb_rotate_set_parents()
-+				 *         which set sl the color of p
-+				 *         and set p RB_BLACK)
-+				 *
-+				 *   (p)            (sl)
-+				 *   / \            /  \
-+				 *  N   sl   -->   P    S
-+				 *       \        /      \
-+				 *        S      N        Sr
-+				 *         \
-+				 *          Sr
- 				 */
- 				tmp1 = tmp2->rb_right;
- 				WRITE_ONCE(sibling->rb_left, tmp1);
-@@ -365,7 +380,7 @@ ____rb_erase_color(struct rb_node *paren
- 					}
- 					break;
- 				}
--				/* Case 3 - right rotate at sibling */
-+				/* Case 3 - left rotate at sibling */
- 				tmp1 = tmp2->rb_left;
- 				WRITE_ONCE(sibling->rb_right, tmp1);
- 				WRITE_ONCE(tmp2->rb_left, sibling);
-@@ -377,7 +392,7 @@ ____rb_erase_color(struct rb_node *paren
- 				tmp1 = sibling;
- 				sibling = tmp2;
- 			}
--			/* Case 4 - left rotate at parent + color flips */
-+			/* Case 4 - right rotate at parent + color flips */
- 			tmp2 = sibling->rb_right;
- 			WRITE_ONCE(parent->rb_left, tmp2);
- 			WRITE_ONCE(sibling->rb_right, parent);
+diff -puN scripts/checkpatch.pl~checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given
++++ a/scripts/checkpatch.pl
+@@ -761,7 +761,7 @@ sub seed_camelcase_file {
+ sub is_maintained_obsolete {
+ 	my ($filename) = @_;
+ 
+-	return 0 if (!(-e "$root/scripts/get_maintainer.pl"));
++	return 0 if (!$tree || !(-e "$root/scripts/get_maintainer.pl"));
+ 
+ 	my $status = `perl $root/scripts/get_maintainer.pl --status --nom --nol --nogit --nogit-fallback -f $filename 2>&1`;
+ 
 _
 
-Patches currently in -mm which might be from fykcee1@gmail.com are
+Patches currently in -mm which might be from jerome.forissier@linaro.org are
 
 
