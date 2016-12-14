@@ -1,87 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-ida-document-locking-requirements-a-bit-better-v2.patch removed from
- -mm tree
-Date: Wed, 14 Dec 2016 11:27:45 -0800
-Message-ID: <58519d31.rpnwcXsyx5jzeN9W%akpm@linux-foundation.org>
+Subject: [merged] maintainers-add-drm-and-drm-i915-bug-filing-info.patch
+ removed from -mm tree
+Date: Wed, 14 Dec 2016 11:27:31 -0800
+Message-ID: <58519d23.uS1qgMrqMSYyY08n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45836 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752366AbcLNT2B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:28:01 -0500
+        with ESMTP id S1752589AbcLNT2A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.vetter@ffwll.ch, daniel.vetter@intel.com, mgorman@techsingularity.net, mhocko@suse.com, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: jani.nikula@intel.com, airlied@gmail.com, andrew.donnellan@au1.ibm.com, daniel@ffwll.ch, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/ida: document locking requirements a bit better
+     Subject: MAINTAINERS: add drm and drm/i915 bug filing info
 has been removed from the -mm tree.  Its filename was
-     lib-ida-document-locking-requirements-a-bit-better-v2.patch
+     maintainers-add-drm-and-drm-i915-bug-filing-info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: lib/ida: document locking requirements a bit better
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: MAINTAINERS: add drm and drm/i915 bug filing info
 
-I wanted to wrap a bunch of ida_simple_get calls into their own locking,
-until I dug around and read the original commit message.  Stuff like this
-should imo be added to the kernel doc, let's do that.
-
-Link: http://lkml.kernel.org/r/20161027072216.20411-1-daniel.vetter@ffwll.ch
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/1476966135-26943-2-git-send-email-jani.nikula@intel.com
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Reviewed-by: Andrew Donnellan <andrew.donnellan@au1.ibm.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/idr.c~lib-ida-document-locking-requirements-a-bit-better-v2 lib/idr.c
---- a/lib/idr.c~lib-ida-document-locking-requirements-a-bit-better-v2
-+++ a/lib/idr.c
-@@ -927,6 +927,9 @@ EXPORT_SYMBOL(ida_pre_get);
-  * and go back to the ida_pre_get() call.  If the ida is full, it will
-  * return %-ENOSPC.
-  *
-+ * Note that callers must ensure that concurrent access to @ida is not possible.
-+ * See ida_simple_get() for a varaint which takes care of locking.
-+ *
-  * @p_id returns a value in the range @starting_id ... %0x7fffffff.
-  */
- int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
-@@ -1073,6 +1076,9 @@ EXPORT_SYMBOL(ida_destroy);
-  * Allocates an id in the range start <= id < end, or returns -ENOSPC.
-  * On memory allocation failure, returns -ENOMEM.
-  *
-+ * Compared to ida_get_new_above() this function does its own locking, and
-+ * should be used unless there are special requirements.
-+ *
-  * Use ida_simple_remove() to get rid of an id.
-  */
- int ida_simple_get(struct ida *ida, unsigned int start, unsigned int end,
-@@ -1119,6 +1125,11 @@ EXPORT_SYMBOL(ida_simple_get);
-  * ida_simple_remove - remove an allocated id.
-  * @ida: the (initialized) ida.
-  * @id: the id returned by ida_simple_get.
-+ *
-+ * Use to release an id allocated with ida_simple_get().
-+ *
-+ * Compared to ida_remove() this function does its own locking, and should be
-+ * used unless there are special requirements.
-  */
- void ida_simple_remove(struct ida *ida, unsigned int id)
- {
+diff -puN MAINTAINERS~maintainers-add-drm-and-drm-i915-bug-filing-info MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-drm-and-drm-i915-bug-filing-info
++++ a/MAINTAINERS
+@@ -4026,6 +4026,7 @@ DRM DRIVERS
+ M:	David Airlie <airlied@linux.ie>
+ L:	dri-devel@lists.freedesktop.org
+ T:	git git://people.freedesktop.org/~airlied/linux
++B:	https://bugs.freedesktop.org/
+ S:	Maintained
+ F:	drivers/gpu/drm/
+ F:	drivers/gpu/vga/
+@@ -4078,6 +4079,7 @@ M:	Jani Nikula <jani.nikula@linux.intel.
+ L:	intel-gfx@lists.freedesktop.org
+ L:	dri-devel@lists.freedesktop.org
+ W:	https://01.org/linuxgraphics/
++B:	https://01.org/linuxgraphics/documentation/how-report-bugs
+ Q:	http://patchwork.freedesktop.org/project/intel-gfx/
+ T:	git git://anongit.freedesktop.org/drm-intel
+ S:	Supported
 _
 
-Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
+Patches currently in -mm which might be from jani.nikula@intel.com are
 
 
