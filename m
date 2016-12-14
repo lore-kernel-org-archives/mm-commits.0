@@ -1,92 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-avoid-maybe-uninitialized-warning.patch removed
- from -mm tree
-Date: Wed, 14 Dec 2016 11:24:21 -0800
-Message-ID: <58519c65.QLDtebLhf1WwQijq%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
+ removed from -mm tree
+Date: Wed, 14 Dec 2016 11:24:30 -0800
+Message-ID: <58519c6e.RW2oBY1/O9OLZwRP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756541AbcLNTYW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:22 -0500
+        with ESMTP id S1756541AbcLNTYb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, agruenba@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, dan.j.williams@intel.com, kirill@shutemov.name, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: avoid maybe-uninitialized warning
+     Subject: mm/hugetlb: add tlb_remove_hugetlb_entry for handling hugetlb pages
 has been removed from the -mm tree.  Its filename was
-     shmem-avoid-maybe-uninitialized-warning.patch
+     mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: shmem: avoid maybe-uninitialized warning
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/hugetlb: add tlb_remove_hugetlb_entry for handling hugetlb pages
 
-After enabling -Wmaybe-uninitialized warnings, we get a false-postive
-warning for shmem:
+This add tlb_remove_hugetlb_entry similar to tlb_remove_pmd_tlb_entry.
 
-mm/shmem.c: In function `shmem_getpage_gfp':
-include/linux/spinlock.h:332:21: error: `info' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-
-This can be easily avoided, since the correct 'info' pointer is known at
-the time we first enter the function, so we can simply move the
-initialization up.  Moving it before the first label avoids the warning
-and lets us remove two later initializations.
-
-Note that the function is so hard to read that it not only confuses the
-compiler, but also most readers and without this patch it could\ easily
-break if one of the 'goto's changed.
-
-Link: https://www.spinics.net/lists/kernel/msg2368133.html
-Link: http://lkml.kernel.org/r/20161024205725.786455-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Link: http://lkml.kernel.org/r/20161026084839.27299-4-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/arm/include/asm/tlb.h  |    2 ++
+ arch/ia64/include/asm/tlb.h |    3 +++
+ arch/s390/include/asm/tlb.h |    2 ++
+ arch/sh/include/asm/tlb.h   |    3 +++
+ arch/um/include/asm/tlb.h   |    3 +++
+ include/asm-generic/tlb.h   |    6 ++++++
+ mm/hugetlb.c                |    2 +-
+ 7 files changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-avoid-maybe-uninitialized-warning mm/shmem.c
---- a/mm/shmem.c~shmem-avoid-maybe-uninitialized-warning
-+++ a/mm/shmem.c
-@@ -1539,7 +1539,7 @@ static int shmem_getpage_gfp(struct inod
- 	struct mm_struct *fault_mm, int *fault_type)
- {
- 	struct address_space *mapping = inode->i_mapping;
--	struct shmem_inode_info *info;
-+	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo;
- 	struct mm_struct *charge_mm;
- 	struct mem_cgroup *memcg;
-@@ -1589,7 +1589,6 @@ repeat:
- 	 * Fast cache lookup did not find it:
- 	 * bring it back from swap or allocate.
- 	 */
--	info = SHMEM_I(inode);
- 	sbinfo = SHMEM_SB(inode->i_sb);
- 	charge_mm = fault_mm ? : current->mm;
+diff -puN arch/arm/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages arch/arm/include/asm/tlb.h
+--- a/arch/arm/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages
++++ a/arch/arm/include/asm/tlb.h
+@@ -186,6 +186,8 @@ tlb_remove_tlb_entry(struct mmu_gather *
+ 	tlb_add_flush(tlb, addr);
+ }
  
-@@ -1837,7 +1836,6 @@ unlock:
- 		put_page(page);
- 	}
- 	if (error == -ENOSPC && !once++) {
--		info = SHMEM_I(inode);
- 		spin_lock_irq(&info->lock);
- 		shmem_recalc_inode(inode);
- 		spin_unlock_irq(&info->lock);
++#define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
++	tlb_remove_tlb_entry(tlb, ptep, address)
+ /*
+  * In the case of tlb vma handling, we can optimise these away in the
+  * case where we're doing a full MM flush.  When we're doing a munmap,
+diff -puN arch/ia64/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages arch/ia64/include/asm/tlb.h
+--- a/arch/ia64/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages
++++ a/arch/ia64/include/asm/tlb.h
+@@ -283,6 +283,9 @@ do {							\
+ 	__tlb_remove_tlb_entry(tlb, ptep, addr);	\
+ } while (0)
+ 
++#define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
++	tlb_remove_tlb_entry(tlb, ptep, address)
++
+ #define pte_free_tlb(tlb, ptep, address)		\
+ do {							\
+ 	tlb->need_flush = 1;				\
+diff -puN arch/s390/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages arch/s390/include/asm/tlb.h
+--- a/arch/s390/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages
++++ a/arch/s390/include/asm/tlb.h
+@@ -162,5 +162,7 @@ static inline void pud_free_tlb(struct m
+ #define tlb_remove_tlb_entry(tlb, ptep, addr)	do { } while (0)
+ #define tlb_remove_pmd_tlb_entry(tlb, pmdp, addr)	do { } while (0)
+ #define tlb_migrate_finish(mm)			do { } while (0)
++#define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
++	tlb_remove_tlb_entry(tlb, ptep, address)
+ 
+ #endif /* _S390_TLB_H */
+diff -puN arch/sh/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages arch/sh/include/asm/tlb.h
+--- a/arch/sh/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages
++++ a/arch/sh/include/asm/tlb.h
+@@ -65,6 +65,9 @@ tlb_remove_tlb_entry(struct mmu_gather *
+ 		tlb->end = address + PAGE_SIZE;
+ }
+ 
++#define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
++	tlb_remove_tlb_entry(tlb, ptep, address)
++
+ /*
+  * In the case of tlb vma handling, we can optimise these away in the
+  * case where we're doing a full MM flush.  When we're doing a munmap,
+diff -puN arch/um/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages arch/um/include/asm/tlb.h
+--- a/arch/um/include/asm/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages
++++ a/arch/um/include/asm/tlb.h
+@@ -141,6 +141,9 @@ static inline void tlb_remove_page_size(
+ 		__tlb_remove_tlb_entry(tlb, ptep, address);	\
+ 	} while (0)
+ 
++#define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
++	tlb_remove_tlb_entry(tlb, ptep, address)
++
+ #define pte_free_tlb(tlb, ptep, addr) __pte_free_tlb(tlb, ptep, addr)
+ 
+ #define pud_free_tlb(tlb, pudp, addr) __pud_free_tlb(tlb, pudp, addr)
+diff -puN include/asm-generic/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages
++++ a/include/asm-generic/tlb.h
+@@ -220,6 +220,12 @@ static inline bool __tlb_remove_pte_page
+ 		__tlb_remove_tlb_entry(tlb, ptep, address);	\
+ 	} while (0)
+ 
++#define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	     \
++	do {							     \
++		__tlb_adjust_range(tlb, address, huge_page_size(h)); \
++		__tlb_remove_tlb_entry(tlb, ptep, address);	     \
++	} while (0)
++
+ /**
+  * tlb_remove_pmd_tlb_entry - remember a pmd mapping for later tlb invalidation
+  * This is a nop so far, because only x86 needs it.
+diff -puN mm/hugetlb.c~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages
++++ a/mm/hugetlb.c
+@@ -3336,7 +3336,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 		}
+ 
+ 		pte = huge_ptep_get_and_clear(mm, address, ptep);
+-		tlb_remove_tlb_entry(tlb, ptep, address);
++		tlb_remove_huge_tlb_entry(h, tlb, ptep, address);
+ 		if (huge_pte_dirty(pte))
+ 			set_page_dirty(page);
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 
