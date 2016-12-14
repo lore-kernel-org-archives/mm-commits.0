@@ -1,170 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] kbuild-simpler-generation-of-assembly-constants.patch removed from -mm tree
-Date: Wed, 14 Dec 2016 12:52:35 -0800
-Message-ID: <5851b113.Ym4q4C6q4Vd2kAU9%akpm@linux-foundation.org>
+Subject: + arm64-setup-introduce-kaslr_offset.patch added to -mm tree
+Date: Wed, 14 Dec 2016 12:57:06 -0800
+Message-ID: <5851b222.HbMJUrn1uIklzqG4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51930 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751764AbcLNUwd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 15:52:33 -0500
+        with ESMTP id S1753080AbcLNU5b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 15:57:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mmarek@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: alex.popov@linux.com, andreyknvl@google.com, ard.biesheuvel@linaro.org, aryabinin@virtuozzo.com, catalin.marinas@arm.com, david.daney@cavium.com, dvyukov@google.com, gkulkarni@caviumnetworks.com, james.morse@arm.com, jcm@redhat.com, mark.rutland@arm.com, nicstange@gmail.com, robh@kernel.org, syzkaller@googlegroups.com, takahiro.akashi@linaro.org, wangkefeng.wang@huawei.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: simpler generation of assembly constants
-has been removed from the -mm tree.  Its filename was
-     kbuild-simpler-generation-of-assembly-constants.patch
+     Subject: arm64: setup: introduce kaslr_offset()
+has been added to the -mm tree.  Its filename is
+     arm64-setup-introduce-kaslr_offset.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-setup-introduce-kaslr_offset.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-setup-introduce-kaslr_offset.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: kbuild: simpler generation of assembly constants
+From: Alexander Popov <alex.popov@linux.com>
+Subject: arm64: setup: introduce kaslr_offset()
 
-gcc doesn't really look inside "asm" statements and more or less
-directly emits it into assembly. So pretend "#define" is CPU
-instruction.
+Introduce kaslr_offset() similar to x86_64 to fix kcov.
 
-C++ comment can't be used because sparc assembler doesn't understand it.
-
-Link: http://lkml.kernel.org/r/20160713173646.GA1910@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Link: http://lkml.kernel.org/r/1481417456-28826-2-git-send-email-alex.popov@linux.com
+Signed-off-by: Alexander Popov <alex.popov@linux.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
+Cc: Jon Masters <jcm@redhat.com>
+Cc: David Daney <david.daney@cavium.com>
+Cc: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Nicolai Stange <nicstange@gmail.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Popov <alex.popov@linux.com>
+Cc: syzkaller <syzkaller@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Kbuild                                     |   12 +-----------
- arch/ia64/kernel/Makefile                  |    8 +-------
- arch/um/Makefile                           |    2 +-
- arch/x86/um/shared/sysdep/kernel-offsets.h |    2 +-
- arch/x86/um/user-offsets.c                 |    4 ++--
- include/linux/kbuild.h                     |    2 +-
- scripts/mod/Makefile                       |   11 +----------
- 7 files changed, 8 insertions(+), 33 deletions(-)
+ arch/arm64/include/asm/setup.h      |   19 +++++++++++++++++++
+ arch/arm64/include/uapi/asm/setup.h |    4 ++--
+ arch/arm64/kernel/setup.c           |    8 ++++----
+ 3 files changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN Kbuild~kbuild-simpler-generation-of-assembly-constants Kbuild
---- a/Kbuild~kbuild-simpler-generation-of-assembly-constants
-+++ a/Kbuild
-@@ -7,14 +7,6 @@
- # 4) Check for missing system calls
- # 5) Generate constants.py (may need bounds.h)
+diff -puN /dev/null arch/arm64/include/asm/setup.h
+--- /dev/null
++++ a/arch/arm64/include/asm/setup.h
+@@ -0,0 +1,19 @@
++/*
++ * arch/arm64/include/asm/setup.h
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __ASM_SETUP_H
++#define __ASM_SETUP_H
++
++#include <uapi/asm/setup.h>
++
++static inline unsigned long kaslr_offset(void)
++{
++	return kimage_vaddr - KIMAGE_VADDR;
++}
++
++#endif
+diff -puN arch/arm64/include/uapi/asm/setup.h~arm64-setup-introduce-kaslr_offset arch/arm64/include/uapi/asm/setup.h
+--- a/arch/arm64/include/uapi/asm/setup.h~arm64-setup-introduce-kaslr_offset
++++ a/arch/arm64/include/uapi/asm/setup.h
+@@ -16,8 +16,8 @@
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+-#ifndef __ASM_SETUP_H
+-#define __ASM_SETUP_H
++#ifndef _UAPI__ASM_SETUP_H
++#define _UAPI__ASM_SETUP_H
  
--# Default sed regexp - multiline due to syntax constraints
--define sed-y
--	"/^->/{s:->#\(.*\):/* \1 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:->::; p;}"
--endef
--
- # Use filechk to avoid rebuilds when a header changes, but the resulting file
- # does not
- define filechk_offsets
-@@ -26,9 +18,7 @@ define filechk_offsets
- 	 echo " *"; \
- 	 echo " * This file was generated by Kbuild"; \
- 	 echo " */"; \
--	 echo ""; \
--	 sed -ne $(sed-y); \
--	 echo ""; \
-+	 sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//;p;}'; \
- 	 echo "#endif" )
- endef
+ #include <linux/types.h>
  
-diff -puN arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants arch/ia64/kernel/Makefile
---- a/arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants
-+++ a/arch/ia64/kernel/Makefile
-@@ -50,10 +50,6 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f
- # The gate DSO image is built using a special linker script.
- include $(src)/Makefile.gate
- 
--# Calculate NR_IRQ = max(IA64_NATIVE_NR_IRQS, XEN_NR_IRQS, ...) based on config
--define sed-y
--	"/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"
--endef
- quiet_cmd_nr_irqs = GEN     $@
- define cmd_nr_irqs
- 	(set -e; \
-@@ -65,9 +61,7 @@ define cmd_nr_irqs
- 	 echo " * This file was generated by Kbuild"; \
- 	 echo " *"; \
- 	 echo " */"; \
--	 echo ""; \
--	 sed -ne $(sed-y) $<; \
--	 echo ""; \
-+	 sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//p;}' $<; \
- 	 echo "#endif" ) > $@
- endef
- 
-diff -puN arch/um/Makefile~kbuild-simpler-generation-of-assembly-constants arch/um/Makefile
---- a/arch/um/Makefile~kbuild-simpler-generation-of-assembly-constants
-+++ a/arch/um/Makefile
-@@ -158,7 +158,7 @@ define filechk_gen-asm-offsets
-          echo " *"; \
-          echo " */"; \
-          echo ""; \
--         sed -ne "/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"; \
-+         sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//p;}'; \
-          echo ""; )
- endef
- 
-diff -puN arch/x86/um/shared/sysdep/kernel-offsets.h~kbuild-simpler-generation-of-assembly-constants arch/x86/um/shared/sysdep/kernel-offsets.h
---- a/arch/x86/um/shared/sysdep/kernel-offsets.h~kbuild-simpler-generation-of-assembly-constants
-+++ a/arch/x86/um/shared/sysdep/kernel-offsets.h
-@@ -5,7 +5,7 @@
- #include <asm/mman.h>
- 
- #define DEFINE(sym, val) \
--	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-+	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
- 
- #define BLANK() asm volatile("\n->" : : )
- 
-diff -puN arch/x86/um/user-offsets.c~kbuild-simpler-generation-of-assembly-constants arch/x86/um/user-offsets.c
---- a/arch/x86/um/user-offsets.c~kbuild-simpler-generation-of-assembly-constants
-+++ a/arch/x86/um/user-offsets.c
-@@ -21,10 +21,10 @@ static char syscalls[] = {
- #endif
- 
- #define DEFINE(sym, val) \
--	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-+	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
- 
- #define DEFINE_LONGS(sym, val) \
--	asm volatile("\n->" #sym " %0 " #val : : "i" (val/sizeof(unsigned long)))
-+	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val / sizeof(unsigned long)))
- 
- void foo(void)
+diff -puN arch/arm64/kernel/setup.c~arm64-setup-introduce-kaslr_offset arch/arm64/kernel/setup.c
+--- a/arch/arm64/kernel/setup.c~arm64-setup-introduce-kaslr_offset
++++ a/arch/arm64/kernel/setup.c
+@@ -338,11 +338,11 @@ subsys_initcall(topology_init);
+ static int dump_kernel_offset(struct notifier_block *self, unsigned long v,
+ 			      void *p)
  {
-diff -puN include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants include/linux/kbuild.h
---- a/include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants
-+++ a/include/linux/kbuild.h
-@@ -2,7 +2,7 @@
- #define __LINUX_KBUILD_H
+-	u64 const kaslr_offset = kimage_vaddr - KIMAGE_VADDR;
++	const unsigned long offset = kaslr_offset();
  
- #define DEFINE(sym, val) \
--        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-+	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
- 
- #define BLANK() asm volatile("\n->" : : )
- 
-diff -puN scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants scripts/mod/Makefile
---- a/scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants
-+++ a/scripts/mod/Makefile
-@@ -7,13 +7,6 @@ modpost-objs	:= modpost.o file2alias.o s
- 
- devicetable-offsets-file := devicetable-offsets.h
- 
--define sed-y
--	"/^->/{s:->#\(.*\):/* \1 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:->::; p;}"
--endef
+-	if (IS_ENABLED(CONFIG_RANDOMIZE_BASE) && kaslr_offset > 0) {
+-		pr_emerg("Kernel Offset: 0x%llx from 0x%lx\n",
+-			 kaslr_offset, KIMAGE_VADDR);
++	if (IS_ENABLED(CONFIG_RANDOMIZE_BASE) && offset > 0) {
++		pr_emerg("Kernel Offset: 0x%lx from 0x%lx\n",
++			 offset, KIMAGE_VADDR);
+ 	} else {
+ 		pr_emerg("Kernel Offset: disabled\n");
+ 	}
+_
+
+Patches currently in -mm which might be from alex.popov@linux.com are
+
+arm64-setup-introduce-kaslr_offset.patch
+kcov-make-kcov-work-properly-with-kaslr-enabled.patch
+
