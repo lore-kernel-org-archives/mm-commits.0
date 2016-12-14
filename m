@@ -1,317 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-the-page-size-change-check-in-tlb_remove_page.patch removed from
- -mm tree
-Date: Wed, 14 Dec 2016 11:24:35 -0800
-Message-ID: <58519c73.LQFdI5Uw9eVjDKVO%akpm@linux-foundation.org>
+ mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
+ removed from -mm tree
+Date: Wed, 14 Dec 2016 11:24:40 -0800
+Message-ID: <58519c78.SEiqU5fFZalwUFPS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44248 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756541AbcLNTYg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:36 -0500
+        with ESMTP id S1756541AbcLNTYl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, dan.j.williams@intel.com, kirill@shutemov.name, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: kwapulinski.piotr@gmail.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, liangchen.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, nzimmer@sgi.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove the page size change check in tlb_remove_page
+     Subject: mm/mempolicy.c: forbid static or relative flags for local NUMA mode
 has been removed from the -mm tree.  Its filename was
-     mm-remove-the-page-size-change-check-in-tlb_remove_page.patch
+     mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: remove the page size change check in tlb_remove_page
+From: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
+Subject: mm/mempolicy.c: forbid static or relative flags for local NUMA mode
 
-Now that we check for page size change early in the loop, we can partially
-revert e9d55e157034a ("mm: change the interface for __tlb_remove_page").
+The MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES flags are irrelevant
+when setting them for MPOL_LOCAL NUMA memory policy via set_mempolicy or
+mbind.
 
-This simplies the code much, by removing the need to track the last
-address with which we adjusted the range.  We also go back to the older
-way of filling the mmu_gather array, ie, we add an entry and then check
-whether the gather batch is full.
+Return the "invalid argument" from set_mempolicy and mbind whenever any of
+these flags is passed along with MPOL_LOCAL.
 
-Link: http://lkml.kernel.org/r/20161026084839.27299-6-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+It is consistent with MPOL_PREFERRED passed with empty nodemask.
+
+It slightly shortens the execution time in paths where these flags are
+used e.g.  when trying to rebind the NUMA nodes for changes in cgroups
+cpuset mems (mpol_rebind_preferred()) or when just printing the mempolicy
+structure (/proc/PID/numa_maps).  Isolated tests done.
+
+Link: http://lkml.kernel.org/r/20161027163037.4089-1-kwapulinski.piotr@gmail.com
+Signed-off-by: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Liang Chen <liangchen.linux@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlb.h  |   13 +++----------
- arch/ia64/include/asm/tlb.h |   16 ++++------------
- arch/s390/include/asm/tlb.h |    6 ------
- arch/sh/include/asm/tlb.h   |    6 ------
- arch/um/include/asm/tlb.h   |    6 ------
- include/asm-generic/tlb.h   |   28 ++--------------------------
- mm/memory.c                 |   21 ++++++---------------
- 7 files changed, 15 insertions(+), 81 deletions(-)
+ mm/mempolicy.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page arch/arm/include/asm/tlb.h
---- a/arch/arm/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page
-+++ a/arch/arm/include/asm/tlb.h
-@@ -213,18 +213,17 @@ tlb_end_vma(struct mmu_gather *tlb, stru
- 
- static inline bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
- {
-+	tlb->pages[tlb->nr++] = page;
-+	VM_WARN_ON(tlb->nr > tlb->max);
- 	if (tlb->nr == tlb->max)
- 		return true;
--	tlb->pages[tlb->nr++] = page;
- 	return false;
- }
- 
- static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
- {
--	if (__tlb_remove_page(tlb, page)) {
-+	if (__tlb_remove_page(tlb, page))
- 		tlb_flush_mmu(tlb);
--		__tlb_remove_page(tlb, page);
--	}
- }
- 
- static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
-@@ -232,12 +231,6 @@ static inline bool __tlb_remove_page_siz
- {
- 	return __tlb_remove_page(tlb, page);
- }
--
--static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
--					 struct page *page)
--{
--	return __tlb_remove_page(tlb, page);
--}
- 
- static inline void tlb_remove_page_size(struct mmu_gather *tlb,
- 					struct page *page, int page_size)
-diff -puN arch/ia64/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page arch/ia64/include/asm/tlb.h
---- a/arch/ia64/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page
-+++ a/arch/ia64/include/asm/tlb.h
-@@ -207,15 +207,15 @@ tlb_finish_mmu(struct mmu_gather *tlb, u
-  */
- static inline bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
- {
--	if (tlb->nr == tlb->max)
--		return true;
--
- 	tlb->need_flush = 1;
- 
- 	if (!tlb->nr && tlb->pages == tlb->local)
- 		__tlb_alloc_page(tlb);
- 
- 	tlb->pages[tlb->nr++] = page;
-+	VM_WARN_ON(tlb->nr > tlb->max);
-+	if (tlb->nr == tlb->max)
-+		return true;
- 	return false;
- }
- 
-@@ -236,10 +236,8 @@ static inline void tlb_flush_mmu(struct
- 
- static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
- {
--	if (__tlb_remove_page(tlb, page)) {
-+	if (__tlb_remove_page(tlb, page))
- 		tlb_flush_mmu(tlb);
--		__tlb_remove_page(tlb, page);
--	}
- }
- 
- static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
-@@ -247,12 +245,6 @@ static inline bool __tlb_remove_page_siz
- {
- 	return __tlb_remove_page(tlb, page);
- }
--
--static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
--					 struct page *page)
--{
--	return __tlb_remove_page(tlb, page);
--}
- 
- static inline void tlb_remove_page_size(struct mmu_gather *tlb,
- 					struct page *page, int page_size)
-diff -puN arch/s390/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page arch/s390/include/asm/tlb.h
---- a/arch/s390/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page
-+++ a/arch/s390/include/asm/tlb.h
-@@ -104,12 +104,6 @@ static inline bool __tlb_remove_page_siz
- 	return __tlb_remove_page(tlb, page);
- }
- 
--static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
--					 struct page *page)
--{
--	return __tlb_remove_page(tlb, page);
--}
--
- static inline void tlb_remove_page_size(struct mmu_gather *tlb,
- 					struct page *page, int page_size)
- {
-diff -puN arch/sh/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page arch/sh/include/asm/tlb.h
---- a/arch/sh/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page
-+++ a/arch/sh/include/asm/tlb.h
-@@ -118,12 +118,6 @@ static inline bool __tlb_remove_page_siz
- 	return __tlb_remove_page(tlb, page);
- }
- 
--static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
--					 struct page *page)
--{
--	return __tlb_remove_page(tlb, page);
--}
--
- static inline void tlb_remove_page_size(struct mmu_gather *tlb,
- 					struct page *page, int page_size)
- {
-diff -puN arch/um/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page arch/um/include/asm/tlb.h
---- a/arch/um/include/asm/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page
-+++ a/arch/um/include/asm/tlb.h
-@@ -116,12 +116,6 @@ static inline bool __tlb_remove_page_siz
- 	return __tlb_remove_page(tlb, page);
- }
- 
--static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
--					 struct page *page)
--{
--	return __tlb_remove_page(tlb, page);
--}
--
- static inline void tlb_remove_page_size(struct mmu_gather *tlb,
- 					struct page *page, int page_size)
- {
-diff -puN include/asm-generic/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-remove-the-page-size-change-check-in-tlb_remove_page
-+++ a/include/asm-generic/tlb.h
-@@ -107,11 +107,6 @@ struct mmu_gather {
- 	struct mmu_gather_batch	local;
- 	struct page		*__pages[MMU_GATHER_BUNDLE];
- 	unsigned int		batch_count;
--	/*
--	 * __tlb_adjust_range  will track the new addr here,
--	 * that that we can adjust the range after the flush
--	 */
--	unsigned long addr;
- 	int page_size;
- };
- 
-@@ -130,12 +125,6 @@ static inline void __tlb_adjust_range(st
- {
- 	tlb->start = min(tlb->start, address);
- 	tlb->end = max(tlb->end, address + range_size);
--	/*
--	 * Track the last address with which we adjusted the range. This
--	 * will be used later to adjust again after a mmu_flush due to
--	 * failed __tlb_remove_page
--	 */
--	tlb->addr = address;
- }
- 
- static inline void __tlb_reset_range(struct mmu_gather *tlb)
-@@ -151,15 +140,11 @@ static inline void __tlb_reset_range(str
- static inline void tlb_remove_page_size(struct mmu_gather *tlb,
- 					struct page *page, int page_size)
- {
--	if (__tlb_remove_page_size(tlb, page, page_size)) {
-+	if (__tlb_remove_page_size(tlb, page, page_size))
- 		tlb_flush_mmu(tlb);
--		tlb->page_size = page_size;
--		__tlb_adjust_range(tlb, tlb->addr, page_size);
--		__tlb_remove_page_size(tlb, page, page_size);
--	}
- }
- 
--static bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
-+static inline bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
- {
- 	return __tlb_remove_page_size(tlb, page, PAGE_SIZE);
- }
-@@ -173,15 +158,6 @@ static inline void tlb_remove_page(struc
- 	return tlb_remove_page_size(tlb, page, PAGE_SIZE);
- }
- 
--static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb, struct page *page)
--{
--	/* active->nr should be zero when we call this */
--	VM_BUG_ON_PAGE(tlb->active->nr, page);
--	tlb->page_size = PAGE_SIZE;
--	__tlb_adjust_range(tlb, tlb->addr, PAGE_SIZE);
--	return __tlb_remove_page(tlb, page);
--}
--
- #ifndef tlb_remove_check_page_size_change
- #define tlb_remove_check_page_size_change tlb_remove_check_page_size_change
- static inline void tlb_remove_check_page_size_change(struct mmu_gather *tlb,
-diff -puN mm/memory.c~mm-remove-the-page-size-change-check-in-tlb_remove_page mm/memory.c
---- a/mm/memory.c~mm-remove-the-page-size-change-check-in-tlb_remove_page
-+++ a/mm/memory.c
-@@ -300,15 +300,14 @@ bool __tlb_remove_page_size(struct mmu_g
- 	struct mmu_gather_batch *batch;
- 
- 	VM_BUG_ON(!tlb->end);
--
--	if (!tlb->page_size)
--		tlb->page_size = page_size;
--	else {
--		if (page_size != tlb->page_size)
--			return true;
--	}
-+	VM_WARN_ON(tlb->page_size != page_size);
- 
- 	batch = tlb->active;
-+	/*
-+	 * Add the page and check if we are full. If so
-+	 * force a flush.
-+	 */
-+	batch->pages[batch->nr++] = page;
- 	if (batch->nr == batch->max) {
- 		if (!tlb_next_batch(tlb))
- 			return true;
-@@ -316,7 +315,6 @@ bool __tlb_remove_page_size(struct mmu_g
- 	}
- 	VM_BUG_ON_PAGE(batch->nr > batch->max, page);
- 
--	batch->pages[batch->nr++] = page;
- 	return false;
- }
- 
-@@ -1122,7 +1120,6 @@ static unsigned long zap_pte_range(struc
- 	pte_t *start_pte;
- 	pte_t *pte;
- 	swp_entry_t entry;
--	struct page *pending_page = NULL;
- 
- 	tlb_remove_check_page_size_change(tlb, PAGE_SIZE);
- again:
-@@ -1177,7 +1174,6 @@ again:
- 				print_bad_pte(vma, addr, ptent, page);
- 			if (unlikely(__tlb_remove_page(tlb, page))) {
- 				force_flush = 1;
--				pending_page = page;
- 				addr += PAGE_SIZE;
- 				break;
- 			}
-@@ -1218,11 +1214,6 @@ again:
- 	if (force_flush) {
- 		force_flush = 0;
- 		tlb_flush_mmu_free(tlb);
--		if (pending_page) {
--			/* remove the page with new size */
--			__tlb_remove_pte_page(tlb, pending_page);
--			pending_page = NULL;
--		}
- 		if (addr != end)
- 			goto again;
- 	}
+diff -puN mm/mempolicy.c~mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode
++++ a/mm/mempolicy.c
+@@ -276,7 +276,9 @@ static struct mempolicy *mpol_new(unsign
+ 				return ERR_PTR(-EINVAL);
+ 		}
+ 	} else if (mode == MPOL_LOCAL) {
+-		if (!nodes_empty(*nodes))
++		if (!nodes_empty(*nodes) ||
++		    (flags & MPOL_F_STATIC_NODES) ||
++		    (flags & MPOL_F_RELATIVE_NODES))
+ 			return ERR_PTR(-EINVAL);
+ 		mode = MPOL_PREFERRED;
+ 	} else if (nodes_empty(*nodes))
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kwapulinski.piotr@gmail.com are
 
 
