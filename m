@@ -1,60 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma-make-linux-cmah-standalone-includible.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:25:04 -0800
-Message-ID: <58519c90.9n0IxbEJjGlCiiBl%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected.patch removed from -mm tree
+Date: Wed, 14 Dec 2016 11:24:58 -0800
+Message-ID: <58519c8a.4/3kUmlvUyD8rUPx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44384 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756564AbcLNTZF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:25:05 -0500
+        with ESMTP id S1756564AbcLNTY7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, dave.hansen@linux.intel.com, mark.rutland@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: make linux/cma.h standalone includible
+     Subject: mm/pkeys: generate pkey system call code only if ARCH_HAS_PKEYS is selected
 has been removed from the -mm tree.  Its filename was
-     mm-cma-make-linux-cmah-standalone-includible.patch
+     mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thierry Reding <treding@nvidia.com>
-Subject: mm: cma: make linux/cma.h standalone includible
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm/pkeys: generate pkey system call code only if ARCH_HAS_PKEYS is selected
 
-The header uses types and definitions from the linux/init.h as well as
-linux/types.h headers without explicitly including them. This causes a
-failure to compile if they are not implicitly pulled in by includers.
+Having code for the pkey_mprotect, pkey_alloc and pkey_free system calls
+makes only sense if ARCH_HAS_PKEYS is selected.  If not selected these
+system calls will always return -ENOSPC or -EINVAL.
 
-Link: http://lkml.kernel.org/r/20161115133235.13387-1-thierry.reding@gmail.com
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+To simplify things and have less code generate the pkey system call code
+only if ARCH_HAS_PKEYS is selected.
+
+For architectures which have already wired up the system calls, but do not
+select ARCH_HAS_PKEYS this will result in less generated code and a
+different return code: the three system calls will now always return
+-ENOSYS, using the cond_syscall mechanism.
+
+For architectures which have not wired up the system calls less
+unreachable code will be generated.
+
+Link: http://lkml.kernel.org/r/20161114111251.70084-1-heiko.carstens@de.ibm.com
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mprotect.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/cma.h~mm-cma-make-linux-cmah-standalone-includible include/linux/cma.h
---- a/include/linux/cma.h~mm-cma-make-linux-cmah-standalone-includible
-+++ a/include/linux/cma.h
-@@ -1,6 +1,9 @@
- #ifndef __CMA_H__
- #define __CMA_H__
+diff -puN mm/mprotect.c~mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected mm/mprotect.c
+--- a/mm/mprotect.c~mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected
++++ a/mm/mprotect.c
+@@ -497,6 +497,8 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
+ 	return do_mprotect_pkey(start, len, prot, -1);
+ }
  
-+#include <linux/init.h>
-+#include <linux/types.h>
++#ifdef CONFIG_ARCH_HAS_PKEYS
 +
- /*
-  * There is always at least global CMA area and a few optional
-  * areas configured in kernel .config.
+ SYSCALL_DEFINE4(pkey_mprotect, unsigned long, start, size_t, len,
+ 		unsigned long, prot, int, pkey)
+ {
+@@ -547,3 +549,5 @@ SYSCALL_DEFINE1(pkey_free, int, pkey)
+ 	 */
+ 	return ret;
+ }
++
++#endif /* CONFIG_ARCH_HAS_PKEYS */
 _
 
-Patches currently in -mm which might be from treding@nvidia.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 
