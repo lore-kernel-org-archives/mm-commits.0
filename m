@@ -1,78 +1,104 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected.patch removed from -mm tree
-Date: Wed, 14 Dec 2016 11:24:58 -0800
-Message-ID: <58519c8a.4/3kUmlvUyD8rUPx%akpm@linux-foundation.org>
+ mm-khugepaged-close-use-after-free-race-during-shmem-collapsing.patch
+ removed from -mm tree
+Date: Wed, 14 Dec 2016 11:25:17 -0800
+Message-ID: <58519c9d.QgSKeZfOl3YsS19B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44440 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756564AbcLNTY7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:59 -0500
+        with ESMTP id S1756564AbcLNTZS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:25:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, dave.hansen@linux.intel.com, mark.rutland@arm.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@linuxonhyperv.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pkeys: generate pkey system call code only if ARCH_HAS_PKEYS is selected
+     Subject: mm: khugepaged: close use-after-free race during shmem collapsing
 has been removed from the -mm tree.  Its filename was
-     mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected.patch
+     mm-khugepaged-close-use-after-free-race-during-shmem-collapsing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: mm/pkeys: generate pkey system call code only if ARCH_HAS_PKEYS is selected
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: khugepaged: close use-after-free race during shmem collapsing
 
-Having code for the pkey_mprotect, pkey_alloc and pkey_free system calls
-makes only sense if ARCH_HAS_PKEYS is selected.  If not selected these
-system calls will always return -ENOSPC or -EINVAL.
+Patch series "mm: workingset: radix tree subtleties & single-page file
+refaults", v3.
 
-To simplify things and have less code generate the pkey system call code
-only if ARCH_HAS_PKEYS is selected.
+This is another revision of the radix tree / workingset patches based
+on feedback from Jan and Kirill.
 
-For architectures which have already wired up the system calls, but do not
-select ARCH_HAS_PKEYS this will result in less generated code and a
-different return code: the three system calls will now always return
--ENOSYS, using the cond_syscall mechanism.
+This is a follow-up to d3798ae8c6f3 ("mm: filemap: don't plant shadow
+entries without radix tree node").  That patch fixed an issue that was
+caused mainly by the page cache sneaking special shadow page entries into
+the radix tree and relying on subtleties in the radix tree code to make
+that work.  The fix also had to stop tracking refaults for single-page
+files because shadow pages stored as direct pointers in
+radix_tree_root->rnode weren't properly handled during tree extension.
 
-For architectures which have not wired up the system calls less
-unreachable code will be generated.
+These patches make the radix tree code explicitely support and track such
+special entries, to eliminate the subtleties and to restore the thrash
+detection for single-page files.
 
-Link: http://lkml.kernel.org/r/20161114111251.70084-1-heiko.carstens@de.ibm.com
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
+
+This patch (of 9):
+
+When a radix tree iteration drops the tree lock, another thread might
+swoop in and free the node holding the current slot.  The iteration needs
+to do another tree lookup from the current index to continue.
+
+[kirill.shutemov@linux.intel.com: re-lookup for replacement]
+Fixes: f3f0e1d2150b ("khugepaged: add support of collapse for tmpfs/shmem pages")
+Link: http://lkml.kernel.org/r/20161117191138.22769-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <mawilcox@linuxonhyperv.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/khugepaged.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/mprotect.c~mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected mm/mprotect.c
---- a/mm/mprotect.c~mm-pkeys-generate-pkey-system-call-code-only-if-arch_has_pkeys-is-selected
-+++ a/mm/mprotect.c
-@@ -497,6 +497,8 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 	return do_mprotect_pkey(start, len, prot, -1);
- }
+diff -puN mm/khugepaged.c~mm-khugepaged-close-use-after-free-race-during-shmem-collapsing mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-khugepaged-close-use-after-free-race-during-shmem-collapsing
++++ a/mm/khugepaged.c
+@@ -1403,6 +1403,9 @@ static void collapse_shmem(struct mm_str
  
-+#ifdef CONFIG_ARCH_HAS_PKEYS
-+
- SYSCALL_DEFINE4(pkey_mprotect, unsigned long, start, size_t, len,
- 		unsigned long, prot, int, pkey)
- {
-@@ -547,3 +549,5 @@ SYSCALL_DEFINE1(pkey_free, int, pkey)
- 	 */
- 	return ret;
- }
-+
-+#endif /* CONFIG_ARCH_HAS_PKEYS */
+ 		spin_lock_irq(&mapping->tree_lock);
+ 
++		slot = radix_tree_lookup_slot(&mapping->page_tree, index);
++		VM_BUG_ON_PAGE(page != radix_tree_deref_slot_protected(slot,
++					&mapping->tree_lock), page);
+ 		VM_BUG_ON_PAGE(page_mapped(page), page);
+ 
+ 		/*
+@@ -1426,6 +1429,7 @@ static void collapse_shmem(struct mm_str
+ 		radix_tree_replace_slot(slot,
+ 				new_page + (index % HPAGE_PMD_NR));
+ 
++		slot = radix_tree_iter_next(&iter);
+ 		index++;
+ 		continue;
+ out_lru:
+@@ -1537,6 +1541,7 @@ tree_unlocked:
+ 			putback_lru_page(page);
+ 			unlock_page(page);
+ 			spin_lock_irq(&mapping->tree_lock);
++			slot = radix_tree_iter_next(&iter);
+ 		}
+ 		VM_BUG_ON(nr_none);
+ 		spin_unlock_irq(&mapping->tree_lock);
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
