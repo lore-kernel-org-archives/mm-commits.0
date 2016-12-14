@@ -1,71 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [patch 047/114] ktest.pl: fix english
-Date: Wed, 14 Dec 2016 15:06:18 -0800
-Message-ID: <5851d06a.qC4s9lSr0Enb/p+T%akpm@linux-foundation.org>
+Subject: [patch 046/114] drivers/net/wireless/intel/iwlwifi/dvm/calib.c:
+ simplfy min() expression
+Date: Wed, 14 Dec 2016 15:06:15 -0800
+Message-ID: <5851d067.F2YTdX4sJpX5xHj3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34806 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754727AbcLNXGZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:06:25 -0500
+        with ESMTP id S1754700AbcLNXGY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:06:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pavel@ucw.cz, rostedt@goodmis.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, emmanuel.grumbach@intel.com, johannes.berg@intel.com, kvalo@codeaurora.org, linuxwifi@intel.com
 
-From: Pavel Machek <pavel@ucw.cz>
-Subject: ktest.pl: fix english
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/net/wireless/intel/iwlwifi/dvm/calib.c: simplfy min() expression
 
-Ajdust spelling to more common "mandatory".  Variant "mandidory" is
-certainly wrong.
+This cast is no longer needed.
 
-Link: http://lkml.kernel.org/r/20161011073003.GA19476@amd
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Johannes Berg <johannes.berg@intel.com>
+Cc: Emmanuel Grumbach <emmanuel.grumbach@intel.com>
+Cc: Intel Linux Wireless <linuxwifi@intel.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/ktest/ktest.pl |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/wireless/intel/iwlwifi/dvm/calib.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN tools/testing/ktest/ktest.pl~ktestpl-fix-english tools/testing/ktest/ktest.pl
---- a/tools/testing/ktest/ktest.pl~ktestpl-fix-english
-+++ a/tools/testing/ktest/ktest.pl
-@@ -719,14 +719,14 @@ sub set_value {
+diff -puN drivers/net/wireless/intel/iwlwifi/dvm/calib.c~drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning drivers/net/wireless/intel/iwlwifi/dvm/calib.c
+--- a/drivers/net/wireless/intel/iwlwifi/dvm/calib.c~drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning
++++ a/drivers/net/wireless/intel/iwlwifi/dvm/calib.c
+@@ -900,8 +900,7 @@ static void iwlagn_gain_computation(stru
  
-     if ($buildonly && $lvalue =~ /^TEST_TYPE(\[.*\])?$/ && $prvalue ne "build") {
- 	# Note if a test is something other than build, then we
--	# will need other manditory options.
-+	# will need other mandatory options.
- 	if ($prvalue ne "install") {
- 	    # for bisect, we need to check BISECT_TYPE
- 	    if ($prvalue ne "bisect") {
- 		$buildonly = 0;
- 	    }
- 	} else {
--	    # install still limits some manditory options.
-+	    # install still limits some mandatory options.
- 	    $buildonly = 2;
- 	}
-     }
-@@ -735,7 +735,7 @@ sub set_value {
- 	if ($prvalue ne "install") {
- 	    $buildonly = 0;
- 	} else {
--	    # install still limits some manditory options.
-+	    # install still limits some mandatory options.
- 	    $buildonly = 2;
- 	}
-     }
-@@ -3989,7 +3989,7 @@ sub make_min_config {
- 		}
- 	    }
+ 		/* bound gain by 2 bits value max, 3rd bit is sign */
+ 		data->delta_gain_code[i] =
+-			min(abs(delta_g),
+-			(s32) CHAIN_NOISE_MAX_DELTA_GAIN_CODE);
++			min(abs(delta_g), CHAIN_NOISE_MAX_DELTA_GAIN_CODE);
  
--	    # Save off all the current mandidory configs
-+	    # Save off all the current mandatory configs
- 	    open (OUT, ">$temp_config")
- 		or die "Can't write to $temp_config";
- 	    foreach my $config (keys %keep_configs) {
+ 		if (delta_g < 0)
+ 			/*
 _
