@@ -1,93 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [patch 021/114] arch/nios2: add option to skip DMA sync as a part of map and unmap
-Date: Wed, 14 Dec 2016 15:05:00 -0800
-Message-ID: <5851d01c.pnM+cay7DKgtmZNI%akpm@linux-foundation.org>
+Subject: [patch 026/114] arch/sparc: add option to skip DMA sync as a part of map and unmap
+Date: Wed, 14 Dec 2016 15:05:15 -0800
+Message-ID: <5851d02b.r253ikKpW48XISVj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34500 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933077AbcLNXF1 (ORCPT
+        with ESMTP id S933477AbcLNXF1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:05:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com, lftan@altera.com, tklauser@distanz.ch
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com, davem@davemloft.net
 
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/nios2: add option to skip DMA sync as a part of map and unmap
+Subject: arch/sparc: add option to skip DMA sync as a part of map and unmap
 
 This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
 avoid invoking cache line invalidation if the driver will just handle it
 via a sync_for_cpu or sync_for_device call.
 
-Link: http://lkml.kernel.org/r/20161110113518.76501.52225.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113544.76501.40008.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Reviewed-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Ley Foon Tan <lftan@altera.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nios2/mm/dma-mapping.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ arch/sparc/kernel/iommu.c  |    4 ++--
+ arch/sparc/kernel/ioport.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/nios2/mm/dma-mapping.c~arch-nios2-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/nios2/mm/dma-mapping.c
---- a/arch/nios2/mm/dma-mapping.c~arch-nios2-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
-+++ a/arch/nios2/mm/dma-mapping.c
-@@ -98,13 +98,17 @@ static int nios2_dma_map_sg(struct devic
- 	int i;
+diff -puN arch/sparc/kernel/iommu.c~arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/sparc/kernel/iommu.c
+--- a/arch/sparc/kernel/iommu.c~arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
++++ a/arch/sparc/kernel/iommu.c
+@@ -415,7 +415,7 @@ static void dma_4u_unmap_page(struct dev
+ 		ctx = (iopte_val(*base) & IOPTE_CONTEXT) >> 47UL;
  
- 	for_each_sg(sg, sg, nents, i) {
--		void *addr;
-+		void *addr = sg_virt(sg);
+ 	/* Step 1: Kick data out of streaming buffers if necessary. */
+-	if (strbuf->strbuf_enabled)
++	if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		strbuf_flush(strbuf, iommu, bus_addr, ctx,
+ 			     npages, direction);
  
--		addr = sg_virt(sg);
--		if (addr) {
--			__dma_sync_for_device(addr, sg->length, direction);
--			sg->dma_address = sg_phys(sg);
--		}
-+		if (!addr)
-+			continue;
-+
-+		sg->dma_address = sg_phys(sg);
-+
-+		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+			continue;
-+
-+		__dma_sync_for_device(addr, sg->length, direction);
- 	}
+@@ -640,7 +640,7 @@ static void dma_4u_unmap_sg(struct devic
+ 		base = iommu->page_table + entry;
  
- 	return nents;
-@@ -117,7 +121,9 @@ static dma_addr_t nios2_dma_map_page(str
+ 		dma_handle &= IO_PAGE_MASK;
+-		if (strbuf->strbuf_enabled)
++		if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 			strbuf_flush(strbuf, iommu, dma_handle, ctx,
+ 				     npages, direction);
+ 
+diff -puN arch/sparc/kernel/ioport.c~arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/sparc/kernel/ioport.c
+--- a/arch/sparc/kernel/ioport.c~arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
++++ a/arch/sparc/kernel/ioport.c
+@@ -527,7 +527,7 @@ static dma_addr_t pci32_map_page(struct
+ static void pci32_unmap_page(struct device *dev, dma_addr_t ba, size_t size,
+ 			     enum dma_data_direction dir, unsigned long attrs)
  {
- 	void *addr = page_address(page) + offset;
- 
--	__dma_sync_for_device(addr, size, direction);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		__dma_sync_for_device(addr, size, direction);
-+
- 	return page_to_phys(page) + offset;
+-	if (dir != PCI_DMA_TODEVICE)
++	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		dma_make_coherent(ba, PAGE_ALIGN(size));
  }
  
-@@ -125,7 +131,8 @@ static void nios2_dma_unmap_page(struct
- 		size_t size, enum dma_data_direction direction,
- 		unsigned long attrs)
- {
--	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
- }
+@@ -572,7 +572,7 @@ static void pci32_unmap_sg(struct device
+ 	struct scatterlist *sg;
+ 	int n;
  
- static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
-@@ -138,6 +145,9 @@ static void nios2_dma_unmap_sg(struct de
- 	if (direction == DMA_TO_DEVICE)
- 		return;
- 
-+	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+		return;
-+
- 	for_each_sg(sg, sg, nhwentries, i) {
- 		addr = sg_virt(sg);
- 		if (addr)
+-	if (dir != PCI_DMA_TODEVICE) {
++	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
+ 		for_each_sg(sgl, sg, nents, n) {
+ 			dma_make_coherent(sg_phys(sg), PAGE_ALIGN(sg->length));
+ 		}
 _
