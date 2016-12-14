@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [patch 108/114] rxrpc: abstract away knowledge of IDR internals
-Date: Wed, 14 Dec 2016 15:09:19 -0800
-Message-ID: <5851d11f.XttRUmyCkHPZuIgt%akpm@linux-foundation.org>
+Subject: [patch 109/114] idr: reduce the number of bits per level from 8
+ to 6
+Date: Wed, 14 Dec 2016 15:09:22 -0800
+Message-ID: <5851d122.ima2IVI0WTXNqTtv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35550 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933077AbcLNXJU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:09:20 -0500
+        with ESMTP id S933077AbcLNXJX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:09:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mawilcox@microsoft.com, dhowells@redhat.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mawilcox@microsoft.com, ross.zwisler@linux.intel.com
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: rxrpc: abstract away knowledge of IDR internals
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: idr: reduce the number of bits per level from 8 to 6
 
-Add idr_get_cursor() / idr_set_cursor() APIs, and remove the reference
-to IDR_SIZE.
+In preparation for merging the IDR and radix tree, reduce the fanout at
+each level from 256 to 64.  If this causes a performance problem then a
+bisect will point to this commit, and we'll have a better idea about what
+we might do to fix it.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-65-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Reviewed-by: David Howells <dhowells@redhat.com>
+Link: http://lkml.kernel.org/r/1480369871-5271-66-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -31,89 +33,27 @@ Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h     |   26 ++++++++++++++++++++++++++
- net/rxrpc/af_rxrpc.c    |   11 ++++++-----
- net/rxrpc/conn_client.c |    4 ++--
- 3 files changed, 34 insertions(+), 7 deletions(-)
+ include/linux/idr.h |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/idr.h~rxrpc-abstract-away-knowledge-of-idr-internals include/linux/idr.h
---- a/include/linux/idr.h~rxrpc-abstract-away-knowledge-of-idr-internals
+diff -puN include/linux/idr.h~idr-reduce-the-number-of-bits-per-level-from-8-to-6 include/linux/idr.h
+--- a/include/linux/idr.h~idr-reduce-the-number-of-bits-per-level-from-8-to-6
 +++ a/include/linux/idr.h
-@@ -56,6 +56,32 @@ struct idr {
- #define DEFINE_IDR(name)	struct idr name = IDR_INIT(name)
+@@ -18,12 +18,11 @@
+ #include <linux/rcupdate.h>
  
- /**
-+ * idr_get_cursor - Return the current position of the cyclic allocator
-+ * @idr: idr handle
-+ *
-+ * The value returned is the value that will be next returned from
-+ * idr_alloc_cyclic() if it is free (otherwise the search will start from
-+ * this position).
-+ */
-+static inline unsigned int idr_get_cursor(struct idr *idr)
-+{
-+	return READ_ONCE(idr->cur);
-+}
-+
-+/**
-+ * idr_set_cursor - Set the current position of the cyclic allocator
-+ * @idr: idr handle
-+ * @val: new position
-+ *
-+ * The next call to idr_alloc_cyclic() will return @val if it is free
-+ * (otherwise the search will start from this position).
-+ */
-+static inline void idr_set_cursor(struct idr *idr, unsigned int val)
-+{
-+	WRITE_ONCE(idr->cur, val);
-+}
-+
-+/**
-  * DOC: idr sync
-  * idr synchronization (stolen from radix-tree.h)
-  *
-diff -puN net/rxrpc/af_rxrpc.c~rxrpc-abstract-away-knowledge-of-idr-internals net/rxrpc/af_rxrpc.c
---- a/net/rxrpc/af_rxrpc.c~rxrpc-abstract-away-knowledge-of-idr-internals
-+++ a/net/rxrpc/af_rxrpc.c
-@@ -762,16 +762,17 @@ static const struct net_proto_family rxr
- static int __init af_rxrpc_init(void)
- {
- 	int ret = -1;
-+	unsigned int tmp;
- 
- 	BUILD_BUG_ON(sizeof(struct rxrpc_skb_priv) > FIELD_SIZEOF(struct sk_buff, cb));
- 
- 	get_random_bytes(&rxrpc_epoch, sizeof(rxrpc_epoch));
- 	rxrpc_epoch |= RXRPC_RANDOM_EPOCH;
--	get_random_bytes(&rxrpc_client_conn_ids.cur,
--			 sizeof(rxrpc_client_conn_ids.cur));
--	rxrpc_client_conn_ids.cur &= 0x3fffffff;
--	if (rxrpc_client_conn_ids.cur == 0)
--		rxrpc_client_conn_ids.cur = 1;
-+	get_random_bytes(&tmp, sizeof(tmp));
-+	tmp &= 0x3fffffff;
-+	if (tmp == 0)
-+		tmp = 1;
-+	idr_set_cursor(&rxrpc_client_conn_ids, tmp);
- 
- 	ret = -ENOMEM;
- 	rxrpc_call_jar = kmem_cache_create(
-diff -puN net/rxrpc/conn_client.c~rxrpc-abstract-away-knowledge-of-idr-internals net/rxrpc/conn_client.c
---- a/net/rxrpc/conn_client.c~rxrpc-abstract-away-knowledge-of-idr-internals
-+++ a/net/rxrpc/conn_client.c
-@@ -263,12 +263,12 @@ static bool rxrpc_may_reuse_conn(struct
- 	 * times the maximum number of client conns away from the current
- 	 * allocation point to try and keep the IDs concentrated.
- 	 */
--	id_cursor = READ_ONCE(rxrpc_client_conn_ids.cur);
-+	id_cursor = idr_get_cursor(&rxrpc_client_conn_ids);
- 	id = conn->proto.cid >> RXRPC_CIDSHIFT;
- 	distance = id - id_cursor;
- 	if (distance < 0)
- 		distance = -distance;
--	limit = round_up(rxrpc_max_client_connections, IDR_SIZE) * 4;
-+	limit = max(rxrpc_max_client_connections * 4, 1024U);
- 	if (distance > limit)
- 		goto mark_dont_reuse;
+ /*
+- * We want shallower trees and thus more bits covered at each layer.  8
+- * bits gives us large enough first layer for most use cases and maximum
+- * tree depth of 4.  Each idr_layer is slightly larger than 2k on 64bit and
+- * 1k on 32bit.
++ * Using 6 bits at each layer allows us to allocate 7 layers out of each page.
++ * 8 bits only gave us 3 layers out of every pair of pages, which is less
++ * efficient except for trees with a largest element between 192-255 inclusive.
+  */
+-#define IDR_BITS 8
++#define IDR_BITS 6
+ #define IDR_SIZE (1 << IDR_BITS)
+ #define IDR_MASK ((1 << IDR_BITS)-1)
  
 _
