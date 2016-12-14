@@ -1,48 +1,282 @@
 From: akpm@linux-foundation.org
-Subject: [patch 097/114] btrfs: fix race in btrfs_free_dummy_fs_info()
-Date: Wed, 14 Dec 2016 15:08:46 -0800
-Message-ID: <5851d0fe.qXuBjakMy5CsP9Yf%akpm@linux-foundation.org>
+Subject: [patch 099/114] radix-tree: delete radix_tree_locate_item()
+Date: Wed, 14 Dec 2016 15:08:52 -0800
+Message-ID: <5851d104.jeWjt8XJnM6JpUeV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35432 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933077AbcLNXIr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:08:47 -0500
+        with ESMTP id S1754094AbcLNXIx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:08:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: btrfs: fix race in btrfs_free_dummy_fs_info()
+Subject: radix-tree: delete radix_tree_locate_item()
 
-We drop the lock which protects the radix tree, so we must call
-radix_tree_iter_next() in order to avoid a modification to the tree
-invalidating the iterator state.
+This rather complicated function can be better implemented as an iterator.
+It has only one caller, so move the functionality to the only place that
+needs it.  Update the test suite to follow the same pattern.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-54-git-send-email-mawilcox@linuxonhyperv.com
+Link: http://lkml.kernel.org/r/1480369871-5271-56-git-send-email-mawilcox@linuxonhyperv.com
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Acked-by: Konstantin Khlebnikov <koct9i@gmail.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/tests/btrfs-tests.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/radix-tree.h      |    1 
+ lib/radix-tree.c                |   99 ------------------------------
+ mm/shmem.c                      |   26 +++++++
+ tools/testing/radix-tree/main.c |    8 +-
+ tools/testing/radix-tree/test.c |   22 ++++++
+ tools/testing/radix-tree/test.h |    2 
+ 6 files changed, 53 insertions(+), 105 deletions(-)
 
-diff -puN fs/btrfs/tests/btrfs-tests.c~btrfs-fix-race-in-btrfs_free_dummy_fs_info fs/btrfs/tests/btrfs-tests.c
---- a/fs/btrfs/tests/btrfs-tests.c~btrfs-fix-race-in-btrfs_free_dummy_fs_info
-+++ a/fs/btrfs/tests/btrfs-tests.c
-@@ -162,6 +162,7 @@ void btrfs_free_dummy_fs_info(struct btr
- 				slot = radix_tree_iter_retry(&iter);
- 			continue;
+diff -puN include/linux/radix-tree.h~radix-tree-delete-radix_tree_locate_item include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-delete-radix_tree_locate_item
++++ a/include/linux/radix-tree.h
+@@ -296,7 +296,6 @@ unsigned long radix_tree_range_tag_if_ta
+ 		unsigned long nr_to_tag,
+ 		unsigned int fromtag, unsigned int totag);
+ int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
+-unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item);
+ 
+ static inline void radix_tree_preload_end(void)
+ {
+diff -puN lib/radix-tree.c~radix-tree-delete-radix_tree_locate_item lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-delete-radix_tree_locate_item
++++ a/lib/radix-tree.c
+@@ -1579,105 +1579,6 @@ radix_tree_gang_lookup_tag_slot(struct r
+ }
+ EXPORT_SYMBOL(radix_tree_gang_lookup_tag_slot);
+ 
+-#if defined(CONFIG_SHMEM) && defined(CONFIG_SWAP)
+-#include <linux/sched.h> /* for cond_resched() */
+-
+-struct locate_info {
+-	unsigned long found_index;
+-	bool stop;
+-};
+-
+-/*
+- * This linear search is at present only useful to shmem_unuse_inode().
+- */
+-static unsigned long __locate(struct radix_tree_node *slot, void *item,
+-			      unsigned long index, struct locate_info *info)
+-{
+-	unsigned long i;
+-
+-	do {
+-		unsigned int shift = slot->shift;
+-
+-		for (i = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		     i < RADIX_TREE_MAP_SIZE;
+-		     i++, index += (1UL << shift)) {
+-			struct radix_tree_node *node =
+-					rcu_dereference_raw(slot->slots[i]);
+-			if (node == RADIX_TREE_RETRY)
+-				goto out;
+-			if (!radix_tree_is_internal_node(node)) {
+-				if (node == item) {
+-					info->found_index = index;
+-					info->stop = true;
+-					goto out;
+-				}
+-				continue;
+-			}
+-			node = entry_to_node(node);
+-			if (is_sibling_entry(slot, node))
+-				continue;
+-			slot = node;
+-			break;
+-		}
+-	} while (i < RADIX_TREE_MAP_SIZE);
+-
+-out:
+-	if ((index == 0) && (i == RADIX_TREE_MAP_SIZE))
+-		info->stop = true;
+-	return index;
+-}
+-
+-/**
+- *	radix_tree_locate_item - search through radix tree for item
+- *	@root:		radix tree root
+- *	@item:		item to be found
+- *
+- *	Returns index where item was found, or -1 if not found.
+- *	Caller must hold no lock (since this time-consuming function needs
+- *	to be preemptible), and must check afterwards if item is still there.
+- */
+-unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item)
+-{
+-	struct radix_tree_node *node;
+-	unsigned long max_index;
+-	unsigned long cur_index = 0;
+-	struct locate_info info = {
+-		.found_index = -1,
+-		.stop = false,
+-	};
+-
+-	do {
+-		rcu_read_lock();
+-		node = rcu_dereference_raw(root->rnode);
+-		if (!radix_tree_is_internal_node(node)) {
+-			rcu_read_unlock();
+-			if (node == item)
+-				info.found_index = 0;
+-			break;
+-		}
+-
+-		node = entry_to_node(node);
+-
+-		max_index = node_maxindex(node);
+-		if (cur_index > max_index) {
+-			rcu_read_unlock();
+-			break;
+-		}
+-
+-		cur_index = __locate(node, item, cur_index, &info);
+-		rcu_read_unlock();
+-		cond_resched();
+-	} while (!info.stop && cur_index <= max_index);
+-
+-	return info.found_index;
+-}
+-#else
+-unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item)
+-{
+-	return -1;
+-}
+-#endif /* CONFIG_SHMEM && CONFIG_SWAP */
+-
+ /**
+  *	__radix_tree_delete_node    -    try to free node after clearing a slot
+  *	@root:		radix tree root
+diff -puN mm/shmem.c~radix-tree-delete-radix_tree_locate_item mm/shmem.c
+--- a/mm/shmem.c~radix-tree-delete-radix_tree_locate_item
++++ a/mm/shmem.c
+@@ -1049,6 +1049,30 @@ static void shmem_evict_inode(struct ino
+ 	clear_inode(inode);
+ }
+ 
++static unsigned long find_swap_entry(struct radix_tree_root *root, void *item)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++	unsigned long found = -1;
++	unsigned int checked = 0;
++
++	rcu_read_lock();
++	radix_tree_for_each_slot(slot, root, &iter, 0) {
++		if (*slot == item) {
++			found = iter.index;
++			break;
++		}
++		checked++;
++		if ((checked % 4096) != 0)
++			continue;
++		slot = radix_tree_iter_resume(slot, &iter);
++		cond_resched_rcu();
++	}
++
++	rcu_read_unlock();
++	return found;
++}
++
+ /*
+  * If swap found in inode, free it and move page from swapcache to filecache.
+  */
+@@ -1062,7 +1086,7 @@ static int shmem_unuse_inode(struct shme
+ 	int error = 0;
+ 
+ 	radswap = swp_to_radix_entry(swap);
+-	index = radix_tree_locate_item(&mapping->page_tree, radswap);
++	index = find_swap_entry(&mapping->page_tree, radswap);
+ 	if (index == -1)
+ 		return -EAGAIN;	/* tell shmem_unuse we found nothing */
+ 
+diff -puN tools/testing/radix-tree/main.c~radix-tree-delete-radix_tree_locate_item tools/testing/radix-tree/main.c
+--- a/tools/testing/radix-tree/main.c~radix-tree-delete-radix_tree_locate_item
++++ a/tools/testing/radix-tree/main.c
+@@ -239,7 +239,7 @@ static void __locate_check(struct radix_
+ 
+ 	item_insert_order(tree, index, order);
+ 	item = item_lookup(tree, index);
+-	index2 = radix_tree_locate_item(tree, item);
++	index2 = find_item(tree, item);
+ 	if (index != index2) {
+ 		printf("index %ld order %d inserted; found %ld\n",
+ 			index, order, index2);
+@@ -273,17 +273,17 @@ static void locate_check(void)
+ 			     index += (1UL << order)) {
+ 				__locate_check(&tree, index + offset, order);
+ 			}
+-			if (radix_tree_locate_item(&tree, &tree) != -1)
++			if (find_item(&tree, &tree) != -1)
+ 				abort();
+ 
+ 			item_kill_tree(&tree);
  		}
-+		slot = radix_tree_iter_next(&iter);
- 		spin_unlock(&fs_info->buffer_lock);
- 		free_extent_buffer_stale(eb);
- 		spin_lock(&fs_info->buffer_lock);
+ 	}
+ 
+-	if (radix_tree_locate_item(&tree, &tree) != -1)
++	if (find_item(&tree, &tree) != -1)
+ 		abort();
+ 	__locate_check(&tree, -1, 0);
+-	if (radix_tree_locate_item(&tree, &tree) != -1)
++	if (find_item(&tree, &tree) != -1)
+ 		abort();
+ 	item_kill_tree(&tree);
+ }
+diff -puN tools/testing/radix-tree/test.c~radix-tree-delete-radix_tree_locate_item tools/testing/radix-tree/test.c
+--- a/tools/testing/radix-tree/test.c~radix-tree-delete-radix_tree_locate_item
++++ a/tools/testing/radix-tree/test.c
+@@ -151,6 +151,28 @@ void item_full_scan(struct radix_tree_ro
+ 	assert(nfound == 0);
+ }
+ 
++/* Use the same pattern as find_swap_entry() in mm/shmem.c */
++unsigned long find_item(struct radix_tree_root *root, void *item)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++	unsigned long found = -1;
++	unsigned long checked = 0;
++
++	radix_tree_for_each_slot(slot, root, &iter, 0) {
++		if (*slot == item) {
++			found = iter.index;
++			break;
++		}
++		checked++;
++		if ((checked % 4) != 0)
++			continue;
++		slot = radix_tree_iter_resume(slot, &iter);
++	}
++
++	return found;
++}
++
+ static int verify_node(struct radix_tree_node *slot, unsigned int tag,
+ 			int tagged)
+ {
+diff -puN tools/testing/radix-tree/test.h~radix-tree-delete-radix_tree_locate_item tools/testing/radix-tree/test.h
+--- a/tools/testing/radix-tree/test.h~radix-tree-delete-radix_tree_locate_item
++++ a/tools/testing/radix-tree/test.h
+@@ -25,6 +25,8 @@ void item_full_scan(struct radix_tree_ro
+ 			unsigned long nr, int chunk);
+ void item_kill_tree(struct radix_tree_root *root);
+ 
++unsigned long find_item(struct radix_tree_root *, void *item);
++
+ void tag_check(void);
+ void multiorder_checks(void);
+ void iteration_test(void);
 _
