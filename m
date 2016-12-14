@@ -1,62 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [patch 005/114] coredump: clarify "unsafe core_pattern" warning
-Date: Wed, 14 Dec 2016 15:04:14 -0800
-Message-ID: <5851cfee.6w3xyAmdaKCX4L1v%akpm@linux-foundation.org>
+Subject: [patch 004/114] signals: avoid unnecessary taking of
+ sighand->siglock
+Date: Wed, 14 Dec 2016 15:04:10 -0800
+Message-ID: <5851cfea.5Ke8ret0IN0ZGqop%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34270 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34264 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754094AbcLNXEk (ORCPT
+        with ESMTP id S1754088AbcLNXEk (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:04:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, adobriyan@gmail.com, keescook@chromium.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Waiman.Long@hpe.com, doug.hatch@hpe.com, mingo@kernel.org, oleg@redhat.com, scott.norton@hpe.com, stsp@list.ru, tglx@linutronix.de
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: coredump: clarify "unsafe core_pattern" warning
+From: Waiman Long <Waiman.Long@hpe.com>
+Subject: signals: avoid unnecessary taking of sighand->siglock
 
-I was amused to find "unsafe core_pattern" warning having these lines in
-/etc/sysctl.conf:
+When running certain database workload on a high-end system with many
+CPUs, it was found that spinlock contention in the sigprocmask syscalls
+became a significant portion of the overall CPU cycles as shown below.
 
-	fs.suid_dumpable=2
-	kernel.core_pattern=/core/core-%e-%p-%E
-	kernel.core_uses_pid=0
+  9.30%  9.30%  905387  dataserver  /proc/kcore 0x7fff8163f4d2
+  [k] _raw_spin_lock_irq
+            |
+            ---_raw_spin_lock_irq
+               |
+               |--99.34%-- __set_current_blocked
+               |          sigprocmask
+               |          sys_rt_sigprocmask
+               |          system_call_fastpath
+               |          |
+               |          |--50.63%-- __swapcontext
+               |          |          |
+               |          |          |--99.91%-- upsleepgeneric
+               |          |
+               |          |--49.36%-- __setcontext
+               |          |          ktskRun
 
-Turns out kernel is formally right.  Default core_pattern is just "core",
-which doesn't qualify for secure path while setting suid.dumpable.
+Looking further into the swapcontext function in glibc, it was found that
+the function always call sigprocmask() without checking if there are
+changes in the signal mask.
 
-Hint admins about solution, clarify sysctl names, delete unnecessary '\'
-characters (string literals are concatenated regardless) and reformat for
-easier grepping.
+A check was added to the __set_current_blocked() function to avoid taking
+the sighand->siglock spinlock if there is no change in the signal mask. 
+This will prevent unneeded spinlock contention when many threads are
+trying to call sigprocmask().
 
-Link: http://lkml.kernel.org/r/20161029152124.GA1258@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
+With this patch applied, the spinlock contention in sigprocmask() was
+gone.
+
+Link: http://lkml.kernel.org/r/1474979209-11867-1-git-send-email-Waiman.Long@hpe.com
+Signed-off-by: Waiman Long <Waiman.Long@hpe.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Stas Sergeev <stsp@list.ru>
+Cc: Scott J Norton <scott.norton@hpe.com>
+Cc: Douglas Hatch <doug.hatch@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/signal.h |   17 +++++++++++++++++
+ kernel/signal.c        |    7 +++++++
+ 2 files changed, 24 insertions(+)
 
-diff -puN kernel/sysctl.c~coredump-clarify-unsafe-core_pattern-warning kernel/sysctl.c
---- a/kernel/sysctl.c~coredump-clarify-unsafe-core_pattern-warning
-+++ a/kernel/sysctl.c
-@@ -2389,9 +2389,11 @@ static void validate_coredump_safety(voi
- #ifdef CONFIG_COREDUMP
- 	if (suid_dumpable == SUID_DUMP_ROOT &&
- 	    core_pattern[0] != '/' && core_pattern[0] != '|') {
--		printk(KERN_WARNING "Unsafe core_pattern used with "\
--			"suid_dumpable=2. Pipe handler or fully qualified "\
--			"core dump path required.\n");
-+		printk(KERN_WARNING
-+"Unsafe core_pattern used with fs.suid_dumpable=2.\n"
-+"Pipe handler or fully qualified core dump path required.\n"
-+"Set kernel.core_pattern before fs.suid_dumpable.\n"
-+		);
+diff -puN include/linux/signal.h~signals-avoid-unnecessary-taking-of-sighand-siglock include/linux/signal.h
+--- a/include/linux/signal.h~signals-avoid-unnecessary-taking-of-sighand-siglock
++++ a/include/linux/signal.h
+@@ -97,6 +97,23 @@ static inline int sigisemptyset(sigset_t
  	}
- #endif
  }
+ 
++static inline int sigequalsets(const sigset_t *set1, const sigset_t *set2)
++{
++	switch (_NSIG_WORDS) {
++	case 4:
++		return	(set1->sig[3] == set2->sig[3]) &&
++			(set1->sig[2] == set2->sig[2]) &&
++			(set1->sig[1] == set2->sig[1]) &&
++			(set1->sig[0] == set2->sig[0]);
++	case 2:
++		return	(set1->sig[1] == set2->sig[1]) &&
++			(set1->sig[0] == set2->sig[0]);
++	case 1:
++		return	set1->sig[0] == set2->sig[0];
++	}
++	return 0;
++}
++
+ #define sigmask(sig)	(1UL << ((sig) - 1))
+ 
+ #ifndef __HAVE_ARCH_SIG_SETOPS
+diff -puN kernel/signal.c~signals-avoid-unnecessary-taking-of-sighand-siglock kernel/signal.c
+--- a/kernel/signal.c~signals-avoid-unnecessary-taking-of-sighand-siglock
++++ a/kernel/signal.c
+@@ -2491,6 +2491,13 @@ void __set_current_blocked(const sigset_
+ {
+ 	struct task_struct *tsk = current;
+ 
++	/*
++	 * In case the signal mask hasn't changed, there is nothing we need
++	 * to do. The current->blocked shouldn't be modified by other task.
++	 */
++	if (sigequalsets(&tsk->blocked, newset))
++		return;
++
+ 	spin_lock_irq(&tsk->sighand->siglock);
+ 	__set_task_blocked(tsk, newset);
+ 	spin_unlock_irq(&tsk->sighand->siglock);
 _
