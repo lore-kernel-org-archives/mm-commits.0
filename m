@@ -1,188 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch removed from
- -mm tree
-Date: Wed, 14 Dec 2016 11:23:28 -0800
-Message-ID: <58519c30.fFkNVbzLaZHrfSbQ%akpm@linux-foundation.org>
+Subject: [merged] slub-avoid-false-postive-warning.patch removed from -mm
+ tree
+Date: Wed, 14 Dec 2016 11:23:31 -0800
+Message-ID: <58519c33.KEiOvgUMjOckeSXi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43986 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754107AbcLNTX3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:29 -0500
+        with ESMTP id S1754107AbcLNTXc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov.dev@gmail.com, cl@linux.com, dsmythies@telus.net, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, brouer@redhat.com, cl@linux.com, glider@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, labbott@fedoraproject.org, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: move synchronize_sched out of slab_mutex on shrink
+     Subject: slub: avoid false-postive warning
 has been removed from the -mm tree.  Its filename was
-     slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
+     slub-avoid-false-postive-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov.dev@gmail.com>
-Subject: slub: move synchronize_sched out of slab_mutex on shrink
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: slub: avoid false-postive warning
 
-synchronize_sched() is a heavy operation and calling it per each cache
-owned by a memory cgroup being destroyed may take quite some time. What
-is worse, it's currently called under the slab_mutex, stalling all works
-doing cache creation/destruction.
+The slub allocator gives us some incorrect warnings when
+CONFIG_PROFILE_ANNOTATED_BRANCHES is set, as the unlikely() macro prevents
+it from seeing that the return code matches what it was before:
 
-Actually, there isn't much point in calling synchronize_sched() for each
-cache - it's enough to call it just once - after setting cpu_partial for
-all caches and before shrinking them. This way, we can also move it out
-of the slab_mutex, which we have to hold for iterating over the slab
-cache list.
+mm/slub.c: In function `kmem_cache_free_bulk':
+mm/slub.c:262:23: error: `df.s' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+mm/slub.c:2943:3: error: `df.cnt' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+mm/slub.c:2933:4470: error: `df.freelist' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+mm/slub.c:2943:3: error: `df.tail' may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=172991
-Link: http://lkml.kernel.org/r/0a10d71ecae3db00fb4421bcd3f82bcc911f4be4.1475329751.git.vdavydov.dev@gmail.com
-Signed-off-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Reported-by: Doug Smythies <dsmythies@telus.net>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+I have not been able to come up with a perfect way for dealing with this,
+the three options I see are:
+
+- add a bogus initialization, which would increase the runtime overhead
+- replace unlikely() with unlikely_notrace()
+- remove the unlikely() annotation completely
+
+I checked the object code for a typical x86 configuration and the last two
+cases produce the same result, so I went for the last one, which is the
+simplest.
+
+Link: http://lkml.kernel.org/r/20161024155704.3114445-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Laura Abbott <labbott@fedoraproject.org>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |    4 ++--
- mm/slab.h        |    2 +-
- mm/slab_common.c |   27 +++++++++++++++++++++++++--
- mm/slob.c        |    2 +-
- mm/slub.c        |   19 ++-----------------
- 5 files changed, 31 insertions(+), 23 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slab.c
---- a/mm/slab.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
-+++ a/mm/slab.c
-@@ -2332,7 +2332,7 @@ out:
- 	return nr_freed;
- }
+diff -puN mm/slub.c~slub-avoid-false-postive-warning mm/slub.c
+--- a/mm/slub.c~slub-avoid-false-postive-warning
++++ a/mm/slub.c
+@@ -3076,7 +3076,7 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 		struct detached_freelist df;
  
--int __kmem_cache_shrink(struct kmem_cache *cachep, bool deactivate)
-+int __kmem_cache_shrink(struct kmem_cache *cachep)
- {
- 	int ret = 0;
- 	int node;
-@@ -2352,7 +2352,7 @@ int __kmem_cache_shrink(struct kmem_cach
- 
- int __kmem_cache_shutdown(struct kmem_cache *cachep)
- {
--	return __kmem_cache_shrink(cachep, false);
-+	return __kmem_cache_shrink(cachep);
- }
- 
- void __kmem_cache_release(struct kmem_cache *cachep)
-diff -puN mm/slab.h~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slab.h
---- a/mm/slab.h~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
-+++ a/mm/slab.h
-@@ -146,7 +146,7 @@ static inline unsigned long kmem_cache_f
- 
- int __kmem_cache_shutdown(struct kmem_cache *);
- void __kmem_cache_release(struct kmem_cache *);
--int __kmem_cache_shrink(struct kmem_cache *, bool);
-+int __kmem_cache_shrink(struct kmem_cache *);
- void slab_kmem_cache_release(struct kmem_cache *);
- 
- struct seq_file;
-diff -puN mm/slab_common.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slab_common.c
---- a/mm/slab_common.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
-+++ a/mm/slab_common.c
-@@ -573,6 +573,29 @@ void memcg_deactivate_kmem_caches(struct
- 	get_online_cpus();
- 	get_online_mems();
- 
-+#ifdef CONFIG_SLUB
-+	/*
-+	 * In case of SLUB, we need to disable empty slab caching to
-+	 * avoid pinning the offline memory cgroup by freeable kmem
-+	 * pages charged to it. SLAB doesn't need this, as it
-+	 * periodically purges unused slabs.
-+	 */
-+	mutex_lock(&slab_mutex);
-+	list_for_each_entry(s, &slab_caches, list) {
-+		c = is_root_cache(s) ? cache_from_memcg_idx(s, idx) : NULL;
-+		if (c) {
-+			c->cpu_partial = 0;
-+			c->min_partial = 0;
-+		}
-+	}
-+	mutex_unlock(&slab_mutex);
-+	/*
-+	 * kmem_cache->cpu_partial is checked locklessly (see
-+	 * put_cpu_partial()). Make sure the change is visible.
-+	 */
-+	synchronize_sched();
-+#endif
-+
- 	mutex_lock(&slab_mutex);
- 	list_for_each_entry(s, &slab_caches, list) {
- 		if (!is_root_cache(s))
-@@ -584,7 +607,7 @@ void memcg_deactivate_kmem_caches(struct
- 		if (!c)
+ 		size = build_detached_freelist(s, size, p, &df);
+-		if (unlikely(!df.page))
++		if (!df.page)
  			continue;
  
--		__kmem_cache_shrink(c, true);
-+		__kmem_cache_shrink(c);
- 		arr->entries[idx] = NULL;
- 	}
- 	mutex_unlock(&slab_mutex);
-@@ -755,7 +778,7 @@ int kmem_cache_shrink(struct kmem_cache
- 	get_online_cpus();
- 	get_online_mems();
- 	kasan_cache_shrink(cachep);
--	ret = __kmem_cache_shrink(cachep, false);
-+	ret = __kmem_cache_shrink(cachep);
- 	put_online_mems();
- 	put_online_cpus();
- 	return ret;
-diff -puN mm/slob.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slob.c
---- a/mm/slob.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
-+++ a/mm/slob.c
-@@ -634,7 +634,7 @@ void __kmem_cache_release(struct kmem_ca
- {
- }
- 
--int __kmem_cache_shrink(struct kmem_cache *d, bool deactivate)
-+int __kmem_cache_shrink(struct kmem_cache *d)
- {
- 	return 0;
- }
-diff -puN mm/slub.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slub.c
---- a/mm/slub.c~slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
-+++ a/mm/slub.c
-@@ -3883,7 +3883,7 @@ EXPORT_SYMBOL(kfree);
-  * being allocated from last increasing the chance that the last objects
-  * are freed in them.
-  */
--int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
-+int __kmem_cache_shrink(struct kmem_cache *s)
- {
- 	int node;
- 	int i;
-@@ -3895,21 +3895,6 @@ int __kmem_cache_shrink(struct kmem_cach
- 	unsigned long flags;
- 	int ret = 0;
- 
--	if (deactivate) {
--		/*
--		 * Disable empty slabs caching. Used to avoid pinning offline
--		 * memory cgroups by kmem pages that can be freed.
--		 */
--		s->cpu_partial = 0;
--		s->min_partial = 0;
--
--		/*
--		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
--		 * so we have to make sure the change is visible.
--		 */
--		synchronize_sched();
--	}
+ 		slab_free(df.s, df.page, df.freelist, df.tail, df.cnt,_RET_IP_);
+_
+
+Patches currently in -mm which might be from arnd@arndb.de are
+
+
