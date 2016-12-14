@@ -1,103 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch removed from -mm tree
-Date: Wed, 14 Dec 2016 11:27:27 -0800
-Message-ID: <58519d1f.LuwufDraCzAaMvLb%akpm@linux-foundation.org>
+Subject: [merged] maintainers-add-drm-and-drm-i915-irc-channels.patch
+ removed from -mm tree
+Date: Wed, 14 Dec 2016 11:27:37 -0800
+Message-ID: <58519d29.QXxwQ8tvjmEdDJZO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45840 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756535AbcLNT2A (ORCPT
+        with ESMTP id S1756549AbcLNT2A (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, airlied@gmail.com, daniel@ffwll.ch, jani.nikula@intel.com, mm-commits@vger.kernel.org
+To: jani.nikula@intel.com, airlied@gmail.com, andrew.donnellan@au1.ibm.com, daniel@ffwll.ch, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: look for arbitrary letter prefixes in sections
+     Subject: MAINTAINERS: add drm and drm/i915 irc channels
 has been removed from the -mm tree.  Its filename was
-     get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
+     maintainers-add-drm-and-drm-i915-irc-channels.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: look for arbitrary letter prefixes in sections
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: MAINTAINERS: add drm and drm/i915 irc channels
 
-Jani Nikula proposes patches to add a few new letter prefixes for "B:" bug
-reporting and "C:" maintainer chatting to the various sections of
-MAINTAINERS.
-
-Add a generic mechanism to get_maintainer.pl to find sections that have
-any combination of "[A-Z]" letter prefix types in a section.
-
-Link: http://lkml.kernel.org/r/1477332323.1984.8.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jani Nikula <jani.nikula@intel.com>
+Link: http://lkml.kernel.org/r/1476966135-26943-4-git-send-email-jani.nikula@intel.com
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Reviewed-by: Andrew Donnellan <andrew.donnellan@au1.ibm.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Dave Airlie <airlied@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-look-for-arbitrary-letter-prefixes-in-sections scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-look-for-arbitrary-letter-prefixes-in-sections
-+++ a/scripts/get_maintainer.pl
-@@ -49,6 +49,7 @@ my $scm = 0;
- my $web = 0;
- my $subsystem = 0;
- my $status = 0;
-+my $letters = "";
- my $keywords = 1;
- my $sections = 0;
- my $file_emails = 0;
-@@ -241,6 +242,7 @@ if (!GetOptions(
- 		'status!' => \$status,
- 		'scm!' => \$scm,
- 		'web!' => \$web,
-+		'letters=s' => \$letters,
- 		'pattern-depth=i' => \$pattern_depth,
- 		'k|keywords!' => \$keywords,
- 		'sections!' => \$sections,
-@@ -271,7 +273,8 @@ $output_multiline = 0 if ($output_separa
- $output_rolestats = 1 if ($interactive);
- $output_roles = 1 if ($output_rolestats);
- 
--if ($sections) {
-+if ($sections || $letters ne "") {
-+    $sections = 1;
-     $email = 0;
-     $email_list = 0;
-     $scm = 0;
-@@ -682,8 +685,10 @@ sub get_maintainers {
- 			$line =~ s/\\\./\./g;       	##Convert \. to .
- 			$line =~ s/\.\*/\*/g;       	##Convert .* to *
- 		    }
--		    $line =~ s/^([A-Z]):/$1:\t/g;
--		    print("$line\n");
-+		    my $count = $line =~ s/^([A-Z]):/$1:\t/g;
-+		    if ($letters eq "" || (!$count || $letters =~ /$1/i)) {
-+			print("$line\n");
-+		    }
- 		}
- 		print("\n");
- 	    }
-@@ -814,6 +819,7 @@ Other options:
-   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
-   --keywords => scan patch for keywords (default: $keywords)
-   --sections => print all of the subsystem sections with pattern matches
-+  --letters => print all matching 'letter' types from all matching sections
-   --mailmap => use .mailmap file (default: $email_use_mailmap)
-   --version => show version
-   --help => show this help information
+diff -puN MAINTAINERS~maintainers-add-drm-and-drm-i915-irc-channels MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-drm-and-drm-i915-irc-channels
++++ a/MAINTAINERS
+@@ -4029,6 +4029,7 @@ M:	David Airlie <airlied@linux.ie>
+ L:	dri-devel@lists.freedesktop.org
+ T:	git git://people.freedesktop.org/~airlied/linux
+ B:	https://bugs.freedesktop.org/
++C:	irc://chat.freenode.net/dri-devel
+ S:	Maintained
+ F:	drivers/gpu/drm/
+ F:	drivers/gpu/vga/
+@@ -4082,6 +4083,7 @@ L:	intel-gfx@lists.freedesktop.org
+ L:	dri-devel@lists.freedesktop.org
+ W:	https://01.org/linuxgraphics/
+ B:	https://01.org/linuxgraphics/documentation/how-report-bugs
++C:	irc://chat.freenode.net/intel-gfx
+ Q:	http://patchwork.freedesktop.org/project/intel-gfx/
+ T:	git git://anongit.freedesktop.org/drm-intel
+ S:	Supported
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jani.nikula@intel.com are
 
 
