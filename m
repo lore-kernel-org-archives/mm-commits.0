@@ -1,67 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [patch 034/114] Kconfig: lib/Kconfig.debug: fix references to
- Documenation
-Date: Wed, 14 Dec 2016 15:05:40 -0800
-Message-ID: <5851d044.Yl2a2cYyk52FVZn7%akpm@linux-foundation.org>
+Subject: [patch 030/114] mm: add support for releasing multiple instances
+ of a page
+Date: Wed, 14 Dec 2016 15:05:26 -0800
+Message-ID: <5851d036.FG4LeyqEwe4tbFlK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34648 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34490 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933408AbcLNXFm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:05:42 -0500
+        with ESMTP id S933630AbcLNXF3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:05:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andreas.platschek@opentech.at
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, geert@linux-m68k.org, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jeffrey.t.kirsher@intel.com, jejb@parisc-linux.org, jonas@southpole.se, keguang.zhang@gmail.com, lftan@altera.com, linux@armlinux.org.uk, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, ralf@linux-mips.org, realmz6@gmail.com, rkuo@codeaurora.org, tklauser@distanz.ch, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
-From: Andreas Platschek <andreas.platschek@opentech.at>
-Subject: Kconfig: lib/Kconfig.debug: fix references to Documenation
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: mm: add support for releasing multiple instances of a page
 
-Documentation on development tools was moved to Documentation/devl-tools
-and sphinxified (renamed from .txt to .rst).
+Add a function that allows us to batch free a page that has multiple
+references outstanding.  Specifically this function can be used to drop a
+page being used in the page frag alloc cache.  With this drivers can make
+use of functionality similar to the page frag alloc cache without having
+to do any workarounds for the fact that there is no function that frees
+multiple references.
 
-References in lib/Kconfig.debug need to be updated to the new location.
-
-Link: http://lkml.kernel.org/r/1476698152-29340-2-git-send-email-andreas.platschek@opentech.at
-Signed-off-by: Andreas Platschek <andreas.platschek@opentech.at>
+Link: http://lkml.kernel.org/r/20161110113606.76501.70752.stgit@ahduyck-blue-test.jf.intel.com
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Keguang Zhang <keguang.zhang@gmail.com>
+Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Tobias Klauser <tklauser@distanz.ch>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/gfp.h |    2 ++
+ mm/page_alloc.c     |   14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff -puN lib/Kconfig.debug~kconfig-lib-kconfigdebug-fix-references-to-documenation lib/Kconfig.debug
---- a/lib/Kconfig.debug~kconfig-lib-kconfigdebug-fix-references-to-documenation
-+++ a/lib/Kconfig.debug
-@@ -194,8 +194,8 @@ config GDB_SCRIPTS
- 	  build directory. If you load vmlinux into gdb, the helper
- 	  scripts will be automatically imported by gdb as well, and
- 	  additional functions are available to analyze a Linux kernel
--	  instance. See Documentation/gdb-kernel-debugging.txt for further
--	  details.
-+	  instance. See Documentation/dev-tools/gdb-kernel-debugging.rst
-+	  for further details.
+diff -puN include/linux/gfp.h~mm-add-support-for-releasing-multiple-instances-of-a-page include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-add-support-for-releasing-multiple-instances-of-a-page
++++ a/include/linux/gfp.h
+@@ -506,6 +506,8 @@ extern void free_hot_cold_page(struct pa
+ extern void free_hot_cold_page_list(struct list_head *list, bool cold);
  
- config ENABLE_WARN_DEPRECATED
- 	bool "Enable __deprecated logic"
-@@ -542,7 +542,7 @@ config DEBUG_KMEMLEAK
- 	  difference being that the orphan objects are not freed but
- 	  only shown in /sys/kernel/debug/kmemleak. Enabling this
- 	  feature will introduce an overhead to memory
--	  allocations. See Documentation/kmemleak.txt for more
-+	  allocations. See Documentation/dev-tools/kmemleak.rst for more
- 	  details.
+ struct page_frag_cache;
++extern void __page_frag_drain(struct page *page, unsigned int order,
++			      unsigned int count);
+ extern void *__alloc_page_frag(struct page_frag_cache *nc,
+ 			       unsigned int fragsz, gfp_t gfp_mask);
+ extern void __free_page_frag(void *addr);
+diff -puN mm/page_alloc.c~mm-add-support-for-releasing-multiple-instances-of-a-page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-support-for-releasing-multiple-instances-of-a-page
++++ a/mm/page_alloc.c
+@@ -3925,6 +3925,20 @@ static struct page *__page_frag_refill(s
+ 	return page;
+ }
  
- 	  Enabling DEBUG_SLAB or SLUB_DEBUG may increase the chances
-@@ -739,7 +739,7 @@ config KCOV
- 	  different machines and across reboots. If you need stable PC values,
- 	  disable RANDOMIZE_BASE.
- 
--	  For more details, see Documentation/kcov.txt.
-+	  For more details, see Documentation/dev-tools/kcov.rst.
- 
- config KCOV_INSTRUMENT_ALL
- 	bool "Instrument all code by default"
++void __page_frag_drain(struct page *page, unsigned int order,
++		       unsigned int count)
++{
++	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
++
++	if (page_ref_sub_and_test(page, count)) {
++		if (order == 0)
++			free_hot_cold_page(page, false);
++		else
++			__free_pages_ok(page, order);
++	}
++}
++EXPORT_SYMBOL(__page_frag_drain);
++
+ void *__alloc_page_frag(struct page_frag_cache *nc,
+ 			unsigned int fragsz, gfp_t gfp_mask)
+ {
 _
