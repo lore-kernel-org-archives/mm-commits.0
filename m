@@ -1,101 +1,168 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- printk-nmi-fix-up-handling-of-the-full-nmi-log-buffer.patch removed from
+ printk-nmi-handle-continuous-lines-and-missing-newline.patch removed from
  -mm tree
-Date: Wed, 14 Dec 2016 11:27:10 -0800
-Message-ID: <58519d0e.O8qFg9QwnIJYxA78%akpm@linux-foundation.org>
+Date: Wed, 14 Dec 2016 11:27:13 -0800
+Message-ID: <58519d11.5kSx++pCBdyhKu7o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45670 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752589AbcLNT17 (ORCPT
+        with ESMTP id S1756497AbcLNT17 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:27:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, clm@fb.com, dsterba@suse.com, jason.wessel@windriver.com, jbacik@fb.com, joe@perches.com, perex@perex.cz, rostedt@goodmis.org, tiwai@suse.com, mm-commits@vger.kernel.org
+To: pmladek@suse.com, clm@fb.com, dsterba@suse.com, jason.wessel@windriver.com, jbacik@fb.com, joe@perches.com, perex@perex.cz, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, tiwai@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk/NMI: fix up handling of the full nmi log buffer
+     Subject: printk/NMI: handle continuous lines and missing newline
 has been removed from the -mm tree.  Its filename was
-     printk-nmi-fix-up-handling-of-the-full-nmi-log-buffer.patch
+     printk-nmi-handle-continuous-lines-and-missing-newline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: printk/NMI: fix up handling of the full nmi log buffer
+Subject: printk/NMI: handle continuous lines and missing newline
 
-vsnprintf() adds the trailing '\0' but it does not count it into the
-number of printed characters.  The result is that there is one byte less
-space for the real characters in the buffer.
+4bcc595ccd80decb4245 ("printk: reinstate KERN_CONT for printing
+continuation lines") added back KERN_CONT message header.  As a result it
+might appear in the middle of the line when the parts are squashed via the
+temporary NMI buffer.
 
-The broken check for the free space might cause that we will repeatedly
-try to print 1 character into the buffer, never reach the full buffer, and
-do not count the messages as missed.
+A reasonable solution seems to be to split the text in the NNI temporary
+not only by newlines but also by the message headers.
 
-Also vsnprintf() returns the number of characters that would be printed if
-the buffer was big enough.  As a result, s->len might be bigger than the
-size of the buffer[*].  And the printk() function might return bigger len
-than it really printed.  Both problems are fixed by using vscnprintf()
-instead.
+Another solution would be to filter out KERN_CONT when writing to the
+temporary buffer.  But this would complicate the lockless handling.  Also
+it would not solve problems with a missing newline that was there even
+before the KERN_CONT stuff.
 
-Note that I though about increasing the number of missed messages even
-when the message was shrunken.  But it made the code even more
-complicated.  I think that it is not worth it.  Shrunken messages are
-usually easy to recognize.  And it should be a corner case.
+This patch moves the temporary buffer handling into separate function.  I
+played with it and it seems that using the char pointers make the code
+easier to read.
 
-[*] The overflown s->len value is crazy and unexpected.  I "made a
-mistake" and reported this situation as an internal error when fixed
-handling of PR_CONT headers in some other patch.
+Also it prints the final newline as a continuous line.
 
-Link: http://lkml.kernel.org/r/20161208174912.GA17042@linux.suse
+Finally, it moves handling of the s->len overflow into the paranoid check.
+And allows to recover from the disaster.
+
+Link: http://lkml.kernel.org/r/1478695291-12169-2-git-send-email-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
-CcL Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Josef Bacik <jbacik@fb.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Joe Perches <joe@perches.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <jbacik@fb.com>
+Cc: David Sterba <dsterba@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/nmi.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/printk/nmi.c |   78 ++++++++++++++++++++++++++----------------
+ 1 file changed, 50 insertions(+), 28 deletions(-)
 
-diff -puN kernel/printk/nmi.c~printk-nmi-fix-up-handling-of-the-full-nmi-log-buffer kernel/printk/nmi.c
---- a/kernel/printk/nmi.c~printk-nmi-fix-up-handling-of-the-full-nmi-log-buffer
+diff -puN kernel/printk/nmi.c~printk-nmi-handle-continuous-lines-and-missing-newline kernel/printk/nmi.c
+--- a/kernel/printk/nmi.c~printk-nmi-handle-continuous-lines-and-missing-newline
 +++ a/kernel/printk/nmi.c
-@@ -67,7 +67,8 @@ static int vprintk_nmi(const char *fmt,
- again:
- 	len = atomic_read(&s->len);
+@@ -114,16 +114,51 @@ static void printk_nmi_flush_line(const
  
--	if (len >= sizeof(s->buffer)) {
-+	/* The trailing '\0' is not counted into len. */
-+	if (len >= sizeof(s->buffer) - 1) {
- 		atomic_inc(&nmi_message_lost);
- 		return 0;
- 	}
-@@ -79,7 +80,7 @@ again:
- 	if (!len)
- 		smp_rmb();
+ }
  
--	add = vsnprintf(s->buffer + len, sizeof(s->buffer) - len, fmt, args);
-+	add = vscnprintf(s->buffer + len, sizeof(s->buffer) - len, fmt, args);
+-/*
+- * printk one line from the temporary buffer from @start index until
+- * and including the @end index.
+- */
+-static void printk_nmi_flush_seq_line(struct nmi_seq_buf *s,
+-					int start, int end)
++/* printk part of the temporary buffer line by line */
++static int printk_nmi_flush_buffer(const char *start, size_t len)
+ {
+-	const char *buf = s->buffer + start;
++	const char *c, *end;
++	bool header;
++
++	c = start;
++	end = start + len;
++	header = true;
++
++	/* Print line by line. */
++	while (c < end) {
++		if (*c == '\n') {
++			printk_nmi_flush_line(start, c - start + 1);
++			start = ++c;
++			header = true;
++			continue;
++		}
++
++		/* Handle continuous lines or missing new line. */
++		if ((c + 1 < end) && printk_get_level(c)) {
++			if (header) {
++				c = printk_skip_level(c);
++				continue;
++			}
++
++			printk_nmi_flush_line(start, c - start);
++			start = c++;
++			header = true;
++			continue;
++		}
++
++		header = false;
++		c++;
++	}
+ 
+-	printk_nmi_flush_line(buf, (end - start) + 1);
++	/* Check if there was a partial line. Ignore pure header. */
++	if (start < end && !header) {
++		static const char newline[] = KERN_CONT "\n";
++
++		printk_nmi_flush_line(start, end - start);
++		printk_nmi_flush_line(newline, strlen(newline));
++	}
++
++	return len;
+ }
+ 
+ /*
+@@ -136,8 +171,8 @@ static void __printk_nmi_flush(struct ir
+ 		__RAW_SPIN_LOCK_INITIALIZER(read_lock);
+ 	struct nmi_seq_buf *s = container_of(work, struct nmi_seq_buf, work);
+ 	unsigned long flags;
+-	size_t len, size;
+-	int i, last_i;
++	size_t len;
++	int i;
  
  	/*
- 	 * Do it once again if the buffer has been flushed in the meantime.
-_
-
-Patches currently in -mm which might be from pmladek@suse.com are
-
-kdb-remove-unused-kdb_event-handling.patch
-kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus.patch
-kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted.patch
-
+ 	 * The lock has two functions. First, one reader has to flush all
+@@ -155,12 +190,14 @@ more:
+ 	/*
+ 	 * This is just a paranoid check that nobody has manipulated
+ 	 * the buffer an unexpected way. If we printed something then
+-	 * @len must only increase.
++	 * @len must only increase. Also it should never overflow the
++	 * buffer size.
+ 	 */
+-	if (i && i >= len) {
++	if ((i && i >= len) || len > sizeof(s->buffer)) {
+ 		const char *msg = "printk_nmi_flush: internal error\n";
+ 
+ 		printk_nmi_flush_line(msg, strlen(msg));
++		len = 0;
+ 	}
+ 
+ 	if (!len)
+@@ -168,22 +205,7 @@ more:
+ 
+ 	/* Make sure that data has been written up to the @len */
+ 	smp_rmb();
+-
+-	size = min(len, sizeof(s->buffer));
+-	last_i = i;
