@@ -1,108 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted.patch removed from -mm tree
-Date: Wed, 14 Dec 2016 11:26:23 -0800
-Message-ID: <58519cdf.dQoAyLZK/VbO8H+3%akpm@linux-foundation.org>
+Subject: [merged] mm-add-three-more-cond_resched-in-swapoff.patch removed
+ from -mm tree
+Date: Wed, 14 Dec 2016 11:26:26 -0800
+Message-ID: <58519ce2.rPpZQJqravxCkdqL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45490 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756635AbcLNT0c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:32 -0500
+        with ESMTP id S1756318AbcLNT0f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, cl@linux.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hughd@google.com, edumazet@google.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: keep pcp count and list contents in sync if struct page is corrupted
+     Subject: mm: add three more cond_resched() in swapoff
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted.patch
+     mm-add-three-more-cond_resched-in-swapoff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: keep pcp count and list contents in sync if struct page is corrupted
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: add three more cond_resched() in swapoff
 
-Vlastimil Babka pointed out that 479f854a207c ("mm, page_alloc: defer
-debugging checks of pages allocated from the PCP") will allow the per-cpu
-list counter to be out of sync with the per-cpu list contents if a struct
-page is corrupted.
+Add a cond_resched() in the unuse_pmd_range() loop (so as to call it even
+when pmd none or trans_huge, like zap_pmd_range() does); and in the
+unuse_mm() loop (since that might skip over many vmas).  shmem_unuse() and
+radix_tree_locate_item() look good enough already.
 
-The consequence is an infinite loop if the per-cpu lists get fully drained
-by free_pcppages_bulk because all the lists are empty but the count is
-positive.  The infinite loop occurs here
+Those were the obvious places, but in fact the stalls came from
+find_next_to_unuse(), which sometimes scans through many unused entries. 
+Apply scan_swap_map()'s LATENCY_LIMIT of 256 there too; and only go off to
+test frontswap_map when a used entry is found.
 
-                do {
-                        batch_free++;
-                        if (++migratetype == MIGRATE_PCPTYPES)
-                                migratetype = 0;
-                        list = &pcp->lists[migratetype];
-                } while (list_empty(list));
-
-What the user sees is a bad page warning followed by a soft lockup with
-interrupts disabled in free_pcppages_bulk().
-
-This patch keeps the accounting in sync.
-
-Fixes: 479f854a207c ("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
-Link: http://lkml.kernel.org/r/20161202112951.23346-2-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>	[4.7+]
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1612052155140.13021@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Eric Dumazet <edumazet@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/swapfile.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-keep-pcp-count-and-list-contents-in-sync-if-struct-page-is-corrupted
-+++ a/mm/page_alloc.c
-@@ -2218,7 +2218,7 @@ static int rmqueue_bulk(struct zone *zon
- 			unsigned long count, struct list_head *list,
- 			int migratetype, bool cold)
- {
--	int i;
-+	int i, alloced = 0;
+diff -puN mm/swapfile.c~mm-add-three-more-cond_resched-in-swapoff mm/swapfile.c
+--- a/mm/swapfile.c~mm-add-three-more-cond_resched-in-swapoff
++++ a/mm/swapfile.c
+@@ -1234,6 +1234,7 @@ static inline int unuse_pmd_range(struct
  
- 	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
-@@ -2243,13 +2243,21 @@ static int rmqueue_bulk(struct zone *zon
- 		else
- 			list_add_tail(&page->lru, list);
- 		list = &page->lru;
-+		alloced++;
- 		if (is_migrate_cma(get_pcppage_migratetype(page)))
- 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
- 					      -(1 << order));
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
++		cond_resched();
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			continue;
+@@ -1313,6 +1314,7 @@ static int unuse_mm(struct mm_struct *mm
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 		if (vma->anon_vma && (ret = unuse_vma(vma, entry, page)))
+ 			break;
++		cond_resched();
  	}
-+
-+	/*
-+	 * i pages were removed from the buddy list even if some leak due
-+	 * to check_pcp_refill failing so adjust NR_FREE_PAGES based
-+	 * on i. Do not confuse with 'alloced' which is the number of
-+	 * pages added to the pcp list.
-+	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
- 	spin_unlock(&zone->lock);
--	return i;
-+	return alloced;
+ 	up_read(&mm->mmap_sem);
+ 	return (ret < 0)? ret: 0;
+@@ -1350,15 +1352,12 @@ static unsigned int find_next_to_unuse(s
+ 			prev = 0;
+ 			i = 1;
+ 		}
+-		if (frontswap) {
+-			if (frontswap_test(si, i))
+-				break;
+-			else
+-				continue;
+-		}
+ 		count = READ_ONCE(si->swap_map[i]);
+ 		if (count && swap_count(count) != SWAP_MAP_BAD)
+-			break;
++			if (!frontswap || frontswap_test(si, i))
++				break;
++		if ((i % LATENCY_LIMIT) == 0)
++			cond_resched();
+ 	}
+ 	return i;
  }
- 
- #ifdef CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from hughd@google.com are
 
 
