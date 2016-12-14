@@ -1,61 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch removed
+Subject: [merged] kmemleak-fix-reference-to-documentation.patch removed
  from -mm tree
-Date: Wed, 14 Dec 2016 11:23:48 -0800
-Message-ID: <58519c44.9ajhQB0uaI5dEkoB%akpm@linux-foundation.org>
+Date: Wed, 14 Dec 2016 11:23:55 -0800
+Message-ID: <58519c4b.XkdC6uFcCaJIvRq7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44066 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756518AbcLNTXt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:49 -0500
+        with ESMTP id S1756518AbcLNTX4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tklauser@distanz.ch, mm-commits@vger.kernel.org
+To: andreas.platschek@opentech.at, catalin.marinas@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: make unnecessarily global vma_permits_fault() static
+     Subject: kmemleak: fix reference to Documentation
 has been removed from the -mm tree.  Its filename was
-     mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
+     kmemleak-fix-reference-to-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: mm/gup.c: make unnecessarily global vma_permits_fault() static
+From: Andreas Platschek <andreas.platschek@opentech.at>
+Subject: kmemleak: fix reference to Documentation
 
-Make vma_permits_fault() static as it is only used in mm/gup.c
+Documentation/kmemleak.txt was moved to Documentation/dev-tools/kmemleak.rst,
+this fixes the reference to the new location.
 
-This fixes a sparse warning.
-
-Link: http://lkml.kernel.org/r/20161017122353.31598-1-tklauser@distanz.ch
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Link: http://lkml.kernel.org/r/1476544946-18804-1-git-send-email-andreas.platschek@opentech.at
+Signed-off-by: Andreas Platschek <andreas.platschek@opentech.at>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/kmemleak.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/gup.c~mm-gup-make-unnecessarily-global-vma_permits_fault-static mm/gup.c
---- a/mm/gup.c~mm-gup-make-unnecessarily-global-vma_permits_fault-static
-+++ a/mm/gup.c
-@@ -632,7 +632,8 @@ next_page:
- 	return i;
- }
- 
--bool vma_permits_fault(struct vm_area_struct *vma, unsigned int fault_flags)
-+static bool vma_permits_fault(struct vm_area_struct *vma,
-+			      unsigned int fault_flags)
- {
- 	bool write   = !!(fault_flags & FAULT_FLAG_WRITE);
- 	bool foreign = !!(fault_flags & FAULT_FLAG_REMOTE);
+diff -puN mm/kmemleak.c~kmemleak-fix-reference-to-documentation mm/kmemleak.c
+--- a/mm/kmemleak.c~kmemleak-fix-reference-to-documentation
++++ a/mm/kmemleak.c
+@@ -19,7 +19,7 @@
+  *
+  *
+  * For more information on the algorithm and kmemleak usage, please see
+- * Documentation/kmemleak.txt.
++ * Documentation/dev-tools/kmemleak.rst.
+  *
+  * Notes on locking
+  * ----------------
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from andreas.platschek@opentech.at are
 
+kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
+kconfig-lib-kconfigubsan-fix-reference-to-ubsan-documentation.patch
 
