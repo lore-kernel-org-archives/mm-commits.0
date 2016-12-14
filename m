@@ -1,93 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-mark-all-calls-into-the-vmalloc-subsystem-as-potentially-sleeping.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:26:03 -0800
-Message-ID: <58519ccb.fXiJlufQoW45wGRh%akpm@linux-foundation.org>
+Subject: [merged] mm-debug-print-raw-struct-page-data-in-__dump_page.patch removed from -mm tree
+Date: Wed, 14 Dec 2016 11:26:18 -0800
+Message-ID: <58519cda.3SvoHQgpHs46JgeK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45136 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756614AbcLNT0O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:14 -0500
+        with ESMTP id S1755280AbcLNT0T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:26:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, aryabinin@virtuozzo.com, chris@chris-wilson.co.uk, hpa@zytor.com, joaodias@google.com, joelaf@google.com, jszhang@marvell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aryabinin@virtuozzo.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mark all calls into the vmalloc subsystem as potentially sleeping
+     Subject: mm, debug: print raw struct page data in __dump_page()
 has been removed from the -mm tree.  Its filename was
-     mm-mark-all-calls-into-the-vmalloc-subsystem-as-potentially-sleeping.patch
+     mm-debug-print-raw-struct-page-data-in-__dump_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: mark all calls into the vmalloc subsystem as potentially sleeping
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, debug: print raw struct page data in __dump_page()
 
-We will take a sleeping lock in later in this series, so this adds the
-proper safeguards.
+__dump_page() is used when a page metadata inconsistency is detected,
+either by standard runtime checks, or extra checks in CONFIG_DEBUG_VM
+builds.  It prints some of the relevant metadata, but not the whole struct
+page, which is based on unions and interpretation is dependent on the
+context.
 
-Link: http://lkml.kernel.org/r/1479474236-4139-9-git-send-email-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Jisheng Zhang <jszhang@marvell.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Joel Fernandes <joelaf@google.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: John Dias <joaodias@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+This means that sometimes e.g.  a VM_BUG_ON_PAGE() checks certain field,
+which is however not printed by __dump_page() and the resulting bug report
+may then lack clues that could help in determining the root cause.  This
+patch solves the problem by simply printing the whole struct page word by
+word, so no part is missing, but the interpretation of the data is left to
+developers.  This is similar to e.g.  x86_64 raw stack dumps.
+
+Example output:
+
+ page:ffffea00000475c0 count:1 mapcount:0 mapping:          (null) index:0x0
+ flags: 0x100000000000400(reserved)
+ raw: 0100000000000400 0000000000000000 0000000000000000 00000001ffffffff
+ raw: ffffea00000475e0 ffffea00000475e0 0000000000000000 0000000000000000
+ page dumped because: VM_BUG_ON_PAGE(1)
+
+[aryabinin@virtuozzo.com: suggested print_hex_dump()]
+Link: http://lkml.kernel.org/r/2ff83214-70fe-741e-bf05-fe4a4073ec3e@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/debug.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/vmalloc.c~mm-mark-all-calls-into-the-vmalloc-subsystem-as-potentially-sleeping mm/vmalloc.c
---- a/mm/vmalloc.c~mm-mark-all-calls-into-the-vmalloc-subsystem-as-potentially-sleeping
-+++ a/mm/vmalloc.c
-@@ -365,7 +365,7 @@ static struct vmap_area *alloc_vmap_area
- 	BUG_ON(offset_in_page(size));
- 	BUG_ON(!is_power_of_2(align));
+diff -puN mm/debug.c~mm-debug-print-raw-struct-page-data-in-__dump_page mm/debug.c
+--- a/mm/debug.c~mm-debug-print-raw-struct-page-data-in-__dump_page
++++ a/mm/debug.c
+@@ -59,6 +59,10 @@ void __dump_page(struct page *page, cons
  
--	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
-+	might_sleep();
+ 	pr_emerg("flags: %#lx(%pGp)\n", page->flags, &page->flags);
  
- 	va = kmalloc_node(sizeof(struct vmap_area),
- 			gfp_mask & GFP_RECLAIM_MASK, node);
-@@ -1037,6 +1037,8 @@ void vm_unmap_aliases(void)
- 	if (unlikely(!vmap_initialized))
- 		return;
- 
-+	might_sleep();
++	print_hex_dump(KERN_ALERT, "raw: ", DUMP_PREFIX_NONE, 32,
++			sizeof(unsigned long), page,
++			sizeof(struct page), false);
 +
- 	for_each_possible_cpu(cpu) {
- 		struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, cpu);
- 		struct vmap_block *vb;
-@@ -1080,6 +1082,7 @@ void vm_unmap_ram(const void *mem, unsig
- 	unsigned long addr = (unsigned long)mem;
- 	struct vmap_area *va;
+ 	if (reason)
+ 		pr_alert("page dumped because: %s\n", reason);
  
-+	might_sleep();
- 	BUG_ON(!addr);
- 	BUG_ON(addr < VMALLOC_START);
- 	BUG_ON(addr > VMALLOC_END);
-@@ -1431,6 +1434,8 @@ struct vm_struct *remove_vm_area(const v
- {
- 	struct vmap_area *va;
- 
-+	might_sleep();
-+
- 	va = find_vmap_area((unsigned long)addr);
- 	if (va && va->flags & VM_VM_AREA) {
- 		struct vm_struct *vm = va->vm;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
