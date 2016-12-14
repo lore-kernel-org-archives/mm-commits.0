@@ -1,67 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler.patch removed
- from -mm tree
-Date: Wed, 14 Dec 2016 11:23:10 -0800
-Message-ID: <58519c1e.T+l1F0CMt+K5R3UG%akpm@linux-foundation.org>
+ ocfs2-delete-redundant-code-and-set-the-node-bit-into-maybe_map-directly.patch removed from -mm tree
+Date: Wed, 14 Dec 2016 11:23:07 -0800
+Message-ID: <58519c1b.wEYh9nMXJNA2li8x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43868 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756499AbcLNTXL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:11 -0500
+        with ESMTP id S1756499AbcLNTXI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:23:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: guozhonghua@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: clean up deadcode in dlm_master_request_handler()
+     Subject: ocfs2: delete redundant code and set the node bit into maybe_map directly
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler.patch
+     ocfs2-delete-redundant-code-and-set-the-node-bit-into-maybe_map-directly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/dlm: clean up deadcode in dlm_master_request_handler()
+From: Guozhonghua <guozhonghua@h3c.com>
+Subject: ocfs2: delete redundant code and set the node bit into maybe_map directly
 
-When 'dispatch_assert' is set, 'response' must be DLM_MASTER_RESP_YES, and
-'res' won't be null, so execution can't reach these two branch.
+The variable `set_maybe' is redundant when the mle has been found in the
+map.  So it is ok to set the node_idx into mle's maybe_map directly.
 
-Link: http://lkml.kernel.org/r/58174C91.3040004@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
+Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4A3D490DD@H3CMLB12-EX.srv.huawei-3com.com
+Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
+Reviewed-by: Mark Fasheh <mfasheh@versity.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-delete-redundant-code-and-set-the-node-bit-into-maybe_map-directly fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-delete-redundant-code-and-set-the-node-bit-into-maybe_map-directly
 +++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1641,12 +1641,6 @@ send_response:
- 	 * dlm_assert_master_worker() isn't called, we drop it here.
- 	 */
- 	if (dispatch_assert) {
--		if (response != DLM_MASTER_RESP_YES)
--			mlog(ML_ERROR, "invalid response %d\n", response);
--		if (!res) {
--			mlog(ML_ERROR, "bad lockres while trying to assert!\n");
--			BUG();
--		}
- 		mlog(0, "%u is the owner of %.*s, cleaning everyone else\n",
- 			     dlm->node_num, res->lockname.len, res->lockname.name);
- 		spin_lock(&res->spinlock);
+@@ -1609,8 +1609,6 @@ way_up_top:
+ 		__dlm_insert_mle(dlm, mle);
+ 		response = DLM_MASTER_RESP_NO;
+ 	} else {
+-		// mlog(0, "mle was found\n");
+-		set_maybe = 1;
+ 		spin_lock(&tmpmle->spinlock);
+ 		if (tmpmle->master == dlm->node_num) {
+ 			mlog(ML_ERROR, "no lockres, but an mle with this node as master!\n");
+@@ -1625,8 +1623,7 @@ way_up_top:
+ 			response = DLM_MASTER_RESP_NO;
+ 		} else
+ 			response = DLM_MASTER_RESP_MAYBE;
+-		if (set_maybe)
+-			set_bit(request->node_idx, tmpmle->maybe_map);
++		set_bit(request->node_idx, tmpmle->maybe_map);
+ 		spin_unlock(&tmpmle->spinlock);
+ 	}
+ 	spin_unlock(&dlm->master_lock);
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from guozhonghua@h3c.com are
 
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
 
