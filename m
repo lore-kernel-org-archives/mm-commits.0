@@ -1,51 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- debug-more-properly-delay-for-secondary-cpus-fix.patch removed from -mm
- tree
-Date: Wed, 14 Dec 2016 14:28:43 -0800
-Message-ID: <5851c79b.A4ER2g7EoVfhfJE3%akpm@linux-foundation.org>
+Subject: [folded-merged] ipc-sem-rework-task-wakeups-fix.patch removed
+ from -mm tree
+Date: Wed, 14 Dec 2016 14:29:18 -0800
+Message-ID: <5851c7be.4uGEHsNLKtGHMCi+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60774 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752488AbcLNW1z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 17:27:55 -0500
+        with ESMTP id S933070AbcLNW2a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 17:28:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, briannorris@chromium.org, daniel.thompson@linaro.org, dianders@chromium.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debug-more-properly-delay-for-secondary-cpus-fix
+     Subject: ipc/sem: merge fix for WAKE_Q to DEFINE_WAKE_Q rename
 has been removed from the -mm tree.  Its filename was
-     debug-more-properly-delay-for-secondary-cpus-fix.patch
+     ipc-sem-rework-task-wakeups-fix.patch
 
-This patch was dropped because it was folded into debug-more-properly-delay-for-secondary-cpus.patch
+This patch was dropped because it was folded into ipc-sem-rework-task-wakeups.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: debug-more-properly-delay-for-secondary-cpus-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: ipc/sem: merge fix for WAKE_Q to DEFINE_WAKE_Q rename
 
-simplifications, per Daniel
-
-Cc: Brian Norris <briannorris@chromium.org>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Link: http://lkml.kernel.org/r/20161122210410.5eca9fc2@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/debug_core.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ ipc/sem.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus-fix kernel/debug/debug_core.c
---- a/kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus-fix
-+++ a/kernel/debug/debug_core.c
-@@ -61,8 +61,6 @@
+diff -puN ipc/sem.c~ipc-sem-rework-task-wakeups-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-rework-task-wakeups-fix
++++ a/ipc/sem.c
+@@ -1059,7 +1059,7 @@ static void freeary(struct ipc_namespace
+ 	struct sem_queue *q, *tq;
+ 	struct sem_array *sma = container_of(ipcp, struct sem_array, sem_perm);
+ 	int i;
+-	WAKE_Q(wake_q);
++	DEFINE_WAKE_Q(wake_q);
  
- #include "debug_core.h"
+ 	/* Free the existing undo structures for this semaphore set.  */
+ 	ipc_assert_locked_object(&sma->sem_perm);
+@@ -1239,7 +1239,7 @@ static int semctl_setval(struct ipc_name
+ 	struct sem_array *sma;
+ 	struct sem *curr;
+ 	int err, val;
+-	WAKE_Q(wake_q);
++	DEFINE_WAKE_Q(wake_q);
  
--#define WAIT_CPUS_STOP_MS	1000
+ #if defined(CONFIG_64BIT) && defined(__BIG_ENDIAN)
+ 	/* big-endian 64bit */
+@@ -1309,7 +1309,7 @@ static int semctl_main(struct ipc_namesp
+ 	int err, nsems;
+ 	ushort fast_sem_io[SEMMSL_FAST];
+ 	ushort *sem_io = fast_sem_io;
+-	WAKE_Q(wake_q);
++	DEFINE_WAKE_Q(wake_q);
+ 
+ 	rcu_read_lock();
+ 	sma = sem_obtain_object_check(ns, semid);
+@@ -1848,7 +1848,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 
+ 	error = perform_atomic_semop(sma, &queue);
+ 	if (error == 0) { /* non-blocking succesfull path */
+-		WAKE_Q(wake_q);
++		DEFINE_WAKE_Q(wake_q);
+ 
+ 		/*
+ 		 * If the operation was successful, then do
+@@ -2031,7 +2031,7 @@ void exit_sem(struct task_struct *tsk)
+ 		struct sem_array *sma;
+ 		struct sem_undo *un;
+ 		int semid, i;
+-		WAKE_Q(wake_q);
++		DEFINE_WAKE_Q(wake_q);
+ 
+ 		cond_resched();
+ 
+_
+
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
+
+ipc-sem-rework-task-wakeups.patch
+mm-add-locked-parameter-to-get_user_pages_remote-fix.patch
+
