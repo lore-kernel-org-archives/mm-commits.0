@@ -1,64 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ipc-sem-optimize-perform_atomic_semop-fix.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 14:30:14 -0800
-Message-ID: <5851c7f6.WM+QP/i+hPiFY3j6%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch removed from
+ -mm tree
+Date: Wed, 14 Dec 2016 14:30:17 -0800
+Message-ID: <5851c7f9./95T3CdZDpxoGNwC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60800 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933465AbcLNW30 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 17:29:26 -0500
+        with ESMTP id S933465AbcLNW33 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 17:29:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem: ensure we left shift a ULL rather than a 32 bit integer
+     Subject: ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ipc-sem-optimize-perform_atomic_semop-fix.patch
+     ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into ipc-sem-optimize-perform_atomic_semop.patch
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: ipc/sem: ensure we left shift a ULL rather than a 32 bit integer
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes
 
-The left shift amount is sop->sem_num % 64, which is up to 63, so
-ensure we are shifting a ULL rather than a 32 bit value.
+WARNING: Missing a blank line after declarations
+#132: FILE: ipc/sem.c:747:
++			int undo = un->semadj[sop->sem_num] - sem_op;
++			un->semadj[sop->sem_num] = undo;
 
-CoverityScan CID#1372862 "Bad bit shift operation"
+ERROR: spaces required around that '?' (ctx:VxW)
+#142: FILE: ipc/sem.c:757:
++	return sop->sem_flg & IPC_NOWAIT? -EAGAIN : 1;
+ 	                                ^
 
-Fixes: 7c24530cb4e3c0ae ("ipc/sem: optimize perform_atomic_semop()")
-Link: http://lkml.kernel.org/r/20161028181129.7311-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+total: 1 errors, 1 warnings, 171 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/ipc-sem-optimize-perform_atomic_semop.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/sem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-fix ipc/sem.c
---- a/ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-fix
+diff -puN ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes
 +++ a/ipc/sem.c
-@@ -1850,7 +1850,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+@@ -744,6 +744,7 @@ static int perform_atomic_semop(struct s
  
- 	max = 0;
- 	for (sop = sops; sop < sops + nsops; sop++) {
--		unsigned long mask = 1 << ((sop->sem_num) % BITS_PER_LONG);
-+		unsigned long mask = 1ULL << ((sop->sem_num) % BITS_PER_LONG);
+ 		if (sop->sem_flg & SEM_UNDO) {
+ 			int undo = un->semadj[sop->sem_num] - sem_op;
++
+ 			un->semadj[sop->sem_num] = undo;
+ 		}
+ 		curr->semval += sem_op;
+@@ -754,7 +755,7 @@ static int perform_atomic_semop(struct s
  
- 		if (sop->sem_num >= max)
- 			max = sop->sem_num;
+ would_block:
+ 	q->blocking = sop;
+-	return sop->sem_flg & IPC_NOWAIT? -EAGAIN : 1;
++	return sop->sem_flg & IPC_NOWAIT ? -EAGAIN : 1;
+ }
+ 
+ static inline void wake_up_sem_queue_prepare(struct sem_queue *q, int error,
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 ipc-sem-optimize-perform_atomic_semop.patch
+ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
+mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
 
