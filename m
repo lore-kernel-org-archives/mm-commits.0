@@ -1,193 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch removed
- from -mm tree
-Date: Wed, 14 Dec 2016 11:24:18 -0800
-Message-ID: <58519c62.a83UV1lvTrqocY0Q%akpm@linux-foundation.org>
+ mm-use-the-correct-page-size-when-removing-the-page.patch removed from -mm
+ tree
+Date: Wed, 14 Dec 2016 11:24:24 -0800
+Message-ID: <58519c68.iXtNJwKQB8sf6CaV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44190 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756543AbcLNTYT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:19 -0500
+        with ESMTP id S1756541AbcLNTYZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:24:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ming.ling@spreadtrum.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, dan.j.williams@intel.com, kirill@shutemov.name, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: fix NR_ISOLATED_* stats for pfn based migration
+     Subject: mm: use the correct page size when removing the page
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch
+     mm-use-the-correct-page-size-when-removing-the-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ming Ling <ming.ling@spreadtrum.com>
-Subject: mm, compaction: fix NR_ISOLATED_* stats for pfn based migration
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm: use the correct page size when removing the page
 
-Since bda807d44454 ("mm: migrate: support non-lru movable page migration")
-isolate_migratepages_block) can isolate !PageLRU pages which would
-acct_isolated account as NR_ISOLATED_*.  Accounting these non-lru pages
-NR_ISOLATED_{ANON,FILE} doesn't make any sense and it can misguide
-heuristics based on those counters such as pgdat_reclaimable_pages resp. 
-too_many_isolated which would lead to unexpected stalls during the direct
-reclaim without any good reason.  Note that __alloc_contig_migrate_range
-can isolate a lot of pages at once.
+We are removing a pmd hugepage here. Use the correct page size.
 
-On mobile devices such as 512M ram android Phone, it may use a big zram
-swap.  In some cases zram(zsmalloc) uses too many non-lru but migratedable
-pages, such as:
-
-      MemTotal: 468148 kB
-      Normal free:5620kB
-      Free swap:4736kB
-      Total swap:409596kB
-      ZRAM: 164616kB(zsmalloc non-lru pages)
-      active_anon:60700kB
-      inactive_anon:60744kB
-      active_file:34420kB
-      inactive_file:37532kB
-
-Fix this by only accounting lru pages to NR_ISOLATED_* in
-isolate_migratepages_block right after they were isolated and we still
-know they were on LRU.  Drop acct_isolated because it is called after the
-fact and we've lost that information.  Batching per-cpu counter doesn't
-make much improvement anyway.  Also make sure that we uncharge only LRU
-pages when putting them back on the LRU in putback_movable_pages resp. 
-when unmap_and_move migrates the page.
-
-[mhocko@suse.com: replace acct_isolated() with direct counting]
-Fixes: bda807d44454 ("mm: migrate: support non-lru movable page migration")
-Link: http://lkml.kernel.org/r/20161019080240.9682-1-mhocko@kernel.org
-Signed-off-by: Ming Ling <ming.ling@spreadtrum.com>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <js1304@gmail.com>
+Link: http://lkml.kernel.org/r/20161026084839.27299-2-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   25 +++----------------------
- mm/migrate.c    |   15 +++++++++++----
- 2 files changed, 14 insertions(+), 26 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration mm/compaction.c
---- a/mm/compaction.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration
-+++ a/mm/compaction.c
-@@ -634,22 +634,6 @@ isolate_freepages_range(struct compact_c
- 	return pfn;
- }
- 
--/* Update the number of anon and file isolated pages in the zone */
--static void acct_isolated(struct zone *zone, struct compact_control *cc)
--{
--	struct page *page;
--	unsigned int count[2] = { 0, };
--
--	if (list_empty(&cc->migratepages))
--		return;
--
--	list_for_each_entry(page, &cc->migratepages, lru)
--		count[!!page_is_file_cache(page)]++;
--
--	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_ANON, count[0]);
--	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, count[1]);
--}
--
- /* Similar to reclaim, but different enough that they don't share logic */
- static bool too_many_isolated(struct zone *zone)
- {
-@@ -866,6 +850,8 @@ isolate_migratepages_block(struct compac
- 
- 		/* Successfully isolated */
- 		del_page_from_lru_list(page, lruvec, page_lru(page));
-+		inc_node_page_state(page,
-+				NR_ISOLATED_ANON + page_is_file_cache(page));
- 
- isolate_success:
- 		list_add(&page->lru, &cc->migratepages);
-@@ -902,7 +888,6 @@ isolate_fail:
- 				spin_unlock_irqrestore(zone_lru_lock(zone), flags);
- 				locked = false;
- 			}
--			acct_isolated(zone, cc);
- 			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 			cc->last_migrated_pfn = 0;
-@@ -988,7 +973,6 @@ isolate_migratepages_range(struct compac
- 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
- 			break;
- 	}
--	acct_isolated(cc->zone, cc);
- 
- 	return pfn;
- }
-@@ -1258,10 +1242,8 @@ static isolate_migrate_t isolate_migrate
- 		low_pfn = isolate_migratepages_block(cc, low_pfn,
- 						block_end_pfn, isolate_mode);
- 
--		if (!low_pfn || cc->contended) {
--			acct_isolated(zone, cc);
-+		if (!low_pfn || cc->contended)
- 			return ISOLATE_ABORT;
--		}
- 
- 		/*
- 		 * Either we isolated something and proceed with migration. Or
-@@ -1271,7 +1253,6 @@ static isolate_migrate_t isolate_migrate
- 		break;
- 	}
- 
--	acct_isolated(zone, cc);
- 	/* Record where migration scanner will be restarted. */
- 	cc->migrate_pfn = low_pfn;
- 
-diff -puN mm/migrate.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration mm/migrate.c
---- a/mm/migrate.c~mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration
-+++ a/mm/migrate.c
-@@ -168,8 +168,6 @@ void putback_movable_pages(struct list_h
- 			continue;
- 		}
- 		list_del(&page->lru);
--		dec_node_page_state(page, NR_ISOLATED_ANON +
--				page_is_file_cache(page));
- 		/*
- 		 * We isolated non-lru movable page so here we can use
- 		 * __PageMovable because LRU page's mapping cannot have
-@@ -186,6 +184,8 @@ void putback_movable_pages(struct list_h
- 			put_page(page);
- 		} else {
- 			putback_lru_page(page);
-+			dec_node_page_state(page, NR_ISOLATED_ANON +
-+					page_is_file_cache(page));
- 		}
- 	}
- }
-@@ -1121,8 +1121,15 @@ out:
- 		 * restored.
- 		 */
- 		list_del(&page->lru);
--		dec_node_page_state(page, NR_ISOLATED_ANON +
--				page_is_file_cache(page));
-+
-+		/*
-+		 * Compaction can migrate also non-LRU pages which are
-+		 * not accounted to NR_ISOLATED_*. They can be recognized
-+		 * as __PageMovable
-+		 */
-+		if (likely(!__PageMovable(page)))
-+			dec_node_page_state(page, NR_ISOLATED_ANON +
-+					page_is_file_cache(page));
- 	}
- 
- 	/*
+diff -puN mm/huge_memory.c~mm-use-the-correct-page-size-when-removing-the-page mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-use-the-correct-page-size-when-removing-the-page
++++ a/mm/huge_memory.c
+@@ -1399,12 +1399,12 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 	if (vma_is_dax(vma)) {
+ 		spin_unlock(ptl);
+ 		if (is_huge_zero_pmd(orig_pmd))
+-			tlb_remove_page(tlb, pmd_page(orig_pmd));
++			tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
+ 	} else if (is_huge_zero_pmd(orig_pmd)) {
+ 		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
+ 		atomic_long_dec(&tlb->mm->nr_ptes);
+ 		spin_unlock(ptl);
+-		tlb_remove_page(tlb, pmd_page(orig_pmd));
++		tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
+ 	} else {
+ 		struct page *page = pmd_page(orig_pmd);
+ 		page_remove_rmap(page, true);
 _
 
-Patches currently in -mm which might be from ming.ling@spreadtrum.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 
