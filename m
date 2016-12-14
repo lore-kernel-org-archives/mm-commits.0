@@ -1,28 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [patch 070/114] mm: factor out common parts of write fault
- handling
-Date: Wed, 14 Dec 2016 15:07:27 -0800
-Message-ID: <5851d0af.bCEQUOQxkYMjpbdY%akpm@linux-foundation.org>
+Subject: [patch 067/114] mm: allow full handling of COW faults in ->fault
+ handlers
+Date: Wed, 14 Dec 2016 15:07:18 -0800
+Message-ID: <5851d0a6.kcjHBiNkbIMB+hEO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35108 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933546AbcLNXH3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:07:29 -0500
+        with ESMTP id S933483AbcLNXH2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:07:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com
 
 From: Jan Kara <jack@suse.cz>
-Subject: mm: factor out common parts of write fault handling
+Subject: mm: allow full handling of COW faults in ->fault handlers
 
-Currently we duplicate handling of shared write faults in wp_page_reuse()
-and do_shared_fault().  Factor them out into a common function.
+Patch series "dax: Clear dirty bits after flushing caches", v5.
 
-Link: http://lkml.kernel.org/r/1479460644-25076-12-git-send-email-jack@suse.cz
+Patchset to clear dirty bits from radix tree of DAX inodes when caches for
+corresponding pfns have been flushed.  In principle, these patches enable
+handlers to easily update PTEs and do other work necessary to finish the
+fault without duplicating the functionality present in the generic code. 
+I'd like to thank Kirill and Ross for reviews of the series!
+
+
+
+This patch (of 20):
+
+To allow full handling of COW faults add memcg field to struct vm_fault
+and a return value of ->fault() handler meaning that COW fault is fully
+handled and memcg charge must not be canceled.  This will allow us to
+remove knowledge about special DAX locking from the generic fault code.
+
+Link: http://lkml.kernel.org/r/1479460644-25076-9-git-send-email-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -30,114 +44,86 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   78 +++++++++++++++++++++++---------------------------
- 1 file changed, 37 insertions(+), 41 deletions(-)
+ include/linux/mm.h |    4 +++-
+ mm/memory.c        |   14 +++++++-------
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN mm/memory.c~mm-factor-out-common-parts-of-write-fault-handling mm/memory.c
---- a/mm/memory.c~mm-factor-out-common-parts-of-write-fault-handling
+diff -puN include/linux/mm.h~mm-allow-full-handling-of-cow-faults-in-fault-handlers include/linux/mm.h
+--- a/include/linux/mm.h~mm-allow-full-handling-of-cow-faults-in-fault-handlers
++++ a/include/linux/mm.h
+@@ -301,7 +301,8 @@ struct vm_fault {
+ 					 * the 'address' */
+ 	pte_t orig_pte;			/* Value of PTE at the time of fault */
+ 
+-	struct page *cow_page;		/* Handler may choose to COW */
++	struct page *cow_page;		/* Page handler may use for COW fault */
++	struct mem_cgroup *memcg;	/* Cgroup cow_page belongs to */
+ 	struct page *page;		/* ->fault handlers should return a
+ 					 * page here, unless VM_FAULT_NOPAGE
+ 					 * is set (which is also implied by
+@@ -1103,6 +1104,7 @@ static inline void clear_page_pfmemalloc
+ #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
+ #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
+ #define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
++#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
+ 
+ #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
+ 
+diff -puN mm/memory.c~mm-allow-full-handling-of-cow-faults-in-fault-handlers mm/memory.c
+--- a/mm/memory.c~mm-allow-full-handling-of-cow-faults-in-fault-handlers
 +++ a/mm/memory.c
-@@ -2063,6 +2063,41 @@ static int do_page_mkwrite(struct vm_are
- }
+@@ -2844,9 +2844,8 @@ static int __do_fault(struct vm_fault *v
+ 	int ret;
  
- /*
-+ * Handle dirtying of a page in shared file mapping on a write fault.
-+ *
-+ * The function expects the page to be locked and unlocks it.
-+ */
-+static void fault_dirty_shared_page(struct vm_area_struct *vma,
-+				    struct page *page)
-+{
-+	struct address_space *mapping;
-+	bool dirtied;
-+	bool page_mkwrite = vma->vm_ops && vma->vm_ops->page_mkwrite;
-+
-+	dirtied = set_page_dirty(page);
-+	VM_BUG_ON_PAGE(PageAnon(page), page);
-+	/*
-+	 * Take a local copy of the address_space - page.mapping may be zeroed
-+	 * by truncate after unlock_page().   The address_space itself remains
-+	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
-+	 * release semantics to prevent the compiler from undoing this copying.
-+	 */
-+	mapping = page_rmapping(page);
-+	unlock_page(page);
-+
-+	if ((dirtied || page_mkwrite) && mapping) {
-+		/*
-+		 * Some device drivers do not set page.mapping
-+		 * but still dirty their pages
-+		 */
-+		balance_dirty_pages_ratelimited(mapping);
-+	}
-+
-+	if (!page_mkwrite)
-+		file_update_time(vma->vm_file);
-+}
-+
-+/*
-  * Handle write page faults for pages that can be reused in the current vma
-  *
-  * This can happen either due to the mapping being with the VM_SHARED flag,
-@@ -2092,28 +2127,11 @@ static inline int wp_page_reuse(struct v
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	ret = vma->vm_ops->fault(vma, vmf);
+-	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+-		return ret;
+-	if (ret & VM_FAULT_DAX_LOCKED)
++	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
++			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
+ 		return ret;
  
- 	if (dirty_shared) {
--		struct address_space *mapping;
--		int dirtied;
--
- 		if (!page_mkwrite)
- 			lock_page(page);
- 
--		dirtied = set_page_dirty(page);
--		VM_BUG_ON_PAGE(PageAnon(page), page);
--		mapping = page->mapping;
--		unlock_page(page);
-+		fault_dirty_shared_page(vma, page);
- 		put_page(page);
--
--		if ((dirtied || page_mkwrite) && mapping) {
--			/*
--			 * Some device drivers do not set page.mapping
--			 * but still dirty their pages
--			 */
--			balance_dirty_pages_ratelimited(mapping);
--		}
--
--		if (!page_mkwrite)
--			file_update_time(vma->vm_file);
- 	}
- 
- 	return VM_FAULT_WRITE;
-@@ -3294,8 +3312,6 @@ uncharge_out:
- static int do_shared_fault(struct vm_fault *vmf)
+ 	if (unlikely(PageHWPoison(vmf->page))) {
+@@ -3226,7 +3225,6 @@ static int do_read_fault(struct vm_fault
+ static int do_cow_fault(struct vm_fault *vmf)
  {
  	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping;
--	int dirtied = 0;
- 	int ret, tmp;
+-	struct mem_cgroup *memcg;
+ 	int ret;
  
- 	ret = __do_fault(vmf);
-@@ -3324,27 +3340,7 @@ static int do_shared_fault(struct vm_fau
- 		return ret;
+ 	if (unlikely(anon_vma_prepare(vma)))
+@@ -3237,7 +3235,7 @@ static int do_cow_fault(struct vm_fault
+ 		return VM_FAULT_OOM;
+ 
+ 	if (mem_cgroup_try_charge(vmf->cow_page, vma->vm_mm, GFP_KERNEL,
+-				&memcg, false)) {
++				&vmf->memcg, false)) {
+ 		put_page(vmf->cow_page);
+ 		return VM_FAULT_OOM;
  	}
+@@ -3245,12 +3243,14 @@ static int do_cow_fault(struct vm_fault
+ 	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
++	if (ret & VM_FAULT_DONE_COW)
++		return ret;
  
--	if (set_page_dirty(vmf->page))
--		dirtied = 1;
--	/*
--	 * Take a local copy of the address_space - page.mapping may be zeroed
--	 * by truncate after unlock_page().   The address_space itself remains
--	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
--	 * release semantics to prevent the compiler from undoing this copying.
--	 */
--	mapping = page_rmapping(vmf->page);
--	unlock_page(vmf->page);
--	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
--		/*
--		 * Some device drivers do not set page.mapping but still
--		 * dirty their pages
--		 */
--		balance_dirty_pages_ratelimited(mapping);
--	}
--
--	if (!vma->vm_ops->page_mkwrite)
--		file_update_time(vma->vm_file);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED))
+ 		copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
+ 	__SetPageUptodate(vmf->cow_page);
+ 
+-	ret |= alloc_set_pte(vmf, memcg, vmf->cow_page);
++	ret |= alloc_set_pte(vmf, vmf->memcg, vmf->cow_page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+@@ -3263,7 +3263,7 @@ static int do_cow_fault(struct vm_fault
+ 		goto uncharge_out;
+ 	return ret;
+ uncharge_out:
+-	mem_cgroup_cancel_charge(vmf->cow_page, memcg, false);
++	mem_cgroup_cancel_charge(vmf->cow_page, vmf->memcg, false);
+ 	put_page(vmf->cow_page);
+ 	return ret;
+ }
+_
