@@ -1,203 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [patch 059/114] mm: unexport __get_user_pages_unlocked()
-Date: Wed, 14 Dec 2016 15:06:55 -0800
-Message-ID: <5851d08f.omvtiJwHr7RJsl1C%akpm@linux-foundation.org>
+Subject: [patch 056/114] ipc/sem: simplify wait-wake loop
+Date: Wed, 14 Dec 2016 15:06:46 -0800
+Message-ID: <5851d086.89rASpadf5pqVeyG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34948 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756929AbcLNXH1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:07:27 -0500
+        with ESMTP id S1754700AbcLNXH0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:07:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, lstoakes@gmail.com, dave.hansen@linux.intel.com, hughd@google.com, jack@suse.cz, mgorman@techsingularity.net, mhocko@suse.com, pbonzini@redhat.com, riel@redhat.com, rkrcmar@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com
 
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: unexport __get_user_pages_unlocked()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc/sem: simplify wait-wake loop
 
-Unexport the low-level __get_user_pages_unlocked() function and replaces
-invocations with calls to more appropriate higher-level functions.
-
-In hva_to_pfn_slow() we are able to replace __get_user_pages_unlocked()
-with get_user_pages_unlocked() since we can now pass gup_flags.
-
-In async_pf_execute() and process_vm_rw_single_vec() we need to pass
-different tsk, mm arguments so get_user_pages_remote() is the sane
-replacement in these cases (having added manual acquisition and release of
-mmap_sem.)
-
-Additionally get_user_pages_remote() reintroduces use of the FOLL_TOUCH
-flag.  However, this flag was originally silently dropped by 1e9877902dc7e
-("mm/gup: Introduce get_user_pages_remote()"), so this appears to have
-been unintentional and reintroducing it is therefore not an issue.
+Instead of using the reverse goto, we can simplify the flow and make it
+more language natural by just doing do-while instead.  One would hope this
+is the standard way (or obviously just with a while bucle) that we do
+wait/wakeup handling in the kernel.  The exact same logic is kept, just
+more indented.
 
 [akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20161027095141.2569-3-lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Radim Krcmar <rkrcmar@redhat.com>
+Link: http://lkml.kernel.org/r/1478708774-28826-2-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h     |    3 ---
- mm/gup.c               |    8 ++++----
- mm/nommu.c             |    8 ++++----
- mm/process_vm_access.c |   12 ++++++++----
- virt/kvm/async_pf.c    |   10 +++++++---
- virt/kvm/kvm_main.c    |    5 ++---
- 6 files changed, 25 insertions(+), 21 deletions(-)
+ ipc/sem.c |  118 +++++++++++++++++++++++++---------------------------
+ 1 file changed, 57 insertions(+), 61 deletions(-)
 
-diff -puN include/linux/mm.h~mm-unexport-__get_user_pages_unlocked include/linux/mm.h
---- a/include/linux/mm.h~mm-unexport-__get_user_pages_unlocked
-+++ a/include/linux/mm.h
-@@ -1280,9 +1280,6 @@ long get_user_pages(unsigned long start,
- 			    struct vm_area_struct **vmas);
- long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
- 		    unsigned int gup_flags, struct page **pages, int *locked);
--long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
--			       unsigned long start, unsigned long nr_pages,
--			       struct page **pages, unsigned int gup_flags);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 		    struct page **pages, unsigned int gup_flags);
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-diff -puN mm/gup.c~mm-unexport-__get_user_pages_unlocked mm/gup.c
---- a/mm/gup.c~mm-unexport-__get_user_pages_unlocked
-+++ a/mm/gup.c
-@@ -865,9 +865,10 @@ EXPORT_SYMBOL(get_user_pages_locked);
-  * caller if required (just like with __get_user_pages). "FOLL_GET"
-  * is set implicitly if "pages" is non-NULL.
-  */
--__always_inline long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
--					       unsigned long start, unsigned long nr_pages,
--					       struct page **pages, unsigned int gup_flags)
-+static __always_inline long __get_user_pages_unlocked(struct task_struct *tsk,
-+		struct mm_struct *mm, unsigned long start,
-+		unsigned long nr_pages, struct page **pages,
-+		unsigned int gup_flags)
- {
- 	long ret;
- 	int locked = 1;
-@@ -879,7 +880,6 @@ __always_inline long __get_user_pages_un
- 		up_read(&mm->mmap_sem);
- 	return ret;
- }
--EXPORT_SYMBOL(__get_user_pages_unlocked);
- 
- /*
-  * get_user_pages_unlocked() is suitable to replace the form:
-diff -puN mm/nommu.c~mm-unexport-__get_user_pages_unlocked mm/nommu.c
---- a/mm/nommu.c~mm-unexport-__get_user_pages_unlocked
-+++ a/mm/nommu.c
-@@ -176,9 +176,10 @@ long get_user_pages_locked(unsigned long
- }
- EXPORT_SYMBOL(get_user_pages_locked);
- 
--long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
--			       unsigned long start, unsigned long nr_pages,
--			       struct page **pages, unsigned int gup_flags)
-+static long __get_user_pages_unlocked(struct task_struct *tsk,
-+			struct mm_struct *mm, unsigned long start,
-+			unsigned long nr_pages, struct page **pages,
-+			unsigned int gup_flags)
- {
- 	long ret;
- 	down_read(&mm->mmap_sem);
-@@ -187,7 +188,6 @@ long __get_user_pages_unlocked(struct ta
- 	up_read(&mm->mmap_sem);
- 	return ret;
- }
--EXPORT_SYMBOL(__get_user_pages_unlocked);
- 
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 			     struct page **pages, unsigned int gup_flags)
-diff -puN mm/process_vm_access.c~mm-unexport-__get_user_pages_unlocked mm/process_vm_access.c
---- a/mm/process_vm_access.c~mm-unexport-__get_user_pages_unlocked
-+++ a/mm/process_vm_access.c
-@@ -88,7 +88,7 @@ static int process_vm_rw_single_vec(unsi
- 	ssize_t rc = 0;
- 	unsigned long max_pages_per_loop = PVM_MAX_KMALLOC_PAGES
- 		/ sizeof(struct pages *);
--	unsigned int flags = FOLL_REMOTE;
-+	unsigned int flags = 0;
- 
- 	/* Work out address and page range required */
- 	if (len == 0)
-@@ -100,15 +100,19 @@ static int process_vm_rw_single_vec(unsi
- 
- 	while (!rc && nr_pages && iov_iter_count(iter)) {
- 		int pages = min(nr_pages, max_pages_per_loop);
-+		int locked = 1;
- 		size_t bytes;
- 
- 		/*
- 		 * Get the pages we're interested in.  We must
--		 * add FOLL_REMOTE because task/mm might not
-+		 * access remotely because task/mm might not
- 		 * current/current->mm
- 		 */
--		pages = __get_user_pages_unlocked(task, mm, pa, pages,
--						  process_pages, flags);
-+		down_read(&mm->mmap_sem);
-+		pages = get_user_pages_remote(task, mm, pa, pages, flags,
-+					      process_pages, NULL, &locked);
-+		if (locked)
-+			up_read(&mm->mmap_sem);
- 		if (pages <= 0)
- 			return -EFAULT;
- 
-diff -puN virt/kvm/async_pf.c~mm-unexport-__get_user_pages_unlocked virt/kvm/async_pf.c
---- a/virt/kvm/async_pf.c~mm-unexport-__get_user_pages_unlocked
-+++ a/virt/kvm/async_pf.c
-@@ -76,16 +76,20 @@ static void async_pf_execute(struct work
- 	struct kvm_vcpu *vcpu = apf->vcpu;
- 	unsigned long addr = apf->addr;
- 	gva_t gva = apf->gva;
-+	int locked = 1;
- 
- 	might_sleep();
- 
- 	/*
- 	 * This work is run asynchromously to the task which owns
- 	 * mm and might be done in another context, so we must
--	 * use FOLL_REMOTE.
-+	 * access remotely.
- 	 */
--	__get_user_pages_unlocked(NULL, mm, addr, 1, NULL,
--			FOLL_WRITE | FOLL_REMOTE);
-+	down_read(&mm->mmap_sem);
-+	get_user_pages_remote(NULL, mm, addr, 1, FOLL_WRITE, NULL, NULL,
-+			&locked);
-+	if (locked)
-+		up_read(&mm->mmap_sem);
- 
- 	kvm_async_page_present_sync(vcpu, apf);
- 
-diff -puN virt/kvm/kvm_main.c~mm-unexport-__get_user_pages_unlocked virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~mm-unexport-__get_user_pages_unlocked
-+++ a/virt/kvm/kvm_main.c
-@@ -1418,13 +1418,12 @@ static int hva_to_pfn_slow(unsigned long
- 		npages = get_user_page_nowait(addr, write_fault, page);
- 		up_read(&current->mm->mmap_sem);
- 	} else {
--		unsigned int flags = FOLL_TOUCH | FOLL_HWPOISON;
-+		unsigned int flags = FOLL_HWPOISON;
- 
- 		if (write_fault)
- 			flags |= FOLL_WRITE;
- 
--		npages = __get_user_pages_unlocked(current, current->mm, addr, 1,
--						   page, flags);
-+		npages = get_user_pages_unlocked(addr, 1, page, flags);
+diff -puN ipc/sem.c~ipc-sem-simplify-wait-wake-loop ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-simplify-wait-wake-loop
++++ a/ipc/sem.c
+@@ -1963,71 +1963,67 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 		sma->complex_count++;
  	}
- 	if (npages != 1)
- 		return npages;
-_
+ 
+-sleep_again:
+-	queue.status = -EINTR;
+-	queue.sleeper = current;
+-
+-	__set_current_state(TASK_INTERRUPTIBLE);
+-	sem_unlock(sma, locknum);
+-	rcu_read_unlock();
+-
+-	if (timeout)
+-		jiffies_left = schedule_timeout(jiffies_left);
+-	else
+-		schedule();
+-
+-	/*
+-	 * fastpath: the semop has completed, either successfully or not, from
+-	 * the syscall pov, is quite irrelevant to us at this point; we're done.
+-	 *
+-	 * We _do_ care, nonetheless, about being awoken by a signal or
+-	 * spuriously.  The queue.status is checked again in the slowpath (aka
+-	 * after taking sem_lock), such that we can detect scenarios where we
+-	 * were awakened externally, during the window between wake_q_add() and
+-	 * wake_up_q().
+-	 */
+-	error = READ_ONCE(queue.status);
+-	if (error != -EINTR) {
++	do {
++		queue.status = -EINTR;
++		queue.sleeper = current;
++
++		__set_current_state(TASK_INTERRUPTIBLE);
++		sem_unlock(sma, locknum);
++		rcu_read_unlock();
++
++		if (timeout)
++			jiffies_left = schedule_timeout(jiffies_left);
++		else
++			schedule();
++
+ 		/*
+-		 * User space could assume that semop() is a memory barrier:
+-		 * Without the mb(), the cpu could speculatively read in user
+-		 * space stale data that was overwritten by the previous owner
+-		 * of the semaphore.
++		 * fastpath: the semop has completed, either successfully or
++		 * not, from the syscall pov, is quite irrelevant to us at this
++		 * point; we're done.
++		 *
++		 * We _do_ care, nonetheless, about being awoken by a signal or
++		 * spuriously.  The queue.status is checked again in the
++		 * slowpath (aka after taking sem_lock), such that we can detect
++		 * scenarios where we were awakened externally, during the
++		 * window between wake_q_add() and wake_up_q().
+ 		 */
+-		smp_mb();
+-		goto out_free;
+-	}
++		error = READ_ONCE(queue.status);
++		if (error != -EINTR) {
++			/*
++			 * User space could assume that semop() is a memory
++			 * barrier: Without the mb(), the cpu could
++			 * speculatively read in userspace stale data that was
++			 * overwritten by the previous owner of the semaphore.
++			 */
++			smp_mb();
++			goto out_free;
++		}
++
++		rcu_read_lock();
++		sma = sem_obtain_lock(ns, semid, sops, nsops, &locknum);
++		error = READ_ONCE(queue.status);
+ 
+-	rcu_read_lock();
+-	sma = sem_obtain_lock(ns, semid, sops, nsops, &locknum);
+-	error = READ_ONCE(queue.status);
+-
+-	/*
+-	 * Array removed? If yes, leave without sem_unlock().
+-	 */
+-	if (IS_ERR(sma)) {
+-		rcu_read_unlock();
+-		goto out_free;
+-	}
++		/*
++		 * Array removed? If yes, leave without sem_unlock().
++		 */
++		if (IS_ERR(sma)) {
++			rcu_read_unlock();
++			goto out_free;
++		}
+ 
+-	/*
+-	 * If queue.status != -EINTR we are woken up by another process.
+-	 * Leave without unlink_queue(), but with sem_unlock().
+-	 */
+-	if (error != -EINTR)
+-		goto out_unlock_free;
+-
+-	/*
+-	 * If an interrupt occurred we have to clean up the queue.
+-	 */
+-	if (timeout && jiffies_left == 0)
+-		error = -EAGAIN;
