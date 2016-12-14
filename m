@@ -1,101 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [patch 023/114] arch/parisc: add option to skip DMA sync as a
- part of map and unmap
-Date: Wed, 14 Dec 2016 15:05:06 -0800
-Message-ID: <5851d022.oFw+tlMBV6Ul7NKh%akpm@linux-foundation.org>
+Subject: [patch 025/114] arch/sh: add option to skip DMA sync as a part of mapping
+Date: Wed, 14 Dec 2016 15:05:12 -0800
+Message-ID: <5851d028.qDpil/Z3XSUu0xu0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34496 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933333AbcLNXF1 (ORCPT
+        with ESMTP id S933454AbcLNXF1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:05:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com, deller@gmx.de, jejb@parisc-linux.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com, dalias@libc.org, ysato@users.sourceforge.jp
 
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/parisc: add option to skip DMA sync as a part of map and unmap
+Subject: arch/sh: add option to skip DMA sync as a part of mapping
 
 This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
 avoid invoking cache line invalidation if the driver will just handle it
 via a sync_for_cpu or sync_for_device call.
 
-Link: http://lkml.kernel.org/r/20161110113529.76501.44762.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113539.76501.6539.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/pci-dma.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ arch/sh/kernel/dma-nommu.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/parisc/kernel/pci-dma.c~arch-parisc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/parisc/kernel/pci-dma.c
---- a/arch/parisc/kernel/pci-dma.c~arch-parisc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
-+++ a/arch/parisc/kernel/pci-dma.c
-@@ -459,7 +459,9 @@ static dma_addr_t pa11_dma_map_page(stru
- 	void *addr = page_address(page) + offset;
- 	BUG_ON(direction == DMA_NONE);
+diff -puN arch/sh/kernel/dma-nommu.c~arch-sh-add-option-to-skip-dma-sync-as-a-part-of-mapping arch/sh/kernel/dma-nommu.c
+--- a/arch/sh/kernel/dma-nommu.c~arch-sh-add-option-to-skip-dma-sync-as-a-part-of-mapping
++++ a/arch/sh/kernel/dma-nommu.c
+@@ -18,7 +18,9 @@ static dma_addr_t nommu_map_page(struct
+ 	dma_addr_t addr = page_to_phys(page) + offset;
  
--	flush_kernel_dcache_range((unsigned long) addr, size);
+ 	WARN_ON(size == 0);
+-	dma_cache_sync(dev, page_address(page) + offset, size, dir);
++
 +	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		flush_kernel_dcache_range((unsigned long) addr, size);
-+
- 	return virt_to_phys(addr);
++		dma_cache_sync(dev, page_address(page) + offset, size, dir);
+ 
+ 	return addr;
  }
+@@ -35,7 +37,8 @@ static int nommu_map_sg(struct device *d
+ 	for_each_sg(sg, s, nents, i) {
+ 		BUG_ON(!sg_page(s));
  
-@@ -469,8 +471,11 @@ static void pa11_dma_unmap_page(struct d
- {
- 	BUG_ON(direction == DMA_NONE);
+-		dma_cache_sync(dev, sg_virt(s), s->length, dir);
++		if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
++			dma_cache_sync(dev, sg_virt(s), s->length, dir);
  
-+	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+		return;
-+
- 	if (direction == DMA_TO_DEVICE)
--	    return;
-+		return;
- 
- 	/*
- 	 * For PCI_DMA_FROMDEVICE this flush is not necessary for the
-@@ -479,7 +484,6 @@ static void pa11_dma_unmap_page(struct d
- 	 */
- 
- 	flush_kernel_dcache_range((unsigned long) phys_to_virt(dma_handle), size);
--	return;
- }
- 
- static int pa11_dma_map_sg(struct device *dev, struct scatterlist *sglist,
-@@ -496,6 +500,10 @@ static int pa11_dma_map_sg(struct device
- 
- 		sg_dma_address(sg) = (dma_addr_t) virt_to_phys(vaddr);
- 		sg_dma_len(sg) = sg->length;
-+
-+		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+			continue;
-+
- 		flush_kernel_dcache_range(vaddr, sg->length);
- 	}
- 	return nents;
-@@ -510,14 +518,16 @@ static void pa11_dma_unmap_sg(struct dev
- 
- 	BUG_ON(direction == DMA_NONE);
- 
-+	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+		return;
-+
- 	if (direction == DMA_TO_DEVICE)
--	    return;
-+		return;
- 
- 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
- 
- 	for_each_sg(sglist, sg, nents, i)
- 		flush_kernel_vmap_range(sg_virt(sg), sg->length);
--	return;
- }
- 
- static void pa11_dma_sync_single_for_cpu(struct device *dev,
+ 		s->dma_address = sg_phys(s);
+ 		s->dma_length = s->length;
 _
