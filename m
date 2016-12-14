@@ -1,88 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [patch 006/114] Revert "kdump, vmcoreinfo: report memory sections virtual addresses"
-Date: Wed, 14 Dec 2016 15:04:16 -0800
-Message-ID: <5851cff0.Uea9ruGlzhTpISjo%akpm@linux-foundation.org>
+Subject: [patch 002/114] kernel/watchdog: use nmi registers snapshot in
+ hardlockup handler
+Date: Wed, 14 Dec 2016 15:04:04 -0800
+Message-ID: <5851cfe4.ENYe5LTfUKjK7L0Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34238 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754624AbcLNXEl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:04:41 -0500
+        with ESMTP id S1753036AbcLNXEk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:04:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bhe@redhat.com, anderson@redhat.com, ats-kumagai@wm.jp.nec.com, d.hatayama@jp.fujitsu.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, panand@redhat.com, surovegin@google.com, takahiro.akashi@linaro.org, tglx@linutronix.de, thgarnie@google.com, vgoyal@redhat.com, xlpang@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, khlebnikov@yandex-team.ru, atomlin@redhat.com, jkosina@suse.cz, stable@vger.kernel.org, uobergfe@redhat.com
 
-From: Baoquan He <bhe@redhat.com>
-Subject: Revert "kdump, vmcoreinfo: report memory sections virtual addresses"
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: kernel/watchdog: use nmi registers snapshot in hardlockup handler
 
-This reverts 0549a3c02efb3507 ("kdump, vmcoreinfo: report memory sections
-virtual addresses").
+NMI handler doesn't call set_irq_regs(), it's set only by normal IRQ. 
+Thus get_irq_regs() returns NULL or stale registers snapshot with IP/SP
+pointing to the code interrupted by IRQ which was interrupted by NMI. 
+NULL isn't a problem: in this case watchdog calls dump_stack() and
+prints full stack trace including NMI.  But if we're stuck in IRQ
+handler then NMI watchlog will print stack trace without IRQ part at
+all.
 
-Commit 0549a3c tells the userspace utility makedumpfile the randomized
-base address of these memmory sections when mm kaslr is enabled.  However
-the following patch "kexec: export the value of phys_base instead of
-symbol address" makes makedumpfile not need these addresses any more.
+This patch uses registers snapshot passed into NMI handler as arguments:
+these registers point exactly to the instruction interrupted by NMI.
 
-Besides we should use VMCOREINFO_NUMBER to export the value of the
-variable so that we can use the existing number_table mechanism of
-Makedumpfile to fetch it.  So revert it now.  If needed we can add it later.
-
-http://lists.infradead.org/pipermail/kexec/2016-October/017540.html
-Link: http://lkml.kernel.org/r/1478568596-30060-1-git-send-email-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Thomas Garnier <thgarnie@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H . Peter Anvin" <hpa@zytor.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Xunlei Pang <xlpang@redhat.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Eugene Surovegin <surovegin@google.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
-Cc: Atsushi Kumagai <ats-kumagai@wm.jp.nec.com>
-Cc: Dave Anderson <anderson@redhat.com>
-Cc: Pratyush Anand <panand@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Fixes: 55537871ef66 ("kernel/watchdog.c: perform all-CPU backtrace in case of hard lockup")
+Link: http://lkml.kernel.org/r/146771764784.86724.6006627197118544150.stgit@buzz
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    3 ---
- include/linux/kexec.h              |    6 ------
- 2 files changed, 9 deletions(-)
+ kernel/watchdog.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -337,9 +337,6 @@ void arch_crash_save_vmcoreinfo(void)
- #endif
- 	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
- 			      kaslr_offset());
--	VMCOREINFO_PAGE_OFFSET(PAGE_OFFSET);
--	VMCOREINFO_VMALLOC_START(VMALLOC_START);
--	VMCOREINFO_VMEMMAP_START(VMEMMAP_START);
- }
+diff -puN kernel/watchdog.c~kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler
++++ a/kernel/watchdog.c
+@@ -344,7 +344,6 @@ static void watchdog_overflow_callback(s
+ 	 */
+ 	if (is_hardlockup()) {
+ 		int this_cpu = smp_processor_id();
+-		struct pt_regs *regs = get_irq_regs();
  
- /* arch-dependent functionality related to kexec file-based syscall */
-diff -puN include/linux/kexec.h~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses include/linux/kexec.h
---- a/include/linux/kexec.h~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses
-+++ a/include/linux/kexec.h
-@@ -259,12 +259,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- 	vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
- #define VMCOREINFO_CONFIG(name) \
- 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
--#define VMCOREINFO_PAGE_OFFSET(value) \
--	vmcoreinfo_append_str("PAGE_OFFSET=%lx\n", (unsigned long)value)
--#define VMCOREINFO_VMALLOC_START(value) \
--	vmcoreinfo_append_str("VMALLOC_START=%lx\n", (unsigned long)value)
--#define VMCOREINFO_VMEMMAP_START(value) \
--	vmcoreinfo_append_str("VMEMMAP_START=%lx\n", (unsigned long)value)
- 
- extern struct kimage *kexec_image;
- extern struct kimage *kexec_crash_image;
+ 		/* only print hardlockups once */
+ 		if (__this_cpu_read(hard_watchdog_warn) == true)
 _
