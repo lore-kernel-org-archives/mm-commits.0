@@ -1,110 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-add-simple-dma.patch removed from -mm tree
-Date: Wed, 14 Dec 2016 11:22:54 -0800
-Message-ID: <58519c0e.ETy2ddE++ad3ITXe%akpm@linux-foundation.org>
+Subject: [merged] m32r-fix-build-warning.patch removed from -mm tree
+Date: Wed, 14 Dec 2016 11:22:56 -0800
+Message-ID: <58519c10.pSaCYpG/g38SsSZA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43828 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753538AbcLNTWz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:22:55 -0500
+        with ESMTP id S1756499AbcLNTW5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:22:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: add simple dma
+     Subject: m32r: fix build warning
 has been removed from the -mm tree.  Its filename was
-     m32r-add-simple-dma.patch
+     m32r-fix-build-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: add simple dma
+Subject: m32r: fix build warning
 
-Some builds of m32r were failing as it tried to build few drivers which
-needed dma but m32r is not having dma support.  Objections were raised
-when it was tried to make those drivers depend on HAS_DMA.  So the next
-best thing is to add dma support to m32r.  dma_noop is a very simple dma
-with 1:1 memory mapping.
+While building m32r defconfig we got warnings:
 
-Link: http://lkml.kernel.org/r/1475949198-31623-1-git-send-email-sudipm.mukherjee@gmail.com
+arch/m32r/platforms/m32700ut/setup.c:249:24: warning:
+  'm32700ut_lcdpld_irq_type' defined but not used [-Wunused-variable]
+
+m32700ut_lcdpld_irq_type is only used when CONFIG_USB is enabled.
+Modify the code to declare the related variables and functions only
+when CONFIG_USB is enabled.
+
+Link: http://lkml.kernel.org/r/1479244406-7507-1-git-send-email-sudipm.mukherjee@gmail.com
 Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig                   |    2 -
- arch/m32r/include/asm/device.h      |    6 ++++
- arch/m32r/include/asm/dma-mapping.h |   32 ++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+), 2 deletions(-)
+ arch/m32r/platforms/m32700ut/setup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/m32r/Kconfig~m32r-add-simple-dma arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-add-simple-dma
-+++ a/arch/m32r/Kconfig
-@@ -34,7 +34,7 @@ config NO_IOPORT_MAP
- 	def_bool y
+diff -puN arch/m32r/platforms/m32700ut/setup.c~m32r-fix-build-warning arch/m32r/platforms/m32700ut/setup.c
+--- a/arch/m32r/platforms/m32700ut/setup.c~m32r-fix-build-warning
++++ a/arch/m32r/platforms/m32700ut/setup.c
+@@ -201,6 +201,7 @@ static struct irq_chip m32700ut_lanpld_i
+ #define lcdpldirq2port(x)	(unsigned long)((int)M32700UT_LCD_ICUCR1 + \
+ 				 (((x) - 1) * sizeof(unsigned short)))
  
- config NO_DMA
--	def_bool y
-+	def_bool n
++#ifdef CONFIG_USB
+ static pld_icu_data_t lcdpld_icu_data[M32700UT_NUM_LCD_PLD_IRQ];
  
- config HZ
- 	int
-diff -puN arch/m32r/include/asm/device.h~m32r-add-simple-dma arch/m32r/include/asm/device.h
---- a/arch/m32r/include/asm/device.h~m32r-add-simple-dma
-+++ a/arch/m32r/include/asm/device.h
-@@ -3,5 +3,9 @@
-  *
-  * This file is released under the GPLv2
-  */
--#include <asm-generic/device.h>
-+struct dev_archdata {
-+	struct dma_map_ops *dma_ops;
-+};
+ static void disable_m32700ut_lcdpld_irq(unsigned int irq)
+@@ -253,6 +254,7 @@ static struct irq_chip m32700ut_lcdpld_i
+ 	.irq_mask	= mask_m32700ut_lcdpld,
+ 	.irq_unmask	= unmask_m32700ut_lcdpld,
+ };
++#endif
  
-+struct pdev_archdata {
-+};
-diff -puN /dev/null arch/m32r/include/asm/dma-mapping.h
---- /dev/null
-+++ a/arch/m32r/include/asm/dma-mapping.h
-@@ -0,0 +1,32 @@
-+#ifndef _ASM_M32R_DMA_MAPPING_H
-+#define _ASM_M32R_DMA_MAPPING_H
-+
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/mm.h>
-+#include <linux/scatterlist.h>
-+#include <linux/dma-debug.h>
-+#include <linux/io.h>
-+
-+#define DMA_ERROR_CODE (~(dma_addr_t)0x0)
-+
-+static inline struct dma_map_ops *get_dma_ops(struct device *dev)
-+{
-+	if (dev && dev->archdata.dma_ops)
-+		return dev->archdata.dma_ops;
-+	return &dma_noop_ops;
-+}
-+
-+static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-+				  enum dma_data_direction direction)
-+{
-+}
-+
-+static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
-+{
-+	if (!dev->dma_mask)
-+		return false;
-+	return addr + size - 1 <= *dev->dma_mask;
-+}
-+
-+#endif /* _ASM_M32R_DMA_MAPPING_H */
+ void __init init_IRQ(void)
+ {
 _
 
 Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
