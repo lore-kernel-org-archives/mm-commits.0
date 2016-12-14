@@ -1,81 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-tagssh-handle-omap-platforms-properly.patch
- removed from -mm tree
-Date: Wed, 14 Dec 2016 11:22:52 -0800
-Message-ID: <58519c0c.iF1+5b+zG6gtF+r4%akpm@linux-foundation.org>
+Subject: [merged] m32r-add-simple-dma.patch removed from -mm tree
+Date: Wed, 14 Dec 2016 11:22:54 -0800
+Message-ID: <58519c0e.ETy2ddE++ad3ITXe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43822 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753538AbcLNTWx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:22:53 -0500
+        with ESMTP id S1753538AbcLNTWz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 14:22:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: semen.protsenko@linaro.org, mmarek@suse.com, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/tags.sh: handle OMAP platforms properly
+     Subject: m32r: add simple dma
 has been removed from the -mm tree.  Its filename was
-     scripts-tagssh-handle-omap-platforms-properly.patch
+     m32r-add-simple-dma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sam Protsenko <semen.protsenko@linaro.org>
-Subject: scripts/tags.sh: handle OMAP platforms properly
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: add simple dma
 
-When SUBARCH is "omap1" or "omap2", plat-omap/ directory must be
-indexed. Handle this special case properly.
+Some builds of m32r were failing as it tried to build few drivers which
+needed dma but m32r is not having dma support.  Objections were raised
+when it was tried to make those drivers depend on HAS_DMA.  So the next
+best thing is to add dma support to m32r.  dma_noop is a very simple dma
+with 1:1 memory mapping.
 
-While at it, check if mach- directory exists at all.
-
-Link: http://lkml.kernel.org/r/20161202122148.15001-1-joe.skb7@gmail.com
-Signed-off-by: Sam Protsenko <semen.protsenko@linaro.org>
-Cc: Michal Marek <mmarek@suse.com>
+Link: http://lkml.kernel.org/r/1475949198-31623-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ arch/m32r/Kconfig                   |    2 -
+ arch/m32r/include/asm/device.h      |    6 ++++
+ arch/m32r/include/asm/dma-mapping.h |   32 ++++++++++++++++++++++++++
+ 3 files changed, 38 insertions(+), 2 deletions(-)
 
-diff -puN scripts/tags.sh~scripts-tagssh-handle-omap-platforms-properly scripts/tags.sh
---- a/scripts/tags.sh~scripts-tagssh-handle-omap-platforms-properly
-+++ a/scripts/tags.sh
-@@ -304,11 +304,26 @@ if [ "${ARCH}" = "um" ]; then
- elif [ "${SRCARCH}" = "arm" -a "${SUBARCH}" != "" ]; then
- 	subarchdir=$(find ${tree}arch/$SRCARCH/ -name "mach-*" -type d -o \
- 							-name "plat-*" -type d);
-+	mach_suffix=$SUBARCH
-+	plat_suffix=$SUBARCH
+diff -puN arch/m32r/Kconfig~m32r-add-simple-dma arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-add-simple-dma
++++ a/arch/m32r/Kconfig
+@@ -34,7 +34,7 @@ config NO_IOPORT_MAP
+ 	def_bool y
+ 
+ config NO_DMA
+-	def_bool y
++	def_bool n
+ 
+ config HZ
+ 	int
+diff -puN arch/m32r/include/asm/device.h~m32r-add-simple-dma arch/m32r/include/asm/device.h
+--- a/arch/m32r/include/asm/device.h~m32r-add-simple-dma
++++ a/arch/m32r/include/asm/device.h
+@@ -3,5 +3,9 @@
+  *
+  * This file is released under the GPLv2
+  */
+-#include <asm-generic/device.h>
++struct dev_archdata {
++	struct dma_map_ops *dma_ops;
++};
+ 
++struct pdev_archdata {
++};
+diff -puN /dev/null arch/m32r/include/asm/dma-mapping.h
+--- /dev/null
++++ a/arch/m32r/include/asm/dma-mapping.h
+@@ -0,0 +1,32 @@
++#ifndef _ASM_M32R_DMA_MAPPING_H
++#define _ASM_M32R_DMA_MAPPING_H
 +
-+	# Special cases when $plat_suffix != $mach_suffix
-+	case $mach_suffix in
-+		"omap1" | "omap2")
-+			plat_suffix="omap"
-+			;;
-+	esac
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <linux/mm.h>
++#include <linux/scatterlist.h>
++#include <linux/dma-debug.h>
++#include <linux/io.h>
 +
-+	if [ ! -d ${tree}arch/$SRCARCH/mach-$mach_suffix ]; then
-+		echo "Warning: arch/arm/mach-$mach_suffix/ not found." >&2
-+		echo "         Fix your \$SUBARCH appropriately" >&2
-+	fi
++#define DMA_ERROR_CODE (~(dma_addr_t)0x0)
 +
- 	for i in $subarchdir; do
- 		case "$i" in
--			*"mach-"${SUBARCH})
-+			*"mach-"${mach_suffix})
- 				;;
--			*"plat-"${SUBARCH})
-+			*"plat-"${plat_suffix})
- 				;;
- 			*)
- 				subarchprune="$subarchprune \
++static inline struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	if (dev && dev->archdata.dma_ops)
++		return dev->archdata.dma_ops;
++	return &dma_noop_ops;
++}
++
++static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
++				  enum dma_data_direction direction)
++{
++}
++
++static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
++{
++	if (!dev->dma_mask)
++		return false;
++	return addr + size - 1 <= *dev->dma_mask;
++}
++
++#endif /* _ASM_M32R_DMA_MAPPING_H */
 _
 
-Patches currently in -mm which might be from semen.protsenko@linaro.org are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
 
