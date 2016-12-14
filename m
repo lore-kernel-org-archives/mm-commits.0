@@ -1,72 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [patch 043/114] ipc: msg, make msgrcv work with LONG_MIN
-Date: Wed, 14 Dec 2016 15:06:07 -0800
-Message-ID: <5851d05f.0UqRXDIZvLaG4scD%akpm@linux-foundation.org>
+Subject: [patch 039/114] kdb: properly synchronize vkdb_printf() calls
+ with other CPUs
+Date: Wed, 14 Dec 2016 15:05:55 -0800
+Message-ID: <5851d053.VXxyeiUssOTgA7rv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34702 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754673AbcLNXGY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:06:24 -0500
+        with ESMTP id S1753350AbcLNXGX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:06:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jslaby@suse.cz, dave@stgolabs.net, manfred@colorfullife.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, daniel.thompson@linaro.org, jason.wessel@windriver.com, peterz@infradead.org, sergey.senozhatsky@gmail.com
 
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: ipc: msg, make msgrcv work with LONG_MIN
+From: Petr Mladek <pmladek@suse.com>
+Subject: kdb: properly synchronize vkdb_printf() calls with other CPUs
 
-When LONG_MIN is passed to msgrcv, one would expect to recieve any
-message.  But convert_mode does *msgtyp = -*msgtyp and -LONG_MIN is
-undefined.  In particular, with my gcc -LONG_MIN produces -LONG_MIN again.
+kdb_printf_lock does not prevent other CPUs from entering the critical
+section because it is ignored when KDB_STATE_PRINTF_LOCK is set.
 
-So handle this case properly by assigning LONG_MAX to *msgtyp if LONG_MIN
-was specified as msgtyp to msgrcv.
+The problematic situation might look like:
 
-This code:
-  long msg[] = { 100, 200 };
-  int m = msgget(IPC_PRIVATE, IPC_CREAT | 0644);
-  msgsnd(m, &msg, sizeof(msg), 0);
-  msgrcv(m, &msg, sizeof(msg), LONG_MIN, 0);
-produces currently nothing:
-  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 65538
-  msgsnd(65538, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
-  msgrcv(65538, ...
+CPU0					CPU1
 
-Except a UBSAN warning:
-UBSAN: Undefined behaviour in ipc/msg.c:745:13
-negation of -9223372036854775808 cannot be represented in type 'long int':
+vkdb_printf()
+  if (!KDB_STATE(PRINTF_LOCK))
+    KDB_STATE_SET(PRINTF_LOCK);
+    spin_lock_irqsave(&kdb_printf_lock, flags);
 
-With the patch, I see what I expect:
-  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 0
-  msgsnd(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
-  msgrcv(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, -9223372036854775808, 0) = 16
+					vkdb_printf()
+					  if (!KDB_STATE(PRINTF_LOCK))
 
-Link: http://lkml.kernel.org/r/20161024082633.10148-1-jslaby@suse.cz
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+BANG: The PRINTF_LOCK state is set and CPU1 is entering the critical
+section without spinning on the lock.
+
+The problem is that the code tries to implement locking using two state
+variables that are not handled atomically.  Well, we need a custom locking
+because we want to allow reentering the critical section on the very same
+CPU.
+
+Let's use solution from Petr Zijlstra that was proposed for a similar
+scenario, see
+https://lkml.kernel.org/r/20161018171513.734367391@infradead.org
+
+This patch uses the same trick with cmpxchg().  The only difference is
+that we want to handle only recursion from the same context and therefore
+we disable interrupts.
+
+In addition, KDB_STATE_PRINTF_LOCK is removed. In fact, we are not
+able to set it a non-racy way.
+
+Link: http://lkml.kernel.org/r/1480412276-16690-3-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/debug/kdb/kdb_io.c      |   30 +++++++++++++-----------------
+ kernel/debug/kdb/kdb_private.h |    1 -
+ 2 files changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min ipc/msg.c
---- a/ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min
-+++ a/ipc/msg.c
-@@ -763,7 +763,10 @@ static inline int convert_mode(long *msg
- 	if (*msgtyp == 0)
- 		return SEARCH_ANY;
- 	if (*msgtyp < 0) {
--		*msgtyp = -*msgtyp;
-+		if (*msgtyp == LONG_MIN) /* -LONG_MIN is undefined */
-+			*msgtyp = LONG_MAX;
-+		else
-+			*msgtyp = -*msgtyp;
- 		return SEARCH_LESSEQUAL;
+diff -puN kernel/debug/kdb/kdb_io.c~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus kernel/debug/kdb/kdb_io.c
+--- a/kernel/debug/kdb/kdb_io.c~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus
++++ a/kernel/debug/kdb/kdb_io.c
+@@ -555,16 +555,16 @@ int vkdb_printf(enum kdb_msgsrc src, con
+ 	int colcount;
+ 	int logging, saved_loglevel = 0;
+ 	int saved_trap_printk;
+-	int got_printf_lock = 0;
+ 	int retlen = 0;
+ 	int fnd, len;
++	int this_cpu, old_cpu;
++	static int kdb_printf_cpu = -1;
+ 	char *cp, *cp2, *cphold = NULL, replaced_byte = ' ';
+ 	char *moreprompt = "more> ";
+ 	struct console *c = console_drivers;
+-	static DEFINE_SPINLOCK(kdb_printf_lock);
+ 	unsigned long uninitialized_var(flags);
+ 
+-	preempt_disable();
++	local_irq_save(flags);
+ 	saved_trap_printk = kdb_trap_printk;
+ 	kdb_trap_printk = 0;
+ 
+@@ -572,12 +572,13 @@ int vkdb_printf(enum kdb_msgsrc src, con
+ 	 * But if any cpu goes recursive in kdb, just print the output,
+ 	 * even if it is interleaved with any other text.
+ 	 */
+-	if (!KDB_STATE(PRINTF_LOCK)) {
+-		KDB_STATE_SET(PRINTF_LOCK);
+-		spin_lock_irqsave(&kdb_printf_lock, flags);
+-		got_printf_lock = 1;
+-	} else {
+-		__acquire(kdb_printf_lock);
++	this_cpu = smp_processor_id();
++	for (;;) {
++		old_cpu = cmpxchg(&kdb_printf_cpu, -1, this_cpu);
++		if (old_cpu == -1 || old_cpu == this_cpu)
++			break;
++
++		cpu_relax();
  	}
- 	if (msgflg & MSG_EXCEPT)
+ 
+ 	diag = kdbgetintenv("LINES", &linecount);
+@@ -846,15 +847,10 @@ kdb_print_out:
+ 	suspend_grep = 0; /* end of what may have been a recursive call */
+ 	if (logging)
+ 		console_loglevel = saved_loglevel;
+-	if (KDB_STATE(PRINTF_LOCK) && got_printf_lock) {
+-		got_printf_lock = 0;
+-		spin_unlock_irqrestore(&kdb_printf_lock, flags);
+-		KDB_STATE_CLEAR(PRINTF_LOCK);
+-	} else {
+-		__release(kdb_printf_lock);
+-	}
++	/* kdb_printf_cpu locked the code above. */
++	smp_store_release(&kdb_printf_cpu, old_cpu);
+ 	kdb_trap_printk = saved_trap_printk;
+-	preempt_enable();
++	local_irq_restore(flags);
+ 	return retlen;
+ }
+ 
+diff -puN kernel/debug/kdb/kdb_private.h~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus kernel/debug/kdb/kdb_private.h
+--- a/kernel/debug/kdb/kdb_private.h~kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus
++++ a/kernel/debug/kdb/kdb_private.h
+@@ -132,7 +132,6 @@ extern int kdb_state;
+ #define KDB_STATE_PAGER		0x00000400	/* pager is available */
+ #define KDB_STATE_GO_SWITCH	0x00000800	/* go is switching
+ 						 * back to initial cpu */
+-#define KDB_STATE_PRINTF_LOCK	0x00001000	/* Holds kdb_printf lock */
+ #define KDB_STATE_WAIT_IPI	0x00002000	/* Waiting for kdb_ipi() NMI */
+ #define KDB_STATE_RECURSE	0x00004000	/* Recursive entry to kdb */
+ #define KDB_STATE_IP_ADJUSTED	0x00008000	/* Restart IP has been
 _
