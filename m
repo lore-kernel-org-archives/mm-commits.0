@@ -1,115 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-frv-add-option-to-skip-sync-on-dma-map.patch
- removed from -mm tree
-Date: Thu, 15 Dec 2016 10:45:30 -0800
-Message-ID: <5852e4ca.Tv2JNb1oiFknV2EW%akpm@linux-foundation.org>
+Subject: [merged]
+ arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch removed from -mm tree
+Date: Thu, 15 Dec 2016 10:45:48 -0800
+Message-ID: <5852e4dc.ai829MWwRsniPvAu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48748 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754157AbcLOSpb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:45:31 -0500
+        with ESMTP id S1754262AbcLOSqu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/frv: add option to skip sync on DMA map
+     Subject: arch/powerpc: add option to skip DMA sync as a part of mapping
 has been removed from the -mm tree.  Its filename was
-     arch-frv-add-option-to-skip-sync-on-dma-map.patch
+     arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/frv: add option to skip sync on DMA map
+Subject: arch/powerpc: add option to skip DMA sync as a part of mapping
 
-The use of DMA_ATTR_SKIP_CPU_SYNC was not consistent across all of the DMA
-APIs in the arch/arm folder.  This change is meant to correct that so that
-we get consistent behavior.
+This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
+avoid invoking cache line invalidation if the driver will just handle it
+via a sync_for_cpu or sync_for_device call.
 
-Link: http://lkml.kernel.org/r/20161110113447.76501.93160.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113534.76501.86492.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mb93090-mb00/pci-dma-nommu.c |   14 ++++++++++----
- arch/frv/mb93090-mb00/pci-dma.c       |    9 +++++++--
- 2 files changed, 17 insertions(+), 6 deletions(-)
+ arch/powerpc/kernel/dma.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/frv/mb93090-mb00/pci-dma-nommu.c~arch-frv-add-option-to-skip-sync-on-dma-map arch/frv/mb93090-mb00/pci-dma-nommu.c
---- a/arch/frv/mb93090-mb00/pci-dma-nommu.c~arch-frv-add-option-to-skip-sync-on-dma-map
-+++ a/arch/frv/mb93090-mb00/pci-dma-nommu.c
-@@ -109,16 +109,19 @@ static int frv_dma_map_sg(struct device
- 		int nents, enum dma_data_direction direction,
- 		unsigned long attrs)
- {
--	int i;
- 	struct scatterlist *sg;
-+	int i;
+diff -puN arch/powerpc/kernel/dma.c~arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping arch/powerpc/kernel/dma.c
+--- a/arch/powerpc/kernel/dma.c~arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping
++++ a/arch/powerpc/kernel/dma.c
+@@ -203,6 +203,10 @@ static int dma_direct_map_sg(struct devi
+ 	for_each_sg(sgl, sg, nents, i) {
+ 		sg->dma_address = sg_phys(sg) + get_dma_offset(dev);
+ 		sg->dma_length = sg->length;
 +
-+	BUG_ON(direction == DMA_NONE);
++		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
++			continue;
 +
-+	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+		return nents;
- 
- 	for_each_sg(sglist, sg, nents, i) {
- 		frv_cache_wback_inv(sg_dma_address(sg),
- 				    sg_dma_address(sg) + sg_dma_len(sg));
+ 		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
  	}
  
--	BUG_ON(direction == DMA_NONE);
--
- 	return nents;
- }
- 
-@@ -127,7 +130,10 @@ static dma_addr_t frv_dma_map_page(struc
- 		enum dma_data_direction direction, unsigned long attrs)
+@@ -235,7 +239,10 @@ static inline dma_addr_t dma_direct_map_
+ 					     unsigned long attrs)
  {
- 	BUG_ON(direction == DMA_NONE);
--	flush_dcache_page(page);
+ 	BUG_ON(dir == DMA_NONE);
+-	__dma_sync_page(page, offset, size, dir);
 +
 +	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		flush_dcache_page(page);
++		__dma_sync_page(page, offset, size, dir);
 +
- 	return (dma_addr_t) page_to_phys(page) + offset;
- }
- 
-diff -puN arch/frv/mb93090-mb00/pci-dma.c~arch-frv-add-option-to-skip-sync-on-dma-map arch/frv/mb93090-mb00/pci-dma.c
---- a/arch/frv/mb93090-mb00/pci-dma.c~arch-frv-add-option-to-skip-sync-on-dma-map
-+++ a/arch/frv/mb93090-mb00/pci-dma.c
-@@ -40,13 +40,16 @@ static int frv_dma_map_sg(struct device
- 		int nents, enum dma_data_direction direction,
- 		unsigned long attrs)
- {
-+	struct scatterlist *sg;
- 	unsigned long dampr2;
- 	void *vaddr;
- 	int i;
--	struct scatterlist *sg;
- 
- 	BUG_ON(direction == DMA_NONE);
- 
-+	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+		return nents;
-+
- 	dampr2 = __get_DAMPR(2);
- 
- 	for_each_sg(sglist, sg, nents, i) {
-@@ -70,7 +73,9 @@ static dma_addr_t frv_dma_map_page(struc
- 		unsigned long offset, size_t size,
- 		enum dma_data_direction direction, unsigned long attrs)
- {
--	flush_dcache_page(page);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		flush_dcache_page(page);
-+
- 	return (dma_addr_t) page_to_phys(page) + offset;
+ 	return page_to_phys(page) + offset + get_dma_offset(dev);
  }
  
 _
