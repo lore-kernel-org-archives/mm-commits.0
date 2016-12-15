@@ -1,88 +1,117 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile.patch removed from -mm tree
-Date: Thu, 15 Dec 2016 10:46:30 -0800
-Message-ID: <5852e506.KBhrAKtt8FVWfjgM%akpm@linux-foundation.org>
+ mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch removed from
+ -mm tree
+Date: Thu, 15 Dec 2016 10:47:46 -0800
+Message-ID: <5852e552.Dh7JM0doeSUJQiQg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752800AbcLOSqv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:51 -0500
+        with ESMTP id S1752800AbcLOSrr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: klondike@klondike.es, pebolle@tiscali.nl, ppandit@redhat.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: select builtin initram compression algorithm on KConfig instead of Makefile
+     Subject: mm: move part of wp_page_reuse() into the single call site
 has been removed from the -mm tree.  Its filename was
-     initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile.patch
+     mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Francisco Blas Izquierdo Riera (klondike) <klondike@klondike.es>
-Subject: initramfs: select builtin initram compression algorithm on KConfig instead of Makefile
+From: Jan Kara <jack@suse.cz>
+Subject: mm: move part of wp_page_reuse() into the single call site
 
-Move the current builtin initram compression algorithm selection from the
-Makefile into the INITRAMFS_COMPRESSION variable.  This makes deciding
-algorithm precedence easier and would allow for overrides if new
-algorithms want to be tested.
+wp_page_reuse() handles write shared faults which is needed only in
+wp_page_shared().  Move the handling only into that location to make
+wp_page_reuse() simpler and avoid a strange situation when we sometimes
+pass in locked page, sometimes unlocked etc.
 
-Link: http://lkml.kernel.org/r/57EAD769.1090401@klondike.es
-Signed-off-by: Francisco Blas Izquierdo Riera (klondike) <klondike@klondike.es>
-Cc: P J P <ppandit@redhat.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>
+Link: http://lkml.kernel.org/r/1479460644-25076-15-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig  |   10 ++++++++++
- usr/Makefile |   20 +-------------------
- 2 files changed, 11 insertions(+), 19 deletions(-)
+ mm/memory.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN usr/Kconfig~initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile usr/Kconfig
---- a/usr/Kconfig~initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile
-+++ a/usr/Kconfig
-@@ -98,3 +98,13 @@ config RD_LZ4
- 	help
- 	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
- 	  If unsure, say N.
-+
-+config INITRAMFS_COMPRESSION
-+	string
-+	default ".gz"   if RD_GZIP
-+	default ".lz4"  if RD_LZ4
-+	default ".lzo"  if RD_LZO
-+	default ".xz"   if RD_XZ
-+	default ".lzma" if RD_LZMA
-+	default ".bz2"  if RD_BZIP2
-+	default ""
-diff -puN usr/Makefile~initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile usr/Makefile
---- a/usr/Makefile~initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile
-+++ a/usr/Makefile
-@@ -5,25 +5,7 @@
- klibcdirs:;
- PHONY += klibcdirs
+diff -puN mm/memory.c~mm-move-part-of-wp_page_reuse-into-the-single-call-site mm/memory.c
+--- a/mm/memory.c~mm-move-part-of-wp_page_reuse-into-the-single-call-site
++++ a/mm/memory.c
+@@ -2102,8 +2102,7 @@ static void fault_dirty_shared_page(stru
+  * case, all we need to do here is to mark the page as writable and update
+  * any related book-keeping.
+  */
+-static inline int wp_page_reuse(struct vm_fault *vmf,
+-				int page_mkwrite, int dirty_shared)
++static inline void wp_page_reuse(struct vm_fault *vmf)
+ 	__releases(vmf->ptl)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -2123,16 +2122,6 @@ static inline int wp_page_reuse(struct v
+ 	if (ptep_set_access_flags(vma, vmf->address, vmf->pte, entry, 1))
+ 		update_mmu_cache(vma, vmf->address, vmf->pte);
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+-
+-	if (dirty_shared) {
+-		if (!page_mkwrite)
+-			lock_page(page);
+-
+-		fault_dirty_shared_page(vma, page);
+-		put_page(page);
+-	}
+-
+-	return VM_FAULT_WRITE;
+ }
  
--
--# Bzip2
--suffix_$(CONFIG_RD_BZIP2)  = .bz2
--
--# Lzma
--suffix_$(CONFIG_RD_LZMA)   = .lzma
--
--# XZ
--suffix_$(CONFIG_RD_XZ)     = .xz
--
--# Lzo
--suffix_$(CONFIG_RD_LZO)    = .lzo
--
--# Lz4
--suffix_$(CONFIG_RD_LZ4)    = .lz4
--
--# Gzip
--suffix_$(CONFIG_RD_GZIP)   = .gz
+ /*
+@@ -2307,7 +2296,8 @@ static int wp_pfn_shared(struct vm_fault
+ 			return 0;
+ 		}
+ 	}
+-	return wp_page_reuse(vmf, 0, 0);
++	wp_page_reuse(vmf);
++	return VM_FAULT_WRITE;
+ }
+ 
+ static int wp_page_shared(struct vm_fault *vmf)
+@@ -2345,7 +2335,13 @@ static int wp_page_shared(struct vm_faul
+ 		page_mkwrite = 1;
+ 	}
+ 
+-	return wp_page_reuse(vmf, page_mkwrite, 1);
++	wp_page_reuse(vmf);
++	if (!page_mkwrite)
++		lock_page(vmf->page);
++	fault_dirty_shared_page(vma, vmf->page);
++	put_page(vmf->page);
++
++	return VM_FAULT_WRITE;
+ }
+ 
+ /*
+@@ -2420,7 +2416,8 @@ static int do_wp_page(struct vm_fault *v
+ 				page_move_anon_rmap(vmf->page, vma);
+ 			}
+ 			unlock_page(vmf->page);
+-			return wp_page_reuse(vmf, 0, 0);
++			wp_page_reuse(vmf);
++			return VM_FAULT_WRITE;
+ 		}
+ 		unlock_page(vmf->page);
+ 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+
