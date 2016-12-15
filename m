@@ -1,143 +1,186 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-allow-full-handling-of-cow-faults-in-fault-handlers.patch removed from
+ igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch removed from
  -mm tree
-Date: Thu, 15 Dec 2016 10:47:33 -0800
-Message-ID: <5852e545.N8v8OspjVS0dq+pe%akpm@linux-foundation.org>
+Date: Thu, 15 Dec 2016 10:46:04 -0800
+Message-ID: <5852e4ec.xuebebF424WViWDC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48766 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756404AbcLOSre (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:34 -0500
+        with ESMTP id S1754517AbcLOSqv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, geert@linux-m68k.org, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jeffrey.t.kirsher@intel.com, jejb@parisc-linux.org, jonas@southpole.se, keguang.zhang@gmail.com, lftan@altera.com, linux@armlinux.org.uk, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, ralf@linux-mips.org, realmz6@gmail.com, rkuo@codeaurora.org, tklauser@distanz.ch, vgupta@synopsys.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: allow full handling of COW faults in ->fault handlers
+     Subject: igb: update driver to make use of DMA_ATTR_SKIP_CPU_SYNC
 has been removed from the -mm tree.  Its filename was
-     mm-allow-full-handling-of-cow-faults-in-fault-handlers.patch
+     igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: allow full handling of COW faults in ->fault handlers
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: igb: update driver to make use of DMA_ATTR_SKIP_CPU_SYNC
 
-Patch series "dax: Clear dirty bits after flushing caches", v5.
+The ARM architecture provides a mechanism for deferring cache line
+invalidation in the case of map/unmap.  This patch makes use of this
+mechanism to avoid unnecessary synchronization.
 
-Patchset to clear dirty bits from radix tree of DAX inodes when caches for
-corresponding pfns have been flushed.  In principle, these patches enable
-handlers to easily update PTEs and do other work necessary to finish the
-fault without duplicating the functionality present in the generic code. 
-I'd like to thank Kirill and Ross for reviews of the series!
+A secondary effect of this change is that the portion of the page that has
+been synchronized for use by the CPU should be writable and could be
+passed up the stack (at least on ARM).
 
+The last bit that occurred to me is that on architectures where the
+sync_for_cpu call invalidates cache lines we were prefetching and then
+invalidating the first 128 bytes of the packet.  To avoid that I have
+moved the sync up to before we perform the prefetch and allocate the
+skbuff so that we can actually make use of it.
 
-
-This patch (of 20):
-
-To allow full handling of COW faults add memcg field to struct vm_fault
-and a return value of ->fault() handler meaning that COW fault is fully
-handled and memcg charge must not be canceled.  This will allow us to
-remove knowledge about special DAX locking from the generic fault code.
-
-Link: http://lkml.kernel.org/r/1479460644-25076-9-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: http://lkml.kernel.org/r/20161110113611.76501.98897.stgit@ahduyck-blue-test.jf.intel.com
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Keguang Zhang <keguang.zhang@gmail.com>
+Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Tobias Klauser <tklauser@distanz.ch>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 +++-
- mm/memory.c        |   14 +++++++-------
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/intel/igb/igb_main.c |   53 ++++++++++++--------
+ 1 file changed, 33 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/mm.h~mm-allow-full-handling-of-cow-faults-in-fault-handlers include/linux/mm.h
---- a/include/linux/mm.h~mm-allow-full-handling-of-cow-faults-in-fault-handlers
-+++ a/include/linux/mm.h
-@@ -301,7 +301,8 @@ struct vm_fault {
- 					 * the 'address' */
- 	pte_t orig_pte;			/* Value of PTE at the time of fault */
+diff -puN drivers/net/ethernet/intel/igb/igb_main.c~igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync drivers/net/ethernet/intel/igb/igb_main.c
+--- a/drivers/net/ethernet/intel/igb/igb_main.c~igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync
++++ a/drivers/net/ethernet/intel/igb/igb_main.c
+@@ -3947,10 +3947,21 @@ static void igb_clean_rx_ring(struct igb
+ 		if (!buffer_info->page)
+ 			continue;
  
--	struct page *cow_page;		/* Handler may choose to COW */
-+	struct page *cow_page;		/* Page handler may use for COW fault */
-+	struct mem_cgroup *memcg;	/* Cgroup cow_page belongs to */
- 	struct page *page;		/* ->fault handlers should return a
- 					 * page here, unless VM_FAULT_NOPAGE
- 					 * is set (which is also implied by
-@@ -1103,6 +1104,7 @@ static inline void clear_page_pfmemalloc
- #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
- #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
- #define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
-+#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
+-		dma_unmap_page(rx_ring->dev,
+-			       buffer_info->dma,
+-			       PAGE_SIZE,
+-			       DMA_FROM_DEVICE);
++		/* Invalidate cache lines that may have been written to by
++		 * device so that we avoid corrupting memory.
++		 */
++		dma_sync_single_range_for_cpu(rx_ring->dev,
++					      buffer_info->dma,
++					      buffer_info->page_offset,
++					      IGB_RX_BUFSZ,
++					      DMA_FROM_DEVICE);
++
++		/* free resources associated with mapping */
++		dma_unmap_page_attrs(rx_ring->dev,
++				     buffer_info->dma,
++				     PAGE_SIZE,
++				     DMA_FROM_DEVICE,
++				     DMA_ATTR_SKIP_CPU_SYNC);
+ 		__free_page(buffer_info->page);
  
- #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
+ 		buffer_info->page = NULL;
+@@ -6812,12 +6823,6 @@ static void igb_reuse_rx_page(struct igb
  
-diff -puN mm/memory.c~mm-allow-full-handling-of-cow-faults-in-fault-handlers mm/memory.c
---- a/mm/memory.c~mm-allow-full-handling-of-cow-faults-in-fault-handlers
-+++ a/mm/memory.c
-@@ -2844,9 +2844,8 @@ static int __do_fault(struct vm_fault *v
- 	int ret;
- 
- 	ret = vma->vm_ops->fault(vma, vmf);
--	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
--		return ret;
--	if (ret & VM_FAULT_DAX_LOCKED)
-+	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
-+			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
- 		return ret;
- 
- 	if (unlikely(PageHWPoison(vmf->page))) {
-@@ -3226,7 +3225,6 @@ static int do_read_fault(struct vm_fault
- static int do_cow_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct mem_cgroup *memcg;
- 	int ret;
- 
- 	if (unlikely(anon_vma_prepare(vma)))
-@@ -3237,7 +3235,7 @@ static int do_cow_fault(struct vm_fault
- 		return VM_FAULT_OOM;
- 
- 	if (mem_cgroup_try_charge(vmf->cow_page, vma->vm_mm, GFP_KERNEL,
--				&memcg, false)) {
-+				&vmf->memcg, false)) {
- 		put_page(vmf->cow_page);
- 		return VM_FAULT_OOM;
- 	}
-@@ -3245,12 +3243,14 @@ static int do_cow_fault(struct vm_fault
- 	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
-+	if (ret & VM_FAULT_DONE_COW)
-+		return ret;
- 
- 	if (!(ret & VM_FAULT_DAX_LOCKED))
- 		copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
- 	__SetPageUptodate(vmf->cow_page);
- 
--	ret |= alloc_set_pte(vmf, memcg, vmf->cow_page);
-+	ret |= alloc_set_pte(vmf, vmf->memcg, vmf->cow_page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
-@@ -3263,7 +3263,7 @@ static int do_cow_fault(struct vm_fault
- 		goto uncharge_out;
- 	return ret;
- uncharge_out:
--	mem_cgroup_cancel_charge(vmf->cow_page, memcg, false);
-+	mem_cgroup_cancel_charge(vmf->cow_page, vmf->memcg, false);
- 	put_page(vmf->cow_page);
- 	return ret;
+ 	/* transfer page from old buffer to new buffer */
+ 	*new_buff = *old_buff;
+-
+-	/* sync the buffer for use by the device */
+-	dma_sync_single_range_for_device(rx_ring->dev, old_buff->dma,
+-					 old_buff->page_offset,
+-					 IGB_RX_BUFSZ,
+-					 DMA_FROM_DEVICE);
  }
+ 
+ static inline bool igb_page_is_reserved(struct page *page)
+@@ -6938,6 +6943,13 @@ static struct sk_buff *igb_fetch_rx_buff
+ 	page = rx_buffer->page;
+ 	prefetchw(page);
+ 
++	/* we are reusing so sync this buffer for CPU use */
++	dma_sync_single_range_for_cpu(rx_ring->dev,
++				      rx_buffer->dma,
++				      rx_buffer->page_offset,
++				      size,
++				      DMA_FROM_DEVICE);
++
+ 	if (likely(!skb)) {
+ 		void *page_addr = page_address(page) +
+ 				  rx_buffer->page_offset;
+@@ -6962,21 +6974,15 @@ static struct sk_buff *igb_fetch_rx_buff
+ 		prefetchw(skb->data);
+ 	}
+ 
+-	/* we are reusing so sync this buffer for CPU use */
+-	dma_sync_single_range_for_cpu(rx_ring->dev,
+-				      rx_buffer->dma,
+-				      rx_buffer->page_offset,
+-				      size,
+-				      DMA_FROM_DEVICE);
+-
+ 	/* pull page into skb */
+ 	if (igb_add_rx_frag(rx_ring, rx_buffer, size, rx_desc, skb)) {
+ 		/* hand second half of page back to the ring */
+ 		igb_reuse_rx_page(rx_ring, rx_buffer);
+ 	} else {
+ 		/* we are not reusing the buffer so unmap it */
+-		dma_unmap_page(rx_ring->dev, rx_buffer->dma,
+-			       PAGE_SIZE, DMA_FROM_DEVICE);
++		dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
++				     PAGE_SIZE, DMA_FROM_DEVICE,
++				     DMA_ATTR_SKIP_CPU_SYNC);
+ 	}
+ 
+ 	/* clear contents of rx_buffer */
+@@ -7234,7 +7240,8 @@ static bool igb_alloc_mapped_page(struct
+ 	}
+ 
+ 	/* map page for use */
+-	dma = dma_map_page(rx_ring->dev, page, 0, PAGE_SIZE, DMA_FROM_DEVICE);
++	dma = dma_map_page_attrs(rx_ring->dev, page, 0, PAGE_SIZE,
++				 DMA_FROM_DEVICE, DMA_ATTR_SKIP_CPU_SYNC);
+ 
+ 	/* if mapping failed free memory back to system since
+ 	 * there isn't much point in holding memory we can't use
+@@ -7275,6 +7282,12 @@ void igb_alloc_rx_buffers(struct igb_rin
+ 		if (!igb_alloc_mapped_page(rx_ring, bi))
+ 			break;
+ 
++		/* sync the buffer for use by the device */
++		dma_sync_single_range_for_device(rx_ring->dev, bi->dma,
++						 bi->page_offset,
++						 IGB_RX_BUFSZ,
++						 DMA_FROM_DEVICE);
++
+ 		/* Refresh the desc even if buffer_addrs didn't change
+ 		 * because each write-back erases this info.
+ 		 */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
 
