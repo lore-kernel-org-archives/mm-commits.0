@@ -1,151 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-factor-out-common-parts-of-write-fault-handling.patch removed from -mm tree
-Date: Thu, 15 Dec 2016 10:47:40 -0800
-Message-ID: <5852e54c.ae1Pv1z+vcKxPmhu%akpm@linux-foundation.org>
+Subject: [merged] debug-more-properly-delay-for-secondary-cpus.patch
+ removed from -mm tree
+Date: Thu, 15 Dec 2016 10:46:19 -0800
+Message-ID: <5852e4fb.lvB0MQqTUSsWuJ39%akpm__7563.27389176494$1481827676$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48816 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754238AbcLOSrl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:41 -0500
+        with ESMTP id S1753525AbcLOSqv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: dianders@chromium.org, briannorris@chromium.org, daniel.thompson@linaro.org, jason.wessel@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: factor out common parts of write fault handling
+     Subject: kernel/debug/debug_core.c: more properly delay for secondary CPUs
 has been removed from the -mm tree.  Its filename was
-     mm-factor-out-common-parts-of-write-fault-handling.patch
+     debug-more-properly-delay-for-secondary-cpus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: factor out common parts of write fault handling
+From: Douglas Anderson <dianders@chromium.org>
+Subject: kernel/debug/debug_core.c: more properly delay for secondary CPUs
 
-Currently we duplicate handling of shared write faults in wp_page_reuse()
-and do_shared_fault().  Factor them out into a common function.
+We've got a delay loop waiting for secondary CPUs.  That loop uses
+loops_per_jiffy.  However, loops_per_jiffy doesn't actually mean how many
+tight loops make up a jiffy on all architectures.  It is quite common to
+see things like this in the boot log:
 
-Link: http://lkml.kernel.org/r/1479460644-25076-12-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+  Calibrating delay loop (skipped), value calculated using timer
+  frequency.. 48.00 BogoMIPS (lpj=24000)
+
+In my case I was seeing lots of cases where other CPUs timed out entering
+the debugger only to print their stack crawls shortly after the kdb>
+prompt was written.
+
+Elsewhere in kgdb we already use udelay(), so that should be safe enough
+to use to implement our timeout.  We'll delay 1 ms for 1000 times, which
+should give us a full second of delay (just like the old code wanted) but
+allow us to notice that we're done every 1 ms.
+
+[akpm@linux-foundation.org: simplifications, per Daniel]
+Link: http://lkml.kernel.org/r/1477091361-2039-1-git-send-email-dianders@chromium.org
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Brian Norris <briannorris@chromium.org>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   78 +++++++++++++++++++++++---------------------------
- 1 file changed, 37 insertions(+), 41 deletions(-)
+ kernel/debug/debug_core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-factor-out-common-parts-of-write-fault-handling mm/memory.c
---- a/mm/memory.c~mm-factor-out-common-parts-of-write-fault-handling
-+++ a/mm/memory.c
-@@ -2063,6 +2063,41 @@ static int do_page_mkwrite(struct vm_are
- }
+diff -puN kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus kernel/debug/debug_core.c
+--- a/kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus
++++ a/kernel/debug/debug_core.c
+@@ -598,11 +598,11 @@ return_normal:
+ 	/*
+ 	 * Wait for the other CPUs to be notified and be waiting for us:
+ 	 */
+-	time_left = loops_per_jiffy * HZ;
++	time_left = MSEC_PER_SEC;
+ 	while (kgdb_do_roundup && --time_left &&
+ 	       (atomic_read(&masters_in_kgdb) + atomic_read(&slaves_in_kgdb)) !=
+ 		   online_cpus)
+-		cpu_relax();
++		udelay(1000);
+ 	if (!time_left)
+ 		pr_crit("Timed out waiting for secondary CPUs.\n");
  
- /*
-+ * Handle dirtying of a page in shared file mapping on a write fault.
-+ *
-+ * The function expects the page to be locked and unlocks it.
-+ */
-+static void fault_dirty_shared_page(struct vm_area_struct *vma,
-+				    struct page *page)
-+{
-+	struct address_space *mapping;
-+	bool dirtied;
-+	bool page_mkwrite = vma->vm_ops && vma->vm_ops->page_mkwrite;
-+
-+	dirtied = set_page_dirty(page);
-+	VM_BUG_ON_PAGE(PageAnon(page), page);
-+	/*
-+	 * Take a local copy of the address_space - page.mapping may be zeroed
-+	 * by truncate after unlock_page().   The address_space itself remains
-+	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
-+	 * release semantics to prevent the compiler from undoing this copying.
-+	 */
-+	mapping = page_rmapping(page);
-+	unlock_page(page);
-+
-+	if ((dirtied || page_mkwrite) && mapping) {
-+		/*
-+		 * Some device drivers do not set page.mapping
-+		 * but still dirty their pages
-+		 */
-+		balance_dirty_pages_ratelimited(mapping);
-+	}
-+
-+	if (!page_mkwrite)
-+		file_update_time(vma->vm_file);
-+}
-+
-+/*
-  * Handle write page faults for pages that can be reused in the current vma
-  *
-  * This can happen either due to the mapping being with the VM_SHARED flag,
-@@ -2092,28 +2127,11 @@ static inline int wp_page_reuse(struct v
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- 
- 	if (dirty_shared) {
--		struct address_space *mapping;
--		int dirtied;
--
- 		if (!page_mkwrite)
- 			lock_page(page);
- 
--		dirtied = set_page_dirty(page);
--		VM_BUG_ON_PAGE(PageAnon(page), page);
--		mapping = page->mapping;
--		unlock_page(page);
-+		fault_dirty_shared_page(vma, page);
- 		put_page(page);
--
--		if ((dirtied || page_mkwrite) && mapping) {
--			/*
--			 * Some device drivers do not set page.mapping
--			 * but still dirty their pages
--			 */
--			balance_dirty_pages_ratelimited(mapping);
--		}
--
--		if (!page_mkwrite)
--			file_update_time(vma->vm_file);
- 	}
- 
- 	return VM_FAULT_WRITE;
-@@ -3294,8 +3312,6 @@ uncharge_out:
- static int do_shared_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct address_space *mapping;
--	int dirtied = 0;
- 	int ret, tmp;
- 
- 	ret = __do_fault(vmf);
-@@ -3324,27 +3340,7 @@ static int do_shared_fault(struct vm_fau
- 		return ret;
- 	}
- 
--	if (set_page_dirty(vmf->page))
--		dirtied = 1;
--	/*
--	 * Take a local copy of the address_space - page.mapping may be zeroed
--	 * by truncate after unlock_page().   The address_space itself remains
--	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
--	 * release semantics to prevent the compiler from undoing this copying.
--	 */
--	mapping = page_rmapping(vmf->page);
--	unlock_page(vmf->page);
--	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
--		/*
--		 * Some device drivers do not set page.mapping but still
--		 * dirty their pages
--		 */
--		balance_dirty_pages_ratelimited(mapping);
--	}
--
--	if (!vma->vm_ops->page_mkwrite)
--		file_update_time(vma->vm_file);
+_
+
+Patches currently in -mm which might be from dianders@chromium.org are
+
+
