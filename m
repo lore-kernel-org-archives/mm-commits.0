@@ -1,82 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] debug-more-properly-delay-for-secondary-cpus.patch
+Subject: [merged] mm-pass-vm_fault-structure-into-do_page_mkwrite.patch
  removed from -mm tree
-Date: Thu, 15 Dec 2016 10:46:19 -0800
-Message-ID: <5852e4fb.lvB0MQqTUSsWuJ39%akpm__7563.27389176494$1481827676$gmane$org@linux-foundation.org>
+Date: Thu, 15 Dec 2016 10:47:42 -0800
+Message-ID: <5852e54e.bc13uTIoGUN3mkZd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49028 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753525AbcLOSqv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:51 -0500
+        with ESMTP id S932760AbcLOSrn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dianders@chromium.org, briannorris@chromium.org, daniel.thompson@linaro.org, jason.wessel@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/debug/debug_core.c: more properly delay for secondary CPUs
+     Subject: mm: pass vm_fault structure into do_page_mkwrite()
 has been removed from the -mm tree.  Its filename was
-     debug-more-properly-delay-for-secondary-cpus.patch
+     mm-pass-vm_fault-structure-into-do_page_mkwrite.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: kernel/debug/debug_core.c: more properly delay for secondary CPUs
+From: Jan Kara <jack@suse.cz>
+Subject: mm: pass vm_fault structure into do_page_mkwrite()
 
-We've got a delay loop waiting for secondary CPUs.  That loop uses
-loops_per_jiffy.  However, loops_per_jiffy doesn't actually mean how many
-tight loops make up a jiffy on all architectures.  It is quite common to
-see things like this in the boot log:
+We will need more information in the ->page_mkwrite() helper for DAX to be
+able to fully finish faults there.  Pass vm_fault structure to
+do_page_mkwrite() and use it there so that information propagates properly
+from upper layers.
 
-  Calibrating delay loop (skipped), value calculated using timer
-  frequency.. 48.00 BogoMIPS (lpj=24000)
-
-In my case I was seeing lots of cases where other CPUs timed out entering
-the debugger only to print their stack crawls shortly after the kdb>
-prompt was written.
-
-Elsewhere in kgdb we already use udelay(), so that should be safe enough
-to use to implement our timeout.  We'll delay 1 ms for 1000 times, which
-should give us a full second of delay (just like the old code wanted) but
-allow us to notice that we're done every 1 ms.
-
-[akpm@linux-foundation.org: simplifications, per Daniel]
-Link: http://lkml.kernel.org/r/1477091361-2039-1-git-send-email-dianders@chromium.org
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Brian Norris <briannorris@chromium.org>
-Cc: <stable@vger.kernel.org>	[4.0+]
+Link: http://lkml.kernel.org/r/1479460644-25076-13-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/debug_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus kernel/debug/debug_core.c
---- a/kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus
-+++ a/kernel/debug/debug_core.c
-@@ -598,11 +598,11 @@ return_normal:
- 	/*
- 	 * Wait for the other CPUs to be notified and be waiting for us:
- 	 */
--	time_left = loops_per_jiffy * HZ;
-+	time_left = MSEC_PER_SEC;
- 	while (kgdb_do_roundup && --time_left &&
- 	       (atomic_read(&masters_in_kgdb) + atomic_read(&slaves_in_kgdb)) !=
- 		   online_cpus)
--		cpu_relax();
-+		udelay(1000);
- 	if (!time_left)
- 		pr_crit("Timed out waiting for secondary CPUs.\n");
+diff -puN mm/memory.c~mm-pass-vm_fault-structure-into-do_page_mkwrite mm/memory.c
+--- a/mm/memory.c~mm-pass-vm_fault-structure-into-do_page_mkwrite
++++ a/mm/memory.c
+@@ -2034,20 +2034,17 @@ static gfp_t __get_fault_gfp_mask(struct
+  *
+  * We do this without the lock held, so that it can sleep if it needs to.
+  */
+-static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
+-	       unsigned long address)
++static int do_page_mkwrite(struct vm_fault *vmf)
+ {
+-	struct vm_fault vmf;
+ 	int ret;
++	struct page *page = vmf->page;
++	unsigned int old_flags = vmf->flags;
  
+-	vmf.address = address & PAGE_MASK;
+-	vmf.pgoff = page->index;
+-	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
+-	vmf.gfp_mask = __get_fault_gfp_mask(vma);
+-	vmf.page = page;
+-	vmf.cow_page = NULL;
++	vmf->flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
+ 
+-	ret = vma->vm_ops->page_mkwrite(vma, &vmf);
++	ret = vmf->vma->vm_ops->page_mkwrite(vmf->vma, vmf);
++	/* Restore original flags so that caller is not surprised */
++	vmf->flags = old_flags;
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
+ 		return ret;
+ 	if (unlikely(!(ret & VM_FAULT_LOCKED))) {
+@@ -2323,7 +2320,8 @@ static int wp_page_shared(struct vm_faul
+ 		int tmp;
+ 
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		tmp = do_page_mkwrite(vma, old_page, vmf->address);
++		vmf->page = old_page;
++		tmp = do_page_mkwrite(vmf);
+ 		if (unlikely(!tmp || (tmp &
+ 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+ 			put_page(old_page);
+@@ -3324,7 +3322,7 @@ static int do_shared_fault(struct vm_fau
+ 	 */
+ 	if (vma->vm_ops->page_mkwrite) {
+ 		unlock_page(vmf->page);
+-		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
++		tmp = do_page_mkwrite(vmf);
+ 		if (unlikely(!tmp ||
+ 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
+ 			put_page(vmf->page);
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
