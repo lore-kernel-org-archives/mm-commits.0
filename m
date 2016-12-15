@@ -1,235 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-trim-__do_fault-arguments.patch removed from -mm tree
-Date: Thu, 15 Dec 2016 10:47:26 -0800
-Message-ID: <5852e53e.W+1ktpe6cigQ6gwq%akpm@linux-foundation.org>
+Subject: [merged] watchdog-move-shared-definitions-to-nmih.patch removed
+ from -mm tree
+Date: Thu, 15 Dec 2016 10:46:45 -0800
+Message-ID: <5852e515.ZHNt02Go2VAhJdFe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48848 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756255AbcLOSr1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:27 -0500
+        with ESMTP id S1756188AbcLOSqy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: babu.moger@oracle.com, andi@firstfloor.org, atomlin@redhat.com, baiyaowei@cmss.chinamobile.com, davem@davemloft.net, dzickus@redhat.com, hidehiro.kawai.ez@hitachi.com, jkosina@suse.cz, johunt@akamai.com, mingo@kernel.org, tj@kernel.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: trim __do_fault() arguments
+     Subject: kernel/watchdog.c: move shared definitions to nmi.h
 has been removed from the -mm tree.  Its filename was
-     mm-trim-__do_fault-arguments.patch
+     watchdog-move-shared-definitions-to-nmih.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: trim __do_fault() arguments
+From: Babu Moger <babu.moger@oracle.com>
+Subject: kernel/watchdog.c: move shared definitions to nmi.h
 
-Use vm_fault structure to pass cow_page, page, and entry in and out of the
-function.  That reduces number of __do_fault() arguments from 4 to 1.
+Patch series "Clean up watchdog handlers", v2.
 
-Link: http://lkml.kernel.org/r/1479460644-25076-6-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+This is an attempt to cleanup watchdog handlers.  Right now,
+kernel/watchdog.c implements both softlockup and hardlockup detectors. 
+Softlockup code is generic.  Hardlockup code is arch specific.  Some
+architectures don't use hardlockup detectors.  They use their own watchdog
+detectors.  To make both these combination work, we have numerous #ifdefs
+in kernel/watchdog.c.
+
+We are trying here to make these handlers independent of each other.  Also
+provide an interface for architectures to implement their own handlers. 
+watchdog_nmi_enable and watchdog_nmi_disable will be defined as weak such
+that architectures can override its definitions.
+
+Thanks to Don Zickus for his suggestions.
+Here are our previous discussions
+http://www.spinics.net/lists/sparclinux/msg16543.html
+http://www.spinics.net/lists/sparclinux/msg16441.html
+
+
+This patch (of 3):
+
+Move shared macros and definitions to nmi.h so that watchdog.c, new file
+watchdog_hld.c or any other architecture specific handler can use those
+definitions.
+
+Link: http://lkml.kernel.org/r/1478034826-43888-2-git-send-email-babu.moger@oracle.com
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Acked-by: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Josh Hunt <johunt@akamai.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   67 +++++++++++++++++++++-----------------------------
- 1 file changed, 29 insertions(+), 38 deletions(-)
+ include/linux/nmi.h |   24 ++++++++++++++++++++++++
+ kernel/watchdog.c   |   28 ++++------------------------
+ 2 files changed, 28 insertions(+), 24 deletions(-)
 
-diff -puN mm/memory.c~mm-trim-__do_fault-arguments mm/memory.c
---- a/mm/memory.c~mm-trim-__do_fault-arguments
-+++ a/mm/memory.c
-@@ -2844,26 +2844,22 @@ oom:
-  * released depending on flags and vma->vm_ops->fault() return value.
-  * See filemap_fault() and __lock_page_retry().
-  */
--static int __do_fault(struct vm_fault *vmf, struct page *cow_page,
--		      struct page **page, void **entry)
-+static int __do_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	int ret;
+diff -puN include/linux/nmi.h~watchdog-move-shared-definitions-to-nmih include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-move-shared-definitions-to-nmih
++++ a/include/linux/nmi.h
+@@ -7,6 +7,23 @@
+ #include <linux/sched.h>
+ #include <asm/irq.h>
  
--	vmf->cow_page = cow_page;
++/*
++ * The run state of the lockup detectors is controlled by the content of the
++ * 'watchdog_enabled' variable. Each lockup detector has its dedicated bit -
++ * bit 0 for the hard lockup detector and bit 1 for the soft lockup detector.
++ *
++ * 'watchdog_user_enabled', 'nmi_watchdog_enabled' and 'soft_watchdog_enabled'
++ * are variables that are only used as an 'interface' between the parameters
++ * in /proc/sys/kernel and the internal state bits in 'watchdog_enabled'. The
++ * 'watchdog_thresh' variable is handled differently because its value is not
++ * boolean, and the lockup detectors are 'suspended' while 'watchdog_thresh'
++ * is equal zero.
++ */
++#define NMI_WATCHDOG_ENABLED_BIT   0
++#define SOFT_WATCHDOG_ENABLED_BIT  1
++#define NMI_WATCHDOG_ENABLED      (1 << NMI_WATCHDOG_ENABLED_BIT)
++#define SOFT_WATCHDOG_ENABLED     (1 << SOFT_WATCHDOG_ENABLED_BIT)
++
+ /**
+  * touch_nmi_watchdog - restart NMI watchdog timeout.
+  * 
+@@ -91,9 +108,16 @@ extern int nmi_watchdog_enabled;
+ extern int soft_watchdog_enabled;
+ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
++extern unsigned long watchdog_enabled;
+ extern unsigned long *watchdog_cpumask_bits;
++#ifdef CONFIG_SMP
+ extern int sysctl_softlockup_all_cpu_backtrace;
+ extern int sysctl_hardlockup_all_cpu_backtrace;
++#else
++#define sysctl_softlockup_all_cpu_backtrace 0
++#define sysctl_hardlockup_all_cpu_backtrace 0
++#endif
++extern bool is_hardlockup(void);
+ struct ctl_table;
+ extern int proc_watchdog(struct ctl_table *, int ,
+ 			 void __user *, size_t *, loff_t *);
+diff -puN kernel/watchdog.c~watchdog-move-shared-definitions-to-nmih kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-move-shared-definitions-to-nmih
++++ a/kernel/watchdog.c
+@@ -27,29 +27,12 @@
+ #include <linux/perf_event.h>
+ #include <linux/kthread.h>
+ 
+-/*
+- * The run state of the lockup detectors is controlled by the content of the
+- * 'watchdog_enabled' variable. Each lockup detector has its dedicated bit -
+- * bit 0 for the hard lockup detector and bit 1 for the soft lockup detector.
+- *
+- * 'watchdog_user_enabled', 'nmi_watchdog_enabled' and 'soft_watchdog_enabled'
+- * are variables that are only used as an 'interface' between the parameters
+- * in /proc/sys/kernel and the internal state bits in 'watchdog_enabled'. The
+- * 'watchdog_thresh' variable is handled differently because its value is not
+- * boolean, and the lockup detectors are 'suspended' while 'watchdog_thresh'
+- * is equal zero.
+- */
+-#define NMI_WATCHDOG_ENABLED_BIT   0
+-#define SOFT_WATCHDOG_ENABLED_BIT  1
+-#define NMI_WATCHDOG_ENABLED      (1 << NMI_WATCHDOG_ENABLED_BIT)
+-#define SOFT_WATCHDOG_ENABLED     (1 << SOFT_WATCHDOG_ENABLED_BIT)
 -
- 	ret = vma->vm_ops->fault(vma, vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
--	if (ret & VM_FAULT_DAX_LOCKED) {
--		*entry = vmf->entry;
-+	if (ret & VM_FAULT_DAX_LOCKED)
- 		return ret;
--	}
+ static DEFINE_MUTEX(watchdog_proc_mutex);
  
- 	if (unlikely(PageHWPoison(vmf->page))) {
- 		if (ret & VM_FAULT_LOCKED)
- 			unlock_page(vmf->page);
- 		put_page(vmf->page);
-+		vmf->page = NULL;
- 		return VM_FAULT_HWPOISON;
- 	}
+-#ifdef CONFIG_HARDLOCKUP_DETECTOR
+-static unsigned long __read_mostly watchdog_enabled = SOFT_WATCHDOG_ENABLED|NMI_WATCHDOG_ENABLED;
++#if defined(CONFIG_HAVE_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
++unsigned long __read_mostly watchdog_enabled = SOFT_WATCHDOG_ENABLED|NMI_WATCHDOG_ENABLED;
+ #else
+-static unsigned long __read_mostly watchdog_enabled = SOFT_WATCHDOG_ENABLED;
++unsigned long __read_mostly watchdog_enabled = SOFT_WATCHDOG_ENABLED;
+ #endif
+ int __read_mostly nmi_watchdog_enabled;
+ int __read_mostly soft_watchdog_enabled;
+@@ -59,9 +42,6 @@ int __read_mostly watchdog_thresh = 10;
+ #ifdef CONFIG_SMP
+ int __read_mostly sysctl_softlockup_all_cpu_backtrace;
+ int __read_mostly sysctl_hardlockup_all_cpu_backtrace;
+-#else
+-#define sysctl_softlockup_all_cpu_backtrace 0
+-#define sysctl_hardlockup_all_cpu_backtrace 0
+ #endif
+ static struct cpumask watchdog_cpumask __read_mostly;
+ unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
+@@ -289,7 +269,7 @@ void touch_softlockup_watchdog_sync(void
  
-@@ -2872,7 +2868,6 @@ static int __do_fault(struct vm_fault *v
- 	else
- 		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
- 
--	*page = vmf->page;
- 	return ret;
- }
- 
-@@ -3208,7 +3203,6 @@ out:
- static int do_read_fault(struct vm_fault *vmf)
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
+ /* watchdog detector functions */
+-static bool is_hardlockup(void)
++bool is_hardlockup(void)
  {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page;
- 	int ret = 0;
+ 	unsigned long hrint = __this_cpu_read(hrtimer_interrupts);
  
- 	/*
-@@ -3222,54 +3216,52 @@ static int do_read_fault(struct vm_fault
- 			return ret;
- 	}
- 
--	ret = __do_fault(vmf, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
--	ret |= alloc_set_pte(vmf, NULL, fault_page);
-+	ret |= alloc_set_pte(vmf, NULL, vmf->page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--	unlock_page(fault_page);
-+	unlock_page(vmf->page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
--		put_page(fault_page);
-+		put_page(vmf->page);
- 	return ret;
- }
- 
- static int do_cow_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page, *new_page;
--	void *fault_entry;
- 	struct mem_cgroup *memcg;
- 	int ret;
- 
- 	if (unlikely(anon_vma_prepare(vma)))
- 		return VM_FAULT_OOM;
- 
--	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
--	if (!new_page)
-+	vmf->cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
-+	if (!vmf->cow_page)
- 		return VM_FAULT_OOM;
- 
--	if (mem_cgroup_try_charge(new_page, vma->vm_mm, GFP_KERNEL,
-+	if (mem_cgroup_try_charge(vmf->cow_page, vma->vm_mm, GFP_KERNEL,
- 				&memcg, false)) {
--		put_page(new_page);
-+		put_page(vmf->cow_page);
- 		return VM_FAULT_OOM;
- 	}
- 
--	ret = __do_fault(vmf, new_page, &fault_page, &fault_entry);
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 
- 	if (!(ret & VM_FAULT_DAX_LOCKED))
--		copy_user_highpage(new_page, fault_page, vmf->address, vma);
--	__SetPageUptodate(new_page);
-+		copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
-+	__SetPageUptodate(vmf->cow_page);
- 
--	ret |= alloc_set_pte(vmf, memcg, new_page);
-+	ret |= alloc_set_pte(vmf, memcg, vmf->cow_page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
--		unlock_page(fault_page);
--		put_page(fault_page);
-+		unlock_page(vmf->page);
-+		put_page(vmf->page);
- 	} else {
- 		dax_unlock_mapping_entry(vma->vm_file->f_mapping, vmf->pgoff);
- 	}
-@@ -3277,20 +3269,19 @@ static int do_cow_fault(struct vm_fault
- 		goto uncharge_out;
- 	return ret;
- uncharge_out:
--	mem_cgroup_cancel_charge(new_page, memcg, false);
--	put_page(new_page);
-+	mem_cgroup_cancel_charge(vmf->cow_page, memcg, false);
-+	put_page(vmf->cow_page);
- 	return ret;
- }
- 
- static int do_shared_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *fault_page;
- 	struct address_space *mapping;
- 	int dirtied = 0;
- 	int ret, tmp;
- 
--	ret = __do_fault(vmf, NULL, &fault_page, NULL);
-+	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-@@ -3299,26 +3290,26 @@ static int do_shared_fault(struct vm_fau
- 	 * about to become writable
- 	 */
- 	if (vma->vm_ops->page_mkwrite) {
--		unlock_page(fault_page);
--		tmp = do_page_mkwrite(vma, fault_page, vmf->address);
-+		unlock_page(vmf->page);
-+		tmp = do_page_mkwrite(vma, vmf->page, vmf->address);
- 		if (unlikely(!tmp ||
- 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
--			put_page(fault_page);
-+			put_page(vmf->page);
- 			return tmp;
- 		}
- 	}
- 
--	ret |= alloc_set_pte(vmf, NULL, fault_page);
-+	ret |= alloc_set_pte(vmf, NULL, vmf->page);
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
- 					VM_FAULT_RETRY))) {
--		unlock_page(fault_page);
--		put_page(fault_page);
-+		unlock_page(vmf->page);
-+		put_page(vmf->page);
- 		return ret;
- 	}
- 
--	if (set_page_dirty(fault_page))
-+	if (set_page_dirty(vmf->page))
- 		dirtied = 1;
- 	/*
- 	 * Take a local copy of the address_space - page.mapping may be zeroed
-@@ -3326,8 +3317,8 @@ static int do_shared_fault(struct vm_fau
- 	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
- 	 * release semantics to prevent the compiler from undoing this copying.
- 	 */
--	mapping = page_rmapping(fault_page);
--	unlock_page(fault_page);
-+	mapping = page_rmapping(vmf->page);
-+	unlock_page(vmf->page);
- 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
- 		/*
- 		 * Some device drivers do not set page.mapping but still
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from babu.moger@oracle.com are
 
 
