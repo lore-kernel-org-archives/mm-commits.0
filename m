@@ -1,66 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-add-kern_cont-to-deprecated_sysctl_warning.patch
+Subject: [merged] arch-avr32-add-option-to-skip-sync-on-dma-map.patch
  removed from -mm tree
-Date: Thu, 15 Dec 2016 10:45:18 -0800
-Message-ID: <5852e4be.DXFw00wgzGb36z5y%akpm@linux-foundation.org>
+Date: Thu, 15 Dec 2016 10:45:24 -0800
+Message-ID: <5852e4c4.EPN0k+QfjA/vwYMi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48430 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754319AbcLOSpT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:45:19 -0500
+        with ESMTP id S1754135AbcLOSpZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:45:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, egtvedt@samfundet.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: add KERN_CONT to deprecated_sysctl_warning()
+     Subject: arch/avr32: add option to skip sync on DMA map
 has been removed from the -mm tree.  Its filename was
-     sysctl-add-kern_cont-to-deprecated_sysctl_warning.patch
+     arch-avr32-add-option-to-skip-sync-on-dma-map.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: sysctl: add KERN_CONT to deprecated_sysctl_warning()
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: arch/avr32: add option to skip sync on DMA map
 
-Do not break lines while printk()ing values.
+The use of DMA_ATTR_SKIP_CPU_SYNC was not consistent across all of the DMA
+APIs in the arch/arm folder.  This change is meant to correct that so that
+we get consistent behavior.
 
-  kernel: warning: process `tomoyo_file_tes' used the deprecated sysctl system call with
-  kernel: 3.
-  kernel: 5.
-  kernel: 56.
-  kernel:
-
-Link: http://lkml.kernel.org/r/1480814833-4976-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: http://lkml.kernel.org/r/20161110113430.76501.79737.stgit@ahduyck-blue-test.jf.intel.com
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Acked-by: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_binary.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/avr32/mm/dma-coherent.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sysctl_binary.c~sysctl-add-kern_cont-to-deprecated_sysctl_warning kernel/sysctl_binary.c
---- a/kernel/sysctl_binary.c~sysctl-add-kern_cont-to-deprecated_sysctl_warning
-+++ a/kernel/sysctl_binary.c
-@@ -1354,8 +1354,8 @@ static void deprecated_sysctl_warning(co
- 			"warning: process `%s' used the deprecated sysctl "
- 			"system call with ", current->comm);
- 		for (i = 0; i < nlen; i++)
--			printk("%d.", name[i]);
--		printk("\n");
-+			printk(KERN_CONT "%d.", name[i]);
-+		printk(KERN_CONT "\n");
- 	}
- 	return;
+diff -puN arch/avr32/mm/dma-coherent.c~arch-avr32-add-option-to-skip-sync-on-dma-map arch/avr32/mm/dma-coherent.c
+--- a/arch/avr32/mm/dma-coherent.c~arch-avr32-add-option-to-skip-sync-on-dma-map
++++ a/arch/avr32/mm/dma-coherent.c
+@@ -146,7 +146,8 @@ static dma_addr_t avr32_dma_map_page(str
+ {
+ 	void *cpu_addr = page_address(page) + offset;
+ 
+-	dma_cache_sync(dev, cpu_addr, size, direction);
++	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
++		dma_cache_sync(dev, cpu_addr, size, direction);
+ 	return virt_to_bus(cpu_addr);
  }
+ 
+@@ -162,6 +163,10 @@ static int avr32_dma_map_sg(struct devic
+ 
+ 		sg->dma_address = page_to_bus(sg_page(sg)) + sg->offset;
+ 		virt = sg_virt(sg);
++
++		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
++			continue;
++
+ 		dma_cache_sync(dev, virt, sg->length, direction);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
 
