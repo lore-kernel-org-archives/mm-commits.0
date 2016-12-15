@@ -1,146 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable.patch removed
- from -mm tree
-Date: Thu, 15 Dec 2016 10:46:51 -0800
-Message-ID: <5852e51b.6ZIG5NFDcO1TwQOu%akpm@linux-foundation.org>
+ mm-use-passed-vm_fault-structure-for-in-wp_pfn_shared.patch removed from
+ -mm tree
+Date: Thu, 15 Dec 2016 10:47:29 -0800
+Message-ID: <5852e541.aolR8azRiRb6G1FP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48982 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754624AbcLOSqy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:54 -0500
+        with ESMTP id S1753706AbcLOSra (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: babu.moger@oracle.com, andi@firstfloor.org, atomlin@redhat.com, baiyaowei@cmss.chinamobile.com, davem@davemloft.net, dzickus@redhat.com, hidehiro.kawai.ez@hitachi.com, jkosina@suse.cz, johunt@akamai.com, mingo@kernel.org, tj@kernel.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: implement watchdog_nmi_enable and watchdog_nmi_disable
+     Subject: mm: use passed vm_fault structure for in wp_pfn_shared()
 has been removed from the -mm tree.  Its filename was
-     sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable.patch
+     mm-use-passed-vm_fault-structure-for-in-wp_pfn_shared.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Babu Moger <babu.moger@oracle.com>
-Subject: sparc: implement watchdog_nmi_enable and watchdog_nmi_disable
+From: Jan Kara <jack@suse.cz>
+Subject: mm: use passed vm_fault structure for in wp_pfn_shared()
 
-Implement functions watchdog_nmi_enable and watchdog_nmi_disable to
-enable/disable nmi watchdog.  Sparc uses arch specific nmi watchdog
-handler.  Currently, we do not have a way to enable/disable nmi watchdog
-dynamically.  With these patches we can enable or disable arch specific
-nmi watchdogs using proc or sysctl interface.
+Instead of creating another vm_fault structure, use the one passed to
+wp_pfn_shared() for passing arguments into pfn_mkwrite handler.
 
-Example commands.
-To enable: echo 1 >  /proc/sys/kernel/nmi_watchdog
-To disable: echo 0 >  /proc/sys/kernel/nmi_watchdog
-
-It can also achieved using the sysctl parameter kernel.nmi_watchdog
-
-Link: http://lkml.kernel.org/r/1478034826-43888-4-git-send-email-babu.moger@oracle.com
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Josh Hunt <johunt@akamai.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Link: http://lkml.kernel.org/r/1479460644-25076-7-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/nmi.c |   44 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+ mm/memory.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN arch/sparc/kernel/nmi.c~sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable arch/sparc/kernel/nmi.c
---- a/arch/sparc/kernel/nmi.c~sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable
-+++ a/arch/sparc/kernel/nmi.c
-@@ -42,7 +42,7 @@ static int panic_on_timeout;
-  */
- atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
- EXPORT_SYMBOL(nmi_active);
--
-+static int nmi_init_done;
- static unsigned int nmi_hz = HZ;
- static DEFINE_PER_CPU(short, wd_enabled);
- static int endflag __initdata;
-@@ -153,6 +153,8 @@ static void report_broken_nmi(int cpu, i
+diff -puN mm/memory.c~mm-use-passed-vm_fault-structure-for-in-wp_pfn_shared mm/memory.c
+--- a/mm/memory.c~mm-use-passed-vm_fault-structure-for-in-wp_pfn_shared
++++ a/mm/memory.c
+@@ -2273,16 +2273,11 @@ static int wp_pfn_shared(struct vm_fault
+ 	struct vm_area_struct *vma = vmf->vma;
  
- void stop_nmi_watchdog(void *unused)
- {
-+	if (!__this_cpu_read(wd_enabled))
-+		return;
- 	pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_disable);
- 	__this_cpu_write(wd_enabled, 0);
- 	atomic_dec(&nmi_active);
-@@ -207,6 +209,9 @@ error:
+ 	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
+-		struct vm_fault vmf2 = {
+-			.page = NULL,
+-			.pgoff = vmf->pgoff,
+-			.address = vmf->address,
+-			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
+-		};
+ 		int ret;
  
- void start_nmi_watchdog(void *unused)
- {
-+	if (__this_cpu_read(wd_enabled))
-+		return;
-+
- 	__this_cpu_write(wd_enabled, 1);
- 	atomic_inc(&nmi_active);
- 
-@@ -259,6 +264,8 @@ int __init nmi_init(void)
- 		}
- 	}
- 
-+	nmi_init_done = 1;
-+
- 	return err;
- }
- 
-@@ -270,3 +277,38 @@ static int __init setup_nmi_watchdog(cha
- 	return 0;
- }
- __setup("nmi_watchdog=", setup_nmi_watchdog);
-+
-+/*
-+ * sparc specific NMI watchdog enable function.
-+ * Enables watchdog if it is not enabled already.
-+ */
-+int watchdog_nmi_enable(unsigned int cpu)
-+{
-+	if (atomic_read(&nmi_active) == -1) {
-+		pr_warn("NMI watchdog cannot be enabled or disabled\n");
-+		return -1;
-+	}
-+
-+	/*
-+	 * watchdog thread could start even before nmi_init is called.
-+	 * Just Return in that case. Let nmi_init finish the init
-+	 * process first.
-+	 */
-+	if (!nmi_init_done)
-+		return 0;
-+
-+	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
-+
-+	return 0;
-+}
-+/*
-+ * sparc specific NMI watchdog disable function.
-+ * Disables watchdog if it is not disabled already.
-+ */
-+void watchdog_nmi_disable(unsigned int cpu)
-+{
-+	if (atomic_read(&nmi_active) == -1)
-+		pr_warn_once("NMI watchdog cannot be enabled or disabled\n");
-+	else
-+		smp_call_function_single(cpu, stop_nmi_watchdog, NULL, 1);
-+}
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf2);
++		vmf->flags |= FAULT_FLAG_MKWRITE;
++		ret = vma->vm_ops->pfn_mkwrite(vma, vmf);
+ 		if (ret & VM_FAULT_ERROR)
+ 			return ret;
+ 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
 _
 
-Patches currently in -mm which might be from babu.moger@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
