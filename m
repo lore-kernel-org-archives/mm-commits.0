@@ -1,73 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch removed
- from -mm tree
-Date: Thu, 15 Dec 2016 10:45:57 -0800
-Message-ID: <5852e4e5.2WU7zpvbcHKD2Lk+%akpm@linux-foundation.org>
+ kconfig-lib-kconfigdebug-fix-references-to-documenation.patch removed from
+ -mm tree
+Date: Thu, 15 Dec 2016 10:46:12 -0800
+Message-ID: <5852e4f4.G52NGyRNP7PZkJ4d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48778 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754555AbcLOSqu (ORCPT
+        with ESMTP id S1754611AbcLOSqu (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org
+To: andreas.platschek@opentech.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/xtensa: add option to skip DMA sync as a part of mapping
+     Subject: Kconfig: lib/Kconfig.debug: fix references to Documenation
 has been removed from the -mm tree.  Its filename was
-     arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+     kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/xtensa: add option to skip DMA sync as a part of mapping
+From: Andreas Platschek <andreas.platschek@opentech.at>
+Subject: Kconfig: lib/Kconfig.debug: fix references to Documenation
 
-This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
-avoid invoking cache line invalidation if the driver will just handle it
-via a sync_for_cpu or sync_for_device call.
+Documentation on development tools was moved to Documentation/devl-tools
+and sphinxified (renamed from .txt to .rst).
 
-Link: http://lkml.kernel.org/r/20161110113555.76501.52536.stgit@ahduyck-blue-test.jf.intel.com
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+References in lib/Kconfig.debug need to be updated to the new location.
+
+Link: http://lkml.kernel.org/r/1476698152-29340-2-git-send-email-andreas.platschek@opentech.at
+Signed-off-by: Andreas Platschek <andreas.platschek@opentech.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/pci-dma.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/xtensa/kernel/pci-dma.c~arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping arch/xtensa/kernel/pci-dma.c
---- a/arch/xtensa/kernel/pci-dma.c~arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping
-+++ a/arch/xtensa/kernel/pci-dma.c
-@@ -189,7 +189,9 @@ static dma_addr_t xtensa_map_page(struct
- {
- 	dma_addr_t dma_handle = page_to_phys(page) + offset;
+diff -puN lib/Kconfig.debug~kconfig-lib-kconfigdebug-fix-references-to-documenation lib/Kconfig.debug
+--- a/lib/Kconfig.debug~kconfig-lib-kconfigdebug-fix-references-to-documenation
++++ a/lib/Kconfig.debug
+@@ -194,8 +194,8 @@ config GDB_SCRIPTS
+ 	  build directory. If you load vmlinux into gdb, the helper
+ 	  scripts will be automatically imported by gdb as well, and
+ 	  additional functions are available to analyze a Linux kernel
+-	  instance. See Documentation/gdb-kernel-debugging.txt for further
+-	  details.
++	  instance. See Documentation/dev-tools/gdb-kernel-debugging.rst
++	  for further details.
  
--	xtensa_sync_single_for_device(dev, dma_handle, size, dir);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		xtensa_sync_single_for_device(dev, dma_handle, size, dir);
-+
- 	return dma_handle;
- }
+ config ENABLE_WARN_DEPRECATED
+ 	bool "Enable __deprecated logic"
+@@ -542,7 +542,7 @@ config DEBUG_KMEMLEAK
+ 	  difference being that the orphan objects are not freed but
+ 	  only shown in /sys/kernel/debug/kmemleak. Enabling this
+ 	  feature will introduce an overhead to memory
+-	  allocations. See Documentation/kmemleak.txt for more
++	  allocations. See Documentation/dev-tools/kmemleak.rst for more
+ 	  details.
  
-@@ -197,7 +199,8 @@ static void xtensa_unmap_page(struct dev
- 			      size_t size, enum dma_data_direction dir,
- 			      unsigned long attrs)
- {
--	xtensa_sync_single_for_cpu(dev, dma_handle, size, dir);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		xtensa_sync_single_for_cpu(dev, dma_handle, size, dir);
- }
+ 	  Enabling DEBUG_SLAB or SLUB_DEBUG may increase the chances
+@@ -739,7 +739,7 @@ config KCOV
+ 	  different machines and across reboots. If you need stable PC values,
+ 	  disable RANDOMIZE_BASE.
  
- static int xtensa_map_sg(struct device *dev, struct scatterlist *sg,
+-	  For more details, see Documentation/kcov.txt.
++	  For more details, see Documentation/dev-tools/kcov.rst.
+ 
+ config KCOV_INSTRUMENT_ALL
+ 	bool "Instrument all code by default"
 _
 
-Patches currently in -mm which might be from alexander.h.duyck@intel.com are
+Patches currently in -mm which might be from andreas.platschek@opentech.at are
 
 
