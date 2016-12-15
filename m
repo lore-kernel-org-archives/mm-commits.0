@@ -1,48 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-delete-radix_tree_range_tag_if_tagged.patch
- removed from -mm tree
-Date: Thu, 15 Dec 2016 10:48:55 -0800
-Message-ID: <5852e597.4MvVdi7ZTT1ILtYd%akpm@linux-foundation.org>
+Subject: [merged] radix-tree-add-radix_tree_join.patch removed from -mm
+ tree
+Date: Thu, 15 Dec 2016 10:48:58 -0800
+Message-ID: <5852e59a.U6tYRRCsuYdQ6PY1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49568 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753255AbcLOSs4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:48:56 -0500
+        with ESMTP id S1753928AbcLOSs7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:48:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, ross.zwisler@linux.intel.com, willy@infradead.org, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: delete radix_tree_range_tag_if_tagged()
+     Subject: radix-tree: add radix_tree_join
 has been removed from the -mm tree.  Its filename was
-     radix-tree-delete-radix_tree_range_tag_if_tagged.patch
+     radix-tree-add-radix_tree_join.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix-tree: delete radix_tree_range_tag_if_tagged()
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: radix-tree: add radix_tree_join
 
-This is an exceptionally complicated function with just one caller
-(tag_pages_for_writeback).  We devote a large portion of the runtime of
-the test suite to testing this one function which has one caller.  By
-introducing the new function radix_tree_iter_tag_set(), we can eliminate
-all of the complexity while keeping the performance.  The caller can now
-use a fairly standard radix_tree_for_each() loop, and it doesn't need to
-worry about tricksy things like 'start' wrapping.
+This new function allows for the replacement of many smaller entries in
+the radix tree with one larger multiorder entry.  From the point of view
+of an RCU walker, they may see a mixture of the smaller entries and the
+large entry during the same walk, but they will never see NULL for an
+index which was populated before the join.
 
-The test suite continues to spend a large amount of time investigating
-this function, but now it's testing the underlying primitives such as
-radix_tree_iter_resume() and the radix_tree_for_each_tagged() iterator
-which are also used by other parts of the kernel.
-
-Link: http://lkml.kernel.org/r/1480369871-5271-57-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/1480369871-5271-58-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -50,508 +43,350 @@ Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h             |   74 +++++++-------
- lib/radix-tree.c                       |  117 +++--------------------
- mm/page-writeback.c                    |   26 +++--
- tools/testing/radix-tree/main.c        |   12 --
- tools/testing/radix-tree/multiorder.c  |   13 --
- tools/testing/radix-tree/regression2.c |    3 
- tools/testing/radix-tree/tag_check.c   |    4 
- tools/testing/radix-tree/test.c        |   34 ++++++
- tools/testing/radix-tree/test.h        |    3 
- 9 files changed, 124 insertions(+), 162 deletions(-)
+ include/linux/radix-tree.h            |    3 
+ lib/radix-tree.c                      |  183 +++++++++++++++++++-----
+ tools/testing/radix-tree/multiorder.c |   58 +++++++
+ 3 files changed, 213 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-delete-radix_tree_range_tag_if_tagged include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-delete-radix_tree_range_tag_if_tagged
+diff -puN include/linux/radix-tree.h~radix-tree-add-radix_tree_join include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-add-radix_tree_join
 +++ a/include/linux/radix-tree.h
-@@ -121,6 +121,41 @@ static inline bool radix_tree_empty(stru
- }
- 
- /**
-+ * struct radix_tree_iter - radix tree iterator state
-+ *
-+ * @index:	index of current slot
-+ * @next_index:	one beyond the last index for this chunk
-+ * @tags:	bit-mask for tag-iterating
-+ * @node:	node that contains current slot
-+ * @shift:	shift for the node that holds our slots
-+ *
-+ * This radix tree iterator works in terms of "chunks" of slots.  A chunk is a
-+ * subinterval of slots contained within one radix tree leaf node.  It is
-+ * described by a pointer to its first slot and a struct radix_tree_iter
-+ * which holds the chunk's position in the tree and its size.  For tagged
-+ * iteration radix_tree_iter also holds the slots' bit-mask for one chosen
-+ * radix tree tag.
-+ */
-+struct radix_tree_iter {
-+	unsigned long	index;
-+	unsigned long	next_index;
-+	unsigned long	tags;
-+	struct radix_tree_node *node;
-+#ifdef CONFIG_RADIX_TREE_MULTIORDER
-+	unsigned int	shift;
-+#endif
-+};
-+
-+static inline unsigned int iter_shift(const struct radix_tree_iter *iter)
-+{
-+#ifdef CONFIG_RADIX_TREE_MULTIORDER
-+	return iter->shift;
-+#else
-+	return 0;
-+#endif
-+}
-+
-+/**
-  * Radix-tree synchronization
-  *
-  * The radix-tree API requires that users provide all synchronisation (with
-@@ -283,6 +318,8 @@ void *radix_tree_tag_clear(struct radix_
- 			unsigned long index, unsigned int tag);
- int radix_tree_tag_get(struct radix_tree_root *root,
- 			unsigned long index, unsigned int tag);
-+void radix_tree_iter_tag_set(struct radix_tree_root *root,
-+		const struct radix_tree_iter *iter, unsigned int tag);
- unsigned int
- radix_tree_gang_lookup_tag(struct radix_tree_root *root, void **results,
- 		unsigned long first_index, unsigned int max_items,
-@@ -291,10 +328,6 @@ unsigned int
- radix_tree_gang_lookup_tag_slot(struct radix_tree_root *root, void ***results,
- 		unsigned long first_index, unsigned int max_items,
- 		unsigned int tag);
--unsigned long radix_tree_range_tag_if_tagged(struct radix_tree_root *root,
--		unsigned long *first_indexp, unsigned long last_index,
--		unsigned long nr_to_tag,
--		unsigned int fromtag, unsigned int totag);
- int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
- 
- static inline void radix_tree_preload_end(void)
-@@ -302,39 +335,6 @@ static inline void radix_tree_preload_en
+@@ -335,6 +335,9 @@ static inline void radix_tree_preload_en
  	preempt_enable();
  }
  
--/**
-- * struct radix_tree_iter - radix tree iterator state
-- *
-- * @index:	index of current slot
-- * @next_index:	one beyond the last index for this chunk
-- * @tags:	bit-mask for tag-iterating
-- * @shift:	shift for the node that holds our slots
-- *
-- * This radix tree iterator works in terms of "chunks" of slots.  A chunk is a
-- * subinterval of slots contained within one radix tree leaf node.  It is
-- * described by a pointer to its first slot and a struct radix_tree_iter
-- * which holds the chunk's position in the tree and its size.  For tagged
-- * iteration radix_tree_iter also holds the slots' bit-mask for one chosen
-- * radix tree tag.
-- */
--struct radix_tree_iter {
--	unsigned long	index;
--	unsigned long	next_index;
--	unsigned long	tags;
--#ifdef CONFIG_RADIX_TREE_MULTIORDER
--	unsigned int	shift;
--#endif
--};
--
--static inline unsigned int iter_shift(struct radix_tree_iter *iter)
--{
--#ifdef CONFIG_RADIX_TREE_MULTIORDER
--	return iter->shift;
--#else
--	return 0;
--#endif
--}
--
++int radix_tree_join(struct radix_tree_root *, unsigned long index,
++			unsigned new_order, void *);
++
  #define RADIX_TREE_ITER_TAG_MASK	0x00FF	/* tag index in lower byte */
  #define RADIX_TREE_ITER_TAGGED		0x0100	/* lookup tagged slots */
  #define RADIX_TREE_ITER_CONTIG		0x0200	/* stop at first hole */
-diff -puN lib/radix-tree.c~radix-tree-delete-radix_tree_range_tag_if_tagged lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-delete-radix_tree_range_tag_if_tagged
+diff -puN lib/radix-tree.c~radix-tree-add-radix_tree_join lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-add-radix_tree_join
 +++ a/lib/radix-tree.c
-@@ -219,6 +219,11 @@ radix_tree_find_next_bit(struct radix_tr
- 	return RADIX_TREE_MAP_SIZE;
- }
+@@ -339,17 +339,14 @@ static void radix_tree_node_rcu_free(str
+ {
+ 	struct radix_tree_node *node =
+ 			container_of(head, struct radix_tree_node, rcu_head);
+-	int i;
  
-+static unsigned int iter_offset(const struct radix_tree_iter *iter)
-+{
-+	return (iter->index >> iter_shift(iter)) & RADIX_TREE_MAP_MASK;
+ 	/*
+-	 * must only free zeroed nodes into the slab. radix_tree_shrink
+-	 * can leave us with a non-NULL entry in the first slot, so clear
+-	 * that here to make sure.
++	 * Must only free zeroed nodes into the slab.  We can be left with
++	 * non-NULL entries by radix_tree_free_nodes, so clear the entries
++	 * and tags here.
+ 	 */
+-	for (i = 0; i < RADIX_TREE_MAX_TAGS; i++)
+-		tag_clear(node, i, 0);
+-
+-	node->slots[0] = NULL;
++	memset(node->slots, 0, sizeof(node->slots));
++	memset(node->tags, 0, sizeof(node->tags));
+ 	INIT_LIST_HEAD(&node->private_list);
+ 
+ 	kmem_cache_free(radix_tree_node_cachep, node);
+@@ -678,14 +675,14 @@ int __radix_tree_create(struct radix_tre
+ 	shift = radix_tree_load_root(root, &child, &maxindex);
+ 
+ 	/* Make sure the tree is high enough.  */
++	if (order > 0 && max == ((1UL << order) - 1))
++		max++;
+ 	if (max > maxindex) {
+ 		int error = radix_tree_extend(root, max, shift);
+ 		if (error < 0)
+ 			return error;
+ 		shift = error;
+ 		child = root->rnode;
+-		if (order == shift)
+-			shift += RADIX_TREE_MAP_SHIFT;
+ 	}
+ 
+ 	while (shift > order) {
+@@ -697,6 +694,8 @@ int __radix_tree_create(struct radix_tre
+ 				return -ENOMEM;
+ 			child->shift = shift;
+ 			child->offset = offset;
++			child->count = 0;
++			child->exceptional = 0;
+ 			child->parent = node;
+ 			rcu_assign_pointer(*slot, node_to_entry(child));
+ 			if (node)
+@@ -710,31 +709,121 @@ int __radix_tree_create(struct radix_tre
+ 		slot = &node->slots[offset];
+ 	}
+ 
++	if (nodep)
++		*nodep = node;
++	if (slotp)
++		*slotp = slot;
++	return 0;
 +}
 +
- /*
-  * The maximum index which can be stored in a radix tree
-  */
-@@ -1015,6 +1020,18 @@ static void node_tag_set(struct radix_tr
- }
- 
- /**
-+ * radix_tree_iter_tag_set - set a tag on the current iterator entry
-+ * @root:	radix tree root
-+ * @iter:	iterator state
-+ * @tag:	tag to set
+ #ifdef CONFIG_RADIX_TREE_MULTIORDER
+-	/* Insert pointers to the canonical entry */
+-	if (order > shift) {
+-		unsigned i, n = 1 << (order - shift);
++/*
++ * Free any nodes below this node.  The tree is presumed to not need
++ * shrinking, and any user data in the tree is presumed to not need a
++ * destructor called on it.  If we need to add a destructor, we can
++ * add that functionality later.  Note that we may not clear tags or
++ * slots from the tree as an RCU walker may still have a pointer into
++ * this subtree.  We could replace the entries with RADIX_TREE_RETRY,
++ * but we'll still have to clear those in rcu_free.
 + */
-+void radix_tree_iter_tag_set(struct radix_tree_root *root,
-+			const struct radix_tree_iter *iter, unsigned int tag)
++static void radix_tree_free_nodes(struct radix_tree_node *node)
 +{
-+	node_tag_set(root, iter->node, tag, iter_offset(iter));
-+}
++	unsigned offset = 0;
++	struct radix_tree_node *child = entry_to_node(node);
 +
-+/**
-  *	radix_tree_tag_clear - clear a tag on a radix tree node
-  *	@root:		radix tree root
-  *	@index:		index key
-@@ -1164,6 +1181,7 @@ void ** __radix_tree_next_slot(void **sl
- 		if (node == RADIX_TREE_RETRY)
- 			return slot;
- 		node = entry_to_node(node);
-+		iter->node = node;
- 		iter->shift = node->shift;
- 
- 		if (flags & RADIX_TREE_ITER_TAGGED) {
-@@ -1266,6 +1284,7 @@ void **radix_tree_next_chunk(struct radi
- 		iter->index = index;
- 		iter->next_index = maxindex + 1;
- 		iter->tags = 1;
-+		iter->node = NULL;
- 		__set_iter_shift(iter, 0);
- 		return (void **)&root->rnode;
- 	}
-@@ -1308,6 +1327,7 @@ void **radix_tree_next_chunk(struct radi
- 	/* Update the iterator state */
- 	iter->index = (index &~ node_maxindex(node)) | (offset << node->shift);
- 	iter->next_index = (index | node_maxindex(node)) + 1;
-+	iter->node = node;
- 	__set_iter_shift(iter, node->shift);
- 
- 	if (flags & RADIX_TREE_ITER_TAGGED)
-@@ -1318,103 +1338,6 @@ void **radix_tree_next_chunk(struct radi
- EXPORT_SYMBOL(radix_tree_next_chunk);
- 
- /**
-- * radix_tree_range_tag_if_tagged - for each item in given range set given
-- *				   tag if item has another tag set
-- * @root:		radix tree root
-- * @first_indexp:	pointer to a starting index of a range to scan
-- * @last_index:		last index of a range to scan
-- * @nr_to_tag:		maximum number items to tag
-- * @iftag:		tag index to test
-- * @settag:		tag index to set if tested tag is set
-- *
-- * This function scans range of radix tree from first_index to last_index
-- * (inclusive).  For each item in the range if iftag is set, the function sets
-- * also settag. The function stops either after tagging nr_to_tag items or
-- * after reaching last_index.
-- *
-- * The tags must be set from the leaf level only and propagated back up the
-- * path to the root. We must do this so that we resolve the full path before
-- * setting any tags on intermediate nodes. If we set tags as we descend, then
-- * we can get to the leaf node and find that the index that has the iftag
-- * set is outside the range we are scanning. This reults in dangling tags and
-- * can lead to problems with later tag operations (e.g. livelocks on lookups).
-- *
-- * The function returns the number of leaves where the tag was set and sets
-- * *first_indexp to the first unscanned index.
-- * WARNING! *first_indexp can wrap if last_index is ULONG_MAX. Caller must
-- * be prepared to handle that.
-- */
--unsigned long radix_tree_range_tag_if_tagged(struct radix_tree_root *root,
--		unsigned long *first_indexp, unsigned long last_index,
--		unsigned long nr_to_tag,
--		unsigned int iftag, unsigned int settag)
--{
--	struct radix_tree_node *node, *child;
--	unsigned long maxindex;
--	unsigned long tagged = 0;
--	unsigned long index = *first_indexp;
--
--	radix_tree_load_root(root, &child, &maxindex);
--	last_index = min(last_index, maxindex);
--	if (index > last_index)
--		return 0;
--	if (!nr_to_tag)
--		return 0;
--	if (!root_tag_get(root, iftag)) {
--		*first_indexp = last_index + 1;
--		return 0;
--	}
--	if (!radix_tree_is_internal_node(child)) {
--		*first_indexp = last_index + 1;
--		root_tag_set(root, settag);
--		return 1;
--	}
--
--	node = entry_to_node(child);
--
--	for (;;) {
--		unsigned offset = radix_tree_descend(node, &child, index);
--		if (!child)
--			goto next;
--		if (!tag_get(node, iftag, offset))
--			goto next;
--		/* Sibling slots never have tags set on them */
--		if (radix_tree_is_internal_node(child)) {
--			node = entry_to_node(child);
--			continue;
--		}
--
--		tagged++;
--		node_tag_set(root, node, settag, offset);
-- next:
--		/* Go to next entry in node */
--		index = ((index >> node->shift) + 1) << node->shift;
--		/* Overflow can happen when last_index is ~0UL... */
--		if (index > last_index || !index)
--			break;
--		offset = (index >> node->shift) & RADIX_TREE_MAP_MASK;
--		while (offset == 0) {
--			/*
--			 * We've fully scanned this node. Go up. Because
--			 * last_index is guaranteed to be in the tree, what
--			 * we do below cannot wander astray.
--			 */
--			node = node->parent;
--			offset = (index >> node->shift) & RADIX_TREE_MAP_MASK;
--		}
--		if (is_sibling_entry(node, node->slots[offset]))
--			goto next;
--		if (tagged >= nr_to_tag)
--			break;
--	}
--
--	*first_indexp = index;
--
--	return tagged;
--}
--EXPORT_SYMBOL(radix_tree_range_tag_if_tagged);
--
--/**
-  *	radix_tree_gang_lookup - perform multiple lookup on a radix tree
-  *	@root:		radix tree root
-  *	@results:	where the results of the lookup are placed
-diff -puN mm/page-writeback.c~radix-tree-delete-radix_tree_range_tag_if_tagged mm/page-writeback.c
---- a/mm/page-writeback.c~radix-tree-delete-radix_tree_range_tag_if_tagged
-+++ a/mm/page-writeback.c
-@@ -2106,18 +2106,26 @@ void tag_pages_for_writeback(struct addr
- 			     pgoff_t start, pgoff_t end)
- {
- #define WRITEBACK_TAG_BATCH 4096
--	unsigned long tagged;
-+	unsigned long tagged = 0;
-+	struct radix_tree_iter iter;
-+	void **slot;
- 
--	do {
--		spin_lock_irq(&mapping->tree_lock);
--		tagged = radix_tree_range_tag_if_tagged(&mapping->page_tree,
--				&start, end, WRITEBACK_TAG_BATCH,
--				PAGECACHE_TAG_DIRTY, PAGECACHE_TAG_TOWRITE);
-+	spin_lock_irq(&mapping->tree_lock);
-+	radix_tree_for_each_tagged(slot, &mapping->page_tree, &iter, start,
-+							PAGECACHE_TAG_DIRTY) {
-+		if (iter.index > end)
-+			break;
-+		radix_tree_iter_tag_set(&mapping->page_tree, &iter,
-+							PAGECACHE_TAG_TOWRITE);
-+		tagged++;
-+		if ((tagged % WRITEBACK_TAG_BATCH) != 0)
++	for (;;) {
++		void *entry = child->slots[offset];
++		if (radix_tree_is_internal_node(entry) &&
++					!is_sibling_entry(child, entry)) {
++			child = entry_to_node(entry);
++			offset = 0;
 +			continue;
-+		slot = radix_tree_iter_resume(slot, &iter);
- 		spin_unlock_irq(&mapping->tree_lock);
--		WARN_ON_ONCE(tagged > WRITEBACK_TAG_BATCH);
- 		cond_resched();
--		/* We check 'start' to handle wrapping when end == ~0UL */
--	} while (tagged >= WRITEBACK_TAG_BATCH && start);
-+		spin_lock_irq(&mapping->tree_lock);
-+	}
-+	spin_unlock_irq(&mapping->tree_lock);
- }
- EXPORT_SYMBOL(tag_pages_for_writeback);
- 
-diff -puN tools/testing/radix-tree/main.c~radix-tree-delete-radix_tree_range_tag_if_tagged tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-delete-radix_tree_range_tag_if_tagged
-+++ a/tools/testing/radix-tree/main.c
-@@ -205,8 +205,7 @@ void copy_tag_check(void)
- 	}
- 
- //	printf("\ncopying tags...\n");
--	cur = start;
--	tagged = radix_tree_range_tag_if_tagged(&tree, &cur, end, ITEMS, 0, 1);
-+	tagged = tag_tagged_items(&tree, NULL, start, end, ITEMS, 0, 1);
- 
- //	printf("checking copied tags\n");
- 	assert(tagged == count);
-@@ -214,16 +213,13 @@ void copy_tag_check(void)
- 
- 	/* Copy tags in several rounds */
- //	printf("\ncopying tags...\n");
--	cur = start;
--	do {
--		tmp = rand() % (count/10+2);
--		tagged = radix_tree_range_tag_if_tagged(&tree, &cur, end, tmp, 0, 2);
--	} while (tmp == tagged);
-+	tmp = rand() % (count / 10 + 2);
-+	tagged = tag_tagged_items(&tree, NULL, start, end, tmp, 0, 2);
-+	assert(tagged == count);
- 
- //	printf("%lu %lu %lu\n", tagged, tmp, count);
- //	printf("checking copied tags\n");
- 	check_copied_tags(&tree, start, end, idx, ITEMS, 0, 2);
--	assert(tagged < tmp);
- 	verify_tag_consistency(&tree, 0);
- 	verify_tag_consistency(&tree, 1);
- 	verify_tag_consistency(&tree, 2);
-diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-delete-radix_tree_range_tag_if_tagged tools/testing/radix-tree/multiorder.c
---- a/tools/testing/radix-tree/multiorder.c~radix-tree-delete-radix_tree_range_tag_if_tagged
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -26,7 +26,6 @@ static void __multiorder_tag_test(int in
- {
- 	RADIX_TREE(tree, GFP_KERNEL);
- 	int base, err, i;
--	unsigned long first = 0;
- 
- 	/* our canonical entry */
- 	base = index & ~((1 << order) - 1);
-@@ -60,7 +59,7 @@ static void __multiorder_tag_test(int in
- 		assert(!radix_tree_tag_get(&tree, i, 1));
- 	}
- 
--	assert(radix_tree_range_tag_if_tagged(&tree, &first, ~0UL, 10, 0, 1) == 1);
-+	assert(tag_tagged_items(&tree, NULL, 0, ~0UL, 10, 0, 1) == 1);
- 	assert(radix_tree_tag_clear(&tree, index, 0));
- 
- 	for_each_index(i, base, order) {
-@@ -251,7 +250,6 @@ void multiorder_tagged_iteration(void)
- 	RADIX_TREE(tree, GFP_KERNEL);
- 	struct radix_tree_iter iter;
- 	void **slot;
--	unsigned long first = 0;
- 	int i, j;
- 
- 	printf("Multiorder tagged iteration test\n");
-@@ -296,8 +294,8 @@ void multiorder_tagged_iteration(void)
- 		}
- 	}
- 
--	radix_tree_range_tag_if_tagged(&tree, &first, ~0UL,
--					MT_NUM_ENTRIES, 1, 2);
-+	assert(tag_tagged_items(&tree, NULL, 0, ~0UL, TAG_ENTRIES, 1, 2) ==
-+				TAG_ENTRIES);
- 
- 	for (j = 0; j < 256; j++) {
- 		int mask, k;
-@@ -323,9 +321,8 @@ void multiorder_tagged_iteration(void)
- 		}
- 	}
- 
--	first = 1;
--	radix_tree_range_tag_if_tagged(&tree, &first, ~0UL,
--					MT_NUM_ENTRIES, 1, 0);
-+	assert(tag_tagged_items(&tree, NULL, 1, ~0UL, MT_NUM_ENTRIES * 2, 1, 0)
-+			== TAG_ENTRIES);
- 	i = 0;
- 	radix_tree_for_each_tagged(slot, &tree, &iter, 0, 0) {
- 		assert(iter.index == tag_index[i]);
-diff -puN tools/testing/radix-tree/regression2.c~radix-tree-delete-radix_tree_range_tag_if_tagged tools/testing/radix-tree/regression2.c
---- a/tools/testing/radix-tree/regression2.c~radix-tree-delete-radix_tree_range_tag_if_tagged
-+++ a/tools/testing/radix-tree/regression2.c
-@@ -50,6 +50,7 @@
- #include <stdio.h>
- 
- #include "regression.h"
-+#include "test.h"
- 
- #define PAGECACHE_TAG_DIRTY     0
- #define PAGECACHE_TAG_WRITEBACK 1
-@@ -90,7 +91,7 @@ void regression2_test(void)
- 	/* 1. */
- 	start = 0;
- 	end = max_slots - 2;
--	radix_tree_range_tag_if_tagged(&mt_tree, &start, end, 1,
-+	tag_tagged_items(&mt_tree, NULL, start, end, 1,
- 				PAGECACHE_TAG_DIRTY, PAGECACHE_TAG_TOWRITE);
- 
- 	/* 2. */
-diff -puN tools/testing/radix-tree/tag_check.c~radix-tree-delete-radix_tree_range_tag_if_tagged tools/testing/radix-tree/tag_check.c
---- a/tools/testing/radix-tree/tag_check.c~radix-tree-delete-radix_tree_range_tag_if_tagged
-+++ a/tools/testing/radix-tree/tag_check.c
-@@ -23,7 +23,7 @@ __simple_checks(struct radix_tree_root *
- 	item_tag_set(tree, index, tag);
- 	ret = item_tag_get(tree, index, tag);
- 	assert(ret != 0);
--	ret = radix_tree_range_tag_if_tagged(tree, &first, ~0UL, 10, tag, !tag);
-+	ret = tag_tagged_items(tree, NULL, first, ~0UL, 10, tag, !tag);
- 	assert(ret == 1);
- 	ret = item_tag_get(tree, index, !tag);
- 	assert(ret != 0);
-@@ -320,7 +320,7 @@ static void single_check(void)
- 	assert(ret == 0);
- 	verify_tag_consistency(&tree, 0);
- 	verify_tag_consistency(&tree, 1);
--	ret = radix_tree_range_tag_if_tagged(&tree, &first, 10, 10, 0, 1);
-+	ret = tag_tagged_items(&tree, NULL, first, 10, 10, 0, 1);
- 	assert(ret == 1);
- 	ret = radix_tree_gang_lookup_tag(&tree, (void **)items, 0, BATCH, 1);
- 	assert(ret == 1);
-diff -puN tools/testing/radix-tree/test.c~radix-tree-delete-radix_tree_range_tag_if_tagged tools/testing/radix-tree/test.c
---- a/tools/testing/radix-tree/test.c~radix-tree-delete-radix_tree_range_tag_if_tagged
-+++ a/tools/testing/radix-tree/test.c
-@@ -151,6 +151,40 @@ void item_full_scan(struct radix_tree_ro
- 	assert(nfound == 0);
- }
- 
-+/* Use the same pattern as tag_pages_for_writeback() in mm/page-writeback.c */
-+int tag_tagged_items(struct radix_tree_root *root, pthread_mutex_t *lock,
-+			unsigned long start, unsigned long end, unsigned batch,
-+			unsigned iftag, unsigned thentag)
-+{
-+	unsigned long tagged = 0;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+
-+	if (batch == 0)
-+		batch = 1;
-+
-+	if (lock)
-+		pthread_mutex_lock(lock);
-+	radix_tree_for_each_tagged(slot, root, &iter, start, iftag) {
-+		if (iter.index > end)
-+			break;
-+		radix_tree_iter_tag_set(root, &iter, thentag);
-+		tagged++;
-+		if ((tagged % batch) != 0)
-+			continue;
-+		slot = radix_tree_iter_resume(slot, &iter);
-+		if (lock) {
-+			pthread_mutex_unlock(lock);
-+			rcu_barrier();
-+			pthread_mutex_lock(lock);
++		}
++		offset++;
++		while (offset == RADIX_TREE_MAP_SIZE) {
++			struct radix_tree_node *old = child;
++			offset = child->offset + 1;
++			child = child->parent;
++			radix_tree_node_free(old);
++			if (old == entry_to_node(node))
++				return;
 +		}
 +	}
-+	if (lock)
-+		pthread_mutex_unlock(lock);
-+
-+	return tagged;
 +}
 +
- /* Use the same pattern as find_swap_entry() in mm/shmem.c */
- unsigned long find_item(struct radix_tree_root *root, void *item)
++static inline int insert_entries(struct radix_tree_node *node, void **slot,
++				void *item, unsigned order, bool replace)
++{
++	struct radix_tree_node *child;
++	unsigned i, n, tag, offset, tags = 0;
++
++	if (node) {
++		n = 1 << (order - node->shift);
++		offset = get_slot_offset(node, slot);
++	} else {
++		n = 1;
++		offset = 0;
++	}
++
++	if (n > 1) {
+ 		offset = offset & ~(n - 1);
+ 		slot = &node->slots[offset];
+-		child = node_to_entry(slot);
+-		for (i = 0; i < n; i++) {
+-			if (slot[i])
++	}
++	child = node_to_entry(slot);
++
++	for (i = 0; i < n; i++) {
++		if (slot[i]) {
++			if (replace) {
++				node->count--;
++				for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++)
++					if (tag_get(node, tag, offset + i))
++						tags |= 1 << tag;
++			} else
+ 				return -EEXIST;
+ 		}
++	}
+ 
+-		for (i = 1; i < n; i++) {
++	for (i = 0; i < n; i++) {
++		struct radix_tree_node *old = slot[i];
++		if (i) {
+ 			rcu_assign_pointer(slot[i], child);
+-			node->count++;
++			for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++)
++				if (tags & (1 << tag))
++					tag_clear(node, tag, offset + i);
++		} else {
++			rcu_assign_pointer(slot[i], item);
++			for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++)
++				if (tags & (1 << tag))
++					tag_set(node, tag, offset);
+ 		}
++		if (radix_tree_is_internal_node(old) &&
++					!is_sibling_entry(node, old))
++			radix_tree_free_nodes(old);
++		if (radix_tree_exceptional_entry(old))
++			node->exceptional--;
+ 	}
+-#endif
+-
+-	if (nodep)
+-		*nodep = node;
+-	if (slotp)
+-		*slotp = slot;
+-	return 0;
++	if (node) {
++		node->count += n;
++		if (radix_tree_exceptional_entry(item))
++			node->exceptional += n;
++	}
++	return n;
++}
++#else
++static inline int insert_entries(struct radix_tree_node *node, void **slot,
++				void *item, unsigned order, bool replace)
++{
++	if (*slot)
++		return -EEXIST;
++	rcu_assign_pointer(*slot, item);
++	if (node) {
++		node->count++;
++		if (radix_tree_exceptional_entry(item))
++			node->exceptional++;
++	}
++	return 1;
+ }
++#endif
+ 
+ /**
+  *	__radix_tree_insert    -    insert into a radix tree
+@@ -757,15 +846,13 @@ int __radix_tree_insert(struct radix_tre
+ 	error = __radix_tree_create(root, index, order, &node, &slot);
+ 	if (error)
+ 		return error;
+-	if (*slot != NULL)
+-		return -EEXIST;
+-	rcu_assign_pointer(*slot, item);
++
++	error = insert_entries(node, slot, item, order, false);
++	if (error < 0)
++		return error;
+ 
+ 	if (node) {
+ 		unsigned offset = get_slot_offset(node, slot);
+-		node->count++;
+-		if (radix_tree_exceptional_entry(item))
+-			node->exceptional++;
+ 		BUG_ON(tag_get(node, 0, offset));
+ 		BUG_ON(tag_get(node, 1, offset));
+ 		BUG_ON(tag_get(node, 2, offset));
+@@ -942,6 +1029,40 @@ void radix_tree_replace_slot(struct radi
+ 	replace_slot(root, NULL, slot, item, true);
+ }
+ 
++#ifdef CONFIG_RADIX_TREE_MULTIORDER
++/**
++ * radix_tree_join - replace multiple entries with one multiorder entry
++ * @root: radix tree root
++ * @index: an index inside the new entry
++ * @order: order of the new entry
++ * @item: new entry
++ *
++ * Call this function to replace several entries with one larger entry.
++ * The existing entries are presumed to not need freeing as a result of
++ * this call.
++ *
++ * The replacement entry will have all the tags set on it that were set
++ * on any of the entries it is replacing.
++ */
++int radix_tree_join(struct radix_tree_root *root, unsigned long index,
++			unsigned order, void *item)
++{
++	struct radix_tree_node *node;
++	void **slot;
++	int error;
++
++	BUG_ON(radix_tree_is_internal_node(item));
++
++	error = __radix_tree_create(root, index, order, &node, &slot);
++	if (!error)
++		error = insert_entries(node, slot, item, order, true);
++	if (error > 0)
++		error = 0;
++
++	return error;
++}
++#endif
++
+ /**
+  *	radix_tree_tag_set - set a tag on a radix tree node
+  *	@root:		radix tree root
+diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-add-radix_tree_join tools/testing/radix-tree/multiorder.c
+--- a/tools/testing/radix-tree/multiorder.c~radix-tree-add-radix_tree_join
++++ a/tools/testing/radix-tree/multiorder.c
+@@ -332,6 +332,63 @@ void multiorder_tagged_iteration(void)
+ 	item_kill_tree(&tree);
+ }
+ 
++static void __multiorder_join(unsigned long index,
++				unsigned order1, unsigned order2)
++{
++	unsigned long loc;
++	void *item, *item2 = item_create(index + 1, order1);
++	RADIX_TREE(tree, GFP_KERNEL);
++
++	item_insert_order(&tree, index, order2);
++	item = radix_tree_lookup(&tree, index);
++	radix_tree_join(&tree, index + 1, order1, item2);
++	loc = find_item(&tree, item);
++	if (loc == -1)
++		free(item);
++	item = radix_tree_lookup(&tree, index + 1);
++	assert(item == item2);
++	item_kill_tree(&tree);
++}
++
++static void __multiorder_join2(unsigned order1, unsigned order2)
++{
++	RADIX_TREE(tree, GFP_KERNEL);
++	struct radix_tree_node *node;
++	void *item1 = item_create(0, order1);
++	void *item2;
++
++	item_insert_order(&tree, 0, order2);
++	radix_tree_insert(&tree, 1 << order2, (void *)0x12UL);
++	item2 = __radix_tree_lookup(&tree, 1 << order2, &node, NULL);
++	assert(item2 == (void *)0x12UL);
++	assert(node->exceptional == 1);
++
++	radix_tree_join(&tree, 0, order1, item1);
++	item2 = __radix_tree_lookup(&tree, 1 << order2, &node, NULL);
++	assert(item2 == item1);
++	assert(node->exceptional == 0);
++	item_kill_tree(&tree);
++}
++
++static void multiorder_join(void)
++{
++	int i, j, idx;
++
++	for (idx = 0; idx < 1024; idx = idx * 2 + 3) {
++		for (i = 1; i < 15; i++) {
++			for (j = 0; j < i; j++) {
++				__multiorder_join(idx, i, j);
++			}
++		}
++	}
++
++	for (i = 1; i < 15; i++) {
++		for (j = 0; j < i; j++) {
++			__multiorder_join2(i, j);
++		}
++	}
++}
++
+ void multiorder_checks(void)
  {
-diff -puN tools/testing/radix-tree/test.h~radix-tree-delete-radix_tree_range_tag_if_tagged tools/testing/radix-tree/test.h
---- a/tools/testing/radix-tree/test.h~radix-tree-delete-radix_tree_range_tag_if_tagged
-+++ a/tools/testing/radix-tree/test.h
-@@ -25,6 +25,9 @@ void item_full_scan(struct radix_tree_ro
- 			unsigned long nr, int chunk);
- void item_kill_tree(struct radix_tree_root *root);
- 
-+int tag_tagged_items(struct radix_tree_root *, pthread_mutex_t *,
-+			unsigned long start, unsigned long end, unsigned batch,
-+			unsigned iftag, unsigned thentag);
- unsigned long find_item(struct radix_tree_root *, void *item);
- 
- void tag_check(void);
+ 	int i;
+@@ -349,4 +406,5 @@ void multiorder_checks(void)
+ 	multiorder_tag_tests();
+ 	multiorder_iteration();
+ 	multiorder_tagged_iteration();
++	multiorder_join();
+ }
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-radix-tree-test-suite-fix-compilation.patch
+reimplement-idr-and-ida-using-the-radix-tree.patch
 
