@@ -1,215 +1,172 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm.patch removed from -mm tree
-Date: Thu, 15 Dec 2016 10:46:32 -0800
-Message-ID: <5852e508.jg6U+EEO7W0GyN92%akpm@linux-foundation.org>
+ igb-update-code-to-better-handle-incrementing-page-count.patch removed from -mm tree
+Date: Thu, 15 Dec 2016 10:46:07 -0800
+Message-ID: <5852e4ef.j3m9JEGDCzqycKjv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48776 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754238AbcLOSqw (ORCPT
+        with ESMTP id S1754550AbcLOSqw (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: klondike@klondike.es, pebolle@tiscali.nl, ppandit@redhat.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, geert@linux-m68k.org, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jeffrey.t.kirsher@intel.com, jejb@parisc-linux.org, jonas@southpole.se, keguang.zhang@gmail.com, lftan@altera.com, linux@armlinux.org.uk, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, ralf@linux-mips.org, realmz6@gmail.com, rkuo@codeaurora.org, tklauser@distanz.ch, vgupta@synopsys.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: allow again choice of the embedded initram compression algorithm
+     Subject: igb: update code to better handle incrementing page count
 has been removed from the -mm tree.  Its filename was
-     initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm.patch
+     igb-update-code-to-better-handle-incrementing-page-count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Francisco Blas Izquierdo Riera (klondike) <klondike@klondike.es>
-Subject: initramfs: allow again choice of the embedded initram compression algorithm
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: igb: update code to better handle incrementing page count
 
-Choosing the appropriate compression option when using an embedded
-initramfs can result in significant size differences in the resulting
-data.
+Update the driver code so that we do bulk updates of the page reference
+count instead of just incrementing it by one reference at a time.  The
+advantage to doing this is that we cut down on atomic operations and this
+in turn should give us a slight improvement in cycles per packet.  In
+addition if we eventually move this over to using build_skb the gains will
+be more noticeable.
 
-This is caused by avoiding double compression of the initramfs contents. 
-For example on my tests, choosing CONFIG_INITRAMFS_COMPRESSION_NONE when
-compressing the kernel using XZ) results in up to 500KiB differences (9MiB
-to 8.5MiB) in the kernel size as the dictionary will not get polluted with
-uncomprensible data and may reuse kernel data too.
-
-Despite embedding an uncompressed initramfs, a user may want to allow for
-a compressed extra initramfs to be passed using the rd system, for example
-to boot a recovery system.  9ba4bcb645898d ("initramfs: read CONFIG_RD_
-variables for initramfs compression") broke that behavior by making the
-choice based on CONFIG_RD_* instead of adding
-CONFIG_INITRAMFS_COMPRESSION_LZ4.  Saddly, CONFIG_RD_* is also used to
-choose the supported RD compression algorithms by the kernel and a user
-may want to support more than one.
-
-This patch also reverses 3e4e0f0a875 ("initramfs: remove "compression
-mode" choice") restoring back the "compression mode" choice and includes
-the CONFIG_INITRAMFS_COMPRESSION_LZ4 option which was never added.
-
-As a result the following options are added or readed affecting the embedded
-initramfs compression:
-INITRAMFS_COMPRESSION_NONE Do no compression
-INITRAMFS_COMPRESSION_GZIP Compress using gzip
-INITRAMFS_COMPRESSION_BZIP2 Compress using bzip2
-INITRAMFS_COMPRESSION_LZMA Compress using lzma
-INITRAMFS_COMPRESSION_XZ Compress using xz
-INITRAMFS_COMPRESSION_LZO Compress using lzo
-INITRAMFS_COMPRESSION_LZ4 Compress using lz4
-
-These depend on the corresponding CONFIG_RD_* option being set (except NONE
-which has no dependencies).
-
-This patch depends on the previous one (the previous version didn't) to
-simplify the way in which the algorithm is chosen and keep backwards
-compatibility with the behaviour introduced by 9ba4bcb645898 ("initramfs:
-read CONFIG_RD_ variables for initramfs compression").
-
-Link: http://lkml.kernel.org/r/57EAD77B.7090607@klondike.es
-Signed-off-by: Francisco Blas Izquierdo Riera (klondike) <klondike@klondike.es>
-Cc: P J P <ppandit@redhat.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>
+Link: http://lkml.kernel.org/r/20161110113616.76501.17072.stgit@ahduyck-blue-test.jf.intel.com
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Keguang Zhang <keguang.zhang@gmail.com>
+Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Tobias Klauser <tklauser@distanz.ch>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |  117 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 117 insertions(+)
+ drivers/net/ethernet/intel/igb/igb.h      |    7 ++++-
+ drivers/net/ethernet/intel/igb/igb_main.c |   26 +++++++++++++-------
+ 2 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN usr/Kconfig~initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm usr/Kconfig
---- a/usr/Kconfig~initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm
-+++ a/usr/Kconfig
-@@ -99,8 +99,125 @@ config RD_LZ4
- 	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
- 	  If unsure, say N.
+diff -puN drivers/net/ethernet/intel/igb/igb.h~igb-update-code-to-better-handle-incrementing-page-count drivers/net/ethernet/intel/igb/igb.h
+--- a/drivers/net/ethernet/intel/igb/igb.h~igb-update-code-to-better-handle-incrementing-page-count
++++ a/drivers/net/ethernet/intel/igb/igb.h
+@@ -210,7 +210,12 @@ struct igb_tx_buffer {
+ struct igb_rx_buffer {
+ 	dma_addr_t dma;
+ 	struct page *page;
+-	unsigned int page_offset;
++#if (BITS_PER_LONG > 32) || (PAGE_SIZE >= 65536)
++	__u32 page_offset;
++#else
++	__u16 page_offset;
++#endif
++	__u16 pagecnt_bias;
+ };
  
-+choice
-+	prompt "Built-in initramfs compression mode"
-+	depends on INITRAMFS_SOURCE!=""
-+	optional
-+	help
-+	  This option allows you to decide by which algorithm the builtin
-+	  initramfs will be compressed.  Several compression algorithms are
-+	  available, which differ in efficiency, compression and
-+	  decompression speed.  Compression speed is only relevant
-+	  when building a kernel.  Decompression speed is relevant at
-+	  each boot. Also the memory usage during decompression may become
-+	  relevant on memory constrained systems. This is usually based on the
-+	  dictionary size of the algorithm with algorithms like XZ and LZMA
-+	  featuring large dictionary sizes.
+ struct igb_tx_queue_stats {
+diff -puN drivers/net/ethernet/intel/igb/igb_main.c~igb-update-code-to-better-handle-incrementing-page-count drivers/net/ethernet/intel/igb/igb_main.c
+--- a/drivers/net/ethernet/intel/igb/igb_main.c~igb-update-code-to-better-handle-incrementing-page-count
++++ a/drivers/net/ethernet/intel/igb/igb_main.c
+@@ -3962,7 +3962,8 @@ static void igb_clean_rx_ring(struct igb
+ 				     PAGE_SIZE,
+ 				     DMA_FROM_DEVICE,
+ 				     DMA_ATTR_SKIP_CPU_SYNC);
+-		__free_page(buffer_info->page);
++		__page_frag_drain(buffer_info->page, 0,
++				  buffer_info->pagecnt_bias);
+ 
+ 		buffer_info->page = NULL;
+ 	}
+@@ -6834,13 +6835,15 @@ static bool igb_can_reuse_rx_page(struct
+ 				  struct page *page,
+ 				  unsigned int truesize)
+ {
++	unsigned int pagecnt_bias = rx_buffer->pagecnt_bias--;
 +
-+	  High compression options are mostly useful for users who are
-+	  low on RAM, since it reduces the memory consumption during
-+	  boot.
-+
-+	  Keep in mind that your build system needs to provide the appropriate
-+	  compression tool to compress the generated initram cpio file for
-+	  embedding.
-+
-+	  If in doubt, select 'None'
-+
-+config INITRAMFS_COMPRESSION_NONE
-+	bool "None"
-+	help
-+	  Do not compress the built-in initramfs at all. This may sound wasteful
-+	  in space, but, you should be aware that the built-in initramfs will be
-+	  compressed at a later stage anyways along with the rest of the kernel,
-+	  on those architectures that support this. However, not compressing the
-+	  initramfs may lead to slightly higher memory consumption during a
-+	  short time at boot, while both the cpio image and the unpacked
-+	  filesystem image will be present in memory simultaneously
-+
-+config INITRAMFS_COMPRESSION_GZIP
-+	bool "Gzip"
-+	depends on RD_GZIP
-+	help
-+	  Use the old and well tested gzip compression algorithm. Gzip provides
-+	  a good balance between compression ratio and decompression speed and
-+	  has a reasonable compression speed. It is also more likely to be
-+	  supported by your build system as the gzip tool is present by default
-+	  on most distros.
-+
-+config INITRAMFS_COMPRESSION_BZIP2
-+	bool "Bzip2"
-+	depends on RD_BZIP2
-+	help
-+	  It's compression ratio and speed is intermediate. Decompression speed
-+	  is slowest among the choices. The initramfs size is about 10% smaller
-+	  with bzip2, in comparison to gzip. Bzip2 uses a large amount of
-+	  memory. For modern kernels you will need at least 8MB RAM or more for
-+	  booting.
-+
-+	  If you choose this, keep in mind that you need to have the bzip2 tool
-+	  available to be able to compress the initram.
-+
-+config INITRAMFS_COMPRESSION_LZMA
-+	bool "LZMA"
-+	depends on RD_LZMA
-+	help
-+	  This algorithm's compression ratio is best but has a large dictionary
-+	  size which might cause issues in memory constrained systems.
-+	  Decompression speed is between the other choices. Compression is
-+	  slowest. The initramfs size is about 33% smaller with LZMA in
-+	  comparison to gzip.
-+
-+	  If you choose this, keep in mind that you may need to install the xz
-+	  or lzma tools to be able to compress the initram.
-+
-+config INITRAMFS_COMPRESSION_XZ
-+	bool "XZ"
-+	depends on RD_XZ
-+	help
-+	  XZ uses the LZMA2 algorithm and has a large dictionary which may cause
-+	  problems on memory constrained systems. The initramfs size is about
-+	  30% smaller with XZ in comparison to gzip. Decompression speed is
-+	  better than that of bzip2 but worse than gzip and LZO. Compression is
-+	  slow.
-+
-+	  If you choose this, keep in mind that you may need to install the xz
-+	  tool to be able to compress the initram.
-+
-+config INITRAMFS_COMPRESSION_LZO
-+	bool "LZO"
-+	depends on RD_LZO
-+	help
-+	  It's compression ratio is the second poorest amongst the choices. The
-+	  kernel size is about 10% bigger than gzip. Despite that, it's
-+	  decompression speed is the second fastest and it's compression speed
-+	  is quite fast too.
-+
-+	  If you choose this, keep in mind that you may need to install the lzop
-+	  tool to be able to compress the initram.
-+
-+config INITRAMFS_COMPRESSION_LZ4
-+	bool "LZ4"
-+	depends on RD_LZ4
-+	help
-+	  It's compression ratio is the poorest amongst the choices. The kernel
-+	  size is about 15% bigger than gzip; however its decompression speed
-+	  is the fastest.
-+
-+	  If you choose this, keep in mind that most distros don't provide lz4
-+	  by default which could cause a build failure.
-+
-+endchoice
-+
- config INITRAMFS_COMPRESSION
- 	string
-+	default ""      if INITRAMFS_COMPRESSION_NONE
-+	default ".gz"   if INITRAMFS_COMPRESSION_GZIP
-+	default ".bz2"  if INITRAMFS_COMPRESSION_BZIP2
-+	default ".lzma" if INITRAMFS_COMPRESSION_LZMA
-+	default ".xz"   if INITRAMFS_COMPRESSION_XZ
-+	default ".lzo"  if INITRAMFS_COMPRESSION_LZO
-+	default ".lz4"  if INITRAMFS_COMPRESSION_LZ4
- 	default ".gz"   if RD_GZIP
- 	default ".lz4"  if RD_LZ4
- 	default ".lzo"  if RD_LZO
+ 	/* avoid re-using remote pages */
+ 	if (unlikely(igb_page_is_reserved(page)))
+ 		return false;
+ 
+ #if (PAGE_SIZE < 8192)
+ 	/* if we are only owner of page we can reuse it */
+-	if (unlikely(page_count(page) != 1))
++	if (unlikely(page_ref_count(page) != pagecnt_bias))
+ 		return false;
+ 
+ 	/* flip page offset to other buffer */
+@@ -6853,10 +6856,14 @@ static bool igb_can_reuse_rx_page(struct
+ 		return false;
+ #endif
+ 
+-	/* Even if we own the page, we are not allowed to use atomic_set()
+-	 * This would break get_page_unless_zero() users.
+-	 */
+-	page_ref_inc(page);
++	/* If we have drained the page fragment pool we need to update
++	 * the pagecnt_bias and page count so that we fully restock the
++	 * number of references the driver holds.
++	 */
++	if (unlikely(pagecnt_bias == 1)) {
++		page_ref_add(page, USHRT_MAX);
++		rx_buffer->pagecnt_bias = USHRT_MAX;
++	}
+ 
+ 	return true;
+ }
+@@ -6908,7 +6915,6 @@ static bool igb_add_rx_frag(struct igb_r
+ 			return true;
+ 
+ 		/* this page cannot be reused so discard it */
+-		__free_page(page);
+ 		return false;
+ 	}
+ 
+@@ -6979,10 +6985,13 @@ static struct sk_buff *igb_fetch_rx_buff
+ 		/* hand second half of page back to the ring */
+ 		igb_reuse_rx_page(rx_ring, rx_buffer);
+ 	} else {
+-		/* we are not reusing the buffer so unmap it */
++		/* We are not reusing the buffer so unmap it and free
++		 * any references we are holding to it
++		 */
+ 		dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
+ 				     PAGE_SIZE, DMA_FROM_DEVICE,
+ 				     DMA_ATTR_SKIP_CPU_SYNC);
++		__page_frag_drain(page, 0, rx_buffer->pagecnt_bias);
+ 	}
+ 
+ 	/* clear contents of rx_buffer */
+@@ -7256,6 +7265,7 @@ static bool igb_alloc_mapped_page(struct
+ 	bi->dma = dma;
+ 	bi->page = page;
+ 	bi->page_offset = 0;
++	bi->pagecnt_bias = 1;
+ 
+ 	return true;
+ }
 _
 
-Patches currently in -mm which might be from klondike@klondike.es are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
 
