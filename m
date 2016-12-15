@@ -1,56 +1,48 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch removed from -mm tree
-Date: Thu, 15 Dec 2016 10:45:12 -0800
-Message-ID: <5852e4b8.3r3jOJri5YJKOIpl%akpm@linux-foundation.org>
+ revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
+ removed from -mm tree
+Date: Thu, 15 Dec 2016 10:45:09 -0800
+Message-ID: <5852e4b5.bGM31O+kD+RKNY5c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48370 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754473AbcLOSpN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:45:13 -0500
+        with ESMTP id S1753929AbcLOSpK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:45:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bhe@redhat.com, anderson@redhat.com, ats-kumagai@wm.jp.nec.com, d.hatayama@jp.fujitsu.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, panand@redhat.com, surovegin@google.com, takahiro.akashi@linaro.org, tglx@linutronix.de, thgarnie@google.com, vgoyal@redhat.com, xlpang@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: export the value of phys_base instead of symbol address
+     Subject: Revert "kdump, vmcoreinfo: report memory sections virtual addresses"
 has been removed from the -mm tree.  Its filename was
-     kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch
+     revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: kexec: export the value of phys_base instead of symbol address
+Subject: Revert "kdump, vmcoreinfo: report memory sections virtual addresses"
 
-Currently in x86_64, the symbol address of phys_base is exported to
-vmcoreinfo.  Dave Anderson complained this is really useless for his Crash
-implementation.  Because in user-space utility Crash and Makedumpfile
-which exported vmcore information is mainly used for, value of phys_base
-is needed to covert virtual address of exported kernel symbol to physical
-address.  Especially init_level4_pgt, if we want to access and go over the
-page table to look up a PA corresponding to VA, firstly we need calculate
+This reverts 0549a3c02efb3507 ("kdump, vmcoreinfo: report memory sections
+virtual addresses").
 
-  page_dir = SYMBOL(init_level4_pgt) - __START_KERNEL_map + phys_base;
+Commit 0549a3c tells the userspace utility makedumpfile the randomized
+base address of these memmory sections when mm kaslr is enabled.  However
+the following patch "kexec: export the value of phys_base instead of
+symbol address" makes makedumpfile not need these addresses any more.
 
-Now in Crash and Makedumpfile, we have to analyze the vmcore elf program
-header to get value of phys_base.  As Dave said, it would be preferable if
-it were readily availabl in vmcoreinfo rather than depending upon the
-PT_LOAD semantics.
+Besides we should use VMCOREINFO_NUMBER to export the value of the
+variable so that we can use the existing number_table mechanism of
+Makedumpfile to fetch it.  So revert it now.  If needed we can add it later.
 
-Hence in this patch change to export the value of phys_base instead of its
-virtual address.
-
-And people also complained that KERNEL_IMAGE_SIZE exporting is x86_64
-only, should be moved into arch dependent function
-arch_crash_save_vmcoreinfo.  Do the moving in this patch.
-
-Link: http://lkml.kernel.org/r/1478568596-30060-2-git-send-email-bhe@redhat.com
+http://lists.infradead.org/pipermail/kexec/2016-October/017540.html
+Link: http://lkml.kernel.org/r/1478568596-30060-1-git-send-email-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Thomas Garnier <thgarnie@google.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -71,43 +63,39 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    3 ++-
- kernel/kexec_core.c                |    3 ---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |    3 ---
+ include/linux/kexec.h              |    6 ------
+ 2 files changed, 9 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address
+diff -puN arch/x86/kernel/machine_kexec_64.c~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses
 +++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -328,7 +328,7 @@ void machine_kexec(struct kimage *image)
- 
- void arch_crash_save_vmcoreinfo(void)
- {
--	VMCOREINFO_SYMBOL(phys_base);
-+	VMCOREINFO_NUMBER(phys_base);
- 	VMCOREINFO_SYMBOL(init_level4_pgt);
- 
- #ifdef CONFIG_NUMA
-@@ -337,6 +337,7 @@ void arch_crash_save_vmcoreinfo(void)
+@@ -337,9 +337,6 @@ void arch_crash_save_vmcoreinfo(void)
  #endif
  	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
  			      kaslr_offset());
-+	VMCOREINFO_NUMBER(KERNEL_IMAGE_SIZE);
+-	VMCOREINFO_PAGE_OFFSET(PAGE_OFFSET);
+-	VMCOREINFO_VMALLOC_START(VMALLOC_START);
+-	VMCOREINFO_VMEMMAP_START(VMEMMAP_START);
  }
  
  /* arch-dependent functionality related to kexec file-based syscall */
-diff -puN kernel/kexec_core.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address
-+++ a/kernel/kexec_core.c
-@@ -1467,9 +1467,6 @@ static int __init crash_save_vmcoreinfo_
- #endif
- 	VMCOREINFO_NUMBER(PG_head_mask);
- 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
--#ifdef CONFIG_X86
--	VMCOREINFO_NUMBER(KERNEL_IMAGE_SIZE);
--#endif
- #ifdef CONFIG_HUGETLB_PAGE
- 	VMCOREINFO_NUMBER(HUGETLB_PAGE_DTOR);
- #endif
+diff -puN include/linux/kexec.h~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses include/linux/kexec.h
+--- a/include/linux/kexec.h~revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses
++++ a/include/linux/kexec.h
+@@ -259,12 +259,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ 	vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
+ #define VMCOREINFO_CONFIG(name) \
+ 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
+-#define VMCOREINFO_PAGE_OFFSET(value) \
+-	vmcoreinfo_append_str("PAGE_OFFSET=%lx\n", (unsigned long)value)
+-#define VMCOREINFO_VMALLOC_START(value) \
+-	vmcoreinfo_append_str("VMALLOC_START=%lx\n", (unsigned long)value)
+-#define VMCOREINFO_VMEMMAP_START(value) \
+-	vmcoreinfo_append_str("VMEMMAP_START=%lx\n", (unsigned long)value)
+ 
+ extern struct kimage *kexec_image;
+ extern struct kimage *kexec_crash_image;
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
