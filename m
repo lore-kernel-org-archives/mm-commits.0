@@ -1,215 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-vmf-page-during-wp-faults.patch removed from -mm
- tree
-Date: Thu, 15 Dec 2016 10:47:44 -0800
-Message-ID: <5852e550.W9FzAbMrhxv+bx0h%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-add-support-for-releasing-multiple-instances-of-a-page.patch removed
+ from -mm tree
+Date: Thu, 15 Dec 2016 10:46:01 -0800
+Message-ID: <5852e4e9.f7koZfC+Xbc32PWg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48750 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932852AbcLOSrp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:45 -0500
+        with ESMTP id S1754972AbcLOSqv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, geert@linux-m68k.org, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jeffrey.t.kirsher@intel.com, jejb@parisc-linux.org, jonas@southpole.se, keguang.zhang@gmail.com, lftan@altera.com, linux@armlinux.org.uk, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, ralf@linux-mips.org, realmz6@gmail.com, rkuo@codeaurora.org, tklauser@distanz.ch, vgupta@synopsys.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vmf->page during WP faults
+     Subject: mm: add support for releasing multiple instances of a page
 has been removed from the -mm tree.  Its filename was
-     mm-use-vmf-page-during-wp-faults.patch
+     mm-add-support-for-releasing-multiple-instances-of-a-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: use vmf->page during WP faults
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: mm: add support for releasing multiple instances of a page
 
-So far we set vmf->page during WP faults only when we needed to pass it to
-the ->page_mkwrite handler.  Set it in all the cases now and use that
-instead of passing page pointer explicitly around.
+Add a function that allows us to batch free a page that has multiple
+references outstanding.  Specifically this function can be used to drop a
+page being used in the page frag alloc cache.  With this drivers can make
+use of functionality similar to the page frag alloc cache without having
+to do any workarounds for the fact that there is no function that frees
+multiple references.
 
-Link: http://lkml.kernel.org/r/1479460644-25076-14-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: http://lkml.kernel.org/r/20161110113606.76501.70752.stgit@ahduyck-blue-test.jf.intel.com
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Keguang Zhang <keguang.zhang@gmail.com>
+Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Tobias Klauser <tklauser@distanz.ch>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   58 +++++++++++++++++++++++++-------------------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+ include/linux/gfp.h |    2 ++
+ mm/page_alloc.c     |   14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff -puN mm/memory.c~mm-use-vmf-page-during-wp-faults mm/memory.c
---- a/mm/memory.c~mm-use-vmf-page-during-wp-faults
-+++ a/mm/memory.c
-@@ -2102,11 +2102,12 @@ static void fault_dirty_shared_page(stru
-  * case, all we need to do here is to mark the page as writable and update
-  * any related book-keeping.
-  */
--static inline int wp_page_reuse(struct vm_fault *vmf, struct page *page,
-+static inline int wp_page_reuse(struct vm_fault *vmf,
- 				int page_mkwrite, int dirty_shared)
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
-+	struct page *page = vmf->page;
- 	pte_t entry;
- 	/*
- 	 * Clear the pages cpupid information as the existing
-@@ -2150,10 +2151,11 @@ static inline int wp_page_reuse(struct v
-  *   held to the old page, as well as updating the rmap.
-  * - In any case, unlock the PTL and drop the reference we took to the old page.
-  */
--static int wp_page_copy(struct vm_fault *vmf, struct page *old_page)
-+static int wp_page_copy(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct page *old_page = vmf->page;
- 	struct page *new_page = NULL;
- 	pte_t entry;
- 	int page_copied = 0;
-@@ -2305,26 +2307,25 @@ static int wp_pfn_shared(struct vm_fault
- 			return 0;
- 		}
- 	}
--	return wp_page_reuse(vmf, NULL, 0, 0);
-+	return wp_page_reuse(vmf, 0, 0);
+diff -puN include/linux/gfp.h~mm-add-support-for-releasing-multiple-instances-of-a-page include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-add-support-for-releasing-multiple-instances-of-a-page
++++ a/include/linux/gfp.h
+@@ -506,6 +506,8 @@ extern void free_hot_cold_page(struct pa
+ extern void free_hot_cold_page_list(struct list_head *list, bool cold);
+ 
+ struct page_frag_cache;
++extern void __page_frag_drain(struct page *page, unsigned int order,
++			      unsigned int count);
+ extern void *__alloc_page_frag(struct page_frag_cache *nc,
+ 			       unsigned int fragsz, gfp_t gfp_mask);
+ extern void __free_page_frag(void *addr);
+diff -puN mm/page_alloc.c~mm-add-support-for-releasing-multiple-instances-of-a-page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-support-for-releasing-multiple-instances-of-a-page
++++ a/mm/page_alloc.c
+@@ -3925,6 +3925,20 @@ static struct page *__page_frag_refill(s
+ 	return page;
  }
  
--static int wp_page_shared(struct vm_fault *vmf, struct page *old_page)
-+static int wp_page_shared(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
++void __page_frag_drain(struct page *page, unsigned int order,
++		       unsigned int count)
++{
++	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
++
++	if (page_ref_sub_and_test(page, count)) {
++		if (order == 0)
++			free_hot_cold_page(page, false);
++		else
++			__free_pages_ok(page, order);
++	}
++}
++EXPORT_SYMBOL(__page_frag_drain);
++
+ void *__alloc_page_frag(struct page_frag_cache *nc,
+ 			unsigned int fragsz, gfp_t gfp_mask)
  {
- 	struct vm_area_struct *vma = vmf->vma;
- 	int page_mkwrite = 0;
- 
--	get_page(old_page);
-+	get_page(vmf->page);
- 
- 	if (vma->vm_ops && vma->vm_ops->page_mkwrite) {
- 		int tmp;
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		vmf->page = old_page;
- 		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp || (tmp &
- 				      (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
--			put_page(old_page);
-+			put_page(vmf->page);
- 			return tmp;
- 		}
- 		/*
-@@ -2336,15 +2337,15 @@ static int wp_page_shared(struct vm_faul
- 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 						vmf->address, &vmf->ptl);
- 		if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--			unlock_page(old_page);
-+			unlock_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			put_page(old_page);
-+			put_page(vmf->page);
- 			return 0;
- 		}
- 		page_mkwrite = 1;
- 	}
- 
--	return wp_page_reuse(vmf, old_page, page_mkwrite, 1);
-+	return wp_page_reuse(vmf, page_mkwrite, 1);
- }
- 
- /*
-@@ -2369,10 +2370,9 @@ static int do_wp_page(struct vm_fault *v
- 	__releases(vmf->ptl)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *old_page;
- 
--	old_page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
--	if (!old_page) {
-+	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
-+	if (!vmf->page) {
- 		/*
- 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
- 		 * VM_PFNMAP VMA.
-@@ -2385,30 +2385,30 @@ static int do_wp_page(struct vm_fault *v
- 			return wp_pfn_shared(vmf);
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		return wp_page_copy(vmf, old_page);
-+		return wp_page_copy(vmf);
- 	}
- 
- 	/*
- 	 * Take out anonymous pages first, anonymous shared vmas are
- 	 * not dirty accountable.
- 	 */
--	if (PageAnon(old_page) && !PageKsm(old_page)) {
-+	if (PageAnon(vmf->page) && !PageKsm(vmf->page)) {
- 		int total_mapcount;
--		if (!trylock_page(old_page)) {
--			get_page(old_page);
-+		if (!trylock_page(vmf->page)) {
-+			get_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			lock_page(old_page);
-+			lock_page(vmf->page);
- 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 					vmf->address, &vmf->ptl);
- 			if (!pte_same(*vmf->pte, vmf->orig_pte)) {
--				unlock_page(old_page);
-+				unlock_page(vmf->page);
- 				pte_unmap_unlock(vmf->pte, vmf->ptl);
--				put_page(old_page);
-+				put_page(vmf->page);
- 				return 0;
- 			}
--			put_page(old_page);
-+			put_page(vmf->page);
- 		}
--		if (reuse_swap_page(old_page, &total_mapcount)) {
-+		if (reuse_swap_page(vmf->page, &total_mapcount)) {
- 			if (total_mapcount == 1) {
- 				/*
- 				 * The page is all ours. Move it to
-@@ -2417,24 +2417,24 @@ static int do_wp_page(struct vm_fault *v
- 				 * Protected against the rmap code by
- 				 * the page lock.
- 				 */
--				page_move_anon_rmap(old_page, vma);
-+				page_move_anon_rmap(vmf->page, vma);
- 			}
--			unlock_page(old_page);
--			return wp_page_reuse(vmf, old_page, 0, 0);
-+			unlock_page(vmf->page);
-+			return wp_page_reuse(vmf, 0, 0);
- 		}
--		unlock_page(old_page);
-+		unlock_page(vmf->page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 					(VM_WRITE|VM_SHARED))) {
--		return wp_page_shared(vmf, old_page);
-+		return wp_page_shared(vmf);
- 	}
- 
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
--	get_page(old_page);
-+	get_page(vmf->page);
- 
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
--	return wp_page_copy(vmf, old_page);
-+	return wp_page_copy(vmf);
- }
- 
- static void unmap_mapping_range_vma(struct vm_area_struct *vma,
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
 
