@@ -1,68 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
- removed from -mm tree
-Date: Thu, 15 Dec 2016 10:46:38 -0800
-Message-ID: <5852e50e.Xp2UjuYYP3RCMXYA%akpm@linux-foundation.org>
+Subject: [merged] ipc-msg-make-msgrcv-work-with-long_min.patch removed
+ from -mm tree
+Date: Thu, 15 Dec 2016 10:46:34 -0800
+Message-ID: <5852e50a.i3QrUkTKlPw9qUPJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755225AbcLOSqw (ORCPT
+        with ESMTP id S1755916AbcLOSqw (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.pitre@linaro.org, josh@joshtriplett.org, nico@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: posix-timers: give lazy compilers some help optimizing code away
+     Subject: ipc: msg, make msgrcv work with LONG_MIN
 has been removed from the -mm tree.  Its filename was
-     posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
+     ipc-msg-make-msgrcv-work-with-long_min.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: posix-timers: give lazy compilers some help optimizing code away
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: ipc: msg, make msgrcv work with LONG_MIN
 
-The OpenRISC compiler (so far) fails to optimize away a large portion
-of code containing a reference to posix_timer_event in alarmtimer.c when
-CONFIG_POSIX_TIMERS is unset. Let's give it a direct clue to let the build
-succeed.
+When LONG_MIN is passed to msgrcv, one would expect to recieve any
+message.  But convert_mode does *msgtyp = -*msgtyp and -LONG_MIN is
+undefined.  In particular, with my gcc -LONG_MIN produces -LONG_MIN again.
 
-This fixes
-[linux-next:master 6682/7183] alarmtimer.c:undefined reference to `posix_timer_event'
-reported by kbuild test robot.
+So handle this case properly by assigning LONG_MAX to *msgtyp if LONG_MIN
+was specified as msgtyp to msgrcv.
 
-Signed-off-by: Nicolas Pitre <nico@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Josh Triplett <josh@joshtriplett.org>
+This code:
+  long msg[] = { 100, 200 };
+  int m = msgget(IPC_PRIVATE, IPC_CREAT | 0644);
+  msgsnd(m, &msg, sizeof(msg), 0);
+  msgrcv(m, &msg, sizeof(msg), LONG_MIN, 0);
+produces currently nothing:
+  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 65538
+  msgsnd(65538, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
+  msgrcv(65538, ...
 
+Except a UBSAN warning:
+UBSAN: Undefined behaviour in ipc/msg.c:745:13
+negation of -9223372036854775808 cannot be represented in type 'long int':
+
+With the patch, I see what I expect:
+  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 0
+  msgsnd(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
+  msgrcv(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, -9223372036854775808, 0) = 16
+
+Link: http://lkml.kernel.org/r/20161024082633.10148-1-jslaby@suse.cz
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/alarmtimer.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ ipc/msg.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/time/alarmtimer.c~posix-timers-give-lazy-compilers-some-help-optimizing-code-away kernel/time/alarmtimer.c
---- a/kernel/time/alarmtimer.c~posix-timers-give-lazy-compilers-some-help-optimizing-code-away
-+++ a/kernel/time/alarmtimer.c
-@@ -516,7 +516,8 @@ static enum alarmtimer_restart alarm_han
- 
- 	spin_lock_irqsave(&ptr->it_lock, flags);
- 	if ((ptr->it_sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_NONE) {
--		if (posix_timer_event(ptr, 0) != 0)
-+		if (IS_ENABLED(CONFIG_POSIX_TIMERS) &&
-+		    posix_timer_event(ptr, 0) != 0)
- 			ptr->it_overrun++;
+diff -puN ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min ipc/msg.c
+--- a/ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min
++++ a/ipc/msg.c
+@@ -763,7 +763,10 @@ static inline int convert_mode(long *msg
+ 	if (*msgtyp == 0)
+ 		return SEARCH_ANY;
+ 	if (*msgtyp < 0) {
+-		*msgtyp = -*msgtyp;
++		if (*msgtyp == LONG_MIN) /* -LONG_MIN is undefined */
++			*msgtyp = LONG_MAX;
++		else
++			*msgtyp = -*msgtyp;
+ 		return SEARCH_LESSEQUAL;
  	}
- 
+ 	if (msgflg & MSG_EXCEPT)
 _
 
-Patches currently in -mm which might be from nicolas.pitre@linaro.org are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
 
