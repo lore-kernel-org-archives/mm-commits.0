@@ -1,76 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-clarify-unsafe-core_pattern-warning.patch
- removed from -mm tree
-Date: Thu, 15 Dec 2016 10:45:07 -0800
-Message-ID: <5852e4b3./n72t1OKi5rnQr7S%akpm@linux-foundation.org>
+Subject: [merged]
+ kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch removed from -mm tree
+Date: Thu, 15 Dec 2016 10:45:12 -0800
+Message-ID: <5852e4b8.3r3jOJri5YJKOIpl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48396 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753929AbcLOSpI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:45:08 -0500
+        with ESMTP id S1754473AbcLOSpN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:45:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: bhe@redhat.com, anderson@redhat.com, ats-kumagai@wm.jp.nec.com, d.hatayama@jp.fujitsu.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, panand@redhat.com, surovegin@google.com, takahiro.akashi@linaro.org, tglx@linutronix.de, thgarnie@google.com, vgoyal@redhat.com, xlpang@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: clarify "unsafe core_pattern" warning
+     Subject: kexec: export the value of phys_base instead of symbol address
 has been removed from the -mm tree.  Its filename was
-     coredump-clarify-unsafe-core_pattern-warning.patch
+     kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: coredump: clarify "unsafe core_pattern" warning
+From: Baoquan He <bhe@redhat.com>
+Subject: kexec: export the value of phys_base instead of symbol address
 
-I was amused to find "unsafe core_pattern" warning having these lines in
-/etc/sysctl.conf:
+Currently in x86_64, the symbol address of phys_base is exported to
+vmcoreinfo.  Dave Anderson complained this is really useless for his Crash
+implementation.  Because in user-space utility Crash and Makedumpfile
+which exported vmcore information is mainly used for, value of phys_base
+is needed to covert virtual address of exported kernel symbol to physical
+address.  Especially init_level4_pgt, if we want to access and go over the
+page table to look up a PA corresponding to VA, firstly we need calculate
 
-	fs.suid_dumpable=2
-	kernel.core_pattern=/core/core-%e-%p-%E
-	kernel.core_uses_pid=0
+  page_dir = SYMBOL(init_level4_pgt) - __START_KERNEL_map + phys_base;
 
-Turns out kernel is formally right.  Default core_pattern is just "core",
-which doesn't qualify for secure path while setting suid.dumpable.
+Now in Crash and Makedumpfile, we have to analyze the vmcore elf program
+header to get value of phys_base.  As Dave said, it would be preferable if
+it were readily availabl in vmcoreinfo rather than depending upon the
+PT_LOAD semantics.
 
-Hint admins about solution, clarify sysctl names, delete unnecessary '\'
-characters (string literals are concatenated regardless) and reformat for
-easier grepping.
+Hence in this patch change to export the value of phys_base instead of its
+virtual address.
 
-Link: http://lkml.kernel.org/r/20161029152124.GA1258@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
+And people also complained that KERNEL_IMAGE_SIZE exporting is x86_64
+only, should be moved into arch dependent function
+arch_crash_save_vmcoreinfo.  Do the moving in this patch.
+
+Link: http://lkml.kernel.org/r/1478568596-30060-2-git-send-email-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Xunlei Pang <xlpang@redhat.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Eugene Surovegin <surovegin@google.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
+Cc: Atsushi Kumagai <ats-kumagai@wm.jp.nec.com>
+Cc: Dave Anderson <anderson@redhat.com>
+Cc: Pratyush Anand <panand@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |    3 ++-
+ kernel/kexec_core.c                |    3 ---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sysctl.c~coredump-clarify-unsafe-core_pattern-warning kernel/sysctl.c
---- a/kernel/sysctl.c~coredump-clarify-unsafe-core_pattern-warning
-+++ a/kernel/sysctl.c
-@@ -2389,9 +2389,11 @@ static void validate_coredump_safety(voi
- #ifdef CONFIG_COREDUMP
- 	if (suid_dumpable == SUID_DUMP_ROOT &&
- 	    core_pattern[0] != '/' && core_pattern[0] != '|') {
--		printk(KERN_WARNING "Unsafe core_pattern used with "\
--			"suid_dumpable=2. Pipe handler or fully qualified "\
--			"core dump path required.\n");
-+		printk(KERN_WARNING
-+"Unsafe core_pattern used with fs.suid_dumpable=2.\n"
-+"Pipe handler or fully qualified core dump path required.\n"
-+"Set kernel.core_pattern before fs.suid_dumpable.\n"
-+		);
- 	}
+diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -328,7 +328,7 @@ void machine_kexec(struct kimage *image)
+ 
+ void arch_crash_save_vmcoreinfo(void)
+ {
+-	VMCOREINFO_SYMBOL(phys_base);
++	VMCOREINFO_NUMBER(phys_base);
+ 	VMCOREINFO_SYMBOL(init_level4_pgt);
+ 
+ #ifdef CONFIG_NUMA
+@@ -337,6 +337,7 @@ void arch_crash_save_vmcoreinfo(void)
  #endif
+ 	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
+ 			      kaslr_offset());
++	VMCOREINFO_NUMBER(KERNEL_IMAGE_SIZE);
  }
+ 
+ /* arch-dependent functionality related to kexec file-based syscall */
+diff -puN kernel/kexec_core.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address
++++ a/kernel/kexec_core.c
+@@ -1467,9 +1467,6 @@ static int __init crash_save_vmcoreinfo_
+ #endif
+ 	VMCOREINFO_NUMBER(PG_head_mask);
+ 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
+-#ifdef CONFIG_X86
+-	VMCOREINFO_NUMBER(KERNEL_IMAGE_SIZE);
+-#endif
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	VMCOREINFO_NUMBER(HUGETLB_PAGE_DTOR);
+ #endif
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
 
