@@ -1,40 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-test-suite-track-preempt_count.patch removed
- from -mm tree
-Date: Thu, 15 Dec 2016 10:48:08 -0800
-Message-ID: <5852e568.RryMwxRlCID5mrFi%akpm@linux-foundation.org>
+Subject: [merged] radix-tree-test-suite-make-runs-more-reproducible.patch
+ removed from -mm tree
+Date: Thu, 15 Dec 2016 10:48:14 -0800
+Message-ID: <5852e56e.jSSA3MjuoVSjtaZ8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49136 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932852AbcLOSsJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:48:09 -0500
+        with ESMTP id S932852AbcLOSsP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:48:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@infradead.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: track preempt_count
+     Subject: radix tree test suite: make runs more reproducible
 has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-track-preempt_count.patch
+     radix-tree-test-suite-make-runs-more-reproducible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@infradead.org>
-Subject: radix tree test suite: track preempt_count
+Subject: radix tree test suite: make runs more reproducible
 
-Rather than simply NOP out preempt_enable() and preempt_disable(), keep
-track of preempt_count and display it regularly in case either the test
-suite or the code under test is forgetting to balance the enables &
-disables.  Only found a test-case that was forgetting to re-enable
-preemption, but it's a possibility worth checking.
+Instead of reseeding the random number generator every time around the
+loop in big_gang_check(), seed it at the beginning of execution.  Use
+rand_r() and an independent base seed for each thread in iteration_test()
+so they don't stomp all over each others state.  Since this particular
+test depends on the kernel scheduler, the iteration test can't be
+reproduced based purely on the random seed, but at least it won't pollute
+the other tests.
 
-Link: http://lkml.kernel.org/r/1480369871-5271-39-git-send-email-mawilcox@linuxonhyperv.com
+Print the seed, and allow the seed to be specified so that a run which
+hits a problem can be reproduced.
+
+Link: http://lkml.kernel.org/r/1480369871-5271-41-git-send-email-mawilcox@linuxonhyperv.com
 Signed-off-by: Matthew Wilcox <willy@infradead.org>
 Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -43,92 +48,92 @@ Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux.c         |    1 
- tools/testing/radix-tree/linux/preempt.h |    6 ++--
- tools/testing/radix-tree/main.c          |   30 ++++++++++++++-------
- 3 files changed, 24 insertions(+), 13 deletions(-)
+ tools/testing/radix-tree/iteration_check.c |   11 +++++++----
+ tools/testing/radix-tree/main.c            |    9 +++++++--
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN tools/testing/radix-tree/linux.c~radix-tree-test-suite-track-preempt_count tools/testing/radix-tree/linux.c
---- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-track-preempt_count
-+++ a/tools/testing/radix-tree/linux.c
-@@ -9,6 +9,7 @@
- #include <urcu/uatomic.h>
+diff -puN tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-make-runs-more-reproducible tools/testing/radix-tree/iteration_check.c
+--- a/tools/testing/radix-tree/iteration_check.c~radix-tree-test-suite-make-runs-more-reproducible
++++ a/tools/testing/radix-tree/iteration_check.c
+@@ -20,6 +20,7 @@
+ #define TAG 0
+ static pthread_mutex_t tree_lock = PTHREAD_MUTEX_INITIALIZER;
+ static pthread_t threads[NUM_THREADS];
++static unsigned int seeds[3];
+ RADIX_TREE(tree, GFP_KERNEL);
+ bool test_complete;
  
- int nr_allocated;
-+int preempt_count;
+@@ -71,7 +72,7 @@ static void *tagged_iteration_fn(void *a
+ 				continue;
+ 			}
  
- void *mempool_alloc(mempool_t *pool, int gfp_mask)
- {
-diff -puN tools/testing/radix-tree/linux/preempt.h~radix-tree-test-suite-track-preempt_count tools/testing/radix-tree/linux/preempt.h
---- a/tools/testing/radix-tree/linux/preempt.h~radix-tree-test-suite-track-preempt_count
-+++ a/tools/testing/radix-tree/linux/preempt.h
-@@ -1,4 +1,4 @@
--/* */
-+extern int preempt_count;
+-			if (rand() % 50 == 0)
++			if (rand_r(&seeds[0]) % 50 == 0)
+ 				slot = radix_tree_iter_next(&iter);
+ 		}
+ 		rcu_read_unlock();
+@@ -111,7 +112,7 @@ static void *untagged_iteration_fn(void
+ 				continue;
+ 			}
  
--#define preempt_disable() do { } while (0)
--#define preempt_enable() do { } while (0)
-+#define preempt_disable()	uatomic_inc(&preempt_count)
-+#define preempt_enable()	uatomic_dec(&preempt_count)
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-track-preempt_count tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-track-preempt_count
+-			if (rand() % 50 == 0)
++			if (rand_r(&seeds[1]) % 50 == 0)
+ 				slot = radix_tree_iter_next(&iter);
+ 		}
+ 		rcu_read_unlock();
+@@ -129,7 +130,7 @@ static void *remove_entries_fn(void *arg
+ 	while (!test_complete) {
+ 		int pgoff;
+ 
+-		pgoff = rand() % 100;
++		pgoff = rand_r(&seeds[2]) % 100;
+ 
+ 		pthread_mutex_lock(&tree_lock);
+ 		item_delete(&tree, pgoff);
+@@ -146,9 +147,11 @@ void iteration_test(void)
+ 
+ 	printf("Running iteration tests for 10 seconds\n");
+ 
+-	srand(time(0));
+ 	test_complete = false;
+ 
++	for (i = 0; i < 3; i++)
++		seeds[i] = rand();
++
+ 	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
+ 		perror("pthread_create");
+ 		exit(1);
+diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-make-runs-more-reproducible tools/testing/radix-tree/main.c
+--- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-make-runs-more-reproducible
 +++ a/tools/testing/radix-tree/main.c
-@@ -293,27 +293,36 @@ static void single_thread_tests(bool lon
- {
- 	int i;
+@@ -67,7 +67,6 @@ void big_gang_check(bool long_run)
  
--	printf("starting single_thread_tests: %d allocated\n", nr_allocated);
-+	printf("starting single_thread_tests: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	multiorder_checks();
--	printf("after multiorder_check: %d allocated\n", nr_allocated);
-+	printf("after multiorder_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	locate_check();
--	printf("after locate_check: %d allocated\n", nr_allocated);
-+	printf("after locate_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	tag_check();
--	printf("after tag_check: %d allocated\n", nr_allocated);
-+	printf("after tag_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	gang_check();
--	printf("after gang_check: %d allocated\n", nr_allocated);
-+	printf("after gang_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	add_and_check();
--	printf("after add_and_check: %d allocated\n", nr_allocated);
-+	printf("after add_and_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	dynamic_height_check();
--	printf("after dynamic_height_check: %d allocated\n", nr_allocated);
-+	printf("after dynamic_height_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	big_gang_check(long_run);
--	printf("after big_gang_check: %d allocated\n", nr_allocated);
-+	printf("after big_gang_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	for (i = 0; i < (long_run ? 2000 : 3); i++) {
- 		copy_tag_check();
+ 	for (i = 0; i < (long_run ? 1000 : 3); i++) {
+ 		__big_gang_check();
+-		srand(time(0));
  		printf("%d ", i);
  		fflush(stdout);
  	}
--	printf("after copy_tag_check: %d allocated\n", nr_allocated);
-+	printf("after copy_tag_check: %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- }
+@@ -329,12 +328,18 @@ int main(int argc, char **argv)
+ {
+ 	bool long_run = false;
+ 	int opt;
++	unsigned int seed = time(NULL);
  
- int main(int argc, char **argv)
-@@ -336,7 +345,8 @@ int main(int argc, char **argv)
- 	single_thread_tests(long_run);
+-	while ((opt = getopt(argc, argv, "l")) != -1) {
++	while ((opt = getopt(argc, argv, "ls:")) != -1) {
+ 		if (opt == 'l')
+ 			long_run = true;
++		else if (opt == 's')
++			seed = strtoul(optarg, NULL, 0);
+ 	}
  
- 	sleep(1);
--	printf("after sleep(1): %d allocated\n", nr_allocated);
-+	printf("after sleep(1): %d allocated, preempt %d\n",
-+		nr_allocated, preempt_count);
- 	rcu_unregister_thread();
++	printf("random seed %u\n", seed);
++	srand(seed);
++
+ 	rcu_register_thread();
+ 	radix_tree_init();
  
- 	exit(0);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
