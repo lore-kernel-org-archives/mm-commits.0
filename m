@@ -1,80 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch removed from -mm tree
-Date: Thu, 15 Dec 2016 10:45:38 -0800
-Message-ID: <5852e4d2.2qvhHWBKo/tBh/ns%akpm@linux-foundation.org>
+ arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+ removed from -mm tree
+Date: Thu, 15 Dec 2016 10:45:40 -0800
+Message-ID: <5852e4d4.XQvaXXRonPicTlwz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50574 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753600AbcLOS40 (ORCPT
+        with ESMTP id S1754105AbcLOS40 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:56:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, monstr@monstr.eu, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, keguang.zhang@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/microblaze: add option to skip DMA sync as a part of map and unmap
+     Subject: arch/mips: add option to skip DMA sync as a part of map and unmap
 has been removed from the -mm tree.  Its filename was
-     arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+     arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: arch/microblaze: add option to skip DMA sync as a part of map and unmap
+Subject: arch/mips: add option to skip DMA sync as a part of map and unmap
 
 This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
 avoid invoking cache line invalidation if the driver will just handle it
 via a sync_for_cpu or sync_for_device call.
 
-Link: http://lkml.kernel.org/r/20161110113508.76501.77583.stgit@ahduyck-blue-test.jf.intel.com
+Link: http://lkml.kernel.org/r/20161110113513.76501.32321.stgit@ahduyck-blue-test.jf.intel.com
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Keguang Zhang <keguang.zhang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/dma.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/mips/loongson64/common/dma-swiotlb.c |    2 +-
+ arch/mips/mm/dma-default.c                |    8 +++++---
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/microblaze/kernel/dma.c~arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/microblaze/kernel/dma.c
---- a/arch/microblaze/kernel/dma.c~arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
-+++ a/arch/microblaze/kernel/dma.c
-@@ -61,6 +61,10 @@ static int dma_direct_map_sg(struct devi
- 	/* FIXME this part of code is untested */
- 	for_each_sg(sgl, sg, nents, i) {
- 		sg->dma_address = sg_phys(sg);
-+
-+		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
-+			continue;
-+
- 		__dma_sync(page_to_phys(sg_page(sg)) + sg->offset,
- 							sg->length, direction);
- 	}
-@@ -80,7 +84,8 @@ static inline dma_addr_t dma_direct_map_
- 					     enum dma_data_direction direction,
- 					     unsigned long attrs)
+diff -puN arch/mips/loongson64/common/dma-swiotlb.c~arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/mips/loongson64/common/dma-swiotlb.c
+--- a/arch/mips/loongson64/common/dma-swiotlb.c~arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
++++ a/arch/mips/loongson64/common/dma-swiotlb.c
+@@ -61,7 +61,7 @@ static int loongson_dma_map_sg(struct de
+ 				int nents, enum dma_data_direction dir,
+ 				unsigned long attrs)
  {
--	__dma_sync(page_to_phys(page) + offset, size, direction);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		__dma_sync(page_to_phys(page) + offset, size, direction);
- 	return page_to_phys(page) + offset;
- }
+-	int r = swiotlb_map_sg_attrs(dev, sg, nents, dir, 0);
++	int r = swiotlb_map_sg_attrs(dev, sg, nents, dir, attrs);
+ 	mb();
  
-@@ -95,7 +100,8 @@ static inline void dma_direct_unmap_page
-  * phys_to_virt is here because in __dma_sync_page is __virt_to_phys and
-  * dma_address is physical address
-  */
--	__dma_sync(dma_address, size, direction);
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		__dma_sync(dma_address, size, direction);
- }
+ 	return r;
+diff -puN arch/mips/mm/dma-default.c~arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap arch/mips/mm/dma-default.c
+--- a/arch/mips/mm/dma-default.c~arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap
++++ a/arch/mips/mm/dma-default.c
+@@ -293,7 +293,7 @@ static inline void __dma_sync(struct pag
+ static void mips_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
+ 	size_t size, enum dma_data_direction direction, unsigned long attrs)
+ {
+-	if (cpu_needs_post_dma_flush(dev))
++	if (cpu_needs_post_dma_flush(dev) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		__dma_sync(dma_addr_to_page(dev, dma_addr),
+ 			   dma_addr & ~PAGE_MASK, size, direction);
+ 	plat_post_dma_flush(dev);
+@@ -307,7 +307,8 @@ static int mips_dma_map_sg(struct device
+ 	struct scatterlist *sg;
  
- static inline void
+ 	for_each_sg(sglist, sg, nents, i) {
+-		if (!plat_device_is_coherent(dev))
++		if (!plat_device_is_coherent(dev) &&
++		    !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 			__dma_sync(sg_page(sg), sg->offset, sg->length,
+ 				   direction);
+ #ifdef CONFIG_NEED_SG_DMA_LENGTH
+@@ -324,7 +325,7 @@ static dma_addr_t mips_dma_map_page(stru
+ 	unsigned long offset, size_t size, enum dma_data_direction direction,
+ 	unsigned long attrs)
+ {
+-	if (!plat_device_is_coherent(dev))
++	if (!plat_device_is_coherent(dev) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		__dma_sync(page, offset, size, direction);
+ 
+ 	return plat_map_dma_mem_page(dev, page) + offset;
+@@ -339,6 +340,7 @@ static void mips_dma_unmap_sg(struct dev
+ 
+ 	for_each_sg(sglist, sg, nhwentries, i) {
+ 		if (!plat_device_is_coherent(dev) &&
++		    !(attrs & DMA_ATTR_SKIP_CPU_SYNC) &&
+ 		    direction != DMA_TO_DEVICE)
+ 			__dma_sync(sg_page(sg), sg->offset, sg->length,
+ 				   direction);
 _
 
 Patches currently in -mm which might be from alexander.h.duyck@intel.com are
