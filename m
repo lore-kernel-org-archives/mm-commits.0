@@ -1,573 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 14 Dec 2016 15:23:42 -0800
-Message-ID: <5851d47e.69TboeAfb7eVAnIh%akpm@linux-foundation.org>
+Subject: mmotm 2016-12-14-16-01 uploaded
+Date: Wed, 14 Dec 2016 16:02:05 -0800
+Message-ID: <5851dd7d.0C/EP/j+qRRD2rph%akpm__13231.7919437357$1481760866$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40832 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933121AbcLNXbZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 18:31:25 -0500
+        with ESMTP id S1752959AbcLOAOI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2016 19:14:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2016-12-14-16-01 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- arch/powerpc/include/asm/reg.h  |    9 --
- arch/powerpc/mm/pgtable-radix.c |    3 
- drivers/md/raid5-cache.c        |   12 ---
- drivers/scsi/g_NCR5380.c        |   18 ----
- drivers/scsi/ufs/ufs_quirks.h   |   27 -------
- drivers/scsi/ufs/ufshcd.c       |    3 
- drivers/scsi/ufs/ufshcd.h       |   11 --
- fs/ext4/inode.c                 |   11 --
- fs/xfs/xfs_aops.c               |  111 ------------------------------
- fs/xfs/xfs_file.c               |   22 -----
- include/linux/iomap.h           |    3 
- 11 files changed, 230 deletions(-)
 
-diff -puN arch/powerpc/include/asm/reg.h~linux-next-git-rejects arch/powerpc/include/asm/reg.h
---- a/arch/powerpc/include/asm/reg.h~linux-next-git-rejects
-+++ a/arch/powerpc/include/asm/reg.h
-@@ -295,11 +295,8 @@
- #define SPRN_HRMOR	0x139	/* Real mode offset register */
- #define SPRN_HSRR0	0x13A	/* Hypervisor Save/Restore 0 */
- #define SPRN_HSRR1	0x13B	/* Hypervisor Save/Restore 1 */
--<<<<<<< HEAD
- #define SPRN_LMRR	0x32D	/* Load Monitor Region Register */
- #define SPRN_LMSER	0x32E	/* Load Monitor Section Enable Register */
--=======
-->>>>>>> linux-next/akpm-base
- #define SPRN_ASDR	0x330	/* Access segment descriptor register */
- #define SPRN_IC		0x350	/* Virtual Instruction Count */
- #define SPRN_VTB	0x351	/* Virtual Time Base */
-@@ -311,10 +308,7 @@
- #define SPRN_PMCR	0x374	/* Power Management Control Register */
- 
- /* HFSCR and FSCR bit numbers are the same */
--<<<<<<< HEAD
- #define FSCR_LM_LG	11	/* Enable Load Monitor Registers */
--=======
-->>>>>>> linux-next/akpm-base
- #define FSCR_MSGP_LG	10	/* Enable MSGP */
- #define FSCR_TAR_LG	8	/* Enable Target Address Register */
- #define FSCR_EBB_LG	7	/* Enable Event Based Branching */
-@@ -329,10 +323,7 @@
- #define   FSCR_EBB	__MASK(FSCR_EBB_LG)
- #define   FSCR_DSCR	__MASK(FSCR_DSCR_LG)
- #define SPRN_HFSCR	0xbe	/* HV=1 Facility Status & Control Register */
--<<<<<<< HEAD
- #define   HFSCR_LM	__MASK(FSCR_LM_LG)
--=======
-->>>>>>> linux-next/akpm-base
- #define   HFSCR_MSGP	__MASK(FSCR_MSGP_LG)
- #define   HFSCR_TAR	__MASK(FSCR_TAR_LG)
- #define   HFSCR_EBB	__MASK(FSCR_EBB_LG)
-diff -puN arch/powerpc/mm/pgtable-radix.c~linux-next-git-rejects arch/powerpc/mm/pgtable-radix.c
---- a/arch/powerpc/mm/pgtable-radix.c~linux-next-git-rejects
-+++ a/arch/powerpc/mm/pgtable-radix.c
-@@ -405,10 +405,7 @@ void __init radix__early_init_mmu(void)
- 
- 	memblock_set_current_limit(MEMBLOCK_ALLOC_ANYWHERE);
- 
--<<<<<<< HEAD
--=======
- 	radix_init_iamr();
-->>>>>>> linux-next/akpm-base
- 	radix_init_pgtable();
- }
- 
-diff -puN drivers/md/raid5-cache.c~linux-next-git-rejects drivers/md/raid5-cache.c
---- a/drivers/md/raid5-cache.c~linux-next-git-rejects
-+++ a/drivers/md/raid5-cache.c
-@@ -574,30 +574,18 @@ static void r5l_do_submit_io(struct r5l_
- 	spin_unlock_irqrestore(&log->io_list_lock, flags);
- 
- 	if (io->has_flush)
--<<<<<<< HEAD
--		io->current_bio->bi_opf |= REQ_PREFLUSH;
--	if (io->has_fua)
--		io->current_bio->bi_opf |= REQ_FUA;
--=======
- 		io->current_bio->bi_opf = REQ_OP_WRITE | REQ_PREFLUSH;
- 	if (io->has_fua)
- 		io->current_bio->bi_opf = REQ_OP_WRITE | REQ_FUA;
-->>>>>>> linux-next/akpm-base
- 	submit_bio(io->current_bio);
- 
- 	if (!io->split_bio)
- 		return;
- 
- 	if (io->has_flush)
--<<<<<<< HEAD
--		io->split_bio->bi_opf |= REQ_PREFLUSH;
--	if (io->has_fua)
--		io->split_bio->bi_opf |= REQ_FUA;
--=======
- 		io->split_bio->bi_opf = REQ_OP_WRITE | REQ_PREFLUSH;
- 	if (io->has_fua)
- 		io->split_bio->bi_opf = REQ_OP_WRITE | REQ_FUA;
-->>>>>>> linux-next/akpm-base
- 	submit_bio(io->split_bio);
- }
- 
-diff -puN drivers/scsi/g_NCR5380.c~linux-next-git-rejects drivers/scsi/g_NCR5380.c
---- a/drivers/scsi/g_NCR5380.c~linux-next-git-rejects
-+++ a/drivers/scsi/g_NCR5380.c
-@@ -67,8 +67,6 @@ MODULE_PARM_DESC(card, "card type (0=NCR
- MODULE_ALIAS("g_NCR5380_mmio");
- MODULE_LICENSE("GPL");
- 
--<<<<<<< HEAD
--=======
- static void g_NCR5380_trigger_irq(struct Scsi_Host *instance)
- {
- 	struct NCR5380_hostdata *hostdata = shost_priv(instance);
-@@ -119,7 +117,6 @@ static int g_NCR5380_probe_irq(struct Sc
- 	return irq;
- }
- 
-->>>>>>> linux-next/akpm-base
- /*
-  * Configure I/O address of 53C400A or DTC436 by writing magic numbers
-  * to ports 0x779 and 0x379.
-@@ -142,8 +139,6 @@ static void magic_configure(int idx, u8
- 	outb(cfg, 0x379);
- }
- 
--<<<<<<< HEAD
--=======
- static irqreturn_t legacy_empty_irq_handler(int irq, void *dev_id)
- {
- 	return IRQ_HANDLED;
-@@ -163,7 +158,6 @@ static int legacy_find_free_irq(int *irq
- 	return -1;
- }
- 
-->>>>>>> linux-next/akpm-base
- static unsigned int ncr_53c400a_ports[] = {
- 	0x280, 0x290, 0x300, 0x310, 0x330, 0x340, 0x348, 0x350, 0
- };
-@@ -176,12 +170,9 @@ static u8 ncr_53c400a_magic[] = {	/* 53C
- static u8 hp_c2502_magic[] = {	/* HP C2502 */
- 	0x0f, 0x22, 0xf0, 0x20, 0x80
- };
--<<<<<<< HEAD
--=======
- static int hp_c2502_irqs[] = {
- 	9, 5, 7, 3, 4, -1
- };
-->>>>>>> linux-next/akpm-base
- 
- static int generic_NCR5380_init_one(struct scsi_host_template *tpnt,
- 			struct device *pdev, int base, int irq, int board)
-@@ -327,8 +318,6 @@ static int generic_NCR5380_init_one(stru
- 			ret = -EINVAL;
- 			goto out_unregister;
- 		}
--<<<<<<< HEAD
--=======
- 	}
- 
- 	/* Check for vacant slot */
-@@ -336,7 +325,6 @@ static int generic_NCR5380_init_one(stru
- 	if (NCR5380_read(MODE_REG) != 0) {
- 		ret = -ENODEV;
- 		goto out_unregister;
-->>>>>>> linux-next/akpm-base
- 	}
- 
- 	ret = NCR5380_init(instance, flags | FLAG_LATE_DMA_SETUP);
-@@ -395,12 +383,6 @@ static int generic_NCR5380_init_one(stru
- 	}
- 
- 	if (instance->irq != NO_IRQ) {
--<<<<<<< HEAD
--		/* set IRQ for HP C2502 */
--		if (board == BOARD_HP_C2502)
--			magic_configure(port_idx, instance->irq, magic);
--=======
-->>>>>>> linux-next/akpm-base
- 		if (request_irq(instance->irq, generic_NCR5380_intr,
- 				0, "NCR5380", instance)) {
- 			instance->irq = NO_IRQ;
-diff -puN drivers/scsi/ufs/ufs_quirks.h~linux-next-git-rejects drivers/scsi/ufs/ufs_quirks.h
---- a/drivers/scsi/ufs/ufs_quirks.h~linux-next-git-rejects
-+++ a/drivers/scsi/ufs/ufs_quirks.h
-@@ -134,8 +134,6 @@ struct ufs_dev_fix {
-  */
- #define UFS_DEVICE_QUIRK_HOST_PA_TACTIVATE	(1 << 7)
- 
--<<<<<<< HEAD
--=======
- /*
-  * The max. value PA_SaveConfigTime is 250 (10us) but this is not enough for
-  * some vendors.
-@@ -145,33 +143,8 @@ struct ufs_dev_fix {
-  * PA_SaveConfigTime to >32us as per vendor recommendation.
-  */
- #define UFS_DEVICE_QUIRK_HOST_PA_SAVECONFIGTIME	(1 << 8)
-->>>>>>> linux-next/akpm-base
- 
- struct ufs_hba;
- void ufs_advertise_fixup_device(struct ufs_hba *hba);
- 
--<<<<<<< HEAD
--static struct ufs_dev_fix ufs_fixups[] = {
--	/* UFS cards deviations table */
--	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL,
--		UFS_DEVICE_QUIRK_DELAY_BEFORE_LPM),
--	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL, UFS_DEVICE_NO_VCCQ),
--	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL,
--		UFS_DEVICE_QUIRK_RECOVERY_FROM_DL_NAC_ERRORS),
--	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL,
--		UFS_DEVICE_NO_FASTAUTO),
--	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL,
--		UFS_DEVICE_QUIRK_HOST_PA_TACTIVATE),
--	UFS_FIX(UFS_VENDOR_TOSHIBA, UFS_ANY_MODEL,
--		UFS_DEVICE_QUIRK_DELAY_BEFORE_LPM),
--	UFS_FIX(UFS_VENDOR_TOSHIBA, "THGLF2G9C8KBADG",
--		UFS_DEVICE_QUIRK_PA_TACTIVATE),
--	UFS_FIX(UFS_VENDOR_TOSHIBA, "THGLF2G9D8KBADG",
--		UFS_DEVICE_QUIRK_PA_TACTIVATE),
--	UFS_FIX(UFS_VENDOR_SKHYNIX, UFS_ANY_MODEL, UFS_DEVICE_NO_VCCQ),
--
--	END_FIX
--};
--=======
-->>>>>>> linux-next/akpm-base
- #endif /* UFS_QUIRKS_H_ */
-diff -puN drivers/scsi/ufs/ufshcd.c~linux-next-git-rejects drivers/scsi/ufs/ufshcd.c
---- a/drivers/scsi/ufs/ufshcd.c~linux-next-git-rejects
-+++ a/drivers/scsi/ufs/ufshcd.c
-@@ -5237,11 +5237,8 @@ static void ufshcd_tune_unipro_params(st
- 
- 	if (hba->dev_quirks & UFS_DEVICE_QUIRK_HOST_PA_TACTIVATE)
- 		ufshcd_quirk_tune_host_pa_tactivate(hba);
--<<<<<<< HEAD
--=======
- 
- 	ufshcd_vops_apply_dev_quirks(hba);
-->>>>>>> linux-next/akpm-base
- }
- 
- /**
-diff -puN drivers/scsi/ufs/ufshcd.h~linux-next-git-rejects drivers/scsi/ufs/ufshcd.h
---- a/drivers/scsi/ufs/ufshcd.h~linux-next-git-rejects
-+++ a/drivers/scsi/ufs/ufshcd.h
-@@ -266,11 +266,7 @@ struct ufs_pwr_mode_info {
-  * @setup_task_mgmt: called before any task management request is issued
-  *                  to set some things
-  * @hibern8_notify: called around hibern8 enter/exit
--<<<<<<< HEAD
-- *		    to configure some things
--=======
-  * @apply_dev_quirks: called to apply device specific quirks
-->>>>>>> linux-next/akpm-base
-  * @suspend: called during host controller PM callback
-  * @resume: called during host controller PM callback
-  * @dbg_register_dump: used to dump controller debug information
-@@ -297,12 +293,8 @@ struct ufs_hba_variant_ops {
- 	void	(*setup_xfer_req)(struct ufs_hba *, int, bool);
- 	void	(*setup_task_mgmt)(struct ufs_hba *, int, u8);
- 	void    (*hibern8_notify)(struct ufs_hba *, enum uic_cmd_dme,
--<<<<<<< HEAD
--				       enum ufs_notify_change_status);
--=======
- 					enum ufs_notify_change_status);
- 	int	(*apply_dev_quirks)(struct ufs_hba *);
-->>>>>>> linux-next/akpm-base
- 	int     (*suspend)(struct ufs_hba *, enum ufs_pm_op);
- 	int     (*resume)(struct ufs_hba *, enum ufs_pm_op);
- 	void	(*dbg_register_dump)(struct ufs_hba *hba);
-@@ -848,8 +840,6 @@ static inline void ufshcd_vops_hibern8_n
- 		return hba->vops->hibern8_notify(hba, cmd, status);
- }
- 
--<<<<<<< HEAD
--=======
- static inline int ufshcd_vops_apply_dev_quirks(struct ufs_hba *hba)
- {
- 	if (hba->vops && hba->vops->apply_dev_quirks)
-@@ -857,7 +847,6 @@ static inline int ufshcd_vops_apply_dev_
- 	return 0;
- }
- 
-->>>>>>> linux-next/akpm-base
- static inline int ufshcd_vops_suspend(struct ufs_hba *hba, enum ufs_pm_op op)
- {
- 	if (hba->vops && hba->vops->suspend)
-diff -puN fs/ext4/inode.c~linux-next-git-rejects fs/ext4/inode.c
---- a/fs/ext4/inode.c~linux-next-git-rejects
-+++ a/fs/ext4/inode.c
-@@ -3286,7 +3286,6 @@ static int ext4_iomap_begin(struct inode
- 
- 	map.m_lblk = first_block;
- 	map.m_len = last_block - first_block + 1;
--<<<<<<< HEAD
- 
- 	if (!(flags & IOMAP_WRITE)) {
- 		ret = ext4_map_blocks(NULL, inode, &map, 0);
-@@ -3295,16 +3294,6 @@ static int ext4_iomap_begin(struct inode
- 		handle_t *handle;
- 		int retries = 0;
- 
--=======
--
--	if (!(flags & IOMAP_WRITE)) {
--		ret = ext4_map_blocks(NULL, inode, &map, 0);
--	} else {
--		int dio_credits;
--		handle_t *handle;
--		int retries = 0;
--
-->>>>>>> linux-next/akpm-base
- 		/* Trim mapping request to maximum we can map at once for DIO */
- 		if (map.m_len > DIO_MAX_BLOCKS)
- 			map.m_len = DIO_MAX_BLOCKS;
-diff -puN fs/xfs/xfs_aops.c~linux-next-git-rejects fs/xfs/xfs_aops.c
---- a/fs/xfs/xfs_aops.c~linux-next-git-rejects
-+++ a/fs/xfs/xfs_aops.c
-@@ -1214,12 +1214,7 @@ xfs_get_blocks(
- 	struct inode		*inode,
- 	sector_t		iblock,
- 	struct buffer_head	*bh_result,
--<<<<<<< HEAD
--	int			create,
--	bool			direct)
--=======
- 	int			create)
-->>>>>>> linux-next/akpm-base
- {
- 	struct xfs_inode	*ip = XFS_I(inode);
- 	struct xfs_mount	*mp = ip->i_mount;
-@@ -1281,15 +1276,6 @@ xfs_get_blocks(
- 	    imap.br_startblock != DELAYSTARTBLOCK &&
- 	    !ISUNWRITTEN(&imap))
- 		xfs_map_buffer(inode, bh_result, &imap, offset);
--<<<<<<< HEAD
--		if (ISUNWRITTEN(&imap))
--			set_buffer_unwritten(bh_result);
--		/* direct IO needs special help */
--		if (create)
--			xfs_map_direct(inode, bh_result, &imap, offset, is_cow);
--	}
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	/*
- 	 * If this is a realtime file, data may be on a different device.
-@@ -1303,103 +1289,6 @@ out_unlock:
- 	return error;
- }
- 
--<<<<<<< HEAD
--int
--xfs_get_blocks(
--	struct inode		*inode,
--	sector_t		iblock,
--	struct buffer_head	*bh_result,
--	int			create)
--{
--	return __xfs_get_blocks(inode, iblock, bh_result, create, false);
--}
--
--int
--xfs_get_blocks_direct(
--	struct inode		*inode,
--	sector_t		iblock,
--	struct buffer_head	*bh_result,
--	int			create)
--{
--	return __xfs_get_blocks(inode, iblock, bh_result, create, true);
--}
--
--/*
-- * Complete a direct I/O write request.
-- *
-- * xfs_map_direct passes us some flags in the private data to tell us what to
-- * do.  If no flags are set, then the write IO is an overwrite wholly within
-- * the existing allocated file size and so there is nothing for us to do.
-- *
-- * Note that in this case the completion can be called in interrupt context,
-- * whereas if we have flags set we will always be called in task context
-- * (i.e. from a workqueue).
-- */
--int
--xfs_end_io_direct_write(
--	struct kiocb		*iocb,
--	loff_t			offset,
--	ssize_t			size,
--	void			*private)
--{
--	struct inode		*inode = file_inode(iocb->ki_filp);
--	struct xfs_inode	*ip = XFS_I(inode);
--	uintptr_t		flags = (uintptr_t)private;
--	int			error = 0;
--
--	trace_xfs_end_io_direct_write(ip, offset, size);
--
--	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
--		return -EIO;
--
--	if (size <= 0)
--		return size;
--
--	/*
--	 * The flags tell us whether we are doing unwritten extent conversions
--	 * or an append transaction that updates the on-disk file size. These
--	 * cases are the only cases where we should *potentially* be needing
--	 * to update the VFS inode size.
--	 */
--	if (flags == 0) {
--		ASSERT(offset + size <= i_size_read(inode));
--		return 0;
--	}
--
--	/*
--	 * We need to update the in-core inode size here so that we don't end up
--	 * with the on-disk inode size being outside the in-core inode size. We
--	 * have no other method of updating EOF for AIO, so always do it here
--	 * if necessary.
--	 *
--	 * We need to lock the test/set EOF update as we can be racing with
--	 * other IO completions here to update the EOF. Failing to serialise
--	 * here can result in EOF moving backwards and Bad Things Happen when
--	 * that occurs.
--	 */
--	spin_lock(&ip->i_flags_lock);
--	if (offset + size > i_size_read(inode))
--		i_size_write(inode, offset + size);
--	spin_unlock(&ip->i_flags_lock);
--
--	if (flags & XFS_DIO_FLAG_COW)
--		error = xfs_reflink_end_cow(ip, offset, size);
--	if (flags & XFS_DIO_FLAG_UNWRITTEN) {
--		trace_xfs_end_io_direct_write_unwritten(ip, offset, size);
--
--		error = xfs_iomap_write_unwritten(ip, offset, size);
--	}
--	if (flags & XFS_DIO_FLAG_APPEND) {
--		trace_xfs_end_io_direct_write_append(ip, offset, size);
--
--		error = xfs_setfilesize(ip, offset, size);
--	}
--
--	return error;
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- STATIC ssize_t
- xfs_vm_direct_IO(
- 	struct kiocb		*iocb,
-diff -puN fs/xfs/xfs_file.c~linux-next-git-rejects fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~linux-next-git-rejects
-+++ a/fs/xfs/xfs_file.c
-@@ -237,15 +237,9 @@ xfs_file_dax_read(
- 	if (!count)
- 		return 0; /* skip atime */
- 
--<<<<<<< HEAD
--	xfs_rw_ilock(ip, XFS_IOLOCK_SHARED);
--	ret = dax_iomap_rw(iocb, to, &xfs_iomap_ops);
--	xfs_rw_iunlock(ip, XFS_IOLOCK_SHARED);
--=======
- 	xfs_ilock(ip, XFS_IOLOCK_SHARED);
- 	ret = dax_iomap_rw(iocb, to, &xfs_iomap_ops);
- 	xfs_iunlock(ip, XFS_IOLOCK_SHARED);
-->>>>>>> linux-next/akpm-base
- 
- 	file_accessed(iocb->ki_filp);
- 	return ret;
-@@ -599,10 +593,6 @@ xfs_file_dax_write(
- 	count = iov_iter_count(from);
- 
- 	trace_xfs_file_dax_write(ip, count, pos);
--<<<<<<< HEAD
--
--=======
-->>>>>>> linux-next/akpm-base
- 	ret = dax_iomap_rw(iocb, from, &xfs_iomap_ops);
- 	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
- 		i_size_write(inode, iocb->ki_pos);
-@@ -1423,21 +1413,9 @@ xfs_filemap_fault(
- 		return xfs_filemap_page_mkwrite(vma, vmf);
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--<<<<<<< HEAD
--	if (IS_DAX(inode)) {
--		/*
--		 * we do not want to trigger unwritten extent conversion on read
--		 * faults - that is unnecessary overhead and would also require
--		 * changes to xfs_get_blocks_direct() to map unwritten extent
--		 * ioend for conversion on read-only mappings.
--		 */
--		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
--	} else
--=======
- 	if (IS_DAX(inode))
- 		ret = dax_iomap_fault(vma, vmf, &xfs_iomap_ops);
- 	else
-->>>>>>> linux-next/akpm-base
- 		ret = filemap_fault(vma, vmf);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
-diff -puN include/linux/iomap.h~linux-next-git-rejects include/linux/iomap.h
---- a/include/linux/iomap.h~linux-next-git-rejects
-+++ a/include/linux/iomap.h
-@@ -50,10 +50,7 @@ struct iomap {
- #define IOMAP_ZERO		(1 << 1) /* zeroing operation, may skip holes */
- #define IOMAP_REPORT		(1 << 2) /* report extent status, e.g. FIEMAP */
- #define IOMAP_FAULT		(1 << 3) /* mapping for page fault */
--<<<<<<< HEAD
--=======
- #define IOMAP_DIRECT		(1 << 4) /* direct I/O */
-->>>>>>> linux-next/akpm-base
- 
- struct iomap_ops {
- 	/*
-_
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-mm.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+A git copy of this tree is available at
 
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+
+
+This mmotm tree contains the following patches against 4.9:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+* btrfs-better-handle-btrfs_printk-defaults.patch
+* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+* mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
+* signals-avoid-unnecessary-taking-of-sighand-siglock.patch
+* coredump-clarify-unsafe-core_pattern-warning.patch
+* revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
+* kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch
+* kexec-add-cond_resched-into-kimage_alloc_crash_control_pages.patch
+* sysctl-add-kern_cont-to-deprecated_sysctl_warning.patch
+* arch-arc-add-option-to-skip-sync-on-dma-mapping.patch
+* arch-arm-add-option-to-skip-sync-on-dma-map-and-unmap.patch
+* arch-avr32-add-option-to-skip-sync-on-dma-map.patch
+* arch-blackfin-add-option-to-skip-sync-on-dma-map.patch
+* arch-c6x-add-option-to-skip-sync-on-dma-map-and-unmap.patch
+* arch-frv-add-option-to-skip-sync-on-dma-map.patch
+* arch-hexagon-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+* arch-m68k-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+* arch-metag-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+* arch-microblaze-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+* arch-mips-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+* arch-nios2-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+* arch-openrisc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+* arch-parisc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+* arch-powerpc-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+* arch-sh-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+* arch-sparc-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+* arch-tile-add-option-to-skip-dma-sync-as-a-part-of-map-and-unmap.patch
+* arch-xtensa-add-option-to-skip-dma-sync-as-a-part-of-mapping.patch
+* dma-add-calls-for-dma_map_page_attrs-and-dma_unmap_page_attrs.patch
+* mm-add-support-for-releasing-multiple-instances-of-a-page.patch
+* igb-update-driver-to-make-use-of-dma_attr_skip_cpu_sync.patch
+* igb-update-code-to-better-handle-incrementing-page-count.patch
+* relay-check-array-offset-before-using-it.patch
+* kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
+* kconfig-lib-kconfigubsan-fix-reference-to-ubsan-documentation.patch
+* kcov-add-more-missing-include.patch
+* debug-more-properly-delay-for-secondary-cpus.patch
+* kdb-remove-unused-kdb_event-handling.patch
+* kdb-properly-synchronize-vkdb_printf-calls-with-other-cpus.patch
+* kdb-call-vkdb_printf-from-vprintk_default-only-when-wanted.patch
+* initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile.patch
+* initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm.patch
+* ipc-msg-make-msgrcv-work-with-long_min.patch
+* ipc-fixed-warnings.patch
+* posix-timers-give-lazy-compilers-some-help-optimizing-code-away.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* ktestpl-fix-english.patch
+* watchdog-move-shared-definitions-to-nmih.patch
+* watchdog-move-hardlockup-detector-to-separate-file.patch
+* sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable.patch
+* ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
+* ipc-sem-rework-task-wakeups.patch
+* ipc-sem-optimize-perform_atomic_semop.patch
+* ipc-sem-explicitly-inline-check_restart.patch
+* ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
+* ipc-sem-simplify-wait-wake-loop.patch
+* ipc-sem-avoid-idr-tree-lookup-for-interrupted-semop.patch
+* mm-add-locked-parameter-to-get_user_pages_remote.patch
+* mm-unexport-__get_user_pages_unlocked.patch
+* mm-join-struct-fault_env-and-vm_fault.patch
+* mm-use-vmf-address-instead-of-of-vmf-virtual_address.patch
+* mm-use-pgoff-in-struct-vm_fault-instead-of-passing-it-separately.patch
+* mm-use-passed-vm_fault-structure-in-__do_fault.patch
+* mm-trim-__do_fault-arguments.patch
+* mm-use-passed-vm_fault-structure-for-in-wp_pfn_shared.patch
+* mm-add-orig_pte-field-into-vm_fault.patch
+* mm-allow-full-handling-of-cow-faults-in-fault-handlers.patch
+* mm-factor-out-functionality-to-finish-page-faults.patch
+* mm-move-handling-of-cow-faults-into-dax-code.patch
+* mm-factor-out-common-parts-of-write-fault-handling.patch
+* mm-pass-vm_fault-structure-into-do_page_mkwrite.patch
+* mm-use-vmf-page-during-wp-faults.patch
+* mm-move-part-of-wp_page_reuse-into-the-single-call-site.patch
+* mm-provide-helper-for-finishing-mkwrite-faults.patch
+* mm-change-return-values-of-finish_mkwrite_fault.patch
+* mm-export-follow_pte.patch
+* dax-make-cache-flushing-protected-by-entry-lock.patch
+* dax-protect-pte-modification-on-wp-fault-by-radix-tree-entry-lock.patch
+* dax-clear-dirty-entry-tags-on-cache-flush.patch
+* tools-add-warn_on_once.patch
+* radix-tree-test-suite-allow-gfp_atomic-allocations-to-fail.patch
+* radix-tree-test-suite-track-preempt_count.patch
+* radix-tree-test-suite-free-preallocated-nodes.patch
+* radix-tree-test-suite-make-runs-more-reproducible.patch
+* radix-tree-test-suite-iteration-test-misuses-rcu.patch
+* radix-tree-test-suite-benchmark-for-iterator.patch
+* radix-tree-test-suite-use-rcu_barrier.patch
+* radix-tree-test-suite-handle-exceptional-entries.patch
+* radix-tree-test-suite-record-order-in-each-item.patch
+* tools-add-more-bitmap-functions.patch
+* radix-tree-test-suite-use-common-find-bit-code.patch
+* radix-tree-fix-typo.patch
+* radix-tree-move-rcu_head-into-a-union-with-private_list.patch
+* radix-tree-create-node_tag_set.patch
+* radix-tree-make-radix_tree_find_next_bit-more-useful.patch
+* radix-tree-improve-dump-output.patch
+* btrfs-fix-race-in-btrfs_free_dummy_fs_info.patch
+* radix-tree-improve-multiorder-iterators.patch
+* radix-tree-delete-radix_tree_locate_item.patch
+* radix-tree-delete-radix_tree_range_tag_if_tagged.patch
+* radix-tree-add-radix_tree_join.patch
+* radix-tree-add-radix_tree_split.patch
+* radix-tree-add-radix_tree_split_preload.patch
+* radix-tree-fix-replacement-for-multiorder-entries.patch
+* radix-tree-test-suite-check-multiorder-iteration.patch
+* idr-add-ida_is_empty.patch
+* tpm-use-idr_find-not-idr_find_slowpath.patch
+* rxrpc-abstract-away-knowledge-of-idr-internals.patch
+* idr-reduce-the-number-of-bits-per-level-from-8-to-6.patch
+* radix-tree-test-suite-add-some-more-functionality.patch
+* radix-tree-test-suite-cache-recently-freed-objects.patch
+* radix-tree-ensure-counts-are-initialised.patch
+* radix-tree-test-suite-add-new-tag-check.patch
+* radix-tree-test-suite-delete-unused-rcupdatec.patch
+  i-need-old-gcc.patch
+* arm64-setup-introduce-kaslr_offset.patch
+* kcov-make-kcov-work-properly-with-kaslr-enabled.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+* ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+  mm.patch
+* z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
+* z3fold-make-pages_nr-atomic.patch
+* z3fold-extend-compaction-function.patch
+* z3fold-use-per-page-spinlock.patch
+* z3fold-discourage-use-of-pages-that-werent-compacted.patch
+* z3fold-fix-header-size-related-issues.patch
+* z3fold-fix-locking-issues.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* lib-add-crc64-ecma-module.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* ipc-semc-avoid-using-spin_unlock_wait.patch
+* ipc-sem-add-hysteresis.patch
+  linux-next.patch
+  linux-next-git-rejects.patch
+* radix-tree-test-suite-fix-compilation.patch
+* powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+* ima-on-soft-reboot-restore-the-measurement-list.patch
+* ima-permit-duplicate-measurement-list-entries.patch
+* ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+* powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+* ima-on-soft-reboot-save-the-measurement-list.patch
+* ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+* ima-support-restoring-multiple-template-formats.patch
+* ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+* ima-platform-independent-hash-value.patch
+* reimplement-idr-and-ida-using-the-radix-tree.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
