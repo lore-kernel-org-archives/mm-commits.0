@@ -1,86 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-msg-make-msgrcv-work-with-long_min.patch removed
- from -mm tree
-Date: Thu, 15 Dec 2016 10:46:34 -0800
-Message-ID: <5852e50a.i3QrUkTKlPw9qUPJ%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-allow-full-handling-of-cow-faults-in-fault-handlers.patch removed from
+ -mm tree
+Date: Thu, 15 Dec 2016 10:47:33 -0800
+Message-ID: <5852e545.N8v8OspjVS0dq+pe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48996 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755916AbcLOSqw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:46:52 -0500
+        with ESMTP id S1756404AbcLOSre (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2016 13:47:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: msg, make msgrcv work with LONG_MIN
+     Subject: mm: allow full handling of COW faults in ->fault handlers
 has been removed from the -mm tree.  Its filename was
-     ipc-msg-make-msgrcv-work-with-long_min.patch
+     mm-allow-full-handling-of-cow-faults-in-fault-handlers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: ipc: msg, make msgrcv work with LONG_MIN
+From: Jan Kara <jack@suse.cz>
+Subject: mm: allow full handling of COW faults in ->fault handlers
 
-When LONG_MIN is passed to msgrcv, one would expect to recieve any
-message.  But convert_mode does *msgtyp = -*msgtyp and -LONG_MIN is
-undefined.  In particular, with my gcc -LONG_MIN produces -LONG_MIN again.
+Patch series "dax: Clear dirty bits after flushing caches", v5.
 
-So handle this case properly by assigning LONG_MAX to *msgtyp if LONG_MIN
-was specified as msgtyp to msgrcv.
+Patchset to clear dirty bits from radix tree of DAX inodes when caches for
+corresponding pfns have been flushed.  In principle, these patches enable
+handlers to easily update PTEs and do other work necessary to finish the
+fault without duplicating the functionality present in the generic code. 
+I'd like to thank Kirill and Ross for reviews of the series!
 
-This code:
-  long msg[] = { 100, 200 };
-  int m = msgget(IPC_PRIVATE, IPC_CREAT | 0644);
-  msgsnd(m, &msg, sizeof(msg), 0);
-  msgrcv(m, &msg, sizeof(msg), LONG_MIN, 0);
-produces currently nothing:
-  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 65538
-  msgsnd(65538, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
-  msgrcv(65538, ...
 
-Except a UBSAN warning:
-UBSAN: Undefined behaviour in ipc/msg.c:745:13
-negation of -9223372036854775808 cannot be represented in type 'long int':
 
-With the patch, I see what I expect:
-  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 0
-  msgsnd(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
-  msgrcv(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, -9223372036854775808, 0) = 16
+This patch (of 20):
 
-Link: http://lkml.kernel.org/r/20161024082633.10148-1-jslaby@suse.cz
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+To allow full handling of COW faults add memcg field to struct vm_fault
+and a return value of ->fault() handler meaning that COW fault is fully
+handled and memcg charge must not be canceled.  This will allow us to
+remove knowledge about special DAX locking from the generic fault code.
+
+Link: http://lkml.kernel.org/r/1479460644-25076-9-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    4 +++-
+ mm/memory.c        |   14 +++++++-------
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min ipc/msg.c
---- a/ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min
-+++ a/ipc/msg.c
-@@ -763,7 +763,10 @@ static inline int convert_mode(long *msg
- 	if (*msgtyp == 0)
- 		return SEARCH_ANY;
- 	if (*msgtyp < 0) {
--		*msgtyp = -*msgtyp;
-+		if (*msgtyp == LONG_MIN) /* -LONG_MIN is undefined */
-+			*msgtyp = LONG_MAX;
-+		else
-+			*msgtyp = -*msgtyp;
- 		return SEARCH_LESSEQUAL;
+diff -puN include/linux/mm.h~mm-allow-full-handling-of-cow-faults-in-fault-handlers include/linux/mm.h
+--- a/include/linux/mm.h~mm-allow-full-handling-of-cow-faults-in-fault-handlers
++++ a/include/linux/mm.h
+@@ -301,7 +301,8 @@ struct vm_fault {
+ 					 * the 'address' */
+ 	pte_t orig_pte;			/* Value of PTE at the time of fault */
+ 
+-	struct page *cow_page;		/* Handler may choose to COW */
++	struct page *cow_page;		/* Page handler may use for COW fault */
++	struct mem_cgroup *memcg;	/* Cgroup cow_page belongs to */
+ 	struct page *page;		/* ->fault handlers should return a
+ 					 * page here, unless VM_FAULT_NOPAGE
+ 					 * is set (which is also implied by
+@@ -1103,6 +1104,7 @@ static inline void clear_page_pfmemalloc
+ #define VM_FAULT_RETRY	0x0400	/* ->fault blocked, must retry */
+ #define VM_FAULT_FALLBACK 0x0800	/* huge page fault failed, fall back to small */
+ #define VM_FAULT_DAX_LOCKED 0x1000	/* ->fault has locked DAX entry */
++#define VM_FAULT_DONE_COW   0x2000	/* ->fault has fully handled COW */
+ 
+ #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
+ 
+diff -puN mm/memory.c~mm-allow-full-handling-of-cow-faults-in-fault-handlers mm/memory.c
+--- a/mm/memory.c~mm-allow-full-handling-of-cow-faults-in-fault-handlers
++++ a/mm/memory.c
+@@ -2844,9 +2844,8 @@ static int __do_fault(struct vm_fault *v
+ 	int ret;
+ 
+ 	ret = vma->vm_ops->fault(vma, vmf);
+-	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+-		return ret;
+-	if (ret & VM_FAULT_DAX_LOCKED)
++	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
++			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
+ 		return ret;
+ 
+ 	if (unlikely(PageHWPoison(vmf->page))) {
+@@ -3226,7 +3225,6 @@ static int do_read_fault(struct vm_fault
+ static int do_cow_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+ 	if (unlikely(anon_vma_prepare(vma)))
+@@ -3237,7 +3235,7 @@ static int do_cow_fault(struct vm_fault
+ 		return VM_FAULT_OOM;
+ 
+ 	if (mem_cgroup_try_charge(vmf->cow_page, vma->vm_mm, GFP_KERNEL,
+-				&memcg, false)) {
++				&vmf->memcg, false)) {
+ 		put_page(vmf->cow_page);
+ 		return VM_FAULT_OOM;
  	}
- 	if (msgflg & MSG_EXCEPT)
+@@ -3245,12 +3243,14 @@ static int do_cow_fault(struct vm_fault
+ 	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
++	if (ret & VM_FAULT_DONE_COW)
++		return ret;
+ 
+ 	if (!(ret & VM_FAULT_DAX_LOCKED))
+ 		copy_user_highpage(vmf->cow_page, vmf->page, vmf->address, vma);
+ 	__SetPageUptodate(vmf->cow_page);
+ 
+-	ret |= alloc_set_pte(vmf, memcg, vmf->cow_page);
++	ret |= alloc_set_pte(vmf, vmf->memcg, vmf->cow_page);
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+@@ -3263,7 +3263,7 @@ static int do_cow_fault(struct vm_fault
+ 		goto uncharge_out;
+ 	return ret;
+ uncharge_out:
+-	mem_cgroup_cancel_charge(vmf->cow_page, memcg, false);
++	mem_cgroup_cancel_charge(vmf->cow_page, vmf->memcg, false);
+ 	put_page(vmf->cow_page);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
