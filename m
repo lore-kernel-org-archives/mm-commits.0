@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch added to -mm tree
-Date: Mon, 19 Dec 2016 14:26:48 -0800
-Message-ID: <58585ea8.3xXwDGuy+7AgWYy/%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch added
+ to -mm tree
+Date: Mon, 19 Dec 2016 14:26:51 -0800
+Message-ID: <58585eab.akRVzB/kjY7/IYxL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43918 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932519AbcLSWZt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:25:49 -0500
+        with ESMTP id S932519AbcLSWZw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:25:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "comsume(r)" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "disble(d)" pattern and fix typo instances
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,138 +41,268 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "comsume(r)" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "disble(d)" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  comsume||consume
-  comsumer||consumer
-  comsuming||consuming
+  disble||disable
+  disbled||disabled
 
-I see some variable names with this pattern, but this commit is only
-touching comment blocks to avoid unexpected impact.
+I kept the TSL2563_INT_DISBLED in /drivers/iio/light/tsl2563.c
+untouched.  The macro is not referenced at all, but this commit is
+touching only comment blocks just in case.
 
-Link: http://lkml.kernel.org/r/1481573103-11329-19-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-20-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-kye.c                   |    2 +-
- drivers/misc/vmw_vmci/vmci_queue_pair.c |    2 +-
- drivers/net/ethernet/sis/sis900.c       |    2 +-
- drivers/scsi/lpfc/lpfc_sli.c            |    4 ++--
- drivers/tty/serial/ioc4_serial.c        |    2 +-
- fs/ext4/extents_status.c                |    2 +-
- mm/page-writeback.c                     |    2 +-
- scripts/spelling.txt                    |    3 +++
- 8 files changed, 11 insertions(+), 8 deletions(-)
+ Documentation/dev-tools/kcov.rst        |    2 +-
+ arch/cris/arch-v32/drivers/cryptocop.c  |    2 +-
+ arch/x86/kernel/ftrace.c                |    2 +-
+ drivers/crypto/ux500/cryp/cryp.c        |    2 +-
+ drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c  |    2 +-
+ drivers/hv/channel.c                    |    2 +-
+ drivers/isdn/hisax/st5481_b.c           |    2 +-
+ drivers/mtd/spi-nor/spi-nor.c           |    2 +-
+ drivers/net/can/flexcan.c               |    2 +-
+ drivers/net/ethernet/qlogic/qlge/qlge.h |    2 +-
+ drivers/scsi/aic7xxx/aic79xx_core.c     |    2 +-
+ drivers/usb/gadget/legacy/inode.c       |    3 +--
+ drivers/usb/host/xhci.c                 |    4 ++--
+ include/linux/regulator/machine.h       |    2 +-
+ kernel/cgroup.c                         |    2 +-
+ kernel/events/core.c                    |    2 +-
+ scripts/spelling.txt                    |    2 ++
+ sound/soc/amd/acp-pcm-dma.c             |    2 +-
+ 18 files changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN drivers/hid/hid-kye.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/hid/hid-kye.c
---- a/drivers/hid/hid-kye.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
-+++ a/drivers/hid/hid-kye.c
-@@ -487,7 +487,7 @@ static __u8 *kye_consumer_control_fixup(
- 		unsigned int *rsize, int offset, const char *device_name) {
+diff -puN Documentation/dev-tools/kcov.rst~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances Documentation/dev-tools/kcov.rst
+--- a/Documentation/dev-tools/kcov.rst~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/Documentation/dev-tools/kcov.rst
+@@ -10,7 +10,7 @@ Note that kcov does not aim to collect a
+ to collect more or less stable coverage that is function of syscall inputs.
+ To achieve this goal it does not collect coverage in soft/hard interrupts
+ and instrumentation of some inherently non-deterministic parts of kernel is
+-disbled (e.g. scheduler, locking).
++disabled (e.g. scheduler, locking).
+ 
+ Usage
+ -----
+diff -puN arch/cris/arch-v32/drivers/cryptocop.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances arch/cris/arch-v32/drivers/cryptocop.c
+--- a/arch/cris/arch-v32/drivers/cryptocop.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/arch/cris/arch-v32/drivers/cryptocop.c
+@@ -2086,7 +2086,7 @@ static void cryptocop_job_queue_close(vo
+ 		dma_in_cfg.en = regk_dma_no;
+ 		REG_WR(dma, IN_DMA_INST, rw_cfg, dma_in_cfg);
+ 
+-		/* Disble the cryptocop. */
++		/* Disable the cryptocop. */
+ 		rw_cfg = REG_RD(strcop, regi_strcop, rw_cfg);
+ 		rw_cfg.en = 0;
+ 		REG_WR(strcop, regi_strcop, rw_cfg, rw_cfg);
+diff -puN arch/x86/kernel/ftrace.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances arch/x86/kernel/ftrace.c
+--- a/arch/x86/kernel/ftrace.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/arch/x86/kernel/ftrace.c
+@@ -535,7 +535,7 @@ static void run_sync(void)
+ {
+ 	int enable_irqs = irqs_disabled();
+ 
+-	/* We may be called with interrupts disbled (on bootup). */
++	/* We may be called with interrupts disabled (on bootup). */
+ 	if (enable_irqs)
+ 		local_irq_enable();
+ 	on_each_cpu(do_sync_core, NULL, 1);
+diff -puN drivers/crypto/ux500/cryp/cryp.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/crypto/ux500/cryp/cryp.c
+--- a/drivers/crypto/ux500/cryp/cryp.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/crypto/ux500/cryp/cryp.c
+@@ -82,7 +82,7 @@ void cryp_activity(struct cryp_device_da
+ void cryp_flush_inoutfifo(struct cryp_device_data *device_data)
+ {
  	/*
- 	 * the fixup that need to be done:
--	 *   - change Usage Maximum in the Comsumer Control
-+	 *   - change Usage Maximum in the Consumer Control
- 	 *     (report ID 3) to a reasonable value
+-	 * We always need to disble the hardware before trying to flush the
++	 * We always need to disable the hardware before trying to flush the
+ 	 * FIFO. This is something that isn't written in the design
+ 	 * specification, but we have been informed by the hardware designers
+ 	 * that this must be done.
+diff -puN drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+--- a/drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+@@ -782,7 +782,7 @@ static int sdma_v3_0_start(struct amdgpu
+ 		}
+ 	}
+ 
+-	/* disble sdma engine before programing it */
++	/* disable sdma engine before programing it */
+ 	sdma_v3_0_ctx_switch_enable(adev, false);
+ 	sdma_v3_0_enable(adev, false);
+ 
+diff -puN drivers/hv/channel.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/hv/channel.c
+--- a/drivers/hv/channel.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/hv/channel.c
+@@ -529,7 +529,7 @@ static int vmbus_close_internal(struct v
+ 	/*
+ 	 * In case a device driver's probe() fails (e.g.,
+ 	 * util_probe() -> vmbus_open() returns -ENOMEM) and the device is
+-	 * rescinded later (e.g., we dynamically disble an Integrated Service
++	 * rescinded later (e.g., we dynamically disable an Integrated Service
+ 	 * in Hyper-V Manager), the driver's remove() invokes vmbus_close():
+ 	 * here we should skip most of the below cleanup work.
  	 */
- 	if (*rsize >= offset + 31 &&
-diff -puN drivers/misc/vmw_vmci/vmci_queue_pair.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/misc/vmw_vmci/vmci_queue_pair.c
---- a/drivers/misc/vmw_vmci/vmci_queue_pair.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
-+++ a/drivers/misc/vmw_vmci/vmci_queue_pair.c
-@@ -2928,7 +2928,7 @@ int vmci_qpair_get_produce_indexes(const
- EXPORT_SYMBOL_GPL(vmci_qpair_get_produce_indexes);
+diff -puN drivers/isdn/hisax/st5481_b.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/isdn/hisax/st5481_b.c
+--- a/drivers/isdn/hisax/st5481_b.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/isdn/hisax/st5481_b.c
+@@ -239,7 +239,7 @@ static void st5481B_mode(struct st5481_b
+ 			}
+ 		}
+ 	} else {
+-		// Disble B channel interrupts
++		// Disable B channel interrupts
+ 		st5481_usb_device_ctrl_msg(adapter, FFMSK_B1+(bcs->channel * 2), 0, NULL, NULL);
+ 
+ 		// Disable B channel FIFOs
+diff -puN drivers/mtd/spi-nor/spi-nor.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/mtd/spi-nor/spi-nor.c
+--- a/drivers/mtd/spi-nor/spi-nor.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/mtd/spi-nor/spi-nor.c
+@@ -176,7 +176,7 @@ static inline int write_enable(struct sp
+ }
  
  /*
-- * vmci_qpair_get_consume_indexes() - Retrieves the indexes of the comsumer.
-+ * vmci_qpair_get_consume_indexes() - Retrieves the indexes of the consumer.
-  * @qpair:      Pointer to the queue pair struct.
-  * @consumer_tail:      Reference used for storing consumer tail index.
-  * @producer_head:      Reference used for storing the producer head index.
-diff -puN drivers/net/ethernet/sis/sis900.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/net/ethernet/sis/sis900.c
---- a/drivers/net/ethernet/sis/sis900.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/sis/sis900.c
-@@ -176,7 +176,7 @@ struct sis900_private {
+- * Send write disble instruction to the chip.
++ * Send write disable instruction to the chip.
+  */
+ static inline int write_disable(struct spi_nor *nor)
+ {
+diff -puN drivers/net/can/flexcan.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/net/can/flexcan.c
+--- a/drivers/net/can/flexcan.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/net/can/flexcan.c
+@@ -189,7 +189,7 @@
+  */
+ #define FLEXCAN_QUIRK_BROKEN_ERR_STATE	BIT(1) /* [TR]WRN_INT not connected */
+ #define FLEXCAN_QUIRK_DISABLE_RXFG	BIT(2) /* Disable RX FIFO Global mask */
+-#define FLEXCAN_QUIRK_DISABLE_MECR	BIT(3) /* Disble Memory error detection */
++#define FLEXCAN_QUIRK_DISABLE_MECR	BIT(3) /* Disable Memory error detection */
  
- 	u32 msg_enable;
+ /* Structure of the message buffer */
+ struct flexcan_mb {
+diff -puN drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlge/qlge.h
+--- a/drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/qlogic/qlge/qlge.h
+@@ -1163,7 +1163,7 @@ struct ib_mac_iocb_rsp {
+ 	u8 opcode;		/* 0x20 */
+ 	u8 flags1;
+ #define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
+-#define IB_MAC_IOCB_RSP_I	0x02	/* Disble Intr Generation */
++#define IB_MAC_IOCB_RSP_I	0x02	/* Disable Intr Generation */
+ #define IB_MAC_CSUM_ERR_MASK 0x1c	/* A mask to use for csum errs */
+ #define IB_MAC_IOCB_RSP_TE	0x04	/* Checksum error */
+ #define IB_MAC_IOCB_RSP_NU	0x08	/* No checksum rcvd */
+diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/scsi/aic7xxx/aic79xx_core.c
+--- a/drivers/scsi/aic7xxx/aic79xx_core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/scsi/aic7xxx/aic79xx_core.c
+@@ -6278,7 +6278,7 @@ ahd_reset(struct ahd_softc *ahd, int rei
+ 		 * does not disable its parity logic prior to
+ 		 * the start of the reset.  This may cause a
+ 		 * parity error to be detected and thus a
+-		 * spurious SERR or PERR assertion.  Disble
++		 * spurious SERR or PERR assertion.  Disable
+ 		 * PERR and SERR responses during the CHIPRST.
+ 		 */
+ 		mod_cmd = cmd & ~(PCIM_CMD_PERRESPEN|PCIM_CMD_SERRESPEN);
+diff -puN drivers/usb/gadget/legacy/inode.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/usb/gadget/legacy/inode.c
+--- a/drivers/usb/gadget/legacy/inode.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/usb/gadget/legacy/inode.c
+@@ -84,8 +84,7 @@ static int ep_open(struct inode *, struc
  
--	unsigned int cur_rx, dirty_rx; /* producer/comsumer pointers for Tx/Rx ring */
-+	unsigned int cur_rx, dirty_rx; /* producer/consumer pointers for Tx/Rx ring */
- 	unsigned int cur_tx, dirty_tx;
+ /* /dev/gadget/$CHIP represents ep0 and the whole device */
+ enum ep0_state {
+-	/* DISBLED is the initial state.
+-	 */
++	/* DISABLED is the initial state. */
+ 	STATE_DEV_DISABLED = 0,
  
- 	/* The saved address of a sent/receive-in-place packet buffer */
-diff -puN drivers/scsi/lpfc/lpfc_sli.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/scsi/lpfc/lpfc_sli.c
---- a/drivers/scsi/lpfc/lpfc_sli.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/lpfc/lpfc_sli.c
-@@ -12068,7 +12068,7 @@ lpfc_sli4_sp_handle_els_wcqe(struct lpfc
-  * @phba: Pointer to HBA context object.
-  * @wcqe: Pointer to work-queue completion queue entry.
+ 	/* Only one open() of /dev/gadget/$CHIP; only one file tracks
+diff -puN drivers/usb/host/xhci.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/usb/host/xhci.c
+--- a/drivers/usb/host/xhci.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/usb/host/xhci.c
+@@ -868,7 +868,7 @@ static void xhci_disable_port_wake_on_bi
+ 
+ 	spin_lock_irqsave(&xhci->lock, flags);
+ 
+-	/* disble usb3 ports Wake bits*/
++	/* disable usb3 ports Wake bits */
+ 	port_index = xhci->num_usb3_ports;
+ 	port_array = xhci->usb3_ports;
+ 	while (port_index--) {
+@@ -879,7 +879,7 @@ static void xhci_disable_port_wake_on_bi
+ 			writel(t2, port_array[port_index]);
+ 	}
+ 
+-	/* disble usb2 ports Wake bits*/
++	/* disable usb2 ports Wake bits */
+ 	port_index = xhci->num_usb2_ports;
+ 	port_array = xhci->usb2_ports;
+ 	while (port_index--) {
+diff -puN include/linux/regulator/machine.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances include/linux/regulator/machine.h
+--- a/include/linux/regulator/machine.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/include/linux/regulator/machine.h
+@@ -65,7 +65,7 @@ struct regulator_state {
+ 	int uV;	/* suspend voltage */
+ 	unsigned int mode; /* suspend regulator operating mode */
+ 	int enabled; /* is regulator enabled in this suspend state */
+-	int disabled; /* is the regulator disbled in this suspend state */
++	int disabled; /* is the regulator disabled in this suspend state */
+ };
+ 
+ /**
+diff -puN kernel/cgroup.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances kernel/cgroup.c
+--- a/kernel/cgroup.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/kernel/cgroup.c
+@@ -3244,7 +3244,7 @@ static bool css_visible(struct cgroup_su
   *
-- * This routine handles slow-path WQ entry comsumed event by invoking the
-+ * This routine handles slow-path WQ entry consumed event by invoking the
-  * proper WQ release routine to the slow-path WQ.
-  **/
- static void
-@@ -12440,7 +12440,7 @@ lpfc_sli4_fp_handle_fcp_wcqe(struct lpfc
-  * @cq: Pointer to completion queue.
-  * @wcqe: Pointer to work-queue completion queue entry.
-  *
-- * This routine handles an fast-path WQ entry comsumed event by invoking the
-+ * This routine handles an fast-path WQ entry consumed event by invoking the
-  * proper WQ release routine to the slow-path WQ.
-  **/
- static void
-diff -puN drivers/tty/serial/ioc4_serial.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/tty/serial/ioc4_serial.c
---- a/drivers/tty/serial/ioc4_serial.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
-+++ a/drivers/tty/serial/ioc4_serial.c
-@@ -210,7 +210,7 @@
- #define IOC4_SSCR_PAUSE_STATE   0x40000000  /* Sets when PAUSE takes effect */
- #define IOC4_SSCR_RESET	        0x80000000  /* Reset DMA channels */
- 
--/* All producer/comsumer pointers are the same bitfield */
-+/* All producer/consumer pointers are the same bitfield */
- #define IOC4_PROD_CONS_PTR_4K   0x00000ff8	/* For 4K buffers */
- #define IOC4_PROD_CONS_PTR_1K   0x000003f8	/* For 1K buffers */
- #define IOC4_PROD_CONS_PTR_OFF           3
-diff -puN fs/ext4/extents_status.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances fs/ext4/extents_status.c
---- a/fs/ext4/extents_status.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
-+++ a/fs/ext4/extents_status.c
-@@ -84,7 +84,7 @@
-  *   --	writeout
-  *	Writeout looks up whole page cache to see if a buffer is
-  *	mapped, If there are not very many delayed buffers, then it is
-- *	time comsuming.
-+ *	time consuming.
-  *
-  * With extent status tree implementation, FIEMAP, SEEK_HOLE/DATA,
-  * bigalloc and writeout can figure out if a block or a range of
-diff -puN mm/page-writeback.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances mm/page-writeback.c
---- a/mm/page-writeback.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
-+++ a/mm/page-writeback.c
-@@ -1797,7 +1797,7 @@ pause:
- 		 * pages exceeds dirty_thresh, give the other good wb's a pipe
- 		 * to go through, so that tasks on them still remain responsive.
- 		 *
--		 * In theory 1 page is enough to keep the comsumer-producer
-+		 * In theory 1 page is enough to keep the consumer-producer
- 		 * pipe going: the flusher cleans 1 page => the task dirties 1
- 		 * more page. However wb_dirty has accounting errors.  So use
- 		 * the larger and more IO friendly wb_stat_error.
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
+  * Returns 0 on success, -errno on failure.  On failure, csses which have
+  * been processed already aren't cleaned up.  The caller is responsible for
+- * cleaning up with cgroup_apply_control_disble().
++ * cleaning up with cgroup_apply_control_disable().
+  */
+ static int cgroup_apply_control_enable(struct cgroup *cgrp)
+ {
+diff -puN kernel/events/core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances kernel/events/core.c
+--- a/kernel/events/core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/kernel/events/core.c
+@@ -1005,7 +1005,7 @@ list_update_cgroup_event(struct perf_eve
+  */
+ #define PERF_CPU_HRTIMER (1000 / HZ)
+ /*
+- * function must be called with interrupts disbled
++ * function must be called with interrupts disabled
+  */
+ static enum hrtimer_restart perf_mux_hrtimer_handler(struct hrtimer *hr)
+ {
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -244,6 +244,9 @@ commited||committed
- commiting||committing
- committ||commit
- commoditiy||commodity
-+comsume||consume
-+comsumer||consumer
-+comsuming||consuming
- compability||compatibility
- compaibility||compatibility
- compatability||compatibility
+@@ -365,6 +365,8 @@ direectly||directly
+ disapear||disappear
+ disapeared||disappeared
+ disappared||disappeared
++disble||disable
++disbled||disabled
+ disconnet||disconnect
+ discontinous||discontinuous
+ dispertion||dispersion
+diff -puN sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances sound/soc/amd/acp-pcm-dma.c
+--- a/sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/sound/soc/amd/acp-pcm-dma.c
+@@ -89,7 +89,7 @@ static void acp_reg_write(u32 val, void
+ 	writel(val, acp_mmio + (reg * 4));
+ }
+ 
+-/* Configure a given dma channel parameters - enable/disble,
++/* Configure a given dma channel parameters - enable/disable,
+  * number of descriptors, priority
+  */
+ static void config_acp_dma_channel(void __iomem *acp_mmio, u8 ch_num,
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
