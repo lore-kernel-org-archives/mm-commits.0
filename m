@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch added
- to -mm tree
-Date: Mon, 19 Dec 2016 14:26:23 -0800
-Message-ID: <58585e8f.eGp1xAyZ8yhgNUhf%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch added to -mm tree
+Date: Mon, 19 Dec 2016 14:26:25 -0800
+Message-ID: <58585e91.hVbecxA5koREz8JZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43876 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932519AbcLSWZY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:25:24 -0500
+        with ESMTP id S932519AbcLSWZZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:25:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "algined" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "efective" pattern and fix typo instances
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,61 +40,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "algined" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "efective" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  algined||aligned
+  efective||effective
 
-While we are here, fix the "appplication" in the touched line in
-drivers/block/loop.c.  Also, fix the "may not naturally ..." to
-"may not be naturally ..." in the touched line in mm/page_alloc.
+While we are here, fix the "addres" as well in the touched line in
+arch/openrisc/kernel/entry.S.
 
-Link: http://lkml.kernel.org/r/1481573103-11329-9-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-10-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    2 +-
- mm/page_alloc.c      |    2 +-
- scripts/spelling.txt |    1 +
+ arch/m68k/ifpsp060/src/isp.S |    2 +-
+ arch/openrisc/kernel/entry.S |    2 +-
+ scripts/spelling.txt         |    1 +
  3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/loop.c~scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances drivers/block/loop.c
---- a/drivers/block/loop.c~scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances
-+++ a/drivers/block/loop.c
-@@ -186,7 +186,7 @@ static void __loop_update_dio(struct loo
- 	 *
- 	 * TODO: the above condition may be loosed in the future, and
- 	 * direct I/O may be switched runtime at that time because most
--	 * of requests in sane appplications should be PAGE_SIZE algined
-+	 * of requests in sane applications should be PAGE_SIZE aligned
- 	 */
- 	if (dio) {
- 		if (queue_logical_block_size(lo->lo_queue) >= sb_bsize &&
-diff -puN mm/page_alloc.c~scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances mm/page_alloc.c
---- a/mm/page_alloc.c~scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances
-+++ a/mm/page_alloc.c
-@@ -5764,7 +5764,7 @@ static unsigned long __paginginit calc_m
- 	 * the zone and SPARSEMEM is in use. If there are holes within the
- 	 * zone, each populated memory region may cost us one or two extra
- 	 * memmap pages due to alignment because memmap pages for each
--	 * populated regions may not naturally algined on page boundary.
-+	 * populated regions may not be naturally aligned on page boundary.
- 	 * So the (present_pages >> 4) heuristic is a tradeoff for that.
- 	 */
- 	if (spanned_pages > present_pages + (present_pages >> 4) &&
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances
+diff -puN arch/m68k/ifpsp060/src/isp.S~scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances arch/m68k/ifpsp060/src/isp.S
+--- a/arch/m68k/ifpsp060/src/isp.S~scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances
++++ a/arch/m68k/ifpsp060/src/isp.S
+@@ -3814,7 +3814,7 @@ CAS2W2_FILLER:
+ #	(3) Save current DFC/SFC (ASSUMED TO BE EQUAL!!!); Then set	#
+ #	    SFC/DFC according to whether exception occurred in user or	#
+ #	    supervisor mode.						#
+-#	(4) Use "plpaw" instruction to pre-load ATC with efective	#
++#	(4) Use "plpaw" instruction to pre-load ATC with effective	#
+ #	    address page(s). THIS SHOULD NOT FAULT!!! The relevant	#
+ #	    page(s) should have been made resident prior to entering	#
+ #	    this routine.						#
+diff -puN arch/openrisc/kernel/entry.S~scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances arch/openrisc/kernel/entry.S
+--- a/arch/openrisc/kernel/entry.S~scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances
++++ a/arch/openrisc/kernel/entry.S
+@@ -322,7 +322,7 @@ EXCEPTION_ENTRY(_alignment_handler)
+ 
+ #if 0
+ EXCEPTION_ENTRY(_alignment_handler)
+-//        l.mfspr r2,r0,SPR_EEAR_BASE     /* Load the efective addres */
++//        l.mfspr r2,r0,SPR_EEAR_BASE     /* Load the effective address */
+ 	l.addi	r2,r4,0
+ //        l.mfspr r5,r0,SPR_EPCR_BASE     /* Load the insn address */
+ 	l.lwz   r5,PT_PC(r1)
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -65,6 +65,7 @@ afecting||affecting
- agaist||against
- albumns||albums
- alegorical||allegorical
-+algined||aligned
- algorith||algorithm
- algorithmical||algorithmically
- algoritm||algorithm
+@@ -381,6 +381,7 @@ easilly||easily
+ ecspecially||especially
+ edditable||editable
+ editting||editing
++efective||effective
+ efficently||efficiently
+ ehther||ether
+ eigth||eight
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
