@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-throttle-show_mem-from-warn_alloc.patch added to -mm tree
-Date: Mon, 19 Dec 2016 15:21:31 -0800
-Message-ID: <58586b7b.utAFLlsEa2NAIav+%akpm@linux-foundation.org>
+Subject: + printk-fix-typo-in-console_loglevel_default-help-text.patch
+ added to -mm tree
+Date: Mon, 19 Dec 2016 15:45:24 -0800
+Message-ID: <58587114.Np3zsN8R8ecbOLZC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48616 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48992 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932585AbcLSXUb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 18:20:31 -0500
+        with ESMTP id S1753762AbcLSXoY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 18:44:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
+To: bp@suse.de, olof@lixom.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: throttle show_mem() from warn_alloc()
+     Subject: printk: fix typo in CONSOLE_LOGLEVEL_DEFAULT help text
 has been added to the -mm tree.  Its filename is
-     mm-throttle-show_mem-from-warn_alloc.patch
+     printk-fix-typo-in-console_loglevel_default-help-text.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-throttle-show_mem-from-warn_alloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-fix-typo-in-console_loglevel_default-help-text.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-throttle-show_mem-from-warn_alloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-fix-typo-in-console_loglevel_default-help-text.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,92 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: throttle show_mem() from warn_alloc()
+From: Borislav Petkov <bp@suse.de>
+Subject: printk: fix typo in CONSOLE_LOGLEVEL_DEFAULT help text
 
-Tetsuo has been stressing OOM killer path with many parallel allocation
-requests when he has noticed that it is not all that hard to swamp kernel
-logs with warn_alloc messages caused by allocation stalls.  Even though
-the allocation stall message is triggered only once in 10s there might be
-many different tasks hitting it roughly around the same time.
+s/prink/printk/
 
-A big part of the output is show_mem() which can generate a lot of output
-even on a small machines.  There is no reason to show the state of memory
-counter for each allocation stall, especially when multiple of them are
-reported in a short time period.  Chances are that not much has changed
-since the last report.  This patch simply rate limits show_mem called from
-warn_alloc to only dump something once per second.  This should be enough
-to give us a clue why an allocation might be stalling while burst of
-warnings will not swamp log with too much data.
-
-While we are at it, extract all the show_mem related handling (filters)
-into a separate function warn_alloc_show_mem.  This will make the code
-cleaner and as a bonus point we can distinguish which part of warn_alloc
-got throttled due to rate limiting as ___ratelimit dumps the caller.
-
-Link: http://lkml.kernel.org/r/20161215101510.9030-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Link: http://lkml.kernel.org/r/20161215170111.19075-1-bp@alien8.de
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-throttle-show_mem-from-warn_alloc mm/page_alloc.c
---- a/mm/page_alloc.c~mm-throttle-show_mem-from-warn_alloc
-+++ a/mm/page_alloc.c
-@@ -3022,14 +3022,13 @@ static DEFINE_RATELIMIT_STATE(nopage_rs,
- 		DEFAULT_RATELIMIT_INTERVAL,
- 		DEFAULT_RATELIMIT_BURST);
+diff -puN lib/Kconfig.debug~printk-fix-typo-in-console_loglevel_default-help-text lib/Kconfig.debug
+--- a/lib/Kconfig.debug~printk-fix-typo-in-console_loglevel_default-help-text
++++ a/lib/Kconfig.debug
+@@ -26,7 +26,7 @@ config CONSOLE_LOGLEVEL_DEFAULT
+ 	  the kernel bootargs. loglevel=<x> continues to override whatever
+ 	  value is specified here as well.
  
--void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
-+static DEFINE_RATELIMIT_STATE(show_mem_rs, HZ, 1);
-+
-+static void warn_alloc_show_mem(gfp_t gfp_mask)
- {
- 	unsigned int filter = SHOW_MEM_FILTER_NODES;
--	struct va_format vaf;
--	va_list args;
+-	  Note: This does not affect the log level of un-prefixed prink()
++	  Note: This does not affect the log level of un-prefixed printk()
+ 	  usage in the kernel. That is controlled by the MESSAGE_LOGLEVEL_DEFAULT
+ 	  option.
  
--	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
--	    debug_guardpage_minorder() > 0)
-+	if (should_suppress_show_mem() || !__ratelimit(&show_mem_rs))
- 		return;
- 
- 	/*
-@@ -3044,6 +3043,18 @@ void warn_alloc(gfp_t gfp_mask, const ch
- 	if (in_interrupt() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		filter &= ~SHOW_MEM_FILTER_NODES;
- 
-+	show_mem(filter);
-+}
-+
-+void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+
-+	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
-+	    debug_guardpage_minorder() > 0)
-+		return;
-+
- 	pr_warn("%s: ", current->comm);
- 
- 	va_start(args, fmt);
-@@ -3055,8 +3066,7 @@ void warn_alloc(gfp_t gfp_mask, const ch
- 	pr_cont(", mode:%#x(%pGg)\n", gfp_mask, &gfp_mask);
- 
- 	dump_stack();
--	if (!should_suppress_show_mem())
--		show_mem(filter);
-+	warn_alloc_show_mem(gfp_mask);
- }
- 
- static inline struct page *
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from bp@suse.de are
 
-mm-throttle-show_mem-from-warn_alloc.patch
+printk-fix-typo-in-console_loglevel_default-help-text.patch
 
