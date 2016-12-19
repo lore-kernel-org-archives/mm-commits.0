@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch added
+ scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch added
  to -mm tree
-Date: Mon, 19 Dec 2016 14:26:51 -0800
-Message-ID: <58585eab.akRVzB/kjY7/IYxL%akpm@linux-foundation.org>
+Date: Mon, 19 Dec 2016 14:26:56 -0800
+Message-ID: <58585eb0.fIpV1X/gjK0+E8/I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43922 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932519AbcLSWZw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:25:52 -0500
+        with ESMTP id S932519AbcLSWZ5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:25:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "disble(d)" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "overide" pattern and fix typo instances
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,268 +41,252 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "disble(d)" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "overide" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  disble||disable
-  disbled||disabled
+  overide||override
 
-I kept the TSL2563_INT_DISBLED in /drivers/iio/light/tsl2563.c
-untouched.  The macro is not referenced at all, but this commit is
-touching only comment blocks just in case.
+While we are here, fix the doubled "address" in the touched line
+Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt.
 
-Link: http://lkml.kernel.org/r/1481573103-11329-20-git-send-email-yamada.masahiro@socionext.com
+Also, fix the comment block style in the touched hunks in
+drivers/media/dvb-frontends/drx39xyj/drx_driver.h.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-21-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kcov.rst        |    2 +-
- arch/cris/arch-v32/drivers/cryptocop.c  |    2 +-
- arch/x86/kernel/ftrace.c                |    2 +-
- drivers/crypto/ux500/cryp/cryp.c        |    2 +-
- drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c  |    2 +-
- drivers/hv/channel.c                    |    2 +-
- drivers/isdn/hisax/st5481_b.c           |    2 +-
- drivers/mtd/spi-nor/spi-nor.c           |    2 +-
- drivers/net/can/flexcan.c               |    2 +-
- drivers/net/ethernet/qlogic/qlge/qlge.h |    2 +-
- drivers/scsi/aic7xxx/aic79xx_core.c     |    2 +-
- drivers/usb/gadget/legacy/inode.c       |    3 +--
- drivers/usb/host/xhci.c                 |    4 ++--
- include/linux/regulator/machine.h       |    2 +-
- kernel/cgroup.c                         |    2 +-
- kernel/events/core.c                    |    2 +-
- scripts/spelling.txt                    |    2 ++
- sound/soc/amd/acp-pcm-dma.c             |    2 +-
- 18 files changed, 20 insertions(+), 19 deletions(-)
+ Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt |    2 +-
+ drivers/block/paride/pcd.c                                       |    2 +-
+ drivers/block/paride/pd.c                                        |    2 +-
+ drivers/block/paride/pf.c                                        |    2 +-
+ drivers/block/paride/pg.c                                        |    2 +-
+ drivers/block/paride/pt.c                                        |    2 +-
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.h                |    8 +++-----
+ drivers/net/ethernet/qlogic/qlge/qlge.h                          |    2 +-
+ include/dt-bindings/sound/cs42l42.h                              |    2 +-
+ include/net/irda/timer.h                                         |    2 +-
+ kernel/trace/trace_stack.c                                       |    2 +-
+ scripts/spelling.txt                                             |    1 +
+ tools/lguest/lguest.c                                            |    2 +-
+ tools/lib/bpf/Makefile                                           |    2 +-
+ tools/lib/traceevent/Makefile                                    |    2 +-
+ tools/lib/traceevent/event-parse.h                               |    2 +-
+ 16 files changed, 18 insertions(+), 19 deletions(-)
 
-diff -puN Documentation/dev-tools/kcov.rst~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances Documentation/dev-tools/kcov.rst
---- a/Documentation/dev-tools/kcov.rst~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/Documentation/dev-tools/kcov.rst
-@@ -10,7 +10,7 @@ Note that kcov does not aim to collect a
- to collect more or less stable coverage that is function of syscall inputs.
- To achieve this goal it does not collect coverage in soft/hard interrupts
- and instrumentation of some inherently non-deterministic parts of kernel is
--disbled (e.g. scheduler, locking).
-+disabled (e.g. scheduler, locking).
+diff -puN Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt
+--- a/Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt
+@@ -45,7 +45,7 @@ Required Properties:
+ Optional Properties:
+ - reg-names: In addition to the required properties, the following are optional
+   - "efuse-address"	- Contains efuse base address used to pick up ABB info.
+-  - "ldo-address"	- Contains address of ABB LDO overide register address.
++  - "ldo-address"	- Contains address of ABB LDO override register.
+ 	"efuse-address" is required for this.
+ - ti,ldovbb-vset-mask	- Required if ldo-address is set, mask for LDO override
+ 	register to provide override vset value.
+diff -puN drivers/block/paride/pcd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pcd.c
+--- a/drivers/block/paride/pcd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/drivers/block/paride/pcd.c
+@@ -50,7 +50,7 @@
+                         the slower the port i/o.  In some cases, setting
+                         this to zero will speed up the device. (default -1)
+                         
+-            major       You may use this parameter to overide the
++            major       You may use this parameter to override the
+                         default major number (46) that this driver
+                         will use.  Be sure to change the device
+                         name as well.
+diff -puN drivers/block/paride/pd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pd.c
+--- a/drivers/block/paride/pd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/drivers/block/paride/pd.c
+@@ -61,7 +61,7 @@
+                         first drive found.
+ 			
  
- Usage
- -----
-diff -puN arch/cris/arch-v32/drivers/cryptocop.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances arch/cris/arch-v32/drivers/cryptocop.c
---- a/arch/cris/arch-v32/drivers/cryptocop.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/arch/cris/arch-v32/drivers/cryptocop.c
-@@ -2086,7 +2086,7 @@ static void cryptocop_job_queue_close(vo
- 		dma_in_cfg.en = regk_dma_no;
- 		REG_WR(dma, IN_DMA_INST, rw_cfg, dma_in_cfg);
+-            major       You may use this parameter to overide the
++            major       You may use this parameter to override the
+                         default major number (45) that this driver
+                         will use.  Be sure to change the device
+                         name as well.
+diff -puN drivers/block/paride/pf.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pf.c
+--- a/drivers/block/paride/pf.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/drivers/block/paride/pf.c
+@@ -59,7 +59,7 @@
+                         the slower the port i/o.  In some cases, setting
+                         this to zero will speed up the device. (default -1)
  
--		/* Disble the cryptocop. */
-+		/* Disable the cryptocop. */
- 		rw_cfg = REG_RD(strcop, regi_strcop, rw_cfg);
- 		rw_cfg.en = 0;
- 		REG_WR(strcop, regi_strcop, rw_cfg, rw_cfg);
-diff -puN arch/x86/kernel/ftrace.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances arch/x86/kernel/ftrace.c
---- a/arch/x86/kernel/ftrace.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/arch/x86/kernel/ftrace.c
-@@ -535,7 +535,7 @@ static void run_sync(void)
- {
- 	int enable_irqs = irqs_disabled();
+-	    major	You may use this parameter to overide the
++	    major	You may use this parameter to override the
+ 			default major number (47) that this driver
+ 			will use.  Be sure to change the device
+ 			name as well.
+diff -puN drivers/block/paride/pg.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pg.c
+--- a/drivers/block/paride/pg.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/drivers/block/paride/pg.c
+@@ -84,7 +84,7 @@
+ 			the slower the port i/o.  In some cases, setting
+ 			this to zero will speed up the device. (default -1)
  
--	/* We may be called with interrupts disbled (on bootup). */
-+	/* We may be called with interrupts disabled (on bootup). */
- 	if (enable_irqs)
- 		local_irq_enable();
- 	on_each_cpu(do_sync_core, NULL, 1);
-diff -puN drivers/crypto/ux500/cryp/cryp.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/crypto/ux500/cryp/cryp.c
---- a/drivers/crypto/ux500/cryp/cryp.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/crypto/ux500/cryp/cryp.c
-@@ -82,7 +82,7 @@ void cryp_activity(struct cryp_device_da
- void cryp_flush_inoutfifo(struct cryp_device_data *device_data)
- {
- 	/*
--	 * We always need to disble the hardware before trying to flush the
-+	 * We always need to disable the hardware before trying to flush the
- 	 * FIFO. This is something that isn't written in the design
- 	 * specification, but we have been informed by the hardware designers
- 	 * that this must be done.
-diff -puN drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
---- a/drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
-@@ -782,7 +782,7 @@ static int sdma_v3_0_start(struct amdgpu
- 		}
- 	}
+-	    major	You may use this parameter to overide the
++	    major	You may use this parameter to override the
+ 			default major number (97) that this driver
+ 			will use.  Be sure to change the device
+ 			name as well.
+diff -puN drivers/block/paride/pt.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pt.c
+--- a/drivers/block/paride/pt.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/drivers/block/paride/pt.c
+@@ -61,7 +61,7 @@
+                         the slower the port i/o.  In some cases, setting
+                         this to zero will speed up the device. (default -1)
  
--	/* disble sdma engine before programing it */
-+	/* disable sdma engine before programing it */
- 	sdma_v3_0_ctx_switch_enable(adev, false);
- 	sdma_v3_0_enable(adev, false);
- 
-diff -puN drivers/hv/channel.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/hv/channel.c
---- a/drivers/hv/channel.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/hv/channel.c
-@@ -529,7 +529,7 @@ static int vmbus_close_internal(struct v
- 	/*
- 	 * In case a device driver's probe() fails (e.g.,
- 	 * util_probe() -> vmbus_open() returns -ENOMEM) and the device is
--	 * rescinded later (e.g., we dynamically disble an Integrated Service
-+	 * rescinded later (e.g., we dynamically disable an Integrated Service
- 	 * in Hyper-V Manager), the driver's remove() invokes vmbus_close():
- 	 * here we should skip most of the below cleanup work.
- 	 */
-diff -puN drivers/isdn/hisax/st5481_b.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/isdn/hisax/st5481_b.c
---- a/drivers/isdn/hisax/st5481_b.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/isdn/hisax/st5481_b.c
-@@ -239,7 +239,7 @@ static void st5481B_mode(struct st5481_b
- 			}
- 		}
- 	} else {
--		// Disble B channel interrupts
-+		// Disable B channel interrupts
- 		st5481_usb_device_ctrl_msg(adapter, FFMSK_B1+(bcs->channel * 2), 0, NULL, NULL);
- 
- 		// Disable B channel FIFOs
-diff -puN drivers/mtd/spi-nor/spi-nor.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/mtd/spi-nor/spi-nor.c
---- a/drivers/mtd/spi-nor/spi-nor.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/mtd/spi-nor/spi-nor.c
-@@ -176,7 +176,7 @@ static inline int write_enable(struct sp
- }
- 
- /*
-- * Send write disble instruction to the chip.
-+ * Send write disable instruction to the chip.
-  */
- static inline int write_disable(struct spi_nor *nor)
- {
-diff -puN drivers/net/can/flexcan.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/net/can/flexcan.c
---- a/drivers/net/can/flexcan.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/net/can/flexcan.c
-@@ -189,7 +189,7 @@
-  */
- #define FLEXCAN_QUIRK_BROKEN_ERR_STATE	BIT(1) /* [TR]WRN_INT not connected */
- #define FLEXCAN_QUIRK_DISABLE_RXFG	BIT(2) /* Disable RX FIFO Global mask */
--#define FLEXCAN_QUIRK_DISABLE_MECR	BIT(3) /* Disble Memory error detection */
-+#define FLEXCAN_QUIRK_DISABLE_MECR	BIT(3) /* Disable Memory error detection */
- 
- /* Structure of the message buffer */
- struct flexcan_mb {
-diff -puN drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlge/qlge.h
---- a/drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
+-	    major	You may use this parameter to overide the
++	    major	You may use this parameter to override the
+ 			default major number (96) that this driver
+ 			will use.  Be sure to change the device
+ 			name as well.
+diff -puN drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+@@ -256,8 +256,7 @@ int drxbsp_tuner_default_i2c_write_read(
+ *
+ * The actual DAP implementation may be restricted to only one of the modes.
+ * A compiler warning or error will be generated if the DAP implementation
+-* overides or cannot handle the mode defined below.
+-*
++* overrides or cannot handle the mode defined below.
+ */
+ #ifndef DRXDAP_SINGLE_MASTER
+ #define DRXDAP_SINGLE_MASTER 1
+@@ -272,7 +271,7 @@ int drxbsp_tuner_default_i2c_write_read(
+ *
+ * This maximum size may be restricted by the actual DAP implementation.
+ * A compiler warning or error will be generated if the DAP implementation
+-* overides or cannot handle the chunksize defined below.
++* overrides or cannot handle the chunksize defined below.
+ *
+ * Beware that the DAP uses  DRXDAP_MAX_WCHUNKSIZE to create a temporary data
+ * buffer. Do not undefine or choose too large, unless your system is able to
+@@ -292,8 +291,7 @@ int drxbsp_tuner_default_i2c_write_read(
+ *
+ * This maximum size may be restricted by the actual DAP implementation.
+ * A compiler warning or error will be generated if the DAP implementation
+-* overides or cannot handle the chunksize defined below.
+-*
++* overrides or cannot handle the chunksize defined below.
+ */
+ #ifndef DRXDAP_MAX_RCHUNKSIZE
+ #define  DRXDAP_MAX_RCHUNKSIZE 60
+diff -puN drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlge/qlge.h
+--- a/drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
 +++ a/drivers/net/ethernet/qlogic/qlge/qlge.h
-@@ -1163,7 +1163,7 @@ struct ib_mac_iocb_rsp {
+@@ -1162,7 +1162,7 @@ struct ob_mac_tso_iocb_rsp {
+ struct ib_mac_iocb_rsp {
  	u8 opcode;		/* 0x20 */
  	u8 flags1;
- #define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
--#define IB_MAC_IOCB_RSP_I	0x02	/* Disble Intr Generation */
-+#define IB_MAC_IOCB_RSP_I	0x02	/* Disable Intr Generation */
+-#define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
++#define IB_MAC_IOCB_RSP_OI	0x01	/* Override intr delay */
+ #define IB_MAC_IOCB_RSP_I	0x02	/* Disable Intr Generation */
  #define IB_MAC_CSUM_ERR_MASK 0x1c	/* A mask to use for csum errs */
  #define IB_MAC_IOCB_RSP_TE	0x04	/* Checksum error */
- #define IB_MAC_IOCB_RSP_NU	0x08	/* No checksum rcvd */
-diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/scsi/aic7xxx/aic79xx_core.c
---- a/drivers/scsi/aic7xxx/aic79xx_core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/aic7xxx/aic79xx_core.c
-@@ -6278,7 +6278,7 @@ ahd_reset(struct ahd_softc *ahd, int rei
- 		 * does not disable its parity logic prior to
- 		 * the start of the reset.  This may cause a
- 		 * parity error to be detected and thus a
--		 * spurious SERR or PERR assertion.  Disble
-+		 * spurious SERR or PERR assertion.  Disable
- 		 * PERR and SERR responses during the CHIPRST.
- 		 */
- 		mod_cmd = cmd & ~(PCIM_CMD_PERRESPEN|PCIM_CMD_SERRESPEN);
-diff -puN drivers/usb/gadget/legacy/inode.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/usb/gadget/legacy/inode.c
---- a/drivers/usb/gadget/legacy/inode.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/usb/gadget/legacy/inode.c
-@@ -84,8 +84,7 @@ static int ep_open(struct inode *, struc
+diff -puN include/dt-bindings/sound/cs42l42.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances include/dt-bindings/sound/cs42l42.h
+--- a/include/dt-bindings/sound/cs42l42.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/include/dt-bindings/sound/cs42l42.h
+@@ -20,7 +20,7 @@
+ #define CS42L42_HPOUT_LOAD_1NF		0
+ #define CS42L42_HPOUT_LOAD_10NF		1
  
- /* /dev/gadget/$CHIP represents ep0 and the whole device */
- enum ep0_state {
--	/* DISBLED is the initial state.
--	 */
-+	/* DISABLED is the initial state. */
- 	STATE_DEV_DISABLED = 0,
+-/* HPOUT Clamp to GND Overide */
++/* HPOUT Clamp to GND Override */
+ #define CS42L42_HPOUT_CLAMP_EN		0
+ #define CS42L42_HPOUT_CLAMP_DIS		1
  
- 	/* Only one open() of /dev/gadget/$CHIP; only one file tracks
-diff -puN drivers/usb/host/xhci.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/usb/host/xhci.c
---- a/drivers/usb/host/xhci.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/drivers/usb/host/xhci.c
-@@ -868,7 +868,7 @@ static void xhci_disable_port_wake_on_bi
- 
- 	spin_lock_irqsave(&xhci->lock, flags);
- 
--	/* disble usb3 ports Wake bits*/
-+	/* disable usb3 ports Wake bits */
- 	port_index = xhci->num_usb3_ports;
- 	port_array = xhci->usb3_ports;
- 	while (port_index--) {
-@@ -879,7 +879,7 @@ static void xhci_disable_port_wake_on_bi
- 			writel(t2, port_array[port_index]);
- 	}
- 
--	/* disble usb2 ports Wake bits*/
-+	/* disable usb2 ports Wake bits */
- 	port_index = xhci->num_usb2_ports;
- 	port_array = xhci->usb2_ports;
- 	while (port_index--) {
-diff -puN include/linux/regulator/machine.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances include/linux/regulator/machine.h
---- a/include/linux/regulator/machine.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/include/linux/regulator/machine.h
-@@ -65,7 +65,7 @@ struct regulator_state {
- 	int uV;	/* suspend voltage */
- 	unsigned int mode; /* suspend regulator operating mode */
- 	int enabled; /* is regulator enabled in this suspend state */
--	int disabled; /* is the regulator disbled in this suspend state */
-+	int disabled; /* is the regulator disabled in this suspend state */
- };
- 
- /**
-diff -puN kernel/cgroup.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances kernel/cgroup.c
---- a/kernel/cgroup.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/kernel/cgroup.c
-@@ -3244,7 +3244,7 @@ static bool css_visible(struct cgroup_su
-  *
-  * Returns 0 on success, -errno on failure.  On failure, csses which have
-  * been processed already aren't cleaned up.  The caller is responsible for
-- * cleaning up with cgroup_apply_control_disble().
-+ * cleaning up with cgroup_apply_control_disable().
+diff -puN include/net/irda/timer.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances include/net/irda/timer.h
+--- a/include/net/irda/timer.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/include/net/irda/timer.h
+@@ -59,7 +59,7 @@ struct lap_cb;
+  *  Slot timer must never exceed 85 ms, and must always be at least 25 ms, 
+  *  suggested to  75-85 msec by IrDA lite. This doesn't work with a lot of
+  *  devices, and other stackes uses a lot more, so it's best we do it as well
+- *  (Note : this is the default value and sysctl overides it - Jean II)
++ *  (Note : this is the default value and sysctl overrides it - Jean II)
   */
- static int cgroup_apply_control_enable(struct cgroup *cgrp)
- {
-diff -puN kernel/events/core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances kernel/events/core.c
---- a/kernel/events/core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/kernel/events/core.c
-@@ -1005,7 +1005,7 @@ list_update_cgroup_event(struct perf_eve
-  */
- #define PERF_CPU_HRTIMER (1000 / HZ)
- /*
-- * function must be called with interrupts disbled
-+ * function must be called with interrupts disabled
-  */
- static enum hrtimer_restart perf_mux_hrtimer_handler(struct hrtimer *hr)
- {
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -365,6 +365,8 @@ direectly||directly
- disapear||disappear
- disapeared||disappeared
- disappared||disappeared
-+disble||disable
-+disbled||disabled
- disconnet||disconnect
- discontinous||discontinuous
- dispertion||dispersion
-diff -puN sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances sound/soc/amd/acp-pcm-dma.c
---- a/sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
-+++ a/sound/soc/amd/acp-pcm-dma.c
-@@ -89,7 +89,7 @@ static void acp_reg_write(u32 val, void
- 	writel(val, acp_mmio + (reg * 4));
+ #define SLOT_TIMEOUT            (90*HZ/1000)
+ 
+diff -puN kernel/trace/trace_stack.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances kernel/trace/trace_stack.c
+--- a/kernel/trace/trace_stack.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/kernel/trace/trace_stack.c
+@@ -64,7 +64,7 @@ void stack_trace_print(void)
  }
  
--/* Configure a given dma channel parameters - enable/disble,
-+/* Configure a given dma channel parameters - enable/disable,
-  * number of descriptors, priority
-  */
- static void config_acp_dma_channel(void __iomem *acp_mmio, u8 ch_num,
+ /*
+- * When arch-specific code overides this function, the following
++ * When arch-specific code overrides this function, the following
+  * data should be filled up, assuming stack_trace_max_lock is held to
+  * prevent concurrent updates.
+  *     stack_trace_index[]
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/scripts/spelling.txt
+@@ -726,6 +726,7 @@ oustanding||outstanding
+ overaall||overall
+ overhread||overhead
+ overlaping||overlapping
++overide||override
+ overriden||overridden
+ overun||overrun
+ pacakge||package
+diff -puN tools/lguest/lguest.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lguest/lguest.c
+--- a/tools/lguest/lguest.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/tools/lguest/lguest.c
+@@ -1387,7 +1387,7 @@ static bool pci_data_iowrite(u16 port, u
+ 		/* Allow writing to any other BAR, or expansion ROM */
+ 		iowrite(portoff, val, mask, &d->config_words[reg]);
+ 		return true;
+-		/* We let them overide latency timer and cacheline size */
++		/* We let them override latency timer and cacheline size */
+ 	} else if (&d->config_words[reg] == (void *)&d->config.cacheline_size) {
+ 		/* Only let them change the first two fields. */
+ 		if (mask == 0xFFFFFFFF)
+diff -puN tools/lib/bpf/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/bpf/Makefile
+--- a/tools/lib/bpf/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/tools/lib/bpf/Makefile
+@@ -132,7 +132,7 @@ else
+   Q = @
+ endif
+ 
+-# Disable command line variables (CFLAGS) overide from top
++# Disable command line variables (CFLAGS) override from top
+ # level Makefile (perf), otherwise build Makefile will get
+ # the same command line setup.
+ MAKEOVERRIDES=
+diff -puN tools/lib/traceevent/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/traceevent/Makefile
+--- a/tools/lib/traceevent/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/tools/lib/traceevent/Makefile
+@@ -135,7 +135,7 @@ else
+   Q = @
+ endif
+ 
+-# Disable command line variables (CFLAGS) overide from top
++# Disable command line variables (CFLAGS) override from top
+ # level Makefile (perf), otherwise build Makefile will get
+ # the same command line setup.
+ MAKEOVERRIDES=
+diff -puN tools/lib/traceevent/event-parse.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/traceevent/event-parse.h
+--- a/tools/lib/traceevent/event-parse.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
++++ a/tools/lib/traceevent/event-parse.h
+@@ -140,7 +140,7 @@ struct pevent_plugin_option {
+  *   struct pevent_plugin_option PEVENT_PLUGIN_OPTIONS[] = {
+  *	{
+  *		.name = "option-name",
+- *		.plugin_alias = "overide-file-name", (optional)
++ *		.plugin_alias = "override-file-name", (optional)
+  *		.description = "description of option to show users",
+  *	},
+  *	{
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
