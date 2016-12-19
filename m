@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
- added to -mm tree
-Date: Mon, 19 Dec 2016 11:54:40 -0800
-Message-ID: <58583b00.ldS77rWe5h9gGtia%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-lx-fdtdump-command.patch added to -mm tree
+Date: Mon, 19 Dec 2016 13:23:15 -0800
+Message-ID: <58584fc3.YxpbM28tLlSBAiJ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39652 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756328AbcLSTxq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 14:53:46 -0500
+        with ESMTP id S1756520AbcLSVXH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 16:23:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, atomlin@redhat.com, dzickus@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: peter.griffin@linaro.org, jason.wessel@windriver.com, kbingham@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
+     Subject: scripts/gdb: add lx-fdtdump command
 has been added to the -mm tree.  Its filename is
-     kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+     scripts-gdb-add-lx-fdtdump-command.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-lx-fdtdump-command.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-lx-fdtdump-command.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +38,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
+From: Peter Griffin <peter.griffin@linaro.org>
+Subject: scripts/gdb: add lx-fdtdump command
 
-s/park_in_progress/watchdog_park_in_progress/
+lx-fdtdump dumps the flattened device tree passed to the kernel from the
+bootloader to the filename specified as the command argument.  If no
+argument is provided it defaults to fdtdump.dtb.  This then allows further
+post processing on the machine running GDB.  The fdt header is also also
+printed in the GDB console.  For example:
 
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
+(gdb) lx-fdtdump
+fdt_magic:         0xD00DFEED
+fdt_totalsize:     0xC108
+off_dt_struct:     0x38
+off_dt_strings:    0x3804
+off_mem_rsvmap:    0x28
+version:           17
+last_comp_version: 16
+Dumped fdt to fdtdump.dtb
+
+>fdtdump fdtdump.dtb | less
+
+This command is useful as the bootloader can often re-write parts of the
+device tree, and this can sometimes cause the kernel to not boot.
+
+Link: http://lkml.kernel.org/r/1481280065-5336-2-git-send-email-kbingham@kernel.org
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Signed-off-by: Kieran Bingham <kbingham@kernel.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h   |    2 +-
- kernel/watchdog.c     |    8 ++++----
- kernel/watchdog_hld.c |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ scripts/gdb/linux/constants.py.in |    7 ++
+ scripts/gdb/linux/proc.py         |   73 ++++++++++++++++++++++++++++
+ 2 files changed, 80 insertions(+)
 
-diff -puN include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix include/linux/nmi.h
---- a/include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
-+++ a/include/linux/nmi.h
-@@ -110,7 +110,7 @@ extern int watchdog_user_enabled;
- extern int watchdog_thresh;
- extern unsigned long watchdog_enabled;
- extern unsigned long *watchdog_cpumask_bits;
--extern atomic_t park_in_progress;
-+extern atomic_t watchdog_park_in_progress;
- #ifdef CONFIG_SMP
- extern int sysctl_softlockup_all_cpu_backtrace;
- extern int sysctl_hardlockup_all_cpu_backtrace;
-diff -puN kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
-+++ a/kernel/watchdog.c
-@@ -49,7 +49,7 @@ unsigned long *watchdog_cpumask_bits = c
- #define for_each_watchdog_cpu(cpu) \
- 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
+diff -puN scripts/gdb/linux/constants.py.in~scripts-gdb-add-lx-fdtdump-command scripts/gdb/linux/constants.py.in
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-add-lx-fdtdump-command
++++ a/scripts/gdb/linux/constants.py.in
+@@ -14,6 +14,7 @@
  
--atomic_t park_in_progress = ATOMIC_INIT(0);
-+atomic_t watchdog_park_in_progress = ATOMIC_INIT(0);
+ #include <linux/fs.h>
+ #include <linux/mount.h>
++#include <linux/of_fdt.h>
  
- /*
-  * The 'watchdog_running' variable is set to 1 when the watchdog threads
-@@ -262,7 +262,7 @@ static enum hrtimer_restart watchdog_tim
- 	int duration;
- 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
+ /* We need to stringify expanded macros so that they can be parsed */
  
--	if (atomic_read(&park_in_progress) != 0)
-+	if (atomic_read(&watchdog_park_in_progress) != 0)
- 		return HRTIMER_NORESTART;
+@@ -50,3 +51,9 @@ LX_VALUE(MNT_NOEXEC)
+ LX_VALUE(MNT_NOATIME)
+ LX_VALUE(MNT_NODIRATIME)
+ LX_VALUE(MNT_RELATIME)
++
++/* linux/of_fdt.h> */
++LX_VALUE(OF_DT_HEADER)
++
++/* Kernel Configs */
++LX_CONFIG(CONFIG_OF)
+diff -puN scripts/gdb/linux/proc.py~scripts-gdb-add-lx-fdtdump-command scripts/gdb/linux/proc.py
+--- a/scripts/gdb/linux/proc.py~scripts-gdb-add-lx-fdtdump-command
++++ a/scripts/gdb/linux/proc.py
+@@ -16,6 +16,7 @@ from linux import constants
+ from linux import utils
+ from linux import tasks
+ from linux import lists
++from struct import *
  
- 	/* kick the hardlockup detector */
-@@ -472,7 +472,7 @@ static int watchdog_park_threads(void)
- {
- 	int cpu, ret = 0;
  
--	atomic_set(&park_in_progress, 1);
-+	atomic_set(&watchdog_park_in_progress, 1);
+ class LxCmdLine(gdb.Command):
+@@ -195,3 +196,75 @@ values of that process namespace"""
+                         info_opts(MNT_INFO, m_flags)))
  
- 	for_each_watchdog_cpu(cpu) {
- 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
-@@ -480,7 +480,7 @@ static int watchdog_park_threads(void)
- 			break;
- 	}
- 
--	atomic_set(&park_in_progress, 0);
-+	atomic_set(&watchdog_park_in_progress, 0);
- 
- 	return ret;
- }
-diff -puN kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix kernel/watchdog_hld.c
---- a/kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
-+++ a/kernel/watchdog_hld.c
-@@ -84,7 +84,7 @@ static void watchdog_overflow_callback(s
- 	/* Ensure the watchdog never gets throttled */
- 	event->hw.interrupts = 0;
- 
--	if (atomic_read(&park_in_progress) != 0)
-+	if (atomic_read(&watchdog_park_in_progress) != 0)
- 		return;
- 
- 	if (__this_cpu_read(watchdog_nmi_touch) == true) {
+ LxMounts()
++
++
++class LxFdtDump(gdb.Command):
++    """Output Flattened Device Tree header and dump FDT blob to the filename
++       specified as the command argument. Equivalent to
++       'cat /proc/fdt > fdtdump.dtb' on a running target"""
++
++    def __init__(self):
++        super(LxFdtDump, self).__init__("lx-fdtdump", gdb.COMMAND_DATA,
++                                        gdb.COMPLETE_FILENAME)
++
++    def fdthdr_to_cpu(self, fdt_header):
++
++        fdt_header_be = ">IIIIIII"
++        fdt_header_le = "<IIIIIII"
++
++        if utils.get_target_endianness() == 1:
++            output_fmt = fdt_header_le
++        else:
++            output_fmt = fdt_header_be
++
++        return unpack(output_fmt, pack(fdt_header_be,
++                                       fdt_header['magic'],
++                                       fdt_header['totalsize'],
++                                       fdt_header['off_dt_struct'],
++                                       fdt_header['off_dt_strings'],
++                                       fdt_header['off_mem_rsvmap'],
++                                       fdt_header['version'],
++                                       fdt_header['last_comp_version']))
++
++    def invoke(self, arg, from_tty):
++
++        if not constants.LX_CONFIG_OF:
++            raise gdb.GdbError("Kernel not compiled with CONFIG_OF\n")
++
++        if len(arg) == 0:
++            filename = "fdtdump.dtb"
++        else:
++            filename = arg
++
++        py_fdt_header_ptr = gdb.parse_and_eval(
++            "(const struct fdt_header *) initial_boot_params")
++        py_fdt_header = py_fdt_header_ptr.dereference()
++
++        fdt_header = self.fdthdr_to_cpu(py_fdt_header)
++
++        if fdt_header[0] != constants.LX_OF_DT_HEADER:
++            raise gdb.GdbError("No flattened device tree magic found\n")
++
++        gdb.write("fdt_magic:         0x{:02X}\n".format(fdt_header[0]))
++        gdb.write("fdt_totalsize:     0x{:02X}\n".format(fdt_header[1]))
++        gdb.write("off_dt_struct:     0x{:02X}\n".format(fdt_header[2]))
++        gdb.write("off_dt_strings:    0x{:02X}\n".format(fdt_header[3]))
++        gdb.write("off_mem_rsvmap:    0x{:02X}\n".format(fdt_header[4]))
++        gdb.write("version:           {}\n".format(fdt_header[5]))
++        gdb.write("last_comp_version: {}\n".format(fdt_header[6]))
++
++        inf = gdb.inferiors()[0]
++        fdt_buf = utils.read_memoryview(inf, py_fdt_header_ptr,
++                                        fdt_header[1]).tobytes()
++
++        try:
++            f = open(filename, 'wb')
++        except:
++            raise gdb.GdbError("Could not open file to dump fdt")
++
++        f.write(fdt_buf)
++        f.close()
++
++        gdb.write("Dumped fdt blob to " + filename + "\n")
++
++LxFdtDump()
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from peter.griffin@linaro.org are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
-mm.patch
-linux-next-git-rejects.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+scripts-gdb-add-lx-fdtdump-command.patch
 
