@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch added
- to -mm tree
-Date: Mon, 19 Dec 2016 14:26:56 -0800
-Message-ID: <58585eb0.fIpV1X/gjK0+E8/I%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
+ added to -mm tree
+Date: Mon, 19 Dec 2016 14:27:00 -0800
+Message-ID: <58585eb4.C0NFkpmSuduLyOFl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43932 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932519AbcLSWZ5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:25:57 -0500
+        with ESMTP id S932519AbcLSW0B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:26:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "overide" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "overrided" pattern and fix typo instances
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,252 +41,157 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "overide" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "overrided" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  overide||override
+  overrided||overridden
 
-While we are here, fix the doubled "address" in the touched line
-Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt.
-
-Also, fix the comment block style in the touched hunks in
-drivers/media/dvb-frontends/drx39xyj/drx_driver.h.
-
-Link: http://lkml.kernel.org/r/1481573103-11329-21-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-22-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt |    2 +-
- drivers/block/paride/pcd.c                                       |    2 +-
- drivers/block/paride/pd.c                                        |    2 +-
- drivers/block/paride/pf.c                                        |    2 +-
- drivers/block/paride/pg.c                                        |    2 +-
- drivers/block/paride/pt.c                                        |    2 +-
- drivers/media/dvb-frontends/drx39xyj/drx_driver.h                |    8 +++-----
- drivers/net/ethernet/qlogic/qlge/qlge.h                          |    2 +-
- include/dt-bindings/sound/cs42l42.h                              |    2 +-
- include/net/irda/timer.h                                         |    2 +-
- kernel/trace/trace_stack.c                                       |    2 +-
- scripts/spelling.txt                                             |    1 +
- tools/lguest/lguest.c                                            |    2 +-
- tools/lib/bpf/Makefile                                           |    2 +-
- tools/lib/traceevent/Makefile                                    |    2 +-
- tools/lib/traceevent/event-parse.h                               |    2 +-
- 16 files changed, 18 insertions(+), 19 deletions(-)
+ Documentation/acpi/method-customizing.txt           |    2 +-
+ arch/powerpc/platforms/powernv/pci-ioda.c           |    2 +-
+ drivers/acpi/resource.c                             |    2 +-
+ drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h |    2 +-
+ drivers/net/ethernet/broadcom/bcm63xx_enet.c        |    2 +-
+ drivers/net/ethernet/micrel/ksz884x.c               |    8 ++++----
+ drivers/pinctrl/bcm/Kconfig                         |    2 +-
+ scripts/spelling.txt                                |    1 +
+ tools/lib/bpf/bpf.c                                 |    2 +-
+ 9 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt
---- a/Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt
-@@ -45,7 +45,7 @@ Required Properties:
- Optional Properties:
- - reg-names: In addition to the required properties, the following are optional
-   - "efuse-address"	- Contains efuse base address used to pick up ABB info.
--  - "ldo-address"	- Contains address of ABB LDO overide register address.
-+  - "ldo-address"	- Contains address of ABB LDO override register.
- 	"efuse-address" is required for this.
- - ti,ldovbb-vset-mask	- Required if ldo-address is set, mask for LDO override
- 	register to provide override vset value.
-diff -puN drivers/block/paride/pcd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pcd.c
---- a/drivers/block/paride/pcd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pcd.c
-@@ -50,7 +50,7 @@
-                         the slower the port i/o.  In some cases, setting
-                         this to zero will speed up the device. (default -1)
-                         
--            major       You may use this parameter to overide the
-+            major       You may use this parameter to override the
-                         default major number (46) that this driver
-                         will use.  Be sure to change the device
-                         name as well.
-diff -puN drivers/block/paride/pd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pd.c
---- a/drivers/block/paride/pd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pd.c
-@@ -61,7 +61,7 @@
-                         first drive found.
- 			
+diff -puN Documentation/acpi/method-customizing.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances Documentation/acpi/method-customizing.txt
+--- a/Documentation/acpi/method-customizing.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/Documentation/acpi/method-customizing.txt
+@@ -57,7 +57,7 @@ Note: To get the ACPI debug object outpu
+ 3. undo your changes
+    The "undo" operation is not supported for a new inserted method
+    right now, i.e. we can not remove a method currently.
+-   For an overrided method, in order to undo your changes, please
++   For an overridden method, in order to undo your changes, please
+    save a copy of the method original ASL code in step c) section 1,
+    and redo step c) ~ g) to override the method with the original one.
  
--            major       You may use this parameter to overide the
-+            major       You may use this parameter to override the
-                         default major number (45) that this driver
-                         will use.  Be sure to change the device
-                         name as well.
-diff -puN drivers/block/paride/pf.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pf.c
---- a/drivers/block/paride/pf.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pf.c
-@@ -59,7 +59,7 @@
-                         the slower the port i/o.  In some cases, setting
-                         this to zero will speed up the device. (default -1)
- 
--	    major	You may use this parameter to overide the
-+	    major	You may use this parameter to override the
- 			default major number (47) that this driver
- 			will use.  Be sure to change the device
- 			name as well.
-diff -puN drivers/block/paride/pg.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pg.c
---- a/drivers/block/paride/pg.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pg.c
-@@ -84,7 +84,7 @@
- 			the slower the port i/o.  In some cases, setting
- 			this to zero will speed up the device. (default -1)
- 
--	    major	You may use this parameter to overide the
-+	    major	You may use this parameter to override the
- 			default major number (97) that this driver
- 			will use.  Be sure to change the device
- 			name as well.
-diff -puN drivers/block/paride/pt.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pt.c
---- a/drivers/block/paride/pt.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pt.c
-@@ -61,7 +61,7 @@
-                         the slower the port i/o.  In some cases, setting
-                         this to zero will speed up the device. (default -1)
- 
--	    major	You may use this parameter to overide the
-+	    major	You may use this parameter to override the
- 			default major number (96) that this driver
- 			will use.  Be sure to change the device
- 			name as well.
-diff -puN drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drx_driver.h
---- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
-@@ -256,8 +256,7 @@ int drxbsp_tuner_default_i2c_write_read(
- *
- * The actual DAP implementation may be restricted to only one of the modes.
- * A compiler warning or error will be generated if the DAP implementation
--* overides or cannot handle the mode defined below.
--*
-+* overrides or cannot handle the mode defined below.
- */
- #ifndef DRXDAP_SINGLE_MASTER
- #define DRXDAP_SINGLE_MASTER 1
-@@ -272,7 +271,7 @@ int drxbsp_tuner_default_i2c_write_read(
- *
- * This maximum size may be restricted by the actual DAP implementation.
- * A compiler warning or error will be generated if the DAP implementation
--* overides or cannot handle the chunksize defined below.
-+* overrides or cannot handle the chunksize defined below.
- *
- * Beware that the DAP uses  DRXDAP_MAX_WCHUNKSIZE to create a temporary data
- * buffer. Do not undefine or choose too large, unless your system is able to
-@@ -292,8 +291,7 @@ int drxbsp_tuner_default_i2c_write_read(
- *
- * This maximum size may be restricted by the actual DAP implementation.
- * A compiler warning or error will be generated if the DAP implementation
--* overides or cannot handle the chunksize defined below.
--*
-+* overrides or cannot handle the chunksize defined below.
- */
- #ifndef DRXDAP_MAX_RCHUNKSIZE
- #define  DRXDAP_MAX_RCHUNKSIZE 60
-diff -puN drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlge/qlge.h
---- a/drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/qlogic/qlge/qlge.h
-@@ -1162,7 +1162,7 @@ struct ob_mac_tso_iocb_rsp {
- struct ib_mac_iocb_rsp {
- 	u8 opcode;		/* 0x20 */
- 	u8 flags1;
--#define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
-+#define IB_MAC_IOCB_RSP_OI	0x01	/* Override intr delay */
- #define IB_MAC_IOCB_RSP_I	0x02	/* Disable Intr Generation */
- #define IB_MAC_CSUM_ERR_MASK 0x1c	/* A mask to use for csum errs */
- #define IB_MAC_IOCB_RSP_TE	0x04	/* Checksum error */
-diff -puN include/dt-bindings/sound/cs42l42.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances include/dt-bindings/sound/cs42l42.h
---- a/include/dt-bindings/sound/cs42l42.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/include/dt-bindings/sound/cs42l42.h
-@@ -20,7 +20,7 @@
- #define CS42L42_HPOUT_LOAD_1NF		0
- #define CS42L42_HPOUT_LOAD_10NF		1
- 
--/* HPOUT Clamp to GND Overide */
-+/* HPOUT Clamp to GND Override */
- #define CS42L42_HPOUT_CLAMP_EN		0
- #define CS42L42_HPOUT_CLAMP_DIS		1
- 
-diff -puN include/net/irda/timer.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances include/net/irda/timer.h
---- a/include/net/irda/timer.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/include/net/irda/timer.h
-@@ -59,7 +59,7 @@ struct lap_cb;
-  *  Slot timer must never exceed 85 ms, and must always be at least 25 ms, 
-  *  suggested to  75-85 msec by IrDA lite. This doesn't work with a lot of
-  *  devices, and other stackes uses a lot more, so it's best we do it as well
-- *  (Note : this is the default value and sysctl overides it - Jean II)
-+ *  (Note : this is the default value and sysctl overrides it - Jean II)
-  */
- #define SLOT_TIMEOUT            (90*HZ/1000)
- 
-diff -puN kernel/trace/trace_stack.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances kernel/trace/trace_stack.c
---- a/kernel/trace/trace_stack.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/kernel/trace/trace_stack.c
-@@ -64,7 +64,7 @@ void stack_trace_print(void)
- }
- 
+diff -puN arch/powerpc/platforms/powernv/pci-ioda.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances arch/powerpc/platforms/powernv/pci-ioda.c
+--- a/arch/powerpc/platforms/powernv/pci-ioda.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/arch/powerpc/platforms/powernv/pci-ioda.c
+@@ -3031,7 +3031,7 @@ static void pnv_ioda_setup_pe_res(struct
  /*
-- * When arch-specific code overides this function, the following
-+ * When arch-specific code overrides this function, the following
-  * data should be filled up, assuming stack_trace_max_lock is held to
-  * prevent concurrent updates.
-  *     stack_trace_index[]
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
+  * This function is supposed to be called on basis of PE from top
+  * to bottom style. So the the I/O or MMIO segment assigned to
+- * parent PE could be overrided by its child PEs if necessary.
++ * parent PE could be overridden by its child PEs if necessary.
+  */
+ static void pnv_ioda_setup_pe_seg(struct pnv_ioda_pe *pe)
+ {
+diff -puN drivers/acpi/resource.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/acpi/resource.c
+--- a/drivers/acpi/resource.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/drivers/acpi/resource.c
+@@ -393,7 +393,7 @@ static void acpi_dev_get_irqresource(str
+ 	}
+ 
+ 	/*
+-	 * In IO-APIC mode, use overrided attribute. Two reasons:
++	 * In IO-APIC mode, use overridden attribute. Two reasons:
+ 	 * 1. BIOS bug in DSDT
+ 	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
+ 	 *
+diff -puN drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h
+--- a/drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h
+@@ -89,7 +89,7 @@ enum phm_platform_caps {
+ 	PHM_PlatformCaps_EnableSideportControl,                 /* indicates Sideport can be controlled */
+ 	PHM_PlatformCaps_VideoPlaybackEEUNotification,          /* indicates EEU notification of video start/stop is required */
+ 	PHM_PlatformCaps_TurnOffPll_ASPML1,                     /* PCIE Turn Off PLL in ASPM L1 */
+-	PHM_PlatformCaps_EnableHTLinkControl,                   /* indicates HT Link can be controlled by ACPI or CLMC overrided/automated mode. */
++	PHM_PlatformCaps_EnableHTLinkControl,                   /* indicates HT Link can be controlled by ACPI or CLMC overridden/automated mode. */
+ 	PHM_PlatformCaps_PerformanceStateOnly,                  /* indicates only performance power state to be used on current system. */
+ 	PHM_PlatformCaps_ExclusiveModeAlwaysHigh,               /* In Exclusive (3D) mode always stay in High state. */
+ 	PHM_PlatformCaps_DisableMGClockGating,                  /* to disable Medium Grain Clock Gating or not */
+diff -puN drivers/net/ethernet/broadcom/bcm63xx_enet.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/net/ethernet/broadcom/bcm63xx_enet.c
+--- a/drivers/net/ethernet/broadcom/bcm63xx_enet.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/broadcom/bcm63xx_enet.c
+@@ -817,7 +817,7 @@ static void bcm_enet_adjust_phy_link(str
+ 			rx_pause_en = 1;
+ 			tx_pause_en = 1;
+ 		} else if (!priv->pause_auto) {
+-			/* pause setting overrided by user */
++			/* pause setting overridden by user */
+ 			rx_pause_en = priv->pause_rx;
+ 			tx_pause_en = priv->pause_tx;
+ 		} else {
+diff -puN drivers/net/ethernet/micrel/ksz884x.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/net/ethernet/micrel/ksz884x.c
+--- a/drivers/net/ethernet/micrel/ksz884x.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/micrel/ksz884x.c
+@@ -1251,10 +1251,10 @@ struct ksz_port_info {
+  * @tx_size:		Transmit data size.  Used for TX optimization.
+  * 			The maximum is defined by MAX_TX_HELD_SIZE.
+  * @perm_addr:		Permanent MAC address.
+- * @override_addr:	Overrided MAC address.
++ * @override_addr:	Overridden MAC address.
+  * @address:		Additional MAC address entries.
+  * @addr_list_size:	Additional MAC address list size.
+- * @mac_override:	Indication of MAC address overrided.
++ * @mac_override:	Indication of MAC address overridden.
+  * @promiscuous:	Counter to keep track of promiscuous mode set.
+  * @all_multi:		Counter to keep track of all multicast mode set.
+  * @multi_list:		Multicast address entries.
+@@ -4042,7 +4042,7 @@ static int empty_addr(u8 *addr)
+  * @hw: 	The hardware instance.
+  *
+  * This routine programs the MAC address of the hardware when the address is
+- * overrided.
++ * overridden.
+  */
+ static void hw_set_addr(struct ksz_hw *hw)
+ {
+@@ -7029,7 +7029,7 @@ static int pcidev_init(struct pci_dev *p
+ 	if (macaddr[0] != ':')
+ 		get_mac_addr(hw_priv, macaddr, MAIN_PORT);
+ 
+-	/* Read MAC address and initialize override address if not overrided. */
++	/* Read MAC address and initialize override address if not overridden. */
+ 	hw_read_addr(hw);
+ 
+ 	/* Multiple device interfaces mode requires a second MAC address. */
+diff -puN drivers/pinctrl/bcm/Kconfig~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/pinctrl/bcm/Kconfig
+--- a/drivers/pinctrl/bcm/Kconfig~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/drivers/pinctrl/bcm/Kconfig
+@@ -70,7 +70,7 @@ config PINCTRL_CYGNUS_MUX
+ 
+ 	  The Broadcom Cygnus IOMUX driver supports group based IOMUX
+ 	  configuration, with the exception that certain individual pins
+-	  can be overrided to GPIO function
++	  can be overridden to GPIO function
+ 
+ config PINCTRL_NSP_GPIO
+ 	bool "Broadcom NSP GPIO (with PINCONF) driver"
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -726,6 +726,7 @@ oustanding||outstanding
- overaall||overall
+@@ -727,6 +727,7 @@ overaall||overall
  overhread||overhead
  overlaping||overlapping
-+overide||override
+ overide||override
++overrided||overridden
  overriden||overridden
  overun||overrun
  pacakge||package
-diff -puN tools/lguest/lguest.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lguest/lguest.c
---- a/tools/lguest/lguest.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lguest/lguest.c
-@@ -1387,7 +1387,7 @@ static bool pci_data_iowrite(u16 port, u
- 		/* Allow writing to any other BAR, or expansion ROM */
- 		iowrite(portoff, val, mask, &d->config_words[reg]);
- 		return true;
--		/* We let them overide latency timer and cacheline size */
-+		/* We let them override latency timer and cacheline size */
- 	} else if (&d->config_words[reg] == (void *)&d->config.cacheline_size) {
- 		/* Only let them change the first two fields. */
- 		if (mask == 0xFFFFFFFF)
-diff -puN tools/lib/bpf/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/bpf/Makefile
---- a/tools/lib/bpf/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lib/bpf/Makefile
-@@ -132,7 +132,7 @@ else
-   Q = @
- endif
+diff -puN tools/lib/bpf/bpf.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances tools/lib/bpf/bpf.c
+--- a/tools/lib/bpf/bpf.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
++++ a/tools/lib/bpf/bpf.c
+@@ -27,7 +27,7 @@
+ #include "bpf.h"
  
--# Disable command line variables (CFLAGS) overide from top
-+# Disable command line variables (CFLAGS) override from top
- # level Makefile (perf), otherwise build Makefile will get
- # the same command line setup.
- MAKEOVERRIDES=
-diff -puN tools/lib/traceevent/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/traceevent/Makefile
---- a/tools/lib/traceevent/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lib/traceevent/Makefile
-@@ -135,7 +135,7 @@ else
-   Q = @
- endif
- 
--# Disable command line variables (CFLAGS) overide from top
-+# Disable command line variables (CFLAGS) override from top
- # level Makefile (perf), otherwise build Makefile will get
- # the same command line setup.
- MAKEOVERRIDES=
-diff -puN tools/lib/traceevent/event-parse.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/traceevent/event-parse.h
---- a/tools/lib/traceevent/event-parse.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lib/traceevent/event-parse.h
-@@ -140,7 +140,7 @@ struct pevent_plugin_option {
-  *   struct pevent_plugin_option PEVENT_PLUGIN_OPTIONS[] = {
-  *	{
-  *		.name = "option-name",
-- *		.plugin_alias = "overide-file-name", (optional)
-+ *		.plugin_alias = "override-file-name", (optional)
-  *		.description = "description of option to show users",
-  *	},
-  *	{
+ /*
+- * When building perf, unistd.h is overrided. __NR_bpf is
++ * When building perf, unistd.h is overridden. __NR_bpf is
+  * required to be defined explicitly.
+  */
+ #ifndef __NR_bpf
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
