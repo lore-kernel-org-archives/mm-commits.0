@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+ scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
  added to -mm tree
-Date: Mon, 19 Dec 2016 14:27:15 -0800
-Message-ID: <58585ec3.r6xCN292KBNGm1U5%akpm@linux-foundation.org>
+Date: Mon, 19 Dec 2016 14:27:17 -0800
+Message-ID: <58585ec5./9ojo3dJz6NGeKvH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932519AbcLSW0P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:26:15 -0500
+        with ESMTP id S932519AbcLSW0R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:26:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "disassocation" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "deintialize(d)" pattern and fix typo instances
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,70 +41,100 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "disassocation" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "deintialize(d)" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  disassocation||disassociation
+  deintializing||deinitializing
+  deintialize||deinitialize
+  deintialized||deinitialized
 
-Link: http://lkml.kernel.org/r/1481573103-11329-27-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-28-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/intel/ipw2x00/ipw2100.c |    2 +-
- drivers/net/wireless/intel/ipw2x00/ipw2200.c |    2 +-
- include/net/cfg80211.h                       |    2 +-
- scripts/spelling.txt                         |    1 +
- 4 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/crypto/caam/ctrl.c                        |    2 +-
+ drivers/net/wireless/rsi/rsi_91x_usb.c            |    2 +-
+ drivers/staging/wilc1000/linux_wlan.c             |    2 +-
+ drivers/staging/wilc1000/wilc_wfi_cfgoperations.c |    2 +-
+ scripts/spelling.txt                              |    3 +++
+ sound/soc/amd/acp-pcm-dma.c                       |    2 +-
+ 6 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2100.c
---- a/drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/intel/ipw2x00/ipw2100.c
-@@ -5652,7 +5652,7 @@ static void shim__set_security(struct ne
+diff -puN drivers/crypto/caam/ctrl.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/crypto/caam/ctrl.c
+--- a/drivers/crypto/caam/ctrl.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/crypto/caam/ctrl.c
+@@ -270,7 +270,7 @@ static int deinstantiate_rng(struct devi
+ 		/*
+ 		 * If the corresponding bit is set, then it means the state
+ 		 * handle was initialized by us, and thus it needs to be
+-		 * deintialized as well
++		 * deinitialized as well
+ 		 */
+ 		if ((1 << sh_idx) & state_handle_mask) {
+ 			/*
+diff -puN drivers/net/wireless/rsi/rsi_91x_usb.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/net/wireless/rsi/rsi_91x_usb.c
+--- a/drivers/net/wireless/rsi/rsi_91x_usb.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/net/wireless/rsi/rsi_91x_usb.c
+@@ -516,7 +516,7 @@ err:
  
- /* As a temporary work around to enable WPA until we figure out why
-  * wpa_supplicant toggles the security capability of the driver, which
-- * forces a disassocation with force_update...
-+ * forces a disassociation with force_update...
+ /**
+  * rsi_disconnect() - This function performs the reverse of the probe function,
+- *		      it deintialize the driver structure.
++ *		      it deinitialize the driver structure.
+  * @pfunction: Pointer to the USB interface structure.
   *
-  *	if (force_update || !(priv->status & STATUS_ASSOCIATED))*/
- 	if (!(priv->status & (STATUS_ASSOCIATED | STATUS_ASSOCIATING)))
-diff -puN drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2200.c
---- a/drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/intel/ipw2x00/ipw2200.c
-@@ -3974,7 +3974,7 @@ static void ipw_send_disassociate(struct
- 		return;
- 	}
+  * Return: None.
+diff -puN drivers/staging/wilc1000/linux_wlan.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/staging/wilc1000/linux_wlan.c
+--- a/drivers/staging/wilc1000/linux_wlan.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/staging/wilc1000/linux_wlan.c
+@@ -213,7 +213,7 @@ static void deinit_irq(struct net_device
+ 	vif = netdev_priv(dev);
+ 	wilc = vif->wilc;
  
--	IPW_DEBUG_ASSOC("Disassocation attempt from %pM "
-+	IPW_DEBUG_ASSOC("Disassociation attempt from %pM "
- 			"on channel %d.\n",
- 			priv->assoc_request.bssid,
- 			priv->assoc_request.channel);
-diff -puN include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances include/net/cfg80211.h
---- a/include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
-+++ a/include/net/cfg80211.h
-@@ -1887,7 +1887,7 @@ struct cfg80211_deauth_request {
-  * struct cfg80211_disassoc_request - Disassociation request data
-  *
-  * This structure provides information needed to complete IEEE 802.11
-- * disassocation.
-+ * disassociation.
-  *
-  * @bss: the BSS to disassociate from
-  * @ie: Extra IEs to add to Disassociation frame or %NULL
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
+-	/* Deintialize IRQ */
++	/* Deinitialize IRQ */
+ 	if (wilc->dev_irq_num) {
+ 		free_irq(wilc->dev_irq_num, wilc);
+ 		gpio_free(wilc->gpio);
+diff -puN drivers/staging/wilc1000/wilc_wfi_cfgoperations.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/staging/wilc1000/wilc_wfi_cfgoperations.c
+--- a/drivers/staging/wilc1000/wilc_wfi_cfgoperations.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/staging/wilc1000/wilc_wfi_cfgoperations.c
+@@ -2347,7 +2347,7 @@ int wilc_deinit_host_int(struct net_devi
+ 		del_timer_sync(&wilc_during_ip_timer);
+ 
+ 	if (s32Error)
+-		netdev_err(net, "Error while deintializing host interface\n");
++		netdev_err(net, "Error while deinitializing host interface\n");
+ 
+ 	return s32Error;
+ }
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -364,6 +364,7 @@ differrence||difference
- difinition||definition
- diplay||display
- direectly||directly
-+disassocation||disassociation
- disapear||disappear
- disapeared||disappeared
- disappared||disappeared
+@@ -322,6 +322,9 @@ defintion||definition
+ defintions||definitions
+ defualt||default
+ defult||default
++deintializing||deinitializing
++deintialize||deinitialize
++deintialized||deinitialized
+ deivce||device
+ delared||declared
+ delare||declare
+diff -puN sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances sound/soc/amd/acp-pcm-dma.c
+--- a/sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/sound/soc/amd/acp-pcm-dma.c
+@@ -506,7 +506,7 @@ static int acp_init(void __iomem *acp_mm
+ 	return 0;
+ }
+ 
+-/* Deintialize ACP */
++/* Deinitialize ACP */
+ static int acp_deinit(void __iomem *acp_mmio)
+ {
+ 	u32 val;
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
