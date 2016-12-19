@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed.patch added to -mm tree
-Date: Mon, 19 Dec 2016 13:34:33 -0800
-Message-ID: <58585269.H9cWxk90eHI6M1Ya%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-fix-incorrect-zone_statistics-data.patch added to -mm tree
+Date: Mon, 19 Dec 2016 13:58:27 -0800
+Message-ID: <58585803.7KGeurOudtoqwVG9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754424AbcLSVdd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 16:33:33 -0500
+        with ESMTP id S1752786AbcLSV52 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 16:57:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hejianet@gmail.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fadvise: avoid expensive remote LRU cache draining after FADV_DONTNEED
+     Subject: mm, page_alloc: fix incorrect zone_statistics data
 has been added to the -mm tree.  Its filename is
-     mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed.patch
+     mm-page_alloc-fix-incorrect-zone_statistics-data.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-incorrect-zone_statistics-data.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-incorrect-zone_statistics-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +38,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: fadvise: avoid expensive remote LRU cache draining after FADV_DONTNEED
+From: Jia He <hejianet@gmail.com>
+Subject: mm, page_alloc: fix incorrect zone_statistics data
 
-When FADV_DONTNEED cannot drop all pages in the range, it observes that
-some pages might still be on per-cpu LRU caches after recent instantiation
-and so initiates remote calls to all CPUs to flush their local caches. 
-However, in most cases, the fadvise happens from the same context that
-instantiated the pages, and any pre-LRU pages in the specified range are
-most likely sitting on the local CPU's LRU cache, and so in many cases
-this results in unnecessary remote calls, which, in a loaded system, can
-hold up the fadvise() call significantly.
+In commit b9f00e147f27 ("mm, page_alloc: reduce branches in
+zone_statistics"), it reconstructed codes to reduce the branch miss rate.
+Compared with the original logic, it assumed if !(flag & __GFP_OTHER_NODE)
+ z->node would not be equal to preferred_zone->node. That seems to be
+incorrect.
 
-[ I didn't record it in the extreme case we observed at Facebook,
-  unfortunately. We had a slow-to-respond system and noticed it
-  lru_add_drain_all() leading the profile during fadvise calls. This
-  patch came out of thinking about the code and how we commonly call
-  FADV_DONTNEED.
+Fixes: commit b9f00e147f27 ("mm, page_alloc: reduce branches in
+zone_statistics")
 
-  FWIW, I wrote a silly directory tree walker/searcher that recurses
-  through /usr to read and FADV_DONTNEED each file it finds. On a 2
-  socket 40 ht machine, over 1% is spent in lru_add_drain_all(). With
-  the patch, that cost is gone; the local drain cost shows at 0.09%. ]
-
-Try to avoid the remote call by flushing the local LRU cache before even
-attempting to invalidate anything.  It's a cheap operation, and the local
-LRU cache is the most likely to hold any pre-LRU pages in the specified
-fadvise range.
-
-Link: http://lkml.kernel.org/r/20161214210017.GA1465@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@suse.de>
+Link: http://lkml.kernel.org/r/1481522347-20393-2-git-send-email-hejianet@gmail.com
+Signed-off-by: Jia He <hejianet@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/fadvise.c~mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed mm/fadvise.c
---- a/mm/fadvise.c~mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed
-+++ a/mm/fadvise.c
-@@ -139,7 +139,20 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 		}
- 
- 		if (end_index >= start_index) {
--			unsigned long count = invalidate_mapping_pages(mapping,
-+			unsigned long count;
-+
-+			/*
-+			 * It's common to FADV_DONTNEED right after
-+			 * the read or write that instantiates the
-+			 * pages, in which case there will be some
-+			 * sitting on the local LRU cache. Try to
-+			 * avoid the expensive remote drain and the
-+			 * second cache tree walk below by flushing
-+			 * them out right away.
-+			 */
-+			lru_add_drain();
-+
-+			count = invalidate_mapping_pages(mapping,
- 						start_index, end_index);
- 
- 			/*
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-incorrect-zone_statistics-data mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-incorrect-zone_statistics-data
++++ a/mm/page_alloc.c
+@@ -2603,6 +2603,9 @@ static inline void zone_statistics(struc
+ 	if (z->node == local_nid) {
+ 		__inc_zone_state(z, NUMA_HIT);
+ 		__inc_zone_state(z, local_stat);
++	} else if (z->node == preferred_zone->node) {
++		__inc_zone_state(z, NUMA_HIT);
++		__inc_zone_state(z, NUMA_OTHER);
+ 	} else {
+ 		__inc_zone_state(z, NUMA_MISS);
+ 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from hejianet@gmail.com are
 
-mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed.patch
+mm-page_alloc-fix-incorrect-zone_statistics-data.patch
 
