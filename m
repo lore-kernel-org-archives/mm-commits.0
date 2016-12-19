@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- scripts-spellingtxt-add-several-more-common-spelling-mistakes.patch added
- to -mm tree
-Date: Mon, 19 Dec 2016 13:24:47 -0800
-Message-ID: <5858501f.z/QfD7RdI1dnz7p+%akpm@linux-foundation.org>
+Subject: + fs-add-i_blocksize.patch added to -mm tree
+Date: Mon, 19 Dec 2016 13:28:11 -0800
+Message-ID: <585850eb.R+CKoeiMtQc8CeE+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39888 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40818 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751621AbcLSVXs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 16:23:48 -0500
+        with ESMTP id S1752043AbcLSV1M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 16:27:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, joe@perches.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add several more common spelling mistakes
+     Subject: fs: add i_blocksize()
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-several-more-common-spelling-mistakes.patch
+     fs-add-i_blocksize.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-several-more-common-spelling-mistakes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-add-i_blocksize.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-several-more-common-spelling-mistakes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-add-i_blocksize.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,264 +38,560 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: scripts/spelling.txt: add several more common spelling mistakes
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs: add i_blocksize()
 
-Lately I've been cleaning up spelling mistakes in kernel error messages
-and here are some of the more common spelling mistakes that I've found
-which probably should be added to this list so we don't keep on seeing
-them appearing again.
+Replace all 1 << inode->i_blkbits and (1 << inode->i_blkbits) in fs branch
 
-Link: http://lkml.kernel.org/r/20161209173326.17662-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Joe Perches <joe@perches.com>
+This patch also fixes multiple checkpatch warnings: WARNING: Prefer
+'unsigned int' to bare use of 'unsigned'
+
+Thanks to Andrew Morton for suggesting more appropriate function instead
+of macro.
+
+Link: http://lkml.kernel.org/r/1481319905-10126-1-git-send-email-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ fs/block_dev.c               |    2 +-
+ fs/btrfs/file.c              |    2 +-
+ fs/buffer.c                  |   12 ++++++------
+ fs/ceph/addr.c               |    2 +-
+ fs/direct-io.c               |    2 +-
+ fs/ext4/inode.c              |    6 +++---
+ fs/ext4/mballoc.c            |    2 +-
+ fs/ext4/move_extent.c        |    2 +-
+ fs/iomap.c                   |   10 +++++-----
+ fs/jfs/super.c               |    4 ++--
+ fs/mpage.c                   |    2 +-
+ fs/nfsd/blocklayout.c        |    6 +++---
+ fs/nilfs2/btnode.c           |    2 +-
+ fs/nilfs2/inode.c            |    4 ++--
+ fs/nilfs2/mdt.c              |    4 ++--
+ fs/nilfs2/segment.c          |    2 +-
+ fs/ocfs2/aops.c              |    2 +-
+ fs/ocfs2/file.c              |    2 +-
+ fs/orangefs/orangefs-utils.c |    4 ++--
+ fs/reiserfs/file.c           |    2 +-
+ fs/reiserfs/inode.c          |    2 +-
+ fs/stat.c                    |    2 +-
+ fs/udf/inode.c               |    2 +-
+ fs/xfs/xfs_aops.c            |   16 ++++++++--------
+ fs/xfs/xfs_file.c            |    4 ++--
+ include/linux/fs.h           |    5 +++++
+ 26 files changed, 55 insertions(+), 50 deletions(-)
 
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-several-more-common-spelling-mistakes scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-several-more-common-spelling-mistakes
-+++ a/scripts/spelling.txt
-@@ -16,6 +16,7 @@ absense||absence
- absolut||absolute
- absoulte||absolute
- acccess||access
-+acceess||access
- acceleratoin||acceleration
- accelleration||acceleration
- accesing||accessing
-@@ -46,6 +47,7 @@ ackowledged||acknowledged
- acording||according
- activete||activate
- acumulating||accumulating
-+acumulator||accumulator
- adapater||adapter
- addional||additional
- additionaly||additionally
-@@ -184,6 +186,7 @@ cacluated||calculated
- caculation||calculation
- calender||calendar
- calle||called
-+callibration||calibration
- calucate||calculate
- calulate||calculate
- cancelation||cancellation
-@@ -244,6 +247,7 @@ compatiblity||compatibility
- competion||completion
- compilant||compliant
- compleatly||completely
-+completition||completion
- completly||completely
- complient||compliant
- componnents||components
-@@ -257,6 +261,7 @@ conected||connected
- configuratoin||configuration
- configuraton||configuration
- configuretion||configuration
-+configutation||configuration
- conider||consider
- conjuction||conjunction
- connectinos||connections
-@@ -317,6 +322,7 @@ dependant||dependent
- depreacted||deprecated
- depreacte||deprecate
- desactivate||deactivate
-+desciptor||descriptor
- desciptors||descriptors
- descripton||description
- descrition||description
-@@ -417,9 +423,12 @@ extention||extension
- extracter||extractor
- faild||failed
- faill||fail
-+failied||failed
-+faillure||failure
- failue||failure
- failuer||failure
- faireness||fairness
-+falied||failed
- faliure||failure
- familar||familiar
- fatser||faster
-@@ -441,6 +450,7 @@ forseeable||foreseeable
- forse||force
- fortan||fortran
- forwardig||forwarding
-+framming||framing
- framwork||framework
- frequncy||frequency
- frome||from
-@@ -482,6 +492,7 @@ howver||however
- hsould||should
- hypter||hyper
- identidier||identifier
-+illigal||illegal
- imblance||imbalance
- immeadiately||immediately
- immedaite||immediate
-@@ -520,6 +531,7 @@ informtion||information
- infromation||information
- ingore||ignore
- inital||initial
-+initalized||initialized
- initalised||initialized
- initalise||initialize
- initalize||initialize
-@@ -532,6 +544,7 @@ initilize||initialize
- inofficial||unofficial
- insititute||institute
- instal||install
-+instanciated||instantiated
- inteface||interface
- integreated||integrated
- integrety||integrity
-@@ -557,6 +570,7 @@ intialized||initialized
- intialize||initialize
- intregral||integral
- intrrupt||interrupt
-+intterrupt||interrupt
- intuative||intuitive
- invaid||invalid
- invalde||invald
-@@ -567,6 +581,8 @@ invokations||invocations
- irrelevent||irrelevant
- isnt||isn't
- isssue||issue
-+iternations||iterations
-+itertation||iteration
- itslef||itself
- jave||java
- jeffies||jiffies
-@@ -621,6 +637,7 @@ messsage||message
- messsages||messages
- microprocesspr||microprocessor
- milliseonds||milliseconds
-+minium||minimum
- minumum||minimum
- miscelleneous||miscellaneous
- misformed||malformed
-@@ -668,6 +685,7 @@ occurances||occurrences
- occured||occurred
- occurence||occurrence
- occure||occurred
-+occured||occurred
- occuring||occurring
- offet||offset
- omitt||omit
-@@ -681,8 +699,10 @@ optionnal||optional
- optmizations||optimizations
- orientatied||orientated
- orientied||oriented
-+orignal||original
- otherise||otherwise
- ouput||output
-+oustanding||outstanding
- overaall||overall
- overhread||overhead
- overlaping||overlapping
-@@ -705,6 +725,7 @@ paramter||parameter
- paramters||parameters
- particuarly||particularly
- particularily||particularly
-+partiton||partition
- pased||passed
- passin||passing
- pathes||paths
-@@ -724,6 +745,7 @@ pleaes||please
- ploting||plotting
- plugable||pluggable
- poinnter||pointer
-+pointeur||pointer
- poiter||pointer
- posible||possible
- positon||position
-@@ -752,6 +774,7 @@ procceed||proceed
- proccesors||processors
- procesed||processed
- proces||process
-+procesing||processing
- processessing||processing
- processess||processes
- processpr||processor
-@@ -780,6 +803,7 @@ protable||portable
- protcol||protocol
- protecion||protection
- protocoll||protocol
-+promixity||proximity
- psudo||pseudo
- psuedo||pseudo
- psychadelic||psychedelic
-@@ -801,6 +825,7 @@ recommanded||recommended
- recyle||recycle
- redircet||redirect
- redirectrion||redirection
-+reename||rename
- refcounf||refcount
- refence||reference
- refered||referred
-@@ -944,7 +969,9 @@ suble||subtle
- substract||subtract
- succesfully||successfully
- succesful||successful
-+successed||succeeded
- successfull||successful
-+successfuly||successfully
- sucessfully||successfully
- sucess||success
- superflous||superfluous
-@@ -960,6 +987,7 @@ suppport||support
- supress||suppress
- surpresses||suppresses
- susbsystem||subsystem
-+suspeneded||suspended
- suspicously||suspiciously
- swaping||swapping
- switchs||switches
-@@ -967,6 +995,7 @@ symetric||symmetric
- synax||syntax
- synchonized||synchronized
- syncronize||synchronize
-+syncronized||synchronized
- syncronizing||synchronizing
- syncronus||synchronous
- syste||system
-@@ -1005,22 +1034,30 @@ ture||true
- tyep||type
- udpate||update
- uesd||used
-+uncommited||uncommitted
- unconditionaly||unconditionally
- underun||underrun
- unecessary||unnecessary
- unexecpted||unexpected
-+unexpcted||unexpected
- unexpectd||unexpected
- unexpeted||unexpected
-+unexpexted||unexpected
- unfortunatelly||unfortunately
- unifiy||unify
- unintialized||uninitialized
-+unkmown||unknown
- unknonw||unknown
- unknow||unknown
- unkown||unknown
- unneedingly||unnecessarily
-+unnsupported||unsupported
-+unmached||unmatched
- unresgister||unregister
-+unrgesiter||unregister
- unsinged||unsigned
- unstabel||unstable
-+unsolicitied||unsolicited
- unsuccessfull||unsuccessful
- unsuported||unsupported
- untill||until
+diff -puN fs/block_dev.c~fs-add-i_blocksize fs/block_dev.c
+--- a/fs/block_dev.c~fs-add-i_blocksize
++++ a/fs/block_dev.c
+@@ -968,7 +968,7 @@ struct block_device *bdget(dev_t dev)
+ 		bdev->bd_contains = NULL;
+ 		bdev->bd_super = NULL;
+ 		bdev->bd_inode = inode;
+-		bdev->bd_block_size = (1 << inode->i_blkbits);
++		bdev->bd_block_size = i_blocksize(inode);
+ 		bdev->bd_part_count = 0;
+ 		bdev->bd_invalidated = 0;
+ 		inode->i_mode = S_IFBLK;
+diff -puN fs/btrfs/file.c~fs-add-i_blocksize fs/btrfs/file.c
+--- a/fs/btrfs/file.c~fs-add-i_blocksize
++++ a/fs/btrfs/file.c
+@@ -2876,7 +2876,7 @@ static long btrfs_fallocate(struct file
+ 		if (!ret)
+ 			ret = btrfs_prealloc_file_range(inode, mode,
+ 					range->start,
+-					range->len, 1 << inode->i_blkbits,
++					range->len, i_blocksize(inode),
+ 					offset + len, &alloc_hint);
+ 		else
+ 			btrfs_free_reserved_data_space(inode, range->start,
+diff -puN fs/buffer.c~fs-add-i_blocksize fs/buffer.c
+--- a/fs/buffer.c~fs-add-i_blocksize
++++ a/fs/buffer.c
+@@ -2395,7 +2395,7 @@ static int cont_expand_zero(struct file
+ 			    loff_t pos, loff_t *bytes)
+ {
+ 	struct inode *inode = mapping->host;
+-	unsigned blocksize = 1 << inode->i_blkbits;
++	unsigned int blocksize = i_blocksize(inode);
+ 	struct page *page;
+ 	void *fsdata;
+ 	pgoff_t index, curidx;
+@@ -2475,8 +2475,8 @@ int cont_write_begin(struct file *file,
+ 			get_block_t *get_block, loff_t *bytes)
+ {
+ 	struct inode *inode = mapping->host;
+-	unsigned blocksize = 1 << inode->i_blkbits;
+-	unsigned zerofrom;
++	unsigned int blocksize = i_blocksize(inode);
++	unsigned int zerofrom;
+ 	int err;
+ 
+ 	err = cont_expand_zero(file, mapping, pos, bytes);
+@@ -2838,7 +2838,7 @@ int nobh_truncate_page(struct address_sp
+ 	struct buffer_head map_bh;
+ 	int err;
+ 
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	length = offset & (blocksize - 1);
+ 
+ 	/* Block boundary? Nothing to do */
+@@ -2916,7 +2916,7 @@ int block_truncate_page(struct address_s
+ 	struct buffer_head *bh;
+ 	int err;
+ 
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	length = offset & (blocksize - 1);
+ 
+ 	/* Block boundary? Nothing to do */
+@@ -3028,7 +3028,7 @@ sector_t generic_block_bmap(struct addre
+ 	struct inode *inode = mapping->host;
+ 	tmp.b_state = 0;
+ 	tmp.b_blocknr = 0;
+-	tmp.b_size = 1 << inode->i_blkbits;
++	tmp.b_size = i_blocksize(inode);
+ 	get_block(inode, block, &tmp, 0);
+ 	return tmp.b_blocknr;
+ }
+diff -puN fs/ceph/addr.c~fs-add-i_blocksize fs/ceph/addr.c
+--- a/fs/ceph/addr.c~fs-add-i_blocksize
++++ a/fs/ceph/addr.c
+@@ -751,7 +751,7 @@ static int ceph_writepages_start(struct
+ 	struct pagevec pvec;
+ 	int done = 0;
+ 	int rc = 0;
+-	unsigned wsize = 1 << inode->i_blkbits;
++	unsigned int wsize = i_blocksize(inode);
+ 	struct ceph_osd_request *req = NULL;
+ 	int do_sync = 0;
+ 	loff_t snap_size, i_size;
+diff -puN fs/direct-io.c~fs-add-i_blocksize fs/direct-io.c
+--- a/fs/direct-io.c~fs-add-i_blocksize
++++ a/fs/direct-io.c
+@@ -587,7 +587,7 @@ static int dio_set_defer_completion(stru
+ /*
+  * Call into the fs to map some more disk blocks.  We record the current number
+  * of available blocks at sdio->blocks_available.  These are in units of the
+- * fs blocksize, (1 << inode->i_blkbits).
++ * fs blocksize, i_blocksize(inode).
+  *
+  * The fs is allowed to map lots of blocks at once.  If it wants to do that,
+  * it uses the passed inode-relative block number as the file offset, as usual.
+diff -puN fs/ext4/inode.c~fs-add-i_blocksize fs/ext4/inode.c
+--- a/fs/ext4/inode.c~fs-add-i_blocksize
++++ a/fs/ext4/inode.c
+@@ -2199,7 +2199,7 @@ static int mpage_process_page_bufs(struc
+ {
+ 	struct inode *inode = mpd->inode;
+ 	int err;
+-	ext4_lblk_t blocks = (i_size_read(inode) + (1 << inode->i_blkbits) - 1)
++	ext4_lblk_t blocks = (i_size_read(inode) + i_blocksize(inode) - 1)
+ 							>> inode->i_blkbits;
+ 
+ 	do {
+@@ -3547,7 +3547,7 @@ static ssize_t ext4_direct_IO_write(stru
+ 	if (overwrite)
+ 		get_block_func = ext4_dio_get_block_overwrite;
+ 	else if (!ext4_test_inode_flag(inode, EXT4_INODE_EXTENTS) ||
+-		   round_down(offset, 1 << inode->i_blkbits) >= inode->i_size) {
++		   round_down(offset, i_blocksize(inode)) >= inode->i_size) {
+ 		get_block_func = ext4_dio_get_block;
+ 		dio_flags = DIO_LOCKING | DIO_SKIP_HOLES;
+ 	} else if (is_sync_kiocb(iocb)) {
+@@ -5143,7 +5143,7 @@ static void ext4_wait_for_tail_page_comm
+ 	 * do. We do the check mainly to optimize the common PAGE_SIZE ==
+ 	 * blocksize case
+ 	 */
+-	if (offset > PAGE_SIZE - (1 << inode->i_blkbits))
++	if (offset > PAGE_SIZE - i_blocksize(inode))
+ 		return;
+ 	while (1) {
+ 		page = find_lock_page(inode->i_mapping,
+diff -puN fs/ext4/mballoc.c~fs-add-i_blocksize fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~fs-add-i_blocksize
++++ a/fs/ext4/mballoc.c
+@@ -838,7 +838,7 @@ static int ext4_mb_init_cache(struct pag
+ 	inode = page->mapping->host;
+ 	sb = inode->i_sb;
+ 	ngroups = ext4_get_groups_count(sb);
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	blocks_per_page = PAGE_SIZE / blocksize;
+ 
+ 	groups_per_page = blocks_per_page >> 1;
+diff -puN fs/ext4/move_extent.c~fs-add-i_blocksize fs/ext4/move_extent.c
+--- a/fs/ext4/move_extent.c~fs-add-i_blocksize
++++ a/fs/ext4/move_extent.c
+@@ -187,7 +187,7 @@ mext_page_mkuptodate(struct page *page,
+ 	if (PageUptodate(page))
+ 		return 0;
+ 
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	if (!page_has_buffers(page))
+ 		create_empty_buffers(page, blocksize, 0);
+ 
+diff -puN fs/iomap.c~fs-add-i_blocksize fs/iomap.c
+--- a/fs/iomap.c~fs-add-i_blocksize
++++ a/fs/iomap.c
+@@ -417,8 +417,8 @@ int
+ iomap_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
+ 		struct iomap_ops *ops)
+ {
+-	unsigned blocksize = (1 << inode->i_blkbits);
+-	unsigned off = pos & (blocksize - 1);
++	unsigned int blocksize = i_blocksize(inode);
++	unsigned int off = pos & (blocksize - 1);
+ 
+ 	/* Block boundary? Nothing to do */
+ 	if (!off)
+@@ -733,9 +733,9 @@ iomap_dio_actor(struct inode *inode, lof
+ 		void *data, struct iomap *iomap)
+ {
+ 	struct iomap_dio *dio = data;
+-	unsigned blkbits = blksize_bits(bdev_logical_block_size(iomap->bdev));
+-	unsigned fs_block_size = (1 << inode->i_blkbits), pad;
+-	unsigned align = iov_iter_alignment(dio->submit.iter);
++	unsigned int blkbits = blksize_bits(bdev_logical_block_size(iomap->bdev));
++	unsigned int fs_block_size = i_blocksize(inode), pad;
++	unsigned int align = iov_iter_alignment(dio->submit.iter);
+ 	struct iov_iter iter;
+ 	struct bio *bio;
+ 	bool need_zeroout = false;
+diff -puN fs/jfs/super.c~fs-add-i_blocksize fs/jfs/super.c
+--- a/fs/jfs/super.c~fs-add-i_blocksize
++++ a/fs/jfs/super.c
+@@ -758,7 +758,7 @@ static ssize_t jfs_quota_read(struct sup
+ 				sb->s_blocksize - offset : toread;
+ 
+ 		tmp_bh.b_state = 0;
+-		tmp_bh.b_size = 1 << inode->i_blkbits;
++		tmp_bh.b_size = i_blocksize(inode);
+ 		err = jfs_get_block(inode, blk, &tmp_bh, 0);
+ 		if (err)
+ 			return err;
+@@ -798,7 +798,7 @@ static ssize_t jfs_quota_write(struct su
+ 				sb->s_blocksize - offset : towrite;
+ 
+ 		tmp_bh.b_state = 0;
+-		tmp_bh.b_size = 1 << inode->i_blkbits;
++		tmp_bh.b_size = i_blocksize(inode);
+ 		err = jfs_get_block(inode, blk, &tmp_bh, 1);
+ 		if (err)
+ 			goto out;
+diff -puN fs/mpage.c~fs-add-i_blocksize fs/mpage.c
+--- a/fs/mpage.c~fs-add-i_blocksize
++++ a/fs/mpage.c
+@@ -115,7 +115,7 @@ map_buffer_to_page(struct page *page, st
+ 			SetPageUptodate(page);    
+ 			return;
+ 		}
+-		create_empty_buffers(page, 1 << inode->i_blkbits, 0);
++		create_empty_buffers(page, i_blocksize(inode), 0);
+ 	}
+ 	head = page_buffers(page);
+ 	page_bh = head;
+diff -puN fs/nfsd/blocklayout.c~fs-add-i_blocksize fs/nfsd/blocklayout.c
+--- a/fs/nfsd/blocklayout.c~fs-add-i_blocksize
++++ a/fs/nfsd/blocklayout.c
+@@ -23,7 +23,7 @@ nfsd4_block_proc_layoutget(struct inode
+ {
+ 	struct nfsd4_layout_seg *seg = &args->lg_seg;
+ 	struct super_block *sb = inode->i_sb;
+-	u32 block_size = (1 << inode->i_blkbits);
++	u32 block_size = i_blocksize(inode);
+ 	struct pnfs_block_extent *bex;
+ 	struct iomap iomap;
+ 	u32 device_generation = 0;
+@@ -180,7 +180,7 @@ nfsd4_block_proc_layoutcommit(struct ino
+ 	int nr_iomaps;
+ 
+ 	nr_iomaps = nfsd4_block_decode_layoutupdate(lcp->lc_up_layout,
+-			lcp->lc_up_len, &iomaps, 1 << inode->i_blkbits);
++			lcp->lc_up_len, &iomaps, i_blocksize(inode));
+ 	if (nr_iomaps < 0)
+ 		return nfserrno(nr_iomaps);
+ 
+@@ -372,7 +372,7 @@ nfsd4_scsi_proc_layoutcommit(struct inod
+ 	int nr_iomaps;
+ 
+ 	nr_iomaps = nfsd4_scsi_decode_layoutupdate(lcp->lc_up_layout,
+-			lcp->lc_up_len, &iomaps, 1 << inode->i_blkbits);
++			lcp->lc_up_len, &iomaps, i_blocksize(inode));
+ 	if (nr_iomaps < 0)
+ 		return nfserrno(nr_iomaps);
+ 
+diff -puN fs/nilfs2/btnode.c~fs-add-i_blocksize fs/nilfs2/btnode.c
+--- a/fs/nilfs2/btnode.c~fs-add-i_blocksize
++++ a/fs/nilfs2/btnode.c
+@@ -50,7 +50,7 @@ nilfs_btnode_create_block(struct address
+ 		brelse(bh);
+ 		BUG();
+ 	}
+-	memset(bh->b_data, 0, 1 << inode->i_blkbits);
++	memset(bh->b_data, 0, i_blocksize(inode));
+ 	bh->b_bdev = inode->i_sb->s_bdev;
+ 	bh->b_blocknr = blocknr;
+ 	set_buffer_mapped(bh);
+diff -puN fs/nilfs2/inode.c~fs-add-i_blocksize fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~fs-add-i_blocksize
++++ a/fs/nilfs2/inode.c
+@@ -51,7 +51,7 @@ void nilfs_inode_add_blocks(struct inode
+ {
+ 	struct nilfs_root *root = NILFS_I(inode)->i_root;
+ 
+-	inode_add_bytes(inode, (1 << inode->i_blkbits) * n);
++	inode_add_bytes(inode, i_blocksize(inode) * n);
+ 	if (root)
+ 		atomic64_add(n, &root->blocks_count);
+ }
+@@ -60,7 +60,7 @@ void nilfs_inode_sub_blocks(struct inode
+ {
+ 	struct nilfs_root *root = NILFS_I(inode)->i_root;
+ 
+-	inode_sub_bytes(inode, (1 << inode->i_blkbits) * n);
++	inode_sub_bytes(inode, i_blocksize(inode) * n);
+ 	if (root)
+ 		atomic64_sub(n, &root->blocks_count);
+ }
+diff -puN fs/nilfs2/mdt.c~fs-add-i_blocksize fs/nilfs2/mdt.c
+--- a/fs/nilfs2/mdt.c~fs-add-i_blocksize
++++ a/fs/nilfs2/mdt.c
+@@ -57,7 +57,7 @@ nilfs_mdt_insert_new_block(struct inode
+ 	set_buffer_mapped(bh);
+ 
+ 	kaddr = kmap_atomic(bh->b_page);
+-	memset(kaddr + bh_offset(bh), 0, 1 << inode->i_blkbits);
++	memset(kaddr + bh_offset(bh), 0, i_blocksize(inode));
+ 	if (init_block)
+ 		init_block(inode, bh, kaddr);
+ 	flush_dcache_page(bh->b_page);
+@@ -501,7 +501,7 @@ void nilfs_mdt_set_entry_size(struct ino
+ 	struct nilfs_mdt_info *mi = NILFS_MDT(inode);
+ 
+ 	mi->mi_entry_size = entry_size;
+-	mi->mi_entries_per_block = (1 << inode->i_blkbits) / entry_size;
++	mi->mi_entries_per_block = i_blocksize(inode) / entry_size;
+ 	mi->mi_first_entry_offset = DIV_ROUND_UP(header_size, entry_size);
+ }
+ 
+diff -puN fs/nilfs2/segment.c~fs-add-i_blocksize fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~fs-add-i_blocksize
++++ a/fs/nilfs2/segment.c
+@@ -723,7 +723,7 @@ static size_t nilfs_lookup_dirty_data_bu
+ 
+ 		lock_page(page);
+ 		if (!page_has_buffers(page))
+-			create_empty_buffers(page, 1 << inode->i_blkbits, 0);
++			create_empty_buffers(page, i_blocksize(inode), 0);
+ 		unlock_page(page);
+ 
+ 		bh = head = page_buffers(page);
+diff -puN fs/ocfs2/aops.c~fs-add-i_blocksize fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~fs-add-i_blocksize
++++ a/fs/ocfs2/aops.c
+@@ -608,7 +608,7 @@ int ocfs2_map_page_blocks(struct page *p
+ 	int ret = 0;
+ 	struct buffer_head *head, *bh, *wait[2], **wait_bh = wait;
+ 	unsigned int block_end, block_start;
+-	unsigned int bsize = 1 << inode->i_blkbits;
++	unsigned int bsize = i_blocksize(inode);
+ 
+ 	if (!page_has_buffers(page))
+ 		create_empty_buffers(page, bsize, 0);
+diff -puN fs/ocfs2/file.c~fs-add-i_blocksize fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~fs-add-i_blocksize
++++ a/fs/ocfs2/file.c
+@@ -808,7 +808,7 @@ static int ocfs2_write_zero_page(struct
+ 	/* We know that zero_from is block aligned */
+ 	for (block_start = zero_from; block_start < zero_to;
+ 	     block_start = block_end) {
+-		block_end = block_start + (1 << inode->i_blkbits);
++		block_end = block_start + i_blocksize(inode);
+ 
+ 		/*
+ 		 * block_start is block-aligned.  Bump it by one to force
+diff -puN fs/orangefs/orangefs-utils.c~fs-add-i_blocksize fs/orangefs/orangefs-utils.c
+--- a/fs/orangefs/orangefs-utils.c~fs-add-i_blocksize
++++ a/fs/orangefs/orangefs-utils.c
+@@ -306,7 +306,7 @@ int orangefs_inode_getattr(struct inode
+ 		break;
+ 	case S_IFDIR:
+ 		inode->i_size = PAGE_SIZE;
+-		orangefs_inode->blksize = (1 << inode->i_blkbits);
++		orangefs_inode->blksize = i_blocksize(inode);
+ 		spin_lock(&inode->i_lock);
+ 		inode_set_bytes(inode, inode->i_size);
+ 		spin_unlock(&inode->i_lock);
+@@ -316,7 +316,7 @@ int orangefs_inode_getattr(struct inode
+ 		if (new) {
+ 			inode->i_size = (loff_t)strlen(new_op->
+ 			    downcall.resp.getattr.link_target);
+-			orangefs_inode->blksize = (1 << inode->i_blkbits);
++			orangefs_inode->blksize = i_blocksize(inode);
+ 			ret = strscpy(orangefs_inode->link_target,
+ 			    new_op->downcall.resp.getattr.link_target,
+ 			    ORANGEFS_NAME_MAX);
+diff -puN fs/reiserfs/file.c~fs-add-i_blocksize fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~fs-add-i_blocksize
++++ a/fs/reiserfs/file.c
+@@ -189,7 +189,7 @@ int reiserfs_commit_page(struct inode *i
+ 	int ret = 0;
+ 
+ 	th.t_trans_id = 0;
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 
+ 	if (logit) {
+ 		reiserfs_write_lock(s);
+diff -puN fs/reiserfs/inode.c~fs-add-i_blocksize fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~fs-add-i_blocksize
++++ a/fs/reiserfs/inode.c
+@@ -525,7 +525,7 @@ static int reiserfs_get_blocks_direct_io
+ 	 * referenced in convert_tail_for_hole() that may be called from
+ 	 * reiserfs_get_block()
+ 	 */
+-	bh_result->b_size = (1 << inode->i_blkbits);
++	bh_result->b_size = i_blocksize(inode);
+ 
+ 	ret = reiserfs_get_block(inode, iblock, bh_result,
+ 				 create | GET_BLOCK_NO_DANGLE);
+diff -puN fs/stat.c~fs-add-i_blocksize fs/stat.c
+--- a/fs/stat.c~fs-add-i_blocksize
++++ a/fs/stat.c
+@@ -31,7 +31,7 @@ void generic_fillattr(struct inode *inod
+ 	stat->atime = inode->i_atime;
+ 	stat->mtime = inode->i_mtime;
+ 	stat->ctime = inode->i_ctime;
+-	stat->blksize = (1 << inode->i_blkbits);
++	stat->blksize = i_blocksize(inode);
+ 	stat->blocks = inode->i_blocks;
+ }
+ 
+diff -puN fs/udf/inode.c~fs-add-i_blocksize fs/udf/inode.c
+--- a/fs/udf/inode.c~fs-add-i_blocksize
++++ a/fs/udf/inode.c
+@@ -1215,7 +1215,7 @@ int udf_setsize(struct inode *inode, lof
+ {
+ 	int err;
+ 	struct udf_inode_info *iinfo;
+-	int bsize = 1 << inode->i_blkbits;
++	int bsize = i_blocksize(inode);
+ 
+ 	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
+ 	      S_ISLNK(inode->i_mode)))
+diff -puN fs/xfs/xfs_aops.c~fs-add-i_blocksize fs/xfs/xfs_aops.c
+--- a/fs/xfs/xfs_aops.c~fs-add-i_blocksize
++++ a/fs/xfs/xfs_aops.c
+@@ -103,9 +103,9 @@ xfs_finish_page_writeback(
+ 	unsigned int		bsize;
+ 
+ 	ASSERT(bvec->bv_offset < PAGE_SIZE);
+-	ASSERT((bvec->bv_offset & ((1 << inode->i_blkbits) - 1)) == 0);
++	ASSERT((bvec->bv_offset & (i_blocksize(inode) - 1)) == 0);
+ 	ASSERT(end < PAGE_SIZE);
+-	ASSERT((bvec->bv_len & ((1 << inode->i_blkbits) - 1)) == 0);
++	ASSERT((bvec->bv_len & (i_blocksize(inode) - 1)) == 0);
+ 
+ 	bh = head = page_buffers(bvec->bv_page);
+ 
+@@ -349,7 +349,7 @@ xfs_map_blocks(
+ {
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	struct xfs_mount	*mp = ip->i_mount;
+-	ssize_t			count = 1 << inode->i_blkbits;
++	ssize_t			count = i_blocksize(inode);
+ 	xfs_fileoff_t		offset_fsb, end_fsb;
+ 	int			error = 0;
+ 	int			bmapi_flags = XFS_BMAPI_ENTIRE;
+@@ -752,7 +752,7 @@ xfs_aops_discard_page(
+ 			break;
+ 		}
+ next_buffer:
+-		offset += 1 << inode->i_blkbits;
++		offset += i_blocksize(inode);
+ 
+ 	} while ((bh = bh->b_this_page) != head);
+ 
+@@ -840,7 +840,7 @@ xfs_writepage_map(
+ 	LIST_HEAD(submit_list);
+ 	struct xfs_ioend	*ioend, *next;
+ 	struct buffer_head	*bh, *head;
+-	ssize_t			len = 1 << inode->i_blkbits;
++	ssize_t			len = i_blocksize(inode);
+ 	int			error = 0;
+ 	int			count = 0;
+ 	int			uptodate = 1;
+@@ -1201,7 +1201,7 @@ xfs_map_trim_size(
+ 	    offset + mapping_size >= i_size_read(inode)) {
+ 		/* limit mapping to block that spans EOF */
+ 		mapping_size = roundup_64(i_size_read(inode) - offset,
+-					  1 << inode->i_blkbits);
++					  i_blocksize(inode));
+ 	}
+ 	if (mapping_size > LONG_MAX)
+ 		mapping_size = LONG_MAX;
+@@ -1232,7 +1232,7 @@ xfs_get_blocks(
+ 		return -EIO;
+ 
+ 	offset = (xfs_off_t)iblock << inode->i_blkbits;
+-	ASSERT(bh_result->b_size >= (1 << inode->i_blkbits));
++	ASSERT(bh_result->b_size >= i_blocksize(inode));
+ 	size = bh_result->b_size;
+ 
+ 	if (offset >= i_size_read(inode))
+@@ -1380,7 +1380,7 @@ xfs_vm_set_page_dirty(
+ 			if (offset < end_offset)
+ 				set_buffer_dirty(bh);
+ 			bh = bh->b_this_page;
+-			offset += 1 << inode->i_blkbits;
++			offset += i_blocksize(inode);
+ 		} while (bh != head);
+ 	}
+ 	/*
+diff -puN fs/xfs/xfs_file.c~fs-add-i_blocksize fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~fs-add-i_blocksize
++++ a/fs/xfs/xfs_file.c
+@@ -748,7 +748,7 @@ xfs_file_fallocate(
+ 		if (error)
+ 			goto out_unlock;
+ 	} else if (mode & FALLOC_FL_COLLAPSE_RANGE) {
+-		unsigned blksize_mask = (1 << inode->i_blkbits) - 1;
++		unsigned int blksize_mask = i_blocksize(inode) - 1;
+ 
+ 		if (offset & blksize_mask || len & blksize_mask) {
+ 			error = -EINVAL;
+@@ -770,7 +770,7 @@ xfs_file_fallocate(
+ 		if (error)
+ 			goto out_unlock;
+ 	} else if (mode & FALLOC_FL_INSERT_RANGE) {
+-		unsigned blksize_mask = (1 << inode->i_blkbits) - 1;
++		unsigned int blksize_mask = i_blocksize(inode) - 1;
+ 
+ 		new_size = i_size_read(inode) + len;
+ 		if (offset & blksize_mask || len & blksize_mask) {
+diff -puN include/linux/fs.h~fs-add-i_blocksize include/linux/fs.h
+--- a/include/linux/fs.h~fs-add-i_blocksize
++++ a/include/linux/fs.h
+@@ -655,6 +655,11 @@ struct inode {
+ 	void			*i_private; /* fs or device private pointer */
+ };
+ 
++static inline unsigned int i_blocksize(const struct inode *node)
++{
++	return (1 << node->i_blkbits);
++}
++
+ static inline int inode_unhashed(struct inode *inode)
+ {
+ 	return hlist_unhashed(&inode->i_hash);
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-scripts-spellingtxt-add-several-more-common-spelling-mistakes.patch
+fs-add-i_blocksize.patch
 
