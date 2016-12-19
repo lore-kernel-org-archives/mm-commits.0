@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-change-shmem_mapping-to-test-shmem_aops.patch added to
- -mm tree
-Date: Mon, 19 Dec 2016 11:48:45 -0800
-Message-ID: <5858399d.iDeW/RDhcxQtP0e+%akpm@linux-foundation.org>
+Subject: +
+ kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch added
+ to -mm tree
+Date: Mon, 19 Dec 2016 11:54:38 -0800
+Message-ID: <58583afe.lSNPqqbbh2p2Lvg2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35982 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753388AbcLSTrq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 14:47:46 -0500
+        with ESMTP id S1756305AbcLSTxo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 14:53:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: change shmem_mapping() to test shmem_aops
+     Subject: kernel/watchdog: prevent false hardlockup on overloaded system
 has been added to the -mm tree.  Its filename is
-     tmpfs-change-shmem_mapping-to-test-shmem_aops.patch
+     kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-change-shmem_mapping-to-test-shmem_aops.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-change-shmem_mapping-to-test-shmem_aops.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +40,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: change shmem_mapping() to test shmem_aops
+From: Don Zickus <dzickus@redhat.com>
+Subject: kernel/watchdog: prevent false hardlockup on overloaded system
 
-Callers of shmem_mapping() are interested in whether the mapping is swap
-backed - except for uprobes, which is interested in whether it should use
-shmem_read_mapping_page().  All these callers are better served by a
-shmem_mapping() which checks for shmem_aops, than the current version
-which goes through several indirections to find where the inode lives -
-and has the surprising effect that a private mmap of /dev/zero satisfies
-both vma_is_anonymous() and shmem_mapping(), when that device node is on
-devtmpfs.  I don't think anything in the tree suffers from that surprise,
-but it caught me out, and is better fixed.
+On an overloaded system, it is possible that a change in the watchdog
+threshold can be delayed long enough to trigger a false positive.
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1612052148530.13021@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+This can easily be achieved by having a cpu spinning indefinitely on a
+task, while another cpu updates watchdog threshold.
+
+What happens is while trying to park the watchdog threads, the hrtimers on
+the other cpus trigger and reprogram themselves with the new slower
+watchdog threshold.  Meanwhile, the nmi watchdog is still programmed with
+the old faster threshold.
+
+Because the one cpu is blocked, it prevents the thread parking on the
+other cpus from completing, which is needed to shutdown the nmi watchdog
+and reprogram it correctly.  As a result, a false positive from the nmi
+watchdog is reported.
+
+Fix this by setting a park_in_progress flag to block all lockups until the
+parking is complete.
+
+Fix provided by Ulrich Obergfell.
+
+Link: http://lkml.kernel.org/r/1481041033-192236-1-git-send-email-dzickus@redhat.com
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/nmi.h   |    1 +
+ kernel/watchdog.c     |    9 +++++++++
+ kernel/watchdog_hld.c |    3 +++
+ 3 files changed, 13 insertions(+)
 
-diff -puN mm/shmem.c~tmpfs-change-shmem_mapping-to-test-shmem_aops mm/shmem.c
---- a/mm/shmem.c~tmpfs-change-shmem_mapping-to-test-shmem_aops
-+++ a/mm/shmem.c
-@@ -2168,10 +2168,7 @@ static struct inode *shmem_get_inode(str
+diff -puN include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system include/linux/nmi.h
+--- a/include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/include/linux/nmi.h
+@@ -110,6 +110,7 @@ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
+ extern unsigned long watchdog_enabled;
+ extern unsigned long *watchdog_cpumask_bits;
++extern atomic_t park_in_progress;
+ #ifdef CONFIG_SMP
+ extern int sysctl_softlockup_all_cpu_backtrace;
+ extern int sysctl_hardlockup_all_cpu_backtrace;
+diff -puN kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/kernel/watchdog.c
+@@ -49,6 +49,8 @@ unsigned long *watchdog_cpumask_bits = c
+ #define for_each_watchdog_cpu(cpu) \
+ 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
  
- bool shmem_mapping(struct address_space *mapping)
++atomic_t park_in_progress = ATOMIC_INIT(0);
++
+ /*
+  * The 'watchdog_running' variable is set to 1 when the watchdog threads
+  * are registered/started and is set to 0 when the watchdog threads are
+@@ -260,6 +262,9 @@ static enum hrtimer_restart watchdog_tim
+ 	int duration;
+ 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
+ 
++	if (atomic_read(&park_in_progress) != 0)
++		return HRTIMER_NORESTART;
++
+ 	/* kick the hardlockup detector */
+ 	watchdog_interrupt_count();
+ 
+@@ -467,12 +472,16 @@ static int watchdog_park_threads(void)
  {
--	if (!mapping->host)
--		return false;
+ 	int cpu, ret = 0;
+ 
++	atomic_set(&park_in_progress, 1);
++
+ 	for_each_watchdog_cpu(cpu) {
+ 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
+ 		if (ret)
+ 			break;
+ 	}
+ 
++	atomic_set(&park_in_progress, 0);
++
+ 	return ret;
+ }
+ 
+diff -puN kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog_hld.c
+--- a/kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/kernel/watchdog_hld.c
+@@ -84,6 +84,9 @@ static void watchdog_overflow_callback(s
+ 	/* Ensure the watchdog never gets throttled */
+ 	event->hw.interrupts = 0;
+ 
++	if (atomic_read(&park_in_progress) != 0)
++		return;
++
+ 	if (__this_cpu_read(watchdog_nmi_touch) == true) {
+ 		__this_cpu_write(watchdog_nmi_touch, false);
+ 		return;
+_
+
+Patches currently in -mm which might be from dzickus@redhat.com are
+
+kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
+
