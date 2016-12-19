@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch added
- to -mm tree
-Date: Mon, 19 Dec 2016 14:27:13 -0800
-Message-ID: <58585ec1.nTmOn68PbzMbzY4A%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+ added to -mm tree
+Date: Mon, 19 Dec 2016 14:27:15 -0800
+Message-ID: <58585ec3.r6xCN292KBNGm1U5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43954 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932519AbcLSW0N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:26:13 -0500
+        with ESMTP id S932519AbcLSW0P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:26:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "omited" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "disassocation" pattern and fix typo instances
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,72 +41,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "omited" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "disassocation" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  omited||omitted
-  omiting||omitting
+  disassocation||disassociation
 
-Link: http://lkml.kernel.org/r/1481573103-11329-26-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-27-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c |    2 +-
- drivers/nfc/pn533/pn533.c                          |    2 +-
- drivers/scsi/fcoe/fcoe_ctlr.c                      |    2 +-
- scripts/spelling.txt                               |    2 ++
- 4 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/net/wireless/intel/ipw2x00/ipw2100.c |    2 +-
+ drivers/net/wireless/intel/ipw2x00/ipw2200.c |    2 +-
+ include/net/cfg80211.h                       |    2 +-
+ scripts/spelling.txt                         |    1 +
+ 4 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
-@@ -1416,7 +1416,7 @@ static unsigned int xdigit2int(unsigned
-  * <pattern data>[/<pattern mask>][@<anchor>]
+diff -puN drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2100.c
+--- a/drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
++++ a/drivers/net/wireless/intel/ipw2x00/ipw2100.c
+@@ -5652,7 +5652,7 @@ static void shim__set_security(struct ne
+ 
+ /* As a temporary work around to enable WPA until we figure out why
+  * wpa_supplicant toggles the security capability of the driver, which
+- * forces a disassocation with force_update...
++ * forces a disassociation with force_update...
   *
-  * Up to 2 filter patterns can be specified.  If 2 are supplied the first one
-- * must be anchored at 0.  An omited mask is taken as a mask of 1s, an omitted
-+ * must be anchored at 0.  An omitted mask is taken as a mask of 1s, an omitted
-  * anchor is taken as 0.
-  */
- static ssize_t mps_trc_write(struct file *file, const char __user *buf,
-diff -puN drivers/nfc/pn533/pn533.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/nfc/pn533/pn533.c
---- a/drivers/nfc/pn533/pn533.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/nfc/pn533/pn533.c
-@@ -487,7 +487,7 @@ static int pn533_send_cmd_async(struct p
- /*
-  * pn533_send_cmd_direct_async
+  *	if (force_update || !(priv->status & STATUS_ASSOCIATED))*/
+ 	if (!(priv->status & (STATUS_ASSOCIATED | STATUS_ASSOCIATING)))
+diff -puN drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2200.c
+--- a/drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
++++ a/drivers/net/wireless/intel/ipw2x00/ipw2200.c
+@@ -3974,7 +3974,7 @@ static void ipw_send_disassociate(struct
+ 		return;
+ 	}
+ 
+-	IPW_DEBUG_ASSOC("Disassocation attempt from %pM "
++	IPW_DEBUG_ASSOC("Disassociation attempt from %pM "
+ 			"on channel %d.\n",
+ 			priv->assoc_request.bssid,
+ 			priv->assoc_request.channel);
+diff -puN include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances include/net/cfg80211.h
+--- a/include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
++++ a/include/net/cfg80211.h
+@@ -1887,7 +1887,7 @@ struct cfg80211_deauth_request {
+  * struct cfg80211_disassoc_request - Disassociation request data
   *
-- * The function sends a piority cmd directly to the chip omiting the cmd
-+ * The function sends a piority cmd directly to the chip omitting the cmd
-  * queue. It's intended to be used by chaining mechanism of received responses
-  * where the host has to request every single chunk of data before scheduling
-  * next cmd from the queue.
-diff -puN drivers/scsi/fcoe/fcoe_ctlr.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/scsi/fcoe/fcoe_ctlr.c
---- a/drivers/scsi/fcoe/fcoe_ctlr.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/fcoe/fcoe_ctlr.c
-@@ -1387,7 +1387,7 @@ static void fcoe_ctlr_recv_clr_vlink(str
- 	/*
- 	 * Actually need to subtract 'sizeof(*mp) - sizeof(*wp)' from 'rlen'
- 	 * before determining max Vx_Port descriptor but a buggy FCF could have
--	 * omited either or both MAC Address and Name Identifier descriptors
-+	 * omitted either or both MAC Address and Name Identifier descriptors
- 	 */
- 	num_vlink_desc = rlen / sizeof(*vp);
- 	if (num_vlink_desc)
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
+  * This structure provides information needed to complete IEEE 802.11
+- * disassocation.
++ * disassociation.
+  *
+  * @bss: the BSS to disassociate from
+  * @ie: Extra IEs to add to Disassociation frame or %NULL
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -711,6 +711,8 @@ occure||occurred
- occured||occurred
- occuring||occurring
- offet||offset
-+omited||omitted
-+omiting||omitting
- omitt||omit
- ommiting||omitting
- ommitted||omitted
+@@ -364,6 +364,7 @@ differrence||difference
+ difinition||definition
+ diplay||display
+ direectly||directly
++disassocation||disassociation
+ disapear||disappear
+ disapeared||disappeared
+ disappared||disappeared
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
