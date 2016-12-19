@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
- added to -mm tree
-Date: Mon, 19 Dec 2016 14:27:04 -0800
-Message-ID: <58585eb8.BzZPYWdgx/9Hd+Ad%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch added
+ to -mm tree
+Date: Mon, 19 Dec 2016 14:27:07 -0800
+Message-ID: <58585ebb.Ne/0Zg01oIhjOBei%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43942 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932519AbcLSW0F (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:26:05 -0500
+        with ESMTP id S932519AbcLSW0I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 17:26:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "configuartion" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "applys" pattern and fix typo instances
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,168 +41,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "configuartion" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "applys" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  configuartion||configuration
+  applys||applies
 
-While we are here, fix the "ouput" as well in the touched hunk in
-drivers/media/dvb-frontends/drx39xyj/drx_driver.h.
+The "applyes" in drivers/video/fbdev/aty/radeon_monitor.c is a
+different pattern but it was fixed in this commit.
+The "This functions" in the same line was fixed as well.
 
-Link: http://lkml.kernel.org/r/1481573103-11329-23-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-24-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb-frontends/drx39xyj/drx_driver.h |    4 +--
- drivers/media/dvb-frontends/drx39xyj/drxj.c       |   16 ++++++------
- drivers/media/dvb-frontends/drx39xyj/drxj.h       |    4 +--
- drivers/media/dvb-frontends/drxk_hard.c           |    2 -
- drivers/net/wireless/ti/wl18xx/main.c             |    2 -
- scripts/spelling.txt                              |    1 
- 6 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/media/v4l2-core/tuner-core.c           |    4 ++--
+ drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c |    2 +-
+ drivers/video/fbdev/aty/radeon_monitor.c       |    2 +-
+ scripts/spelling.txt                           |    1 +
+ 4 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drx_driver.h
---- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
-@@ -1315,9 +1315,9 @@ struct drx_version_list {
- 		DRX_MPEG_STR_WIDTH_8
- 	};
+diff -puN drivers/media/v4l2-core/tuner-core.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances drivers/media/v4l2-core/tuner-core.c
+--- a/drivers/media/v4l2-core/tuner-core.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
++++ a/drivers/media/v4l2-core/tuner-core.c
+@@ -245,7 +245,7 @@ static const struct analog_demod_ops tun
+  * @tuner_callback:	an optional function to be called when switching
+  *			to analog mode
+  *
+- * This function applys the tuner config to tuner specified
++ * This function applies the tuner config to tuner specified
+  * by tun_setup structure. It contains several per-tuner initialization "magic"
+  */
+ static void set_type(struct i2c_client *c, unsigned int type,
+@@ -463,7 +463,7 @@ attach_failed:
+  * @sd:		subdev descriptor
+  * @tun_setup:	type to be associated to a given tuner i2c address
+  *
+- * This function applys the tuner config to tuner specified
++ * This function applies the tuner config to tuner specified
+  * by tun_setup structure.
+  * If tuner I2C address is UNSET, then it will only set the device
+  * if the tuner supports the mode specified in the call.
+diff -puN drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
+@@ -1451,7 +1451,7 @@ do { \
+  *  @atr_input: input bitstream to compute the hash on
+  *  @input_mask: mask for the input bitstream
+  *
+- *  This function serves two main purposes.  First it applys the input_mask
++ *  This function serves two main purposes.  First it applies the input_mask
+  *  to the atr_input resulting in a cleaned up atr_input data stream.
+  *  Secondly it computes the hash and stores it in the bkt_hash field at
+  *  the end of the input byte stream.  This way it will be available for
+diff -puN drivers/video/fbdev/aty/radeon_monitor.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances drivers/video/fbdev/aty/radeon_monitor.c
+--- a/drivers/video/fbdev/aty/radeon_monitor.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
++++ a/drivers/video/fbdev/aty/radeon_monitor.c
+@@ -646,7 +646,7 @@ void radeon_probe_screens(struct radeonf
  
--/* CTRL CFG MPEG ouput */
-+/* CTRL CFG MPEG output */
- /**
--* \struct struct drx_cfg_mpeg_output * \brief Configuartion parameters for MPEG output control.
-+* \struct struct drx_cfg_mpeg_output * \brief Configuration parameters for MPEG output control.
- *
- * Used by DRX_CFG_MPEG_OUTPUT, in combination with DRX_CTRL_SET_CFG and
- * DRX_CTRL_GET_CFG.
-diff -puN drivers/media/dvb-frontends/drx39xyj/drxj.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drxj.c
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -601,7 +601,7 @@ static struct drxj_data drxj_data_g = {
- 	0,			/* hi_cfg_wake_up_key    */
- 	0,			/* hi_cfg_ctrl         */
- 	0,			/* HICfgTimeout      */
--	/* UIO configuartion */
-+	/* UIO configuration */
- 	DRX_UIO_MODE_DISABLE,	/* uio_sma_rx_mode      */
- 	DRX_UIO_MODE_DISABLE,	/* uio_sma_tx_mode      */
- 	DRX_UIO_MODE_DISABLE,	/* uioASELMode       */
-@@ -619,7 +619,7 @@ static struct drxj_data drxj_data_g = {
- /*   false,                  * flagHDevSet       */
- /*   (u16) 0xFFF,          * rdsLastCount      */
  
--	/* ATV configuartion */
-+	/* ATV configuration */
- 	0UL,			/* flags cfg changes */
- 	/* shadow of ATV_TOP_EQU0__A */
- 	{-5,
-@@ -3352,7 +3352,7 @@ rw_error:
- /*----------------------------------------------------------------------------*/
- 
- /*----------------------------------------------------------------------------*/
--/* miscellaneous configuartions - begin                           */
-+/* miscellaneous configurations - begin                           */
- /*----------------------------------------------------------------------------*/
- 
- /**
-@@ -3515,7 +3515,7 @@ rw_error:
- }
- 
- /*----------------------------------------------------------------------------*/
--/* miscellaneous configuartions - end                             */
-+/* miscellaneous configurations - end                             */
- /*----------------------------------------------------------------------------*/
- 
- /*----------------------------------------------------------------------------*/
-@@ -10952,7 +10952,7 @@ rw_error:
- 
- static void drxj_reset_mode(struct drxj_data *ext_attr)
- {
--	/* Initialize default AFE configuartion for QAM */
-+	/* Initialize default AFE configuration for QAM */
- 	if (ext_attr->has_lna) {
- 		/* IF AGC off, PGA active */
- #ifndef DRXJ_VSB_ONLY
-@@ -10996,7 +10996,7 @@ static void drxj_reset_mode(struct drxj_
- 	ext_attr->qam_pre_saw_cfg.reference = 0x07;
- 	ext_attr->qam_pre_saw_cfg.use_pre_saw = true;
- #endif
--	/* Initialize default AFE configuartion for VSB */
-+	/* Initialize default AFE configuration for VSB */
- 	ext_attr->vsb_rf_agc_cfg.standard = DRX_STANDARD_8VSB;
- 	ext_attr->vsb_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
- 	ext_attr->vsb_rf_agc_cfg.min_output_level = 0;
-@@ -11072,9 +11072,9 @@ ctrl_power_mode(struct drx_demod_instanc
- 	}
- 
- 	if ((*mode == DRX_POWER_UP)) {
--		/* Restore analog & pin configuartion */
-+		/* Restore analog & pin configuration */
- 
--		/* Initialize default AFE configuartion for VSB */
-+		/* Initialize default AFE configuration for VSB */
- 		drxj_reset_mode(ext_attr);
- 	} else {
- 		/* Power down to requested mode */
-diff -puN drivers/media/dvb-frontends/drx39xyj/drxj.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drxj.h
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drxj.h
-@@ -447,7 +447,7 @@ struct drxj_cfg_atv_output {
- 		u16 hi_cfg_ctrl;	  /**< HI Configure() parameter 5                       */
- 		u16 hi_cfg_transmit;	  /**< HI Configure() parameter 6                       */
- 
--		/* UIO configuartion */
-+		/* UIO configuration */
- 		enum drxuio_mode uio_sma_rx_mode;/**< current mode of SmaRx pin                        */
- 		enum drxuio_mode uio_sma_tx_mode;/**< current mode of SmaTx pin                        */
- 		enum drxuio_mode uio_gpio_mode; /**< current mode of ASEL pin                         */
-@@ -459,7 +459,7 @@ struct drxj_cfg_atv_output {
- 		/* IQM RC frequecy shift */
- 		u32 iqm_rc_rate_ofs;	   /**< frequency shifter setting after setchannel      */
- 
--		/* ATV configuartion */
-+		/* ATV configuration */
- 		u32 atv_cfg_changed_flags; /**< flag: flags cfg changes */
- 		s16 atv_top_equ0[DRXJ_COEF_IDX_MAX];	     /**< shadow of ATV_TOP_EQU0__A */
- 		s16 atv_top_equ1[DRXJ_COEF_IDX_MAX];	     /**< shadow of ATV_TOP_EQU1__A */
-diff -puN drivers/media/dvb-frontends/drxk_hard.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drxk_hard.c
---- a/drivers/media/dvb-frontends/drxk_hard.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drxk_hard.c
-@@ -1630,7 +1630,7 @@ static int ctrl_power_mode(struct drxk_s
- 	}
- 
- 	if (*mode == DRX_POWER_UP) {
--		/* Restore analog & pin configuartion */
-+		/* Restore analog & pin configuration */
- 	} else {
- 		/* Power down to requested mode */
- 		/* Backup some register settings */
-diff -puN drivers/net/wireless/ti/wl18xx/main.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/net/wireless/ti/wl18xx/main.c
---- a/drivers/net/wireless/ti/wl18xx/main.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/ti/wl18xx/main.c
-@@ -178,7 +178,7 @@ static struct wlcore_conf wl18xx_conf =
- 	.sg = {
- 		.params = {
- 			[WL18XX_CONF_SG_PARAM_0] = 0,
--			/* Configuartion Parameters */
-+			/* Configuration Parameters */
- 			[WL18XX_CONF_SG_ANTENNA_CONFIGURATION] = 0,
- 			[WL18XX_CONF_SG_ZIGBEE_COEX] = 0,
- 			[WL18XX_CONF_SG_TIME_SYNC] = 0,
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
+ /*
+- * This functions applyes any arch/model/machine specific fixups
++ * This function applies any arch/model/machine specific fixups
+  * to the panel info. It may eventually alter EDID block as
+  * well or whatever is specific to a given model and not probed
+  * properly by the default code
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -268,6 +268,7 @@ comunication||communication
- conbination||combination
- conditionaly||conditionally
- conected||connected
-+configuartion||configuration
- configuratoin||configuration
- configuraton||configuration
- configuretion||configuration
+@@ -105,6 +105,7 @@ appearence||appearance
+ applicaion||application
+ appliction||application
+ applictions||applications
++applys||applies
+ appplications||applications
+ appropiate||appropriate
+ appropriatly||appropriately
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
