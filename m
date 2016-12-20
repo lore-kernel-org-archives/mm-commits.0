@@ -1,64 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/15] ima: platform-independent hash value
-Date: Mon, 19 Dec 2016 16:23:00 -0800
-Message-ID: <585879e4.F76ppq4jYXiyR0gn%akpm@linux-foundation.org>
+Subject: [patch 11/15] mm: fadvise: avoid expensive remote LRU cache
+ draining after FADV_DONTNEED
+Date: Mon, 19 Dec 2016 16:23:03 -0800
+Message-ID: <585879e7.rKUukBXhezZhDTRL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50616 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752993AbcLTAWB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 19:22:01 -0500
+        with ESMTP id S1752993AbcLTAWE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 19:22:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, dmitry.kasatkin@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, paulus@samba.org, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, vbabka@suse.cz
 
-From: Andreas Steffen <andreas.steffen@strongswan.org>
-Subject: ima: platform-independent hash value
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: fadvise: avoid expensive remote LRU cache draining after FADV_DONTNEED
 
-For remote attestion it is important for the ima measurement values to be
-platform-independent.  Therefore integer fields to be hashed must be
-converted to canonical format.
+When FADV_DONTNEED cannot drop all pages in the range, it observes that
+some pages might still be on per-cpu LRU caches after recent instantiation
+and so initiates remote calls to all CPUs to flush their local caches. 
+However, in most cases, the fadvise happens from the same context that
+instantiated the pages, and any pre-LRU pages in the specified range are
+most likely sitting on the local CPU's LRU cache, and so in many cases
+this results in unnecessary remote calls, which, in a loaded system, can
+hold up the fadvise() call significantly.
 
-Link: http://lkml.kernel.org/r/1480554346-29071-11-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Andreas Steffen <andreas.steffen@strongswan.org>
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
-Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+[ I didn't record it in the extreme case we observed at Facebook,
+  unfortunately. We had a slow-to-respond system and noticed it
+  lru_add_drain_all() leading the profile during fadvise calls. This
+  patch came out of thinking about the code and how we commonly call
+  FADV_DONTNEED.
+
+  FWIW, I wrote a silly directory tree walker/searcher that recurses
+  through /usr to read and FADV_DONTNEED each file it finds. On a 2
+  socket 40 ht machine, over 1% is spent in lru_add_drain_all(). With
+  the patch, that cost is gone; the local drain cost shows at 0.09%. ]
+
+Try to avoid the remote call by flushing the local LRU cache before even
+attempting to invalidate anything.  It's a cheap operation, and the local
+LRU cache is the most likely to hold any pre-LRU pages in the specified
+fadvise range.
+
+Link: http://lkml.kernel.org/r/20161214210017.GA1465@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_crypto.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/fadvise.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value security/integrity/ima/ima_crypto.c
---- a/security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value
-+++ a/security/integrity/ima/ima_crypto.c
-@@ -477,11 +477,13 @@ static int ima_calc_field_array_hash_tfm
- 		u8 buffer[IMA_EVENT_NAME_LEN_MAX + 1] = { 0 };
- 		u8 *data_to_hash = field_data[i].data;
- 		u32 datalen = field_data[i].len;
-+		u32 datalen_to_hash =
-+		    !ima_canonical_fmt ? datalen : cpu_to_le32(datalen);
+diff -puN mm/fadvise.c~mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed mm/fadvise.c
+--- a/mm/fadvise.c~mm-fadvise-avoid-expensive-remote-lru-cache-draining-after-fadv_dontneed
++++ a/mm/fadvise.c
+@@ -139,7 +139,20 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
+ 		}
  
- 		if (strcmp(td->name, IMA_TEMPLATE_IMA_NAME) != 0) {
- 			rc = crypto_shash_update(shash,
--						(const u8 *) &field_data[i].len,
--						sizeof(field_data[i].len));
-+						(const u8 *) &datalen_to_hash,
-+						sizeof(datalen_to_hash));
- 			if (rc)
- 				break;
- 		} else if (strcmp(td->fields[i]->field_id, "n") == 0) {
+ 		if (end_index >= start_index) {
+-			unsigned long count = invalidate_mapping_pages(mapping,
++			unsigned long count;
++
++			/*
++			 * It's common to FADV_DONTNEED right after
++			 * the read or write that instantiates the
++			 * pages, in which case there will be some
++			 * sitting on the local LRU cache. Try to
++			 * avoid the expensive remote drain and the
++			 * second cache tree walk below by flushing
++			 * them out right away.
++			 */
++			lru_add_drain();
++
++			count = invalidate_mapping_pages(mapping,
+ 						start_index, end_index);
+ 
+ 			/*
 _
