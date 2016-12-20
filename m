@@ -1,124 +1,43 @@
-From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
- added to -mm tree
-Date: Mon, 19 Dec 2016 15:50:14 -0800
-Message-ID: <58587236.wprp/VsvHsntc1OU%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Mon, 19 Dec 2016 16:22:21 -0800
+Message-ID: <20161219162221.9a7501eae18ee6bf84a135d8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50370 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752920AbcLSXtP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 18:49:15 -0500
+        with ESMTP id S1751758AbcLTAVW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 19:21:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm, page_alloc: avoid page_to_pfn() when merging buddies
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
+- a series to make IMA play better across kexec
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
+- a handful of random fixes
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+15 patches, based on e93b1cc8a8965da137ffea0b88e5f62fa1d2a9e6:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Subject: powerpc: ima: get the kexec buffer passed by the previous kernel
+Subject: ima: on soft reboot, restore the measurement list
+Subject: ima: permit duplicate measurement list entries
+Subject: ima: maintain memory size needed for serializing the measurement list
+Subject: powerpc: ima: send the kexec buffer to the next kernel
+Subject: ima: on soft reboot, save the measurement list
+Subject: ima: store the builtin/custom template definitions in a list
+Subject: ima: support restoring multiple template formats
+Subject: ima: define a canonical binary_runtime_measurements list format
+Subject: ima: platform-independent hash value
+Subject: mm: fadvise: avoid expensive remote LRU cache draining after FADV_DONTNEED
+Subject: arm64: setup: introduce kaslr_offset()
+Subject: kcov: make kcov work properly with KASLR enabled
+Subject: ratelimit: fix WARN_ON_RATELIMIT return value
+Subject: printk: fix typo in CONSOLE_LOGLEVEL_DEFAULT help text
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
 
-------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: avoid page_to_pfn() when merging buddies
-
-On architectures that allow memory holes, page_is_buddy() has to perform
-page_to_pfn() to check for the memory hole.  After the previous patch, we
-have the pfn already available in __free_one_page(), which is the only
-caller of page_is_buddy(), so move the check there and avoid
-page_to_pfn().
-
-Link: http://lkml.kernel.org/r/20161216120009.20064-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c     |   10 +++++-----
- mm/page_isolation.c |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
-
-diff -puN mm/page_alloc.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies
-+++ a/mm/page_alloc.c
-@@ -714,7 +714,7 @@ static inline void rmv_page_order(struct
- /*
-  * This function checks whether a page is free && is the buddy
-  * we can do coalesce a page and its buddy if
-- * (a) the buddy is not in a hole &&
-+ * (a) the buddy is not in a hole (check before calling!) &&
-  * (b) the buddy is in the buddy system &&
-  * (c) a page and its buddy have the same order &&
-  * (d) a page and its buddy are in the same zone.
-@@ -729,9 +729,6 @@ static inline void rmv_page_order(struct
- static inline int page_is_buddy(struct page *page, struct page *buddy,
- 							unsigned int order)
- {
--	if (!pfn_valid_within(page_to_pfn(buddy)))
--		return 0;
--
- 	if (page_is_guard(buddy) && page_order(buddy) == order) {
- 		if (page_zone_id(page) != page_zone_id(buddy))
- 			return 0;
-@@ -808,6 +805,9 @@ continue_merging:
- 	while (order < max_order - 1) {
- 		buddy_pfn = __find_buddy_pfn(pfn, order);
- 		buddy = page + (buddy_pfn - pfn);
-+
-+		if (!pfn_valid_within(buddy_pfn))
-+			goto done_merging;
- 		if (!page_is_buddy(page, buddy, order))
- 			goto done_merging;
- 		/*
-@@ -862,7 +862,7 @@ done_merging:
- 	 * so it's less likely to be used soon and more likely to be merged
- 	 * as a higher order page
- 	 */
--	if ((order < MAX_ORDER-2) && pfn_valid_within(page_to_pfn(buddy))) {
-+	if ((order < MAX_ORDER-2) && pfn_valid_within(buddy_pfn)) {
- 		struct page *higher_page, *higher_buddy;
- 		combined_pfn = buddy_pfn & pfn;
- 		higher_page = page + (combined_pfn - pfn);
-diff -puN mm/page_isolation.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies
-+++ a/mm/page_isolation.c
-@@ -106,7 +106,7 @@ static void unset_migratetype_isolate(st
- 			buddy_pfn = __find_buddy_pfn(pfn, order);
- 			buddy = page + (buddy_pfn - pfn);
- 
--			if (pfn_valid_within(page_to_pfn(buddy)) &&
-+			if (pfn_valid_within(buddy_pfn) &&
- 			    !is_migrate_isolate_page(buddy)) {
- 				__isolate_free_page(page, order);
- 				isolated_page = true;
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
-mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
 
