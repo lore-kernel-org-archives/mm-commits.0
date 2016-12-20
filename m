@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-add-memcg-kmem_cache-test.patch added to -mm tree
-Date: Tue, 20 Dec 2016 14:06:24 -0800
-Message-ID: <5859ab60.aAWM/KvmCtMNAIEE%akpm@linux-foundation.org>
+Subject: + kasan-drain-quarantine-of-memcg-slab-objects.patch added to -mm tree
+Date: Tue, 20 Dec 2016 14:06:21 -0800
+Message-ID: <5859ab5d.aryIIMQNTEPD+8F0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34558 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754571AbcLTWFX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2016 17:05:23 -0500
+        with ESMTP id S1753311AbcLTWFU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2016 17:05:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gthelen@google.com, aryabinin@virtuozzo.com, cl@linux.com, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add memcg kmem_cache test
+     Subject: kasan: drain quarantine of memcg slab objects
 has been added to the -mm tree.  Its filename is
-     kasan-add-memcg-kmem_cache-test.patch
+     kasan-drain-quarantine-of-memcg-slab-objects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-add-memcg-kmem_cache-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-drain-quarantine-of-memcg-slab-objects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-memcg-kmem_cache-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-drain-quarantine-of-memcg-slab-objects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Greg Thelen <gthelen@google.com>
-Subject: kasan: add memcg kmem_cache test
+Subject: kasan: drain quarantine of memcg slab objects
 
-Make a kasan test which uses a SLAB_ACCOUNT slab cache.  If the test is
-run within a non default memcg, then it uncovers the bug fixed by
-"kasan: drain quarantine of memcg slab objects"[1].
+Per memcg slab accounting and kasan have a problem with kmem_cache
+destruction.
+- kmem_cache_create() allocates a kmem_cache, which is used for
+  allocations from processes running in root (top) memcg.
+- Processes running in non root memcg and allocating with either
+  __GFP_ACCOUNT or from a SLAB_ACCOUNT cache use a per memcg kmem_cache.
+- Kasan catches use-after-free by having kfree() and kmem_cache_free()
+  defer freeing of objects.  Objects are placed in a quarantine.
+- kmem_cache_destroy() destroys root and non root kmem_caches.  It takes
+  care to drain the quarantine of objects from the root memcg's
+  kmem_cache, but ignores objects associated with non root memcg.  This
+  causes leaks because quarantined per memcg objects refer to per memcg
+  kmem cache being destroyed.
 
-If run without fix [1] it shows "Slab cache still has objects", and the
-kmem_cache structure is leaked.
-Here's an unpatched kernel test:
-$ dmesg -c > /dev/null
-$ mkdir /sys/fs/cgroup/memory/test
-$ echo $$ > /sys/fs/cgroup/memory/test/tasks
-$ modprobe test_kasan 2> /dev/null
-$ dmesg | grep -B1 still
-[ 123.456789] kasan test: memcg_accounted_kmem_cache allocate memcg accounted object
-[ 124.456789] kmem_cache_destroy test_cache: Slab cache still has objects
+To see the problem:
+1) create a slab cache with kmem_cache_create(,,,SLAB_ACCOUNT,)
+2) from non root memcg, allocate and free a few objects from cache
+3) dispose of the cache with kmem_cache_destroy()
+kmem_cache_destroy() will trigger a "Slab cache still has objects"
+warning indicating that the per memcg kmem_cache structure was leaked.
 
-Kernels with fix [1] don't have the "Slab cache still has objects"
-warning or the underlying leak.
+Fix the leak by draining kasan quarantined objects allocated from non
+root memcg.
 
-The new test runs and passes in the default (root) memcg, though in the
-root memcg it won't uncover the problem fixed by [1].
+Racing memcg deletion is tricky, but handled.  kmem_cache_destroy() =>
+shutdown_memcg_caches() => __shutdown_memcg_cache() => shutdown_cache()
+flushes per memcg quarantined objects, even if that memcg has been
+rmdir'd and gone through memcg_deactivate_kmem_caches().
 
-Link: http://lkml.kernel.org/r/1482257462-36948-2-git-send-email-gthelen@google.com
+This leak only affects destroyed SLAB_ACCOUNT kmem caches when kasan is
+enabled.  So I don't think it's worth patching stable kernels.
+
+Link: http://lkml.kernel.org/r/1482257462-36948-1-git-send-email-gthelen@google.com
 Signed-off-by: Greg Thelen <gthelen@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -75,67 +86,77 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ include/linux/kasan.h |    4 ++--
+ mm/kasan/kasan.c      |    2 +-
+ mm/kasan/quarantine.c |    1 +
+ mm/slab_common.c      |    4 +++-
+ 4 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN lib/test_kasan.c~kasan-add-memcg-kmem_cache-test lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-add-memcg-kmem_cache-test
-+++ a/lib/test_kasan.c
-@@ -11,6 +11,7 @@
+diff -puN include/linux/kasan.h~kasan-drain-quarantine-of-memcg-slab-objects include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/include/linux/kasan.h
+@@ -52,7 +52,7 @@ void kasan_free_pages(struct page *page,
+ void kasan_cache_create(struct kmem_cache *cache, size_t *size,
+ 			unsigned long *flags);
+ void kasan_cache_shrink(struct kmem_cache *cache);
+-void kasan_cache_destroy(struct kmem_cache *cache);
++void kasan_cache_shutdown(struct kmem_cache *cache);
  
- #define pr_fmt(fmt) "kasan test: %s " fmt, __func__
+ void kasan_poison_slab(struct page *page);
+ void kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
+@@ -98,7 +98,7 @@ static inline void kasan_cache_create(st
+ 				      size_t *size,
+ 				      unsigned long *flags) {}
+ static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
+-static inline void kasan_cache_destroy(struct kmem_cache *cache) {}
++static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
  
-+#include <linux/delay.h>
- #include <linux/kernel.h>
- #include <linux/mman.h>
- #include <linux/mm.h>
-@@ -331,6 +332,38 @@ static noinline void __init kmem_cache_o
- 	kmem_cache_destroy(cache);
+ static inline void kasan_poison_slab(struct page *page) {}
+ static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
+diff -puN mm/kasan/kasan.c~kasan-drain-quarantine-of-memcg-slab-objects mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/mm/kasan/kasan.c
+@@ -435,7 +435,7 @@ void kasan_cache_shrink(struct kmem_cach
+ 	quarantine_remove_cache(cache);
  }
  
-+static noinline void __init memcg_accounted_kmem_cache(void)
-+{
-+	int i;
-+	char *p;
-+	size_t size = 200;
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, SLAB_ACCOUNT, NULL);
-+	if (!cache) {
-+		pr_err("Cache allocation failed\n");
-+		return;
-+	}
-+
-+	pr_info("allocate memcg accounted object\n");
-+	/*
-+	 * Several allocations with a delay to allow for lazy per memcg kmem
-+	 * cache creation.
-+	 */
-+	for (i = 0; i < 5; i++) {
-+		p = kmem_cache_alloc(cache, GFP_KERNEL);
-+		if (!p) {
-+			pr_err("Allocation failed\n");
-+			goto free_cache;
-+		}
-+		kmem_cache_free(cache, p);
-+		msleep(100);
-+	}
-+
-+free_cache:
-+	kmem_cache_destroy(cache);
-+}
-+
- static char global_array[10];
+-void kasan_cache_destroy(struct kmem_cache *cache)
++void kasan_cache_shutdown(struct kmem_cache *cache)
+ {
+ 	quarantine_remove_cache(cache);
+ }
+diff -puN mm/kasan/quarantine.c~kasan-drain-quarantine-of-memcg-slab-objects mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/mm/kasan/quarantine.c
+@@ -274,6 +274,7 @@ static void per_cpu_remove_cache(void *a
+ 	qlist_free_all(&to_free, cache);
+ }
  
- static noinline void __init kasan_global_oob(void)
-@@ -460,6 +493,7 @@ static int __init kmalloc_tests_init(voi
- 	kmalloc_uaf_memset();
- 	kmalloc_uaf2();
- 	kmem_cache_oob();
-+	memcg_accounted_kmem_cache();
- 	kasan_stack_oob();
- 	kasan_global_oob();
- 	ksize_unpoisons_memory();
++/* Free all quarantined objects belonging to cache. */
+ void quarantine_remove_cache(struct kmem_cache *cache)
+ {
+ 	unsigned long flags, i;
+diff -puN mm/slab_common.c~kasan-drain-quarantine-of-memcg-slab-objects mm/slab_common.c
+--- a/mm/slab_common.c~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/mm/slab_common.c
+@@ -461,6 +461,9 @@ EXPORT_SYMBOL(kmem_cache_create);
+ static int shutdown_cache(struct kmem_cache *s,
+ 		struct list_head *release, bool *need_rcu_barrier)
+ {
++	/* free asan quarantined objects */
++	kasan_cache_shutdown(s);
++
+ 	if (__kmem_cache_shutdown(s) != 0)
+ 		return -EBUSY;
+ 
+@@ -744,7 +747,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 	get_online_cpus();
+ 	get_online_mems();
+ 
+-	kasan_cache_destroy(s);
+ 	mutex_lock(&slab_mutex);
+ 
+ 	s->refcount--;
 _
 
 Patches currently in -mm which might be from gthelen@google.com are
