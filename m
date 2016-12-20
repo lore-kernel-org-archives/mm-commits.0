@@ -1,43 +1,326 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Mon, 19 Dec 2016 16:22:21 -0800
-Message-ID: <20161219162221.9a7501eae18ee6bf84a135d8@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 01/15] powerpc: ima: get the kexec buffer passed by the
+ previous kernel
+Date: Mon, 19 Dec 2016 16:22:32 -0800
+Message-ID: <585879c8.h2nOwHCxchQdwDqt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50402 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751758AbcLTAVW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 19:21:22 -0500
+        with ESMTP id S1754357AbcLTAVd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2016 19:21:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, benh@kernel.crashing.org, bhe@redhat.com, dmitry.kasatkin@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, paulus@samba.org, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com
 
-
-- a series to make IMA play better across kexec
-
-- a handful of random fixes
-
-15 patches, based on e93b1cc8a8965da137ffea0b88e5f62fa1d2a9e6:
-
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Subject: powerpc: ima: get the kexec buffer passed by the previous kernel
-Subject: ima: on soft reboot, restore the measurement list
-Subject: ima: permit duplicate measurement list entries
-Subject: ima: maintain memory size needed for serializing the measurement list
-Subject: powerpc: ima: send the kexec buffer to the next kernel
-Subject: ima: on soft reboot, save the measurement list
-Subject: ima: store the builtin/custom template definitions in a list
-Subject: ima: support restoring multiple template formats
-Subject: ima: define a canonical binary_runtime_measurements list format
-Subject: ima: platform-independent hash value
-Subject: mm: fadvise: avoid expensive remote LRU cache draining after FADV_DONTNEED
-Subject: arm64: setup: introduce kaslr_offset()
-Subject: kcov: make kcov work properly with KASLR enabled
-Subject: ratelimit: fix WARN_ON_RATELIMIT return value
-Subject: printk: fix typo in CONSOLE_LOGLEVEL_DEFAULT help text
+
+Patch series "ima: carry the measurement list across kexec", v8.
+
+The TPM PCRs are only reset on a hard reboot.  In order to validate a
+TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
+of the running kernel must be saved and then restored on the subsequent
+boot, possibly of a different architecture.
+
+The existing securityfs binary_runtime_measurements file conveniently
+provides a serialized format of the IMA measurement list.  This patch set
+serializes the measurement list in this format and restores it.
+
+Up to now, the binary_runtime_measurements was defined as architecture
+native format.  The assumption being that userspace could and would handle
+any architecture conversions.  With the ability of carrying the
+measurement list across kexec, possibly from one architecture to a
+different one, the per boot architecture information is lost and with it
+the ability of recalculating the template digest hash.  To resolve this
+problem, without breaking the existing ABI, this patch set introduces the
+boot command line option "ima_canonical_fmt", which is arbitrarily defined
+as little endian.
+
+The need for this boot command line option will be limited to the existing
+version 1 format of the binary_runtime_measurements.  Subsequent formats
+will be defined as canonical format (eg.  TPM 2.0 support for larger
+digests).
+
+A simplified method of Thiago Bauermann's "kexec buffer handover" patch
+series for carrying the IMA measurement list across kexec is included in
+this patch set.  The simplified method requires all file measurements be
+taken prior to executing the kexec load, as subsequent measurements will
+not be carried across the kexec and restored.
 
 
+This patch (of 10):
 
+The IMA kexec buffer allows the currently running kernel to pass
+the measurement list via a kexec segment to the kernel that will be
+kexec'd. The second kernel can check whether the previous kernel sent
+the buffer and retrieve it.
+
+This is the architecture-specific part which enables IMA to receive the
+measurement list passed by the previous kernel. It will be used in the
+next patch.
+
+The change in machine_kexec_64.c is to factor out the logic of removing
+an FDT memory reservation so that it can be used by remove_ima_buffer.
+
+Link: http://lkml.kernel.org/r/1480554346-29071-2-git-send-email-zohar@linux.vnet.ibm.com
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andreas Steffen <andreas.steffen@strongswan.org>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
+Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/Kconfig                                |    3 
+ arch/powerpc/Kconfig                        |    1 
+ arch/powerpc/include/asm/ima.h              |   13 +
+ arch/powerpc/include/asm/kexec.h            |    1 
+ arch/powerpc/kernel/Makefile                |    4 
+ arch/powerpc/kernel/ima_kexec.c             |  132 ++++++++++++++++++
+ arch/powerpc/kernel/machine_kexec_file_64.c |    5 
+ 7 files changed, 158 insertions(+), 1 deletion(-)
+
+diff -puN arch/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/Kconfig
+--- a/arch/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
++++ a/arch/Kconfig
+@@ -5,6 +5,9 @@
+ config KEXEC_CORE
+ 	bool
+ 
++config HAVE_IMA_KEXEC
++	bool
++
+ config OPROFILE
+ 	tristate "OProfile system profiling"
+ 	depends on PROFILING
+diff -puN arch/powerpc/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
++++ a/arch/powerpc/Kconfig
+@@ -469,6 +469,7 @@ config KEXEC
+ config KEXEC_FILE
+ 	bool "kexec file based system call"
+ 	select KEXEC_CORE
++	select HAVE_IMA_KEXEC
+ 	select BUILD_BIN2C
+ 	depends on PPC64
+ 	depends on CRYPTO=y
+diff -puN /dev/null arch/powerpc/include/asm/ima.h
+--- /dev/null
++++ a/arch/powerpc/include/asm/ima.h
+@@ -0,0 +1,13 @@
++#ifndef _ASM_POWERPC_IMA_H
++#define _ASM_POWERPC_IMA_H
++
++int ima_get_kexec_buffer(void **addr, size_t *size);
++int ima_free_kexec_buffer(void);
++
++#ifdef CONFIG_IMA
++void remove_ima_buffer(void *fdt, int chosen_node);
++#else
++static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
++#endif
++
++#endif /* _ASM_POWERPC_IMA_H */
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -99,6 +99,7 @@ int setup_purgatory(struct kimage *image
+ 		    unsigned long fdt_load_addr);
+ int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
+ 		  unsigned long initrd_len, const char *cmdline);
++int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
+ #endif /* CONFIG_KEXEC_FILE */
+ 
+ #else /* !CONFIG_KEXEC_CORE */
+diff -puN arch/powerpc/kernel/Makefile~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
++++ a/arch/powerpc/kernel/Makefile
+@@ -112,6 +112,10 @@ obj-$(CONFIG_PCI_MSI)		+= msi.o
+ obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(BITS).o
+ obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o kexec_elf_$(BITS).o
++ifeq ($(CONFIG_HAVE_IMA_KEXEC)$(CONFIG_IMA),yy)
++obj-y				+= ima_kexec.o
++endif
++
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ obj64-$(CONFIG_AUDIT)		+= compat_audit.o
+ 
+diff -puN /dev/null arch/powerpc/kernel/ima_kexec.c
+--- /dev/null
++++ a/arch/powerpc/kernel/ima_kexec.c
+@@ -0,0 +1,132 @@
++/*
++ * Copyright (C) 2016 IBM Corporation
++ *
++ * Authors:
++ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/slab.h>
++#include <linux/kexec.h>
++#include <linux/of.h>
++#include <linux/memblock.h>
++#include <linux/libfdt.h>
++
++static int get_addr_size_cells(int *addr_cells, int *size_cells)
++{
++	struct device_node *root;
++
++	root = of_find_node_by_path("/");
++	if (!root)
++		return -EINVAL;
++
++	*addr_cells = of_n_addr_cells(root);
++	*size_cells = of_n_size_cells(root);
++
++	of_node_put(root);
++
++	return 0;
++}
++
++static int do_get_kexec_buffer(const void *prop, int len, unsigned long *addr,
++			       size_t *size)
++{
++	int ret, addr_cells, size_cells;
++
++	ret = get_addr_size_cells(&addr_cells, &size_cells);
++	if (ret)
++		return ret;
++
++	if (len < 4 * (addr_cells + size_cells))
++		return -ENOENT;
++
++	*addr = of_read_number(prop, addr_cells);
++	*size = of_read_number(prop + 4 * addr_cells, size_cells);
++
++	return 0;
++}
++
++/**
++ * ima_get_kexec_buffer - get IMA buffer from the previous kernel
++ * @addr:	On successful return, set to point to the buffer contents.
++ * @size:	On successful return, set to the buffer size.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int ima_get_kexec_buffer(void **addr, size_t *size)
++{
++	int ret, len;
++	unsigned long tmp_addr;
++	size_t tmp_size;
++	const void *prop;
++
++	prop = of_get_property(of_chosen, "linux,ima-kexec-buffer", &len);
++	if (!prop)
++		return -ENOENT;
++
++	ret = do_get_kexec_buffer(prop, len, &tmp_addr, &tmp_size);
++	if (ret)
++		return ret;
++
++	*addr = __va(tmp_addr);
++	*size = tmp_size;
++
++	return 0;
++}
++
++/**
++ * ima_free_kexec_buffer - free memory used by the IMA buffer
++ */
++int ima_free_kexec_buffer(void)
++{
++	int ret;
++	unsigned long addr;
++	size_t size;
++	struct property *prop;
++
++	prop = of_find_property(of_chosen, "linux,ima-kexec-buffer", NULL);
++	if (!prop)
++		return -ENOENT;
++
++	ret = do_get_kexec_buffer(prop->value, prop->length, &addr, &size);
++	if (ret)
++		return ret;
++
++	ret = of_remove_property(of_chosen, prop);
++	if (ret)
++		return ret;
++
++	return memblock_free(addr, size);
++
++}
++
++/**
++ * remove_ima_buffer - remove the IMA buffer property and reservation from @fdt
++ *
++ * The IMA measurement buffer is of no use to a subsequent kernel, so we always
++ * remove it from the device tree.
++ */
++void remove_ima_buffer(void *fdt, int chosen_node)
++{
++	int ret, len;
++	unsigned long addr;
++	size_t size;
++	const void *prop;
++
++	prop = fdt_getprop(fdt, chosen_node, "linux,ima-kexec-buffer", &len);
++	if (!prop)
++		return;
++
++	ret = do_get_kexec_buffer(prop, len, &addr, &size);
++	fdt_delprop(fdt, chosen_node, "linux,ima-kexec-buffer");
++	if (ret)
++		return;
++
++	ret = delete_fdt_mem_rsv(fdt, addr, size);
++	if (!ret)
++		pr_debug("Removed old IMA buffer reservation.\n");
++}
+diff -puN arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/kernel/machine_kexec_file_64.c
+--- a/arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
++++ a/arch/powerpc/kernel/machine_kexec_file_64.c
+@@ -27,6 +27,7 @@
+ #include <linux/memblock.h>
+ #include <linux/of_fdt.h>
+ #include <linux/libfdt.h>
++#include <asm/ima.h>
+ 
+ #define SLAVE_CODE_SIZE		256
+ 
+@@ -180,7 +181,7 @@ int setup_purgatory(struct kimage *image
+  *
+  * Return: 0 on success, or negative errno on error.
+  */
+-static int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size)
++int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size)
+ {
+ 	int i, ret, num_rsvs = fdt_num_mem_rsv(fdt);
+ 
+@@ -328,6 +329,8 @@ int setup_new_fdt(void *fdt, unsigned lo
+ 		}
+ 	}
+ 
++	remove_ima_buffer(fdt, chosen_node);
++
+ 	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
+ 	if (ret) {
+ 		pr_err("Error setting up the new device tree.\n");
+_
