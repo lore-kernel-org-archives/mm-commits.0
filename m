@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + oom-trace-add-compaction-retry-tracepoint.patch added to -mm
- tree
-Date: Tue, 20 Dec 2016 14:39:12 -0800
-Message-ID: <5859b310.8koX4XIo/ozRFkrh%akpm@linux-foundation.org>
+Subject: +
+ mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+ added to -mm tree
+Date: Tue, 20 Dec 2016 14:39:08 -0800
+Message-ID: <5859b30c.CMN0495GxBPag1qs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36556 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752132AbcLTWiK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2016 17:38:10 -0500
+        with ESMTP id S1753259AbcLTWiG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2016 17:38:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, hannes@cmpxchg.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, trace: add compaction retry tracepoint
+     Subject: mm, trace: extract COMPACTION_STATUS and ZONE_TYPE to a common header
 has been added to the -mm tree.  Its filename is
-     oom-trace-add-compaction-retry-tracepoint.patch
+     mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-trace-add-compaction-retry-tracepoint.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-trace-add-compaction-retry-tracepoint.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: oom, trace: add compaction retry tracepoint
+Subject: mm, trace: extract COMPACTION_STATUS and ZONE_TYPE to a common header
 
-Higher order requests oom debugging is currently quite hard.  We do have
-some compaction points which can tell us how the compaction is operating
-but there is no trace point to tell us about compaction retry logic.  This
-patch adds a one which will have the following format
+COMPACTION_STATUS resp.  ZONE_TYPE are currently used to translate enum
+compact_result resp.  struct zone index into their symbolic names for an
+easier post processing.  The follow up patch would like to reuse this as
+well.  The code involves some preprocessor black magic which is better not
+duplicated elsewhere so move it to a common mm tracing relate header.
 
-            bash-3126  [001] ....  1498.220001: compact_retry: order=9 priority=COMPACT_PRIO_SYNC_LIGHT compaction_result=withdrawn retries=0 max_retries=16 should_retry=0
-
-we can see that the order 9 request is not retried even though we are in
-the highest compaction priority mode becase the last compaction attempt
-was withdrawn.  This means that compaction_zonelist_suitable must have
-returned false and there is no suitable zone to compact for this request
-and so no need to retry further.
-
-another example would be
-           <...>-3137  [001] ....    81.501689: compact_retry: order=9 priority=COMPACT_PRIO_SYNC_LIGHT compaction_result=failed retries=0 max_retries=16 should_retry=0
-
-in this case the order-9 compaction failed to find any suitable block.  We
-do not retry anymore because this is a costly request and those do not go
-below COMPACT_PRIO_SYNC_LIGHT priority.
-
-Link: http://lkml.kernel.org/r/20161220130135.15719-4-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20161220130135.15719-2-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
@@ -70,162 +57,183 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |   26 ++++++++++++++++++++
- include/trace/events/oom.h     |   39 +++++++++++++++++++++++++++++++
- mm/page_alloc.c                |   22 ++++++++++++-----
- 3 files changed, 81 insertions(+), 6 deletions(-)
+ include/trace/events/compaction.h |   60 +-------------------------
+ include/trace/events/mmflags.h    |   64 ++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+), 57 deletions(-)
 
-diff -puN include/trace/events/mmflags.h~oom-trace-add-compaction-retry-tracepoint include/trace/events/mmflags.h
---- a/include/trace/events/mmflags.h~oom-trace-add-compaction-retry-tracepoint
-+++ a/include/trace/events/mmflags.h
-@@ -187,8 +187,32 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
- 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
- 	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
- 	EMe(COMPACT_CONTENDED,		"contended")
-+
-+/* High-level compaction status feedback */
-+#define COMPACTION_FAILED	1
-+#define COMPACTION_WITHDRAWN	2
-+#define COMPACTION_PROGRESS	3
-+
-+#define compact_result_to_feedback(result)	\
-+({						\
-+ 	enum compact_result __result = result;	\
-+	(compaction_failed(__result)) ? COMPACTION_FAILED : \
-+		(compaction_withdrawn(__result)) ? COMPACTION_WITHDRAWN : COMPACTION_PROGRESS; \
-+})
-+
-+#define COMPACTION_FEEDBACK		\
-+	EM(COMPACTION_FAILED,		"failed")	\
-+	EM(COMPACTION_WITHDRAWN,	"withdrawn")	\
-+	EMe(COMPACTION_PROGRESS,	"progress")
-+
-+#define COMPACTION_PRIORITY						\
-+	EM(COMPACT_PRIO_SYNC_FULL,	"COMPACT_PRIO_SYNC_FULL")	\
-+	EM(COMPACT_PRIO_SYNC_LIGHT,	"COMPACT_PRIO_SYNC_LIGHT")	\
-+	EMe(COMPACT_PRIO_ASYNC,		"COMPACT_PRIO_ASYNC")
- #else
- #define COMPACTION_STATUS
-+#define COMPACTION_PRIORITY
-+#define COMPACTION_FEEDBACK
- #endif
+diff -puN include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
++++ a/include/trace/events/compaction.h
+@@ -9,62 +9,6 @@
+ #include <linux/tracepoint.h>
+ #include <trace/events/mmflags.h>
  
- #ifdef CONFIG_ZONE_DMA
-@@ -226,6 +250,8 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
- #define EMe(a, b)	TRACE_DEFINE_ENUM(a);
+-#define COMPACTION_STATUS					\
+-	EM( COMPACT_SKIPPED,		"skipped")		\
+-	EM( COMPACT_DEFERRED,		"deferred")		\
+-	EM( COMPACT_CONTINUE,		"continue")		\
+-	EM( COMPACT_SUCCESS,		"success")		\
+-	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
+-	EM( COMPACT_COMPLETE,		"complete")		\
+-	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
+-	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
+-	EMe(COMPACT_CONTENDED,		"contended")
+-
+-#ifdef CONFIG_ZONE_DMA
+-#define IFDEF_ZONE_DMA(X) X
+-#else
+-#define IFDEF_ZONE_DMA(X)
+-#endif
+-
+-#ifdef CONFIG_ZONE_DMA32
+-#define IFDEF_ZONE_DMA32(X) X
+-#else
+-#define IFDEF_ZONE_DMA32(X)
+-#endif
+-
+-#ifdef CONFIG_HIGHMEM
+-#define IFDEF_ZONE_HIGHMEM(X) X
+-#else
+-#define IFDEF_ZONE_HIGHMEM(X)
+-#endif
+-
+-#define ZONE_TYPE						\
+-	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
+-	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
+-				EM (ZONE_NORMAL, "Normal")	\
+-	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
+-				EMe(ZONE_MOVABLE,"Movable")
+-
+-/*
+- * First define the enums in the above macros to be exported to userspace
+- * via TRACE_DEFINE_ENUM().
+- */
+-#undef EM
+-#undef EMe
+-#define EM(a, b)	TRACE_DEFINE_ENUM(a);
+-#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
+-
+-COMPACTION_STATUS
+-ZONE_TYPE
+-
+-/*
+- * Now redefine the EM() and EMe() macros to map the enums to the strings
+- * that will be printed in the output.
+- */
+-#undef EM
+-#undef EMe
+-#define EM(a, b)	{a, b},
+-#define EMe(a, b)	{a, b}
  
- COMPACTION_STATUS
-+COMPACTION_PRIORITY
-+COMPACTION_FEEDBACK
- ZONE_TYPE
+ DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
  
- /*
-diff -puN include/trace/events/oom.h~oom-trace-add-compaction-retry-tracepoint include/trace/events/oom.h
---- a/include/trace/events/oom.h~oom-trace-add-compaction-retry-tracepoint
-+++ a/include/trace/events/oom.h
-@@ -69,6 +69,45 @@ TRACE_EVENT(reclaim_retry_zone,
- 			__entry->no_progress_loops,
- 			__entry->wmark_check)
+@@ -187,6 +131,7 @@ TRACE_EVENT(mm_compaction_begin,
+ 		__entry->sync ? "sync" : "async")
  );
+ 
++#ifdef CONFIG_COMPACTION
+ TRACE_EVENT(mm_compaction_end,
+ 	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
+ 		unsigned long free_pfn, unsigned long zone_end, bool sync,
+@@ -220,6 +165,7 @@ TRACE_EVENT(mm_compaction_end,
+ 		__entry->sync ? "sync" : "async",
+ 		__print_symbolic(__entry->status, COMPACTION_STATUS))
+ );
++#endif
+ 
+ TRACE_EVENT(mm_compaction_try_to_compact_pages,
+ 
+@@ -248,6 +194,7 @@ TRACE_EVENT(mm_compaction_try_to_compact
+ 		__entry->prio)
+ );
+ 
++#ifdef CONFIG_COMPACTION
+ DECLARE_EVENT_CLASS(mm_compaction_suitable_template,
+ 
+ 	TP_PROTO(struct zone *zone,
+@@ -295,7 +242,6 @@ DEFINE_EVENT(mm_compaction_suitable_temp
+ 	TP_ARGS(zone, order, ret)
+ );
+ 
+-#ifdef CONFIG_COMPACTION
+ DECLARE_EVENT_CLASS(mm_compaction_defer_template,
+ 
+ 	TP_PROTO(struct zone *zone, int order),
+diff -puN include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/mmflags.h
+--- a/include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
++++ a/include/trace/events/mmflags.h
+@@ -1,3 +1,6 @@
++#include <linux/node.h>
++#include <linux/mmzone.h>
++#include <linux/compaction.h>
+ /*
+  * The order of these masks is important. Matching masks will be seen
+  * first and the left over flags will end up showing by themselves.
+@@ -172,3 +175,64 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
+ 	(flags) ? __print_flags(flags, "|",				\
+ 	__def_vmaflag_names						\
+ 	) : "none"
 +
 +#ifdef CONFIG_COMPACTION
-+TRACE_EVENT(compact_retry,
++#define COMPACTION_STATUS					\
++	EM( COMPACT_SKIPPED,		"skipped")		\
++	EM( COMPACT_DEFERRED,		"deferred")		\
++	EM( COMPACT_CONTINUE,		"continue")		\
++	EM( COMPACT_SUCCESS,		"success")		\
++	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
++	EM( COMPACT_COMPLETE,		"complete")		\
++	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
++	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
++	EMe(COMPACT_CONTENDED,		"contended")
++#else
++#define COMPACTION_STATUS
++#endif
 +
-+	TP_PROTO(int order,
-+		enum compact_priority priority,
-+		enum compact_result result,
-+		int retries,
-+		int max_retries,
-+		bool ret),
++#ifdef CONFIG_ZONE_DMA
++#define IFDEF_ZONE_DMA(X) X
++#else
++#define IFDEF_ZONE_DMA(X)
++#endif
 +
-+	TP_ARGS(order, priority, result, retries, max_retries, ret),
++#ifdef CONFIG_ZONE_DMA32
++#define IFDEF_ZONE_DMA32(X) X
++#else
++#define IFDEF_ZONE_DMA32(X)
++#endif
 +
-+	TP_STRUCT__entry(
-+		__field(	int, order)
-+		__field(	int, priority)
-+		__field(	int, result)
-+		__field(	int, retries)
-+		__field(	int, max_retries)
-+		__field(	bool, ret)
-+	),
++#ifdef CONFIG_HIGHMEM
++#define IFDEF_ZONE_HIGHMEM(X) X
++#else
++#define IFDEF_ZONE_HIGHMEM(X)
++#endif
 +
-+	TP_fast_assign(
-+		__entry->order = order;
-+		__entry->priority = priority;
-+		__entry->result = compact_result_to_feedback(result);
-+		__entry->retries = retries;
-+		__entry->max_retries = max_retries;
-+		__entry->ret = ret;
-+	),
++#define ZONE_TYPE						\
++	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
++	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
++				EM (ZONE_NORMAL, "Normal")	\
++	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
++				EMe(ZONE_MOVABLE,"Movable")
 +
-+	TP_printk("order=%d priority=%s compaction_result=%s retries=%d max_retries=%d should_retry=%d",
-+			__entry->order,
-+			__print_symbolic(__entry->priority, COMPACTION_PRIORITY),
-+			__print_symbolic(__entry->result, COMPACTION_FEEDBACK),
-+			__entry->retries, __entry->max_retries,
-+			__entry->ret)
-+);
-+#endif /* CONFIG_COMPACTION */
- #endif
- 
- /* This part must be outside protection */
-diff -puN mm/page_alloc.c~oom-trace-add-compaction-retry-tracepoint mm/page_alloc.c
---- a/mm/page_alloc.c~oom-trace-add-compaction-retry-tracepoint
-+++ a/mm/page_alloc.c
-@@ -3211,6 +3211,9 @@ should_compact_retry(struct alloc_contex
- {
- 	int max_retries = MAX_COMPACT_RETRIES;
- 	int min_priority;
-+	bool ret = false;
-+	int retries = *compaction_retries;
-+	enum compact_priority priority = *compact_priority;
- 
- 	if (!order)
- 		return false;
-@@ -3232,8 +3235,10 @@ should_compact_retry(struct alloc_contex
- 	 * But do not retry if the given zonelist is not suitable for
- 	 * compaction.
- 	 */
--	if (compaction_withdrawn(compact_result))
--		return compaction_zonelist_suitable(ac, order, alloc_flags);
-+	if (compaction_withdrawn(compact_result)) {
-+		ret = compaction_zonelist_suitable(ac, order, alloc_flags);
-+		goto out;
-+	}
- 
- 	/*
- 	 * !costly requests are much more important than __GFP_REPEAT
-@@ -3245,8 +3250,10 @@ should_compact_retry(struct alloc_contex
- 	 */
- 	if (order > PAGE_ALLOC_COSTLY_ORDER)
- 		max_retries /= 4;
--	if (*compaction_retries <= max_retries)
--		return true;
-+	if (*compaction_retries <= max_retries) {
-+		ret = true;
-+		goto out;
-+	}
- 
- 	/*
- 	 * Make sure there are attempts at the highest priority if we exhausted
-@@ -3255,12 +3262,15 @@ should_compact_retry(struct alloc_contex
- check_priority:
- 	min_priority = (order > PAGE_ALLOC_COSTLY_ORDER) ?
- 			MIN_COMPACT_COSTLY_PRIORITY : MIN_COMPACT_PRIORITY;
++/*
++ * First define the enums in the above macros to be exported to userspace
++ * via TRACE_DEFINE_ENUM().
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)	TRACE_DEFINE_ENUM(a);
++#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
 +
- 	if (*compact_priority > min_priority) {
- 		(*compact_priority)--;
- 		*compaction_retries = 0;
--		return true;
-+		ret = true;
- 	}
--	return false;
-+out:
-+	trace_compact_retry(order, priority, compact_result, retries, max_retries, ret);
-+	return ret;
- }
- #else
- static inline struct page *
++COMPACTION_STATUS
++ZONE_TYPE
++
++/*
++ * Now redefine the EM() and EMe() macros to map the enums to the strings
++ * that will be printed in the output.
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)	{a, b},
++#define EMe(a, b)	{a, b}
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
