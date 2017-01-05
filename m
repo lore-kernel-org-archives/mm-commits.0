@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-non-cooperative-add-fork-event.patch added to -mm
- tree
-Date: Wed, 04 Jan 2017 16:53:33 -0800
-Message-ID: <586d990d.bc/ajQvdRvucq2bg%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch added to -mm tree
+Date: Wed, 04 Jan 2017 16:54:38 -0800
+Message-ID: <586d994e.WNwBJTTuaPuEaNdU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933361AbdAEAyU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:20 -0500
+        with ESMTP id S937521AbdAEAya (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: Add fork() event
+     Subject: userfaultfd: non-cooperative: selftest: introduce userfaultfd_open
 has been added to the -mm tree.  Its filename is
-     userfaultfd-non-cooperative-add-fork-event.patch
+     userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-add-fork-event.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-add-fork-event.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,369 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Emelyanov <xemul@parallels.com>
-Subject: userfaultfd: non-cooperative: Add fork() event
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: selftest: introduce userfaultfd_open
 
-When the mm with uffd-ed vmas fork()-s the respective vmas notify their
-uffds with the event which contains a descriptor with new uffd.  This new
-descriptor can then be used to get events from the child and populate its
-mm with data.  Note, that there can be different uffd-s controlling
-different vmas within one mm, so first we should collect all those uffds
-(and ctx-s) in a list and then notify them all one by one but only once
-per fork().
+userfaultfd_open will be needed by the non cooperative selftest.
 
-The context is created at fork() time but the descriptor, file struct and
-anon inode object is created at event read time.  So some trickery is
-added to the userfaultfd_ctx_read() to handle the ctx queues' locking vs
-file creation.
-
-Another thing worth noticing is that the task that fork()-s waits for the
-uffd event to get processed WITHOUT the mmap sem.
-
-Link: http://lkml.kernel.org/r/20161216144821.5183-9-aarcange@redhat.com
-Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-39-aarcange@redhat.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |  146 ++++++++++++++++++++++++++++-
- include/linux/userfaultfd_k.h    |   13 ++
- include/uapi/linux/userfaultfd.h |   15 --
- kernel/fork.c                    |   10 +
- 4 files changed, 168 insertions(+), 16 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   41 ++++++++++++---------
+ 1 file changed, 25 insertions(+), 16 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-fork-event fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-fork-event
-+++ a/fs/userfaultfd.c
-@@ -64,6 +64,12 @@ struct userfaultfd_ctx {
- 	struct mm_struct *mm;
- };
- 
-+struct userfaultfd_fork_ctx {
-+	struct userfaultfd_ctx *orig;
-+	struct userfaultfd_ctx *new;
-+	struct list_head list;
-+};
-+
- struct userfaultfd_wait_queue {
- 	struct uffd_msg msg;
- 	wait_queue_t wq;
-@@ -432,9 +438,8 @@ out:
- 	return ret;
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -81,7 +81,7 @@ static int huge_fd;
+ static char *huge_fd_off0;
+ #endif
+ static unsigned long long *count_verify;
+-static int uffd, finished, *pipefd;
++static int uffd, uffd_flags, finished, *pipefd;
+ static char *area_src, *area_dst;
+ static char *zeropage;
+ pthread_attr_t attr;
+@@ -512,23 +512,9 @@ static int stress(unsigned long *userfau
+ 	return 0;
  }
  
--static int __maybe_unused userfaultfd_event_wait_completion(
--		struct userfaultfd_ctx *ctx,
--		struct userfaultfd_wait_queue *ewq)
-+static int userfaultfd_event_wait_completion(struct userfaultfd_ctx *ctx,
-+					     struct userfaultfd_wait_queue *ewq)
+-static int userfaultfd_stress(void)
++static int userfaultfd_open(void)
  {
- 	int ret = 0;
+-	void *area;
+-	char *tmp_area;
+-	unsigned long nr;
+-	struct uffdio_register uffdio_register;
+ 	struct uffdio_api uffdio_api;
+-	unsigned long cpu;
+-	int uffd_flags, err;
+-	unsigned long userfaults[nr_cpus];
+-
+-	allocate_area((void **)&area_src);
+-	if (!area_src)
+-		return 1;
+-	allocate_area((void **)&area_dst);
+-	if (!area_dst)
+-		return 1;
  
-@@ -485,6 +490,79 @@ static void userfaultfd_event_complete(s
- 	__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
- }
- 
-+int dup_userfaultfd(struct vm_area_struct *vma, struct list_head *fcs)
-+{
-+	struct userfaultfd_ctx *ctx = NULL, *octx;
-+	struct userfaultfd_fork_ctx *fctx;
-+
-+	octx = vma->vm_userfaultfd_ctx.ctx;
-+	if (!octx || !(octx->features & UFFD_FEATURE_EVENT_FORK)) {
-+		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
-+		vma->vm_flags &= ~(VM_UFFD_WP | VM_UFFD_MISSING);
-+		return 0;
-+	}
-+
-+	list_for_each_entry(fctx, fcs, list)
-+		if (fctx->orig == octx) {
-+			ctx = fctx->new;
-+			break;
-+		}
-+
-+	if (!ctx) {
-+		fctx = kmalloc(sizeof(*fctx), GFP_KERNEL);
-+		if (!fctx)
-+			return -ENOMEM;
-+
-+		ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
-+		if (!ctx) {
-+			kfree(fctx);
-+			return -ENOMEM;
-+		}
-+
-+		atomic_set(&ctx->refcount, 1);
-+		ctx->flags = octx->flags;
-+		ctx->state = UFFD_STATE_RUNNING;
-+		ctx->features = octx->features;
-+		ctx->released = false;
-+		ctx->mm = vma->vm_mm;
-+		atomic_inc(&ctx->mm->mm_users);
-+
-+		userfaultfd_ctx_get(octx);
-+		fctx->orig = octx;
-+		fctx->new = ctx;
-+		list_add_tail(&fctx->list, fcs);
-+	}
-+
-+	vma->vm_userfaultfd_ctx.ctx = ctx;
-+	return 0;
-+}
-+
-+static int dup_fctx(struct userfaultfd_fork_ctx *fctx)
-+{
-+	struct userfaultfd_ctx *ctx = fctx->orig;
-+	struct userfaultfd_wait_queue ewq;
-+
-+	msg_init(&ewq.msg);
-+
-+	ewq.msg.event = UFFD_EVENT_FORK;
-+	ewq.msg.arg.reserved.reserved1 = (__u64)fctx->new;
-+
-+	return userfaultfd_event_wait_completion(ctx, &ewq);
-+}
-+
-+void dup_userfaultfd_complete(struct list_head *fcs)
-+{
-+	int ret = 0;
-+	struct userfaultfd_fork_ctx *fctx, *n;
-+
-+	list_for_each_entry_safe(fctx, n, fcs, list) {
-+		if (!ret)
-+			ret = dup_fctx(fctx);
-+		list_del(&fctx->list);
-+		kfree(fctx);
-+	}
-+}
-+
- static int userfaultfd_release(struct inode *inode, struct file *file)
- {
- 	struct userfaultfd_ctx *ctx = file->private_data;
-@@ -620,12 +698,49 @@ static unsigned int userfaultfd_poll(str
+ 	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
+ 	if (uffd < 0) {
+@@ -549,6 +535,29 @@ static int userfaultfd_stress(void)
+ 		return 1;
  	}
- }
  
-+static const struct file_operations userfaultfd_fops;
-+
-+static int resolve_userfault_fork(struct userfaultfd_ctx *ctx,
-+				  struct userfaultfd_ctx *new,
-+				  struct uffd_msg *msg)
-+{
-+	int fd;
-+	struct file *file;
-+	unsigned int flags = new->flags & UFFD_SHARED_FCNTL_FLAGS;
-+
-+	fd = get_unused_fd_flags(flags);
-+	if (fd < 0)
-+		return fd;
-+
-+	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, new,
-+				  O_RDWR | flags);
-+	if (IS_ERR(file)) {
-+		put_unused_fd(fd);
-+		return PTR_ERR(file);
-+	}
-+
-+	fd_install(fd, file);
-+	msg->arg.reserved.reserved1 = 0;
-+	msg->arg.fork.ufd = fd;
-+
 +	return 0;
 +}
 +
- static ssize_t userfaultfd_ctx_read(struct userfaultfd_ctx *ctx, int no_wait,
- 				    struct uffd_msg *msg)
- {
- 	ssize_t ret;
- 	DECLARE_WAITQUEUE(wait, current);
- 	struct userfaultfd_wait_queue *uwq;
-+	/*
-+	 * Handling fork event requires sleeping operations, so
-+	 * we drop the event_wqh lock, then do these ops, then
-+	 * lock it back and wake up the waiter. While the lock is
-+	 * dropped the ewq may go away so we keep track of it
-+	 * carefully.
-+	 */
-+	LIST_HEAD(fork_event);
-+	struct userfaultfd_ctx *fork_nctx = NULL;
- 
- 	/* always take the fd_wqh lock before the fault_pending_wqh lock */
- 	spin_lock(&ctx->fd_wqh.lock);
-@@ -683,6 +798,14 @@ static ssize_t userfaultfd_ctx_read(stru
- 		if (uwq) {
- 			*msg = uwq->msg;
- 
-+			if (uwq->msg.event == UFFD_EVENT_FORK) {
-+				fork_nctx = (struct userfaultfd_ctx *)uwq->msg.arg.reserved.reserved1;
-+				list_move(&uwq->wq.task_list, &fork_event);
-+				spin_unlock(&ctx->event_wqh.lock);
-+				ret = 0;
-+				break;
-+			}
-+
- 			userfaultfd_event_complete(ctx, uwq);
- 			spin_unlock(&ctx->event_wqh.lock);
- 			ret = 0;
-@@ -706,6 +829,23 @@ static ssize_t userfaultfd_ctx_read(stru
- 	__set_current_state(TASK_RUNNING);
- 	spin_unlock(&ctx->fd_wqh.lock);
- 
-+	if (!ret && msg->event == UFFD_EVENT_FORK) {
-+		ret = resolve_userfault_fork(ctx, fork_nctx, msg);
-+
-+		if (!ret) {
-+			spin_lock(&ctx->event_wqh.lock);
-+			if (!list_empty(&fork_event)) {
-+				uwq = list_first_entry(&fork_event,
-+						       typeof(*uwq),
-+						       wq.task_list);
-+				list_del(&uwq->wq.task_list);
-+				__add_wait_queue(&ctx->event_wqh, &uwq->wq);
-+				userfaultfd_event_complete(ctx, uwq);
-+			}
-+			spin_unlock(&ctx->event_wqh.lock);
-+		}
-+	}
-+
- 	return ret;
- }
- 
-diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-fork-event include/linux/userfaultfd_k.h
---- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-fork-event
-+++ a/include/linux/userfaultfd_k.h
-@@ -52,6 +52,9 @@ static inline bool userfaultfd_armed(str
- 	return vma->vm_flags & (VM_UFFD_MISSING | VM_UFFD_WP);
- }
- 
-+extern int dup_userfaultfd(struct vm_area_struct *, struct list_head *);
-+extern void dup_userfaultfd_complete(struct list_head *);
-+
- #else /* CONFIG_USERFAULTFD */
- 
- /* mm helpers */
-@@ -76,6 +79,16 @@ static inline bool userfaultfd_armed(str
- 	return false;
- }
- 
-+static inline int dup_userfaultfd(struct vm_area_struct *vma,
-+				  struct list_head *l)
++static int userfaultfd_stress(void)
 +{
-+	return 0;
-+}
++	void *area;
++	char *tmp_area;
++	unsigned long nr;
++	struct uffdio_register uffdio_register;
++	unsigned long cpu;
++	int err;
++	unsigned long userfaults[nr_cpus];
 +
-+static inline void dup_userfaultfd_complete(struct list_head *l)
-+{
-+}
++	allocate_area((void **)&area_src);
++	if (!area_src)
++		return 1;
++	allocate_area((void **)&area_dst);
++	if (!area_dst)
++		return 1;
 +
- #endif /* CONFIG_USERFAULTFD */
- 
- #endif /* _LINUX_USERFAULTFD_K_H */
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-fork-event include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-fork-event
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -18,12 +18,7 @@
-  * means the userland is reading).
-  */
- #define UFFD_API ((__u64)0xAA)
--/*
-- * After implementing the respective features it will become:
-- * #define UFFD_API_FEATURES (UFFD_FEATURE_PAGEFAULT_FLAG_WP | \
-- *			      UFFD_FEATURE_EVENT_FORK)
-- */
--#define UFFD_API_FEATURES (0)
-+#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -78,6 +73,10 @@ struct uffd_msg {
- 		} pagefault;
- 
- 		struct {
-+			__u32	ufd;
-+		} fork;
++	if (userfaultfd_open() < 0)
++		return 1;
 +
-+		struct {
- 			/* unused reserved fields */
- 			__u64	reserved1;
- 			__u64	reserved2;
-@@ -90,9 +89,7 @@ struct uffd_msg {
-  * Start at 0x12 and not at 0 to be more strict against bugs.
-  */
- #define UFFD_EVENT_PAGEFAULT	0x12
--#if 0 /* not available yet */
- #define UFFD_EVENT_FORK		0x13
--#endif
- 
- /* flags for UFFD_EVENT_PAGEFAULT */
- #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
-@@ -111,10 +108,8 @@ struct uffdio_api {
- 	 * are to be considered implicitly always enabled in all kernels as
- 	 * long as the uffdio_api.api requested matches UFFD_API.
- 	 */
--#if 0 /* not available yet */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
--#endif
- 	__u64 features;
- 
- 	__u64 ioctls;
-diff -puN kernel/fork.c~userfaultfd-non-cooperative-add-fork-event kernel/fork.c
---- a/kernel/fork.c~userfaultfd-non-cooperative-add-fork-event
-+++ a/kernel/fork.c
-@@ -55,6 +55,7 @@
- #include <linux/rmap.h>
- #include <linux/ksm.h>
- #include <linux/acct.h>
-+#include <linux/userfaultfd_k.h>
- #include <linux/tsacct_kern.h>
- #include <linux/cn_proc.h>
- #include <linux/freezer.h>
-@@ -559,6 +560,7 @@ static __latent_entropy int dup_mmap(str
- 	struct rb_node **rb_link, *rb_parent;
- 	int retval;
- 	unsigned long charge;
-+	LIST_HEAD(uf);
- 
- 	uprobe_start_dup_mmap();
- 	if (down_write_killable(&oldmm->mmap_sem)) {
-@@ -615,12 +617,13 @@ static __latent_entropy int dup_mmap(str
- 		if (retval)
- 			goto fail_nomem_policy;
- 		tmp->vm_mm = mm;
-+		retval = dup_userfaultfd(tmp, &uf);
-+		if (retval)
-+			goto fail_nomem_anon_vma_fork;
- 		if (anon_vma_fork(tmp, mpnt))
- 			goto fail_nomem_anon_vma_fork;
--		tmp->vm_flags &=
--			~(VM_LOCKED|VM_LOCKONFAULT|VM_UFFD_MISSING|VM_UFFD_WP);
-+		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
- 		tmp->vm_next = tmp->vm_prev = NULL;
--		tmp->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
- 		file = tmp->vm_file;
- 		if (file) {
- 			struct inode *inode = file_inode(file);
-@@ -676,6 +679,7 @@ out:
- 	up_write(&mm->mmap_sem);
- 	flush_tlb_mm(oldmm);
- 	up_write(&oldmm->mmap_sem);
-+	dup_userfaultfd_complete(&uf);
- fail_uprobe_end:
- 	uprobe_end_dup_mmap();
- 	return retval;
+ 	count_verify = malloc(nr_pages * sizeof(unsigned long long));
+ 	if (!count_verify) {
+ 		perror("count_verify");
 _
 
-Patches currently in -mm which might be from xemul@parallels.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-userfaultfd-non-cooperative-split-the-find_userfault-routine.patch
-userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor.patch
-userfaultfd-non-cooperative-add-fork-event.patch
-userfaultfd-non-cooperative-add-mremap-event.patch
-userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request.patch
+userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users.patch
+userfaultfd-introduce-vma_can_userfault.patch
+userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
+userfaultfd-shmem-introduce-vma_is_shmem.patch
+userfaultfd-shmem-use-shmem_mcopy_atomic_pte-for-shared-memory.patch
+userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults.patch
+userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
+userfaultfd-shmem-add-userfaultfd_shmem-test.patch
+userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
+userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page.patch
+userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
 
