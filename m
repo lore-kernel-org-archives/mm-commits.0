@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch added to
- -mm tree
-Date: Thu, 05 Jan 2017 15:17:14 -0800
-Message-ID: <586ed3fa.UOoCHOhO4IXEVDac%akpm@linux-foundation.org>
+Subject: + scripts-lindent-clean-up-and-optimize.patch added to -mm tree
+Date: Thu, 05 Jan 2017 15:31:57 -0800
+Message-ID: <586ed76d.vIQBIbUxJ1x1bdWt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52646 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S939165AbdAEXQc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:16:32 -0500
+        with ESMTP id S1034559AbdAEXaj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:30:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, andy.gross@linaro.org, spjoshi@codeaurora.org, subashab@codeaurora.org, subhashj@codeaurora.org, twp@codeaurora.org, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add codeaurora.org names for nameless email commits
+     Subject: scripts/Lindent: clean up and optimize
 has been added to the -mm tree.  Its filename is
-     mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
+     scripts-lindent-clean-up-and-optimize.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-lindent-clean-up-and-optimize.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-lindent-clean-up-and-optimize.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,53 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: mailmap: add codeaurora.org names for nameless email commits
+From: Jean Delvare <jdelvare@suse.de>
+Subject: scripts/Lindent: clean up and optimize
 
-Some codeaurora.org emails have crept in but the names don't exist for
-them.  Add the names for the emails so git can match everyone up.
+* Add a few blank lines to improve readability.
+* Don't call cut 3 times when once is enough.
+* Drop a useless semicolon.
 
-Link: http://lkml.kernel.org/r/20170104194611.25933-1-sboyd@codeaurora.org
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Sarangdhar Joshi <spjoshi@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Subhash Jadavani <subhashj@codeaurora.org>
-Cc: Thomas Pedersen <twp@codeaurora.org>
-Cc: Andy Gross <andy.gross@linaro.org>
+Link: http://lkml.kernel.org/r/20170104140356.162abab2@endymion
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    4 ++++
- 1 file changed, 4 insertions(+)
+ scripts/Lindent |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN .mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits .mailmap
---- a/.mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits
-+++ a/.mailmap
-@@ -137,6 +137,7 @@ Ricardo Ribalda Delgado <ricardo.ribalda
- Rudolf Marek <R.Marek@sh.cvut.cz>
- Rui Saraiva <rmps@joel.ist.utl.pt>
- Sachin P Sant <ssant@in.ibm.com>
-+Sarangdhar Joshi <spjoshi@codeaurora.org>
- Sam Ravnborg <sam@mars.ravnborg.org>
- Santosh Shilimkar <ssantosh@kernel.org>
- Santosh Shilimkar <santosh.shilimkar@oracle.org>
-@@ -150,10 +151,13 @@ Shuah Khan <shuah@kernel.org> <shuah.kh@
- Simon Kelley <simon@thekelleys.org.uk>
- Stéphane Witzmann <stephane.witzmann@ubpmes.univ-bpclermont.fr>
- Stephen Hemminger <shemminger@osdl.org>
-+Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-+Subhash Jadavani <subhashj@codeaurora.org>
- Sudeep Holla <sudeep.holla@arm.com> Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>
- Sumit Semwal <sumit.semwal@ti.com>
- Tejun Heo <htejun@gmail.com>
- Thomas Graf <tgraf@suug.ch>
-+Thomas Pedersen <twp@codeaurora.org>
- Tony Luck <tony.luck@intel.com>
- Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
- Uwe Kleine-König <ukleinek@informatik.uni-freiburg.de>
+diff -puN scripts/Lindent~scripts-lindent-clean-up-and-optimize scripts/Lindent
+--- a/scripts/Lindent~scripts-lindent-clean-up-and-optimize
++++ a/scripts/Lindent
+@@ -1,21 +1,25 @@
+ #!/bin/sh
++
+ PARAM="-npro -kr -i8 -ts8 -sob -l80 -ss -ncs -cp1"
+-RES=`indent --version`
++
++RES=`indent --version | cut -d' ' -f3`
+ if [ "$RES" = "" ]; then
+ 	exit 1
+ fi
+-V1=`echo $RES | cut -d' ' -f3 | cut -d'.' -f1`
+-V2=`echo $RES | cut -d' ' -f3 | cut -d'.' -f2`
+-V3=`echo $RES | cut -d' ' -f3 | cut -d'.' -f3`
++V1=`echo $RES | cut -d'.' -f1`
++V2=`echo $RES | cut -d'.' -f2`
++V3=`echo $RES | cut -d'.' -f3`
++
+ if [ $V1 -gt 2 ]; then
+   PARAM="$PARAM -il0"
+ elif [ $V1 -eq 2 ]; then
+   if [ $V2 -gt 2 ]; then
+-    PARAM="$PARAM -il0";
++    PARAM="$PARAM -il0"
+   elif [ $V2 -eq 2 ]; then
+     if [ $V3 -ge 10 ]; then
+       PARAM="$PARAM -il0"
+     fi
+   fi
+ fi
++
+ indent $PARAM "$@"
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
+scripts-lindent-clean-up-and-optimize.patch
 
