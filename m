@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
- added to -mm tree
-Date: Wed, 04 Jan 2017 16:54:08 -0800
-Message-ID: <586d9930.WAwvMPQyS1dv/g0l%akpm@linux-foundation.org>
+Subject: + userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch added to -mm tree
+Date: Wed, 04 Jan 2017 16:54:10 -0800
+Message-ID: <586d9932.L/bybPYJ/sjUSSxU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36236 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937167AbdAEAyW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:22 -0500
+        with ESMTP id S937491AbdAEAyX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: userfaultfd_huge_must_wait for hugepmd ranges
+     Subject: userfaultfd: hugetlbfs: gup: support VM_FAULT_RETRY
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
+     userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +38,17 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd: hugetlbfs: userfaultfd_huge_must_wait for hugepmd ranges
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: hugetlbfs: gup: support VM_FAULT_RETRY
 
-Add routine userfaultfd_huge_must_wait which has the same functionality as
-the existing userfaultfd_must_wait routine.  Only difference is that new
-routine must handle page table structure for hugepmd vmas.
+Add support for VM_FAULT_RETRY to follow_hugetlb_page() so that
+get_user_pages_unlocked/locked and "nonblocking/FOLL_NOWAIT" features will
+work on hugetlbfs.  This is required for fully functional userfaultfd
+non-present support on hugetlbfs.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-24-aarcange@redhat.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-25-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
@@ -58,88 +57,139 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   51 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |    5 ++-
+ mm/gup.c                |    2 -
+ mm/hugetlb.c            |   48 +++++++++++++++++++++++++++++++-------
+ 3 files changed, 44 insertions(+), 11 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges
-+++ a/fs/userfaultfd.c
-@@ -195,6 +195,49 @@ static inline struct uffd_msg userfault_
- 	return msg;
+diff -puN include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/include/linux/hugetlb.h
+@@ -65,7 +65,8 @@ int hugetlb_mempolicy_sysctl_handler(str
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
+ long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
+ 			 struct page **, struct vm_area_struct **,
+-			 unsigned long *, unsigned long *, long, unsigned int);
++			 unsigned long *, unsigned long *, long, unsigned int,
++			 int *);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+@@ -136,7 +137,7 @@ static inline unsigned long hugetlb_tota
+ 	return 0;
  }
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+/*
-+ * Same functionality as userfaultfd_must_wait below with modifications for
-+ * hugepmd ranges.
-+ */
-+static inline bool userfaultfd_huge_must_wait(struct userfaultfd_ctx *ctx,
-+					 unsigned long address,
-+					 unsigned long flags,
-+					 unsigned long reason)
-+{
-+	struct mm_struct *mm = ctx->mm;
-+	pte_t *pte;
-+	bool ret = true;
-+
-+	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
-+
-+	pte = huge_pte_offset(mm, address);
-+	if (!pte)
-+		goto out;
-+
-+	ret = false;
-+
+-#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUG(); 0; })
++#define follow_hugetlb_page(m,v,p,vs,a,b,i,w,n)	({ BUG(); 0; })
+ #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
+ #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
+ static inline void hugetlb_report_meminfo(struct seq_file *m)
+diff -puN mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/gup.c
+--- a/mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/mm/gup.c
+@@ -572,7 +572,7 @@ static long __get_user_pages(struct task
+ 			if (is_vm_hugetlb_page(vma)) {
+ 				i = follow_hugetlb_page(mm, vma, pages, vmas,
+ 						&start, &nr_pages, i,
+-						gup_flags);
++						gup_flags, nonblocking);
+ 				continue;
+ 			}
+ 		}
+diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/hugetlb.c
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/mm/hugetlb.c
+@@ -4046,7 +4046,7 @@ out_release_unlock:
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+ 			 unsigned long *position, unsigned long *nr_pages,
+-			 long i, unsigned int flags)
++			 long i, unsigned int flags, int *nonblocking)
+ {
+ 	unsigned long pfn_offset;
+ 	unsigned long vaddr = *position;
+@@ -4109,16 +4109,43 @@ long follow_hugetlb_page(struct mm_struc
+ 		    ((flags & FOLL_WRITE) &&
+ 		      !huge_pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
++			unsigned int fault_flags = 0;
+ 
+ 			if (pte)
+ 				spin_unlock(ptl);
+-			ret = hugetlb_fault(mm, vma, vaddr,
+-				(flags & FOLL_WRITE) ? FAULT_FLAG_WRITE : 0);
+-			if (!(ret & VM_FAULT_ERROR))
+-				continue;
+-
+-			remainder = 0;
+-			break;
++			if (flags & FOLL_WRITE)
++				fault_flags |= FAULT_FLAG_WRITE;
++			if (nonblocking)
++				fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++			if (flags & FOLL_NOWAIT)
++				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
++					FAULT_FLAG_RETRY_NOWAIT;
++			if (flags & FOLL_TRIED) {
++				VM_WARN_ON_ONCE(fault_flags &
++						FAULT_FLAG_ALLOW_RETRY);
++				fault_flags |= FAULT_FLAG_TRIED;
++			}
++			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
++			if (ret & VM_FAULT_ERROR) {
++				remainder = 0;
++				break;
++			}
++			if (ret & VM_FAULT_RETRY) {
++				if (nonblocking)
++					*nonblocking = 0;
++				*nr_pages = 0;
++				/*
++				 * VM_FAULT_RETRY must not return an
++				 * error, it will return zero
++				 * instead.
++				 *
++				 * No need to update "position" as the
++				 * caller will not check it after
++				 * *nr_pages is set to 0.
++				 */
++				return i;
++			}
++			continue;
+ 		}
+ 
+ 		pfn_offset = (vaddr & ~huge_page_mask(h)) >> PAGE_SHIFT;
+@@ -4147,6 +4174,11 @@ same_page:
+ 		spin_unlock(ptl);
+ 	}
+ 	*nr_pages = remainder;
 +	/*
-+	 * Lockless access: we're in a wait_event so it's ok if it
-+	 * changes under us.
++	 * setting position is actually required only if remainder is
++	 * not zero but it's faster not to add a "if (remainder)"
++	 * branch.
 +	 */
-+	if (huge_pte_none(*pte))
-+		ret = true;
-+	if (!huge_pte_write(*pte) && (reason & VM_UFFD_WP))
-+		ret = true;
-+out:
-+	return ret;
-+}
-+#else
-+static inline bool userfaultfd_huge_must_wait(struct userfaultfd_ctx *ctx,
-+					 unsigned long address,
-+					 unsigned long flags,
-+					 unsigned long reason)
-+{
-+	return false;	/* should never get here */
-+}
-+#endif /* CONFIG_HUGETLB_PAGE */
-+
- /*
-  * Verify the pagetables are still not ok after having reigstered into
-  * the fault_pending_wqh to avoid userland having to UFFDIO_WAKE any
-@@ -368,8 +411,12 @@ int handle_userfault(struct vm_fault *vm
- 			  TASK_KILLABLE);
- 	spin_unlock(&ctx->fault_pending_wqh.lock);
+ 	*position = vaddr;
  
--	must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
--					  reason);
-+	if (!is_vm_hugetlb_page(vmf->vma))
-+		must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
-+						  reason);
-+	else
-+		must_wait = userfaultfd_huge_must_wait(ctx, vmf->address,
-+						       vmf->flags, reason);
- 	up_read(&mm->mmap_sem);
- 
- 	if (likely(must_wait && !ACCESS_ONCE(ctx->released) &&
+ 	return i ? i : -EFAULT;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support.patch
-userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support.patch
-userfaultfd-hugetlbfs-add-__mcopy_atomic_hugetlb-for-huge-page-uffdio_copy.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing.patch
-userfaultfd-hugetlbfs-add-userfaultfd-hugetlb-hook.patch
-userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages.patch
-userfaultfd-hugetlbfs-add-userfaultfd_hugetlb-test.patch
-userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
-userfaultfd-hugetlbfs-reserve-count-on-error-in-__mcopy_atomic_hugetlb.patch
+userfaultfd-document-_ior-_iow.patch
+userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
+userfaultfd-convert-bug-to-warn_on_once.patch
+userfaultfd-use-vma_is_anonymous.patch
+userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
+userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
+userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
+userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
+userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
+userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
+userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
+userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
+userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
+mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
 
