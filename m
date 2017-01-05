@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pmd-dirty-emulation-in-page-fault-handler.patch added to -mm tree
-Date: Thu, 05 Jan 2017 11:37:35 -0800
-Message-ID: <586ea07f.XLY9PfXP+J8Bl9Df%akpm__18513.9484041885$1483645616$gmane$org@linux-foundation.org>
+Subject: + proc-less-code-duplication-in-proc-cmdline.patch added to -mm
+ tree
+Date: Thu, 05 Jan 2017 12:35:51 -0800
+Message-ID: <586eae27.joHAgbA0HoYdxoqm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40818 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936426AbdAETqx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 14:46:53 -0500
+        with ESMTP id S966792AbdAEUee (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 15:34:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, catalin.marinas@arm.com, je@fb.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, schwab@suse.de, stable@vger.kernel.org, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pmd dirty emulation in page fault handler
+     Subject: proc: less code duplication in /proc/*/cmdline
 has been added to the -mm tree.  Its filename is
-     mm-pmd-dirty-emulation-in-page-fault-handler.patch
+     proc-less-code-duplication-in-proc-cmdline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-pmd-dirty-emulation-in-page-fault-handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-less-code-duplication-in-proc-cmdline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pmd-dirty-emulation-in-page-fault-handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-less-code-duplication-in-proc-cmdline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +39,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: pmd dirty emulation in page fault handler
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: less code duplication in /proc/*/cmdline
 
-Andreas reported [1] made a test in jemalloc hang in THP mode in arm64. 
-http://lkml.kernel.org/r/mvmmvfy37g1.fsf@hawking.suse.de
+After staring at this code for a while I've figured using small 2-entry array
+describing ARGV and ENVP is the way to address code duplication critique.
 
-The problem is currently page fault handler doesn't supports dirty bit
-emulation of pmd for non-HW dirty-bit architecture so that application
-stucks until VM marked the pmd dirty.
-
-How the emulation work depends on the architecture.  In case of arm64,
-when it set up pte firstly, it sets pte PTE_RDONLY to get a chance to mark
-the pte dirty via triggering page fault when store access happens.  Once
-the page fault occurs, VM marks the pmd dirty and arch code for setting
-pmd will clear PTE_RDONLY for application to proceed.
-
-IOW, if VM doesn't mark the pmd dirty, application hangs forever by
-repeated fault(i.e., store op but the pmd is PTE_RDONLY).
-
-This patch enables pmd dirty-bit emulation for those architectures.
-
-[1] b8d3c4c3009d, mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called
-
-Fixes: b8d3c4c3009d ("mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called")
-Link: http://lkml.kernel.org/r/1482506098-6149-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Andreas Schwab <schwab@suse.de>
-Tested-by: Andreas Schwab <schwab@suse.de>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jason Evans <je@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: <stable@vger.kernel.org> [4.5+]
+Link: http://lkml.kernel.org/r/20170105185724.GA12027@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/proc/base.c |  142 ++++++++++++++++++-----------------------------
+ 1 file changed, 55 insertions(+), 87 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-pmd-dirty-emulation-in-page-fault-handler mm/huge_memory.c
---- a/mm/huge_memory.c~mm-pmd-dirty-emulation-in-page-fault-handler
-+++ a/mm/huge_memory.c
-@@ -883,15 +883,17 @@ void huge_pmd_set_accessed(struct vm_fau
- {
- 	pmd_t entry;
- 	unsigned long haddr;
-+	bool write = vmf->flags & FAULT_FLAG_WRITE;
+diff -puN fs/proc/base.c~proc-less-code-duplication-in-proc-cmdline fs/proc/base.c
+--- a/fs/proc/base.c~proc-less-code-duplication-in-proc-cmdline
++++ a/fs/proc/base.c
+@@ -292,101 +292,69 @@ static ssize_t proc_pid_cmdline_read(str
+ 		}
+ 	} else {
+ 		/*
+-		 * Command line (1 string) occupies ARGV and maybe
+-		 * extends into ENVP.
+-		 */
+-		if (len1 + len2 <= *pos)
+-			goto skip_argv_envp;
+-		if (len1 <= *pos)
+-			goto skip_argv;
+-
+-		p = arg_start + *pos;
+-		len = len1 - *pos;
+-		while (count > 0 && len > 0) {
+-			unsigned int _count, l;
+-			int nr_read;
+-			bool final;
+-
+-			_count = min3(count, len, PAGE_SIZE);
+-			nr_read = access_remote_vm(mm, p, page, _count, 0);
+-			if (nr_read < 0)
+-				rv = nr_read;
+-			if (nr_read <= 0)
+-				goto out_free_page;
+-
+-			/*
+-			 * Command line can be shorter than whole ARGV
+-			 * even if last "marker" byte says it is not.
+-			 */
+-			final = false;
+-			l = strnlen(page, nr_read);
+-			if (l < nr_read) {
+-				nr_read = l;
+-				final = true;
+-			}
+-
+-			if (copy_to_user(buf, page, nr_read)) {
+-				rv = -EFAULT;
+-				goto out_free_page;
+-			}
+-
+-			p	+= nr_read;
+-			len	-= nr_read;
+-			buf	+= nr_read;
+-			count	-= nr_read;
+-			rv	+= nr_read;
+-
+-			if (final)
+-				goto out_free_page;
+-		}
+-skip_argv:
+-		/*
+ 		 * Command line (1 string) occupies ARGV and
+ 		 * extends into ENVP.
+ 		 */
+-		if (len1 <= *pos) {
+-			p = env_start + *pos - len1;
+-			len = len1 + len2 - *pos;
+-		} else {
+-			p = env_start;
+-			len = len2;
++		struct {
++			unsigned long p;
++			unsigned long len;
++		} cmdline[2] = {
++			{ .p = arg_start, .len = len1 },
++			{ .p = env_start, .len = len2 },
++		};
++		loff_t pos1 = *pos;
++		unsigned int i;
++
++		i = 0;
++		while (i < 2 && pos1 >= cmdline[i].len) {
++			pos1 -= cmdline[i].len;
++			i++;
+ 		}
+-		while (count > 0 && len > 0) {
+-			unsigned int _count, l;
+-			int nr_read;
+-			bool final;
+-
+-			_count = min3(count, len, PAGE_SIZE);
+-			nr_read = access_remote_vm(mm, p, page, _count, 0);
+-			if (nr_read < 0)
+-				rv = nr_read;
+-			if (nr_read <= 0)
+-				goto out_free_page;
+-
+-			/* Find EOS. */
+-			final = false;
+-			l = strnlen(page, nr_read);
+-			if (l < nr_read) {
+-				nr_read = l;
+-				final = true;
+-			}
++		while (i < 2) {
++			p = cmdline[i].p + pos1;
++			len = cmdline[i].len - pos1;
++			while (count > 0 && len > 0) {
++				unsigned int _count, l;
++				int nr_read;
++				bool final;
++
++				_count = min3(count, len, PAGE_SIZE);
++				nr_read = access_remote_vm(mm, p, page, _count, 0);
++				if (nr_read < 0)
++					rv = nr_read;
++				if (nr_read <= 0)
++					goto out_free_page;
++
++				/*
++				 * Command line can be shorter than whole ARGV
++				 * even if last "marker" byte says it is not.
++				 */
++				final = false;
++				l = strnlen(page, nr_read);
++				if (l < nr_read) {
++					nr_read = l;
++					final = true;
++				}
++
++				if (copy_to_user(buf, page, nr_read)) {
++					rv = -EFAULT;
++					goto out_free_page;
++				}
++
++				p	+= nr_read;
++				len	-= nr_read;
++				buf	+= nr_read;
++				count	-= nr_read;
++				rv	+= nr_read;
  
- 	vmf->ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
- 	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
- 		goto unlock;
+-			if (copy_to_user(buf, page, nr_read)) {
+-				rv = -EFAULT;
+-				goto out_free_page;
++				if (final)
++					goto out_free_page;
+ 			}
  
- 	entry = pmd_mkyoung(orig_pmd);
-+	if (write)
-+		entry = pmd_mkdirty(entry);
- 	haddr = vmf->address & HPAGE_PMD_MASK;
--	if (pmdp_set_access_flags(vmf->vma, haddr, vmf->pmd, entry,
--				vmf->flags & FAULT_FLAG_WRITE))
-+	if (pmdp_set_access_flags(vmf->vma, haddr, vmf->pmd, entry, write))
- 		update_mmu_cache_pmd(vmf->vma, vmf->address, vmf->pmd);
- 
- unlock:
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-mm-pmd-dirty-emulation-in-page-fault-handler.patch
-
+-			p	+= nr_read;
+-			len	-= nr_read;
+-			buf	+= nr_read;
+-			count	-= nr_read;
+-			rv	+= nr_read;
