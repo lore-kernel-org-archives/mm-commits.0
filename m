@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+Subject: +
+ mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
  added to -mm tree
-Date: Wed, 04 Jan 2017 16:54:14 -0800
-Message-ID: <586d9936.uc6t0iNhy4w+Q5WN%akpm@linux-foundation.org>
+Date: Wed, 04 Jan 2017 16:54:46 -0800
+Message-ID: <586d9956.BWGWg3jE6Qlk49cy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937492AbdAEAyX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:23 -0500
+        with ESMTP id S937524AbdAEAyb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_HUGETLBFS
+     Subject: mm: mprotect: use pmd_trans_unstable instead of taking the pmd_lock
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+     mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +41,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_HUGETLBFS
+Subject: mm: mprotect: use pmd_trans_unstable instead of taking the pmd_lock
 
-Userland developers asked to be notified immediately by the UFFDIO_API
-ioctl if hugetlbfs missing mode is supported by userfaultfd in the running
-kernel.  This avoids the need to run UFFDIO_REGISTER on a hugetlbfs
-virtual memory range to find out.
+pmd_trans_unstable does an atomic read on the pmd so it doesn't
+require the pmd_lock for the same check.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-27-aarcange@redhat.com
+This also removes the special assumption that the mmap_sem is hold for
+writing if prot_numa is not set. userfaultfd will hold the mmap_sem
+only for reading in change_pte_range like prot_numa, but it will not
+set prot_numa.
+
+This is always a valid micro-optimization regardless of userfaultfd.
+
+Link: http://lkml.kernel.org/r/20161216144821.5183-43-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -58,59 +64,70 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/userfaultfd.h |   28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ mm/mprotect.c |   44 +++++++++++++++-----------------------------
+ 1 file changed, 15 insertions(+), 29 deletions(-)
 
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -18,9 +18,10 @@
-  * means the userland is reading).
-  */
- #define UFFD_API ((__u64)0xAA)
--#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |	    \
--			   UFFD_FEATURE_EVENT_REMAP |	    \
--			   UFFD_FEATURE_EVENT_MADVDONTNEED)
-+#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |		\
-+			   UFFD_FEATURE_EVENT_REMAP |		\
-+			   UFFD_FEATURE_EVENT_MADVDONTNEED |	\
-+			   UFFD_FEATURE_MISSING_HUGETLBFS)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -125,11 +126,32 @@ struct uffdio_api {
- 	 * Note: UFFD_EVENT_PAGEFAULT and UFFD_PAGEFAULT_FLAG_WRITE
- 	 * are to be considered implicitly always enabled in all kernels as
- 	 * long as the uffdio_api.api requested matches UFFD_API.
-+	 *
-+	 * UFFD_FEATURE_MISSING_HUGETLBFS means an UFFDIO_REGISTER
-+	 * with UFFDIO_REGISTER_MODE_MISSING mode will succeed on
-+	 * hugetlbfs virtual memory ranges. Adding or not adding
-+	 * UFFD_FEATURE_MISSING_HUGETLBFS to uffdio_api.features has
-+	 * no real functional effect after UFFDIO_API returns, but
-+	 * it's only useful for an initial feature set probe at
-+	 * UFFDIO_API time. There are two ways to use it:
-+	 *
-+	 * 1) by adding UFFD_FEATURE_MISSING_HUGETLBFS to the
-+	 *    uffdio_api.features before calling UFFDIO_API, an error
-+	 *    will be returned by UFFDIO_API on a kernel without
-+	 *    hugetlbfs missing support
-+	 *
-+	 * 2) the UFFD_FEATURE_MISSING_HUGETLBFS can not be added in
-+	 *    uffdio_api.features and instead it will be set by the
-+	 *    kernel in the uffdio_api.features if the kernel supports
-+	 *    it, so userland can later check if the feature flag is
-+	 *    present in uffdio_api.features after UFFDIO_API
-+	 *    succeeded.
- 	 */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
- #define UFFD_FEATURE_EVENT_REMAP		(1<<2)
- #define UFFD_FEATURE_EVENT_MADVDONTNEED		(1<<3)
-+#define UFFD_FEATURE_MISSING_HUGETLBFS		(1<<4)
- 	__u64 features;
+diff -puN mm/mprotect.c~mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock mm/mprotect.c
+--- a/mm/mprotect.c~mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock
++++ a/mm/mprotect.c
+@@ -33,34 +33,6 @@
  
- 	__u64 ioctls;
+ #include "internal.h"
+ 
+-/*
+- * For a prot_numa update we only hold mmap_sem for read so there is a
+- * potential race with faulting where a pmd was temporarily none. This
+- * function checks for a transhuge pmd under the appropriate lock. It
+- * returns a pte if it was successfully locked or NULL if it raced with
+- * a transhuge insertion.
+- */
+-static pte_t *lock_pte_protection(struct vm_area_struct *vma, pmd_t *pmd,
+-			unsigned long addr, int prot_numa, spinlock_t **ptl)
+-{
+-	pte_t *pte;
+-	spinlock_t *pmdl;
+-
+-	/* !prot_numa is protected by mmap_sem held for write */
+-	if (!prot_numa)
+-		return pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
+-
+-	pmdl = pmd_lock(vma->vm_mm, pmd);
+-	if (unlikely(pmd_trans_huge(*pmd) || pmd_none(*pmd))) {
+-		spin_unlock(pmdl);
+-		return NULL;
+-	}
+-
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
+-	spin_unlock(pmdl);
+-	return pte;
+-}
+-
+ static unsigned long change_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, unsigned long end, pgprot_t newprot,
+ 		int dirty_accountable, int prot_numa)
+@@ -71,7 +43,21 @@ static unsigned long change_pte_range(st
+ 	unsigned long pages = 0;
+ 	int target_node = NUMA_NO_NODE;
+ 
+-	pte = lock_pte_protection(vma, pmd, addr, prot_numa, &ptl);
++	/*
++	 * Can be called with only the mmap_sem for reading by
++	 * prot_numa so we must check the pmd isn't constantly
++	 * changing from under us from pmd_none to pmd_trans_huge
++	 * and/or the other way around.
++	 */
++	if (pmd_trans_unstable(pmd))
++		return 0;
++
++	/*
++	 * The pmd points to a regular pte so the pmd can't change
++	 * from under us even if the mmap_sem is only hold for
++	 * reading.
++	 */
++	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	if (!pte)
+ 		return 0;
+ 
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
