@@ -1,99 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- z3fold-discourage-use-of-pages-that-werent-compacted.patch removed from -mm tree
-Date: Wed, 04 Jan 2017 17:27:36 -0800
-Message-ID: <586da108.Oj7oHN6Z/GzC0CyQ%akpm@linux-foundation.org>
+Subject: + mm-pmd-dirty-emulation-in-page-fault-handler.patch added to -mm tree
+Date: Thu, 05 Jan 2017 11:37:35 -0800
+Message-ID: <586ea07f.XLY9PfXP+J8Bl9Df%akpm__18513.9484041885$1483645616$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38362 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967685AbdAECWb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 21:22:31 -0500
+        with ESMTP id S936426AbdAETqx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 14:46:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, catalin.marinas@arm.com, je@fb.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, schwab@suse.de, stable@vger.kernel.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: discourage use of pages that weren't compacted
-has been removed from the -mm tree.  Its filename was
-     z3fold-discourage-use-of-pages-that-werent-compacted.patch
+     Subject: mm: pmd dirty emulation in page fault handler
+has been added to the -mm tree.  Its filename is
+     mm-pmd-dirty-emulation-in-page-fault-handler.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pmd-dirty-emulation-in-page-fault-handler.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pmd-dirty-emulation-in-page-fault-handler.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: discourage use of pages that weren't compacted
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: pmd dirty emulation in page fault handler
 
-If a z3fold page couldn't be compacted, we don't want it to be used for
-next object allocation in the first place.  It makes more sense to add it
-to the end of the relevant unbuddied list.  If that page gets compacted
-later, it will be added to the beginning of the list then.
+Andreas reported [1] made a test in jemalloc hang in THP mode in arm64. 
+http://lkml.kernel.org/r/mvmmvfy37g1.fsf@hawking.suse.de
 
-This simple idea gives 5-7% improvement in randrw fio tests and about 10%
-improvement in fio sequential read/write.
+The problem is currently page fault handler doesn't supports dirty bit
+emulation of pmd for non-HW dirty-bit architecture so that application
+stucks until VM marked the pmd dirty.
 
-Link: http://lkml.kernel.org/r/20161115170038.75e127739b66f850e50d7fc1@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+How the emulation work depends on the architecture.  In case of arm64,
+when it set up pte firstly, it sets pte PTE_RDONLY to get a chance to mark
+the pte dirty via triggering page fault when store access happens.  Once
+the page fault occurs, VM marks the pmd dirty and arch code for setting
+pmd will clear PTE_RDONLY for application to proceed.
+
+IOW, if VM doesn't mark the pmd dirty, application hangs forever by
+repeated fault(i.e., store op but the pmd is PTE_RDONLY).
+
+This patch enables pmd dirty-bit emulation for those architectures.
+
+[1] b8d3c4c3009d, mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called
+
+Fixes: b8d3c4c3009d ("mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called")
+Link: http://lkml.kernel.org/r/1482506098-6149-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Andreas Schwab <schwab@suse.de>
+Tested-by: Andreas Schwab <schwab@suse.de>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jason Evans <je@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: <stable@vger.kernel.org> [4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-discourage-use-of-pages-that-werent-compacted mm/z3fold.c
---- a/mm/z3fold.c~z3fold-discourage-use-of-pages-that-werent-compacted
-+++ a/mm/z3fold.c
-@@ -539,11 +539,19 @@ static void z3fold_free(struct z3fold_po
- 		free_z3fold_page(zhdr);
- 		atomic64_dec(&pool->pages_nr);
- 	} else {
--		z3fold_compact_page(zhdr);
-+		int compacted = z3fold_compact_page(zhdr);
- 		/* Add to the unbuddied list */
- 		spin_lock(&pool->lock);
- 		freechunks = num_free_chunks(zhdr);
--		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		/*
-+		 * If the page has been compacted, we want to use it
-+		 * in the first place.
-+		 */
-+		if (compacted)
-+			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		else
-+			list_add_tail(&zhdr->buddy,
-+				      &pool->unbuddied[freechunks]);
- 		spin_unlock(&pool->lock);
- 		z3fold_page_unlock(zhdr);
- 	}
-@@ -672,12 +680,16 @@ next:
- 				spin_lock(&pool->lock);
- 				list_add(&zhdr->buddy, &pool->buddied);
- 			} else {
--				z3fold_compact_page(zhdr);
-+				int compacted = z3fold_compact_page(zhdr);
- 				/* add to unbuddied list */
- 				spin_lock(&pool->lock);
- 				freechunks = num_free_chunks(zhdr);
--				list_add(&zhdr->buddy,
--					 &pool->unbuddied[freechunks]);
-+				if (compacted)
-+					list_add(&zhdr->buddy,
-+						&pool->unbuddied[freechunks]);
-+				else
-+					list_add_tail(&zhdr->buddy,
-+						&pool->unbuddied[freechunks]);
- 			}
- 		}
+diff -puN mm/huge_memory.c~mm-pmd-dirty-emulation-in-page-fault-handler mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-pmd-dirty-emulation-in-page-fault-handler
++++ a/mm/huge_memory.c
+@@ -883,15 +883,17 @@ void huge_pmd_set_accessed(struct vm_fau
+ {
+ 	pmd_t entry;
+ 	unsigned long haddr;
++	bool write = vmf->flags & FAULT_FLAG_WRITE;
  
+ 	vmf->ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+ 	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
+ 		goto unlock;
+ 
+ 	entry = pmd_mkyoung(orig_pmd);
++	if (write)
++		entry = pmd_mkdirty(entry);
+ 	haddr = vmf->address & HPAGE_PMD_MASK;
+-	if (pmdp_set_access_flags(vmf->vma, haddr, vmf->pmd, entry,
+-				vmf->flags & FAULT_FLAG_WRITE))
++	if (pmdp_set_access_flags(vmf->vma, haddr, vmf->pmd, entry, write))
+ 		update_mmu_cache_pmd(vmf->vma, vmf->address, vmf->pmd);
+ 
+ unlock:
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-z3fold-fix-header-size-related-issues.patch
-z3fold-fix-locking-issues.patch
+mm-pmd-dirty-emulation-in-page-fault-handler.patch
 
