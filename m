@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
- added to -mm tree
-Date: Wed, 04 Jan 2017 16:54:46 -0800
-Message-ID: <586d9956.BWGWg3jE6Qlk49cy%akpm@linux-foundation.org>
+ userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch added
+ to -mm tree
+Date: Wed, 04 Jan 2017 16:54:44 -0800
+Message-ID: <586d9954.+QWvB9Q/QJZ9u48T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36194 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937524AbdAEAyb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:31 -0500
+        with ESMTP id S932445AbdAEAya (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mprotect: use pmd_trans_unstable instead of taking the pmd_lock
+     Subject: userfaultfd: selftest: test UFFDIO_ZEROPAGE on all memory types
 has been added to the -mm tree.  Its filename is
-     mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
+     userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,19 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: mprotect: use pmd_trans_unstable instead of taking the pmd_lock
+Subject: userfaultfd: selftest: test UFFDIO_ZEROPAGE on all memory types
 
-pmd_trans_unstable does an atomic read on the pmd so it doesn't
-require the pmd_lock for the same check.
+This will verify -EINVAL is returned with hugetlbfs/shmem and it'll do
+a functional test of UFFDIO_ZEROPAGE on anonymous memory.
 
-This also removes the special assumption that the mmap_sem is hold for
-writing if prot_numa is not set. userfaultfd will hold the mmap_sem
-only for reading in change_pte_range like prot_numa, but it will not
-set prot_numa.
-
-This is always a valid micro-optimization regardless of userfaultfd.
-
-Link: http://lkml.kernel.org/r/20161216144821.5183-43-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-42-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -64,70 +57,108 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   44 +++++++++++++++-----------------------------
- 1 file changed, 15 insertions(+), 29 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   82 ++++++++++++++++++++-
+ 1 file changed, 81 insertions(+), 1 deletion(-)
 
-diff -puN mm/mprotect.c~mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock mm/mprotect.c
---- a/mm/mprotect.c~mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock
-+++ a/mm/mprotect.c
-@@ -33,34 +33,6 @@
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -625,6 +625,86 @@ static int faulting_process(void)
+ 	return 0;
+ }
  
- #include "internal.h"
- 
--/*
-- * For a prot_numa update we only hold mmap_sem for read so there is a
-- * potential race with faulting where a pmd was temporarily none. This
-- * function checks for a transhuge pmd under the appropriate lock. It
-- * returns a pte if it was successfully locked or NULL if it raced with
-- * a transhuge insertion.
-- */
--static pte_t *lock_pte_protection(struct vm_area_struct *vma, pmd_t *pmd,
--			unsigned long addr, int prot_numa, spinlock_t **ptl)
--{
--	pte_t *pte;
--	spinlock_t *pmdl;
--
--	/* !prot_numa is protected by mmap_sem held for write */
--	if (!prot_numa)
--		return pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
--
--	pmdl = pmd_lock(vma->vm_mm, pmd);
--	if (unlikely(pmd_trans_huge(*pmd) || pmd_none(*pmd))) {
--		spin_unlock(pmdl);
--		return NULL;
--	}
--
--	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
--	spin_unlock(pmdl);
--	return pte;
--}
--
- static unsigned long change_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, unsigned long end, pgprot_t newprot,
- 		int dirty_accountable, int prot_numa)
-@@ -71,7 +43,21 @@ static unsigned long change_pte_range(st
- 	unsigned long pages = 0;
- 	int target_node = NUMA_NO_NODE;
- 
--	pte = lock_pte_protection(vma, pmd, addr, prot_numa, &ptl);
-+	/*
-+	 * Can be called with only the mmap_sem for reading by
-+	 * prot_numa so we must check the pmd isn't constantly
-+	 * changing from under us from pmd_none to pmd_trans_huge
-+	 * and/or the other way around.
-+	 */
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
++static int uffdio_zeropage(int ufd, unsigned long offset)
++{
++	struct uffdio_zeropage uffdio_zeropage;
++	int ret;
++	unsigned long has_zeropage = EXPECTED_IOCTLS & (1 << _UFFDIO_ZEROPAGE);
 +
-+	/*
-+	 * The pmd points to a regular pte so the pmd can't change
-+	 * from under us even if the mmap_sem is only hold for
-+	 * reading.
-+	 */
-+	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	if (!pte)
- 		return 0;
++	if (offset >= nr_pages * page_size)
++		fprintf(stderr, "unexpected offset %lu\n",
++			offset), exit(1);
++	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
++	uffdio_zeropage.range.len = page_size;
++	uffdio_zeropage.mode = 0;
++	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
++	if (ret) {
++		/* real retval in ufdio_zeropage.zeropage */
++		if (has_zeropage) {
++			if (uffdio_zeropage.zeropage == -EEXIST)
++				fprintf(stderr, "UFFDIO_ZEROPAGE -EEXIST\n"),
++					exit(1);
++			else
++				fprintf(stderr, "UFFDIO_ZEROPAGE error %Ld\n",
++					uffdio_zeropage.zeropage), exit(1);
++		} else {
++			if (uffdio_zeropage.zeropage != -EINVAL)
++				fprintf(stderr,
++					"UFFDIO_ZEROPAGE not -EINVAL %Ld\n",
++					uffdio_zeropage.zeropage), exit(1);
++		}
++	} else if (has_zeropage) {
++		if (uffdio_zeropage.zeropage != page_size) {
++			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
++				uffdio_zeropage.zeropage), exit(1);
++		} else
++			return 1;
++	} else {
++		fprintf(stderr,
++			"UFFDIO_ZEROPAGE succeeded %Ld\n",
++			uffdio_zeropage.zeropage), exit(1);
++	}
++
++	return 0;
++}
++
++/* exercise UFFDIO_ZEROPAGE */
++static int userfaultfd_zeropage_test(void)
++{
++	struct uffdio_register uffdio_register;
++	unsigned long expected_ioctls;
++
++	printf("testing UFFDIO_ZEROPAGE: ");
++	fflush(stdout);
++
++	if (release_pages(area_dst))
++		return 1;
++
++	if (userfaultfd_open(0) < 0)
++		return 1;
++	uffdio_register.range.start = (unsigned long) area_dst;
++	uffdio_register.range.len = nr_pages * page_size;
++	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
++	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
++		fprintf(stderr, "register failure\n"), exit(1);
++
++	expected_ioctls = EXPECTED_IOCTLS;
++	if ((uffdio_register.ioctls & expected_ioctls) !=
++	    expected_ioctls)
++		fprintf(stderr,
++			"unexpected missing ioctl for anon memory\n"),
++			exit(1);
++
++	if (uffdio_zeropage(uffd, 0)) {
++		if (my_bcmp(area_dst, zeropage, page_size))
++			fprintf(stderr, "zeropage is not zero\n"), exit(1);
++	}
++
++	close(uffd);
++	printf("done.\n");
++	return 0;
++}
++
+ static int userfaultfd_events_test(void)
+ {
+ 	struct uffdio_register uffdio_register;
+@@ -853,7 +933,7 @@ static int userfaultfd_stress(void)
+ 		return err;
  
+ 	close(uffd);
+-	return userfaultfd_events_test();
++	return userfaultfd_zeropage_test() || userfaultfd_events_test();
+ }
+ 
+ #ifndef HUGETLB_TEST
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
