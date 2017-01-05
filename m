@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- signal-protect-signal_unkillable-from-unintentional-clearing.patch added to -mm tree
-Date: Thu, 05 Jan 2017 14:57:52 -0800
-Message-ID: <586ecf70.n0GTLrV5i6mogevv%akpm@linux-foundation.org>
+Subject: + notifier-simplify-expression.patch added to -mm tree
+Date: Thu, 05 Jan 2017 15:05:41 -0800
+Message-ID: <586ed145.90ijGnn6tnqOAAAa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49960 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034524AbdAEW52 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 17:57:28 -0500
+        with ESMTP id S932083AbdAEXEX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:04:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jamie.iles@oracle.com, mingo@redhat.com, oleg@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: viresh.kumar@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing.
+     Subject: kernel/notifier.c: simplify expression
 has been added to the -mm tree.  Its filename is
-     signal-protect-signal_unkillable-from-unintentional-clearing.patch
+     notifier-simplify-expression.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signal-protect-signal_unkillable-from-unintentional-clearing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/notifier-simplify-expression.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signal-protect-signal_unkillable-from-unintentional-clearing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/notifier-simplify-expression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +38,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jamie Iles <jamie.iles@oracle.com>
-Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing.
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: kernel/notifier.c: simplify expression
 
-Since 00cd5c37af (ptrace: permit ptracing of /sbin/init) we can now trace
-init processes.  init is initially protected with SIGNAL_UNKILLABLE which
-will prevent fatal signals such as SIGSTOP, but there are a number of
-paths during tracing where SIGNAL_UNKILLABLE can be implicitly cleared.
+NOTIFY_STOP_MASK (0x8000) has only one bit set and there is no need to
+compare output of "ret & NOTIFY_STOP_MASK" to NOTIFY_STOP_MASK.  We just
+need to make sure the output is non-zero, that's it.
 
-This can result in init becoming stoppable/killable after tracing.  For
-example, running:
-
-  while true; do kill -STOP 1; done &
-  strace -p 1
-
-and then stopping strace and the kill loop will result in init being left
-in state TASK_STOPPED.  Sending SIGCONT to init will resume it, but init
-will now respond to future SIGSTOP signals rather than ignoring them.
-
-Make sure that when setting SIGNAL_STOP_CONTINUED/SIGNAL_STOP_STOPPED
-that we don't clear SIGNAL_UNKILLABLE.
-
-Link: http://lkml.kernel.org/r/20170104122017.25047-1-jamie.iles@oracle.com
-Signed-off-by: Jamie Iles <jamie.iles@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/88ee58264a2bfab1c97ffc8ac753e25f55f57c10.1483593065.git.viresh.kumar@linaro.org
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   10 ++++++++++
- kernel/signal.c       |    4 ++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ kernel/notifier.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing include/linux/sched.h
---- a/include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing
-+++ a/include/linux/sched.h
-@@ -854,6 +854,16 @@ struct signal_struct {
+diff -puN kernel/notifier.c~notifier-simplify-expression kernel/notifier.c
+--- a/kernel/notifier.c~notifier-simplify-expression
++++ a/kernel/notifier.c
+@@ -95,7 +95,7 @@ static int notifier_call_chain(struct no
+ 		if (nr_calls)
+ 			(*nr_calls)++;
  
- #define SIGNAL_UNKILLABLE	0x00000040 /* for init: ignore fatal signals */
- 
-+#define SIGNAL_STOP_MASK (SIGNAL_CLD_MASK | SIGNAL_STOP_STOPPED | \
-+			  SIGNAL_STOP_CONTINUED)
-+
-+static inline void signal_set_stop_flags(struct signal_struct *sig,
-+					 unsigned int flags)
-+{
-+	WARN_ON(sig->flags & (SIGNAL_GROUP_EXIT|SIGNAL_GROUP_COREDUMP));
-+	sig->flags = (sig->flags & ~SIGNAL_STOP_MASK) | flags;
-+}
-+
- /* If true, all threads except ->group_exit_task have pending SIGKILL */
- static inline int signal_group_exit(const struct signal_struct *sig)
- {
-diff -puN kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing kernel/signal.c
---- a/kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing
-+++ a/kernel/signal.c
-@@ -346,7 +346,7 @@ static bool task_participate_group_stop(
- 	 * fresh group stop.  Read comment in do_signal_stop() for details.
- 	 */
- 	if (!sig->group_stop_count && !(sig->flags & SIGNAL_STOP_STOPPED)) {
--		sig->flags = SIGNAL_STOP_STOPPED;
-+		signal_set_stop_flags(sig, SIGNAL_STOP_STOPPED);
- 		return true;
- 	}
- 	return false;
-@@ -843,7 +843,7 @@ static bool prepare_signal(int sig, stru
- 			 * will take ->siglock, notice SIGNAL_CLD_MASK, and
- 			 * notify its parent. See get_signal_to_deliver().
- 			 */
--			signal->flags = why | SIGNAL_STOP_CONTINUED;
-+			signal_set_stop_flags(signal, why | SIGNAL_STOP_CONTINUED);
- 			signal->group_stop_count = 0;
- 			signal->group_exit_code = 0;
- 		}
+-		if ((ret & NOTIFY_STOP_MASK) == NOTIFY_STOP_MASK)
++		if (ret & NOTIFY_STOP_MASK)
+ 			break;
+ 		nb = next_nb;
+ 		nr_to_call--;
 _
 
-Patches currently in -mm which might be from jamie.iles@oracle.com are
+Patches currently in -mm which might be from viresh.kumar@linaro.org are
 
-signal-protect-signal_unkillable-from-unintentional-clearing.patch
+notifier-simplify-expression.patch
 
