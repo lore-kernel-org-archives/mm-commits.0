@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
- added to -mm tree
-Date: Thu, 05 Jan 2017 15:01:44 -0800
-Message-ID: <586ed058.xdaDbRKsPLjWCd7h%akpm@linux-foundation.org>
+ mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch added to
+ -mm tree
+Date: Thu, 05 Jan 2017 15:17:14 -0800
+Message-ID: <586ed3fa.UOoCHOhO4IXEVDac%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50548 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763736AbdAEXMD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:12:03 -0500
+        with ESMTP id S939165AbdAEXQc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:16:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, andy.gross@linaro.org, spjoshi@codeaurora.org, subashab@codeaurora.org, subhashj@codeaurora.org, twp@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+     Subject: mailmap: add codeaurora.org names for nameless email commits
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+     mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,218 +40,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: mailmap: add codeaurora.org names for nameless email commits
 
-We are in the situation that we have to avoid recursive cluster locking,
-but there is no way to check if a cluster lock has been taken by a precess
-already.
+Some codeaurora.org emails have crept in but the names don't exist for
+them.  Add the names for the emails so git can match everyone up.
 
-Mostly, we can avoid recursive locking by writing code carefully. 
-However, we found that it's very hard to handle the routines that are
-invoked directly by vfs code.  For instance:
-
-const struct inode_operations ocfs2_file_iops = {
-    .permission     = ocfs2_permission,
-    .get_acl        = ocfs2_iop_get_acl,
-    .set_acl        = ocfs2_iop_set_acl,
-};
-
-Both ocfs2_permission() and ocfs2_iop_get_acl() call ocfs2_inode_lock(PR):
-do_sys_open
- may_open
-  inode_permission
-   ocfs2_permission
-    ocfs2_inode_lock() <=== first time
-     generic_permission
-      get_acl
-       ocfs2_iop_get_acl
-	ocfs2_inode_lock() <=== recursive one
-
-A deadlock will occur if a remote EX request comes in between two of
-ocfs2_inode_lock().  Briefly describe how the deadlock is formed:
-
-On one hand, OCFS2_LOCK_BLOCKED flag of this lockres is set in
-BAST(ocfs2_generic_handle_bast) when downconvert is started on behalf of
-the remote EX lock request.  Another hand, the recursive cluster lock (the
-second one) will be blocked in in __ocfs2_cluster_lock() because of
-OCFS2_LOCK_BLOCKED.  But, the downconvert never complete, why?  because
-there is no chance for the first cluster lock on this node to be unlocked
-- we block ourselves in the code path.
-
-The idea to fix this issue is mostly taken from gfs2 code.
-
-1. introduce a new field: struct ocfs2_lock_res.l_holders, to keep
-   track of the processes' pid who has taken the cluster lock of this lock
-   resource;
-
-2. introduce a new flag for ocfs2_inode_lock_full:
-   OCFS2_META_LOCK_GETBH; it means just getting back disk inode bh for us
-   if we've got cluster lock.
-
-3. export a helper: ocfs2_is_locked_by_me() is used to check if we
-   have got the cluster lock in the upper code path.
-
-The tracking logic should be used by some of the ocfs2 vfs's callbacks, to
-solve the recursive locking issue cuased by the fact that vfs routines can
-call into each other.
-
-The performance penalty of processing the holder list should only be seen
-at a few cases where the tracking logic is used, such as get/set acl.
-
-You may ask what if the first time we got a PR lock, and the second time
-we want a EX lock?  fortunately, this case never happens in the real
-world, as far as I can see, including permission check,
-(get|set)_(acl|attr), and the gfs2 code also do so.
-
-Link: http://lkml.kernel.org/r/1483630262-22227-2-git-send-email-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/20170104194611.25933-1-sboyd@codeaurora.org
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Sarangdhar Joshi <spjoshi@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Cc: Subhash Jadavani <subhashj@codeaurora.org>
+Cc: Thomas Pedersen <twp@codeaurora.org>
+Cc: Andy Gross <andy.gross@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |   47 ++++++++++++++++++++++++++++++++++++++++---
- fs/ocfs2/dlmglue.h |   18 ++++++++++++++++
- fs/ocfs2/ocfs2.h   |    1 
- 3 files changed, 63 insertions(+), 3 deletions(-)
+ .mailmap |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -532,6 +532,7 @@ void ocfs2_lock_res_init_once(struct ocf
- 	init_waitqueue_head(&res->l_event);
- 	INIT_LIST_HEAD(&res->l_blocked_list);
- 	INIT_LIST_HEAD(&res->l_mask_waiters);
-+	INIT_LIST_HEAD(&res->l_holders);
- }
- 
- void ocfs2_inode_lock_res_init(struct ocfs2_lock_res *res,
-@@ -749,6 +750,45 @@ void ocfs2_lock_res_free(struct ocfs2_lo
- 	res->l_flags = 0UL;
- }
- 
-+inline void ocfs2_add_holder(struct ocfs2_lock_res *lockres,
-+				   struct ocfs2_holder *oh)
-+{
-+	INIT_LIST_HEAD(&oh->oh_list);
-+	oh->oh_owner_pid =  get_pid(task_pid(current));
-+
-+	spin_lock(&lockres->l_lock);
-+	list_add_tail(&oh->oh_list, &lockres->l_holders);
-+	spin_unlock(&lockres->l_lock);
-+}
-+
-+inline void ocfs2_remove_holder(struct ocfs2_lock_res *lockres,
-+				       struct ocfs2_holder *oh)
-+{
-+	spin_lock(&lockres->l_lock);
-+	list_del(&oh->oh_list);
-+	spin_unlock(&lockres->l_lock);
-+
-+	put_pid(oh->oh_owner_pid);
-+}
-+
-+inline struct ocfs2_holder *ocfs2_is_locked_by_me(struct ocfs2_lock_res *lockres)
-+{
-+	struct ocfs2_holder *oh;
-+	struct pid *pid;
-+
-+	/* look in the list of holders for one with the current task as owner */
-+	spin_lock(&lockres->l_lock);
-+	pid = task_pid(current);
-+	list_for_each_entry(oh, &lockres->l_holders, oh_list) {
-+		if (oh->oh_owner_pid == pid)
-+			goto out;
-+	}
-+	oh = NULL;
-+out:
-+	spin_unlock(&lockres->l_lock);
-+	return oh;
-+}
-+
- static inline void ocfs2_inc_holders(struct ocfs2_lock_res *lockres,
- 				     int level)
- {
-@@ -2333,8 +2373,9 @@ int ocfs2_inode_lock_full_nested(struct
- 		goto getbh;
- 	}
- 
--	if (ocfs2_mount_local(osb))
--		goto local;
-+	if ((arg_flags & OCFS2_META_LOCK_GETBH) ||
-+	    ocfs2_mount_local(osb))
-+		goto update;
- 
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
-@@ -2363,7 +2404,7 @@ int ocfs2_inode_lock_full_nested(struct
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
- 
--local:
-+update:
- 	/*
- 	 * We only see this flag if we're being called from
- 	 * ocfs2_read_locked_inode(). It means we're locking an inode
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.h
-@@ -70,6 +70,11 @@ struct ocfs2_orphan_scan_lvb {
- 	__be32	lvb_os_seqno;
- };
- 
-+struct ocfs2_holder {
-+	struct list_head oh_list;
-+	struct pid *oh_owner_pid;
-+};
-+
- /* ocfs2_inode_lock_full() 'arg_flags' flags */
- /* don't wait on recovery. */
- #define OCFS2_META_LOCK_RECOVERY	(0x01)
-@@ -77,6 +82,8 @@ struct ocfs2_orphan_scan_lvb {
- #define OCFS2_META_LOCK_NOQUEUE		(0x02)
- /* don't block waiting for the downconvert thread, instead return -EAGAIN */
- #define OCFS2_LOCK_NONBLOCK		(0x04)
-+/* just get back disk inode bh if we've got cluster lock. */
-+#define OCFS2_META_LOCK_GETBH		(0x08)
- 
- /* Locking subclasses of inode cluster lock */
- enum {
-@@ -170,4 +177,15 @@ void ocfs2_put_dlm_debug(struct ocfs2_dl
- 
- /* To set the locking protocol on module initialization */
- void ocfs2_set_locking_protocol(void);
-+
-+/*
-+ * Keep a list of processes who have interest in a lockres.
-+ * Note: this is now only uesed for check recursive cluster lock.
-+ */
-+inline void ocfs2_add_holder(struct ocfs2_lock_res *lockres,
-+			     struct ocfs2_holder *oh);
-+inline void ocfs2_remove_holder(struct ocfs2_lock_res *lockres,
-+			     struct ocfs2_holder *oh);
-+inline struct ocfs2_holder *ocfs2_is_locked_by_me(struct ocfs2_lock_res *lockres);
-+
- #endif	/* DLMGLUE_H */
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/ocfs2.h
-@@ -172,6 +172,7 @@ struct ocfs2_lock_res {
- 
- 	struct list_head         l_blocked_list;
- 	struct list_head         l_mask_waiters;
-+	struct list_head	 l_holders;
- 
- 	unsigned long		 l_flags;
- 	char                     l_name[OCFS2_LOCK_ID_MAX_LEN];
+diff -puN .mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits .mailmap
+--- a/.mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits
++++ a/.mailmap
+@@ -137,6 +137,7 @@ Ricardo Ribalda Delgado <ricardo.ribalda
+ Rudolf Marek <R.Marek@sh.cvut.cz>
+ Rui Saraiva <rmps@joel.ist.utl.pt>
+ Sachin P Sant <ssant@in.ibm.com>
++Sarangdhar Joshi <spjoshi@codeaurora.org>
+ Sam Ravnborg <sam@mars.ravnborg.org>
+ Santosh Shilimkar <ssantosh@kernel.org>
+ Santosh Shilimkar <santosh.shilimkar@oracle.org>
+@@ -150,10 +151,13 @@ Shuah Khan <shuah@kernel.org> <shuah.kh@
+ Simon Kelley <simon@thekelleys.org.uk>
+ Stéphane Witzmann <stephane.witzmann@ubpmes.univ-bpclermont.fr>
+ Stephen Hemminger <shemminger@osdl.org>
++Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
++Subhash Jadavani <subhashj@codeaurora.org>
+ Sudeep Holla <sudeep.holla@arm.com> Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>
+ Sumit Semwal <sumit.semwal@ti.com>
+ Tejun Heo <htejun@gmail.com>
+ Thomas Graf <tgraf@suug.ch>
++Thomas Pedersen <twp@codeaurora.org>
+ Tony Luck <tony.luck@intel.com>
+ Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
+ Uwe Kleine-König <ukleinek@informatik.uni-freiburg.de>
 _
 
-Patches currently in -mm which might be from zren@suse.com are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
-ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
-ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
+mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
 
