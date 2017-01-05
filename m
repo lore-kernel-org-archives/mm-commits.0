@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
- added to -mm tree
-Date: Thu, 05 Jan 2017 15:46:28 -0800
-Message-ID: <586edad4.APvua+LcEyTGy2Hh%akpm@linux-foundation.org>
+ mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch added to -mm tree
+Date: Thu, 05 Jan 2017 15:52:41 -0800
+Message-ID: <586edc49.ZwXd2lu1Q2+E42mh%akpm__47726.091327104$1483660328$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56334 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1162109AbdAEXpK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:45:10 -0500
+        with ESMTP id S1031884AbdAEXvt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:51:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mgorman@suse.de, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, Klaus@Ethgen.de, hannes@cmpxchg.org, mgorman@suse.de, minchan@kernel.org, nholland@tisys.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: show the number of skipped pages in mm_vmscan_lru_isolate
+     Subject: mm, memcg: fix the active list aging for lowmem requests when memcg is enabled
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+     mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,117 +40,272 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: show the number of skipped pages in mm_vmscan_lru_isolate
+Subject: mm, memcg: fix the active list aging for lowmem requests when memcg is enabled
 
-mm_vmscan_lru_isolate shows the number of requested, scanned and taken
-pages.  This is mostly OK but on 32b systems the number of scanned pages
-is quite misleading because it includes both the scanned and skipped
-pages.  Moreover the skipped part is scaled based on the number of taken
-pages.  Let's report the exact numbers without any additional logic and
-add the number of skipped pages.  This should make the reported data much
-more easier to interpret.
+Nils Holland and Klaus Ethgen have reported unexpected OOM killer
+invocations with 32b kernel starting with 4.8 kernels
 
-Link: http://lkml.kernel.org/r/20170104101942.4860-4-mhocko@kernel.org
+	kworker/u4:5 invoked oom-killer: gfp_mask=0x2400840(GFP_NOFS|__GFP_NOFAIL), nodemask=0, order=0, oom_score_adj=0
+	kworker/u4:5 cpuset=/ mems_allowed=0
+	CPU: 1 PID: 2603 Comm: kworker/u4:5 Not tainted 4.9.0-gentoo #2
+	[...]
+	Mem-Info:
+	active_anon:58685 inactive_anon:90 isolated_anon:0
+	 active_file:274324 inactive_file:281962 isolated_file:0
+	 unevictable:0 dirty:649 writeback:0 unstable:0
+	 slab_reclaimable:40662 slab_unreclaimable:17754
+	 mapped:7382 shmem:202 pagetables:351 bounce:0
+	 free:206736 free_pcp:332 free_cma:0
+	Node 0 active_anon:234740kB inactive_anon:360kB active_file:1097296kB inactive_file:1127848kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:29528kB dirty:2596kB writeback:0kB shmem:0kB shmem_thp: 0kB shmem_pmdmapped: 184320kB anon_thp: 808kB writeback_tmp:0kB unstable:0kB pages_scanned:0 all_unreclaimable? no
+	DMA free:3952kB min:788kB low:984kB high:1180kB active_anon:0kB inactive_anon:0kB active_file:7316kB inactive_file:0kB unevictable:0kB writepending:96kB present:15992kB managed:15916kB mlocked:0kB slab_reclaimable:3200kB slab_unreclaimable:1408kB kernel_stack:0kB pagetables:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+	lowmem_reserve[]: 0 813 3474 3474
+	Normal free:41332kB min:41368kB low:51708kB high:62048kB active_anon:0kB inactive_anon:0kB active_file:532748kB inactive_file:44kB unevictable:0kB writepending:24kB present:897016kB managed:836248kB mlocked:0kB slab_reclaimable:159448kB slab_unreclaimable:69608kB kernel_stack:1112kB pagetables:1404kB bounce:0kB free_pcp:528kB local_pcp:340kB free_cma:0kB
+	lowmem_reserve[]: 0 0 21292 21292
+	HighMem free:781660kB min:512kB low:34356kB high:68200kB active_anon:234740kB inactive_anon:360kB active_file:557232kB inactive_file:1127804kB unevictable:0kB writepending:2592kB present:2725384kB managed:2725384kB mlocked:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB bounce:0kB free_pcp:800kB local_pcp:608kB free_cma:0kB
+
+the oom killer is clearly pre-mature because there there is still a lot of
+page cache in the zone Normal which should satisfy this lowmem request. 
+Further debugging has shown that the reclaim cannot make any forward
+progress because the page cache is hidden in the active list which doesn't
+get rotated because inactive_list_is_low is not memcg aware.
+
+It simply subtracts per-zone highmem counters from the respective memcg's
+lru sizes which doesn't make any sense.  We can simply end up always
+seeing the resulting active and inactive counts 0 and return false.  This
+issue is not limited to 32b kernels but in practice the effect on systems
+without CONFIG_HIGHMEM would be much harder to notice because we do not
+invoke the OOM killer for allocations requests targeting < ZONE_NORMAL.
+
+Fix the issue by tracking per zone lru page counts in mem_cgroup_per_node
+and subtract per-memcg highmem counts when memcg is enabled.  Introduce
+helper lruvec_zone_lru_size which redirects to either zone counters or
+mem_cgroup_get_zone_lru_size when appropriate.
+
+We are losing empty LRU but non-zero lru size detection introduced by
+ca707239e8a7 ("mm: update_lru_size warn and reset bad lru_size") because
+of the inherent zone vs.  node discrepancy.
+
+Fixes: f8d1a31163fc ("mm: consider whether to decivate based on eligible zones inactive ratio")
+Link: http://lkml.kernel.org/r/20170104100825.3729-1-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Nils Holland <nholland@tisys.org>
+Tested-by: Nils Holland <nholland@tisys.org>
+Reported-by: Klaus Ethgen <Klaus@Ethgen.de>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[4.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |    8 ++++++--
- mm/vmscan.c                   |   10 +++++-----
- 2 files changed, 11 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |   26 +++++++++++++++++++++++---
+ include/linux/mm_inline.h  |    2 +-
+ mm/memcontrol.c            |   18 ++++++++----------
+ mm/vmscan.c                |   27 +++++++++++++++++----------
+ 4 files changed, 49 insertions(+), 24 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate
-+++ a/include/trace/events/vmscan.h
-@@ -274,17 +274,19 @@ TRACE_EVENT(mm_vmscan_lru_isolate,
- 		int order,
- 		unsigned long nr_requested,
- 		unsigned long nr_scanned,
-+		unsigned long nr_skipped,
- 		unsigned long nr_taken,
- 		isolate_mode_t isolate_mode,
- 		int file),
+diff -puN include/linux/memcontrol.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
++++ a/include/linux/memcontrol.h
+@@ -120,7 +120,7 @@ struct mem_cgroup_reclaim_iter {
+  */
+ struct mem_cgroup_per_node {
+ 	struct lruvec		lruvec;
+-	unsigned long		lru_size[NR_LRU_LISTS];
++	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
  
--	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file),
-+	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_skipped, nr_taken, isolate_mode, file),
+ 	struct mem_cgroup_reclaim_iter	iter[DEF_PRIORITY + 1];
  
- 	TP_STRUCT__entry(
- 		__field(int, classzone_idx)
- 		__field(int, order)
- 		__field(unsigned long, nr_requested)
- 		__field(unsigned long, nr_scanned)
-+		__field(unsigned long, nr_skipped)
- 		__field(unsigned long, nr_taken)
- 		__field(isolate_mode_t, isolate_mode)
- 		__field(int, file)
-@@ -295,17 +297,19 @@ TRACE_EVENT(mm_vmscan_lru_isolate,
- 		__entry->order = order;
- 		__entry->nr_requested = nr_requested;
- 		__entry->nr_scanned = nr_scanned;
-+		__entry->nr_skipped = nr_skipped;
- 		__entry->nr_taken = nr_taken;
- 		__entry->isolate_mode = isolate_mode;
- 		__entry->file = file;
- 	),
+@@ -432,7 +432,7 @@ static inline bool mem_cgroup_online(str
+ int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
  
--	TP_printk("isolate_mode=%d classzone=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu file=%d",
-+	TP_printk("isolate_mode=%d classzone=%d order=%d nr_requested=%lu nr_scanned=%lu nr_skipped=%lu nr_taken=%lu file=%d",
- 		__entry->isolate_mode,
- 		__entry->classzone_idx,
- 		__entry->order,
- 		__entry->nr_requested,
- 		__entry->nr_scanned,
-+		__entry->nr_skipped,
- 		__entry->nr_taken,
- 		__entry->file)
- );
-diff -puN mm/vmscan.c~mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate
-+++ a/mm/vmscan.c
-@@ -1428,6 +1428,7 @@ static unsigned long isolate_lru_pages(u
- 	unsigned long nr_taken = 0;
- 	unsigned long nr_zone_taken[MAX_NR_ZONES] = { 0 };
- 	unsigned long nr_skipped[MAX_NR_ZONES] = { 0, };
-+	unsigned long skipped = 0, total_skipped = 0;
- 	unsigned long scan, nr_pages;
- 	LIST_HEAD(pages_skipped);
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-		int nr_pages);
++		int zid, int nr_pages);
  
-@@ -1479,14 +1480,13 @@ static unsigned long isolate_lru_pages(u
- 	 */
- 	if (!list_empty(&pages_skipped)) {
- 		int zid;
--		unsigned long total_skipped = 0;
+ unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+ 					   int nid, unsigned int lru_mask);
+@@ -441,9 +441,23 @@ static inline
+ unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+ {
+ 	struct mem_cgroup_per_node *mz;
++	unsigned long nr_pages = 0;
++	int zid;
  
- 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 			if (!nr_skipped[zid])
- 				continue;
+ 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	return mz->lru_size[lru];
++	for (zid = 0; zid < MAX_NR_ZONES; zid++)
++		nr_pages += mz->lru_zone_size[zid][lru];
++	return nr_pages;
++}
++
++static inline
++unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
++		enum lru_list lru, int zone_idx)
++{
++	struct mem_cgroup_per_node *mz;
++
++	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	return mz->lru_zone_size[zone_idx][lru];
+ }
  
- 			__count_zid_vm_events(PGSCAN_SKIP, zid, nr_skipped[zid]);
--			total_skipped += nr_skipped[zid];
-+			skipped += nr_skipped[zid];
- 		}
+ void mem_cgroup_handle_over_high(void);
+@@ -671,6 +685,12 @@ mem_cgroup_get_lru_size(struct lruvec *l
+ {
+ 	return 0;
+ }
++static inline
++unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
++		enum lru_list lru, int zone_idx)
++{
++	return 0;
++}
  
- 		/*
-@@ -1494,13 +1494,13 @@ static unsigned long isolate_lru_pages(u
- 		 * close to unreclaimable. If the LRU list is empty, account
- 		 * skipped pages as a full scan.
- 		 */
--		scan += list_empty(src) ? total_skipped : total_skipped >> 2;
-+		total_skipped = list_empty(src) ? skipped : skipped >> 2;
+ static inline unsigned long
+ mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+diff -puN include/linux/mm_inline.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
++++ a/include/linux/mm_inline.h
+@@ -39,7 +39,7 @@ static __always_inline void update_lru_s
+ {
+ 	__update_lru_size(lruvec, lru, zid, nr_pages);
+ #ifdef CONFIG_MEMCG
+-	mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
++	mem_cgroup_update_lru_size(lruvec, lru, zid, nr_pages);
+ #endif
+ }
  
- 		list_splice(&pages_skipped, src);
+diff -puN mm/memcontrol.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
++++ a/mm/memcontrol.c
+@@ -625,8 +625,8 @@ static void mem_cgroup_charge_statistics
+ unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+ 					   int nid, unsigned int lru_mask)
+ {
++	struct lruvec *lruvec = mem_cgroup_lruvec(NODE_DATA(nid), memcg);
+ 	unsigned long nr = 0;
+-	struct mem_cgroup_per_node *mz;
+ 	enum lru_list lru;
+ 
+ 	VM_BUG_ON((unsigned)nid >= nr_node_ids);
+@@ -634,8 +634,7 @@ unsigned long mem_cgroup_node_nr_lru_pag
+ 	for_each_lru(lru) {
+ 		if (!(BIT(lru) & lru_mask))
+ 			continue;
+-		mz = mem_cgroup_nodeinfo(memcg, nid);
+-		nr += mz->lru_size[lru];
++		nr += mem_cgroup_get_lru_size(lruvec, lru);
  	}
--	*nr_scanned = scan;
-+	*nr_scanned = scan + total_skipped;
+ 	return nr;
+ }
+@@ -1002,6 +1001,7 @@ out:
+  * mem_cgroup_update_lru_size - account for adding or removing an lru page
+  * @lruvec: mem_cgroup per zone lru vector
+  * @lru: index of lru list the page is sitting on
++ * @zid: zone id of the accounted pages
+  * @nr_pages: positive when adding or negative when removing
+  *
+  * This function must be called under lru_lock, just before a page is added
+@@ -1009,27 +1009,25 @@ out:
+  * so as to allow it to check that lru_size 0 is consistent with list_empty).
+  */
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-				int nr_pages)
++				int zid, int nr_pages)
+ {
+ 	struct mem_cgroup_per_node *mz;
+ 	unsigned long *lru_size;
+ 	long size;
+-	bool empty;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+ 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	lru_size = mz->lru_size + lru;
+-	empty = list_empty(lruvec->lists + lru);
++	lru_size = &mz->lru_zone_size[zid][lru];
+ 
+ 	if (nr_pages < 0)
+ 		*lru_size += nr_pages;
+ 
+ 	size = *lru_size;
+-	if (WARN_ONCE(size < 0 || empty != !size,
+-		"%s(%p, %d, %d): lru_size %ld but %sempty\n",
+-		__func__, lruvec, lru, nr_pages, size, empty ? "" : "not ")) {
++	if (WARN_ONCE(size < 0,
++		"%s(%p, %d, %d): lru_size %ld\n",
++		__func__, lruvec, lru, nr_pages, size)) {
+ 		VM_BUG_ON(1);
+ 		*lru_size = 0;
+ 	}
+diff -puN mm/vmscan.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
++++ a/mm/vmscan.c
+@@ -242,6 +242,16 @@ unsigned long lruvec_lru_size(struct lru
+ 	return node_page_state(lruvec_pgdat(lruvec), NR_LRU_BASE + lru);
+ }
+ 
++unsigned long lruvec_zone_lru_size(struct lruvec *lruvec, enum lru_list lru,
++				   int zone_idx)
++{
++	if (!mem_cgroup_disabled())
++		return mem_cgroup_get_zone_lru_size(lruvec, lru, zone_idx);
++
++	return zone_page_state(&lruvec_pgdat(lruvec)->node_zones[zone_idx],
++			       NR_ZONE_LRU_BASE + lru);
++}
++
+ /*
+  * Add a shrinker callback to be called from the vm.
+  */
+@@ -1382,8 +1392,7 @@ int __isolate_lru_page(struct page *page
+  * be complete before mem_cgroup_update_lru_size due to a santity check.
+  */
+ static __always_inline void update_lru_sizes(struct lruvec *lruvec,
+-			enum lru_list lru, unsigned long *nr_zone_taken,
+-			unsigned long nr_taken)
++			enum lru_list lru, unsigned long *nr_zone_taken)
+ {
+ 	int zid;
+ 
+@@ -1392,11 +1401,11 @@ static __always_inline void update_lru_s
+ 			continue;
+ 
+ 		__update_lru_size(lruvec, lru, zid, -nr_zone_taken[zid]);
+-	}
+-
+ #ifdef CONFIG_MEMCG
+-	mem_cgroup_update_lru_size(lruvec, lru, -nr_taken);
++		mem_cgroup_update_lru_size(lruvec, lru, zid, -nr_zone_taken[zid]);
+ #endif
++	}
++
+ }
+ 
+ /*
+@@ -1501,7 +1510,7 @@ static unsigned long isolate_lru_pages(u
+ 	*nr_scanned = scan;
  	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan, scan,
--				    nr_taken, mode, is_file_lru(lru));
-+				    skipped, nr_taken, mode, is_file_lru(lru));
- 	update_lru_sizes(lruvec, lru, nr_zone_taken, nr_taken);
+ 				    nr_taken, mode, is_file_lru(lru));
+-	update_lru_sizes(lruvec, lru, nr_zone_taken, nr_taken);
++	update_lru_sizes(lruvec, lru, nr_zone_taken);
  	return nr_taken;
  }
+ 
+@@ -2047,10 +2056,8 @@ static bool inactive_list_is_low(struct
+ 		if (!managed_zone(zone))
+ 			continue;
+ 
+-		inactive_zone = zone_page_state(zone,
+-				NR_ZONE_LRU_BASE + (file * LRU_FILE));
+-		active_zone = zone_page_state(zone,
+-				NR_ZONE_LRU_BASE + (file * LRU_FILE) + LRU_ACTIVE);
++		inactive_zone = lruvec_zone_lru_size(lruvec, file * LRU_FILE, zid);
++		active_zone = lruvec_zone_lru_size(lruvec, (file * LRU_FILE) + LRU_ACTIVE, zid);
+ 
+ 		inactive -= min(inactive, inactive_zone);
+ 		active -= min(active, active_zone);
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
@@ -160,6 +314,7 @@ mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order.patch
 bpf-do-not-use-kmalloc_shift_max.patch
 mm-fix-remote-numa-hits-statistics.patch
 mm-get-rid-of-__gfp_other_node.patch
+mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
 mm-throttle-show_mem-from-warn_alloc.patch
 mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
 oom-trace-add-oom-detection-tracepoints.patch
