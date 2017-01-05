@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + debugobjects-scale-thresholds-with-of-cpus.patch added to -mm
- tree
-Date: Thu, 05 Jan 2017 14:43:19 -0800
-Message-ID: <586ecc07.sp/kyuR0XAvbee8p%akpm@linux-foundation.org>
+Subject: +
+ linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch added
+ to -mm tree
+Date: Thu, 05 Jan 2017 15:08:54 -0800
+Message-ID: <586ed206.++txkecKrAaBkrIJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763728AbdAEXGl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:06:41 -0500
+        with ESMTP id S1763733AbdAEXHg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:07:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: longman@redhat.com, borntraeger@de.ibm.com, changbin.du@intel.com, jstancek@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debugobjects: scale thresholds with # of CPUs
+     Subject: linux/const.h: move BIT(_ULL) to linux/const.h for use in assembly
 has been added to the -mm tree.  Its filename is
-     debugobjects-scale-thresholds-with-of-cpus.patch
+     linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/debugobjects-scale-thresholds-with-of-cpus.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/debugobjects-scale-thresholds-with-of-cpus.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +40,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: debugobjects: scale thresholds with # of CPUs
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: linux/const.h: move BIT(_ULL) to linux/const.h for use in assembly
 
-On a large SMP systems with hundreds of CPUs, the current thresholds for
-allocating and freeing debug objects (256 and 1024 respectively) may not
-work well.  This can cause a lot of needless calls to kmem_aloc() and
-kmem_free() on those systems.
+Commit 2fc016c5bd8a ("linux/const.h: Add _BITUL() and _BITULL()")
+introduced _BITUL() and _BITULL().  Its git-log says the difference
+from the already existing BIT() are:
 
-To alleviate this thrashing problem, the object freeing threshold is now
-increased to "1024 + # of CPUs * 32".  Whereas the object allocation
-threshold is increased to "256 + # of CPUs * 4".  That should make the
-debug objects subsystem scale better with the number of CPUs available in
-the system.
+  1. The namespace is such that they can be used in uapi definitions.
+  2. The type is set with the _AC() macro to allow it to be used in
+     assembly.
+  3. The type is explicitly specified to be UL or ULL.
 
-Link: http://lkml.kernel.org/r/1483647425-4135-3-git-send-email-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Du Changbin" <changbin.du@intel.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Jan Stancek <jstancek@redhat.com>
+However, I found _BITUL() is often used for "2. use in assembly",
+while "1. use in uapi" is unneeded.  If we address only "2.", we can
+improve the existing BIT() for that.  It will allow us to replace
+many _BITUL() instances with BIT(), i.e. avoid needless use of
+underscore-prefixed macros, in the end, for better de-couple of
+userspace/kernel headers.
+
+Link: http://lkml.kernel.org/r/1483582810-7046-5-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ include/linux/bitops.h |    3 +--
+ include/linux/const.h  |    3 +++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN lib/debugobjects.c~debugobjects-scale-thresholds-with-of-cpus lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-scale-thresholds-with-of-cpus
-+++ a/lib/debugobjects.c
-@@ -52,7 +52,10 @@ static int			debug_objects_fixups __read
- static int			debug_objects_warnings __read_mostly;
- static int			debug_objects_enabled __read_mostly
- 				= CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT;
--
-+static int			debug_objects_pool_size __read_mostly
-+				= ODEBUG_POOL_SIZE;
-+static int			debug_objects_pool_min_level __read_mostly
-+				= ODEBUG_POOL_MIN_LEVEL;
- static struct debug_obj_descr	*descr_test  __read_mostly;
+diff -puN include/linux/bitops.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly include/linux/bitops.h
+--- a/include/linux/bitops.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly
++++ a/include/linux/bitops.h
+@@ -1,10 +1,9 @@
+ #ifndef _LINUX_BITOPS_H
+ #define _LINUX_BITOPS_H
++#include <linux/const.h>
+ #include <asm/types.h>
  
- /*
-@@ -94,13 +97,13 @@ static void fill_pool(void)
- 	struct debug_obj *new;
- 	unsigned long flags;
+ #ifdef	__KERNEL__
+-#define BIT(nr)			(1UL << (nr))
+-#define BIT_ULL(nr)		(1ULL << (nr))
+ #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
+ #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
+ #define BIT_ULL_MASK(nr)	(1ULL << ((nr) % BITS_PER_LONG_LONG))
+diff -puN include/linux/const.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly include/linux/const.h
+--- a/include/linux/const.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly
++++ a/include/linux/const.h
+@@ -6,4 +6,7 @@
+ #define UL(x)		(_UL(x))
+ #define ULL(x)		(_ULL(x))
  
--	if (likely(obj_pool_free >= ODEBUG_POOL_MIN_LEVEL))
-+	if (likely(obj_pool_free >= debug_objects_pool_min_level))
- 		return;
- 
- 	if (unlikely(!obj_cache))
- 		return;
- 
--	while (obj_pool_free < ODEBUG_POOL_MIN_LEVEL) {
-+	while (obj_pool_free < debug_objects_pool_min_level) {
- 
- 		new = kmem_cache_zalloc(obj_cache, gfp);
- 		if (!new)
-@@ -176,7 +179,7 @@ static void free_obj_work(struct work_st
- 	unsigned long flags;
- 
- 	raw_spin_lock_irqsave(&pool_lock, flags);
--	while (obj_pool_free > ODEBUG_POOL_SIZE) {
-+	while (obj_pool_free > debug_objects_pool_size) {
- 		obj = hlist_entry(obj_pool.first, typeof(*obj), node);
- 		hlist_del(&obj->node);
- 		obj_pool_free--;
-@@ -206,7 +209,7 @@ static void free_object(struct debug_obj
- 	 * schedule work when the pool is filled and the cache is
- 	 * initialized:
- 	 */
--	if (obj_pool_free > ODEBUG_POOL_SIZE && obj_cache)
-+	if (obj_pool_free > debug_objects_pool_size && obj_cache)
- 		sched = 1;
- 	hlist_add_head(&obj->node, &obj_pool);
- 	obj_pool_free++;
-@@ -1126,4 +1129,11 @@ void __init debug_objects_mem_init(void)
- 		pr_warn("out of memory.\n");
- 	} else
- 		debug_objects_selftest();
++#define BIT(x)		(_BITUL(x))
++#define BIT_ULL(x)	(_BITULL(x))
 +
-+	/*
-+	 * Increase the thresholds for allocating and freeing objects
-+	 * according to the number of possible CPUs available in the system.
-+	 */
-+	debug_objects_pool_size += num_possible_cpus() * 32;
-+	debug_objects_pool_min_level += num_possible_cpus() * 4;
- }
+ #endif /* _LINUX_CONST_H */
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
-debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done.patch
-debugobjects-scale-thresholds-with-of-cpus.patch
-debugobjects-reduce-contention-on-the-global-pool_lock.patch
+m68k-rename-ul-to-to_ul.patch
+linux-consth-move-ul-macro-to-include-linux-consth.patch
+linux-consth-refactor-_bitul-and-_bitull-a-bit.patch
+linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch
+scripts-spellingtxt-add-swith-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-an-user-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-unneded-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-intialization-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-initialiazation-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overwritting-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances.patch
 
