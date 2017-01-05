@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + dax-fix-deadlock-with-dax-4k-holes.patch added to -mm tree
-Date: Wed, 04 Jan 2017 14:06:32 -0800
-Message-ID: <586d71e8.hXEHBNpPBYxHn3g3%akpm__45013.2637554363$1483567649$gmane$org@linux-foundation.org>
+Subject: +
+ mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done.patch added to
+ -mm tree
+Date: Wed, 04 Jan 2017 16:47:48 -0800
+Message-ID: <586d97b4.ve3ExyRRiTmRsNbU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39750 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35202 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753441AbdADWHA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 17:07:00 -0500
+        with ESMTP id S1751177AbdAEArC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:47:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, jack@suse.cz, stable@vger.kernel.org, xzhou@redhat.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, hch@lst.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix deadlock with DAX 4k holes
+     Subject: mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}
 has been added to the -mm tree.  Its filename is
-     dax-fix-deadlock-with-dax-4k-holes.patch
+     mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-deadlock-with-dax-4k-holes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-deadlock-with-dax-4k-holes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,90 +40,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix deadlock with DAX 4k holes
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}
 
-Currently in DAX if we have three read faults on the same hole address we
-can end up with the following:
+Both arch_add_memory() and arch_remove_memory() expect a single threaded
+context.
 
-Thread 0		Thread 1		Thread 2
---------		--------		--------
-dax_iomap_fault
- grab_mapping_entry
-  lock_slot
-   <locks empty DAX entry>
+For example, arch/x86/mm/init_64.c::kernel_physical_mapping_init() does
+not hold any locks over this check and branch:
 
-  			dax_iomap_fault
-			 grab_mapping_entry
-			  get_unlocked_mapping_entry
-			   <sleeps on empty DAX entry>
+    if (pgd_val(*pgd)) {
+    	pud = (pud_t *)pgd_page_vaddr(*pgd);
+    	paddr_last = phys_pud_init(pud, __pa(vaddr),
+    				   __pa(vaddr_end),
+    				   page_size_mask);
+    	continue;
+    }
 
-						dax_iomap_fault
-						 grab_mapping_entry
-						  get_unlocked_mapping_entry
-						   <sleeps on empty DAX entry>
-  dax_load_hole
-   find_or_create_page
-   ...
-    page_cache_tree_insert
-     dax_wake_mapping_entry_waiter
-      <wakes one sleeper>
-     __radix_tree_replace
-      <swaps empty DAX entry with 4k zero page>
+    pud = alloc_low_page();
+    paddr_last = phys_pud_init(pud, __pa(vaddr), __pa(vaddr_end),
+    			   page_size_mask);
 
-			<wakes>
-			get_page
-			lock_page
-			...
-			put_locked_mapping_entry
-			unlock_page
-			put_page
+The result is that two threads calling devm_memremap_pages()
+simultaneously can end up colliding on pgd initialization. This leads to
+crash signatures like the following where the loser of the race
+initializes the wrong pgd entry:
 
-						<sleeps forever on the DAX
-						 wait queue>
+    BUG: unable to handle kernel paging request at ffff888ebfff0000
+    IP: [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
+    PGD 2f8e8fc067 PUD 0 /* <---- Invalid PUD */
+    Oops: 0000 [#1] SMP DEBUG_PAGEALLOC
+    CPU: 54 PID: 3818 Comm: systemd-udevd Not tainted 4.6.7+ #13
+    task: ffff882fac290040 ti: ffff882f887a4000 task.ti: ffff882f887a4000
+    RIP: 0010:[<ffffffff8149e1e6>]  [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
+    [..]
+    Call Trace:
+     [<ffffffffc0119045>] ? pmem_do_bvec+0x205/0x370 [nd_pmem]
+     [<ffffffff8145b82a>] ? blk_queue_enter+0x3a/0x280
+     [<ffffffffc0119418>] pmem_rw_page+0x38/0x80 [nd_pmem]
+     [<ffffffff812b1c94>] bdev_read_page+0x84/0xb0
 
-The crux of the problem is that once we insert a 4k zero page, all locking
-from then on is done in terms of that 4k zero page and any additional
-threads sleeping on the empty DAX entry will never be woken.  Fix this by
-waking all sleepers when we replace the DAX radix tree entry with a 4k
-zero page.  This will allow all sleeping threads to successfully
-transition from locking based on the DAX empty entry to locking on the 4k
-zero page.
+Hold the standard memory hotplug mutex over calls to
+arch_{add,remove}_memory().
 
-With the test case reported by Xiong this happens very regularly in my
-test setup, with some runs resulting in 9+ threads in this deadlocked
-state.  With this fix I've been able to run that same test dozens of times
-in a loop without issue.
-
-Fixes: ac401cc78242 ("dax: New fault locking")
-Link: http://lkml.kernel.org/r/1483479365-13607-1-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Xiong Zhou <xzhou@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>	[4.7+]
+Fixes: 41e94a851304 ("add devm_memremap_pages")
+Link: http://lkml.kernel.org/r/148357647831.9498.12606007370121652979.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/memremap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/filemap.c~dax-fix-deadlock-with-dax-4k-holes mm/filemap.c
---- a/mm/filemap.c~dax-fix-deadlock-with-dax-4k-holes
-+++ a/mm/filemap.c
-@@ -138,7 +138,7 @@ static int page_cache_tree_insert(struct
- 				dax_radix_locked_entry(0, RADIX_DAX_EMPTY));
- 			/* Wakeup waiters for exceptional entry lock */
- 			dax_wake_mapping_entry_waiter(mapping, page->index, p,
--						      false);
-+						      true);
- 		}
- 	}
- 	__radix_tree_replace(&mapping->page_tree, node, slot, page,
+diff -puN kernel/memremap.c~mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done kernel/memremap.c
+--- a/kernel/memremap.c~mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done
++++ a/kernel/memremap.c
+@@ -246,7 +246,9 @@ static void devm_memremap_pages_release(
+ 	/* pages are dead and unused, undo the arch mapping */
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
++	mem_hotplug_begin();
+ 	arch_remove_memory(align_start, align_size);
++	mem_hotplug_done();
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+ 	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+@@ -358,7 +360,9 @@ void *devm_memremap_pages(struct device
+ 	if (error)
+ 		goto err_pfn_remap;
+ 
++	mem_hotplug_begin();
+ 	error = arch_add_memory(nid, align_start, align_size, true);
++	mem_hotplug_done();
+ 	if (error)
+ 		goto err_add_memory;
+ 
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-dax-fix-deadlock-with-dax-4k-holes.patch
-mm-add-follow_pte_pmd.patch
-dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean.patch
+mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done.patch
 
