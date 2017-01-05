@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+Subject: +
+ mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
  added to -mm tree
-Date: Thu, 05 Jan 2017 15:46:38 -0800
-Message-ID: <586edade.zUSVjWyjZIyXOlAU%akpm@linux-foundation.org>
+Date: Thu, 05 Jan 2017 15:46:32 -0800
+Message-ID: <586edad8.Rnh8MlrQl4mL1Eu6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55424 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1162125AbdAEXpU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:45:20 -0500
+        with ESMTP id S1162122AbdAEXpO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:45:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: trace-vmscan-postprocess: sync with tracepoints updates
+     Subject: mm, vmscan: extract shrink_page_list reclaim counters into a struct
 has been added to the -mm tree.  Its filename is
-     trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+     mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +41,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: trace-vmscan-postprocess: sync with tracepoints updates
+Subject: mm, vmscan: extract shrink_page_list reclaim counters into a struct
 
-Both mm_vmscan_lru_shrink_active and mm_vmscan_lru_isolate have changed
-so the script needs to be update to reflect those changes
+shrink_page_list returns quite some counters back to its caller.  Extract
+the existing 5 into struct reclaim_stat because this makes the code easier
+to follow and also allows further counters to be returned.
 
-Link: http://lkml.kernel.org/r/20170105151737.GU21618@dhcp22.suse.cz
+While we are at it, make all of them unsigned rather than unsigned long as
+we do not really need full 64b for them (we never scan more than
+SWAP_CLUSTER_MAX pages at once).  This should reduce some stack space.
+
+This patch shouldn't introduce any functional change.
+
+Link: http://lkml.kernel.org/r/20170104101942.4860-6-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
@@ -53,76 +61,155 @@ Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/postprocess/trace-vmscan-postprocess.pl |   26 +++++-----
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ mm/vmscan.c |   61 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 30 insertions(+), 31 deletions(-)
 
-diff -puN Documentation/trace/postprocess/trace-vmscan-postprocess.pl~trace-vmscan-postprocess-sync-with-tracepoints-updates Documentation/trace/postprocess/trace-vmscan-postprocess.pl
---- a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl~trace-vmscan-postprocess-sync-with-tracepoints-updates
-+++ a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl
-@@ -112,8 +112,8 @@ my $regex_direct_end_default = 'nr_recla
- my $regex_kswapd_wake_default = 'nid=([0-9]*) order=([0-9]*)';
- my $regex_kswapd_sleep_default = 'nid=([0-9]*)';
- my $regex_wakeup_kswapd_default = 'nid=([0-9]*) zid=([0-9]*) order=([0-9]*)';
--my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_taken=([0-9]*) file=([0-9]*)';
--my $regex_lru_shrink_inactive_default = 'nid=([0-9]*) zid=([0-9]*) nr_scanned=([0-9]*) nr_reclaimed=([0-9]*) priority=([0-9]*) flags=([A-Z_|]*)';
-+my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) classzone_idx=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_skipped=([0-9]*) nr_taken=([0-9]*) lru=([a-z_]*)';
-+my $regex_lru_shrink_inactive_default = 'nid=([0-9]*) nr_scanned=([0-9]*) nr_reclaimed=([0-9]*) nr_dirty=([0-9]*) nr_writeback=([0-9]*) nr_congested=([0-9]*) nr_immediate=([0-9]*) nr_activate=([0-9]*) nr_ref_keep=([0-9]*) nr_unmap_fail=([0-9]*) priority=([0-9]*) flags=([A-Z_|]*)';
- my $regex_lru_shrink_active_default = 'lru=([A-Z_]*) nr_scanned=([0-9]*) nr_rotated=([0-9]*) priority=([0-9]*)';
- my $regex_writepage_default = 'page=([0-9a-f]*) pfn=([0-9]*) flags=([A-Z_|]*)';
+diff -puN mm/vmscan.c~mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct
++++ a/mm/vmscan.c
+@@ -902,6 +902,14 @@ static void page_check_dirty_writeback(s
+ 		mapping->a_ops->is_dirty_writeback(page, dirty, writeback);
+ }
  
-@@ -205,15 +205,15 @@ $regex_wakeup_kswapd = generate_traceeve
- $regex_lru_isolate = generate_traceevent_regex(
- 			"vmscan/mm_vmscan_lru_isolate",
- 			$regex_lru_isolate_default,
--			"isolate_mode", "order",
--			"nr_requested", "nr_scanned", "nr_taken",
--			"file");
-+			"isolate_mode", "classzone_idx", "order",
-+			"nr_requested", "nr_scanned", "nr_skipped", "nr_taken",
-+			"lru");
- $regex_lru_shrink_inactive = generate_traceevent_regex(
- 			"vmscan/mm_vmscan_lru_shrink_inactive",
- 			$regex_lru_shrink_inactive_default,
--			"nid", "zid",
--			"nr_scanned", "nr_reclaimed", "priority",
--			"flags");
-+			"nid", "nr_scanned", "nr_reclaimed", "nr_dirty", "nr_writeback",
-+			"nr_congested", "nr_immediate", "nr_activate", "nr_ref_keep",
-+			"nr_unmap_fail", "priority", "flags");
- $regex_lru_shrink_active = generate_traceevent_regex(
- 			"vmscan/mm_vmscan_lru_shrink_active",
- 			$regex_lru_shrink_active_default,
-@@ -381,8 +381,8 @@ EVENT_PROCESS:
- 				next;
- 			}
- 			my $isolate_mode = $1;
--			my $nr_scanned = $4;
--			my $file = $6;
-+			my $nr_scanned = $5;
-+			my $file = $8;
++struct reclaim_stat {
++	unsigned nr_dirty;
++	unsigned nr_unqueued_dirty;
++	unsigned nr_congested;
++	unsigned nr_writeback;
++	unsigned nr_immediate;
++};
++
+ /*
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+@@ -909,22 +917,18 @@ static unsigned long shrink_page_list(st
+ 				      struct pglist_data *pgdat,
+ 				      struct scan_control *sc,
+ 				      enum ttu_flags ttu_flags,
+-				      unsigned long *ret_nr_dirty,
+-				      unsigned long *ret_nr_unqueued_dirty,
+-				      unsigned long *ret_nr_congested,
+-				      unsigned long *ret_nr_writeback,
+-				      unsigned long *ret_nr_immediate,
++				      struct reclaim_stat *stat,
+ 				      bool force_reclaim)
+ {
+ 	LIST_HEAD(ret_pages);
+ 	LIST_HEAD(free_pages);
+ 	int pgactivate = 0;
+-	unsigned long nr_unqueued_dirty = 0;
+-	unsigned long nr_dirty = 0;
+-	unsigned long nr_congested = 0;
+-	unsigned long nr_reclaimed = 0;
+-	unsigned long nr_writeback = 0;
+-	unsigned long nr_immediate = 0;
++	unsigned nr_unqueued_dirty = 0;
++	unsigned nr_dirty = 0;
++	unsigned nr_congested = 0;
++	unsigned nr_reclaimed = 0;
++	unsigned nr_writeback = 0;
++	unsigned nr_immediate = 0;
  
- 			# To closer match vmstat scanning statistics, only count isolate_both
- 			# and isolate_inactive as scanning. isolate_active is rotation
-@@ -391,7 +391,7 @@ EVENT_PROCESS:
- 			# isolate_both     == 3
- 			if ($isolate_mode != 2) {
- 				$perprocesspid{$process_pid}->{HIGH_NR_SCANNED} += $nr_scanned;
--				if ($file == 1) {
-+				if ($file =~ /_file/) {
- 					$perprocesspid{$process_pid}->{HIGH_NR_FILE_SCANNED} += $nr_scanned;
- 				} else {
- 					$perprocesspid{$process_pid}->{HIGH_NR_ANON_SCANNED} += $nr_scanned;
-@@ -406,8 +406,8 @@ EVENT_PROCESS:
- 				next;
- 			}
+ 	cond_resched();
  
--			my $nr_reclaimed = $4;
--			my $flags = $6;
-+			my $nr_reclaimed = $3;
-+			my $flags = $12;
- 			my $file = 0;
- 			if ($flags =~ /RECLAIM_WB_FILE/) {
- 				$file = 1;
+@@ -1266,11 +1270,13 @@ keep:
+ 	list_splice(&ret_pages, page_list);
+ 	count_vm_events(PGACTIVATE, pgactivate);
+ 
+-	*ret_nr_dirty += nr_dirty;
+-	*ret_nr_congested += nr_congested;
+-	*ret_nr_unqueued_dirty += nr_unqueued_dirty;
+-	*ret_nr_writeback += nr_writeback;
+-	*ret_nr_immediate += nr_immediate;
++	if (stat) {
++		stat->nr_dirty = nr_dirty;
++		stat->nr_congested = nr_congested;
++		stat->nr_unqueued_dirty = nr_unqueued_dirty;
++		stat->nr_writeback = nr_writeback;
++		stat->nr_immediate = nr_immediate;
++	}
+ 	return nr_reclaimed;
+ }
+ 
+@@ -1282,7 +1288,7 @@ unsigned long reclaim_clean_pages_from_l
+ 		.priority = DEF_PRIORITY,
+ 		.may_unmap = 1,
+ 	};
+-	unsigned long ret, dummy1, dummy2, dummy3, dummy4, dummy5;
++	unsigned long ret;
+ 	struct page *page, *next;
+ 	LIST_HEAD(clean_pages);
+ 
+@@ -1295,8 +1301,7 @@ unsigned long reclaim_clean_pages_from_l
+ 	}
+ 
+ 	ret = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
+-			TTU_UNMAP|TTU_IGNORE_ACCESS,
+-			&dummy1, &dummy2, &dummy3, &dummy4, &dummy5, true);
++			TTU_UNMAP|TTU_IGNORE_ACCESS, NULL, true);
+ 	list_splice(&clean_pages, page_list);
+ 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -ret);
+ 	return ret;
+@@ -1696,11 +1701,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_scanned;
+ 	unsigned long nr_reclaimed = 0;
+ 	unsigned long nr_taken;
+-	unsigned long nr_dirty = 0;
+-	unsigned long nr_congested = 0;
+-	unsigned long nr_unqueued_dirty = 0;
+-	unsigned long nr_writeback = 0;
+-	unsigned long nr_immediate = 0;
++	struct reclaim_stat stat = {};
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+@@ -1745,9 +1746,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		return 0;
+ 
+ 	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, TTU_UNMAP,
+-				&nr_dirty, &nr_unqueued_dirty, &nr_congested,
+-				&nr_writeback, &nr_immediate,
+-				false);
++				&stat, false);
+ 
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 
+@@ -1781,7 +1780,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	 * of pages under pages flagged for immediate reclaim and stall if any
+ 	 * are encountered in the nr_immediate check below.
+ 	 */
+-	if (nr_writeback && nr_writeback == nr_taken)
++	if (stat.nr_writeback && stat.nr_writeback == nr_taken)
+ 		set_bit(PGDAT_WRITEBACK, &pgdat->flags);
+ 
+ 	/*
+@@ -1793,7 +1792,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * Tag a zone as congested if all the dirty pages scanned were
+ 		 * backed by a congested BDI and wait_iff_congested will stall.
+ 		 */
+-		if (nr_dirty && nr_dirty == nr_congested)
++		if (stat.nr_dirty && stat.nr_dirty == stat.nr_congested)
+ 			set_bit(PGDAT_CONGESTED, &pgdat->flags);
+ 
+ 		/*
+@@ -1802,7 +1801,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * the pgdat PGDAT_DIRTY and kswapd will start writing pages from
+ 		 * reclaim context.
+ 		 */
+-		if (nr_unqueued_dirty == nr_taken)
++		if (stat.nr_unqueued_dirty == nr_taken)
+ 			set_bit(PGDAT_DIRTY, &pgdat->flags);
+ 
+ 		/*
+@@ -1811,7 +1810,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * that pages are cycling through the LRU faster than
+ 		 * they are written so also forcibly stall.
+ 		 */
+-		if (nr_immediate && current_may_throttle())
++		if (stat.nr_immediate && current_may_throttle())
+ 			congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
