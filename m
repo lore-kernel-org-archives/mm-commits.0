@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch added to -mm tree
-Date: Thu, 05 Jan 2017 15:52:41 -0800
-Message-ID: <586edc49.ZwXd2lu1Q2+E42mh%akpm__47726.091327104$1483660328$gmane$org@linux-foundation.org>
+Subject: + checkpatch-warn-on-embedded-function-names.patch added to -mm
+ tree
+Date: Thu, 05 Jan 2017 15:56:23 -0800
+Message-ID: <586edd27.rdX4vK3vSLaC8KaL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57096 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031884AbdAEXvt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:51:49 -0500
+        with ESMTP id S965089AbdAEXzy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:55:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, Klaus@Ethgen.de, hannes@cmpxchg.org, mgorman@suse.de, minchan@kernel.org, nholland@tisys.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: fix the active list aging for lowmem requests when memcg is enabled
+     Subject: checkpatch: warn on embedded function names
 has been added to the -mm tree.  Its filename is
-     mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
+     checkpatch-warn-on-embedded-function-names.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-embedded-function-names.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-embedded-function-names.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,293 +39,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memcg: fix the active list aging for lowmem requests when memcg is enabled
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on embedded function names
 
-Nils Holland and Klaus Ethgen have reported unexpected OOM killer
-invocations with 32b kernel starting with 4.8 kernels
+Embedded function names are less appropriate to use when refactoring can
+cause function renaming.  Prefer the use of "%s", __func__ to embedded
+function names.
 
-	kworker/u4:5 invoked oom-killer: gfp_mask=0x2400840(GFP_NOFS|__GFP_NOFAIL), nodemask=0, order=0, oom_score_adj=0
-	kworker/u4:5 cpuset=/ mems_allowed=0
-	CPU: 1 PID: 2603 Comm: kworker/u4:5 Not tainted 4.9.0-gentoo #2
-	[...]
-	Mem-Info:
-	active_anon:58685 inactive_anon:90 isolated_anon:0
-	 active_file:274324 inactive_file:281962 isolated_file:0
-	 unevictable:0 dirty:649 writeback:0 unstable:0
-	 slab_reclaimable:40662 slab_unreclaimable:17754
-	 mapped:7382 shmem:202 pagetables:351 bounce:0
-	 free:206736 free_pcp:332 free_cma:0
-	Node 0 active_anon:234740kB inactive_anon:360kB active_file:1097296kB inactive_file:1127848kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:29528kB dirty:2596kB writeback:0kB shmem:0kB shmem_thp: 0kB shmem_pmdmapped: 184320kB anon_thp: 808kB writeback_tmp:0kB unstable:0kB pages_scanned:0 all_unreclaimable? no
-	DMA free:3952kB min:788kB low:984kB high:1180kB active_anon:0kB inactive_anon:0kB active_file:7316kB inactive_file:0kB unevictable:0kB writepending:96kB present:15992kB managed:15916kB mlocked:0kB slab_reclaimable:3200kB slab_unreclaimable:1408kB kernel_stack:0kB pagetables:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
-	lowmem_reserve[]: 0 813 3474 3474
-	Normal free:41332kB min:41368kB low:51708kB high:62048kB active_anon:0kB inactive_anon:0kB active_file:532748kB inactive_file:44kB unevictable:0kB writepending:24kB present:897016kB managed:836248kB mlocked:0kB slab_reclaimable:159448kB slab_unreclaimable:69608kB kernel_stack:1112kB pagetables:1404kB bounce:0kB free_pcp:528kB local_pcp:340kB free_cma:0kB
-	lowmem_reserve[]: 0 0 21292 21292
-	HighMem free:781660kB min:512kB low:34356kB high:68200kB active_anon:234740kB inactive_anon:360kB active_file:557232kB inactive_file:1127804kB unevictable:0kB writepending:2592kB present:2725384kB managed:2725384kB mlocked:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB bounce:0kB free_pcp:800kB local_pcp:608kB free_cma:0kB
-
-the oom killer is clearly pre-mature because there there is still a lot of
-page cache in the zone Normal which should satisfy this lowmem request. 
-Further debugging has shown that the reclaim cannot make any forward
-progress because the page cache is hidden in the active list which doesn't
-get rotated because inactive_list_is_low is not memcg aware.
-
-It simply subtracts per-zone highmem counters from the respective memcg's
-lru sizes which doesn't make any sense.  We can simply end up always
-seeing the resulting active and inactive counts 0 and return false.  This
-issue is not limited to 32b kernels but in practice the effect on systems
-without CONFIG_HIGHMEM would be much harder to notice because we do not
-invoke the OOM killer for allocations requests targeting < ZONE_NORMAL.
-
-Fix the issue by tracking per zone lru page counts in mem_cgroup_per_node
-and subtract per-memcg highmem counts when memcg is enabled.  Introduce
-helper lruvec_zone_lru_size which redirects to either zone counters or
-mem_cgroup_get_zone_lru_size when appropriate.
-
-We are losing empty LRU but non-zero lru size detection introduced by
-ca707239e8a7 ("mm: update_lru_size warn and reset bad lru_size") because
-of the inherent zone vs.  node discrepancy.
-
-Fixes: f8d1a31163fc ("mm: consider whether to decivate based on eligible zones inactive ratio")
-Link: http://lkml.kernel.org/r/20170104100825.3729-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Nils Holland <nholland@tisys.org>
-Tested-by: Nils Holland <nholland@tisys.org>
-Reported-by: Klaus Ethgen <Klaus@Ethgen.de>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[4.8+]
+Link: http://lkml.kernel.org/r/ac9631fdbac5af3507c5bfe88ad9064f0ed764ec.1483510416.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   26 +++++++++++++++++++++++---
- include/linux/mm_inline.h  |    2 +-
- mm/memcontrol.c            |   18 ++++++++----------
- mm/vmscan.c                |   27 +++++++++++++++++----------
- 4 files changed, 49 insertions(+), 24 deletions(-)
+ scripts/checkpatch.pl |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
-+++ a/include/linux/memcontrol.h
-@@ -120,7 +120,7 @@ struct mem_cgroup_reclaim_iter {
-  */
- struct mem_cgroup_per_node {
- 	struct lruvec		lruvec;
--	unsigned long		lru_size[NR_LRU_LISTS];
-+	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-embedded-function-names scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-embedded-function-names
++++ a/scripts/checkpatch.pl
+@@ -2134,7 +2134,7 @@ sub process {
+ 	my $in_header_lines = $file ? 0 : 1;
+ 	my $in_commit_log = 0;		#Scanning lines before patch
+ 	my $has_commit_log = 0;		#Encountered lines before patch
+-       my $commit_log_possible_stack_dump = 0;
++	my $commit_log_possible_stack_dump = 0;
+ 	my $commit_log_long_line = 0;
+ 	my $commit_log_has_diff = 0;
+ 	my $reported_maintainer_file = 0;
+@@ -2154,6 +2154,7 @@ sub process {
+ 	my $realline = 0;
+ 	my $realcnt = 0;
+ 	my $here = '';
++	my $context_function;		#undef'd unless there's a known function
+ 	my $in_comment = 0;
+ 	my $comment_edge = 0;
+ 	my $first_line = 0;
+@@ -2192,7 +2193,8 @@ sub process {
+ 			}
+ 			#next;
+ 		}
+-		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
++		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@(.*)/) {
++			my $context = $4;
+ 			$realline=$1-1;
+ 			if (defined $2) {
+ 				$realcnt=$3+1;
+@@ -2201,6 +2203,12 @@ sub process {
+ 			}
+ 			$in_comment = 0;
  
- 	struct mem_cgroup_reclaim_iter	iter[DEF_PRIORITY + 1];
- 
-@@ -432,7 +432,7 @@ static inline bool mem_cgroup_online(str
- int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
- 
- void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
--		int nr_pages);
-+		int zid, int nr_pages);
- 
- unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
- 					   int nid, unsigned int lru_mask);
-@@ -441,9 +441,23 @@ static inline
- unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	struct mem_cgroup_per_node *mz;
-+	unsigned long nr_pages = 0;
-+	int zid;
- 
- 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	return mz->lru_size[lru];
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++)
-+		nr_pages += mz->lru_zone_size[zid][lru];
-+	return nr_pages;
-+}
++			if ($context =~ /\b(\w+)\s*\(/) {
++				$context_function = $1;
++			} else {
++				undef $context_function;
++			}
 +
-+static inline
-+unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
-+		enum lru_list lru, int zone_idx)
-+{
-+	struct mem_cgroup_per_node *mz;
+ 			# Guestimate if this is a continuing comment.  Run
+ 			# the context looking for a comment "edge".  If this
+ 			# edge is a close comment then we must be in a comment
+@@ -5157,6 +5165,16 @@ sub process {
+ 			     "break quoted strings at a space character\n" . $hereprev);
+ 		}
+ 
++#check for an embedded function name in a string when the function is known
++# as part of a diff.  This does not work for -f --file checking as it
++#depends on patch context providing the function name
++		if ($line =~ /^\+.*$String/ &&
++		    defined($context_function) &&
++		    get_quoted_string($line, $rawline) =~ /\b$context_function\b/) {
++			WARN("EMBEDDED_FUNCTION_NAME",
++			     "Prefer using \"%s\", __func__ to embedded function names\n" . $herecurr);
++		}
 +
-+	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
-+	return mz->lru_zone_size[zone_idx][lru];
- }
- 
- void mem_cgroup_handle_over_high(void);
-@@ -671,6 +685,12 @@ mem_cgroup_get_lru_size(struct lruvec *l
- {
- 	return 0;
- }
-+static inline
-+unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
-+		enum lru_list lru, int zone_idx)
-+{
-+	return 0;
-+}
- 
- static inline unsigned long
- mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
-diff -puN include/linux/mm_inline.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
-+++ a/include/linux/mm_inline.h
-@@ -39,7 +39,7 @@ static __always_inline void update_lru_s
- {
- 	__update_lru_size(lruvec, lru, zid, nr_pages);
- #ifdef CONFIG_MEMCG
--	mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
-+	mem_cgroup_update_lru_size(lruvec, lru, zid, nr_pages);
- #endif
- }
- 
-diff -puN mm/memcontrol.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
-+++ a/mm/memcontrol.c
-@@ -625,8 +625,8 @@ static void mem_cgroup_charge_statistics
- unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
- 					   int nid, unsigned int lru_mask)
- {
-+	struct lruvec *lruvec = mem_cgroup_lruvec(NODE_DATA(nid), memcg);
- 	unsigned long nr = 0;
--	struct mem_cgroup_per_node *mz;
- 	enum lru_list lru;
- 
- 	VM_BUG_ON((unsigned)nid >= nr_node_ids);
-@@ -634,8 +634,7 @@ unsigned long mem_cgroup_node_nr_lru_pag
- 	for_each_lru(lru) {
- 		if (!(BIT(lru) & lru_mask))
- 			continue;
--		mz = mem_cgroup_nodeinfo(memcg, nid);
--		nr += mz->lru_size[lru];
-+		nr += mem_cgroup_get_lru_size(lruvec, lru);
- 	}
- 	return nr;
- }
-@@ -1002,6 +1001,7 @@ out:
-  * mem_cgroup_update_lru_size - account for adding or removing an lru page
-  * @lruvec: mem_cgroup per zone lru vector
-  * @lru: index of lru list the page is sitting on
-+ * @zid: zone id of the accounted pages
-  * @nr_pages: positive when adding or negative when removing
-  *
-  * This function must be called under lru_lock, just before a page is added
-@@ -1009,27 +1009,25 @@ out:
-  * so as to allow it to check that lru_size 0 is consistent with list_empty).
-  */
- void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
--				int nr_pages)
-+				int zid, int nr_pages)
- {
- 	struct mem_cgroup_per_node *mz;
- 	unsigned long *lru_size;
- 	long size;
--	bool empty;
- 
- 	if (mem_cgroup_disabled())
- 		return;
- 
- 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	lru_size = mz->lru_size + lru;
--	empty = list_empty(lruvec->lists + lru);
-+	lru_size = &mz->lru_zone_size[zid][lru];
- 
- 	if (nr_pages < 0)
- 		*lru_size += nr_pages;
- 
- 	size = *lru_size;
--	if (WARN_ONCE(size < 0 || empty != !size,
--		"%s(%p, %d, %d): lru_size %ld but %sempty\n",
--		__func__, lruvec, lru, nr_pages, size, empty ? "" : "not ")) {
-+	if (WARN_ONCE(size < 0,
-+		"%s(%p, %d, %d): lru_size %ld\n",
-+		__func__, lruvec, lru, nr_pages, size)) {
- 		VM_BUG_ON(1);
- 		*lru_size = 0;
- 	}
-diff -puN mm/vmscan.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled mm/vmscan.c
---- a/mm/vmscan.c~mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled
-+++ a/mm/vmscan.c
-@@ -242,6 +242,16 @@ unsigned long lruvec_lru_size(struct lru
- 	return node_page_state(lruvec_pgdat(lruvec), NR_LRU_BASE + lru);
- }
- 
-+unsigned long lruvec_zone_lru_size(struct lruvec *lruvec, enum lru_list lru,
-+				   int zone_idx)
-+{
-+	if (!mem_cgroup_disabled())
-+		return mem_cgroup_get_zone_lru_size(lruvec, lru, zone_idx);
-+
-+	return zone_page_state(&lruvec_pgdat(lruvec)->node_zones[zone_idx],
-+			       NR_ZONE_LRU_BASE + lru);
-+}
-+
- /*
-  * Add a shrinker callback to be called from the vm.
-  */
-@@ -1382,8 +1392,7 @@ int __isolate_lru_page(struct page *page
-  * be complete before mem_cgroup_update_lru_size due to a santity check.
-  */
- static __always_inline void update_lru_sizes(struct lruvec *lruvec,
--			enum lru_list lru, unsigned long *nr_zone_taken,
--			unsigned long nr_taken)
-+			enum lru_list lru, unsigned long *nr_zone_taken)
- {
- 	int zid;
- 
-@@ -1392,11 +1401,11 @@ static __always_inline void update_lru_s
- 			continue;
- 
- 		__update_lru_size(lruvec, lru, zid, -nr_zone_taken[zid]);
--	}
--
- #ifdef CONFIG_MEMCG
--	mem_cgroup_update_lru_size(lruvec, lru, -nr_taken);
-+		mem_cgroup_update_lru_size(lruvec, lru, zid, -nr_zone_taken[zid]);
- #endif
-+	}
-+
- }
- 
- /*
-@@ -1501,7 +1510,7 @@ static unsigned long isolate_lru_pages(u
- 	*nr_scanned = scan;
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan, scan,
- 				    nr_taken, mode, is_file_lru(lru));
--	update_lru_sizes(lruvec, lru, nr_zone_taken, nr_taken);
-+	update_lru_sizes(lruvec, lru, nr_zone_taken);
- 	return nr_taken;
- }
- 
-@@ -2047,10 +2056,8 @@ static bool inactive_list_is_low(struct
- 		if (!managed_zone(zone))
- 			continue;
- 
--		inactive_zone = zone_page_state(zone,
--				NR_ZONE_LRU_BASE + (file * LRU_FILE));
--		active_zone = zone_page_state(zone,
--				NR_ZONE_LRU_BASE + (file * LRU_FILE) + LRU_ACTIVE);
-+		inactive_zone = lruvec_zone_lru_size(lruvec, file * LRU_FILE, zid);
-+		active_zone = lruvec_zone_lru_size(lruvec, (file * LRU_FILE) + LRU_ACTIVE, zid);
- 
- 		inactive -= min(inactive, inactive_zone);
- 		active -= min(active, active_zone);
+ # check for spaces before a quoted newline
+ 		if ($rawline =~ /^.*\".*\s\\n/) {
+ 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order.patch
-bpf-do-not-use-kmalloc_shift_max.patch
-mm-fix-remote-numa-hits-statistics.patch
-mm-get-rid-of-__gfp_other_node.patch
-mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
-mm-throttle-show_mem-from-warn_alloc.patch
-mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-oom-trace-add-oom-detection-tracepoints.patch
-oom-trace-add-compaction-retry-tracepoint.patch
-mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
-mm-vmscan-add-active-list-aging-tracepoint.patch
-mm-vmscan-add-active-list-aging-tracepoint-update.patch
-mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
-mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
-mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
-mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
-mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
-trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+checkpatch-warn-on-embedded-function-names.patch
 
