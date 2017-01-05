@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread.patch added to -mm tree
-Date: Thu, 05 Jan 2017 15:00:03 -0800
-Message-ID: <586ecff3.5LlYMkAspKC12C1r%akpm@linux-foundation.org>
+ ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch added
+ to -mm tree
+Date: Thu, 05 Jan 2017 15:01:47 -0800
+Message-ID: <586ed05b.lOdcS++YpLwubQa5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50374 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763729AbdAEXGl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:06:41 -0500
+        with ESMTP id S1763737AbdAEXMD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:12:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: prarit@redhat.com, ak@linux.intel.com, babu.moger@oracle.com, bp@suse.de, dzickus@redhat.com, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, mingo@kernel.org, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: do not hardcode CPU 0 as the initial thread
+     Subject: ocfs2: fix deadlocks when taking inode lock at vfs entry points
 has been added to the -mm tree.  Its filename is
-     kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread.patch
+     ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,119 +40,230 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: kernel/watchdog.c: do not hardcode CPU 0 as the initial thread
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix deadlocks when taking inode lock at vfs entry points
 
-When CONFIG_BOOTPARAM_HOTPLUG_CPU0 is enabled, the socket containing the
-boot cpu can be replaced.  During the hot add event, the message
+Commit 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+results in a deadlock, as the author "Tariq Saeed" realized shortly after
+the patch was merged.  The discussion happened here
+(https://oss.oracle.com/pipermail/ocfs2-devel/2015-September/011085.html).
 
-NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.
+The reason why taking cluster inode lock at vfs entry points opens up a
+self deadlock window, is explained in the previous patch of this series.
 
-is output implying that the NMI watchdog was disabled at some point.  This
-is not the case and the message has caused confusion for users of systems
-that support the removal of the boot cpu socket.
+So far, we have seen two different code paths that have this issue.
+1. do_sys_open
+     may_open
+      inode_permission
+       ocfs2_permission
+        ocfs2_inode_lock() <=== take PR
+         generic_permission
+          get_acl
+           ocfs2_iop_get_acl
+            ocfs2_inode_lock() <=== take PR
+2. fchmod|fchmodat
+    chmod_common
+     notify_change
+      ocfs2_setattr <=== take EX
+       posix_acl_chmod
+        get_acl
+         ocfs2_iop_get_acl <=== take PR
+        ocfs2_iop_set_acl <=== take EX
 
-The watchdog code is coded to assume that cpu 0 is always the first cpu to
-initialize the watchdog, and the last to stop its watchdog thread.  That
-is not the case for initializing if cpu 0 has been removed and added.  The
-removal case has never been correct because the smpboot code will remove
-the watchdog threads starting with the lowest cpu number.
+Fixes them by adding the tracking logic (in the previous patch) for these
+funcs above, ocfs2_permission(), ocfs2_iop_[set|get]_acl(),
+ocfs2_setattr().
 
-This patch adds watchdog_cpus to track the number of cpus with active NMI
-watchdog threads so that the first and last thread can be used to set and
-clear the value of firstcpu_err.  firstcpu_err is set when the first
-watchdog thread is enabled, and cleared when the last watchdog thread is
-disabled.
-
-Link: http://lkml.kernel.org/r/1480425321-32296-1-git-send-email-prarit@redhat.com
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Joshua Hunt <johunt@akamai.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Babu Moger <babu.moger@oracle.com>
+Link: http://lkml.kernel.org/r/1483630262-22227-3-git-send-email-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog_hld.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ fs/ocfs2/acl.c  |   39 ++++++++++++++++++++++++++++++++++-----
+ fs/ocfs2/file.c |   44 ++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 68 insertions(+), 15 deletions(-)
 
-diff -puN kernel/watchdog_hld.c~kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread kernel/watchdog_hld.c
---- a/kernel/watchdog_hld.c~kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread
-+++ a/kernel/watchdog_hld.c
-@@ -137,12 +137,14 @@ static void watchdog_overflow_callback(s
-  * Reduce the watchdog noise by only printing messages
-  * that are different from what cpu0 displayed.
-  */
--static unsigned long cpu0_err;
-+static unsigned long firstcpu_err;
-+static atomic_t watchdog_cpus;
- 
- int watchdog_nmi_enable(unsigned int cpu)
+diff -puN fs/ocfs2/acl.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/acl.c
+@@ -284,16 +284,31 @@ int ocfs2_iop_set_acl(struct inode *inod
  {
- 	struct perf_event_attr *wd_attr;
- 	struct perf_event *event = per_cpu(watchdog_ev, cpu);
-+	int firstcpu = 0;
- 
- 	/* nothing to do if the hard lockup detector is disabled */
- 	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
-@@ -156,19 +158,22 @@ int watchdog_nmi_enable(unsigned int cpu
- 	if (event != NULL)
- 		goto out_enable;
- 
-+	if (atomic_inc_return(&watchdog_cpus) == 1)
-+		firstcpu = 1;
+ 	struct buffer_head *bh = NULL;
+ 	int status = 0;
+-
+-	status = ocfs2_inode_lock(inode, &bh, 1);
++	int arg_flags = 0, has_locked;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
 +
- 	wd_attr = &wd_hw_attr;
- 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
- 
- 	/* Try to register using hardware perf events */
- 	event = perf_event_create_kernel_counter(wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
- 
--	/* save cpu0 error for future comparision */
--	if (cpu == 0 && IS_ERR(event))
--		cpu0_err = PTR_ERR(event);
-+	/* save the first cpu's error for future comparision */
-+	if (firstcpu && IS_ERR(event))
-+		firstcpu_err = PTR_ERR(event);
- 
- 	if (!IS_ERR(event)) {
--		/* only print for cpu0 or different than cpu0 */
--		if (cpu == 0 || cpu0_err)
-+		/* only print for the first cpu initialized */
-+		if (firstcpu || firstcpu_err)
- 			pr_info("enabled on all CPUs, permanently consumes one hw-PMU counter.\n");
- 		goto out_save;
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	has_locked = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (has_locked)
++		arg_flags = OCFS2_META_LOCK_GETBH;
++	status = ocfs2_inode_lock_full(inode, &bh, 1, arg_flags);
+ 	if (status < 0) {
+ 		if (status != -ENOENT)
+ 			mlog_errno(status);
+ 		return status;
  	}
-@@ -186,7 +191,7 @@ int watchdog_nmi_enable(unsigned int cpu
- 	smp_mb__after_atomic();
- 
- 	/* skip displaying the same error again */
--	if (cpu > 0 && (PTR_ERR(event) == cpu0_err))
-+	if (!firstcpu && (PTR_ERR(event) == firstcpu_err))
- 		return PTR_ERR(event);
- 
- 	/* vary the KERN level based on the returned errno */
-@@ -222,9 +227,9 @@ void watchdog_nmi_disable(unsigned int c
- 
- 		/* should be in cleanup, but blocks oprofile */
- 		perf_event_release_kernel(event);
--	}
--	if (cpu == 0) {
++	if (!has_locked)
++		ocfs2_add_holder(lockres, &oh);
 +
- 		/* watchdog_nmi_enable() expects this to be zero initially. */
--		cpu0_err = 0;
-+		if (atomic_dec_and_test(&watchdog_cpus))
-+			firstcpu_err = 0;
+ 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
+-	ocfs2_inode_unlock(inode, 1);
++
++	if (!has_locked) {
++		ocfs2_remove_holder(lockres, &oh);
++		ocfs2_inode_unlock(inode, 1);
++	}
+ 	brelse(bh);
++
+ 	return status;
+ }
+ 
+@@ -303,21 +318,35 @@ struct posix_acl *ocfs2_iop_get_acl(stru
+ 	struct buffer_head *di_bh = NULL;
+ 	struct posix_acl *acl;
+ 	int ret;
++	int arg_flags = 0, has_locked;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
+ 
+ 	osb = OCFS2_SB(inode->i_sb);
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return NULL;
+-	ret = ocfs2_inode_lock(inode, &di_bh, 0);
++
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	has_locked = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (has_locked)
++		arg_flags = OCFS2_META_LOCK_GETBH;
++	ret = ocfs2_inode_lock_full(inode, &di_bh, 0, arg_flags);
+ 	if (ret < 0) {
+ 		if (ret != -ENOENT)
+ 			mlog_errno(ret);
+ 		return ERR_PTR(ret);
  	}
++	if (!has_locked)
++		ocfs2_add_holder(lockres, &oh);
+ 
+ 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	if (!has_locked) {
++		ocfs2_remove_holder(lockres, &oh);
++		ocfs2_inode_unlock(inode, 0);
++	}
+ 	brelse(di_bh);
++
+ 	return acl;
+ }
+ 
+diff -puN fs/ocfs2/file.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/file.c
+@@ -1138,6 +1138,9 @@ int ocfs2_setattr(struct dentry *dentry,
+ 	handle_t *handle = NULL;
+ 	struct dquot *transfer_to[MAXQUOTAS] = { };
+ 	int qtype;
++	int arg_flags = 0, had_lock;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
+ 
+ 	trace_ocfs2_setattr(inode, dentry,
+ 			    (unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -1173,13 +1176,20 @@ int ocfs2_setattr(struct dentry *dentry,
+ 		}
+ 	}
+ 
+-	status = ocfs2_inode_lock(inode, &bh, 1);
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	had_lock = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (had_lock)
++		arg_flags = OCFS2_META_LOCK_GETBH;
++	status = ocfs2_inode_lock_full(inode, &bh, 1, arg_flags);
+ 	if (status < 0) {
+ 		if (status != -ENOENT)
+ 			mlog_errno(status);
+ 		goto bail_unlock_rw;
+ 	}
+-	inode_locked = 1;
++	if (!had_lock) {
++		ocfs2_add_holder(lockres, &oh);
++		inode_locked = 1;
++	}
+ 
+ 	if (size_change) {
+ 		status = inode_newsize_ok(inode, attr->ia_size);
+@@ -1260,7 +1270,8 @@ int ocfs2_setattr(struct dentry *dentry,
+ bail_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ bail_unlock:
+-	if (status) {
++	if (status && inode_locked) {
++		ocfs2_remove_holder(lockres, &oh);
+ 		ocfs2_inode_unlock(inode, 1);
+ 		inode_locked = 0;
+ 	}
+@@ -1278,8 +1289,10 @@ bail:
+ 		if (status < 0)
+ 			mlog_errno(status);
+ 	}
+-	if (inode_locked)
++	if (inode_locked) {
++		ocfs2_remove_holder(lockres, &oh);
+ 		ocfs2_inode_unlock(inode, 1);
++	}
+ 
+ 	brelse(bh);
+ 	return status;
+@@ -1321,20 +1334,31 @@ bail:
+ int ocfs2_permission(struct inode *inode, int mask)
+ {
+ 	int ret;
++	int has_locked;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
+ 
+ 	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+-	ret = ocfs2_inode_lock(inode, NULL, 0);
+-	if (ret) {
+-		if (ret != -ENOENT)
+-			mlog_errno(ret);
+-		goto out;
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	has_locked = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (!has_locked) {
++		ret = ocfs2_inode_lock(inode, NULL, 0);
++		if (ret) {
++			if (ret != -ENOENT)
++				mlog_errno(ret);
++			goto out;
++		}
++		ocfs2_add_holder(lockres, &oh);
+ 	}
+ 
+ 	ret = generic_permission(inode, mask);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	if (!has_locked) {
++		ocfs2_remove_holder(lockres, &oh);
++		ocfs2_inode_unlock(inode, 0);
++	}
+ out:
+ 	return ret;
  }
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from zren@suse.com are
 
-kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread.patch
+ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
+ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
 
