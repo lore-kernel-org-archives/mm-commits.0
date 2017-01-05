@@ -1,126 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-remote-numa-hits-statistics.patch added to -mm tree
-Date: Wed, 04 Jan 2017 17:04:55 -0800
-Message-ID: <586d9bb7.RG33jQ8jEsxVmK4c%akpm@linux-foundation.org>
+Subject: [to-be-updated] z3fold-fix-locking-issues.patch removed from -mm
+ tree
+Date: Wed, 04 Jan 2017 17:27:40 -0800
+Message-ID: <586da10c.EuCIt8vBnRMchina%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39068 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43040 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751233AbdAEBDj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 20:03:39 -0500
+        with ESMTP id S1756897AbdAEB1u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 20:27:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hejianet@gmail.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, arnd@arndb.de, dan.carpenter@oracle.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix remote numa hits statistics
-has been added to the -mm tree.  Its filename is
-     mm-fix-remote-numa-hits-statistics.patch
+     Subject: z3fold: fix locking issues
+has been removed from the -mm tree.  Its filename was
+     z3fold-fix-locking-issues.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-remote-numa-hits-statistics.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-remote-numa-hits-statistics.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: fix remote numa hits statistics
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold: fix locking issues
 
-Jia He has noticed that b9f00e147f27 ("mm, page_alloc: reduce branches in
-zone_statistics") has an unintentional side effect that remote node
-allocation requests are accounted as NUMA_MISS rathat than NUMA_HIT and
-NUMA_OTHER if such a request doesn't use __GFP_OTHER_NODE.  There are many
-of these potentially because the flag is used very rarely while we have
-many users of __alloc_pages_node.
+Commit 570931c ("z3fold: use per-page spinlock") introduced locking
+issues in reclaim function reported in [1] and [2]. This patch
+addresses these issues, also fixing the check for empty lru list
+(it was only checked once, while it should be checked every time
+we want to get the last lru entry).
 
-Fix this by simply ignoring __GFP_OTHER_NODE (it can be removed in a
-follow up patch) and treat all allocations that were satisfied from the
-preferred zone's node as NUMA_HITS because this is the same node we
-requested the allocation from in most cases.  If this is not the local
-node then we just account it as NUMA_OTHER rather than NUMA_LOCAL.
+[1] https://lkml.org/lkml/2016/11/25/628
+[2] http://www.spinics.net/lists/linux-mm/msg117227.html
 
-One downsize would be that an allocation request for a node which is
-outside of the mempolicy nodemask would be reported as a hit which is a
-bit weird but that was the case before b9f00e147f27 already.
-
-Fixes: b9f00e147f27 ("mm, page_alloc: reduce branches in zone_statistics")
-Link: http://lkml.kernel.org/r/20170102153057.9451-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Jia He <hejianet@gmail.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz> # with cbmc[1] superpowers
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Link: http://lkml.kernel.org/r/20161126202121.baba91a6e67858648e5d1d2f@gmail.com
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ mm/z3fold.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-remote-numa-hits-statistics mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-remote-numa-hits-statistics
-+++ a/mm/page_alloc.c
-@@ -2583,30 +2583,23 @@ int __isolate_free_page(struct page *pag
-  * Update NUMA hit/miss statistics
-  *
-  * Must be called with interrupts disabled.
-- *
-- * When __GFP_OTHER_NODE is set assume the node of the preferred
-- * zone is the local node. This is useful for daemons who allocate
-- * memory on behalf of other processes.
-  */
- static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
- 								gfp_t flags)
- {
- #ifdef CONFIG_NUMA
--	int local_nid = numa_node_id();
- 	enum zone_stat_item local_stat = NUMA_LOCAL;
+diff -puN mm/z3fold.c~z3fold-fix-locking-issues mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-fix-locking-issues
++++ a/mm/z3fold.c
+@@ -615,12 +615,15 @@ static int z3fold_reclaim_page(struct z3
+ 	unsigned long first_handle = 0, middle_handle = 0, last_handle = 0;
  
--	if (unlikely(flags & __GFP_OTHER_NODE)) {
-+	if (z->node != numa_node_id())
- 		local_stat = NUMA_OTHER;
--		local_nid = preferred_zone->node;
--	}
- 
--	if (z->node == local_nid) {
-+	if (z->node == preferred_zone->node)
- 		__inc_zone_state(z, NUMA_HIT);
--		__inc_zone_state(z, local_stat);
--	} else {
-+	else {
- 		__inc_zone_state(z, NUMA_MISS);
- 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
+ 	spin_lock(&pool->lock);
+-	if (!pool->ops || !pool->ops->evict || list_empty(&pool->lru) ||
+-			retries == 0) {
++	if (!pool->ops || !pool->ops->evict || retries == 0) {
+ 		spin_unlock(&pool->lock);
+ 		return -EINVAL;
  	}
-+	__inc_zone_state(z, local_stat);
- #endif
+ 	for (i = 0; i < retries; i++) {
++		if (list_empty(&pool->lru)) {
++			spin_unlock(&pool->lock);
++			return -EINVAL;
++		}
+ 		page = list_last_entry(&pool->lru, struct page, lru);
+ 		list_del(&page->lru);
+ 
+@@ -679,8 +682,7 @@ next:
+ 			 * All buddies are now free, free the z3fold page and
+ 			 * return success.
+ 			 */
+-			clear_bit(PAGE_HEADLESS, &page->private);
+-			if (!test_bit(PAGE_HEADLESS, &page->private))
++			if (!test_and_clear_bit(PAGE_HEADLESS, &page->private))
+ 				z3fold_page_unlock(zhdr);
+ 			free_z3fold_page(zhdr);
+ 			atomic64_dec(&pool->pages_nr);
+@@ -692,6 +694,7 @@ next:
+ 				/* Full, add to buddied list */
+ 				spin_lock(&pool->lock);
+ 				list_add(&zhdr->buddy, &pool->buddied);
++				spin_unlock(&pool->lock);
+ 			} else {
+ 				int compacted = z3fold_compact_page(zhdr);
+ 				/* add to unbuddied list */
+@@ -703,15 +706,18 @@ next:
+ 				else
+ 					list_add_tail(&zhdr->buddy,
+ 						&pool->unbuddied[freechunks]);
++				spin_unlock(&pool->lock);
+ 			}
+ 		}
+ 
++		if (!test_bit(PAGE_HEADLESS, &page->private))
++			z3fold_page_unlock(zhdr);
++
++		spin_lock(&pool->lock);
+ 		/* add to beginning of LRU */
+ 		list_add(&page->lru, &pool->lru);
+ 	}
+ 	spin_unlock(&pool->lock);
+-	if (!test_bit(PAGE_HEADLESS, &page->private))
+-		z3fold_page_unlock(zhdr);
+ 	return -EAGAIN;
  }
  
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order.patch
-bpf-do-not-use-kmalloc_shift_max.patch
-mm-fix-remote-numa-hits-statistics.patch
-mm-get-rid-of-__gfp_other_node.patch
-mm-throttle-show_mem-from-warn_alloc.patch
-mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-oom-trace-add-oom-detection-tracepoints.patch
-oom-trace-add-compaction-retry-tracepoint.patch
 
