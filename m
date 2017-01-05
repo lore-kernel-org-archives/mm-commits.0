@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-lindent-clean-up-and-optimize.patch added to -mm tree
-Date: Thu, 05 Jan 2017 15:31:57 -0800
-Message-ID: <586ed76d.vIQBIbUxJ1x1bdWt%akpm@linux-foundation.org>
+Subject: + mm-dont-dereference-struct-page-fields-of-invalid-pages.patch
+ added to -mm tree
+Date: Thu, 05 Jan 2017 15:34:17 -0800
+Message-ID: <586ed7f9.dYeYGusbcJVYPeb0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034559AbdAEXaj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:30:39 -0500
+        with ESMTP id S1162114AbdAEXll (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:41:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdelvare@suse.de, mm-commits@vger.kernel.org
+To: ard.biesheuvel@linaro.org, catalin.marinas@arm.com, hanjun.guo@linaro.org, james.morse@arm.com, rrichter@cavium.com, will.deacon@arm.com, xieyisheng1@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/Lindent: clean up and optimize
+     Subject: mm: don't dereference struct page fields of invalid pages
 has been added to the -mm tree.  Its filename is
-     scripts-lindent-clean-up-and-optimize.patch
+     mm-dont-dereference-struct-page-fields-of-invalid-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-lindent-clean-up-and-optimize.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-dereference-struct-page-fields-of-invalid-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-lindent-clean-up-and-optimize.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-dereference-struct-page-fields-of-invalid-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,58 +39,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: scripts/Lindent: clean up and optimize
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: mm: don't dereference struct page fields of invalid pages
 
-* Add a few blank lines to improve readability.
-* Don't call cut 3 times when once is enough.
-* Drop a useless semicolon.
+The VM_BUG_ON() check in move_freepages() checks whether the node id of a
+page matches the node id of its zone.  However, it does this before having
+checked whether the struct page pointer refers to a valid struct page to
+begin with.  This is guaranteed in most cases, but may not be the case if
+CONFIG_HOLES_IN_ZONE=y.
 
-Link: http://lkml.kernel.org/r/20170104140356.162abab2@endymion
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
+So reorder the VM_BUG_ON() with the pfn_valid_within() check.
+
+Link: http://lkml.kernel.org/r/1481706707-6211-2-git-send-email-ard.biesheuvel@linaro.org
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Robert Richter <rrichter@cavium.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Lindent |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/Lindent~scripts-lindent-clean-up-and-optimize scripts/Lindent
---- a/scripts/Lindent~scripts-lindent-clean-up-and-optimize
-+++ a/scripts/Lindent
-@@ -1,21 +1,25 @@
- #!/bin/sh
-+
- PARAM="-npro -kr -i8 -ts8 -sob -l80 -ss -ncs -cp1"
--RES=`indent --version`
-+
-+RES=`indent --version | cut -d' ' -f3`
- if [ "$RES" = "" ]; then
- 	exit 1
- fi
--V1=`echo $RES | cut -d' ' -f3 | cut -d'.' -f1`
--V2=`echo $RES | cut -d' ' -f3 | cut -d'.' -f2`
--V3=`echo $RES | cut -d' ' -f3 | cut -d'.' -f3`
-+V1=`echo $RES | cut -d'.' -f1`
-+V2=`echo $RES | cut -d'.' -f2`
-+V3=`echo $RES | cut -d'.' -f3`
-+
- if [ $V1 -gt 2 ]; then
-   PARAM="$PARAM -il0"
- elif [ $V1 -eq 2 ]; then
-   if [ $V2 -gt 2 ]; then
--    PARAM="$PARAM -il0";
-+    PARAM="$PARAM -il0"
-   elif [ $V2 -eq 2 ]; then
-     if [ $V3 -ge 10 ]; then
-       PARAM="$PARAM -il0"
-     fi
-   fi
- fi
-+
- indent $PARAM "$@"
-_
-
-Patches currently in -mm which might be from jdelvare@suse.de are
-
-scripts-lindent-clean-up-and-optimize.patch
-
+diff -puN mm/page_alloc.c~mm-dont-dereference-struct-page-fields-of-invalid-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-dereference-struct-page-fields-of-invalid-pages
++++ a/mm/page_alloc.c
+@@ -1864,14 +1864,14 @@ int move_freepages(struct zone *zone,
+ #endif
+ 
+ 	for (page = start_page; page <= end_page;) {
+-		/* Make sure we are not inadvertently changing nodes */
+-		VM_BUG_ON_PAGE(page_to_nid(page) != zone_to_nid(zone), page);
