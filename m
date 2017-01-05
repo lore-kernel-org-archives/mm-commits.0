@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-consth-move-ul-macro-to-include-linux-consth.patch added
- to -mm tree
-Date: Thu, 05 Jan 2017 15:08:50 -0800
-Message-ID: <586ed202.l1PwZGnxAXnqZkVg%akpm@linux-foundation.org>
+Subject: + debugobjects-scale-thresholds-with-of-cpus.patch added to -mm
+ tree
+Date: Thu, 05 Jan 2017 14:43:19 -0800
+Message-ID: <586ecc07.sp/kyuR0XAvbee8p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50164 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763731AbdAEXHc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:07:32 -0500
+        with ESMTP id S1763728AbdAEXGl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:06:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, catalin.marinas@arm.com, gxt@mprc.pku.edu.cn, rmk+kernel@armlinux.org.uk, mm-commits@vger.kernel.org
+To: longman@redhat.com, borntraeger@de.ibm.com, changbin.du@intel.com, jstancek@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/const.h: move UL() macro to include/linux/const.h
+     Subject: debugobjects: scale thresholds with # of CPUs
 has been added to the -mm tree.  Its filename is
-     linux-consth-move-ul-macro-to-include-linux-consth.patch
+     debugobjects-scale-thresholds-with-of-cpus.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-consth-move-ul-macro-to-include-linux-consth.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/debugobjects-scale-thresholds-with-of-cpus.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-consth-move-ul-macro-to-include-linux-consth.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/debugobjects-scale-thresholds-with-of-cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,160 +39,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: linux/const.h: move UL() macro to include/linux/const.h
+From: Waiman Long <longman@redhat.com>
+Subject: debugobjects: scale thresholds with # of CPUs
 
-ARM, ARM64 and UniCore32 duplicate the definition of UL():
+On a large SMP systems with hundreds of CPUs, the current thresholds for
+allocating and freeing debug objects (256 and 1024 respectively) may not
+work well.  This can cause a lot of needless calls to kmem_aloc() and
+kmem_free() on those systems.
 
-  #define UL(x) _AC(x, UL)
+To alleviate this thrashing problem, the object freeing threshold is now
+increased to "1024 + # of CPUs * 32".  Whereas the object allocation
+threshold is increased to "256 + # of CPUs * 4".  That should make the
+debug objects subsystem scale better with the number of CPUs available in
+the system.
 
-This is not actually arch-specific, so it will be useful to move it
-to a common header.  Currently, we only have the uapi variant for
-linux/const.h, so I am creating include/linux/const.h.
-
-I am also adding _UL(), _ULL() and ULL() because _AC() is mostly
-used in the form either _AC(..., UL) or _AC(..., ULL).  I expect
-they will be replaced in later cleanups.  The underscore-prefixed
-ones should be used for exported headers.
-
-Link: http://lkml.kernel.org/r/1483582810-7046-3-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	(arm64)
-Acked-by: Russell King <rmk+kernel@armlinux.org.uk>	(arm)
+Link: http://lkml.kernel.org/r/1483647425-4135-3-git-send-email-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Du Changbin" <changbin.du@intel.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Jan Stancek <jstancek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/memory.h       |    6 ------
- arch/arm64/include/asm/memory.h     |    6 ------
- arch/unicore32/include/asm/memory.h |    6 ------
- include/linux/const.h               |    9 +++++++++
- include/uapi/linux/const.h          |    9 ++++++---
- 5 files changed, 15 insertions(+), 21 deletions(-)
+ lib/debugobjects.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN arch/arm/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth arch/arm/include/asm/memory.h
---- a/arch/arm/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth
-+++ a/arch/arm/include/asm/memory.h
-@@ -22,12 +22,6 @@
- #include <mach/memory.h>
- #endif
- 
--/*
-- * Allow for constants defined here to be used from assembly code
-- * by prepending the UL suffix only with actual C code compilation.
-- */
--#define UL(x) _AC(x, UL)
+diff -puN lib/debugobjects.c~debugobjects-scale-thresholds-with-of-cpus lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-scale-thresholds-with-of-cpus
++++ a/lib/debugobjects.c
+@@ -52,7 +52,10 @@ static int			debug_objects_fixups __read
+ static int			debug_objects_warnings __read_mostly;
+ static int			debug_objects_enabled __read_mostly
+ 				= CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT;
 -
- /* PAGE_OFFSET - the virtual address of the start of the kernel image */
- #define PAGE_OFFSET		UL(CONFIG_PAGE_OFFSET)
- 
-diff -puN arch/arm64/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth arch/arm64/include/asm/memory.h
---- a/arch/arm64/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth
-+++ a/arch/arm64/include/asm/memory.h
-@@ -28,12 +28,6 @@
- #include <asm/sizes.h>
++static int			debug_objects_pool_size __read_mostly
++				= ODEBUG_POOL_SIZE;
++static int			debug_objects_pool_min_level __read_mostly
++				= ODEBUG_POOL_MIN_LEVEL;
+ static struct debug_obj_descr	*descr_test  __read_mostly;
  
  /*
-- * Allow for constants defined here to be used from assembly code
-- * by prepending the UL suffix only with actual C code compilation.
-- */
--#define UL(x) _AC(x, UL)
--
--/*
-  * Size of the PCI I/O space. This must remain a power of two so that
-  * IO_SPACE_LIMIT acts as a mask for the low bits of I/O addresses.
-  */
-diff -puN arch/unicore32/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth arch/unicore32/include/asm/memory.h
---- a/arch/unicore32/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth
-+++ a/arch/unicore32/include/asm/memory.h
-@@ -20,12 +20,6 @@
- #include <mach/memory.h>
+@@ -94,13 +97,13 @@ static void fill_pool(void)
+ 	struct debug_obj *new;
+ 	unsigned long flags;
  
- /*
-- * Allow for constants defined here to be used from assembly code
-- * by prepending the UL suffix only with actual C code compilation.
-- */
--#define UL(x) _AC(x, UL)
--
--/*
-  * PAGE_OFFSET - the virtual address of the start of the kernel image
-  * TASK_SIZE - the maximum size of a user space task.
-  * TASK_UNMAPPED_BASE - the lower boundary of the mmap VM area
-diff -puN /dev/null include/linux/const.h
---- /dev/null
-+++ a/include/linux/const.h
-@@ -0,0 +1,9 @@
-+#ifndef _LINUX_CONST_H
-+#define _LINUX_CONST_H
+-	if (likely(obj_pool_free >= ODEBUG_POOL_MIN_LEVEL))
++	if (likely(obj_pool_free >= debug_objects_pool_min_level))
+ 		return;
+ 
+ 	if (unlikely(!obj_cache))
+ 		return;
+ 
+-	while (obj_pool_free < ODEBUG_POOL_MIN_LEVEL) {
++	while (obj_pool_free < debug_objects_pool_min_level) {
+ 
+ 		new = kmem_cache_zalloc(obj_cache, gfp);
+ 		if (!new)
+@@ -176,7 +179,7 @@ static void free_obj_work(struct work_st
+ 	unsigned long flags;
+ 
+ 	raw_spin_lock_irqsave(&pool_lock, flags);
+-	while (obj_pool_free > ODEBUG_POOL_SIZE) {
++	while (obj_pool_free > debug_objects_pool_size) {
+ 		obj = hlist_entry(obj_pool.first, typeof(*obj), node);
+ 		hlist_del(&obj->node);
+ 		obj_pool_free--;
+@@ -206,7 +209,7 @@ static void free_object(struct debug_obj
+ 	 * schedule work when the pool is filled and the cache is
+ 	 * initialized:
+ 	 */
+-	if (obj_pool_free > ODEBUG_POOL_SIZE && obj_cache)
++	if (obj_pool_free > debug_objects_pool_size && obj_cache)
+ 		sched = 1;
+ 	hlist_add_head(&obj->node, &obj_pool);
+ 	obj_pool_free++;
+@@ -1126,4 +1129,11 @@ void __init debug_objects_mem_init(void)
+ 		pr_warn("out of memory.\n");
+ 	} else
+ 		debug_objects_selftest();
 +
-+#include <uapi/linux/const.h>
-+
-+#define UL(x)		(_UL(x))
-+#define ULL(x)		(_ULL(x))
-+
-+#endif /* _LINUX_CONST_H */
-diff -puN include/uapi/linux/const.h~linux-consth-move-ul-macro-to-include-linux-consth include/uapi/linux/const.h
---- a/include/uapi/linux/const.h~linux-consth-move-ul-macro-to-include-linux-consth
-+++ a/include/uapi/linux/const.h
-@@ -1,7 +1,7 @@
- /* const.h: Macros for dealing with constants.  */
- 
--#ifndef _LINUX_CONST_H
--#define _LINUX_CONST_H
-+#ifndef _UAPI_LINUX_CONST_H
-+#define _UAPI_LINUX_CONST_H
- 
- /* Some constant macros are used in both assembler and
-  * C code.  Therefore we cannot annotate them always with
-@@ -21,7 +21,10 @@
- #define _AT(T,X)	((T)(X))
- #endif
- 
-+#define _UL(x)		(_AC(x, UL))
-+#define _ULL(x)		(_AC(x, ULL))
-+
- #define _BITUL(x)	(_AC(1,UL) << (x))
- #define _BITULL(x)	(_AC(1,ULL) << (x))
- 
--#endif /* !(_LINUX_CONST_H) */
-+#endif /* _UAPI_LINUX_CONST_H */
++	/*
++	 * Increase the thresholds for allocating and freeing objects
++	 * according to the number of possible CPUs available in the system.
++	 */
++	debug_objects_pool_size += num_possible_cpus() * 32;
++	debug_objects_pool_min_level += num_possible_cpus() * 4;
+ }
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-m68k-rename-ul-to-to_ul.patch
-linux-consth-move-ul-macro-to-include-linux-consth.patch
-linux-consth-refactor-_bitul-and-_bitull-a-bit.patch
-linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch
-scripts-spellingtxt-add-swith-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-an-user-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-unneded-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-intialization-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-initialiazation-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-overwritting-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances.patch
+debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done.patch
+debugobjects-scale-thresholds-with-of-cpus.patch
+debugobjects-reduce-contention-on-the-global-pool_lock.patch
 
