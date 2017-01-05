@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-rename-ul-to-to_ul.patch added to -mm tree
-Date: Thu, 05 Jan 2017 15:08:48 -0800
-Message-ID: <586ed200.BwVU16f7z8GbFRZp%akpm@linux-foundation.org>
+Subject: + linux-consth-move-ul-macro-to-include-linux-consth.patch added
+ to -mm tree
+Date: Thu, 05 Jan 2017 15:08:50 -0800
+Message-ID: <586ed202.l1PwZGnxAXnqZkVg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50194 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763730AbdAEXHa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:07:30 -0500
+        with ESMTP id S1763731AbdAEXHc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 18:07:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, catalin.marinas@arm.com, gxt@mprc.pku.edu.cn, rmk+kernel@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: rename UL() to TO_UL()
+     Subject: linux/const.h: move UL() macro to include/linux/const.h
 has been added to the -mm tree.  Its filename is
-     m68k-rename-ul-to-to_ul.patch
+     linux-consth-move-ul-macro-to-include-linux-consth.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m68k-rename-ul-to-to_ul.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-consth-move-ul-macro-to-include-linux-consth.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-rename-ul-to-to_ul.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-consth-move-ul-macro-to-include-linux-consth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +40,122 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: m68k: rename UL() to TO_UL()
+Subject: linux/const.h: move UL() macro to include/linux/const.h
 
-Patch series "linux/const.h: cleanups of macros such as UL(), _BITUL(), BIT() etc", v2.
-
-ARM, ARM64, UniCore32 define UL() as a shorthand of _AC(..., UL).  In the
-future, more architectures may introduce it, so move the definition to
-include/linux/const.h.
-
-The _AC() is used for either (likely) UL or (unlikely) ULL.  Having UL(L)
-in a common place can avoid direct use of _AC().
-
-The _AC() is defined under the uapi directory, so it compels
-underscore-prefixed macros even for unexported headers.
-
-I see similar situation for _BITUL().  This is available in both C and
-assembly.  However, it is defined in an uapi header, so direct use of the
-underscore macro is needed even for unexported headers.  The 3/3 makes
-BIT() available in assembly too, which will be more suitable for use in
-unexported headers.
-
-
-This patch (of 4):
-
-ARM, ARM64 and UniCore32 define UL(x) like follows:
+ARM, ARM64 and UniCore32 duplicate the definition of UL():
 
   #define UL(x) _AC(x, UL)
 
-While, M68K defines it differently:
-  #define UL(x) ((unsigned long) (x))
+This is not actually arch-specific, so it will be useful to move it
+to a common header.  Currently, we only have the uapi variant for
+linux/const.h, so I am creating include/linux/const.h.
 
-I am moving the former to a common header in the next commit.
-Beforehand, this commit renames the latter to avoid name conflict.
+I am also adding _UL(), _ULL() and ULL() because _AC() is mostly
+used in the form either _AC(..., UL) or _AC(..., ULL).  I expect
+they will be replaced in later cleanups.  The underscore-prefixed
+ones should be used for exported headers.
 
-Link: http://lkml.kernel.org/r/1483582810-7046-2-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1483582810-7046-3-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>	(arm64)
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>	(arm)
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mm/init.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/include/asm/memory.h       |    6 ------
+ arch/arm64/include/asm/memory.h     |    6 ------
+ arch/unicore32/include/asm/memory.h |    6 ------
+ include/linux/const.h               |    9 +++++++++
+ include/uapi/linux/const.h          |    9 ++++++---
+ 5 files changed, 15 insertions(+), 21 deletions(-)
 
-diff -puN arch/m68k/mm/init.c~m68k-rename-ul-to-to_ul arch/m68k/mm/init.c
---- a/arch/m68k/mm/init.c~m68k-rename-ul-to-to_ul
-+++ a/arch/m68k/mm/init.c
-@@ -121,9 +121,9 @@ void free_initmem(void)
+diff -puN arch/arm/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth arch/arm/include/asm/memory.h
+--- a/arch/arm/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth
++++ a/arch/arm/include/asm/memory.h
+@@ -22,12 +22,6 @@
+ #include <mach/memory.h>
+ #endif
  
- void __init print_memmap(void)
- {
--#define UL(x) ((unsigned long) (x))
--#define MLK(b, t) UL(b), UL(t), (UL(t) - UL(b)) >> 10
--#define MLM(b, t) UL(b), UL(t), (UL(t) - UL(b)) >> 20
-+#define TO_UL(x) ((unsigned long) (x))
-+#define MLK(b, t) TO_UL(b), TO_UL(t), (TO_UL(t) - TO_UL(b)) >> 10
-+#define MLM(b, t) TO_UL(b), TO_UL(t), (TO_UL(t) - TO_UL(b)) >> 20
- #define MLK_ROUNDUP(b, t) b, t, DIV_ROUND_UP(((t) - (b)), 1024)
+-/*
+- * Allow for constants defined here to be used from assembly code
+- * by prepending the UL suffix only with actual C code compilation.
+- */
+-#define UL(x) _AC(x, UL)
+-
+ /* PAGE_OFFSET - the virtual address of the start of the kernel image */
+ #define PAGE_OFFSET		UL(CONFIG_PAGE_OFFSET)
  
- 	pr_notice("Virtual kernel memory layout:\n"
+diff -puN arch/arm64/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth arch/arm64/include/asm/memory.h
+--- a/arch/arm64/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth
++++ a/arch/arm64/include/asm/memory.h
+@@ -28,12 +28,6 @@
+ #include <asm/sizes.h>
+ 
+ /*
+- * Allow for constants defined here to be used from assembly code
+- * by prepending the UL suffix only with actual C code compilation.
+- */
+-#define UL(x) _AC(x, UL)
+-
+-/*
+  * Size of the PCI I/O space. This must remain a power of two so that
+  * IO_SPACE_LIMIT acts as a mask for the low bits of I/O addresses.
+  */
+diff -puN arch/unicore32/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth arch/unicore32/include/asm/memory.h
+--- a/arch/unicore32/include/asm/memory.h~linux-consth-move-ul-macro-to-include-linux-consth
++++ a/arch/unicore32/include/asm/memory.h
+@@ -20,12 +20,6 @@
+ #include <mach/memory.h>
+ 
+ /*
+- * Allow for constants defined here to be used from assembly code
+- * by prepending the UL suffix only with actual C code compilation.
+- */
+-#define UL(x) _AC(x, UL)
+-
+-/*
+  * PAGE_OFFSET - the virtual address of the start of the kernel image
+  * TASK_SIZE - the maximum size of a user space task.
+  * TASK_UNMAPPED_BASE - the lower boundary of the mmap VM area
+diff -puN /dev/null include/linux/const.h
+--- /dev/null
++++ a/include/linux/const.h
+@@ -0,0 +1,9 @@
++#ifndef _LINUX_CONST_H
++#define _LINUX_CONST_H
++
++#include <uapi/linux/const.h>
++
++#define UL(x)		(_UL(x))
++#define ULL(x)		(_ULL(x))
++
++#endif /* _LINUX_CONST_H */
+diff -puN include/uapi/linux/const.h~linux-consth-move-ul-macro-to-include-linux-consth include/uapi/linux/const.h
+--- a/include/uapi/linux/const.h~linux-consth-move-ul-macro-to-include-linux-consth
++++ a/include/uapi/linux/const.h
+@@ -1,7 +1,7 @@
+ /* const.h: Macros for dealing with constants.  */
+ 
+-#ifndef _LINUX_CONST_H
+-#define _LINUX_CONST_H
++#ifndef _UAPI_LINUX_CONST_H
++#define _UAPI_LINUX_CONST_H
+ 
+ /* Some constant macros are used in both assembler and
+  * C code.  Therefore we cannot annotate them always with
+@@ -21,7 +21,10 @@
+ #define _AT(T,X)	((T)(X))
+ #endif
+ 
++#define _UL(x)		(_AC(x, UL))
++#define _ULL(x)		(_AC(x, ULL))
++
+ #define _BITUL(x)	(_AC(1,UL) << (x))
+ #define _BITULL(x)	(_AC(1,ULL) << (x))
+ 
+-#endif /* !(_LINUX_CONST_H) */
++#endif /* _UAPI_LINUX_CONST_H */
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
