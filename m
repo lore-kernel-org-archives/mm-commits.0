@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch added to -mm tree
-Date: Wed, 04 Jan 2017 16:54:42 -0800
-Message-ID: <586d9952.J+Y6Lx0s9y9n2AMC%akpm@linux-foundation.org>
+Subject: + userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch added to -mm tree
+Date: Wed, 04 Jan 2017 16:54:36 -0800
+Message-ID: <586d994c.0yfYlVN5Kjekf1qD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36230 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937522AbdAEAya (ORCPT
+        with ESMTP id S937519AbdAEAya (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2017 19:54:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: selftest: add test for FORK, MADVDONTNEED and REMAP events
+     Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_SHMEM
 has been added to the -mm tree.  Its filename is
-     userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
+     userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,276 +38,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: non-cooperative: selftest: add test for FORK, MADVDONTNEED and REMAP events
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_SHMEM
 
-Add test for userfaultfd events used in non-cooperative scenario when the
-process that monitors the userfaultfd and handles user faults is not the
-same process that causes the page faults.
+Userland developers asked to be notified immediately by the UFFDIO_API
+ioctl if shmem missing mode is supported by userfaultfd in the running
+kernel. This avoids the need to run UFFDIO_REGISTER on a shmem virtual
+memory range to find out.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-41-aarcange@redhat.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-38-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |  175 +++++++++++++++++++--
- 1 file changed, 163 insertions(+), 12 deletions(-)
+ include/uapi/linux/userfaultfd.h |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -63,6 +63,7 @@
- #include <sys/mman.h>
- #include <sys/syscall.h>
- #include <sys/ioctl.h>
-+#include <sys/wait.h>
- #include <pthread.h>
- #include <linux/userfaultfd.h>
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_shmem include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_shmem
++++ a/include/uapi/linux/userfaultfd.h
+@@ -21,7 +21,8 @@
+ #define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |		\
+ 			   UFFD_FEATURE_EVENT_REMAP |		\
+ 			   UFFD_FEATURE_EVENT_MADVDONTNEED |	\
+-			   UFFD_FEATURE_MISSING_HUGETLBFS)
++			   UFFD_FEATURE_MISSING_HUGETLBFS |	\
++			   UFFD_FEATURE_MISSING_SHMEM)
+ #define UFFD_API_IOCTLS				\
+ 	((__u64)1 << _UFFDIO_REGISTER |		\
+ 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
+@@ -146,12 +147,17 @@ struct uffdio_api {
+ 	 *    it, so userland can later check if the feature flag is
+ 	 *    present in uffdio_api.features after UFFDIO_API
+ 	 *    succeeded.
++	 *
++	 * UFFD_FEATURE_MISSING_SHMEM works the same as
++	 * UFFD_FEATURE_MISSING_HUGETLBFS, but it applies to shmem
++	 * (i.e. tmpfs and other shmem based APIs).
+ 	 */
+ #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
+ #define UFFD_FEATURE_EVENT_FORK			(1<<1)
+ #define UFFD_FEATURE_EVENT_REMAP		(1<<2)
+ #define UFFD_FEATURE_EVENT_MADVDONTNEED		(1<<3)
+ #define UFFD_FEATURE_MISSING_HUGETLBFS		(1<<4)
++#define UFFD_FEATURE_MISSING_SHMEM		(1<<5)
+ 	__u64 features;
  
-@@ -347,6 +348,7 @@ static void *uffd_poll_thread(void *arg)
- 	unsigned long cpu = (unsigned long) arg;
- 	struct pollfd pollfd[2];
- 	struct uffd_msg msg;
-+	struct uffdio_register uffd_reg;
- 	int ret;
- 	unsigned long offset;
- 	char tmp_chr;
-@@ -378,16 +380,35 @@ static void *uffd_poll_thread(void *arg)
- 				continue;
- 			perror("nonblocking read error"), exit(1);
- 		}
--		if (msg.event != UFFD_EVENT_PAGEFAULT)
-+		switch (msg.event) {
-+		default:
- 			fprintf(stderr, "unexpected msg event %u\n",
- 				msg.event), exit(1);
--		if (msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
--			fprintf(stderr, "unexpected write fault\n"), exit(1);
--		offset = (char *)(unsigned long)msg.arg.pagefault.address -
--			 area_dst;
--		offset &= ~(page_size-1);
--		if (copy_page(uffd, offset))
--			userfaults++;
-+			break;
-+		case UFFD_EVENT_PAGEFAULT:
-+			if (msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
-+				fprintf(stderr, "unexpected write fault\n"), exit(1);
-+			offset = (char *)(unsigned long)msg.arg.pagefault.address -
-+				area_dst;
-+			offset &= ~(page_size-1);
-+			if (copy_page(uffd, offset))
-+				userfaults++;
-+			break;
-+		case UFFD_EVENT_FORK:
-+			uffd = msg.arg.fork.ufd;
-+			pollfd[0].fd = uffd;
-+			break;
-+		case UFFD_EVENT_MADVDONTNEED:
-+			uffd_reg.range.start = msg.arg.madv_dn.start;
-+			uffd_reg.range.len = msg.arg.madv_dn.end -
-+				msg.arg.madv_dn.start;
-+			if (ioctl(uffd, UFFDIO_UNREGISTER, &uffd_reg.range))
-+				fprintf(stderr, "madv_dn failure\n"), exit(1);
-+			break;
-+		case UFFD_EVENT_REMAP:
-+			area_dst = (char *)(unsigned long)msg.arg.remap.to;
-+			break;
-+		}
- 	}
- 	return (void *)userfaults;
- }
-@@ -512,7 +533,7 @@ static int stress(unsigned long *userfau
- 	return 0;
- }
- 
--static int userfaultfd_open(void)
-+static int userfaultfd_open(int features)
- {
- 	struct uffdio_api uffdio_api;
- 
-@@ -525,7 +546,7 @@ static int userfaultfd_open(void)
- 	uffd_flags = fcntl(uffd, F_GETFD, NULL);
- 
- 	uffdio_api.api = UFFD_API;
--	uffdio_api.features = 0;
-+	uffdio_api.features = features;
- 	if (ioctl(uffd, UFFDIO_API, &uffdio_api)) {
- 		fprintf(stderr, "UFFDIO_API\n");
- 		return 1;
-@@ -538,6 +559,132 @@ static int userfaultfd_open(void)
- 	return 0;
- }
- 
-+/*
-+ * For non-cooperative userfaultfd test we fork() a process that will
-+ * generate pagefaults, will mremap the area monitored by the
-+ * userfaultfd and at last this process will release the monitored
-+ * area.
-+ * For the anonymous and shared memory the area is divided into two
-+ * parts, the first part is accessed before mremap, and the second
-+ * part is accessed after mremap. Since hugetlbfs does not support
-+ * mremap, the entire monitored area is accessed in a single pass for
-+ * HUGETLB_TEST.
-+ * The release of the pages currently generates event only for
-+ * anonymous memory (UFFD_EVENT_MADVDONTNEED), hence it is not checked
-+ * for hugetlb and shmem.
-+ */
-+static int faulting_process(void)
-+{
-+	unsigned long nr;
-+	unsigned long long count;
-+
-+#ifndef HUGETLB_TEST
-+	unsigned long split_nr_pages = (nr_pages + 1) / 2;
-+#else
-+	unsigned long split_nr_pages = nr_pages;
-+#endif
-+
-+	for (nr = 0; nr < split_nr_pages; nr++) {
-+		count = *area_count(area_dst, nr);
-+		if (count != count_verify[nr]) {
-+			fprintf(stderr,
-+				"nr %lu memory corruption %Lu %Lu\n",
-+				nr, count,
-+				count_verify[nr]), exit(1);
-+		}
-+	}
-+
-+#ifndef HUGETLB_TEST
-+	area_dst = mremap(area_dst, nr_pages * page_size,  nr_pages * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
-+	if (area_dst == MAP_FAILED)
-+		perror("mremap"), exit(1);
-+
-+	for (; nr < nr_pages; nr++) {
-+		count = *area_count(area_dst, nr);
-+		if (count != count_verify[nr]) {
-+			fprintf(stderr,
-+				"nr %lu memory corruption %Lu %Lu\n",
-+				nr, count,
-+				count_verify[nr]), exit(1);
-+		}
-+	}
-+
-+#ifndef SHMEM_TEST
-+	if (release_pages(area_dst))
-+		return 1;
-+
-+	for (nr = 0; nr < nr_pages; nr++) {
-+		if (my_bcmp(area_dst + nr * page_size, zeropage, page_size))
-+			fprintf(stderr, "nr %lu is not zero\n", nr), exit(1);
-+	}
-+#endif /* SHMEM_TEST */
-+
-+#endif /* HUGETLB_TEST */
-+
-+	return 0;
-+}
-+
-+static int userfaultfd_events_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+	unsigned long expected_ioctls;
-+	unsigned long userfaults;
-+	pthread_t uffd_mon;
-+	int err, features;
-+	pid_t pid;
-+	char c;
-+
-+	printf("testing events (fork, remap, madv_dn): ");
-+	fflush(stdout);
-+
-+	if (release_pages(area_dst))
-+		return 1;
-+
-+	features = UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_EVENT_REMAP |
-+		UFFD_FEATURE_EVENT_MADVDONTNEED;
-+	if (userfaultfd_open(features) < 0)
-+		return 1;
-+	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
-+
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		fprintf(stderr, "register failure\n"), exit(1);
-+
-+	expected_ioctls = EXPECTED_IOCTLS;
-+	if ((uffdio_register.ioctls & expected_ioctls) !=
-+	    expected_ioctls)
-+		fprintf(stderr,
-+			"unexpected missing ioctl for anon memory\n"),
-+			exit(1);
-+
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, NULL))
-+		perror("uffd_poll_thread create"), exit(1);
-+
-+	pid = fork();
-+	if (pid < 0)
-+		perror("fork"), exit(1);
-+
-+	if (!pid)
-+		return faulting_process();
-+
-+	waitpid(pid, &err, 0);
-+	if (err)
-+		fprintf(stderr, "faulting process failed\n"), exit(1);
-+
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		perror("pipe write"), exit(1);
-+	if (pthread_join(uffd_mon, (void **)&userfaults))
-+		return 1;
-+
-+	close(uffd);
-+	printf("userfaults: %ld\n", userfaults);
-+
-+	return userfaults != nr_pages;
-+}
-+
- static int userfaultfd_stress(void)
- {
- 	void *area;
-@@ -555,7 +702,7 @@ static int userfaultfd_stress(void)
- 	if (!area_dst)
- 		return 1;
- 
--	if (userfaultfd_open() < 0)
-+	if (userfaultfd_open(0) < 0)
- 		return 1;
- 
- 	count_verify = malloc(nr_pages * sizeof(unsigned long long));
-@@ -702,7 +849,11 @@ static int userfaultfd_stress(void)
- 		printf("\n");
- 	}
- 
--	return err;
-+	if (err)
-+		return err;
-+
-+	close(uffd);
-+	return userfaultfd_events_test();
- }
- 
- #ifndef HUGETLB_TEST
+ 	__u64 ioctls;
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users.patch
-userfaultfd-introduce-vma_can_userfault.patch
-userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
-userfaultfd-shmem-introduce-vma_is_shmem.patch
-userfaultfd-shmem-use-shmem_mcopy_atomic_pte-for-shared-memory.patch
-userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults.patch
-userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
-userfaultfd-shmem-add-userfaultfd_shmem-test.patch
-userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
-userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page.patch
-userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
+userfaultfd-document-_ior-_iow.patch
+userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
+userfaultfd-convert-bug-to-warn_on_once.patch
+userfaultfd-use-vma_is_anonymous.patch
+userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
+userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
+userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
+userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
+userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
+userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
+userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
+userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
+userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
+mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
 
