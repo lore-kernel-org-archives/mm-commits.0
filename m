@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+ linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
  added to -mm tree
-Date: Thu, 05 Jan 2017 17:30:42 -0800
-Message-ID: <586ef342.faDgiVKueaJ7l9ZY%akpm@linux-foundation.org>
+Date: Thu, 05 Jan 2017 17:30:40 -0800
+Message-ID: <586ef340.D2g8lT8a0OM0NyTw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42110 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751069AbdAFB3Y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 20:29:24 -0500
+        with ESMTP id S1751069AbdAFB3W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 20:29:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux@roeck-us.net, niklas.soderlund+renesas@ragnatech.se, mm-commits@vger.kernel.org
+To: niklas.soderlund+renesas@ragnatech.se, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix
+     Subject: linux/kernel.h: fix DIV_ROUND_CLOSEST to support negative divisors
 has been added to the -mm tree.  Its filename is
-     linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+     linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Subject: linux/kernel.h: fix DIV_ROUND_CLOSEST to support negative divisors
 
-fix comment, per Guenter
+While working on a thermal driver I encounter a scenario where the divisor
+could be negative, instead of adding local code to handle this I though I
+first try to add support for this in DIV_ROUND_CLOSEST.
 
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Add support to DIV_ROUND_CLOSEST for negative divisors if both dividend
+and divisor variable types are signed.  This should not alter current
+behavior for users of the macro as previously negative divisors where not
+supported.
+
+Before:
+
+DIV_ROUND_CLOSEST(  59,  4) =  15
+DIV_ROUND_CLOSEST(  59, -4) = -14
+DIV_ROUND_CLOSEST( -59,  4) = -15
+DIV_ROUND_CLOSEST( -59, -4) =  14
+
+After:
+
+DIV_ROUND_CLOSEST(  59,  4) =  15
+DIV_ROUND_CLOSEST(  59, -4) = -15
+DIV_ROUND_CLOSEST( -59,  4) = -15
+DIV_ROUND_CLOSEST( -59, -4) =  15
+
+Link: http://lkml.kernel.org/r/20161222102217.29011-1-niklas.soderlund+renesas@ragnatech.se
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix include/linux/kernel.h
---- a/include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix
+diff -puN include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-divisors include/linux/kernel.h
+--- a/include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-divisors
 +++ a/include/linux/kernel.h
-@@ -102,7 +102,7 @@
+@@ -100,16 +100,18 @@
+ )
+ 
  /*
-  * Divide positive or negative dividend by positive or negative divisor
-  * and round to closest integer. Result is undefined for negative
-- * divisors if dividends variable type is unsigned and for negative
-+ * divisors if he dividend variable type is unsigned and for negative
-  * dividends if the divisor variable type is unsigned.
+- * Divide positive or negative dividend by positive divisor and round
+- * to closest integer. Result is undefined for negative divisors and
+- * for negative dividends if the divisor variable type is unsigned.
++ * Divide positive or negative dividend by positive or negative divisor
++ * and round to closest integer. Result is undefined for negative
++ * divisors if dividends variable type is unsigned and for negative
++ * dividends if the divisor variable type is unsigned.
   */
  #define DIV_ROUND_CLOSEST(x, divisor)(			\
+ {							\
+ 	typeof(x) __x = x;				\
+ 	typeof(divisor) __d = divisor;			\
+ 	(((typeof(x))-1) > 0 ||				\
+-	 ((typeof(divisor))-1) > 0 || (__x) > 0) ?	\
++	 ((typeof(divisor))-1) > 0 ||			\
++	 (((__x) > 0) == ((__d) > 0))) ?		\
+ 		(((__x) + ((__d) / 2)) / (__d)) :	\
+ 		(((__x) - ((__d) / 2)) / (__d));	\
+ }							\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from niklas.soderlund+renesas@ragnatech.se are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
-mm.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
 
