@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-module-support-to-glob-tests.patch added to -mm tree
-Date: Thu, 05 Jan 2017 16:26:35 -0800
-Message-ID: <586ee43b.imJwfLFT4DR1nxVQ%akpm@linux-foundation.org>
+Subject: + mm-un-export-wake_up_page-functions.patch added to -mm tree
+Date: Thu, 05 Jan 2017 16:32:55 -0800
+Message-ID: <586ee5b7.r7Qarv2pVOe5hv3B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758181AbdAFAZR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:25:17 -0500
+        with ESMTP id S932094AbdAFAbh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:31:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, andy.shevchenko@gmail.com, mm-commits@vger.kernel.org
+To: npiggin@gmail.com, anna.schumaker@netapp.com, trond.myklebust@primarydata.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: add module support to glob tests
+     Subject: mm: un-export wake_up_page functions
 has been added to the -mm tree.  Its filename is
-     lib-add-module-support-to-glob-tests.patch
+     mm-un-export-wake_up_page-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-module-support-to-glob-tests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-un-export-wake_up_page-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-module-support-to-glob-tests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-un-export-wake_up_page-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,395 +38,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: lib: add module support to glob tests
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: mm: un-export wake_up_page functions
 
-Extract the glob test code into its own source file, to allow to
-compile it either to a loadable module, or builtin into the kernel.
+These are no longer used outside mm/filemap.c, so un-export them and make
+them static where possible.  These were exported specifically for NFS use
+in commit a4796e37c12e ("MM: export page_wakeup functions").
 
-Link: http://lkml.kernel.org/r/1483470276-10517-2-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Link: http://lkml.kernel.org/r/20170103182234.30141-3-npiggin@gmail.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: Anna Schumaker <anna.schumaker@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig    |    3 
- lib/Makefile   |    1 
- lib/glob.c     |  164 ----------------------------------------------
- lib/globtest.c |  167 +++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 169 insertions(+), 166 deletions(-)
+ include/linux/pagemap.h |   12 ++----------
+ mm/filemap.c            |   10 ++++++++--
+ 2 files changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN lib/Kconfig~lib-add-module-support-to-glob-tests lib/Kconfig
---- a/lib/Kconfig~lib-add-module-support-to-glob-tests
-+++ a/lib/Kconfig
-@@ -431,8 +431,7 @@ config GLOB
- 	  depends on this.
- 
- config GLOB_SELFTEST
--	bool "glob self-test on init"
--	default n
-+	tristate "glob self-test on init"
- 	depends on GLOB
- 	help
- 	  This option enables a simple self-test of the glob_match
-diff -puN lib/Makefile~lib-add-module-support-to-glob-tests lib/Makefile
---- a/lib/Makefile~lib-add-module-support-to-glob-tests
-+++ a/lib/Makefile
-@@ -160,6 +160,7 @@ obj-$(CONFIG_CORDIC) += cordic.o
- obj-$(CONFIG_DQL) += dynamic_queue_limits.o
- 
- obj-$(CONFIG_GLOB) += glob.o
-+obj-$(CONFIG_GLOB_SELFTEST) += globtest.o
- 
- obj-$(CONFIG_MPILIB) += mpi/
- obj-$(CONFIG_SIGNATURE) += digsig.o
-diff -puN lib/glob.c~lib-add-module-support-to-glob-tests lib/glob.c
---- a/lib/glob.c~lib-add-module-support-to-glob-tests
-+++ a/lib/glob.c
-@@ -121,167 +121,3 @@ backtrack:
- 	}
+diff -puN include/linux/pagemap.h~mm-un-export-wake_up_page-functions include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-un-export-wake_up_page-functions
++++ a/include/linux/pagemap.h
+@@ -482,19 +482,11 @@ static inline int lock_page_or_retry(str
  }
- EXPORT_SYMBOL(glob_match);
+ 
+ /*
+- * This is exported only for wait_on_page_locked/wait_on_page_writeback,
+- * and for filesystems which need to wait on PG_private.
++ * This is exported only for wait_on_page_locked/wait_on_page_writeback, etc.,
++ * and should not be used directly.
+  */
+ extern void wait_on_page_bit(struct page *page, int bit_nr);
+ extern int wait_on_page_bit_killable(struct page *page, int bit_nr);
+-extern void wake_up_page_bit(struct page *page, int bit_nr);
 -
--
--#ifdef CONFIG_GLOB_SELFTEST
--
--#include <linux/printk.h>
--#include <linux/moduleparam.h>
--
--/* Boot with "glob.verbose=1" to show successful tests, too */
--static bool verbose = false;
--module_param(verbose, bool, 0);
--
--struct glob_test {
--	char const *pat, *str;
--	bool expected;
--};
--
--static bool __pure __init test(char const *pat, char const *str, bool expected)
+-static inline void wake_up_page(struct page *page, int bit)
 -{
--	bool match = glob_match(pat, str);
--	bool success = match == expected;
--
--	/* Can't get string literals into a particular section, so... */
--	static char const msg_error[] __initconst =
--		KERN_ERR "glob: \"%s\" vs. \"%s\": %s *** ERROR ***\n";
--	static char const msg_ok[] __initconst =
--		KERN_DEBUG "glob: \"%s\" vs. \"%s\": %s OK\n";
--	static char const mismatch[] __initconst = "mismatch";
--	char const *message;
--
--	if (!success)
--		message = msg_error;
--	else if (verbose)
--		message = msg_ok;
--	else
--		return success;
--
--	printk(message, pat, str, mismatch + 3*match);
--	return success;
+-	if (!PageWaiters(page))
+-		return;
+-	wake_up_page_bit(page, bit);
 -}
--
--/*
-- * The tests are all jammed together in one array to make it simpler
-- * to place that array in the .init.rodata section.  The obvious
-- * "array of structures containing char *" has no way to force the
-- * pointed-to strings to be in a particular section.
-- *
-- * Anyway, a test consists of:
-- * 1. Expected glob_match result: '1' or '0'.
-- * 2. Pattern to match: null-terminated string
-- * 3. String to match against: null-terminated string
-- *
-- * The list of tests is terminated with a final '\0' instead of
-- * a glob_match result character.
-- */
--static char const glob_tests[] __initconst =
--	/* Some basic tests */
--	"1" "a\0" "a\0"
--	"0" "a\0" "b\0"
--	"0" "a\0" "aa\0"
--	"0" "a\0" "\0"
--	"1" "\0" "\0"
--	"0" "\0" "a\0"
--	/* Simple character class tests */
--	"1" "[a]\0" "a\0"
--	"0" "[a]\0" "b\0"
--	"0" "[!a]\0" "a\0"
--	"1" "[!a]\0" "b\0"
--	"1" "[ab]\0" "a\0"
--	"1" "[ab]\0" "b\0"
--	"0" "[ab]\0" "c\0"
--	"1" "[!ab]\0" "c\0"
--	"1" "[a-c]\0" "b\0"
--	"0" "[a-c]\0" "d\0"
--	/* Corner cases in character class parsing */
--	"1" "[a-c-e-g]\0" "-\0"
--	"0" "[a-c-e-g]\0" "d\0"
--	"1" "[a-c-e-g]\0" "f\0"
--	"1" "[]a-ceg-ik[]\0" "a\0"
--	"1" "[]a-ceg-ik[]\0" "]\0"
--	"1" "[]a-ceg-ik[]\0" "[\0"
--	"1" "[]a-ceg-ik[]\0" "h\0"
--	"0" "[]a-ceg-ik[]\0" "f\0"
--	"0" "[!]a-ceg-ik[]\0" "h\0"
--	"0" "[!]a-ceg-ik[]\0" "]\0"
--	"1" "[!]a-ceg-ik[]\0" "f\0"
--	/* Simple wild cards */
--	"1" "?\0" "a\0"
--	"0" "?\0" "aa\0"
--	"0" "??\0" "a\0"
--	"1" "?x?\0" "axb\0"
--	"0" "?x?\0" "abx\0"
--	"0" "?x?\0" "xab\0"
--	/* Asterisk wild cards (backtracking) */
--	"0" "*??\0" "a\0"
--	"1" "*??\0" "ab\0"
--	"1" "*??\0" "abc\0"
--	"1" "*??\0" "abcd\0"
--	"0" "??*\0" "a\0"
--	"1" "??*\0" "ab\0"
--	"1" "??*\0" "abc\0"
--	"1" "??*\0" "abcd\0"
--	"0" "?*?\0" "a\0"
--	"1" "?*?\0" "ab\0"
--	"1" "?*?\0" "abc\0"
--	"1" "?*?\0" "abcd\0"
--	"1" "*b\0" "b\0"
--	"1" "*b\0" "ab\0"
--	"0" "*b\0" "ba\0"
--	"1" "*b\0" "bb\0"
--	"1" "*b\0" "abb\0"
--	"1" "*b\0" "bab\0"
--	"1" "*bc\0" "abbc\0"
--	"1" "*bc\0" "bc\0"
--	"1" "*bc\0" "bbc\0"
--	"1" "*bc\0" "bcbc\0"
--	/* Multiple asterisks (complex backtracking) */
--	"1" "*ac*\0" "abacadaeafag\0"
--	"1" "*ac*ae*ag*\0" "abacadaeafag\0"
--	"1" "*a*b*[bc]*[ef]*g*\0" "abacadaeafag\0"
--	"0" "*a*b*[ef]*[cd]*g*\0" "abacadaeafag\0"
--	"1" "*abcd*\0" "abcabcabcabcdefg\0"
--	"1" "*ab*cd*\0" "abcabcabcabcdefg\0"
--	"1" "*abcd*abcdef*\0" "abcabcdabcdeabcdefg\0"
--	"0" "*abcd*\0" "abcabcabcabcefg\0"
--	"0" "*ab*cd*\0" "abcabcabcabcefg\0";
--
--static int __init glob_init(void)
--{
--	unsigned successes = 0;
--	unsigned n = 0;
--	char const *p = glob_tests;
--	static char const message[] __initconst =
--		KERN_INFO "glob: %u self-tests passed, %u failed\n";
--
--	/*
--	 * Tests are jammed together in a string.  The first byte is '1'
--	 * or '0' to indicate the expected outcome, or '\0' to indicate the
--	 * end of the tests.  Then come two null-terminated strings: the
--	 * pattern and the string to match it against.
--	 */
--	while (*p) {
--		bool expected = *p++ & 1;
--		char const *pat = p;
--
--		p += strlen(p) + 1;
--		successes += test(pat, p, expected);
--		p += strlen(p) + 1;
--		n++;
--	}
--
--	n -= successes;
--	printk(message, successes, n);
--
--	/* What's the errno for "kernel bug detected"?  Guess... */
--	return n ? -ECANCELED : 0;
--}
--
--/* We need a dummy exit function to allow unload */
--static void __exit glob_fini(void) { }
--
--module_init(glob_init);
--module_exit(glob_fini);
--
--#endif /* CONFIG_GLOB_SELFTEST */
-diff -puN /dev/null lib/globtest.c
---- /dev/null
-+++ a/lib/globtest.c
-@@ -0,0 +1,167 @@
-+/*
-+ * Extracted fronm glob.c
-+ */
+ 
+ /* 
+  * Wait for a page to be unlocked.
+diff -puN mm/filemap.c~mm-un-export-wake_up_page-functions mm/filemap.c
+--- a/mm/filemap.c~mm-un-export-wake_up_page-functions
++++ a/mm/filemap.c
+@@ -788,7 +788,7 @@ static int wake_page_function(wait_queue
+ 	return autoremove_wake_function(wait, mode, sync, key);
+ }
+ 
+-void wake_up_page_bit(struct page *page, int bit_nr)
++static void wake_up_page_bit(struct page *page, int bit_nr)
+ {
+ 	wait_queue_head_t *q = page_waitqueue(page);
+ 	struct wait_page_key key;
+@@ -821,7 +821,13 @@ void wake_up_page_bit(struct page *page,
+ 	}
+ 	spin_unlock_irqrestore(&q->lock, flags);
+ }
+-EXPORT_SYMBOL(wake_up_page_bit);
 +
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/glob.h>
-+#include <linux/printk.h>
-+
-+/* Boot with "glob.verbose=1" to show successful tests, too */
-+static bool verbose = false;
-+module_param(verbose, bool, 0);
-+
-+struct glob_test {
-+	char const *pat, *str;
-+	bool expected;
-+};
-+
-+static bool __pure __init test(char const *pat, char const *str, bool expected)
++static void wake_up_page(struct page *page, int bit)
 +{
-+	bool match = glob_match(pat, str);
-+	bool success = match == expected;
-+
-+	/* Can't get string literals into a particular section, so... */
-+	static char const msg_error[] __initconst =
-+		KERN_ERR "glob: \"%s\" vs. \"%s\": %s *** ERROR ***\n";
-+	static char const msg_ok[] __initconst =
-+		KERN_DEBUG "glob: \"%s\" vs. \"%s\": %s OK\n";
-+	static char const mismatch[] __initconst = "mismatch";
-+	char const *message;
-+
-+	if (!success)
-+		message = msg_error;
-+	else if (verbose)
-+		message = msg_ok;
-+	else
-+		return success;
-+
-+	printk(message, pat, str, mismatch + 3*match);
-+	return success;
++	if (!PageWaiters(page))
++		return;
++	wake_up_page_bit(page, bit);
 +}
-+
-+/*
-+ * The tests are all jammed together in one array to make it simpler
-+ * to place that array in the .init.rodata section.  The obvious
-+ * "array of structures containing char *" has no way to force the
-+ * pointed-to strings to be in a particular section.
-+ *
-+ * Anyway, a test consists of:
-+ * 1. Expected glob_match result: '1' or '0'.
-+ * 2. Pattern to match: null-terminated string
-+ * 3. String to match against: null-terminated string
-+ *
-+ * The list of tests is terminated with a final '\0' instead of
-+ * a glob_match result character.
-+ */
-+static char const glob_tests[] __initconst =
-+	/* Some basic tests */
-+	"1" "a\0" "a\0"
-+	"0" "a\0" "b\0"
-+	"0" "a\0" "aa\0"
-+	"0" "a\0" "\0"
-+	"1" "\0" "\0"
-+	"0" "\0" "a\0"
-+	/* Simple character class tests */
-+	"1" "[a]\0" "a\0"
-+	"0" "[a]\0" "b\0"
-+	"0" "[!a]\0" "a\0"
-+	"1" "[!a]\0" "b\0"
-+	"1" "[ab]\0" "a\0"
-+	"1" "[ab]\0" "b\0"
-+	"0" "[ab]\0" "c\0"
-+	"1" "[!ab]\0" "c\0"
-+	"1" "[a-c]\0" "b\0"
-+	"0" "[a-c]\0" "d\0"
-+	/* Corner cases in character class parsing */
-+	"1" "[a-c-e-g]\0" "-\0"
-+	"0" "[a-c-e-g]\0" "d\0"
-+	"1" "[a-c-e-g]\0" "f\0"
-+	"1" "[]a-ceg-ik[]\0" "a\0"
-+	"1" "[]a-ceg-ik[]\0" "]\0"
-+	"1" "[]a-ceg-ik[]\0" "[\0"
-+	"1" "[]a-ceg-ik[]\0" "h\0"
-+	"0" "[]a-ceg-ik[]\0" "f\0"
-+	"0" "[!]a-ceg-ik[]\0" "h\0"
-+	"0" "[!]a-ceg-ik[]\0" "]\0"
-+	"1" "[!]a-ceg-ik[]\0" "f\0"
-+	/* Simple wild cards */
-+	"1" "?\0" "a\0"
-+	"0" "?\0" "aa\0"
-+	"0" "??\0" "a\0"
-+	"1" "?x?\0" "axb\0"
-+	"0" "?x?\0" "abx\0"
-+	"0" "?x?\0" "xab\0"
-+	/* Asterisk wild cards (backtracking) */
-+	"0" "*??\0" "a\0"
-+	"1" "*??\0" "ab\0"
-+	"1" "*??\0" "abc\0"
-+	"1" "*??\0" "abcd\0"
-+	"0" "??*\0" "a\0"
-+	"1" "??*\0" "ab\0"
-+	"1" "??*\0" "abc\0"
-+	"1" "??*\0" "abcd\0"
-+	"0" "?*?\0" "a\0"
-+	"1" "?*?\0" "ab\0"
-+	"1" "?*?\0" "abc\0"
-+	"1" "?*?\0" "abcd\0"
-+	"1" "*b\0" "b\0"
-+	"1" "*b\0" "ab\0"
-+	"0" "*b\0" "ba\0"
-+	"1" "*b\0" "bb\0"
-+	"1" "*b\0" "abb\0"
-+	"1" "*b\0" "bab\0"
-+	"1" "*bc\0" "abbc\0"
-+	"1" "*bc\0" "bc\0"
-+	"1" "*bc\0" "bbc\0"
-+	"1" "*bc\0" "bcbc\0"
-+	/* Multiple asterisks (complex backtracking) */
-+	"1" "*ac*\0" "abacadaeafag\0"
-+	"1" "*ac*ae*ag*\0" "abacadaeafag\0"
-+	"1" "*a*b*[bc]*[ef]*g*\0" "abacadaeafag\0"
-+	"0" "*a*b*[ef]*[cd]*g*\0" "abacadaeafag\0"
-+	"1" "*abcd*\0" "abcabcabcabcdefg\0"
-+	"1" "*ab*cd*\0" "abcabcabcabcdefg\0"
-+	"1" "*abcd*abcdef*\0" "abcabcdabcdeabcdefg\0"
-+	"0" "*abcd*\0" "abcabcabcabcefg\0"
-+	"0" "*ab*cd*\0" "abcabcabcabcefg\0";
-+
-+static int __init glob_init(void)
-+{
-+	unsigned successes = 0;
-+	unsigned n = 0;
-+	char const *p = glob_tests;
-+	static char const message[] __initconst =
-+		KERN_INFO "glob: %u self-tests passed, %u failed\n";
-+
-+	/*
-+	 * Tests are jammed together in a string.  The first byte is '1'
-+	 * or '0' to indicate the expected outcome, or '\0' to indicate the
-+	 * end of the tests.  Then come two null-terminated strings: the
-+	 * pattern and the string to match it against.
-+	 */
-+	while (*p) {
-+		bool expected = *p++ & 1;
-+		char const *pat = p;
-+
-+		p += strlen(p) + 1;
-+		successes += test(pat, p, expected);
-+		p += strlen(p) + 1;
-+		n++;
-+	}
-+
-+	n -= successes;
-+	printk(message, successes, n);
-+
-+	/* What's the errno for "kernel bug detected"?  Guess... */
-+	return n ? -ECANCELED : 0;
-+}
-+
-+/* We need a dummy exit function to allow unload */
-+static void __exit glob_fini(void) { }
-+
-+module_init(glob_init);
-+module_exit(glob_fini);
-+
-+MODULE_DESCRIPTION("glob(7) matching tests");
-+MODULE_LICENSE("Dual MIT/GPL");
+ 
+ static inline int wait_on_page_bit_common(wait_queue_head_t *q,
+ 		struct page *page, int bit_nr, int state, bool lock)
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-lib-add-module-support-to-crc32-tests.patch
-lib-add-module-support-to-glob-tests.patch
-lib-add-module-support-to-atomic64-tests.patch
+nfs-no-pg_private-waiters-remain-remove-waker.patch
+mm-un-export-wake_up_page-functions.patch
 
