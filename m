@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fonts-keep-non-sparc-fonts-listed-together.patch added to -mm
- tree
-Date: Fri, 06 Jan 2017 14:39:25 -0800
-Message-ID: <58701c9d.2PNrh59WIaN6y8S4%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch added
+ to -mm tree
+Date: Fri, 06 Jan 2017 14:45:38 -0800
+Message-ID: <58701e12.HjC5fxJiglntU1Sf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60950 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755438AbdAFWiF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2017 17:38:05 -0500
+        with ESMTP id S940756AbdAFWoS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2017 17:44:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: paul.burton@imgtec.com, james.hartley@imgtec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/fonts/Kconfig: keep non-Sparc fonts listed together
+     Subject: mm: page_alloc: skip over regions of invalid pfns where possible
 has been added to the -mm tree.  Its filename is
-     fonts-keep-non-sparc-fonts-listed-together.patch
+     mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fonts-keep-non-sparc-fonts-listed-together.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fonts-keep-non-sparc-fonts-listed-together.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +40,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib/fonts/Kconfig: keep non-Sparc fonts listed together
+From: Paul Burton <paul.burton@imgtec.com>
+Subject: mm: page_alloc: skip over regions of invalid pfns where possible
 
-Keep fonts together and indented (in menu) as much as possible.
-This moves the Sparc font choices to the end of the menu since they
-have different dependencies.
+When using a sparse memory model memmap_init_zone() when invoked with the
+MEMMAP_EARLY context will skip over pages which aren't valid - ie.  which
+aren't in a populated region of the sparse memory map.  However if the
+memory map is extremely sparse then it can spend a long time linearly
+checking each PFN in a large non-populated region of the memory map &
+skipping it in turn.
 
-Link: http://lkml.kernel.org/r/de6d8977-c6d6-a82d-c953-f2a2fefdb8a5@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+When CONFIG_HAVE_MEMBLOCK_NODE_MAP is enabled, we have sufficient
+information to quickly discover the next valid PFN given an invalid one by
+searching through the list of memory regions & skipping forwards to the
+first PFN covered by the memory region to the right of the non-populated
+region.  Implement this in order to speed up memmap_init_zone() for
+systems with extremely sparse memory maps.
+
+Link: http://lkml.kernel.org/r/20161125185518.29885-1-paul.burton@imgtec.com
+Signed-off-by: Paul Burton <paul.burton@imgtec.com>
+Cc: James Hartley <james.hartley@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fonts/Kconfig |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |   25 +++++++++++++++++++++++++
+ mm/page_alloc.c          |   11 ++++++++++-
+ 3 files changed, 36 insertions(+), 1 deletion(-)
 
-diff -puN lib/fonts/Kconfig~fonts-keep-non-sparc-fonts-listed-together lib/fonts/Kconfig
---- a/lib/fonts/Kconfig~fonts-keep-non-sparc-fonts-listed-together
-+++ a/lib/fonts/Kconfig
-@@ -87,6 +87,14 @@ config FONT_6x10
- 	  embedded devices with a 320x240 screen, to get a reasonable number
- 	  of characters (53x24) that are still at a readable size.
+diff -puN include/linux/memblock.h~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
++++ a/include/linux/memblock.h
+@@ -203,6 +203,7 @@ int memblock_search_pfn_nid(unsigned lon
+ 			    unsigned long  *end_pfn);
+ void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
+ 			  unsigned long *out_end_pfn, int *out_nid);
++unsigned long memblock_next_valid_pfn(unsigned long pfn, unsigned long max_pfn);
  
-+config FONT_10x18
-+	bool "console 10x18 font (not supported by all drivers)" if FONTS
-+	depends on FRAMEBUFFER_CONSOLE
-+	help
-+	  This is a high resolution console font for machines with very
-+	  big letters. It fits between the sun 12x22 and the normal 8x16 font.
-+	  If other fonts are too big or too small for you, say Y, otherwise say N.
+ /**
+  * for_each_mem_pfn_range - early memory pfn range iterator
+diff -puN mm/memblock.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible mm/memblock.c
+--- a/mm/memblock.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
++++ a/mm/memblock.c
+@@ -1105,6 +1105,31 @@ void __init_memblock __next_mem_pfn_rang
+ 		*out_nid = r->nid;
+ }
+ 
++unsigned long __init_memblock memblock_next_valid_pfn(unsigned long pfn,
++						      unsigned long max_pfn)
++{
++	struct memblock_type *type = &memblock.memory;
++	unsigned int right = type->cnt;
++	unsigned int mid, left = 0;
++	phys_addr_t addr = PFN_PHYS(pfn + 1);
 +
- config FONT_SUN8x16
- 	bool "Sparc console 8x16 font"
- 	depends on FRAMEBUFFER_CONSOLE && (!SPARC && FONTS || SPARC)
-@@ -101,14 +109,6 @@ config FONT_SUN12x22
- 	  big letters (like the letters used in the SPARC PROM). If the
- 	  standard font is unreadable for you, say Y, otherwise say N.
++	do {
++		mid = (right + left) / 2;
++
++		if (addr < type->regions[mid].base)
++			right = mid;
++		else if (addr >= (type->regions[mid].base +
++				  type->regions[mid].size))
++			left = mid + 1;
++		else {
++			/* addr is within the region, so pfn + 1 is valid */
++			return min(pfn + 1, max_pfn);
++		}
++	} while (left < right);
++
++	return min(PHYS_PFN(type->regions[right].base), max_pfn);
++}
++
+ /**
+  * memblock_set_node - set node ID on memblock regions
+  * @base: base of area to set node ID for
+diff -puN mm/page_alloc.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
++++ a/mm/page_alloc.c
+@@ -5080,8 +5080,17 @@ void __meminit memmap_init_zone(unsigned
+ 		if (context != MEMMAP_EARLY)
+ 			goto not_early;
  
--config FONT_10x18
--	bool "console 10x18 font (not supported by all drivers)" if FONTS
--	depends on FRAMEBUFFER_CONSOLE
--	help
--	  This is a high resolution console font for machines with very
--	  big letters. It fits between the sun 12x22 and the normal 8x16 font.
--	  If other fonts are too big or too small for you, say Y, otherwise say N.
+-		if (!early_pfn_valid(pfn))
++		if (!early_pfn_valid(pfn)) {
++#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
++			/*
++			 * Skip to the pfn preceding the next valid one (or
++			 * end_pfn), such that we hit a valid pfn (or end_pfn)
++			 * on our next iteration of the loop.
++			 */
++			pfn = memblock_next_valid_pfn(pfn, end_pfn) - 1;
++#endif
+ 			continue;
++		}
+ 		if (!early_pfn_in_nid(pfn, nid))
+ 			continue;
+ 		if (!update_defer_init(pgdat, pfn, end_pfn, &nr_initialised))
+_
+
+Patches currently in -mm which might be from paul.burton@imgtec.com are
+
+mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
+
