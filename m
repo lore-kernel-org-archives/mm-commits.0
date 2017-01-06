@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fix-slab-freelist-randomization-duplicate-entries.patch added
- to -mm tree
-Date: Thu, 05 Jan 2017 16:36:22 -0800
-Message-ID: <586ee686.3b+HV57k7NuO6wdO%akpm@linux-foundation.org>
+Subject: + checkpatch-warn-on-logging-continuations.patch added to -mm
+ tree
+Date: Thu, 05 Jan 2017 16:37:12 -0800
+Message-ID: <586ee6b8.2YQUghNZKlnybzxu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35192 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35204 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966421AbdAFAfE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:35:04 -0500
+        with ESMTP id S1758181AbdAFAfy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:35:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsperbeck@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab.c: fix SLAB freelist randomization duplicate entries
+     Subject: checkpatch: warn on logging continuations
 has been added to the -mm tree.  Its filename is
-     fix-slab-freelist-randomization-duplicate-entries.patch
+     checkpatch-warn-on-logging-continuations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-slab-freelist-randomization-duplicate-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-logging-continuations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-slab-freelist-randomization-duplicate-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-logging-continuations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Sperbeck <jsperbeck@google.com>
-Subject: mm/slab.c: fix SLAB freelist randomization duplicate entries
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on logging continuations
 
-This patch fixes a bug in the freelist randomization code. When a high
-random number is used, the freelist will contain duplicate entries. It
-will result in different allocations sharing the same chunk.
+pr_cont(...) and printk(KERN_CONT ...) uses should be discouraged
+as their output can be interleaved by multiple logging processes.
 
-Fixes: c7ce4f60ac19 ("mm: SLAB freelist randomization")
-Link: http://lkml.kernel.org/r/20170103181908.143178-1-thgarnie@google.com
-Signed-off-by: John Sperbeck <jsperbeck@google.com>
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/7100ba00098694ec81471a299583ed068975fd05.1483465888.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/slab.c~fix-slab-freelist-randomization-duplicate-entries mm/slab.c
---- a/mm/slab.c~fix-slab-freelist-randomization-duplicate-entries
-+++ a/mm/slab.c
-@@ -2457,7 +2457,6 @@ union freelist_init_state {
- 		unsigned int pos;
- 		unsigned int *list;
- 		unsigned int count;
--		unsigned int rand;
- 	};
- 	struct rnd_state rnd_state;
- };
-@@ -2483,8 +2482,7 @@ static bool freelist_state_initialize(un
- 	} else {
- 		state->list = cachep->random_seq;
- 		state->count = count;
--		state->pos = 0;
--		state->rand = rand;
-+		state->pos = rand % count;
- 		ret = true;
- 	}
- 	return ret;
-@@ -2493,7 +2491,9 @@ static bool freelist_state_initialize(un
- /* Get the next entry on the list and randomize it using a random shift */
- static freelist_idx_t next_random_slot(union freelist_init_state *state)
- {
--	return (state->list[state->pos++] + state->rand) % state->count;
-+	if (state->pos >= state->count)
-+		state->pos = 0;
-+	return state->list[state->pos++];
- }
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-logging-continuations scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-logging-continuations
++++ a/scripts/checkpatch.pl
+@@ -5287,6 +5287,12 @@ sub process {
+ 			}
+ 		}
  
- /* Swap two freelist entries */
++# check for logging continuations
++		if ($line =~ /\bprintk\s*\(\s*KERN_CONT\b|\bpr_cont\s*\(/) {
++			WARN("LOGGING_CONTINUATION",
++			     "Avoid logging continuation uses where feasible\n" . $herecurr);
++		}
++
+ # check for mask then right shift without a parentheses
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    $line =~ /$LvalOrFunc\s*\&\s*($LvalOrFunc)\s*>>/ &&
 _
 
-Patches currently in -mm which might be from jsperbeck@google.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-fix-slab-freelist-randomization-duplicate-entries.patch
+checkpatch-warn-on-embedded-function-names.patch
+checkpatch-warn-on-logging-continuations.patch
 
