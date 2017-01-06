@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-typo-of-cache_alloc_zspage.patch added to -mm tree
-Date: Thu, 05 Jan 2017 16:51:47 -0800
-Message-ID: <586eea23.T5Fz3ab4ZPdpAJCM%akpm@linux-foundation.org>
+Subject: + mm-fix-filemapc-kernel-doc-warnings.patch added to -mm tree
+Date: Thu, 05 Jan 2017 16:54:30 -0800
+Message-ID: <586eeac6.GhOVWv6ANbY1IdMp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36256 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751216AbdAFAvI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:51:08 -0500
+        with ESMTP id S1751632AbdAFAxM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:53:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix typo ni cache_alloc_zspage()
+     Subject: mm: fix filemap.c kernel-doc warnings
 has been added to the -mm tree.  Its filename is
-     mm-fix-typo-of-cache_alloc_zspage.patch
+     mm-fix-filemapc-kernel-doc-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-typo-of-cache_alloc_zspage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-filemapc-kernel-doc-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-typo-of-cache_alloc_zspage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-filemapc-kernel-doc-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,35 +38,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: fix typo ni cache_alloc_zspage()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: fix filemap.c kernel-doc warnings
 
-Delete extra semicolon, it was introduced in 3783689 ("zsmalloc: introduce
-zspage structure").
+Fix kernel-doc warnings in mm/filemap.c:
 
-Link: http://lkml.kernel.org/r/5864C12F.60709@huawei.com
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+..//mm/filemap.c:993: warning: No description found for parameter '__page'
+..//mm/filemap.c:993: warning: Excess function parameter 'page' description in '__lock_page'
+
+Link: http://lkml.kernel.org/r/a66fe492-518c-ad6c-5f03-5e8b721fb451@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
+ mm/filemap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~mm-fix-typo-of-cache_alloc_zspage mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-fix-typo-of-cache_alloc_zspage
-+++ a/mm/zsmalloc.c
-@@ -364,7 +364,7 @@ static struct zspage *cache_alloc_zspage
- {
- 	return kmem_cache_alloc(pool->zspage_cachep,
- 			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
--};
-+}
+diff -puN mm/filemap.c~mm-fix-filemapc-kernel-doc-warnings mm/filemap.c
+--- a/mm/filemap.c~mm-fix-filemapc-kernel-doc-warnings
++++ a/mm/filemap.c
+@@ -1019,7 +1019,7 @@ EXPORT_SYMBOL_GPL(page_endio);
  
- static void cache_free_zspage(struct zs_pool *pool, struct zspage *zspage)
+ /**
+  * __lock_page - get a lock on the page, assuming we need to sleep to get it
+- * @page: the page to lock
++ * @__page: the page to lock
+  */
+ void __lock_page(struct page *__page)
  {
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-fix-typo-of-cache_alloc_zspage.patch
+mm-fix-filemapc-kernel-doc-warnings.patch
 
