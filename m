@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-exit-compute-current-directly.patch added to -mm tree
-Date: Thu, 05 Jan 2017 16:19:22 -0800
-Message-ID: <586ee28a.ibvucEwIQWMVU5UK%akpm@linux-foundation.org>
+Subject: + drivers-tty-compute-current-directly.patch added to -mm tree
+Date: Thu, 05 Jan 2017 16:19:24 -0800
+Message-ID: <586ee28c.GW14N4+kUk43sPlQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58664 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754727AbdAFASK (ORCPT
+        with ESMTP id S1754750AbdAFASK (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:18:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, mark.rutland@arm.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, gregkh@linuxfoundation.org, mark.rutland@arm.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/exit: compute current directly
+     Subject: drivers/tty: compute current directly
 has been added to the -mm tree.  Its filename is
-     kernel-exit-compute-current-directly.patch
+     drivers-tty-compute-current-directly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-exit-compute-current-directly.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-tty-compute-current-directly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-exit-compute-current-directly.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-tty-compute-current-directly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,106 +39,105 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: kernel/exit: compute current directly
-
-Patch series "current vs ptr to current dereferencing".
-
-First three patches get rid of 'tsk = current' based assignments to
-simply use current/get_current macro directly now that we have some
-actual numbers -- in which the conversion does improve some performance
-numbers, specially the locking bits. This is only around what directly
-is touched by patch 4, making it very obvious that we are indeed calling
-upon the current task. There are other users left with this pattern that
-could be cleaned up later.
-
-
-This patch (of 4):
+Subject: drivers/tty: compute current directly
 
 This patch effectively replaces the tsk pointer dereference (which is
-obviously == current), to directly use get_current() macro.  In this case,
-do_exit() always passes current to exit_mm(), hence we can simply get rid
-of the arg.  This is also a performance win on some archs such as x86-64
-and ppc64 -- arm64 is no longer an issue:
+obviously == current), to directly use get_current() macro.  This is to
+make the removal of setting foreign task states smoother and painfully
+obvious.  Performance win on some archs such as x86-64 and ppc64 -- arm64
+is no longer an issue:
 
     https://lkml.org/lkml/2016/12/30/230
 
-Link: http://lkml.kernel.org/r/1483479794-14013-2-git-send-email-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Link: http://lkml.kernel.org/r/1483479794-14013-3-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/tty/tty_ldsem.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN kernel/exit.c~kernel-exit-compute-current-directly kernel/exit.c
---- a/kernel/exit.c~kernel-exit-compute-current-directly
-+++ a/kernel/exit.c
-@@ -468,12 +468,12 @@ assign_new_owner:
-  * Turn us into a lazy TLB process if we
-  * aren't already..
-  */
--static void exit_mm(struct task_struct *tsk)
-+static void exit_mm(void)
+diff -puN drivers/tty/tty_ldsem.c~drivers-tty-compute-current-directly drivers/tty/tty_ldsem.c
+--- a/drivers/tty/tty_ldsem.c~drivers-tty-compute-current-directly
++++ a/drivers/tty/tty_ldsem.c
+@@ -200,7 +200,6 @@ static struct ld_semaphore __sched *
+ down_read_failed(struct ld_semaphore *sem, long count, long timeout)
  {
--	struct mm_struct *mm = tsk->mm;
-+	struct mm_struct *mm = current->mm;
- 	struct core_state *core_state;
+ 	struct ldsem_waiter waiter;
+-	struct task_struct *tsk = current;
+ 	long adjust = -LDSEM_ACTIVE_BIAS + LDSEM_WAIT_BIAS;
  
--	mm_release(tsk, mm);
-+	mm_release(current, mm);
- 	if (!mm)
- 		return;
- 	sync_mm_rss(mm);
-@@ -491,7 +491,7 @@ static void exit_mm(struct task_struct *
+ 	/* set up my own style of waitqueue */
+@@ -221,8 +220,8 @@ down_read_failed(struct ld_semaphore *se
+ 	list_add_tail(&waiter.list, &sem->read_wait);
+ 	sem->wait_readers++;
  
- 		up_read(&mm->mmap_sem);
+-	waiter.task = tsk;
+-	get_task_struct(tsk);
++	waiter.task = current;
++	get_task_struct(current);
  
--		self.task = tsk;
-+		self.task = current;
- 		self.next = xchg(&core_state->dumper.next, &self);
- 		/*
- 		 * Implies mb(), the result of xchg() must be visible
-@@ -501,22 +501,22 @@ static void exit_mm(struct task_struct *
- 			complete(&core_state->startup);
+ 	/* if there are no active locks, wake the new lock owner(s) */
+ 	if ((count & LDSEM_ACTIVE_MASK) == 0)
+@@ -232,7 +231,7 @@ down_read_failed(struct ld_semaphore *se
  
- 		for (;;) {
--			set_task_state(tsk, TASK_UNINTERRUPTIBLE);
-+			set_task_state(current, TASK_UNINTERRUPTIBLE);
- 			if (!self.task) /* see coredump_finish() */
- 				break;
- 			freezable_schedule();
- 		}
--		__set_task_state(tsk, TASK_RUNNING);
-+		__set_task_state(current, TASK_RUNNING);
- 		down_read(&mm->mmap_sem);
+ 	/* wait to be given the lock */
+ 	for (;;) {
+-		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++		set_task_state(current, TASK_UNINTERRUPTIBLE);
+ 
+ 		if (!waiter.task)
+ 			break;
+@@ -241,7 +240,7 @@ down_read_failed(struct ld_semaphore *se
+ 		timeout = schedule_timeout(timeout);
  	}
- 	atomic_inc(&mm->mm_count);
--	BUG_ON(mm != tsk->active_mm);
-+	BUG_ON(mm != current->active_mm);
- 	/* more a memory barrier than a real lock */
--	task_lock(tsk);
--	tsk->mm = NULL;
-+	task_lock(current);
-+	current->mm = NULL;
- 	up_read(&mm->mmap_sem);
- 	enter_lazy_tlb(mm, current);
--	task_unlock(tsk);
-+	task_unlock(current);
- 	mm_update_next_owner(mm);
- 	mmput(mm);
- 	if (test_thread_flag(TIF_MEMDIE))
-@@ -823,7 +823,7 @@ void __noreturn do_exit(long code)
- 	tsk->exit_code = code;
- 	taskstats_exit(tsk, group_dead);
  
--	exit_mm(tsk);
-+	exit_mm();
+-	__set_task_state(tsk, TASK_RUNNING);
++	__set_task_state(current, TASK_RUNNING);
  
- 	if (group_dead)
- 		acct_process();
+ 	if (!timeout) {
+ 		/* lock timed out but check if this task was just
+@@ -268,7 +267,6 @@ static struct ld_semaphore __sched *
+ down_write_failed(struct ld_semaphore *sem, long count, long timeout)
+ {
+ 	struct ldsem_waiter waiter;
+-	struct task_struct *tsk = current;
+ 	long adjust = -LDSEM_ACTIVE_BIAS;
+ 	int locked = 0;
+ 
+@@ -289,16 +287,16 @@ down_write_failed(struct ld_semaphore *s
+ 
+ 	list_add_tail(&waiter.list, &sem->write_wait);
+ 
+-	waiter.task = tsk;
++	waiter.task = current;
+ 
+-	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++	set_task_state(current, TASK_UNINTERRUPTIBLE);
+ 	for (;;) {
+ 		if (!timeout)
+ 			break;
+ 		raw_spin_unlock_irq(&sem->wait_lock);
+ 		timeout = schedule_timeout(timeout);
+ 		raw_spin_lock_irq(&sem->wait_lock);
+-		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++		set_task_state(current, TASK_UNINTERRUPTIBLE);
+ 		locked = writer_trylock(sem);
+ 		if (locked)
+ 			break;
+@@ -309,7 +307,7 @@ down_write_failed(struct ld_semaphore *s
+ 	list_del(&waiter.list);
+ 	raw_spin_unlock_irq(&sem->wait_lock);
+ 
+-	__set_task_state(tsk, TASK_RUNNING);
++	__set_task_state(current, TASK_RUNNING);
+ 
+ 	/* lock wait may have timed out */
+ 	if (!locked)
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
