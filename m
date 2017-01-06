@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain.patch added to -mm tree
-Date: Thu, 05 Jan 2017 16:00:13 -0800
-Message-ID: <586ede0d.VFBvO7W5OfzpLITl%akpm@linux-foundation.org>
+Subject: + mm-add-documentation-for-page-fragment-apis.patch added to -mm
+ tree
+Date: Thu, 05 Jan 2017 16:00:15 -0800
+Message-ID: <586ede0f.Wjugoa8Q2lDpvsod%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35228 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966421AbdAFAgm (ORCPT
+        with ESMTP id S966796AbdAFAgm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2017 19:36:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: alexander.h.duyck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rename __page_frag functions to __page_frag_cache, drop order from drain
+     Subject: mm: add documentation for page fragment APIs
 has been added to the -mm tree.  Its filename is
-     mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain.patch
+     mm-add-documentation-for-page-fragment-apis.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-documentation-for-page-fragment-apis.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-documentation-for-page-fragment-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,111 +40,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: mm: rename __page_frag functions to __page_frag_cache, drop order from drain
+Subject: mm: add documentation for page fragment APIs
 
-This patch does two things.
+This is a first pass at trying to add documentation for the page_frag
+APIs.  They may still change over time but for now I thought I would try
+to get these documented so that as more network drivers and stack calls
+make use of them we have one central spot to document how they are meant
+to be used.
 
-First it goes through and renames the __page_frag prefixed functions to
-__page_frag_cache so that we can be clear that we are draining or
-refilling the cache, not the frags themselves.
-
-Second we drop the order parameter from __page_frag_cache_drain since we
-don't actually need to pass it since all fragments are either order 0 or
-must be a compound page.
-
-Link: http://lkml.kernel.org/r/20170104023954.13451.5678.stgit@localhost.localdomain
+Link: http://lkml.kernel.org/r/20170104024157.13451.6758.stgit@localhost.localdomain
 Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/intel/igb/igb_main.c |    6 +++---
- include/linux/gfp.h                       |    3 +--
- mm/page_alloc.c                           |   13 +++++++------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ Documentation/vm/page_frags |   42 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff -puN drivers/net/ethernet/intel/igb/igb_main.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain drivers/net/ethernet/intel/igb/igb_main.c
---- a/drivers/net/ethernet/intel/igb/igb_main.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain
-+++ a/drivers/net/ethernet/intel/igb/igb_main.c
-@@ -3962,8 +3962,8 @@ static void igb_clean_rx_ring(struct igb
- 				     PAGE_SIZE,
- 				     DMA_FROM_DEVICE,
- 				     DMA_ATTR_SKIP_CPU_SYNC);
--		__page_frag_drain(buffer_info->page, 0,
--				  buffer_info->pagecnt_bias);
-+		__page_frag_cache_drain(buffer_info->page,
-+					buffer_info->pagecnt_bias);
- 
- 		buffer_info->page = NULL;
- 	}
-@@ -6991,7 +6991,7 @@ static struct sk_buff *igb_fetch_rx_buff
- 		dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
- 				     PAGE_SIZE, DMA_FROM_DEVICE,
- 				     DMA_ATTR_SKIP_CPU_SYNC);
--		__page_frag_drain(page, 0, rx_buffer->pagecnt_bias);
-+		__page_frag_cache_drain(page, rx_buffer->pagecnt_bias);
- 	}
- 
- 	/* clear contents of rx_buffer */
-diff -puN include/linux/gfp.h~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain include/linux/gfp.h
---- a/include/linux/gfp.h~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain
-+++ a/include/linux/gfp.h
-@@ -499,8 +499,7 @@ extern void free_hot_cold_page(struct pa
- extern void free_hot_cold_page_list(struct list_head *list, bool cold);
- 
- struct page_frag_cache;
--extern void __page_frag_drain(struct page *page, unsigned int order,
--			      unsigned int count);
-+extern void __page_frag_cache_drain(struct page *page, unsigned int count);
- extern void *page_frag_alloc(struct page_frag_cache *nc,
- 			     unsigned int fragsz, gfp_t gfp_mask);
- extern void page_frag_free(void *addr);
-diff -puN mm/page_alloc.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain
-+++ a/mm/page_alloc.c
-@@ -3896,8 +3896,8 @@ EXPORT_SYMBOL(free_pages);
-  * drivers to provide a backing region of memory for use as either an
-  * sk_buff->head, or to be used in the "frags" portion of skb_shared_info.
-  */
--static struct page *__page_frag_refill(struct page_frag_cache *nc,
--				       gfp_t gfp_mask)
-+static struct page *__page_frag_cache_refill(struct page_frag_cache *nc,
-+					     gfp_t gfp_mask)
- {
- 	struct page *page = NULL;
- 	gfp_t gfp = gfp_mask;
-@@ -3917,19 +3917,20 @@ static struct page *__page_frag_refill(s
- 	return page;
- }
- 
--void __page_frag_drain(struct page *page, unsigned int order,
--		       unsigned int count)
-+void __page_frag_cache_drain(struct page *page, unsigned int count)
- {
- 	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
- 
- 	if (page_ref_sub_and_test(page, count)) {
-+		unsigned int order = compound_order(page);
+diff -puN /dev/null Documentation/vm/page_frags
+--- /dev/null
++++ a/Documentation/vm/page_frags
+@@ -0,0 +1,42 @@
++Page fragments
++--------------
 +
- 		if (order == 0)
- 			free_hot_cold_page(page, false);
- 		else
- 			__free_pages_ok(page, order);
- 	}
- }
--EXPORT_SYMBOL(__page_frag_drain);
-+EXPORT_SYMBOL(__page_frag_cache_drain);
- 
- void *page_frag_alloc(struct page_frag_cache *nc,
- 		      unsigned int fragsz, gfp_t gfp_mask)
-@@ -3940,7 +3941,7 @@ void *page_frag_alloc(struct page_frag_c
- 
- 	if (unlikely(!nc->va)) {
- refill:
--		page = __page_frag_refill(nc, gfp_mask);
-+		page = __page_frag_cache_refill(nc, gfp_mask);
- 		if (!page)
- 			return NULL;
- 
++A page fragment is an arbitrary-length arbitrary-offset area of memory
++which resides within a 0 or higher order compound page.  Multiple
++fragments within that page are individually refcounted, in the page's
++reference counter.
++
++The page_frag functions, page_frag_alloc and page_frag_free, provide a
++simple allocation framework for page fragments.  This is used by the
++network stack and network device drivers to provide a backing region of
++memory for use as either an sk_buff->head, or to be used in the "frags"
++portion of skb_shared_info.
++
++In order to make use of the page fragment APIs a backing page fragment
++cache is needed.  This provides a central point for the fragment allocation
++and tracks allows multiple calls to make use of a cached page.  The
++advantage to doing this is that multiple calls to get_page can be avoided
++which can be expensive at allocation time.  However due to the nature of
++this caching it is required that any calls to the cache be protected by
++either a per-cpu limitation, or a per-cpu limitation and forcing interrupts
++to be disabled when executing the fragment allocation.
++
++The network stack uses two separate caches per CPU to handle fragment
++allocation.  The netdev_alloc_cache is used by callers making use of the
++__netdev_alloc_frag and __netdev_alloc_skb calls.  The napi_alloc_cache is
++used by callers of the __napi_alloc_frag and __napi_alloc_skb calls.  The
++main difference between these two calls is the context in which they may be
++called.  The "netdev" prefixed functions are usable in any context as these
++functions will disable interrupts, while the "napi" prefixed functions are
++only usable within the softirq context.
++
++Many network device drivers use a similar methodology for allocating page
++fragments, but the page fragments are cached at the ring or descriptor
++level.  In order to enable these cases it is necessary to provide a generic
++way of tearing down a page cache.  For this reason __page_frag_cache_drain
++was implemented.  It allows for freeing multiple references from a single
++page via a single call.  The advantage to doing this is that it allows for
++cleaning up the multiple references that were added to a page in order to
++avoid calling get_page per allocation.
++
++Alexander Duyck, Nov 29, 2016.
 _
 
 Patches currently in -mm which might be from alexander.h.duyck@intel.com are
