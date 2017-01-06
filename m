@@ -1,144 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch added
- to -mm tree
-Date: Fri, 06 Jan 2017 14:45:38 -0800
-Message-ID: <58701e12.HjC5fxJiglntU1Sf%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-fix-typo-of-cache_alloc_zspage.patch removed
+ from -mm tree
+Date: Fri, 06 Jan 2017 13:57:48 -0800
+Message-ID: <587012dc.T0Eszk6wgdTC/9yZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54864 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940756AbdAFWoS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2017 17:44:18 -0500
+        with ESMTP id S1751423AbdAFV42 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2017 16:56:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.burton@imgtec.com, james.hartley@imgtec.com, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: skip over regions of invalid pfns where possible
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
+     Subject: mm: fix typo ni cache_alloc_zspage()
+has been removed from the -mm tree.  Its filename was
+     mm-fix-typo-of-cache_alloc_zspage.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Paul Burton <paul.burton@imgtec.com>
-Subject: mm: page_alloc: skip over regions of invalid pfns where possible
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm: fix typo ni cache_alloc_zspage()
 
-When using a sparse memory model memmap_init_zone() when invoked with the
-MEMMAP_EARLY context will skip over pages which aren't valid - ie.  which
-aren't in a populated region of the sparse memory map.  However if the
-memory map is extremely sparse then it can spend a long time linearly
-checking each PFN in a large non-populated region of the memory map &
-skipping it in turn.
+Delete extra semicolon, it was introduced in 3783689 ("zsmalloc: introduce
+zspage structure").
 
-When CONFIG_HAVE_MEMBLOCK_NODE_MAP is enabled, we have sufficient
-information to quickly discover the next valid PFN given an invalid one by
-searching through the list of memory regions & skipping forwards to the
-first PFN covered by the memory region to the right of the non-populated
-region.  Implement this in order to speed up memmap_init_zone() for
-systems with extremely sparse memory maps.
-
-Link: http://lkml.kernel.org/r/20161125185518.29885-1-paul.burton@imgtec.com
-Signed-off-by: Paul Burton <paul.burton@imgtec.com>
-Cc: James Hartley <james.hartley@imgtec.com>
+Link: http://lkml.kernel.org/r/5864C12F.60709@huawei.com
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    1 +
- mm/memblock.c            |   25 +++++++++++++++++++++++++
- mm/page_alloc.c          |   11 ++++++++++-
- 3 files changed, 36 insertions(+), 1 deletion(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memblock.h~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible include/linux/memblock.h
---- a/include/linux/memblock.h~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
-+++ a/include/linux/memblock.h
-@@ -203,6 +203,7 @@ int memblock_search_pfn_nid(unsigned lon
- 			    unsigned long  *end_pfn);
- void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
- 			  unsigned long *out_end_pfn, int *out_nid);
-+unsigned long memblock_next_valid_pfn(unsigned long pfn, unsigned long max_pfn);
- 
- /**
-  * for_each_mem_pfn_range - early memory pfn range iterator
-diff -puN mm/memblock.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible mm/memblock.c
---- a/mm/memblock.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
-+++ a/mm/memblock.c
-@@ -1105,6 +1105,31 @@ void __init_memblock __next_mem_pfn_rang
- 		*out_nid = r->nid;
- }
- 
-+unsigned long __init_memblock memblock_next_valid_pfn(unsigned long pfn,
-+						      unsigned long max_pfn)
-+{
-+	struct memblock_type *type = &memblock.memory;
-+	unsigned int right = type->cnt;
-+	unsigned int mid, left = 0;
-+	phys_addr_t addr = PFN_PHYS(pfn + 1);
-+
-+	do {
-+		mid = (right + left) / 2;
-+
-+		if (addr < type->regions[mid].base)
-+			right = mid;
-+		else if (addr >= (type->regions[mid].base +
-+				  type->regions[mid].size))
-+			left = mid + 1;
-+		else {
-+			/* addr is within the region, so pfn + 1 is valid */
-+			return min(pfn + 1, max_pfn);
-+		}
-+	} while (left < right);
-+
-+	return min(PHYS_PFN(type->regions[right].base), max_pfn);
+diff -puN mm/zsmalloc.c~mm-fix-typo-of-cache_alloc_zspage mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-fix-typo-of-cache_alloc_zspage
++++ a/mm/zsmalloc.c
+@@ -364,7 +364,7 @@ static struct zspage *cache_alloc_zspage
+ {
+ 	return kmem_cache_alloc(pool->zspage_cachep,
+ 			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
+-};
 +}
-+
- /**
-  * memblock_set_node - set node ID on memblock regions
-  * @base: base of area to set node ID for
-diff -puN mm/page_alloc.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
-+++ a/mm/page_alloc.c
-@@ -5080,8 +5080,17 @@ void __meminit memmap_init_zone(unsigned
- 		if (context != MEMMAP_EARLY)
- 			goto not_early;
  
--		if (!early_pfn_valid(pfn))
-+		if (!early_pfn_valid(pfn)) {
-+#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-+			/*
-+			 * Skip to the pfn preceding the next valid one (or
-+			 * end_pfn), such that we hit a valid pfn (or end_pfn)
-+			 * on our next iteration of the loop.
-+			 */
-+			pfn = memblock_next_valid_pfn(pfn, end_pfn) - 1;
-+#endif
- 			continue;
-+		}
- 		if (!early_pfn_in_nid(pfn, nid))
- 			continue;
- 		if (!update_defer_init(pgdat, pfn, end_pfn, &nr_initialised))
+ static void cache_free_zspage(struct zs_pool *pool, struct zspage *zspage)
+ {
 _
 
-Patches currently in -mm which might be from paul.burton@imgtec.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
 
