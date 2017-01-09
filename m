@@ -1,88 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch removed from -mm tree
-Date: Mon, 09 Jan 2017 13:40:20 -0800
-Message-ID: <58740344.0yxrfEtAmN5yDvyE%akpm@linux-foundation.org>
+Subject: [withdrawn] m68k-rename-ul-to-to_ul.patch removed from -mm tree
+Date: Mon, 09 Jan 2017 13:40:13 -0800
+Message-ID: <5874033d.5vT43/YkANYtrYWM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33826 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937090AbdAIVix (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 16:38:53 -0500
+        with ESMTP id S933787AbdAIViq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 16:38:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/const.h: move BIT(_ULL) to linux/const.h for use in assembly
+     Subject: m68k: rename UL() to TO_UL()
 has been removed from the -mm tree.  Its filename was
-     linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch
+     m68k-rename-ul-to-to_ul.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: linux/const.h: move BIT(_ULL) to linux/const.h for use in assembly
+Subject: m68k: rename UL() to TO_UL()
 
-Commit 2fc016c5bd8a ("linux/const.h: Add _BITUL() and _BITULL()")
-introduced _BITUL() and _BITULL().  Its git-log says the difference
-from the already existing BIT() are:
+Patch series "linux/const.h: cleanups of macros such as UL(), _BITUL(), BIT() etc", v2.
 
-  1. The namespace is such that they can be used in uapi definitions.
-  2. The type is set with the _AC() macro to allow it to be used in
-     assembly.
-  3. The type is explicitly specified to be UL or ULL.
+ARM, ARM64, UniCore32 define UL() as a shorthand of _AC(..., UL).  In the
+future, more architectures may introduce it, so move the definition to
+include/linux/const.h.
 
-However, I found _BITUL() is often used for "2. use in assembly",
-while "1. use in uapi" is unneeded.  If we address only "2.", we can
-improve the existing BIT() for that.  It will allow us to replace
-many _BITUL() instances with BIT(), i.e. avoid needless use of
-underscore-prefixed macros, in the end, for better de-couple of
-userspace/kernel headers.
+The _AC() is used for either (likely) UL or (unlikely) ULL.  Having UL(L)
+in a common place can avoid direct use of _AC().
 
-Link: http://lkml.kernel.org/r/1483582810-7046-5-git-send-email-yamada.masahiro@socionext.com
+The _AC() is defined under the uapi directory, so it compels
+underscore-prefixed macros even for unexported headers.
+
+I see similar situation for _BITUL().  This is available in both C and
+assembly.  However, it is defined in an uapi header, so direct use of the
+underscore macro is needed even for unexported headers.  The 3/3 makes
+BIT() available in assembly too, which will be more suitable for use in
+unexported headers.
+
+
+This patch (of 4):
+
+ARM, ARM64 and UniCore32 define UL(x) like follows:
+
+  #define UL(x) _AC(x, UL)
+
+While, M68K defines it differently:
+  #define UL(x) ((unsigned long) (x))
+
+I am moving the former to a common header in the next commit.
+Beforehand, this commit renames the latter to avoid name conflict.
+
+Link: http://lkml.kernel.org/r/1483582810-7046-2-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    3 +--
- include/linux/const.h  |    3 +++
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ arch/m68k/mm/init.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/bitops.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly include/linux/bitops.h
---- a/include/linux/bitops.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly
-+++ a/include/linux/bitops.h
-@@ -1,10 +1,9 @@
- #ifndef _LINUX_BITOPS_H
- #define _LINUX_BITOPS_H
-+#include <linux/const.h>
- #include <asm/types.h>
+diff -puN arch/m68k/mm/init.c~m68k-rename-ul-to-to_ul arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~m68k-rename-ul-to-to_ul
++++ a/arch/m68k/mm/init.c
+@@ -121,9 +121,9 @@ void free_initmem(void)
  
- #ifdef	__KERNEL__
--#define BIT(nr)			(1UL << (nr))
--#define BIT_ULL(nr)		(1ULL << (nr))
- #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
- #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
- #define BIT_ULL_MASK(nr)	(1ULL << ((nr) % BITS_PER_LONG_LONG))
-diff -puN include/linux/const.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly include/linux/const.h
---- a/include/linux/const.h~linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly
-+++ a/include/linux/const.h
-@@ -6,4 +6,7 @@
- #define UL(x)		(_UL(x))
- #define ULL(x)		(_ULL(x))
+ void __init print_memmap(void)
+ {
+-#define UL(x) ((unsigned long) (x))
+-#define MLK(b, t) UL(b), UL(t), (UL(t) - UL(b)) >> 10
+-#define MLM(b, t) UL(b), UL(t), (UL(t) - UL(b)) >> 20
++#define TO_UL(x) ((unsigned long) (x))
++#define MLK(b, t) TO_UL(b), TO_UL(t), (TO_UL(t) - TO_UL(b)) >> 10
++#define MLM(b, t) TO_UL(b), TO_UL(t), (TO_UL(t) - TO_UL(b)) >> 20
+ #define MLK_ROUNDUP(b, t) b, t, DIV_ROUND_UP(((t) - (b)), 1024)
  
-+#define BIT(x)		(_BITUL(x))
-+#define BIT_ULL(x)	(_BITULL(x))
-+
- #endif /* _LINUX_CONST_H */
+ 	pr_notice("Virtual kernel memory layout:\n"
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
+linux-consth-move-ul-macro-to-include-linux-consth.patch
+linux-consth-refactor-_bitul-and-_bitull-a-bit.patch
+linux-consth-move-bit_ull-to-linux-consth-for-use-in-assembly.patch
 scripts-spellingtxt-add-swith-pattern-and-fix-typo-instances.patch
 scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch
 scripts-spellingtxt-add-an-user-pattern-and-fix-typo-instances.patch
