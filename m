@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 06 Jan 2017 15:25:16 -0800
-Message-ID: <5870275c.5RZUiWQiWiOokw+e%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 09 Jan 2017 13:35:56 -0800
+Message-ID: <5874023c.9OxoXr9LOB43MWlZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37390 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33760 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S969661AbdAFXYB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jan 2017 18:24:01 -0500
+        with ESMTP id S932800AbdAIVe3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 16:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
@@ -18,24 +18,10 @@ To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
