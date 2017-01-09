@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-config_test_sort-to-enable-self-test-of-sort.patch
- added to -mm tree
-Date: Mon, 09 Jan 2017 15:25:01 -0800
-Message-ID: <58741bcd.SSmdC8XgCY0AFUsl%akpm@linux-foundation.org>
+Subject: + memory_hotplug-zone_can_shift-returns-boolean-value.patch added to -mm tree
+Date: Mon, 09 Jan 2017 15:29:12 -0800
+Message-ID: <58741cc8.uda4rNEttwb7Dgia%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46018 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942519AbdAIXXe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:23:34 -0500
+        with ESMTP id S934251AbdAIX1p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:27:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fkostenzer@live.at, mm-commits@vger.kernel.org
+To: yasu.isimatu@gmail.com, arbab@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: add CONFIG_TEST_SORT to enable self-test of sort()
+     Subject: memory_hotplug: zone_can_shift() returns boolean value
 has been added to the -mm tree.  Its filename is
-     lib-add-config_test_sort-to-enable-self-test-of-sort.patch
+     memory_hotplug-zone_can_shift-returns-boolean-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-config_test_sort-to-enable-self-test-of-sort.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory_hotplug-zone_can_shift-returns-boolean-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-config_test_sort-to-enable-self-test-of-sort.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory_hotplug-zone_can_shift-returns-boolean-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,106 +38,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kostenzer Felix <fkostenzer@live.at>
-Subject: lib: add CONFIG_TEST_SORT to enable self-test of sort()
+From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Subject: memory_hotplug: zone_can_shift() returns boolean value
 
-Along with the addition made to Kconfig.debug, the prior existing but
-permanently disabled test function has been slightly refactored.
+online_{kernel|movable} is used to change the memory zone to
+ZONE_{NORMAL|MOVABLE} and online the memory.
 
-Patch has been tested using QEMU 2.1.2 with a .config obtained through
-'make defconfig' (x86_64) and manually enabling the option.
+To check that memory zone can be changed, zone_can_shift() is used. 
+Currently the function returns minus integer value, plus integer value and
+0.  When the function returns minus or plus integer value, it means that
+the memory zone can be changed to ZONE_{NORNAL|MOVABLE}.
 
-Link: http://lkml.kernel.org/r/HE1PR09MB0394B0418D504DCD27167D4FD49B0@HE1PR09MB0394.eurprd09.prod.outlook.com
-Signed-off-by: Kostenzer Felix <fkostenzer@live.at>
+But when the function returns 0, there is 2 meanings.
+
+One of the meanings is that the memory zone does not need to be changed. 
+For example, when memory is in ZONE_NORMAL and onlined by online_kernel
+the memory zone does not need to be changed.
+
+Another meaning is that the memory zone cannot be changed.  When memory is
+in ZONE_NORMAL and onlined by online_movable, the memory zone may not be
+changed to ZONE_MOVALBE due to memory online limitation(see
+Documentation/memory-hotplug.txt).  In this case, memory must not be
+onlined.
+
+The patch changes the return type of zone_can_shift() so that memory is
+not onlined when memory zone cannot be changed.
+
+Fixes: df429ac03936 ("memory-hotplug: more general validation of zone during online")
+Link: http://lkml.kernel.org/r/2f9c3837-33d7-b6e5-59c0-6ca4372b2d84@gmail.com
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Reza Arbab <arbab@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    8 ++++++++
- lib/sort.c        |   41 ++++++++++++++++++++++++-----------------
- 2 files changed, 32 insertions(+), 17 deletions(-)
+ drivers/base/memory.c          |    4 ++--
+ include/linux/memory_hotplug.h |    4 ++--
+ mm/memory_hotplug.c            |   28 +++++++++++++++++-----------
+ 3 files changed, 21 insertions(+), 15 deletions(-)
 
-diff -puN lib/Kconfig.debug~lib-add-config_test_sort-to-enable-self-test-of-sort lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-add-config_test_sort-to-enable-self-test-of-sort
-+++ a/lib/Kconfig.debug
-@@ -1714,6 +1714,14 @@ config TEST_LIST_SORT
+diff -puN drivers/base/memory.c~memory_hotplug-zone_can_shift-returns-boolean-value drivers/base/memory.c
+--- a/drivers/base/memory.c~memory_hotplug-zone_can_shift-returns-boolean-value
++++ a/drivers/base/memory.c
+@@ -408,14 +408,14 @@ static ssize_t show_valid_zones(struct d
+ 	sprintf(buf, "%s", zone->name);
  
- 	  If unsure, say N.
- 
-+config TEST_SORT
-+	bool "Array-based sort test"
-+	depends on DEBUG_KERNEL
-+	help
-+	  This option enables the self-test function of 'sort()' at boot.
-+
-+	  If unsure, say N.
-+
- config KPROBES_SANITY_TEST
- 	bool "Kprobes sanity tests"
- 	depends on DEBUG_KERNEL
-diff -puN lib/sort.c~lib-add-config_test_sort-to-enable-self-test-of-sort lib/sort.c
---- a/lib/sort.c~lib-add-config_test_sort-to-enable-self-test-of-sort
-+++ a/lib/sort.c
-@@ -4,6 +4,8 @@
-  * Jan 23 2005  Matt Mackall <mpm@selenic.com>
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/types.h>
- #include <linux/export.h>
- #include <linux/sort.h>
-@@ -102,41 +104,46 @@ void sort(void *base, size_t num, size_t
- 
- EXPORT_SYMBOL(sort);
- 
--#if 0
-+#ifdef CONFIG_TEST_SORT
- #include <linux/slab.h>
-+#include <linux/module.h>
- /* a simple boot-time regression test */
- 
--int cmpint(const void *a, const void *b)
-+#define TEST_LEN 1000
-+
-+static int __init cmpint(const void *a, const void *b)
- {
- 	return *(int *)a - *(int *)b;
- }
- 
--static int sort_test(void)
-+static int __init test_sort_init(void)
- {
--	int *a, i, r = 1;
--
--	a = kmalloc(1000 * sizeof(int), GFP_KERNEL);
--	BUG_ON(!a);
-+	int *a, i, r = 1, err = -ENOMEM;
- 
--	printk("testing sort()\n");
-+	a = kmalloc_array(TEST_LEN, sizeof(*a), GFP_KERNEL);
-+	if (!a)
-+		return err;
- 
--	for (i = 0; i < 1000; i++) {
-+	for (i = 0; i < TEST_LEN; i++) {
- 		r = (r * 725861) % 6599;
- 		a[i] = r;
+ 	/* MMOP_ONLINE_KERNEL */
+-	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL);
++	zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL, &zone_shift);
+ 	if (zone_shift) {
+ 		strcat(buf, " ");
+ 		strcat(buf, (zone + zone_shift)->name);
  	}
  
--	sort(a, 1000, sizeof(int), cmpint, NULL);
-+	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
+ 	/* MMOP_ONLINE_MOVABLE */
+-	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE);
++	zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE, &zone_shift);
+ 	if (zone_shift) {
+ 		strcat(buf, " ");
+ 		strcat(buf, (zone + zone_shift)->name);
+diff -puN include/linux/memory_hotplug.h~memory_hotplug-zone_can_shift-returns-boolean-value include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory_hotplug-zone_can_shift-returns-boolean-value
++++ a/include/linux/memory_hotplug.h
+@@ -284,7 +284,7 @@ extern void sparse_remove_one_section(st
+ 		unsigned long map_offset);
+ extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+ 					  unsigned long pnum);
+-extern int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
+-			  enum zone_type target);
++extern bool zone_can_shift(unsigned long pfn, unsigned long nr_pages,
++			  enum zone_type target, int *zone_shift);
  
--	for (i = 0; i < 999; i++)
-+	err = -EINVAL;
-+	for (i = 0; i < TEST_LEN-1; i++)
- 		if (a[i] > a[i+1]) {
--			printk("sort() failed!\n");
--			break;
-+			pr_err("test has failed\n");
-+			goto exit;
- 		}
--
-+	err = 0;
-+	pr_info("test passed\n");
-+exit:
- 	kfree(a);
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+diff -puN mm/memory_hotplug.c~memory_hotplug-zone_can_shift-returns-boolean-value mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-zone_can_shift-returns-boolean-value
++++ a/mm/memory_hotplug.c
+@@ -1033,36 +1033,39 @@ static void node_states_set_node(int nod
+ 	node_set_state(node, N_MEMORY);
+ }
+ 
+-int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
+-		   enum zone_type target)
++bool zone_can_shift(unsigned long pfn, unsigned long nr_pages,
++		   enum zone_type target, int *zone_shift)
+ {
+ 	struct zone *zone = page_zone(pfn_to_page(pfn));
+ 	enum zone_type idx = zone_idx(zone);
+ 	int i;
+ 
++	*zone_shift = 0;
++
+ 	if (idx < target) {
+ 		/* pages must be at end of current zone */
+ 		if (pfn + nr_pages != zone_end_pfn(zone))
+-			return 0;
++			return false;
+ 
+ 		/* no zones in use between current zone and target */
+ 		for (i = idx + 1; i < target; i++)
+ 			if (zone_is_initialized(zone - idx + i))
+-				return 0;
++				return false;
+ 	}
+ 
+ 	if (target < idx) {
+ 		/* pages must be at beginning of current zone */
+ 		if (pfn != zone->zone_start_pfn)
+-			return 0;
++			return false;
+ 
+ 		/* no zones in use between current zone and target */
+ 		for (i = target + 1; i < idx; i++)
+ 			if (zone_is_initialized(zone - idx + i))
+-				return 0;
++				return false;
+ 	}
+ 
+-	return target - idx;
++	*zone_shift = target - idx;
++	return true;
+ }
+ 
+ /* Must be protected by mem_hotplug_begin() */
+@@ -1089,10 +1092,13 @@ int __ref online_pages(unsigned long pfn
+ 	    !can_online_high_movable(zone))
+ 		return -EINVAL;
+ 
+-	if (online_type == MMOP_ONLINE_KERNEL)
+-		zone_shift = zone_can_shift(pfn, nr_pages, ZONE_NORMAL);
+-	else if (online_type == MMOP_ONLINE_MOVABLE)
+-		zone_shift = zone_can_shift(pfn, nr_pages, ZONE_MOVABLE);
++	if (online_type == MMOP_ONLINE_KERNEL) {
++		if (!zone_can_shift(pfn, nr_pages, ZONE_NORMAL, &zone_shift))
++			return -EINVAL;
++	} else if (online_type == MMOP_ONLINE_MOVABLE) {
++		if (!zone_can_shift(pfn, nr_pages, ZONE_MOVABLE, &zone_shift))
++			return -EINVAL;
++	}
+ 
+ 	zone = move_pfn_range(zone_shift, pfn, pfn + nr_pages);
+ 	if (!zone)
+_
+
+Patches currently in -mm which might be from yasu.isimatu@gmail.com are
+
+memory_hotplug-zone_can_shift-returns-boolean-value.patch
+mm-sparse-use-page_private-to-get-page-private-value.patch
+mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+
