@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch added to -mm tree
-Date: Mon, 09 Jan 2017 15:01:47 -0800
-Message-ID: <5874165b.sZKqIX+7n4Fgz8Pq%akpm@linux-foundation.org>
+Subject: + mm-sparse-use-page_private-to-get-page-private-value.patch
+ added to -mm tree
+Date: Mon, 09 Jan 2017 15:05:28 -0800
+Message-ID: <58741738.zrNPk82yaBACsK4o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44688 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754352AbdAIXAU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:00:20 -0500
+        with ESMTP id S1751982AbdAIXEB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:04:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.weiyang@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: yasu.isimatu@gmail.com, dave.hansen@linux.intel.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, mgorman@techsingularity.net, mingo@redhat.com, qiuxishi@huawei.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: check return value of memblock_reserve() in memblock_virt_alloc_internal()
+     Subject: mm/sparse: use page_private() to get page->private value
 has been added to the -mm tree.  Its filename is
-     mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch
+     mm-sparse-use-page_private-to-get-page-private-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-use-page_private-to-get-page-private-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-use-page_private-to-get-page-private-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,66 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memblock.c: check return value of memblock_reserve() in memblock_virt_alloc_internal()
+From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Subject: mm/sparse: use page_private() to get page->private value
 
-memblock_reserve() would add a new range to memblock.reserved in case the
-new range is not totally covered by any of the current memblock.reserved
-range.  If the memblock.reserved is full and can't resize,
-memblock_reserve() would fail.
+free_map_bootmem() uses page->private directly to set removing_section_nr
+argument.  But to get page->private value, page_private() has been
+prepared.
 
-This doesn't happen in real world now, I observed this during code review.
-While theoretically, it has the chance to happen.  And if it happens,
-others would think this range of memory is still available and may corrupt
-the memory.
+So free_map_bootmem() should use page_private() instead of
+page->private.
 
-This patch checks the return value and goto "done" after it succeeds.
-
-Link: http://lkml.kernel.org/r/1482363033-24754-3-git-send-email-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1d34eaa5-a506-8b7a-6471-490c345deef8@gmail.com
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal
-+++ a/mm/memblock.c
-@@ -1299,18 +1299,17 @@ static void * __init memblock_virt_alloc
+diff -puN mm/sparse.c~mm-sparse-use-page_private-to-get-page-private-value mm/sparse.c
+--- a/mm/sparse.c~mm-sparse-use-page_private-to-get-page-private-value
++++ a/mm/sparse.c
+@@ -667,7 +667,7 @@ static void free_map_bootmem(struct page
+ 		BUG_ON(magic == NODE_INFO);
  
- 	if (max_addr > memblock.current_limit)
- 		max_addr = memblock.current_limit;
--
- again:
- 	alloc = memblock_find_in_range_node(size, align, min_addr, max_addr,
- 					    nid, flags);
--	if (alloc)
-+	if (alloc && !memblock_reserve(alloc, size))
- 		goto done;
+ 		maps_section_nr = pfn_to_section_nr(page_to_pfn(page));
+-		removing_section_nr = page->private;
++		removing_section_nr = page_private(page);
  
- 	if (nid != NUMA_NO_NODE) {
- 		alloc = memblock_find_in_range_node(size, align, min_addr,
- 						    max_addr, NUMA_NO_NODE,
- 						    flags);
--		if (alloc)
-+		if (alloc && !memblock_reserve(alloc, size))
- 			goto done;
- 	}
- 
-@@ -1328,7 +1327,6 @@ again:
- 
- 	return NULL;
- done:
--	memblock_reserve(alloc, size);
- 	ptr = phys_to_virt(alloc);
- 	memset(ptr, 0, size);
- 
+ 		/*
+ 		 * When this function is called, the removing section is
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from yasu.isimatu@gmail.com are
 
-mm-memblockc-trivial-code-refine-in-memblock_is_region_memory.patch
-mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch
+mm-sparse-use-page_private-to-get-page-private-value.patch
+mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
 
