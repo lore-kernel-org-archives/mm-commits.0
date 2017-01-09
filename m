@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-new-mmget-helper.patch added to -mm tree
-Date: Mon, 09 Jan 2017 15:20:34 -0800
-Message-ID: <58741ac2.Wx0sA9RXAug4qEEN%akpm@linux-foundation.org>
+Subject: + mm-clarify-mm_structmm_userscount-documentation.patch added to
+ -mm tree
+Date: Mon, 09 Jan 2017 15:20:40 -0800
+Message-ID: <58741ac8.ro3eb5WWMvhrpPQZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45872 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932083AbdAIXTH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:19:07 -0500
+        with ESMTP id S932083AbdAIXTN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:19:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vegard.nossum@oracle.com, mhocko@suse.com, peterz@infradead.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add new mmget() helper
+     Subject: mm: clarify mm_struct.mm_{users,count} documentation
 has been added to the -mm tree.  Its filename is
-     mm-add-new-mmget-helper.patch
+     mm-clarify-mm_structmm_userscount-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-new-mmget-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-mm_structmm_userscount-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-new-mmget-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-mm_structmm_userscount-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,20 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vegard Nossum <vegard.nossum@oracle.com>
-Subject: mm: add new mmget() helper
+Subject: mm: clarify mm_struct.mm_{users,count} documentation
 
-Apart from adding the helper function itself, the rest of the kernel is
-converted mechanically using:
+Clarify documentation relating to mm_users and mm_count, and switch to
+kernel-doc syntax.
 
-  git grep -l 'atomic_inc.*mm_users' | xargs sed -i 's/atomic_inc(&\(.*\)->mm_users);/mmget\(\1\);/'
-  git grep -l 'atomic_inc.*mm_users' | xargs sed -i 's/atomic_inc(&\(.*\)\.mm_users);/mmget\(\&\1\);/'
-
-This is needed for a later patch that hooks into the helper, but might be
-a worthwhile cleanup on its own.
-
-(Michal Hocko provided most of the kerneldoc comment.)
-
-Link: http://lkml.kernel.org/r/20161218123229.22952-2-vegard.nossum@oracle.com
+Link: http://lkml.kernel.org/r/20161218123229.22952-4-vegard.nossum@oracle.com
 Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
@@ -60,195 +53,42 @@ Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/smp.c           |    2 +-
- arch/blackfin/mach-common/smp.c |    2 +-
- arch/frv/mm/mmu-context.c       |    2 +-
- arch/metag/kernel/smp.c         |    2 +-
- arch/sh/kernel/smp.c            |    2 +-
- arch/xtensa/kernel/smp.c        |    2 +-
- include/linux/sched.h           |   21 +++++++++++++++++++++
- kernel/fork.c                   |    4 ++--
- mm/swapfile.c                   |   10 +++++-----
- virt/kvm/async_pf.c             |    2 +-
- 10 files changed, 35 insertions(+), 14 deletions(-)
+ include/linux/mm_types.h |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN arch/arc/kernel/smp.c~mm-add-new-mmget-helper arch/arc/kernel/smp.c
---- a/arch/arc/kernel/smp.c~mm-add-new-mmget-helper
-+++ a/arch/arc/kernel/smp.c
-@@ -124,7 +124,7 @@ void start_kernel_secondary(void)
- 	/* MMU, Caches, Vector Table, Interrupts etc */
- 	setup_processor();
- 
--	atomic_inc(&mm->mm_users);
-+	mmget(mm);
- 	mmgrab(mm);
- 	current->active_mm = mm;
- 	cpumask_set_cpu(cpu, mm_cpumask(mm));
-diff -puN arch/blackfin/mach-common/smp.c~mm-add-new-mmget-helper arch/blackfin/mach-common/smp.c
---- a/arch/blackfin/mach-common/smp.c~mm-add-new-mmget-helper
-+++ a/arch/blackfin/mach-common/smp.c
-@@ -307,7 +307,7 @@ void secondary_start_kernel(void)
- 	local_irq_disable();
- 
- 	/* Attach the new idle task to the global mm. */
--	atomic_inc(&mm->mm_users);
-+	mmget(mm);
- 	mmgrab(mm);
- 	current->active_mm = mm;
- 
-diff -puN arch/frv/mm/mmu-context.c~mm-add-new-mmget-helper arch/frv/mm/mmu-context.c
---- a/arch/frv/mm/mmu-context.c~mm-add-new-mmget-helper
-+++ a/arch/frv/mm/mmu-context.c
-@@ -188,7 +188,7 @@ int cxn_pin_by_pid(pid_t pid)
- 		task_lock(tsk);
- 		if (tsk->mm) {
- 			mm = tsk->mm;
--			atomic_inc(&mm->mm_users);
-+			mmget(mm);
- 			ret = 0;
- 		}
- 		task_unlock(tsk);
-diff -puN arch/metag/kernel/smp.c~mm-add-new-mmget-helper arch/metag/kernel/smp.c
---- a/arch/metag/kernel/smp.c~mm-add-new-mmget-helper
-+++ a/arch/metag/kernel/smp.c
-@@ -344,7 +344,7 @@ asmlinkage void secondary_start_kernel(v
- 	 * All kernel threads share the same mm context; grab a
- 	 * reference and switch to it.
- 	 */
--	atomic_inc(&mm->mm_users);
-+	mmget(mm);
- 	mmgrab(mm);
- 	current->active_mm = mm;
- 	cpumask_set_cpu(cpu, mm_cpumask(mm));
-diff -puN arch/sh/kernel/smp.c~mm-add-new-mmget-helper arch/sh/kernel/smp.c
---- a/arch/sh/kernel/smp.c~mm-add-new-mmget-helper
-+++ a/arch/sh/kernel/smp.c
-@@ -179,7 +179,7 @@ asmlinkage void start_secondary(void)
- 
- 	enable_mmu();
- 	mmgrab(mm);
--	atomic_inc(&mm->mm_users);
-+	mmget(mm);
- 	current->active_mm = mm;
- #ifdef CONFIG_MMU
- 	enter_lazy_tlb(mm, current);
-diff -puN arch/xtensa/kernel/smp.c~mm-add-new-mmget-helper arch/xtensa/kernel/smp.c
---- a/arch/xtensa/kernel/smp.c~mm-add-new-mmget-helper
-+++ a/arch/xtensa/kernel/smp.c
-@@ -135,7 +135,7 @@ void secondary_start_kernel(void)
- 
- 	/* All kernel threads share the same mm context. */
- 
--	atomic_inc(&mm->mm_users);
-+	mmget(mm);
- 	mmgrab(mm);
- 	current->active_mm = mm;
- 	cpumask_set_cpu(cpu, mm_cpumask(mm));
-diff -puN include/linux/sched.h~mm-add-new-mmget-helper include/linux/sched.h
---- a/include/linux/sched.h~mm-add-new-mmget-helper
-+++ a/include/linux/sched.h
-@@ -2943,6 +2943,27 @@ static inline void mmdrop_async(struct m
- 	}
- }
- 
-+/**
-+ * mmget() - Pin the address space associated with a &struct mm_struct.
-+ * @mm: The address space to pin.
-+ *
-+ * Make sure that the address space of the given &struct mm_struct doesn't
-+ * go away. This does not protect against parts of the address space being
-+ * modified or freed, however.
-+ *
-+ * Never use this function to pin this address space for an
-+ * unbounded/indefinite amount of time.
-+ *
-+ * Use mmput() to release the reference acquired by mmget().
-+ *
-+ * See also <Documentation/vm/active_mm.txt> for an in-depth explanation
-+ * of &mm_struct.mm_count vs &mm_struct.mm_users.
-+ */
-+static inline void mmget(struct mm_struct *mm)
-+{
-+	atomic_inc(&mm->mm_users);
-+}
+diff -puN include/linux/mm_types.h~mm-clarify-mm_structmm_userscount-documentation include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-clarify-mm_structmm_userscount-documentation
++++ a/include/linux/mm_types.h
+@@ -407,8 +407,27 @@ struct mm_struct {
+ 	unsigned long task_size;		/* size of task vm space */
+ 	unsigned long highest_vm_end;		/* highest vma end address */
+ 	pgd_t * pgd;
+-	atomic_t mm_users;			/* How many users with user space? */
+-	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
 +
- static inline bool mmget_not_zero(struct mm_struct *mm)
- {
- 	return atomic_inc_not_zero(&mm->mm_users);
-diff -puN kernel/fork.c~mm-add-new-mmget-helper kernel/fork.c
---- a/kernel/fork.c~mm-add-new-mmget-helper
-+++ a/kernel/fork.c
-@@ -998,7 +998,7 @@ struct mm_struct *get_task_mm(struct tas
- 		if (task->flags & PF_KTHREAD)
- 			mm = NULL;
- 		else
--			atomic_inc(&mm->mm_users);
-+			mmget(mm);
- 	}
- 	task_unlock(task);
- 	return mm;
-@@ -1186,7 +1186,7 @@ static int copy_mm(unsigned long clone_f
- 	vmacache_flush(tsk);
- 
- 	if (clone_flags & CLONE_VM) {
--		atomic_inc(&oldmm->mm_users);
-+		mmget(oldmm);
- 		mm = oldmm;
- 		goto good_mm;
- 	}
-diff -puN mm/swapfile.c~mm-add-new-mmget-helper mm/swapfile.c
---- a/mm/swapfile.c~mm-add-new-mmget-helper
-+++ a/mm/swapfile.c
-@@ -1415,7 +1415,7 @@ int try_to_unuse(unsigned int type, bool
- 	 * that.
- 	 */
- 	start_mm = &init_mm;
--	atomic_inc(&init_mm.mm_users);
-+	mmget(&init_mm);
- 
- 	/*
- 	 * Keep on scanning until all entries have gone.  Usually,
-@@ -1464,7 +1464,7 @@ int try_to_unuse(unsigned int type, bool
- 		if (atomic_read(&start_mm->mm_users) == 1) {
- 			mmput(start_mm);
- 			start_mm = &init_mm;
--			atomic_inc(&init_mm.mm_users);
-+			mmget(&init_mm);
- 		}
- 
- 		/*
-@@ -1501,8 +1501,8 @@ int try_to_unuse(unsigned int type, bool
- 			struct mm_struct *prev_mm = start_mm;
- 			struct mm_struct *mm;
- 
--			atomic_inc(&new_start_mm->mm_users);
--			atomic_inc(&prev_mm->mm_users);
-+			mmget(new_start_mm);
-+			mmget(prev_mm);
- 			spin_lock(&mmlist_lock);
- 			while (swap_count(*swap_map) && !retval &&
- 					(p = p->next) != &start_mm->mmlist) {
-@@ -1525,7 +1525,7 @@ int try_to_unuse(unsigned int type, bool
- 
- 				if (set_start_mm && *swap_map < swcount) {
- 					mmput(new_start_mm);
--					atomic_inc(&mm->mm_users);
-+					mmget(mm);
- 					new_start_mm = mm;
- 					set_start_mm = 0;
- 				}
-diff -puN virt/kvm/async_pf.c~mm-add-new-mmget-helper virt/kvm/async_pf.c
---- a/virt/kvm/async_pf.c~mm-add-new-mmget-helper
-+++ a/virt/kvm/async_pf.c
-@@ -204,7 +204,7 @@ int kvm_setup_async_pf(struct kvm_vcpu *
- 	work->addr = hva;
- 	work->arch = *arch;
- 	work->mm = current->mm;
--	atomic_inc(&work->mm->mm_users);
-+	mmget(work->mm);
- 	kvm_get_kvm(work->vcpu->kvm);
- 
- 	/* this can't really happen otherwise gfn_to_pfn_async
++	/**
++	 * @mm_users: The number of users including userspace.
++	 *
++	 * Use mmget()/mmget_not_zero()/mmput() to modify. When this drops
++	 * to 0 (i.e. when the task exits and there are no other temporary
++	 * reference holders), we also release a reference on @mm_count
++	 * (which may then free the &struct mm_struct if @mm_count also
++	 * drops to 0).
++	 */
++	atomic_t mm_users;
++
++	/**
++	 * @mm_count: The number of references to &struct mm_struct
++	 * (@mm_users count as 1).
++	 *
++	 * Use mmgrab()/mmdrop() to modify. When this drops to 0, the
++	 * &struct mm_struct is freed.
++	 */
++	atomic_t mm_count;
++
+ 	atomic_long_t nr_ptes;			/* PTE page table pages */
+ #if CONFIG_PGTABLE_LEVELS > 2
+ 	atomic_long_t nr_pmds;			/* PMD page table pages */
 _
 
 Patches currently in -mm which might be from vegard.nossum@oracle.com are
