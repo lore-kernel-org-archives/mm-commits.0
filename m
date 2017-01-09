@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch added to -mm tree
-Date: Mon, 09 Jan 2017 15:05:30 -0800
-Message-ID: <5874173a.vCUycVUc/iDt1o2R%akpm@linux-foundation.org>
+Subject: + timerfd-export-defines-to-userspace.patch added to -mm tree
+Date: Mon, 09 Jan 2017 15:14:15 -0800
+Message-ID: <58741947.9fn7nYvlQ8gOxZXN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45762 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751982AbdAIXED (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:04:03 -0500
+        with ESMTP id S1750821AbdAIXMs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2017 18:12:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yasu.isimatu@gmail.com, dave.hansen@linux.intel.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, mgorman@techsingularity.net, mingo@redhat.com, qiuxishi@huawei.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: set magic number to page->freelsit instead of page->lru.next
+     Subject: timerfd: export defines to userspace
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+     timerfd-export-defines-to-userspace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/timerfd-export-defines-to-userspace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/timerfd-export-defines-to-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,133 +38,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Subject: mm/memory_hotplug: set magic number to page->freelsit instead of page->lru.next
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: timerfd: export defines to userspace
 
-To identify that pages of page table are allocated from bootmem allocator,
-magic number sets to page->lru.next.  But page->lru list is initialized in
-reserve_bootmem_region().  So when calling free_pagetable(), the function
-cannot find the magic number of pages.  And free_pagetable() frees the
-pages by free_reserved_page() not put_page_bootmem().
+Since userspace is expected to call timerfd syscalls directly with these
+flags/ioctls, make sure we export them so they don't have to duplicate
+the values themselves.
 
-But if the pages are allocated from bootmem allocator and used as page
-table, the pages have private flag.  So before freeing the pages, we
-should clear the private flag by put_page_bootmem().
-
-Before applying the commit 7bfec6f47bb0 ("mm, page_alloc: check multiple
-page fields with a single branch"), we could find the following visible
-issue:
-
-  BUG: Bad page state in process kworker/u1024:1
-  page:ffffea103cfd8040 count:0 mapcount:0 mappi
-  flags: 0x6fffff80000800(private)
-  page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
-  bad because of flags: 0x800(private)
-  <snip>
-  Call Trace:
-  [...] dump_stack+0x63/0x87
-  [...] bad_page+0x114/0x130
-  [...] free_pages_prepare+0x299/0x2d0
-  [...] free_hot_cold_page+0x31/0x150
-  [...] __free_pages+0x25/0x30
-  [...] free_pagetable+0x6f/0xb4
-  [...] remove_pagetable+0x379/0x7ff
-  [...] vmemmap_free+0x10/0x20
-  [...] sparse_remove_one_section+0x149/0x180
-  [...] __remove_pages+0x2e9/0x4f0
-  [...] arch_remove_memory+0x63/0xc0
-  [...] remove_memory+0x8c/0xc0
-  [...] acpi_memory_device_remove+0x79/0xa5
-  [...] acpi_bus_trim+0x5a/0x8d
-  [...] acpi_bus_trim+0x38/0x8d
-  [...] acpi_device_hotplug+0x1b7/0x418
-  [...] acpi_hotplug_work_fn+0x1e/0x29
-  [...] process_one_work+0x152/0x400
-  [...] worker_thread+0x125/0x4b0
-  [...] ? __schedule+0x345/0x960
-  [...] ? rescuer_thread+0x380/0x380
-  [...] kthread+0xd8/0xf0
-  [...] ret_from_fork+0x22/0x40
-  [...] ? kthread_park+0x60/0x60
-
-And the issue still silently occurs.
-
-Until freeing the pages of page table allocated from bootmem allocator,
-the page->freelist is never used.  So the patch sets magic number to
-page->freelist instead of page->lru.next.
-
-Link: http://lkml.kernel.org/r/2c29bd9f-5b67-02d0-18a3-8828e78bbb6f@gmail.com
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Link: http://lkml.kernel.org/r/20161219064052.7196-1-vapier@gentoo.org
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 +-
- mm/memory_hotplug.c   |    6 ++++--
- mm/sparse.c           |    2 +-
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ include/linux/timerfd.h      |   20 ------------------
+ include/uapi/linux/Kbuild    |    1 
+ include/uapi/linux/timerfd.h |   36 +++++++++++++++++++++++++++++++++
+ 3 files changed, 38 insertions(+), 19 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext
-+++ a/arch/x86/mm/init_64.c
-@@ -679,7 +679,7 @@ static void __meminit free_pagetable(str
- 	if (PageReserved(page)) {
- 		__ClearPageReserved(page);
+diff -puN include/linux/timerfd.h~timerfd-export-defines-to-userspace include/linux/timerfd.h
+--- a/include/linux/timerfd.h~timerfd-export-defines-to-userspace
++++ a/include/linux/timerfd.h
+@@ -8,23 +8,7 @@
+ #ifndef _LINUX_TIMERFD_H
+ #define _LINUX_TIMERFD_H
  
--		magic = (unsigned long)page->lru.next;
-+		magic = (unsigned long)page->freelist;
- 		if (magic == SECTION_INFO || magic == MIX_SECTION_INFO) {
- 			while (nr_pages--)
- 				put_page_bootmem(page++);
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext
-+++ a/mm/memory_hotplug.c
-@@ -179,7 +179,8 @@ static void release_memory_resource(stru
- void get_page_bootmem(unsigned long info,  struct page *page,
- 		      unsigned long type)
- {
--	page->lru.next = (struct list_head *) type;
-+	page->lru.next = (struct list_head *)type;
-+	page->freelist = (void *)type;
- 	SetPagePrivate(page);
- 	set_page_private(page, info);
- 	page_ref_inc(page);
-@@ -189,11 +190,12 @@ void put_page_bootmem(struct page *page)
- {
- 	unsigned long type;
+-/* For O_CLOEXEC and O_NONBLOCK */
+-#include <linux/fcntl.h>
+-
+-/* For _IO helpers */
+-#include <linux/ioctl.h>
+-
+-/*
+- * CAREFUL: Check include/asm-generic/fcntl.h when defining
+- * new flags, since they might collide with O_* ones. We want
+- * to re-use O_* flags that couldn't possibly have a meaning
+- * from eventfd, in order to leave a free define-space for
+- * shared O_* flags.
+- */
+-#define TFD_TIMER_ABSTIME (1 << 0)
+-#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
+-#define TFD_CLOEXEC O_CLOEXEC
+-#define TFD_NONBLOCK O_NONBLOCK
++#include <uapi/linux/timerfd.h>
  
--	type = (unsigned long) page->lru.next;
-+	type = (unsigned long) page->freelist;
- 	BUG_ON(type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
- 	       type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE);
+ #define TFD_SHARED_FCNTL_FLAGS (TFD_CLOEXEC | TFD_NONBLOCK)
+ /* Flags for timerfd_create.  */
+@@ -32,6 +16,4 @@
+ /* Flags for timerfd_settime.  */
+ #define TFD_SETTIME_FLAGS (TFD_TIMER_ABSTIME | TFD_TIMER_CANCEL_ON_SET)
  
- 	if (page_ref_dec_return(page) == 1) {
-+		page->freelist = NULL;
- 		ClearPagePrivate(page);
- 		set_page_private(page, 0);
- 		INIT_LIST_HEAD(&page->lru);
-diff -puN mm/sparse.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext mm/sparse.c
---- a/mm/sparse.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext
-+++ a/mm/sparse.c
-@@ -662,7 +662,7 @@ static void free_map_bootmem(struct page
- 		>> PAGE_SHIFT;
- 
- 	for (i = 0; i < nr_pages; i++, page++) {
--		magic = (unsigned long) page->lru.next;
-+		magic = (unsigned long) page->freelist;
- 
- 		BUG_ON(magic == NODE_INFO);
- 
+-#define TFD_IOC_SET_TICKS	_IOW('T', 0, u64)
+-
+ #endif /* _LINUX_TIMERFD_H */
+diff -puN include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace include/uapi/linux/Kbuild
+--- a/include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace
++++ a/include/uapi/linux/Kbuild
+@@ -414,6 +414,7 @@ header-y += telephony.h
+ header-y += termios.h
+ header-y += thermal.h
+ header-y += time.h
++header-y += timerfd.h
+ header-y += times.h
+ header-y += timex.h
+ header-y += tiocl.h
+diff -puN /dev/null include/uapi/linux/timerfd.h
+--- /dev/null
++++ a/include/uapi/linux/timerfd.h
+@@ -0,0 +1,36 @@
++/*
++ *  include/linux/timerfd.h
++ *
++ *  Copyright (C) 2007  Davide Libenzi <davidel@xmailserver.org>
++ *
++ */
++
++#ifndef _UAPI_LINUX_TIMERFD_H
++#define _UAPI_LINUX_TIMERFD_H
++
++#include <linux/types.h>
++
++/* For O_CLOEXEC and O_NONBLOCK */
++#include <linux/fcntl.h>
++
++/* For _IO helpers */
++#include <linux/ioctl.h>
++
++/*
++ * CAREFUL: Check include/asm-generic/fcntl.h when defining
++ * new flags, since they might collide with O_* ones. We want
++ * to re-use O_* flags that couldn't possibly have a meaning
++ * from eventfd, in order to leave a free define-space for
++ * shared O_* flags.
++ *
++ * Also make sure to update the masks in include/linux/timerfd.h
++ * when adding new flags.
++ */
++#define TFD_TIMER_ABSTIME (1 << 0)
++#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
++#define TFD_CLOEXEC O_CLOEXEC
++#define TFD_NONBLOCK O_NONBLOCK
++
++#define TFD_IOC_SET_TICKS	_IOW('T', 0, __u64)
++
++#endif /* _UAPI_LINUX_TIMERFD_H */
 _
 
-Patches currently in -mm which might be from yasu.isimatu@gmail.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-mm-sparse-use-page_private-to-get-page-private-value.patch
-mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+timerfd-export-defines-to-userspace.patch
 
