@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dax-add-tracepoints-to-dax_pmd_insert_mapping.patch added to
- -mm tree
-Date: Tue, 10 Jan 2017 14:51:34 -0800
-Message-ID: <58756576.r06bc5aQHeSfRawR%akpm@linux-foundation.org>
+Subject: + checkpatchpl-warn-against-using-%z-fix.patch added to -mm tree
+Date: Tue, 10 Jan 2017 15:27:29 -0800
+Message-ID: <58756de1.Ij3o+IueHb1Quw9g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48160 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756039AbdAJWvj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 17:51:39 -0500
+        with ESMTP id S1753606AbdAJX1f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 18:27:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dave.jiang@intel.com, david@fromorbit.com, jack@suse.cz, mawilcox@microsoft.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: joe@perches.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: add tracepoints to dax_pmd_insert_mapping()
+     Subject: checkpatchpl-warn-against-using-%z-fix
 has been added to the -mm tree.  Its filename is
-     dax-add-tracepoints-to-dax_pmd_insert_mapping.patch
+     checkpatchpl-warn-against-using-%z-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-tracepoints-to-dax_pmd_insert_mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatchpl-warn-against-using-%25z-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-tracepoints-to-dax_pmd_insert_mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatchpl-warn-against-using-%25z-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,174 +38,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: add tracepoints to dax_pmd_insert_mapping()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatchpl-warn-against-using-%z-fix
 
-Add tracepoints to dax_pmd_insert_mapping(), following the same logging
-conventions as the tracepoints in dax_iomap_pmd_fault().
+vsnprintf extension %Z<foo> is non-standard C.
+Suggest the use of %z instead.
 
-Here is an example PMD fault showing the new tracepoints:
+Miscellanea:
 
-big-1504  [001] ....   326.960743: xfs_filemap_pmd_fault: dev 259:0 ino
-0x1003
+o Correct the misuse of type string PRINTF_0xDECIMAL
+  type strings are supposed to be uppercase only.
+  Fix this and add tr/[a-z]/[A-Z] to the type check in case
+  I forget this again sometime in the future.
+o Improve the mechanism to find these defects so all
+  3 current checks are done on the format string
 
-big-1504  [001] ....   326.960753: dax_pmd_fault: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400
-
-big-1504  [001] ....   326.960981: dax_pmd_insert_mapping: dev 259:0 ino
-0x1003 shared write address 0x10505000 length 0x200000 pfn 0x100600 DEV|MAP
-radix_entry 0xc000e
-
-big-1504  [001] ....   326.960986: dax_pmd_fault_done: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400 NOPAGE
-
-Link: http://lkml.kernel.org/r/1484085142-2297-6-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/4e3ad74b0c9dc229b06018a2d79655308ddbbebd.1484014173.git.joe@perches.com
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                      |   12 +++++--
- include/linux/pfn_t.h         |    6 +++
- include/trace/events/fs_dax.h |   51 ++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN fs/dax.c~dax-add-tracepoints-to-dax_pmd_insert_mapping fs/dax.c
---- a/fs/dax.c~dax-add-tracepoints-to-dax_pmd_insert_mapping
-+++ a/fs/dax.c
-@@ -1253,15 +1253,16 @@ static int dax_pmd_insert_mapping(struct
- {
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 	struct block_device *bdev = iomap->bdev;
-+	struct inode *inode = mapping->host;
- 	struct blk_dax_ctl dax = {
- 		.sector = dax_iomap_sector(iomap, pos),
- 		.size = PMD_SIZE,
- 	};
- 	long length = dax_map_atomic(bdev, &dax);
--	void *ret;
-+	void *ret = NULL;
+diff -puN scripts/checkpatch.pl~checkpatchpl-warn-against-using-%z-fix scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatchpl-warn-against-using-%z-fix
++++ a/scripts/checkpatch.pl
+@@ -1848,6 +1848,8 @@ my $prefix = '';
+ sub show_type {
+ 	my ($type) = @_;
  
- 	if (length < 0) /* dax_map_atomic() failed */
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	if (length < PMD_SIZE)
- 		goto unmap_fallback;
- 	if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)
-@@ -1274,13 +1275,18 @@ static int dax_pmd_insert_mapping(struct
- 	ret = dax_insert_mapping_entry(mapping, vmf, *entryp, dax.sector,
- 			RADIX_DAX_PMD);
- 	if (IS_ERR(ret))
--		return VM_FAULT_FALLBACK;
-+		goto fallback;
- 	*entryp = ret;
- 
-+	trace_dax_pmd_insert_mapping(inode, vma, address, write, length,
-+			dax.pfn, ret);
- 	return vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
- 
-  unmap_fallback:
- 	dax_unmap_atomic(bdev, &dax);
-+fallback:
-+	trace_dax_pmd_insert_mapping_fallback(inode, vma, address, write,
-+			length, dax.pfn, ret);
- 	return VM_FAULT_FALLBACK;
- }
- 
-diff -puN include/linux/pfn_t.h~dax-add-tracepoints-to-dax_pmd_insert_mapping include/linux/pfn_t.h
---- a/include/linux/pfn_t.h~dax-add-tracepoints-to-dax_pmd_insert_mapping
-+++ a/include/linux/pfn_t.h
-@@ -15,6 +15,12 @@
- #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
- #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
- 
-+#define PFN_FLAGS_TRACE \
-+	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
-+	{ PFN_SG_LAST,	"SG_LAST" }, \
-+	{ PFN_DEV,	"DEV" }, \
-+	{ PFN_MAP,	"MAP" }
++	$type =~ tr/[a-z]/[A-Z]/;
 +
- static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, u64 flags)
- {
- 	pfn_t pfn_t = { .val = pfn | (flags & PFN_FLAGS_MASK), };
-diff -puN include/trace/events/fs_dax.h~dax-add-tracepoints-to-dax_pmd_insert_mapping include/trace/events/fs_dax.h
---- a/include/trace/events/fs_dax.h~dax-add-tracepoints-to-dax_pmd_insert_mapping
-+++ a/include/trace/events/fs_dax.h
-@@ -104,6 +104,57 @@ DEFINE_EVENT(dax_pmd_load_hole_class, na
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
- DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+ 	return defined $use_type{$type} if (scalar keys %use_type > 0);
  
-+DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
-+	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
-+		unsigned long address, int write, long length, pfn_t pfn,
-+		void *radix_entry),
-+	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, ino)
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
-+		__field(long, length)
-+		__field(u64, pfn_val)
-+		__field(void *, radix_entry)
-+		__field(dev_t, dev)
-+		__field(int, write)
-+	),
-+	TP_fast_assign(
-+		__entry->dev = inode->i_sb->s_dev;
-+		__entry->ino = inode->i_ino;
-+		__entry->vm_flags = vma->vm_flags;
-+		__entry->address = address;
-+		__entry->write = write;
-+		__entry->length = length;
-+		__entry->pfn_val = pfn.val;
-+		__entry->radix_entry = radix_entry;
-+	),
-+	TP_printk("dev %d:%d ino %#lx %s %s address %#lx length %#lx "
-+			"pfn %#llx %s radix_entry %#lx",
-+		MAJOR(__entry->dev),
-+		MINOR(__entry->dev),
-+		__entry->ino,
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__entry->write ? "write" : "read",
-+		__entry->address,
-+		__entry->length,
-+		__entry->pfn_val & ~PFN_FLAGS_MASK,
-+		__print_flags_u64(__entry->pfn_val & PFN_FLAGS_MASK, "|",
-+			PFN_FLAGS_TRACE),
-+		(unsigned long)__entry->radix_entry
-+	)
-+)
-+
-+#define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
-+DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
-+	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
-+		unsigned long address, int write, long length, pfn_t pfn, \
-+		void *radix_entry), \
-+	TP_ARGS(inode, vma, address, write, length, pfn, radix_entry))
-+
-+DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
-+DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
-+
- #endif /* _TRACE_FS_DAX_H */
+ 	return !defined $ignore_type{$type};
+@@ -5197,24 +5199,27 @@ sub process {
+ 			     "Consecutive strings are generally better as a single string\n" . $herecurr);
+ 		}
  
- /* This part must be outside protection */
+-# check for %L{u,d,i} and 0x%[udi] in strings
+-		my $string;
++# check for non-standard and hex prefixed decimal printf formats
++		my $show_L = 1;	#don't show the same defect twice
++		my $show_Z = 1;
+ 		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
+-			$string = substr($rawline, $-[1], $+[1] - $-[1]);
++			my $string = substr($rawline, $-[1], $+[1] - $-[1]);
+ 			$string =~ s/%%/__/g;
+-			if ($string =~ /(?<!%)%[\*\d\.\$]*L[udi]/) {
++			# check for %L
++			if ($show_L && $string =~ /%[\*\d\.\$]*L([diouxX])/) {
+ 				WARN("PRINTF_L",
+-				     "\%Ld/%Lu are not-standard C, use %lld/%llu\n" . $herecurr);
+-				last;
++				     "\%L$1 is non-standard C, use %ll$1\n" . $herecurr);
++				$show_L = 0;
+ 			}
+ 			# check for %Z
+-			if ($string =~ /(?<!%)%[\*\d\.\$]*Z[diouxX]/) {
++			if ($show_Z && $string =~ /%[\*\d\.\$]*Z([diouxX])/) {
+ 				WARN("PRINTF_Z",
+-				     "%Z is non-standard C, use %z\n" . $herecurr);
+-				last;
++				     "%Z$1 is non-standard C, use %z$1\n" . $herecurr);
++				$show_Z = 0;
+ 			}
+-			if ($string =~ /0x%[\*\d\.\$\Llzth]*[udi]/) {
+-				ERROR("PRINTF_0xDECIMAL",
++			# check for 0x<decimal>
++			if ($string =~ /0x%[\*\d\.\$\Llzth]*[diou]/) {
++				ERROR("PRINTF_0XDECIMAL",
+ 				      "Prefixing 0x with decimal output is defective\n" . $herecurr);
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-dax-fix-deadlock-with-dax-4k-holes.patch
-mm-add-follow_pte_pmd.patch
-dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean.patch
-dax-fix-build-warnings-with-fs_dax-and-fs_iomap.patch
-tracing-add-__print_flags_u64.patch
-dax-add-tracepoint-infrastructure-pmd-tracing.patch
-dax-update-maintainers-entries-for-fs-dax.patch
-dax-add-tracepoints-to-dax_pmd_load_hole.patch
-dax-add-tracepoints-to-dax_pmd_insert_mapping.patch
+checkpatch-warn-on-embedded-function-names.patch
+checkpatch-warn-on-logging-continuations.patch
+checkpatchpl-warn-against-using-%z-fix.patch
 
