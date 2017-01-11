@@ -1,97 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/27] dax: fix deadlock with DAX 4k holes
-Date: Tue, 10 Jan 2017 16:57:15 -0800
-Message-ID: <587582eb.R8aeJLJrhwCRVH1l%akpm@linux-foundation.org>
+Subject: [patch 03/27] mm/thp/pagecache/collapse: free the pte page table
+ on collapse for thp page cache.
+Date: Tue, 10 Jan 2017 16:57:18 -0800
+Message-ID: <587582ee.7rkTXOB68sfz1h34%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33258 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33270 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759833AbdAKA5Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:16 -0500
+        with ESMTP id S1759864AbdAKA5T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, jack@suse.cz, stable@vger.kernel.org, xzhou@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mpe@ellerman.id.au
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix deadlock with DAX 4k holes
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/thp/pagecache/collapse: free the pte page table on collapse for thp page cache.
 
-Currently in DAX if we have three read faults on the same hole address we
-can end up with the following:
+With THP page cache, when trying to build a huge page from regular pte
+pages, we just clear the pmd entry.  We will take another fault and at
+that point we will find the huge page in the radix tree, thereby using the
+huge page to complete the page fault
 
-Thread 0		Thread 1		Thread 2
---------		--------		--------
-dax_iomap_fault
- grab_mapping_entry
-  lock_slot
-   <locks empty DAX entry>
+The second fault path will allocate the needed pgtable_t page for archs
+like ppc64.  So no need to deposit the same in collapse path.  Depositing
+them in the collapse path resulting in a pgtable_t memory leak also giving
+errors like "[ 2362.021762] BUG: non-zero nr_ptes on freeing mm: 3"
 
-  			dax_iomap_fault
-			 grab_mapping_entry
-			  get_unlocked_mapping_entry
-			   <sleeps on empty DAX entry>
-
-						dax_iomap_fault
-						 grab_mapping_entry
-						  get_unlocked_mapping_entry
-						   <sleeps on empty DAX entry>
-  dax_load_hole
-   find_or_create_page
-   ...
-    page_cache_tree_insert
-     dax_wake_mapping_entry_waiter
-      <wakes one sleeper>
-     __radix_tree_replace
-      <swaps empty DAX entry with 4k zero page>
-
-			<wakes>
-			get_page
-			lock_page
-			...
-			put_locked_mapping_entry
-			unlock_page
-			put_page
-
-						<sleeps forever on the DAX
-						 wait queue>
-
-The crux of the problem is that once we insert a 4k zero page, all locking
-from then on is done in terms of that 4k zero page and any additional
-threads sleeping on the empty DAX entry will never be woken.  Fix this by
-waking all sleepers when we replace the DAX radix tree entry with a 4k
-zero page.  This will allow all sleeping threads to successfully
-transition from locking based on the DAX empty entry to locking on the 4k
-zero page.
-
-With the test case reported by Xiong this happens very regularly in my
-test setup, with some runs resulting in 9+ threads in this deadlocked
-state.  With this fix I've been able to run that same test dozens of times
-in a loop without issue.
-
-Fixes: ac401cc78242 ("dax: New fault locking")
-Link: http://lkml.kernel.org/r/1483479365-13607-1-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Xiong Zhou <xzhou@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>	[4.7+]
+Fixes: 953c66c2b22a304d ("mm: THP page cache support for ppc64")
+Link: http://lkml.kernel.org/r/20161212163428.6780-2-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |   21 ++-------------------
+ 1 file changed, 2 insertions(+), 19 deletions(-)
 
-diff -puN mm/filemap.c~dax-fix-deadlock-with-dax-4k-holes mm/filemap.c
---- a/mm/filemap.c~dax-fix-deadlock-with-dax-4k-holes
-+++ a/mm/filemap.c
-@@ -138,7 +138,7 @@ static int page_cache_tree_insert(struct
- 				dax_radix_locked_entry(0, RADIX_DAX_EMPTY));
- 			/* Wakeup waiters for exceptional entry lock */
- 			dax_wake_mapping_entry_waiter(mapping, page->index, p,
--						      false);
-+						      true);
+diff -puN mm/khugepaged.c~mm-thp-pagecache-collapse-free-the-pte-page-table-on-collapse-for-thp-page-cache mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-thp-pagecache-collapse-free-the-pte-page-table-on-collapse-for-thp-page-cache
++++ a/mm/khugepaged.c
+@@ -1242,7 +1242,6 @@ static void retract_page_tables(struct a
+ 	struct vm_area_struct *vma;
+ 	unsigned long addr;
+ 	pmd_t *pmd, _pmd;
+-	bool deposited = false;
+ 
+ 	i_mmap_lock_write(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+@@ -1267,26 +1266,10 @@ static void retract_page_tables(struct a
+ 			spinlock_t *ptl = pmd_lock(vma->vm_mm, pmd);
+ 			/* assume page table is clear */
+ 			_pmd = pmdp_collapse_flush(vma, addr, pmd);
+-			/*
+-			 * now deposit the pgtable for arch that need it
+-			 * otherwise free it.
+-			 */
+-			if (arch_needs_pgtable_deposit()) {
+-				/*
+-				 * The deposit should be visibile only after
+-				 * collapse is seen by others.
+-				 */
+-				smp_wmb();
+-				pgtable_trans_huge_deposit(vma->vm_mm, pmd,
+-							   pmd_pgtable(_pmd));
+-				deposited = true;
+-			}
+ 			spin_unlock(ptl);
+ 			up_write(&vma->vm_mm->mmap_sem);
+-			if (!deposited) {
+-				atomic_long_dec(&vma->vm_mm->nr_ptes);
+-				pte_free(vma->vm_mm, pmd_pgtable(_pmd));
+-			}
++			atomic_long_dec(&vma->vm_mm->nr_ptes);
++			pte_free(vma->vm_mm, pmd_pgtable(_pmd));
  		}
  	}
- 	__radix_tree_replace(&mapping->page_tree, node, slot, page,
+ 	i_mmap_unlock_write(mapping);
 _
