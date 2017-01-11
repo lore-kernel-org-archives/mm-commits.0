@@ -1,110 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done.patch removed
- from -mm tree
-Date: Wed, 11 Jan 2017 14:27:57 -0800
-Message-ID: <5876b16d.ZIpRwigCHmmAr76F%akpm__17802.0194558941$1484173770$gmane$org@linux-foundation.org>
+Subject: [merged] mm-get-rid-of-__gfp_other_node.patch removed from -mm
+ tree
+Date: Wed, 11 Jan 2017 14:28:03 -0800
+Message-ID: <5876b173.hVesB8JE6WXezrAV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933153AbdAKW2e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:34 -0500
+        with ESMTP id S933573AbdAKW2h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, hch@lst.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}
+     Subject: mm: get rid of __GFP_OTHER_NODE
 has been removed from the -mm tree.  Its filename was
-     mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done.patch
+     mm-get-rid-of-__gfp_other_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: get rid of __GFP_OTHER_NODE
 
-Both arch_add_memory() and arch_remove_memory() expect a single threaded
-context.
+The flag was introduced by 78afd5612deb ("mm: add __GFP_OTHER_NODE flag")
+to allow proper accounting of remote node allocations done by kernel
+daemons on behalf of a process - e.g.  khugepaged.
 
-For example, arch/x86/mm/init_64.c::kernel_physical_mapping_init() does
-not hold any locks over this check and branch:
+After "mm: fix remote numa hits statistics" we do not need and actually
+use the flag so we can safely remove it because all allocations which are
+satisfied from their "home" node are accounted properly.
 
-    if (pgd_val(*pgd)) {
-    	pud = (pud_t *)pgd_page_vaddr(*pgd);
-    	paddr_last = phys_pud_init(pud, __pa(vaddr),
-    				   __pa(vaddr_end),
-    				   page_size_mask);
-    	continue;
-    }
-
-    pud = alloc_low_page();
-    paddr_last = phys_pud_init(pud, __pa(vaddr), __pa(vaddr_end),
-    			   page_size_mask);
-
-The result is that two threads calling devm_memremap_pages()
-simultaneously can end up colliding on pgd initialization. This leads to
-crash signatures like the following where the loser of the race
-initializes the wrong pgd entry:
-
-    BUG: unable to handle kernel paging request at ffff888ebfff0000
-    IP: [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
-    PGD 2f8e8fc067 PUD 0 /* <---- Invalid PUD */
-    Oops: 0000 [#1] SMP DEBUG_PAGEALLOC
-    CPU: 54 PID: 3818 Comm: systemd-udevd Not tainted 4.6.7+ #13
-    task: ffff882fac290040 ti: ffff882f887a4000 task.ti: ffff882f887a4000
-    RIP: 0010:[<ffffffff8149e1e6>]  [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
-    [..]
-    Call Trace:
-     [<ffffffffc0119045>] ? pmem_do_bvec+0x205/0x370 [nd_pmem]
-     [<ffffffff8145b82a>] ? blk_queue_enter+0x3a/0x280
-     [<ffffffffc0119418>] pmem_rw_page+0x38/0x80 [nd_pmem]
-     [<ffffffff812b1c94>] bdev_read_page+0x84/0xb0
-
-Hold the standard memory hotplug mutex over calls to
-arch_{add,remove}_memory().
-
-Fixes: 41e94a851304 ("add devm_memremap_pages")
-Link: http://lkml.kernel.org/r/148357647831.9498.12606007370121652979.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stable@vger.kernel.org>
+[mhocko@suse.com: fix build]
+  Link: http://lkml.kernel.org/r/20170106122225.GK5556@dhcp22.suse.cz
+Link: http://lkml.kernel.org/r/20170102153057.9451-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/gfp.h            |   13 +++----------
+ include/trace/events/mmflags.h |    3 +--
+ mm/huge_memory.c               |    3 +--
+ mm/khugepaged.c                |    5 ++---
+ mm/page_alloc.c                |    5 ++---
+ tools/perf/builtin-kmem.c      |    1 -
+ 6 files changed, 9 insertions(+), 21 deletions(-)
 
-diff -puN kernel/memremap.c~mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done kernel/memremap.c
---- a/kernel/memremap.c~mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done
-+++ a/kernel/memremap.c
-@@ -246,7 +246,9 @@ static void devm_memremap_pages_release(
- 	/* pages are dead and unused, undo the arch mapping */
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
-+	mem_hotplug_begin();
- 	arch_remove_memory(align_start, align_size);
-+	mem_hotplug_done();
- 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
- 	pgmap_radix_release(res);
- 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
-@@ -358,7 +360,9 @@ void *devm_memremap_pages(struct device
- 	if (error)
- 		goto err_pfn_remap;
+diff -puN include/linux/gfp.h~mm-get-rid-of-__gfp_other_node include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-get-rid-of-__gfp_other_node
++++ a/include/linux/gfp.h
+@@ -38,9 +38,8 @@ struct vm_area_struct;
+ #define ___GFP_ACCOUNT		0x100000u
+ #define ___GFP_NOTRACK		0x200000u
+ #define ___GFP_DIRECT_RECLAIM	0x400000u
+-#define ___GFP_OTHER_NODE	0x800000u
+-#define ___GFP_WRITE		0x1000000u
+-#define ___GFP_KSWAPD_RECLAIM	0x2000000u
++#define ___GFP_WRITE		0x800000u
++#define ___GFP_KSWAPD_RECLAIM	0x1000000u
+ /* If the above are modified, __GFP_BITS_SHIFT may need updating */
  
-+	mem_hotplug_begin();
- 	error = arch_add_memory(nid, align_start, align_size, true);
-+	mem_hotplug_done();
- 	if (error)
- 		goto err_add_memory;
+ /*
+@@ -172,11 +171,6 @@ struct vm_area_struct;
+  * __GFP_NOTRACK_FALSE_POSITIVE is an alias of __GFP_NOTRACK. It's a means of
+  *   distinguishing in the source between false positives and allocations that
+  *   cannot be supported (e.g. page tables).
+- *
+- * __GFP_OTHER_NODE is for allocations that are on a remote node but that
+- *   should not be accounted for as a remote allocation in vmstat. A
+- *   typical user would be khugepaged collapsing a huge page on a remote
+- *   node.
+  */
+ #define __GFP_COLD	((__force gfp_t)___GFP_COLD)
+ #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
+@@ -184,10 +178,9 @@ struct vm_area_struct;
+ #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)
+ #define __GFP_NOTRACK_FALSE_POSITIVE (__GFP_NOTRACK)
+-#define __GFP_OTHER_NODE ((__force gfp_t)___GFP_OTHER_NODE)
  
+ /* Room for N __GFP_FOO bits */
+-#define __GFP_BITS_SHIFT 26
++#define __GFP_BITS_SHIFT 25
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /*
+diff -puN include/trace/events/mmflags.h~mm-get-rid-of-__gfp_other_node include/trace/events/mmflags.h
+--- a/include/trace/events/mmflags.h~mm-get-rid-of-__gfp_other_node
++++ a/include/trace/events/mmflags.h
+@@ -47,8 +47,7 @@
+ 	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
+ 	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
+ 	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
+-	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
+-	{(unsigned long)__GFP_OTHER_NODE,	"__GFP_OTHER_NODE"}	\
++	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"}\
+ 
+ #define show_gfp_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",				\
+diff -puN mm/huge_memory.c~mm-get-rid-of-__gfp_other_node mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-get-rid-of-__gfp_other_node
++++ a/mm/huge_memory.c
+@@ -919,8 +919,7 @@ static int do_huge_pmd_wp_page_fallback(
+ 	}
+ 
+ 	for (i = 0; i < HPAGE_PMD_NR; i++) {
+-		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE |
+-					       __GFP_OTHER_NODE, vma,
++		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE, vma,
+ 					       vmf->address, page_to_nid(page));
+ 		if (unlikely(!pages[i] ||
+ 			     mem_cgroup_try_charge(pages[i], vma->vm_mm,
+diff -puN mm/khugepaged.c~mm-get-rid-of-__gfp_other_node mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-get-rid-of-__gfp_other_node
++++ a/mm/khugepaged.c
+@@ -943,7 +943,7 @@ static void collapse_huge_page(struct mm
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 
+ 	/* Only allocate from the target node */
+-	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_OTHER_NODE | __GFP_THISNODE;
++	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_THISNODE;
+ 
+ 	/*
+ 	 * Before allocating the hugepage, release the mmap_sem read lock.
+@@ -1309,8 +1309,7 @@ static void collapse_shmem(struct mm_str
+ 	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
+ 
+ 	/* Only allocate from the target node */
+-	gfp = alloc_hugepage_khugepaged_gfpmask() |
+-		__GFP_OTHER_NODE | __GFP_THISNODE;
++	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_THISNODE;
+ 
+ 	new_page = khugepaged_alloc_page(hpage, gfp, node);
+ 	if (!new_page) {
+diff -puN mm/page_alloc.c~mm-get-rid-of-__gfp_other_node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-get-rid-of-__gfp_other_node
++++ a/mm/page_alloc.c
+@@ -2584,8 +2584,7 @@ int __isolate_free_page(struct page *pag
+  *
+  * Must be called with interrupts disabled.
+  */
+-static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
+-								gfp_t flags)
++static inline void zone_statistics(struct zone *preferred_zone, struct zone *z)
+ {
+ #ifdef CONFIG_NUMA
+ 	enum zone_stat_item local_stat = NUMA_LOCAL;
+@@ -2667,7 +2666,7 @@ struct page *buffered_rmqueue(struct zon
+ 	}
+ 
+ 	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+-	zone_statistics(preferred_zone, zone, gfp_flags);
++	zone_statistics(preferred_zone, zone);
+ 	local_irq_restore(flags);
+ 
+ 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
+diff -puN tools/perf/builtin-kmem.c~mm-get-rid-of-__gfp_other_node tools/perf/builtin-kmem.c
+--- a/tools/perf/builtin-kmem.c~mm-get-rid-of-__gfp_other_node
++++ a/tools/perf/builtin-kmem.c
+@@ -655,7 +655,6 @@ static const struct {
+ 	{ "__GFP_RECLAIM",		"R" },
+ 	{ "__GFP_DIRECT_RECLAIM",	"DR" },
+ 	{ "__GFP_KSWAPD_RECLAIM",	"KR" },
+-	{ "__GFP_OTHER_NODE",		"ON" },
+ };
+ 
+ static size_t max_gfp_len;
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-throttle-show_mem-from-warn_alloc.patch
+mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+oom-trace-add-oom-detection-tracepoints.patch
+oom-trace-add-compaction-retry-tracepoint.patch
+mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+mm-vmscan-add-active-list-aging-tracepoint.patch
+mm-vmscan-add-active-list-aging-tracepoint-update.patch
+mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
 
