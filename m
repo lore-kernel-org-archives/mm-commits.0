@@ -1,94 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 15/27] signal: protect SIGNAL_UNKILLABLE from
- unintentional clearing
-Date: Tue, 10 Jan 2017 16:57:54 -0800
-Message-ID: <58758312.hBId5mQWkOtm15B2%akpm@linux-foundation.org>
+Subject: [patch 09/27] mm: fix devm_memremap_pages crash, use
+ mem_hotplug_{begin, done}
+Date: Tue, 10 Jan 2017 16:57:36 -0800
+Message-ID: <58758300.G+2k8FyoQXd2rCEs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33356 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760008AbdAKA54 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:56 -0500
+        with ESMTP id S1759942AbdAKA5h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jamie.iles@oracle.com, mingo@redhat.com, oleg@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, hch@lst.de, stable@vger.kernel.org
 
-From: Jamie Iles <jamie.iles@oracle.com>
-Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing.
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}
 
-Since 00cd5c37af (ptrace: permit ptracing of /sbin/init) we can now trace
-init processes.  init is initially protected with SIGNAL_UNKILLABLE which
-will prevent fatal signals such as SIGSTOP, but there are a number of
-paths during tracing where SIGNAL_UNKILLABLE can be implicitly cleared.
+Both arch_add_memory() and arch_remove_memory() expect a single threaded
+context.
 
-This can result in init becoming stoppable/killable after tracing.  For
-example, running:
+For example, arch/x86/mm/init_64.c::kernel_physical_mapping_init() does
+not hold any locks over this check and branch:
 
-  while true; do kill -STOP 1; done &
-  strace -p 1
+    if (pgd_val(*pgd)) {
+    	pud = (pud_t *)pgd_page_vaddr(*pgd);
+    	paddr_last = phys_pud_init(pud, __pa(vaddr),
+    				   __pa(vaddr_end),
+    				   page_size_mask);
+    	continue;
+    }
 
-and then stopping strace and the kill loop will result in init being left
-in state TASK_STOPPED.  Sending SIGCONT to init will resume it, but init
-will now respond to future SIGSTOP signals rather than ignoring them.
+    pud = alloc_low_page();
+    paddr_last = phys_pud_init(pud, __pa(vaddr), __pa(vaddr_end),
+    			   page_size_mask);
 
-Make sure that when setting SIGNAL_STOP_CONTINUED/SIGNAL_STOP_STOPPED
-that we don't clear SIGNAL_UNKILLABLE.
+The result is that two threads calling devm_memremap_pages()
+simultaneously can end up colliding on pgd initialization. This leads to
+crash signatures like the following where the loser of the race
+initializes the wrong pgd entry:
 
-Link: http://lkml.kernel.org/r/20170104122017.25047-1-jamie.iles@oracle.com
-Signed-off-by: Jamie Iles <jamie.iles@oracle.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+    BUG: unable to handle kernel paging request at ffff888ebfff0000
+    IP: [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
+    PGD 2f8e8fc067 PUD 0 /* <---- Invalid PUD */
+    Oops: 0000 [#1] SMP DEBUG_PAGEALLOC
+    CPU: 54 PID: 3818 Comm: systemd-udevd Not tainted 4.6.7+ #13
+    task: ffff882fac290040 ti: ffff882f887a4000 task.ti: ffff882f887a4000
+    RIP: 0010:[<ffffffff8149e1e6>]  [<ffffffff8149e1e6>] memcpy_erms+0x6/0x10
+    [..]
+    Call Trace:
+     [<ffffffffc0119045>] ? pmem_do_bvec+0x205/0x370 [nd_pmem]
+     [<ffffffff8145b82a>] ? blk_queue_enter+0x3a/0x280
+     [<ffffffffc0119418>] pmem_rw_page+0x38/0x80 [nd_pmem]
+     [<ffffffff812b1c94>] bdev_read_page+0x84/0xb0
+
+Hold the standard memory hotplug mutex over calls to
+arch_{add,remove}_memory().
+
+Fixes: 41e94a851304 ("add devm_memremap_pages")
+Link: http://lkml.kernel.org/r/148357647831.9498.12606007370121652979.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   10 ++++++++++
- kernel/signal.c       |    4 ++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ kernel/memremap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing include/linux/sched.h
---- a/include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing
-+++ a/include/linux/sched.h
-@@ -854,6 +854,16 @@ struct signal_struct {
+diff -puN kernel/memremap.c~mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done kernel/memremap.c
+--- a/kernel/memremap.c~mm-fix-devm_memremap_pages-crash-use-mem_hotplug_begin-done
++++ a/kernel/memremap.c
+@@ -246,7 +246,9 @@ static void devm_memremap_pages_release(
+ 	/* pages are dead and unused, undo the arch mapping */
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
++	mem_hotplug_begin();
+ 	arch_remove_memory(align_start, align_size);
++	mem_hotplug_done();
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+ 	pgmap_radix_release(res);
+ 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
+@@ -358,7 +360,9 @@ void *devm_memremap_pages(struct device
+ 	if (error)
+ 		goto err_pfn_remap;
  
- #define SIGNAL_UNKILLABLE	0x00000040 /* for init: ignore fatal signals */
++	mem_hotplug_begin();
+ 	error = arch_add_memory(nid, align_start, align_size, true);
++	mem_hotplug_done();
+ 	if (error)
+ 		goto err_add_memory;
  
-+#define SIGNAL_STOP_MASK (SIGNAL_CLD_MASK | SIGNAL_STOP_STOPPED | \
-+			  SIGNAL_STOP_CONTINUED)
-+
-+static inline void signal_set_stop_flags(struct signal_struct *sig,
-+					 unsigned int flags)
-+{
-+	WARN_ON(sig->flags & (SIGNAL_GROUP_EXIT|SIGNAL_GROUP_COREDUMP));
-+	sig->flags = (sig->flags & ~SIGNAL_STOP_MASK) | flags;
-+}
-+
- /* If true, all threads except ->group_exit_task have pending SIGKILL */
- static inline int signal_group_exit(const struct signal_struct *sig)
- {
-diff -puN kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing kernel/signal.c
---- a/kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing
-+++ a/kernel/signal.c
-@@ -346,7 +346,7 @@ static bool task_participate_group_stop(
- 	 * fresh group stop.  Read comment in do_signal_stop() for details.
- 	 */
- 	if (!sig->group_stop_count && !(sig->flags & SIGNAL_STOP_STOPPED)) {
--		sig->flags = SIGNAL_STOP_STOPPED;
-+		signal_set_stop_flags(sig, SIGNAL_STOP_STOPPED);
- 		return true;
- 	}
- 	return false;
-@@ -843,7 +843,7 @@ static bool prepare_signal(int sig, stru
- 			 * will take ->siglock, notice SIGNAL_CLD_MASK, and
- 			 * notify its parent. See get_signal_to_deliver().
- 			 */
--			signal->flags = why | SIGNAL_STOP_CONTINUED;
-+			signal_set_stop_flags(signal, why | SIGNAL_STOP_CONTINUED);
- 			signal->group_stop_count = 0;
- 			signal->group_exit_code = 0;
- 		}
 _
