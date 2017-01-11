@@ -1,77 +1,58 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-get-rid-of-__gfp_other_node-fix.patch removed
- from -mm tree
-Date: Tue, 10 Jan 2017 16:50:16 -0800
-Message-ID: <58758148.pDQ1tjFrVqPDQQjW%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Tue, 10 Jan 2017 16:57:02 -0800
+Message-ID: <20170110165702.965909957562c70ec05c01c8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751766AbdAKAuR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:50:17 -0500
+        with ESMTP id S1759840AbdAKA5E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+27 fixes, based on bd5d7428f5e50cc10b98cf0abc13ccac391e1e33:
+
+The three patches
+
+Subject: mm: rename __alloc_page_frag to page_frag_alloc and __free_page_frag to page_frag_free
+Subject: mm: rename __page_frag functions to __page_frag_cache, drop order from drain
+Subject: mm: add documentation for page fragment APIs
+
+aren't actually fixes.  They're simple function renamings which are
+nice-to-have in mainline as ongoing net development depends on them.
 
 
-The patch titled
-     Subject: mm: get rid of __GFP_OTHER_NODE fix
-has been removed from the -mm tree.  Its filename was
-     mm-get-rid-of-__gfp_other_node-fix.patch
-
-This patch was dropped because it was folded into mm-get-rid-of-__gfp_other_node.patch
-
-------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: get rid of __GFP_OTHER_NODE fix
-
->> mm/debug.c:34:21: error: expected expression before ',' token
-     __def_gfpflag_names,
-                        ^
-Link: http://lkml.kernel.org/r/20170106122225.GK5556@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/trace/events/mmflags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN include/trace/events/mmflags.h~mm-get-rid-of-__gfp_other_node-fix include/trace/events/mmflags.h
---- a/include/trace/events/mmflags.h~mm-get-rid-of-__gfp_other_node-fix
-+++ a/include/trace/events/mmflags.h
-@@ -47,7 +47,7 @@
- 	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
- 	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
- 	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
--	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
-+	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"}\
- 
- #define show_gfp_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order.patch
-bpf-do-not-use-kmalloc_shift_max.patch
-mm-fix-remote-numa-hits-statistics.patch
-mm-get-rid-of-__gfp_other_node.patch
-mm-memcg-fix-the-active-list-aging-for-lowmem-requests-when-memcg-is-enabled.patch
-mm-throttle-show_mem-from-warn_alloc.patch
-mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-oom-trace-add-oom-detection-tracepoints.patch
-oom-trace-add-compaction-retry-tracepoint.patch
-mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
-mm-vmscan-add-active-list-aging-tracepoint.patch
-mm-vmscan-add-active-list-aging-tracepoint-update.patch
-mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
-mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
-mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
-mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
-mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
-trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+Subject: MAINTAINERS: remove duplicate bug filling description
+Subject: dax: fix deadlock with DAX 4k holes
+Subject: mm/thp/pagecache/collapse: free the pte page table on collapse for thp page cache.
+Subject: mm: add follow_pte_pmd()
+Subject: dax: wrprotect pmd_t in dax_mapping_entry_mkclean
+Subject: mm, slab: make sure that KMALLOC_MAX_SIZE will fit into MAX_ORDER
+Subject: bpf: do not use KMALLOC_SHIFT_MAX
+Subject: ocfs2: fix crash caused by stale lvb with fsdlm plugin
+Subject: mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}
+Subject: mm: fix remote numa hits statistics
+Subject: mm: get rid of __GFP_OTHER_NODE
+Subject: lib/Kconfig.debug: fix frv build failure
+Subject: ipc/sem.c: fix incorrect sem_lock pairing
+Subject: mm: pmd dirty emulation in page fault handler
+Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing.
+Subject: mailmap: add codeaurora.org names for nameless email commits
+Subject: mm: don't dereference struct page fields of invalid pages
+Subject: mm, memcg: fix the active list aging for lowmem requests when memcg is enabled
+Subject: mm: rename __alloc_page_frag to page_frag_alloc and __free_page_frag to page_frag_free
+Subject: mm: rename __page_frag functions to __page_frag_cache, drop order from drain
+Subject: mm: add documentation for page fragment APIs
+Subject: mm: support anonymous stable page
+Subject: zram: revalidate disk under init_lock
+Subject: zram: support BDI_CAP_STABLE_WRITES
+Subject: mm/slab.c: fix SLAB freelist randomization duplicate entries
+Subject: mm/hugetlb.c: fix reservation race when freeing surplus pages
+Subject: timerfd: export defines to userspace
 
