@@ -1,62 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 12/27] lib/Kconfig.debug: fix frv build failure
-Date: Tue, 10 Jan 2017 16:57:45 -0800
-Message-ID: <58758309.FhaOeJN3De0aCpNf%akpm@linux-foundation.org>
+Subject: [patch 26/27] mm/hugetlb.c: fix reservation race when freeing
+ surplus pages
+Date: Tue, 10 Jan 2017 16:58:27 -0800
+Message-ID: <58758333.VeJx5vSVuIzHzBXy%akpm__39276.1962874376$1484096359$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33634 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760000AbdAKA5v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:51 -0500
+        with ESMTP id S1759981AbdAKA62 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, ak@linux.intel.com, dhowells@redhat.com, fengguang.wu@intel.com, sudip.mukherjee@codethink.co.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, cassella@cray.com, hillf.zj@alibaba-inc.com, m.mizuma@jp.fujitsu.com, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: lib/Kconfig.debug: fix frv build failure
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb.c: fix reservation race when freeing surplus pages
 
-The build of frv allmodconfig was failing with the errors like:
-/tmp/cc0JSPc3.s: Assembler messages:
-/tmp/cc0JSPc3.s:1839: Error: symbol `.LSLT0' is already defined
-/tmp/cc0JSPc3.s:1842: Error: symbol `.LASLTP0' is already defined
-/tmp/cc0JSPc3.s:1969: Error: symbol `.LELTP0' is already defined
-/tmp/cc0JSPc3.s:1970: Error: symbol `.LELT0' is already defined
+return_unused_surplus_pages() decrements the global reservation count, and
+frees any unused surplus pages that were backing the reservation.  Commit
+7848a4bf51b3 ("mm/hugetlb.c: add cond_resched_lock() in
+return_unused_surplus_pages()") added a call to cond_resched_lock in the
+loop freeing the pages.  As a result, the hugetlb_lock could be dropped,
+and someone else could use the pages that will be freed in subsequent
+iterations of the loop.  This could result in inconsistent global hugetlb
+page state, application api failures (such as mmap) failures or
+application crashes.
 
-Commit: 866ced950bcd ("kbuild: Support split debug info v4") introduced
-splitting the debug info and keeping that in a separate file.
-Somehow, the frv-linux gcc did not like that and I am guessing that
-instead of splitting it started copying. The first report about this
-is at: https://lists.01.org/pipermail/kbuild-all/2015-July/010527.html.
+When dropping the lock in return_unused_surplus_pages, make sure that the
+global reservation count (resv_huge_pages) remains sufficiently large to
+prevent someone else from claiming pages about to be freed.
 
-I will try and see if this can work with frv and if still fails I will
-open a bug report with gcc. But meanwhile this is the easiest option
-to solve build failure of frv.
+Analyzed by Paul Cassella.
 
-Fixes: 866ced950bcd ("kbuild: Support split debug info v4")
-Link: http://lkml.kernel.org/r/1482062348-5352-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
+Fixes: 7848a4bf51b3 ("mm/hugetlb.c: add cond_resched_lock() in return_unused_surplus_pages()")
+Link: http://lkml.kernel.org/r/1483991767-6879-1-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Paul Cassella <cassella@cray.com>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: <stable@vger.kernel.org>	[3.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   37 ++++++++++++++++++++++++++++---------
+ 1 file changed, 28 insertions(+), 9 deletions(-)
 
-diff -puN lib/Kconfig.debug~lib-kconfigdebug-fix-frv-build-failure lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-kconfigdebug-fix-frv-build-failure
-+++ a/lib/Kconfig.debug
-@@ -164,7 +164,7 @@ config DEBUG_INFO_REDUCED
+diff -puN mm/hugetlb.c~mm-hugetlbc-fix-reservation-race-when-freeing-surplus-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-reservation-race-when-freeing-surplus-pages
++++ a/mm/hugetlb.c
+@@ -1773,23 +1773,32 @@ free:
+ }
  
- config DEBUG_INFO_SPLIT
- 	bool "Produce split debuginfo in .dwo files"
--	depends on DEBUG_INFO
-+	depends on DEBUG_INFO && !FRV
- 	help
- 	  Generate debug info into separate .dwo files. This significantly
- 	  reduces the build directory size for builds with DEBUG_INFO,
+ /*
+- * When releasing a hugetlb pool reservation, any surplus pages that were
+- * allocated to satisfy the reservation must be explicitly freed if they were
+- * never used.
+- * Called with hugetlb_lock held.
++ * This routine has two main purposes:
++ * 1) Decrement the reservation count (resv_huge_pages) by the value passed
++ *    in unused_resv_pages.  This corresponds to the prior adjustments made
++ *    to the associated reservation map.
++ * 2) Free any unused surplus pages that may have been allocated to satisfy
++ *    the reservation.  As many as unused_resv_pages may be freed.
++ *
++ * Called with hugetlb_lock held.  However, the lock could be dropped (and
++ * reacquired) during calls to cond_resched_lock.  Whenever dropping the lock,
++ * we must make sure nobody else can claim pages we are in the process of
++ * freeing.  Do this by ensuring resv_huge_page always is greater than the
++ * number of huge pages we plan to free when dropping the lock.
+  */
+ static void return_unused_surplus_pages(struct hstate *h,
+ 					unsigned long unused_resv_pages)
+ {
+ 	unsigned long nr_pages;
+ 
+-	/* Uncommit the reservation */
+-	h->resv_huge_pages -= unused_resv_pages;
+-
+ 	/* Cannot return gigantic pages currently */
+ 	if (hstate_is_gigantic(h))
+-		return;
++		goto out;
+ 
++	/*
++	 * Part (or even all) of the reservation could have been backed
++	 * by pre-allocated pages. Only free surplus pages.
++	 */
+ 	nr_pages = min(unused_resv_pages, h->surplus_huge_pages);
+ 
+ 	/*
+@@ -1799,12 +1808,22 @@ static void return_unused_surplus_pages(
+ 	 * when the nodes with surplus pages have no free pages.
+ 	 * free_pool_huge_page() will balance the the freed pages across the
+ 	 * on-line nodes with memory and will handle the hstate accounting.
++	 *
++	 * Note that we decrement resv_huge_pages as we free the pages.  If
++	 * we drop the lock, resv_huge_pages will still be sufficiently large
++	 * to cover subsequent pages we may free.
+ 	 */
+ 	while (nr_pages--) {
++		h->resv_huge_pages--;
++		unused_resv_pages--;
+ 		if (!free_pool_huge_page(h, &node_states[N_MEMORY], 1))
+-			break;
++			goto out;
+ 		cond_resched_lock(&hugetlb_lock);
+ 	}
++
++out:
++	/* Fully uncommit the reservation */
++	h->resv_huge_pages -= unused_resv_pages;
+ }
+ 
+ 
 _
