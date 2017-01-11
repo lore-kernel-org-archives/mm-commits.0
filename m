@@ -1,118 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-remote-numa-hits-statistics.patch removed from
- -mm tree
-Date: Wed, 11 Jan 2017 14:28:00 -0800
-Message-ID: <5876b170.g3a+GEa82h0yCqgZ%akpm@linux-foundation.org>
+Subject: [merged]
+ signal-protect-signal_unkillable-from-unintentional-clearing.patch removed
+ from -mm tree
+Date: Wed, 11 Jan 2017 14:28:15 -0800
+Message-ID: <5876b17f.Byqh6n+6TcwamkHv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933537AbdAKW2e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:34 -0500
+        with ESMTP id S933263AbdAKW2i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hejianet@gmail.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: jamie.iles@oracle.com, mingo@redhat.com, oleg@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix remote numa hits statistics
+     Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing
 has been removed from the -mm tree.  Its filename was
-     mm-fix-remote-numa-hits-statistics.patch
+     signal-protect-signal_unkillable-from-unintentional-clearing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: fix remote numa hits statistics
+From: Jamie Iles <jamie.iles@oracle.com>
+Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing.
 
-Jia He has noticed that b9f00e147f27 ("mm, page_alloc: reduce branches in
-zone_statistics") has an unintentional side effect that remote node
-allocation requests are accounted as NUMA_MISS rathat than NUMA_HIT and
-NUMA_OTHER if such a request doesn't use __GFP_OTHER_NODE.  There are many
-of these potentially because the flag is used very rarely while we have
-many users of __alloc_pages_node.
+Since 00cd5c37af (ptrace: permit ptracing of /sbin/init) we can now trace
+init processes.  init is initially protected with SIGNAL_UNKILLABLE which
+will prevent fatal signals such as SIGSTOP, but there are a number of
+paths during tracing where SIGNAL_UNKILLABLE can be implicitly cleared.
 
-Fix this by simply ignoring __GFP_OTHER_NODE (it can be removed in a
-follow up patch) and treat all allocations that were satisfied from the
-preferred zone's node as NUMA_HITS because this is the same node we
-requested the allocation from in most cases.  If this is not the local
-node then we just account it as NUMA_OTHER rather than NUMA_LOCAL.
+This can result in init becoming stoppable/killable after tracing.  For
+example, running:
 
-One downsize would be that an allocation request for a node which is
-outside of the mempolicy nodemask would be reported as a hit which is a
-bit weird but that was the case before b9f00e147f27 already.
+  while true; do kill -STOP 1; done &
+  strace -p 1
 
-Fixes: b9f00e147f27 ("mm, page_alloc: reduce branches in zone_statistics")
-Link: http://lkml.kernel.org/r/20170102153057.9451-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Jia He <hejianet@gmail.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz> # with cbmc[1] superpowers
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+and then stopping strace and the kill loop will result in init being left
+in state TASK_STOPPED.  Sending SIGCONT to init will resume it, but init
+will now respond to future SIGSTOP signals rather than ignoring them.
+
+Make sure that when setting SIGNAL_STOP_CONTINUED/SIGNAL_STOP_STOPPED
+that we don't clear SIGNAL_UNKILLABLE.
+
+Link: http://lkml.kernel.org/r/20170104122017.25047-1-jamie.iles@oracle.com
+Signed-off-by: Jamie Iles <jamie.iles@oracle.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ include/linux/sched.h |   10 ++++++++++
+ kernel/signal.c       |    4 ++--
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-remote-numa-hits-statistics mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-remote-numa-hits-statistics
-+++ a/mm/page_alloc.c
-@@ -2583,30 +2583,23 @@ int __isolate_free_page(struct page *pag
-  * Update NUMA hit/miss statistics
-  *
-  * Must be called with interrupts disabled.
-- *
-- * When __GFP_OTHER_NODE is set assume the node of the preferred
-- * zone is the local node. This is useful for daemons who allocate
-- * memory on behalf of other processes.
-  */
- static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
- 								gfp_t flags)
+diff -puN include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing include/linux/sched.h
+--- a/include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing
++++ a/include/linux/sched.h
+@@ -854,6 +854,16 @@ struct signal_struct {
+ 
+ #define SIGNAL_UNKILLABLE	0x00000040 /* for init: ignore fatal signals */
+ 
++#define SIGNAL_STOP_MASK (SIGNAL_CLD_MASK | SIGNAL_STOP_STOPPED | \
++			  SIGNAL_STOP_CONTINUED)
++
++static inline void signal_set_stop_flags(struct signal_struct *sig,
++					 unsigned int flags)
++{
++	WARN_ON(sig->flags & (SIGNAL_GROUP_EXIT|SIGNAL_GROUP_COREDUMP));
++	sig->flags = (sig->flags & ~SIGNAL_STOP_MASK) | flags;
++}
++
+ /* If true, all threads except ->group_exit_task have pending SIGKILL */
+ static inline int signal_group_exit(const struct signal_struct *sig)
  {
- #ifdef CONFIG_NUMA
--	int local_nid = numa_node_id();
- 	enum zone_stat_item local_stat = NUMA_LOCAL;
- 
--	if (unlikely(flags & __GFP_OTHER_NODE)) {
-+	if (z->node != numa_node_id())
- 		local_stat = NUMA_OTHER;
--		local_nid = preferred_zone->node;
--	}
- 
--	if (z->node == local_nid) {
-+	if (z->node == preferred_zone->node)
- 		__inc_zone_state(z, NUMA_HIT);
--		__inc_zone_state(z, local_stat);
--	} else {
-+	else {
- 		__inc_zone_state(z, NUMA_MISS);
- 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
+diff -puN kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing kernel/signal.c
+--- a/kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing
++++ a/kernel/signal.c
+@@ -346,7 +346,7 @@ static bool task_participate_group_stop(
+ 	 * fresh group stop.  Read comment in do_signal_stop() for details.
+ 	 */
+ 	if (!sig->group_stop_count && !(sig->flags & SIGNAL_STOP_STOPPED)) {
+-		sig->flags = SIGNAL_STOP_STOPPED;
++		signal_set_stop_flags(sig, SIGNAL_STOP_STOPPED);
+ 		return true;
  	}
-+	__inc_zone_state(z, local_stat);
- #endif
- }
- 
+ 	return false;
+@@ -843,7 +843,7 @@ static bool prepare_signal(int sig, stru
+ 			 * will take ->siglock, notice SIGNAL_CLD_MASK, and
+ 			 * notify its parent. See get_signal_to_deliver().
+ 			 */
+-			signal->flags = why | SIGNAL_STOP_CONTINUED;
++			signal_set_stop_flags(signal, why | SIGNAL_STOP_CONTINUED);
+ 			signal->group_stop_count = 0;
+ 			signal->group_exit_code = 0;
+ 		}
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from jamie.iles@oracle.com are
 
-mm-throttle-show_mem-from-warn_alloc.patch
-mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-oom-trace-add-oom-detection-tracepoints.patch
-oom-trace-add-compaction-retry-tracepoint.patch
-mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
-mm-vmscan-add-active-list-aging-tracepoint.patch
-mm-vmscan-add-active-list-aging-tracepoint-update.patch
-mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
-mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
-mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
-mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
-mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
-trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
 
