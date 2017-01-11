@@ -1,91 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/27] mm: fix remote numa hits statistics
-Date: Tue, 10 Jan 2017 16:57:39 -0800
-Message-ID: <58758303.CAluJVJsFikAoTBf%akpm@linux-foundation.org>
+Subject: [patch 23/27] zram: revalidate disk under init_lock
+Date: Tue, 10 Jan 2017 16:58:18 -0800
+Message-ID: <5875832a.zSA7gBNe6kOFJ+ZS%akpm__21250.4540839747$1484096364$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933587AbdAKA5k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:40 -0500
+        with ESMTP id S1759973AbdAKA6T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, hejianet@gmail.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, cheol.lee@lge.com, darrick.wong@oracle.com, hughd@google.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, tiwai@suse.de, yjay.kim@lge.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: fix remote numa hits statistics
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: revalidate disk under init_lock
 
-Jia He has noticed that b9f00e147f27 ("mm, page_alloc: reduce branches in
-zone_statistics") has an unintentional side effect that remote node
-allocation requests are accounted as NUMA_MISS rathat than NUMA_HIT and
-NUMA_OTHER if such a request doesn't use __GFP_OTHER_NODE.  There are many
-of these potentially because the flag is used very rarely while we have
-many users of __alloc_pages_node.
+[1] moved revalidate_disk call out of init_lock to avoid lockdep
+false-positive splat. However, [2] remove init_lock in IO path
+so there is no worry about lockdep splat. So, let's restore it.
+This patch need to set BDI_CAP_STABLE_WRITES atomically in
+next patch.
 
-Fix this by simply ignoring __GFP_OTHER_NODE (it can be removed in a
-follow up patch) and treat all allocations that were satisfied from the
-preferred zone's node as NUMA_HITS because this is the same node we
-requested the allocation from in most cases.  If this is not the local
-node then we just account it as NUMA_OTHER rather than NUMA_LOCAL.
+[1] b4c5c60920e3: zram: avoid lockdep splat by revalidate_disk
+[2] 08eee69fcf6b: zram: remove init_lock in zram_make_request
 
-One downsize would be that an allocation request for a node which is
-outside of the mempolicy nodemask would be reported as a hit which is a
-bit weird but that was the case before b9f00e147f27 already.
-
-Fixes: b9f00e147f27 ("mm, page_alloc: reduce branches in zone_statistics")
-Link: http://lkml.kernel.org/r/20170102153057.9451-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Jia He <hejianet@gmail.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz> # with cbmc[1] superpowers
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Fixes: da9556a2367c ("zram: user per-cpu compression streams")
+Link: http://lkml.kernel.org/r/1482366980-3782-3-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Hyeoncheol Lee <cheol.lee@lge.com>
+Cc: <yjay.kim@lge.com>
+Cc: Sangseok Lee <sangseok.lee@lge.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: <stable@vger.kernel.org> [4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/block/zram/zram_drv.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-remote-numa-hits-statistics mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-remote-numa-hits-statistics
-+++ a/mm/page_alloc.c
-@@ -2583,30 +2583,23 @@ int __isolate_free_page(struct page *pag
-  * Update NUMA hit/miss statistics
-  *
-  * Must be called with interrupts disabled.
-- *
-- * When __GFP_OTHER_NODE is set assume the node of the preferred
-- * zone is the local node. This is useful for daemons who allocate
-- * memory on behalf of other processes.
-  */
- static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
- 								gfp_t flags)
- {
- #ifdef CONFIG_NUMA
--	int local_nid = numa_node_id();
- 	enum zone_stat_item local_stat = NUMA_LOCAL;
- 
--	if (unlikely(flags & __GFP_OTHER_NODE)) {
-+	if (z->node != numa_node_id())
- 		local_stat = NUMA_OTHER;
--		local_nid = preferred_zone->node;
--	}
- 
--	if (z->node == local_nid) {
-+	if (z->node == preferred_zone->node)
- 		__inc_zone_state(z, NUMA_HIT);
--		__inc_zone_state(z, local_stat);
--	} else {
-+	else {
- 		__inc_zone_state(z, NUMA_MISS);
- 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
- 	}
-+	__inc_zone_state(z, local_stat);
- #endif
- }
- 
-_
+diff -puN drivers/block/zram/zram_drv.c~zram-revalidate-disk-under-init_lock drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-revalidate-disk-under-init_lock
++++ a/drivers/block/zram/zram_drv.c
+@@ -1095,14 +1095,8 @@ static ssize_t disksize_store(struct dev
+ 	zram->comp = comp;
+ 	zram->disksize = disksize;
+ 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
+-	up_write(&zram->init_lock);
