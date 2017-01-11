@@ -1,90 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fix-slab-freelist-randomization-duplicate-entries.patch
- removed from -mm tree
-Date: Wed, 11 Jan 2017 14:28:42 -0800
-Message-ID: <5876b19a.EWjtJJkRjmMd9azw%akpm@linux-foundation.org>
+Subject: [merged] timerfd-export-defines-to-userspace.patch removed from
+ -mm tree
+Date: Wed, 11 Jan 2017 14:28:48 -0800
+Message-ID: <5876b1a0.EoT4oTlDrh7fZGZn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51542 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933234AbdAKW2r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:47 -0500
+        with ESMTP id S933263AbdAKW2t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsperbeck@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, thgarnie@google.com, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab.c: fix SLAB freelist randomization duplicate entries
+     Subject: timerfd: export defines to userspace
 has been removed from the -mm tree.  Its filename was
-     fix-slab-freelist-randomization-duplicate-entries.patch
+     timerfd-export-defines-to-userspace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Sperbeck <jsperbeck@google.com>
-Subject: mm/slab.c: fix SLAB freelist randomization duplicate entries
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: timerfd: export defines to userspace
 
-This patch fixes a bug in the freelist randomization code. When a high
-random number is used, the freelist will contain duplicate entries. It
-will result in different allocations sharing the same chunk.
+Since userspace is expected to call timerfd syscalls directly with these
+flags/ioctls, make sure we export them so they don't have to duplicate
+the values themselves.
 
-It will result in odd behaviours and crashes. It should be uncommon
-but it depends on the machines. We saw it happening more often on some
-machines (every few hours of running tests).
-
-Fixes: c7ce4f60ac19 ("mm: SLAB freelist randomization")
-Link: http://lkml.kernel.org/r/20170103181908.143178-1-thgarnie@google.com
-Signed-off-by: John Sperbeck <jsperbeck@google.com>
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20161219064052.7196-1-vapier@gentoo.org
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/timerfd.h      |   20 ------------------
+ include/uapi/linux/Kbuild    |    1 
+ include/uapi/linux/timerfd.h |   36 +++++++++++++++++++++++++++++++++
+ 3 files changed, 38 insertions(+), 19 deletions(-)
 
-diff -puN mm/slab.c~fix-slab-freelist-randomization-duplicate-entries mm/slab.c
---- a/mm/slab.c~fix-slab-freelist-randomization-duplicate-entries
-+++ a/mm/slab.c
-@@ -2457,7 +2457,6 @@ union freelist_init_state {
- 		unsigned int pos;
- 		unsigned int *list;
- 		unsigned int count;
--		unsigned int rand;
- 	};
- 	struct rnd_state rnd_state;
- };
-@@ -2483,8 +2482,7 @@ static bool freelist_state_initialize(un
- 	} else {
- 		state->list = cachep->random_seq;
- 		state->count = count;
--		state->pos = 0;
--		state->rand = rand;
-+		state->pos = rand % count;
- 		ret = true;
- 	}
- 	return ret;
-@@ -2493,7 +2491,9 @@ static bool freelist_state_initialize(un
- /* Get the next entry on the list and randomize it using a random shift */
- static freelist_idx_t next_random_slot(union freelist_init_state *state)
- {
--	return (state->list[state->pos++] + state->rand) % state->count;
-+	if (state->pos >= state->count)
-+		state->pos = 0;
-+	return state->list[state->pos++];
- }
+diff -puN include/linux/timerfd.h~timerfd-export-defines-to-userspace include/linux/timerfd.h
+--- a/include/linux/timerfd.h~timerfd-export-defines-to-userspace
++++ a/include/linux/timerfd.h
+@@ -8,23 +8,7 @@
+ #ifndef _LINUX_TIMERFD_H
+ #define _LINUX_TIMERFD_H
  
- /* Swap two freelist entries */
+-/* For O_CLOEXEC and O_NONBLOCK */
+-#include <linux/fcntl.h>
+-
+-/* For _IO helpers */
+-#include <linux/ioctl.h>
+-
+-/*
+- * CAREFUL: Check include/asm-generic/fcntl.h when defining
+- * new flags, since they might collide with O_* ones. We want
+- * to re-use O_* flags that couldn't possibly have a meaning
+- * from eventfd, in order to leave a free define-space for
+- * shared O_* flags.
+- */
+-#define TFD_TIMER_ABSTIME (1 << 0)
+-#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
+-#define TFD_CLOEXEC O_CLOEXEC
+-#define TFD_NONBLOCK O_NONBLOCK
++#include <uapi/linux/timerfd.h>
+ 
+ #define TFD_SHARED_FCNTL_FLAGS (TFD_CLOEXEC | TFD_NONBLOCK)
+ /* Flags for timerfd_create.  */
+@@ -32,6 +16,4 @@
+ /* Flags for timerfd_settime.  */
+ #define TFD_SETTIME_FLAGS (TFD_TIMER_ABSTIME | TFD_TIMER_CANCEL_ON_SET)
+ 
+-#define TFD_IOC_SET_TICKS	_IOW('T', 0, u64)
+-
+ #endif /* _LINUX_TIMERFD_H */
+diff -puN include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace include/uapi/linux/Kbuild
+--- a/include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace
++++ a/include/uapi/linux/Kbuild
+@@ -414,6 +414,7 @@ header-y += telephony.h
+ header-y += termios.h
+ header-y += thermal.h
+ header-y += time.h
++header-y += timerfd.h
+ header-y += times.h
+ header-y += timex.h
+ header-y += tiocl.h
+diff -puN /dev/null include/uapi/linux/timerfd.h
+--- /dev/null
++++ a/include/uapi/linux/timerfd.h
+@@ -0,0 +1,36 @@
++/*
++ *  include/linux/timerfd.h
++ *
++ *  Copyright (C) 2007  Davide Libenzi <davidel@xmailserver.org>
++ *
++ */
++
++#ifndef _UAPI_LINUX_TIMERFD_H
++#define _UAPI_LINUX_TIMERFD_H
++
++#include <linux/types.h>
++
++/* For O_CLOEXEC and O_NONBLOCK */
++#include <linux/fcntl.h>
++
++/* For _IO helpers */
++#include <linux/ioctl.h>
++
++/*
++ * CAREFUL: Check include/asm-generic/fcntl.h when defining
++ * new flags, since they might collide with O_* ones. We want
++ * to re-use O_* flags that couldn't possibly have a meaning
++ * from eventfd, in order to leave a free define-space for
++ * shared O_* flags.
++ *
++ * Also make sure to update the masks in include/linux/timerfd.h
++ * when adding new flags.
++ */
++#define TFD_TIMER_ABSTIME (1 << 0)
++#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
++#define TFD_CLOEXEC O_CLOEXEC
++#define TFD_NONBLOCK O_NONBLOCK
++
++#define TFD_IOC_SET_TICKS	_IOW('T', 0, __u64)
++
++#endif /* _UAPI_LINUX_TIMERFD_H */
 _
 
-Patches currently in -mm which might be from jsperbeck@google.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 
