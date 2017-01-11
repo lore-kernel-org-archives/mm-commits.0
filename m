@@ -1,122 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 27/27] timerfd: export defines to userspace
-Date: Tue, 10 Jan 2017 16:58:30 -0800
-Message-ID: <58758336.u9EivrGG/dBF2R07%akpm@linux-foundation.org>
+Subject: [patch 12/27] lib/Kconfig.debug: fix frv build failure
+Date: Tue, 10 Jan 2017 16:57:45 -0800
+Message-ID: <58758309.FhaOeJN3De0aCpNf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33394 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759984AbdAKA6b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:31 -0500
+        with ESMTP id S1760000AbdAKA5v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vapier@gentoo.org, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, ak@linux.intel.com, dhowells@redhat.com, fengguang.wu@intel.com, sudip.mukherjee@codethink.co.uk
 
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: timerfd: export defines to userspace
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: lib/Kconfig.debug: fix frv build failure
 
-Since userspace is expected to call timerfd syscalls directly with these
-flags/ioctls, make sure we export them so they don't have to duplicate
-the values themselves.
+The build of frv allmodconfig was failing with the errors like:
+/tmp/cc0JSPc3.s: Assembler messages:
+/tmp/cc0JSPc3.s:1839: Error: symbol `.LSLT0' is already defined
+/tmp/cc0JSPc3.s:1842: Error: symbol `.LASLTP0' is already defined
+/tmp/cc0JSPc3.s:1969: Error: symbol `.LELTP0' is already defined
+/tmp/cc0JSPc3.s:1970: Error: symbol `.LELT0' is already defined
 
-Link: http://lkml.kernel.org/r/20161219064052.7196-1-vapier@gentoo.org
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Commit: 866ced950bcd ("kbuild: Support split debug info v4") introduced
+splitting the debug info and keeping that in a separate file.
+Somehow, the frv-linux gcc did not like that and I am guessing that
+instead of splitting it started copying. The first report about this
+is at: https://lists.01.org/pipermail/kbuild-all/2015-July/010527.html.
+
+I will try and see if this can work with frv and if still fails I will
+open a bug report with gcc. But meanwhile this is the easiest option
+to solve build failure of frv.
+
+Fixes: 866ced950bcd ("kbuild: Support split debug info v4")
+Link: http://lkml.kernel.org/r/1482062348-5352-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timerfd.h      |   20 ------------------
- include/uapi/linux/Kbuild    |    1 
- include/uapi/linux/timerfd.h |   36 +++++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+), 19 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/timerfd.h~timerfd-export-defines-to-userspace include/linux/timerfd.h
---- a/include/linux/timerfd.h~timerfd-export-defines-to-userspace
-+++ a/include/linux/timerfd.h
-@@ -8,23 +8,7 @@
- #ifndef _LINUX_TIMERFD_H
- #define _LINUX_TIMERFD_H
+diff -puN lib/Kconfig.debug~lib-kconfigdebug-fix-frv-build-failure lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-kconfigdebug-fix-frv-build-failure
++++ a/lib/Kconfig.debug
+@@ -164,7 +164,7 @@ config DEBUG_INFO_REDUCED
  
--/* For O_CLOEXEC and O_NONBLOCK */
--#include <linux/fcntl.h>
--
--/* For _IO helpers */
--#include <linux/ioctl.h>
--
--/*
-- * CAREFUL: Check include/asm-generic/fcntl.h when defining
-- * new flags, since they might collide with O_* ones. We want
-- * to re-use O_* flags that couldn't possibly have a meaning
-- * from eventfd, in order to leave a free define-space for
-- * shared O_* flags.
-- */
--#define TFD_TIMER_ABSTIME (1 << 0)
--#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
--#define TFD_CLOEXEC O_CLOEXEC
--#define TFD_NONBLOCK O_NONBLOCK
-+#include <uapi/linux/timerfd.h>
- 
- #define TFD_SHARED_FCNTL_FLAGS (TFD_CLOEXEC | TFD_NONBLOCK)
- /* Flags for timerfd_create.  */
-@@ -32,6 +16,4 @@
- /* Flags for timerfd_settime.  */
- #define TFD_SETTIME_FLAGS (TFD_TIMER_ABSTIME | TFD_TIMER_CANCEL_ON_SET)
- 
--#define TFD_IOC_SET_TICKS	_IOW('T', 0, u64)
--
- #endif /* _LINUX_TIMERFD_H */
-diff -puN include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace include/uapi/linux/Kbuild
---- a/include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace
-+++ a/include/uapi/linux/Kbuild
-@@ -414,6 +414,7 @@ header-y += telephony.h
- header-y += termios.h
- header-y += thermal.h
- header-y += time.h
-+header-y += timerfd.h
- header-y += times.h
- header-y += timex.h
- header-y += tiocl.h
-diff -puN /dev/null include/uapi/linux/timerfd.h
---- /dev/null
-+++ a/include/uapi/linux/timerfd.h
-@@ -0,0 +1,36 @@
-+/*
-+ *  include/linux/timerfd.h
-+ *
-+ *  Copyright (C) 2007  Davide Libenzi <davidel@xmailserver.org>
-+ *
-+ */
-+
-+#ifndef _UAPI_LINUX_TIMERFD_H
-+#define _UAPI_LINUX_TIMERFD_H
-+
-+#include <linux/types.h>
-+
-+/* For O_CLOEXEC and O_NONBLOCK */
-+#include <linux/fcntl.h>
-+
-+/* For _IO helpers */
-+#include <linux/ioctl.h>
-+
-+/*
-+ * CAREFUL: Check include/asm-generic/fcntl.h when defining
-+ * new flags, since they might collide with O_* ones. We want
-+ * to re-use O_* flags that couldn't possibly have a meaning
-+ * from eventfd, in order to leave a free define-space for
-+ * shared O_* flags.
-+ *
-+ * Also make sure to update the masks in include/linux/timerfd.h
-+ * when adding new flags.
-+ */
-+#define TFD_TIMER_ABSTIME (1 << 0)
-+#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
-+#define TFD_CLOEXEC O_CLOEXEC
-+#define TFD_NONBLOCK O_NONBLOCK
-+
-+#define TFD_IOC_SET_TICKS	_IOW('T', 0, __u64)
-+
-+#endif /* _UAPI_LINUX_TIMERFD_H */
+ config DEBUG_INFO_SPLIT
+ 	bool "Produce split debuginfo in .dwo files"
+-	depends on DEBUG_INFO
++	depends on DEBUG_INFO && !FRV
+ 	help
+ 	  Generate debug info into separate .dwo files. This significantly
+ 	  reduces the build directory size for builds with DEBUG_INFO,
 _
