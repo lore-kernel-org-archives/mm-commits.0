@@ -1,95 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-documentation-for-page-fragment-apis.patch
- removed from -mm tree
-Date: Wed, 11 Jan 2017 14:28:31 -0800
-Message-ID: <5876b18f.7BUkoQclPvoNneXP%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-remote-numa-hits-statistics.patch removed from
+ -mm tree
+Date: Wed, 11 Jan 2017 14:28:00 -0800
+Message-ID: <5876b170.g3a+GEa82h0yCqgZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51494 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933870AbdAKW2q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:46 -0500
+        with ESMTP id S933537AbdAKW2e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hejianet@gmail.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add documentation for page fragment APIs
+     Subject: mm: fix remote numa hits statistics
 has been removed from the -mm tree.  Its filename was
-     mm-add-documentation-for-page-fragment-apis.patch
+     mm-fix-remote-numa-hits-statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: mm: add documentation for page fragment APIs
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: fix remote numa hits statistics
 
-This is a first pass at trying to add documentation for the page_frag
-APIs.  They may still change over time but for now I thought I would try
-to get these documented so that as more network drivers and stack calls
-make use of them we have one central spot to document how they are meant
-to be used.
+Jia He has noticed that b9f00e147f27 ("mm, page_alloc: reduce branches in
+zone_statistics") has an unintentional side effect that remote node
+allocation requests are accounted as NUMA_MISS rathat than NUMA_HIT and
+NUMA_OTHER if such a request doesn't use __GFP_OTHER_NODE.  There are many
+of these potentially because the flag is used very rarely while we have
+many users of __alloc_pages_node.
 
-Link: http://lkml.kernel.org/r/20170104024157.13451.6758.stgit@localhost.localdomain
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Fix this by simply ignoring __GFP_OTHER_NODE (it can be removed in a
+follow up patch) and treat all allocations that were satisfied from the
+preferred zone's node as NUMA_HITS because this is the same node we
+requested the allocation from in most cases.  If this is not the local
+node then we just account it as NUMA_OTHER rather than NUMA_LOCAL.
+
+One downsize would be that an allocation request for a node which is
+outside of the mempolicy nodemask would be reported as a hit which is a
+bit weird but that was the case before b9f00e147f27 already.
+
+Fixes: b9f00e147f27 ("mm, page_alloc: reduce branches in zone_statistics")
+Link: http://lkml.kernel.org/r/20170102153057.9451-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Jia He <hejianet@gmail.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz> # with cbmc[1] superpowers
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_frags |   42 ++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ mm/page_alloc.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN /dev/null Documentation/vm/page_frags
---- /dev/null
-+++ a/Documentation/vm/page_frags
-@@ -0,0 +1,42 @@
-+Page fragments
-+--------------
-+
-+A page fragment is an arbitrary-length arbitrary-offset area of memory
-+which resides within a 0 or higher order compound page.  Multiple
-+fragments within that page are individually refcounted, in the page's
-+reference counter.
-+
-+The page_frag functions, page_frag_alloc and page_frag_free, provide a
-+simple allocation framework for page fragments.  This is used by the
-+network stack and network device drivers to provide a backing region of
-+memory for use as either an sk_buff->head, or to be used in the "frags"
-+portion of skb_shared_info.
-+
-+In order to make use of the page fragment APIs a backing page fragment
-+cache is needed.  This provides a central point for the fragment allocation
-+and tracks allows multiple calls to make use of a cached page.  The
-+advantage to doing this is that multiple calls to get_page can be avoided
-+which can be expensive at allocation time.  However due to the nature of
-+this caching it is required that any calls to the cache be protected by
-+either a per-cpu limitation, or a per-cpu limitation and forcing interrupts
-+to be disabled when executing the fragment allocation.
-+
-+The network stack uses two separate caches per CPU to handle fragment
-+allocation.  The netdev_alloc_cache is used by callers making use of the
-+__netdev_alloc_frag and __netdev_alloc_skb calls.  The napi_alloc_cache is
-+used by callers of the __napi_alloc_frag and __napi_alloc_skb calls.  The
-+main difference between these two calls is the context in which they may be
-+called.  The "netdev" prefixed functions are usable in any context as these
-+functions will disable interrupts, while the "napi" prefixed functions are
-+only usable within the softirq context.
-+
-+Many network device drivers use a similar methodology for allocating page
-+fragments, but the page fragments are cached at the ring or descriptor
-+level.  In order to enable these cases it is necessary to provide a generic
-+way of tearing down a page cache.  For this reason __page_frag_cache_drain
-+was implemented.  It allows for freeing multiple references from a single
-+page via a single call.  The advantage to doing this is that it allows for
-+cleaning up the multiple references that were added to a page in order to
-+avoid calling get_page per allocation.
-+
-+Alexander Duyck, Nov 29, 2016.
+diff -puN mm/page_alloc.c~mm-fix-remote-numa-hits-statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-remote-numa-hits-statistics
++++ a/mm/page_alloc.c
+@@ -2583,30 +2583,23 @@ int __isolate_free_page(struct page *pag
+  * Update NUMA hit/miss statistics
+  *
+  * Must be called with interrupts disabled.
+- *
+- * When __GFP_OTHER_NODE is set assume the node of the preferred
+- * zone is the local node. This is useful for daemons who allocate
+- * memory on behalf of other processes.
+  */
+ static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
+ 								gfp_t flags)
+ {
+ #ifdef CONFIG_NUMA
+-	int local_nid = numa_node_id();
+ 	enum zone_stat_item local_stat = NUMA_LOCAL;
+ 
+-	if (unlikely(flags & __GFP_OTHER_NODE)) {
++	if (z->node != numa_node_id())
+ 		local_stat = NUMA_OTHER;
+-		local_nid = preferred_zone->node;
+-	}
+ 
+-	if (z->node == local_nid) {
++	if (z->node == preferred_zone->node)
+ 		__inc_zone_state(z, NUMA_HIT);
+-		__inc_zone_state(z, local_stat);
+-	} else {
++	else {
+ 		__inc_zone_state(z, NUMA_MISS);
+ 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
+ 	}
++	__inc_zone_state(z, local_stat);
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from alexander.h.duyck@intel.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-throttle-show_mem-from-warn_alloc.patch
+mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+oom-trace-add-oom-detection-tracepoints.patch
+oom-trace-add-compaction-retry-tracepoint.patch
+mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+mm-vmscan-add-active-list-aging-tracepoint.patch
+mm-vmscan-add-active-list-aging-tracepoint-update.patch
+mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
 
