@@ -1,162 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [patch 19/27] mm: rename __alloc_page_frag to page_frag_alloc and __free_page_frag to page_frag_free
-Date: Tue, 10 Jan 2017 16:58:06 -0800
-Message-ID: <5875831e.I0U55U/utISsPQg/%akpm@linux-foundation.org>
+Subject: [patch 11/27] mm: get rid of __GFP_OTHER_NODE
+Date: Tue, 10 Jan 2017 16:57:42 -0800
+Message-ID: <58758306.eHMHvOWbb/TxqePK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33386 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760141AbdAKA6I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:08 -0500
+        with ESMTP id S934519AbdAKA5n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, vbabka@suse.cz
 
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: mm: rename __alloc_page_frag to page_frag_alloc and __free_page_frag to page_frag_free
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: get rid of __GFP_OTHER_NODE
 
-Patch series "Page fragment updates", v4.
+The flag was introduced by 78afd5612deb ("mm: add __GFP_OTHER_NODE flag")
+to allow proper accounting of remote node allocations done by kernel
+daemons on behalf of a process - e.g.  khugepaged.
 
-This patch series takes care of a few cleanups for the page fragments API.
+After "mm: fix remote numa hits statistics" we do not need and actually
+use the flag so we can safely remove it because all allocations which are
+satisfied from their "home" node are accounted properly.
 
-First we do some renames so that things are much more consistent.  First
-we move the page_frag_ portion of the name to the front of the functions
-names.  Secondly we split out the cache specific functions from the other
-page fragment functions by adding the word "cache" to the name.
-
-Finally I added a bit of documentation that will hopefully help to explain
-some of this.  I plan to revisit this later as we get things more ironed
-out in the near future with the changes planned for the DMA setup to
-support eXpress Data Path.
-
-
-This patch (of 3):
-
-This patch renames the page frag functions to be more consistent with
-other APIs.  Specifically we place the name page_frag first in the name
-and then have either an alloc or free call name that we append as the
-suffix.  This makes it a bit clearer in terms of naming.
-
-In addition we drop the leading double underscores since we are technically
-no longer a backing interface and instead the front end that is called from
-the networking APIs.
-
-Link: http://lkml.kernel.org/r/20170104023854.13451.67390.stgit@localhost.localdomain
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+[mhocko@suse.com: fix build]
+  Link: http://lkml.kernel.org/r/20170106122225.GK5556@dhcp22.suse.cz
+Link: http://lkml.kernel.org/r/20170102153057.9451-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |    6 +++---
- include/linux/skbuff.h |    2 +-
- mm/page_alloc.c        |   10 +++++-----
- net/core/skbuff.c      |    8 ++++----
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ include/linux/gfp.h            |   13 +++----------
+ include/trace/events/mmflags.h |    3 +--
+ mm/huge_memory.c               |    3 +--
+ mm/khugepaged.c                |    5 ++---
+ mm/page_alloc.c                |    5 ++---
+ tools/perf/builtin-kmem.c      |    1 -
+ 6 files changed, 9 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free include/linux/gfp.h
---- a/include/linux/gfp.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
+diff -puN include/linux/gfp.h~mm-get-rid-of-__gfp_other_node include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-get-rid-of-__gfp_other_node
 +++ a/include/linux/gfp.h
-@@ -501,9 +501,9 @@ extern void free_hot_cold_page_list(stru
- struct page_frag_cache;
- extern void __page_frag_drain(struct page *page, unsigned int order,
- 			      unsigned int count);
--extern void *__alloc_page_frag(struct page_frag_cache *nc,
--			       unsigned int fragsz, gfp_t gfp_mask);
--extern void __free_page_frag(void *addr);
-+extern void *page_frag_alloc(struct page_frag_cache *nc,
-+			     unsigned int fragsz, gfp_t gfp_mask);
-+extern void page_frag_free(void *addr);
- 
- #define __free_page(page) __free_pages((page), 0)
- #define free_page(addr) free_pages((addr), 0)
-diff -puN include/linux/skbuff.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free include/linux/skbuff.h
---- a/include/linux/skbuff.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
-+++ a/include/linux/skbuff.h
-@@ -2480,7 +2480,7 @@ static inline struct sk_buff *netdev_all
- 
- static inline void skb_free_frag(void *addr)
- {
--	__free_page_frag(addr);
-+	page_frag_free(addr);
- }
- 
- void *napi_alloc_frag(unsigned int fragsz);
-diff -puN mm/page_alloc.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
-+++ a/mm/page_alloc.c
-@@ -3931,8 +3931,8 @@ void __page_frag_drain(struct page *page
- }
- EXPORT_SYMBOL(__page_frag_drain);
- 
--void *__alloc_page_frag(struct page_frag_cache *nc,
--			unsigned int fragsz, gfp_t gfp_mask)
-+void *page_frag_alloc(struct page_frag_cache *nc,
-+		      unsigned int fragsz, gfp_t gfp_mask)
- {
- 	unsigned int size = PAGE_SIZE;
- 	struct page *page;
-@@ -3983,19 +3983,19 @@ refill:
- 
- 	return nc->va + offset;
- }
--EXPORT_SYMBOL(__alloc_page_frag);
-+EXPORT_SYMBOL(page_frag_alloc);
+@@ -38,9 +38,8 @@ struct vm_area_struct;
+ #define ___GFP_ACCOUNT		0x100000u
+ #define ___GFP_NOTRACK		0x200000u
+ #define ___GFP_DIRECT_RECLAIM	0x400000u
+-#define ___GFP_OTHER_NODE	0x800000u
+-#define ___GFP_WRITE		0x1000000u
+-#define ___GFP_KSWAPD_RECLAIM	0x2000000u
++#define ___GFP_WRITE		0x800000u
++#define ___GFP_KSWAPD_RECLAIM	0x1000000u
+ /* If the above are modified, __GFP_BITS_SHIFT may need updating */
  
  /*
-  * Frees a page fragment allocated out of either a compound or order 0 page.
+@@ -172,11 +171,6 @@ struct vm_area_struct;
+  * __GFP_NOTRACK_FALSE_POSITIVE is an alias of __GFP_NOTRACK. It's a means of
+  *   distinguishing in the source between false positives and allocations that
+  *   cannot be supported (e.g. page tables).
+- *
+- * __GFP_OTHER_NODE is for allocations that are on a remote node but that
+- *   should not be accounted for as a remote allocation in vmstat. A
+- *   typical user would be khugepaged collapsing a huge page on a remote
+- *   node.
   */
--void __free_page_frag(void *addr)
-+void page_frag_free(void *addr)
+ #define __GFP_COLD	((__force gfp_t)___GFP_COLD)
+ #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
+@@ -184,10 +178,9 @@ struct vm_area_struct;
+ #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)
+ #define __GFP_NOTRACK_FALSE_POSITIVE (__GFP_NOTRACK)
+-#define __GFP_OTHER_NODE ((__force gfp_t)___GFP_OTHER_NODE)
+ 
+ /* Room for N __GFP_FOO bits */
+-#define __GFP_BITS_SHIFT 26
++#define __GFP_BITS_SHIFT 25
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /*
+diff -puN include/trace/events/mmflags.h~mm-get-rid-of-__gfp_other_node include/trace/events/mmflags.h
+--- a/include/trace/events/mmflags.h~mm-get-rid-of-__gfp_other_node
++++ a/include/trace/events/mmflags.h
+@@ -47,8 +47,7 @@
+ 	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
+ 	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
+ 	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
+-	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
+-	{(unsigned long)__GFP_OTHER_NODE,	"__GFP_OTHER_NODE"}	\
++	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"}\
+ 
+ #define show_gfp_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",				\
+diff -puN mm/huge_memory.c~mm-get-rid-of-__gfp_other_node mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-get-rid-of-__gfp_other_node
++++ a/mm/huge_memory.c
+@@ -919,8 +919,7 @@ static int do_huge_pmd_wp_page_fallback(
+ 	}
+ 
+ 	for (i = 0; i < HPAGE_PMD_NR; i++) {
+-		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE |
+-					       __GFP_OTHER_NODE, vma,
++		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE, vma,
+ 					       vmf->address, page_to_nid(page));
+ 		if (unlikely(!pages[i] ||
+ 			     mem_cgroup_try_charge(pages[i], vma->vm_mm,
+diff -puN mm/khugepaged.c~mm-get-rid-of-__gfp_other_node mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-get-rid-of-__gfp_other_node
++++ a/mm/khugepaged.c
+@@ -943,7 +943,7 @@ static void collapse_huge_page(struct mm
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 
+ 	/* Only allocate from the target node */
+-	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_OTHER_NODE | __GFP_THISNODE;
++	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_THISNODE;
+ 
+ 	/*
+ 	 * Before allocating the hugepage, release the mmap_sem read lock.
+@@ -1309,8 +1309,7 @@ static void collapse_shmem(struct mm_str
+ 	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
+ 
+ 	/* Only allocate from the target node */
+-	gfp = alloc_hugepage_khugepaged_gfpmask() |
+-		__GFP_OTHER_NODE | __GFP_THISNODE;
++	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_THISNODE;
+ 
+ 	new_page = khugepaged_alloc_page(hpage, gfp, node);
+ 	if (!new_page) {
+diff -puN mm/page_alloc.c~mm-get-rid-of-__gfp_other_node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-get-rid-of-__gfp_other_node
++++ a/mm/page_alloc.c
+@@ -2584,8 +2584,7 @@ int __isolate_free_page(struct page *pag
+  *
+  * Must be called with interrupts disabled.
+  */
+-static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
+-								gfp_t flags)
++static inline void zone_statistics(struct zone *preferred_zone, struct zone *z)
  {
- 	struct page *page = virt_to_head_page(addr);
+ #ifdef CONFIG_NUMA
+ 	enum zone_stat_item local_stat = NUMA_LOCAL;
+@@ -2667,7 +2666,7 @@ struct page *buffered_rmqueue(struct zon
+ 	}
  
- 	if (unlikely(put_page_testzero(page)))
- 		__free_pages_ok(page, compound_order(page));
- }
--EXPORT_SYMBOL(__free_page_frag);
-+EXPORT_SYMBOL(page_frag_free);
- 
- static void *make_alloc_exact(unsigned long addr, unsigned int order,
- 		size_t size)
-diff -puN net/core/skbuff.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free net/core/skbuff.c
---- a/net/core/skbuff.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
-+++ a/net/core/skbuff.c
-@@ -369,7 +369,7 @@ static void *__netdev_alloc_frag(unsigne
- 
- 	local_irq_save(flags);
- 	nc = this_cpu_ptr(&netdev_alloc_cache);
--	data = __alloc_page_frag(nc, fragsz, gfp_mask);
-+	data = page_frag_alloc(nc, fragsz, gfp_mask);
+ 	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+-	zone_statistics(preferred_zone, zone, gfp_flags);
++	zone_statistics(preferred_zone, zone);
  	local_irq_restore(flags);
- 	return data;
- }
-@@ -391,7 +391,7 @@ static void *__napi_alloc_frag(unsigned
- {
- 	struct napi_alloc_cache *nc = this_cpu_ptr(&napi_alloc_cache);
  
--	return __alloc_page_frag(&nc->page, fragsz, gfp_mask);
-+	return page_frag_alloc(&nc->page, fragsz, gfp_mask);
- }
+ 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
+diff -puN tools/perf/builtin-kmem.c~mm-get-rid-of-__gfp_other_node tools/perf/builtin-kmem.c
+--- a/tools/perf/builtin-kmem.c~mm-get-rid-of-__gfp_other_node
++++ a/tools/perf/builtin-kmem.c
+@@ -655,7 +655,6 @@ static const struct {
+ 	{ "__GFP_RECLAIM",		"R" },
+ 	{ "__GFP_DIRECT_RECLAIM",	"DR" },
+ 	{ "__GFP_KSWAPD_RECLAIM",	"KR" },
+-	{ "__GFP_OTHER_NODE",		"ON" },
+ };
  
- void *napi_alloc_frag(unsigned int fragsz)
-@@ -441,7 +441,7 @@ struct sk_buff *__netdev_alloc_skb(struc
- 	local_irq_save(flags);
- 
- 	nc = this_cpu_ptr(&netdev_alloc_cache);
--	data = __alloc_page_frag(nc, len, gfp_mask);
-+	data = page_frag_alloc(nc, len, gfp_mask);
- 	pfmemalloc = nc->pfmemalloc;
- 
- 	local_irq_restore(flags);
-@@ -505,7 +505,7 @@ struct sk_buff *__napi_alloc_skb(struct
- 	if (sk_memalloc_socks())
- 		gfp_mask |= __GFP_MEMALLOC;
- 
--	data = __alloc_page_frag(&nc->page, len, gfp_mask);
-+	data = page_frag_alloc(&nc->page, len, gfp_mask);
- 	if (unlikely(!data))
- 		return NULL;
- 
+ static size_t max_gfp_len;
 _
