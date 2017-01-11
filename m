@@ -1,64 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-revalidate-disk-under-init_lock.patch removed from
- -mm tree
-Date: Wed, 11 Jan 2017 14:28:36 -0800
-Message-ID: <5876b194.qLJ+CjMY3a0794GA%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlbc-fix-reservation-race-when-freeing-surplus-pages.patch removed
+ from -mm tree
+Date: Wed, 11 Jan 2017 14:28:45 -0800
+Message-ID: <5876b19d.iuR8yrhlxJ7snSAT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51588 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51540 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934099AbdAKW2r (ORCPT
+        with ESMTP id S934421AbdAKW2r (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, cheol.lee@lge.com, darrick.wong@oracle.com, hughd@google.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, tiwai@suse.de, yjay.kim@lge.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, cassella@cray.com, hillf.zj@alibaba-inc.com, m.mizuma@jp.fujitsu.com, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: revalidate disk under init_lock
+     Subject: mm/hugetlb.c: fix reservation race when freeing surplus pages
 has been removed from the -mm tree.  Its filename was
-     zram-revalidate-disk-under-init_lock.patch
+     mm-hugetlbc-fix-reservation-race-when-freeing-surplus-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: revalidate disk under init_lock
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb.c: fix reservation race when freeing surplus pages
 
-[1] moved revalidate_disk call out of init_lock to avoid lockdep
-false-positive splat. However, [2] remove init_lock in IO path
-so there is no worry about lockdep splat. So, let's restore it.
-This patch need to set BDI_CAP_STABLE_WRITES atomically in
-next patch.
+return_unused_surplus_pages() decrements the global reservation count, and
+frees any unused surplus pages that were backing the reservation.  Commit
+7848a4bf51b3 ("mm/hugetlb.c: add cond_resched_lock() in
+return_unused_surplus_pages()") added a call to cond_resched_lock in the
+loop freeing the pages.  As a result, the hugetlb_lock could be dropped,
+and someone else could use the pages that will be freed in subsequent
+iterations of the loop.  This could result in inconsistent global hugetlb
+page state, application api failures (such as mmap) failures or
+application crashes.
 
-[1] b4c5c60920e3: zram: avoid lockdep splat by revalidate_disk
-[2] 08eee69fcf6b: zram: remove init_lock in zram_make_request
+When dropping the lock in return_unused_surplus_pages, make sure that the
+global reservation count (resv_huge_pages) remains sufficiently large to
+prevent someone else from claiming pages about to be freed.
 
-Fixes: da9556a2367c ("zram: user per-cpu compression streams")
-Link: http://lkml.kernel.org/r/1482366980-3782-3-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Hyeoncheol Lee <cheol.lee@lge.com>
-Cc: <yjay.kim@lge.com>
-Cc: Sangseok Lee <sangseok.lee@lge.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: <stable@vger.kernel.org> [4.7+]
+Analyzed by Paul Cassella.
+
+Fixes: 7848a4bf51b3 ("mm/hugetlb.c: add cond_resched_lock() in return_unused_surplus_pages()")
+Link: http://lkml.kernel.org/r/1483991767-6879-1-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Paul Cassella <cassella@cray.com>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: <stable@vger.kernel.org>	[3.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/hugetlb.c |   37 ++++++++++++++++++++++++++++---------
+ 1 file changed, 28 insertions(+), 9 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-revalidate-disk-under-init_lock drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-revalidate-disk-under-init_lock
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1095,14 +1095,8 @@ static ssize_t disksize_store(struct dev
- 	zram->comp = comp;
- 	zram->disksize = disksize;
- 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
--	up_write(&zram->init_lock);
+diff -puN mm/hugetlb.c~mm-hugetlbc-fix-reservation-race-when-freeing-surplus-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-reservation-race-when-freeing-surplus-pages
++++ a/mm/hugetlb.c
+@@ -1773,23 +1773,32 @@ free:
+ }
+ 
+ /*
+- * When releasing a hugetlb pool reservation, any surplus pages that were
+- * allocated to satisfy the reservation must be explicitly freed if they were
+- * never used.
+- * Called with hugetlb_lock held.
++ * This routine has two main purposes:
++ * 1) Decrement the reservation count (resv_huge_pages) by the value passed
++ *    in unused_resv_pages.  This corresponds to the prior adjustments made
++ *    to the associated reservation map.
++ * 2) Free any unused surplus pages that may have been allocated to satisfy
++ *    the reservation.  As many as unused_resv_pages may be freed.
++ *
++ * Called with hugetlb_lock held.  However, the lock could be dropped (and
++ * reacquired) during calls to cond_resched_lock.  Whenever dropping the lock,
++ * we must make sure nobody else can claim pages we are in the process of
++ * freeing.  Do this by ensuring resv_huge_page always is greater than the
++ * number of huge pages we plan to free when dropping the lock.
+  */
+ static void return_unused_surplus_pages(struct hstate *h,
+ 					unsigned long unused_resv_pages)
+ {
+ 	unsigned long nr_pages;
+ 
+-	/* Uncommit the reservation */
+-	h->resv_huge_pages -= unused_resv_pages;
+-
+ 	/* Cannot return gigantic pages currently */
+ 	if (hstate_is_gigantic(h))
+-		return;
++		goto out;
+ 
++	/*
++	 * Part (or even all) of the reservation could have been backed
++	 * by pre-allocated pages. Only free surplus pages.
++	 */
+ 	nr_pages = min(unused_resv_pages, h->surplus_huge_pages);
+ 
+ 	/*
+@@ -1799,12 +1808,22 @@ static void return_unused_surplus_pages(
+ 	 * when the nodes with surplus pages have no free pages.
+ 	 * free_pool_huge_page() will balance the the freed pages across the
+ 	 * on-line nodes with memory and will handle the hstate accounting.
++	 *
++	 * Note that we decrement resv_huge_pages as we free the pages.  If
++	 * we drop the lock, resv_huge_pages will still be sufficiently large
++	 * to cover subsequent pages we may free.
+ 	 */
+ 	while (nr_pages--) {
++		h->resv_huge_pages--;
++		unused_resv_pages--;
+ 		if (!free_pool_huge_page(h, &node_states[N_MEMORY], 1))
+-			break;
++			goto out;
+ 		cond_resched_lock(&hugetlb_lock);
+ 	}
++
++out:
++	/* Fully uncommit the reservation */
++	h->resv_huge_pages -= unused_resv_pages;
+ }
+ 
+ 
+_
+
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
+
+userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support.patch
+userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support.patch
+userfaultfd-hugetlbfs-add-__mcopy_atomic_hugetlb-for-huge-page-uffdio_copy.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing.patch
+userfaultfd-hugetlbfs-add-userfaultfd-hugetlb-hook.patch
+userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages.patch
+userfaultfd-hugetlbfs-add-userfaultfd_hugetlb-test.patch
+userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
+userfaultfd-hugetlbfs-reserve-count-on-error-in-__mcopy_atomic_hugetlb.patch
+
