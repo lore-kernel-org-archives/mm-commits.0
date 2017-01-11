@@ -1,173 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-support-anonymous-stable-page.patch removed from -mm
- tree
-Date: Wed, 11 Jan 2017 14:28:34 -0800
-Message-ID: <5876b192.ddsUgw8xJwCLApn4%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch removed from
+ -mm tree
+Date: Wed, 11 Jan 2017 14:27:54 -0800
+Message-ID: <5876b16a.kr9EXaX04PWM2bMT%akpm__26728.2650144354$1484173736$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51280 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934367AbdAKW2q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:46 -0500
+        with ESMTP id S933193AbdAKW2e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, cheol.lee@lge.com, darrick.wong@oracle.com, hughd@google.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, tiwai@suse.de, yjay.kim@lge.com, mm-commits@vger.kernel.org
+To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: support anonymous stable page
+     Subject: ocfs2: fix crash caused by stale lvb with fsdlm plugin
 has been removed from the -mm tree.  Its filename was
-     mm-support-anonymous-stable-page.patch
+     ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: support anonymous stable page
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix crash caused by stale lvb with fsdlm plugin
 
-During developemnt for zram-swap asynchronous writeback, I found strange
-corruption of compressed page.
+The crash happens rather often when we reset some cluster nodes while
+nodes contend fiercely to do truncate and append.
 
-Modules linked in: zram(E)
-CPU: 3 PID: 1520 Comm: zramd-1 Tainted: G            E   4.8.0-mm1-00320-ge0d4894c9c38-dirty #3274
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-task: ffff88007620b840 task.stack: ffff880078090000
-RIP: 0010:[<ffffffff811d6f3d>]  [<ffffffff811d6f3d>] set_freeobj.part.43+0x1c/0x1f
-RSP: 0018:ffff880078093ca8  EFLAGS: 00010246
-RAX: 0000000000000018 RBX: ffff880076798d88 RCX: ffffffff81c408c8
-RDX: 0000000000000018 RSI: 0000000000000000 RDI: 0000000000000246
-RBP: ffff880078093cb0 R08: 0000000000000000 R09: 0000000000000000
-R10: ffff88005bc43030 R11: 0000000000001df3 R12: ffff880076798d88
-R13: 000000000005bc43 R14: ffff88007819d1b8 R15: 0000000000000001
-FS:  0000000000000000(0000) GS:ffff88007e380000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fc934048f20 CR3: 0000000077b01000 CR4: 00000000000406e0
-Stack:
- ffffea00016f10c0 ffff880078093d08 ffffffff811d43cb ffff88005bc43030
- ffff88005bc43030 0000000000000001 ffff88007aa17f68 ffff88007819d1b8
- 000000000200020a 0000000002000200 ffff880076798d88 ffff88007aa17f68
-Call Trace:
- [<ffffffff811d43cb>] obj_malloc+0x22b/0x260
- [<ffffffff811d4be4>] zs_malloc+0x1e4/0x580
- [<ffffffff81355490>] ? lz4_compress_crypto+0x30/0x50
- [<ffffffffa000269d>] zram_bvec_rw+0x4cd/0x830 [zram]
- [<ffffffffa000356c>] page_requests_rw+0x9c/0x130 [zram]
- [<ffffffffa0003600>] ? page_requests_rw+0x130/0x130 [zram]
- [<ffffffffa00036e6>] zram_thread+0xe6/0x173 [zram]
- [<ffffffff810b67e0>] ? wake_atomic_t_function+0x60/0x60
- [<ffffffff81094cfa>] kthread+0xca/0xe0
- [<ffffffff81094c30>] ? kthread_park+0x60/0x60
- [<ffffffff817ae775>] ret_from_fork+0x25/0x30
+The crash backtrace is below:
+"
+[  245.197849] dlm: C21CBDA5E0774F4BA5A9D4F317717495: dlm_recover_grant 1 locks on 971 resources
+[  245.197859] dlm: C21CBDA5E0774F4BA5A9D4F317717495: dlm_recover 9 generation 5 done: 4 ms
+[  245.198379] ocfs2: Begin replay journal (node 318952601, slot 2) on device (253,18)
+[  247.272338] ocfs2: End replay journal (node 318952601, slot 2) on device (253,18)
+[  247.547084] ocfs2: Beginning quota recovery on device (253,18) for slot 2
+[  247.683263] ocfs2: Finishing quota recovery on device (253,18) for slot 2
+[  247.833022] (truncate,30154,1):ocfs2_truncate_file:470 ERROR: bug expression: le64_to_cpu(fe->i_size) != i_size_read(inode)
+[  247.833029] (truncate,30154,1):ocfs2_truncate_file:470 ERROR: Inode 290321, inode i_size = 732 != di i_size = 937, i_flags = 0x1
+[  247.833074] ------------[ cut here ]------------
+[  247.833077] kernel BUG at /usr/src/linux/fs/ocfs2/file.c:470!
+[  247.833079] invalid opcode: 0000 [#1] SMP
+[  247.833081] Modules linked in: ocfs2_stack_user(OEN) ocfs2(OEN) ocfs2_nodemanager ocfs2_stackglue(OEN) quota_tree dlm(OEN) configfs fuse sd_mod    iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi af_packet iscsi_ibft iscsi_boot_sysfs softdog xfs libcrc32c ppdev parport_pc pcspkr parport      joydev virtio_balloon virtio_net i2c_piix4 acpi_cpufreq button processor ext4 crc16 jbd2 mbcache ata_generic cirrus virtio_blk ata_piix               drm_kms_helper ahci syscopyarea libahci sysfillrect sysimgblt fb_sys_fops ttm floppy libata drm virtio_pci virtio_ring uhci_hcd virtio ehci_hcd       usbcore serio_raw usb_common sg dm_multipath dm_mod scsi_dh_rdac scsi_dh_emc scsi_dh_alua scsi_mod autofs4
+[  247.833107] Supported: No, Unsupported modules are loaded
+[  247.833110] CPU: 1 PID: 30154 Comm: truncate Tainted: G           OE   N  4.4.21-69-default #1
+[  247.833111] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.8.1-0-g4adadbd-20151112_172657-sheep25 04/01/2014
+[  247.833112] task: ffff88004ff6d240 ti: ffff880074e68000 task.ti: ffff880074e68000
+[  247.833113] RIP: 0010:[<ffffffffa05c8c30>]  [<ffffffffa05c8c30>] ocfs2_truncate_file+0x640/0x6c0 [ocfs2]
+[  247.833151] RSP: 0018:ffff880074e6bd50  EFLAGS: 00010282
+[  247.833152] RAX: 0000000000000074 RBX: 000000000000029e RCX: 0000000000000000
+[  247.833153] RDX: 0000000000000001 RSI: 0000000000000246 RDI: 0000000000000246
+[  247.833154] RBP: ffff880074e6bda8 R08: 000000003675dc7a R09: ffffffff82013414
+[  247.833155] R10: 0000000000034c50 R11: 0000000000000000 R12: ffff88003aab3448
+[  247.833156] R13: 00000000000002dc R14: 0000000000046e11 R15: 0000000000000020
+[  247.833157] FS:  00007f839f965700(0000) GS:ffff88007fc80000(0000) knlGS:0000000000000000
+[  247.833158] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  247.833159] CR2: 00007f839f97e000 CR3: 0000000036723000 CR4: 00000000000006e0
+[  247.833164] Stack:
+[  247.833165]  00000000000003a9 0000000000000001 ffff880060554000 ffff88004fcaf000
+[  247.833167]  ffff88003aa7b090 1000000000000000 ffff88003aab3448 ffff880074e6beb0
+[  247.833169]  0000000000000001 0000000000002068 0000000000000020 0000000000000000
+[  247.833171] Call Trace:
+[  247.833208]  [<ffffffffa05cb1a8>] ocfs2_setattr+0x698/0xa90 [ocfs2]
+[  247.833225]  [<ffffffff8121587e>] notify_change+0x1ae/0x380
+[  247.833242]  [<ffffffff811f8bfe>] do_truncate+0x5e/0x90
+[  247.833246]  [<ffffffff811f8f58>] do_sys_ftruncate.constprop.11+0x108/0x160
+[  247.833257]  [<ffffffff815e142e>] entry_SYSCALL_64_fastpath+0x12/0x6d
+[  247.834724] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x6d
+[  247.834725]
+[  247.834726] Leftover inexact backtrace:
 
-With investigation, it reveals currently stable page doesn't support
-anonymous page.  IOW, reuse_swap_page can reuse the page without waiting
-writeback completion so it can overwrite page zram is compressing.
+[  247.834728] Code: 24 28 ba d6 01 00 00 48 c7 c6 30 43 62 a0 8b 41 2c 89 44 24 08 48 8b 41 20 48 c7 c1 78 a3 62 a0 48 89 04 24 31 c0 e8 a0 97 f9 ff <0f> 0b 3d 00 fe ff ff 0f 84 ab fd ff ff 83 f8 fc 0f 84 a2 fd ff
+[  247.834748] RIP  [<ffffffffa05c8c30>] ocfs2_truncate_file+0x640/0x6c0 [ocfs2]
+[  247.834774]  RSP <ffff880074e6bd50>
+"
 
-Unfortunately, zram has used per-cpu stream feature from v4.7.
-It aims for increasing cache hit ratio of scratch buffer for
-compressing. Downside of that approach is that zram should ask
-memory space for compressed page in per-cpu context which requires
-stricted gfp flag which could be failed. If so, it retries to
-allocate memory space out of per-cpu context so it could get memory
-this time and compress the data again, copies it to the memory space.
+It's because ocfs2_inode_lock() get us stale LVB in which the i_size is
+not equal to the disk i_size.  We mistakenly trust the LVB because the
+underlaying fsdlm dlm_lock() doesn't set lkb_sbflags with
+DLM_SBF_VALNOTVALID properly for us.  But, why?
 
-In this scenario, zram assumes the data should never be changed
-but it is not true unless stable page supports. So, If the data is
-changed under us, zram can make buffer overrun because second
-compression size could be bigger than one we got in previous trial
-and blindly, copy bigger size object to smaller buffer which is
-buffer overrun. The overrun breaks zsmalloc free object chaining
-so system goes crash like above.
+The current code tries to downconvert lock without DLM_LKF_VALBLK flag to
+tell o2cb don't update RSB's LVB if it's a PR->NULL conversion, even if
+the lock resource type needs LVB.  This is not the right way for fsdlm.
 
-I think below is same problem.
-https://bugzilla.suse.com/show_bug.cgi?id=997574
+The fsdlm plugin behaves different on DLM_LKF_VALBLK, it depends on
+DLM_LKF_VALBLK to decide if we care about the LVB in the LKB.  If
+DLM_LKF_VALBLK is not set, fsdlm will skip recovering RSB's LVB from this
+lkb and set the right DLM_SBF_VALNOTVALID appropriately when node failure
+happens.
 
-Unfortunately, reuse_swap_page should be atomic so that we cannot wait on
-writeback in there so the approach in this patch is simply return false if
-we found it needs stable page.  Although it increases memory footprint
-temporarily, it happens rarely and it should be reclaimed easily althoug
-it happened.  Also, It would be better than waiting of IO completion,
-which is critial path for application latency.
+The following diagram briefly illustrates how this crash happens:
 
-Fixes: da9556a2367c ("zram: user per-cpu compression streams")
-Link: http://lkml.kernel.org/r/20161120233015.GA14113@bbox
-Link: http://lkml.kernel.org/r/1482366980-3782-2-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Hyeoncheol Lee <cheol.lee@lge.com>
-Cc: <yjay.kim@lge.com>
-Cc: Sangseok Lee <sangseok.lee@lge.com>
-Cc: <stable@vger.kernel.org> [4.7+]
+RSB1 is inode metadata lock resource with LOCK_TYPE_USES_LVB;
+
+The 1st round:
+
+             Node1                                    Node2
+RSB1: PR
+                                                  RSB1(master): NULL->EX
+ocfs2_downconvert_lock(PR->NULL, set_lvb==0)
+  ocfs2_dlm_lock(no DLM_LKF_VALBLK)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+dlm_lock(no DLM_LKF_VALBLK)
+  convert_lock(overwrite lkb->lkb_exflags
+               with no DLM_LKF_VALBLK)
+
+RSB1: NULL                                        RSB1: EX
+                                                  reset Node2
+dlm_recover_rsbs()
+  recover_lvb()
+
+/* The LVB is not trustable if the node with EX fails and
+ * no lock >= PR is left. We should set RSB_VALNOTVALID for RSB1.
+ */
+
+ if(!(kb_exflags & DLM_LKF_VALBLK)) /* This means we miss the chance to
+           return;                   * to invalid the LVB here.
+                                     */
+
+The 2nd round:
+
+         Node 1                                Node2
+RSB1(become master from recovery)
+
+ocfs2_setattr()
+  ocfs2_inode_lock(NULL->EX)
+    /* dlm_lock() return the stale lvb without setting DLM_SBF_VALNOTVALID */
+    ocfs2_meta_lvb_is_trustable() return 1 /* so we don't refresh inode from disk */
+  ocfs2_truncate_file()
+      mlog_bug_on_msg(disk isize != i_size_read(inode))  /* crash! */
+
+The fix is quite straightforward.  We keep to set DLM_LKF_VALBLK flag for
+dlm_lock() if the lock resource type needs LVB and the fsdlm plugin is
+uesed.
+
+Link: http://lkml.kernel.org/r/1481275846-6604-1-git-send-email-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 ++-
- mm/swapfile.c        |   20 +++++++++++++++++++-
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlmglue.c   |   10 ++++++++++
+ fs/ocfs2/stackglue.c |    6 ++++++
+ fs/ocfs2/stackglue.h |    3 +++
+ 3 files changed, 19 insertions(+)
 
-diff -puN include/linux/swap.h~mm-support-anonymous-stable-page include/linux/swap.h
---- a/include/linux/swap.h~mm-support-anonymous-stable-page
-+++ a/include/linux/swap.h
-@@ -150,8 +150,9 @@ enum {
- 	SWP_FILE	= (1 << 7),	/* set after swap_activate success */
- 	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
- 	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
-+	SWP_STABLE_WRITES = (1 << 10),	/* no overwrite PG_writeback pages */
- 					/* add others here before... */
--	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
-+	SWP_SCANNING	= (1 << 11),	/* refcount in scan_swap_map */
- };
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
++++ a/fs/ocfs2/dlmglue.c
+@@ -3303,6 +3303,16 @@ static int ocfs2_downconvert_lock(struct
+ 	mlog(ML_BASTS, "lockres %s, level %d => %d\n", lockres->l_name,
+ 	     lockres->l_level, new_level);
  
- #define SWAP_CLUSTER_MAX 32UL
-diff -puN mm/swapfile.c~mm-support-anonymous-stable-page mm/swapfile.c
---- a/mm/swapfile.c~mm-support-anonymous-stable-page
-+++ a/mm/swapfile.c
-@@ -943,11 +943,25 @@ bool reuse_swap_page(struct page *page,
- 	count = page_trans_huge_mapcount(page, total_mapcount);
- 	if (count <= 1 && PageSwapCache(page)) {
- 		count += page_swapcount(page);
--		if (count == 1 && !PageWriteback(page)) {
-+		if (count != 1)
-+			goto out;
-+		if (!PageWriteback(page)) {
- 			delete_from_swap_cache(page);
- 			SetPageDirty(page);
-+		} else {
-+			swp_entry_t entry;
-+			struct swap_info_struct *p;
++	/*
++	 * On DLM_LKF_VALBLK, fsdlm behaves differently with o2cb. It always
++	 * expects DLM_LKF_VALBLK being set if the LKB has LVB, so that
++	 * we can recover correctly from node failure. Otherwise, we may get
++	 * invalid LVB in LKB, but without DLM_SBF_VALNOTVALID being set.
++	 */
++	if (!ocfs2_is_o2cb_active() &&
++	    lockres->l_ops->flags & LOCK_TYPE_USES_LVB)
++		lvb = 1;
 +
-+			entry.val = page_private(page);
-+			p = swap_info_get(entry);
-+			if (p->flags & SWP_STABLE_WRITES) {
-+				spin_unlock(&p->lock);
-+				return false;
-+			}
-+			spin_unlock(&p->lock);
- 		}
- 	}
-+out:
- 	return count <= 1;
- }
+ 	if (lvb)
+ 		dlm_flags |= DLM_LKF_VALBLK;
  
-@@ -2448,6 +2462,10 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		error = -ENOMEM;
- 		goto bad_swap;
- 	}
-+
-+	if (bdi_cap_stable_pages_required(inode_to_bdi(inode)))
-+		p->flags |= SWP_STABLE_WRITES;
-+
- 	if (p->bdev && blk_queue_nonrot(bdev_get_queue(p->bdev))) {
- 		int cpu;
+diff -puN fs/ocfs2/stackglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
++++ a/fs/ocfs2/stackglue.c
+@@ -48,6 +48,12 @@ static char ocfs2_hb_ctl_path[OCFS2_MAX_
+  */
+ static struct ocfs2_stack_plugin *active_stack;
  
++inline int ocfs2_is_o2cb_active(void)
++{
++	return !strcmp(active_stack->sp_name, OCFS2_STACK_PLUGIN_O2CB);
++}
++EXPORT_SYMBOL_GPL(ocfs2_is_o2cb_active);
++
+ static struct ocfs2_stack_plugin *ocfs2_stack_lookup(const char *name)
+ {
+ 	struct ocfs2_stack_plugin *p;
+diff -puN fs/ocfs2/stackglue.h~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/stackglue.h
+--- a/fs/ocfs2/stackglue.h~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
++++ a/fs/ocfs2/stackglue.h
+@@ -298,6 +298,9 @@ void ocfs2_stack_glue_set_max_proto_vers
+ int ocfs2_stack_glue_register(struct ocfs2_stack_plugin *plugin);
+ void ocfs2_stack_glue_unregister(struct ocfs2_stack_plugin *plugin);
+ 
++/* In ocfs2_downconvert_lock(), we need to know which stack we are using */
++int ocfs2_is_o2cb_active(void);
++
+ extern struct kset *ocfs2_kset;
+ 
+ #endif  /* STACKGLUE_H */
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from zren@suse.com are
 
+ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
 
