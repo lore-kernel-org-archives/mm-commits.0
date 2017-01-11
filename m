@@ -1,99 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [patch 24/27] zram: support BDI_CAP_STABLE_WRITES
-Date: Tue, 10 Jan 2017 16:58:21 -0800
-Message-ID: <5875832d.Puk79903lro3Kg9y%akpm@linux-foundation.org>
+Subject: [patch 21/27] mm: add documentation for page fragment APIs
+Date: Tue, 10 Jan 2017 16:58:12 -0800
+Message-ID: <58758324.SBGtPrkO8EHs6D+W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33498 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760232AbdAKA6X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:23 -0500
+        with ESMTP id S1759961AbdAKA6N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, cheol.lee@lge.com, darrick.wong@oracle.com, hughd@google.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, tiwai@suse.de, yjay.kim@lge.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: support BDI_CAP_STABLE_WRITES
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: mm: add documentation for page fragment APIs
 
-zram has used per-cpu stream feature from v4.7.  It aims for increasing
-cache hit ratio of scratch buffer for compressing.  Downside of that
-approach is that zram should ask memory space for compressed page in
-per-cpu context which requires stricted gfp flag which could be failed. 
-If so, it retries to allocate memory space out of per-cpu context so it
-could get memory this time and compress the data again, copies it to the
-memory space.
+This is a first pass at trying to add documentation for the page_frag
+APIs.  They may still change over time but for now I thought I would try
+to get these documented so that as more network drivers and stack calls
+make use of them we have one central spot to document how they are meant
+to be used.
 
-In this scenario, zram assumes the data should never be changed but it is
-not true without stable page support.  So, If the data is changed under
-us, zram can make buffer overrun so that zsmalloc free object chain is
-broken so system goes crash like below
-https://bugzilla.suse.com/show_bug.cgi?id=997574
-
-This patch adds BDI_CAP_STABLE_WRITES to zram for declaring "I am block
-device needing *stable write*".
-
-Fixes: da9556a2367c ("zram: user per-cpu compression streams")
-Link: http://lkml.kernel.org/r/1482366980-3782-4-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Hyeoncheol Lee <cheol.lee@lge.com>
-Cc: <yjay.kim@lge.com>
-Cc: Sangseok Lee <sangseok.lee@lge.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: <stable@vger.kernel.org> [4.7+]
+Link: http://lkml.kernel.org/r/20170104024157.13451.6758.stgit@localhost.localdomain
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ Documentation/vm/page_frags |   42 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-support-bdi_cap_stable_writes drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-support-bdi_cap_stable_writes
-+++ a/drivers/block/zram/zram_drv.c
-@@ -25,6 +25,7 @@
- #include <linux/genhd.h>
- #include <linux/highmem.h>
- #include <linux/slab.h>
-+#include <linux/backing-dev.h>
- #include <linux/string.h>
- #include <linux/vmalloc.h>
- #include <linux/err.h>
-@@ -112,6 +113,14 @@ static inline bool is_partial_io(struct
- 	return bvec->bv_len != PAGE_SIZE;
- }
- 
-+static void zram_revalidate_disk(struct zram *zram)
-+{
-+	revalidate_disk(zram->disk);
-+	/* revalidate_disk reset the BDI_CAP_STABLE_WRITES so set again */
-+	zram->disk->queue->backing_dev_info.capabilities |=
-+		BDI_CAP_STABLE_WRITES;
-+}
+diff -puN /dev/null Documentation/vm/page_frags
+--- /dev/null
++++ a/Documentation/vm/page_frags
+@@ -0,0 +1,42 @@
++Page fragments
++--------------
 +
- /*
-  * Check if request is within bounds and aligned on zram logical blocks.
-  */
-@@ -1095,7 +1104,7 @@ static ssize_t disksize_store(struct dev
- 	zram->comp = comp;
- 	zram->disksize = disksize;
- 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
--	revalidate_disk(zram->disk);
-+	zram_revalidate_disk(zram);
- 	up_write(&zram->init_lock);
- 
- 	return len;
-@@ -1143,7 +1152,7 @@ static ssize_t reset_store(struct device
- 	/* Make sure all the pending I/O are finished */
- 	fsync_bdev(bdev);
- 	zram_reset_device(zram);
--	revalidate_disk(zram->disk);
-+	zram_revalidate_disk(zram);
- 	bdput(bdev);
- 
- 	mutex_lock(&bdev->bd_mutex);
++A page fragment is an arbitrary-length arbitrary-offset area of memory
++which resides within a 0 or higher order compound page.  Multiple
++fragments within that page are individually refcounted, in the page's
++reference counter.
++
++The page_frag functions, page_frag_alloc and page_frag_free, provide a
++simple allocation framework for page fragments.  This is used by the
++network stack and network device drivers to provide a backing region of
++memory for use as either an sk_buff->head, or to be used in the "frags"
++portion of skb_shared_info.
++
++In order to make use of the page fragment APIs a backing page fragment
++cache is needed.  This provides a central point for the fragment allocation
++and tracks allows multiple calls to make use of a cached page.  The
++advantage to doing this is that multiple calls to get_page can be avoided
++which can be expensive at allocation time.  However due to the nature of
++this caching it is required that any calls to the cache be protected by
++either a per-cpu limitation, or a per-cpu limitation and forcing interrupts
++to be disabled when executing the fragment allocation.
++
++The network stack uses two separate caches per CPU to handle fragment
++allocation.  The netdev_alloc_cache is used by callers making use of the
++__netdev_alloc_frag and __netdev_alloc_skb calls.  The napi_alloc_cache is
++used by callers of the __napi_alloc_frag and __napi_alloc_skb calls.  The
++main difference between these two calls is the context in which they may be
++called.  The "netdev" prefixed functions are usable in any context as these
++functions will disable interrupts, while the "napi" prefixed functions are
++only usable within the softirq context.
++
++Many network device drivers use a similar methodology for allocating page
++fragments, but the page fragments are cached at the ring or descriptor
++level.  In order to enable these cases it is necessary to provide a generic
++way of tearing down a page cache.  For this reason __page_frag_cache_drain
++was implemented.  It allows for freeing multiple references from a single
++page via a single call.  The advantage to doing this is that it allows for
++cleaning up the multiple references that were added to a page in order to
++avoid calling get_page per allocation.
++
++Alexander Duyck, Nov 29, 2016.
 _
