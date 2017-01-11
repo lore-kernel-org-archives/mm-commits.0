@@ -1,113 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-support-bdi_cap_stable_writes.patch removed from
- -mm tree
-Date: Wed, 11 Jan 2017 14:28:39 -0800
-Message-ID: <5876b197.JLz0DJmsh0i06pm1%akpm__38802.3791987964$1484173774$gmane$org@linux-foundation.org>
+Subject: + mm-swap-fix-kernel-message-in-swap_info_get.patch added to -mm
+ tree
+Date: Wed, 11 Jan 2017 15:42:35 -0800
+Message-ID: <5876c2eb.ukvd11ZbP2DOUgkD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38684 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934388AbdAKW2r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:47 -0500
+        with ESMTP id S1754842AbdAKXnG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 18:43:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, cheol.lee@lge.com, darrick.wong@oracle.com, hughd@google.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, tiwai@suse.de, yjay.kim@lge.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: support BDI_CAP_STABLE_WRITES
-has been removed from the -mm tree.  Its filename was
-     zram-support-bdi_cap_stable_writes.patch
+     Subject: mm/swap: fix kernel message in swap_info_get()
+has been added to the -mm tree.  Its filename is
+     mm-swap-fix-kernel-message-in-swap_info_get.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-kernel-message-in-swap_info_get.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-kernel-message-in-swap_info_get.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: support BDI_CAP_STABLE_WRITES
+From: "Huang, Ying" <ying.huang@intel.com>
+Subject: mm/swap: fix kernel message in swap_info_get()
 
-zram has used per-cpu stream feature from v4.7.  It aims for increasing
-cache hit ratio of scratch buffer for compressing.  Downside of that
-approach is that zram should ask memory space for compressed page in
-per-cpu context which requires stricted gfp flag which could be failed. 
-If so, it retries to allocate memory space out of per-cpu context so it
-could get memory this time and compress the data again, copies it to the
-memory space.
+Patch series "mm/swap: Regular page swap optimizations", v5.
 
-In this scenario, zram assumes the data should never be changed but it is
-not true without stable page support.  So, If the data is changed under
-us, zram can make buffer overrun so that zsmalloc free object chain is
-broken so system goes crash like below
-https://bugzilla.suse.com/show_bug.cgi?id=997574
+Times have changed.  Coming generation of Solid state Block device
+latencies are getting down to sub 100 usec, which is within an order of
+magnitude of DRAM, and their performance is orders of magnitude higher
+than the single- spindle rotational media we've swapped to historically.
 
-This patch adds BDI_CAP_STABLE_WRITES to zram for declaring "I am block
-device needing *stable write*".
+This could benefit many usage scenearios.  For example cloud providers who
+overcommit their memory (as VM don't use all the memory provisioned). 
+Having a fast swap will allow them to be more aggressive in memory
+overcommit and fit more VMs to a platform.
 
-Fixes: da9556a2367c ("zram: user per-cpu compression streams")
-Link: http://lkml.kernel.org/r/1482366980-3782-4-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Hyeoncheol Lee <cheol.lee@lge.com>
-Cc: <yjay.kim@lge.com>
-Cc: Sangseok Lee <sangseok.lee@lge.com>
+In our testing [see footnote], the median latency that the kernel adds to
+a page fault is 15 usec, which comes quite close to the amount that will
+be contributed by the underlying I/O devices.
+
+The software latency comes mostly from contentions on the locks protecting
+the radix tree of the swap cache and also the locks protecting the
+individual swap devices.  The lock contentions already consumed 35% of cpu
+cycles in our test.  In the very near future, software latency will become
+the bottleneck to swap performnace as block device I/O latency gets within
+the shouting distance of DRAM speed.
+
+This patch set, reduced the median page fault latency from 15 usec to 4
+usec (375% reduction) for DRAM based pmem block device.
+
+
+This patch (of 9):
+
+swap_info_get() is used not only in swap free code path but also in
+page_swapcount(), etc.  So the original kernel message in swap_info_get()
+is not correct now.  Fix it via replacing "swap_free" to "swap_info_get"
+in the message.
+
+Link: http://lkml.kernel.org/r/9b5f8bd6266f9da978c373f2384c8044df5e262c.1484082593.git.tim.c.chen@linux.intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: <stable@vger.kernel.org> [4.7+]
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-support-bdi_cap_stable_writes drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-support-bdi_cap_stable_writes
-+++ a/drivers/block/zram/zram_drv.c
-@@ -25,6 +25,7 @@
- #include <linux/genhd.h>
- #include <linux/highmem.h>
- #include <linux/slab.h>
-+#include <linux/backing-dev.h>
- #include <linux/string.h>
- #include <linux/vmalloc.h>
- #include <linux/err.h>
-@@ -112,6 +113,14 @@ static inline bool is_partial_io(struct
- 	return bvec->bv_len != PAGE_SIZE;
+diff -puN mm/swapfile.c~mm-swap-fix-kernel-message-in-swap_info_get mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-fix-kernel-message-in-swap_info_get
++++ a/mm/swapfile.c
+@@ -753,16 +753,16 @@ static struct swap_info_struct *swap_inf
+ 	return p;
+ 
+ bad_free:
+-	pr_err("swap_free: %s%08lx\n", Unused_offset, entry.val);
++	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
+ 	goto out;
+ bad_offset:
+-	pr_err("swap_free: %s%08lx\n", Bad_offset, entry.val);
++	pr_err("swap_info_get: %s%08lx\n", Bad_offset, entry.val);
+ 	goto out;
+ bad_device:
+-	pr_err("swap_free: %s%08lx\n", Unused_file, entry.val);
++	pr_err("swap_info_get: %s%08lx\n", Unused_file, entry.val);
+ 	goto out;
+ bad_nofile:
+-	pr_err("swap_free: %s%08lx\n", Bad_file, entry.val);
++	pr_err("swap_info_get: %s%08lx\n", Bad_file, entry.val);
+ out:
+ 	return NULL;
  }
- 
-+static void zram_revalidate_disk(struct zram *zram)
-+{
-+	revalidate_disk(zram->disk);
-+	/* revalidate_disk reset the BDI_CAP_STABLE_WRITES so set again */
-+	zram->disk->queue->backing_dev_info.capabilities |=
-+		BDI_CAP_STABLE_WRITES;
-+}
-+
- /*
-  * Check if request is within bounds and aligned on zram logical blocks.
-  */
-@@ -1095,7 +1104,7 @@ static ssize_t disksize_store(struct dev
- 	zram->comp = comp;
- 	zram->disksize = disksize;
- 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
--	revalidate_disk(zram->disk);
-+	zram_revalidate_disk(zram);
- 	up_write(&zram->init_lock);
- 
- 	return len;
-@@ -1143,7 +1152,7 @@ static ssize_t reset_store(struct device
- 	/* Make sure all the pending I/O are finished */
- 	fsync_bdev(bdev);
- 	zram_reset_device(zram);
--	revalidate_disk(zram->disk);
-+	zram_revalidate_disk(zram);
- 	bdput(bdev);
- 
- 	mutex_lock(&bdev->bd_mutex);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
+mm-swap-fix-kernel-message-in-swap_info_get.patch
+mm-swap-add-cluster-lock.patch
+mm-swap-split-swap-cache-into-64mb-trunks.patch
+mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
 
