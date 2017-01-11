@@ -1,158 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [patch 05/27] dax: wrprotect pmd_t in dax_mapping_entry_mkclean
-Date: Tue, 10 Jan 2017 16:57:24 -0800
-Message-ID: <587582f4.iEOk8jqLO8iSZFrU%akpm@linux-foundation.org>
+Subject: [patch 16/27] mailmap: add codeaurora.org names for nameless
+ email commits
+Date: Tue, 10 Jan 2017 16:57:57 -0800
+Message-ID: <58758315.5N/Sk5BOlC4RRKgN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33448 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759926AbdAKA5Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:25 -0500
+        with ESMTP id S1759925AbdAKA6E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, mawilcox@microsoft.com, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sboyd@codeaurora.org, andy.gross@linaro.org, spjoshi@codeaurora.org, subashab@codeaurora.org, subhashj@codeaurora.org, twp@codeaurora.org
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: wrprotect pmd_t in dax_mapping_entry_mkclean
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: mailmap: add codeaurora.org names for nameless email commits
 
-Currently dax_mapping_entry_mkclean() fails to clean and write protect the
-pmd_t of a DAX PMD entry during an *sync operation.  This can result in
-data loss in the following sequence:
+Some codeaurora.org emails have crept in but the names don't exist for
+them.  Add the names for the emails so git can match everyone up.
 
-1) mmap write to DAX PMD, dirtying PMD radix tree entry and making the
-   pmd_t dirty and writeable
-2) fsync, flushing out PMD data and cleaning the radix tree entry. We
-   currently fail to mark the pmd_t as clean and write protected.
-3) more mmap writes to the PMD.  These don't cause any page faults since
-   the pmd_t is dirty and writeable.  The radix tree entry remains clean.
-4) fsync, which fails to flush the dirty PMD data because the radix tree
-   entry was clean.
-5) crash - dirty data that should have been fsync'd as part of 4) could
-   still have been in the processor cache, and is lost.
-
-Fix this by marking the pmd_t clean and write protected in
-dax_mapping_entry_mkclean(), which is called as part of the fsync
-operation 2).  This will cause the writes in step 3) above to generate
-page faults where we'll re-dirty the PMD radix tree entry, resulting in
-flushes in the fsync that happens in step 4).
-
-Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
-Link: http://lkml.kernel.org/r/1482272586-21177-3-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Link: http://lkml.kernel.org/r/20170104194611.25933-1-sboyd@codeaurora.org
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Sarangdhar Joshi <spjoshi@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Cc: Subhash Jadavani <subhashj@codeaurora.org>
+Cc: Thomas Pedersen <twp@codeaurora.org>
+Cc: Andy Gross <andy.gross@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c           |   53 ++++++++++++++++++++++++++++++-------------
- include/linux/mm.h |    2 -
- mm/memory.c        |    4 +--
- 3 files changed, 39 insertions(+), 20 deletions(-)
+ .mailmap |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/dax.c~dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean fs/dax.c
---- a/fs/dax.c~dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean
-+++ a/fs/dax.c
-@@ -691,8 +691,8 @@ static void dax_mapping_entry_mkclean(st
- 				      pgoff_t index, unsigned long pfn)
- {
- 	struct vm_area_struct *vma;
--	pte_t *ptep;
--	pte_t pte;
-+	pte_t pte, *ptep = NULL;
-+	pmd_t *pmdp = NULL;
- 	spinlock_t *ptl;
- 	bool changed;
- 
-@@ -707,21 +707,42 @@ static void dax_mapping_entry_mkclean(st
- 
- 		address = pgoff_address(index, vma);
- 		changed = false;
--		if (follow_pte(vma->vm_mm, address, &ptep, &ptl))
-+		if (follow_pte_pmd(vma->vm_mm, address, &ptep, &pmdp, &ptl))
- 			continue;
--		if (pfn != pte_pfn(*ptep))
--			goto unlock;
--		if (!pte_dirty(*ptep) && !pte_write(*ptep))
--			goto unlock;
--
--		flush_cache_page(vma, address, pfn);
--		pte = ptep_clear_flush(vma, address, ptep);
--		pte = pte_wrprotect(pte);
--		pte = pte_mkclean(pte);
--		set_pte_at(vma->vm_mm, address, ptep, pte);
--		changed = true;
--unlock:
--		pte_unmap_unlock(ptep, ptl);
-+
-+		if (pmdp) {
-+#ifdef CONFIG_FS_DAX_PMD
-+			pmd_t pmd;
-+
-+			if (pfn != pmd_pfn(*pmdp))
-+				goto unlock_pmd;
-+			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
-+				goto unlock_pmd;
-+
-+			flush_cache_page(vma, address, pfn);
-+			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
-+			pmd = pmd_wrprotect(pmd);
-+			pmd = pmd_mkclean(pmd);
-+			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
-+			changed = true;
-+unlock_pmd:
-+			spin_unlock(ptl);
-+#endif
-+		} else {
-+			if (pfn != pte_pfn(*ptep))
-+				goto unlock_pte;
-+			if (!pte_dirty(*ptep) && !pte_write(*ptep))
-+				goto unlock_pte;
-+
-+			flush_cache_page(vma, address, pfn);
-+			pte = ptep_clear_flush(vma, address, ptep);
-+			pte = pte_wrprotect(pte);
-+			pte = pte_mkclean(pte);
-+			set_pte_at(vma->vm_mm, address, ptep, pte);
-+			changed = true;
-+unlock_pte:
-+			pte_unmap_unlock(ptep, ptl);
-+		}
- 
- 		if (changed)
- 			mmu_notifier_invalidate_page(vma->vm_mm, address);
-diff -puN include/linux/mm.h~dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean include/linux/mm.h
---- a/include/linux/mm.h~dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean
-+++ a/include/linux/mm.h
-@@ -1210,8 +1210,6 @@ int copy_page_range(struct mm_struct *ds
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
--int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
--	       spinlock_t **ptlp);
- int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
- 			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-diff -puN mm/memory.c~dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean mm/memory.c
---- a/mm/memory.c~dax-wrprotect-pmd_t-in-dax_mapping_entry_mkclean
-+++ a/mm/memory.c
-@@ -3819,8 +3819,8 @@ out:
- 	return -EINVAL;
- }
- 
--int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
--	       spinlock_t **ptlp)
-+static inline int follow_pte(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, spinlock_t **ptlp)
- {
- 	int res;
- 
+diff -puN .mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits .mailmap
+--- a/.mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits
++++ a/.mailmap
+@@ -137,6 +137,7 @@ Ricardo Ribalda Delgado <ricardo.ribalda
+ Rudolf Marek <R.Marek@sh.cvut.cz>
+ Rui Saraiva <rmps@joel.ist.utl.pt>
+ Sachin P Sant <ssant@in.ibm.com>
++Sarangdhar Joshi <spjoshi@codeaurora.org>
+ Sam Ravnborg <sam@mars.ravnborg.org>
+ Santosh Shilimkar <ssantosh@kernel.org>
+ Santosh Shilimkar <santosh.shilimkar@oracle.org>
+@@ -150,10 +151,13 @@ Shuah Khan <shuah@kernel.org> <shuah.kh@
+ Simon Kelley <simon@thekelleys.org.uk>
+ Stéphane Witzmann <stephane.witzmann@ubpmes.univ-bpclermont.fr>
+ Stephen Hemminger <shemminger@osdl.org>
++Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
++Subhash Jadavani <subhashj@codeaurora.org>
+ Sudeep Holla <sudeep.holla@arm.com> Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>
+ Sumit Semwal <sumit.semwal@ti.com>
+ Tejun Heo <htejun@gmail.com>
+ Thomas Graf <tgraf@suug.ch>
++Thomas Pedersen <twp@codeaurora.org>
+ Tony Luck <tony.luck@intel.com>
+ Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
+ Uwe Kleine-König <ukleinek@informatik.uni-freiburg.de>
 _
