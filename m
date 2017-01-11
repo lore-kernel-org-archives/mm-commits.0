@@ -1,108 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- signal-protect-signal_unkillable-from-unintentional-clearing.patch removed
+Subject: [merged] ipc-semc-fix-incorrect-sem_lock-pairing.patch removed
  from -mm tree
-Date: Wed, 11 Jan 2017 14:28:15 -0800
-Message-ID: <5876b17f.Byqh6n+6TcwamkHv%akpm@linux-foundation.org>
+Date: Wed, 11 Jan 2017 14:28:09 -0800
+Message-ID: <5876b179.PSgVw3RZq8KEV799%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51544 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51540 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933263AbdAKW2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:38 -0500
+        with ESMTP id S933122AbdAKW2h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jamie.iles@oracle.com, mingo@redhat.com, oleg@redhat.com, peterz@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, dave@stgolabs.net, dvyukov@google.com, johanna@mjao.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing
+     Subject: ipc/sem.c: fix incorrect sem_lock pairing
 has been removed from the -mm tree.  Its filename was
-     signal-protect-signal_unkillable-from-unintentional-clearing.patch
+     ipc-semc-fix-incorrect-sem_lock-pairing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jamie Iles <jamie.iles@oracle.com>
-Subject: signal: protect SIGNAL_UNKILLABLE from unintentional clearing.
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: fix incorrect sem_lock pairing
 
-Since 00cd5c37af (ptrace: permit ptracing of /sbin/init) we can now trace
-init processes.  init is initially protected with SIGNAL_UNKILLABLE which
-will prevent fatal signals such as SIGSTOP, but there are a number of
-paths during tracing where SIGNAL_UNKILLABLE can be implicitly cleared.
+Based on the syzcaller test case from dvyukov:
+https://gist.githubusercontent.com/dvyukov/d0e5efefe4d7d6daed829f5c3ca26a40/raw/08d0a261fe3c987bed04fbf267e08ba04bd533ea/gistfile1.txt
 
-This can result in init becoming stoppable/killable after tracing.  For
-example, running:
+The slow (i.e.: failure to acquire) syscall exit from semtimedop()
+incorrectly assumed that the the same lock is acquired as it was at the
+initial syscall entry.
 
-  while true; do kill -STOP 1; done &
-  strace -p 1
+This is wrong:
+- thread A: single semop semop(), sleeps
+- thread B: multi semop semop(), sleeps
+- thread A: woken up by signal/timeout
 
-and then stopping strace and the kill loop will result in init being left
-in state TASK_STOPPED.  Sending SIGCONT to init will resume it, but init
-will now respond to future SIGSTOP signals rather than ignoring them.
+With this sequence, the initial sem_lock() call locks the per-semaphore
+spinlock, and it is unlocked with sem_unlock().  The call at the syscall
+return locks the global spinlock.  Because locknum is not updated, the
+following sem_unlock() call unlocks the per-semaphore spinlock, which is
+actually not locked.
 
-Make sure that when setting SIGNAL_STOP_CONTINUED/SIGNAL_STOP_STOPPED
-that we don't clear SIGNAL_UNKILLABLE.
+The fix is trivial: Use the return value from sem_lock.
 
-Link: http://lkml.kernel.org/r/20170104122017.25047-1-jamie.iles@oracle.com
-Signed-off-by: Jamie Iles <jamie.iles@oracle.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Fixes: 370b262c896e ("ipc/sem: avoid idr tree lookup for interrupted semop")
+Link: http://lkml.kernel.org/r/1482215645-22328-1-git-send-email-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Reported-by: Johanna Abrahamsson <johanna@mjao.org>
+Tested-by: Johanna Abrahamsson <johanna@mjao.org>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   10 ++++++++++
- kernel/signal.c       |    4 ++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ ipc/sem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing include/linux/sched.h
---- a/include/linux/sched.h~signal-protect-signal_unkillable-from-unintentional-clearing
-+++ a/include/linux/sched.h
-@@ -854,6 +854,16 @@ struct signal_struct {
- 
- #define SIGNAL_UNKILLABLE	0x00000040 /* for init: ignore fatal signals */
- 
-+#define SIGNAL_STOP_MASK (SIGNAL_CLD_MASK | SIGNAL_STOP_STOPPED | \
-+			  SIGNAL_STOP_CONTINUED)
-+
-+static inline void signal_set_stop_flags(struct signal_struct *sig,
-+					 unsigned int flags)
-+{
-+	WARN_ON(sig->flags & (SIGNAL_GROUP_EXIT|SIGNAL_GROUP_COREDUMP));
-+	sig->flags = (sig->flags & ~SIGNAL_STOP_MASK) | flags;
-+}
-+
- /* If true, all threads except ->group_exit_task have pending SIGKILL */
- static inline int signal_group_exit(const struct signal_struct *sig)
- {
-diff -puN kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing kernel/signal.c
---- a/kernel/signal.c~signal-protect-signal_unkillable-from-unintentional-clearing
-+++ a/kernel/signal.c
-@@ -346,7 +346,7 @@ static bool task_participate_group_stop(
- 	 * fresh group stop.  Read comment in do_signal_stop() for details.
- 	 */
- 	if (!sig->group_stop_count && !(sig->flags & SIGNAL_STOP_STOPPED)) {
--		sig->flags = SIGNAL_STOP_STOPPED;
-+		signal_set_stop_flags(sig, SIGNAL_STOP_STOPPED);
- 		return true;
- 	}
- 	return false;
-@@ -843,7 +843,7 @@ static bool prepare_signal(int sig, stru
- 			 * will take ->siglock, notice SIGNAL_CLD_MASK, and
- 			 * notify its parent. See get_signal_to_deliver().
- 			 */
--			signal->flags = why | SIGNAL_STOP_CONTINUED;
-+			signal_set_stop_flags(signal, why | SIGNAL_STOP_CONTINUED);
- 			signal->group_stop_count = 0;
- 			signal->group_exit_code = 0;
+diff -puN ipc/sem.c~ipc-semc-fix-incorrect-sem_lock-pairing ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-fix-incorrect-sem_lock-pairing
++++ a/ipc/sem.c
+@@ -1977,7 +1977,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
  		}
+ 
+ 		rcu_read_lock();
+-		sem_lock(sma, sops, nsops);
++		locknum = sem_lock(sma, sops, nsops);
+ 
+ 		if (!ipc_valid_object(&sma->sem_perm))
+ 			goto out_unlock_free;
 _
 
-Patches currently in -mm which might be from jamie.iles@oracle.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
+ipc-semc-avoid-using-spin_unlock_wait.patch
+ipc-sem-add-hysteresis.patch
 
