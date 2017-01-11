@@ -1,77 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch removed
- from -mm tree
-Date: Wed, 11 Jan 2017 14:28:18 -0800
-Message-ID: <5876b182.ujF4Yj+Rxo8ZbRff%akpm@linux-foundation.org>
+Subject: [merged] fix-slab-freelist-randomization-duplicate-entries.patch
+ removed from -mm tree
+Date: Wed, 11 Jan 2017 14:28:42 -0800
+Message-ID: <5876b19a.EWjtJJkRjmMd9azw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51590 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933144AbdAKW2j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:39 -0500
+        with ESMTP id S933234AbdAKW2r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, andy.gross@linaro.org, spjoshi@codeaurora.org, subashab@codeaurora.org, subhashj@codeaurora.org, twp@codeaurora.org, mm-commits@vger.kernel.org
+To: jsperbeck@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, thgarnie@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add codeaurora.org names for nameless email commits
+     Subject: mm/slab.c: fix SLAB freelist randomization duplicate entries
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-codeauroraorg-names-for-nameless-email-commits.patch
+     fix-slab-freelist-randomization-duplicate-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: mailmap: add codeaurora.org names for nameless email commits
+From: John Sperbeck <jsperbeck@google.com>
+Subject: mm/slab.c: fix SLAB freelist randomization duplicate entries
 
-Some codeaurora.org emails have crept in but the names don't exist for
-them.  Add the names for the emails so git can match everyone up.
+This patch fixes a bug in the freelist randomization code. When a high
+random number is used, the freelist will contain duplicate entries. It
+will result in different allocations sharing the same chunk.
 
-Link: http://lkml.kernel.org/r/20170104194611.25933-1-sboyd@codeaurora.org
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Sarangdhar Joshi <spjoshi@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Subhash Jadavani <subhashj@codeaurora.org>
-Cc: Thomas Pedersen <twp@codeaurora.org>
-Cc: Andy Gross <andy.gross@linaro.org>
+It will result in odd behaviours and crashes. It should be uncommon
+but it depends on the machines. We saw it happening more often on some
+machines (every few hours of running tests).
+
+Fixes: c7ce4f60ac19 ("mm: SLAB freelist randomization")
+Link: http://lkml.kernel.org/r/20170103181908.143178-1-thgarnie@google.com
+Signed-off-by: John Sperbeck <jsperbeck@google.com>
+Signed-off-by: Thomas Garnier <thgarnie@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/slab.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN .mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits .mailmap
---- a/.mailmap~mailmap-add-codeauroraorg-names-for-nameless-email-commits
-+++ a/.mailmap
-@@ -137,6 +137,7 @@ Ricardo Ribalda Delgado <ricardo.ribalda
- Rudolf Marek <R.Marek@sh.cvut.cz>
- Rui Saraiva <rmps@joel.ist.utl.pt>
- Sachin P Sant <ssant@in.ibm.com>
-+Sarangdhar Joshi <spjoshi@codeaurora.org>
- Sam Ravnborg <sam@mars.ravnborg.org>
- Santosh Shilimkar <ssantosh@kernel.org>
- Santosh Shilimkar <santosh.shilimkar@oracle.org>
-@@ -150,10 +151,13 @@ Shuah Khan <shuah@kernel.org> <shuah.kh@
- Simon Kelley <simon@thekelleys.org.uk>
- Stéphane Witzmann <stephane.witzmann@ubpmes.univ-bpclermont.fr>
- Stephen Hemminger <shemminger@osdl.org>
-+Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-+Subhash Jadavani <subhashj@codeaurora.org>
- Sudeep Holla <sudeep.holla@arm.com> Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>
- Sumit Semwal <sumit.semwal@ti.com>
- Tejun Heo <htejun@gmail.com>
- Thomas Graf <tgraf@suug.ch>
-+Thomas Pedersen <twp@codeaurora.org>
- Tony Luck <tony.luck@intel.com>
- Tsuneo Yoshioka <Tsuneo.Yoshioka@f-secure.com>
- Uwe Kleine-König <ukleinek@informatik.uni-freiburg.de>
+diff -puN mm/slab.c~fix-slab-freelist-randomization-duplicate-entries mm/slab.c
+--- a/mm/slab.c~fix-slab-freelist-randomization-duplicate-entries
++++ a/mm/slab.c
+@@ -2457,7 +2457,6 @@ union freelist_init_state {
+ 		unsigned int pos;
+ 		unsigned int *list;
+ 		unsigned int count;
+-		unsigned int rand;
+ 	};
+ 	struct rnd_state rnd_state;
+ };
+@@ -2483,8 +2482,7 @@ static bool freelist_state_initialize(un
+ 	} else {
+ 		state->list = cachep->random_seq;
+ 		state->count = count;
+-		state->pos = 0;
+-		state->rand = rand;
++		state->pos = rand % count;
+ 		ret = true;
+ 	}
+ 	return ret;
+@@ -2493,7 +2491,9 @@ static bool freelist_state_initialize(un
+ /* Get the next entry on the list and randomize it using a random shift */
+ static freelist_idx_t next_random_slot(union freelist_init_state *state)
+ {
+-	return (state->list[state->pos++] + state->rand) % state->count;
++	if (state->pos >= state->count)
++		state->pos = 0;
++	return state->list[state->pos++];
+ }
+ 
+ /* Swap two freelist entries */
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from jsperbeck@google.com are
 
 
