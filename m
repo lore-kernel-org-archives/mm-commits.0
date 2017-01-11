@@ -1,131 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/27] mm: add follow_pte_pmd()
-Date: Tue, 10 Jan 2017 16:57:21 -0800
-Message-ID: <587582f1.ScZXrv0SD0VRUb/T%akpm@linux-foundation.org>
+Subject: [patch 17/27] mm: don't dereference struct page fields of invalid pages
+Date: Tue, 10 Jan 2017 16:58:00 -0800
+Message-ID: <58758318.2BvI2UN5B455vl3J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33456 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759925AbdAKA5X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:23 -0500
+        with ESMTP id S1759933AbdAKA6C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, mawilcox@microsoft.com, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ard.biesheuvel@linaro.org, catalin.marinas@arm.com, hanjun.guo@linaro.org, james.morse@arm.com, rrichter@cavium.com, will.deacon@arm.com, xieyisheng1@huawei.com
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: mm: add follow_pte_pmd()
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: mm: don't dereference struct page fields of invalid pages
 
-Patch series "Write protect DAX PMDs in *sync path".
+The VM_BUG_ON() check in move_freepages() checks whether the node id of a
+page matches the node id of its zone.  However, it does this before having
+checked whether the struct page pointer refers to a valid struct page to
+begin with.  This is guaranteed in most cases, but may not be the case if
+CONFIG_HOLES_IN_ZONE=y.
 
-Currently dax_mapping_entry_mkclean() fails to clean and write protect the
-pmd_t of a DAX PMD entry during an *sync operation.  This can result in
-data loss, as detailed in patch 2.
+So reorder the VM_BUG_ON() with the pfn_valid_within() check.
 
-This series is based on Dan's "libnvdimm-pending" branch, which is the
-current home for Jan's "dax: Page invalidation fixes" series.  You can
-find a working tree here:
-
-https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_clean
-
-
-This patch (of 2):
-
-Similar to follow_pte(), follow_pte_pmd() allows either a PTE leaf or a
-huge page PMD leaf to be found and returned.
-
-Link: http://lkml.kernel.org/r/1482272586-21177-2-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/1481706707-6211-2-git-send-email-ard.biesheuvel@linaro.org
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Robert Richter <rrichter@cavium.com>
+Cc: James Morse <james.morse@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/memory.c        |   37 ++++++++++++++++++++++++++++++-------
- 2 files changed, 32 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-add-follow_pte_pmd include/linux/mm.h
---- a/include/linux/mm.h~mm-add-follow_pte_pmd
-+++ a/include/linux/mm.h
-@@ -1212,6 +1212,8 @@ void unmap_mapping_range(struct address_
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
- int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
- 	       spinlock_t **ptlp);
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
- 	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
-diff -puN mm/memory.c~mm-add-follow_pte_pmd mm/memory.c
---- a/mm/memory.c~mm-add-follow_pte_pmd
-+++ a/mm/memory.c
-@@ -3772,8 +3772,8 @@ int __pmd_alloc(struct mm_struct *mm, pu
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
+diff -puN mm/page_alloc.c~mm-dont-dereference-struct-page-fields-of-invalid-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-dereference-struct-page-fields-of-invalid-pages
++++ a/mm/page_alloc.c
+@@ -1864,14 +1864,14 @@ int move_freepages(struct zone *zone,
+ #endif
  
--static int __follow_pte(struct mm_struct *mm, unsigned long address,
--		pte_t **ptepp, spinlock_t **ptlp)
-+static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+		pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -3790,11 +3790,20 @@ static int __follow_pte(struct mm_struct
- 
- 	pmd = pmd_offset(pud, address);
- 	VM_BUG_ON(pmd_trans_huge(*pmd));
--	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
--		goto out;
- 
--	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
--	if (pmd_huge(*pmd))
-+	if (pmd_huge(*pmd)) {
-+		if (!pmdpp)
-+			goto out;
-+
-+		*ptlp = pmd_lock(mm, pmd);
-+		if (pmd_huge(*pmd)) {
-+			*pmdpp = pmd;
-+			return 0;
-+		}
-+		spin_unlock(*ptlp);
-+	}
-+
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
- 
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
-@@ -3817,9 +3826,23 @@ int follow_pte(struct mm_struct *mm, uns
- 
- 	/* (void) is needed to make gcc happy */
- 	(void) __cond_lock(*ptlp,
--			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, NULL,
-+					   ptlp)));
-+	return res;
-+}
-+
-+int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
-+			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
-+{
-+	int res;
-+
-+	/* (void) is needed to make gcc happy */
-+	(void) __cond_lock(*ptlp,
-+			   !(res = __follow_pte_pmd(mm, address, ptepp, pmdpp,
-+					   ptlp)));
- 	return res;
- }
-+EXPORT_SYMBOL(follow_pte_pmd);
- 
- /**
-  * follow_pfn - look up PFN at a user virtual address
-_
+ 	for (page = start_page; page <= end_page;) {
+-		/* Make sure we are not inadvertently changing nodes */
+-		VM_BUG_ON_PAGE(page_to_nid(page) != zone_to_nid(zone), page);
