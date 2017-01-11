@@ -1,96 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-thp-pagecache-collapse-free-the-pte-page-table-on-collapse-for-thp-page-cache.patch removed from -mm tree
-Date: Wed, 11 Jan 2017 14:27:39 -0800
-Message-ID: <5876b15b.wKWVuo0Z36xvO475%akpm@linux-foundation.org>
+Subject: [merged] bpf-do-not-use-kmalloc_shift_max.patch removed from -mm
+ tree
+Date: Wed, 11 Jan 2017 14:27:51 -0800
+Message-ID: <5876b167.Xq2l6gTF+zJZ1bwx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51272 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932220AbdAKW1k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:27:40 -0500
+        with ESMTP id S933153AbdAKW2d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andreyknvl@google.com, ast@kernel.org, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp/pagecache/collapse: free the pte page table on collapse for thp page cache.
+     Subject: bpf: do not use KMALLOC_SHIFT_MAX
 has been removed from the -mm tree.  Its filename was
-     mm-thp-pagecache-collapse-free-the-pte-page-table-on-collapse-for-thp-page-cache.patch
+     bpf-do-not-use-kmalloc_shift_max.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/thp/pagecache/collapse: free the pte page table on collapse for thp page cache.
+From: Michal Hocko <mhocko@suse.com>
+Subject: bpf: do not use KMALLOC_SHIFT_MAX
 
-With THP page cache, when trying to build a huge page from regular pte
-pages, we just clear the pmd entry.  We will take another fault and at
-that point we will find the huge page in the radix tree, thereby using the
-huge page to complete the page fault
+01b3f52157ff ("bpf: fix allocation warnings in bpf maps and integer
+overflow") has added checks for the maximum allocateable size.  It
+(ab)used KMALLOC_SHIFT_MAX for that purpose.  While this is not incorrect
+it is not very clean because we already have KMALLOC_MAX_SIZE for this
+very reason so let's change both checks to use KMALLOC_MAX_SIZE instead.
 
-The second fault path will allocate the needed pgtable_t page for archs
-like ppc64.  So no need to deposit the same in collapse path.  Depositing
-them in the collapse path resulting in a pgtable_t memory leak also giving
-errors like "[ 2362.021762] BUG: non-zero nr_ptes on freeing mm: 3"
+The original motivation for using KMALLOC_SHIFT_MAX was to work around an
+incorrect KMALLOC_MAX_SIZE which could lead to allocation warnings but it
+is no longer needed since "slab: make sure that KMALLOC_MAX_SIZE will fit
+into MAX_ORDER".
 
-Fixes: 953c66c2b22a304d ("mm: THP page cache support for ppc64")
-Link: http://lkml.kernel.org/r/20161212163428.6780-2-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/20161220130659.16461-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   21 ++-------------------
- 1 file changed, 2 insertions(+), 19 deletions(-)
+ kernel/bpf/arraymap.c |    2 +-
+ kernel/bpf/hashtab.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-thp-pagecache-collapse-free-the-pte-page-table-on-collapse-for-thp-page-cache mm/khugepaged.c
---- a/mm/khugepaged.c~mm-thp-pagecache-collapse-free-the-pte-page-table-on-collapse-for-thp-page-cache
-+++ a/mm/khugepaged.c
-@@ -1242,7 +1242,6 @@ static void retract_page_tables(struct a
- 	struct vm_area_struct *vma;
- 	unsigned long addr;
- 	pmd_t *pmd, _pmd;
--	bool deposited = false;
+diff -puN kernel/bpf/arraymap.c~bpf-do-not-use-kmalloc_shift_max kernel/bpf/arraymap.c
+--- a/kernel/bpf/arraymap.c~bpf-do-not-use-kmalloc_shift_max
++++ a/kernel/bpf/arraymap.c
+@@ -56,7 +56,7 @@ static struct bpf_map *array_map_alloc(u
+ 	    attr->value_size == 0 || attr->map_flags)
+ 		return ERR_PTR(-EINVAL);
  
- 	i_mmap_lock_write(mapping);
- 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-@@ -1267,26 +1266,10 @@ static void retract_page_tables(struct a
- 			spinlock_t *ptl = pmd_lock(vma->vm_mm, pmd);
- 			/* assume page table is clear */
- 			_pmd = pmdp_collapse_flush(vma, addr, pmd);
--			/*
--			 * now deposit the pgtable for arch that need it
--			 * otherwise free it.
--			 */
--			if (arch_needs_pgtable_deposit()) {
--				/*
--				 * The deposit should be visibile only after
--				 * collapse is seen by others.
--				 */
--				smp_wmb();
--				pgtable_trans_huge_deposit(vma->vm_mm, pmd,
--							   pmd_pgtable(_pmd));
--				deposited = true;
--			}
- 			spin_unlock(ptl);
- 			up_write(&vma->vm_mm->mmap_sem);
--			if (!deposited) {
--				atomic_long_dec(&vma->vm_mm->nr_ptes);
--				pte_free(vma->vm_mm, pmd_pgtable(_pmd));
--			}
-+			atomic_long_dec(&vma->vm_mm->nr_ptes);
-+			pte_free(vma->vm_mm, pmd_pgtable(_pmd));
- 		}
- 	}
- 	i_mmap_unlock_write(mapping);
+-	if (attr->value_size >= 1 << (KMALLOC_SHIFT_MAX - 1))
++	if (attr->value_size > KMALLOC_MAX_SIZE)
+ 		/* if value_size is bigger, the user space won't be able to
+ 		 * access the elements.
+ 		 */
+diff -puN kernel/bpf/hashtab.c~bpf-do-not-use-kmalloc_shift_max kernel/bpf/hashtab.c
+--- a/kernel/bpf/hashtab.c~bpf-do-not-use-kmalloc_shift_max
++++ a/kernel/bpf/hashtab.c
+@@ -274,7 +274,7 @@ static struct bpf_map *htab_map_alloc(un
+ 		 */
+ 		goto free_htab;
+ 
+-	if (htab->map.value_size >= (1 << (KMALLOC_SHIFT_MAX - 1)) -
++	if (htab->map.value_size >= KMALLOC_MAX_SIZE -
+ 	    MAX_BPF_STACK - sizeof(struct htab_elem))
+ 		/* if value_size is bigger, the user space won't be able to
+ 		 * access the elements via bpf syscall. This check also makes
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-throttle-show_mem-from-warn_alloc.patch
+mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+oom-trace-add-oom-detection-tracepoints.patch
+oom-trace-add-compaction-retry-tracepoint.patch
+mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+mm-vmscan-add-active-list-aging-tracepoint.patch
+mm-vmscan-add-active-list-aging-tracepoint-update.patch
+mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
 
