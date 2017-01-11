@@ -1,214 +1,176 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch removed from
- -mm tree
-Date: Wed, 11 Jan 2017 14:27:54 -0800
-Message-ID: <5876b16a.kr9EXaX04PWM2bMT%akpm__26728.2650144354$1484173736$gmane$org@linux-foundation.org>
+ mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free.patch removed from -mm tree
+Date: Wed, 11 Jan 2017 14:28:27 -0800
+Message-ID: <5876b18b.i//bpj83Q/A2cgjF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51570 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933193AbdAKW2e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:34 -0500
+        with ESMTP id S934311AbdAKW2p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix crash caused by stale lvb with fsdlm plugin
+     Subject: mm: rename __alloc_page_frag to page_frag_alloc and __free_page_frag to page_frag_free
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin.patch
+     mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2: fix crash caused by stale lvb with fsdlm plugin
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: mm: rename __alloc_page_frag to page_frag_alloc and __free_page_frag to page_frag_free
 
-The crash happens rather often when we reset some cluster nodes while
-nodes contend fiercely to do truncate and append.
+Patch series "Page fragment updates", v4.
 
-The crash backtrace is below:
-"
-[  245.197849] dlm: C21CBDA5E0774F4BA5A9D4F317717495: dlm_recover_grant 1 locks on 971 resources
-[  245.197859] dlm: C21CBDA5E0774F4BA5A9D4F317717495: dlm_recover 9 generation 5 done: 4 ms
-[  245.198379] ocfs2: Begin replay journal (node 318952601, slot 2) on device (253,18)
-[  247.272338] ocfs2: End replay journal (node 318952601, slot 2) on device (253,18)
-[  247.547084] ocfs2: Beginning quota recovery on device (253,18) for slot 2
-[  247.683263] ocfs2: Finishing quota recovery on device (253,18) for slot 2
-[  247.833022] (truncate,30154,1):ocfs2_truncate_file:470 ERROR: bug expression: le64_to_cpu(fe->i_size) != i_size_read(inode)
-[  247.833029] (truncate,30154,1):ocfs2_truncate_file:470 ERROR: Inode 290321, inode i_size = 732 != di i_size = 937, i_flags = 0x1
-[  247.833074] ------------[ cut here ]------------
-[  247.833077] kernel BUG at /usr/src/linux/fs/ocfs2/file.c:470!
-[  247.833079] invalid opcode: 0000 [#1] SMP
-[  247.833081] Modules linked in: ocfs2_stack_user(OEN) ocfs2(OEN) ocfs2_nodemanager ocfs2_stackglue(OEN) quota_tree dlm(OEN) configfs fuse sd_mod    iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi af_packet iscsi_ibft iscsi_boot_sysfs softdog xfs libcrc32c ppdev parport_pc pcspkr parport      joydev virtio_balloon virtio_net i2c_piix4 acpi_cpufreq button processor ext4 crc16 jbd2 mbcache ata_generic cirrus virtio_blk ata_piix               drm_kms_helper ahci syscopyarea libahci sysfillrect sysimgblt fb_sys_fops ttm floppy libata drm virtio_pci virtio_ring uhci_hcd virtio ehci_hcd       usbcore serio_raw usb_common sg dm_multipath dm_mod scsi_dh_rdac scsi_dh_emc scsi_dh_alua scsi_mod autofs4
-[  247.833107] Supported: No, Unsupported modules are loaded
-[  247.833110] CPU: 1 PID: 30154 Comm: truncate Tainted: G           OE   N  4.4.21-69-default #1
-[  247.833111] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.8.1-0-g4adadbd-20151112_172657-sheep25 04/01/2014
-[  247.833112] task: ffff88004ff6d240 ti: ffff880074e68000 task.ti: ffff880074e68000
-[  247.833113] RIP: 0010:[<ffffffffa05c8c30>]  [<ffffffffa05c8c30>] ocfs2_truncate_file+0x640/0x6c0 [ocfs2]
-[  247.833151] RSP: 0018:ffff880074e6bd50  EFLAGS: 00010282
-[  247.833152] RAX: 0000000000000074 RBX: 000000000000029e RCX: 0000000000000000
-[  247.833153] RDX: 0000000000000001 RSI: 0000000000000246 RDI: 0000000000000246
-[  247.833154] RBP: ffff880074e6bda8 R08: 000000003675dc7a R09: ffffffff82013414
-[  247.833155] R10: 0000000000034c50 R11: 0000000000000000 R12: ffff88003aab3448
-[  247.833156] R13: 00000000000002dc R14: 0000000000046e11 R15: 0000000000000020
-[  247.833157] FS:  00007f839f965700(0000) GS:ffff88007fc80000(0000) knlGS:0000000000000000
-[  247.833158] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  247.833159] CR2: 00007f839f97e000 CR3: 0000000036723000 CR4: 00000000000006e0
-[  247.833164] Stack:
-[  247.833165]  00000000000003a9 0000000000000001 ffff880060554000 ffff88004fcaf000
-[  247.833167]  ffff88003aa7b090 1000000000000000 ffff88003aab3448 ffff880074e6beb0
-[  247.833169]  0000000000000001 0000000000002068 0000000000000020 0000000000000000
-[  247.833171] Call Trace:
-[  247.833208]  [<ffffffffa05cb1a8>] ocfs2_setattr+0x698/0xa90 [ocfs2]
-[  247.833225]  [<ffffffff8121587e>] notify_change+0x1ae/0x380
-[  247.833242]  [<ffffffff811f8bfe>] do_truncate+0x5e/0x90
-[  247.833246]  [<ffffffff811f8f58>] do_sys_ftruncate.constprop.11+0x108/0x160
-[  247.833257]  [<ffffffff815e142e>] entry_SYSCALL_64_fastpath+0x12/0x6d
-[  247.834724] DWARF2 unwinder stuck at entry_SYSCALL_64_fastpath+0x12/0x6d
-[  247.834725]
-[  247.834726] Leftover inexact backtrace:
+This patch series takes care of a few cleanups for the page fragments API.
 
-[  247.834728] Code: 24 28 ba d6 01 00 00 48 c7 c6 30 43 62 a0 8b 41 2c 89 44 24 08 48 8b 41 20 48 c7 c1 78 a3 62 a0 48 89 04 24 31 c0 e8 a0 97 f9 ff <0f> 0b 3d 00 fe ff ff 0f 84 ab fd ff ff 83 f8 fc 0f 84 a2 fd ff
-[  247.834748] RIP  [<ffffffffa05c8c30>] ocfs2_truncate_file+0x640/0x6c0 [ocfs2]
-[  247.834774]  RSP <ffff880074e6bd50>
-"
+First we do some renames so that things are much more consistent.  First
+we move the page_frag_ portion of the name to the front of the functions
+names.  Secondly we split out the cache specific functions from the other
+page fragment functions by adding the word "cache" to the name.
 
-It's because ocfs2_inode_lock() get us stale LVB in which the i_size is
-not equal to the disk i_size.  We mistakenly trust the LVB because the
-underlaying fsdlm dlm_lock() doesn't set lkb_sbflags with
-DLM_SBF_VALNOTVALID properly for us.  But, why?
+Finally I added a bit of documentation that will hopefully help to explain
+some of this.  I plan to revisit this later as we get things more ironed
+out in the near future with the changes planned for the DMA setup to
+support eXpress Data Path.
 
-The current code tries to downconvert lock without DLM_LKF_VALBLK flag to
-tell o2cb don't update RSB's LVB if it's a PR->NULL conversion, even if
-the lock resource type needs LVB.  This is not the right way for fsdlm.
 
-The fsdlm plugin behaves different on DLM_LKF_VALBLK, it depends on
-DLM_LKF_VALBLK to decide if we care about the LVB in the LKB.  If
-DLM_LKF_VALBLK is not set, fsdlm will skip recovering RSB's LVB from this
-lkb and set the right DLM_SBF_VALNOTVALID appropriately when node failure
-happens.
+This patch (of 3):
 
-The following diagram briefly illustrates how this crash happens:
+This patch renames the page frag functions to be more consistent with
+other APIs.  Specifically we place the name page_frag first in the name
+and then have either an alloc or free call name that we append as the
+suffix.  This makes it a bit clearer in terms of naming.
 
-RSB1 is inode metadata lock resource with LOCK_TYPE_USES_LVB;
+In addition we drop the leading double underscores since we are technically
+no longer a backing interface and instead the front end that is called from
+the networking APIs.
 
-The 1st round:
-
-             Node1                                    Node2
-RSB1: PR
-                                                  RSB1(master): NULL->EX
-ocfs2_downconvert_lock(PR->NULL, set_lvb==0)
-  ocfs2_dlm_lock(no DLM_LKF_VALBLK)
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-dlm_lock(no DLM_LKF_VALBLK)
-  convert_lock(overwrite lkb->lkb_exflags
-               with no DLM_LKF_VALBLK)
-
-RSB1: NULL                                        RSB1: EX
-                                                  reset Node2
-dlm_recover_rsbs()
-  recover_lvb()
-
-/* The LVB is not trustable if the node with EX fails and
- * no lock >= PR is left. We should set RSB_VALNOTVALID for RSB1.
- */
-
- if(!(kb_exflags & DLM_LKF_VALBLK)) /* This means we miss the chance to
-           return;                   * to invalid the LVB here.
-                                     */
-
-The 2nd round:
-
-         Node 1                                Node2
-RSB1(become master from recovery)
-
-ocfs2_setattr()
-  ocfs2_inode_lock(NULL->EX)
-    /* dlm_lock() return the stale lvb without setting DLM_SBF_VALNOTVALID */
-    ocfs2_meta_lvb_is_trustable() return 1 /* so we don't refresh inode from disk */
-  ocfs2_truncate_file()
-      mlog_bug_on_msg(disk isize != i_size_read(inode))  /* crash! */
-
-The fix is quite straightforward.  We keep to set DLM_LKF_VALBLK flag for
-dlm_lock() if the lock resource type needs LVB and the fsdlm plugin is
-uesed.
-
-Link: http://lkml.kernel.org/r/1481275846-6604-1-git-send-email-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170104023854.13451.67390.stgit@localhost.localdomain
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c   |   10 ++++++++++
- fs/ocfs2/stackglue.c |    6 ++++++
- fs/ocfs2/stackglue.h |    3 +++
- 3 files changed, 19 insertions(+)
+ include/linux/gfp.h    |    6 +++---
+ include/linux/skbuff.h |    2 +-
+ mm/page_alloc.c        |   10 +++++-----
+ net/core/skbuff.c      |    8 ++++----
+ 4 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3303,6 +3303,16 @@ static int ocfs2_downconvert_lock(struct
- 	mlog(ML_BASTS, "lockres %s, level %d => %d\n", lockres->l_name,
- 	     lockres->l_level, new_level);
+diff -puN include/linux/gfp.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
++++ a/include/linux/gfp.h
+@@ -501,9 +501,9 @@ extern void free_hot_cold_page_list(stru
+ struct page_frag_cache;
+ extern void __page_frag_drain(struct page *page, unsigned int order,
+ 			      unsigned int count);
+-extern void *__alloc_page_frag(struct page_frag_cache *nc,
+-			       unsigned int fragsz, gfp_t gfp_mask);
+-extern void __free_page_frag(void *addr);
++extern void *page_frag_alloc(struct page_frag_cache *nc,
++			     unsigned int fragsz, gfp_t gfp_mask);
++extern void page_frag_free(void *addr);
  
-+	/*
-+	 * On DLM_LKF_VALBLK, fsdlm behaves differently with o2cb. It always
-+	 * expects DLM_LKF_VALBLK being set if the LKB has LVB, so that
-+	 * we can recover correctly from node failure. Otherwise, we may get
-+	 * invalid LVB in LKB, but without DLM_SBF_VALNOTVALID being set.
-+	 */
-+	if (!ocfs2_is_o2cb_active() &&
-+	    lockres->l_ops->flags & LOCK_TYPE_USES_LVB)
-+		lvb = 1;
-+
- 	if (lvb)
- 		dlm_flags |= DLM_LKF_VALBLK;
+ #define __free_page(page) __free_pages((page), 0)
+ #define free_page(addr) free_pages((addr), 0)
+diff -puN include/linux/skbuff.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free include/linux/skbuff.h
+--- a/include/linux/skbuff.h~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
++++ a/include/linux/skbuff.h
+@@ -2480,7 +2480,7 @@ static inline struct sk_buff *netdev_all
  
-diff -puN fs/ocfs2/stackglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
-+++ a/fs/ocfs2/stackglue.c
-@@ -48,6 +48,12 @@ static char ocfs2_hb_ctl_path[OCFS2_MAX_
-  */
- static struct ocfs2_stack_plugin *active_stack;
- 
-+inline int ocfs2_is_o2cb_active(void)
-+{
-+	return !strcmp(active_stack->sp_name, OCFS2_STACK_PLUGIN_O2CB);
-+}
-+EXPORT_SYMBOL_GPL(ocfs2_is_o2cb_active);
-+
- static struct ocfs2_stack_plugin *ocfs2_stack_lookup(const char *name)
+ static inline void skb_free_frag(void *addr)
  {
- 	struct ocfs2_stack_plugin *p;
-diff -puN fs/ocfs2/stackglue.h~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin fs/ocfs2/stackglue.h
---- a/fs/ocfs2/stackglue.h~ocfs2-fix-crash-caused-by-stale-lvb-with-fsdlm-plugin
-+++ a/fs/ocfs2/stackglue.h
-@@ -298,6 +298,9 @@ void ocfs2_stack_glue_set_max_proto_vers
- int ocfs2_stack_glue_register(struct ocfs2_stack_plugin *plugin);
- void ocfs2_stack_glue_unregister(struct ocfs2_stack_plugin *plugin);
+-	__free_page_frag(addr);
++	page_frag_free(addr);
+ }
  
-+/* In ocfs2_downconvert_lock(), we need to know which stack we are using */
-+int ocfs2_is_o2cb_active(void);
-+
- extern struct kset *ocfs2_kset;
+ void *napi_alloc_frag(unsigned int fragsz);
+diff -puN mm/page_alloc.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
++++ a/mm/page_alloc.c
+@@ -3931,8 +3931,8 @@ void __page_frag_drain(struct page *page
+ }
+ EXPORT_SYMBOL(__page_frag_drain);
  
- #endif  /* STACKGLUE_H */
+-void *__alloc_page_frag(struct page_frag_cache *nc,
+-			unsigned int fragsz, gfp_t gfp_mask)
++void *page_frag_alloc(struct page_frag_cache *nc,
++		      unsigned int fragsz, gfp_t gfp_mask)
+ {
+ 	unsigned int size = PAGE_SIZE;
+ 	struct page *page;
+@@ -3983,19 +3983,19 @@ refill:
+ 
+ 	return nc->va + offset;
+ }
+-EXPORT_SYMBOL(__alloc_page_frag);
++EXPORT_SYMBOL(page_frag_alloc);
+ 
+ /*
+  * Frees a page fragment allocated out of either a compound or order 0 page.
+  */
+-void __free_page_frag(void *addr)
++void page_frag_free(void *addr)
+ {
+ 	struct page *page = virt_to_head_page(addr);
+ 
+ 	if (unlikely(put_page_testzero(page)))
+ 		__free_pages_ok(page, compound_order(page));
+ }
+-EXPORT_SYMBOL(__free_page_frag);
++EXPORT_SYMBOL(page_frag_free);
+ 
+ static void *make_alloc_exact(unsigned long addr, unsigned int order,
+ 		size_t size)
+diff -puN net/core/skbuff.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free net/core/skbuff.c
+--- a/net/core/skbuff.c~mm-rename-__alloc_page_frag-to-page_frag_alloc-and-__free_page_frag-to-page_frag_free
++++ a/net/core/skbuff.c
+@@ -369,7 +369,7 @@ static void *__netdev_alloc_frag(unsigne
+ 
+ 	local_irq_save(flags);
+ 	nc = this_cpu_ptr(&netdev_alloc_cache);
+-	data = __alloc_page_frag(nc, fragsz, gfp_mask);
++	data = page_frag_alloc(nc, fragsz, gfp_mask);
+ 	local_irq_restore(flags);
+ 	return data;
+ }
+@@ -391,7 +391,7 @@ static void *__napi_alloc_frag(unsigned
+ {
+ 	struct napi_alloc_cache *nc = this_cpu_ptr(&napi_alloc_cache);
+ 
+-	return __alloc_page_frag(&nc->page, fragsz, gfp_mask);
++	return page_frag_alloc(&nc->page, fragsz, gfp_mask);
+ }
+ 
+ void *napi_alloc_frag(unsigned int fragsz)
+@@ -441,7 +441,7 @@ struct sk_buff *__netdev_alloc_skb(struc
+ 	local_irq_save(flags);
+ 
+ 	nc = this_cpu_ptr(&netdev_alloc_cache);
+-	data = __alloc_page_frag(nc, len, gfp_mask);
++	data = page_frag_alloc(nc, len, gfp_mask);
+ 	pfmemalloc = nc->pfmemalloc;
+ 
+ 	local_irq_restore(flags);
+@@ -505,7 +505,7 @@ struct sk_buff *__napi_alloc_skb(struct
+ 	if (sk_memalloc_socks())
+ 		gfp_mask |= __GFP_MEMALLOC;
+ 
+-	data = __alloc_page_frag(&nc->page, len, gfp_mask);
++	data = page_frag_alloc(&nc->page, len, gfp_mask);
+ 	if (unlikely(!data))
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from zren@suse.com are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
-ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
-ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
 
