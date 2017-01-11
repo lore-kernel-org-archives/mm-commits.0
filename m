@@ -1,125 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 20/27] mm: rename __page_frag functions to
- __page_frag_cache, drop order from drain
-Date: Tue, 10 Jan 2017 16:58:09 -0800
-Message-ID: <58758321.bN3LOh38+SxQveBq%akpm@linux-foundation.org>
+Subject: [patch 10/27] mm: fix remote numa hits statistics
+Date: Tue, 10 Jan 2017 16:57:39 -0800
+Message-ID: <58758303.CAluJVJsFikAoTBf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760168AbdAKA6K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:10 -0500
+        with ESMTP id S933587AbdAKA5k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:57:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, hejianet@gmail.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@suse.de, vbabka@suse.cz
 
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: mm: rename __page_frag functions to __page_frag_cache, drop order from drain
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: fix remote numa hits statistics
 
-This patch does two things.
+Jia He has noticed that b9f00e147f27 ("mm, page_alloc: reduce branches in
+zone_statistics") has an unintentional side effect that remote node
+allocation requests are accounted as NUMA_MISS rathat than NUMA_HIT and
+NUMA_OTHER if such a request doesn't use __GFP_OTHER_NODE.  There are many
+of these potentially because the flag is used very rarely while we have
+many users of __alloc_pages_node.
 
-First it goes through and renames the __page_frag prefixed functions to
-__page_frag_cache so that we can be clear that we are draining or
-refilling the cache, not the frags themselves.
+Fix this by simply ignoring __GFP_OTHER_NODE (it can be removed in a
+follow up patch) and treat all allocations that were satisfied from the
+preferred zone's node as NUMA_HITS because this is the same node we
+requested the allocation from in most cases.  If this is not the local
+node then we just account it as NUMA_OTHER rather than NUMA_LOCAL.
 
-Second we drop the order parameter from __page_frag_cache_drain since we
-don't actually need to pass it since all fragments are either order 0 or
-must be a compound page.
+One downsize would be that an allocation request for a node which is
+outside of the mempolicy nodemask would be reported as a hit which is a
+bit weird but that was the case before b9f00e147f27 already.
 
-Link: http://lkml.kernel.org/r/20170104023954.13451.5678.stgit@localhost.localdomain
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Fixes: b9f00e147f27 ("mm, page_alloc: reduce branches in zone_statistics")
+Link: http://lkml.kernel.org/r/20170102153057.9451-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Jia He <hejianet@gmail.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz> # with cbmc[1] superpowers
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/intel/igb/igb_main.c |    6 +++---
- include/linux/gfp.h                       |    3 +--
- mm/page_alloc.c                           |   13 +++++++------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ mm/page_alloc.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/ethernet/intel/igb/igb_main.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain drivers/net/ethernet/intel/igb/igb_main.c
---- a/drivers/net/ethernet/intel/igb/igb_main.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain
-+++ a/drivers/net/ethernet/intel/igb/igb_main.c
-@@ -3962,8 +3962,8 @@ static void igb_clean_rx_ring(struct igb
- 				     PAGE_SIZE,
- 				     DMA_FROM_DEVICE,
- 				     DMA_ATTR_SKIP_CPU_SYNC);
--		__page_frag_drain(buffer_info->page, 0,
--				  buffer_info->pagecnt_bias);
-+		__page_frag_cache_drain(buffer_info->page,
-+					buffer_info->pagecnt_bias);
- 
- 		buffer_info->page = NULL;
- 	}
-@@ -6991,7 +6991,7 @@ static struct sk_buff *igb_fetch_rx_buff
- 		dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
- 				     PAGE_SIZE, DMA_FROM_DEVICE,
- 				     DMA_ATTR_SKIP_CPU_SYNC);
--		__page_frag_drain(page, 0, rx_buffer->pagecnt_bias);
-+		__page_frag_cache_drain(page, rx_buffer->pagecnt_bias);
- 	}
- 
- 	/* clear contents of rx_buffer */
-diff -puN include/linux/gfp.h~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain include/linux/gfp.h
---- a/include/linux/gfp.h~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain
-+++ a/include/linux/gfp.h
-@@ -499,8 +499,7 @@ extern void free_hot_cold_page(struct pa
- extern void free_hot_cold_page_list(struct list_head *list, bool cold);
- 
- struct page_frag_cache;
--extern void __page_frag_drain(struct page *page, unsigned int order,
--			      unsigned int count);
-+extern void __page_frag_cache_drain(struct page *page, unsigned int count);
- extern void *page_frag_alloc(struct page_frag_cache *nc,
- 			     unsigned int fragsz, gfp_t gfp_mask);
- extern void page_frag_free(void *addr);
-diff -puN mm/page_alloc.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rename-__page_frag-functions-to-__page_frag_cache-drop-order-from-drain
+diff -puN mm/page_alloc.c~mm-fix-remote-numa-hits-statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-remote-numa-hits-statistics
 +++ a/mm/page_alloc.c
-@@ -3896,8 +3896,8 @@ EXPORT_SYMBOL(free_pages);
-  * drivers to provide a backing region of memory for use as either an
-  * sk_buff->head, or to be used in the "frags" portion of skb_shared_info.
+@@ -2583,30 +2583,23 @@ int __isolate_free_page(struct page *pag
+  * Update NUMA hit/miss statistics
+  *
+  * Must be called with interrupts disabled.
+- *
+- * When __GFP_OTHER_NODE is set assume the node of the preferred
+- * zone is the local node. This is useful for daemons who allocate
+- * memory on behalf of other processes.
   */
--static struct page *__page_frag_refill(struct page_frag_cache *nc,
--				       gfp_t gfp_mask)
-+static struct page *__page_frag_cache_refill(struct page_frag_cache *nc,
-+					     gfp_t gfp_mask)
+ static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
+ 								gfp_t flags)
  {
- 	struct page *page = NULL;
- 	gfp_t gfp = gfp_mask;
-@@ -3917,19 +3917,20 @@ static struct page *__page_frag_refill(s
- 	return page;
- }
+ #ifdef CONFIG_NUMA
+-	int local_nid = numa_node_id();
+ 	enum zone_stat_item local_stat = NUMA_LOCAL;
  
--void __page_frag_drain(struct page *page, unsigned int order,
--		       unsigned int count)
-+void __page_frag_cache_drain(struct page *page, unsigned int count)
- {
- 	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
+-	if (unlikely(flags & __GFP_OTHER_NODE)) {
++	if (z->node != numa_node_id())
+ 		local_stat = NUMA_OTHER;
+-		local_nid = preferred_zone->node;
+-	}
  
- 	if (page_ref_sub_and_test(page, count)) {
-+		unsigned int order = compound_order(page);
-+
- 		if (order == 0)
- 			free_hot_cold_page(page, false);
- 		else
- 			__free_pages_ok(page, order);
+-	if (z->node == local_nid) {
++	if (z->node == preferred_zone->node)
+ 		__inc_zone_state(z, NUMA_HIT);
+-		__inc_zone_state(z, local_stat);
+-	} else {
++	else {
+ 		__inc_zone_state(z, NUMA_MISS);
+ 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
  	}
++	__inc_zone_state(z, local_stat);
+ #endif
  }
--EXPORT_SYMBOL(__page_frag_drain);
-+EXPORT_SYMBOL(__page_frag_cache_drain);
- 
- void *page_frag_alloc(struct page_frag_cache *nc,
- 		      unsigned int fragsz, gfp_t gfp_mask)
-@@ -3940,7 +3941,7 @@ void *page_frag_alloc(struct page_frag_c
- 
- 	if (unlikely(!nc->va)) {
- refill:
--		page = __page_frag_refill(nc, gfp_mask);
-+		page = __page_frag_cache_refill(nc, gfp_mask);
- 		if (!page)
- 			return NULL;
  
 _
