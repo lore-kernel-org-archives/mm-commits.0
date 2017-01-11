@@ -1,136 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] timerfd-export-defines-to-userspace.patch removed from
+Subject: [merged] zram-revalidate-disk-under-init_lock.patch removed from
  -mm tree
-Date: Wed, 11 Jan 2017 14:28:48 -0800
-Message-ID: <5876b1a0.EoT4oTlDrh7fZGZn%akpm@linux-foundation.org>
+Date: Wed, 11 Jan 2017 14:28:36 -0800
+Message-ID: <5876b194.qLJ+CjMY3a0794GA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51588 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933263AbdAKW2t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:49 -0500
+        with ESMTP id S934099AbdAKW2r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: minchan@kernel.org, cheol.lee@lge.com, darrick.wong@oracle.com, hughd@google.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, tiwai@suse.de, yjay.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: timerfd: export defines to userspace
+     Subject: zram: revalidate disk under init_lock
 has been removed from the -mm tree.  Its filename was
-     timerfd-export-defines-to-userspace.patch
+     zram-revalidate-disk-under-init_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: timerfd: export defines to userspace
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: revalidate disk under init_lock
 
-Since userspace is expected to call timerfd syscalls directly with these
-flags/ioctls, make sure we export them so they don't have to duplicate
-the values themselves.
+[1] moved revalidate_disk call out of init_lock to avoid lockdep
+false-positive splat. However, [2] remove init_lock in IO path
+so there is no worry about lockdep splat. So, let's restore it.
+This patch need to set BDI_CAP_STABLE_WRITES atomically in
+next patch.
 
-Link: http://lkml.kernel.org/r/20161219064052.7196-1-vapier@gentoo.org
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+[1] b4c5c60920e3: zram: avoid lockdep splat by revalidate_disk
+[2] 08eee69fcf6b: zram: remove init_lock in zram_make_request
+
+Fixes: da9556a2367c ("zram: user per-cpu compression streams")
+Link: http://lkml.kernel.org/r/1482366980-3782-3-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Hyeoncheol Lee <cheol.lee@lge.com>
+Cc: <yjay.kim@lge.com>
+Cc: Sangseok Lee <sangseok.lee@lge.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: <stable@vger.kernel.org> [4.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timerfd.h      |   20 ------------------
- include/uapi/linux/Kbuild    |    1 
- include/uapi/linux/timerfd.h |   36 +++++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+), 19 deletions(-)
+ drivers/block/zram/zram_drv.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN include/linux/timerfd.h~timerfd-export-defines-to-userspace include/linux/timerfd.h
---- a/include/linux/timerfd.h~timerfd-export-defines-to-userspace
-+++ a/include/linux/timerfd.h
-@@ -8,23 +8,7 @@
- #ifndef _LINUX_TIMERFD_H
- #define _LINUX_TIMERFD_H
- 
--/* For O_CLOEXEC and O_NONBLOCK */
--#include <linux/fcntl.h>
--
--/* For _IO helpers */
--#include <linux/ioctl.h>
--
--/*
-- * CAREFUL: Check include/asm-generic/fcntl.h when defining
-- * new flags, since they might collide with O_* ones. We want
-- * to re-use O_* flags that couldn't possibly have a meaning
-- * from eventfd, in order to leave a free define-space for
-- * shared O_* flags.
-- */
--#define TFD_TIMER_ABSTIME (1 << 0)
--#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
--#define TFD_CLOEXEC O_CLOEXEC
--#define TFD_NONBLOCK O_NONBLOCK
-+#include <uapi/linux/timerfd.h>
- 
- #define TFD_SHARED_FCNTL_FLAGS (TFD_CLOEXEC | TFD_NONBLOCK)
- /* Flags for timerfd_create.  */
-@@ -32,6 +16,4 @@
- /* Flags for timerfd_settime.  */
- #define TFD_SETTIME_FLAGS (TFD_TIMER_ABSTIME | TFD_TIMER_CANCEL_ON_SET)
- 
--#define TFD_IOC_SET_TICKS	_IOW('T', 0, u64)
--
- #endif /* _LINUX_TIMERFD_H */
-diff -puN include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace include/uapi/linux/Kbuild
---- a/include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace
-+++ a/include/uapi/linux/Kbuild
-@@ -414,6 +414,7 @@ header-y += telephony.h
- header-y += termios.h
- header-y += thermal.h
- header-y += time.h
-+header-y += timerfd.h
- header-y += times.h
- header-y += timex.h
- header-y += tiocl.h
-diff -puN /dev/null include/uapi/linux/timerfd.h
---- /dev/null
-+++ a/include/uapi/linux/timerfd.h
-@@ -0,0 +1,36 @@
-+/*
-+ *  include/linux/timerfd.h
-+ *
-+ *  Copyright (C) 2007  Davide Libenzi <davidel@xmailserver.org>
-+ *
-+ */
-+
-+#ifndef _UAPI_LINUX_TIMERFD_H
-+#define _UAPI_LINUX_TIMERFD_H
-+
-+#include <linux/types.h>
-+
-+/* For O_CLOEXEC and O_NONBLOCK */
-+#include <linux/fcntl.h>
-+
-+/* For _IO helpers */
-+#include <linux/ioctl.h>
-+
-+/*
-+ * CAREFUL: Check include/asm-generic/fcntl.h when defining
-+ * new flags, since they might collide with O_* ones. We want
-+ * to re-use O_* flags that couldn't possibly have a meaning
-+ * from eventfd, in order to leave a free define-space for
-+ * shared O_* flags.
-+ *
-+ * Also make sure to update the masks in include/linux/timerfd.h
-+ * when adding new flags.
-+ */
-+#define TFD_TIMER_ABSTIME (1 << 0)
-+#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
-+#define TFD_CLOEXEC O_CLOEXEC
-+#define TFD_NONBLOCK O_NONBLOCK
-+
-+#define TFD_IOC_SET_TICKS	_IOW('T', 0, __u64)
-+
-+#endif /* _UAPI_LINUX_TIMERFD_H */
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-
+diff -puN drivers/block/zram/zram_drv.c~zram-revalidate-disk-under-init_lock drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-revalidate-disk-under-init_lock
++++ a/drivers/block/zram/zram_drv.c
+@@ -1095,14 +1095,8 @@ static ssize_t disksize_store(struct dev
+ 	zram->comp = comp;
+ 	zram->disksize = disksize;
+ 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
+-	up_write(&zram->init_lock);
