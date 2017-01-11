@@ -1,81 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 21/27] mm: add documentation for page fragment APIs
-Date: Tue, 10 Jan 2017 16:58:12 -0800
-Message-ID: <58758324.SBGtPrkO8EHs6D+W%akpm@linux-foundation.org>
+Subject: [patch 27/27] timerfd: export defines to userspace
+Date: Tue, 10 Jan 2017 16:58:30 -0800
+Message-ID: <58758336.u9EivrGG/dBF2R07%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33644 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759961AbdAKA6N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:13 -0500
+        with ESMTP id S1759984AbdAKA6b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2017 19:58:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexander.h.duyck@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vapier@gentoo.org, tglx@linutronix.de
 
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: mm: add documentation for page fragment APIs
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: timerfd: export defines to userspace
 
-This is a first pass at trying to add documentation for the page_frag
-APIs.  They may still change over time but for now I thought I would try
-to get these documented so that as more network drivers and stack calls
-make use of them we have one central spot to document how they are meant
-to be used.
+Since userspace is expected to call timerfd syscalls directly with these
+flags/ioctls, make sure we export them so they don't have to duplicate
+the values themselves.
 
-Link: http://lkml.kernel.org/r/20170104024157.13451.6758.stgit@localhost.localdomain
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Link: http://lkml.kernel.org/r/20161219064052.7196-1-vapier@gentoo.org
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_frags |   42 ++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ include/linux/timerfd.h      |   20 ------------------
+ include/uapi/linux/Kbuild    |    1 
+ include/uapi/linux/timerfd.h |   36 +++++++++++++++++++++++++++++++++
+ 3 files changed, 38 insertions(+), 19 deletions(-)
 
-diff -puN /dev/null Documentation/vm/page_frags
+diff -puN include/linux/timerfd.h~timerfd-export-defines-to-userspace include/linux/timerfd.h
+--- a/include/linux/timerfd.h~timerfd-export-defines-to-userspace
++++ a/include/linux/timerfd.h
+@@ -8,23 +8,7 @@
+ #ifndef _LINUX_TIMERFD_H
+ #define _LINUX_TIMERFD_H
+ 
+-/* For O_CLOEXEC and O_NONBLOCK */
+-#include <linux/fcntl.h>
+-
+-/* For _IO helpers */
+-#include <linux/ioctl.h>
+-
+-/*
+- * CAREFUL: Check include/asm-generic/fcntl.h when defining
+- * new flags, since they might collide with O_* ones. We want
+- * to re-use O_* flags that couldn't possibly have a meaning
+- * from eventfd, in order to leave a free define-space for
+- * shared O_* flags.
+- */
+-#define TFD_TIMER_ABSTIME (1 << 0)
+-#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
+-#define TFD_CLOEXEC O_CLOEXEC
+-#define TFD_NONBLOCK O_NONBLOCK
++#include <uapi/linux/timerfd.h>
+ 
+ #define TFD_SHARED_FCNTL_FLAGS (TFD_CLOEXEC | TFD_NONBLOCK)
+ /* Flags for timerfd_create.  */
+@@ -32,6 +16,4 @@
+ /* Flags for timerfd_settime.  */
+ #define TFD_SETTIME_FLAGS (TFD_TIMER_ABSTIME | TFD_TIMER_CANCEL_ON_SET)
+ 
+-#define TFD_IOC_SET_TICKS	_IOW('T', 0, u64)
+-
+ #endif /* _LINUX_TIMERFD_H */
+diff -puN include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace include/uapi/linux/Kbuild
+--- a/include/uapi/linux/Kbuild~timerfd-export-defines-to-userspace
++++ a/include/uapi/linux/Kbuild
+@@ -414,6 +414,7 @@ header-y += telephony.h
+ header-y += termios.h
+ header-y += thermal.h
+ header-y += time.h
++header-y += timerfd.h
+ header-y += times.h
+ header-y += timex.h
+ header-y += tiocl.h
+diff -puN /dev/null include/uapi/linux/timerfd.h
 --- /dev/null
-+++ a/Documentation/vm/page_frags
-@@ -0,0 +1,42 @@
-+Page fragments
-+--------------
++++ a/include/uapi/linux/timerfd.h
+@@ -0,0 +1,36 @@
++/*
++ *  include/linux/timerfd.h
++ *
++ *  Copyright (C) 2007  Davide Libenzi <davidel@xmailserver.org>
++ *
++ */
 +
-+A page fragment is an arbitrary-length arbitrary-offset area of memory
-+which resides within a 0 or higher order compound page.  Multiple
-+fragments within that page are individually refcounted, in the page's
-+reference counter.
++#ifndef _UAPI_LINUX_TIMERFD_H
++#define _UAPI_LINUX_TIMERFD_H
 +
-+The page_frag functions, page_frag_alloc and page_frag_free, provide a
-+simple allocation framework for page fragments.  This is used by the
-+network stack and network device drivers to provide a backing region of
-+memory for use as either an sk_buff->head, or to be used in the "frags"
-+portion of skb_shared_info.
++#include <linux/types.h>
 +
-+In order to make use of the page fragment APIs a backing page fragment
-+cache is needed.  This provides a central point for the fragment allocation
-+and tracks allows multiple calls to make use of a cached page.  The
-+advantage to doing this is that multiple calls to get_page can be avoided
-+which can be expensive at allocation time.  However due to the nature of
-+this caching it is required that any calls to the cache be protected by
-+either a per-cpu limitation, or a per-cpu limitation and forcing interrupts
-+to be disabled when executing the fragment allocation.
++/* For O_CLOEXEC and O_NONBLOCK */
++#include <linux/fcntl.h>
 +
-+The network stack uses two separate caches per CPU to handle fragment
-+allocation.  The netdev_alloc_cache is used by callers making use of the
-+__netdev_alloc_frag and __netdev_alloc_skb calls.  The napi_alloc_cache is
-+used by callers of the __napi_alloc_frag and __napi_alloc_skb calls.  The
-+main difference between these two calls is the context in which they may be
-+called.  The "netdev" prefixed functions are usable in any context as these
-+functions will disable interrupts, while the "napi" prefixed functions are
-+only usable within the softirq context.
++/* For _IO helpers */
++#include <linux/ioctl.h>
 +
-+Many network device drivers use a similar methodology for allocating page
-+fragments, but the page fragments are cached at the ring or descriptor
-+level.  In order to enable these cases it is necessary to provide a generic
-+way of tearing down a page cache.  For this reason __page_frag_cache_drain
-+was implemented.  It allows for freeing multiple references from a single
-+page via a single call.  The advantage to doing this is that it allows for
-+cleaning up the multiple references that were added to a page in order to
-+avoid calling get_page per allocation.
++/*
++ * CAREFUL: Check include/asm-generic/fcntl.h when defining
++ * new flags, since they might collide with O_* ones. We want
++ * to re-use O_* flags that couldn't possibly have a meaning
++ * from eventfd, in order to leave a free define-space for
++ * shared O_* flags.
++ *
++ * Also make sure to update the masks in include/linux/timerfd.h
++ * when adding new flags.
++ */
++#define TFD_TIMER_ABSTIME (1 << 0)
++#define TFD_TIMER_CANCEL_ON_SET (1 << 1)
++#define TFD_CLOEXEC O_CLOEXEC
++#define TFD_NONBLOCK O_NONBLOCK
 +
-+Alexander Duyck, Nov 29, 2016.
++#define TFD_IOC_SET_TICKS	_IOW('T', 0, __u64)
++
++#endif /* _UAPI_LINUX_TIMERFD_H */
 _
