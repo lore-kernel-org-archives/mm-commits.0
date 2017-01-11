@@ -1,125 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order.patch
- removed from -mm tree
-Date: Wed, 11 Jan 2017 14:27:48 -0800
-Message-ID: <5876b164.t2hTeCARsDHqn6JS%akpm@linux-foundation.org>
+Subject: [merged] mm-add-follow_pte_pmd.patch removed from -mm tree
+Date: Wed, 11 Jan 2017 14:27:42 -0800
+Message-ID: <5876b15e.rKpMM2uTwpH5R/eJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51228 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933144AbdAKW2d (ORCPT
+        with ESMTP id S932220AbdAKW2d (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 17:28:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andreyknvl@google.com, ast@kernel.org, cl@linux.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, mawilcox@microsoft.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: make sure that KMALLOC_MAX_SIZE will fit into MAX_ORDER
+     Subject: mm: add follow_pte_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order.patch
+     mm-add-follow_pte_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, slab: make sure that KMALLOC_MAX_SIZE will fit into MAX_ORDER
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: mm: add follow_pte_pmd()
 
-Andrey Konovalov has reported the following warning triggered by the
-syzkaller fuzzer.
+Patch series "Write protect DAX PMDs in *sync path".
 
-WARNING: CPU: 1 PID: 9935 at mm/page_alloc.c:3511
-__alloc_pages_nodemask+0x159c/0x1e20
-Kernel panic - not syncing: panic_on_warn set ...
+Currently dax_mapping_entry_mkclean() fails to clean and write protect the
+pmd_t of a DAX PMD entry during an *sync operation.  This can result in
+data loss, as detailed in patch 2.
 
-CPU: 1 PID: 9935 Comm: syz-executor0 Not tainted 4.9.0-rc7+ #34
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
- ffff88006949f2c8 ffffffff81f96b8a ffffffff00000200 1ffff1000d293dec
- ffffed000d293de4 0000000000000a06 0000000041b58ab3 ffffffff8598b510
- ffffffff81f968f8 0000000041b58ab3 ffffffff85942a58 ffffffff81432860
-Call Trace:
- [<     inline     >] __dump_stack lib/dump_stack.c:15
- [<ffffffff81f96b8a>] dump_stack+0x292/0x398 lib/dump_stack.c:51
- [<ffffffff8168c88e>] panic+0x1cb/0x3a9 kernel/panic.c:179
- [<ffffffff812b80b4>] __warn+0x1c4/0x1e0 kernel/panic.c:542
- [<ffffffff812b831c>] warn_slowpath_null+0x2c/0x40 kernel/panic.c:585
- [<     inline     >] __alloc_pages_slowpath mm/page_alloc.c:3511
- [<ffffffff816c08ac>] __alloc_pages_nodemask+0x159c/0x1e20 mm/page_alloc.c:3781
- [<ffffffff817cde17>] alloc_pages_current+0x1c7/0x6b0 mm/mempolicy.c:2072
- [<     inline     >] alloc_pages include/linux/gfp.h:469
- [<ffffffff8172fd8f>] kmalloc_order+0x1f/0x70 mm/slab_common.c:1015
- [<ffffffff8172fdff>] kmalloc_order_trace+0x1f/0x160 mm/slab_common.c:1026
- [<     inline     >] kmalloc_large include/linux/slab.h:422
- [<ffffffff817e01f0>] __kmalloc+0x210/0x2d0 mm/slub.c:3723
- [<     inline     >] kmalloc include/linux/slab.h:495
- [<ffffffff832262a7>] ep_write_iter+0x167/0xb50 drivers/usb/gadget/legacy/inode.c:664
- [<     inline     >] new_sync_write fs/read_write.c:499
- [<ffffffff817fdcd3>] __vfs_write+0x483/0x760 fs/read_write.c:512
- [<ffffffff817ff720>] vfs_write+0x170/0x4e0 fs/read_write.c:560
- [<     inline     >] SYSC_write fs/read_write.c:607
- [<ffffffff81803b2b>] SyS_write+0xfb/0x230 fs/read_write.c:599
- [<ffffffff84f47ec1>] entry_SYSCALL_64_fastpath+0x1f/0xc2
+This series is based on Dan's "libnvdimm-pending" branch, which is the
+current home for Jan's "dax: Page invalidation fixes" series.  You can
+find a working tree here:
 
-The issue is caused by a lack of size check for the request size in
-ep_write_iter which should be fixed.  It, however, points to another
-problem, that SLUB defines KMALLOC_MAX_SIZE too large because the its
-KMALLOC_SHIFT_MAX is (MAX_ORDER + PAGE_SHIFT) which means that the
-resulting page allocator request might be MAX_ORDER which is too large
-(see __alloc_pages_slowpath).  The same applies to the SLOB allocator
-which allows even larger sizes.  Make sure that they are capped properly
-and never request more than MAX_ORDER order.
+https://git.kernel.org/cgit/linux/kernel/git/zwisler/linux.git/log/?h=dax_pmd_clean
 
-Link: http://lkml.kernel.org/r/20161220130659.16461-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
+
+This patch (of 2):
+
+Similar to follow_pte(), follow_pte_pmd() allows either a PTE leaf or a
+huge page PMD leaf to be found and returned.
+
+Link: http://lkml.kernel.org/r/1482272586-21177-2-git-send-email-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    2 ++
+ mm/memory.c        |   37 ++++++++++++++++++++++++++++++-------
+ 2 files changed, 32 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/slab.h~mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order include/linux/slab.h
---- a/include/linux/slab.h~mm-slab-make-sure-that-kmalloc_max_size-will-fit-into-max_order
-+++ a/include/linux/slab.h
-@@ -226,7 +226,7 @@ static inline const char *__check_heap_o
-  * (PAGE_SIZE*2).  Larger requests are passed to the page allocator.
-  */
- #define KMALLOC_SHIFT_HIGH	(PAGE_SHIFT + 1)
--#define KMALLOC_SHIFT_MAX	(MAX_ORDER + PAGE_SHIFT)
-+#define KMALLOC_SHIFT_MAX	(MAX_ORDER + PAGE_SHIFT - 1)
- #ifndef KMALLOC_SHIFT_LOW
- #define KMALLOC_SHIFT_LOW	3
- #endif
-@@ -239,7 +239,7 @@ static inline const char *__check_heap_o
-  * be allocated from the same page.
-  */
- #define KMALLOC_SHIFT_HIGH	PAGE_SHIFT
--#define KMALLOC_SHIFT_MAX	30
-+#define KMALLOC_SHIFT_MAX	(MAX_ORDER + PAGE_SHIFT - 1)
- #ifndef KMALLOC_SHIFT_LOW
- #define KMALLOC_SHIFT_LOW	3
- #endif
+diff -puN include/linux/mm.h~mm-add-follow_pte_pmd include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-follow_pte_pmd
++++ a/include/linux/mm.h
+@@ -1212,6 +1212,8 @@ void unmap_mapping_range(struct address_
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
+ int follow_pte(struct mm_struct *mm, unsigned long address, pte_t **ptepp,
+ 	       spinlock_t **ptlp);
++int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
++			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp);
+ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long *pfn);
+ int follow_phys(struct vm_area_struct *vma, unsigned long address,
+diff -puN mm/memory.c~mm-add-follow_pte_pmd mm/memory.c
+--- a/mm/memory.c~mm-add-follow_pte_pmd
++++ a/mm/memory.c
+@@ -3772,8 +3772,8 @@ int __pmd_alloc(struct mm_struct *mm, pu
+ }
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 
+-static int __follow_pte(struct mm_struct *mm, unsigned long address,
+-		pte_t **ptepp, spinlock_t **ptlp)
++static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
++		pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
+ {
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -3790,11 +3790,20 @@ static int __follow_pte(struct mm_struct
+ 
+ 	pmd = pmd_offset(pud, address);
+ 	VM_BUG_ON(pmd_trans_huge(*pmd));
+-	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
+-		goto out;
+ 
+-	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
+-	if (pmd_huge(*pmd))
++	if (pmd_huge(*pmd)) {
++		if (!pmdpp)
++			goto out;
++
++		*ptlp = pmd_lock(mm, pmd);
++		if (pmd_huge(*pmd)) {
++			*pmdpp = pmd;
++			return 0;
++		}
++		spin_unlock(*ptlp);
++	}
++
++	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
+ 		goto out;
+ 
+ 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
+@@ -3817,9 +3826,23 @@ int follow_pte(struct mm_struct *mm, uns
+ 
+ 	/* (void) is needed to make gcc happy */
+ 	(void) __cond_lock(*ptlp,
+-			   !(res = __follow_pte(mm, address, ptepp, ptlp)));
++			   !(res = __follow_pte_pmd(mm, address, ptepp, NULL,
++					   ptlp)));
++	return res;
++}
++
++int follow_pte_pmd(struct mm_struct *mm, unsigned long address,
++			     pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
++{
++	int res;
++
++	/* (void) is needed to make gcc happy */
++	(void) __cond_lock(*ptlp,
++			   !(res = __follow_pte_pmd(mm, address, ptepp, pmdpp,
++					   ptlp)));
+ 	return res;
+ }
++EXPORT_SYMBOL(follow_pte_pmd);
+ 
+ /**
+  * follow_pfn - look up PFN at a user virtual address
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-mm-throttle-show_mem-from-warn_alloc.patch
-mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-oom-trace-add-oom-detection-tracepoints.patch
-oom-trace-add-compaction-retry-tracepoint.patch
-mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
-mm-vmscan-add-active-list-aging-tracepoint.patch
-mm-vmscan-add-active-list-aging-tracepoint-update.patch
-mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
-mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
-mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
-mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
-mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
-trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+dax-fix-build-warnings-with-fs_dax-and-fs_iomap.patch
+tracing-add-__print_flags_u64.patch
+dax-add-tracepoint-infrastructure-pmd-tracing.patch
+dax-update-maintainers-entries-for-fs-dax.patch
+dax-add-tracepoints-to-dax_pmd_load_hole.patch
+dax-add-tracepoints-to-dax_pmd_insert_mapping.patch
 
