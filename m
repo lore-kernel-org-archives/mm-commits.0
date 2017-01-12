@@ -1,241 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
- removed from -mm tree
-Date: Thu, 12 Jan 2017 15:33:58 -0800
-Message-ID: <58781266.IsnU/Onbdi5Tb2tl%akpm@linux-foundation.org>
+Subject: + radix-tree-fix-private-list-warnings.patch added to -mm tree
+Date: Thu, 12 Jan 2017 15:35:00 -0800
+Message-ID: <587812a4.3X4Htti0eZlNws0r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53154 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750914AbdALXeE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2017 18:34:04 -0500
+        with ESMTP id S1750760AbdALXfB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2017 18:35:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: mawilcox@microsoft.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
-has been removed from the -mm tree.  Its filename was
-     ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+     Subject: radix-tree: fix private list warnings
+has been added to the -mm tree.  Its filename is
+     radix-tree-fix-private-list-warnings.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-fix-private-list-warnings.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-fix-private-list-warnings.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: radix-tree: fix private list warnings
 
-We are in the situation that we have to avoid recursive cluster locking,
-but there is no way to check if a cluster lock has been taken by a precess
-already.
+The newly introduced warning in radix_tree_free_nodes() was testing the
+wrong variable; it should have been 'old' instead of 'node'.  Rather than
+replace that one instance, I noticed that we can simply put the
+WARN_ON_ONCE in radix_tree_node_free() and it will be just as effective.
 
-Mostly, we can avoid recursive locking by writing code carefully. 
-However, we found that it's very hard to handle the routines that are
-invoked directly by vfs code.  For instance:
-
-const struct inode_operations ocfs2_file_iops = {
-    .permission     = ocfs2_permission,
-    .get_acl        = ocfs2_iop_get_acl,
-    .set_acl        = ocfs2_iop_set_acl,
-};
-
-Both ocfs2_permission() and ocfs2_iop_get_acl() call ocfs2_inode_lock(PR):
-do_sys_open
- may_open
-  inode_permission
-   ocfs2_permission
-    ocfs2_inode_lock() <=== first time
-     generic_permission
-      get_acl
-       ocfs2_iop_get_acl
-	ocfs2_inode_lock() <=== recursive one
-
-A deadlock will occur if a remote EX request comes in between two of
-ocfs2_inode_lock().  Briefly describe how the deadlock is formed:
-
-On one hand, OCFS2_LOCK_BLOCKED flag of this lockres is set in
-BAST(ocfs2_generic_handle_bast) when downconvert is started on behalf of
-the remote EX lock request.  Another hand, the recursive cluster lock (the
-second one) will be blocked in in __ocfs2_cluster_lock() because of
-OCFS2_LOCK_BLOCKED.  But, the downconvert never complete, why?  because
-there is no chance for the first cluster lock on this node to be unlocked
-- we block ourselves in the code path.
-
-The idea to fix this issue is mostly taken from gfs2 code.
-
-1. introduce a new field: struct ocfs2_lock_res.l_holders, to keep
-   track of the processes' pid who has taken the cluster lock of this lock
-   resource;
-
-2. introduce a new flag for ocfs2_inode_lock_full:
-   OCFS2_META_LOCK_GETBH; it means just getting back disk inode bh for us
-   if we've got cluster lock.
-
-3. export a helper: ocfs2_is_locked_by_me() is used to check if we
-   have got the cluster lock in the upper code path.
-
-The tracking logic should be used by some of the ocfs2 vfs's callbacks, to
-solve the recursive locking issue cuased by the fact that vfs routines can
-call into each other.
-
-The performance penalty of processing the holder list should only be seen
-at a few cases where the tracking logic is used, such as get/set acl.
-
-You may ask what if the first time we got a PR lock, and the second time
-we want a EX lock?  fortunately, this case never happens in the real
-world, as far as I can see, including permission check,
-(get|set)_(acl|attr), and the gfs2 code also do so.
-
-Link: http://lkml.kernel.org/r/1483630262-22227-2-git-send-email-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Fixes: ea07b862ac8e ("mm: workingset: fix use-after-free in shadow node shrinker")
+Link: http://lkml.kernel.org/r/1484270903-24307-1-git-send-email-mawilcox@linuxonhyperv.com
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |   47 ++++++++++++++++++++++++++++++++++++++++---
- fs/ocfs2/dlmglue.h |   18 ++++++++++++++++
- fs/ocfs2/ocfs2.h   |    1 
- 3 files changed, 63 insertions(+), 3 deletions(-)
+ lib/radix-tree.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -532,6 +532,7 @@ void ocfs2_lock_res_init_once(struct ocf
- 	init_waitqueue_head(&res->l_event);
- 	INIT_LIST_HEAD(&res->l_blocked_list);
- 	INIT_LIST_HEAD(&res->l_mask_waiters);
-+	INIT_LIST_HEAD(&res->l_holders);
- }
- 
- void ocfs2_inode_lock_res_init(struct ocfs2_lock_res *res,
-@@ -749,6 +750,45 @@ void ocfs2_lock_res_free(struct ocfs2_lo
- 	res->l_flags = 0UL;
- }
- 
-+inline void ocfs2_add_holder(struct ocfs2_lock_res *lockres,
-+				   struct ocfs2_holder *oh)
-+{
-+	INIT_LIST_HEAD(&oh->oh_list);
-+	oh->oh_owner_pid =  get_pid(task_pid(current));
-+
-+	spin_lock(&lockres->l_lock);
-+	list_add_tail(&oh->oh_list, &lockres->l_holders);
-+	spin_unlock(&lockres->l_lock);
-+}
-+
-+inline void ocfs2_remove_holder(struct ocfs2_lock_res *lockres,
-+				       struct ocfs2_holder *oh)
-+{
-+	spin_lock(&lockres->l_lock);
-+	list_del(&oh->oh_list);
-+	spin_unlock(&lockres->l_lock);
-+
-+	put_pid(oh->oh_owner_pid);
-+}
-+
-+inline struct ocfs2_holder *ocfs2_is_locked_by_me(struct ocfs2_lock_res *lockres)
-+{
-+	struct ocfs2_holder *oh;
-+	struct pid *pid;
-+
-+	/* look in the list of holders for one with the current task as owner */
-+	spin_lock(&lockres->l_lock);
-+	pid = task_pid(current);
-+	list_for_each_entry(oh, &lockres->l_holders, oh_list) {
-+		if (oh->oh_owner_pid == pid)
-+			goto out;
-+	}
-+	oh = NULL;
-+out:
-+	spin_unlock(&lockres->l_lock);
-+	return oh;
-+}
-+
- static inline void ocfs2_inc_holders(struct ocfs2_lock_res *lockres,
- 				     int level)
+diff -puN lib/radix-tree.c~radix-tree-fix-private-list-warnings lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-fix-private-list-warnings
++++ a/lib/radix-tree.c
+@@ -365,6 +365,7 @@ static void radix_tree_node_rcu_free(str
+ static inline void
+ radix_tree_node_free(struct radix_tree_node *node)
  {
-@@ -2333,8 +2373,9 @@ int ocfs2_inode_lock_full_nested(struct
- 		goto getbh;
++	WARN_ON_ONCE(!list_empty(&node->private_list));
+ 	call_rcu(&node->rcu_head, radix_tree_node_rcu_free);
+ }
+ 
+@@ -640,7 +641,6 @@ static inline void radix_tree_shrink(str
+ 				update_node(node, private);
+ 		}
+ 
+-		WARN_ON_ONCE(!list_empty(&node->private_list));
+ 		radix_tree_node_free(node);
  	}
+ }
+@@ -667,7 +667,6 @@ static void delete_node(struct radix_tre
+ 			root->rnode = NULL;
+ 		}
  
--	if (ocfs2_mount_local(osb))
--		goto local;
-+	if ((arg_flags & OCFS2_META_LOCK_GETBH) ||
-+	    ocfs2_mount_local(osb))
-+		goto update;
+-		WARN_ON_ONCE(!list_empty(&node->private_list));
+ 		radix_tree_node_free(node);
  
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
-@@ -2363,7 +2404,7 @@ int ocfs2_inode_lock_full_nested(struct
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
- 
--local:
-+update:
- 	/*
- 	 * We only see this flag if we're being called from
- 	 * ocfs2_read_locked_inode(). It means we're locking an inode
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.h
-@@ -70,6 +70,11 @@ struct ocfs2_orphan_scan_lvb {
- 	__be32	lvb_os_seqno;
- };
- 
-+struct ocfs2_holder {
-+	struct list_head oh_list;
-+	struct pid *oh_owner_pid;
-+};
-+
- /* ocfs2_inode_lock_full() 'arg_flags' flags */
- /* don't wait on recovery. */
- #define OCFS2_META_LOCK_RECOVERY	(0x01)
-@@ -77,6 +82,8 @@ struct ocfs2_orphan_scan_lvb {
- #define OCFS2_META_LOCK_NOQUEUE		(0x02)
- /* don't block waiting for the downconvert thread, instead return -EAGAIN */
- #define OCFS2_LOCK_NONBLOCK		(0x04)
-+/* just get back disk inode bh if we've got cluster lock. */
-+#define OCFS2_META_LOCK_GETBH		(0x08)
- 
- /* Locking subclasses of inode cluster lock */
- enum {
-@@ -170,4 +177,15 @@ void ocfs2_put_dlm_debug(struct ocfs2_dl
- 
- /* To set the locking protocol on module initialization */
- void ocfs2_set_locking_protocol(void);
-+
-+/*
-+ * Keep a list of processes who have interest in a lockres.
-+ * Note: this is now only uesed for check recursive cluster lock.
-+ */
-+inline void ocfs2_add_holder(struct ocfs2_lock_res *lockres,
-+			     struct ocfs2_holder *oh);
-+inline void ocfs2_remove_holder(struct ocfs2_lock_res *lockres,
-+			     struct ocfs2_holder *oh);
-+inline struct ocfs2_holder *ocfs2_is_locked_by_me(struct ocfs2_lock_res *lockres);
-+
- #endif	/* DLMGLUE_H */
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/ocfs2.h
-@@ -172,6 +172,7 @@ struct ocfs2_lock_res {
- 
- 	struct list_head         l_blocked_list;
- 	struct list_head         l_mask_waiters;
-+	struct list_head	 l_holders;
- 
- 	unsigned long		 l_flags;
- 	char                     l_name[OCFS2_LOCK_ID_MAX_LEN];
+ 		node = parent;
+@@ -769,7 +768,6 @@ static void radix_tree_free_nodes(struct
+ 			struct radix_tree_node *old = child;
+ 			offset = child->offset + 1;
+ 			child = child->parent;
+-			WARN_ON_ONCE(!list_empty(&node->private_list));
+ 			radix_tree_node_free(old);
+ 			if (old == entry_to_node(node))
+ 				return;
 _
 
-Patches currently in -mm which might be from zren@suse.com are
+Patches currently in -mm which might be from mawilcox@microsoft.com are
 
-ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
+radix-tree-fix-private-list-warnings.patch
+find_bit-micro-optimise-find_next__bit.patch
+find_bit-micro-optimise-find_next__bit-v2.patch
+reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr.patch
 
