@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-core-avoid-wnonnull-warning.patch added to -mm tree
-Date: Wed, 11 Jan 2017 15:58:15 -0800
-Message-ID: <5876c697.U/V+k0kSu120hMBy%akpm@linux-foundation.org>
+Subject: + userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch added to -mm tree
+Date: Wed, 11 Jan 2017 16:03:36 -0800
+Message-ID: <5876c7d8.5hBLpgDrg++bHjJj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41020 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932692AbdAKX6Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 18:58:16 -0500
+        with ESMTP id S1758961AbdALADh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 19:03:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/memstick/core/memstick.c: avoid -Wnonnull warning
+     Subject: userfaultfd: fix SIGBUS resulting from false rwsem wakeups
 has been added to the -mm tree.  Its filename is
-     memstick-core-avoid-wnonnull-warning.patch
+     userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memstick-core-avoid-wnonnull-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memstick-core-avoid-wnonnull-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,48 +38,209 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/memstick/core/memstick.c: avoid -Wnonnull warning
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: fix SIGBUS resulting from false rwsem wakeups
 
-gcc-7 produces a harmless false-postive warning about a possible
-NULL pointer access:
+With >=32 CPUs the userfaultfd selftest triggered a graceful but
+unexpected SIGBUS because VM_FAULT_RETRY was returned by
+handle_userfault() despite the UFFDIO_COPY wasn't completed.
 
-drivers/memstick/core/memstick.c: In function 'h_memstick_read_dev_id':
-drivers/memstick/core/memstick.c:309:3: error: argument 2 null where non-null expected [-Werror=nonnull]
-   memcpy(mrq->data, buf, mrq->data_len);
+This seems caused by rwsem waking the thread blocked in handle_userfault()
+and we can't run up_read() before the wait_event sequence is complete.
 
-This can't happen because the caller sets the command to 'MS_TPC_READ_REG',
-which causes the data direction to be 'READ' and the NULL pointer not
-accessed.
+Keeping the wait_even sequence identical to the first one, would require
+running userfaultfd_must_wait() again to know if the loop should be
+repeated, and it would also require retaking the rwsem and revalidating
+the whole vma status.
 
-As a simple workaround for the warning, we can pass a pointer to the
-data that we actually want to read into. This is not needed here, but
-also harmless, and lets the compiler know that the access is ok.
+It seems simpler to wait the targeted wakeup so that if false wakeups
+materialize we still wait for our specific wakeup event, unless of course
+there are signals or the uffd was released.
 
-Link: http://lkml.kernel.org/r/20170111144143.548867-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alex Dubov <oakad@yahoo.com>
+Debug code collecting the stack trace of the wakeup showed this:
+
+$ ./userfaultfd 100 99999
+nr_pages: 25600, nr_pages_per_cpu: 800
+bounces: 99998, mode: racing ver poll, userfaults: 32 35 90 232 30 138 69 82 34 30 139 40 40 31 20 19 43 13 15 28 27 38 21 43 56 22 1 17 31 8 4 2
+bounces: 99997, mode: rnd ver poll, Bus error (core dumped)
+
+   [<ffffffff8102e19b>] save_stack_trace+0x2b/0x50
+   [<ffffffff8110b1d6>] try_to_wake_up+0x2a6/0x580
+   [<ffffffff8110b502>] wake_up_q+0x32/0x70
+   [<ffffffff8113d7a0>] rwsem_wake+0xe0/0x120
+   [<ffffffff8148361b>] call_rwsem_wake+0x1b/0x30
+   [<ffffffff81131d5b>] up_write+0x3b/0x40
+   [<ffffffff812280fc>] vm_mmap_pgoff+0x9c/0xc0
+   [<ffffffff81244b79>] SyS_mmap_pgoff+0x1a9/0x240
+   [<ffffffff810228f2>] SyS_mmap+0x22/0x30
+   [<ffffffff81842dfc>] entry_SYSCALL_64_fastpath+0x1f/0xbd
+   [<ffffffffffffffff>] 0xffffffffffffffff
+FAULT_FLAG_ALLOW_RETRY missing 70
+CPU: 24 PID: 1054 Comm: userfaultfd Tainted: G        W       4.8.0+ #30
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.9.3-0-ge2fc41e-prebuilt.qemu-project.org 04/01/2014
+ 0000000000000000 ffff880218027d40 ffffffff814749f6 ffff8802180c4a80
+ ffff880231ead4c0 ffff880218027e18 ffffffff812e0102 ffffffff81842b1c
+ ffff880218027dd0 ffff880218082960 0000000000000000 0000000000000000
+Call Trace:
+ [<ffffffff814749f6>] dump_stack+0xb8/0x112
+ [<ffffffff812e0102>] handle_userfault+0x572/0x650
+ [<ffffffff81842b1c>] ? _raw_spin_unlock_irq+0x2c/0x50
+ [<ffffffff812407b4>] ? handle_mm_fault+0xcf4/0x1520
+ [<ffffffff81240d7e>] ? handle_mm_fault+0x12be/0x1520
+ [<ffffffff81240d8b>] handle_mm_fault+0x12cb/0x1520
+ [<ffffffff81483588>] ? call_rwsem_down_read_failed+0x18/0x30
+ [<ffffffff810572c5>] __do_page_fault+0x175/0x500
+ [<ffffffff810576f1>] trace_do_page_fault+0x61/0x270
+ [<ffffffff81050739>] do_async_page_fault+0x19/0x90
+ [<ffffffff81843ef5>] async_page_fault+0x25/0x30
+
+This always happens when the main userfault selftest thread is running
+clone() while glibc runs either mprotect or mmap (both taking mmap_sem
+down_write()) to allocate the thread stack of the background threads,
+while locking/userfault threads already run at full throttle and are
+susceptible to false wakeups that may cause handle_userfault() to return
+before than expected (which results in graceful SIGBUS at the next
+attempt).
+
+This was reproduced only with >=32 CPUs because the loop to start the
+thread where clone() is too quick with fewer CPUs, while with 32 CPUs
+there's already significant activity on ~32 locking and userfault threads
+when the last background threads are started with clone().
+
+This >=32 CPUs SMP race condition is likely reproducible only with the
+selftest because of the much heavier userfault load it generates if
+compared to real apps.
+
+We'll have to allow "one more" VM_FAULT_RETRY for the WP support and a
+patch floating around that provides it also hidden this problem but in
+reality only is successfully at hiding the problem.  False wakeups could
+still happen again the second time handle_userfault() is invoked, even if
+it's a so rare race condition that getting false wakeups twice in a row is
+impossible to reproduce.  This full fix is needed for correctness, the
+only alternative would be to allow VM_FAULT_RETRY to be returned
+infinitely.  With this fix the WP support can stick to a strict "one more"
+VM_FAULT_RETRY logic (no need of returning it infinite times to avoid the
+SIGBUS).
+
+Link: http://lkml.kernel.org/r/20170111005535.13832-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/userfaultfd.c |   37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning
-+++ a/drivers/memstick/core/memstick.c
-@@ -330,7 +330,7 @@ static int h_memstick_read_dev_id(struct
- 	struct ms_id_register id_reg;
+diff -puN fs/userfaultfd.c~userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups
++++ a/fs/userfaultfd.c
+@@ -63,6 +63,7 @@ struct userfaultfd_wait_queue {
+ 	struct uffd_msg msg;
+ 	wait_queue_t wq;
+ 	struct userfaultfd_ctx *ctx;
++	bool waken;
+ };
  
- 	if (!(*mrq)) {
--		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, NULL,
-+		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, &id_reg,
- 				  sizeof(struct ms_id_register));
- 		*mrq = &card->current_mrq;
- 		return 0;
+ struct userfaultfd_wake_range {
+@@ -86,6 +87,12 @@ static int userfaultfd_wake_function(wai
+ 	if (len && (start > uwq->msg.arg.pagefault.address ||
+ 		    start + len <= uwq->msg.arg.pagefault.address))
+ 		goto out;
++	WRITE_ONCE(uwq->waken, true);
++	/*
++	 * The implicit smp_mb__before_spinlock in try_to_wake_up()
++	 * renders uwq->waken visible to other CPUs before the task is
++	 * waken.
++	 */
+ 	ret = wake_up_state(wq->private, mode);
+ 	if (ret)
+ 		/*
+@@ -264,6 +271,7 @@ int handle_userfault(struct vm_fault *vm
+ 	struct userfaultfd_wait_queue uwq;
+ 	int ret;
+ 	bool must_wait, return_to_userland;
++	long blocking_state;
+ 
+ 	BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
+ 
+@@ -334,10 +342,13 @@ int handle_userfault(struct vm_fault *vm
+ 	uwq.wq.private = current;
+ 	uwq.msg = userfault_msg(vmf->address, vmf->flags, reason);
+ 	uwq.ctx = ctx;
++	uwq.waken = false;
+ 
+ 	return_to_userland =
+ 		(vmf->flags & (FAULT_FLAG_USER|FAULT_FLAG_KILLABLE)) ==
+ 		(FAULT_FLAG_USER|FAULT_FLAG_KILLABLE);
++	blocking_state = return_to_userland ? TASK_INTERRUPTIBLE :
++			 TASK_KILLABLE;
+ 
+ 	spin_lock(&ctx->fault_pending_wqh.lock);
+ 	/*
+@@ -350,8 +361,7 @@ int handle_userfault(struct vm_fault *vm
+ 	 * following the spin_unlock to happen before the list_add in
+ 	 * __add_wait_queue.
+ 	 */
+-	set_current_state(return_to_userland ? TASK_INTERRUPTIBLE :
+-			  TASK_KILLABLE);
++	set_current_state(blocking_state);
+ 	spin_unlock(&ctx->fault_pending_wqh.lock);
+ 
+ 	must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
+@@ -364,6 +374,29 @@ int handle_userfault(struct vm_fault *vm
+ 		wake_up_poll(&ctx->fd_wqh, POLLIN);
+ 		schedule();
+ 		ret |= VM_FAULT_MAJOR;
++
++		/*
++		 * False wakeups can orginate even from rwsem before
++		 * up_read() however userfaults will wait either for a
++		 * targeted wakeup on the specific uwq waitqueue from
++		 * wake_userfault() or for signals or for uffd
++		 * release.
++		 */
++		while (!READ_ONCE(uwq.waken)) {
++			/*
++			 * This needs the full smp_store_mb()
++			 * guarantee as the state write must be
++			 * visible to other CPUs before reading
++			 * uwq.waken from other CPUs.
++			 */
++			set_current_state(blocking_state);
++			if (READ_ONCE(uwq.waken) ||
++			    READ_ONCE(ctx->released) ||
++			    (return_to_userland ? signal_pending(current) :
++			     fatal_signal_pending(current)))
++				break;
++			schedule();
++		}
+ 	}
+ 
+ 	__set_current_state(TASK_RUNNING);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-memstick-core-avoid-wnonnull-warning.patch
+userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
+userfaultfd-document-_ior-_iow.patch
+userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
+userfaultfd-convert-bug-to-warn_on_once.patch
+userfaultfd-use-vma_is_anonymous.patch
+userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
+userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
+userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
+userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
+userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
+userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
+userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
+userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
+userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
+mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
 
