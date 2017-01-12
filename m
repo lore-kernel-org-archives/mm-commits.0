@@ -1,320 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-add-new-defermadvise-defrag-option.patch added to -mm
- tree
-Date: Wed, 11 Jan 2017 16:18:04 -0800
-Message-ID: <5876cb3c.qTDBk+eAZ252mKyX%akpm@linux-foundation.org>
+Subject: mmotm 2017-01-11-17-14 uploaded
+Date: Wed, 11 Jan 2017 17:14:57 -0800
+Message-ID: <5876d891.KO+lq262YUFdAzyd%akpm__12966.215136885$1484183708$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45932 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1762368AbdALASF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 19:18:05 -0500
+        with ESMTP id S1760484AbdALBO7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 20:14:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, corbet@lwn.net, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2017-01-11-17-14 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: mm, thp: add new defer+madvise defrag option
-has been added to the -mm tree.  Its filename is
-     mm-thp-add-new-defermadvise-defrag-option.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-add-new-defermadvise-defrag-option.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-add-new-defermadvise-defrag-option.patch
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: add new defer+madvise defrag option
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
-There is no thp defrag option that currently allows MADV_HUGEPAGE regions
-to do direct compaction and reclaim while all other thp allocations simply
-trigger kswapd and kcompactd in the background and fail immediately.
 
-The "defer" setting simply triggers background reclaim and compaction for
-all regions, regardless of MADV_HUGEPAGE, which makes it unusable for our
-userspace where MADV_HUGEPAGE is being used to indicate the application is
-willing to wait for work for thp memory to be available.
 
-The "madvise" setting will do direct compaction and reclaim for these
-MADV_HUGEPAGE regions, but does not trigger kswapd and kcompactd in the
-background for anybody else.
 
-For reasonable usage, there needs to be a mesh between the two options. 
-This patch introduces a fifth mode, "defer+madvise", that will do direct
-reclaim and compaction for MADV_HUGEPAGE regions and trigger background
-reclaim and compaction for everybody else so that hugepages may be
-available in the near future.
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-A proposal to allow direct reclaim and compaction for MADV_HUGEPAGE
-regions as part of the "defer" mode, making it a very powerful setting and
-avoids breaking userspace, was offered:
-http://marc.info/?t=148236612700003.  This additional mode is a
-compromise.
+A git copy of this tree is available at
 
-A second proposal to allow both "defer" and "madvise" to be selected at
-the same time was also offered: http://marc.info/?t=148357345300001.  This
-is possible, but there was a concern that it might break existing
-userspaces the parse the output of the defrag mode, so the fifth option
-was introduced instead.
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
 
-This patch also cleans up the helper function for storing to "enabled" and
-"defrag" since the former supports three modes while the latter supports
-five and triple_flag_store() was getting unnecessarily messy.
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701101614330.41805@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- Documentation/vm/transhuge.txt |    8 +
- include/linux/huge_mm.h        |    1 
- mm/huge_memory.c               |  146 +++++++++++++++----------------
- 3 files changed, 82 insertions(+), 73 deletions(-)
+This mmotm tree contains the following patches against 4.10-rc3:
+(patches marked "*" will be included in linux-next)
 
-diff -puN Documentation/vm/transhuge.txt~mm-thp-add-new-defermadvise-defrag-option Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-thp-add-new-defermadvise-defrag-option
-+++ a/Documentation/vm/transhuge.txt
-@@ -110,6 +110,7 @@ MADV_HUGEPAGE region.
- 
- echo always >/sys/kernel/mm/transparent_hugepage/defrag
- echo defer >/sys/kernel/mm/transparent_hugepage/defrag
-+echo defer+madvise >/sys/kernel/mm/transparent_hugepage/defrag
- echo madvise >/sys/kernel/mm/transparent_hugepage/defrag
- echo never >/sys/kernel/mm/transparent_hugepage/defrag
- 
-@@ -120,10 +121,15 @@ that benefit heavily from THP use and ar
- to utilise them.
- 
- "defer" means that an application will wake kswapd in the background
--to reclaim pages and wake kcompact to compact memory so that THP is
-+to reclaim pages and wake kcompactd to compact memory so that THP is
- available in the near future. It's the responsibility of khugepaged
- to then install the THP pages later.
- 
-+"defer+madvise" will enter direct reclaim and compaction like "always", but
-+only for regions that have used madvise(MADV_HUGEPAGE); all other regions
-+will wake kswapd in the background to reclaim pages and wake kcompactd to
-+compact memory so that THP is available in the near future.
-+
- "madvise" will enter direct reclaim like "always" but only for regions
- that are have used madvise(MADV_HUGEPAGE). This is the default behaviour.
- 
-diff -puN include/linux/huge_mm.h~mm-thp-add-new-defermadvise-defrag-option include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-add-new-defermadvise-defrag-option
-+++ a/include/linux/huge_mm.h
-@@ -33,6 +33,7 @@ enum transparent_hugepage_flag {
- 	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG,
-+	TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG,
- 	TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG,
-diff -puN mm/huge_memory.c~mm-thp-add-new-defermadvise-defrag-option mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-add-new-defermadvise-defrag-option
-+++ a/mm/huge_memory.c
-@@ -142,42 +142,6 @@ static struct shrinker huge_zero_page_sh
- };
- 
- #ifdef CONFIG_SYSFS
--
--static ssize_t triple_flag_store(struct kobject *kobj,
--				 struct kobj_attribute *attr,
--				 const char *buf, size_t count,
--				 enum transparent_hugepage_flag enabled,
--				 enum transparent_hugepage_flag deferred,
--				 enum transparent_hugepage_flag req_madv)
--{
--	if (!memcmp("defer", buf,
--		    min(sizeof("defer")-1, count))) {
--		if (enabled == deferred)
--			return -EINVAL;
--		clear_bit(enabled, &transparent_hugepage_flags);
--		clear_bit(req_madv, &transparent_hugepage_flags);
--		set_bit(deferred, &transparent_hugepage_flags);
--	} else if (!memcmp("always", buf,
--		    min(sizeof("always")-1, count))) {
--		clear_bit(deferred, &transparent_hugepage_flags);
--		clear_bit(req_madv, &transparent_hugepage_flags);
--		set_bit(enabled, &transparent_hugepage_flags);
--	} else if (!memcmp("madvise", buf,
--			   min(sizeof("madvise")-1, count))) {
--		clear_bit(enabled, &transparent_hugepage_flags);
--		clear_bit(deferred, &transparent_hugepage_flags);
--		set_bit(req_madv, &transparent_hugepage_flags);
--	} else if (!memcmp("never", buf,
--			   min(sizeof("never")-1, count))) {
--		clear_bit(enabled, &transparent_hugepage_flags);
--		clear_bit(req_madv, &transparent_hugepage_flags);
--		clear_bit(deferred, &transparent_hugepage_flags);
--	} else
--		return -EINVAL;
--
--	return count;
--}
--
- static ssize_t enabled_show(struct kobject *kobj,
- 			    struct kobj_attribute *attr, char *buf)
- {
-@@ -193,19 +157,28 @@ static ssize_t enabled_store(struct kobj
- 			     struct kobj_attribute *attr,
- 			     const char *buf, size_t count)
- {
--	ssize_t ret;
-+	ssize_t ret = count;
- 
--	ret = triple_flag_store(kobj, attr, buf, count,
--				TRANSPARENT_HUGEPAGE_FLAG,
--				TRANSPARENT_HUGEPAGE_FLAG,
--				TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG);
-+	if (!memcmp("always", buf,
-+		    min(sizeof("always")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+		set_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
-+	} else if (!memcmp("madvise", buf,
-+			   min(sizeof("madvise")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
-+		set_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+	} else if (!memcmp("never", buf,
-+			   min(sizeof("never")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+	} else
-+		ret = -EINVAL;
- 
- 	if (ret > 0) {
- 		int err = start_stop_khugepaged();
- 		if (err)
- 			ret = err;
- 	}
--
- 	return ret;
- }
- static struct kobj_attribute enabled_attr =
-@@ -241,32 +214,58 @@ ssize_t single_hugepage_flag_store(struc
- 	return count;
- }
- 
--/*
-- * Currently defrag only disables __GFP_NOWAIT for allocation. A blind
-- * __GFP_REPEAT is too aggressive, it's never worth swapping tons of
-- * memory just to allocate one more hugepage.
-- */
- static ssize_t defrag_show(struct kobject *kobj,
- 			   struct kobj_attribute *attr, char *buf)
- {
- 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
--		return sprintf(buf, "[always] defer madvise never\n");
-+		return sprintf(buf, "[always] defer defer+madvise madvise never\n");
- 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags))
--		return sprintf(buf, "always [defer] madvise never\n");
--	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags))
--		return sprintf(buf, "always defer [madvise] never\n");
--	else
--		return sprintf(buf, "always defer madvise [never]\n");
--
-+		return sprintf(buf, "always [defer] defer+madvise madvise never\n");
-+	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags))
-+		return sprintf(buf, "always defer [defer+madvise] madvise never\n");
-+	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags))
-+		return sprintf(buf, "always defer defer+madvise [madvise] never\n");
-+	return sprintf(buf, "always defer defer+madvise madvise [never]\n");
- }
-+
- static ssize_t defrag_store(struct kobject *kobj,
- 			    struct kobj_attribute *attr,
- 			    const char *buf, size_t count)
- {
--	return triple_flag_store(kobj, attr, buf, count,
--				 TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
--				 TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG,
--				 TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG);
-+	if (!memcmp("always", buf,
-+		    min(sizeof("always")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
-+	} else if (!memcmp("defer", buf,
-+		    min(sizeof("defer")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
-+	} else if (!memcmp("defer+madvise", buf,
-+		    min(sizeof("defer+madvise")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
-+	} else if (!memcmp("madvise", buf,
-+			   min(sizeof("madvise")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
-+		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+	} else if (!memcmp("never", buf,
-+			   min(sizeof("never")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+	} else
-+		return -EINVAL;
-+
-+	return count;
- }
- static struct kobj_attribute defrag_attr =
- 	__ATTR(defrag, 0644, defrag_show, defrag_store);
-@@ -612,25 +611,28 @@ static int __do_huge_pmd_anonymous_page(
- }
- 
- /*
-- * If THP defrag is set to always then directly reclaim/compact as necessary
-- * If set to defer then do only background reclaim/compact and defer to khugepaged
-- * If set to madvise and the VMA is flagged then directly reclaim/compact
-- * When direct reclaim/compact is allowed, don't retry except for flagged VMA's
-+ * always: directly stall for all thp allocations
-+ * defer: wake kswapd and fail if not immediately available
-+ * defer+madvise: wake kswapd and directly stall for MADV_HUGEPAGE, otherwise
-+ *		  fail if not immediately available
-+ * madvise: directly stall for MADV_HUGEPAGE, otherwise fail if not immediately
-+ *	    available
-+ * never: never stall for any thp allocation
-  */
- static inline gfp_t alloc_hugepage_direct_gfpmask(struct vm_area_struct *vma)
- {
--	bool vma_madvised = !!(vma->vm_flags & VM_HUGEPAGE);
-+	const bool vma_madvised = !!(vma->vm_flags & VM_HUGEPAGE);
- 
--	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
--				&transparent_hugepage_flags) && vma_madvised)
--		return GFP_TRANSHUGE;
--	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG,
--						&transparent_hugepage_flags))
--		return GFP_TRANSHUGE_LIGHT | __GFP_KSWAPD_RECLAIM;
--	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
--						&transparent_hugepage_flags))
-+	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
- 		return GFP_TRANSHUGE | (vma_madvised ? 0 : __GFP_NORETRY);
+  origin.patch
+  i-need-old-gcc.patch
+* memory_hotplug-zone_can_shift-returns-boolean-value.patch
+* mm-respect-foll_force-foll_cow-for-thp.patch
+* mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
+* dax-fix-build-warnings-with-fs_dax-and-fs_iomap.patch
+* memstick-core-avoid-wnonnull-warning.patch
+* userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* tracing-add-__print_flags_u64.patch
+* dax-add-tracepoint-infrastructure-pmd-tracing.patch
+* dax-update-maintainers-entries-for-fs-dax.patch
+* dax-add-tracepoints-to-dax_pmd_load_hole.patch
+* dax-add-tracepoints-to-dax_pmd_insert_mapping.patch
+* mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault.patch
+* mm-dax-move-pmd_fault-to-take-only-vmf-parameter.patch
+* scripts-spellingtxt-add-several-more-common-spelling-mistakes.patch
+* scripts-lindent-clean-up-and-optimize.patch
+* m32r-use-generic-currenth.patch
+* debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done.patch
+* debugobjects-scale-thresholds-with-of-cpus.patch
+* debugobjects-reduce-contention-on-the-global-pool_lock.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+* ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+* ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
+* kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+* kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread.patch
+  mm.patch
+* slub-do-not-merge-cache-if-slub_debug-contains-a-never-merge-flag.patch
+* tmpfs-change-shmem_mapping-to-test-shmem_aops.patch
+* mm-throttle-show_mem-from-warn_alloc.patch
+* mm-throttle-show_mem-from-warn_alloc-fix.patch
+* mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
+* mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
+* mm-vmallocc-use-rb_entry_safe.patch
+* mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key.patch
+* mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+* oom-trace-add-oom-detection-tracepoints.patch
+* oom-trace-add-compaction-retry-tracepoint.patch
+* userfaultfd-document-_ior-_iow.patch
+* userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
+* userfaultfd-convert-bug-to-warn_on_once.patch
+* userfaultfd-use-vma_is_anonymous.patch
+* userfaultfd-non-cooperative-split-the-find_userfault-routine.patch
+* userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor.patch
+* userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
+* userfaultfd-non-cooperative-add-fork-event.patch
+* userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
+* userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users.patch
+* userfaultfd-non-cooperative-add-mremap-event.patch
+* userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
+* userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request.patch
+* userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
+* userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
+* userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support.patch
+* userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support.patch
+* userfaultfd-hugetlbfs-add-__mcopy_atomic_hugetlb-for-huge-page-uffdio_copy.patch
+* userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing.patch
+* userfaultfd-hugetlbfs-add-userfaultfd-hugetlb-hook.patch
+* userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages.patch
+* userfaultfd-hugetlbfs-add-userfaultfd_hugetlb-test.patch
+* userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
+* userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
+* userfaultfd-hugetlbfs-reserve-count-on-error-in-__mcopy_atomic_hugetlb.patch
+* userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+* userfaultfd-introduce-vma_can_userfault.patch
+* userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
+* userfaultfd-shmem-introduce-vma_is_shmem.patch
+* userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
+* userfaultfd-shmem-use-shmem_mcopy_atomic_pte-for-shared-memory.patch
+* userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults.patch
+* userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
+* userfaultfd-shmem-add-userfaultfd_shmem-test.patch
+* userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
+* userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
+* userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
+* userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
+* userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page.patch
+* userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
+* userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
+* mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
+* mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+* mm-vmscan-add-active-list-aging-tracepoint.patch
+* mm-vmscan-add-active-list-aging-tracepoint-update.patch
+* mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+* mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+* mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+* mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+* mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+* trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+* nfs-no-pg_private-waiters-remain-remove-waker.patch
+* mm-un-export-wake_up_page-functions.patch
+* mm-fix-filemapc-kernel-doc-warnings.patch
+* mm-page_alloc-swap-likely-to-unlikely-as-code-logic-is-different-for-next_zones_zonelist.patch
+* mm-compaction-add-vmstats-for-kcompactd-work.patch
+* mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
+* mmcompaction-serialize-waitqueue_active-checks.patch
+* mm-bootmemc-cosmetic-improvement-of-code-readability.patch
+* mm-fix-some-typos-in-mm-zsmallocc.patch
+* mm-memblockc-trivial-code-refine-in-memblock_is_region_memory.patch
+* mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch
+* mm-sparse-use-page_private-to-get-page-private-value.patch
+* mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+* powerpc-do-not-make-the-entire-heap-executable.patch
+* mm-swap-fix-kernel-message-in-swap_info_get.patch
+* mm-swap-add-cluster-lock.patch
+* mm-swap-split-swap-cache-into-64mb-trunks.patch
+* mm-swap-skip-read-ahead-for-unreferenced-swap-slots.patch
+* mm-swap-allocate-swap-slots-in-batches.patch
+* mm-swap-free-swap-slots-in-batch.patch
+* mm-swap-add-cache-for-swap-slots-allocation.patch
+* mm-swap-enable-swap-slots-cache-usage.patch
+* mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
+* mm-thp-add-new-defermadvise-defrag-option.patch
+* z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* kasan-drain-quarantine-of-memcg-slab-objects.patch
+* kasan-add-memcg-kmem_cache-test.patch
+* proc-use-rb_entry.patch
+* proc-less-code-duplication-in-proc-cmdline.patch
+* notifier-simplify-expression.patch
+* timerqueue-use-rb_entry_safe.patch
+* lib-add-module-support-to-crc32-tests.patch
+* lib-add-module-support-to-glob-tests.patch
+* lib-add-module-support-to-atomic64-tests.patch
+* find_bit-micro-optimise-find_next__bit.patch
+* find_bit-micro-optimise-find_next__bit-v2.patch
+* linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
+* linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+* rbtree-use-designated-initializers.patch
+* lib-add-config_test_sort-to-enable-self-test-of-sort.patch
+* checkpatch-warn-on-embedded-function-names.patch
+* checkpatch-warn-on-logging-continuations.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* rapidio-use-get_user_pages_unlocked.patch
+* config-android-recommended-disable-aio-support.patch
+* config-android-base-enable-hardened-usercopy-and-kernel-aslr.patch
+* fonts-keep-non-sparc-fonts-listed-together.patch
+* scripts-gdb-add-lx-fdtdump-command.patch
+* ipc-semc-avoid-using-spin_unlock_wait.patch
+* ipc-sem-add-hysteresis.patch
+  linux-next.patch
+  linux-next-rejects.patch
+  linux-next-git-rejects.patch
+* fs-add-i_blocksize.patch
+* reimplement-idr-and-ida-using-the-radix-tree.patch
+* reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr.patch
+* reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
+* reimplement-idr-and-ida-using-the-radix-tree-fix.patch
+* scripts-spellingtxt-add-swith-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-an-user-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-unneded-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-intialization-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-initialiazation-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-overwritting-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances.patch
+* scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances.patch
+* lib-vsprintfc-remove-%z-support.patch
+* checkpatchpl-warn-against-using-%z.patch
+* checkpatchpl-warn-against-using-%z-fix.patch
+* kernel-exit-compute-current-directly.patch
+* drivers-tty-compute-current-directly.patch
+* kernel-locking-compute-current-directly.patch
+* sched-remove-set_task_state.patch
+* mm-add-new-mmgrab-helper.patch
+* mm-add-new-mmget-helper.patch
+* mm-use-mmget_not_zero-helper.patch
+* mm-clarify-mm_structmm_userscount-documentation.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
