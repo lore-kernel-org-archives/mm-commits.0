@@ -1,293 +1,252 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2017-01-11-17-14 uploaded
-Date: Wed, 11 Jan 2017 17:14:57 -0800
-Message-ID: <5876d891.KO+lq262YUFdAzyd%akpm__12966.215136885$1484183708$gmane$org@linux-foundation.org>
+Subject: [to-be-updated]
+ ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
+ removed from -mm tree
+Date: Thu, 12 Jan 2017 15:34:01 -0800
+Message-ID: <58781269.Dl+NSdQgUJISur2n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760484AbdALBO7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2017 20:14:59 -0500
+        with ESMTP id S1750914AbdALXeC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2017 18:34:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2017-01-11-17-14 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: ocfs2: fix deadlocks when taking inode lock at vfs entry points
+has been removed from the -mm tree.  Its filename was
+     ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch was dropped because an updated version will be merged
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix deadlocks when taking inode lock at vfs entry points
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+Commit 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+results in a deadlock, as the author "Tariq Saeed" realized shortly after
+the patch was merged.  The discussion happened here
+(https://oss.oracle.com/pipermail/ocfs2-devel/2015-September/011085.html).
 
-To rebase a branch with older patches to a new mmotm release:
+The reason why taking cluster inode lock at vfs entry points opens up a
+self deadlock window, is explained in the previous patch of this series.
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+So far, we have seen two different code paths that have this issue.
+1. do_sys_open
+     may_open
+      inode_permission
+       ocfs2_permission
+        ocfs2_inode_lock() <=== take PR
+         generic_permission
+          get_acl
+           ocfs2_iop_get_acl
+            ocfs2_inode_lock() <=== take PR
+2. fchmod|fchmodat
+    chmod_common
+     notify_change
+      ocfs2_setattr <=== take EX
+       posix_acl_chmod
+        get_acl
+         ocfs2_iop_get_acl <=== take PR
+        ocfs2_iop_set_acl <=== take EX
+
+Fixes them by adding the tracking logic (in the previous patch) for these
+funcs above, ocfs2_permission(), ocfs2_iop_[set|get]_acl(),
+ocfs2_setattr().
+
+Link: http://lkml.kernel.org/r/1483630262-22227-3-git-send-email-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/ocfs2/acl.c  |   39 ++++++++++++++++++++++++++++++++++-----
+ fs/ocfs2/file.c |   44 ++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 68 insertions(+), 15 deletions(-)
+
+diff -puN fs/ocfs2/acl.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/acl.c
+@@ -284,16 +284,31 @@ int ocfs2_iop_set_acl(struct inode *inod
+ {
+ 	struct buffer_head *bh = NULL;
+ 	int status = 0;
+-
+-	status = ocfs2_inode_lock(inode, &bh, 1);
++	int arg_flags = 0, has_locked;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
++
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	has_locked = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (has_locked)
++		arg_flags = OCFS2_META_LOCK_GETBH;
++	status = ocfs2_inode_lock_full(inode, &bh, 1, arg_flags);
+ 	if (status < 0) {
+ 		if (status != -ENOENT)
+ 			mlog_errno(status);
+ 		return status;
+ 	}
++	if (!has_locked)
++		ocfs2_add_holder(lockres, &oh);
++
+ 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
+-	ocfs2_inode_unlock(inode, 1);
++
++	if (!has_locked) {
++		ocfs2_remove_holder(lockres, &oh);
++		ocfs2_inode_unlock(inode, 1);
++	}
+ 	brelse(bh);
++
+ 	return status;
+ }
+ 
+@@ -303,21 +318,35 @@ struct posix_acl *ocfs2_iop_get_acl(stru
+ 	struct buffer_head *di_bh = NULL;
+ 	struct posix_acl *acl;
+ 	int ret;
++	int arg_flags = 0, has_locked;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
+ 
+ 	osb = OCFS2_SB(inode->i_sb);
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return NULL;
+-	ret = ocfs2_inode_lock(inode, &di_bh, 0);
++
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	has_locked = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (has_locked)
++		arg_flags = OCFS2_META_LOCK_GETBH;
++	ret = ocfs2_inode_lock_full(inode, &di_bh, 0, arg_flags);
+ 	if (ret < 0) {
+ 		if (ret != -ENOENT)
+ 			mlog_errno(ret);
+ 		return ERR_PTR(ret);
+ 	}
++	if (!has_locked)
++		ocfs2_add_holder(lockres, &oh);
+ 
+ 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	if (!has_locked) {
++		ocfs2_remove_holder(lockres, &oh);
++		ocfs2_inode_unlock(inode, 0);
++	}
+ 	brelse(di_bh);
++
+ 	return acl;
+ }
+ 
+diff -puN fs/ocfs2/file.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/file.c
+@@ -1138,6 +1138,9 @@ int ocfs2_setattr(struct dentry *dentry,
+ 	handle_t *handle = NULL;
+ 	struct dquot *transfer_to[MAXQUOTAS] = { };
+ 	int qtype;
++	int arg_flags = 0, had_lock;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
+ 
+ 	trace_ocfs2_setattr(inode, dentry,
+ 			    (unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -1173,13 +1176,20 @@ int ocfs2_setattr(struct dentry *dentry,
+ 		}
+ 	}
+ 
+-	status = ocfs2_inode_lock(inode, &bh, 1);
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	had_lock = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (had_lock)
++		arg_flags = OCFS2_META_LOCK_GETBH;
++	status = ocfs2_inode_lock_full(inode, &bh, 1, arg_flags);
+ 	if (status < 0) {
+ 		if (status != -ENOENT)
+ 			mlog_errno(status);
+ 		goto bail_unlock_rw;
+ 	}
+-	inode_locked = 1;
++	if (!had_lock) {
++		ocfs2_add_holder(lockres, &oh);
++		inode_locked = 1;
++	}
+ 
+ 	if (size_change) {
+ 		status = inode_newsize_ok(inode, attr->ia_size);
+@@ -1260,7 +1270,8 @@ int ocfs2_setattr(struct dentry *dentry,
+ bail_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ bail_unlock:
+-	if (status) {
++	if (status && inode_locked) {
++		ocfs2_remove_holder(lockres, &oh);
+ 		ocfs2_inode_unlock(inode, 1);
+ 		inode_locked = 0;
+ 	}
+@@ -1278,8 +1289,10 @@ bail:
+ 		if (status < 0)
+ 			mlog_errno(status);
+ 	}
+-	if (inode_locked)
++	if (inode_locked) {
++		ocfs2_remove_holder(lockres, &oh);
+ 		ocfs2_inode_unlock(inode, 1);
++	}
+ 
+ 	brelse(bh);
+ 	return status;
+@@ -1321,20 +1334,31 @@ bail:
+ int ocfs2_permission(struct inode *inode, int mask)
+ {
+ 	int ret;
++	int has_locked;
++	struct ocfs2_holder oh;
++	struct ocfs2_lock_res *lockres;
+ 
+ 	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+-	ret = ocfs2_inode_lock(inode, NULL, 0);
+-	if (ret) {
+-		if (ret != -ENOENT)
+-			mlog_errno(ret);
+-		goto out;
++	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	has_locked = (ocfs2_is_locked_by_me(lockres) != NULL);
++	if (!has_locked) {
++		ret = ocfs2_inode_lock(inode, NULL, 0);
++		if (ret) {
++			if (ret != -ENOENT)
++				mlog_errno(ret);
++			goto out;
++		}
++		ocfs2_add_holder(lockres, &oh);
+ 	}
+ 
+ 	ret = generic_permission(inode, mask);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	if (!has_locked) {
++		ocfs2_remove_holder(lockres, &oh);
++		ocfs2_inode_unlock(inode, 0);
++	}
+ out:
+ 	return ret;
+ }
+_
+
+Patches currently in -mm which might be from zren@suse.com are
 
 
-
-
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is available at
-
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
-
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-
-
-This mmotm tree contains the following patches against 4.10-rc3:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  i-need-old-gcc.patch
-* memory_hotplug-zone_can_shift-returns-boolean-value.patch
-* mm-respect-foll_force-foll_cow-for-thp.patch
-* mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
-* dax-fix-build-warnings-with-fs_dax-and-fs_iomap.patch
-* memstick-core-avoid-wnonnull-warning.patch
-* userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* tracing-add-__print_flags_u64.patch
-* dax-add-tracepoint-infrastructure-pmd-tracing.patch
-* dax-update-maintainers-entries-for-fs-dax.patch
-* dax-add-tracepoints-to-dax_pmd_load_hole.patch
-* dax-add-tracepoints-to-dax_pmd_insert_mapping.patch
-* mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault.patch
-* mm-dax-move-pmd_fault-to-take-only-vmf-parameter.patch
-* scripts-spellingtxt-add-several-more-common-spelling-mistakes.patch
-* scripts-lindent-clean-up-and-optimize.patch
-* m32r-use-generic-currenth.patch
-* debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done.patch
-* debugobjects-scale-thresholds-with-of-cpus.patch
-* debugobjects-reduce-contention-on-the-global-pool_lock.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-* ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
-* ocfs2-fix-deadlocks-when-taking-inode-lock-at-vfs-entry-points.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
-* kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
-* kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread.patch
-  mm.patch
-* slub-do-not-merge-cache-if-slub_debug-contains-a-never-merge-flag.patch
-* tmpfs-change-shmem_mapping-to-test-shmem_aops.patch
-* mm-throttle-show_mem-from-warn_alloc.patch
-* mm-throttle-show_mem-from-warn_alloc-fix.patch
-* mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
-* mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
-* mm-vmallocc-use-rb_entry_safe.patch
-* mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key.patch
-* mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-* oom-trace-add-oom-detection-tracepoints.patch
-* oom-trace-add-compaction-retry-tracepoint.patch
-* userfaultfd-document-_ior-_iow.patch
-* userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
-* userfaultfd-convert-bug-to-warn_on_once.patch
-* userfaultfd-use-vma_is_anonymous.patch
-* userfaultfd-non-cooperative-split-the-find_userfault-routine.patch
-* userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor.patch
-* userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
-* userfaultfd-non-cooperative-add-fork-event.patch
-* userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
-* userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users.patch
-* userfaultfd-non-cooperative-add-mremap-event.patch
-* userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
-* userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request.patch
-* userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
-* userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
-* userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support.patch
-* userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support.patch
-* userfaultfd-hugetlbfs-add-__mcopy_atomic_hugetlb-for-huge-page-uffdio_copy.patch
-* userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing.patch
-* userfaultfd-hugetlbfs-add-userfaultfd-hugetlb-hook.patch
-* userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages.patch
-* userfaultfd-hugetlbfs-add-userfaultfd_hugetlb-test.patch
-* userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
-* userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
-* userfaultfd-hugetlbfs-reserve-count-on-error-in-__mcopy_atomic_hugetlb.patch
-* userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
-* userfaultfd-introduce-vma_can_userfault.patch
-* userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
-* userfaultfd-shmem-introduce-vma_is_shmem.patch
-* userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
-* userfaultfd-shmem-use-shmem_mcopy_atomic_pte-for-shared-memory.patch
-* userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults.patch
-* userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
-* userfaultfd-shmem-add-userfaultfd_shmem-test.patch
-* userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
-* userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
-* userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
-* userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
-* userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page.patch
-* userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
-* userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
-* mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
-* mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
-* mm-vmscan-add-active-list-aging-tracepoint.patch
-* mm-vmscan-add-active-list-aging-tracepoint-update.patch
-* mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
-* mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
-* mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
-* mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
-* mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
-* trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
-* nfs-no-pg_private-waiters-remain-remove-waker.patch
-* mm-un-export-wake_up_page-functions.patch
-* mm-fix-filemapc-kernel-doc-warnings.patch
-* mm-page_alloc-swap-likely-to-unlikely-as-code-logic-is-different-for-next_zones_zonelist.patch
-* mm-compaction-add-vmstats-for-kcompactd-work.patch
-* mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible.patch
-* mmcompaction-serialize-waitqueue_active-checks.patch
-* mm-bootmemc-cosmetic-improvement-of-code-readability.patch
-* mm-fix-some-typos-in-mm-zsmallocc.patch
-* mm-memblockc-trivial-code-refine-in-memblock_is_region_memory.patch
-* mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch
-* mm-sparse-use-page_private-to-get-page-private-value.patch
-* mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
-* powerpc-do-not-make-the-entire-heap-executable.patch
-* mm-swap-fix-kernel-message-in-swap_info_get.patch
-* mm-swap-add-cluster-lock.patch
-* mm-swap-split-swap-cache-into-64mb-trunks.patch
-* mm-swap-skip-read-ahead-for-unreferenced-swap-slots.patch
-* mm-swap-allocate-swap-slots-in-batches.patch
-* mm-swap-free-swap-slots-in-batch.patch
-* mm-swap-add-cache-for-swap-slots-allocation.patch
-* mm-swap-enable-swap-slots-cache-usage.patch
-* mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
-* mm-thp-add-new-defermadvise-defrag-option.patch
-* z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* kasan-drain-quarantine-of-memcg-slab-objects.patch
-* kasan-add-memcg-kmem_cache-test.patch
-* proc-use-rb_entry.patch
-* proc-less-code-duplication-in-proc-cmdline.patch
-* notifier-simplify-expression.patch
-* timerqueue-use-rb_entry_safe.patch
-* lib-add-module-support-to-crc32-tests.patch
-* lib-add-module-support-to-glob-tests.patch
-* lib-add-module-support-to-atomic64-tests.patch
-* find_bit-micro-optimise-find_next__bit.patch
-* find_bit-micro-optimise-find_next__bit-v2.patch
-* linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
-* linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-* rbtree-use-designated-initializers.patch
-* lib-add-config_test_sort-to-enable-self-test-of-sort.patch
-* checkpatch-warn-on-embedded-function-names.patch
-* checkpatch-warn-on-logging-continuations.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* rapidio-use-get_user_pages_unlocked.patch
-* config-android-recommended-disable-aio-support.patch
-* config-android-base-enable-hardened-usercopy-and-kernel-aslr.patch
-* fonts-keep-non-sparc-fonts-listed-together.patch
-* scripts-gdb-add-lx-fdtdump-command.patch
-* ipc-semc-avoid-using-spin_unlock_wait.patch
-* ipc-sem-add-hysteresis.patch
-  linux-next.patch
-  linux-next-rejects.patch
-  linux-next-git-rejects.patch
-* fs-add-i_blocksize.patch
-* reimplement-idr-and-ida-using-the-radix-tree.patch
-* reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr.patch
-* reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
-* reimplement-idr-and-ida-using-the-radix-tree-fix.patch
-* scripts-spellingtxt-add-swith-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-an-user-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-unneded-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-intialization-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-initialiazation-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-overwritting-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances.patch
-* lib-vsprintfc-remove-%z-support.patch
-* checkpatchpl-warn-against-using-%z.patch
-* checkpatchpl-warn-against-using-%z-fix.patch
-* kernel-exit-compute-current-directly.patch
-* drivers-tty-compute-current-directly.patch
-* kernel-locking-compute-current-directly.patch
-* sched-remove-set_task_state.patch
-* mm-add-new-mmgrab-helper.patch
-* mm-add-new-mmget-helper.patch
-* mm-use-mmget_not_zero-helper.patch
-* mm-clarify-mm_structmm_userscount-documentation.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
