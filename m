@@ -1,102 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-fix-private-list-warnings.patch added to -mm tree
-Date: Thu, 12 Jan 2017 15:35:00 -0800
-Message-ID: <587812a4.3X4Htti0eZlNws0r%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Fri, 13 Jan 2017 13:32:01 -0800
+Message-ID: <58794751.dWpqKq1nO8wXePvq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42262 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750760AbdALXfB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2017 18:35:01 -0500
+        with ESMTP id S1750908AbdAMVcC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 16:32:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: fix private list warnings
-has been added to the -mm tree.  Its filename is
-     radix-tree-fix-private-list-warnings.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-fix-private-list-warnings.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-fix-private-list-warnings.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix-tree: fix private list warnings
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The newly introduced warning in radix_tree_free_nodes() was testing the
-wrong variable; it should have been 'old' instead of 'node'.  Rather than
-replace that one instance, I noticed that we can simply put the
-WARN_ON_ONCE in radix_tree_node_free() and it will be just as effective.
-
-Fixes: ea07b862ac8e ("mm: workingset: fix use-after-free in shadow node shrinker")
-Link: http://lkml.kernel.org/r/1484270903-24307-1-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/md/md.h          |    3 ---
+ drivers/md/raid5-cache.c |    4 ----
+ 2 files changed, 7 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-fix-private-list-warnings lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-private-list-warnings
-+++ a/lib/radix-tree.c
-@@ -365,6 +365,7 @@ static void radix_tree_node_rcu_free(str
- static inline void
- radix_tree_node_free(struct radix_tree_node *node)
+diff -puN drivers/md/md.h~linux-next-git-rejects drivers/md/md.h
+--- a/drivers/md/md.h~linux-next-git-rejects
++++ a/drivers/md/md.h
+@@ -710,9 +710,6 @@ static inline void mddev_clear_unsupport
  {
-+	WARN_ON_ONCE(!list_empty(&node->private_list));
- 	call_rcu(&node->rcu_head, radix_tree_node_rcu_free);
+ 	mddev->flags &= ~unsupported_flags;
  }
+-<<<<<<< HEAD
+-=======
  
-@@ -640,7 +641,6 @@ static inline void radix_tree_shrink(str
- 				update_node(node, private);
- 		}
+ extern void md_writesame_setup(struct mddev *mddev, struct bio *bio);
+->>>>>>> linux-next/akpm-base
+ #endif /* _MD_MD_H */
+diff -puN drivers/md/raid5-cache.c~linux-next-git-rejects drivers/md/raid5-cache.c
+--- a/drivers/md/raid5-cache.c~linux-next-git-rejects
++++ a/drivers/md/raid5-cache.c
+@@ -2499,11 +2499,7 @@ void r5c_finish_stripe_write_out(struct
+ 	if (do_wakeup)
+ 		wake_up(&conf->wait_for_overlap);
  
--		WARN_ON_ONCE(!list_empty(&node->private_list));
- 		radix_tree_node_free(node);
- 	}
- }
-@@ -667,7 +667,6 @@ static void delete_node(struct radix_tre
- 			root->rnode = NULL;
- 		}
- 
--		WARN_ON_ONCE(!list_empty(&node->private_list));
- 		radix_tree_node_free(node);
- 
- 		node = parent;
-@@ -769,7 +768,6 @@ static void radix_tree_free_nodes(struct
- 			struct radix_tree_node *old = child;
- 			offset = child->offset + 1;
- 			child = child->parent;
--			WARN_ON_ONCE(!list_empty(&node->private_list));
- 			radix_tree_node_free(old);
- 			if (old == entry_to_node(node))
- 				return;
+-<<<<<<< HEAD
+-	spin_lock_irq(&conf->log->stripe_in_journal_lock);
+-=======
+ 	spin_lock_irq(&log->stripe_in_journal_lock);
+->>>>>>> linux-next/akpm-base
+ 	list_del_init(&sh->r5c);
+ 	spin_unlock_irq(&log->stripe_in_journal_lock);
+ 	sh->log_start = MaxSector;
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-radix-tree-fix-private-list-warnings.patch
-find_bit-micro-optimise-find_next__bit.patch
-find_bit-micro-optimise-find_next__bit-v2.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr.patch
+i-need-old-gcc.patch
+mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+mm.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
