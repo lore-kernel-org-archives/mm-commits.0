@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-add-missing-makefile-rules.patch added to -mm tree
-Date: Fri, 13 Jan 2017 14:56:26 -0800
-Message-ID: <58795b1a.LhmWZe3KT1Ri6cZI%akpm@linux-foundation.org>
+Subject: + slub-trace-free-objects-at-kern_info.patch added to -mm tree
+Date: Fri, 13 Jan 2017 15:00:33 -0800
+Message-ID: <58795c11.l+eryGZBxoh1gx2p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48928 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbdAMW41 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 17:56:27 -0500
+        with ESMTP id S1751132AbdAMXAe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 18:00:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.thompson@linaro.org, mm-commits@vger.kernel.org
+To: daniel.thompson@linaro.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm: add missing Makefile rules
+     Subject: mm/slub.c: trace free objects at KERN_INFO
 has been added to the -mm tree.  Its filename is
-     tools-vm-add-missing-makefile-rules.patch
+     slub-trace-free-objects-at-kern_info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-add-missing-makefile-rules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-trace-free-objects-at-kern_info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-add-missing-makefile-rules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-trace-free-objects-at-kern_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +39,100 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Thompson <daniel.thompson@linaro.org>
-Subject: tools/vm: add missing Makefile rules
+Subject: mm/slub.c: trace free objects at KERN_INFO
 
-Currently the tools/vm Makefile has a rather arbitrary implicit build
-rule; page-types is the first value in TARGETS so lets just build that
-one!  Additionally there is no install rule and this is needed for make -C
-tools vm_install to work properly.
+Currently when trace is enabled (e.g.  slub_debug=T,kmalloc-128 ) the
+trace messages are mostly output at KERN_INFO.  However the trace code
+also calls print_section() to hexdump the head of a free object.  This is
+hard coded to use KERN_ERR, meaning the console is deluged with trace
+messages even if we've asked for quiet.
 
-Provide a more sensible implicit build rule and a new install rule.
+Fix this the obvious way but adding a level parameter to print_section(),
+allowing calls from the trace code to use the same trace level as other
+trace messages.
 
-Note that the variables names used by the install rule (DESTDIR and
-sbindir) are copied from prior-art in tools/power/cpupower.
-
-Link: http://lkml.kernel.org/r/20170113165630.27541-1-daniel.thompson@linaro.org
+Link: http://lkml.kernel.org/r/20170113154850.518-1-daniel.thompson@linaro.org
 Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/Makefile |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/slub.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN tools/vm/Makefile~tools-vm-add-missing-makefile-rules tools/vm/Makefile
---- a/tools/vm/Makefile~tools-vm-add-missing-makefile-rules
-+++ a/tools/vm/Makefile
-@@ -9,6 +9,8 @@ CC = $(CROSS_COMPILE)gcc
- CFLAGS = -Wall -Wextra -I../lib/
- LDFLAGS = $(LIBS)
+diff -puN mm/slub.c~slub-trace-free-objects-at-kern_info mm/slub.c
+--- a/mm/slub.c~slub-trace-free-objects-at-kern_info
++++ a/mm/slub.c
+@@ -496,10 +496,11 @@ static inline int check_valid_pointer(st
+ 	return 1;
+ }
  
-+all: $(TARGETS)
-+
- $(TARGETS): $(LIBS)
+-static void print_section(char *text, u8 *addr, unsigned int length)
++static void print_section(char *level, char *text, u8 *addr,
++			  unsigned int length)
+ {
+ 	metadata_access_enable();
+-	print_hex_dump(KERN_ERR, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
++	print_hex_dump(level, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
+ 			length, 1);
+ 	metadata_access_disable();
+ }
+@@ -636,14 +637,15 @@ static void print_trailer(struct kmem_ca
+ 	       p, p - addr, get_freepointer(s, p));
  
- $(LIBS):
-@@ -20,3 +22,9 @@ $(LIBS):
- clean:
- 	$(RM) page-types slabinfo page_owner_sort
- 	make -C $(LIB_DIR) clean
-+
-+sbindir ?= /usr/sbin
-+
-+install: all
-+	install -d $(DESTDIR)$(sbindir)
-+	install -m 755 -p $(TARGETS) $(DESTDIR)$(sbindir)
+ 	if (s->flags & SLAB_RED_ZONE)
+-		print_section("Redzone ", p - s->red_left_pad, s->red_left_pad);
++		print_section(KERN_ERR, "Redzone ", p - s->red_left_pad,
++			      s->red_left_pad);
+ 	else if (p > addr + 16)
+-		print_section("Bytes b4 ", p - 16, 16);
++		print_section(KERN_ERR, "Bytes b4 ", p - 16, 16);
+ 
+-	print_section("Object ", p, min_t(unsigned long, s->object_size,
+-				PAGE_SIZE));
++	print_section(KERN_ERR, "Object ", p,
++		      min_t(unsigned long, s->object_size, PAGE_SIZE));
+ 	if (s->flags & SLAB_RED_ZONE)
+-		print_section("Redzone ", p + s->object_size,
++		print_section(KERN_ERR, "Redzone ", p + s->object_size,
+ 			s->inuse - s->object_size);
+ 
+ 	if (s->offset)
+@@ -658,7 +660,8 @@ static void print_trailer(struct kmem_ca
+ 
+ 	if (off != size_from_object(s))
+ 		/* Beginning of the filler is the free pointer */
+-		print_section("Padding ", p + off, size_from_object(s) - off);
++		print_section(KERN_ERR, "Padding ", p + off,
++			      size_from_object(s) - off);
+ 
+ 	dump_stack();
+ }
+@@ -820,7 +823,7 @@ static int slab_pad_check(struct kmem_ca
+ 		end--;
+ 
+ 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
+-	print_section("Padding ", end - remainder, remainder);
++	print_section(KERN_ERR, "Padding ", end - remainder, remainder);
+ 
+ 	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
+ 	return 0;
+@@ -973,7 +976,7 @@ static void trace(struct kmem_cache *s,
+ 			page->freelist);
+ 
+ 		if (!alloc)
+-			print_section("Object ", (void *)object,
++			print_section(KERN_INFO, "Object ", (void *)object,
+ 					s->object_size);
+ 
+ 		dump_stack();
 _
 
 Patches currently in -mm which might be from daniel.thompson@linaro.org are
 
+slub-trace-free-objects-at-kern_info.patch
 tools-vm-add-missing-makefile-rules.patch
 
