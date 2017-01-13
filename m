@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-spellingtxt-add-some-typo-words.patch added to -mm tree
-Date: Fri, 13 Jan 2017 15:40:32 -0800
-Message-ID: <58796570.MvHpvU1ObJruweRg%akpm@linux-foundation.org>
+Subject: + lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
+ added to -mm tree
+Date: Fri, 13 Jan 2017 15:43:14 -0800
+Message-ID: <58796612.PC731PTOM9qOr6P2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50418 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751311AbdAMXkd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 18:40:33 -0500
+        with ESMTP id S1751518AbdAMXnP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 18:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jinb.park7@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, fkostenzer@live.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add some typo-words
+     Subject: lib: move sort self-test into a separate file
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-some-typo-words.patch
+     lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-some-typo-words.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-some-typo-words.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,62 +39,145 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jinbum Park <jinb.park7@gmail.com>
-Subject: scripts/spelling.txt: add some typo-words
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: lib: move sort self-test into a separate file
 
-I wrote a simple script to find new typo not in spelling.txt.
-(https://github.com/jinb-park/find-linux-kernel-typo)
+The lib/sort.c file gets included in the EFI stub for use outside of the
+kernel address space, which now fails due to the addition of a
+module_init() function:
 
-and get following result:
+00000000 R_ARM_ABS32       test_sort_init
+drivers/firmware/efi/libstub/lib-sort.stub.o: absolute symbol references not allowed in the EFI stub
+drivers/firmware/efi/libstub/Makefile:69: recipe for target 'drivers/firmware/efi/libstub/lib-sort.stub.o' failed
 
-	[ rank ]
-	63 paramaters
-	18 alignement
-	9 strucuture
-	....
+Other library tests live in a separate file, so doing the same here
+is an easy way to avoid the problem.
 
-The number means how many files include the typo.
-This patch adds these common typo.
-
-Link: http://lkml.kernel.org/r/20170112113452.GA7042@pjb1027-Latitude-E5410
-Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
+Fixes: akpm-current ("lib: add CONFIG_TEST_SORT to enable self-test of sort()")
+Link: http://lkml.kernel.org/r/20170112110657.3123790-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Kostenzer Felix <fkostenzer@live.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/Makefile    |    1 +
+ lib/sort.c      |   44 --------------------------------------------
+ lib/test_sort.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 44 deletions(-)
 
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-some-typo-words scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-some-typo-words
-+++ a/scripts/spelling.txt
-@@ -74,6 +74,7 @@ algoritms||algorithms
- algorrithm||algorithm
- algorritm||algorithm
- aligment||alignment
-+alignement||alignment
- allign||align
- allocatrd||allocated
- allocte||allocate
-@@ -752,6 +753,7 @@ pakage||package
- pallette||palette
- paln||plan
- paramameters||parameters
-+paramaters||parameters
- paramater||parameter
- parametes||parameters
- parametised||parametrised
-@@ -996,6 +998,7 @@ straming||streaming
- struc||struct
- structres||structures
- stuct||struct
-+strucuture||structure
- stucture||structure
- sturcture||structure
- subdirectoires||subdirectories
+diff -puN lib/Makefile~lib-add-config_test_sort-to-enable-self-test-of-sort-fix lib/Makefile
+--- a/lib/Makefile~lib-add-config_test_sort-to-enable-self-test-of-sort-fix
++++ a/lib/Makefile
+@@ -49,6 +49,7 @@ obj-$(CONFIG_TEST_KASAN) += test_kasan.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+ obj-$(CONFIG_TEST_LKM) += test_module.o
+ obj-$(CONFIG_TEST_RHASHTABLE) += test_rhashtable.o
++obj-$(CONFIG_TEST_SORT) += test_sort.o
+ obj-$(CONFIG_TEST_USER_COPY) += test_user_copy.o
+ obj-$(CONFIG_TEST_STATIC_KEYS) += test_static_keys.o
+ obj-$(CONFIG_TEST_STATIC_KEYS) += test_static_key_base.o
+diff -puN lib/sort.c~lib-add-config_test_sort-to-enable-self-test-of-sort-fix lib/sort.c
+--- a/lib/sort.c~lib-add-config_test_sort-to-enable-self-test-of-sort-fix
++++ a/lib/sort.c
+@@ -103,47 +103,3 @@ void sort(void *base, size_t num, size_t
+ }
+ 
+ EXPORT_SYMBOL(sort);
+-
+-#ifdef CONFIG_TEST_SORT
+-#include <linux/slab.h>
+-#include <linux/module.h>
+-/* a simple boot-time regression test */
+-
+-#define TEST_LEN 1000
+-
+-static int __init cmpint(const void *a, const void *b)
+-{
+-	return *(int *)a - *(int *)b;
+-}
+-
+-static int __init test_sort_init(void)
+-{
+-	int *a, i, r = 1, err = -ENOMEM;
+-
+-	a = kmalloc_array(TEST_LEN, sizeof(*a), GFP_KERNEL);
+-	if (!a)
+-		return err;
+-
+-	for (i = 0; i < TEST_LEN; i++) {
+-		r = (r * 725861) % 6599;
+-		a[i] = r;
+-	}
+-
+-	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
+-
+-	err = -EINVAL;
+-	for (i = 0; i < TEST_LEN-1; i++)
+-		if (a[i] > a[i+1]) {
+-			pr_err("test has failed\n");
+-			goto exit;
+-		}
+-	err = 0;
+-	pr_info("test passed\n");
+-exit:
+-	kfree(a);
+-	return err;
+-}
+-
+-module_init(test_sort_init);
+-MODULE_LICENSE("GPL");
+-#endif
+diff -puN /dev/null lib/test_sort.c
+--- /dev/null
++++ a/lib/test_sort.c
+@@ -0,0 +1,43 @@
++#include <linux/sort.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++
++/* a simple boot-time regression test */
++
++#define TEST_LEN 1000
++
++static int __init cmpint(const void *a, const void *b)
++{
++	return *(int *)a - *(int *)b;
++}
++
++static int __init test_sort_init(void)
++{
++	int *a, i, r = 1, err = -ENOMEM;
++
++	a = kmalloc_array(TEST_LEN, sizeof(*a), GFP_KERNEL);
++	if (!a)
++		return err;
++
++	for (i = 0; i < TEST_LEN; i++) {
++		r = (r * 725861) % 6599;
++		a[i] = r;
++	}
++
++	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
++
++	err = -EINVAL;
++	for (i = 0; i < TEST_LEN-1; i++)
++		if (a[i] > a[i+1]) {
++			pr_err("test has failed\n");
++			goto exit;
++		}
++	err = 0;
++	pr_info("test passed\n");
++exit:
++	kfree(a);
++	return err;
++}
++
++module_init(test_sort_init);
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from jinb.park7@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-scripts-spellingtxt-add-some-typo-words.patch
+memstick-core-avoid-wnonnull-warning.patch
+lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 
