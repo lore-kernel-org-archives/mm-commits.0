@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch added to -mm tree
-Date: Fri, 13 Jan 2017 15:06:07 -0800
-Message-ID: <58795d5f.A822FPqA+E8qwmL4%akpm@linux-foundation.org>
+Subject: + frv-pci-frv-fix-build-warning.patch added to -mm tree
+Date: Fri, 13 Jan 2017 15:12:40 -0800
+Message-ID: <58795ee8.12K2toe2OKL2h3Zq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49292 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751580AbdAMXGI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 18:06:08 -0500
+        with ESMTP id S1751389AbdAMXMl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 18:12:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: l.stach@pengutronix.de, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, dhowells@redhat.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: alloc_contig: re-allow CMA to compact FS pages
+     Subject: arch/frv/mb93090-mb00/pci-frv.c: fix build warning
 has been added to the -mm tree.  Its filename is
-     mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
+     frv-pci-frv-fix-build-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/frv-pci-frv-fix-build-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/frv-pci-frv-fix-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,45 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm: alloc_contig: re-allow CMA to compact FS pages
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: arch/frv/mb93090-mb00/pci-frv.c: fix build warning
 
-Commit 73e64c51afc5 (mm, compaction: allow compaction for GFP_NOFS
-requests) changed compation to skip FS pages if not explicitly allowed to
-touch them, but missed to update the CMA compact_control.
+The build of frv defconfig gives warning:
 
-This leads to a very high isolation failure rate, crippling performance of
-CMA even on a lightly loaded system.  Re-allow CMA to compact FS pages by
-setting the correct GFP flags, restoring CMA behavior and performance to
-the kernel 4.9 level.
+arch/frv/mb93090-mb00/pci-frv.c:176:5: warning:
+	ignoring return value of 'pci_assign_resource',
+		declared with attribute warn_unused_result
 
-Fixes: 73e64c51afc5 (mm, compaction: allow compaction for GFP_NOFS requests)
-Link: http://lkml.kernel.org/r/20170113115155.24335-1-l.stach@pengutronix.de
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Just print an error message to silence the warning. We can not do much
+here on error.
+
+Link: http://lkml.kernel.org/r/1484256471-5379-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/frv/mb93090-mb00/pci-frv.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-alloc_contig-re-allow-cma-to-compact-fs-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-alloc_contig-re-allow-cma-to-compact-fs-pages
-+++ a/mm/page_alloc.c
-@@ -7248,6 +7248,7 @@ int alloc_contig_range(unsigned long sta
- 		.zone = page_zone(pfn_to_page(start)),
- 		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
-+		.gfp_mask = GFP_KERNEL,
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
+diff -puN arch/frv/mb93090-mb00/pci-frv.c~frv-pci-frv-fix-build-warning arch/frv/mb93090-mb00/pci-frv.c
+--- a/arch/frv/mb93090-mb00/pci-frv.c~frv-pci-frv-fix-build-warning
++++ a/arch/frv/mb93090-mb00/pci-frv.c
+@@ -147,7 +147,7 @@ static void __init pcibios_allocate_reso
+ static void __init pcibios_assign_resources(void)
+ {
+ 	struct pci_dev *dev = NULL;
+-	int idx;
++	int idx, err;
+ 	struct resource *r;
  
+ 	for_each_pci_dev(dev) {
+@@ -172,8 +172,13 @@ static void __init pcibios_assign_resour
+ 			 *  the BIOS forgot to do so or because we have decided the old
+ 			 *  address was unusable for some reason.
+ 			 */
+-			if (!r->start && r->end)
+-				pci_assign_resource(dev, idx);
++			if (!r->start && r->end) {
++				err = pci_assign_resource(dev, idx);
++				if (err)
++					dev_err(&dev->dev,
++						"Failed to assign new address to %d\n",
++						idx);
++			}
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from l.stach@pengutronix.de are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
+frv-pci-frv-fix-build-warning.patch
 
