@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch added to
- -mm tree
-Date: Tue, 31 Jan 2017 14:53:01 -0800
-Message-ID: <5891154d.YxNm69WYXCNq1+9v%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
+ added to -mm tree
+Date: Tue, 17 Jan 2017 13:35:40 -0800
+Message-ID: <587e8e2c.3/21bg2m+Ya9BtWj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43512 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbdAaWxG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 17:53:06 -0500
+        with ESMTP id S1751139AbdAQVfl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 16:35:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xieyisheng1@huawei.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, guohanjun@huawei.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hotplug: enable memory hotplug for non-lru movable pages
+     Subject: mm, page_alloc: drain per-cpu pages from workqueue context
 has been added to the -mm tree.  Its filename is
-     mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+     mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,131 +39,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/hotplug: enable memory hotplug for non-lru movable pages
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: drain per-cpu pages from workqueue context
 
-We had considered all of the non-lru pages as unmovable before commit
-bda807d44454 ("mm: migrate: support non-lru movable page migration").  But
-now some of non-lru pages like zsmalloc, virtio-balloon pages also become
-movable.  So we can offline such blocks by using non-lru page migration.
+The per-cpu page allocator can be drained immediately via
+drain_all_pages() which sends IPIs to every CPU.  In the next patch, the
+per-cpu allocator will only be used for interrupt-safe allocations which
+prevents draining it from IPI context.  This patch uses workqueues to
+drain the per-cpu lists instead.
 
-This patch straightforwardly adds non-lru migration code, which means
-adding non-lru related code to the functions which scan over pfn and
-collect pages to be migrated and isolate them before migration.
+This is slower but no slowdown during intensive reclaim was measured and
+the paths that use drain_all_pages() are not that sensitive to
+performance.  This is particularly true as the path would only be
+triggered when reclaim is failing.  It also makes a some sense to avoid
+storming a machine with IPIs when it's under memory pressure.  Arguably,
+it should be further adjusted so that only one caller at a time is
+draining pages but it's beyond the scope of the current patch.
 
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20170117092954.15413-4-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yisheng Xie <xieyisheng1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   28 +++++++++++++++++-----------
- mm/page_alloc.c     |    8 ++++++--
- 2 files changed, 23 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |   42 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 35 insertions(+), 7 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages
-+++ a/mm/memory_hotplug.c
-@@ -1535,10 +1535,10 @@ int test_pages_in_a_zone(unsigned long s
+diff -puN mm/page_alloc.c~mm-page_alloc-drain-per-cpu-pages-from-workqueue-context mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-drain-per-cpu-pages-from-workqueue-context
++++ a/mm/page_alloc.c
+@@ -2342,19 +2342,21 @@ void drain_local_pages(struct zone *zone
+ 		drain_pages(cpu);
  }
  
- /*
-- * Scan pfn range [start,end) to find movable/migratable pages (LRU pages
-- * and hugepages). We scan pfn because it's much easier than scanning over
-- * linked list. This function returns the pfn of the first found movable
-- * page if it's found, otherwise 0.
-+ * Scan pfn range [start,end) to find movable/migratable pages (LRU pages,
-+ * non-lru movable pages and hugepages). We scan pfn because it's much
-+ * easier than scanning over linked list. This function returns the pfn
-+ * of the first found movable page if it's found, otherwise 0.
-  */
- static unsigned long scan_movable_pages(unsigned long start, unsigned long end)
- {
-@@ -1549,6 +1549,8 @@ static unsigned long scan_movable_pages(
- 			page = pfn_to_page(pfn);
- 			if (PageLRU(page))
- 				return pfn;
-+			if (__PageMovable(page))
-+				return pfn;
- 			if (PageHuge(page)) {
- 				if (page_huge_active(page))
- 					return pfn;
-@@ -1625,21 +1627,25 @@ do_migrate_range(unsigned long start_pfn
- 		if (!get_page_unless_zero(page))
- 			continue;
- 		/*
--		 * We can skip free pages. And we can only deal with pages on
--		 * LRU.
-+		 * We can skip free pages. And we can deal with pages on
-+		 * LRU and non-lru movable pages.
- 		 */
--		ret = isolate_lru_page(page);
-+		if (PageLRU(page))
-+			ret = isolate_lru_page(page);
-+		else
-+			ret = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
- 		if (!ret) { /* Success */
- 			put_page(page);
- 			list_add_tail(&page->lru, &source);
- 			move_pages--;
--			inc_node_page_state(page, NR_ISOLATED_ANON +
--					    page_is_file_cache(page));
-+			if (!__PageMovable(page))
-+				inc_node_page_state(page, NR_ISOLATED_ANON +
-+						    page_is_file_cache(page));
- 
- 		} else {
- #ifdef CONFIG_DEBUG_VM
--			pr_alert("removing pfn %lx from LRU failed\n", pfn);
--			dump_page(page, "failed to remove from LRU");
-+			pr_alert("failed to isolate pfn %lx\n", pfn);
-+			dump_page(page, "isolation failed");
- #endif
- 			put_page(page);
- 			/* Because we don't have big zone->lock. we should
-diff -puN mm/page_alloc.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages
-+++ a/mm/page_alloc.c
-@@ -7227,8 +7227,9 @@ void *__init alloc_large_system_hash(con
-  * If @count is not zero, it is okay to include less @count unmovable pages
-  *
-  * PageLRU check without isolation or lru_lock could race so that
-- * MIGRATE_MOVABLE block might include unmovable pages. It means you can't
-- * expect this function should be exact.
-+ * MIGRATE_MOVABLE block might include unmovable pages. And __PageMovable
-+ * check without lock_page also may miss some movable non-lru pages at
-+ * race condition. So you can't expect this function should be exact.
-  */
- bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
- 			 bool skip_hwpoisoned_pages)
-@@ -7284,6 +7285,9 @@ bool has_unmovable_pages(struct zone *zo
- 		if (skip_hwpoisoned_pages && PageHWPoison(page))
- 			continue;
- 
-+		if (__PageMovable(page))
-+			continue;
++static void drain_local_pages_wq(struct work_struct *work)
++{
++	drain_local_pages(NULL);
++}
 +
- 		if (!PageLRU(page))
- 			found++;
- 		/*
+ /*
+  * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
+  *
+  * When zone parameter is non-NULL, spill just the single zone's pages.
+  *
+- * Note that this code is protected against sending an IPI to an offline
+- * CPU but does not guarantee sending an IPI to newly hotplugged CPUs:
+- * on_each_cpu_mask() blocks hotplug and won't talk to offlined CPUs but
+- * nothing keeps CPUs from showing up after we populated the cpumask and
+- * before the call to on_each_cpu_mask().
++ * Note that this can be extremely slow as the draining happens in a workqueue.
+  */
+ void drain_all_pages(struct zone *zone)
+ {
++	struct work_struct __percpu *works;
+ 	int cpu;
+ 
+ 	/*
+@@ -2363,6 +2365,16 @@ void drain_all_pages(struct zone *zone)
+ 	 */
+ 	static cpumask_t cpus_with_pcps;
+ 
++	/* Workqueues cannot recurse */
++	if (current->flags & PF_WQ_WORKER)
++		return;
++
++	/*
++	 * As this can be called from reclaim context, do not reenter reclaim.
++	 * An allocation failure can be handled, it's simply slower
++	 */
++	works = alloc_percpu_gfp(struct work_struct, GFP_ATOMIC);
++
+ 	/*
+ 	 * We don't care about racing with CPU hotplug event
+ 	 * as offline notification will cause the notified
+@@ -2393,8 +2405,24 @@ void drain_all_pages(struct zone *zone)
+ 		else
+ 			cpumask_clear_cpu(cpu, &cpus_with_pcps);
+ 	}
+-	on_each_cpu_mask(&cpus_with_pcps, (smp_call_func_t) drain_local_pages,
+-								zone, 1);
++
++	if (works) {
++		for_each_cpu(cpu, &cpus_with_pcps) {
++			struct work_struct *work = per_cpu_ptr(works, cpu);
++			INIT_WORK(work, drain_local_pages_wq);
++			schedule_work_on(cpu, work);
++		}
++		for_each_cpu(cpu, &cpus_with_pcps)
++			flush_work(per_cpu_ptr(works, cpu));
++	} else {
++		for_each_cpu(cpu, &cpus_with_pcps) {
++			struct work_struct work;
++
++			INIT_WORK(&work, drain_local_pages_wq);
++			schedule_work_on(cpu, &work);
++			flush_work(&work);
++		}
++	}
+ }
+ 
+ #ifdef CONFIG_HIBERNATION
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-migration-make-isolate_movable_page-return-int-type.patch
-mm-migration-make-isolate_movable_page-always-defined.patch
-hwpoison-soft-offlining-for-non-lru-movable-page.patch
-mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+mm-page_alloc-split-buffered_rmqueue.patch
+mm-page_alloc-split-alloc_pages_nodemask.patch
+mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
+mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
 
