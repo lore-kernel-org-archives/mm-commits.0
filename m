@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch added to -mm tree
-Date: Fri, 13 Jan 2017 16:14:48 -0800
-Message-ID: <58796d78.jVDl2zvRrJzUVSVW%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 17 Jan 2017 11:28:05 -0800
+Message-ID: <587e7045.RW545ra1q11Yxo06%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36270 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750713AbdANAOt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2017 19:14:49 -0500
+        with ESMTP id S1751059AbdAQTib (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 14:38:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, hughd@google.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +39,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix
+Subject: linux-next-git-rejects
 
-kunmap() takes a page*, per Hugh
-
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/mac80211/rx.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN mm/memory.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix mm/memory.c
---- a/mm/memory.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix
-+++ a/mm/memory.c
-@@ -4172,7 +4172,7 @@ long copy_huge_page_from_user(struct pag
- 				(const void __user *)(src + i * PAGE_SIZE),
- 				PAGE_SIZE);
- 		if (allow_pagefault)
--			kunmap(page_kaddr + i);
-+			kunmap(dst_page + i);
- 		else
- 			kunmap_atomic(page_kaddr);
+diff -puN net/mac80211/rx.c~linux-next-git-rejects net/mac80211/rx.c
+--- a/net/mac80211/rx.c~linux-next-git-rejects
++++ a/net/mac80211/rx.c
+@@ -3934,7 +3934,6 @@ static bool ieee80211_invoke_fast_rx(str
+ 	if (fast_rx->internal_forward) {
+ 		struct sk_buff *xmit_skb = NULL;
+ 		bool multicast = is_multicast_ether_addr(skb->data);
+-<<<<<<< HEAD
  
+ 		if (multicast) {
+ 			xmit_skb = skb_copy(skb, GFP_ATOMIC);
+@@ -3943,16 +3942,6 @@ static bool ieee80211_invoke_fast_rx(str
+ 			skb = NULL;
+ 		}
+ 
+-=======
+-
+-		if (multicast) {
+-			xmit_skb = skb_copy(skb, GFP_ATOMIC);
+-		} else if (sta_info_get(rx->sdata, skb->data)) {
+-			xmit_skb = skb;
+-			skb = NULL;
+-		}
+-
+->>>>>>> linux-next/akpm-base
+ 		if (xmit_skb) {
+ 			/*
+ 			 * Send to wireless media and increase priority by 256
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,4 +94,5 @@ linux-next-rejects.patch
 reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
