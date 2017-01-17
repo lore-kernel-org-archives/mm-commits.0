@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 17 Jan 2017 14:36:08 -0800
-Message-ID: <587e9c58.FtrLtITGnkN+5QNr%akpm@linux-foundation.org>
+Subject: + arch-mm-remove-arch-specific-show_mem.patch added to -mm tree
+Date: Tue, 17 Jan 2017 14:34:57 -0800
+Message-ID: <587e9c11.0mLSxzYQ2O60xIVf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47238 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751291AbdAQWna (ORCPT
+        with ESMTP id S1751270AbdAQWna (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 17:43:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, cmetcalf@mellanox.com, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, gxt@mprc.pku.edu.cn, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, jejb@parisc-linux.org, mgorman@suse.de, rientjes@google.com, tony.luck@intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes
+     Subject: arch, mm: remove arch specific show_mem
 has been added to the -mm tree.  Its filename is
-     lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+     arch-mm-remove-arch-specific-show_mem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-mm-remove-arch-specific-show_mem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-mm-remove-arch-specific-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +38,307 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes
+From: Michal Hocko <mhocko@suse.com>
+Subject: arch, mm: remove arch specific show_mem
 
-WARNING: line over 80 characters
-#214: FILE: mm/page_alloc.c:4332:
-+static bool show_mem_node_skip(unsigned int flags, int nid, nodemask_t *nodemask)
+We have a generic implementation for quite some time already.  If there is
+any arch specific information to be printed then we should add a callback
+called from the generic code rather than duplicate the whole show_mem. 
+The current code has resulted in the code duplication and the output
+divergence which is both confusing and adds maintainance costs.  Let's
+just get rid of this mess.
 
-WARNING: line over 80 characters
-#230: FILE: mm/page_alloc.c:4338:
-+	 * no node mask - aka implicit memory numa policy. Do not bother with the
-
-WARNING: line over 80 characters
-#231: FILE: mm/page_alloc.c:4339:
-+	 * synchronization - read_mems_allowed_begin - because we do not have to be
-
-total: 0 errors, 3 warnings, 198 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170117091543.25850-4-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn> [UniCore32]
+Acked-by: Helge Deller <deller@gmx.de> [for parisc]
+Acked-by: Chris Metcalf <cmetcalf@mellanox.com> [for tile]
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/mm/init.c      |   48 ------------------------------------
+ arch/parisc/mm/init.c    |   49 -------------------------------------
+ arch/sparc/mm/init_32.c  |   11 --------
+ arch/tile/mm/pgtable.c   |   45 ---------------------------------
+ arch/unicore32/mm/init.c |   44 ---------------------------------
+ 5 files changed, 197 deletions(-)
 
-diff -puN mm/page_alloc.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -4335,9 +4335,9 @@ static bool show_mem_node_skip(unsigned
- 		return false;
+diff -puN arch/ia64/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/ia64/mm/init.c
+@@ -684,51 +684,3 @@ int arch_remove_memory(u64 start, u64 si
+ }
+ #endif
+ #endif
+-
+-/**
+- * show_mem - give short summary of memory stats
+- *
+- * Shows a simple page count of reserved and used pages in the system.
+- * For discontig machines, it does this on a per-pgdat basis.
+- */
+-void show_mem(unsigned int filter)
+-{
+-	int total_reserved = 0;
+-	unsigned long total_present = 0;
+-	pg_data_t *pgdat;
+-
+-	printk(KERN_INFO "Mem-info:\n");
+-	show_free_areas(filter);
+-	printk(KERN_INFO "Node memory in pages:\n");
+-	for_each_online_pgdat(pgdat) {
+-		unsigned long present;
+-		unsigned long flags;
+-		int reserved = 0;
+-		int nid = pgdat->node_id;
+-		int zoneid;
+-
+-		if (skip_free_areas_node(filter, nid))
+-			continue;
+-		pgdat_resize_lock(pgdat, &flags);
+-
+-		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+-			struct zone *zone = &pgdat->node_zones[zoneid];
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			reserved += zone->present_pages - zone->managed_pages;
+-		}
+-		present = pgdat->node_present_pages;
+-
+-		pgdat_resize_unlock(pgdat, &flags);
+-		total_present += present;
+-		total_reserved += reserved;
+-		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, ",
+-		       nid, present, reserved);
+-	}
+-	printk(KERN_INFO "%ld pages of RAM\n", total_present);
+-	printk(KERN_INFO "%d reserved pages\n", total_reserved);
+-	printk(KERN_INFO "Total of %ld pages in page table cache\n",
+-	       quicklist_total_size());
+-	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
+-}
+diff -puN arch/parisc/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/parisc/mm/init.c
+@@ -653,55 +653,6 @@ void __init mem_init(void)
+ unsigned long *empty_zero_page __read_mostly;
+ EXPORT_SYMBOL(empty_zero_page);
  
- 	/*
--	 * no node mask - aka implicit memory numa policy. Do not bother with the
--	 * synchronization - read_mems_allowed_begin - because we do not have to be
--	 * precise here.
-+	 * no node mask - aka implicit memory numa policy. Do not bother with
-+	 * the synchronization - read_mems_allowed_begin - because we do not
-+	 * have to be precise here.
- 	 */
- 	if (!nodemask)
- 		nodemask = &cpuset_current_mems_allowed;
+-void show_mem(unsigned int filter)
+-{
+-	int total = 0,reserved = 0;
+-	pg_data_t *pgdat;
+-
+-	printk(KERN_INFO "Mem-info:\n");
+-	show_free_areas(filter);
+-
+-	for_each_online_pgdat(pgdat) {
+-		unsigned long flags;
+-		int zoneid;
+-
+-		pgdat_resize_lock(pgdat, &flags);
+-		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+-			struct zone *zone = &pgdat->node_zones[zoneid];
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			total += zone->present_pages;
+-			reserved = zone->present_pages - zone->managed_pages;
+-		}
+-		pgdat_resize_unlock(pgdat, &flags);
+-	}
+-
+-	printk(KERN_INFO "%d pages of RAM\n", total);
+-	printk(KERN_INFO "%d reserved pages\n", reserved);
+-
+-#ifdef CONFIG_DISCONTIGMEM
+-	{
+-		struct zonelist *zl;
+-		int i, j;
+-
+-		for (i = 0; i < npmem_ranges; i++) {
+-			zl = node_zonelist(i, 0);
+-			for (j = 0; j < MAX_NR_ZONES; j++) {
+-				struct zoneref *z;
+-				struct zone *zone;
+-
+-				printk("Zone list for zone %d on node %d: ", j, i);
+-				for_each_zone_zonelist(zone, z, zl, j)
+-					printk("[%d/%s] ", zone_to_nid(zone),
+-								zone->name);
+-				printk("\n");
+-			}
+-		}
+-	}
+-#endif
+-}
+-
+ /*
+  * pagetable_init() sets up the page tables
+  *
+diff -puN arch/sparc/mm/init_32.c~arch-mm-remove-arch-specific-show_mem arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/sparc/mm/init_32.c
+@@ -55,17 +55,6 @@ extern unsigned int sparc_ramdisk_size;
+ 
+ unsigned long highstart_pfn, highend_pfn;
+ 
+-void show_mem(unsigned int filter)
+-{
+-	printk("Mem-info:\n");
+-	show_free_areas(filter);
+-	printk("Free swap:       %6ldkB\n",
+-	       get_nr_swap_pages() << (PAGE_SHIFT-10));
+-	printk("%ld pages of RAM\n", totalram_pages);
+-	printk("%ld free pages\n", nr_free_pages());
+-}
+-
+-
+ unsigned long last_valid_pfn;
+ 
+ unsigned long calc_highpages(void)
+diff -puN arch/tile/mm/pgtable.c~arch-mm-remove-arch-specific-show_mem arch/tile/mm/pgtable.c
+--- a/arch/tile/mm/pgtable.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/tile/mm/pgtable.c
+@@ -36,51 +36,6 @@
+ 
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+ 
+-/*
+- * The normal show_free_areas() is too verbose on Tile, with dozens
+- * of processors and often four NUMA zones each with high and lowmem.
+- */
+-void show_mem(unsigned int filter)
+-{
+-	struct zone *zone;
+-
+-	pr_err("Active:%lu inactive:%lu dirty:%lu writeback:%lu unstable:%lu free:%lu\n slab:%lu mapped:%lu pagetables:%lu bounce:%lu pagecache:%lu swap:%lu\n",
+-	       (global_node_page_state(NR_ACTIVE_ANON) +
+-		global_node_page_state(NR_ACTIVE_FILE)),
+-	       (global_node_page_state(NR_INACTIVE_ANON) +
+-		global_node_page_state(NR_INACTIVE_FILE)),
+-	       global_node_page_state(NR_FILE_DIRTY),
+-	       global_node_page_state(NR_WRITEBACK),
+-	       global_node_page_state(NR_UNSTABLE_NFS),
+-	       global_page_state(NR_FREE_PAGES),
+-	       (global_page_state(NR_SLAB_RECLAIMABLE) +
+-		global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-	       global_node_page_state(NR_FILE_MAPPED),
+-	       global_page_state(NR_PAGETABLE),
+-	       global_page_state(NR_BOUNCE),
+-	       global_node_page_state(NR_FILE_PAGES),
+-	       get_nr_swap_pages());
+-
+-	for_each_zone(zone) {
+-		unsigned long flags, order, total = 0, largest_order = -1;
+-
+-		if (!populated_zone(zone))
+-			continue;
+-
+-		spin_lock_irqsave(&zone->lock, flags);
+-		for (order = 0; order < MAX_ORDER; order++) {
+-			int nr = zone->free_area[order].nr_free;
+-			total += nr << order;
+-			if (nr)
+-				largest_order = order;
+-		}
+-		spin_unlock_irqrestore(&zone->lock, flags);
+-		pr_err("Node %d %7s: %lukB (largest %luKb)\n",
+-		       zone_to_nid(zone), zone->name,
+-		       K(total), largest_order ? K(1UL) << largest_order : 0);
+-	}
+-}
+-
+ /**
+  * shatter_huge_page() - ensure a given address is mapped by a small page.
+  *
+diff -puN arch/unicore32/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/unicore32/mm/init.c
+--- a/arch/unicore32/mm/init.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/unicore32/mm/init.c
+@@ -57,50 +57,6 @@ early_param("initrd", early_initrd);
+  */
+ struct meminfo meminfo;
+ 
+-void show_mem(unsigned int filter)
+-{
+-	int free = 0, total = 0, reserved = 0;
+-	int shared = 0, cached = 0, slab = 0, i;
+-	struct meminfo *mi = &meminfo;
+-
+-	printk(KERN_DEFAULT "Mem-info:\n");
+-	show_free_areas(filter);
+-
+-	for_each_bank(i, mi) {
+-		struct membank *bank = &mi->bank[i];
+-		unsigned int pfn1, pfn2;
+-		struct page *page, *end;
+-
+-		pfn1 = bank_pfn_start(bank);
+-		pfn2 = bank_pfn_end(bank);
+-
+-		page = pfn_to_page(pfn1);
+-		end  = pfn_to_page(pfn2 - 1) + 1;
+-
+-		do {
+-			total++;
+-			if (PageReserved(page))
+-				reserved++;
+-			else if (PageSwapCache(page))
+-				cached++;
+-			else if (PageSlab(page))
+-				slab++;
+-			else if (!page_count(page))
+-				free++;
+-			else
+-				shared += page_count(page) - 1;
+-			page++;
+-		} while (page < end);
+-	}
+-
+-	printk(KERN_DEFAULT "%d pages of RAM\n", total);
+-	printk(KERN_DEFAULT "%d free pages\n", free);
+-	printk(KERN_DEFAULT "%d reserved pages\n", reserved);
+-	printk(KERN_DEFAULT "%d slab pages\n", slab);
+-	printk(KERN_DEFAULT "%d pages shared\n", shared);
+-	printk(KERN_DEFAULT "%d pages swap cached\n", cached);
+-}
+-
+ static void __init find_limits(unsigned long *min, unsigned long *max_low,
+ 	unsigned long *max_high)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-i-need-old-gcc.patch
-mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
-proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-dax-enable-iostat-for-read-write-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
-mm.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
-mm-page_alloc-split-buffered_rmqueue-fix.patch
-lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-throttle-show_mem-from-warn_alloc.patch
+mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+oom-trace-add-oom-detection-tracepoints.patch
+oom-trace-add-compaction-retry-tracepoint.patch
+mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+mm-vmscan-add-active-list-aging-tracepoint.patch
+mm-vmscan-add-active-list-aging-tracepoint-update.patch
+mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+mm-vmscan-do-not-count-freed-pages-as-pgdeactivate.patch
+mm-vmscan-cleanup-lru-size-claculations.patch
+mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
+revert-mm-bail-out-in-shrink_inactive_list.patch
+mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
+mm-page_alloc-warn_alloc-print-nodemask.patch
+arch-mm-remove-arch-specific-show_mem.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask.patch
 
