@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch added to -mm tree
-Date: Tue, 17 Jan 2017 12:45:37 -0800
-Message-ID: <587e8271.fXxs4FOrtBDzWPk0%akpm@linux-foundation.org>
+Subject: + mm-vmscan-consider-eligible-zones-in-get_scan_count.patch added to -mm tree
+Date: Tue, 17 Jan 2017 13:18:02 -0800
+Message-ID: <587e8a0a.xyQgx27hM8UcwuIL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751268AbdAQUpn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 15:45:43 -0500
+        with ESMTP id S1751186AbdAQVSD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 16:18:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guozhonghua@h3c.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: optimize freeing of dead node locks
+     Subject: mm, vmscan: consider eligible zones in get_scan_count
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
+     mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,84 +38,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2/dlm: optimize freeing of dead node locks
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmscan: consider eligible zones in get_scan_count
 
-Three loops can be optimized into one and its sub loops, so less code can
-do the same work.
+get_scan_count() considers the whole node LRU size when
 
-Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4C4AF898E@H3CMLB12-EX.srv.huawei-3com.com
-Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+- doing SCAN_FILE due to many page cache inactive pages
+- calculating the number of pages to scan
+
+In both cases this might lead to unexpected behavior especially on 32b
+systems where we can expect lowmem memory pressure very often.
+
+A large highmem zone can easily distort SCAN_FILE heuristic because there
+might be only few file pages from the eligible zones on the node lru and
+we would still enforce file lru scanning which can lead to trashing while
+we could still scan anonymous pages.
+
+The later use of lruvec_lru_size can be problematic as well.  Especially
+when there are not many pages from the eligible zones.  We would have to
+skip over many pages to find anything to reclaim but shrink_node_memcg
+would only reduce the remaining number to scan by SWAP_CLUSTER_MAX at
+maximum.  Therefore we can end up going over a large LRU many times
+without actually having chance to reclaim much if anything at all.  The
+closer we are out of memory on lowmem zone the worse the problem will be.
+
+Fix this by filtering out all the ineligible zones when calculating the
+lru size for both paths and consider only sc->reclaim_idx zones.
+
+Link: http://lkml.kernel.org/r/20170117103702.28542-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |   39 ++++++++++++-----------------------
- 1 file changed, 14 insertions(+), 25 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-optimization-of-code-while-free-dead-node-locks fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-optimization-of-code-while-free-dead-node-locks
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2268,6 +2268,8 @@ static void dlm_free_dead_locks(struct d
- {
- 	struct dlm_lock *lock, *next;
- 	unsigned int freed = 0;
-+       struct list_head *queue = NULL;
-+       int i;
- 
- 	/* this node is the lockres master:
- 	 * 1) remove any stale locks for the dead node
-@@ -2280,31 +2282,18 @@ static void dlm_free_dead_locks(struct d
- 	 * to force the DLM_UNLOCK_FREE_LOCK action so as to free the locks */
- 
- 	/* TODO: check pending_asts, pending_basts here */
--	list_for_each_entry_safe(lock, next, &res->granted, list) {
--		if (lock->ml.node == dead_node) {
--			list_del_init(&lock->list);
--			dlm_lock_put(lock);
--			/* Can't schedule DLM_UNLOCK_FREE_LOCK - do manually */
--			dlm_lock_put(lock);
--			freed++;
--		}
--	}
--	list_for_each_entry_safe(lock, next, &res->converting, list) {
--		if (lock->ml.node == dead_node) {
--			list_del_init(&lock->list);
--			dlm_lock_put(lock);
--			/* Can't schedule DLM_UNLOCK_FREE_LOCK - do manually */
--			dlm_lock_put(lock);
--			freed++;
--		}
--	}
--	list_for_each_entry_safe(lock, next, &res->blocked, list) {
--		if (lock->ml.node == dead_node) {
--			list_del_init(&lock->list);
--			dlm_lock_put(lock);
--			/* Can't schedule DLM_UNLOCK_FREE_LOCK - do manually */
--			dlm_lock_put(lock);
--			freed++;
-+       for (i = DLM_GRANTED_LIST; i <= DLM_BLOCKED_LIST; i++) {
-+               queue = dlm_list_idx_to_ptr(res, i);
-+               list_for_each_entry_safe(lock, next, queue, list) {
-+                       if (lock->ml.node == dead_node) {
-+                               list_del_init(&lock->list);
-+                               dlm_lock_put(lock);
-+                               /* Can't schedule DLM_UNLOCK_FREE_LOCK
-+                                * do manually
-+                                */
-+                               dlm_lock_put(lock);
-+                               freed++;
-+                       }
- 		}
+diff -puN mm/vmscan.c~mm-vmscan-consider-eligible-zones-in-get_scan_count mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-consider-eligible-zones-in-get_scan_count
++++ a/mm/vmscan.c
+@@ -2233,7 +2233,7 @@ static void get_scan_count(struct lruvec
+ 	 * system is under heavy pressure.
+ 	 */
+ 	if (!inactive_list_is_low(lruvec, true, sc, false) &&
+-	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES) >> sc->priority) {
++	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, sc->reclaim_idx) >> sc->priority) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
  	}
+@@ -2300,7 +2300,7 @@ out:
+ 			unsigned long size;
+ 			unsigned long scan;
  
+-			size = lruvec_lru_size(lruvec, lru, MAX_NR_ZONES);
++			size = lruvec_lru_size(lruvec, lru, sc->reclaim_idx);
+ 			scan = size >> sc->priority;
+ 
+ 			if (!scan && pass && force_scan)
 _
 
-Patches currently in -mm which might be from guozhonghua@h3c.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
+mm-throttle-show_mem-from-warn_alloc.patch
+mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+oom-trace-add-oom-detection-tracepoints.patch
+oom-trace-add-compaction-retry-tracepoint.patch
+mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+mm-vmscan-add-active-list-aging-tracepoint.patch
+mm-vmscan-add-active-list-aging-tracepoint-update.patch
+mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+mm-vmscan-do-not-count-freed-pages-as-pgdeactivate.patch
+mm-vmscan-cleanup-lru-size-claculations.patch
+mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
+revert-mm-bail-out-in-shrink_inactive_list.patch
 
