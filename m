@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 17 Jan 2017 11:28:05 -0800
-Message-ID: <587e7045.RW545ra1q11Yxo06%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
+ added to -mm tree
+Date: Tue, 17 Jan 2017 12:05:54 -0800
+Message-ID: <587e7922.t7piKqRgr1dj1v+h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36270 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38276 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751059AbdAQTib (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 14:38:31 -0500
+        with ESMTP id S1751030AbdAQUNa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 15:13:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: userfaultfd: shmem: avoid a lockup resulting from corrupted page->flags
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,61 +40,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: shmem: avoid a lockup resulting from corrupted page->flags
 
+Use the non atomic version of __SetPageUptodate while the page is still
+private and not visible to lookup operations.  Using the non atomic
+version after the page is already visible to lookups is unsafe as there
+would be concurrent lock_page operation modifying the page->flags while it
+runs.
+
+This solves a lockup in find_lock_entry with the userfaultfd_shmem
+selftest.
+
+userfaultfd_shm D14296   691      1 0x00000004
+Call Trace:
+ ? __schedule+0x311/0xb60
+ schedule+0x3d/0x90
+ schedule_timeout+0x228/0x420
+ ? mark_held_locks+0x71/0x90
+ ? ktime_get+0x134/0x170
+ ? kvm_clock_read+0x25/0x30
+ ? kvm_clock_get_cycles+0x9/0x10
+ ? ktime_get+0xd6/0x170
+ ? __delayacct_blkio_start+0x1f/0x30
+ io_schedule_timeout+0xa4/0x110
+ ? trace_hardirqs_on+0xd/0x10
+ __lock_page+0x12d/0x170
+ ? add_to_page_cache_lru+0xe0/0xe0
+ find_lock_entry+0xa4/0x190
+ shmem_getpage_gfp+0xb9/0xc30
+ ? alloc_set_pte+0x56e/0x610
+ ? radix_tree_next_chunk+0xf6/0x2d0
+ shmem_fault+0x70/0x1c0
+ ? filemap_map_pages+0x3bd/0x530
+ __do_fault+0x21/0x150
+ handle_mm_fault+0xec9/0x1490
+ __do_page_fault+0x20d/0x520
+ trace_do_page_fault+0x61/0x270
+ do_async_page_fault+0x19/0x80
+ async_page_fault+0x25/0x30
+
+Link: http://lkml.kernel.org/r/20170116180408.12184-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/rx.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ mm/shmem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN net/mac80211/rx.c~linux-next-git-rejects net/mac80211/rx.c
---- a/net/mac80211/rx.c~linux-next-git-rejects
-+++ a/net/mac80211/rx.c
-@@ -3934,7 +3934,6 @@ static bool ieee80211_invoke_fast_rx(str
- 	if (fast_rx->internal_forward) {
- 		struct sk_buff *xmit_skb = NULL;
- 		bool multicast = is_multicast_ether_addr(skb->data);
--<<<<<<< HEAD
+diff -puN mm/shmem.c~userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags mm/shmem.c
+--- a/mm/shmem.c~userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags
++++ a/mm/shmem.c
+@@ -2241,6 +2241,7 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 	VM_BUG_ON(PageLocked(page) || PageSwapBacked(page));
+ 	__SetPageLocked(page);
+ 	__SetPageSwapBacked(page);
++	__SetPageUptodate(page);
  
- 		if (multicast) {
- 			xmit_skb = skb_copy(skb, GFP_ATOMIC);
-@@ -3943,16 +3942,6 @@ static bool ieee80211_invoke_fast_rx(str
- 			skb = NULL;
- 		}
+ 	ret = mem_cgroup_try_charge(page, dst_mm, gfp, &memcg, false);
+ 	if (ret)
+@@ -2265,8 +2266,6 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 	if (!pte_none(*dst_pte))
+ 		goto out_release_uncharge_unlock;
  
--=======
+-	__SetPageUptodate(page);
 -
--		if (multicast) {
--			xmit_skb = skb_copy(skb, GFP_ATOMIC);
--		} else if (sta_info_get(rx->sdata, skb->data)) {
--			xmit_skb = skb;
--			skb = NULL;
--		}
--
-->>>>>>> linux-next/akpm-base
- 		if (xmit_skb) {
- 			/*
- 			 * Send to wireless media and increase priority by 256
+ 	lru_cache_add_anon(page);
+ 
+ 	spin_lock(&info->lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-i-need-old-gcc.patch
-mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
-proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-dax-enable-iostat-for-read-write-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
-mm.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-linux-next-rejects.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
+userfaultfd-document-_ior-_iow.patch
+userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
+userfaultfd-convert-bug-to-warn_on_once.patch
+userfaultfd-use-vma_is_anonymous.patch
+userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
+userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
+userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
+userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
+userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
+userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
+userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
+userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
+userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
+userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
+userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
+mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
 
