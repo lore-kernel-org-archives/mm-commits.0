@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
- added to -mm tree
-Date: Tue, 17 Jan 2017 12:05:54 -0800
-Message-ID: <587e7922.t7piKqRgr1dj1v+h%akpm@linux-foundation.org>
+ ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 17 Jan 2017 12:45:40 -0800
+Message-ID: <587e8274.CqFEtsEDZRF+E3Pe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39104 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751030AbdAQUNa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 15:13:30 -0500
+        with ESMTP id S1751107AbdAQUpl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 15:45:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, guozhonghua@h3c.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: shmem: avoid a lockup resulting from corrupted page->flags
+     Subject: ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
+     ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +39,199 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: shmem: avoid a lockup resulting from corrupted page->flags
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes
 
-Use the non atomic version of __SetPageUptodate while the page is still
-private and not visible to lookup operations.  Using the non atomic
-version after the page is already visible to lookups is unsafe as there
-would be concurrent lock_page operation modifying the page->flags while it
-runs.
+WARNING: please, no spaces at the start of a line
+#26: FILE: fs/ocfs2/dlm/dlmrecovery.c:2271:
++       struct list_head *queue = NULL;$
 
-This solves a lockup in find_lock_entry with the userfaultfd_shmem
-selftest.
+WARNING: please, no spaces at the start of a line
+#27: FILE: fs/ocfs2/dlm/dlmrecovery.c:2272:
++       int i;$
 
-userfaultfd_shm D14296   691      1 0x00000004
-Call Trace:
- ? __schedule+0x311/0xb60
- schedule+0x3d/0x90
- schedule_timeout+0x228/0x420
- ? mark_held_locks+0x71/0x90
- ? ktime_get+0x134/0x170
- ? kvm_clock_read+0x25/0x30
- ? kvm_clock_get_cycles+0x9/0x10
- ? ktime_get+0xd6/0x170
- ? __delayacct_blkio_start+0x1f/0x30
- io_schedule_timeout+0xa4/0x110
- ? trace_hardirqs_on+0xd/0x10
- __lock_page+0x12d/0x170
- ? add_to_page_cache_lru+0xe0/0xe0
- find_lock_entry+0xa4/0x190
- shmem_getpage_gfp+0xb9/0xc30
- ? alloc_set_pte+0x56e/0x610
- ? radix_tree_next_chunk+0xf6/0x2d0
- shmem_fault+0x70/0x1c0
- ? filemap_map_pages+0x3bd/0x530
- __do_fault+0x21/0x150
- handle_mm_fault+0xec9/0x1490
- __do_page_fault+0x20d/0x520
- trace_do_page_fault+0x61/0x270
- do_async_page_fault+0x19/0x80
- async_page_fault+0x25/0x30
+WARNING: please, no spaces at the start of a line
+#60: FILE: fs/ocfs2/dlm/dlmrecovery.c:2285:
++       for (i = DLM_GRANTED_LIST; i <= DLM_BLOCKED_LIST; i++) {$
 
-Link: http://lkml.kernel.org/r/20170116180408.12184-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+WARNING: suspect code indent for conditional statements (7, 15)
+#60: FILE: fs/ocfs2/dlm/dlmrecovery.c:2285:
++       for (i = DLM_GRANTED_LIST; i <= DLM_BLOCKED_LIST; i++) {
++               queue = dlm_list_idx_to_ptr(res, i);
+
+ERROR: code indent should use tabs where possible
+#61: FILE: fs/ocfs2/dlm/dlmrecovery.c:2286:
++               queue = dlm_list_idx_to_ptr(res, i);$
+
+WARNING: please, no spaces at the start of a line
+#61: FILE: fs/ocfs2/dlm/dlmrecovery.c:2286:
++               queue = dlm_list_idx_to_ptr(res, i);$
+
+ERROR: code indent should use tabs where possible
+#62: FILE: fs/ocfs2/dlm/dlmrecovery.c:2287:
++               list_for_each_entry_safe(lock, next, queue, list) {$
+
+WARNING: please, no spaces at the start of a line
+#62: FILE: fs/ocfs2/dlm/dlmrecovery.c:2287:
++               list_for_each_entry_safe(lock, next, queue, list) {$
+
+WARNING: suspect code indent for conditional statements (15, 23)
+#62: FILE: fs/ocfs2/dlm/dlmrecovery.c:2287:
++               list_for_each_entry_safe(lock, next, queue, list) {
++                       if (lock->ml.node == dead_node) {
+
+ERROR: code indent should use tabs where possible
+#63: FILE: fs/ocfs2/dlm/dlmrecovery.c:2288:
++                       if (lock->ml.node == dead_node) {$
+
+WARNING: please, no spaces at the start of a line
+#63: FILE: fs/ocfs2/dlm/dlmrecovery.c:2288:
++                       if (lock->ml.node == dead_node) {$
+
+WARNING: suspect code indent for conditional statements (23, 31)
+#63: FILE: fs/ocfs2/dlm/dlmrecovery.c:2288:
++                       if (lock->ml.node == dead_node) {
++                               list_del_init(&lock->list);
+
+ERROR: code indent should use tabs where possible
+#64: FILE: fs/ocfs2/dlm/dlmrecovery.c:2289:
++                               list_del_init(&lock->list);$
+
+WARNING: please, no spaces at the start of a line
+#64: FILE: fs/ocfs2/dlm/dlmrecovery.c:2289:
++                               list_del_init(&lock->list);$
+
+ERROR: code indent should use tabs where possible
+#65: FILE: fs/ocfs2/dlm/dlmrecovery.c:2290:
++                               dlm_lock_put(lock);$
+
+WARNING: please, no spaces at the start of a line
+#65: FILE: fs/ocfs2/dlm/dlmrecovery.c:2290:
++                               dlm_lock_put(lock);$
+
+ERROR: code indent should use tabs where possible
+#66: FILE: fs/ocfs2/dlm/dlmrecovery.c:2291:
++                               /* Can't schedule DLM_UNLOCK_FREE_LOCK$
+
+ERROR: code indent should use tabs where possible
+#67: FILE: fs/ocfs2/dlm/dlmrecovery.c:2292:
++                                * do manually$
+
+ERROR: code indent should use tabs where possible
+#68: FILE: fs/ocfs2/dlm/dlmrecovery.c:2293:
++                                */$
+
+ERROR: code indent should use tabs where possible
+#69: FILE: fs/ocfs2/dlm/dlmrecovery.c:2294:
++                               dlm_lock_put(lock);$
+
+WARNING: please, no spaces at the start of a line
+#69: FILE: fs/ocfs2/dlm/dlmrecovery.c:2294:
++                               dlm_lock_put(lock);$
+
+ERROR: code indent should use tabs where possible
+#70: FILE: fs/ocfs2/dlm/dlmrecovery.c:2295:
++                               freed++;$
+
+WARNING: please, no spaces at the start of a line
+#70: FILE: fs/ocfs2/dlm/dlmrecovery.c:2295:
++                               freed++;$
+
+ERROR: code indent should use tabs where possible
+#71: FILE: fs/ocfs2/dlm/dlmrecovery.c:2296:
++                       }$
+
+WARNING: please, no spaces at the start of a line
+#71: FILE: fs/ocfs2/dlm/dlmrecovery.c:2296:
++                       }$
+
+total: 11 errors, 14 warnings, 51 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Guozhonghua <guozhonghua@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN mm/shmem.c~userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags mm/shmem.c
---- a/mm/shmem.c~userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags
-+++ a/mm/shmem.c
-@@ -2241,6 +2241,7 @@ int shmem_mcopy_atomic_pte(struct mm_str
- 	VM_BUG_ON(PageLocked(page) || PageSwapBacked(page));
- 	__SetPageLocked(page);
- 	__SetPageSwapBacked(page);
-+	__SetPageUptodate(page);
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2268,8 +2268,8 @@ static void dlm_free_dead_locks(struct d
+ {
+ 	struct dlm_lock *lock, *next;
+ 	unsigned int freed = 0;
+-       struct list_head *queue = NULL;
+-       int i;
++	struct list_head *queue = NULL;
++	int i;
  
- 	ret = mem_cgroup_try_charge(page, dst_mm, gfp, &memcg, false);
- 	if (ret)
-@@ -2265,8 +2266,6 @@ int shmem_mcopy_atomic_pte(struct mm_str
- 	if (!pte_none(*dst_pte))
- 		goto out_release_uncharge_unlock;
+ 	/* this node is the lockres master:
+ 	 * 1) remove any stale locks for the dead node
+@@ -2282,18 +2282,19 @@ static void dlm_free_dead_locks(struct d
+ 	 * to force the DLM_UNLOCK_FREE_LOCK action so as to free the locks */
  
--	__SetPageUptodate(page);
--
- 	lru_cache_add_anon(page);
+ 	/* TODO: check pending_asts, pending_basts here */
+-       for (i = DLM_GRANTED_LIST; i <= DLM_BLOCKED_LIST; i++) {
+-               queue = dlm_list_idx_to_ptr(res, i);
+-               list_for_each_entry_safe(lock, next, queue, list) {
+-                       if (lock->ml.node == dead_node) {
+-                               list_del_init(&lock->list);
+-                               dlm_lock_put(lock);
+-                               /* Can't schedule DLM_UNLOCK_FREE_LOCK
+-                                * do manually
+-                                */
+-                               dlm_lock_put(lock);
+-                               freed++;
+-                       }
++	for (i = DLM_GRANTED_LIST; i <= DLM_BLOCKED_LIST; i++) {
++		queue = dlm_list_idx_to_ptr(res, i);
++		list_for_each_entry_safe(lock, next, queue, list) {
++			if (lock->ml.node == dead_node) {
++				list_del_init(&lock->list);
++				dlm_lock_put(lock);
++				/*
++				 * Can't schedule DLM_UNLOCK_FREE_LOCK: do
++				 * manually
++				 */
++				dlm_lock_put(lock);
++				freed++;
++			}
+ 		}
+ 	}
  
- 	spin_lock(&info->lock);
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
-userfaultfd-document-_ior-_iow.patch
-userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
-userfaultfd-convert-bug-to-warn_on_once.patch
-userfaultfd-use-vma_is_anonymous.patch
-userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
-userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
-userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
-userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
-userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
-userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
-userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
-userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
-userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
-userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
-userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
-userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
-userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
-mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
+i-need-old-gcc.patch
+mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
+proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+dax-enable-iostat-for-read-write-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+mm.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
