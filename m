@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-filesystems-proctxt-add-vmpin.patch added to -mm
- tree
-Date: Tue, 17 Jan 2017 15:36:23 -0800
-Message-ID: <587eaa77.avd+0Ut6qyssTf12%akpm@linux-foundation.org>
+Subject: + mm-swap-add-cluster-lock-v5.patch added to -mm tree
+Date: Tue, 17 Jan 2017 15:45:39 -0800
+Message-ID: <587eaca3.MRSwND8OEi+lF+VH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751390AbdAQXhB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 18:37:01 -0500
+        with ESMTP id S1751307AbdAQXpl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 18:45:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, cl@linux.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/filesystems/proc.txt: add VmPin
+     Subject: mm-swap-add-cluster-lock-v5
 has been added to the -mm tree.  Its filename is
-     documentation-filesystems-proctxt-add-vmpin.patch
+     mm-swap-add-cluster-lock-v5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-proctxt-add-vmpin.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-add-cluster-lock-v5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-proctxt-add-vmpin.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-add-cluster-lock-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +38,167 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: Documentation/filesystems/proc.txt: add VmPin
+From: "Huang\, Ying" <ying.huang@intel.com>
+Subject: mm-swap-add-cluster-lock-v5
 
-Commit bc3e53f682d9 ("mm: distinguish between mlocked and pinned pages")
-added VmPin in /proc/<pid>/status.  Report that in
-Documentation/filesystems/proc.txt
-
-Also move Umask after Name to keep correct order.
-
-Link: http://lkml.kernel.org/r/20170114201219.30387-1-fabf@skynet.be
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/878tqeuuic.fsf_-_@yhuang-dev.intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/swap.h |   19 ++++++++++---------
+ mm/swapfile.c        |   32 ++++++++++++++++----------------
+ 2 files changed, 26 insertions(+), 25 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~documentation-filesystems-proctxt-add-vmpin Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~documentation-filesystems-proctxt-add-vmpin
-+++ a/Documentation/filesystems/proc.txt
-@@ -212,10 +212,11 @@ asynchronous manner and the value may no
- snapshot of a moment, you can see /proc/<pid>/smaps file and scan page table.
- It's slow but very precise.
+diff -puN include/linux/swap.h~mm-swap-add-cluster-lock-v5 include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-add-cluster-lock-v5
++++ a/include/linux/swap.h
+@@ -176,16 +176,17 @@ enum {
+  * protected by swap_info_struct.lock.
+  */
+ struct swap_cluster_info {
+-	unsigned long data;
++	spinlock_t lock;	/*
++				 * Protect swap_cluster_info fields
++				 * and swap_info_struct->swap_map
++				 * elements correspond to the swap
++				 * cluster
++				 */
++	unsigned int data:24;
++	unsigned int flags:8;
+ };
+-#define CLUSTER_COUNT_SHIFT		8
+-#define CLUSTER_FLAG_MASK		((1UL << CLUSTER_COUNT_SHIFT) - 1)
+-#define CLUSTER_COUNT_MASK		(~CLUSTER_FLAG_MASK)
+-#define CLUSTER_FLAG_FREE		1 /* This cluster is free */
+-#define CLUSTER_FLAG_NEXT_NULL		2 /* This cluster has no next cluster */
+-/* cluster lock, protect cluster_info contents and sis->swap_map */
+-#define CLUSTER_FLAG_LOCK_BIT		2
+-#define CLUSTER_FLAG_LOCK		(1 << CLUSTER_FLAG_LOCK_BIT)
++#define CLUSTER_FLAG_FREE 1 /* This cluster is free */
++#define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
  
--Table 1-2: Contents of the status files (as of 4.1)
-+Table 1-2: Contents of the status files (as of 4.8)
- ..............................................................................
-  Field                       Content
-  Name                        filename of the executable
-+ Umask                       file mode creation mask
-  State                       state (R is running, S is sleeping, D is sleeping
-                              in an uninterruptible wait, Z is zombie,
- 			     T is traced or stopped)
-@@ -226,7 +227,6 @@ Table 1-2: Contents of the status files
-  TracerPid                   PID of process tracing this process (0 if not)
-  Uid                         Real, effective, saved set, and  file system UIDs
-  Gid                         Real, effective, saved set, and  file system GIDs
-- Umask                       file mode creation mask
-  FDSize                      number of file descriptor slots currently allocated
-  Groups                      supplementary group list
-  NStgid                      descendant namespace thread group ID hierarchy
-@@ -236,6 +236,7 @@ Table 1-2: Contents of the status files
-  VmPeak                      peak virtual memory size
-  VmSize                      total program size
-  VmLck                       locked memory size
-+ VmPin                       pinned memory size
-  VmHWM                       peak resident set size ("high water mark")
-  VmRSS                       size of memory portions. It contains the three
-                              following parts (VmRSS = RssAnon + RssFile + RssShmem)
+ /*
+  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
+diff -puN mm/swapfile.c~mm-swap-add-cluster-lock-v5 mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-add-cluster-lock-v5
++++ a/mm/swapfile.c
+@@ -200,66 +200,66 @@ static void discard_swap_cluster(struct
+ #define LATENCY_LIMIT		256
+ 
+ static inline void cluster_set_flag(struct swap_cluster_info *info,
+-				    unsigned int flag)
++	unsigned int flag)
+ {
+-	info->data = (info->data & (CLUSTER_COUNT_MASK | CLUSTER_FLAG_LOCK)) |
+-		(flag & ~CLUSTER_FLAG_LOCK);
++	info->flags = flag;
+ }
+ 
+ static inline unsigned int cluster_count(struct swap_cluster_info *info)
+ {
+-	return info->data >> CLUSTER_COUNT_SHIFT;
++	return info->data;
+ }
+ 
+ static inline void cluster_set_count(struct swap_cluster_info *info,
+ 				     unsigned int c)
+ {
+-	info->data = (c << CLUSTER_COUNT_SHIFT) | (info->data & CLUSTER_FLAG_MASK);
++	info->data = c;
+ }
+ 
+ static inline void cluster_set_count_flag(struct swap_cluster_info *info,
+ 					 unsigned int c, unsigned int f)
+ {
+-	info->data = (info->data & CLUSTER_FLAG_LOCK) |
+-		(c << CLUSTER_COUNT_SHIFT) | (f & ~CLUSTER_FLAG_LOCK);
++	info->flags = f;
++	info->data = c;
+ }
+ 
+ static inline unsigned int cluster_next(struct swap_cluster_info *info)
+ {
+-	return cluster_count(info);
++	return info->data;
+ }
+ 
+ static inline void cluster_set_next(struct swap_cluster_info *info,
+ 				    unsigned int n)
+ {
+-	cluster_set_count(info, n);
++	info->data = n;
+ }
+ 
+ static inline void cluster_set_next_flag(struct swap_cluster_info *info,
+ 					 unsigned int n, unsigned int f)
+ {
+-	cluster_set_count_flag(info, n, f);
++	info->flags = f;
++	info->data = n;
+ }
+ 
+ static inline bool cluster_is_free(struct swap_cluster_info *info)
+ {
+-	return info->data & CLUSTER_FLAG_FREE;
++	return info->flags & CLUSTER_FLAG_FREE;
+ }
+ 
+ static inline bool cluster_is_null(struct swap_cluster_info *info)
+ {
+-	return info->data & CLUSTER_FLAG_NEXT_NULL;
++	return info->flags & CLUSTER_FLAG_NEXT_NULL;
+ }
+ 
+ static inline void cluster_set_null(struct swap_cluster_info *info)
+ {
+-	cluster_set_next_flag(info, 0, CLUSTER_FLAG_NEXT_NULL);
++	info->flags = CLUSTER_FLAG_NEXT_NULL;
++	info->data = 0;
+ }
+ 
+-/* Protect swap_cluster_info fields and si->swap_map */
+ static inline void __lock_cluster(struct swap_cluster_info *ci)
+ {
+-	bit_spin_lock(CLUSTER_FLAG_LOCK_BIT, &ci->data);
++	spin_lock(&ci->lock);
+ }
+ 
+ static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
+@@ -278,7 +278,7 @@ static inline struct swap_cluster_info *
+ static inline void unlock_cluster(struct swap_cluster_info *ci)
+ {
+ 	if (ci)
+-		bit_spin_unlock(CLUSTER_FLAG_LOCK_BIT, &ci->data);
++		spin_unlock(&ci->lock);
+ }
+ 
+ static inline struct swap_cluster_info *lock_cluster_or_swap_info(
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-documentation-filesystems-proctxt-add-vmpin.patch
-fs-add-i_blocksize.patch
+mm-swap-fix-kernel-message-in-swap_info_get.patch
+mm-swap-add-cluster-lock.patch
+mm-swap-add-cluster-lock-v5.patch
+mm-swap-split-swap-cache-into-64mb-trunks.patch
+mm-swap-add-cache-for-swap-slots-allocation-fix.patch
+mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
 
