@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
- added to -mm tree
-Date: Tue, 17 Jan 2017 13:24:03 -0800
-Message-ID: <587e8b73.aq6WiU3jN3Rj/JwM%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-split-alloc_pages_nodemask.patch added to -mm
+ tree
+Date: Tue, 17 Jan 2017 13:35:38 -0800
+Message-ID: <587e8e2a.y0SIos8E9Y9KT3e1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43506 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751231AbdAQVYJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 16:24:09 -0500
+        with ESMTP id S1751142AbdAQVfj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 16:35:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+     Subject: mm, page_alloc: split alloc_pages_nodemask
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+     mm-page_alloc-split-alloc_pages_nodemask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-split-alloc_pages_nodemask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-split-alloc_pages_nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,284 +39,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: split alloc_pages_nodemask
 
-We are in the situation that we have to avoid recursive cluster locking,
-but there is no way to check if a cluster lock has been taken by a precess
-already.
+alloc_pages_nodemask does a number of preperation steps that determine
+what zones can be used for the allocation depending on a variety of
+factors.  This is fine but a hypothetical caller that wanted multiple
+order-0 pages has to do the preparation steps multiple times.  This patch
+structures __alloc_pages_nodemask such that it's relatively easy to build
+a bulk order-0 page allocator.  There is no functional change.
 
-Mostly, we can avoid recursive locking by writing code carefully. 
-However, we found that it's very hard to handle the routines that are
-invoked directly by vfs code.  For instance:
-
-const struct inode_operations ocfs2_file_iops = {
-    .permission     = ocfs2_permission,
-    .get_acl        = ocfs2_iop_get_acl,
-    .set_acl        = ocfs2_iop_set_acl,
-};
-
-Both ocfs2_permission() and ocfs2_iop_get_acl() call ocfs2_inode_lock(PR):
-do_sys_open
- may_open
-  inode_permission
-   ocfs2_permission
-    ocfs2_inode_lock() <=== first time
-     generic_permission
-      get_acl
-       ocfs2_iop_get_acl
-	ocfs2_inode_lock() <=== recursive one
-
-A deadlock will occur if a remote EX request comes in between two of
-ocfs2_inode_lock().  Briefly describe how the deadlock is formed:
-
-On one hand, OCFS2_LOCK_BLOCKED flag of this lockres is set in
-BAST(ocfs2_generic_handle_bast) when downconvert is started on behalf of
-the remote EX lock request.  Another hand, the recursive cluster lock (the
-second one) will be blocked in in __ocfs2_cluster_lock() because of
-OCFS2_LOCK_BLOCKED.  But, the downconvert never complete, why?  because
-there is no chance for the first cluster lock on this node to be unlocked
-- we block ourselves in the code path.
-
-The idea to fix this issue is mostly taken from gfs2 code.
-
-1. introduce a new field: struct ocfs2_lock_res.l_holders, to keep
-   track of the processes' pid who has taken the cluster lock of this lock
-   resource;
-
-2. introduce a new flag for ocfs2_inode_lock_full:
-   OCFS2_META_LOCK_GETBH; it means just getting back disk inode bh for us
-   if we've got cluster lock.
-
-3. export a helper: ocfs2_is_locked_by_me() is used to check if we
-   have got the cluster lock in the upper code path.
-
-The tracking logic should be used by some of the ocfs2 vfs's callbacks, to
-solve the recursive locking issue cuased by the fact that vfs routines can
-call into each other.
-
-The performance penalty of processing the holder list should only be seen
-at a few cases where the tracking logic is used, such as get/set acl.
-
-You may ask what if the first time we got a PR lock, and the second time
-we want a EX lock?  fortunately, this case never happens in the real
-world, as far as I can see, including permission check,
-(get|set)_(acl|attr), and the gfs2 code also do so.
-
-[sfr@canb.auug.org.au remove some inlines]
-Link: http://lkml.kernel.org/r/20170117100948.11657-2-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Link: http://lkml.kernel.org/r/20170117092954.15413-3-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |  105 +++++++++++++++++++++++++++++++++++++++++--
- fs/ocfs2/dlmglue.h |   18 +++++++
- fs/ocfs2/ocfs2.h   |    1 
- 3 files changed, 121 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   81 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 49 insertions(+), 32 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -532,6 +532,7 @@ void ocfs2_lock_res_init_once(struct ocf
- 	init_waitqueue_head(&res->l_event);
- 	INIT_LIST_HEAD(&res->l_blocked_list);
- 	INIT_LIST_HEAD(&res->l_mask_waiters);
-+	INIT_LIST_HEAD(&res->l_holders);
+diff -puN mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask
++++ a/mm/page_alloc.c
+@@ -3779,64 +3779,81 @@ got_pg:
+ 	return page;
  }
  
- void ocfs2_inode_lock_res_init(struct ocfs2_lock_res *res,
-@@ -749,6 +750,50 @@ void ocfs2_lock_res_free(struct ocfs2_lo
- 	res->l_flags = 0UL;
- }
- 
-+/*
-+ * Keep a list of processes who have interest in a lockres.
-+ * Note: this is now only uesed for check recursive cluster locking.
-+ */
-+static inline void ocfs2_add_holder(struct ocfs2_lock_res *lockres,
-+				   struct ocfs2_lock_holder *oh)
-+{
-+	INIT_LIST_HEAD(&oh->oh_list);
-+	oh->oh_owner_pid = get_pid(task_pid(current));
-+
-+	spin_lock(&lockres->l_lock);
-+	list_add_tail(&oh->oh_list, &lockres->l_holders);
-+	spin_unlock(&lockres->l_lock);
-+}
-+
-+static inline void ocfs2_remove_holder(struct ocfs2_lock_res *lockres,
-+				       struct ocfs2_lock_holder *oh)
-+{
-+	spin_lock(&lockres->l_lock);
-+	list_del(&oh->oh_list);
-+	spin_unlock(&lockres->l_lock);
-+
-+	put_pid(oh->oh_owner_pid);
-+}
-+
-+static inline int ocfs2_is_locked_by_me(struct ocfs2_lock_res *lockres)
-+{
-+	struct ocfs2_lock_holder *oh;
-+	struct pid *pid;
-+
-+	/* look in the list of holders for one with the current task as owner */
-+	spin_lock(&lockres->l_lock);
-+	pid = task_pid(current);
-+	list_for_each_entry(oh, &lockres->l_holders, oh_list) {
-+		if (oh->oh_owner_pid == pid) {
-+			spin_unlock(&lockres->l_lock);
-+			return 1;
-+		}
-+	}
-+	spin_unlock(&lockres->l_lock);
-+
-+	return 0;
-+}
-+
- static inline void ocfs2_inc_holders(struct ocfs2_lock_res *lockres,
- 				     int level)
+-/*
+- * This is the 'heart' of the zoned buddy allocator.
+- */
+-struct page *
+-__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
+-			struct zonelist *zonelist, nodemask_t *nodemask)
++static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
++		struct zonelist *zonelist, nodemask_t *nodemask,
++		struct alloc_context *ac, gfp_t *alloc_mask,
++		unsigned int *alloc_flags)
  {
-@@ -2333,8 +2378,9 @@ int ocfs2_inode_lock_full_nested(struct
- 		goto getbh;
+-	struct page *page;
+-	unsigned int cpuset_mems_cookie;
+-	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
+-	struct alloc_context ac = {
+-		.high_zoneidx = gfp_zone(gfp_mask),
+-		.zonelist = zonelist,
+-		.nodemask = nodemask,
+-		.migratetype = gfpflags_to_migratetype(gfp_mask),
+-	};
++	ac->high_zoneidx = gfp_zone(gfp_mask);
++	ac->zonelist = zonelist;
++	ac->nodemask = nodemask;
++	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
+ 
+ 	if (cpusets_enabled()) {
+-		alloc_mask |= __GFP_HARDWALL;
+-		alloc_flags |= ALLOC_CPUSET;
+-		if (!ac.nodemask)
+-			ac.nodemask = &cpuset_current_mems_allowed;
++		*alloc_mask |= __GFP_HARDWALL;
++		*alloc_flags |= ALLOC_CPUSET;
++		if (!ac->nodemask)
++			ac->nodemask = &cpuset_current_mems_allowed;
  	}
  
--	if (ocfs2_mount_local(osb))
--		goto local;
-+	if ((arg_flags & OCFS2_META_LOCK_GETBH) ||
-+	    ocfs2_mount_local(osb))
-+		goto update;
+-	gfp_mask &= gfp_allowed_mask;
+-
+ 	lockdep_trace_alloc(gfp_mask);
  
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
-@@ -2363,7 +2409,7 @@ int ocfs2_inode_lock_full_nested(struct
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
+ 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
  
--local:
-+update:
+ 	if (should_fail_alloc_page(gfp_mask, order))
+-		return NULL;
++		return false;
+ 
  	/*
- 	 * We only see this flag if we're being called from
- 	 * ocfs2_read_locked_inode(). It means we're locking an inode
-@@ -2497,6 +2543,59 @@ void ocfs2_inode_unlock(struct inode *in
- 		ocfs2_cluster_unlock(OCFS2_SB(inode->i_sb), lockres, level);
- }
+ 	 * Check the zones suitable for the gfp_mask contain at least one
+ 	 * valid zone. It's possible to have an empty zonelist as a result
+ 	 * of __GFP_THISNODE and a memoryless node
+ 	 */
+-	if (unlikely(!zonelist->_zonerefs->zone))
+-		return NULL;
++	if (unlikely(!ac->zonelist->_zonerefs->zone))
++		return false;
  
+-	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
+-		alloc_flags |= ALLOC_CMA;
++	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
++		*alloc_flags |= ALLOC_CMA;
+ 
+-retry_cpuset:
+-	cpuset_mems_cookie = read_mems_allowed_begin();
++	return true;
++}
+ 
++/* Determine whether to spread dirty pages and what the first usable zone */
++static inline void finalise_ac(gfp_t gfp_mask,
++		unsigned int order, struct alloc_context *ac)
++{
+ 	/* Dirty zone balancing only done in the fast path */
+-	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
++	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+ 
+ 	/*
+ 	 * The preferred zone is used for statistics but crucially it is
+ 	 * also used as the starting point for the zonelist iterator. It
+ 	 * may get reset for allocations that ignore memory policies.
+ 	 */
+-	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+-					ac.high_zoneidx, ac.nodemask);
++	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
++					ac->high_zoneidx, ac->nodemask);
++}
++
 +/*
-+ * This _tracker variantes are introduced to deal with the recursive cluster
-+ * locking issue. The idea is to keep track of a lock holder on the stack of
-+ * the current process. If there's a lock holder on the stack, we know the
-+ * task context is already protected by cluster locking. Currently, they're
-+ * used in some VFS entry routines.
-+ *
-+ * return < 0 on error, return == 0 if there's no lock holder on the stack
-+ * before this call, return == 1 if this call would be a recursive locking.
++ * This is the 'heart' of the zoned buddy allocator.
 + */
-+int ocfs2_inode_lock_tracker(struct inode *inode,
-+			     struct buffer_head **ret_bh,
-+			     int ex,
-+			     struct ocfs2_lock_holder *oh)
++struct page *
++__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
++			struct zonelist *zonelist, nodemask_t *nodemask)
 +{
-+	int status;
-+	int arg_flags = 0, has_locked;
-+	struct ocfs2_lock_res *lockres;
++	struct page *page;
++	unsigned int cpuset_mems_cookie;
++	unsigned int alloc_flags = ALLOC_WMARK_LOW;
++	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
++	struct alloc_context ac = { };
 +
-+	lockres = &OCFS2_I(inode)->ip_inode_lockres;
-+	has_locked = ocfs2_is_locked_by_me(lockres);
-+	/* Just get buffer head if the cluster lock has been taken */
-+	if (has_locked)
-+		arg_flags = OCFS2_META_LOCK_GETBH;
++	gfp_mask &= gfp_allowed_mask;
++	if (!prepare_alloc_pages(gfp_mask, order, zonelist, nodemask, &ac, &alloc_mask, &alloc_flags))
++		return NULL;
 +
-+	if (likely(!has_locked || ret_bh)) {
-+		status = ocfs2_inode_lock_full(inode, ret_bh, ex, arg_flags);
-+		if (status < 0) {
-+			if (status != -ENOENT)
-+				mlog_errno(status);
-+			return status;
-+		}
-+	}
-+	if (!has_locked)
-+		ocfs2_add_holder(lockres, oh);
++retry_cpuset:
++	cpuset_mems_cookie = read_mems_allowed_begin();
 +
-+	return has_locked;
-+}
-+
-+void ocfs2_inode_unlock_tracker(struct inode *inode,
-+				int ex,
-+				struct ocfs2_lock_holder *oh,
-+				int had_lock)
-+{
-+	struct ocfs2_lock_res *lockres;
-+
-+	lockres = &OCFS2_I(inode)->ip_inode_lockres;
-+	if (!had_lock) {
-+		ocfs2_remove_holder(lockres, oh);
-+		ocfs2_inode_unlock(inode, ex);
-+	}
-+}
-+
- int ocfs2_orphan_scan_lock(struct ocfs2_super *osb, u32 *seqno)
- {
- 	struct ocfs2_lock_res *lockres;
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.h
-@@ -70,6 +70,11 @@ struct ocfs2_orphan_scan_lvb {
- 	__be32	lvb_os_seqno;
- };
- 
-+struct ocfs2_lock_holder {
-+	struct list_head oh_list;
-+	struct pid *oh_owner_pid;
-+};
-+
- /* ocfs2_inode_lock_full() 'arg_flags' flags */
- /* don't wait on recovery. */
- #define OCFS2_META_LOCK_RECOVERY	(0x01)
-@@ -77,6 +82,8 @@ struct ocfs2_orphan_scan_lvb {
- #define OCFS2_META_LOCK_NOQUEUE		(0x02)
- /* don't block waiting for the downconvert thread, instead return -EAGAIN */
- #define OCFS2_LOCK_NONBLOCK		(0x04)
-+/* just get back disk inode bh if we've got cluster lock. */
-+#define OCFS2_META_LOCK_GETBH		(0x08)
- 
- /* Locking subclasses of inode cluster lock */
- enum {
-@@ -170,4 +177,15 @@ void ocfs2_put_dlm_debug(struct ocfs2_dl
- 
- /* To set the locking protocol on module initialization */
- void ocfs2_set_locking_protocol(void);
-+
-+/* The _tracker pair is used to avoid cluster recursive locking */
-+int ocfs2_inode_lock_tracker(struct inode *inode,
-+			     struct buffer_head **ret_bh,
-+			     int ex,
-+			     struct ocfs2_lock_holder *oh);
-+void ocfs2_inode_unlock_tracker(struct inode *inode,
-+				int ex,
-+				struct ocfs2_lock_holder *oh,
-+				int had_lock);
-+
- #endif	/* DLMGLUE_H */
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/ocfs2.h
-@@ -172,6 +172,7 @@ struct ocfs2_lock_res {
- 
- 	struct list_head         l_blocked_list;
- 	struct list_head         l_mask_waiters;
-+	struct list_head	 l_holders;
- 
- 	unsigned long		 l_flags;
- 	char                     l_name[OCFS2_LOCK_ID_MAX_LEN];
++	finalise_ac(gfp_mask, order, &ac);
+ 	if (!ac.preferred_zoneref) {
+ 		page = NULL;
+ 		goto no_zone;
 _
 
-Patches currently in -mm which might be from zren@suse.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
-ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points.patch
+mm-page_alloc-split-buffered_rmqueue.patch
+mm-page_alloc-split-alloc_pages_nodemask.patch
+mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
+mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
 
