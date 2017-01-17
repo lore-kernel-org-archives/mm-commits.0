@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mm-bail-out-in-shrink_inactive_list.patch added to -mm
- tree
-Date: Tue, 17 Jan 2017 13:18:04 -0800
-Message-ID: <587e8a0c.D/MV34NH9/N5OK+1%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points.patch
+ added to -mm tree
+Date: Tue, 17 Jan 2017 13:24:06 -0800
+Message-ID: <587e8b76.iTtvbfZVZVMncEdO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40870 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751186AbdAQVSK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 16:18:10 -0500
+        with ESMTP id S1751212AbdAQVYH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 16:24:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org
+To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm: bail out in shrink_inactive_list()"
+     Subject: ocfs2: fix deadlock issue when taking inode lock at vfs entry points
 has been added to the -mm tree.  Its filename is
-     revert-mm-bail-out-in-shrink_inactive_list.patch
+     ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-bail-out-in-shrink_inactive_list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-bail-out-in-shrink_inactive_list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,90 +40,218 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: Revert "mm: bail out in shrink_inactive_list()"
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix deadlock issue when taking inode lock at vfs entry points
 
-This reverts commit 91dcade47a3d0e7.
+Commit 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+results in a deadlock, as the author "Tariq Saeed" realized shortly after
+the patch was merged.  The discussion happened here
+(https://oss.oracle.com/pipermail/ocfs2-devel/2015-September/011085.html).
 
-inactive_reclaimable_pages shouldn't be needed anymore since that
-get_scan_count is aware of the eligble zones ("mm, vmscan: consider
-eligible zones in get_scan_count").
+The reason why taking cluster inode lock at vfs entry points opens up a
+self deadlock window, is explained in the previous patch of this series.
 
-Link: http://lkml.kernel.org/r/20170117103702.28542-4-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+So far, we have seen two different code paths that have this issue.
+1. do_sys_open
+     may_open
+      inode_permission
+       ocfs2_permission
+        ocfs2_inode_lock() <=== take PR
+         generic_permission
+          get_acl
+           ocfs2_iop_get_acl
+            ocfs2_inode_lock() <=== take PR
+2. fchmod|fchmodat
+    chmod_common
+     notify_change
+      ocfs2_setattr <=== take EX
+       posix_acl_chmod
+        get_acl
+         ocfs2_iop_get_acl <=== take PR
+        ocfs2_iop_set_acl <=== take EX
+
+Fixes them by adding the tracking logic (in the previous patch) for these
+funcs above, ocfs2_permission(), ocfs2_iop_[set|get]_acl(),
+ocfs2_setattr().
+
+Link: http://lkml.kernel.org/r/20170117100948.11657-3-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 ---------------------------
- 1 file changed, 27 deletions(-)
+ fs/ocfs2/acl.c  |   29 ++++++++++-------------
+ fs/ocfs2/file.c |   58 +++++++++++++++++++++++++++++++++++-----------
+ 2 files changed, 58 insertions(+), 29 deletions(-)
 
-diff -puN mm/vmscan.c~revert-mm-bail-out-in-shrink_inactive_list mm/vmscan.c
---- a/mm/vmscan.c~revert-mm-bail-out-in-shrink_inactive_list
-+++ a/mm/vmscan.c
-@@ -1701,30 +1701,6 @@ static int current_may_throttle(void)
- 		bdi_write_congested(current->backing_dev_info);
- }
+diff -puN fs/ocfs2/acl.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/acl.c
+@@ -283,16 +283,14 @@ int ocfs2_set_acl(handle_t *handle,
+ int ocfs2_iop_set_acl(struct inode *inode, struct posix_acl *acl, int type)
+ {
+ 	struct buffer_head *bh = NULL;
+-	int status = 0;
++	int status, had_lock;
++	struct ocfs2_lock_holder oh;
  
--static bool inactive_reclaimable_pages(struct lruvec *lruvec,
--				struct scan_control *sc, enum lru_list lru)
--{
--	int zid;
--	struct zone *zone;
--	int file = is_file_lru(lru);
--	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
--
--	if (!global_reclaim(sc))
--		return true;
--
--	for (zid = sc->reclaim_idx; zid >= 0; zid--) {
--		zone = &pgdat->node_zones[zid];
--		if (!managed_zone(zone))
--			continue;
--
--		if (zone_page_state_snapshot(zone, NR_ZONE_LRU_BASE +
--				LRU_FILE * file) >= SWAP_CLUSTER_MAX)
--			return true;
+-	status = ocfs2_inode_lock(inode, &bh, 1);
+-	if (status < 0) {
+-		if (status != -ENOENT)
+-			mlog_errno(status);
+-		return status;
 -	}
--
--	return false;
--}
--
- /*
-  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-@@ -1743,9 +1719,6 @@ shrink_inactive_list(unsigned long nr_to
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
++	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
++	if (had_lock < 0)
++		return had_lock;
+ 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
+-	ocfs2_inode_unlock(inode, 1);
++	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 	brelse(bh);
+ 	return status;
+ }
+@@ -302,21 +300,20 @@ struct posix_acl *ocfs2_iop_get_acl(stru
+ 	struct ocfs2_super *osb;
+ 	struct buffer_head *di_bh = NULL;
+ 	struct posix_acl *acl;
+-	int ret;
++	int had_lock;
++	struct ocfs2_lock_holder oh;
  
--	if (!inactive_reclaimable_pages(lruvec, sc, lru))
--		return 0;
--
- 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	osb = OCFS2_SB(inode->i_sb);
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return NULL;
+-	ret = ocfs2_inode_lock(inode, &di_bh, 0);
+-	if (ret < 0) {
+-		if (ret != -ENOENT)
+-			mlog_errno(ret);
+-		return ERR_PTR(ret);
+-	}
++
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 0, &oh);
++	if (had_lock < 0)
++		return ERR_PTR(had_lock);
  
+ 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ 	brelse(di_bh);
+ 	return acl;
+ }
+diff -puN fs/ocfs2/file.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/file.c
+@@ -1138,6 +1138,8 @@ int ocfs2_setattr(struct dentry *dentry,
+ 	handle_t *handle = NULL;
+ 	struct dquot *transfer_to[MAXQUOTAS] = { };
+ 	int qtype;
++	int had_lock;
++	struct ocfs2_lock_holder oh;
+ 
+ 	trace_ocfs2_setattr(inode, dentry,
+ 			    (unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -1173,11 +1175,30 @@ int ocfs2_setattr(struct dentry *dentry,
+ 		}
+ 	}
+ 
+-	status = ocfs2_inode_lock(inode, &bh, 1);
+-	if (status < 0) {
+-		if (status != -ENOENT)
+-			mlog_errno(status);
++	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
++	if (had_lock < 0) {
++		status = had_lock;
+ 		goto bail_unlock_rw;
++	} else if (had_lock) {
++		/*
++		 * As far as we know, ocfs2_setattr() could only be the first
++		 * VFS entry point in the call chain of recursive cluster
++		 * locking issue.
++		 *
++		 * For instance:
++		 * chmod_common()
++		 *  notify_change()
++		 *   ocfs2_setattr()
++		 *    posix_acl_chmod()
++		 *     ocfs2_iop_get_acl()
++		 *
++		 * But, we're not 100% sure if it's always true, because the
++		 * ordering of the VFS entry points in the call chain is out
++		 * of our control. So, we'd better dump the stack here to
++		 * catch the other cases of recursive locking.
++		 */
++		mlog(ML_ERROR, "Another case of recursive locking:\n");
++		dump_stack();
+ 	}
+ 	inode_locked = 1;
+ 
+@@ -1260,8 +1281,8 @@ int ocfs2_setattr(struct dentry *dentry,
+ bail_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ bail_unlock:
+-	if (status) {
+-		ocfs2_inode_unlock(inode, 1);
++	if (status && inode_locked) {
++		ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 		inode_locked = 0;
+ 	}
+ bail_unlock_rw:
+@@ -1279,7 +1300,7 @@ bail:
+ 			mlog_errno(status);
+ 	}
+ 	if (inode_locked)
+-		ocfs2_inode_unlock(inode, 1);
++		ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 
+ 	brelse(bh);
+ 	return status;
+@@ -1320,21 +1341,32 @@ bail:
+ 
+ int ocfs2_permission(struct inode *inode, int mask)
+ {
+-	int ret;
++	int ret, had_lock;
++	struct ocfs2_lock_holder oh;
+ 
+ 	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+-	ret = ocfs2_inode_lock(inode, NULL, 0);
+-	if (ret) {
+-		if (ret != -ENOENT)
+-			mlog_errno(ret);
++	had_lock = ocfs2_inode_lock_tracker(inode, NULL, 0, &oh);
++	if (had_lock < 0) {
++		ret = had_lock;
+ 		goto out;
++	} else if (had_lock) {
++		/* See comments in ocfs2_setattr() for details.
++		 * The call chain of this case could be:
++		 * do_sys_open()
++		 *  may_open()
++		 *   inode_permission()
++		 *    ocfs2_permission()
++		 *     ocfs2_iop_get_acl()
++		 */
++		mlog(ML_ERROR, "Another case of recursive locking:\n");
++		dump_stack();
+ 	}
+ 
+ 	ret = generic_permission(inode, mask);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ out:
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from zren@suse.com are
 
-mm-throttle-show_mem-from-warn_alloc.patch
-mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-oom-trace-add-oom-detection-tracepoints.patch
-oom-trace-add-compaction-retry-tracepoint.patch
-mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
-mm-vmscan-add-active-list-aging-tracepoint.patch
-mm-vmscan-add-active-list-aging-tracepoint-update.patch
-mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
-mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
-mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
-mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
-mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
-trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
-mm-vmscan-do-not-count-freed-pages-as-pgdeactivate.patch
-mm-vmscan-cleanup-lru-size-claculations.patch
-mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
-revert-mm-bail-out-in-shrink_inactive_list.patch
+ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points.patch
 
