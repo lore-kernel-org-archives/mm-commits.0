@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-add-cache-for-swap-slots-allocation-fix.patch added to
- -mm tree
-Date: Tue, 17 Jan 2017 13:46:46 -0800
-Message-ID: <587e90c6.wdt4ruA4FU30sLdN%akpm@linux-foundation.org>
+Subject: + dma-debug-add-comment-for-failed-to-check-map-error.patch added to -mm tree
+Date: Tue, 17 Jan 2017 14:37:10 -0800
+Message-ID: <587e9c96.TzT7Z4kZRtptoglE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751012AbdAQVrV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 16:47:21 -0500
+        with ESMTP id S1750866AbdAQWhh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 17:37:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, mhocko@kernel.org, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
+To: miles.chen@mediatek.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: Use raw_cpu_ptr over this_cpu_ptr for swap slots access
+     Subject: dma-debug: add comment for failed to check map error
 has been added to the -mm tree.  Its filename is
-     mm-swap-add-cache-for-swap-slots-allocation-fix.patch
+     dma-debug-add-comment-for-failed-to-check-map-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-add-cache-for-swap-slots-allocation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-add-comment-for-failed-to-check-map-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-add-cache-for-swap-slots-allocation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-add-comment-for-failed-to-check-map-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +38,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: mm/swap: Use raw_cpu_ptr over this_cpu_ptr for swap slots access
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: dma-debug: add comment for failed to check map error
 
-The usage of this_cpu_ptr in get_swap_page causes a bug warning
-as it is used in pre-emptible code.
+Add comment for failure to check a map error to help driver developers.
 
-[   57.812314] BUG: using smp_processor_id() in preemptible [00000000] code=
-: kswapd0/527
-[   57.814360] caller is debug_smp_processor_id+0x17/0x19
-[   57.815237] CPU: 1 PID: 527 Comm: kswapd0 Tainted: G        W 4.9.0-mmot=
-m-00135-g4e9a9895ebef #1042
-[   57.816019] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS =
-1.10.1-1 04/01/2014
-[   57.816019]  ffffc900001939c0 ffffffff81329c60 0000000000000001 ffffffff=
-81a0ce06
-[   57.816019]  ffffc900001939f0 ffffffff81343c2a 00000000000137a0 ffffea00=
-00dfd2a0
-[   57.816019]  ffff88003c49a700 ffffc90000193b10 ffffc90000193a00 ffffffff=
-81343c53
-[   57.816019] Call Trace:
-[   57.816019]  [<ffffffff81329c60>] dump_stack+0x68/0x92
-[   57.816019]  [<ffffffff81343c2a>] check_preemption_disabled+0xce/0xe0
-[   57.816019]  [<ffffffff81343c53>] debug_smp_processor_id+0x17/0x19
-[   57.816019]  [<ffffffff8115f06f>] get_swap_page+0x19/0x183
-[   57.816019]  [<ffffffff8114e01d>] shmem_writepage+0xce/0x38c
-[   57.816019]  [<ffffffff81148916>] shrink_page_list+0x81f/0xdbf
-[   57.816019]  [<ffffffff81149652>] shrink_inactive_list+0x2ab/0x594
-[   57.816019]  [<ffffffff8114a22f>] shrink_node_memcg+0x4c7/0x673
-[   57.816019]  [<ffffffff8114a49f>] shrink_node+0xc4/0x282
-[   57.816019]  [<ffffffff8114a49f>] ? shrink_node+0xc4/0x282
-[   57.816019]  [<ffffffff8114b8cb>] kswapd+0x656/0x834
-
-Logic wise, We do allow pre-emption as per cpu ptr cache->slots is
-protected by the mutex cache->alloc_lock.  We switch the
-inappropriately used this_cpu_ptr to raw_cpu_ptr for per cpu ptr
-access of cache->slots.
-
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Reported-by: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/1484622289-22085-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ lib/dma-debug.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/swap_slots.c~mm-swap-add-cache-for-swap-slots-allocation-fix mm/swap_slots.c
---- a/mm/swap_slots.c~mm-swap-add-cache-for-swap-slots-allocation-fix
-+++ a/mm/swap_slots.c
-@@ -303,7 +303,16 @@ swp_entry_t get_swap_page(void)
- 	swp_entry_t entry, *pentry;
- 	struct swap_slots_cache *cache;
+diff -puN lib/dma-debug.c~dma-debug-add-comment-for-failed-to-check-map-error lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-add-comment-for-failed-to-check-map-error
++++ a/lib/dma-debug.c
+@@ -1155,6 +1155,11 @@ static void check_unmap(struct dma_debug
+ 			   dir2name[ref->direction]);
+ 	}
  
--	cache = this_cpu_ptr(&swp_slots);
 +	/*
-+	 * Preemption is allowed here, because we may sleep
-+	 * in refill_swap_slots_cache().  But it is safe, because
-+	 * accesses to the per-CPU data structure are protected by the
-+	 * mutex cache->alloc_lock.
-+	 *
-+	 * The alloc path here does not touch cache->slots_ret
-+	 * so cache->free_lock is not taken.
++	 * Drivers should use dma_mapping_error() to check the returned
++	 * addresses of dma_map_single() and dma_map_page().
++	 * If not, print this warning message. See Documentation/DMA-API.txt.
 +	 */
-+	cache = raw_cpu_ptr(&swp_slots);
- 
- 	entry.val = 0;
- 	if (check_cache_active()) {
+ 	if (entry->map_err_type == MAP_ERR_NOT_CHECKED) {
+ 		err_printk(ref->dev, entry,
+ 			   "DMA-API: device driver failed to check map error"
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
-mm-swap-fix-kernel-message-in-swap_info_get.patch
-mm-swap-add-cluster-lock.patch
-mm-swap-split-swap-cache-into-64mb-trunks.patch
-mm-swap-add-cache-for-swap-slots-allocation-fix.patch
-mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
+dma-debug-add-comment-for-failed-to-check-map-error.patch
 
