@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dma-debug-add-comment-for-failed-to-check-map-error.patch added to -mm tree
-Date: Tue, 17 Jan 2017 14:37:10 -0800
-Message-ID: <587e9c96.TzT7Z4kZRtptoglE%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-warn_alloc-print-nodemask.patch added to -mm tree
+Date: Tue, 17 Jan 2017 14:34:54 -0800
+Message-ID: <587e9c0e.asEvNPvGnHlhaBrq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47236 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750866AbdAQWhh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 17:37:37 -0500
+        with ESMTP id S1751350AbdAQWna (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 17:43:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miles.chen@mediatek.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-debug: add comment for failed to check map error
+     Subject: mm, page_alloc: warn_alloc print nodemask
 has been added to the -mm tree.  Its filename is
-     dma-debug-add-comment-for-failed-to-check-map-error.patch
+     mm-page_alloc-warn_alloc-print-nodemask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-add-comment-for-failed-to-check-map-error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-warn_alloc-print-nodemask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-add-comment-for-failed-to-check-map-error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-warn_alloc-print-nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,37 +38,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: dma-debug: add comment for failed to check map error
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, page_alloc: warn_alloc print nodemask
 
-Add comment for failure to check a map error to help driver developers.
+warn_alloc is currently used for to report an allocation failure or an
+allocation stall.  We print some details of the allocation request like
+the gfp mask and the request order.  We do not print the allocation
+nodemask which is important when debugging the reason for the allocation
+failure as well.  We alreaddy print the nodemask in the OOM report.
 
-Link: http://lkml.kernel.org/r/1484622289-22085-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Add nodemask to warn_alloc and print it in warn_alloc as well.
+
+Link: http://lkml.kernel.org/r/20170117091543.25850-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/mm.h |    4 ++--
+ mm/page_alloc.c    |   10 ++++++----
+ mm/vmalloc.c       |    4 ++--
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-add-comment-for-failed-to-check-map-error lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-add-comment-for-failed-to-check-map-error
-+++ a/lib/dma-debug.c
-@@ -1155,6 +1155,11 @@ static void check_unmap(struct dma_debug
- 			   dir2name[ref->direction]);
+diff -puN include/linux/mm.h~mm-page_alloc-warn_alloc-print-nodemask include/linux/mm.h
+--- a/include/linux/mm.h~mm-page_alloc-warn_alloc-print-nodemask
++++ a/include/linux/mm.h
+@@ -1938,8 +1938,8 @@ extern void si_meminfo_node(struct sysin
+ extern unsigned long arch_reserved_kernel_pages(void);
+ #endif
+ 
+-extern __printf(2, 3)
+-void warn_alloc(gfp_t gfp_mask, const char *fmt, ...);
++extern __printf(3, 4)
++void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...);
+ 
+ extern void setup_per_cpu_pageset(void);
+ 
+diff -puN mm/page_alloc.c~mm-page_alloc-warn_alloc-print-nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-warn_alloc-print-nodemask
++++ a/mm/page_alloc.c
+@@ -3092,12 +3092,13 @@ static void warn_alloc_show_mem(gfp_t gf
+ 	show_mem(filter);
+ }
+ 
+-void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
++void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
+ {
+ 	struct va_format vaf;
+ 	va_list args;
+ 	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 				      DEFAULT_RATELIMIT_BURST);
++	nodemask_t *nm = (nodemask) ? nodemask : &cpuset_current_mems_allowed;
+ 
+ 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
+ 	    debug_guardpage_minorder() > 0)
+@@ -3111,7 +3112,8 @@ void warn_alloc(gfp_t gfp_mask, const ch
+ 	pr_cont("%pV", &vaf);
+ 	va_end(args);
+ 
+-	pr_cont(", mode:%#x(%pGg)\n", gfp_mask, &gfp_mask);
++	pr_cont(", mode:%#x(%pGg), nodemask=%*pbl\n", gfp_mask, &gfp_mask, nodemask_pr_args(nm));
++	cpuset_print_current_mems_allowed();
+ 
+ 	dump_stack();
+ 	warn_alloc_show_mem(gfp_mask);
+@@ -3770,7 +3772,7 @@ retry:
+ 
+ 	/* Make sure we know about allocations which stall for too long */
+ 	if (time_after(jiffies, alloc_start + stall_timeout)) {
+-		warn_alloc(gfp_mask,
++		warn_alloc(gfp_mask, ac->nodemask,
+ 			"page allocation stalls for %ums, order:%u",
+ 			jiffies_to_msecs(jiffies-alloc_start), order);
+ 		stall_timeout += 10 * HZ;
+@@ -3804,7 +3806,7 @@ retry:
  	}
  
-+	/*
-+	 * Drivers should use dma_mapping_error() to check the returned
-+	 * addresses of dma_map_single() and dma_map_page().
-+	 * If not, print this warning message. See Documentation/DMA-API.txt.
-+	 */
- 	if (entry->map_err_type == MAP_ERR_NOT_CHECKED) {
- 		err_printk(ref->dev, entry,
- 			   "DMA-API: device driver failed to check map error"
+ nopage:
+-	warn_alloc(gfp_mask,
++	warn_alloc(gfp_mask, ac->nodemask,
+ 			"page allocation failure: order:%u", order);
+ got_pg:
+ 	return page;
+diff -puN mm/vmalloc.c~mm-page_alloc-warn_alloc-print-nodemask mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-page_alloc-warn_alloc-print-nodemask
++++ a/mm/vmalloc.c
+@@ -1662,7 +1662,7 @@ static void *__vmalloc_area_node(struct
+ 	return area->addr;
+ 
+ fail:
+-	warn_alloc(gfp_mask,
++	warn_alloc(gfp_mask, NULL,
+ 			  "vmalloc: allocation failure, allocated %ld of %ld bytes",
+ 			  (area->nr_pages*PAGE_SIZE), area->size);
+ 	vfree(area->addr);
+@@ -1724,7 +1724,7 @@ void *__vmalloc_node_range(unsigned long
+ 	return addr;
+ 
+ fail:
+-	warn_alloc(gfp_mask,
++	warn_alloc(gfp_mask, NULL,
+ 			  "vmalloc: allocation failure: %lu bytes", real_size);
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-dma-debug-add-comment-for-failed-to-check-map-error.patch
+mm-throttle-show_mem-from-warn_alloc.patch
+mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+oom-trace-add-oom-detection-tracepoints.patch
+oom-trace-add-compaction-retry-tracepoint.patch
+mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+mm-vmscan-add-active-list-aging-tracepoint.patch
+mm-vmscan-add-active-list-aging-tracepoint-update.patch
+mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+mm-vmscan-do-not-count-freed-pages-as-pgdeactivate.patch
+mm-vmscan-cleanup-lru-size-claculations.patch
+mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
+revert-mm-bail-out-in-shrink_inactive_list.patch
+mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
+mm-page_alloc-warn_alloc-print-nodemask.patch
+arch-mm-remove-arch-specific-show_mem.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask.patch
 
