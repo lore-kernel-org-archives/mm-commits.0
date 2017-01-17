@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-build-warning.patch added to -mm tree
-Date: Tue, 17 Jan 2017 15:31:10 -0800
-Message-ID: <587ea93e.3pmRwFKOcS1W4Rfk%akpm@linux-foundation.org>
+Subject: + documentation-filesystems-proctxt-add-vmpin.patch added to -mm
+ tree
+Date: Tue, 17 Jan 2017 15:36:23 -0800
+Message-ID: <587eaa77.avd+0Ut6qyssTf12%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52384 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751819AbdAQXbO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 18:31:14 -0500
+        with ESMTP id S1751390AbdAQXhB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 18:37:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
+To: fabf@skynet.be, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: fix build warning
+     Subject: Documentation/filesystems/proc.txt: add VmPin
 has been added to the -mm tree.  Its filename is
-     m32r-fix-build-warning.patch
+     documentation-filesystems-proctxt-add-vmpin.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m32r-fix-build-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-proctxt-add-vmpin.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-fix-build-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-proctxt-add-vmpin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,67 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix build warning
+From: Fabian Frederick <fabf@skynet.be>
+Subject: Documentation/filesystems/proc.txt: add VmPin
 
-Some m32r builds were having a warning:
+Commit bc3e53f682d9 ("mm: distinguish between mlocked and pinned pages")
+added VmPin in /proc/<pid>/status.  Report that in
+Documentation/filesystems/proc.txt
 
-arch/m32r/include/asm/cmpxchg.h:191:3:
-	warning: value computed is not used
+Also move Umask after Name to keep correct order.
 
-arch/m32r/include/asm/cmpxchg.h:68:3:
-	warning: value computed is not used
-
-Taking the idea from e001bbae7147 ("ARM: cmpxchg: avoid warnings from
-macro-ized cmpxchg() implementations") the m32r implementation is
-changed to use a similar construct with a compound expression instead
-of a typecast, which causes the compiler to not complain about an
-unused result.
-
-Link: http://lkml.kernel.org/r/1484432664-7015-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+Link: http://lkml.kernel.org/r/20170114201219.30387-1-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/cmpxchg.h |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ Documentation/filesystems/proc.txt |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/m32r/include/asm/cmpxchg.h~m32r-fix-build-warning arch/m32r/include/asm/cmpxchg.h
---- a/arch/m32r/include/asm/cmpxchg.h~m32r-fix-build-warning
-+++ a/arch/m32r/include/asm/cmpxchg.h
-@@ -64,8 +64,10 @@ __xchg(unsigned long x, volatile void *p
- 	return (tmp);
- }
+diff -puN Documentation/filesystems/proc.txt~documentation-filesystems-proctxt-add-vmpin Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~documentation-filesystems-proctxt-add-vmpin
++++ a/Documentation/filesystems/proc.txt
+@@ -212,10 +212,11 @@ asynchronous manner and the value may no
+ snapshot of a moment, you can see /proc/<pid>/smaps file and scan page table.
+ It's slow but very precise.
  
--#define xchg(ptr, x)							\
--	((__typeof__(*(ptr)))__xchg((unsigned long)(x), (ptr), sizeof(*(ptr))))
-+#define xchg(ptr, x) ({							\
-+	((__typeof__(*(ptr)))__xchg((unsigned long)(x), (ptr),		\
-+				    sizeof(*(ptr))));			\
-+})
- 
- static __always_inline unsigned long
- __xchg_local(unsigned long x, volatile void *ptr, int size)
-@@ -187,9 +189,12 @@ __cmpxchg(volatile void *ptr, unsigned l
- 	return old;
- }
- 
--#define cmpxchg(ptr, o, n)						 \
--	((__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)(o),	 \
--			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg(ptr, o, n) ({				\
-+	((__typeof__(*(ptr)))				\
-+		 __cmpxchg((ptr), (unsigned long)(o),	\
-+			   (unsigned long)(n),		\
-+			   sizeof(*(ptr))));		\
-+})
- 
- #include <asm-generic/cmpxchg-local.h>
- 
+-Table 1-2: Contents of the status files (as of 4.1)
++Table 1-2: Contents of the status files (as of 4.8)
+ ..............................................................................
+  Field                       Content
+  Name                        filename of the executable
++ Umask                       file mode creation mask
+  State                       state (R is running, S is sleeping, D is sleeping
+                              in an uninterruptible wait, Z is zombie,
+ 			     T is traced or stopped)
+@@ -226,7 +227,6 @@ Table 1-2: Contents of the status files
+  TracerPid                   PID of process tracing this process (0 if not)
+  Uid                         Real, effective, saved set, and  file system UIDs
+  Gid                         Real, effective, saved set, and  file system GIDs
+- Umask                       file mode creation mask
+  FDSize                      number of file descriptor slots currently allocated
+  Groups                      supplementary group list
+  NStgid                      descendant namespace thread group ID hierarchy
+@@ -236,6 +236,7 @@ Table 1-2: Contents of the status files
+  VmPeak                      peak virtual memory size
+  VmSize                      total program size
+  VmLck                       locked memory size
++ VmPin                       pinned memory size
+  VmHWM                       peak resident set size ("high water mark")
+  VmRSS                       size of memory portions. It contains the three
+                              following parts (VmRSS = RssAnon + RssFile + RssShmem)
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-m32r-fix-build-warning.patch
-frv-pci-frv-fix-build-warning.patch
+documentation-filesystems-proctxt-add-vmpin.patch
+fs-add-i_blocksize.patch
 
