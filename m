@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-make-affs-exportable.patch added to -mm tree
-Date: Wed, 18 Jan 2017 13:44:33 -0800
-Message-ID: <587fe1c1.2gSRVjwIpLsW7ZWW%akpm@linux-foundation.org>
+Subject: + fs-affs-make-export-work-with-cold-dcache.patch added to -mm
+ tree
+Date: Wed, 18 Jan 2017 13:44:41 -0800
+Message-ID: <587fe1c9.92/QhDEyCD28GTaQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37884 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752222AbdARVoe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 16:44:34 -0500
+        with ESMTP id S1752406AbdARVom (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 16:44:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs: make affs exportable
+     Subject: fs/affs: make export work with cold dcache
 has been added to the -mm tree.  Its filename is
-     fs-affs-make-affs-exportable.patch
+     fs-affs-make-export-work-with-cold-dcache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-make-affs-exportable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-make-export-work-with-cold-dcache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-make-affs-exportable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-make-export-work-with-cold-dcache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,99 +40,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs: make affs exportable
+Subject: fs/affs: make export work with cold dcache
 
-Add standard functions making AFFS work with NFS.
+This adds get_parent function so that nfs client can still work after
+cache drop (Tested on NFS v4 with echo 3 > /proc/sys/vm/drop_caches)
 
-Functions based on ext4 implementation.  Tested on loop device.
-
-Link: http://lkml.kernel.org/r/20170109191208.6085-4-fabf@skynet.be
+Link: http://lkml.kernel.org/r/20170109191208.6085-8-fabf@skynet.be
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Suggested-by: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/affs.h  |    1 +
- fs/affs/namei.c |   40 ++++++++++++++++++++++++++++++++++++++++
- fs/affs/super.c |    1 +
- 3 files changed, 42 insertions(+)
+ fs/affs/namei.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN fs/affs/affs.h~fs-affs-make-affs-exportable fs/affs/affs.h
---- a/fs/affs/affs.h~fs-affs-make-affs-exportable
-+++ a/fs/affs/affs.h
-@@ -162,6 +162,7 @@ extern void	affs_free_bitmap(struct supe
- 
- /* namei.c */
- 
-+extern const struct export_operations affs_export_ops;
- extern int	affs_hash_name(struct super_block *sb, const u8 *name, unsigned int len);
- extern struct dentry *affs_lookup(struct inode *dir, struct dentry *dentry, unsigned int);
- extern int	affs_unlink(struct inode *dir, struct dentry *dentry);
-diff -puN fs/affs/namei.c~fs-affs-make-affs-exportable fs/affs/namei.c
---- a/fs/affs/namei.c~fs-affs-make-affs-exportable
+diff -puN fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache fs/affs/namei.c
+--- a/fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache
 +++ a/fs/affs/namei.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include "affs.h"
-+#include <linux/exportfs.h>
- 
- typedef int (*toupper_t)(int);
- 
-@@ -465,3 +466,42 @@ done:
- 	affs_brelse(bh);
+@@ -447,6 +447,24 @@ done:
  	return retval;
  }
-+
-+static struct inode *affs_nfs_get_inode(struct super_block *sb, u64 ino,
-+					u32 generation)
-+{
-+	struct inode *inode;
-+
-+	if (!affs_validblock(sb, ino))
-+		return ERR_PTR(-ESTALE);
-+
-+	inode = affs_iget(sb, ino);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
-+
-+	if (generation && inode->i_generation != generation) {
-+		iput(inode);
-+		return ERR_PTR(-ESTALE);
-+	}
-+
-+	return inode;
-+}
-+
-+static struct dentry *affs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+					int fh_len, int fh_type)
-+{
-+	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
-+				    affs_nfs_get_inode);
-+}
-+
-+static struct dentry *affs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+					int fh_len, int fh_type)
-+{
-+	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
-+				    affs_nfs_get_inode);
-+}
-+
-+const struct export_operations affs_export_ops = {
-+	.fh_to_dentry = affs_fh_to_dentry,
-+	.fh_to_parent = affs_fh_to_parent,
-+};
-diff -puN fs/affs/super.c~fs-affs-make-affs-exportable fs/affs/super.c
---- a/fs/affs/super.c~fs-affs-make-affs-exportable
-+++ a/fs/affs/super.c
-@@ -507,6 +507,7 @@ got_root:
- 		return -ENOMEM;
- 	}
  
-+	sb->s_export_op = &affs_export_ops;
- 	pr_debug("s_flags=%lX\n", sb->s_flags);
- 	return 0;
- }
++static struct dentry *affs_get_parent(struct dentry *child)
++{
++	struct inode *parent;
++	struct buffer_head *bh;
++
++	bh = affs_bread(child->d_sb, d_inode(child)->i_ino);
++	if (IS_ERR(bh))
++		return ERR_CAST(bh);
++
++	parent = affs_iget(child->d_sb,
++			   be32_to_cpu(AFFS_TAIL(child->d_sb, bh)->parent));
++	brelse(bh);
++	if (IS_ERR(parent))
++		return ERR_CAST(parent);
++
++	return d_obtain_alias(parent);
++}
++
+ static struct inode *affs_nfs_get_inode(struct super_block *sb, u64 ino,
+ 					u32 generation)
+ {
+@@ -484,6 +502,7 @@ static struct dentry *affs_fh_to_parent(
+ const struct export_operations affs_export_ops = {
+ 	.fh_to_dentry = affs_fh_to_dentry,
+ 	.fh_to_parent = affs_fh_to_parent,
++	.get_parent = affs_get_parent,
+ };
+ 
+ const struct dentry_operations affs_dentry_operations = {
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
