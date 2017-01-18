@@ -1,172 +1,42 @@
-From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-page_alloc-split-alloc_pages_nodemask.patch
- removed from -mm tree
-Date: Wed, 18 Jan 2017 12:25:03 -0800
-Message-ID: <587fcf1f.RZcGq3t8k4GZKOzd%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: + mm-swap-add-cluster-lock-v5.patch added to -mm tree
+Date: Wed, 18 Jan 2017 12:23:54 -0800
+Message-ID: <20170118122354.9b06459e2588e53b537ca78c__28362.9293706783$1484771627$gmane$org@linux-foundation.org>
+References: <587eaca3.MRSwND8OEi+lF+VH%akpm@linux-foundation.org>
+        <20170118083731.GF7015@dhcp22.suse.cz>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57048 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752610AbdARUda (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 15:33:30 -0500
+        with ESMTP id S1752267AbdARUdf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 15:33:35 -0500
+In-Reply-To: <20170118083731.GF7015@dhcp22.suse.cz>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org, linux-mm@kvack.org
 
+On Wed, 18 Jan 2017 09:37:31 +0100 Michal Hocko <mhocko@kernel.org> wrote:
 
-The patch titled
-     Subject: mm, page_alloc: split alloc_pages_nodemask
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-split-alloc_pages_nodemask.patch
+> On Tue 17-01-17 15:45:39, Andrew Morton wrote:
+> [...]
+> > From: "Huang\, Ying" <ying.huang@intel.com>
+> > Subject: mm-swap-add-cluster-lock-v5
+> 
+> I assume you are going to fold this into the original patch. Do you
+> think it would make sense to have it in a separate patch along with
+> the reasoning provided via email?
 
-This patch was dropped because an updated version will be merged
+It should be OK - the v5 changelog (which I shall use for the folded
+patch, as usual) has
 
-------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: split alloc_pages_nodemask
-
-alloc_pages_nodemask does a number of preperation steps that determine
-what zones can be used for the allocation depending on a variety of
-factors.  This is fine but a hypothetical caller that wanted multiple
-order-0 pages has to do the preparation steps multiple times.  This patch
-structures __alloc_pages_nodemask such that it's relatively easy to build
-a bulk order-0 page allocator.  There is no functional change.
-
-Link: http://lkml.kernel.org/r/20170117092954.15413-3-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c |   81 +++++++++++++++++++++++++++-------------------
- 1 file changed, 49 insertions(+), 32 deletions(-)
-
-diff -puN mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask
-+++ a/mm/page_alloc.c
-@@ -3779,64 +3779,81 @@ got_pg:
- 	return page;
- }
- 
--/*
-- * This is the 'heart' of the zoned buddy allocator.
-- */
--struct page *
--__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
--			struct zonelist *zonelist, nodemask_t *nodemask)
-+static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
-+		struct zonelist *zonelist, nodemask_t *nodemask,
-+		struct alloc_context *ac, gfp_t *alloc_mask,
-+		unsigned int *alloc_flags)
- {
--	struct page *page;
--	unsigned int cpuset_mems_cookie;
--	unsigned int alloc_flags = ALLOC_WMARK_LOW;
--	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
--	struct alloc_context ac = {
--		.high_zoneidx = gfp_zone(gfp_mask),
--		.zonelist = zonelist,
--		.nodemask = nodemask,
--		.migratetype = gfpflags_to_migratetype(gfp_mask),
--	};
-+	ac->high_zoneidx = gfp_zone(gfp_mask);
-+	ac->zonelist = zonelist;
-+	ac->nodemask = nodemask;
-+	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
- 
- 	if (cpusets_enabled()) {
--		alloc_mask |= __GFP_HARDWALL;
--		alloc_flags |= ALLOC_CPUSET;
--		if (!ac.nodemask)
--			ac.nodemask = &cpuset_current_mems_allowed;
-+		*alloc_mask |= __GFP_HARDWALL;
-+		*alloc_flags |= ALLOC_CPUSET;
-+		if (!ac->nodemask)
-+			ac->nodemask = &cpuset_current_mems_allowed;
- 	}
- 
--	gfp_mask &= gfp_allowed_mask;
--
- 	lockdep_trace_alloc(gfp_mask);
- 
- 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
- 
- 	if (should_fail_alloc_page(gfp_mask, order))
--		return NULL;
-+		return false;
- 
- 	/*
- 	 * Check the zones suitable for the gfp_mask contain at least one
- 	 * valid zone. It's possible to have an empty zonelist as a result
- 	 * of __GFP_THISNODE and a memoryless node
- 	 */
--	if (unlikely(!zonelist->_zonerefs->zone))
--		return NULL;
-+	if (unlikely(!ac->zonelist->_zonerefs->zone))
-+		return false;
- 
--	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
--		alloc_flags |= ALLOC_CMA;
-+	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
-+		*alloc_flags |= ALLOC_CMA;
- 
--retry_cpuset:
--	cpuset_mems_cookie = read_mems_allowed_begin();
-+	return true;
-+}
- 
-+/* Determine whether to spread dirty pages and what the first usable zone */
-+static inline void finalise_ac(gfp_t gfp_mask,
-+		unsigned int order, struct alloc_context *ac)
-+{
- 	/* Dirty zone balancing only done in the fast path */
--	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
-+	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
- 
- 	/*
- 	 * The preferred zone is used for statistics but crucially it is
- 	 * also used as the starting point for the zonelist iterator. It
- 	 * may get reset for allocations that ignore memory policies.
- 	 */
--	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
--					ac.high_zoneidx, ac.nodemask);
-+	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
-+					ac->high_zoneidx, ac->nodemask);
-+}
-+
-+/*
-+ * This is the 'heart' of the zoned buddy allocator.
-+ */
-+struct page *
-+__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
-+			struct zonelist *zonelist, nodemask_t *nodemask)
-+{
-+	struct page *page;
-+	unsigned int cpuset_mems_cookie;
-+	unsigned int alloc_flags = ALLOC_WMARK_LOW;
-+	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
-+	struct alloc_context ac = { };
-+
-+	gfp_mask &= gfp_allowed_mask;
-+	if (!prepare_alloc_pages(gfp_mask, order, zonelist, nodemask, &ac, &alloc_mask, &alloc_flags))
-+		return NULL;
-+
-+retry_cpuset:
-+	cpuset_mems_cookie = read_mems_allowed_begin();
-+
-+	finalise_ac(gfp_mask, order, &ac);
- 	if (!ac.preferred_zoneref) {
- 		page = NULL;
- 		goto no_zone;
-_
-
-Patches currently in -mm which might be from mgorman@techsingularity.net are
-
-mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+: Compared with a previous implementation using bit_spin_lock, the
+: sequential swap out throughput improved about 3.2%.  Test was done on a
+: Xeon E5 v3 system.  The swap device used is a RAM simulated PMEM
+: (persistent memory) device.  To test the sequential swapping out, the test
+: case created 32 processes, which sequentially allocate and write to the
+: anonymous pages until the RAM and part of the swap device is used.
 
