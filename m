@@ -1,107 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
- added to -mm tree
-Date: Wed, 18 Jan 2017 13:54:28 -0800
-Message-ID: <587fe414.w5xQFtCs8Kr+NGhi%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 18 Jan 2017 14:23:43 -0800
+Message-ID: <587feaef.qJfVJk+W8BsJaErT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750965AbdARWSb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 17:18:31 -0500
+        with ESMTP id S1750846AbdARWXo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 17:23:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: warn_alloc nodemask is NULL when cpusets are disabled
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, page_alloc: warn_alloc nodemask is NULL when cpusets are disabled
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The patch "mm, page_alloc: warn_alloc print nodemask" implicitly sets the
-allocation nodemask to cpuset_current_mems_allowed when there is no
-effective mempolicy.  cpuset_current_mems_allowed is only effective when
-cpusets are enabled, which is also printed by warn_alloc(), so setting the
-nodemask to cpuset_current_mems_allowed is redundant and prevents
-debugging issues where ac->nodemask is not set properly in the page
-allocator.
-
-This provides better debugging output since
-cpuset_print_current_mems_allowed() is already provided.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701181347320.142399@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ kernel/rcu/tree_exp.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled
-+++ a/mm/page_alloc.c
-@@ -3037,7 +3037,6 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	va_list args;
- 	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
- 				      DEFAULT_RATELIMIT_BURST);
--	nodemask_t *nm = (nodemask) ? nodemask : &cpuset_current_mems_allowed;
+diff -puN kernel/rcu/tree_exp.h~linux-next-git-rejects kernel/rcu/tree_exp.h
+--- a/kernel/rcu/tree_exp.h~linux-next-git-rejects
++++ a/kernel/rcu/tree_exp.h
+@@ -711,14 +711,11 @@ void synchronize_rcu_expedited(void)
+ {
+ 	struct rcu_state *rsp = rcu_state_p;
  
- 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
- 	    debug_guardpage_minorder() > 0)
-@@ -3051,11 +3050,16 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	pr_cont("%pV", &vaf);
- 	va_end(args);
+-<<<<<<< HEAD
+-=======
+ 	RCU_LOCKDEP_WARN(lock_is_held(&rcu_bh_lock_map) ||
+ 			 lock_is_held(&rcu_lock_map) ||
+ 			 lock_is_held(&rcu_sched_lock_map),
+ 			 "Illegal synchronize_rcu_expedited() in RCU read-side critical section");
  
--	pr_cont(", mode:%#x(%pGg), nodemask=%*pbl\n", gfp_mask, &gfp_mask, nodemask_pr_args(nm));
-+	pr_cont(", mode:%#x(%pGg), nodemask=", gfp_mask, &gfp_mask);
-+	if (nodemask)
-+		pr_cont("%*pbl\n", nodemask_pr_args(nodemask));
-+	else
-+		pr_cont("(null)\n");
-+
- 	cpuset_print_current_mems_allowed();
- 
- 	dump_stack();
--	warn_alloc_show_mem(gfp_mask, nm);
-+	warn_alloc_show_mem(gfp_mask, nodemask);
- }
- 
- static inline struct page *
+->>>>>>> linux-next/akpm-base
+ 	if (rcu_scheduler_active == RCU_SCHEDULER_INACTIVE)
+ 		return;
+ 	_synchronize_rcu_expedited(rsp, sync_rcu_exp_handler);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcg-do-not-retry-precharge-charges.patch
-mm-compaction-add-vmstats-for-kcompactd-work.patch
-mm-thp-add-new-defermadvise-defrag-option.patch
-mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
+i-need-old-gcc.patch
+mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
+proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+dax-enable-iostat-for-read-write-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+mm.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
