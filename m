@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-make-export-work-with-cold-dcache.patch added to -mm
- tree
-Date: Wed, 18 Jan 2017 13:44:41 -0800
-Message-ID: <587fe1c9.92/QhDEyCD28GTaQ%akpm@linux-foundation.org>
+Subject: + fs-affs-use-octal-for-permissions.patch added to -mm tree
+Date: Wed, 18 Jan 2017 13:44:35 -0800
+Message-ID: <587fe1c3.TxscRAieEJuk44p8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37870 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752406AbdARVom (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 16:44:42 -0500
+        with ESMTP id S1752406AbdARVog (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 16:44:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs: make export work with cold dcache
+     Subject: fs/affs: use octal for permissions
 has been added to the -mm tree.  Its filename is
-     fs-affs-make-export-work-with-cold-dcache.patch
+     fs-affs-use-octal-for-permissions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-make-export-work-with-cold-dcache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-use-octal-for-permissions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-make-export-work-with-cold-dcache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-use-octal-for-permissions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +39,89 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs: make export work with cold dcache
+Subject: fs/affs: use octal for permissions
 
-This adds get_parent function so that nfs client can still work after
-cache drop (Tested on NFS v4 with echo 3 > /proc/sys/vm/drop_caches)
+According to commit f90774e1fd27 ("checkpatch: look for symbolic
+permissions and suggest octal instead")
 
-Link: http://lkml.kernel.org/r/20170109191208.6085-8-fabf@skynet.be
+Link: http://lkml.kernel.org/r/20170109191208.6085-5-fabf@skynet.be
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Suggested-by: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/namei.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ fs/affs/amigaffs.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache fs/affs/namei.c
---- a/fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache
-+++ a/fs/affs/namei.c
-@@ -447,6 +447,24 @@ done:
- 	return retval;
+diff -puN fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions
++++ a/fs/affs/amigaffs.c
+@@ -391,23 +391,23 @@ prot_to_mode(u32 prot)
+ 	umode_t mode = 0;
+ 
+ 	if (!(prot & FIBF_NOWRITE))
+-		mode |= S_IWUSR;
++		mode |= 0200;
+ 	if (!(prot & FIBF_NOREAD))
+-		mode |= S_IRUSR;
++		mode |= 0400;
+ 	if (!(prot & FIBF_NOEXECUTE))
+-		mode |= S_IXUSR;
++		mode |= 0100;
+ 	if (prot & FIBF_GRP_WRITE)
+-		mode |= S_IWGRP;
++		mode |= 0020;
+ 	if (prot & FIBF_GRP_READ)
+-		mode |= S_IRGRP;
++		mode |= 0040;
+ 	if (prot & FIBF_GRP_EXECUTE)
+-		mode |= S_IXGRP;
++		mode |= 0010;
+ 	if (prot & FIBF_OTR_WRITE)
+-		mode |= S_IWOTH;
++		mode |= 0002;
+ 	if (prot & FIBF_OTR_READ)
+-		mode |= S_IROTH;
++		mode |= 0004;
+ 	if (prot & FIBF_OTR_EXECUTE)
+-		mode |= S_IXOTH;
++		mode |= 0001;
+ 
+ 	return mode;
  }
+@@ -418,23 +418,23 @@ mode_to_prot(struct inode *inode)
+ 	u32 prot = AFFS_I(inode)->i_protect;
+ 	umode_t mode = inode->i_mode;
  
-+static struct dentry *affs_get_parent(struct dentry *child)
-+{
-+	struct inode *parent;
-+	struct buffer_head *bh;
-+
-+	bh = affs_bread(child->d_sb, d_inode(child)->i_ino);
-+	if (IS_ERR(bh))
-+		return ERR_CAST(bh);
-+
-+	parent = affs_iget(child->d_sb,
-+			   be32_to_cpu(AFFS_TAIL(child->d_sb, bh)->parent));
-+	brelse(bh);
-+	if (IS_ERR(parent))
-+		return ERR_CAST(parent);
-+
-+	return d_obtain_alias(parent);
-+}
-+
- static struct inode *affs_nfs_get_inode(struct super_block *sb, u64 ino,
- 					u32 generation)
- {
-@@ -484,6 +502,7 @@ static struct dentry *affs_fh_to_parent(
- const struct export_operations affs_export_ops = {
- 	.fh_to_dentry = affs_fh_to_dentry,
- 	.fh_to_parent = affs_fh_to_parent,
-+	.get_parent = affs_get_parent,
- };
+-	if (!(mode & S_IXUSR))
++	if (!(mode & 0100))
+ 		prot |= FIBF_NOEXECUTE;
+-	if (!(mode & S_IRUSR))
++	if (!(mode & 0400))
+ 		prot |= FIBF_NOREAD;
+-	if (!(mode & S_IWUSR))
++	if (!(mode & 0200))
+ 		prot |= FIBF_NOWRITE;
+-	if (mode & S_IXGRP)
++	if (mode & 0010)
+ 		prot |= FIBF_GRP_EXECUTE;
+-	if (mode & S_IRGRP)
++	if (mode & 0040)
+ 		prot |= FIBF_GRP_READ;
+-	if (mode & S_IWGRP)
++	if (mode & 0020)
+ 		prot |= FIBF_GRP_WRITE;
+-	if (mode & S_IXOTH)
++	if (mode & 0001)
+ 		prot |= FIBF_OTR_EXECUTE;
+-	if (mode & S_IROTH)
++	if (mode & 0004)
+ 		prot |= FIBF_OTR_READ;
+-	if (mode & S_IWOTH)
++	if (mode & 0002)
+ 		prot |= FIBF_OTR_WRITE;
  
- const struct dentry_operations affs_dentry_operations = {
+ 	AFFS_I(inode)->i_protect = prot;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
