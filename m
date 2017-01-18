@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-drop-zap_details-check_swap_entries.patch added to -mm tree
-Date: Wed, 18 Jan 2017 14:09:28 -0800
-Message-ID: <587fe798.WXRe/7jbn3naN2qO%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
+ added to -mm tree
+Date: Wed, 18 Jan 2017 13:54:28 -0800
+Message-ID: <587fe414.w5xQFtCs8Kr+NGhi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41248 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752570AbdARWJ3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 17:09:29 -0500
+        with ESMTP id S1750965AbdARWSb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 17:18:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop zap_details::check_swap_entries
+     Subject: mm, page_alloc: warn_alloc nodemask is NULL when cpusets are disabled
 has been added to the -mm tree.  Its filename is
-     mm-drop-zap_details-check_swap_entries.patch
+     mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-zap_details-check_swap_entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-zap_details-check_swap_entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,77 +40,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop zap_details::check_swap_entries
+From: David Rientjes <rientjes@google.com>
+Subject: mm, page_alloc: warn_alloc nodemask is NULL when cpusets are disabled
 
-detail == NULL would give the same functionality as
-.check_swap_entries==true.
+The patch "mm, page_alloc: warn_alloc print nodemask" implicitly sets the
+allocation nodemask to cpuset_current_mems_allowed when there is no
+effective mempolicy.  cpuset_current_mems_allowed is only effective when
+cpusets are enabled, which is also printed by warn_alloc(), so setting the
+nodemask to cpuset_current_mems_allowed is redundant and prevents
+debugging issues where ac->nodemask is not set properly in the page
+allocator.
 
-Link: http://lkml.kernel.org/r/20170118122429.43661-2-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
+This provides better debugging output since
+cpuset_print_current_mems_allowed() is already provided.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701181347320.142399@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/memory.c        |    4 ++--
- mm/oom_kill.c      |    3 +--
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-drop-zap_details-check_swap_entries include/linux/mm.h
---- a/include/linux/mm.h~mm-drop-zap_details-check_swap_entries
-+++ a/include/linux/mm.h
-@@ -1171,7 +1171,6 @@ struct zap_details {
- 	struct address_space *check_mapping;	/* Check page->mapping if set */
- 	pgoff_t	first_index;			/* Lowest page->index to unmap */
- 	pgoff_t last_index;			/* Highest page->index to unmap */
--	bool check_swap_entries;		/* Check also swap entries */
- };
+diff -puN mm/page_alloc.c~mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled
++++ a/mm/page_alloc.c
+@@ -3037,7 +3037,6 @@ void warn_alloc(gfp_t gfp_mask, nodemask
+ 	va_list args;
+ 	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 				      DEFAULT_RATELIMIT_BURST);
+-	nodemask_t *nm = (nodemask) ? nodemask : &cpuset_current_mems_allowed;
  
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
-diff -puN mm/memory.c~mm-drop-zap_details-check_swap_entries mm/memory.c
---- a/mm/memory.c~mm-drop-zap_details-check_swap_entries
-+++ a/mm/memory.c
-@@ -1173,8 +1173,8 @@ again:
- 			}
- 			continue;
- 		}
--		/* only check swap_entries if explicitly asked for in details */
--		if (unlikely(details && !details->check_swap_entries))
-+		/* If details->check_mapping, we leave swap entries. */
-+		if (unlikely(details))
- 			continue;
+ 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
+ 	    debug_guardpage_minorder() > 0)
+@@ -3051,11 +3050,16 @@ void warn_alloc(gfp_t gfp_mask, nodemask
+ 	pr_cont("%pV", &vaf);
+ 	va_end(args);
  
- 		entry = pte_to_swp_entry(ptent);
-diff -puN mm/oom_kill.c~mm-drop-zap_details-check_swap_entries mm/oom_kill.c
---- a/mm/oom_kill.c~mm-drop-zap_details-check_swap_entries
-+++ a/mm/oom_kill.c
-@@ -465,7 +465,6 @@ static bool __oom_reap_task_mm(struct ta
- {
- 	struct mmu_gather tlb;
- 	struct vm_area_struct *vma;
--	struct zap_details details = {.check_swap_entries = true};
- 	bool ret = true;
+-	pr_cont(", mode:%#x(%pGg), nodemask=%*pbl\n", gfp_mask, &gfp_mask, nodemask_pr_args(nm));
++	pr_cont(", mode:%#x(%pGg), nodemask=", gfp_mask, &gfp_mask);
++	if (nodemask)
++		pr_cont("%*pbl\n", nodemask_pr_args(nodemask));
++	else
++		pr_cont("(null)\n");
++
+ 	cpuset_print_current_mems_allowed();
  
- 	/*
-@@ -531,7 +530,7 @@ static bool __oom_reap_task_mm(struct ta
- 		 */
- 		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
- 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
--					 &details);
-+					 NULL);
- 	}
- 	tlb_finish_mmu(&tlb, 0, -1);
- 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+ 	dump_stack();
+-	warn_alloc_show_mem(gfp_mask, nm);
++	warn_alloc_show_mem(gfp_mask, nodemask);
+ }
+ 
+ static inline struct page *
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-drop-zap_details-ignore_dirty.patch
-mm-drop-zap_details-check_swap_entries.patch
-mm-drop-unused-argument-of-zap_page_range.patch
-oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma.patch
+mm-memcg-do-not-retry-precharge-charges.patch
+mm-compaction-add-vmstats-for-kcompactd-work.patch
+mm-thp-add-new-defermadvise-defrag-option.patch
+mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
 
