@@ -1,88 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] radix-tree-fix-private-list-warnings.patch
- removed from -mm tree
-Date: Wed, 18 Jan 2017 13:04:52 -0800
-Message-ID: <587fd874.akz58WApp+Aqf0PC%akpm@linux-foundation.org>
+Subject: + fs-affs-make-affs-exportable.patch added to -mm tree
+Date: Wed, 18 Jan 2017 13:44:33 -0800
+Message-ID: <587fe1c1.2gSRVjwIpLsW7ZWW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37864 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751990AbdARV2b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 16:28:31 -0500
+        with ESMTP id S1752222AbdARVoe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 16:44:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: fix private list warnings
-has been removed from the -mm tree.  Its filename was
-     radix-tree-fix-private-list-warnings.patch
+     Subject: fs/affs: make affs exportable
+has been added to the -mm tree.  Its filename is
+     fs-affs-make-affs-exportable.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-make-affs-exportable.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-make-affs-exportable.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: radix-tree: fix private list warnings
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs: make affs exportable
 
-The newly introduced warning in radix_tree_free_nodes() was testing the
-wrong variable; it should have been 'old' instead of 'node'.  Rather than
-replace that one instance, I noticed that we can simply put the
-WARN_ON_ONCE in radix_tree_node_free() and it will be just as effective.
+Add standard functions making AFFS work with NFS.
 
-Fixes: ea07b862ac8e ("mm: workingset: fix use-after-free in shadow node shrinker")
-Link: http://lkml.kernel.org/r/1484270903-24307-1-git-send-email-mawilcox@linuxonhyperv.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Functions based on ext4 implementation.  Tested on loop device.
+
+Link: http://lkml.kernel.org/r/20170109191208.6085-4-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/affs/affs.h  |    1 +
+ fs/affs/namei.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ fs/affs/super.c |    1 +
+ 3 files changed, 42 insertions(+)
 
-diff -puN lib/radix-tree.c~radix-tree-fix-private-list-warnings lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-private-list-warnings
-+++ a/lib/radix-tree.c
-@@ -365,6 +365,7 @@ static void radix_tree_node_rcu_free(str
- static inline void
- radix_tree_node_free(struct radix_tree_node *node)
- {
-+	WARN_ON_ONCE(!list_empty(&node->private_list));
- 	call_rcu(&node->rcu_head, radix_tree_node_rcu_free);
+diff -puN fs/affs/affs.h~fs-affs-make-affs-exportable fs/affs/affs.h
+--- a/fs/affs/affs.h~fs-affs-make-affs-exportable
++++ a/fs/affs/affs.h
+@@ -162,6 +162,7 @@ extern void	affs_free_bitmap(struct supe
+ 
+ /* namei.c */
+ 
++extern const struct export_operations affs_export_ops;
+ extern int	affs_hash_name(struct super_block *sb, const u8 *name, unsigned int len);
+ extern struct dentry *affs_lookup(struct inode *dir, struct dentry *dentry, unsigned int);
+ extern int	affs_unlink(struct inode *dir, struct dentry *dentry);
+diff -puN fs/affs/namei.c~fs-affs-make-affs-exportable fs/affs/namei.c
+--- a/fs/affs/namei.c~fs-affs-make-affs-exportable
++++ a/fs/affs/namei.c
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include "affs.h"
++#include <linux/exportfs.h>
+ 
+ typedef int (*toupper_t)(int);
+ 
+@@ -465,3 +466,42 @@ done:
+ 	affs_brelse(bh);
+ 	return retval;
  }
- 
-@@ -640,7 +641,6 @@ static inline void radix_tree_shrink(str
- 				update_node(node, private);
- 		}
- 
--		WARN_ON_ONCE(!list_empty(&node->private_list));
- 		radix_tree_node_free(node);
++
++static struct inode *affs_nfs_get_inode(struct super_block *sb, u64 ino,
++					u32 generation)
++{
++	struct inode *inode;
++
++	if (!affs_validblock(sb, ino))
++		return ERR_PTR(-ESTALE);
++
++	inode = affs_iget(sb, ino);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
++
++	if (generation && inode->i_generation != generation) {
++		iput(inode);
++		return ERR_PTR(-ESTALE);
++	}
++
++	return inode;
++}
++
++static struct dentry *affs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++					int fh_len, int fh_type)
++{
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    affs_nfs_get_inode);
++}
++
++static struct dentry *affs_fh_to_parent(struct super_block *sb, struct fid *fid,
++					int fh_len, int fh_type)
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    affs_nfs_get_inode);
++}
++
++const struct export_operations affs_export_ops = {
++	.fh_to_dentry = affs_fh_to_dentry,
++	.fh_to_parent = affs_fh_to_parent,
++};
+diff -puN fs/affs/super.c~fs-affs-make-affs-exportable fs/affs/super.c
+--- a/fs/affs/super.c~fs-affs-make-affs-exportable
++++ a/fs/affs/super.c
+@@ -507,6 +507,7 @@ got_root:
+ 		return -ENOMEM;
  	}
+ 
++	sb->s_export_op = &affs_export_ops;
+ 	pr_debug("s_flags=%lX\n", sb->s_flags);
+ 	return 0;
  }
-@@ -667,7 +667,6 @@ static void delete_node(struct radix_tre
- 			root->rnode = NULL;
- 		}
- 
--		WARN_ON_ONCE(!list_empty(&node->private_list));
- 		radix_tree_node_free(node);
- 
- 		node = parent;
-@@ -769,7 +768,6 @@ static void radix_tree_free_nodes(struct
- 			struct radix_tree_node *old = child;
- 			offset = child->offset + 1;
- 			child = child->parent;
--			WARN_ON_ONCE(!list_empty(&node->private_list));
- 			radix_tree_node_free(old);
- 			if (old == entry_to_node(node))
- 				return;
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-find_bit-micro-optimise-find_next__bit.patch
-find_bit-micro-optimise-find_next__bit-v2.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr.patch
+documentation-filesystems-proctxt-add-vmpin.patch
+fs-affs-remove-reference-to-affs_parent_ino.patch
+fs-affs-add-validation-block-function.patch
+fs-affs-make-affs-exportable.patch
+fs-affs-use-octal-for-permissions.patch
+fs-affs-add-prefix-to-some-functions.patch
+fs-affs-nameic-forward-declarations-clean-up.patch
+fs-affs-make-export-work-with-cold-dcache.patch
+fs-add-i_blocksize.patch
 
