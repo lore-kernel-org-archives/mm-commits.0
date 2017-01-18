@@ -1,338 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+Subject: [to-be-updated] mm-page_alloc-split-alloc_pages_nodemask.patch
  removed from -mm tree
-Date: Wed, 18 Jan 2017 12:25:08 -0800
-Message-ID: <587fcf24.OSHg/hGxIM8UwO0G%akpm@linux-foundation.org>
+Date: Wed, 18 Jan 2017 12:25:03 -0800
+Message-ID: <587fcf1f.RZcGq3t8k4GZKOzd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57046 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752078AbdARUdf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 15:33:35 -0500
+        with ESMTP id S1752610AbdARUda (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 15:33:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: only use per-cpu allocator for irq-safe requests
+     Subject: mm, page_alloc: split alloc_pages_nodemask
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+     mm-page_alloc-split-alloc_pages_nodemask.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: only use per-cpu allocator for irq-safe requests
+Subject: mm, page_alloc: split alloc_pages_nodemask
 
-Many workloads that allocate pages are not handling an interrupt at a
-time.  As allocation requests may be from IRQ context, it's necessary to
-disable/enable IRQs for every page allocation.  This cost is the bulk of
-the free path but also a significant percentage of the allocation path.
+alloc_pages_nodemask does a number of preperation steps that determine
+what zones can be used for the allocation depending on a variety of
+factors.  This is fine but a hypothetical caller that wanted multiple
+order-0 pages has to do the preparation steps multiple times.  This patch
+structures __alloc_pages_nodemask such that it's relatively easy to build
+a bulk order-0 page allocator.  There is no functional change.
 
-This patch alters the locking and checks such that only irq-safe
-allocation requests use the per-cpu allocator.  All others acquire the
-irq-safe zone->lock and allocate from the buddy allocator.  It relies on
-disabling preemption to safely access the per-cpu structures.  It could be
-slightly modified to avoid soft IRQs using it but it's not clear it's
-worthwhile.
-
-This modification may slow allocations from IRQ context slightly but the
-main gain from the per-cpu allocator is that it scales better for
-allocations from multiple contexts.  There is an implicit assumption that
-intensive allocations from IRQ contexts on multiple CPUs from a single
-NUMA node are rare and that the fast majority of scaling issues are
-encountered in !IRQ contexts such as page faulting.  It's worth noting
-that this patch is not required for a bulk page allocator but it
-significantly reduces the overhead.
-
-The following is results from a page allocator micro-benchmark.  Only
-order-0 is interesting as higher orders do not use the per-cpu allocator
-
-                                          4.10.0-rc2                 4.10.0-rc2
-                                             vanilla               irqsafe-v1r5
-Amean    alloc-odr0-1               287.15 (  0.00%)           219.00 ( 23.73%)
-Amean    alloc-odr0-2               221.23 (  0.00%)           183.23 ( 17.18%)
-Amean    alloc-odr0-4               187.00 (  0.00%)           151.38 ( 19.05%)
-Amean    alloc-odr0-8               167.54 (  0.00%)           132.77 ( 20.75%)
-Amean    alloc-odr0-16              156.00 (  0.00%)           123.00 ( 21.15%)
-Amean    alloc-odr0-32              149.00 (  0.00%)           118.31 ( 20.60%)
-Amean    alloc-odr0-64              138.77 (  0.00%)           116.00 ( 16.41%)
-Amean    alloc-odr0-128             145.00 (  0.00%)           118.00 ( 18.62%)
-Amean    alloc-odr0-256             136.15 (  0.00%)           125.00 (  8.19%)
-Amean    alloc-odr0-512             147.92 (  0.00%)           121.77 ( 17.68%)
-Amean    alloc-odr0-1024            147.23 (  0.00%)           126.15 ( 14.32%)
-Amean    alloc-odr0-2048            155.15 (  0.00%)           129.92 ( 16.26%)
-Amean    alloc-odr0-4096            164.00 (  0.00%)           136.77 ( 16.60%)
-Amean    alloc-odr0-8192            166.92 (  0.00%)           138.08 ( 17.28%)
-Amean    alloc-odr0-16384           159.00 (  0.00%)           138.00 ( 13.21%)
-Amean    free-odr0-1                165.00 (  0.00%)            89.00 ( 46.06%)
-Amean    free-odr0-2                113.00 (  0.00%)            63.00 ( 44.25%)
-Amean    free-odr0-4                 99.00 (  0.00%)            54.00 ( 45.45%)
-Amean    free-odr0-8                 88.00 (  0.00%)            47.38 ( 46.15%)
-Amean    free-odr0-16                83.00 (  0.00%)            46.00 ( 44.58%)
-Amean    free-odr0-32                80.00 (  0.00%)            44.38 ( 44.52%)
-Amean    free-odr0-64                72.62 (  0.00%)            43.00 ( 40.78%)
-Amean    free-odr0-128               78.00 (  0.00%)            42.00 ( 46.15%)
-Amean    free-odr0-256               80.46 (  0.00%)            57.00 ( 29.16%)
-Amean    free-odr0-512               96.38 (  0.00%)            64.69 ( 32.88%)
-Amean    free-odr0-1024             107.31 (  0.00%)            72.54 ( 32.40%)
-Amean    free-odr0-2048             108.92 (  0.00%)            78.08 ( 28.32%)
-Amean    free-odr0-4096             113.38 (  0.00%)            82.23 ( 27.48%)
-Amean    free-odr0-8192             112.08 (  0.00%)            82.85 ( 26.08%)
-Amean    free-odr0-16384            110.38 (  0.00%)            81.92 ( 25.78%)
-Amean    total-odr0-1               452.15 (  0.00%)           308.00 ( 31.88%)
-Amean    total-odr0-2               334.23 (  0.00%)           246.23 ( 26.33%)
-Amean    total-odr0-4               286.00 (  0.00%)           205.38 ( 28.19%)
-Amean    total-odr0-8               255.54 (  0.00%)           180.15 ( 29.50%)
-Amean    total-odr0-16              239.00 (  0.00%)           169.00 ( 29.29%)
-Amean    total-odr0-32              229.00 (  0.00%)           162.69 ( 28.96%)
-Amean    total-odr0-64              211.38 (  0.00%)           159.00 ( 24.78%)
-Amean    total-odr0-128             223.00 (  0.00%)           160.00 ( 28.25%)
-Amean    total-odr0-256             216.62 (  0.00%)           182.00 ( 15.98%)
-Amean    total-odr0-512             244.31 (  0.00%)           186.46 ( 23.68%)
-Amean    total-odr0-1024            254.54 (  0.00%)           198.69 ( 21.94%)
-Amean    total-odr0-2048            264.08 (  0.00%)           208.00 ( 21.24%)
-Amean    total-odr0-4096            277.38 (  0.00%)           219.00 ( 21.05%)
-Amean    total-odr0-8192            279.00 (  0.00%)           220.92 ( 20.82%)
-Amean    total-odr0-16384           269.38 (  0.00%)           219.92 ( 18.36%)
-
-This is the alloc, free and total overhead of allocating order-0 pages in
-batches of 1 page up to 16384 pages.  Avoiding disabling/enabling overhead
-massively reduces overhead.  Alloc overhead is roughly reduced by 14-20%
-in most cases.  The free path is reduced by 26-46% and the total reduction
-is significant.
-
-Many users require zeroing of pages from the page allocator which is the
-vast cost of allocation.  Hence, the impact on a basic page faulting
-benchmark is not that significant
-
-                              4.10.0-rc2            4.10.0-rc2
-                                 vanilla          irqsafe-v1r5
-Hmean    page_test   656632.98 (  0.00%)   675536.13 (  2.88%)
-Hmean    brk_test   3845502.67 (  0.00%)  3867186.94 (  0.56%)
-Stddev   page_test    10543.29 (  0.00%)     4104.07 ( 61.07%)
-Stddev   brk_test     33472.36 (  0.00%)    15538.39 ( 53.58%)
-CoeffVar page_test        1.61 (  0.00%)        0.61 ( 62.15%)
-CoeffVar brk_test         0.87 (  0.00%)        0.40 ( 53.84%)
-Max      page_test   666513.33 (  0.00%)   678640.00 (  1.82%)
-Max      brk_test   3882800.00 (  0.00%)  3887008.66 (  0.11%)
-
-This is from aim9 and the most notable outcome is that fault variability
-is reduced by the patch.  The headline improvement is small as the overall
-fault cost, zeroing, page table insertion etc dominate relative to
-disabling/enabling IRQs in the per-cpu allocator.
-
-Similarly, little benefit was seen on networking benchmarks both localhost
-and between physical server/clients where other costs dominate.  It's
-possible that this will only be noticeable on very high speed networks.
-
-Jesper Dangaard Brouer independently tested this with a separate
-microbenchmark from
-https://github.com/netoptimizer/prototype-kernel/tree/master/kernel/mm/bench
-
-Micro-benchmarked with [1] page_bench02:
- modprobe page_bench02 page_order=0 run_flags=$((2#010)) loops=$((10**8)); \
-  rmmod page_bench02 ; dmesg --notime | tail -n 4
-
-Compared to baseline: 213 cycles(tsc) 53.417 ns
- - against this     : 184 cycles(tsc) 46.056 ns
- - Saving           : -29 cycles
- - Very close to expected 27 cycles saving [see below [2]]
-
-Micro benchmarking via time_bench_sample[3], we get the cost of these
-operations:
-
- time_bench: Type:for_loop                 Per elem: 0 cycles(tsc) 0.232 ns (step:0)
- time_bench: Type:spin_lock_unlock         Per elem: 33 cycles(tsc) 8.334 ns (step:0)
- time_bench: Type:spin_lock_unlock_irqsave Per elem: 62 cycles(tsc) 15.607 ns (step:0)
- time_bench: Type:irqsave_before_lock      Per elem: 57 cycles(tsc) 14.344 ns (step:0)
- time_bench: Type:spin_lock_unlock_irq     Per elem: 34 cycles(tsc) 8.560 ns (step:0)
- time_bench: Type:simple_irq_disable_before_lock Per elem: 37 cycles(tsc) 9.289 ns (step:0)
- time_bench: Type:local_BH_disable_enable  Per elem: 19 cycles(tsc) 4.920 ns (step:0)
- time_bench: Type:local_IRQ_disable_enable Per elem: 7 cycles(tsc) 1.864 ns (step:0)
- time_bench: Type:local_irq_save_restore   Per elem: 38 cycles(tsc) 9.665 ns (step:0)
- [Mel's patch removes a ^^^^^^^^^^^^^^^^]            ^^^^^^^^^ expected saving - preempt cost
- time_bench: Type:preempt_disable_enable   Per elem: 11 cycles(tsc) 2.794 ns (step:0)
- [adds a preempt  ^^^^^^^^^^^^^^^^^^^^^^]            ^^^^^^^^^ adds this cost
- time_bench: Type:funcion_call_cost        Per elem: 6 cycles(tsc) 1.689 ns (step:0)
- time_bench: Type:func_ptr_call_cost       Per elem: 11 cycles(tsc) 2.767 ns (step:0)
- time_bench: Type:page_alloc_put           Per elem: 211 cycles(tsc) 52.803 ns (step:0)
-
-Thus, expected improvement is: 38-11 = 27 cycles.
-
-Link: http://lkml.kernel.org/r/20170117092954.15413-5-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/20170117092954.15413-3-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   41 ++++++++++++++++++++++-------------------
- 1 file changed, 22 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |   81 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 49 insertions(+), 32 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests
+diff -puN mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask
 +++ a/mm/page_alloc.c
-@@ -1086,10 +1086,10 @@ static void free_pcppages_bulk(struct zo
- {
- 	int migratetype = 0;
- 	int batch_free = 0;
--	unsigned long nr_scanned;
-+	unsigned long nr_scanned, flags;
- 	bool isolated_pageblocks;
- 
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	isolated_pageblocks = has_isolate_pageblock(zone);
- 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
- 	if (nr_scanned)
-@@ -1138,7 +1138,7 @@ static void free_pcppages_bulk(struct zo
- 			trace_mm_page_pcpu_drain(page, 0, mt);
- 		} while (--count && --batch_free && !list_empty(list));
- 	}
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
- static void free_one_page(struct zone *zone,
-@@ -1146,8 +1146,8 @@ static void free_one_page(struct zone *z
- 				unsigned int order,
- 				int migratetype)
- {
--	unsigned long nr_scanned;
--	spin_lock(&zone->lock);
-+	unsigned long nr_scanned, flags;
-+	spin_lock_irqsave(&zone->lock, flags);
- 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
- 	if (nr_scanned)
- 		__mod_node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED, -nr_scanned);
-@@ -1157,7 +1157,7 @@ static void free_one_page(struct zone *z
- 		migratetype = get_pfnblock_migratetype(page, pfn);
- 	}
- 	__free_one_page(page, pfn, zone, order, migratetype);
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
-@@ -1235,7 +1235,6 @@ void __meminit reserve_bootmem_region(ph
- 
- static void __free_pages_ok(struct page *page, unsigned int order)
- {
--	unsigned long flags;
- 	int migratetype;
- 	unsigned long pfn = page_to_pfn(page);
- 
-@@ -1243,10 +1242,8 @@ static void __free_pages_ok(struct page
- 		return;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
--	local_irq_save(flags);
--	__count_vm_events(PGFREE, 1 << order);
-+	count_vm_events(PGFREE, 1 << order);
- 	free_one_page(page_zone(page), page, pfn, order, migratetype);
--	local_irq_restore(flags);
- }
- 
- static void __init __free_pages_boot_core(struct page *page, unsigned int order)
-@@ -2220,8 +2217,9 @@ static int rmqueue_bulk(struct zone *zon
- 			int migratetype, bool cold)
- {
- 	int i, alloced = 0;
-+	unsigned long flags;
- 
--	spin_lock(&zone->lock);
-+	spin_lock_irqsave(&zone->lock, flags);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype);
- 		if (unlikely(page == NULL))
-@@ -2257,7 +2255,7 @@ static int rmqueue_bulk(struct zone *zon
- 	 * pages added to the pcp list.
- 	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
--	spin_unlock(&zone->lock);
-+	spin_unlock_irqrestore(&zone->lock, flags);
- 	return alloced;
- }
- 
-@@ -2473,16 +2471,20 @@ void free_hot_cold_page(struct page *pag
- {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
--	unsigned long flags;
- 	unsigned long pfn = page_to_pfn(page);
- 	int migratetype;
- 
- 	if (!free_pcp_prepare(page))
- 		return;
- 
-+	if (in_interrupt()) {
-+		__free_pages_ok(page, 0);
-+		return;
-+	}
-+
- 	migratetype = get_pfnblock_migratetype(page, pfn);
- 	set_pcppage_migratetype(page, migratetype);
--	local_irq_save(flags);
-+	preempt_disable();
- 	__count_vm_event(PGFREE);
- 
- 	/*
-@@ -2513,7 +2515,7 @@ void free_hot_cold_page(struct page *pag
- 	}
- 
- out:
--	local_irq_restore(flags);
-+	preempt_enable_no_resched();
- }
- 
- /*
-@@ -2638,6 +2640,8 @@ static struct page *__rmqueue_pcplist(st
- {
- 	struct page *page;
- 
-+	VM_BUG_ON(in_interrupt());
-+
- 	do {
- 		if (list_empty(list)) {
- 			pcp->count += rmqueue_bulk(zone, 0,
-@@ -2668,9 +2672,8 @@ static struct page *rmqueue_pcplist(stru
- 	struct list_head *list;
- 	bool cold = ((gfp_flags & __GFP_COLD) != 0);
- 	struct page *page;
--	unsigned long flags;
- 
--	local_irq_save(flags);
-+	preempt_disable();
- 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
- 	list = &pcp->lists[migratetype];
- 	page = __rmqueue_pcplist(zone,  migratetype, cold, pcp, list);
-@@ -2678,7 +2681,7 @@ static struct page *rmqueue_pcplist(stru
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
- 		zone_statistics(preferred_zone, zone);
- 	}
--	local_irq_restore(flags);
-+	preempt_enable_no_resched();
+@@ -3779,64 +3779,81 @@ got_pg:
  	return page;
  }
  
-@@ -2694,7 +2697,7 @@ struct page *rmqueue(struct zone *prefer
- 	unsigned long flags;
- 	struct page *page;
+-/*
+- * This is the 'heart' of the zoned buddy allocator.
+- */
+-struct page *
+-__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
+-			struct zonelist *zonelist, nodemask_t *nodemask)
++static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
++		struct zonelist *zonelist, nodemask_t *nodemask,
++		struct alloc_context *ac, gfp_t *alloc_mask,
++		unsigned int *alloc_flags)
+ {
+-	struct page *page;
+-	unsigned int cpuset_mems_cookie;
+-	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
+-	struct alloc_context ac = {
+-		.high_zoneidx = gfp_zone(gfp_mask),
+-		.zonelist = zonelist,
+-		.nodemask = nodemask,
+-		.migratetype = gfpflags_to_migratetype(gfp_mask),
+-	};
++	ac->high_zoneidx = gfp_zone(gfp_mask);
++	ac->zonelist = zonelist;
++	ac->nodemask = nodemask;
++	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
  
--	if (likely(order == 0)) {
-+	if (likely(order == 0) && !in_interrupt()) {
- 		page = rmqueue_pcplist(preferred_zone, zone, order,
- 				gfp_flags, migratetype);
- 		goto out;
+ 	if (cpusets_enabled()) {
+-		alloc_mask |= __GFP_HARDWALL;
+-		alloc_flags |= ALLOC_CPUSET;
+-		if (!ac.nodemask)
+-			ac.nodemask = &cpuset_current_mems_allowed;
++		*alloc_mask |= __GFP_HARDWALL;
++		*alloc_flags |= ALLOC_CPUSET;
++		if (!ac->nodemask)
++			ac->nodemask = &cpuset_current_mems_allowed;
+ 	}
+ 
+-	gfp_mask &= gfp_allowed_mask;
+-
+ 	lockdep_trace_alloc(gfp_mask);
+ 
+ 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
+ 
+ 	if (should_fail_alloc_page(gfp_mask, order))
+-		return NULL;
++		return false;
+ 
+ 	/*
+ 	 * Check the zones suitable for the gfp_mask contain at least one
+ 	 * valid zone. It's possible to have an empty zonelist as a result
+ 	 * of __GFP_THISNODE and a memoryless node
+ 	 */
+-	if (unlikely(!zonelist->_zonerefs->zone))
+-		return NULL;
++	if (unlikely(!ac->zonelist->_zonerefs->zone))
++		return false;
+ 
+-	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
+-		alloc_flags |= ALLOC_CMA;
++	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
++		*alloc_flags |= ALLOC_CMA;
+ 
+-retry_cpuset:
+-	cpuset_mems_cookie = read_mems_allowed_begin();
++	return true;
++}
+ 
++/* Determine whether to spread dirty pages and what the first usable zone */
++static inline void finalise_ac(gfp_t gfp_mask,
++		unsigned int order, struct alloc_context *ac)
++{
+ 	/* Dirty zone balancing only done in the fast path */
+-	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
++	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+ 
+ 	/*
+ 	 * The preferred zone is used for statistics but crucially it is
+ 	 * also used as the starting point for the zonelist iterator. It
+ 	 * may get reset for allocations that ignore memory policies.
+ 	 */
+-	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+-					ac.high_zoneidx, ac.nodemask);
++	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
++					ac->high_zoneidx, ac->nodemask);
++}
++
++/*
++ * This is the 'heart' of the zoned buddy allocator.
++ */
++struct page *
++__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
++			struct zonelist *zonelist, nodemask_t *nodemask)
++{
++	struct page *page;
++	unsigned int cpuset_mems_cookie;
++	unsigned int alloc_flags = ALLOC_WMARK_LOW;
++	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
++	struct alloc_context ac = { };
++
++	gfp_mask &= gfp_allowed_mask;
++	if (!prepare_alloc_pages(gfp_mask, order, zonelist, nodemask, &ac, &alloc_mask, &alloc_flags))
++		return NULL;
++
++retry_cpuset:
++	cpuset_mems_cookie = read_mems_allowed_begin();
++
++	finalise_ac(gfp_mask, order, &ac);
+ 	if (!ac.preferred_zoneref) {
+ 		page = NULL;
+ 		goto no_zone;
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
 
+mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
+mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
 
