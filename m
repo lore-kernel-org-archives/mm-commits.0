@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-add-cluster-lock-v5.patch added to -mm tree
-Date: Tue, 17 Jan 2017 15:45:39 -0800
-Message-ID: <587eaca3.MRSwND8OEi+lF+VH%akpm@linux-foundation.org>
+Subject: +
+ mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch added to -mm tree
+Date: Tue, 17 Jan 2017 16:28:22 -0800
+Message-ID: <587eb6a6.S0am27JnKCuLma+g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52582 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54462 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751307AbdAQXpl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 18:45:41 -0500
+        with ESMTP id S1751235AbdARAia (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2017 19:38:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: dave.jiang@intel.com, david@fromorbit.com, jack@suse.cz, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swap-add-cluster-lock-v5
+     Subject: mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7
 has been added to the -mm tree.  Its filename is
-     mm-swap-add-cluster-lock-v5.patch
+     mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-add-cluster-lock-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-add-cluster-lock-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,167 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Huang\, Ying" <ying.huang@intel.com>
-Subject: mm-swap-add-cluster-lock-v5
+From: Dave Jiang <dave.jiang@intel.com>
+Subject: mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7
 
-Link: http://lkml.kernel.org/r/878tqeuuic.fsf_-_@yhuang-dev.intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+v7:
+Xiong found issue with xfs_tests stall when DAX option is turned out. It
+seems the issue has to do with dax_iomap_pmd_fault(). The pgoff needs
+to be linear_page_index(vma, vmf->address & PMD_MASK) in this funciton.
+However, the passed in address is linear_page_index(vma, vmf->address)
+and based on the PTE and not the PMD. The vmf->pgoff needs to be what was
+passed in when returned. Therefore we go back to having a local variable
+of pgoff in the dax_iomap_pmd_fault that is based on address & PMD_MASK.
+
+Link: http://lkml.kernel.org/r/148469861071.195597.3619476895250028518.stgit@djiang5-desk3.ch.intel.com
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   19 ++++++++++---------
- mm/swapfile.c        |   32 ++++++++++++++++----------------
- 2 files changed, 26 insertions(+), 25 deletions(-)
+ fs/dax.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/swap.h~mm-swap-add-cluster-lock-v5 include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-add-cluster-lock-v5
-+++ a/include/linux/swap.h
-@@ -176,16 +176,17 @@ enum {
-  * protected by swap_info_struct.lock.
-  */
- struct swap_cluster_info {
--	unsigned long data;
-+	spinlock_t lock;	/*
-+				 * Protect swap_cluster_info fields
-+				 * and swap_info_struct->swap_map
-+				 * elements correspond to the swap
-+				 * cluster
-+				 */
-+	unsigned int data:24;
-+	unsigned int flags:8;
- };
--#define CLUSTER_COUNT_SHIFT		8
--#define CLUSTER_FLAG_MASK		((1UL << CLUSTER_COUNT_SHIFT) - 1)
--#define CLUSTER_COUNT_MASK		(~CLUSTER_FLAG_MASK)
--#define CLUSTER_FLAG_FREE		1 /* This cluster is free */
--#define CLUSTER_FLAG_NEXT_NULL		2 /* This cluster has no next cluster */
--/* cluster lock, protect cluster_info contents and sis->swap_map */
--#define CLUSTER_FLAG_LOCK_BIT		2
--#define CLUSTER_FLAG_LOCK		(1 << CLUSTER_FLAG_LOCK_BIT)
-+#define CLUSTER_FLAG_FREE 1 /* This cluster is free */
-+#define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
+diff -puN fs/dax.c~mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7 fs/dax.c
+--- a/fs/dax.c~mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7
++++ a/fs/dax.c
+@@ -1341,7 +1341,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	struct inode *inode = mapping->host;
+ 	int result = VM_FAULT_FALLBACK;
+ 	struct iomap iomap = { 0 };
+-	pgoff_t max_pgoff;
++	pgoff_t max_pgoff, pgoff;
+ 	void *entry;
+ 	loff_t pos;
+ 	int error;
+@@ -1351,7 +1351,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	 * supposed to hold locks serializing us with truncate / punch hole so
+ 	 * this is a reliable test.
+ 	 */
+-	vmf->pgoff = linear_page_index(vma, pmd_addr);
++	pgoff = linear_page_index(vma, pmd_addr);
+ 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
  
- /*
-  * We assign a cluster to each CPU, so each CPU can allocate swap entry from
-diff -puN mm/swapfile.c~mm-swap-add-cluster-lock-v5 mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-add-cluster-lock-v5
-+++ a/mm/swapfile.c
-@@ -200,66 +200,66 @@ static void discard_swap_cluster(struct
- #define LATENCY_LIMIT		256
+ 	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
+@@ -1366,13 +1366,13 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
+ 		goto fallback;
  
- static inline void cluster_set_flag(struct swap_cluster_info *info,
--				    unsigned int flag)
-+	unsigned int flag)
- {
--	info->data = (info->data & (CLUSTER_COUNT_MASK | CLUSTER_FLAG_LOCK)) |
--		(flag & ~CLUSTER_FLAG_LOCK);
-+	info->flags = flag;
- }
+-	if (vmf->pgoff > max_pgoff) {
++	if (pgoff > max_pgoff) {
+ 		result = VM_FAULT_SIGBUS;
+ 		goto out;
+ 	}
  
- static inline unsigned int cluster_count(struct swap_cluster_info *info)
- {
--	return info->data >> CLUSTER_COUNT_SHIFT;
-+	return info->data;
- }
+ 	/* If the PMD would extend beyond the file size */
+-	if ((vmf->pgoff | PG_PMD_COLOUR) > max_pgoff)
++	if ((pgoff | PG_PMD_COLOUR) > max_pgoff)
+ 		goto fallback;
  
- static inline void cluster_set_count(struct swap_cluster_info *info,
- 				     unsigned int c)
- {
--	info->data = (c << CLUSTER_COUNT_SHIFT) | (info->data & CLUSTER_FLAG_MASK);
-+	info->data = c;
- }
+ 	/*
+@@ -1380,7 +1380,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	 * setting up a mapping, so really we're using iomap_begin() as a way
+ 	 * to look up our filesystem block.
+ 	 */
+-	pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
++	pos = (loff_t)pgoff << PAGE_SHIFT;
+ 	error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap);
+ 	if (error)
+ 		goto fallback;
+@@ -1394,7 +1394,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	 * the tree, for instance), it will return -EEXIST and we just fall
+ 	 * back to 4k entries.
+ 	 */
+-	entry = grab_mapping_entry(mapping, vmf->pgoff, RADIX_DAX_PMD);
++	entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);
+ 	if (IS_ERR(entry))
+ 		goto finish_iomap;
  
- static inline void cluster_set_count_flag(struct swap_cluster_info *info,
- 					 unsigned int c, unsigned int f)
- {
--	info->data = (info->data & CLUSTER_FLAG_LOCK) |
--		(c << CLUSTER_COUNT_SHIFT) | (f & ~CLUSTER_FLAG_LOCK);
-+	info->flags = f;
-+	info->data = c;
- }
+@@ -1416,7 +1416,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	}
  
- static inline unsigned int cluster_next(struct swap_cluster_info *info)
- {
--	return cluster_count(info);
-+	return info->data;
- }
- 
- static inline void cluster_set_next(struct swap_cluster_info *info,
- 				    unsigned int n)
- {
--	cluster_set_count(info, n);
-+	info->data = n;
- }
- 
- static inline void cluster_set_next_flag(struct swap_cluster_info *info,
- 					 unsigned int n, unsigned int f)
- {
--	cluster_set_count_flag(info, n, f);
-+	info->flags = f;
-+	info->data = n;
- }
- 
- static inline bool cluster_is_free(struct swap_cluster_info *info)
- {
--	return info->data & CLUSTER_FLAG_FREE;
-+	return info->flags & CLUSTER_FLAG_FREE;
- }
- 
- static inline bool cluster_is_null(struct swap_cluster_info *info)
- {
--	return info->data & CLUSTER_FLAG_NEXT_NULL;
-+	return info->flags & CLUSTER_FLAG_NEXT_NULL;
- }
- 
- static inline void cluster_set_null(struct swap_cluster_info *info)
- {
--	cluster_set_next_flag(info, 0, CLUSTER_FLAG_NEXT_NULL);
-+	info->flags = CLUSTER_FLAG_NEXT_NULL;
-+	info->data = 0;
- }
- 
--/* Protect swap_cluster_info fields and si->swap_map */
- static inline void __lock_cluster(struct swap_cluster_info *ci)
- {
--	bit_spin_lock(CLUSTER_FLAG_LOCK_BIT, &ci->data);
-+	spin_lock(&ci->lock);
- }
- 
- static inline struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
-@@ -278,7 +278,7 @@ static inline struct swap_cluster_info *
- static inline void unlock_cluster(struct swap_cluster_info *ci)
- {
- 	if (ci)
--		bit_spin_unlock(CLUSTER_FLAG_LOCK_BIT, &ci->data);
-+		spin_unlock(&ci->lock);
- }
- 
- static inline struct swap_cluster_info *lock_cluster_or_swap_info(
+  unlock_entry:
+-	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++	put_locked_mapping_entry(mapping, pgoff, entry);
+  finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PMD_SIZE;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from dave.jiang@intel.com are
 
-mm-swap-fix-kernel-message-in-swap_info_get.patch
-mm-swap-add-cluster-lock.patch
-mm-swap-add-cluster-lock-v5.patch
-mm-swap-split-swap-cache-into-64mb-trunks.patch
-mm-swap-add-cache-for-swap-slots-allocation-fix.patch
-mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
+mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault.patch
+mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch
+mm-dax-move-pmd_fault-to-take-only-vmf-parameter.patch
 
