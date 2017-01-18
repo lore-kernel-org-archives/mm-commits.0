@@ -1,75 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 18 Jan 2017 14:23:43 -0800
-Message-ID: <587feaef.qJfVJk+W8BsJaErT%akpm@linux-foundation.org>
+Subject: + mm-swap-add-cache-for-swap-slots-allocation-fix-2.patch added
+ to -mm tree
+Date: Wed, 18 Jan 2017 14:04:16 -0800
+Message-ID: <587fe660.4geFY8fNtoKjHLzI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52434 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750846AbdARWXo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 17:23:44 -0500
+        with ESMTP id S1750996AbdARW6c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2017 17:58:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: tim.c.chen@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm/swap: add comments on locks in swap_slots.h
+has been added to the -mm tree.  Its filename is
+     mm-swap-add-cache-for-swap-slots-allocation-fix-2.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-add-cache-for-swap-slots-allocation-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-add-cache-for-swap-slots-allocation-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: mm/swap: add comments on locks in swap_slots.h
 
+Explains what each lock protects in swap_slots_cache structure.
+
+Link: http://lkml.kernel.org/r/20170118180327.GA24225@linux.intel.com
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree_exp.h |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/swap_slots.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/rcu/tree_exp.h~linux-next-git-rejects kernel/rcu/tree_exp.h
---- a/kernel/rcu/tree_exp.h~linux-next-git-rejects
-+++ a/kernel/rcu/tree_exp.h
-@@ -711,14 +711,11 @@ void synchronize_rcu_expedited(void)
- {
- 	struct rcu_state *rsp = rcu_state_p;
+diff -puN include/linux/swap_slots.h~mm-swap-add-cache-for-swap-slots-allocation-fix-2 include/linux/swap_slots.h
+--- a/include/linux/swap_slots.h~mm-swap-add-cache-for-swap-slots-allocation-fix-2
++++ a/include/linux/swap_slots.h
+@@ -11,11 +11,11 @@
  
--<<<<<<< HEAD
--=======
- 	RCU_LOCKDEP_WARN(lock_is_held(&rcu_bh_lock_map) ||
- 			 lock_is_held(&rcu_lock_map) ||
- 			 lock_is_held(&rcu_sched_lock_map),
- 			 "Illegal synchronize_rcu_expedited() in RCU read-side critical section");
- 
-->>>>>>> linux-next/akpm-base
- 	if (rcu_scheduler_active == RCU_SCHEDULER_INACTIVE)
- 		return;
- 	_synchronize_rcu_expedited(rsp, sync_rcu_exp_handler);
+ struct swap_slots_cache {
+ 	bool		lock_initialized;
+-	struct mutex	alloc_lock;
++	struct mutex	alloc_lock; /* protects slots, nr, cur */
+ 	swp_entry_t	*slots;
+ 	int		nr;
+ 	int		cur;
+-	spinlock_t	free_lock;
++	spinlock_t	free_lock;  /* protects slots_ret, n_ret */
+ 	swp_entry_t	*slots_ret;
+ 	int		n_ret;
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
 
-i-need-old-gcc.patch
-mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
-proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-dax-enable-iostat-for-read-write-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
-mm.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
-lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-linux-next-rejects.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-swap-skip-read-ahead-for-unreferenced-swap-slots.patch
+mm-swap-allocate-swap-slots-in-batches.patch
+mm-swap-free-swap-slots-in-batch.patch
+mm-swap-add-cache-for-swap-slots-allocation.patch
+mm-swap-add-cache-for-swap-slots-allocation-fix-2.patch
+mm-swap-enable-swap-slots-cache-usage.patch
 
