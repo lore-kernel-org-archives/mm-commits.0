@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
- added to -mm tree
-Date: Thu, 19 Jan 2017 15:03:25 -0800
-Message-ID: <588145bd.R/mReTZZXYNRPhsW%akpm@linux-foundation.org>
+Subject: +
+ mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch added
+ to -mm tree
+Date: Thu, 19 Jan 2017 15:02:34 -0800
+Message-ID: <5881458a.k3dUoYxkLFfTqOxB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40804 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752160AbdASXNb (ORCPT
+        with ESMTP id S1752000AbdASXNb (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2017 18:13:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, borntraeger@de.ibm.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: header nodemask is NULL when cpusets are disabled
+     Subject: mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix
 has been added to the -mm tree.  Its filename is
-     mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
+     mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +40,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: header nodemask is NULL when cpusets are disabled
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix
 
-Commit 82e7d3abec86 ("oom: print nodemask in the oom report") implicitly
-sets the allocation nodemask to cpuset_current_mems_allowed when there is
-no effective mempolicy.  cpuset_current_mems_allowed is only effective
-when cpusets are enabled, which is also printed by dump_header(), so
-setting the nodemask to cpuset_current_mems_allowed is redundant and
-prevents debugging issues where ac->nodemask is not set properly in the
-page allocator.
+make zero_checksum and ksm_use_zero_pages __read_mostly, per Andrea
 
-This provides better debugging output since
-cpuset_print_current_mems_allowed() is already provided.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701191454470.2381@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/ksm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-header-nodemask-is-null-when-cpusets-are-disabled mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-header-nodemask-is-null-when-cpusets-are-disabled
-+++ a/mm/oom_kill.c
-@@ -403,12 +403,14 @@ static void dump_tasks(struct mem_cgroup
+diff -puN mm/ksm.c~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix mm/ksm.c
+--- a/mm/ksm.c~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix
++++ a/mm/ksm.c
+@@ -224,10 +224,10 @@ static unsigned int ksm_thread_pages_to_
+ static unsigned int ksm_thread_sleep_millisecs = 20;
  
- static void dump_header(struct oom_control *oc, struct task_struct *p)
- {
--	nodemask_t *nm = (oc->nodemask) ? oc->nodemask : &cpuset_current_mems_allowed;
--
--	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=%*pbl, order=%d, oom_score_adj=%hd\n",
--		current->comm, oc->gfp_mask, &oc->gfp_mask,
--		nodemask_pr_args(nm), oc->order,
--		current->signal->oom_score_adj);
-+	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=",
-+		current->comm, oc->gfp_mask, &oc->gfp_mask);
-+	if (oc->nodemask)
-+		pr_cont("%*pbl", nodemask_pr_args(oc->nodemask));
-+	else
-+		pr_cont("(null)\n");
-+	pr_cont(",  order=%d, oom_score_adj=%hd\n",
-+		oc->order, current->signal->oom_score_adj);
- 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
- 		pr_warn("COMPACTION is disabled!!!\n");
+ /* Checksum of an empty (zeroed) page */
+-static unsigned int zero_checksum;
++static unsigned int zero_checksum __read_mostly;
  
-@@ -417,7 +419,7 @@ static void dump_header(struct oom_contr
- 	if (oc->memcg)
- 		mem_cgroup_print_oom_info(oc->memcg, p);
- 	else
--		show_mem(SHOW_MEM_FILTER_NODES, nm);
-+		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
- 	if (sysctl_oom_dump_tasks)
- 		dump_tasks(oc->memcg, oc->nodemask);
- }
+ /* Whether to merge empty (zeroed) pages with actual zero pages */
+-static bool ksm_use_zero_pages;
++static bool ksm_use_zero_pages __read_mostly;
+ 
+ #ifdef CONFIG_NUMA
+ /* Zeroed when merging across nodes is not allowed */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcg-do-not-retry-precharge-charges.patch
-mm-compaction-add-vmstats-for-kcompactd-work.patch
-mm-thp-add-new-defermadvise-defrag-option.patch
-mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
-mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
+i-need-old-gcc.patch
+mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
+proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+dax-enable-iostat-for-read-write-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+mm.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
