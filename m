@@ -1,123 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-color-map-copying-bounds-checking.patch added to -mm tree
-Date: Thu, 19 Jan 2017 12:43:31 -0800
-Message-ID: <588124f3.X35D4BWXcvyXKlIh%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key.patch
+ removed from -mm tree
+Date: Thu, 19 Jan 2017 12:51:19 -0800
+Message-ID: <588126c7.kwPVCe/x5j/DXHhD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56888 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751261AbdASUoc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2017 15:44:32 -0500
+        with ESMTP id S1751546AbdASU6b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2017 15:58:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, b.zolnierkie@samsung.com, dan.carpenter@oracle.com, mchong@google.com, stable@vger.kernel.org, tomi.valkeinen@ti.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fbdev: color map copying bounds checking
-has been added to the -mm tree.  Its filename is
-     fbdev-color-map-copying-bounds-checking.patch
+     Subject: mm, page_alloc: convert page_group_by_mobility_disable to static key
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fbdev-color-map-copying-bounds-checking.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fbdev-color-map-copying-bounds-checking.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fbdev: color map copying bounds checking
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: convert page_group_by_mobility_disable to static key
 
-Copying color maps to userspace doesn't check the value of to->start,
-which will cause kernel heap buffer OOB read due to signedness wraps.
+The flag is rarely enabled or even changed, so it's an ideal static key
+candidate. Since it's being checked in the page allocator fastpath via
+gfpflags_to_migratetype(), it may actually save some valuable cycles.
 
-CVE-2016-8405
+Here's a diff excerpt from __alloc_pages_nodemask() assembly:
 
-Link: http://lkml.kernel.org/r/20170105224249.GA50925@beast
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Peter Pi (@heisecode) of Trend Micro
-Cc: Min Chong <mchong@google.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: <stable@vger.kernel.org>
+        -movl    page_group_by_mobility_disabled(%rip), %ecx
+	+.byte 0x0f,0x1f,0x44,0x00,0
+         movl    %r9d, %eax
+         shrl    $3, %eax
+         andl    $3, %eax
+        -testl   %ecx, %ecx
+        -movl    $0, %ecx
+        -cmovne  %ecx, %eax
+
+I.e. a NOP instead of test, conditional move and some assisting moves.
+
+Link: http://lkml.kernel.org/r/20161220134312.17332-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/core/fbcmap.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ include/linux/gfp.h    |    2 +-
+ include/linux/mmzone.h |    3 ++-
+ mm/page_alloc.c        |   23 +++++++++++++----------
+ 3 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/fbdev/core/fbcmap.c~fbdev-color-map-copying-bounds-checking drivers/video/fbdev/core/fbcmap.c
---- a/drivers/video/fbdev/core/fbcmap.c~fbdev-color-map-copying-bounds-checking
-+++ a/drivers/video/fbdev/core/fbcmap.c
-@@ -163,17 +163,18 @@ void fb_dealloc_cmap(struct fb_cmap *cma
+diff -puN include/linux/gfp.h~mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key
++++ a/include/linux/gfp.h
+@@ -263,7 +263,7 @@ static inline int gfpflags_to_migratetyp
+ 	BUILD_BUG_ON((1UL << GFP_MOVABLE_SHIFT) != ___GFP_MOVABLE);
+ 	BUILD_BUG_ON((___GFP_MOVABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_MOVABLE);
  
- int fb_copy_cmap(const struct fb_cmap *from, struct fb_cmap *to)
+-	if (unlikely(page_group_by_mobility_disabled))
++	if (static_branch_unlikely(&page_group_by_mobility_disabled))
+ 		return MIGRATE_UNMOVABLE;
+ 
+ 	/* Group based on mobility */
+diff -puN include/linux/mmzone.h~mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key
++++ a/include/linux/mmzone.h
+@@ -17,6 +17,7 @@
+ #include <linux/pageblock-flags.h>
+ #include <linux/page-flags-layout.h>
+ #include <linux/atomic.h>
++#include <linux/jump_label.h>
+ #include <asm/page.h>
+ 
+ /* Free memory management - zoned buddy allocator.  */
+@@ -78,7 +79,7 @@ extern char * const migratetype_names[MI
+ 	for (order = 0; order < MAX_ORDER; order++) \
+ 		for (type = 0; type < MIGRATE_TYPES; type++)
+ 
+-extern int page_group_by_mobility_disabled;
++extern struct static_key_false page_group_by_mobility_disabled;
+ 
+ #define NR_MIGRATETYPE_BITS (PB_migrate_end - PB_migrate + 1)
+ #define MIGRATETYPE_MASK ((1UL << NR_MIGRATETYPE_BITS) - 1)
+diff -puN mm/page_alloc.c~mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-convert-page_group_by_mobility_disable-to-static-key
++++ a/mm/page_alloc.c
+@@ -281,7 +281,7 @@ EXPORT_SYMBOL(nr_node_ids);
+ EXPORT_SYMBOL(nr_online_nodes);
+ #endif
+ 
+-int page_group_by_mobility_disabled __read_mostly;
++DEFINE_STATIC_KEY_FALSE(page_group_by_mobility_disabled);
+ 
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static inline void reset_deferred_meminit(pg_data_t *pgdat)
+@@ -450,9 +450,10 @@ void set_pfnblock_flags_mask(struct page
+ 
+ void set_pageblock_migratetype(struct page *page, int migratetype)
  {
--	int tooff = 0, fromoff = 0;
--	int size;
-+	unsigned int tooff = 0, fromoff = 0;
-+	size_t size;
+-	if (unlikely(page_group_by_mobility_disabled &&
+-		     migratetype < MIGRATE_PCPTYPES))
+-		migratetype = MIGRATE_UNMOVABLE;
++	if (static_branch_unlikely(&page_group_by_mobility_disabled)) {
++		if (migratetype < MIGRATE_PCPTYPES)
++			migratetype = MIGRATE_UNMOVABLE;
++	}
  
- 	if (to->start > from->start)
- 		fromoff = to->start - from->start;
- 	else
- 		tooff = from->start - to->start;
--	size = to->len - tooff;
--	if (size > (int) (from->len - fromoff))
--		size = from->len - fromoff;
--	if (size <= 0)
-+	if (fromoff >= from->len || tooff >= to->len)
-+		return -EINVAL;
+ 	set_pageblock_flags_group(page, (unsigned long)migratetype,
+ 					PB_migrate, PB_migrate_end);
+@@ -1942,8 +1943,10 @@ static bool can_steal_fallback(unsigned
+ 
+ 	if (order >= pageblock_order / 2 ||
+ 		start_mt == MIGRATE_RECLAIMABLE ||
+-		start_mt == MIGRATE_UNMOVABLE ||
+-		page_group_by_mobility_disabled)
++		start_mt == MIGRATE_UNMOVABLE)
++		return true;
 +
-+	size = min_t(size_t, to->len - tooff, from->len - fromoff);
-+	if (size == 0)
- 		return -EINVAL;
- 	size *= sizeof(u16);
++	if (static_branch_unlikely(&page_group_by_mobility_disabled))
+ 		return true;
  
-@@ -187,17 +188,18 @@ int fb_copy_cmap(const struct fb_cmap *f
+ 	return false;
+@@ -1972,7 +1975,7 @@ static void steal_suitable_fallback(stru
  
- int fb_cmap_to_user(const struct fb_cmap *from, struct fb_cmap_user *to)
- {
--	int tooff = 0, fromoff = 0;
--	int size;
-+	unsigned int tooff = 0, fromoff = 0;
-+	size_t size;
+ 	/* Claim the whole block if over half of it is free */
+ 	if (pages >= (1 << (pageblock_order-1)) ||
+-			page_group_by_mobility_disabled)
++	    static_branch_unlikely(&page_group_by_mobility_disabled))
+ 		set_pageblock_migratetype(page, start_type);
+ }
  
- 	if (to->start > from->start)
- 		fromoff = to->start - from->start;
+@@ -5012,14 +5015,14 @@ void __ref build_all_zonelists(pg_data_t
+ 	 * disabled and enable it later
+ 	 */
+ 	if (vm_total_pages < (pageblock_nr_pages * MIGRATE_TYPES))
+-		page_group_by_mobility_disabled = 1;
++		static_branch_enable(&page_group_by_mobility_disabled);
  	else
- 		tooff = from->start - to->start;
--	size = to->len - tooff;
--	if (size > (int) (from->len - fromoff))
--		size = from->len - fromoff;
--	if (size <= 0)
-+	if (fromoff >= from->len || tooff >= to->len)
-+		return -EINVAL;
-+
-+	size = min_t(size_t, to->len - tooff, from->len - fromoff);
-+	if (size == 0)
- 		return -EINVAL;
- 	size *= sizeof(u16);
+-		page_group_by_mobility_disabled = 0;
++		static_branch_disable(&page_group_by_mobility_disabled);
  
+ 	pr_info("Built %i zonelists in %s order, mobility grouping %s.  Total pages: %ld\n",
+ 		nr_online_nodes,
+ 		zonelist_order_name[current_zonelist_order],
+-		page_group_by_mobility_disabled ? "off" : "on",
++		static_key_enabled(&page_group_by_mobility_disabled) ? "off" : "on",
+ 		vm_total_pages);
+ #ifdef CONFIG_NUMA
+ 	pr_info("Policy zone: %s\n", zone_names[policy_zone]);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-fbdev-color-map-copying-bounds-checking.patch
-rbtree-use-designated-initializers.patch
+mm-mempolicyc-do-not-put-mempolicy-before-using-its-nodemask.patch
+mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
+mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
 
