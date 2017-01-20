@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch added
- to -mm tree
-Date: Fri, 20 Jan 2017 15:17:13 -0800
-Message-ID: <58829a79.e7LdIE2V0lgHbP3W%akpm__40642.5724541352$1484954242$gmane$org@linux-foundation.org>
+ mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
+ added to -mm tree
+Date: Fri, 20 Jan 2017 15:17:17 -0800
+Message-ID: <58829a7d.WOTh6rlgvRlkrPZW%akpm__33696.2607726038$1484954246$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40036 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752058AbdATXRO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2017 18:17:14 -0500
+        with ESMTP id S1752239AbdATXRT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2017 18:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, gpkulkarni@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: fix fast-path race with cpuset update or removal
+     Subject: mm, page_alloc: fix premature OOM when racing with cpuset mems update
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch
+     mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,61 +41,109 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: fix fast-path race with cpuset update or removal
+Subject: mm, page_alloc: fix premature OOM when racing with cpuset mems update
 
 Ganapatrao Kulkarni reported that the LTP test cpuset01 in stress mode
 triggers OOM killer in few seconds, despite lots of free memory.  The test
 attempts to repeatedly fault in memory in one process in a cpuset, while
 changing allowed nodes of the cpuset between 0 and 1 in another process.
 
-One possible cause is that in the fast path we find the preferred zoneref
-according to current mems_allowed, so that it points to the middle of the
-zonelist, skipping e.g.  zones of node 1 completely.  If the mems_allowed
-is updated to contain only node 1, we never reach it in the zonelist, and
-trigger OOM before checking the cpuset_mems_cookie.
+The problem comes from insufficient protection against cpuset changes,
+which can cause get_page_from_freelist() to consider all zones as
+non-eligible due to nodemask and/or current->mems_allowed.  This was
+masked in the past by sufficient retries, but since commit 682a3385e773
+("mm, page_alloc: inline the fast path of the zonelist iterator") we fix
+the preferred_zoneref once, and don't iterate over the whole zonelist in
+further attempts, thus the only eligible zones might be placed in the
+zonelist before our starting point and we always miss them.
 
-This patch fixes the particular case by redoing the preferred zoneref
-search if we switch back to the original nodemask.  The condition is also
-slightly changed so that when the last non-root cpuset is removed, we
-don't miss it.
+A previous patch fixed this problem for current->mems_allowed.  However,
+cpuset changes also update the task's mempolicy nodemask.  The fix has two
+parts.  We have to repeat the preferred_zoneref search when we detect
+cpuset update by way of seqcount, and we have to check the seqcount before
+considering OOM.
 
-Note that this is not a full fix, and more patches will follow.
-
-Link: http://lkml.kernel.org/r/20170120103843.24587-3-vbabka@suse.cz
-Fixes: 682a3385e773 ("mm, page_alloc: inline the fast path of the zonelist iterator")
+Link: http://lkml.kernel.org/r/20170120103843.24587-5-vbabka@suse.cz
+Fixes: c33d6c06f60f ("mm, page_alloc: avoid looking up the first zone in a zonelist twice")
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reported-by: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update
 +++ a/mm/page_alloc.c
-@@ -3804,9 +3804,17 @@ retry_cpuset:
+@@ -3555,6 +3555,17 @@ retry_cpuset:
+ 	no_progress_loops = 0;
+ 	compact_priority = DEF_COMPACT_PRIORITY;
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
++	/*
++	 * We need to recalculate the starting point for the zonelist iterator
++	 * because we might have used different nodemask in the fast path, or
++	 * there was a cpuset modification and we are retrying - otherwise we
++	 * could end up iterating over non-eligible zones endlessly.
++	 */
++	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
++					ac->high_zoneidx, ac->nodemask);
++	if (!ac->preferred_zoneref->zone)
++		goto nopage;
++
+ 
+ 	/*
+ 	 * The fast path uses conservative alloc_flags to succeed only until
+@@ -3715,6 +3726,13 @@ retry:
+ 				&compaction_retries))
+ 		goto retry;
+ 
++	/*
++	 * It's possible we raced with cpuset update so the OOM would be
++	 * premature (see below the nopage: label for full explanation).
++	 */
++	if (read_mems_allowed_retry(cpuset_mems_cookie))
++		goto retry_cpuset;
++
+ 	/* Reclaim has failed us, start killing things */
+ 	page = __alloc_pages_may_oom(gfp_mask, order, ac, &did_some_progress);
+ 	if (page)
+@@ -3728,10 +3746,11 @@ retry:
+ 
+ nopage:
+ 	/*
+-	 * When updating a task's mems_allowed, it is possible to race with
+-	 * parallel threads in such a way that an allocation can fail while
+-	 * the mask is being updated. If a page allocation is about to fail,
+-	 * check if the cpuset changed during allocation and if so, retry.
++	 * When updating a task's mems_allowed or mempolicy nodeask, it is
++	 * possible to race with parallel threads in such a way that our
++	 * allocation can fail while the mask is being updated. If we are about
++	 * to fail, check if the cpuset changed during allocation and if so,
++	 * retry.
+ 	 */
+ 	if (read_mems_allowed_retry(cpuset_mems_cookie))
+ 		goto retry_cpuset;
+@@ -3822,15 +3841,9 @@ no_zone:
  	/*
  	 * Restore the original nodemask if it was potentially replaced with
  	 * &cpuset_current_mems_allowed to optimize the fast-path attempt.
-+	 * Also recalculate the starting point for the zonelist iterator or
-+	 * we could end up iterating over non-eligible zones endlessly.
+-	 * Also recalculate the starting point for the zonelist iterator or
+-	 * we could end up iterating over non-eligible zones endlessly.
  	 */
--	if (cpusets_enabled())
-+	if (unlikely(ac.nodemask != nodemask)) {
+-	if (unlikely(ac.nodemask != nodemask)) {
++	if (unlikely(ac.nodemask != nodemask))
  		ac.nodemask = nodemask;
-+		ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
-+						ac.high_zoneidx, ac.nodemask);
-+		if (!ac.preferred_zoneref->zone)
-+			goto no_zone;
-+	}
-+
+-		ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+-						ac.high_zoneidx, ac.nodemask);
+-		/* If we have NULL preferred zone, slowpath wll handle that */
+-	}
+ 
  	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
  
- no_zone:
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
