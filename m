@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch added to -mm tree
-Date: Fri, 20 Jan 2017 15:23:17 -0800
-Message-ID: <58829be5.iEOg72Zqe2mWoyTI%akpm@linux-foundation.org>
+Subject: + add-explanation-of-udelay-inaccuracy.patch added to -mm tree
+Date: Fri, 20 Jan 2017 15:24:11 -0800
+Message-ID: <58829c1b.n2MbgTZu2/l9xR3l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752125AbdATXXS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2017 18:23:18 -0500
+        with ESMTP id S1751125AbdATXYM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2017 18:24:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rmk+kernel@armlinux.org.uk, davidriley@chromium.org, john.stultz@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix
+     Subject: include/linux/delay.h: add explanation of udelay() inaccuracy
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
+     add-explanation-of-udelay-inaccuracy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-explanation-of-udelay-inaccuracy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-explanation-of-udelay-inaccuracy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Subject: include/linux/delay.h: add explanation of udelay() inaccuracy
 
-fix typo in comment
+There seems to be some misunderstanding that udelay() and friends will
+always guarantee the specified delay.  This is a false understanding. 
+When udelay() is based on CPU cycles, it can return early for many reasons
+which are detailed by Linus' reply to me in a thread in 2011:
 
-Cc: Vlastimil Babka <vbabka@suse.cz>
+  http://lists.openwall.net/linux-kernel/2011/01/12/372
+
+However, a udelay test module was created in 2014 which allows udelay() to
+only be 0.5% fast, which is outside of the CPU-cycles udelay() results I
+measured back in 2011, which were deemed to be in the "we don't care"
+region.
+
+test_udelay() should be fixed to reflect the real allowable tolerance
+on udelay(), rather than 0.5%.
+
+Link: http://lkml.kernel.org/r/E1cUAQz-0002HC-EX@rmk-PC.armlinux.org.uk
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: David Riley <davidriley@chromium.org>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/delay.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix
-+++ a/mm/page_alloc.c
-@@ -3746,7 +3746,7 @@ retry:
+diff -puN include/linux/delay.h~add-explanation-of-udelay-inaccuracy include/linux/delay.h
+--- a/include/linux/delay.h~add-explanation-of-udelay-inaccuracy
++++ a/include/linux/delay.h
+@@ -5,6 +5,17 @@
+  * Copyright (C) 1993 Linus Torvalds
+  *
+  * Delay routines, using a pre-computed "loops_per_jiffy" value.
++ *
++ * Please note that ndelay(), udelay() and mdelay() may return early for
++ * several reasons:
++ *  1. computed loops_per_jiffy too low (due to the time taken to
++ *     execute the timer interrupt.)
++ *  2. cache behaviour affecting the time it takes to execute the
++ *     loop function.
++ *  3. CPU clock rate changes.
++ *
++ * Please see this thread:
++ *   http://lists.openwall.net/linux-kernel/2011/01/09/56
+  */
  
- nopage:
- 	/*
--	 * When updating a task's mems_allowed or mempolicy nodeask, it is
-+	 * When updating a task's mems_allowed or mempolicy nodemask, it is
- 	 * possible to race with parallel threads in such a way that our
- 	 * allocation can fail while the mask is being updated. If we are about
- 	 * to fail, check if the cpuset changed during allocation and if so,
+ #include <linux/kernel.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rmk+kernel@armlinux.org.uk are
 
-i-need-old-gcc.patch
-mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
-proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
-mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-dax-enable-iostat-for-read-write-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
-mm.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
-lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
-mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
-mm-track-active-portions-of-a-section-at-boot-fix.patch
-mm-memory_hotplugc-unexport-__remove_pages.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+add-explanation-of-udelay-inaccuracy.patch
 
