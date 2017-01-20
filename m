@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- memblock-embed-memblock-type-name-within-struct-memblock_type.patch added
- to -mm tree
-Date: Fri, 20 Jan 2017 15:04:13 -0800
-Message-ID: <5882976d.zs2Yhjv2RM3zBbpg%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-fix-check-for-null-preferred_zone.patch added to
+ -mm tree
+Date: Fri, 20 Jan 2017 15:17:11 -0800
+Message-ID: <58829a77.zQz8dPMGnVtpRHLb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37788 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751125AbdATXEO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2017 18:04:14 -0500
+        with ESMTP id S1752058AbdATXRN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2017 18:17:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, phacht@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, gpkulkarni@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: embed memblock type name within struct memblock_type
+     Subject: mm, page_alloc: fix check for NULL preferred_zone
 has been added to the -mm tree.  Its filename is
-     memblock-embed-memblock-type-name-within-struct-memblock_type.patch
+     mm-page_alloc-fix-check-for-null-preferred_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-embed-memblock-type-name-within-struct-memblock_type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-check-for-null-preferred_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-embed-memblock-type-name-within-struct-memblock_type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-check-for-null-preferred_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,154 +39,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: memblock: embed memblock type name within struct memblock_type
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: fix check for NULL preferred_zone
 
-Provide the name of each memblock type with struct memblock_type. This
-allows to get rid of the function memblock_type_name() and duplicating
-the type names in __memblock_dump_all().
+Patch series "fix premature OOM regression in 4.7+ due to cpuset races", v2.
 
-The only memblock_type usage out of mm/memblock.c seems to be
-arch/s390/kernel/crash_dump.c. While at it, give it a name.
+This is v2 of my attempt to fix the recent report based on LTP cpuset
+stress test [1].  The intention is to go to stable 4.9 LTSS with this, as
+triggering repeated OOMs is not nice.  That's why the patches try to be
+not too intrusive.
 
-Link: http://lkml.kernel.org/r/20170120123456.46508-4-heiko.carstens@de.ibm.com
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Unfortunately why investigating I found that modifying the testcase to use
+per-VMA policies instead of per-task policies will bring the OOM's back,
+but that seems to be much older and harder to fix problem.  I have posted
+a RFC [2] but I believe that fixing the recent regressions has a higher
+priority.
+
+Longer-term we might try to think how to fix the cpuset mess in a better
+and less error prone way.  I was for example very surprised to learn, that
+cpuset updates change not only task->mems_allowed, but also nodemask of
+mempolicies.  Until now I expected the parameter to alloc_pages_nodemask()
+to be stable.  I wonder why do we then treat cpusets specially in
+get_page_from_freelist() and distinguish HARDWALL etc, when there's
+unconditional intersection between mempolicy and cpuset.  I would expect
+the nodemask adjustment for saving overhead in g_p_f(), but that clearly
+doesn't happen in the current form.  So we have both crazy complexity and
+overhead, AFAICS.
+
+[1] https://lkml.kernel.org/r/CAFpQJXUq-JuEP=QPidy4p_=FN0rkH5Z-kfB4qBvsf6jMS87Edg@mail.gmail.com
+[2] https://lkml.kernel.org/r/7c459f26-13a6-a817-e508-b65b903a8378@suse.cz
+
+
+This patch (of 4):
+
+Since commit c33d6c06f60f ("mm, page_alloc: avoid looking up the first
+zone in a zonelist twice") we have a wrong check for NULL preferred_zone,
+which can theoretically happen due to concurrent cpuset modification.  We
+check the zoneref pointer which is never NULL and we should check the zone
+pointer.  Also document this in first_zones_zonelist() comment per Michal
+Hocko.
+
+Fixes: c33d6c06f60f ("mm, page_alloc: avoid looking up the first zone in a zonelist twice")
+Link: http://lkml.kernel.org/r/20170120103843.24587-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/crash_dump.c |    1 
- include/linux/memblock.h      |    1 
- mm/memblock.c                 |   35 ++++++++++----------------------
- 3 files changed, 13 insertions(+), 24 deletions(-)
+ include/linux/mmzone.h |    6 +++++-
+ mm/page_alloc.c        |    2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/kernel/crash_dump.c~memblock-embed-memblock-type-name-within-struct-memblock_type arch/s390/kernel/crash_dump.c
---- a/arch/s390/kernel/crash_dump.c~memblock-embed-memblock-type-name-within-struct-memblock_type
-+++ a/arch/s390/kernel/crash_dump.c
-@@ -31,6 +31,7 @@ static struct memblock_type oldmem_type
- 	.max = 1,
- 	.total_size = 0,
- 	.regions = &oldmem_region,
-+	.name = "oldmem",
- };
- 
- struct save_area {
-diff -puN include/linux/memblock.h~memblock-embed-memblock-type-name-within-struct-memblock_type include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-embed-memblock-type-name-within-struct-memblock_type
-+++ a/include/linux/memblock.h
-@@ -42,6 +42,7 @@ struct memblock_type {
- 	unsigned long max;	/* size of the allocated array */
- 	phys_addr_t total_size;	/* size of all regions */
- 	struct memblock_region *regions;
-+	char *name;
- };
- 
- struct memblock {
-diff -puN mm/memblock.c~memblock-embed-memblock-type-name-within-struct-memblock_type mm/memblock.c
---- a/mm/memblock.c~memblock-embed-memblock-type-name-within-struct-memblock_type
-+++ a/mm/memblock.c
-@@ -35,15 +35,18 @@ struct memblock memblock __initdata_memb
- 	.memory.regions		= memblock_memory_init_regions,
- 	.memory.cnt		= 1,	/* empty dummy entry */
- 	.memory.max		= INIT_MEMBLOCK_REGIONS,
-+	.memory.name		= "memory",
- 
- 	.reserved.regions	= memblock_reserved_init_regions,
- 	.reserved.cnt		= 1,	/* empty dummy entry */
- 	.reserved.max		= INIT_MEMBLOCK_REGIONS,
-+	.reserved.name		= "reserved",
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
- 	.physmem.regions	= memblock_physmem_init_regions,
- 	.physmem.cnt		= 1,	/* empty dummy entry */
- 	.physmem.max		= INIT_PHYSMEM_REGIONS,
-+	.physmem.name		= "physmem",
- #endif
- 
- 	.bottom_up		= false,
-@@ -64,22 +67,6 @@ ulong __init_memblock choose_memblock_fl
- 	return system_has_some_mirror ? MEMBLOCK_MIRROR : MEMBLOCK_NONE;
- }
- 
--/* inline so we don't get a warning when pr_debug is compiled out */
--static __init_memblock const char *
--memblock_type_name(struct memblock_type *type)
--{
--	if (type == &memblock.memory)
--		return "memory";
--	else if (type == &memblock.reserved)
--		return "reserved";
--#ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
--	else if (type == &memblock.physmem)
--		return "physmem";
--#endif
--	else
--		return "unknown";
--}
--
- /* adjust *@size so that (@base + *@size) doesn't overflow, return new size */
- static inline phys_addr_t memblock_cap_size(phys_addr_t base, phys_addr_t *size)
- {
-@@ -406,12 +393,12 @@ static int __init_memblock memblock_doub
+diff -puN include/linux/mmzone.h~mm-page_alloc-fix-check-for-null-preferred_zone include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-fix-check-for-null-preferred_zone
++++ a/include/linux/mmzone.h
+@@ -972,12 +972,16 @@ static __always_inline struct zoneref *n
+  * @zonelist - The zonelist to search for a suitable zone
+  * @highest_zoneidx - The zone index of the highest zone to return
+  * @nodes - An optional nodemask to filter the zonelist with
+- * @zone - The first suitable zone found is returned via this parameter
++ * @return - Zoneref pointer for the first suitable zone found (see below)
+  *
+  * This function returns the first zone at or below a given zone index that is
+  * within the allowed nodemask. The zoneref returned is a cursor that can be
+  * used to iterate the zonelist with next_zones_zonelist by advancing it by
+  * one before calling.
++ *
++ * When no eligible zone is found, zoneref->zone is NULL (zoneref itself is
++ * never NULL). This may happen either genuinely, or due to concurrent nodemask
++ * update due to cpuset modification.
+  */
+ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
+ 					enum zone_type highest_zoneidx,
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-check-for-null-preferred_zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-check-for-null-preferred_zone
++++ a/mm/page_alloc.c
+@@ -3784,7 +3784,7 @@ retry_cpuset:
+ 	 */
+ 	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+ 					ac.high_zoneidx, ac.nodemask);
+-	if (!ac.preferred_zoneref) {
++	if (!ac.preferred_zoneref->zone) {
+ 		page = NULL;
+ 		goto no_zone;
  	}
- 	if (!addr) {
- 		pr_err("memblock: Failed to double %s array from %ld to %ld entries !\n",
--		       memblock_type_name(type), type->max, type->max * 2);
-+		       type->name, type->max, type->max * 2);
- 		return -1;
- 	}
- 
- 	memblock_dbg("memblock: %s is doubled to %ld at [%#010llx-%#010llx]",
--			memblock_type_name(type), type->max * 2, (u64)addr,
-+			type->name, type->max * 2, (u64)addr,
- 			(u64)addr + new_size - 1);
- 
- 	/*
-@@ -1697,14 +1684,14 @@ phys_addr_t __init_memblock memblock_get
- 	return memblock.current_limit;
- }
- 
--static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
-+static void __init_memblock memblock_dump(struct memblock_type *type)
- {
- 	phys_addr_t base, end, size;
- 	unsigned long flags;
- 	int idx;
- 	struct memblock_region *rgn;
- 
--	pr_info(" %s.cnt  = 0x%lx\n", name, type->cnt);
-+	pr_info(" %s.cnt  = 0x%lx\n", type->name, type->cnt);
- 
- 	for_each_memblock_type(type, rgn) {
- 		char nid_buf[32] = "";
-@@ -1719,7 +1706,7 @@ static void __init_memblock memblock_dum
- 				 memblock_get_region_node(rgn));
- #endif
- 		pr_info(" %s[%#x]\t[%pa-%pa], %pa bytes%s flags: %#lx\n",
--			name, idx, &base, &end, &size, nid_buf, flags);
-+			type->name, idx, &base, &end, &size, nid_buf, flags);
- 	}
- }
- 
-@@ -1730,10 +1717,10 @@ void __init_memblock __memblock_dump_all
- 		&memblock.memory.total_size,
- 		&memblock.reserved.total_size);
- 
--	memblock_dump(&memblock.memory, "memory");
--	memblock_dump(&memblock.reserved, "reserved");
-+	memblock_dump(&memblock.memory);
-+	memblock_dump(&memblock.reserved);
- #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
--	memblock_dump(&memblock.physmem, "physmem");
-+	memblock_dump(&memblock.physmem);
- #endif
- }
- 
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-memblock-let-memblock_type_name-know-about-physmem-type.patch
-memblock-also-dump-physmem-list-within-__memblock_dump_all.patch
-memblock-embed-memblock-type-name-within-struct-memblock_type.patch
+mm-mempolicyc-do-not-put-mempolicy-before-using-its-nodemask.patch
+mm-page_alloc-fix-check-for-null-preferred_zone.patch
+mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch
+mm-page_alloc-move-cpuset-seqcount-checking-to-slowpath.patch
+mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
+mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
+mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
 
