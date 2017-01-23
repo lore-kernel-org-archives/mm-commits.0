@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + frv-add-missing-atomic64-operations.patch added to -mm tree
-Date: Mon, 23 Jan 2017 14:24:36 -0800
-Message-ID: <588682a4.7hAemj7jEC5bZDRH%akpm@linux-foundation.org>
+Subject: + fs-reiserfs-atomically-read-inode-size.patch added to -mm tree
+Date: Mon, 23 Jan 2017 14:29:08 -0800
+Message-ID: <588683b4.Vy6PN8EXcKM7Hw/5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43012 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43190 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751448AbdAWWYh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2017 17:24:37 -0500
+        with ESMTP id S1751654AbdAWW3J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2017 17:29:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, dhowells@redhat.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frv: add missing atomic64 operations
+     Subject: fs/reiserfs: atomically read inode size
 has been added to the -mm tree.  Its filename is
-     frv-add-missing-atomic64-operations.patch
+     fs-reiserfs-atomically-read-inode-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/frv-add-missing-atomic64-operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-reiserfs-atomically-read-inode-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/frv-add-missing-atomic64-operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-reiserfs-atomically-read-inode-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,63 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: frv: add missing atomic64 operations
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/reiserfs: atomically read inode size
 
-Some more atomic64 operations were missing and as a result
-frv allmodconfig was failing. Add the missing operations.
+See i_size_read() comments in include/linux/fs.h
 
-Link: http://lkml.kernel.org/r/1485193844-12850-1-git-send-email-sudip.mukherjee@codethink.co.uk
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Cc: David Howells <dhowells@redhat.com>
+Link: http://lkml.kernel.org/r/20170123174701.30394-1-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/atomic.h |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ fs/reiserfs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/include/asm/atomic.h~frv-add-missing-atomic64-operations arch/frv/include/asm/atomic.h
---- a/arch/frv/include/asm/atomic.h~frv-add-missing-atomic64-operations
-+++ a/arch/frv/include/asm/atomic.h
-@@ -139,7 +139,7 @@ static inline void atomic64_dec(atomic64
- #define atomic64_sub_and_test(i,v)	(atomic64_sub_return((i), (v)) == 0)
- #define atomic64_dec_and_test(v)	(atomic64_dec_return((v)) == 0)
- #define atomic64_inc_and_test(v)	(atomic64_inc_return((v)) == 0)
--
-+#define atomic64_inc_not_zero(v)	atomic64_add_unless((v), 1, 0)
- 
- #define atomic_cmpxchg(v, old, new)	(cmpxchg(&(v)->counter, old, new))
- #define atomic_xchg(v, new)		(xchg(&(v)->counter, new))
-@@ -177,6 +177,23 @@ static inline int atomic64_add_unless(at
- 	return c != u;
- }
- 
-+static inline long long atomic64_dec_if_positive(atomic64_t *v)
-+{
-+	long long c, old, dec;
-+
-+	c = atomic64_read(v);
-+	for (;;) {
-+		dec = c - 1;
-+		if (unlikely(dec < 0))
-+			break;
-+		old = atomic64_cmpxchg((v), c, dec);
-+		if (likely(old == c))
-+			break;
-+		c = old;
-+	}
-+		return dec;
-+}
-+
- #define ATOMIC_OP(op)							\
- static inline int atomic_fetch_##op(int i, atomic_t *v)			\
- {									\
+diff -puN fs/reiserfs/super.c~fs-reiserfs-atomically-read-inode-size fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~fs-reiserfs-atomically-read-inode-size
++++ a/fs/reiserfs/super.c
+@@ -1166,7 +1166,7 @@ static int reiserfs_parse_options(struct
+ 			if (!strcmp(arg, "auto")) {
+ 				/* From JFS code, to auto-get the size. */
+ 				*blocks =
+-				    s->s_bdev->bd_inode->i_size >> s->
++				    i_size_read(s->s_bdev->bd_inode) >> s->
+ 				    s_blocksize_bits;
+ 			} else {
+ 				*blocks = simple_strtoul(arg, &p, 0);
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-frv-add-atomic64_add_unless.patch
-m32r-fix-build-warning.patch
-frv-pci-frv-fix-build-warning.patch
-frv-add-missing-atomic64-operations.patch
+documentation-filesystems-proctxt-add-vmpin.patch
+hfs-atomically-read-inode-size.patch
+hfsplus-atomically-read-inode-size.patch
+fs-reiserfs-atomically-read-inode-size.patch
+fs-affs-remove-reference-to-affs_parent_ino.patch
+fs-affs-add-validation-block-function.patch
+fs-affs-make-affs-exportable.patch
+fs-affs-use-octal-for-permissions.patch
+fs-affs-add-prefix-to-some-functions.patch
+fs-affs-nameic-forward-declarations-clean-up.patch
+fs-affs-make-export-work-with-cold-dcache.patch
+fs-add-i_blocksize.patch
 
