@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-make-export-work-with-cold-dcache-fix.patch added to
- -mm tree
-Date: Mon, 23 Jan 2017 15:51:19 -0800
-Message-ID: <588696f7.BbzpMpDp0IscZi3+%akpm@linux-foundation.org>
+Subject: + mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
+ added to -mm tree
+Date: Mon, 23 Jan 2017 15:57:43 -0800
+Message-ID: <58869877.zbpmhvMUTpgQKWaO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48162 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750758AbdAWXvU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2017 18:51:20 -0500
+        with ESMTP id S1751869AbdAWX5p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2017 18:57:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weiyongjun1@huawei.com, fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: arnd@arndb.de, dan.j.williams@intel.com, hannes@cmpxchg.org, logang@deltatee.com, mgorman@techsingularity.net, mhocko@suse.com, stephen.bates@microsemi.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs: fix return value check in affs_get_parent()
+     Subject: mm: track-active-portions-of-a-section-at-boot-fix fix
 has been added to the -mm tree.  Its filename is
-     fs-affs-make-export-work-with-cold-dcache-fix.patch
+     mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-make-export-work-with-cold-dcache-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-make-export-work-with-cold-dcache-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +39,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: fs/affs: fix return value check in affs_get_parent()
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: track-active-portions-of-a-section-at-boot-fix fix
 
-In case of error, the function affs_bread() returns NULL pointer not
-ERR_PTR().  The IS_ERR() test in the return value check should be replaced
-with NULL test.
+A bugfix introduced a new warning as it marked a function as __init
+that is called by both __init and non-__init functions:
 
-Fixes: e393e82a7d09 ("fs/affs: make export work with cold dcache")
-Link: http://lkml.kernel.org/r/20170123141018.2331-1-weiyj.lk@gmail.com
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+WARNING: vmlinux.o(.text.unlikely+0x1b26): Section mismatch in reference from the function section_deactivate() to the function .init.text:section_active_mask()
+WARNING: vmlinux.o(.meminit.text+0x1ce0): Section mismatch in reference from the function sparse_add_section() to the function .init.text:section_active_mask()
+
+This removes the annotation again.
+
+Fixes: mmotm ("mm-track-active-portions-of-a-section-at-boot-fix")
+Link: http://lkml.kernel.org/r/20170123121509.3143377-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/namei.c |    4 ++--
+ mm/sparse.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache-fix fs/affs/namei.c
---- a/fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache-fix
-+++ a/fs/affs/namei.c
-@@ -453,8 +453,8 @@ static struct dentry *affs_get_parent(st
- 	struct buffer_head *bh;
+diff -puN mm/sparse.c~mm-track-active-portions-of-a-section-at-boot-fix-fix mm/sparse.c
+--- a/mm/sparse.c~mm-track-active-portions-of-a-section-at-boot-fix-fix
++++ a/mm/sparse.c
+@@ -173,8 +173,8 @@ static int __init section_active_index(p
+ 	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
+ }
  
- 	bh = affs_bread(child->d_sb, d_inode(child)->i_ino);
--	if (IS_ERR(bh))
--		return ERR_CAST(bh);
-+	if (!bh)
-+		return ERR_PTR(-EIO);
- 
- 	parent = affs_iget(child->d_sb,
- 			   be32_to_cpu(AFFS_TAIL(child->d_sb, bh)->parent));
+-static unsigned long __init section_active_mask(unsigned long pfn,
+-						unsigned long nr_pages)
++static unsigned long section_active_mask(unsigned long pfn,
++					 unsigned long nr_pages)
+ {
+ 	int idx_start, idx_size;
+ 	phys_addr_t start, size;
 _
 
-Patches currently in -mm which might be from weiyongjun1@huawei.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-fs-affs-make-export-work-with-cold-dcache-fix.patch
+memstick-core-avoid-wnonnull-warning.patch
+mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
+mm-support-section-unaligned-zone_device-memory-ranges-fix.patch
+lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 
