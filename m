@@ -1,69 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [patch 21/26] frv: add missing atomic64 operations
-Date: Tue, 24 Jan 2017 15:18:43 -0800
-Message-ID: <5887e0d3.vpdRB7kf82gtm9vg%akpm@linux-foundation.org>
+Subject: [patch 24/26] mm: do not export ioremap_page_range symbol for
+ external module
+Date: Tue, 24 Jan 2017 15:18:52 -0800
+Message-ID: <5887e0dc.kfNlyAQUyClQ4plV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751110AbdAXXSo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:18:44 -0500
+        with ESMTP id S1751004AbdAXXSx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:18:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, dhowells@redhat.com, sudip.mukherjee@codethink.co.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhongjiang@huawei.com, jhubbard@nvidia.com, mhocko@suse.com
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: frv: add missing atomic64 operations
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm: do not export ioremap_page_range symbol for external module
 
-Some more atomic64 operations were missing and as a result
-frv allmodconfig was failing. Add the missing operations.
+Recently, I've found cases in which ioremap_page_range was used
+incorrectly, in external modules, leading to crashes.  This can be partly
+attributed to the fact that ioremap_page_range is lower-level, with fewer
+protections, as compared to the other functions that an external module
+would typically call.  Those include:
 
-Link: http://lkml.kernel.org/r/1485193844-12850-1-git-send-email-sudip.mukherjee@codethink.co.uk
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Cc: David Howells <dhowells@redhat.com>
+     ioremap_cache
+     ioremap_nocache
+     ioremap_prot
+     ioremap_uc
+     ioremap_wc
+     ioremap_wt
+
+...each of which wraps __ioremap_caller, which in turn provides a safer
+way to achieve the mapping.
+
+Therefore, stop EXPORT-ing ioremap_page_range.
+
+Link: http://lkml.kernel.org/r/1485173220-29010-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/atomic.h |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ lib/ioremap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/frv/include/asm/atomic.h~frv-add-missing-atomic64-operations arch/frv/include/asm/atomic.h
---- a/arch/frv/include/asm/atomic.h~frv-add-missing-atomic64-operations
-+++ a/arch/frv/include/asm/atomic.h
-@@ -139,7 +139,7 @@ static inline void atomic64_dec(atomic64
- #define atomic64_sub_and_test(i,v)	(atomic64_sub_return((i), (v)) == 0)
- #define atomic64_dec_and_test(v)	(atomic64_dec_return((v)) == 0)
- #define atomic64_inc_and_test(v)	(atomic64_inc_return((v)) == 0)
--
-+#define atomic64_inc_not_zero(v)	atomic64_add_unless((v), 1, 0)
+diff -puN lib/ioremap.c~mm-do-not-export-ioremap_page_range-symbol-for-external-module lib/ioremap.c
+--- a/lib/ioremap.c~mm-do-not-export-ioremap_page_range-symbol-for-external-module
++++ a/lib/ioremap.c
+@@ -144,4 +144,3 @@ int ioremap_page_range(unsigned long add
  
- #define atomic_cmpxchg(v, old, new)	(cmpxchg(&(v)->counter, old, new))
- #define atomic_xchg(v, new)		(xchg(&(v)->counter, new))
-@@ -177,6 +177,23 @@ static inline int atomic64_add_unless(at
- 	return c != u;
+ 	return err;
  }
- 
-+static inline long long atomic64_dec_if_positive(atomic64_t *v)
-+{
-+	long long c, old, dec;
-+
-+	c = atomic64_read(v);
-+	for (;;) {
-+		dec = c - 1;
-+		if (unlikely(dec < 0))
-+			break;
-+		old = atomic64_cmpxchg((v), c, dec);
-+		if (likely(old == c))
-+			break;
-+		c = old;
-+	}
-+		return dec;
-+}
-+
- #define ATOMIC_OP(op)							\
- static inline int atomic_fetch_##op(int i, atomic_t *v)			\
- {									\
+-EXPORT_SYMBOL_GPL(ioremap_page_range);
 _
