@@ -1,61 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch removed from -mm
- tree
-Date: Tue, 24 Jan 2017 15:13:41 -0800
-Message-ID: <5887dfa5.CCI/FmT/e9LBOhNo%akpm@linux-foundation.org>
+ mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch removed from -mm tree
+Date: Tue, 24 Jan 2017 15:14:08 -0800
+Message-ID: <5887dfc0.sDZiB7vZBYhWFR2U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41188 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41192 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751002AbdAXXNm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:13:42 -0500
+        with ESMTP id S1750943AbdAXXOJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:14:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, edumazet@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-add-a-schedule-point-in-proc_pid_readdir-fix
+     Subject: mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix
 has been removed from the -mm tree.  Its filename was
-     proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
+     mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
 
-This patch was dropped because it was folded into proc-add-a-schedule-point-in-proc_pid_readdir.patch
+This patch was dropped because it was folded into mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-add-a-schedule-point-in-proc_pid_readdir-fix
+Subject: mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix
 
-coding style fix
+fix typo in comment
 
-Cc: Eric Dumazet <edumazet@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~proc-add-a-schedule-point-in-proc_pid_readdir-fix fs/proc/base.c
---- a/fs/proc/base.c~proc-add-a-schedule-point-in-proc_pid_readdir-fix
-+++ a/fs/proc/base.c
-@@ -3179,6 +3179,7 @@ int proc_pid_readdir(struct file *file,
- 	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
- 		char name[PROC_NUMBUF];
- 		int len;
-+
- 		cond_resched();
- 		if (!has_pid_permissions(ns, iter.task, 2))
- 			continue;
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix
++++ a/mm/page_alloc.c
+@@ -3746,7 +3746,7 @@ retry:
+ 
+ nopage:
+ 	/*
+-	 * When updating a task's mems_allowed or mempolicy nodeask, it is
++	 * When updating a task's mems_allowed or mempolicy nodemask, it is
+ 	 * possible to race with parallel threads in such a way that our
+ 	 * allocation can fail while the mask is being updated. If we are about
+ 	 * to fail, check if the cpuset changed during allocation and if so,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-proc-add-a-schedule-point-in-proc_pid_readdir.patch
-mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
+mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 dax-enable-iostat-for-read-write-fix.patch
 ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
