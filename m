@@ -1,199 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/26] memory_hotplug: make zone_can_shift() return a
- boolean value
-Date: Tue, 24 Jan 2017 15:17:45 -0800
-Message-ID: <5887e099.h4nr2M2FcoqcGcOA%akpm@linux-foundation.org>
+Subject: [patch 04/26] kernel/watchdog: prevent false hardlockup on
+ overloaded system
+Date: Tue, 24 Jan 2017 15:17:53 -0800
+Message-ID: <5887e0a1.LsniGxt6LYkgRDc3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41348 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdAXXRq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:17:46 -0500
+        with ESMTP id S1750978AbdAXXRy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:17:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yasu.isimatu@gmail.com, arbab@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com
 
-From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Subject: memory_hotplug: make zone_can_shift() return a boolean value
+From: Don Zickus <dzickus@redhat.com>
+Subject: kernel/watchdog: prevent false hardlockup on overloaded system
 
-online_{kernel|movable} is used to change the memory zone to
-ZONE_{NORMAL|MOVABLE} and online the memory.
+On an overloaded system, it is possible that a change in the watchdog
+threshold can be delayed long enough to trigger a false positive.
 
-To check that memory zone can be changed, zone_can_shift() is used.
-Currently the function returns minus integer value, plus integer
-value and 0. When the function returns minus or plus integer value,
-it means that the memory zone can be changed to ZONE_{NORNAL|MOVABLE}.
+This can easily be achieved by having a cpu spinning indefinitely on a
+task, while another cpu updates watchdog threshold.
 
-But when the function returns 0, there is 2 meanings.
+What happens is while trying to park the watchdog threads, the hrtimers on
+the other cpus trigger and reprogram themselves with the new slower
+watchdog threshold.  Meanwhile, the nmi watchdog is still programmed with
+the old faster threshold.
 
-One of the meanings is that the memory zone does not need to be changed.
-For example, when memory is in ZONE_NORMAL and onlined by online_kernel
-the memory zone does not need to be changed.
+Because the one cpu is blocked, it prevents the thread parking on the
+other cpus from completing, which is needed to shutdown the nmi watchdog
+and reprogram it correctly.  As a result, a false positive from the nmi
+watchdog is reported.
 
-Another meaning is that the memory zone cannot be changed. When memory
-is in ZONE_NORMAL and onlined by online_movable, the memory zone may
-not be changed to ZONE_MOVALBE due to memory online limitation(see
-Documentation/memory-hotplug.txt). In this case, memory must not be
-onlined.
+Fix this by setting a park_in_progress flag to block all lockups until the
+parking is complete.
 
-The patch changes the return type of zone_can_shift() so that memory
-online operation fails when memory zone cannot be changed as follows:
+Fix provided by Ulrich Obergfell.
 
-Before applying patch:
-   # grep -A 35 "Node 2" /proc/zoneinfo
-   Node 2, zone   Normal
-   <snip>
-      node_scanned  0
-           spanned  8388608
-           present  7864320
-           managed  7864320
-   # echo online_movable > memory4097/state
-   # grep -A 35 "Node 2" /proc/zoneinfo
-   Node 2, zone   Normal
-   <snip>
-      node_scanned  0
-           spanned  8388608
-           present  8388608
-           managed  8388608
-
-   online_movable operation succeeded. But memory is onlined as
-   ZONE_NORMAL, not ZONE_MOVABLE.
-
-After applying patch:
-   # grep -A 35 "Node 2" /proc/zoneinfo
-   Node 2, zone   Normal
-   <snip>
-      node_scanned  0
-           spanned  8388608
-           present  7864320
-           managed  7864320
-   # echo online_movable > memory4097/state
-   bash: echo: write error: Invalid argument
-   # grep -A 35 "Node 2" /proc/zoneinfo
-   Node 2, zone   Normal
-   <snip>
-      node_scanned  0
-           spanned  8388608
-           present  7864320
-           managed  7864320
-
-   online_movable operation failed because of failure of changing
-   the memory zone from ZONE_NORMAL to ZONE_MOVABLE
-
-Fixes: df429ac03936 ("memory-hotplug: more general validation of zone during online")
-Link: http://lkml.kernel.org/r/2f9c3837-33d7-b6e5-59c0-6ca4372b2d84@gmail.com
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+[akpm@linux-foundation.org: s/park_in_progress/watchdog_park_in_progress/]
+Link: http://lkml.kernel.org/r/1481041033-192236-1-git-send-email-dzickus@redhat.com
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |    4 ++--
- include/linux/memory_hotplug.h |    4 ++--
- mm/memory_hotplug.c            |   28 +++++++++++++++++-----------
- 3 files changed, 21 insertions(+), 15 deletions(-)
+ include/linux/nmi.h   |    1 +
+ kernel/watchdog.c     |    9 +++++++++
+ kernel/watchdog_hld.c |    3 +++
+ 3 files changed, 13 insertions(+)
 
-diff -puN drivers/base/memory.c~memory_hotplug-zone_can_shift-returns-boolean-value drivers/base/memory.c
---- a/drivers/base/memory.c~memory_hotplug-zone_can_shift-returns-boolean-value
-+++ a/drivers/base/memory.c
-@@ -408,14 +408,14 @@ static ssize_t show_valid_zones(struct d
- 	sprintf(buf, "%s", zone->name);
+diff -puN include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system include/linux/nmi.h
+--- a/include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/include/linux/nmi.h
+@@ -110,6 +110,7 @@ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
+ extern unsigned long watchdog_enabled;
+ extern unsigned long *watchdog_cpumask_bits;
++extern atomic_t watchdog_park_in_progress;
+ #ifdef CONFIG_SMP
+ extern int sysctl_softlockup_all_cpu_backtrace;
+ extern int sysctl_hardlockup_all_cpu_backtrace;
+diff -puN kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/kernel/watchdog.c
+@@ -49,6 +49,8 @@ unsigned long *watchdog_cpumask_bits = c
+ #define for_each_watchdog_cpu(cpu) \
+ 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
  
- 	/* MMOP_ONLINE_KERNEL */
--	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL);
-+	zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL, &zone_shift);
- 	if (zone_shift) {
- 		strcat(buf, " ");
- 		strcat(buf, (zone + zone_shift)->name);
- 	}
- 
- 	/* MMOP_ONLINE_MOVABLE */
--	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE);
-+	zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE, &zone_shift);
- 	if (zone_shift) {
- 		strcat(buf, " ");
- 		strcat(buf, (zone + zone_shift)->name);
-diff -puN include/linux/memory_hotplug.h~memory_hotplug-zone_can_shift-returns-boolean-value include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory_hotplug-zone_can_shift-returns-boolean-value
-+++ a/include/linux/memory_hotplug.h
-@@ -284,7 +284,7 @@ extern void sparse_remove_one_section(st
- 		unsigned long map_offset);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
- 					  unsigned long pnum);
--extern int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
--			  enum zone_type target);
-+extern bool zone_can_shift(unsigned long pfn, unsigned long nr_pages,
-+			  enum zone_type target, int *zone_shift);
- 
- #endif /* __LINUX_MEMORY_HOTPLUG_H */
-diff -puN mm/memory_hotplug.c~memory_hotplug-zone_can_shift-returns-boolean-value mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory_hotplug-zone_can_shift-returns-boolean-value
-+++ a/mm/memory_hotplug.c
-@@ -1033,36 +1033,39 @@ static void node_states_set_node(int nod
- 	node_set_state(node, N_MEMORY);
- }
- 
--int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
--		   enum zone_type target)
-+bool zone_can_shift(unsigned long pfn, unsigned long nr_pages,
-+		   enum zone_type target, int *zone_shift)
- {
- 	struct zone *zone = page_zone(pfn_to_page(pfn));
- 	enum zone_type idx = zone_idx(zone);
- 	int i;
- 
-+	*zone_shift = 0;
++atomic_t watchdog_park_in_progress = ATOMIC_INIT(0);
 +
- 	if (idx < target) {
- 		/* pages must be at end of current zone */
- 		if (pfn + nr_pages != zone_end_pfn(zone))
--			return 0;
-+			return false;
+ /*
+  * The 'watchdog_running' variable is set to 1 when the watchdog threads
+  * are registered/started and is set to 0 when the watchdog threads are
+@@ -260,6 +262,9 @@ static enum hrtimer_restart watchdog_tim
+ 	int duration;
+ 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
  
- 		/* no zones in use between current zone and target */
- 		for (i = idx + 1; i < target; i++)
- 			if (zone_is_initialized(zone - idx + i))
--				return 0;
-+				return false;
++	if (atomic_read(&watchdog_park_in_progress) != 0)
++		return HRTIMER_NORESTART;
++
+ 	/* kick the hardlockup detector */
+ 	watchdog_interrupt_count();
+ 
+@@ -467,12 +472,16 @@ static int watchdog_park_threads(void)
+ {
+ 	int cpu, ret = 0;
+ 
++	atomic_set(&watchdog_park_in_progress, 1);
++
+ 	for_each_watchdog_cpu(cpu) {
+ 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
+ 		if (ret)
+ 			break;
  	}
  
- 	if (target < idx) {
- 		/* pages must be at beginning of current zone */
- 		if (pfn != zone->zone_start_pfn)
--			return 0;
-+			return false;
- 
- 		/* no zones in use between current zone and target */
- 		for (i = target + 1; i < idx; i++)
- 			if (zone_is_initialized(zone - idx + i))
--				return 0;
-+				return false;
- 	}
- 
--	return target - idx;
-+	*zone_shift = target - idx;
-+	return true;
++	atomic_set(&watchdog_park_in_progress, 0);
++
+ 	return ret;
  }
  
- /* Must be protected by mem_hotplug_begin() */
-@@ -1089,10 +1092,13 @@ int __ref online_pages(unsigned long pfn
- 	    !can_online_high_movable(zone))
- 		return -EINVAL;
+diff -puN kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog_hld.c
+--- a/kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/kernel/watchdog_hld.c
+@@ -84,6 +84,9 @@ static void watchdog_overflow_callback(s
+ 	/* Ensure the watchdog never gets throttled */
+ 	event->hw.interrupts = 0;
  
--	if (online_type == MMOP_ONLINE_KERNEL)
--		zone_shift = zone_can_shift(pfn, nr_pages, ZONE_NORMAL);
--	else if (online_type == MMOP_ONLINE_MOVABLE)
--		zone_shift = zone_can_shift(pfn, nr_pages, ZONE_MOVABLE);
-+	if (online_type == MMOP_ONLINE_KERNEL) {
-+		if (!zone_can_shift(pfn, nr_pages, ZONE_NORMAL, &zone_shift))
-+			return -EINVAL;
-+	} else if (online_type == MMOP_ONLINE_MOVABLE) {
-+		if (!zone_can_shift(pfn, nr_pages, ZONE_MOVABLE, &zone_shift))
-+			return -EINVAL;
-+	}
- 
- 	zone = move_pfn_range(zone_shift, pfn, pfn + nr_pages);
- 	if (!zone)
++	if (atomic_read(&watchdog_park_in_progress) != 0)
++		return;
++
+ 	if (__this_cpu_read(watchdog_nmi_touch) == true) {
+ 		__this_cpu_write(watchdog_nmi_touch, false);
+ 		return;
 _
