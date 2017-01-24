@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-split-buffered_rmqueue-fix.patch added to -mm
- tree
-Date: Tue, 24 Jan 2017 13:50:12 -0800
-Message-ID: <5887cc14.LG96fJAh33PByyJ3%akpm@linux-foundation.org>
+Subject: + maintainers-add-dan-streetman-to-zbud-maintainers.patch added
+ to -mm tree
+Date: Tue, 24 Jan 2017 14:22:32 -0800
+Message-ID: <5887d3a8.XN35pitL3OO0x58N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750977AbdAXVuN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 16:50:13 -0500
+        with ESMTP id S1751128AbdAXWWe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 17:22:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, sjenning@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: split buffered_rmqueue -fix
+     Subject: MAINTAINERS: add Dan Streetman to zbud maintainers
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-split-buffered_rmqueue-fix.patch
+     maintainers-add-dan-streetman-to-zbud-maintainers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-split-buffered_rmqueue-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-dan-streetman-to-zbud-maintainers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-split-buffered_rmqueue-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-dan-streetman-to-zbud-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: split buffered_rmqueue -fix
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: MAINTAINERS: add Dan Streetman to zbud maintainers
 
-Vlastimil Babka pointed out that a failed per-cpu refill on a kernel with
-CONFIG_DEBUG_VM may blow up on a VM_BUG_ON_PAGE.  This patch is a fix to
-the mmotm patch mm-page_alloc-split-buffered_rmqueue.patch
+Add myself as zbud maintainer.
 
-Link: http://lkml.kernel.org/r/20170124112723.mshmgwq2ihxku2um@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Link: http://lkml.kernel.org/r/20170124221705.26523-1-ddstreet@ieee.org
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjenning@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-split-buffered_rmqueue-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-split-buffered_rmqueue-fix
-+++ a/mm/page_alloc.c
-@@ -2697,7 +2697,7 @@ struct page *rmqueue(struct zone *prefer
- 	local_irq_restore(flags);
+diff -puN MAINTAINERS~maintainers-add-dan-streetman-to-zbud-maintainers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-dan-streetman-to-zbud-maintainers
++++ a/MAINTAINERS
+@@ -13697,6 +13697,7 @@ F:	drivers/net/hamradio/z8530.h
  
- out:
--	VM_BUG_ON_PAGE(bad_range(zone, page), page);
-+	VM_BUG_ON_PAGE(page && bad_range(zone, page), page);
- 	return page;
- 
- failed:
+ ZBUD COMPRESSED PAGE ALLOCATOR
+ M:	Seth Jennings <sjenning@redhat.com>
++M:	Dan Streetman <ddstreet@ieee.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/zbud.c
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-mm-page_alloc-split-buffered_rmqueue.patch
-mm-page_alloc-split-buffered_rmqueue-fix.patch
-mm-page_alloc-split-alloc_pages_nodemask.patch
-mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+maintainers-add-dan-streetman-to-zswap-maintainers.patch
+maintainers-add-dan-streetman-to-zbud-maintainers.patch
+zswap-disable-changing-params-if-init-fails.patch
+zswap-allow-initialization-at-boot-without-pool.patch
+zswap-clear-compressor-or-zpool-param-if-invalid-at-init.patch
 
