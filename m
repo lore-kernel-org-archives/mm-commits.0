@@ -1,94 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [patch 15/26] fbdev: color map copying bounds checking
-Date: Tue, 24 Jan 2017 15:18:24 -0800
-Message-ID: <5887e0c0.j/npPowuHHReaRtY%akpm@linux-foundation.org>
+Subject: [patch 19/26] mm, page_alloc: move cpuset seqcount checking to
+ slowpath
+Date: Tue, 24 Jan 2017 15:18:38 -0800
+Message-ID: <5887e0ce.rYkWkdm4v+rTJiva%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41524 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750978AbdAXXS2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:18:28 -0500
+        with ESMTP id S1750883AbdAXXSj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:18:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, b.zolnierkie@samsung.com, dan.carpenter@oracle.com, mchong@google.com, stable@vger.kernel.org, tomi.valkeinen@ti.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, gpkulkarni@gmail.com, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: fbdev: color map copying bounds checking
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: move cpuset seqcount checking to slowpath
 
-Copying color maps to userspace doesn't check the value of to->start,
-which will cause kernel heap buffer OOB read due to signedness wraps.
+This is a preparation for the following patch to make review simpler. 
+While the primary motivation is a bug fix, this also simplifies the fast
+path, although the moved code is only enabled when cpusets are in use.
 
-CVE-2016-8405
-
-Link: http://lkml.kernel.org/r/20170105224249.GA50925@beast
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Peter Pi (@heisecode) of Trend Micro
-Cc: Min Chong <mchong@google.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Link: http://lkml.kernel.org/r/20170120103843.24587-4-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/core/fbcmap.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |   47 +++++++++++++++++++++++++---------------------
+ 1 file changed, 26 insertions(+), 21 deletions(-)
 
-diff -puN drivers/video/fbdev/core/fbcmap.c~fbdev-color-map-copying-bounds-checking drivers/video/fbdev/core/fbcmap.c
---- a/drivers/video/fbdev/core/fbcmap.c~fbdev-color-map-copying-bounds-checking
-+++ a/drivers/video/fbdev/core/fbcmap.c
-@@ -163,17 +163,18 @@ void fb_dealloc_cmap(struct fb_cmap *cma
+diff -puN mm/page_alloc.c~mm-page_alloc-move-cpuset-seqcount-checking-to-slowpath mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-move-cpuset-seqcount-checking-to-slowpath
++++ a/mm/page_alloc.c
+@@ -3523,12 +3523,13 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	struct page *page = NULL;
+ 	unsigned int alloc_flags;
+ 	unsigned long did_some_progress;
+-	enum compact_priority compact_priority = DEF_COMPACT_PRIORITY;
++	enum compact_priority compact_priority;
+ 	enum compact_result compact_result;
+-	int compaction_retries = 0;
+-	int no_progress_loops = 0;
++	int compaction_retries;
++	int no_progress_loops;
+ 	unsigned long alloc_start = jiffies;
+ 	unsigned int stall_timeout = 10 * HZ;
++	unsigned int cpuset_mems_cookie;
  
- int fb_copy_cmap(const struct fb_cmap *from, struct fb_cmap *to)
- {
--	int tooff = 0, fromoff = 0;
--	int size;
-+	unsigned int tooff = 0, fromoff = 0;
-+	size_t size;
+ 	/*
+ 	 * In the slowpath, we sanity check order to avoid ever trying to
+@@ -3549,6 +3550,12 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 				(__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)))
+ 		gfp_mask &= ~__GFP_ATOMIC;
  
- 	if (to->start > from->start)
- 		fromoff = to->start - from->start;
- 	else
- 		tooff = from->start - to->start;
--	size = to->len - tooff;
--	if (size > (int) (from->len - fromoff))
--		size = from->len - fromoff;
--	if (size <= 0)
-+	if (fromoff >= from->len || tooff >= to->len)
-+		return -EINVAL;
++retry_cpuset:
++	compaction_retries = 0;
++	no_progress_loops = 0;
++	compact_priority = DEF_COMPACT_PRIORITY;
++	cpuset_mems_cookie = read_mems_allowed_begin();
 +
-+	size = min_t(size_t, to->len - tooff, from->len - fromoff);
-+	if (size == 0)
- 		return -EINVAL;
- 	size *= sizeof(u16);
+ 	/*
+ 	 * The fast path uses conservative alloc_flags to succeed only until
+ 	 * kswapd needs to be woken up, and to avoid the cost of setting up
+@@ -3720,6 +3727,15 @@ retry:
+ 	}
  
-@@ -187,17 +188,18 @@ int fb_copy_cmap(const struct fb_cmap *f
- 
- int fb_cmap_to_user(const struct fb_cmap *from, struct fb_cmap_user *to)
- {
--	int tooff = 0, fromoff = 0;
--	int size;
-+	unsigned int tooff = 0, fromoff = 0;
-+	size_t size;
- 
- 	if (to->start > from->start)
- 		fromoff = to->start - from->start;
- 	else
- 		tooff = from->start - to->start;
--	size = to->len - tooff;
--	if (size > (int) (from->len - fromoff))
--		size = from->len - fromoff;
--	if (size <= 0)
-+	if (fromoff >= from->len || tooff >= to->len)
-+		return -EINVAL;
+ nopage:
++	/*
++	 * When updating a task's mems_allowed, it is possible to race with
++	 * parallel threads in such a way that an allocation can fail while
++	 * the mask is being updated. If a page allocation is about to fail,
++	 * check if the cpuset changed during allocation and if so, retry.
++	 */
++	if (read_mems_allowed_retry(cpuset_mems_cookie))
++		goto retry_cpuset;
 +
-+	size = min_t(size_t, to->len - tooff, from->len - fromoff);
-+	if (size == 0)
- 		return -EINVAL;
- 	size *= sizeof(u16);
+ 	warn_alloc(gfp_mask,
+ 			"page allocation failure: order:%u", order);
+ got_pg:
+@@ -3734,7 +3750,6 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 			struct zonelist *zonelist, nodemask_t *nodemask)
+ {
+ 	struct page *page;
+-	unsigned int cpuset_mems_cookie;
+ 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+ 	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
+ 	struct alloc_context ac = {
+@@ -3771,9 +3786,6 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
  
-_
+-retry_cpuset:
+-	cpuset_mems_cookie = read_mems_allowed_begin();
+-
+ 	/* Dirty zone balancing only done in the fast path */
+ 	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+ 
+@@ -3786,6 +3798,11 @@ retry_cpuset:
+ 					ac.high_zoneidx, ac.nodemask);
+ 	if (!ac.preferred_zoneref->zone) {
+ 		page = NULL;
++		/*
++		 * This might be due to race with cpuset_current_mems_allowed
++		 * update, so make sure we retry with original nodemask in the
++		 * slow path.
++		 */
+ 		goto no_zone;
+ 	}
+ 
+@@ -3794,6 +3811,7 @@ retry_cpuset:
+ 	if (likely(page))
+ 		goto out;
+ 
++no_zone:
+ 	/*
+ 	 * Runtime PM, block IO and its error handling path can deadlock
+ 	 * because I/O on the device might not complete.
+@@ -3811,24 +3829,11 @@ retry_cpuset:
+ 		ac.nodemask = nodemask;
+ 		ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+ 						ac.high_zoneidx, ac.nodemask);
+-		if (!ac.preferred_zoneref->zone)
+-			goto no_zone;
++		/* If we have NULL preferred zone, slowpath wll handle that */
+ 	}
+ 
+ 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
+ 
+-no_zone:
+-	/*
+-	 * When updating a task's mems_allowed, it is possible to race with
+-	 * parallel threads in such a way that an allocation can fail while
+-	 * the mask is being updated. If a page allocation is about to fail,
+-	 * check if the cpuset changed during allocation and if so, retry.
+-	 */
+-	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie))) {
+-		alloc_mask = gfp_mask;
+-		goto retry_cpuset;
+-	}
