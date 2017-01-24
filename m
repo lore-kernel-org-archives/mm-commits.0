@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
- added to -mm tree
-Date: Mon, 23 Jan 2017 14:21:25 -0800
-Message-ID: <588681e5.yz2g97hAooMfUL0T%akpm@linux-foundation.org>
+ mm-support-section-unaligned-zone_device-memory-ranges-fix-2.patch added to -mm tree
+Date: Tue, 24 Jan 2017 13:18:07 -0800
+Message-ID: <5887c48f.YC2cCO7nhYZ1c/wq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42946 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751571AbdAWWV0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2017 17:21:26 -0500
+        with ESMTP id S1751096AbdAXVSJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 16:18:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, akpm@linux-foundation.org, hannes@cmpxchg.org, logang@deltatee.com, mgorman@techsingularity.net, mhocko@suse.com, stephen.bates@microsemi.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: kick flushers when we encounter dirty pages on the LRU
+     Subject: mm: fix and clarify section_active_mask()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
+     mm-support-section-unaligned-zone_device-memory-ranges-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-section-unaligned-zone_device-memory-ranges-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-section-unaligned-zone_device-memory-ranges-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,93 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: kick flushers when we encounter dirty pages on the LRU
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix and clarify section_active_mask()
 
-Memory pressure can put dirty pages at the end of the LRU without anybody
-running into dirty limits.  Don't start writing individual pages from
-kswapd while the flushers might be asleep.
+section_active_mask() converts a range of pfns into a bitmask where each
+bit represents a 2M sub-range of a 128MB section (on x86_64). Clarify
+that we expect that the arguments do not cross a section boundary, fix
+the case where the start pfn is section aligned, but nr_pages is less
+than a section, and use ULONG_MAX instead of -1 to represent to the mask
+full case.
 
-Link: http://lkml.kernel.org/r/20170123181641.23938-3-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h        |    2 +-
- include/trace/events/writeback.h |    2 +-
- mm/vmscan.c                      |   18 +++++++++++++-----
- 3 files changed, 15 insertions(+), 7 deletions(-)
+ mm/sparse.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru include/linux/writeback.h
---- a/include/linux/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru
-+++ a/include/linux/writeback.h
-@@ -46,7 +46,7 @@ enum writeback_sync_modes {
-  */
- enum wb_reason {
- 	WB_REASON_BACKGROUND,
--	WB_REASON_TRY_TO_FREE_PAGES,
-+	WB_REASON_VMSCAN,
- 	WB_REASON_SYNC,
- 	WB_REASON_PERIODIC,
- 	WB_REASON_LAPTOP_TIMER,
-diff -puN include/trace/events/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru include/trace/events/writeback.h
---- a/include/trace/events/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru
-+++ a/include/trace/events/writeback.h
-@@ -31,7 +31,7 @@
+diff -puN mm/sparse.c~mm-support-section-unaligned-zone_device-memory-ranges-fix-2 mm/sparse.c
+--- a/mm/sparse.c~mm-support-section-unaligned-zone_device-memory-ranges-fix-2
++++ a/mm/sparse.c
+@@ -195,11 +195,18 @@ static unsigned long section_active_mask
+ 	int idx_start, idx_size;
+ 	phys_addr_t start, size;
  
- #define WB_WORK_REASON							\
- 	EM( WB_REASON_BACKGROUND,		"background")		\
--	EM( WB_REASON_TRY_TO_FREE_PAGES,	"try_to_free_pages")	\
-+	EM( WB_REASON_VMSCAN,			"vmscan")		\
- 	EM( WB_REASON_SYNC,			"sync")			\
- 	EM( WB_REASON_PERIODIC,			"periodic")		\
- 	EM( WB_REASON_LAPTOP_TIMER,		"laptop_timer")		\
-diff -puN mm/vmscan.c~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru
-+++ a/mm/vmscan.c
-@@ -1798,12 +1798,20 @@ shrink_inactive_list(unsigned long nr_to
++	WARN_ON((pfn & ~PAGE_SECTION_MASK) + nr_pages > PAGES_PER_SECTION);
+ 	if (!nr_pages)
+ 		return 0;
  
- 		/*
- 		 * If dirty pages are scanned that are not queued for IO, it
--		 * implies that flushers are not keeping up. In this case, flag
--		 * the pgdat PGDAT_DIRTY and kswapd will start writing pages from
--		 * reclaim context.
-+		 * implies that flushers are not doing their job. This can
-+		 * happen when memory pressure pushes dirty pages to the end
-+		 * of the LRU without the dirty limits being breached. It can
-+		 * also happen when the proportion of dirty pages grows not
-+		 * through writes but through memory pressure reclaiming all
-+		 * the clean cache. And in some cases, the flushers simply
-+		 * cannot keep up with the allocation rate. Nudge the flusher
-+		 * threads in case they are asleep, but also allow kswapd to
-+		 * start writing pages during reclaim.
- 		 */
--		if (stat.nr_unqueued_dirty == nr_taken)
-+		if (stat.nr_unqueued_dirty == nr_taken) {
-+			wakeup_flusher_threads(0, WB_REASON_VMSCAN);
- 			set_bit(PGDAT_DIRTY, &pgdat->flags);
-+		}
++	/*
++	 * The size is the number of pages left in the section or
++	 * nr_pages, whichever is smaller. The size will be rounded up
++	 * to the next SECTION_ACTIVE_SIZE boundary, the start will be
++	 * rounded down.
++	 */
+ 	start = PFN_PHYS(pfn);
+-	size = PFN_PHYS(min(nr_pages, PAGES_PER_SECTION
++	size = PFN_PHYS(min_not_zero(nr_pages, PAGES_PER_SECTION
+ 				- (pfn & ~PAGE_SECTION_MASK)));
+ 	size = ALIGN(size, SECTION_ACTIVE_SIZE);
  
- 		/*
- 		 * If kswapd scans pages marked marked for immediate
-@@ -2787,7 +2795,7 @@ retry:
- 		writeback_threshold = sc->nr_to_reclaim + sc->nr_to_reclaim / 2;
- 		if (total_scanned > writeback_threshold) {
- 			wakeup_flusher_threads(laptop_mode ? 0 : total_scanned,
--						WB_REASON_TRY_TO_FREE_PAGES);
-+						WB_REASON_VMSCAN);
- 			sc->may_writepage = 1;
- 		}
- 	} while (--sc->priority >= 0);
+@@ -207,7 +214,7 @@ static unsigned long section_active_mask
+ 	idx_size = section_active_index(size);
+ 
+ 	if (idx_size == 0)
+-		return -1;
++		return ULONG_MAX; /* full section */
+ 	return ((1UL << idx_size) - 1) << idx_start;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-vmscan-scan-dirty-pages-even-in-laptop-mode.patch
-mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
-mm-vmscan-remove-old-flusher-wakeup-from-direct-reclaim-path.patch
-mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice.patch
-mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed.patch
+mm-fix-type-width-of-section-to-from-pfn-conversion-macros.patch
+mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups.patch
+mm-introduce-struct-mem_section_usage-to-track-partial-population-of-a-section.patch
+mm-introduce-common-definitions-for-the-size-and-mask-of-a-section.patch
+mm-cleanup-sparse_init_one_section-return-value.patch
+mm-track-active-portions-of-a-section-at-boot.patch
+mm-fix-register_new_memory-zone-type-detection.patch
+mm-convert-kmalloc_section_memmap-to-populate_section_memmap.patch
+mm-prepare-for-hot-add-remove-of-sub-section-ranges.patch
+mm-support-section-unaligned-zone_device-memory-ranges.patch
+mm-support-section-unaligned-zone_device-memory-ranges-fix-2.patch
+mm-enable-section-unaligned-devm_memremap_pages.patch
+libnvdimm-pfn-dax-stop-padding-pmem-namespaces-to-section-alignment.patch
 
