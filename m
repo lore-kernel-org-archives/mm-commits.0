@@ -1,119 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/26] kernel/watchdog: prevent false hardlockup on
- overloaded system
-Date: Tue, 24 Jan 2017 15:17:53 -0800
-Message-ID: <5887e0a1.LsniGxt6LYkgRDc3%akpm@linux-foundation.org>
+Subject: [patch 03/26] dax: fix build warnings with FS_DAX and !FS_IOMAP
+Date: Tue, 24 Jan 2017 15:17:51 -0800
+Message-ID: <5887e09f.qNs01gKMNpKAI8lV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750978AbdAXXRy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:17:54 -0500
+        with ESMTP id S1750977AbdAXXRw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:17:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, arnd@arndb.de, hch@lst.de, jack@suse.cz
 
-From: Don Zickus <dzickus@redhat.com>
-Subject: kernel/watchdog: prevent false hardlockup on overloaded system
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: fix build warnings with FS_DAX and !FS_IOMAP
 
-On an overloaded system, it is possible that a change in the watchdog
-threshold can be delayed long enough to trigger a false positive.
+As reported by Arnd:
 
-This can easily be achieved by having a cpu spinning indefinitely on a
-task, while another cpu updates watchdog threshold.
+https://lkml.org/lkml/2017/1/10/756
 
-What happens is while trying to park the watchdog threads, the hrtimers on
-the other cpus trigger and reprogram themselves with the new slower
-watchdog threshold.  Meanwhile, the nmi watchdog is still programmed with
-the old faster threshold.
+Compiling with the following configuration:
 
-Because the one cpu is blocked, it prevents the thread parking on the
-other cpus from completing, which is needed to shutdown the nmi watchdog
-and reprogram it correctly.  As a result, a false positive from the nmi
-watchdog is reported.
+  # CONFIG_EXT2_FS is not set
+  # CONFIG_EXT4_FS is not set
+  # CONFIG_XFS_FS is not set
+  # CONFIG_FS_IOMAP depends on the above filesystems, as is not set
+  CONFIG_FS_DAX=y
 
-Fix this by setting a park_in_progress flag to block all lockups until the
-parking is complete.
+generates build warnings about unused functions in fs/dax.c:
 
-Fix provided by Ulrich Obergfell.
+fs/dax.c:878:12: warning: `dax_insert_mapping' defined but not used [-Wunused-function]
+ static int dax_insert_mapping(struct address_space *mapping,
+            ^~~~~~~~~~~~~~~~~~
+fs/dax.c:572:12: warning: `copy_user_dax' defined but not used [-Wunused-function]
+ static int copy_user_dax(struct block_device *bdev, sector_t sector, size_t size,
+            ^~~~~~~~~~~~~
+fs/dax.c:542:12: warning: `dax_load_hole' defined but not used [-Wunused-function]
+ static int dax_load_hole(struct address_space *mapping, void **entry,
+            ^~~~~~~~~~~~~
+fs/dax.c:312:14: warning: `grab_mapping_entry' defined but not used [-Wunused-function]
+ static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
+              ^~~~~~~~~~~~~~~~~~
 
-[akpm@linux-foundation.org: s/park_in_progress/watchdog_park_in_progress/]
-Link: http://lkml.kernel.org/r/1481041033-192236-1-git-send-email-dzickus@redhat.com
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Now that the struct buffer_head based DAX fault paths and I/O path have
+been removed we really depend on iomap support being present for DAX.  Make
+this explicit by selecting FS_IOMAP if we compile in DAX support.
+
+This allows us to remove conditional selections of FS_IOMAP when FS_DAX was
+present for ext2 and ext4, and to remove an #ifdef in fs/dax.c.
+
+Link: http://lkml.kernel.org/r/1484087383-29478-1-git-send-email-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h   |    1 +
- kernel/watchdog.c     |    9 +++++++++
- kernel/watchdog_hld.c |    3 +++
- 3 files changed, 13 insertions(+)
+ fs/Kconfig      |    1 +
+ fs/dax.c        |    2 --
+ fs/ext2/Kconfig |    1 -
+ fs/ext4/Kconfig |    1 -
+ 4 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system include/linux/nmi.h
---- a/include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
-+++ a/include/linux/nmi.h
-@@ -110,6 +110,7 @@ extern int watchdog_user_enabled;
- extern int watchdog_thresh;
- extern unsigned long watchdog_enabled;
- extern unsigned long *watchdog_cpumask_bits;
-+extern atomic_t watchdog_park_in_progress;
- #ifdef CONFIG_SMP
- extern int sysctl_softlockup_all_cpu_backtrace;
- extern int sysctl_hardlockup_all_cpu_backtrace;
-diff -puN kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
-+++ a/kernel/watchdog.c
-@@ -49,6 +49,8 @@ unsigned long *watchdog_cpumask_bits = c
- #define for_each_watchdog_cpu(cpu) \
- 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
- 
-+atomic_t watchdog_park_in_progress = ATOMIC_INIT(0);
-+
- /*
-  * The 'watchdog_running' variable is set to 1 when the watchdog threads
-  * are registered/started and is set to 0 when the watchdog threads are
-@@ -260,6 +262,9 @@ static enum hrtimer_restart watchdog_tim
- 	int duration;
- 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
- 
-+	if (atomic_read(&watchdog_park_in_progress) != 0)
-+		return HRTIMER_NORESTART;
-+
- 	/* kick the hardlockup detector */
- 	watchdog_interrupt_count();
- 
-@@ -467,12 +472,16 @@ static int watchdog_park_threads(void)
- {
- 	int cpu, ret = 0;
- 
-+	atomic_set(&watchdog_park_in_progress, 1);
-+
- 	for_each_watchdog_cpu(cpu) {
- 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
- 		if (ret)
- 			break;
- 	}
- 
-+	atomic_set(&watchdog_park_in_progress, 0);
-+
- 	return ret;
+diff -puN fs/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/Kconfig
+--- a/fs/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
++++ a/fs/Kconfig
+@@ -38,6 +38,7 @@ config FS_DAX
+ 	bool "Direct Access (DAX) support"
+ 	depends on MMU
+ 	depends on !(ARM || MIPS || SPARC)
++	select FS_IOMAP
+ 	help
+ 	  Direct Access (DAX) can be used on memory-backed block devices.
+ 	  If the block device supports DAX and the filesystem supports DAX,
+diff -puN fs/dax.c~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/dax.c
+--- a/fs/dax.c~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
++++ a/fs/dax.c
+@@ -990,7 +990,6 @@ int __dax_zero_page_range(struct block_d
  }
+ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
  
-diff -puN kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog_hld.c
---- a/kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
-+++ a/kernel/watchdog_hld.c
-@@ -84,6 +84,9 @@ static void watchdog_overflow_callback(s
- 	/* Ensure the watchdog never gets throttled */
- 	event->hw.interrupts = 0;
+-#ifdef CONFIG_FS_IOMAP
+ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
+ {
+ 	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
+@@ -1428,4 +1427,3 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ }
+ EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
+ #endif /* CONFIG_FS_DAX_PMD */
+-#endif /* CONFIG_FS_IOMAP */
+diff -puN fs/ext2/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/ext2/Kconfig
+--- a/fs/ext2/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
++++ a/fs/ext2/Kconfig
+@@ -1,6 +1,5 @@
+ config EXT2_FS
+ 	tristate "Second extended fs support"
+-	select FS_IOMAP if FS_DAX
+ 	help
+ 	  Ext2 is a standard Linux file system for hard disks.
  
-+	if (atomic_read(&watchdog_park_in_progress) != 0)
-+		return;
-+
- 	if (__this_cpu_read(watchdog_nmi_touch) == true) {
- 		__this_cpu_write(watchdog_nmi_touch, false);
- 		return;
+diff -puN fs/ext4/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/ext4/Kconfig
+--- a/fs/ext4/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
++++ a/fs/ext4/Kconfig
+@@ -37,7 +37,6 @@ config EXT4_FS
+ 	select CRC16
+ 	select CRYPTO
+ 	select CRYPTO_CRC32C
+-	select FS_IOMAP if FS_DAX
+ 	help
+ 	  This is the next generation of the ext3 filesystem.
+ 
 _
