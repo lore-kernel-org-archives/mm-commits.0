@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version.patch added to -mm tree
-Date: Mon, 23 Jan 2017 16:35:30 -0800
-Message-ID: <5886a152.cuH5q0oTNfZpJdGn%akpm@linux-foundation.org>
+Subject: + zswap-allow-initialization-at-boot-without-pool.patch added to
+ -mm tree
+Date: Tue, 24 Jan 2017 13:24:53 -0800
+Message-ID: <5887c625.0j2rlANOQkmEzazn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34242 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750874AbdAXAfb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2017 19:35:31 -0500
+        with ESMTP id S1750970AbdAXVYy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 16:24:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 4sschmid@informatik.uni-hamburg.de, anton@enomsg.org, bongkyu.kim@lge.com, ccross@android.com, davem@davemloft.net, gregkh@linuxfoundation.org, herbert@gondor.apana.org.au, keescook@chromium.org, rsalvaterra@gmail.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, dan.streetman@canonical.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/pstore: fs/squashfs: change usage of LZ4 to work with new LZ4 version
+     Subject: zswap: allow initialization at boot without pool
 has been added to the -mm tree.  Its filename is
-     fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version.patch
+     zswap-allow-initialization-at-boot-without-pool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zswap-allow-initialization-at-boot-without-pool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-allow-initialization-at-boot-without-pool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,117 +39,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
-Subject: fs/pstore: fs/squashfs: change usage of LZ4 to work with new LZ4 version
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: zswap: allow initialization at boot without pool
 
-This patch updates fs/pstore and fs/squashfs to use the updated functions
-from the new LZ4 module.
+Allow zswap to initialize at boot even if it can't create its pool
+due to a failure to create a zpool and/or compressor.  Allow those
+to be created later, from the sysfs module param interface.
 
-Link: http://lkml.kernel.org/r/1485113717-29261-5-git-send-email-4sschmid@informatik.uni-hamburg.de
-Signed-off-by: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
-Cc: Bongkyu Kim <bongkyu.kim@lge.com>
-Cc: Rui Salvaterra <rsalvaterra@gmail.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: http://lkml.kernel.org/r/20170124200259.16191-3-ddstreet@ieee.org
+Signed-off-by: Dan Streetman <dan.streetman@canonical.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pstore/platform.c      |   14 +++++++-------
- fs/squashfs/lz4_wrapper.c |   12 ++++++------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ mm/zswap.c |   46 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 34 insertions(+), 12 deletions(-)
 
-diff -puN fs/pstore/platform.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version fs/pstore/platform.c
---- a/fs/pstore/platform.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version
-+++ a/fs/pstore/platform.c
-@@ -342,31 +342,31 @@ static int compress_lz4(const void *in,
- {
- 	int ret;
+diff -puN mm/zswap.c~zswap-allow-initialization-at-boot-without-pool mm/zswap.c
+--- a/mm/zswap.c~zswap-allow-initialization-at-boot-without-pool
++++ a/mm/zswap.c
+@@ -185,6 +185,9 @@ static bool zswap_init_started;
+ /* fatal error during init */
+ static bool zswap_init_failed;
  
--	ret = lz4_compress(in, inlen, out, &outlen, workspace);
--	if (ret) {
-+	ret = LZ4_compress_default(in, out, inlen, outlen, workspace);
-+	if (!ret) {
- 		pr_err("lz4_compress error, ret = %d!\n", ret);
- 		return -EIO;
- 	}
- 
--	return outlen;
-+	return ret;
- }
- 
- static int decompress_lz4(void *in, void *out, size_t inlen, size_t outlen)
- {
- 	int ret;
- 
--	ret = lz4_decompress_unknownoutputsize(in, inlen, out, &outlen);
--	if (ret) {
-+	ret = LZ4_decompress_safe(in, out, inlen, outlen);
-+	if (ret < 0) {
- 		pr_err("lz4_decompress error, ret = %d!\n", ret);
- 		return -EIO;
- 	}
- 
--	return outlen;
-+	return ret;
- }
- 
- static void allocate_lz4(void)
- {
--	big_oops_buf_sz = lz4_compressbound(psinfo->bufsize);
-+	big_oops_buf_sz = LZ4_compressBound(psinfo->bufsize);
- 	big_oops_buf = kmalloc(big_oops_buf_sz, GFP_KERNEL);
- 	if (big_oops_buf) {
- 		workspace = kmalloc(LZ4_MEM_COMPRESS, GFP_KERNEL);
-diff -puN fs/squashfs/lz4_wrapper.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version fs/squashfs/lz4_wrapper.c
---- a/fs/squashfs/lz4_wrapper.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version
-+++ a/fs/squashfs/lz4_wrapper.c
-@@ -97,7 +97,6 @@ static int lz4_uncompress(struct squashf
- 	struct squashfs_lz4 *stream = strm;
- 	void *buff = stream->input, *data;
- 	int avail, i, bytes = length, res;
--	size_t dest_len = output->length;
- 
- 	for (i = 0; i < b; i++) {
- 		avail = min(bytes, msblk->devblksize - offset);
-@@ -108,12 +107,13 @@ static int lz4_uncompress(struct squashf
- 		put_bh(bh[i]);
- 	}
- 
--	res = lz4_decompress_unknownoutputsize(stream->input, length,
--					stream->output, &dest_len);
--	if (res)
-+	res = LZ4_decompress_safe(stream->input, stream->output,
-+		length, output->length);
++/* init completed, but couldn't create the initial pool */
++static bool zswap_has_pool;
 +
-+	if (res < 0)
- 		return -EIO;
+ /*********************************
+ * helpers and fwd declarations
+ **********************************/
+@@ -424,7 +427,8 @@ static struct zswap_pool *__zswap_pool_c
+ 	struct zswap_pool *pool;
  
--	bytes = dest_len;
-+	bytes = res;
- 	data = squashfs_first_page(output);
- 	buff = stream->output;
- 	while (data) {
-@@ -128,7 +128,7 @@ static int lz4_uncompress(struct squashf
- 	}
- 	squashfs_finish_page(output);
+ 	pool = list_first_or_null_rcu(&zswap_pools, typeof(*pool), list);
+-	WARN_ON(!pool);
++	WARN_ONCE(!pool && zswap_has_pool,
++		  "%s: no page storage pool!\n", __func__);
  
--	return dest_len;
-+	return res;
+ 	return pool;
+ }
+@@ -443,7 +447,7 @@ static struct zswap_pool *zswap_pool_cur
+ 	rcu_read_lock();
+ 
+ 	pool = __zswap_pool_current();
+-	if (!pool || !zswap_pool_get(pool))
++	if (!zswap_pool_get(pool))
+ 		pool = NULL;
+ 
+ 	rcu_read_unlock();
+@@ -459,7 +463,9 @@ static struct zswap_pool *zswap_pool_las
+ 
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list)
+ 		last = pool;
+-	if (!WARN_ON(!last) && !zswap_pool_get(last))
++	WARN_ONCE(!last && zswap_has_pool,
++		  "%s: no page storage pool!\n", __func__);
++	if (!zswap_pool_get(last))
+ 		last = NULL;
+ 
+ 	rcu_read_unlock();
+@@ -582,6 +588,9 @@ static void zswap_pool_destroy(struct zs
+ 
+ static int __must_check zswap_pool_get(struct zswap_pool *pool)
+ {
++	if (!pool)
++		return 0;
++
+ 	return kref_get_unless_zero(&pool->kref);
  }
  
- const struct squashfs_decompressor squashfs_lz4_comp_ops = {
-_
-
-Patches currently in -mm which might be from 4sschmid@informatik.uni-hamburg.de are
-
-lib-update-lz4-compressor-module.patch
-lib-decompress_unlz4-change-module-to-work-with-new-lz4-module-version.patch
-crypto-change-lz4-modules-to-work-with-new-lz4-module-version.patch
-fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version.patch
-
+@@ -639,7 +648,7 @@ static int __zswap_param_set(const char
+ 	}
+ 
+ 	/* no change required */
+-	if (!strcmp(s, *(char **)kp->arg))
++	if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool)
+ 		return 0;
+ 
+ 	/* if this is load-time (pre-init) param setting,
+@@ -685,6 +694,7 @@ static int __zswap_param_set(const char
+ 	if (!ret) {
+ 		put_pool = zswap_pool_current();
+ 		list_add_rcu(&pool->list, &zswap_pools);
++		zswap_has_pool = true;
+ 	} else if (pool) {
+ 		/* add the possibly pre-existing pool to the end of the pools
+ 		 * list; if it's new (and empty) then it'll be removed and
+@@ -692,6 +702,15 @@ static int __zswap_param_set(const char
+ 		 */
+ 		list_add_tail_rcu(&pool->list, &zswap_pools);
+ 		put_pool = pool;
++	} else if (!zswap_has_pool) {
++		/* if initial pool creation failed, and this pool creation also
++		 * failed, maybe both compressor and zpool params were bad.
++		 * Allow changing this param, so pool creation will succeed
++		 * when the other param is changed. We already verified this
++		 * param is ok in the zpool_has_pool() or crypto_has_comp()
++		 * checks above.
++		 */
++		ret = param_set_charp(s, kp);
+ 	}
+ 
+ 	spin_unlock(&zswap_pools_lock);
+@@ -724,6 +743,10 @@ static int zswap_enabled_param_set(const
+ 		pr_err("can't enable, initialization failed\n");
+ 		return -ENODEV;
+ 	}
++	if (!zswap_has_pool && zswap_init_started) {
++		pr_err("can't enable, no pool configured\n");
++		return -ENODEV;
++	}
+ 
+ 	return param_set_bool(val, kp);
+ }
+@@ -1205,22 +1228,21 @@ static int __init init_zswap(void)
+ 		goto hp_fail;
+ 
+ 	pool = __zswap_pool_create_fallback();
+-	if (!pool) {
++	if (pool) {
++		pr_info("loaded using pool %s/%s\n", pool->tfm_name,
++			zpool_get_type(pool->zpool));
++		list_add(&pool->list, &zswap_pools);
++		zswap_has_pool = true;
++	} else {
+ 		pr_err("pool creation failed\n");
+-		goto pool_fail;
++		zswap_enabled = false;
+ 	}
+-	pr_info("loaded using pool %s/%s\n", pool->tfm_name,
+-		zpool_get_type(pool->zpool));
