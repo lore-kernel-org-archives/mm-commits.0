@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch added to
+Subject: + compiler-gcch-added-new-macro-for-gcc-attribute.patch added to
  -mm tree
-Date: Tue, 24 Jan 2017 13:45:55 -0800
-Message-ID: <5887cb13.GqAmOAtXlSkobiXH%akpm@linux-foundation.org>
+Date: Tue, 24 Jan 2017 13:49:02 -0800
+Message-ID: <5887cbce.27X+fcXKGjFZMeq7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36222 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750751AbdAXVp4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 16:45:56 -0500
+        with ESMTP id S1750763AbdAXVtD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 16:49:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org
+To: gidisrael@gmail.com, geert@linux-m68k.org, gerg@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: don't check cpuset allowed twice in fast-path
+     Subject: compiler-gcc.h: add new macro for gcc attribute
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
+     compiler-gcch-added-new-macro-for-gcc-attribute.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/compiler-gcch-added-new-macro-for-gcc-attribute.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-gcch-added-new-macro-for-gcc-attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +39,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: don't check cpuset allowed twice in fast-path
+From: Gideon Israel Dsouza <gidisrael@gmail.com>
+Subject: compiler-gcc.h: add new macro for gcc attribute
 
-Since 682a3385e773 ("mm, page_alloc: inline the fast path of the zonelist
-iterator") we replace a NULL nodemask with cpuset_current_mems_allowed in
-the fast path, so that get_page_from_freelist() filters nodes allowed by
-the cpuset via for_next_zone_zonelist_nodemask().  In that case it's
-pointless to additionaly check __cpuset_zone_allowed() in each iteration,
-which we can avoid by not adding ALLOC_CPUSET to alloc_flags in that
-scenario.
+Add __mode(x) into compiler-gcc.h.  The next patch cleans up the m68k
+subsystem and it requires a new macro to wrap __attribute__ ((mode (...)))
 
-This saves some cycles in the allocator fast path on systems with one or
-more non-root cpuset configured.  In the slow path, ALLOC_CPUSET is reset
-according to __alloc_pages_slowpath().  Without configured cpusets, this
-code is disabled by a static key.
-
-Link: http://lkml.kernel.org/r/20170124150511.5710-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1485260068-2495-1-git-send-email-gidisrael@gmail.com
+Signed-off-by: Gideon Israel Dsouza <gidisrael@gmail.com>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/compiler-gcc.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path
-+++ a/mm/page_alloc.c
-@@ -3900,9 +3900,10 @@ static inline bool prepare_alloc_pages(g
+diff -puN include/linux/compiler-gcc.h~compiler-gcch-added-new-macro-for-gcc-attribute include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-gcch-added-new-macro-for-gcc-attribute
++++ a/include/linux/compiler-gcc.h
+@@ -121,6 +121,7 @@
+ #define __attribute_const__	__attribute__((__const__))
+ #define __maybe_unused		__attribute__((unused))
+ #define __always_unused		__attribute__((unused))
++#define __mode                  __attribute__((mode(x)))
  
- 	if (cpusets_enabled()) {
- 		*alloc_mask |= __GFP_HARDWALL;
--		*alloc_flags |= ALLOC_CPUSET;
- 		if (!ac->nodemask)
- 			ac->nodemask = &cpuset_current_mems_allowed;
-+		else
-+			*alloc_flags |= ALLOC_CPUSET;
- 	}
+ /* gcc version specific checks */
  
- 	lockdep_trace_alloc(gfp_mask);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from gidisrael@gmail.com are
 
-mm-mempolicyc-do-not-put-mempolicy-before-using-its-nodemask.patch
-mm-page_alloc-fix-check-for-null-preferred_zone.patch
-mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch
-mm-page_alloc-move-cpuset-seqcount-checking-to-slowpath.patch
-mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update.patch
-mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
-mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
-mm-page_alloc-remove-redundant-checks-from-alloc-fastpath.patch
-mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
+compiler-gcch-added-new-macro-for-gcc-attribute.patch
+m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch
 
