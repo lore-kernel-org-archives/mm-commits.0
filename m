@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zswap-clear-compressor-or-zpool-param-if-invalid-at-init.patch
- added to -mm tree
-Date: Tue, 24 Jan 2017 13:24:56 -0800
-Message-ID: <5887c628.5IsoifELGDubPKEd%akpm@linux-foundation.org>
+Subject: + maintainers-add-dan-streetman-to-zswap-maintainers.patch added
+ to -mm tree
+Date: Tue, 24 Jan 2017 13:42:28 -0800
+Message-ID: <5887ca44.nawWjrLEz/eXEC0B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35440 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750888AbdAXVZH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 16:25:07 -0500
+        with ESMTP id S1750785AbdAXVm3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 16:42:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, dan.streetman@canonical.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, sjenning@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: clear compressor or zpool param if invalid at init
+     Subject: MAINTAINERS: add Dan Streetman to zswap maintainers
 has been added to the -mm tree.  Its filename is
-     zswap-clear-compressor-or-zpool-param-if-invalid-at-init.patch
+     maintainers-add-dan-streetman-to-zswap-maintainers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-clear-compressor-or-zpool-param-if-invalid-at-init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-dan-streetman-to-zswap-maintainers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-clear-compressor-or-zpool-param-if-invalid-at-init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-dan-streetman-to-zswap-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,112 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Streetman <ddstreet@ieee.org>
-Subject: zswap: clear compressor or zpool param if invalid at init
+Subject: MAINTAINERS: add Dan Streetman to zswap maintainers
 
-If either the compressor and/or zpool param are invalid at boot, and
-their default value is also invalid, set the param to the empty string
-to indicate there is no compressor and/or zpool configured.  This allows
-users to check the sysfs interface to see which param needs changing.
+Add myself as zswap maintainer.
 
-Link: http://lkml.kernel.org/r/20170124200259.16191-4-ddstreet@ieee.org
-Signed-off-by: Dan Streetman <dan.streetman@canonical.com>
+Link: http://lkml.kernel.org/r/20170124212200.19052-1-ddstreet@ieee.org
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
 Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   49 +++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 37 insertions(+), 12 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/zswap.c~zswap-clear-compressor-or-zpool-param-if-invalid-at-init mm/zswap.c
---- a/mm/zswap.c~zswap-clear-compressor-or-zpool-param-if-invalid-at-init
-+++ a/mm/zswap.c
-@@ -76,6 +76,8 @@ static u64 zswap_duplicate_entry;
- * tunables
- **********************************/
+diff -puN MAINTAINERS~maintainers-add-dan-streetman-to-zswap-maintainers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-dan-streetman-to-zswap-maintainers
++++ a/MAINTAINERS
+@@ -13682,6 +13682,7 @@ F:	Documentation/vm/zsmalloc.txt
  
-+#define ZSWAP_PARAM_UNSET ""
-+
- /* Enable/disable zswap (disabled by default) */
- static bool zswap_enabled;
- static int zswap_enabled_param_set(const char *,
-@@ -501,6 +503,17 @@ static struct zswap_pool *zswap_pool_cre
- 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
- 	int ret;
- 
-+	if (!zswap_has_pool) {
-+		/* if either are unset, pool initialization failed, and we
-+		 * need both params to be set correctly before trying to
-+		 * create a pool.
-+		 */
-+		if (!strcmp(type, ZSWAP_PARAM_UNSET))
-+			return NULL;
-+		if (!strcmp(compressor, ZSWAP_PARAM_UNSET))
-+			return NULL;
-+	}
-+
- 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
- 	if (!pool) {
- 		pr_err("pool alloc failed\n");
-@@ -550,28 +563,40 @@ error:
- 
- static __init struct zswap_pool *__zswap_pool_create_fallback(void)
- {
--	if (!crypto_has_comp(zswap_compressor, 0, 0)) {
--		if (!strcmp(zswap_compressor, ZSWAP_COMPRESSOR_DEFAULT)) {
--			pr_err("default compressor %s not available\n",
--			       zswap_compressor);
--			return NULL;
--		}
-+	bool has_comp, has_zpool;
-+
-+	has_comp = crypto_has_comp(zswap_compressor, 0, 0);
-+	if (!has_comp && strcmp(zswap_compressor, ZSWAP_COMPRESSOR_DEFAULT)) {
- 		pr_err("compressor %s not available, using default %s\n",
- 		       zswap_compressor, ZSWAP_COMPRESSOR_DEFAULT);
- 		param_free_charp(&zswap_compressor);
- 		zswap_compressor = ZSWAP_COMPRESSOR_DEFAULT;
-+		has_comp = crypto_has_comp(zswap_compressor, 0, 0);
- 	}
--	if (!zpool_has_pool(zswap_zpool_type)) {
--		if (!strcmp(zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT)) {
--			pr_err("default zpool %s not available\n",
--			       zswap_zpool_type);
--			return NULL;
--		}
-+	if (!has_comp) {
-+		pr_err("default compressor %s not available\n",
-+		       zswap_compressor);
-+		param_free_charp(&zswap_compressor);
-+		zswap_compressor = ZSWAP_PARAM_UNSET;
-+	}
-+
-+	has_zpool = zpool_has_pool(zswap_zpool_type);
-+	if (!has_zpool && strcmp(zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT)) {
- 		pr_err("zpool %s not available, using default %s\n",
- 		       zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT);
- 		param_free_charp(&zswap_zpool_type);
- 		zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
-+		has_zpool = zpool_has_pool(zswap_zpool_type);
- 	}
-+	if (!has_zpool) {
-+		pr_err("default zpool %s not available\n",
-+		       zswap_zpool_type);
-+		param_free_charp(&zswap_zpool_type);
-+		zswap_zpool_type = ZSWAP_PARAM_UNSET;
-+	}
-+
-+	if (!has_comp || !has_zpool)
-+		return NULL;
- 
- 	return zswap_pool_create(zswap_zpool_type, zswap_compressor);
- }
+ ZSWAP COMPRESSED SWAP CACHING
+ M:	Seth Jennings <sjenning@redhat.com>
++M:	Dan Streetman <ddstreet@ieee.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/zswap.c
 _
 
 Patches currently in -mm which might be from ddstreet@ieee.org are
 
+maintainers-add-dan-streetman-to-zswap-maintainers.patch
 zswap-disable-changing-params-if-init-fails.patch
 zswap-allow-initialization-at-boot-without-pool.patch
 zswap-clear-compressor-or-zpool-param-if-invalid-at-init.patch
