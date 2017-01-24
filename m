@@ -1,89 +1,116 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch removed from
- -mm tree
-Date: Tue, 24 Jan 2017 15:12:50 -0800
-Message-ID: <5887df72.1xl2pCN67xtCP9ec%akpm@linux-foundation.org>
+ kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+ removed from -mm tree
+Date: Tue, 24 Jan 2017 15:13:13 -0800
+Message-ID: <5887df89.F67JXtu+WVzm7JAV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41174 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750943AbdAXXMv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:12:51 -0500
+        with ESMTP id S1751089AbdAXXNO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, keno@juliacomputing.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, atomlin@redhat.com, dzickus@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes
+     Subject: kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
 has been removed from the -mm tree.  Its filename was
-     mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
+     kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
 
-This patch was dropped because it was folded into mm-respect-foll_force-foll_cow-for-thp.patch
+This patch was dropped because it was folded into kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes
+Subject: kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
 
-WARNING: please, no spaces at the start of a line
-#101: FILE: mm/huge_memory.c:1143:
-+       return pmd_write(pmd) ||$
+s/park_in_progress/watchdog_park_in_progress/
 
-ERROR: code indent should use tabs where possible
-#102: FILE: mm/huge_memory.c:1144:
-+               ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));$
-
-WARNING: please, no spaces at the start of a line
-#102: FILE: mm/huge_memory.c:1144:
-+               ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));$
-
-total: 1 errors, 2 warnings, 36 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mm-respect-foll_force-foll_cow-for-thp.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Keno Fischer <keno@juliacomputing.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/nmi.h   |    2 +-
+ kernel/watchdog.c     |    8 ++++----
+ kernel/watchdog_hld.c |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes mm/huge_memory.c
---- a/mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes
-+++ a/mm/huge_memory.c
-@@ -1140,8 +1140,8 @@ out_unlock:
-  */
- static inline bool can_follow_write_pmd(pmd_t pmd, unsigned int flags)
- {
--       return pmd_write(pmd) ||
--               ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));
-+	return pmd_write(pmd) ||
-+	       ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));
- }
+diff -puN include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix include/linux/nmi.h
+--- a/include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
++++ a/include/linux/nmi.h
+@@ -110,7 +110,7 @@ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
+ extern unsigned long watchdog_enabled;
+ extern unsigned long *watchdog_cpumask_bits;
+-extern atomic_t park_in_progress;
++extern atomic_t watchdog_park_in_progress;
+ #ifdef CONFIG_SMP
+ extern int sysctl_softlockup_all_cpu_backtrace;
+ extern int sysctl_hardlockup_all_cpu_backtrace;
+diff -puN kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
++++ a/kernel/watchdog.c
+@@ -49,7 +49,7 @@ unsigned long *watchdog_cpumask_bits = c
+ #define for_each_watchdog_cpu(cpu) \
+ 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
  
- struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+-atomic_t park_in_progress = ATOMIC_INIT(0);
++atomic_t watchdog_park_in_progress = ATOMIC_INIT(0);
+ 
+ /*
+  * The 'watchdog_running' variable is set to 1 when the watchdog threads
+@@ -262,7 +262,7 @@ static enum hrtimer_restart watchdog_tim
+ 	int duration;
+ 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
+ 
+-	if (atomic_read(&park_in_progress) != 0)
++	if (atomic_read(&watchdog_park_in_progress) != 0)
+ 		return HRTIMER_NORESTART;
+ 
+ 	/* kick the hardlockup detector */
+@@ -472,7 +472,7 @@ static int watchdog_park_threads(void)
+ {
+ 	int cpu, ret = 0;
+ 
+-	atomic_set(&park_in_progress, 1);
++	atomic_set(&watchdog_park_in_progress, 1);
+ 
+ 	for_each_watchdog_cpu(cpu) {
+ 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
+@@ -480,7 +480,7 @@ static int watchdog_park_threads(void)
+ 			break;
+ 	}
+ 
+-	atomic_set(&park_in_progress, 0);
++	atomic_set(&watchdog_park_in_progress, 0);
+ 
+ 	return ret;
+ }
+diff -puN kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix kernel/watchdog_hld.c
+--- a/kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix
++++ a/kernel/watchdog_hld.c
+@@ -84,7 +84,7 @@ static void watchdog_overflow_callback(s
+ 	/* Ensure the watchdog never gets throttled */
+ 	event->hw.interrupts = 0;
+ 
+-	if (atomic_read(&park_in_progress) != 0)
++	if (atomic_read(&watchdog_park_in_progress) != 0)
+ 		return;
+ 
+ 	if (__this_cpu_read(watchdog_nmi_touch) == true) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
-mm-respect-foll_force-foll_cow-for-thp.patch
-kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
 proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
 mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
