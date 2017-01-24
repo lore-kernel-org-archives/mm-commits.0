@@ -1,117 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/26] dax: fix build warnings with FS_DAX and !FS_IOMAP
-Date: Tue, 24 Jan 2017 15:17:51 -0800
-Message-ID: <5887e09f.qNs01gKMNpKAI8lV%akpm@linux-foundation.org>
+Subject: [patch 05/26] drivers/memstick/core/memstick.c: avoid -Wnonnull
+ warning
+Date: Tue, 24 Jan 2017 15:17:56 -0800
+Message-ID: <5887e0a4.ic0zNxjmkeUo9F01%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750977AbdAXXRw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:17:52 -0500
+        with ESMTP id S1750995AbdAXXR5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:17:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, arnd@arndb.de, hch@lst.de, jack@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, oakad@yahoo.com
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix build warnings with FS_DAX and !FS_IOMAP
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: drivers/memstick/core/memstick.c: avoid -Wnonnull warning
 
-As reported by Arnd:
+gcc-7 produces a harmless false-postive warning about a possible
+NULL pointer access:
 
-https://lkml.org/lkml/2017/1/10/756
+drivers/memstick/core/memstick.c: In function 'h_memstick_read_dev_id':
+drivers/memstick/core/memstick.c:309:3: error: argument 2 null where non-null expected [-Werror=nonnull]
+   memcpy(mrq->data, buf, mrq->data_len);
 
-Compiling with the following configuration:
+This can't happen because the caller sets the command to 'MS_TPC_READ_REG',
+which causes the data direction to be 'READ' and the NULL pointer not
+accessed.
 
-  # CONFIG_EXT2_FS is not set
-  # CONFIG_EXT4_FS is not set
-  # CONFIG_XFS_FS is not set
-  # CONFIG_FS_IOMAP depends on the above filesystems, as is not set
-  CONFIG_FS_DAX=y
+As a simple workaround for the warning, we can pass a pointer to the
+data that we actually want to read into. This is not needed here, but
+also harmless, and lets the compiler know that the access is ok.
 
-generates build warnings about unused functions in fs/dax.c:
-
-fs/dax.c:878:12: warning: `dax_insert_mapping' defined but not used [-Wunused-function]
- static int dax_insert_mapping(struct address_space *mapping,
-            ^~~~~~~~~~~~~~~~~~
-fs/dax.c:572:12: warning: `copy_user_dax' defined but not used [-Wunused-function]
- static int copy_user_dax(struct block_device *bdev, sector_t sector, size_t size,
-            ^~~~~~~~~~~~~
-fs/dax.c:542:12: warning: `dax_load_hole' defined but not used [-Wunused-function]
- static int dax_load_hole(struct address_space *mapping, void **entry,
-            ^~~~~~~~~~~~~
-fs/dax.c:312:14: warning: `grab_mapping_entry' defined but not used [-Wunused-function]
- static void *grab_mapping_entry(struct address_space *mapping, pgoff_t index,
-              ^~~~~~~~~~~~~~~~~~
-
-Now that the struct buffer_head based DAX fault paths and I/O path have
-been removed we really depend on iomap support being present for DAX.  Make
-this explicit by selecting FS_IOMAP if we compile in DAX support.
-
-This allows us to remove conditional selections of FS_IOMAP when FS_DAX was
-present for ext2 and ext4, and to remove an #ifdef in fs/dax.c.
-
-Link: http://lkml.kernel.org/r/1484087383-29478-1-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/20170111144143.548867-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig      |    1 +
- fs/dax.c        |    2 --
- fs/ext2/Kconfig |    1 -
- fs/ext4/Kconfig |    1 -
- 4 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/memstick/core/memstick.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/Kconfig
---- a/fs/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
-+++ a/fs/Kconfig
-@@ -38,6 +38,7 @@ config FS_DAX
- 	bool "Direct Access (DAX) support"
- 	depends on MMU
- 	depends on !(ARM || MIPS || SPARC)
-+	select FS_IOMAP
- 	help
- 	  Direct Access (DAX) can be used on memory-backed block devices.
- 	  If the block device supports DAX and the filesystem supports DAX,
-diff -puN fs/dax.c~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/dax.c
---- a/fs/dax.c~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
-+++ a/fs/dax.c
-@@ -990,7 +990,6 @@ int __dax_zero_page_range(struct block_d
- }
- EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+diff -puN drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning drivers/memstick/core/memstick.c
+--- a/drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning
++++ a/drivers/memstick/core/memstick.c
+@@ -330,7 +330,7 @@ static int h_memstick_read_dev_id(struct
+ 	struct ms_id_register id_reg;
  
--#ifdef CONFIG_FS_IOMAP
- static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
- {
- 	return iomap->blkno + (((pos & PAGE_MASK) - iomap->offset) >> 9);
-@@ -1428,4 +1427,3 @@ int dax_iomap_pmd_fault(struct vm_area_s
- }
- EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
- #endif /* CONFIG_FS_DAX_PMD */
--#endif /* CONFIG_FS_IOMAP */
-diff -puN fs/ext2/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/ext2/Kconfig
---- a/fs/ext2/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
-+++ a/fs/ext2/Kconfig
-@@ -1,6 +1,5 @@
- config EXT2_FS
- 	tristate "Second extended fs support"
--	select FS_IOMAP if FS_DAX
- 	help
- 	  Ext2 is a standard Linux file system for hard disks.
- 
-diff -puN fs/ext4/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap fs/ext4/Kconfig
---- a/fs/ext4/Kconfig~dax-fix-build-warnings-with-fs_dax-and-fs_iomap
-+++ a/fs/ext4/Kconfig
-@@ -37,7 +37,6 @@ config EXT4_FS
- 	select CRC16
- 	select CRYPTO
- 	select CRYPTO_CRC32C
--	select FS_IOMAP if FS_DAX
- 	help
- 	  This is the next generation of the ext3 filesystem.
- 
+ 	if (!(*mrq)) {
+-		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, NULL,
++		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, &id_reg,
+ 				  sizeof(struct ms_id_register));
+ 		*mrq = &card->current_mrq;
+ 		return 0;
 _
