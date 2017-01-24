@@ -1,76 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-dan-streetman-to-zbud-maintainers.patch added
- to -mm tree
-Date: Tue, 24 Jan 2017 14:22:32 -0800
-Message-ID: <5887d3a8.XN35pitL3OO0x58N%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch removed from
+ -mm tree
+Date: Tue, 24 Jan 2017 15:12:50 -0800
+Message-ID: <5887df72.1xl2pCN67xtCP9ec%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41166 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751128AbdAXWWe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 17:22:34 -0500
+        with ESMTP id S1750943AbdAXXMv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:12:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, sjenning@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, keno@juliacomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add Dan Streetman to zbud maintainers
-has been added to the -mm tree.  Its filename is
-     maintainers-add-dan-streetman-to-zbud-maintainers.patch
+     Subject: mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-dan-streetman-to-zbud-maintainers.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-dan-streetman-to-zbud-maintainers.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-respect-foll_force-foll_cow-for-thp.patch
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: MAINTAINERS: add Dan Streetman to zbud maintainers
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes
 
-Add myself as zbud maintainer.
+WARNING: please, no spaces at the start of a line
+#101: FILE: mm/huge_memory.c:1143:
++       return pmd_write(pmd) ||$
 
-Link: http://lkml.kernel.org/r/20170124221705.26523-1-ddstreet@ieee.org
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
+ERROR: code indent should use tabs where possible
+#102: FILE: mm/huge_memory.c:1144:
++               ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));$
+
+WARNING: please, no spaces at the start of a line
+#102: FILE: mm/huge_memory.c:1144:
++               ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));$
+
+total: 1 errors, 2 warnings, 36 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/mm-respect-foll_force-foll_cow-for-thp.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Keno Fischer <keno@juliacomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-dan-streetman-to-zbud-maintainers MAINTAINERS
---- a/MAINTAINERS~maintainers-add-dan-streetman-to-zbud-maintainers
-+++ a/MAINTAINERS
-@@ -13697,6 +13697,7 @@ F:	drivers/net/hamradio/z8530.h
+diff -puN mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp-checkpatch-fixes
++++ a/mm/huge_memory.c
+@@ -1140,8 +1140,8 @@ out_unlock:
+  */
+ static inline bool can_follow_write_pmd(pmd_t pmd, unsigned int flags)
+ {
+-       return pmd_write(pmd) ||
+-               ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));
++	return pmd_write(pmd) ||
++	       ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));
+ }
  
- ZBUD COMPRESSED PAGE ALLOCATOR
- M:	Seth Jennings <sjenning@redhat.com>
-+M:	Dan Streetman <ddstreet@ieee.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/zbud.c
+ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maintainers-add-dan-streetman-to-zswap-maintainers.patch
-maintainers-add-dan-streetman-to-zbud-maintainers.patch
-zswap-disable-changing-params-if-init-fails.patch
-zswap-allow-initialization-at-boot-without-pool.patch
-zswap-clear-compressor-or-zpool-param-if-invalid-at-init.patch
+i-need-old-gcc.patch
+mm-respect-foll_force-foll_cow-for-thp.patch
+kernel-watchdog-prevent-false-hardlockup-on-overloaded-system-fix.patch
+proc-add-a-schedule-point-in-proc_pid_readdir-fix.patch
+mm-page_alloc-fix-premature-oom-when-racing-with-cpuset-mems-update-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+dax-enable-iostat-for-read-write-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
+mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
+mm-track-active-portions-of-a-section-at-boot-fix.patch
+mm-memory_hotplugc-unexport-__remove_pages.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+reimplement-idr-and-ida-using-the-radix-tree-support-storing-null-in-the-idr-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
