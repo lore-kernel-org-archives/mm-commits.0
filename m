@@ -1,136 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/26] mm/huge_memory.c: respect FOLL_FORCE/FOLL_COW for
- thp
-Date: Tue, 24 Jan 2017 15:17:48 -0800
-Message-ID: <5887e09c.Pj4/LP+SgOpG5PCX%akpm@linux-foundation.org>
+Subject: [patch 07/26] mm/slub.c: trace free objects at KERN_INFO
+Date: Tue, 24 Jan 2017 15:18:02 -0800
+Message-ID: <5887e0aa.0Ww6P5B9Bp/CNaRA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750902AbdAXXRt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:17:49 -0500
+        with ESMTP id S1751003AbdAXXSD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2017 18:18:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keno@juliacomputing.com, gthelen@google.com, hughd@google.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, luto@kernel.org, mhocko@suse.com, npiggin@gmail.com, oleg@redhat.com, stable@vger.kernel.org, w@1wt.eu
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, daniel.thompson@linaro.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com
 
-From: Keno Fischer <keno@juliacomputing.com>
-Subject: mm/huge_memory.c: respect FOLL_FORCE/FOLL_COW for thp
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: mm/slub.c: trace free objects at KERN_INFO
 
-In 19be0eaff ("mm: remove gup_flags FOLL_WRITE games from
-__get_user_pages()"), the mm code was changed from unsetting FOLL_WRITE
-after a COW was resolved to setting the (newly introduced) FOLL_COW
-instead.  Simultaneously, the check in gup.c was updated to still allow
-writes with FOLL_FORCE set if FOLL_COW had also been set.  However, a
-similar check in huge_memory.c was forgotten.  As a result, remote memory
-writes to ro regions of memory backed by transparent huge pages cause an
-infinite loop in the kernel (handle_mm_fault sets FOLL_COW and returns 0
-causing a retry, but follow_trans_huge_pmd bails out immidiately because
-`(flags & FOLL_WRITE) && !pmd_write(*pmd)` is true.  While in this state
-the process is stil SIGKILLable, but little else works (e.g.  no ptrace
-attach, no other signals).  This is easily reproduced with the following
-code (assuming thp are set to always):
+Currently when trace is enabled (e.g.  slub_debug=T,kmalloc-128 ) the
+trace messages are mostly output at KERN_INFO.  However the trace code
+also calls print_section() to hexdump the head of a free object.  This is
+hard coded to use KERN_ERR, meaning the console is deluged with trace
+messages even if we've asked for quiet.
 
-    #include <assert.h>
-    #include <fcntl.h>
-    #include <stdint.h>
-    #include <stdio.h>
-    #include <string.h>
-    #include <sys/mman.h>
-    #include <sys/stat.h>
-    #include <sys/types.h>
-    #include <sys/wait.h>
-    #include <unistd.h>
+Fix this the obvious way but adding a level parameter to print_section(),
+allowing calls from the trace code to use the same trace level as other
+trace messages.
 
-    #define TEST_SIZE 5 * 1024 * 1024
-
-    int main(void) {
-      int status;
-      pid_t child;
-      int fd = open("/proc/self/mem", O_RDWR);
-      void *addr = mmap(NULL, TEST_SIZE, PROT_READ,
-                        MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-      assert(addr != MAP_FAILED);
-      pid_t parent_pid = getpid();
-      if ((child = fork()) == 0) {
-        void *addr2 = mmap(NULL, TEST_SIZE, PROT_READ | PROT_WRITE,
-                           MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-        assert(addr2 != MAP_FAILED);
-        memset(addr2, 'a', TEST_SIZE);
-        pwrite(fd, addr2, TEST_SIZE, (uintptr_t)addr);
-        return 0;
-      }
-      assert(child == waitpid(child, &status, 0));
-      assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
-      return 0;
-    }
-
-Fix this by updating follow_trans_huge_pmd in huge_memory.c analogously to
-the update in gup.c in the original commit.  The same pattern exists in
-follow_devmap_pmd.  However, we should not be able to reach that check
-with FOLL_COW set, so add WARN_ONCE to make sure we notice if we ever do.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170106015025.GA38411@juliacomputing.com
-Signed-off-by: Keno Fischer <keno@juliacomputing.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170113154850.518-1-daniel.thompson@linaro.org
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ mm/slub.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp mm/huge_memory.c
---- a/mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp
-+++ a/mm/huge_memory.c
-@@ -783,6 +783,12 @@ struct page *follow_devmap_pmd(struct vm
- 
- 	assert_spin_locked(pmd_lockptr(mm, pmd));
- 
-+	/*
-+	 * When we COW a devmap PMD entry, we split it into PTEs, so we should
-+	 * not be in this function with `flags & FOLL_COW` set.
-+	 */
-+	WARN_ONCE(flags & FOLL_COW, "mm: In follow_devmap_pmd with FOLL_COW set");
-+
- 	if (flags & FOLL_WRITE && !pmd_write(*pmd))
- 		return NULL;
- 
-@@ -1128,6 +1134,16 @@ out_unlock:
- 	return ret;
+diff -puN mm/slub.c~slub-trace-free-objects-at-kern_info mm/slub.c
+--- a/mm/slub.c~slub-trace-free-objects-at-kern_info
++++ a/mm/slub.c
+@@ -496,10 +496,11 @@ static inline int check_valid_pointer(st
+ 	return 1;
  }
  
-+/*
-+ * FOLL_FORCE can write to even unwritable pmd's, but only
-+ * after we've gone through a COW cycle and they are dirty.
-+ */
-+static inline bool can_follow_write_pmd(pmd_t pmd, unsigned int flags)
-+{
-+	return pmd_write(pmd) ||
-+	       ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));
-+}
-+
- struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 				   unsigned long addr,
- 				   pmd_t *pmd,
-@@ -1138,7 +1154,7 @@ struct page *follow_trans_huge_pmd(struc
+-static void print_section(char *text, u8 *addr, unsigned int length)
++static void print_section(char *level, char *text, u8 *addr,
++			  unsigned int length)
+ {
+ 	metadata_access_enable();
+-	print_hex_dump(KERN_ERR, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
++	print_hex_dump(level, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
+ 			length, 1);
+ 	metadata_access_disable();
+ }
+@@ -636,14 +637,15 @@ static void print_trailer(struct kmem_ca
+ 	       p, p - addr, get_freepointer(s, p));
  
- 	assert_spin_locked(pmd_lockptr(mm, pmd));
+ 	if (s->flags & SLAB_RED_ZONE)
+-		print_section("Redzone ", p - s->red_left_pad, s->red_left_pad);
++		print_section(KERN_ERR, "Redzone ", p - s->red_left_pad,
++			      s->red_left_pad);
+ 	else if (p > addr + 16)
+-		print_section("Bytes b4 ", p - 16, 16);
++		print_section(KERN_ERR, "Bytes b4 ", p - 16, 16);
  
--	if (flags & FOLL_WRITE && !pmd_write(*pmd))
-+	if (flags & FOLL_WRITE && !can_follow_write_pmd(*pmd, flags))
- 		goto out;
+-	print_section("Object ", p, min_t(unsigned long, s->object_size,
+-				PAGE_SIZE));
++	print_section(KERN_ERR, "Object ", p,
++		      min_t(unsigned long, s->object_size, PAGE_SIZE));
+ 	if (s->flags & SLAB_RED_ZONE)
+-		print_section("Redzone ", p + s->object_size,
++		print_section(KERN_ERR, "Redzone ", p + s->object_size,
+ 			s->inuse - s->object_size);
  
- 	/* Avoid dumping huge zero page */
+ 	if (s->offset)
+@@ -658,7 +660,8 @@ static void print_trailer(struct kmem_ca
+ 
+ 	if (off != size_from_object(s))
+ 		/* Beginning of the filler is the free pointer */
+-		print_section("Padding ", p + off, size_from_object(s) - off);
++		print_section(KERN_ERR, "Padding ", p + off,
++			      size_from_object(s) - off);
+ 
+ 	dump_stack();
+ }
+@@ -820,7 +823,7 @@ static int slab_pad_check(struct kmem_ca
+ 		end--;
+ 
+ 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
+-	print_section("Padding ", end - remainder, remainder);
++	print_section(KERN_ERR, "Padding ", end - remainder, remainder);
+ 
+ 	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
+ 	return 0;
+@@ -973,7 +976,7 @@ static void trace(struct kmem_cache *s,
+ 			page->freelist);
+ 
+ 		if (!alloc)
+-			print_section("Object ", (void *)object,
++			print_section(KERN_INFO, "Object ", (void *)object,
+ 					s->object_size);
+ 
+ 		dump_stack();
 _
