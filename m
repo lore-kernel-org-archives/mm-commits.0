@@ -1,118 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- procfs-change-the-owner-of-non-dumpable-and-writeable-files.patch removed
- from -mm tree
-Date: Wed, 25 Jan 2017 14:03:58 -0800
-Message-ID: <588920ce.XwYDdEJ+QKSwFL5j%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch removed from -mm tree
+Date: Wed, 25 Jan 2017 14:04:25 -0800
+Message-ID: <588920e9.rnEQg43fpmqU3pJ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752024AbdAYWEA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:00 -0500
+        with ESMTP id S1751942AbdAYWE0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: asarai@suse.de, jdanis@google.com, john.stultz@linaro.org, keescook@chromium.org, mguzik@redhat.com, mhocko@suse.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: change the owner of non-dumpable and writeable files
+     Subject: kernel/watchdog: prevent false hardlockup on overloaded system
 has been removed from the -mm tree.  Its filename was
-     procfs-change-the-owner-of-non-dumpable-and-writeable-files.patch
+     kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aleksa Sarai <asarai@suse.de>
-Subject: procfs: change the owner of non-dumpable and writeable files
+From: Don Zickus <dzickus@redhat.com>
+Subject: kernel/watchdog: prevent false hardlockup on overloaded system
 
-In order to protect against ptrace(2) and similar attacks on container
-runtimes when they join namespaces, many runtimes set mm->dumpable to
-SUID_DUMP_DISABLE.  However, doing this means that attempting to set up an
-unprivileged user namespace will fail because an unprivileged process can
-no longer access /proc/self/{setgroups,{uid,gid}_map} for the container
-process (which is the same uid as the runtime process).
+On an overloaded system, it is possible that a change in the watchdog
+threshold can be delayed long enough to trigger a false positive.
 
-Fix this by changing pid_getattr to *also* change the owner of regular
-files that have a mode of 0644 (when the process is not dumpable).  This
-ensures that the important /proc/[pid]/...  files mentioned above are
-properly accessible by a container runtime in a rootless container
-context.
+This can easily be achieved by having a cpu spinning indefinitely on a
+task, while another cpu updates watchdog threshold.
 
-The most blantant issue is that a non-dumpable process in a rootless
-container context is unable to open /proc/self/setgroups, because it
-doesn't own the file.
+What happens is while trying to park the watchdog threads, the hrtimers on
+the other cpus trigger and reprogram themselves with the new slower
+watchdog threshold.  Meanwhile, the nmi watchdog is still programmed with
+the old faster threshold.
 
-int main(void)
-{
-	prctl(PR_SET_DUMPABLE, 0, 0, 0, 0);
-	unshare(CLONE_NEWUSER);
+Because the one cpu is blocked, it prevents the thread parking on the
+other cpus from completing, which is needed to shutdown the nmi watchdog
+and reprogram it correctly.  As a result, a false positive from the nmi
+watchdog is reported.
 
-	/* This will fail. */
-	int fd = open("/proc/self/setgroups", O_WRONLY);
-	if (fd < 0)
-		abort();
+Fix this by setting a park_in_progress flag to block all lockups until the
+parking is complete.
 
-	return 0;
-}
+Fix provided by Ulrich Obergfell.
 
-Link: http://lkml.kernel.org/r/20170118040159.4751-1-asarai@suse.de
-Signed-off-by: Aleksa Sarai <asarai@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Mateusz Guzik <mguzik@redhat.com>
-Cc: Janis Danisevskis <jdanis@google.com>
+[akpm@linux-foundation.org: s/park_in_progress/watchdog_park_in_progress/]
+Link: http://lkml.kernel.org/r/1481041033-192236-1-git-send-email-dzickus@redhat.com
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/nmi.h   |    1 +
+ kernel/watchdog.c     |    9 +++++++++
+ kernel/watchdog_hld.c |    3 +++
+ 3 files changed, 13 insertions(+)
 
-diff -puN fs/proc/base.c~procfs-change-the-owner-of-non-dumpable-and-writeable-files fs/proc/base.c
---- a/fs/proc/base.c~procfs-change-the-owner-of-non-dumpable-and-writeable-files
-+++ a/fs/proc/base.c
-@@ -1702,6 +1702,7 @@ int pid_getattr(struct vfsmount *mnt, st
- 			return -ENOENT;
- 		}
- 		if ((inode->i_mode == (S_IFDIR|S_IRUGO|S_IXUGO)) ||
-+		    (inode->i_mode == (S_IFREG|S_IRUGO|S_IWUSR)) ||
- 		    task_dumpable(task)) {
- 			cred = __task_cred(task);
- 			stat->uid = cred->euid;
-@@ -1743,6 +1744,7 @@ int pid_revalidate(struct dentry *dentry
+diff -puN include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system include/linux/nmi.h
+--- a/include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/include/linux/nmi.h
+@@ -110,6 +110,7 @@ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
+ extern unsigned long watchdog_enabled;
+ extern unsigned long *watchdog_cpumask_bits;
++extern atomic_t watchdog_park_in_progress;
+ #ifdef CONFIG_SMP
+ extern int sysctl_softlockup_all_cpu_backtrace;
+ extern int sysctl_hardlockup_all_cpu_backtrace;
+diff -puN kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog.c
+--- a/kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/kernel/watchdog.c
+@@ -49,6 +49,8 @@ unsigned long *watchdog_cpumask_bits = c
+ #define for_each_watchdog_cpu(cpu) \
+ 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
  
- 	if (task) {
- 		if ((inode->i_mode == (S_IFDIR|S_IRUGO|S_IXUGO)) ||
-+		    (inode->i_mode == (S_IFREG|S_IRUGO|S_IWUSR)) ||
- 		    task_dumpable(task)) {
- 			rcu_read_lock();
- 			cred = __task_cred(task);
-@@ -2362,7 +2364,7 @@ out:
- 	return -ENOENT;
- }
++atomic_t watchdog_park_in_progress = ATOMIC_INIT(0);
++
+ /*
+  * The 'watchdog_running' variable is set to 1 when the watchdog threads
+  * are registered/started and is set to 0 when the watchdog threads are
+@@ -260,6 +262,9 @@ static enum hrtimer_restart watchdog_tim
+ 	int duration;
+ 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
  
--static struct dentry *proc_pident_lookup(struct inode *dir, 
-+static struct dentry *proc_pident_lookup(struct inode *dir,
- 					 struct dentry *dentry,
- 					 const struct pid_entry *ents,
- 					 unsigned int nents)
-@@ -2504,7 +2506,7 @@ static const struct pid_entry attr_dir_s
++	if (atomic_read(&watchdog_park_in_progress) != 0)
++		return HRTIMER_NORESTART;
++
+ 	/* kick the hardlockup detector */
+ 	watchdog_interrupt_count();
  
- static int proc_attr_dir_readdir(struct file *file, struct dir_context *ctx)
+@@ -467,12 +472,16 @@ static int watchdog_park_threads(void)
  {
--	return proc_pident_readdir(file, ctx, 
-+	return proc_pident_readdir(file, ctx,
- 				   attr_dir_stuff, ARRAY_SIZE(attr_dir_stuff));
+ 	int cpu, ret = 0;
+ 
++	atomic_set(&watchdog_park_in_progress, 1);
++
+ 	for_each_watchdog_cpu(cpu) {
+ 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
+ 		if (ret)
+ 			break;
+ 	}
+ 
++	atomic_set(&watchdog_park_in_progress, 0);
++
+ 	return ret;
  }
  
+diff -puN kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog_hld.c
+--- a/kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
++++ a/kernel/watchdog_hld.c
+@@ -84,6 +84,9 @@ static void watchdog_overflow_callback(s
+ 	/* Ensure the watchdog never gets throttled */
+ 	event->hw.interrupts = 0;
+ 
++	if (atomic_read(&watchdog_park_in_progress) != 0)
++		return;
++
+ 	if (__this_cpu_read(watchdog_nmi_touch) == true) {
+ 		__this_cpu_write(watchdog_nmi_touch, false);
+ 		return;
 _
 
-Patches currently in -mm which might be from asarai@suse.de are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
 
