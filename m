@@ -1,94 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch
+Subject: [merged] mn10300-fix-build-error-of-missing-fpu_save.patch
  removed from -mm tree
-Date: Wed, 25 Jan 2017 14:05:03 -0800
-Message-ID: <5889210f.yme31lhaKtwcoLuA%akpm@linux-foundation.org>
+Date: Wed, 25 Jan 2017 14:05:17 -0800
+Message-ID: <5889211d.HBn59oSoDFQTS4EM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752501AbdAYWFJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:05:09 -0500
+        with ESMTP id S1752505AbdAYWFS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:05:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, gpkulkarni@gmail.com, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, dhowells@redhat.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: fix fast-path race with cpuset update or removal
+     Subject: mn10300: fix build error of missing fpu_save()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal.patch
+     mn10300-fix-build-error-of-missing-fpu_save.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: fix fast-path race with cpuset update or removal
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mn10300: fix build error of missing fpu_save()
 
-Ganapatrao Kulkarni reported that the LTP test cpuset01 in stress mode
-triggers OOM killer in few seconds, despite lots of free memory.  The test
-attempts to repeatedly fault in memory in one process in a cpuset, while
-changing allowed nodes of the cpuset between 0 and 1 in another process.
+When CONFIG_FPU is not enabled on arch/mn10300, <asm/switch_to.h>
+causes a build error with a call to fpu_save():
 
-One possible cause is that in the fast path we find the preferred zoneref
-according to current mems_allowed, so that it points to the middle of the
-zonelist, skipping e.g.  zones of node 1 completely.  If the mems_allowed
-is updated to contain only node 1, we never reach it in the zonelist, and
-trigger OOM before checking the cpuset_mems_cookie.
+kernel/built-in.o: In function `.L410':
+core.c:(.sched.text+0x28a): undefined reference to `fpu_save'
 
-This patch fixes the particular case by redoing the preferred zoneref
-search if we switch back to the original nodemask.  The condition is also
-slightly changed so that when the last non-root cpuset is removed, we
-don't miss it.
+Fix this by including <asm/fpu.h> in <asm/switch_to.h> so that
+an empty static inline fpu_save() is defined.
 
-Note that this is not a full fix, and more patches will follow.
-
-Link: http://lkml.kernel.org/r/20170120103843.24587-3-vbabka@suse.cz
-Fixes: 682a3385e773 ("mm, page_alloc: inline the fast path of the zonelist iterator")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/dc421c4f-4842-4429-1b99-92865c2f24b6@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Reviewed-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ arch/mn10300/include/asm/switch_to.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-fast-path-race-with-cpuset-update-or-removal
-+++ a/mm/page_alloc.c
-@@ -3804,9 +3804,17 @@ retry_cpuset:
- 	/*
- 	 * Restore the original nodemask if it was potentially replaced with
- 	 * &cpuset_current_mems_allowed to optimize the fast-path attempt.
-+	 * Also recalculate the starting point for the zonelist iterator or
-+	 * we could end up iterating over non-eligible zones endlessly.
- 	 */
--	if (cpusets_enabled())
-+	if (unlikely(ac.nodemask != nodemask)) {
- 		ac.nodemask = nodemask;
-+		ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
-+						ac.high_zoneidx, ac.nodemask);
-+		if (!ac.preferred_zoneref->zone)
-+			goto no_zone;
-+	}
-+
- 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
+diff -puN arch/mn10300/include/asm/switch_to.h~mn10300-fix-build-error-of-missing-fpu_save arch/mn10300/include/asm/switch_to.h
+--- a/arch/mn10300/include/asm/switch_to.h~mn10300-fix-build-error-of-missing-fpu_save
++++ a/arch/mn10300/include/asm/switch_to.h
+@@ -16,7 +16,7 @@
+ struct task_struct;
+ struct thread_struct;
  
- no_zone:
+-#if !defined(CONFIG_LAZY_SAVE_FPU)
++#if defined(CONFIG_FPU) && !defined(CONFIG_LAZY_SAVE_FPU)
+ struct fpu_state_struct;
+ extern asmlinkage void fpu_save(struct fpu_state_struct *);
+ #define switch_fpu(prev, next)						\
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
-mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
-mm-page_alloc-remove-redundant-checks-from-alloc-fastpath.patch
-mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
+mm-fix-filemapc-kernel-doc-warnings.patch
+mm-fix-linux-pagemaph-stray-kernel-doc-notation.patch
+fonts-keep-non-sparc-fonts-listed-together.patch
 
