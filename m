@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + hwpoison-soft-offlining-for-non-lru-movable-page-fix.patch
- added to -mm tree
-Date: Wed, 25 Jan 2017 15:08:20 -0800
-Message-ID: <58892fe4.XXwL9i4cQlwNtUrR%akpm@linux-foundation.org>
+Subject: + kasan-respect-proc-sys-kernel-traceoff_on_warning.patch added
+ to -mm tree
+Date: Wed, 25 Jan 2017 15:23:24 -0800
+Message-ID: <5889336c.k8jJrOLqALjPhyU8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50718 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751255AbdAYXIV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 18:08:21 -0500
+        with ESMTP id S1752169AbdAYXXk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 18:23:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, xieyisheng1@huawei.com, mm-commits@vger.kernel.org
+To: peterz@infradead.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: add isolate_movable_page() stub implementation
+     Subject: kasan: respect /proc/sys/kernel/traceoff_on_warning
 has been added to the -mm tree.  Its filename is
-     hwpoison-soft-offlining-for-non-lru-movable-page-fix.patch
+     kasan-respect-proc-sys-kernel-traceoff_on_warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hwpoison-soft-offlining-for-non-lru-movable-page-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-respect-proc-sys-kernel-traceoff_on_warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hwpoison-soft-offlining-for-non-lru-movable-page-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-respect-proc-sys-kernel-traceoff_on_warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: migrate: add isolate_movable_page() stub implementation
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: kasan: respect /proc/sys/kernel/traceoff_on_warning
 
-Without CONFIG_MIGRATION, we get a build failure when trying to
-call isolate_movable_page():
+After much waiting I finally reproduced a KASAN issue, only to find my
+trace-buffer empty of useful information because it got spooled out :/
 
-mm/memory-failure.c: In function '__soft_offline_page':
-mm/memory-failure.c:1656:10: error: implicit declaration of function 'isolate_movable_page';did you mean 'isolate_huge_page'? [-Werror=implicit-function-declaration]
+Make kasan_report honour the /proc/sys/kernel/traceoff_on_warning
+interface.
 
-This adds one more static inline helper function in the header
-declaring it. This returns false to indicate that the
-page was not isolated.
-
-Fixes: mmotm ("HWPOISON: soft offlining for non-lru movable pages")
-Fixes: bda807d44454 ("mm: migrate: support non-lru movable page migration")
-Link: http://lkml.kernel.org/r/20170125222752.1314498-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Yisheng Xie <xieyisheng1@huawei.com>
+Link: http://lkml.kernel.org/r/20170125164106.3514-1-aryabinin@virtuozzo.com
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    3 +++
+ mm/kasan/report.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN include/linux/migrate.h~hwpoison-soft-offlining-for-non-lru-movable-page-fix include/linux/migrate.h
---- a/include/linux/migrate.h~hwpoison-soft-offlining-for-non-lru-movable-page-fix
-+++ a/include/linux/migrate.h
-@@ -57,6 +57,9 @@ static inline int migrate_pages(struct l
- 		int reason)
- 	{ return -ENOSYS; }
+diff -puN mm/kasan/report.c~kasan-respect-proc-sys-kernel-traceoff_on_warning mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-respect-proc-sys-kernel-traceoff_on_warning
++++ a/mm/kasan/report.c
+@@ -13,6 +13,7 @@
+  *
+  */
  
-+static inline bool isolate_movable_page(struct page *page, isolate_mode_t mode)
-+	{ return false; }
++#include <linux/ftrace.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/printk.h>
+@@ -300,6 +301,8 @@ void kasan_report(unsigned long addr, si
+ 	if (likely(!kasan_report_enabled()))
+ 		return;
+ 
++	disable_trace_on_warning();
 +
- static inline int migrate_prep(void) { return -ENOSYS; }
- static inline int migrate_prep_local(void) { return -ENOSYS; }
- 
+ 	info.access_addr = (void *)addr;
+ 	info.access_size = size;
+ 	info.is_write = is_write;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from peterz@infradead.org are
 
-mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
-mm-support-section-unaligned-zone_device-memory-ranges-fix.patch
-mm-fs-reduce-fault-page_mkwrite-and-pfn_mkwrite-to-take-only-vmf-fix.patch
-hwpoison-soft-offlining-for-non-lru-movable-page-fix.patch
-lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
+kasan-respect-proc-sys-kernel-traceoff_on_warning.patch
 
