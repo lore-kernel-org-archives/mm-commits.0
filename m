@@ -1,132 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch removed from -mm tree
-Date: Wed, 25 Jan 2017 14:04:25 -0800
-Message-ID: <588920e9.rnEQg43fpmqU3pJ1%akpm@linux-foundation.org>
+Subject: [merged] mm-respect-foll_force-foll_cow-for-thp.patch removed
+ from -mm tree
+Date: Wed, 25 Jan 2017 14:04:19 -0800
+Message-ID: <588920e3.AOSruqUCaPSyIRj6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41994 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751942AbdAYWE0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:26 -0500
+        with ESMTP id S1751942AbdAYWEV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: keno@juliacomputing.com, gthelen@google.com, hughd@google.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, luto@kernel.org, mhocko@suse.com, npiggin@gmail.com, oleg@redhat.com, stable@vger.kernel.org, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog: prevent false hardlockup on overloaded system
+     Subject: mm/huge_memory.c: respect FOLL_FORCE/FOLL_COW for thp
 has been removed from the -mm tree.  Its filename was
-     kernel-watchdog-prevent-false-hardlockup-on-overloaded-system.patch
+     mm-respect-foll_force-foll_cow-for-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Don Zickus <dzickus@redhat.com>
-Subject: kernel/watchdog: prevent false hardlockup on overloaded system
+From: Keno Fischer <keno@juliacomputing.com>
+Subject: mm/huge_memory.c: respect FOLL_FORCE/FOLL_COW for thp
 
-On an overloaded system, it is possible that a change in the watchdog
-threshold can be delayed long enough to trigger a false positive.
+In 19be0eaff ("mm: remove gup_flags FOLL_WRITE games from
+__get_user_pages()"), the mm code was changed from unsetting FOLL_WRITE
+after a COW was resolved to setting the (newly introduced) FOLL_COW
+instead.  Simultaneously, the check in gup.c was updated to still allow
+writes with FOLL_FORCE set if FOLL_COW had also been set.  However, a
+similar check in huge_memory.c was forgotten.  As a result, remote memory
+writes to ro regions of memory backed by transparent huge pages cause an
+infinite loop in the kernel (handle_mm_fault sets FOLL_COW and returns 0
+causing a retry, but follow_trans_huge_pmd bails out immidiately because
+`(flags & FOLL_WRITE) && !pmd_write(*pmd)` is true.  While in this state
+the process is stil SIGKILLable, but little else works (e.g.  no ptrace
+attach, no other signals).  This is easily reproduced with the following
+code (assuming thp are set to always):
 
-This can easily be achieved by having a cpu spinning indefinitely on a
-task, while another cpu updates watchdog threshold.
+    #include <assert.h>
+    #include <fcntl.h>
+    #include <stdint.h>
+    #include <stdio.h>
+    #include <string.h>
+    #include <sys/mman.h>
+    #include <sys/stat.h>
+    #include <sys/types.h>
+    #include <sys/wait.h>
+    #include <unistd.h>
 
-What happens is while trying to park the watchdog threads, the hrtimers on
-the other cpus trigger and reprogram themselves with the new slower
-watchdog threshold.  Meanwhile, the nmi watchdog is still programmed with
-the old faster threshold.
+    #define TEST_SIZE 5 * 1024 * 1024
 
-Because the one cpu is blocked, it prevents the thread parking on the
-other cpus from completing, which is needed to shutdown the nmi watchdog
-and reprogram it correctly.  As a result, a false positive from the nmi
-watchdog is reported.
+    int main(void) {
+      int status;
+      pid_t child;
+      int fd = open("/proc/self/mem", O_RDWR);
+      void *addr = mmap(NULL, TEST_SIZE, PROT_READ,
+                        MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+      assert(addr != MAP_FAILED);
+      pid_t parent_pid = getpid();
+      if ((child = fork()) == 0) {
+        void *addr2 = mmap(NULL, TEST_SIZE, PROT_READ | PROT_WRITE,
+                           MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+        assert(addr2 != MAP_FAILED);
+        memset(addr2, 'a', TEST_SIZE);
+        pwrite(fd, addr2, TEST_SIZE, (uintptr_t)addr);
+        return 0;
+      }
+      assert(child == waitpid(child, &status, 0));
+      assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
+      return 0;
+    }
 
-Fix this by setting a park_in_progress flag to block all lockups until the
-parking is complete.
+Fix this by updating follow_trans_huge_pmd in huge_memory.c analogously to
+the update in gup.c in the original commit.  The same pattern exists in
+follow_devmap_pmd.  However, we should not be able to reach that check
+with FOLL_COW set, so add WARN_ONCE to make sure we notice if we ever do.
 
-Fix provided by Ulrich Obergfell.
-
-[akpm@linux-foundation.org: s/park_in_progress/watchdog_park_in_progress/]
-Link: http://lkml.kernel.org/r/1481041033-192236-1-git-send-email-dzickus@redhat.com
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20170106015025.GA38411@juliacomputing.com
+Signed-off-by: Keno Fischer <keno@juliacomputing.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h   |    1 +
- kernel/watchdog.c     |    9 +++++++++
- kernel/watchdog_hld.c |    3 +++
- 3 files changed, 13 insertions(+)
+ mm/huge_memory.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system include/linux/nmi.h
---- a/include/linux/nmi.h~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
-+++ a/include/linux/nmi.h
-@@ -110,6 +110,7 @@ extern int watchdog_user_enabled;
- extern int watchdog_thresh;
- extern unsigned long watchdog_enabled;
- extern unsigned long *watchdog_cpumask_bits;
-+extern atomic_t watchdog_park_in_progress;
- #ifdef CONFIG_SMP
- extern int sysctl_softlockup_all_cpu_backtrace;
- extern int sysctl_hardlockup_all_cpu_backtrace;
-diff -puN kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
-+++ a/kernel/watchdog.c
-@@ -49,6 +49,8 @@ unsigned long *watchdog_cpumask_bits = c
- #define for_each_watchdog_cpu(cpu) \
- 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
+diff -puN mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp
++++ a/mm/huge_memory.c
+@@ -783,6 +783,12 @@ struct page *follow_devmap_pmd(struct vm
  
-+atomic_t watchdog_park_in_progress = ATOMIC_INIT(0);
+ 	assert_spin_locked(pmd_lockptr(mm, pmd));
+ 
++	/*
++	 * When we COW a devmap PMD entry, we split it into PTEs, so we should
++	 * not be in this function with `flags & FOLL_COW` set.
++	 */
++	WARN_ONCE(flags & FOLL_COW, "mm: In follow_devmap_pmd with FOLL_COW set");
 +
- /*
-  * The 'watchdog_running' variable is set to 1 when the watchdog threads
-  * are registered/started and is set to 0 when the watchdog threads are
-@@ -260,6 +262,9 @@ static enum hrtimer_restart watchdog_tim
- 	int duration;
- 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
+ 	if (flags & FOLL_WRITE && !pmd_write(*pmd))
+ 		return NULL;
  
-+	if (atomic_read(&watchdog_park_in_progress) != 0)
-+		return HRTIMER_NORESTART;
-+
- 	/* kick the hardlockup detector */
- 	watchdog_interrupt_count();
- 
-@@ -467,12 +472,16 @@ static int watchdog_park_threads(void)
- {
- 	int cpu, ret = 0;
- 
-+	atomic_set(&watchdog_park_in_progress, 1);
-+
- 	for_each_watchdog_cpu(cpu) {
- 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
- 		if (ret)
- 			break;
- 	}
- 
-+	atomic_set(&watchdog_park_in_progress, 0);
-+
+@@ -1128,6 +1134,16 @@ out_unlock:
  	return ret;
  }
  
-diff -puN kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system kernel/watchdog_hld.c
---- a/kernel/watchdog_hld.c~kernel-watchdog-prevent-false-hardlockup-on-overloaded-system
-+++ a/kernel/watchdog_hld.c
-@@ -84,6 +84,9 @@ static void watchdog_overflow_callback(s
- 	/* Ensure the watchdog never gets throttled */
- 	event->hw.interrupts = 0;
- 
-+	if (atomic_read(&watchdog_park_in_progress) != 0)
-+		return;
++/*
++ * FOLL_FORCE can write to even unwritable pmd's, but only
++ * after we've gone through a COW cycle and they are dirty.
++ */
++static inline bool can_follow_write_pmd(pmd_t pmd, unsigned int flags)
++{
++	return pmd_write(pmd) ||
++	       ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));
++}
 +
- 	if (__this_cpu_read(watchdog_nmi_touch) == true) {
- 		__this_cpu_write(watchdog_nmi_touch, false);
- 		return;
+ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+ 				   unsigned long addr,
+ 				   pmd_t *pmd,
+@@ -1138,7 +1154,7 @@ struct page *follow_trans_huge_pmd(struc
+ 
+ 	assert_spin_locked(pmd_lockptr(mm, pmd));
+ 
+-	if (flags & FOLL_WRITE && !pmd_write(*pmd))
++	if (flags & FOLL_WRITE && !can_follow_write_pmd(*pmd, flags))
+ 		goto out;
+ 
+ 	/* Avoid dumping huge zero page */
 _
 
-Patches currently in -mm which might be from dzickus@redhat.com are
+Patches currently in -mm which might be from keno@juliacomputing.com are
 
 
