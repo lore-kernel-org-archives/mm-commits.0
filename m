@@ -1,58 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] panic-add-missing-n.patch removed from -mm tree
-Date: Wed, 25 Jan 2017 14:04:58 -0800
-Message-ID: <5889210a.pP7tixgm5GcfOf2D%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-fix-check-for-null-preferred_zone.patch
+ removed from -mm tree
+Date: Wed, 25 Jan 2017 14:05:00 -0800
+Message-ID: <5889210c.nnaJMoUcvknazPfG%akpm__32626.6805096113$1485381917$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42120 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752213AbdAYWFE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:05:04 -0500
+        with ESMTP id S1752213AbdAYWFG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:05:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, gpkulkarni@gmail.com, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/panic.c: add missing 
-
+     Subject: mm, page_alloc: fix check for NULL preferred_zone
 has been removed from the -mm tree.  Its filename was
-     panic-add-missing-n.patch
+     mm-page_alloc-fix-check-for-null-preferred_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: kernel/panic.c: add missing \n
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: fix check for NULL preferred_zone
 
-When a system panics, the "Rebooting in X seconds.." message is never
-printed because it lacks a new line. Fix it.
+Patch series "fix premature OOM regression in 4.7+ due to cpuset races", v2.
 
-Link: http://lkml.kernel.org/r/20170119114751.2724-1-jslaby@suse.cz
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+This is v2 of my attempt to fix the recent report based on LTP cpuset
+stress test [1].  The intention is to go to stable 4.9 LTSS with this, as
+triggering repeated OOMs is not nice.  That's why the patches try to be
+not too intrusive.
+
+Unfortunately why investigating I found that modifying the testcase to use
+per-VMA policies instead of per-task policies will bring the OOM's back,
+but that seems to be much older and harder to fix problem.  I have posted
+a RFC [2] but I believe that fixing the recent regressions has a higher
+priority.
+
+Longer-term we might try to think how to fix the cpuset mess in a better
+and less error prone way.  I was for example very surprised to learn, that
+cpuset updates change not only task->mems_allowed, but also nodemask of
+mempolicies.  Until now I expected the parameter to alloc_pages_nodemask()
+to be stable.  I wonder why do we then treat cpusets specially in
+get_page_from_freelist() and distinguish HARDWALL etc, when there's
+unconditional intersection between mempolicy and cpuset.  I would expect
+the nodemask adjustment for saving overhead in g_p_f(), but that clearly
+doesn't happen in the current form.  So we have both crazy complexity and
+overhead, AFAICS.
+
+[1] https://lkml.kernel.org/r/CAFpQJXUq-JuEP=QPidy4p_=FN0rkH5Z-kfB4qBvsf6jMS87Edg@mail.gmail.com
+[2] https://lkml.kernel.org/r/7c459f26-13a6-a817-e508-b65b903a8378@suse.cz
+
+
+This patch (of 4):
+
+Since commit c33d6c06f60f ("mm, page_alloc: avoid looking up the first
+zone in a zonelist twice") we have a wrong check for NULL preferred_zone,
+which can theoretically happen due to concurrent cpuset modification.  We
+check the zoneref pointer which is never NULL and we should check the zone
+pointer.  Also document this in first_zones_zonelist() comment per Michal
+Hocko.
+
+Fixes: c33d6c06f60f ("mm, page_alloc: avoid looking up the first zone in a zonelist twice")
+Link: http://lkml.kernel.org/r/20170120103843.24587-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmzone.h |    6 +++++-
+ mm/page_alloc.c        |    2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/panic.c~panic-add-missing-n kernel/panic.c
---- a/kernel/panic.c~panic-add-missing-n
-+++ a/kernel/panic.c
-@@ -249,7 +249,7 @@ void panic(const char *fmt, ...)
- 		 * Delay timeout seconds before rebooting the machine.
- 		 * We can't use the "normal" timers since we just panicked.
- 		 */
--		pr_emerg("Rebooting in %d seconds..", panic_timeout);
-+		pr_emerg("Rebooting in %d seconds..\n", panic_timeout);
- 
- 		for (i = 0; i < panic_timeout * 1000; i += PANIC_TIMER_STEP) {
- 			touch_nmi_watchdog();
+diff -puN include/linux/mmzone.h~mm-page_alloc-fix-check-for-null-preferred_zone include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-fix-check-for-null-preferred_zone
++++ a/include/linux/mmzone.h
+@@ -972,12 +972,16 @@ static __always_inline struct zoneref *n
+  * @zonelist - The zonelist to search for a suitable zone
+  * @highest_zoneidx - The zone index of the highest zone to return
+  * @nodes - An optional nodemask to filter the zonelist with
+- * @zone - The first suitable zone found is returned via this parameter
++ * @return - Zoneref pointer for the first suitable zone found (see below)
+  *
+  * This function returns the first zone at or below a given zone index that is
+  * within the allowed nodemask. The zoneref returned is a cursor that can be
+  * used to iterate the zonelist with next_zones_zonelist by advancing it by
+  * one before calling.
++ *
++ * When no eligible zone is found, zoneref->zone is NULL (zoneref itself is
++ * never NULL). This may happen either genuinely, or due to concurrent nodemask
++ * update due to cpuset modification.
+  */
+ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
+ 					enum zone_type highest_zoneidx,
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-check-for-null-preferred_zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-check-for-null-preferred_zone
++++ a/mm/page_alloc.c
+@@ -3784,7 +3784,7 @@ retry_cpuset:
+ 	 */
+ 	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+ 					ac.high_zoneidx, ac.nodemask);
+-	if (!ac.preferred_zoneref) {
++	if (!ac.preferred_zoneref->zone) {
+ 		page = NULL;
+ 		goto no_zone;
+ 	}
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
+mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
+mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
+mm-page_alloc-remove-redundant-checks-from-alloc-fastpath.patch
+mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
 
