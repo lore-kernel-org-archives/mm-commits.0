@@ -1,74 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memstick-core-avoid-wnonnull-warning.patch removed from
- -mm tree
-Date: Wed, 25 Jan 2017 14:04:28 -0800
-Message-ID: <588920ec.IgzkzhaByiLISQZd%akpm@linux-foundation.org>
+Subject: [merged] mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
+ removed from -mm tree
+Date: Wed, 25 Jan 2017 14:04:37 -0800
+Message-ID: <588920f5.5RxIAmhahSoyVzwS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42022 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752285AbdAYWEj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:39 -0500
+        with ESMTP id S1752209AbdAYWEi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: l.stach@pengutronix.de, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/memstick/core/memstick.c: avoid -Wnonnull warning
+     Subject: mm: alloc_contig: re-allow CMA to compact FS pages
 has been removed from the -mm tree.  Its filename was
-     memstick-core-avoid-wnonnull-warning.patch
+     mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/memstick/core/memstick.c: avoid -Wnonnull warning
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: mm: alloc_contig: re-allow CMA to compact FS pages
 
-gcc-7 produces a harmless false-postive warning about a possible
-NULL pointer access:
+Commit 73e64c51afc5 (mm, compaction: allow compaction for GFP_NOFS
+requests) changed compation to skip FS pages if not explicitly allowed to
+touch them, but missed to update the CMA compact_control.
 
-drivers/memstick/core/memstick.c: In function 'h_memstick_read_dev_id':
-drivers/memstick/core/memstick.c:309:3: error: argument 2 null where non-null expected [-Werror=nonnull]
-   memcpy(mrq->data, buf, mrq->data_len);
+This leads to a very high isolation failure rate, crippling performance of
+CMA even on a lightly loaded system.  Re-allow CMA to compact FS pages by
+setting the correct GFP flags, restoring CMA behavior and performance to
+the kernel 4.9 level.
 
-This can't happen because the caller sets the command to 'MS_TPC_READ_REG',
-which causes the data direction to be 'READ' and the NULL pointer not
-accessed.
-
-As a simple workaround for the warning, we can pass a pointer to the
-data that we actually want to read into. This is not needed here, but
-also harmless, and lets the compiler know that the access is ok.
-
-Link: http://lkml.kernel.org/r/20170111144143.548867-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alex Dubov <oakad@yahoo.com>
+Fixes: 73e64c51afc5 (mm, compaction: allow compaction for GFP_NOFS requests)
+Link: http://lkml.kernel.org/r/20170113115155.24335-1-l.stach@pengutronix.de
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning
-+++ a/drivers/memstick/core/memstick.c
-@@ -330,7 +330,7 @@ static int h_memstick_read_dev_id(struct
- 	struct ms_id_register id_reg;
+diff -puN mm/page_alloc.c~mm-alloc_contig-re-allow-cma-to-compact-fs-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-alloc_contig-re-allow-cma-to-compact-fs-pages
++++ a/mm/page_alloc.c
+@@ -7248,6 +7248,7 @@ int alloc_contig_range(unsigned long sta
+ 		.zone = page_zone(pfn_to_page(start)),
+ 		.mode = MIGRATE_SYNC,
+ 		.ignore_skip_hint = true,
++		.gfp_mask = GFP_KERNEL,
+ 	};
+ 	INIT_LIST_HEAD(&cc.migratepages);
  
- 	if (!(*mrq)) {
--		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, NULL,
-+		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, &id_reg,
- 				  sizeof(struct ms_id_register));
- 		*mrq = &card->current_mrq;
- 		return 0;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from l.stach@pengutronix.de are
 
-mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
-mm-support-section-unaligned-zone_device-memory-ranges-fix.patch
-lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 
