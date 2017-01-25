@@ -1,75 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-do-not-retry-precharge-charges.patch removed
+Subject: [merged]
+ mm-mempolicyc-do-not-put-mempolicy-before-using-its-nodemask.patch removed
  from -mm tree
-Date: Wed, 25 Jan 2017 14:04:42 -0800
-Message-ID: <588920fa.0zVF+dOGWcQlkX9Z%akpm@linux-foundation.org>
+Date: Wed, 25 Jan 2017 14:04:49 -0800
+Message-ID: <58892101.xxnpGOZbu4Uw+X38%akpm__48116.8560371318$1485381932$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42078 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751939AbdAYWEs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:48 -0500
+        with ESMTP id S1752002AbdAYWEz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hannes@cmpxchg.org, mhocko@suse.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: do not retry precharge charges
+     Subject: mm/mempolicy.c: do not put mempolicy before using its nodemask
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-do-not-retry-precharge-charges.patch
+     mm-mempolicyc-do-not-put-mempolicy-before-using-its-nodemask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: do not retry precharge charges
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/mempolicy.c: do not put mempolicy before using its nodemask
 
-When memory.move_charge_at_immigrate is enabled and precharges are
-depleted during move, mem_cgroup_move_charge_pte_range() will attempt to
-increase the size of the precharge.
+Since commit be97a41b291e ("mm/mempolicy.c: merge alloc_hugepage_vma to
+alloc_pages_vma") alloc_pages_vma() can potentially free a mempolicy by
+mpol_cond_put() before accessing the embedded nodemask by
+__alloc_pages_nodemask().  The commit log says it's so "we can use a
+single exit path within the function" but that's clearly wrong.  We can
+still do that when doing mpol_cond_put() after the allocation attempt.
 
-Prevent precharges from ever looping by setting __GFP_NORETRY.  This was
-probably the intention of the GFP_KERNEL & ~__GFP_NORETRY, which is
-pointless as written.
+Make sure the mempolicy is not freed prematurely, otherwise
+__alloc_pages_nodemask() can end up using a bogus nodemask, which could
+lead e.g.  to premature OOM.
 
-Fixes: 0029e19ebf84 ("mm: memcontrol: remove explicit OOM parameter in charge path")
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701130208510.69402@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
+Fixes: be97a41b291e ("mm/mempolicy.c: merge alloc_hugepage_vma to alloc_pages_vma")
+Link: http://lkml.kernel.org/r/20170118141124.8345-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-do-not-retry-precharge-charges mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-do-not-retry-precharge-charges
-+++ a/mm/memcontrol.c
-@@ -4353,9 +4353,9 @@ static int mem_cgroup_do_precharge(unsig
- 		return ret;
- 	}
+diff -puN mm/mempolicy.c~mm-mempolicyc-do-not-put-mempolicy-before-using-its-nodemask mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-do-not-put-mempolicy-before-using-its-nodemask
++++ a/mm/mempolicy.c
+@@ -2017,8 +2017,8 @@ retry_cpuset:
  
--	/* Try charges one by one with reclaim */
-+	/* Try charges one by one with reclaim, but do not retry */
- 	while (count--) {
--		ret = try_charge(mc.to, GFP_KERNEL & ~__GFP_NORETRY, 1);
-+		ret = try_charge(mc.to, GFP_KERNEL | __GFP_NORETRY, 1);
- 		if (ret)
- 			return ret;
- 		mc.precharge++;
+ 	nmask = policy_nodemask(gfp, pol);
+ 	zl = policy_zonelist(gfp, pol, node);
+-	mpol_cond_put(pol);
+ 	page = __alloc_pages_nodemask(gfp, order, zl, nmask);
++	mpol_cond_put(pol);
+ out:
+ 	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-compaction-add-vmstats-for-kcompactd-work.patch
-mm-thp-add-new-defermadvise-defrag-option.patch
-mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
-mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
-mm-oom-header-nodemask-is-null-when-cpusets-are-disabled-fix.patch
+mm-page_alloc-dont-convert-pfn-to-idx-when-merging.patch
+mm-page_alloc-avoid-page_to_pfn-when-merging-buddies.patch
+mm-page_alloc-remove-redundant-checks-from-alloc-fastpath.patch
+mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
 
