@@ -1,68 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
+Subject: [merged] proc-add-a-schedule-point-in-proc_pid_readdir.patch
  removed from -mm tree
-Date: Wed, 25 Jan 2017 14:04:37 -0800
-Message-ID: <588920f5.5RxIAmhahSoyVzwS%akpm@linux-foundation.org>
+Date: Wed, 25 Jan 2017 14:04:40 -0800
+Message-ID: <588920f8.cqQVTkca/AAb8t6J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42014 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752209AbdAYWEi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:38 -0500
+        with ESMTP id S1752260AbdAYWEp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: l.stach@pengutronix.de, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: edumazet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: alloc_contig: re-allow CMA to compact FS pages
+     Subject: proc: add a schedule point in proc_pid_readdir()
 has been removed from the -mm tree.  Its filename was
-     mm-alloc_contig-re-allow-cma-to-compact-fs-pages.patch
+     proc-add-a-schedule-point-in-proc_pid_readdir.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm: alloc_contig: re-allow CMA to compact FS pages
+From: Eric Dumazet <edumazet@google.com>
+Subject: proc: add a schedule point in proc_pid_readdir()
 
-Commit 73e64c51afc5 (mm, compaction: allow compaction for GFP_NOFS
-requests) changed compation to skip FS pages if not explicitly allowed to
-touch them, but missed to update the CMA compact_control.
+We have seen proc_pid_readdir() invocations holding cpu for more than 50
+ms.  Add a cond_resched() to be gentle with other tasks.
 
-This leads to a very high isolation failure rate, crippling performance of
-CMA even on a lightly loaded system.  Re-allow CMA to compact FS pages by
-setting the correct GFP flags, restoring CMA behavior and performance to
-the kernel 4.9 level.
-
-Fixes: 73e64c51afc5 (mm, compaction: allow compaction for GFP_NOFS requests)
-Link: http://lkml.kernel.org/r/20170113115155.24335-1-l.stach@pengutronix.de
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+[akpm@linux-foundation.org: coding style fix]
+Link: http://lkml.kernel.org/r/1484238380.15816.42.camel@edumazet-glaptop3.roam.corp.google.com
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/base.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-alloc_contig-re-allow-cma-to-compact-fs-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-alloc_contig-re-allow-cma-to-compact-fs-pages
-+++ a/mm/page_alloc.c
-@@ -7248,6 +7248,7 @@ int alloc_contig_range(unsigned long sta
- 		.zone = page_zone(pfn_to_page(start)),
- 		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
-+		.gfp_mask = GFP_KERNEL,
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
+diff -puN fs/proc/base.c~proc-add-a-schedule-point-in-proc_pid_readdir fs/proc/base.c
+--- a/fs/proc/base.c~proc-add-a-schedule-point-in-proc_pid_readdir
++++ a/fs/proc/base.c
+@@ -3179,6 +3179,8 @@ int proc_pid_readdir(struct file *file,
+ 	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
+ 		char name[PROC_NUMBUF];
+ 		int len;
++
++		cond_resched();
+ 		if (!has_pid_permissions(ns, iter.task, 2))
+ 			continue;
  
 _
 
-Patches currently in -mm which might be from l.stach@pengutronix.de are
+Patches currently in -mm which might be from edumazet@google.com are
 
 
