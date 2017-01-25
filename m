@@ -1,149 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-respect-foll_force-foll_cow-for-thp.patch removed
- from -mm tree
-Date: Wed, 25 Jan 2017 14:04:19 -0800
-Message-ID: <588920e3.AOSruqUCaPSyIRj6%akpm@linux-foundation.org>
+Subject: [merged]
+ memory_hotplug-zone_can_shift-returns-boolean-value.patch removed from -mm
+ tree
+Date: Wed, 25 Jan 2017 14:04:16 -0800
+Message-ID: <588920e0.g/Xi2eMVA5Z7qAJ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41970 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751942AbdAYWEV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:21 -0500
+        with ESMTP id S1751822AbdAYWEc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keno@juliacomputing.com, gthelen@google.com, hughd@google.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, luto@kernel.org, mhocko@suse.com, npiggin@gmail.com, oleg@redhat.com, stable@vger.kernel.org, w@1wt.eu, mm-commits@vger.kernel.org
+To: yasu.isimatu@gmail.com, arbab@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: respect FOLL_FORCE/FOLL_COW for thp
+     Subject: memory_hotplug: make zone_can_shift() return a boolean value
 has been removed from the -mm tree.  Its filename was
-     mm-respect-foll_force-foll_cow-for-thp.patch
+     memory_hotplug-zone_can_shift-returns-boolean-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Keno Fischer <keno@juliacomputing.com>
-Subject: mm/huge_memory.c: respect FOLL_FORCE/FOLL_COW for thp
+From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Subject: memory_hotplug: make zone_can_shift() return a boolean value
 
-In 19be0eaff ("mm: remove gup_flags FOLL_WRITE games from
-__get_user_pages()"), the mm code was changed from unsetting FOLL_WRITE
-after a COW was resolved to setting the (newly introduced) FOLL_COW
-instead.  Simultaneously, the check in gup.c was updated to still allow
-writes with FOLL_FORCE set if FOLL_COW had also been set.  However, a
-similar check in huge_memory.c was forgotten.  As a result, remote memory
-writes to ro regions of memory backed by transparent huge pages cause an
-infinite loop in the kernel (handle_mm_fault sets FOLL_COW and returns 0
-causing a retry, but follow_trans_huge_pmd bails out immidiately because
-`(flags & FOLL_WRITE) && !pmd_write(*pmd)` is true.  While in this state
-the process is stil SIGKILLable, but little else works (e.g.  no ptrace
-attach, no other signals).  This is easily reproduced with the following
-code (assuming thp are set to always):
+online_{kernel|movable} is used to change the memory zone to
+ZONE_{NORMAL|MOVABLE} and online the memory.
 
-    #include <assert.h>
-    #include <fcntl.h>
-    #include <stdint.h>
-    #include <stdio.h>
-    #include <string.h>
-    #include <sys/mman.h>
-    #include <sys/stat.h>
-    #include <sys/types.h>
-    #include <sys/wait.h>
-    #include <unistd.h>
+To check that memory zone can be changed, zone_can_shift() is used.
+Currently the function returns minus integer value, plus integer
+value and 0. When the function returns minus or plus integer value,
+it means that the memory zone can be changed to ZONE_{NORNAL|MOVABLE}.
 
-    #define TEST_SIZE 5 * 1024 * 1024
+But when the function returns 0, there is 2 meanings.
 
-    int main(void) {
-      int status;
-      pid_t child;
-      int fd = open("/proc/self/mem", O_RDWR);
-      void *addr = mmap(NULL, TEST_SIZE, PROT_READ,
-                        MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-      assert(addr != MAP_FAILED);
-      pid_t parent_pid = getpid();
-      if ((child = fork()) == 0) {
-        void *addr2 = mmap(NULL, TEST_SIZE, PROT_READ | PROT_WRITE,
-                           MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-        assert(addr2 != MAP_FAILED);
-        memset(addr2, 'a', TEST_SIZE);
-        pwrite(fd, addr2, TEST_SIZE, (uintptr_t)addr);
-        return 0;
-      }
-      assert(child == waitpid(child, &status, 0));
-      assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
-      return 0;
-    }
+One of the meanings is that the memory zone does not need to be changed.
+For example, when memory is in ZONE_NORMAL and onlined by online_kernel
+the memory zone does not need to be changed.
 
-Fix this by updating follow_trans_huge_pmd in huge_memory.c analogously to
-the update in gup.c in the original commit.  The same pattern exists in
-follow_devmap_pmd.  However, we should not be able to reach that check
-with FOLL_COW set, so add WARN_ONCE to make sure we notice if we ever do.
+Another meaning is that the memory zone cannot be changed. When memory
+is in ZONE_NORMAL and onlined by online_movable, the memory zone may
+not be changed to ZONE_MOVALBE due to memory online limitation(see
+Documentation/memory-hotplug.txt). In this case, memory must not be
+onlined.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170106015025.GA38411@juliacomputing.com
-Signed-off-by: Keno Fischer <keno@juliacomputing.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+The patch changes the return type of zone_can_shift() so that memory
+online operation fails when memory zone cannot be changed as follows:
+
+Before applying patch:
+   # grep -A 35 "Node 2" /proc/zoneinfo
+   Node 2, zone   Normal
+   <snip>
+      node_scanned  0
+           spanned  8388608
+           present  7864320
+           managed  7864320
+   # echo online_movable > memory4097/state
+   # grep -A 35 "Node 2" /proc/zoneinfo
+   Node 2, zone   Normal
+   <snip>
+      node_scanned  0
+           spanned  8388608
+           present  8388608
+           managed  8388608
+
+   online_movable operation succeeded. But memory is onlined as
+   ZONE_NORMAL, not ZONE_MOVABLE.
+
+After applying patch:
+   # grep -A 35 "Node 2" /proc/zoneinfo
+   Node 2, zone   Normal
+   <snip>
+      node_scanned  0
+           spanned  8388608
+           present  7864320
+           managed  7864320
+   # echo online_movable > memory4097/state
+   bash: echo: write error: Invalid argument
+   # grep -A 35 "Node 2" /proc/zoneinfo
+   Node 2, zone   Normal
+   <snip>
+      node_scanned  0
+           spanned  8388608
+           present  7864320
+           managed  7864320
+
+   online_movable operation failed because of failure of changing
+   the memory zone from ZONE_NORMAL to ZONE_MOVABLE
+
+Fixes: df429ac03936 ("memory-hotplug: more general validation of zone during online")
+Link: http://lkml.kernel.org/r/2f9c3837-33d7-b6e5-59c0-6ca4372b2d84@gmail.com
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Reza Arbab <arbab@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/base/memory.c          |    4 ++--
+ include/linux/memory_hotplug.h |    4 ++--
+ mm/memory_hotplug.c            |   28 +++++++++++++++++-----------
+ 3 files changed, 21 insertions(+), 15 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp mm/huge_memory.c
---- a/mm/huge_memory.c~mm-respect-foll_force-foll_cow-for-thp
-+++ a/mm/huge_memory.c
-@@ -783,6 +783,12 @@ struct page *follow_devmap_pmd(struct vm
+diff -puN drivers/base/memory.c~memory_hotplug-zone_can_shift-returns-boolean-value drivers/base/memory.c
+--- a/drivers/base/memory.c~memory_hotplug-zone_can_shift-returns-boolean-value
++++ a/drivers/base/memory.c
+@@ -408,14 +408,14 @@ static ssize_t show_valid_zones(struct d
+ 	sprintf(buf, "%s", zone->name);
  
- 	assert_spin_locked(pmd_lockptr(mm, pmd));
+ 	/* MMOP_ONLINE_KERNEL */
+-	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL);
++	zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL, &zone_shift);
+ 	if (zone_shift) {
+ 		strcat(buf, " ");
+ 		strcat(buf, (zone + zone_shift)->name);
+ 	}
  
-+	/*
-+	 * When we COW a devmap PMD entry, we split it into PTEs, so we should
-+	 * not be in this function with `flags & FOLL_COW` set.
-+	 */
-+	WARN_ONCE(flags & FOLL_COW, "mm: In follow_devmap_pmd with FOLL_COW set");
-+
- 	if (flags & FOLL_WRITE && !pmd_write(*pmd))
- 		return NULL;
+ 	/* MMOP_ONLINE_MOVABLE */
+-	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE);
++	zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE, &zone_shift);
+ 	if (zone_shift) {
+ 		strcat(buf, " ");
+ 		strcat(buf, (zone + zone_shift)->name);
+diff -puN include/linux/memory_hotplug.h~memory_hotplug-zone_can_shift-returns-boolean-value include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory_hotplug-zone_can_shift-returns-boolean-value
++++ a/include/linux/memory_hotplug.h
+@@ -284,7 +284,7 @@ extern void sparse_remove_one_section(st
+ 		unsigned long map_offset);
+ extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+ 					  unsigned long pnum);
+-extern int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
+-			  enum zone_type target);
++extern bool zone_can_shift(unsigned long pfn, unsigned long nr_pages,
++			  enum zone_type target, int *zone_shift);
  
-@@ -1128,6 +1134,16 @@ out_unlock:
- 	return ret;
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+diff -puN mm/memory_hotplug.c~memory_hotplug-zone_can_shift-returns-boolean-value mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-zone_can_shift-returns-boolean-value
++++ a/mm/memory_hotplug.c
+@@ -1033,36 +1033,39 @@ static void node_states_set_node(int nod
+ 	node_set_state(node, N_MEMORY);
  }
  
-+/*
-+ * FOLL_FORCE can write to even unwritable pmd's, but only
-+ * after we've gone through a COW cycle and they are dirty.
-+ */
-+static inline bool can_follow_write_pmd(pmd_t pmd, unsigned int flags)
-+{
-+	return pmd_write(pmd) ||
-+	       ((flags & FOLL_FORCE) && (flags & FOLL_COW) && pmd_dirty(pmd));
-+}
+-int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
+-		   enum zone_type target)
++bool zone_can_shift(unsigned long pfn, unsigned long nr_pages,
++		   enum zone_type target, int *zone_shift)
+ {
+ 	struct zone *zone = page_zone(pfn_to_page(pfn));
+ 	enum zone_type idx = zone_idx(zone);
+ 	int i;
+ 
++	*zone_shift = 0;
 +
- struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 				   unsigned long addr,
- 				   pmd_t *pmd,
-@@ -1138,7 +1154,7 @@ struct page *follow_trans_huge_pmd(struc
+ 	if (idx < target) {
+ 		/* pages must be at end of current zone */
+ 		if (pfn + nr_pages != zone_end_pfn(zone))
+-			return 0;
++			return false;
  
- 	assert_spin_locked(pmd_lockptr(mm, pmd));
+ 		/* no zones in use between current zone and target */
+ 		for (i = idx + 1; i < target; i++)
+ 			if (zone_is_initialized(zone - idx + i))
+-				return 0;
++				return false;
+ 	}
  
--	if (flags & FOLL_WRITE && !pmd_write(*pmd))
-+	if (flags & FOLL_WRITE && !can_follow_write_pmd(*pmd, flags))
- 		goto out;
+ 	if (target < idx) {
+ 		/* pages must be at beginning of current zone */
+ 		if (pfn != zone->zone_start_pfn)
+-			return 0;
++			return false;
  
- 	/* Avoid dumping huge zero page */
+ 		/* no zones in use between current zone and target */
+ 		for (i = target + 1; i < idx; i++)
+ 			if (zone_is_initialized(zone - idx + i))
+-				return 0;
++				return false;
+ 	}
+ 
+-	return target - idx;
++	*zone_shift = target - idx;
++	return true;
+ }
+ 
+ /* Must be protected by mem_hotplug_begin() */
+@@ -1089,10 +1092,13 @@ int __ref online_pages(unsigned long pfn
+ 	    !can_online_high_movable(zone))
+ 		return -EINVAL;
+ 
+-	if (online_type == MMOP_ONLINE_KERNEL)
+-		zone_shift = zone_can_shift(pfn, nr_pages, ZONE_NORMAL);
+-	else if (online_type == MMOP_ONLINE_MOVABLE)
+-		zone_shift = zone_can_shift(pfn, nr_pages, ZONE_MOVABLE);
++	if (online_type == MMOP_ONLINE_KERNEL) {
++		if (!zone_can_shift(pfn, nr_pages, ZONE_NORMAL, &zone_shift))
++			return -EINVAL;
++	} else if (online_type == MMOP_ONLINE_MOVABLE) {
++		if (!zone_can_shift(pfn, nr_pages, ZONE_MOVABLE, &zone_shift))
++			return -EINVAL;
++	}
+ 
+ 	zone = move_pfn_range(zone_shift, pfn, pfn + nr_pages);
+ 	if (!zone)
 _
 
-Patches currently in -mm which might be from keno@juliacomputing.com are
+Patches currently in -mm which might be from yasu.isimatu@gmail.com are
 
+mm-sparse-use-page_private-to-get-page-private-value.patch
+mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
 
