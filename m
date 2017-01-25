@@ -1,9 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch removed
- from -mm tree
-Date: Wed, 25 Jan 2017 14:04:31 -0800
-Message-ID: <588920ef.bfZyBIvjfNDEPfs8%akpm@linux-foundation.org>
+Subject: [merged] slub-trace-free-objects-at-kern_info.patch removed from
+ -mm tree
+Date: Wed, 25 Jan 2017 14:04:34 -0800
+Message-ID: <588920f2.R49tOWf8Bxl8pwhf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -11,225 +10,115 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:42022 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751942AbdAYWEc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:32 -0500
+        with ESMTP id S1751942AbdAYWEf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, shubham.kumar.sharma@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: daniel.thompson@linaro.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: fix SIGBUS resulting from false rwsem wakeups
+     Subject: mm/slub.c: trace free objects at KERN_INFO
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups.patch
+     slub-trace-free-objects-at-kern_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: fix SIGBUS resulting from false rwsem wakeups
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: mm/slub.c: trace free objects at KERN_INFO
 
-With >=32 CPUs the userfaultfd selftest triggered a graceful but
-unexpected SIGBUS because VM_FAULT_RETRY was returned by
-handle_userfault() despite the UFFDIO_COPY wasn't completed.
+Currently when trace is enabled (e.g.  slub_debug=T,kmalloc-128 ) the
+trace messages are mostly output at KERN_INFO.  However the trace code
+also calls print_section() to hexdump the head of a free object.  This is
+hard coded to use KERN_ERR, meaning the console is deluged with trace
+messages even if we've asked for quiet.
 
-This seems caused by rwsem waking the thread blocked in handle_userfault()
-and we can't run up_read() before the wait_event sequence is complete.
+Fix this the obvious way but adding a level parameter to print_section(),
+allowing calls from the trace code to use the same trace level as other
+trace messages.
 
-Keeping the wait_even sequence identical to the first one, would require
-running userfaultfd_must_wait() again to know if the loop should be
-repeated, and it would also require retaking the rwsem and revalidating
-the whole vma status.
-
-It seems simpler to wait the targeted wakeup so that if false wakeups
-materialize we still wait for our specific wakeup event, unless of course
-there are signals or the uffd was released.
-
-Debug code collecting the stack trace of the wakeup showed this:
-
-$ ./userfaultfd 100 99999
-nr_pages: 25600, nr_pages_per_cpu: 800
-bounces: 99998, mode: racing ver poll, userfaults: 32 35 90 232 30 138 69 82 34 30 139 40 40 31 20 19 43 13 15 28 27 38 21 43 56 22 1 17 31 8 4 2
-bounces: 99997, mode: rnd ver poll, Bus error (core dumped)
-
-   [<ffffffff8102e19b>] save_stack_trace+0x2b/0x50
-   [<ffffffff8110b1d6>] try_to_wake_up+0x2a6/0x580
-   [<ffffffff8110b502>] wake_up_q+0x32/0x70
-   [<ffffffff8113d7a0>] rwsem_wake+0xe0/0x120
-   [<ffffffff8148361b>] call_rwsem_wake+0x1b/0x30
-   [<ffffffff81131d5b>] up_write+0x3b/0x40
-   [<ffffffff812280fc>] vm_mmap_pgoff+0x9c/0xc0
-   [<ffffffff81244b79>] SyS_mmap_pgoff+0x1a9/0x240
-   [<ffffffff810228f2>] SyS_mmap+0x22/0x30
-   [<ffffffff81842dfc>] entry_SYSCALL_64_fastpath+0x1f/0xbd
-   [<ffffffffffffffff>] 0xffffffffffffffff
-FAULT_FLAG_ALLOW_RETRY missing 70
-CPU: 24 PID: 1054 Comm: userfaultfd Tainted: G        W       4.8.0+ #30
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.9.3-0-ge2fc41e-prebuilt.qemu-project.org 04/01/2014
- 0000000000000000 ffff880218027d40 ffffffff814749f6 ffff8802180c4a80
- ffff880231ead4c0 ffff880218027e18 ffffffff812e0102 ffffffff81842b1c
- ffff880218027dd0 ffff880218082960 0000000000000000 0000000000000000
-Call Trace:
- [<ffffffff814749f6>] dump_stack+0xb8/0x112
- [<ffffffff812e0102>] handle_userfault+0x572/0x650
- [<ffffffff81842b1c>] ? _raw_spin_unlock_irq+0x2c/0x50
- [<ffffffff812407b4>] ? handle_mm_fault+0xcf4/0x1520
- [<ffffffff81240d7e>] ? handle_mm_fault+0x12be/0x1520
- [<ffffffff81240d8b>] handle_mm_fault+0x12cb/0x1520
- [<ffffffff81483588>] ? call_rwsem_down_read_failed+0x18/0x30
- [<ffffffff810572c5>] __do_page_fault+0x175/0x500
- [<ffffffff810576f1>] trace_do_page_fault+0x61/0x270
- [<ffffffff81050739>] do_async_page_fault+0x19/0x90
- [<ffffffff81843ef5>] async_page_fault+0x25/0x30
-
-This always happens when the main userfault selftest thread is running
-clone() while glibc runs either mprotect or mmap (both taking mmap_sem
-down_write()) to allocate the thread stack of the background threads,
-while locking/userfault threads already run at full throttle and are
-susceptible to false wakeups that may cause handle_userfault() to return
-before than expected (which results in graceful SIGBUS at the next
-attempt).
-
-This was reproduced only with >=32 CPUs because the loop to start the
-thread where clone() is too quick with fewer CPUs, while with 32 CPUs
-there's already significant activity on ~32 locking and userfault threads
-when the last background threads are started with clone().
-
-This >=32 CPUs SMP race condition is likely reproducible only with the
-selftest because of the much heavier userfault load it generates if
-compared to real apps.
-
-We'll have to allow "one more" VM_FAULT_RETRY for the WP support and a
-patch floating around that provides it also hidden this problem but in
-reality only is successfully at hiding the problem.  False wakeups could
-still happen again the second time handle_userfault() is invoked, even if
-it's a so rare race condition that getting false wakeups twice in a row is
-impossible to reproduce.  This full fix is needed for correctness, the
-only alternative would be to allow VM_FAULT_RETRY to be returned
-infinitely.  With this fix the WP support can stick to a strict "one more"
-VM_FAULT_RETRY logic (no need of returning it infinite times to avoid the
-SIGBUS).
-
-Link: http://lkml.kernel.org/r/20170111005535.13832-2-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Shubham Kumar Sharma <shubham.kumar.sharma@oracle.com>
-Tested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Link: http://lkml.kernel.org/r/20170113154850.518-1-daniel.thompson@linaro.org
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   37 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 35 insertions(+), 2 deletions(-)
+ mm/slub.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-fix-sigbus-resulting-from-false-rwsem-wakeups
-+++ a/fs/userfaultfd.c
-@@ -63,6 +63,7 @@ struct userfaultfd_wait_queue {
- 	struct uffd_msg msg;
- 	wait_queue_t wq;
- 	struct userfaultfd_ctx *ctx;
-+	bool waken;
- };
+diff -puN mm/slub.c~slub-trace-free-objects-at-kern_info mm/slub.c
+--- a/mm/slub.c~slub-trace-free-objects-at-kern_info
++++ a/mm/slub.c
+@@ -496,10 +496,11 @@ static inline int check_valid_pointer(st
+ 	return 1;
+ }
  
- struct userfaultfd_wake_range {
-@@ -86,6 +87,12 @@ static int userfaultfd_wake_function(wai
- 	if (len && (start > uwq->msg.arg.pagefault.address ||
- 		    start + len <= uwq->msg.arg.pagefault.address))
- 		goto out;
-+	WRITE_ONCE(uwq->waken, true);
-+	/*
-+	 * The implicit smp_mb__before_spinlock in try_to_wake_up()
-+	 * renders uwq->waken visible to other CPUs before the task is
-+	 * waken.
-+	 */
- 	ret = wake_up_state(wq->private, mode);
- 	if (ret)
- 		/*
-@@ -264,6 +271,7 @@ int handle_userfault(struct vm_fault *vm
- 	struct userfaultfd_wait_queue uwq;
- 	int ret;
- 	bool must_wait, return_to_userland;
-+	long blocking_state;
+-static void print_section(char *text, u8 *addr, unsigned int length)
++static void print_section(char *level, char *text, u8 *addr,
++			  unsigned int length)
+ {
+ 	metadata_access_enable();
+-	print_hex_dump(KERN_ERR, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
++	print_hex_dump(level, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
+ 			length, 1);
+ 	metadata_access_disable();
+ }
+@@ -636,14 +637,15 @@ static void print_trailer(struct kmem_ca
+ 	       p, p - addr, get_freepointer(s, p));
  
- 	BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
+ 	if (s->flags & SLAB_RED_ZONE)
+-		print_section("Redzone ", p - s->red_left_pad, s->red_left_pad);
++		print_section(KERN_ERR, "Redzone ", p - s->red_left_pad,
++			      s->red_left_pad);
+ 	else if (p > addr + 16)
+-		print_section("Bytes b4 ", p - 16, 16);
++		print_section(KERN_ERR, "Bytes b4 ", p - 16, 16);
  
-@@ -334,10 +342,13 @@ int handle_userfault(struct vm_fault *vm
- 	uwq.wq.private = current;
- 	uwq.msg = userfault_msg(vmf->address, vmf->flags, reason);
- 	uwq.ctx = ctx;
-+	uwq.waken = false;
+-	print_section("Object ", p, min_t(unsigned long, s->object_size,
+-				PAGE_SIZE));
++	print_section(KERN_ERR, "Object ", p,
++		      min_t(unsigned long, s->object_size, PAGE_SIZE));
+ 	if (s->flags & SLAB_RED_ZONE)
+-		print_section("Redzone ", p + s->object_size,
++		print_section(KERN_ERR, "Redzone ", p + s->object_size,
+ 			s->inuse - s->object_size);
  
- 	return_to_userland =
- 		(vmf->flags & (FAULT_FLAG_USER|FAULT_FLAG_KILLABLE)) ==
- 		(FAULT_FLAG_USER|FAULT_FLAG_KILLABLE);
-+	blocking_state = return_to_userland ? TASK_INTERRUPTIBLE :
-+			 TASK_KILLABLE;
+ 	if (s->offset)
+@@ -658,7 +660,8 @@ static void print_trailer(struct kmem_ca
  
- 	spin_lock(&ctx->fault_pending_wqh.lock);
- 	/*
-@@ -350,8 +361,7 @@ int handle_userfault(struct vm_fault *vm
- 	 * following the spin_unlock to happen before the list_add in
- 	 * __add_wait_queue.
- 	 */
--	set_current_state(return_to_userland ? TASK_INTERRUPTIBLE :
--			  TASK_KILLABLE);
-+	set_current_state(blocking_state);
- 	spin_unlock(&ctx->fault_pending_wqh.lock);
+ 	if (off != size_from_object(s))
+ 		/* Beginning of the filler is the free pointer */
+-		print_section("Padding ", p + off, size_from_object(s) - off);
++		print_section(KERN_ERR, "Padding ", p + off,
++			      size_from_object(s) - off);
  
- 	must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
-@@ -364,6 +374,29 @@ int handle_userfault(struct vm_fault *vm
- 		wake_up_poll(&ctx->fd_wqh, POLLIN);
- 		schedule();
- 		ret |= VM_FAULT_MAJOR;
-+
-+		/*
-+		 * False wakeups can orginate even from rwsem before
-+		 * up_read() however userfaults will wait either for a
-+		 * targeted wakeup on the specific uwq waitqueue from
-+		 * wake_userfault() or for signals or for uffd
-+		 * release.
-+		 */
-+		while (!READ_ONCE(uwq.waken)) {
-+			/*
-+			 * This needs the full smp_store_mb()
-+			 * guarantee as the state write must be
-+			 * visible to other CPUs before reading
-+			 * uwq.waken from other CPUs.
-+			 */
-+			set_current_state(blocking_state);
-+			if (READ_ONCE(uwq.waken) ||
-+			    READ_ONCE(ctx->released) ||
-+			    (return_to_userland ? signal_pending(current) :
-+			     fatal_signal_pending(current)))
-+				break;
-+			schedule();
-+		}
- 	}
+ 	dump_stack();
+ }
+@@ -820,7 +823,7 @@ static int slab_pad_check(struct kmem_ca
+ 		end--;
  
- 	__set_current_state(TASK_RUNNING);
+ 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
+-	print_section("Padding ", end - remainder, remainder);
++	print_section(KERN_ERR, "Padding ", end - remainder, remainder);
+ 
+ 	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
+ 	return 0;
+@@ -973,7 +976,7 @@ static void trace(struct kmem_cache *s,
+ 			page->freelist);
+ 
+ 		if (!alloc)
+-			print_section("Object ", (void *)object,
++			print_section(KERN_INFO, "Object ", (void *)object,
+ 					s->object_size);
+ 
+ 		dump_stack();
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from daniel.thompson@linaro.org are
 
-userfaultfd-document-_ior-_iow.patch
-userfaultfd-correct-comment-about-uffd_feature_pagefault_flag_wp.patch
-userfaultfd-convert-bug-to-warn_on_once.patch
-userfaultfd-use-vma_is_anonymous.patch
-userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
-userfaultfd-non-cooperative-add-fork-event-build-warning-fix.patch
-userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete.patch
-userfaultfd-non-cooperative-avoid-madv_dontneed-race-condition.patch
-userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
-userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
-userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
-userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
-userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
-userfaultfd-shmem-avoid-a-lockup-resulting-from-corrupted-page-flags.patch
-userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
-userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
-userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
-mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock.patch
+tools-vm-add-missing-makefile-rules.patch
 
