@@ -1,60 +1,229 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- compiler-gcch-added-new-macro-for-gcc-attribute.patch removed from -mm tree
-Date: Wed, 25 Jan 2017 14:56:38 -0800
-Message-ID: <58892d26.GkWmBIb8SvUV79ef%akpm@linux-foundation.org>
+ m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch removed
+ from -mm tree
+Date: Wed, 25 Jan 2017 14:56:40 -0800
+Message-ID: <58892d28./mZZgwXvL0OblfZk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47160 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751255AbdAYW4j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:56:39 -0500
+        with ESMTP id S1751255AbdAYW4l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:56:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gidisrael@gmail.com, geert@linux-m68k.org, gerg@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-gcc.h: add new macro for gcc attribute
+     Subject: m68k: replace gcc specific macros with ones from compiler.h
 has been removed from the -mm tree.  Its filename was
-     compiler-gcch-added-new-macro-for-gcc-attribute.patch
+     m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Gideon Israel Dsouza <gidisrael@gmail.com>
-Subject: compiler-gcc.h: add new macro for gcc attribute
+Subject: m68k: replace gcc specific macros with ones from compiler.h
 
-Add __mode(x) into compiler-gcc.h.  The next patch cleans up the m68k
-subsystem and it requires a new macro to wrap __attribute__ ((mode (...)))
+There is <linux/compiler.h> which provides macros for various gcc specific
+constructs.  Eg: __weak for __attribute__((weak)).  I've cleaned all
+instances of gcc specific attributes with the right macros for all files
+under /arch/m68k
 
-Link: http://lkml.kernel.org/r/1485260068-2495-1-git-send-email-gidisrael@gmail.com
+Link: http://lkml.kernel.org/r/1485260068-2495-2-git-send-email-gidisrael@gmail.com
 Signed-off-by: Gideon Israel Dsouza <gidisrael@gmail.com>
 Cc: Greg Ungerer <gerg@linux-m68k.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/m68k/68000/bootlogo-vz.h     |    4 +++-
+ arch/m68k/68000/bootlogo.h        |    4 +++-
+ arch/m68k/include/asm/MC68328.h   |    3 ++-
+ arch/m68k/include/asm/MC68EZ328.h |    3 ++-
+ arch/m68k/include/asm/MC68VZ328.h |    2 +-
+ arch/m68k/include/asm/natfeat.h   |    3 ++-
+ arch/m68k/lib/ashldi3.c           |    8 ++++----
+ arch/m68k/lib/ashrdi3.c           |    8 ++++----
+ arch/m68k/lib/lshrdi3.c           |    8 ++++----
+ arch/m68k/lib/muldi3.c            |    8 ++++----
+ 10 files changed, 29 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-gcch-added-new-macro-for-gcc-attribute include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-gcch-added-new-macro-for-gcc-attribute
-+++ a/include/linux/compiler-gcc.h
-@@ -121,6 +121,7 @@
- #define __attribute_const__	__attribute__((__const__))
- #define __maybe_unused		__attribute__((unused))
- #define __always_unused		__attribute__((unused))
-+#define __mode                  __attribute__((mode(x)))
+diff -puN arch/m68k/68000/bootlogo-vz.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/68000/bootlogo-vz.h
+--- a/arch/m68k/68000/bootlogo-vz.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/68000/bootlogo-vz.h
+@@ -1,6 +1,8 @@
++#include <linux/compiler.h>
++
+ #define splash_width 640
+ #define splash_height 480
+-unsigned char __attribute__ ((aligned(16))) bootlogo_bits[] = {
++unsigned char __aligned(16) bootlogo_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+diff -puN arch/m68k/68000/bootlogo.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/68000/bootlogo.h
+--- a/arch/m68k/68000/bootlogo.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/68000/bootlogo.h
+@@ -1,6 +1,8 @@
++#include <linux/compiler.h>
++
+ #define bootlogo_width 160
+ #define bootlogo_height 160
+-unsigned char __attribute__ ((aligned(16))) bootlogo_bits[] = {
++unsigned char __aligned(16) bootlogo_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x01, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x40, 0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+diff -puN arch/m68k/include/asm/MC68328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68328.h
+--- a/arch/m68k/include/asm/MC68328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/include/asm/MC68328.h
+@@ -8,6 +8,7 @@
+  * Copyright (C) 1998  Kenneth Albanowski <kjahds@kjahds.com>,
+  *
+  */
++#include <linux/compiler.h>
  
- /* gcc version specific checks */
+ #ifndef _MC68328_H_
+ #define _MC68328_H_
+@@ -993,7 +994,7 @@ typedef volatile struct {
+   volatile unsigned short int pad1;
+   volatile unsigned short int pad2;
+   volatile unsigned short int pad3;
+-} __attribute__((packed)) m68328_uart;
++} __packed m68328_uart;
+ 
+ 
+ /**********
+diff -puN arch/m68k/include/asm/MC68EZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68EZ328.h
+--- a/arch/m68k/include/asm/MC68EZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/include/asm/MC68EZ328.h
+@@ -9,6 +9,7 @@
+  *                     The Silver Hammer Group, Ltd.
+  *
+  */
++#include <linux/compiler.h>
+ 
+ #ifndef _MC68EZ328_H_
+ #define _MC68EZ328_H_
+@@ -815,7 +816,7 @@ typedef volatile struct {
+   volatile unsigned short int nipr;
+   volatile unsigned short int pad1;
+   volatile unsigned short int pad2;
+-} __attribute__((packed)) m68328_uart;
++} __packed m68328_uart;
+ 
+ 
+ /**********
+diff -puN arch/m68k/include/asm/MC68VZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68VZ328.h
+--- a/arch/m68k/include/asm/MC68VZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/include/asm/MC68VZ328.h
+@@ -909,7 +909,7 @@ typedef struct {
+   volatile unsigned short int nipr;
+   volatile unsigned short int hmark;
+   volatile unsigned short int unused;
+-} __attribute__((packed)) m68328_uart;
++} __packed m68328_uart;
+ 
+ 
+ 
+diff -puN arch/m68k/include/asm/natfeat.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/natfeat.h
+--- a/arch/m68k/include/asm/natfeat.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/include/asm/natfeat.h
+@@ -6,6 +6,7 @@
+  * This software may be used and distributed according to the terms of
+  * the GNU General Public License (GPL), incorporated herein by reference.
+  */
++#include <linux/compiler.h>
+ 
+ #ifndef _NATFEAT_H
+ #define _NATFEAT_H
+@@ -17,6 +18,6 @@ void nf_init(void);
+ void nf_shutdown(void);
+ 
+ void nfprint(const char *fmt, ...)
+-	__attribute__ ((format (printf, 1, 2)));
++	__print(1, 2);
+ 
+ # endif /* _NATFEAT_H */
+diff -puN arch/m68k/lib/ashldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/ashldi3.c
+--- a/arch/m68k/lib/ashldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/lib/ashldi3.c
+@@ -18,10 +18,10 @@ GNU General Public License for more deta
+ 
+ #define BITS_PER_UNIT 8
+ 
+-typedef		 int SItype	__attribute__ ((mode (SI)));
+-typedef unsigned int USItype	__attribute__ ((mode (SI)));
+-typedef		 int DItype	__attribute__ ((mode (DI)));
+-typedef int word_type __attribute__ ((mode (__word__)));
++typedef		 int SItype	__mode(SI);
++typedef unsigned int USItype	__mode(SI);
++typedef		 int DItype	__mode(DI);
++typedef int word_type           __mode(__word__);
+ 
+ struct DIstruct {SItype high, low;};
+ 
+diff -puN arch/m68k/lib/ashrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/ashrdi3.c
+--- a/arch/m68k/lib/ashrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/lib/ashrdi3.c
+@@ -18,10 +18,10 @@ GNU General Public License for more deta
+ 
+ #define BITS_PER_UNIT 8
+ 
+-typedef		 int SItype	__attribute__ ((mode (SI)));
+-typedef unsigned int USItype	__attribute__ ((mode (SI)));
+-typedef		 int DItype	__attribute__ ((mode (DI)));
+-typedef int word_type __attribute__ ((mode (__word__)));
++typedef		 int SItype	__mode(SI);
++typedef unsigned int USItype	__mode(SI);
++typedef		 int DItype	__mode(DI);
++typedef int word_type           __mode(__word__);
+ 
+ struct DIstruct {SItype high, low;};
+ 
+diff -puN arch/m68k/lib/lshrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/lshrdi3.c
+--- a/arch/m68k/lib/lshrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/lib/lshrdi3.c
+@@ -18,10 +18,10 @@ GNU General Public License for more deta
+ 
+ #define BITS_PER_UNIT 8
+ 
+-typedef		 int SItype	__attribute__ ((mode (SI)));
+-typedef unsigned int USItype	__attribute__ ((mode (SI)));
+-typedef		 int DItype	__attribute__ ((mode (DI)));
+-typedef int word_type __attribute__ ((mode (__word__)));
++typedef		 int SItype	__mode(SI);
++typedef unsigned int USItype	__mode(SI);
++typedef		 int DItype	__mode(DI);
++typedef int word_type           __mode(__word__);
+ 
+ struct DIstruct {SItype high, low;};
+ 
+diff -puN arch/m68k/lib/muldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/muldi3.c
+--- a/arch/m68k/lib/muldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
++++ a/arch/m68k/lib/muldi3.c
+@@ -65,10 +65,10 @@ GNU General Public License for more deta
+     umul_ppmm (__w.s.high, __w.s.low, u, v);				\
+     __w.ll; })
+ 
+-typedef 	 int SItype	__attribute__ ((mode (SI)));
+-typedef unsigned int USItype	__attribute__ ((mode (SI)));
+-typedef		 int DItype	__attribute__ ((mode (DI)));
+-typedef int word_type __attribute__ ((mode (__word__)));
++typedef 	 int SItype	__mode(SI);
++typedef unsigned int USItype	__mode(SI);
++typedef		 int DItype	__mode(DI);
++typedef int word_type           __mode(__word__);
+ 
+ struct DIstruct {SItype high, low;};
  
 _
 
 Patches currently in -mm which might be from gidisrael@gmail.com are
 
-m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch
 
