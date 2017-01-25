@@ -1,124 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-trace-free-objects-at-kern_info.patch removed from
+Subject: [merged] memstick-core-avoid-wnonnull-warning.patch removed from
  -mm tree
-Date: Wed, 25 Jan 2017 14:04:34 -0800
-Message-ID: <588920f2.R49tOWf8Bxl8pwhf%akpm@linux-foundation.org>
+Date: Wed, 25 Jan 2017 14:04:28 -0800
+Message-ID: <588920ec.IgzkzhaByiLISQZd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42014 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751942AbdAYWEf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:35 -0500
+        with ESMTP id S1752285AbdAYWEj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2017 17:04:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.thompson@linaro.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: trace free objects at KERN_INFO
+     Subject: drivers/memstick/core/memstick.c: avoid -Wnonnull warning
 has been removed from the -mm tree.  Its filename was
-     slub-trace-free-objects-at-kern_info.patch
+     memstick-core-avoid-wnonnull-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Subject: mm/slub.c: trace free objects at KERN_INFO
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: drivers/memstick/core/memstick.c: avoid -Wnonnull warning
 
-Currently when trace is enabled (e.g.  slub_debug=T,kmalloc-128 ) the
-trace messages are mostly output at KERN_INFO.  However the trace code
-also calls print_section() to hexdump the head of a free object.  This is
-hard coded to use KERN_ERR, meaning the console is deluged with trace
-messages even if we've asked for quiet.
+gcc-7 produces a harmless false-postive warning about a possible
+NULL pointer access:
 
-Fix this the obvious way but adding a level parameter to print_section(),
-allowing calls from the trace code to use the same trace level as other
-trace messages.
+drivers/memstick/core/memstick.c: In function 'h_memstick_read_dev_id':
+drivers/memstick/core/memstick.c:309:3: error: argument 2 null where non-null expected [-Werror=nonnull]
+   memcpy(mrq->data, buf, mrq->data_len);
 
-Link: http://lkml.kernel.org/r/20170113154850.518-1-daniel.thompson@linaro.org
-Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This can't happen because the caller sets the command to 'MS_TPC_READ_REG',
+which causes the data direction to be 'READ' and the NULL pointer not
+accessed.
+
+As a simple workaround for the warning, we can pass a pointer to the
+data that we actually want to read into. This is not needed here, but
+also harmless, and lets the compiler know that the access is ok.
+
+Link: http://lkml.kernel.org/r/20170111144143.548867-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ drivers/memstick/core/memstick.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-trace-free-objects-at-kern_info mm/slub.c
---- a/mm/slub.c~slub-trace-free-objects-at-kern_info
-+++ a/mm/slub.c
-@@ -496,10 +496,11 @@ static inline int check_valid_pointer(st
- 	return 1;
- }
+diff -puN drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning drivers/memstick/core/memstick.c
+--- a/drivers/memstick/core/memstick.c~memstick-core-avoid-wnonnull-warning
++++ a/drivers/memstick/core/memstick.c
+@@ -330,7 +330,7 @@ static int h_memstick_read_dev_id(struct
+ 	struct ms_id_register id_reg;
  
--static void print_section(char *text, u8 *addr, unsigned int length)
-+static void print_section(char *level, char *text, u8 *addr,
-+			  unsigned int length)
- {
- 	metadata_access_enable();
--	print_hex_dump(KERN_ERR, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
-+	print_hex_dump(level, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
- 			length, 1);
- 	metadata_access_disable();
- }
-@@ -636,14 +637,15 @@ static void print_trailer(struct kmem_ca
- 	       p, p - addr, get_freepointer(s, p));
- 
- 	if (s->flags & SLAB_RED_ZONE)
--		print_section("Redzone ", p - s->red_left_pad, s->red_left_pad);
-+		print_section(KERN_ERR, "Redzone ", p - s->red_left_pad,
-+			      s->red_left_pad);
- 	else if (p > addr + 16)
--		print_section("Bytes b4 ", p - 16, 16);
-+		print_section(KERN_ERR, "Bytes b4 ", p - 16, 16);
- 
--	print_section("Object ", p, min_t(unsigned long, s->object_size,
--				PAGE_SIZE));
-+	print_section(KERN_ERR, "Object ", p,
-+		      min_t(unsigned long, s->object_size, PAGE_SIZE));
- 	if (s->flags & SLAB_RED_ZONE)
--		print_section("Redzone ", p + s->object_size,
-+		print_section(KERN_ERR, "Redzone ", p + s->object_size,
- 			s->inuse - s->object_size);
- 
- 	if (s->offset)
-@@ -658,7 +660,8 @@ static void print_trailer(struct kmem_ca
- 
- 	if (off != size_from_object(s))
- 		/* Beginning of the filler is the free pointer */
--		print_section("Padding ", p + off, size_from_object(s) - off);
-+		print_section(KERN_ERR, "Padding ", p + off,
-+			      size_from_object(s) - off);
- 
- 	dump_stack();
- }
-@@ -820,7 +823,7 @@ static int slab_pad_check(struct kmem_ca
- 		end--;
- 
- 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
--	print_section("Padding ", end - remainder, remainder);
-+	print_section(KERN_ERR, "Padding ", end - remainder, remainder);
- 
- 	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
- 	return 0;
-@@ -973,7 +976,7 @@ static void trace(struct kmem_cache *s,
- 			page->freelist);
- 
- 		if (!alloc)
--			print_section("Object ", (void *)object,
-+			print_section(KERN_INFO, "Object ", (void *)object,
- 					s->object_size);
- 
- 		dump_stack();
+ 	if (!(*mrq)) {
+-		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, NULL,
++		memstick_init_req(&card->current_mrq, MS_TPC_READ_REG, &id_reg,
+ 				  sizeof(struct ms_id_register));
+ 		*mrq = &card->current_mrq;
+ 		return 0;
 _
 
-Patches currently in -mm which might be from daniel.thompson@linaro.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-tools-vm-add-missing-makefile-rules.patch
+mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
+mm-support-section-unaligned-zone_device-memory-ranges-fix.patch
+lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 
