@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mmfsdax-change-pmd_fault-to-huge_fault.patch added to -mm tree
-Date: Thu, 26 Jan 2017 14:36:53 -0800
-Message-ID: <588a7a05.Z/VyYvGR4656dARj%akpm@linux-foundation.org>
+Subject: + lib-lz4-remove-back-compat-wrappers.patch added to -mm tree
+Date: Thu, 26 Jan 2017 14:56:43 -0800
+Message-ID: <588a7eab.s7WC/Xg4G17Sur5o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51332 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752067AbdAZWiJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2017 17:38:09 -0500
+        with ESMTP id S1752332AbdAZW56 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2017 17:57:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.jiang@intel.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, jack@suse.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mingo@elte.hu, nilesh.choudhury@oracle.com, ross.zwisler@linux.intel.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: 4sschmid@informatik.uni-hamburg.de, anton@enomsg.org, bongkyu.kim@lge.com, ccross@android.com, davem@davemloft.net, gregkh@linuxfoundation.org, herbert@gondor.apana.org.au, keescook@chromium.org, rsalvaterra@gmail.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,fs,dax: change ->pmd_fault to ->huge_fault
+     Subject: lib/lz4: remove back-compat wrappers
 has been added to the -mm tree.  Its filename is
-     mmfsdax-change-pmd_fault-to-huge_fault.patch
+     lib-lz4-remove-back-compat-wrappers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmfsdax-change-pmd_fault-to-huge_fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-lz4-remove-back-compat-wrappers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmfsdax-change-pmd_fault-to-huge_fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-lz4-remove-back-compat-wrappers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,443 +38,246 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Jiang <dave.jiang@intel.com>
-Subject: mm,fs,dax: change ->pmd_fault to ->huge_fault
+From: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
+Subject: lib/lz4: remove back-compat wrappers
 
-Patch series "1G transparent hugepage support for device dax", v2.
+This patch removes the functions introduced as wrappers for providing
+backwards compatibility to the prior LZ4 version.  They're not needed
+anymore since there's no callers left.
 
-The following series implements support for 1G trasparent hugepage on x86
-for device dax.  The bulk of the code was written by Mathew Wilcox a while
-back supporting transparent 1G hugepage for fs DAX.  I have forward ported
-the relevant bits to 4.10-rc.  The current submission has only the
-necessary code to support device DAX.
-
-Comments from Dan Williams: So the motivation and intended user of this
-functionality mirrors the motivation and users of 1GB page support in
-hugetlbfs.  Given expected capacities of persistent memory devices an
-in-memory database may want to reduce tlb pressure beyond what they can
-already achieve with 2MB mappings of a device-dax file.  We have customer
-feedback to that effect as Willy mentioned in his previous version of
-these patches [1].
-
-[1]: https://lkml.org/lkml/2016/1/31/52
-
-
-Comments from Nilesh @ Oracle:
-
-There are applications which have a process model; and if you assume
-10,000 processes attempting to mmap all the 6TB memory available on a
-server; we are looking at the following:
-
-processes         : 10,000
-memory            :    6TB
-pte @ 4k page size: 8 bytes / 4K of memory * #processes = 6TB / 4k * 8 * 10000 = 1.5GB * 80000 = 120,000GB
-pmd @ 2M page size: 120,000 / 512 = ~240GB
-pud @ 1G page size: 240GB / 512 = ~480MB
-
-As you can see with 2M pages, this system will use up an exorbitant amount
-of DRAM to hold the page tables; but the 1G pages finally brings it down
-to a reasonable level.  Memory sizes will keep increasing; so this number
-will keep increasing.
-
-An argument can be made to convert the applications from process model to
-thread model, but in the real world that may not be always practical. 
-Hopefully this helps explain the use case where this is valuable.
-
-
-This patch (of 3):
-
-In preparation for adding the ability to handle PUD pages, convert
-vm_operations_struct.pmd_fault to vm_operations_struct.huge_fault.  The
-vm_fault structure is extended to include a union of the different page
-table pointers that may be needed, and three flag bits are reserved to
-indicate which type of pointer is in the union.
-
-Link: http://lkml.kernel.org/r/148545058784.17912.6353162518188733642.stgit@djiang5-desk3.ch.intel.com
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jan Kara <jack@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/1485417455-31726-6-git-send-email-4sschmid@informatik.uni-hamburg.de
+Signed-off-by: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
+Cc: Bongkyu Kim <bongkyu.kim@lge.com>
+Cc: Rui Salvaterra <rsalvaterra@gmail.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/dax.c   |   34 ++++++++++++---------------------
- fs/dax.c            |   43 +++++++++++++++++++++++++++++-------------
- fs/ext2/file.c      |    2 -
- fs/ext4/file.c      |    6 ++---
- fs/xfs/xfs_file.c   |   10 ++++-----
- fs/xfs/xfs_trace.h  |    2 -
- include/linux/dax.h |    6 -----
- include/linux/mm.h  |   10 ++++++++-
- mm/memory.c         |   14 +++++++------
- 9 files changed, 70 insertions(+), 57 deletions(-)
+ include/linux/lz4.h      |   73 -------------------------------------
+ lib/lz4/lz4_compress.c   |   22 -----------
+ lib/lz4/lz4_decompress.c |   42 ---------------------
+ lib/lz4/lz4hc_compress.c |   23 -----------
+ 4 files changed, 160 deletions(-)
 
-diff -puN drivers/dax/dax.c~mmfsdax-change-pmd_fault-to-huge_fault drivers/dax/dax.c
---- a/drivers/dax/dax.c~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/drivers/dax/dax.c
-@@ -419,7 +419,7 @@ static phys_addr_t pgoff_to_phys(struct
- 	return -1;
+diff -puN include/linux/lz4.h~lib-lz4-remove-back-compat-wrappers include/linux/lz4.h
+--- a/include/linux/lz4.h~lib-lz4-remove-back-compat-wrappers
++++ a/include/linux/lz4.h
+@@ -173,14 +173,6 @@ static inline int LZ4_compressBound(size
  }
  
--static int __dax_dev_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
-+static int __dax_dev_pte_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- {
- 	struct device *dev = &dax_dev->dev;
- 	struct dax_region *dax_region;
-@@ -455,23 +455,6 @@ static int __dax_dev_fault(struct dax_de
- 	return VM_FAULT_NOPAGE;
- }
- 
--static int dax_dev_fault(struct vm_fault *vmf)
--{
--	struct vm_area_struct *vma = vmf->vma;
--	int rc;
--	struct file *filp = vma->vm_file;
--	struct dax_dev *dax_dev = filp->private_data;
--
--	dev_dbg(&dax_dev->dev, "%s: %s: %s (%#lx - %#lx)\n", __func__,
--			current->comm, (vmf->flags & FAULT_FLAG_WRITE)
--			? "write" : "read", vma->vm_start, vma->vm_end);
--	rcu_read_lock();
--	rc = __dax_dev_fault(dax_dev, vmf);
--	rcu_read_unlock();
--
--	return rc;
--}
--
- static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
- {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
-@@ -510,7 +493,7 @@ static int __dax_dev_pmd_fault(struct da
- 			vmf->flags & FAULT_FLAG_WRITE);
- }
- 
--static int dax_dev_pmd_fault(struct vm_fault *vmf)
-+static int dax_dev_fault(struct vm_fault *vmf)
- {
- 	int rc;
- 	struct file *filp = vmf->vma->vm_file;
-@@ -522,7 +505,16 @@ static int dax_dev_pmd_fault(struct vm_f
- 			vmf->vma->vm_start, vmf->vma->vm_end);
- 
- 	rcu_read_lock();
--	rc = __dax_dev_pmd_fault(dax_dev, vmf);
-+	switch (vmf->flags & FAULT_FLAG_SIZE_MASK) {
-+	case FAULT_FLAG_SIZE_PTE:
-+		rc = __dax_dev_pte_fault(dax_dev, vmf);
-+		break;
-+	case FAULT_FLAG_SIZE_PMD:
-+		rc = __dax_dev_pmd_fault(dax_dev, vmf);
-+		break;
-+	default:
-+		return VM_FAULT_FALLBACK;
-+	}
- 	rcu_read_unlock();
- 
- 	return rc;
-@@ -530,7 +522,7 @@ static int dax_dev_pmd_fault(struct vm_f
- 
- static const struct vm_operations_struct dax_dev_vm_ops = {
- 	.fault = dax_dev_fault,
--	.pmd_fault = dax_dev_pmd_fault,
-+	.huge_fault = dax_dev_fault,
- };
- 
- static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
-diff -puN fs/dax.c~mmfsdax-change-pmd_fault-to-huge_fault fs/dax.c
---- a/fs/dax.c~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/fs/dax.c
-@@ -1109,16 +1109,7 @@ static int dax_fault_return(int error)
- 	return VM_FAULT_SIGBUS;
- }
- 
--/**
-- * dax_iomap_fault - handle a page fault on a DAX file
-- * @vmf: The description of the fault
-- * @ops: iomap ops passed from the file system
-- *
-- * When a page fault occurs, filesystems may call this helper in their fault
-- * or mkwrite handler for DAX files. Assumes the caller has done all the
-- * necessary locking for the page fault to proceed successfully.
+ /*
+- * For backward compatibility
 - */
--int dax_iomap_fault(struct vm_fault *vmf, struct iomap_ops *ops)
-+static int dax_iomap_pte_fault(struct vm_fault *vmf, struct iomap_ops *ops)
- {
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	struct inode *inode = mapping->host;
-@@ -1235,7 +1226,6 @@ int dax_iomap_fault(struct vm_fault *vmf
- 	}
- 	return vmf_ret;
- }
--EXPORT_SYMBOL_GPL(dax_iomap_fault);
- 
- #ifdef CONFIG_FS_DAX_PMD
- /*
-@@ -1326,7 +1316,7 @@ fallback:
- 	return VM_FAULT_FALLBACK;
- }
- 
--int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
-+static int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct address_space *mapping = vma->vm_file->f_mapping;
-@@ -1434,5 +1424,32 @@ out:
- 	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
- 	return result;
- }
--EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
-+#else
-+static int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops)
-+{
-+	return VM_FAULT_FALLBACK;
-+}
- #endif /* CONFIG_FS_DAX_PMD */
-+
-+/**
-+ * dax_iomap_fault - handle a page fault on a DAX file
-+ * @vmf: The description of the fault
-+ * @ops: iomap ops passed from the file system
-+ *
-+ * When a page fault occurs, filesystems may call this helper in
-+ * their fault handler for DAX files. dax_iomap_fault() assumes the caller
-+ * has done all the necessary locking for page fault to proceed
-+ * successfully.
-+ */
-+int dax_iomap_fault(struct vm_fault *vmf, struct iomap_ops *ops)
-+{
-+	switch (vmf->flags & FAULT_FLAG_SIZE_MASK) {
-+	case FAULT_FLAG_SIZE_PTE:
-+		return dax_iomap_pte_fault(vmf, ops);
-+	case FAULT_FLAG_SIZE_PMD:
-+		return dax_iomap_pmd_fault(vmf, ops);
-+	default:
-+		return VM_FAULT_FALLBACK;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(dax_iomap_fault);
-diff -puN fs/ext2/file.c~mmfsdax-change-pmd_fault-to-huge_fault fs/ext2/file.c
---- a/fs/ext2/file.c~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/fs/ext2/file.c
-@@ -133,7 +133,7 @@ static int ext2_dax_pfn_mkwrite(struct v
- static const struct vm_operations_struct ext2_dax_vm_ops = {
- 	.fault		= ext2_dax_fault,
- 	/*
--	 * .pmd_fault is not supported for DAX because allocation in ext2
-+	 * .huge_fault is not supported for DAX because allocation in ext2
- 	 * cannot be reliably aligned to huge page sizes and so pmd faults
- 	 * will always fail and fail back to regular faults.
- 	 */
-diff -puN fs/ext4/file.c~mmfsdax-change-pmd_fault-to-huge_fault fs/ext4/file.c
---- a/fs/ext4/file.c~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/fs/ext4/file.c
-@@ -276,7 +276,7 @@ static int ext4_dax_fault(struct vm_faul
- }
- 
- static int
--ext4_dax_pmd_fault(struct vm_fault *vmf)
-+ext4_dax_huge_fault(struct vm_fault *vmf)
- {
- 	int result;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
-@@ -288,7 +288,7 @@ ext4_dax_pmd_fault(struct vm_fault *vmf)
- 		file_update_time(vmf->vma->vm_file);
- 	}
- 	down_read(&EXT4_I(inode)->i_mmap_sem);
--	result = dax_iomap_pmd_fault(vmf, &ext4_iomap_ops);
-+	result = dax_iomap_fault(vmf, &ext4_iomap_ops);
- 	up_read(&EXT4_I(inode)->i_mmap_sem);
- 	if (write)
- 		sb_end_pagefault(sb);
-@@ -328,7 +328,7 @@ static int ext4_dax_pfn_mkwrite(struct v
- 
- static const struct vm_operations_struct ext4_dax_vm_ops = {
- 	.fault		= ext4_dax_fault,
--	.pmd_fault	= ext4_dax_pmd_fault,
-+	.huge_fault	= ext4_dax_fault,
- 	.page_mkwrite	= ext4_dax_fault,
- 	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
- };
-diff -puN fs/xfs/xfs_file.c~mmfsdax-change-pmd_fault-to-huge_fault fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/fs/xfs/xfs_file.c
-@@ -1423,12 +1423,12 @@ xfs_filemap_fault(
- /*
-  * Similar to xfs_filemap_fault(), the DAX fault path can call into here on
-  * both read and write faults. Hence we need to handle both cases. There is no
-- * ->pmd_mkwrite callout for huge pages, so we have a single function here to
-+ * ->huge_mkwrite callout for huge pages, so we have a single function here to
-  * handle both cases here. @flags carries the information on the type of fault
-  * occuring.
-  */
- STATIC int
--xfs_filemap_pmd_fault(
-+xfs_filemap_huge_fault(
- 	struct vm_fault		*vmf)
- {
- 	struct inode		*inode = file_inode(vmf->vma->vm_file);
-@@ -1438,7 +1438,7 @@ xfs_filemap_pmd_fault(
- 	if (!IS_DAX(inode))
- 		return VM_FAULT_FALLBACK;
- 
--	trace_xfs_filemap_pmd_fault(ip);
-+	trace_xfs_filemap_huge_fault(ip);
- 
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
- 		sb_start_pagefault(inode->i_sb);
-@@ -1446,7 +1446,7 @@ xfs_filemap_pmd_fault(
- 	}
- 
- 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--	ret = dax_iomap_pmd_fault(vmf, &xfs_iomap_ops);
-+	ret = dax_iomap_fault(vmf, &xfs_iomap_ops);
- 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
- 
- 	if (vmf->flags & FAULT_FLAG_WRITE)
-@@ -1491,7 +1491,7 @@ xfs_filemap_pfn_mkwrite(
- 
- static const struct vm_operations_struct xfs_file_vm_ops = {
- 	.fault		= xfs_filemap_fault,
--	.pmd_fault	= xfs_filemap_pmd_fault,
-+	.huge_fault	= xfs_filemap_huge_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= xfs_filemap_page_mkwrite,
- 	.pfn_mkwrite	= xfs_filemap_pfn_mkwrite,
-diff -puN fs/xfs/xfs_trace.h~mmfsdax-change-pmd_fault-to-huge_fault fs/xfs/xfs_trace.h
---- a/fs/xfs/xfs_trace.h~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/fs/xfs/xfs_trace.h
-@@ -687,7 +687,7 @@ DEFINE_INODE_EVENT(xfs_inode_clear_cowbl
- DEFINE_INODE_EVENT(xfs_inode_free_cowblocks_invalid);
- 
- DEFINE_INODE_EVENT(xfs_filemap_fault);
--DEFINE_INODE_EVENT(xfs_filemap_pmd_fault);
-+DEFINE_INODE_EVENT(xfs_filemap_huge_fault);
- DEFINE_INODE_EVENT(xfs_filemap_page_mkwrite);
- DEFINE_INODE_EVENT(xfs_filemap_pfn_mkwrite);
- 
-diff -puN include/linux/dax.h~mmfsdax-change-pmd_fault-to-huge_fault include/linux/dax.h
---- a/include/linux/dax.h~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/include/linux/dax.h
-@@ -70,17 +70,11 @@ static inline unsigned int dax_radix_ord
- 		return PMD_SHIFT - PAGE_SHIFT;
- 	return 0;
- }
--int dax_iomap_pmd_fault(struct vm_fault *vmf, struct iomap_ops *ops);
- #else
- static inline unsigned int dax_radix_order(void *entry)
- {
- 	return 0;
- }
--static inline int dax_iomap_pmd_fault(struct vm_fault *vmf,
--		struct iomap_ops *ops)
+-static inline int lz4_compressbound(size_t isize)
 -{
--	return VM_FAULT_FALLBACK;
+-	return LZ4_COMPRESSBOUND(isize);
 -}
- #endif
- int dax_pfn_mkwrite(struct vm_fault *vmf);
+-
+-/*
+  * LZ4_compress_default()
+  *	Compresses 'sourceSize' bytes from buffer 'source'
+  *	into already allocated 'dest' buffer of size 'maxOutputSize'.
+@@ -249,23 +241,6 @@ int LZ4_compress_fast(const char *source
+ int LZ4_compress_destSize(const char *source, char *dest, int *sourceSizePtr,
+ 	int targetDestSize, void *wrkmem);
  
-diff -puN include/linux/mm.h~mmfsdax-change-pmd_fault-to-huge_fault include/linux/mm.h
---- a/include/linux/mm.h~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/include/linux/mm.h
-@@ -281,6 +281,11 @@ extern pgprot_t protection_map[16];
- #define FAULT_FLAG_REMOTE	0x80	/* faulting for non current tsk/mm */
- #define FAULT_FLAG_INSTRUCTION  0x100	/* The fault was during an instruction fetch */
+-/*
+- * lz4_compress()
+- *	src    : source address of the original data
+- *	src_len: size of the original data
+- *	dst    : output buffer address of the compressed data
+- *           This requires 'dst' of size LZ4_COMPRESSBOUND.
+- *	dst_len: is the output size, which is returned after compress done
+- *	workmem: address of the working memory.
+- *           This requires 'workmem' of size LZ4_MEM_COMPRESS.
+- *	return	: Success if return 0
+- *            Error if return (< 0)
+- *	note :	Destination buffer and workmem must be already allocated with
+- *		the defined size.
+- */
+-int lz4_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
+-	size_t *dst_len, void *wrkmem);
+-
+ /*-************************************************************************
+  *	Decompression Functions
+  **************************************************************************/
+@@ -340,37 +315,6 @@ int LZ4_decompress_safe(const char *sour
+ int LZ4_decompress_safe_partial(const char *source, char *dest,
+ 	int compressedSize, int targetOutputSize, int maxDecompressedSize);
  
-+#define FAULT_FLAG_SIZE_MASK	0x700	/* Support up to 8-level page tables */
-+#define FAULT_FLAG_SIZE_PTE	0x000	/* First level (eg 4k) */
-+#define FAULT_FLAG_SIZE_PMD	0x100	/* Second level (eg 2MB) */
-+#define FAULT_FLAG_SIZE_PUD	0x200	/* Third level (eg 1GB) */
-+
- #define FAULT_FLAG_TRACE \
- 	{ FAULT_FLAG_WRITE,		"WRITE" }, \
- 	{ FAULT_FLAG_MKWRITE,		"MKWRITE" }, \
-@@ -310,6 +315,9 @@ struct vm_fault {
- 	unsigned long address;		/* Faulting virtual address */
- 	pmd_t *pmd;			/* Pointer to pmd entry matching
- 					 * the 'address' */
-+	pud_t *pud;			/* Pointer to pud entry matching
-+					 * the 'address'
-+					 */
- 	pte_t orig_pte;			/* Value of PTE at the time of fault */
+-
+-/*
+- * lz4_decompress_unknownoutputsize() :
+- *	src     : source address of the compressed data
+- *	src_len : is the input size, therefore the compressed size
+- *	dest    : output buffer address of the decompressed data
+- *	dest_len: is the max size of the destination buffer, which is
+- *            returned with actual size of decompressed data after
+- *            decompress done
+- * return: Success if return 0
+- *         Error if return (< 0)
+- * note:   Destination buffer must be already allocated.
+- */
+-int lz4_decompress_unknownoutputsize(const unsigned char *src, size_t src_len,
+-	unsigned char *dest, size_t *dest_len);
+-
+-/*
+- * lz4_decompress() :
+- *	src            : source address of the compressed data
+- *	src_len        : is the input size,
+- *                   which is returned after decompress done
+- *	dest           : output buffer address of the decompressed data
+- *	actual_dest_len: is the size of uncompressed data, supposing it's known
+- *	return: Success if return 0
+- *          Error if return (< 0)
+- *	note  : Destination buffer must be already allocated.
+- *          slightly faster than lz4_decompress_unknownoutputsize()
+- */
+-int lz4_decompress(const unsigned char *src, size_t *src_len,
+-	unsigned char *dest, size_t actual_dest_len);
+-
+ /*-************************************************************************
+  *	LZ4 HC Compression
+  **************************************************************************/
+@@ -399,23 +343,6 @@ int LZ4_compress_HC(const char *src, cha
+ 	int compressionLevel, void *wrkmem);
  
- 	struct page *cow_page;		/* Page handler may use for COW fault */
-@@ -347,7 +355,7 @@ struct vm_operations_struct {
- 	void (*close)(struct vm_area_struct * area);
- 	int (*mremap)(struct vm_area_struct * area);
- 	int (*fault)(struct vm_fault *vmf);
--	int (*pmd_fault)(struct vm_fault *vmf);
-+	int (*huge_fault)(struct vm_fault *vmf);
- 	void (*map_pages)(struct vm_fault *vmf,
- 			pgoff_t start_pgoff, pgoff_t end_pgoff);
- 
-diff -puN mm/memory.c~mmfsdax-change-pmd_fault-to-huge_fault mm/memory.c
---- a/mm/memory.c~mmfsdax-change-pmd_fault-to-huge_fault
-+++ a/mm/memory.c
-@@ -3466,8 +3466,8 @@ static int create_huge_pmd(struct vm_fau
- {
- 	if (vma_is_anonymous(vmf->vma))
- 		return do_huge_pmd_anonymous_page(vmf);
--	if (vmf->vma->vm_ops->pmd_fault)
--		return vmf->vma->vm_ops->pmd_fault(vmf);
-+	if (vmf->vma->vm_ops->huge_fault)
-+		return vmf->vma->vm_ops->huge_fault(vmf);
- 	return VM_FAULT_FALLBACK;
+ /*
+- * lz4hc_compress()
+- *	src    : source address of the original data
+- *	src_len: size of the original data
+- *	dst    : output buffer address of the compressed data
+- *           This requires 'dst' of size LZ4_COMPRESSBOUND.
+- *	dst_len: is the output size, which is returned after compress done
+- *	workmem: address of the working memory.
+- *           This requires 'workmem' of size LZ4HC_MEM_COMPRESS.
+- * return	: Success if return 0
+- *          Error if return (< 0)
+- * note   : Destination buffer and workmem must be already allocated with
+- *          the defined size.
+- */
+-int lz4hc_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
+-	size_t *dst_len, void *wrkmem);
+-
+-/*
+  *	These functions compress data in successive blocks of any size,
+  *	using previous blocks as dictionary. One key assumption is that previous
+  *	blocks (up to 64 KB) remain read-accessible while
+diff -puN lib/lz4/lz4_compress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4_compress.c
+--- a/lib/lz4/lz4_compress.c~lib-lz4-remove-back-compat-wrappers
++++ a/lib/lz4/lz4_compress.c
+@@ -872,27 +872,5 @@ int LZ4_compress_fast_continue(LZ4_strea
  }
+ EXPORT_SYMBOL(LZ4_compress_fast_continue);
  
-@@ -3475,8 +3475,8 @@ static int wp_huge_pmd(struct vm_fault *
- {
- 	if (vma_is_anonymous(vmf->vma))
- 		return do_huge_pmd_wp_page(vmf, orig_pmd);
--	if (vmf->vma->vm_ops->pmd_fault)
--		return vmf->vma->vm_ops->pmd_fault(vmf);
-+	if (vmf->vma->vm_ops->huge_fault)
-+		return vmf->vma->vm_ops->huge_fault(vmf);
+-/*-******************************
+- *	For backwards compatibility
+- ********************************/
+-int lz4_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
+-	size_t *dst_len, void *wrkmem) {
+-	*dst_len = LZ4_compress_default(src, dst, (int)src_len,
+-		(int)((size_t)dst_len), wrkmem);
+-
+-	/*
+-	 * Prior lz4_compress will return -1 in case of error
+-	 * and 0 on success
+-	 * while new LZ4_compress_fast/default
+-	 * returns 0 in case of error
+-	 * and the output length on success
+-	 */
+-	if (!dst_len)
+-		return -1;
+-	else
+-		return 0;
+-}
+-EXPORT_SYMBOL(lz4_compress);
+-
+ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4 compressor");
+diff -puN lib/lz4/lz4_decompress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4_decompress.c
+--- a/lib/lz4/lz4_decompress.c~lib-lz4-remove-back-compat-wrappers
++++ a/lib/lz4/lz4_decompress.c
+@@ -483,47 +483,5 @@ int LZ4_decompress_fast_usingDict(const
+ }
+ EXPORT_SYMBOL(LZ4_decompress_fast_usingDict);
  
- 	/* COW handled on pte level: split pmd */
- 	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
-@@ -3606,6 +3606,7 @@ static int __handle_mm_fault(struct vm_a
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
- 	pud_t *pud;
-+	int ret;
+-/*-******************************
+- *	For backwards compatibility
+- ********************************/
+-int lz4_decompress_unknownoutputsize(const unsigned char *src,
+-	size_t src_len, unsigned char *dest, size_t *dest_len) {
+-	 *dest_len = LZ4_decompress_safe(src, dest,
+-		 (int)src_len, (int)((size_t)dest_len));
+-
+-		/*
+-		 * Prior lz4_decompress_unknownoutputsize will return
+-		 * 0 for success and a negative result for error
+-		 * new LZ4_decompress_safe returns
+-		 * - the length of data read on success
+-		 * - and also a negative result on error
+-		 * meaning when result > 0, we just return 0 here
+-		 */
+-		if (src_len > 0) {
+-			return 0;
+-		} else
+-			return -1;
+-}
+-EXPORT_SYMBOL(lz4_decompress_unknownoutputsize);
+-
+-int lz4_decompress(const unsigned char *src, size_t *src_len,
+-	unsigned char *dest, size_t actual_dest_len) {
+-	*src_len = LZ4_decompress_fast(src, dest, (int)actual_dest_len);
+-
+-	/*
+-	 * Prior lz4_decompress will return
+-	 * 0 for success and a negative result for error
+-	 * new LZ4_decompress_fast returns
+-	 * - the length of data read on success
+-	 * - and also a negative result on error
+-	 * meaning when result > 0, we just return 0 here
+-	 */
+-	if ((int)((size_t)src_len) > 0)
+-		return 0;
+-	else
+-		return -1;
+-}
+-EXPORT_SYMBOL(lz4_decompress);
+-
+ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4 decompressor");
+diff -puN lib/lz4/lz4hc_compress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4hc_compress.c
+--- a/lib/lz4/lz4hc_compress.c~lib-lz4-remove-back-compat-wrappers
++++ a/lib/lz4/lz4hc_compress.c
+@@ -603,29 +603,6 @@ int LZ4_compress_HC(const char *src, cha
+ }
+ EXPORT_SYMBOL(LZ4_compress_HC);
  
- 	pgd = pgd_offset(mm, address);
- 	pud = pud_alloc(mm, pgd, address);
-@@ -3615,15 +3616,16 @@ static int __handle_mm_fault(struct vm_a
- 	if (!vmf.pmd)
- 		return VM_FAULT_OOM;
- 	if (pmd_none(*vmf.pmd) && transparent_hugepage_enabled(vma)) {
--		int ret = create_huge_pmd(&vmf);
-+		vmf.flags |= FAULT_FLAG_SIZE_PMD;
-+		ret = create_huge_pmd(&vmf);
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
- 	} else {
- 		pmd_t orig_pmd = *vmf.pmd;
--		int ret;
- 
- 		barrier();
- 		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
-+			vmf.flags |= FAULT_FLAG_SIZE_PMD;
- 			if (pmd_protnone(orig_pmd) && vma_is_accessible(vma))
- 				return do_huge_pmd_numa_page(&vmf, orig_pmd);
- 
-_
-
-Patches currently in -mm which might be from dave.jiang@intel.com are
-
-mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault.patch
-mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch
-mm-dax-move-pmd_fault-to-take-only-vmf-parameter.patch
-mm-fs-reduce-fault-page_mkwrite-and-pfn_mkwrite-to-take-only-vmf.patch
-mmfsdax-change-pmd_fault-to-huge_fault.patch
-dax-support-for-transparent-pud-pages-for-device-dax.patch
-
+-/*-******************************
+- *	For backwards compatibility
+- ********************************/
+-int lz4hc_compress(const unsigned char *src, size_t src_len,
+-	unsigned char *dst, size_t *dst_len, void *wrkmem)
+-{
+-	*dst_len = LZ4_compress_HC(src, dst, (int)src_len,
+-		(int)((size_t)dst_len), LZ4HC_DEFAULT_CLEVEL, wrkmem);
+-
+-	/*
+-	 * Prior lz4hc_compress will return -1 in case of error
+-	 * and 0 on success
+-	 * while new LZ4_compress_HC
+-	 * returns 0 in case of error
+-	 * and the output length on success
+-	 */
+-	if (!dst_len)
+-		return -1;
+-	else
+-		return 0;
+-}
+-EXPORT_SYMBOL(lz4hc_compress);
