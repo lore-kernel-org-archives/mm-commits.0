@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + z3fold-add-kref-refcounting.patch added to -mm tree
-Date: Tue, 31 Jan 2017 14:36:19 -0800
-Message-ID: <58911163.QXaadS8GPqqy1vH/%akpm@linux-foundation.org>
+Subject: + z3fold-add-kref-refcounting-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 31 Jan 2017 14:37:37 -0800
+Message-ID: <589111b1.GWyD6/hHctR/zgb9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45316 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750868AbdAaWgU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 17:36:20 -0500
+        with ESMTP id S1750837AbdAaWhi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 17:37:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vitalywool@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: add kref refcounting
+     Subject: z3fold-add-kref-refcounting-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     z3fold-add-kref-refcounting.patch
+     z3fold-add-kref-refcounting-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-add-kref-refcounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-add-kref-refcounting-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-add-kref-refcounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-add-kref-refcounting-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,309 +38,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: add kref refcounting
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: z3fold-add-kref-refcounting-checkpatch-fixes
 
-With both coming and already present locking optimizations, introducing
-kref to reference-count z3fold objects is the right thing to do. 
-Moreover, it makes buddied list no longer necessary, and allows for a
-simpler handling of headless pages.
+WARNING: Missing a blank line after declarations
+#93: FILE: mm/z3fold.c:172:
++	struct page *page = virt_to_page(zhdr);
++	if (!list_empty(&zhdr->buddy))
 
-Link: http://lkml.kernel.org/r/20170131214650.8ea78033d91ded233f552bc0@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+total: 0 errors, 1 warnings, 261 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/z3fold-add-kref-refcounting.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Vitaly Wool <vitalywool@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |  151 +++++++++++++++++++++-----------------------------
- 1 file changed, 66 insertions(+), 85 deletions(-)
+ mm/z3fold.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-add-kref-refcounting mm/z3fold.c
---- a/mm/z3fold.c~z3fold-add-kref-refcounting
+diff -puN mm/z3fold.c~z3fold-add-kref-refcounting-checkpatch-fixes mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-add-kref-refcounting-checkpatch-fixes
 +++ a/mm/z3fold.c
-@@ -52,6 +52,7 @@ enum buddy {
-  *			z3fold page, except for HEADLESS pages
-  * @buddy:	links the z3fold page into the relevant list in the pool
-  * @page_lock:		per-page lock
-+ * @refcount:		reference cound for the z3fold page
-  * @first_chunks:	the size of the first buddy in chunks, 0 if free
-  * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
-  * @last_chunks:	the size of the last buddy in chunks, 0 if free
-@@ -60,6 +61,7 @@ enum buddy {
- struct z3fold_header {
- 	struct list_head buddy;
- 	spinlock_t page_lock;
-+	struct kref refcount;
- 	unsigned short first_chunks;
- 	unsigned short middle_chunks;
- 	unsigned short last_chunks;
-@@ -95,8 +97,6 @@ struct z3fold_header {
-  * @unbuddied:	array of lists tracking z3fold pages that contain 2- buddies;
-  *		the lists each z3fold page is added to depends on the size of
-  *		its free region.
-- * @buddied:	list tracking the z3fold pages that contain 3 buddies;
-- *		these z3fold pages are full
-  * @lru:	list tracking the z3fold pages in LRU order by most recently
-  *		added buddy.
-  * @pages_nr:	number of z3fold pages in the pool.
-@@ -109,7 +109,6 @@ struct z3fold_header {
- struct z3fold_pool {
- 	spinlock_t lock;
- 	struct list_head unbuddied[NCHUNKS];
--	struct list_head buddied;
- 	struct list_head lru;
- 	atomic64_t pages_nr;
- 	const struct z3fold_ops *ops;
-@@ -121,8 +120,7 @@ struct z3fold_pool {
-  * Internal z3fold page flags
-  */
- enum z3fold_page_flags {
--	UNDER_RECLAIM = 0,
--	PAGE_HEADLESS,
-+	PAGE_HEADLESS = 0,
- 	MIDDLE_CHUNK_MAPPED,
- };
+@@ -166,9 +166,12 @@ static void free_z3fold_page(struct page
  
-@@ -146,11 +144,11 @@ static struct z3fold_header *init_z3fold
- 	struct z3fold_header *zhdr = page_address(page);
- 
- 	INIT_LIST_HEAD(&page->lru);
--	clear_bit(UNDER_RECLAIM, &page->private);
- 	clear_bit(PAGE_HEADLESS, &page->private);
- 	clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
- 
- 	spin_lock_init(&zhdr->page_lock);
-+	kref_init(&zhdr->refcount);
- 	zhdr->first_chunks = 0;
- 	zhdr->middle_chunks = 0;
- 	zhdr->last_chunks = 0;
-@@ -161,9 +159,21 @@ static struct z3fold_header *init_z3fold
- }
- 
- /* Resets the struct page fields and frees the page */
--static void free_z3fold_page(struct z3fold_header *zhdr)
-+static void free_z3fold_page(struct page *page)
+ static void release_z3fold_page(struct kref *ref)
  {
--	__free_page(virt_to_page(zhdr));
-+	__free_page(page);
-+}
+-	struct z3fold_header *zhdr = container_of(ref, struct z3fold_header,
+-						refcount);
+-	struct page *page = virt_to_page(zhdr);
++	struct z3fold_header *zhdr;
++	struct page *page;
 +
-+static void release_z3fold_page(struct kref *ref)
-+{
-+	struct z3fold_header *zhdr = container_of(ref, struct z3fold_header,
-+						refcount);
-+	struct page *page = virt_to_page(zhdr);
-+	if (!list_empty(&zhdr->buddy))
-+		list_del(&zhdr->buddy);
-+	if (!list_empty(&page->lru))
-+		list_del(&page->lru);
-+	free_z3fold_page(page);
++	zhdr = container_of(ref, struct z3fold_header, refcount);
++	page = virt_to_page(zhdr);
++
+ 	if (!list_empty(&zhdr->buddy))
+ 		list_del(&zhdr->buddy);
+ 	if (!list_empty(&page->lru))
+@@ -188,7 +191,6 @@ static inline void z3fold_page_unlock(st
+ 	spin_unlock(&zhdr->page_lock);
  }
  
- /* Lock a z3fold page */
-@@ -257,7 +267,6 @@ static struct z3fold_pool *z3fold_create
- 	spin_lock_init(&pool->lock);
- 	for_each_unbuddied_list(i, 0)
- 		INIT_LIST_HEAD(&pool->unbuddied[i]);
--	INIT_LIST_HEAD(&pool->buddied);
- 	INIT_LIST_HEAD(&pool->lru);
- 	atomic64_set(&pool->pages_nr, 0);
- 	pool->ops = ops;
-@@ -378,6 +387,7 @@ static int z3fold_alloc(struct z3fold_po
- 				spin_unlock(&pool->lock);
- 				continue;
- 			}
-+			kref_get(&zhdr->refcount);
- 			list_del_init(&zhdr->buddy);
- 			spin_unlock(&pool->lock);
- 
-@@ -394,10 +404,12 @@ static int z3fold_alloc(struct z3fold_po
- 			else if (zhdr->middle_chunks == 0)
- 				bud = MIDDLE;
- 			else {
-+				z3fold_page_unlock(zhdr);
- 				spin_lock(&pool->lock);
--				list_add(&zhdr->buddy, &pool->buddied);
-+				if (kref_put(&zhdr->refcount,
-+					     release_z3fold_page))
-+					atomic64_dec(&pool->pages_nr);
- 				spin_unlock(&pool->lock);
--				z3fold_page_unlock(zhdr);
- 				pr_err("No free chunks in unbuddied\n");
- 				WARN_ON(1);
- 				continue;
-@@ -438,9 +450,6 @@ found:
- 		/* Add to unbuddied list */
- 		freechunks = num_free_chunks(zhdr);
- 		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
--	} else {
--		/* Add to buddied list */
--		list_add(&zhdr->buddy, &pool->buddied);
- 	}
- 
- headless:
-@@ -504,52 +513,29 @@ static void z3fold_free(struct z3fold_po
- 		}
- 	}
- 
--	if (test_bit(UNDER_RECLAIM, &page->private)) {
--		/* z3fold page is under reclaim, reclaim will free */
--		if (bud != HEADLESS)
--			z3fold_page_unlock(zhdr);
--		return;
--	}
 -
--	/* Remove from existing buddy list */
--	if (bud != HEADLESS) {
--		spin_lock(&pool->lock);
--		/*
--		 * this object may have been removed from its list by
--		 * z3fold_alloc(). In that case we just do nothing,
--		 * z3fold_alloc() will allocate an object and add the page
--		 * to the relevant list.
--		 */
--		if (!list_empty(&zhdr->buddy)) {
--			list_del(&zhdr->buddy);
--		} else {
--			spin_unlock(&pool->lock);
--			z3fold_page_unlock(zhdr);
--			return;
--		}
--		spin_unlock(&pool->lock);
--	}
--
--	if (bud == HEADLESS ||
--	    (zhdr->first_chunks == 0 && zhdr->middle_chunks == 0 &&
--			zhdr->last_chunks == 0)) {
--		/* z3fold page is empty, free */
-+	if (bud == HEADLESS) {
- 		spin_lock(&pool->lock);
- 		list_del(&page->lru);
- 		spin_unlock(&pool->lock);
--		clear_bit(PAGE_HEADLESS, &page->private);
--		if (bud != HEADLESS)
--			z3fold_page_unlock(zhdr);
--		free_z3fold_page(zhdr);
-+		free_z3fold_page(page);
- 		atomic64_dec(&pool->pages_nr);
- 	} else {
--		z3fold_compact_page(zhdr);
--		/* Add to the unbuddied list */
-+		if (zhdr->first_chunks != 0 || zhdr->middle_chunks != 0 ||
-+		    zhdr->last_chunks != 0) {
-+			z3fold_compact_page(zhdr);
-+			/* Add to the unbuddied list */
-+			spin_lock(&pool->lock);
-+			if (!list_empty(&zhdr->buddy))
-+				list_del(&zhdr->buddy);
-+			freechunks = num_free_chunks(zhdr);
-+			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+			spin_unlock(&pool->lock);
-+		}
-+		z3fold_page_unlock(zhdr);
- 		spin_lock(&pool->lock);
--		freechunks = num_free_chunks(zhdr);
--		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		if (kref_put(&zhdr->refcount, release_z3fold_page))
-+			atomic64_dec(&pool->pages_nr);
- 		spin_unlock(&pool->lock);
--		z3fold_page_unlock(zhdr);
- 	}
- 
- }
-@@ -608,13 +594,13 @@ static int z3fold_reclaim_page(struct z3
- 			return -EINVAL;
- 		}
- 		page = list_last_entry(&pool->lru, struct page, lru);
--		list_del(&page->lru);
-+		list_del_init(&page->lru);
- 
--		/* Protect z3fold page against free */
--		set_bit(UNDER_RECLAIM, &page->private);
- 		zhdr = page_address(page);
- 		if (!test_bit(PAGE_HEADLESS, &page->private)) {
--			list_del(&zhdr->buddy);
-+			if (!list_empty(&zhdr->buddy))
-+				list_del_init(&zhdr->buddy);
-+			kref_get(&zhdr->refcount);
- 			spin_unlock(&pool->lock);
- 			z3fold_page_lock(zhdr);
- 			/*
-@@ -655,30 +641,19 @@ static int z3fold_reclaim_page(struct z3
- 				goto next;
- 		}
- next:
--		if (!test_bit(PAGE_HEADLESS, &page->private))
--			z3fold_page_lock(zhdr);
--		clear_bit(UNDER_RECLAIM, &page->private);
--		if ((test_bit(PAGE_HEADLESS, &page->private) && ret == 0) ||
--		    (zhdr->first_chunks == 0 && zhdr->last_chunks == 0 &&
--		     zhdr->middle_chunks == 0)) {
--			/*
--			 * All buddies are now free, free the z3fold page and
--			 * return success.
--			 */
--			if (!test_and_clear_bit(PAGE_HEADLESS, &page->private))
--				z3fold_page_unlock(zhdr);
--			free_z3fold_page(zhdr);
--			atomic64_dec(&pool->pages_nr);
--			return 0;
--		}  else if (!test_bit(PAGE_HEADLESS, &page->private)) {
--			if (zhdr->first_chunks != 0 &&
--			    zhdr->last_chunks != 0 &&
--			    zhdr->middle_chunks != 0) {
--				/* Full, add to buddied list */
--				spin_lock(&pool->lock);
--				list_add(&zhdr->buddy, &pool->buddied);
--				spin_unlock(&pool->lock);
-+		if (test_bit(PAGE_HEADLESS, &page->private)) {
-+			if (ret == 0) {
-+				free_z3fold_page(page);
-+				return 0;
- 			} else {
-+				spin_lock(&pool->lock);
-+			}
-+		} else {
-+			z3fold_page_lock(zhdr);
-+			if ((zhdr->first_chunks || zhdr->last_chunks ||
-+			     zhdr->middle_chunks) &&
-+			    !(zhdr->first_chunks && zhdr->last_chunks &&
-+			      zhdr->middle_chunks)) {
- 				z3fold_compact_page(zhdr);
- 				/* add to unbuddied list */
- 				spin_lock(&pool->lock);
-@@ -687,13 +662,19 @@ next:
- 					 &pool->unbuddied[freechunks]);
- 				spin_unlock(&pool->lock);
- 			}
--		}
--
--		if (!test_bit(PAGE_HEADLESS, &page->private))
- 			z3fold_page_unlock(zhdr);
-+			spin_lock(&pool->lock);
-+			if (kref_put(&zhdr->refcount, release_z3fold_page)) {
-+				atomic64_dec(&pool->pages_nr);
-+				return 0;
-+			}
-+		}
- 
--		spin_lock(&pool->lock);
--		/* add to beginning of LRU */
-+		/*
-+		 * Add to the beginning of LRU.
-+		 * Pool lock has to be kept here to ensure the page has
-+		 * not already been released
-+		 */
- 		list_add(&page->lru, &pool->lru);
- 	}
- 	spin_unlock(&pool->lock);
+ /*
+  * Encodes the handle of a particular buddy within a z3fold page
+  * Pool lock should be held as this function accesses first_num
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-z3fold-make-pages_nr-atomic.patch
-z3fold-fix-header-size-related-issues.patch
-z3fold-extend-compaction-function.patch
-z3fold-use-per-page-spinlock.patch
-z3fold-add-kref-refcounting.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
+mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
+mm-track-active-portions-of-a-section-at-boot-fix.patch
+mm-memory_hotplugc-unexport-__remove_pages.patch
+hwpoison-soft-offlining-for-non-lru-movable-page-fix-fix.patch
+z3fold-add-kref-refcounting-checkpatch-fixes.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
