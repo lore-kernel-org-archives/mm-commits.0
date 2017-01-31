@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- autofs-take-more-care-to-not-update-last_used-on-path-walk.patch added to
- -mm tree
-Date: Tue, 31 Jan 2017 15:48:06 -0800
-Message-ID: <58912236.FavLnP2RH+EYgp0q%akpm@linux-foundation.org>
+Subject: + autofs-add-command-enum-macros-for-root-dir-ioctls.patch added
+ to -mm tree
+Date: Tue, 31 Jan 2017 15:48:02 -0800
+Message-ID: <58912232.qgZflBAiCWICTBC0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34982 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750851AbdAaX5R (ORCPT
+        with ESMTP id S1750885AbdAaX5R (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 18:57:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, tkusumi@tuxera.com, mm-commits@vger.kernel.org
+To: tkusumi@tuxera.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: take more care to not update last_used on path walk
+     Subject: autofs: add command enum/macros for root-dir ioctls
 has been added to the -mm tree.  Its filename is
-     autofs-take-more-care-to-not-update-last_used-on-path-walk.patch
+     autofs-add-command-enum-macros-for-root-dir-ioctls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-take-more-care-to-not-update-last_used-on-path-walk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-add-command-enum-macros-for-root-dir-ioctls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-take-more-care-to-not-update-last_used-on-path-walk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-add-command-enum-macros-for-root-dir-ioctls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,74 +39,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Kent <raven@themaw.net>
-Subject: autofs: take more care to not update last_used on path walk
+From: Tomohiro Kusumi <tkusumi@tuxera.com>
+Subject: autofs: add command enum/macros for root-dir ioctls
 
-GUI environments seem to be becoming more agressive at scanning
-filesystems, to the point where autofs cannot expire mounts at all.
+Sync root-dir ioctl with misc-char-dev ioctl's enum/macro format since
+these two types of ioctls aren't completely independent of each other in
+terms of command nr.  No functional changes.
 
-This is one key reason the update of the autofs dentry info last_used
-field is done in the expire system when the dentry is seen to be in use.
-
-But somewhere along the way instances of the update has crept back into
-the autofs path walk functions which, with the more aggressive file access
-patterns, is preventing expiration.
-
-Changing the update in the path walk functions allows autofs to at least
-make progress in spite of frequent immediate re-mounts from file accesses.
-
-Link: http://lkml.kernel.org/r/148577167169.9801.1377050092212016834.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/148577166143.9801.15511796506678428145.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ include/uapi/linux/auto_dev-ioctl.h |    2 --
+ include/uapi/linux/auto_fs.h        |   25 ++++++++++++++++++-------
+ include/uapi/linux/auto_fs4.h       |   16 +++++++++++-----
+ 3 files changed, 29 insertions(+), 14 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs-take-more-care-to-not-update-last_used-on-path-walk fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-take-more-care-to-not-update-last_used-on-path-walk
-+++ a/fs/autofs4/root.c
-@@ -281,8 +281,8 @@ static int autofs4_mount_wait(const stru
- 		pr_debug("waiting for mount name=%pd\n", path->dentry);
- 		status = autofs4_wait(sbi, path, NFY_MOUNT);
- 		pr_debug("mount wait done status=%d\n", status);
-+		ino->last_used = jiffies;
- 	}
--	ino->last_used = jiffies;
- 	return status;
- }
+diff -puN include/uapi/linux/auto_dev-ioctl.h~autofs-add-command-enum-macros-for-root-dir-ioctls include/uapi/linux/auto_dev-ioctl.h
+--- a/include/uapi/linux/auto_dev-ioctl.h~autofs-add-command-enum-macros-for-root-dir-ioctls
++++ a/include/uapi/linux/auto_dev-ioctl.h
+@@ -156,8 +156,6 @@ enum {
+ 	AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD,
+ };
  
-@@ -321,16 +321,21 @@ static struct dentry *autofs4_mountpoint
- 	 */
- 	if (autofs_type_indirect(sbi->type) && d_unhashed(dentry)) {
- 		struct dentry *parent = dentry->d_parent;
--		struct autofs_info *ino;
- 		struct dentry *new;
+-#define AUTOFS_IOCTL 0x93
+-
+ #define AUTOFS_DEV_IOCTL_VERSION \
+ 	_IOWR(AUTOFS_IOCTL, \
+ 	      AUTOFS_DEV_IOCTL_VERSION_CMD, struct autofs_dev_ioctl)
+diff -puN include/uapi/linux/auto_fs.h~autofs-add-command-enum-macros-for-root-dir-ioctls include/uapi/linux/auto_fs.h
+--- a/include/uapi/linux/auto_fs.h~autofs-add-command-enum-macros-for-root-dir-ioctls
++++ a/include/uapi/linux/auto_fs.h
+@@ -61,12 +61,23 @@ struct autofs_packet_expire {
+ 	char name[NAME_MAX+1];
+ };
  
- 		new = d_lookup(parent, &dentry->d_name);
- 		if (!new)
- 			return NULL;
--		ino = autofs4_dentry_ino(new);
--		ino->last_used = jiffies;
--		dput(path->dentry);
--		path->dentry = new;
-+		if (new == dentry)
-+			dput(new);
-+		else {
-+			struct autofs_info *ino;
+-#define AUTOFS_IOC_READY      _IO(0x93, 0x60)
+-#define AUTOFS_IOC_FAIL       _IO(0x93, 0x61)
+-#define AUTOFS_IOC_CATATONIC  _IO(0x93, 0x62)
+-#define AUTOFS_IOC_PROTOVER   _IOR(0x93, 0x63, int)
+-#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(0x93, 0x64, compat_ulong_t)
+-#define AUTOFS_IOC_SETTIMEOUT _IOWR(0x93, 0x64, unsigned long)
+-#define AUTOFS_IOC_EXPIRE     _IOR(0x93, 0x65, struct autofs_packet_expire)
++#define AUTOFS_IOCTL 0x93
 +
-+			ino = autofs4_dentry_ino(new);
-+			ino->last_used = jiffies;
-+			dput(path->dentry);
-+			path->dentry = new;
-+		}
- 	}
- 	return path->dentry;
- }
++enum {
++	AUTOFS_IOC_READY_CMD = 0x60,
++	AUTOFS_IOC_FAIL_CMD,
++	AUTOFS_IOC_CATATONIC_CMD,
++	AUTOFS_IOC_PROTOVER_CMD,
++	AUTOFS_IOC_SETTIMEOUT_CMD,
++	AUTOFS_IOC_EXPIRE_CMD,
++};
++
++#define AUTOFS_IOC_READY        _IO(AUTOFS_IOCTL, AUTOFS_IOC_READY_CMD)
++#define AUTOFS_IOC_FAIL         _IO(AUTOFS_IOCTL, AUTOFS_IOC_FAIL_CMD)
++#define AUTOFS_IOC_CATATONIC    _IO(AUTOFS_IOCTL, AUTOFS_IOC_CATATONIC_CMD)
++#define AUTOFS_IOC_PROTOVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOVER_CMD, int)
++#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(AUTOFS_IOCTL, AUTOFS_IOC_SETTIMEOUT_CMD, compat_ulong_t)
++#define AUTOFS_IOC_SETTIMEOUT   _IOWR(AUTOFS_IOCTL, AUTOFS_IOC_SETTIMEOUT_CMD, unsigned long)
++#define AUTOFS_IOC_EXPIRE       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_CMD, struct autofs_packet_expire)
+ 
+ #endif /* _UAPI_LINUX_AUTO_FS_H */
+diff -puN include/uapi/linux/auto_fs4.h~autofs-add-command-enum-macros-for-root-dir-ioctls include/uapi/linux/auto_fs4.h
+--- a/include/uapi/linux/auto_fs4.h~autofs-add-command-enum-macros-for-root-dir-ioctls
++++ a/include/uapi/linux/auto_fs4.h
+@@ -148,10 +148,16 @@ union autofs_v5_packet_union {
+ 	autofs_packet_expire_direct_t expire_direct;
+ };
+ 
+-#define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93, 0x66, int)
+-#define AUTOFS_IOC_EXPIRE_INDIRECT	AUTOFS_IOC_EXPIRE_MULTI
+-#define AUTOFS_IOC_EXPIRE_DIRECT	AUTOFS_IOC_EXPIRE_MULTI
+-#define AUTOFS_IOC_PROTOSUBVER		_IOR(0x93, 0x67, int)
+-#define AUTOFS_IOC_ASKUMOUNT		_IOR(0x93, 0x70, int)
++enum {
++	AUTOFS_IOC_EXPIRE_MULTI_CMD = 0x66, /* AUTOFS_IOC_EXPIRE_CMD + 1 */
++	AUTOFS_IOC_PROTOSUBVER_CMD,
++	AUTOFS_IOC_ASKUMOUNT_CMD = 0x70, /* AUTOFS_DEV_IOCTL_VERSION_CMD - 1 */
++};
++
++#define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
++#define AUTOFS_IOC_EXPIRE_INDIRECT AUTOFS_IOC_EXPIRE_MULTI
++#define AUTOFS_IOC_EXPIRE_DIRECT   AUTOFS_IOC_EXPIRE_MULTI
++#define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
++#define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
+ 
+ #endif /* _LINUX_AUTO_FS4_H */
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from tkusumi@tuxera.com are
 
-autofs-take-more-care-to-not-update-last_used-on-path-walk.patch
+autofs-remove-wrong-comment.patch
+autofs-fix-typo-in-documentation.patch
+autofs-fix-wrong-ioctl-documentation-regarding-devid.patch
+autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl.patch
+autofs-add-command-enum-macros-for-root-dir-ioctls.patch
+autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
 
