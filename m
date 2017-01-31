@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-add-command-enum-macros-for-root-dir-ioctls.patch added
- to -mm tree
-Date: Tue, 31 Jan 2017 15:48:02 -0800
-Message-ID: <58912232.qgZflBAiCWICTBC0%akpm@linux-foundation.org>
+Subject: + autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch added to -mm tree
+Date: Tue, 31 Jan 2017 15:48:04 -0800
+Message-ID: <58912234.B6thMB9sD2PGEWdh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750885AbdAaX5R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 18:57:17 -0500
+        with ESMTP id S1750885AbdAaX5x (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 18:57:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tkusumi@tuxera.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: add command enum/macros for root-dir ioctls
+     Subject: autofs: remove duplicated AUTOFS_DEV_IOCTL_SIZE definition
 has been added to the -mm tree.  Its filename is
-     autofs-add-command-enum-macros-for-root-dir-ioctls.patch
+     autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-add-command-enum-macros-for-root-dir-ioctls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-add-command-enum-macros-for-root-dir-ioctls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,94 +39,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: add command enum/macros for root-dir ioctls
+Subject: autofs: remove duplicated AUTOFS_DEV_IOCTL_SIZE definition
 
-Sync root-dir ioctl with misc-char-dev ioctl's enum/macro format since
-these two types of ioctls aren't completely independent of each other in
-terms of command nr.  No functional changes.
+This macro is already defined in uapi header.  Also use this macro where
+possible.
 
-Link: http://lkml.kernel.org/r/148577166143.9801.15511796506678428145.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/148577166656.9801.10322423666945951186.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/auto_dev-ioctl.h |    2 --
- include/uapi/linux/auto_fs.h        |   25 ++++++++++++++++++-------
- include/uapi/linux/auto_fs4.h       |   16 +++++++++++-----
- 3 files changed, 29 insertions(+), 14 deletions(-)
+ fs/autofs4/dev-ioctl.c              |    2 --
+ include/uapi/linux/auto_dev-ioctl.h |    4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/uapi/linux/auto_dev-ioctl.h~autofs-add-command-enum-macros-for-root-dir-ioctls include/uapi/linux/auto_dev-ioctl.h
---- a/include/uapi/linux/auto_dev-ioctl.h~autofs-add-command-enum-macros-for-root-dir-ioctls
-+++ a/include/uapi/linux/auto_dev-ioctl.h
-@@ -156,8 +156,6 @@ enum {
- 	AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD,
- };
+diff -puN fs/autofs4/dev-ioctl.c~autofs-remove-duplicated-autofs_dev_ioctl_size-definition fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-remove-duplicated-autofs_dev_ioctl_size-definition
++++ a/fs/autofs4/dev-ioctl.c
+@@ -38,8 +38,6 @@
+  * which have been left busy at at service shutdown.
+  */
  
--#define AUTOFS_IOCTL 0x93
+-#define AUTOFS_DEV_IOCTL_SIZE	sizeof(struct autofs_dev_ioctl)
 -
- #define AUTOFS_DEV_IOCTL_VERSION \
- 	_IOWR(AUTOFS_IOCTL, \
- 	      AUTOFS_DEV_IOCTL_VERSION_CMD, struct autofs_dev_ioctl)
-diff -puN include/uapi/linux/auto_fs.h~autofs-add-command-enum-macros-for-root-dir-ioctls include/uapi/linux/auto_fs.h
---- a/include/uapi/linux/auto_fs.h~autofs-add-command-enum-macros-for-root-dir-ioctls
-+++ a/include/uapi/linux/auto_fs.h
-@@ -61,12 +61,23 @@ struct autofs_packet_expire {
- 	char name[NAME_MAX+1];
- };
+ typedef int (*ioctl_fn)(struct file *, struct autofs_sb_info *,
+ 			struct autofs_dev_ioctl *);
  
--#define AUTOFS_IOC_READY      _IO(0x93, 0x60)
--#define AUTOFS_IOC_FAIL       _IO(0x93, 0x61)
--#define AUTOFS_IOC_CATATONIC  _IO(0x93, 0x62)
--#define AUTOFS_IOC_PROTOVER   _IOR(0x93, 0x63, int)
--#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(0x93, 0x64, compat_ulong_t)
--#define AUTOFS_IOC_SETTIMEOUT _IOWR(0x93, 0x64, unsigned long)
--#define AUTOFS_IOC_EXPIRE     _IOR(0x93, 0x65, struct autofs_packet_expire)
-+#define AUTOFS_IOCTL 0x93
-+
-+enum {
-+	AUTOFS_IOC_READY_CMD = 0x60,
-+	AUTOFS_IOC_FAIL_CMD,
-+	AUTOFS_IOC_CATATONIC_CMD,
-+	AUTOFS_IOC_PROTOVER_CMD,
-+	AUTOFS_IOC_SETTIMEOUT_CMD,
-+	AUTOFS_IOC_EXPIRE_CMD,
-+};
-+
-+#define AUTOFS_IOC_READY        _IO(AUTOFS_IOCTL, AUTOFS_IOC_READY_CMD)
-+#define AUTOFS_IOC_FAIL         _IO(AUTOFS_IOCTL, AUTOFS_IOC_FAIL_CMD)
-+#define AUTOFS_IOC_CATATONIC    _IO(AUTOFS_IOCTL, AUTOFS_IOC_CATATONIC_CMD)
-+#define AUTOFS_IOC_PROTOVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOVER_CMD, int)
-+#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(AUTOFS_IOCTL, AUTOFS_IOC_SETTIMEOUT_CMD, compat_ulong_t)
-+#define AUTOFS_IOC_SETTIMEOUT   _IOWR(AUTOFS_IOCTL, AUTOFS_IOC_SETTIMEOUT_CMD, unsigned long)
-+#define AUTOFS_IOC_EXPIRE       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_CMD, struct autofs_packet_expire)
+diff -puN include/uapi/linux/auto_dev-ioctl.h~autofs-remove-duplicated-autofs_dev_ioctl_size-definition include/uapi/linux/auto_dev-ioctl.h
+--- a/include/uapi/linux/auto_dev-ioctl.h~autofs-remove-duplicated-autofs_dev_ioctl_size-definition
++++ a/include/uapi/linux/auto_dev-ioctl.h
+@@ -113,10 +113,10 @@ struct autofs_dev_ioctl {
  
- #endif /* _UAPI_LINUX_AUTO_FS_H */
-diff -puN include/uapi/linux/auto_fs4.h~autofs-add-command-enum-macros-for-root-dir-ioctls include/uapi/linux/auto_fs4.h
---- a/include/uapi/linux/auto_fs4.h~autofs-add-command-enum-macros-for-root-dir-ioctls
-+++ a/include/uapi/linux/auto_fs4.h
-@@ -148,10 +148,16 @@ union autofs_v5_packet_union {
- 	autofs_packet_expire_direct_t expire_direct;
- };
+ static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
+ {
+-	memset(in, 0, sizeof(struct autofs_dev_ioctl));
++	memset(in, 0, AUTOFS_DEV_IOCTL_SIZE);
+ 	in->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
+ 	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
+-	in->size = sizeof(struct autofs_dev_ioctl);
++	in->size = AUTOFS_DEV_IOCTL_SIZE;
+ 	in->ioctlfd = -1;
+ }
  
--#define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93, 0x66, int)
--#define AUTOFS_IOC_EXPIRE_INDIRECT	AUTOFS_IOC_EXPIRE_MULTI
--#define AUTOFS_IOC_EXPIRE_DIRECT	AUTOFS_IOC_EXPIRE_MULTI
--#define AUTOFS_IOC_PROTOSUBVER		_IOR(0x93, 0x67, int)
--#define AUTOFS_IOC_ASKUMOUNT		_IOR(0x93, 0x70, int)
-+enum {
-+	AUTOFS_IOC_EXPIRE_MULTI_CMD = 0x66, /* AUTOFS_IOC_EXPIRE_CMD + 1 */
-+	AUTOFS_IOC_PROTOSUBVER_CMD,
-+	AUTOFS_IOC_ASKUMOUNT_CMD = 0x70, /* AUTOFS_DEV_IOCTL_VERSION_CMD - 1 */
-+};
-+
-+#define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
-+#define AUTOFS_IOC_EXPIRE_INDIRECT AUTOFS_IOC_EXPIRE_MULTI
-+#define AUTOFS_IOC_EXPIRE_DIRECT   AUTOFS_IOC_EXPIRE_MULTI
-+#define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
-+#define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
- 
- #endif /* _LINUX_AUTO_FS4_H */
 _
 
 Patches currently in -mm which might be from tkusumi@tuxera.com are
