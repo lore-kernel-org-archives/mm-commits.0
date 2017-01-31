@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-sleeping-function-called-from-invalid-context-shmem_undo_range.patch
+ jump-label-pass-kbuild_cflags-when-checking-for-asm-goto-support.patch
  added to -mm tree
-Date: Tue, 31 Jan 2017 14:09:01 -0800
-Message-ID: <58910afd.r8pX/uAyN0xM1XJG%akpm@linux-foundation.org>
+Date: Tue, 31 Jan 2017 14:14:33 -0800
+Message-ID: <58910c49.XdjP0c+2LGQquLlG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41838 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750775AbdAaWJ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 17:09:27 -0500
+        with ESMTP id S1750978AbdAaWOe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 17:14:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dvyukov@google.com, mm-commits@vger.kernel.org
+To: dtwlin@google.com, mmarek@suse.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix sleeping from atomic context
+     Subject: jump label: pass kbuild_cflags when checking for asm goto support
 has been added to the -mm tree.  Its filename is
-     mm-sleeping-function-called-from-invalid-context-shmem_undo_range.patch
+     jump-label-pass-kbuild_cflags-when-checking-for-asm-goto-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sleeping-function-called-from-invalid-context-shmem_undo_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jump-label-pass-kbuild_cflags-when-checking-for-asm-goto-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sleeping-function-called-from-invalid-context-shmem_undo_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jump-label-pass-kbuild_cflags-when-checking-for-asm-goto-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,118 +40,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: fix sleeping from atomic context
+From: David Lin <dtwlin@google.com>
+Subject: jump label: pass kbuild_cflags when checking for asm goto support
 
-Syzkaller fuzzer managed to trigger this:
+Some versions of ARM GCC compiler such as Android toolchain throws in a
+'-fpic' flag by default.  This causes the gcc-goto check script to fail
+although some config would have '-fno-pic' flag in the KBUILD_CFLAGS.
 
-BUG: sleeping function called from invalid context at mm/shmem.c:852
-in_atomic(): 1, irqs_disabled(): 0, pid: 529, name: khugepaged
-3 locks held by khugepaged/529:
- #0:  (shrinker_rwsem){++++..}, at: [<ffffffff818d7ef1>]
-shrink_slab.part.59+0x121/0xd30 mm/vmscan.c:451
- #1:  (&type->s_umount_key#29){++++..}, at: [<ffffffff81a63630>]
-trylock_super+0x20/0x100 fs/super.c:392
- #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
-[<ffffffff818fd83e>] spin_lock include/linux/spinlock.h:302 [inline]
- #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
-[<ffffffff818fd83e>] shmem_unused_huge_shrink+0x28e/0x1490
-mm/shmem.c:427
-CPU: 2 PID: 529 Comm: khugepaged Not tainted 4.10.0-rc5+ #201
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:15 [inline]
- dump_stack+0x2ee/0x3ef lib/dump_stack.c:51
- ___might_sleep+0x47e/0x650 kernel/sched/core.c:7780
- shmem_undo_range+0xb20/0x2710 mm/shmem.c:852
- shmem_truncate_range+0x27/0xa0 mm/shmem.c:939
- shmem_evict_inode+0x35f/0xca0 mm/shmem.c:1030
- evict+0x46e/0x980 fs/inode.c:553
- iput_final fs/inode.c:1515 [inline]
- iput+0x589/0xb20 fs/inode.c:1542
- shmem_unused_huge_shrink+0xbad/0x1490 mm/shmem.c:446
- shmem_unused_huge_scan+0x10c/0x170 mm/shmem.c:512
- super_cache_scan+0x376/0x450 fs/super.c:106
- do_shrink_slab mm/vmscan.c:378 [inline]
- shrink_slab.part.59+0x543/0xd30 mm/vmscan.c:481
- shrink_slab mm/vmscan.c:2592 [inline]
- shrink_node+0x2c7/0x870 mm/vmscan.c:2592
- shrink_zones mm/vmscan.c:2734 [inline]
- do_try_to_free_pages+0x369/0xc80 mm/vmscan.c:2776
- try_to_free_pages+0x3c6/0x900 mm/vmscan.c:2982
- __perform_reclaim mm/page_alloc.c:3301 [inline]
- __alloc_pages_direct_reclaim mm/page_alloc.c:3322 [inline]
- __alloc_pages_slowpath+0xa24/0x1c30 mm/page_alloc.c:3683
- __alloc_pages_nodemask+0x544/0xae0 mm/page_alloc.c:3848
- __alloc_pages include/linux/gfp.h:426 [inline]
- __alloc_pages_node include/linux/gfp.h:439 [inline]
- khugepaged_alloc_page+0xc2/0x1b0 mm/khugepaged.c:750
- collapse_huge_page+0x182/0x1fe0 mm/khugepaged.c:955
- khugepaged_scan_pmd+0xfdf/0x12a0 mm/khugepaged.c:1208
- khugepaged_scan_mm_slot mm/khugepaged.c:1727 [inline]
- khugepaged_do_scan mm/khugepaged.c:1808 [inline]
- khugepaged+0xe9b/0x1590 mm/khugepaged.c:1853
- kthread+0x326/0x3f0 kernel/kthread.c:227
- ret_from_fork+0x31/0x40 arch/x86/entry/entry_64.S:430
+This patch passes the KBUILD_CFLAGS to the check script so that the script
+does not rely on the default config from different compilers.
 
-The iput() from atomic context was a bad idea: if after igrab() somebody
-else calls iput() and we left with the last inode reference, our iput()
-would lead to inode eviction and therefore sleeping.
-
-This patch should fix the situation.
-
-Link: http://lkml.kernel.org/r/20170131093141.GA15899@node.shutemov.name
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20170120234329.78868-1-dtwlin@google.com
+Signed-off-by: David Lin <dtwlin@google.com>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Michal Marek <mmarek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range mm/shmem.c
---- a/mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range
-+++ a/mm/shmem.c
-@@ -415,6 +415,7 @@ static unsigned long shmem_unused_huge_s
- 		struct shrink_control *sc, unsigned long nr_to_split)
- {
- 	LIST_HEAD(list), *pos, *next;
-+	LIST_HEAD(to_remove);
- 	struct inode *inode;
- 	struct shmem_inode_info *info;
- 	struct page *page;
-@@ -441,9 +442,8 @@ static unsigned long shmem_unused_huge_s
- 		/* Check if there's anything to gain */
- 		if (round_up(inode->i_size, PAGE_SIZE) ==
- 				round_up(inode->i_size, HPAGE_PMD_SIZE)) {
--			list_del_init(&info->shrinklist);
-+			list_move(&info->shrinklist, &to_remove);
- 			removed++;
--			iput(inode);
- 			goto next;
- 		}
+diff -puN Makefile~jump-label-pass-kbuild_cflags-when-checking-for-asm-goto-support Makefile
+--- a/Makefile~jump-label-pass-kbuild_cflags-when-checking-for-asm-goto-support
++++ a/Makefile
+@@ -797,7 +797,7 @@ KBUILD_CFLAGS   += $(call cc-option,-Wer
+ KBUILD_ARFLAGS := $(call ar-option,D)
  
-@@ -454,6 +454,13 @@ next:
- 	}
- 	spin_unlock(&sbinfo->shrinklist_lock);
- 
-+	list_for_each_safe(pos, next, &to_remove) {
-+		info = list_entry(pos, struct shmem_inode_info, shrinklist);
-+		inode = &info->vfs_inode;
-+		list_del_init(&info->shrinklist);
-+		iput(inode);
-+	}
-+
- 	list_for_each_safe(pos, next, &list) {
- 		int ret;
- 
+ # check for 'asm goto'
+-ifeq ($(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-goto.sh $(CC)), y)
++ifeq ($(shell $(CONFIG_SHELL) $(srctree)/scripts/gcc-goto.sh $(CC) $(KBUILD_CFLAGS)), y)
+ 	KBUILD_CFLAGS += -DCC_HAVE_ASM_GOTO
+ 	KBUILD_AFLAGS += -DCC_HAVE_ASM_GOTO
+ endif
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from dtwlin@google.com are
 
-mm-sleeping-function-called-from-invalid-context-shmem_undo_range.patch
-mm-drop-zap_details-ignore_dirty.patch
-mm-drop-zap_details-check_swap_entries.patch
-mm-drop-unused-argument-of-zap_page_range.patch
-oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma.patch
+jump-label-pass-kbuild_cflags-when-checking-for-asm-goto-support.patch
 
