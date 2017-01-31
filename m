@@ -1,15 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch added to -mm tree
-Date: Tue, 31 Jan 2017 15:48:04 -0800
-Message-ID: <58912234.B6thMB9sD2PGEWdh%akpm@linux-foundation.org>
+Subject: +
+ autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl.patch
+ added to -mm tree
+Date: Tue, 31 Jan 2017 15:48:00 -0800
+Message-ID: <58912230.wf5S6YLlUNAZr1mx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35006 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750885AbdAaX5x (ORCPT
+        with ESMTP id S1750830AbdAaX5x (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 18:57:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +19,14 @@ To: tkusumi@tuxera.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: remove duplicated AUTOFS_DEV_IOCTL_SIZE definition
+     Subject: autofs: update ioctl documentation regarding struct autofs_dev_ioctl
 has been added to the -mm tree.  Its filename is
-     autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
+     autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +41,82 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: remove duplicated AUTOFS_DEV_IOCTL_SIZE definition
+Subject: autofs: update ioctl documentation regarding struct autofs_dev_ioctl
 
-This macro is already defined in uapi header.  Also use this macro where
-possible.
+This is the same as bf72eda5 except that it's a different file.  Sync
+documentation with changes made by 730c9eec in 2009.
 
-Link: http://lkml.kernel.org/r/148577166656.9801.10322423666945951186.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/148577165630.9801.6081791213151121657.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c              |    2 --
- include/uapi/linux/auto_dev-ioctl.h |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ Documentation/filesystems/autofs4-mount-control.txt |    1 
+ Documentation/filesystems/autofs4.txt               |   32 ++++++----
+ 2 files changed, 22 insertions(+), 11 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-remove-duplicated-autofs_dev_ioctl_size-definition fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-remove-duplicated-autofs_dev_ioctl_size-definition
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -38,8 +38,6 @@
-  * which have been left busy at at service shutdown.
-  */
+diff -puN Documentation/filesystems/autofs4-mount-control.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl Documentation/filesystems/autofs4-mount-control.txt
+--- a/Documentation/filesystems/autofs4-mount-control.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl
++++ a/Documentation/filesystems/autofs4-mount-control.txt
+@@ -179,6 +179,7 @@ struct autofs_dev_ioctl {
+ 				 * including this struct */
+ 	__s32 ioctlfd;          /* automount command fd */
  
--#define AUTOFS_DEV_IOCTL_SIZE	sizeof(struct autofs_dev_ioctl)
++	/* Command parameters */
+ 	union {
+ 		struct args_protover		protover;
+ 		struct args_protosubver		protosubver;
+diff -puN Documentation/filesystems/autofs4.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl Documentation/filesystems/autofs4.txt
+--- a/Documentation/filesystems/autofs4.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl
++++ a/Documentation/filesystems/autofs4.txt
+@@ -425,8 +425,20 @@ Each ioctl is passed a pointer to an `au
+                                          * including this struct */
+                 __s32 ioctlfd;          /* automount command fd */
+ 
+-                __u32 arg1;             /* Command parameters */
+-                __u32 arg2;
++		/* Command parameters */
++		union {
++			struct args_protover		protover;
++			struct args_protosubver		protosubver;
++			struct args_openmount		openmount;
++			struct args_ready		ready;
++			struct args_fail		fail;
++			struct args_setpipefd		setpipefd;
++			struct args_timeout		timeout;
++			struct args_requester		requester;
++			struct args_expire		expire;
++			struct args_askumount		askumount;
++			struct args_ismountpoint	ismountpoint;
++		};
+ 
+                 char path[0];
+         };
+@@ -446,24 +458,22 @@ Commands are:
+     set version numbers.
+ - **AUTOFS_DEV_IOCTL_OPENMOUNT_CMD**: return an open file descriptor
+     on the root of an autofs filesystem.  The filesystem is identified
+-    by name and device number, which is stored in `arg1`.  Device
+-    numbers for existing filesystems can be found in
++    by name and device number, which is stored in `openmount.devid`.
++    Device numbers for existing filesystems can be found in
+     `/proc/self/mountinfo`.
+ - **AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD**: same as `close(ioctlfd)`.
+ - **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the filesystem is in
+     catatonic mode, this can provide the write end of a new pipe
+-    in `arg1` to re-establish communication with a daemon.  The
+-    process group of the calling process is used to identify the
++    in `setpipefd.pipefd` to re-establish communication with a daemon.
++    The process group of the calling process is used to identify the
+     daemon.
+ - **AUTOFS_DEV_IOCTL_REQUESTER_CMD**: `path` should be a
+     name within the filesystem that has been auto-mounted on.
+-    On successful return, `arg1` and `arg2` will be the UID and GID
+-    of the process which triggered that mount.
 -
- typedef int (*ioctl_fn)(struct file *, struct autofs_sb_info *,
- 			struct autofs_dev_ioctl *);
- 
-diff -puN include/uapi/linux/auto_dev-ioctl.h~autofs-remove-duplicated-autofs_dev_ioctl_size-definition include/uapi/linux/auto_dev-ioctl.h
---- a/include/uapi/linux/auto_dev-ioctl.h~autofs-remove-duplicated-autofs_dev_ioctl_size-definition
-+++ a/include/uapi/linux/auto_dev-ioctl.h
-@@ -113,10 +113,10 @@ struct autofs_dev_ioctl {
- 
- static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
- {
--	memset(in, 0, sizeof(struct autofs_dev_ioctl));
-+	memset(in, 0, AUTOFS_DEV_IOCTL_SIZE);
- 	in->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
- 	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
--	in->size = sizeof(struct autofs_dev_ioctl);
-+	in->size = AUTOFS_DEV_IOCTL_SIZE;
- 	in->ioctlfd = -1;
- }
- 
-_
-
-Patches currently in -mm which might be from tkusumi@tuxera.com are
-
-autofs-remove-wrong-comment.patch
-autofs-fix-typo-in-documentation.patch
-autofs-fix-wrong-ioctl-documentation-regarding-devid.patch
-autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl.patch
-autofs-add-command-enum-macros-for-root-dir-ioctls.patch
-autofs-remove-duplicated-autofs_dev_ioctl_size-definition.patch
-
++    On successful return, `requester.uid` and `requester.gid` will be
++    the UID and GID of the process which triggered that mount.
+ - **AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD**: Check if path is a
+     mountpoint of a particular type - see separate documentation for
+     details.
