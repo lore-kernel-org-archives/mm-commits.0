@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + prctl-implement-pr_get_endian-for-all-architectures.patch added to -mm tree
-Date: Tue, 31 Jan 2017 16:27:05 -0800
-Message-ID: <58912b59.Ays0cJdiclRf+fon%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-non-cooperative-add-event-for-exit-notification.patch added to
+ -mm tree
+Date: Tue, 31 Jan 2017 16:46:49 -0800
+Message-ID: <58912ff9.+coUlbcKK6xQwqNa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39946 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750830AbdBAA1G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:27:06 -0500
+        with ESMTP id S1751064AbdBAAqu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:46:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl: implement PR_GET_ENDIAN for all architectures
+     Subject: userfaultfd: non-cooperative: add event for exit() notification
 has been added to the -mm tree.  Its filename is
-     prctl-implement-pr_get_endian-for-all-architectures.patch
+     userfaultfd-non-cooperative-add-event-for-exit-notification.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/prctl-implement-pr_get_endian-for-all-architectures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-add-event-for-exit-notification.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-implement-pr_get_endian-for-all-architectures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-add-event-for-exit-notification.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,52 +40,155 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Helge Deller <deller@gmx.de>
-Subject: prctl: implement PR_GET_ENDIAN for all architectures
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: add event for exit() notification
 
-The prctl(PR_GET_ENDIAN) syscall was added to Kernel 2.6.18, but
-implemented for PowerPC only.  This trivial patch adds support for this
-syscall for all other architectures.
+Allow userfaultfd monitor track termination of the processes that have
+memory backed by the uffd.
 
-Link: http://lkml.kernel.org/r/20170128111310.GA13389@ls3530.fritz.box
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Link: http://lkml.kernel.org/r/1485542673-24387-4-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/userfaultfd.c                 |   24 ++++++++++++++++++++++++
+ include/linux/userfaultfd_k.h    |    7 +++++++
+ include/uapi/linux/userfaultfd.h |    5 ++++-
+ kernel/exit.c                    |    2 ++
+ 4 files changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~prctl-implement-pr_get_endian-for-all-architectures kernel/sys.c
---- a/kernel/sys.c~prctl-implement-pr_get_endian-for-all-architectures
-+++ a/kernel/sys.c
-@@ -79,9 +79,6 @@
- #ifndef GET_FPEXC_CTL
- # define GET_FPEXC_CTL(a, b)	(-EINVAL)
- #endif
--#ifndef GET_ENDIAN
--# define GET_ENDIAN(a, b)	(-EINVAL)
--#endif
- #ifndef SET_ENDIAN
- # define SET_ENDIAN(a, b)	(-EINVAL)
- #endif
-@@ -2136,7 +2133,13 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 			return -EFAULT;
- 		break;
- 	case PR_GET_ENDIAN:
-+#ifdef GET_ENDIAN
- 		error = GET_ENDIAN(me, arg2);
-+#elif defined(__BIG_ENDIAN)
-+		error = put_user(PR_ENDIAN_BIG, (unsigned int __user *)arg2);
-+#else
-+		error = put_user(PR_ENDIAN_LITTLE, (unsigned int __user *)arg2);
-+#endif
- 		break;
- 	case PR_SET_ENDIAN:
- 		error = SET_ENDIAN(me, arg2);
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-event-for-exit-notification fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/fs/userfaultfd.c
+@@ -774,6 +774,30 @@ void userfaultfd_unmap_complete(struct m
+ 	}
+ }
+ 
++void userfaultfd_exit(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma = mm->mmap;
++
++	while (vma) {
++		struct userfaultfd_ctx *ctx = vma->vm_userfaultfd_ctx.ctx;
++
++		if (ctx && (ctx->features & UFFD_FEATURE_EVENT_EXIT)) {
++			struct userfaultfd_wait_queue ewq;
++
++			userfaultfd_ctx_get(ctx);
++
++			msg_init(&ewq.msg);
++			ewq.msg.event = UFFD_EVENT_EXIT;
++
++			userfaultfd_event_wait_completion(ctx, &ewq);
++
++			ctx->features &= ~UFFD_FEATURE_EVENT_EXIT;
++		}
++
++		vma = vma->vm_next;
++	}
++}
++
+ static int userfaultfd_release(struct inode *inode, struct file *file)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-event-for-exit-notification include/linux/userfaultfd_k.h
+--- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/include/linux/userfaultfd_k.h
+@@ -72,6 +72,8 @@ extern int userfaultfd_unmap_prep(struct
+ extern void userfaultfd_unmap_complete(struct mm_struct *mm,
+ 				       struct list_head *uf);
+ 
++extern void userfaultfd_exit(struct mm_struct *mm);
++
+ #else /* CONFIG_USERFAULTFD */
+ 
+ /* mm helpers */
+@@ -136,6 +138,11 @@ static inline void userfaultfd_unmap_com
+ 					      struct list_head *uf)
+ {
+ }
++
++static inline void userfaultfd_exit(struct mm_struct *mm)
++{
++}
++
+ #endif /* CONFIG_USERFAULTFD */
+ 
+ #endif /* _LINUX_USERFAULTFD_K_H */
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-event-for-exit-notification include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/include/uapi/linux/userfaultfd.h
+@@ -18,7 +18,8 @@
+  * means the userland is reading).
+  */
+ #define UFFD_API ((__u64)0xAA)
+-#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |		\
++#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_EXIT |		\
++			   UFFD_FEATURE_EVENT_FORK |		\
+ 			   UFFD_FEATURE_EVENT_REMAP |		\
+ 			   UFFD_FEATURE_EVENT_REMOVE |	\
+ 			   UFFD_FEATURE_EVENT_UNMAP |		\
+@@ -112,6 +113,7 @@ struct uffd_msg {
+ #define UFFD_EVENT_REMAP	0x14
+ #define UFFD_EVENT_REMOVE	0x15
+ #define UFFD_EVENT_UNMAP	0x16
++#define UFFD_EVENT_EXIT		0x17
+ 
+ /* flags for UFFD_EVENT_PAGEFAULT */
+ #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
+@@ -161,6 +163,7 @@ struct uffdio_api {
+ #define UFFD_FEATURE_MISSING_HUGETLBFS		(1<<4)
+ #define UFFD_FEATURE_MISSING_SHMEM		(1<<5)
+ #define UFFD_FEATURE_EVENT_UNMAP		(1<<6)
++#define UFFD_FEATURE_EVENT_EXIT			(1<<7)
+ 	__u64 features;
+ 
+ 	__u64 ioctls;
+diff -puN kernel/exit.c~userfaultfd-non-cooperative-add-event-for-exit-notification kernel/exit.c
+--- a/kernel/exit.c~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/kernel/exit.c
+@@ -46,6 +46,7 @@
+ #include <linux/task_io_accounting_ops.h>
+ #include <linux/tracehook.h>
+ #include <linux/fs_struct.h>
++#include <linux/userfaultfd_k.h>
+ #include <linux/init_task.h>
+ #include <linux/perf_event.h>
+ #include <trace/events/sched.h>
+@@ -518,6 +519,7 @@ static void exit_mm(struct task_struct *
+ 	enter_lazy_tlb(mm, current);
+ 	task_unlock(tsk);
+ 	mm_update_next_owner(mm);
++	userfaultfd_exit(mm);
+ 	mmput(mm);
+ 	if (test_thread_flag(TIF_MEMDIE))
+ 		exit_oom_victim();
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-prctl-implement-pr_get_endian-for-all-architectures.patch
+userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users.patch
+userfaultfd-introduce-vma_can_userfault.patch
+userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
+userfaultfd-shmem-introduce-vma_is_shmem.patch
+userfaultfd-shmem-use-shmem_mcopy_atomic_pte-for-shared-memory.patch
+userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults.patch
+userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
+userfaultfd-shmem-add-userfaultfd_shmem-test.patch
+userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
+userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page.patch
+userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
+userfaultfd-non-cooperative-rename-event_madvdontneed-to-event_remove.patch
+userfaultfd-non-cooperative-add-madvise-event-for-madv_remove-request.patch
+userfaultfd-non-cooperative-selftest-enable-remove-event-test-for-shmem.patch
+mm-call-vm_munmap-in-munmap-syscall-instead-of-using-open-coded-version.patch
+userfaultfd-non-cooperative-add-event-for-memory-unmaps.patch
+userfaultfd-non-cooperative-add-event-for-exit-notification.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
 
