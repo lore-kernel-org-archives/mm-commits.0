@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
- added to -mm tree
-Date: Tue, 31 Jan 2017 17:05:21 -0800
-Message-ID: <58913451.OJLu4GyscYJZyZSU%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 01 Feb 2017 13:18:29 -0800
+Message-ID: <589250a5.x4CQ758DhhkYd6i5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36600 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750830AbdBABFr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 20:05:47 -0500
+        with ESMTP id S1751192AbdBAVSb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2017 16:18:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaewon31.kim@samsung.com, iamjoonsoo.kim@lge.com, labbott@redhat.com, mina86@mina86.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: print allocation failure reason and bitmap status
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,102 +38,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: mm: cma: print allocation failure reason and bitmap status
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-There are many reasons of CMA allocation failure such as EBUSY, ENOMEM,
-EINTR.  But we did not know error reason so far.  This patch prints the
-error value.
-
-Additionally if CONFIG_CMA_DEBUG is enabled, this patch shows bitmap
-status to know available pages.  Actually CMA internally tries on all
-available regions because some regions can be failed because of EBUSY. 
-Bitmap status is useful to know in detail on both ENONEM and EBUSY;
-
- ENOMEM: not tried at all because of no available region
-         it could be too small total region or could be fragmentation issue
- EBUSY:  tried some region but all failed
-
-This is an ENOMEM example with this patch.
-[   12.415458]  [2:   Binder:714_1:  744] cma: cma_alloc: alloc failed, req-size: 256 pages, ret: -12
-
-If CONFIG_CMA_DEBUG is enabled, avabile pages also will be shown as
-concatenated size@position format.  So 4@572 means that there are 4
-available pages at 572 position starting from 0 position.
-[   12.415503]  [2:   Binder:714_1:  744] cma: number of available pages: 4@572+7@585+7@601+8@632+38@730+166@1114+127@1921=> 357 free of 2048 total pages
-
-Link: http://lkml.kernel.org/r/1485909785-3952-1-git-send-email-jaewon31.kim@samsung.com
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/cadence/macb.c             |   18 --------------
+ drivers/net/ethernet/cadence/macb.h             |    3 --
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c |    9 -------
+ 3 files changed, 30 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status mm/cma.c
---- a/mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status
-+++ a/mm/cma.c
-@@ -353,6 +353,32 @@ err:
- 	return ret;
+diff -puN drivers/net/ethernet/cadence/macb.c~linux-next-git-rejects drivers/net/ethernet/cadence/macb.c
+--- a/drivers/net/ethernet/cadence/macb.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/cadence/macb.c
+@@ -604,7 +604,6 @@ static void macb_set_addr(struct macb *b
+ 		desc_64 = macb_64b_desc(bp, desc);
+ 		desc_64->addrh = upper_32_bits(addr);
+ 	}
+-<<<<<<< HEAD
+ #endif
+ 	desc->addr = lower_32_bits(addr);
  }
+@@ -620,23 +619,6 @@ static dma_addr_t macb_get_addr(struct m
+ 		addr = ((u64)(desc_64->addrh) << 32);
+ 	}
+ #endif
+-=======
+-#endif
+-	desc->addr = lower_32_bits(addr);
+-}
+-
+-static dma_addr_t macb_get_addr(struct macb *bp, struct macb_dma_desc *desc)
+-{
+-	dma_addr_t addr = 0;
+-#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+-	struct macb_dma_desc_64 *desc_64;
+-
+-	if (bp->hw_dma_cap == HW_DMA_CAP_64B) {
+-		desc_64 = macb_64b_desc(bp, desc);
+-		addr = ((u64)(desc_64->addrh) << 32);
+-	}
+-#endif
+->>>>>>> linux-next/akpm-base
+ 	addr |= MACB_BF(RX_WADDR, MACB_BFEXT(RX_WADDR, desc->addr));
+ 	return addr;
+ }
+diff -puN drivers/net/ethernet/cadence/macb.h~linux-next-git-rejects drivers/net/ethernet/cadence/macb.h
+--- a/drivers/net/ethernet/cadence/macb.h~linux-next-git-rejects
++++ a/drivers/net/ethernet/cadence/macb.h
+@@ -955,11 +955,8 @@ struct macb {
+ #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+ 	enum macb_hw_dma_cap hw_dma_cap;
+ #endif
+-<<<<<<< HEAD
+-=======
  
-+#ifdef CONFIG_CMA_DEBUG
-+static void cma_debug_show_areas(struct cma *cma)
-+{
-+	unsigned long next_zero_bit, next_set_bit;
-+	unsigned long start = 0;
-+	unsigned int nr_zero, nr_total = 0;
-+
-+	mutex_lock(&cma->lock);
-+	pr_info("number of available pages: ");
-+	for (;;) {
-+		next_zero_bit = find_next_zero_bit(cma->bitmap, cma->count, start);
-+		if (next_zero_bit >= cma->count)
-+			break;
-+		next_set_bit = find_next_bit(cma->bitmap, cma->count, next_zero_bit);
-+		nr_zero = next_set_bit - next_zero_bit;
-+		pr_cont("%s%u@%lu", nr_total ? "+" : "", nr_zero, next_zero_bit);
-+		nr_total += nr_zero;
-+		start = next_zero_bit + nr_zero;
-+	}
-+	pr_cont("=> %u free of %lu total pages\n", nr_total, cma->count);
-+	mutex_unlock(&cma->lock);
-+}
-+#else
-+static inline void cma_debug_show_areas(struct cma *cma) { }
-+#endif
-+
- /**
-  * cma_alloc() - allocate pages from contiguous area
-  * @cma:   Contiguous memory region for which the allocation is performed.
-@@ -370,7 +396,7 @@ struct page *cma_alloc(struct cma *cma,
- 	unsigned long start = 0;
- 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
- 	struct page *page = NULL;
--	int ret;
-+	int ret = -ENOMEM;
+ 	struct macb_ptp_info	*ptp_info;	/* macb-ptp interface */
+->>>>>>> linux-next/akpm-base
+ };
  
- 	if (!cma || !cma->count)
- 		return NULL;
-@@ -428,6 +454,12 @@ struct page *cma_alloc(struct cma *cma,
+ static inline bool macb_is_gem(struct macb *bp)
+diff -puN drivers/net/ethernet/mellanox/mlx5/core/en_tc.c~linux-next-git-rejects drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -706,22 +706,13 @@ static int mlx5e_route_lookup_ipv4(struc
+ 	else
+ 		*out_dev = rt->dst.dev;
  
- 	trace_cma_alloc(pfn, page, count, align);
+-<<<<<<< HEAD
+-	ttl = ip4_dst_hoplimit(&rt->dst);
+-=======
+ 	*out_ttl = ip4_dst_hoplimit(&rt->dst);
+->>>>>>> linux-next/akpm-base
+ 	n = dst_neigh_lookup(&rt->dst, &fl4->daddr);
+ 	ip_rt_put(rt);
+ 	if (!n)
+ 		return -ENOMEM;
  
-+	if (ret) {
-+		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
-+			__func__, count, ret);
-+		cma_debug_show_areas(cma);
-+	}
-+
- 	pr_debug("%s(): returned %p\n", __func__, page);
- 	return page;
+ 	*out_n = n;
+-<<<<<<< HEAD
+-	*saddr = fl4->saddr;
+-	*out_ttl = ttl;
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
+mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
+mm-track-active-portions-of-a-section-at-boot-fix.patch
+mm-memory_hotplugc-unexport-__remove_pages.patch
+z3fold-add-kref-refcounting-checkpatch-fixes.patch
+mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
