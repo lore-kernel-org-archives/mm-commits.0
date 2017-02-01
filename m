@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
- added to -mm tree
-Date: Tue, 31 Jan 2017 16:10:14 -0800
-Message-ID: <58912766.Z+xrp77/mNV/iEqr%akpm@linux-foundation.org>
+Subject: + mm-introduce-page_vma_mapped_walk.patch added to -mm tree
+Date: Tue, 31 Jan 2017 16:10:03 -0800
+Message-ID: <5891275b.nrXibVFM320cbgru%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751002AbdBAAKW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:22 -0500
+        with ESMTP id S1751002AbdBAAKP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert page_mkclean_one() to use page_vma_mapped_walk()
+     Subject: mm: introduce page_vma_mapped_walk()
 has been added to the -mm tree.  Its filename is
-     mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
+     mm-introduce-page_vma_mapped_walk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-page_vma_mapped_walk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-page_vma_mapped_walk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +39,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: convert page_mkclean_one() to use page_vma_mapped_walk()
+Subject: mm: introduce page_vma_mapped_walk()
 
-For consistency, it worth converting all page_check_address() to
-page_vma_mapped_walk(), so we could drop the former.
+Introduce a new interface to check if a page is mapped into a vma.  It
+aims to address shortcomings of page_check_address{,_transhuge}.
 
-PMD handling here is future-proofing, we don't have users yet. ext4 with
-huge pages will be the first.
+Existing interface is not able to handle PTE-mapped THPs: it only finds
+the first PTE.  The rest lefted unnoticed.
 
-Link: http://lkml.kernel.org/r/20170129173858.45174-7-kirill.shutemov@linux.intel.com
+page_vma_mapped_walk() iterates over all possible mapping of the page in
+the vma.
+
+Link: http://lkml.kernel.org/r/20170129173858.45174-3-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -62,93 +64,282 @@ Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   70 ++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 46 insertions(+), 24 deletions(-)
+ include/linux/rmap.h |   26 +++++
+ mm/Makefile          |    6 -
+ mm/huge_memory.c     |    9 +
+ mm/page_vma_mapped.c |  188 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 224 insertions(+), 5 deletions(-)
 
-diff -puN mm/rmap.c~mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk mm/rmap.c
---- a/mm/rmap.c~mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk
-+++ a/mm/rmap.c
-@@ -1017,34 +1017,56 @@ int page_referenced(struct page *page,
- static int page_mkclean_one(struct page *page, struct vm_area_struct *vma,
- 			    unsigned long address, void *arg)
+diff -puN include/linux/rmap.h~mm-introduce-page_vma_mapped_walk include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-introduce-page_vma_mapped_walk
++++ a/include/linux/rmap.h
+@@ -9,6 +9,7 @@
+ #include <linux/mm.h>
+ #include <linux/rwsem.h>
+ #include <linux/memcontrol.h>
++#include <linux/highmem.h>
+ 
+ /*
+  * The anon_vma heads a list of private "related" vmas, to scan if
+@@ -232,6 +233,31 @@ static inline bool page_check_address_tr
+ }
+ #endif
+ 
++/* Avoid racy checks */
++#define PVMW_SYNC		(1 << 0)
++/* Look for migarion entries rather than present PTEs */
++#define PVMW_MIGRATION		(1 << 1)
++
++struct page_vma_mapped_walk {
++	struct page *page;
++	struct vm_area_struct *vma;
++	unsigned long address;
++	pmd_t *pmd;
++	pte_t *pte;
++	spinlock_t *ptl;
++	unsigned int flags;
++};
++
++static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
++{
++	if (pvmw->pte)
++		pte_unmap(pvmw->pte);
++	if (pvmw->ptl)
++		spin_unlock(pvmw->ptl);
++}
++
++bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw);
++
+ /*
+  * Used by swapoff to help locate where page is expected in vma.
+  */
+diff -puN mm/Makefile~mm-introduce-page_vma_mapped_walk mm/Makefile
+--- a/mm/Makefile~mm-introduce-page_vma_mapped_walk
++++ a/mm/Makefile
+@@ -23,8 +23,10 @@ KCOV_INSTRUMENT_vmstat.o := n
+ 
+ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= gup.o highmem.o memory.o mincore.o \
+-			   mlock.o mmap.o mprotect.o mremap.o msync.o rmap.o \
+-			   vmalloc.o pagewalk.o pgtable-generic.o
++			   mlock.o mmap.o mprotect.o mremap.o msync.o \
++			   page_vma_mapped.o pagewalk.o pgtable-generic.o \
++			   rmap.o vmalloc.o
++
+ 
+ ifdef CONFIG_CROSS_MEMORY_ATTACH
+ mmu-$(CONFIG_MMU)	+= process_vm_access.o
+diff -puN mm/huge_memory.c~mm-introduce-page_vma_mapped_walk mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-introduce-page_vma_mapped_walk
++++ a/mm/huge_memory.c
+@@ -2129,9 +2129,12 @@ static void freeze_page(struct page *pag
+ static void unfreeze_page(struct page *page)
  {
--	struct mm_struct *mm = vma->vm_mm;
--	pte_t *pte;
--	spinlock_t *ptl;
--	int ret = 0;
-+	struct page_vma_mapped_walk pvmw = {
-+		.page = page,
-+		.vma = vma,
-+		.address = address,
-+		.flags = PVMW_SYNC,
-+	};
- 	int *cleaned = arg;
- 
--	pte = page_check_address(page, mm, address, &ptl, 1);
--	if (!pte)
--		goto out;
+ 	int i;
 -
--	if (pte_dirty(*pte) || pte_write(*pte)) {
--		pte_t entry;
--
--		flush_cache_page(vma, address, pte_pfn(*pte));
--		entry = ptep_clear_flush(vma, address, pte);
--		entry = pte_wrprotect(entry);
--		entry = pte_mkclean(entry);
--		set_pte_at(mm, address, pte, entry);
--		ret = 1;
-+	while (page_vma_mapped_walk(&pvmw)) {
-+		int ret = 0;
-+		address = pvmw.address;
-+		if (pvmw.pte) {
-+			pte_t entry;
-+			pte_t *pte = pvmw.pte;
-+
-+			if (!pte_dirty(*pte) && !pte_write(*pte))
-+				continue;
-+
-+			flush_cache_page(vma, address, pte_pfn(*pte));
-+			entry = ptep_clear_flush(vma, address, pte);
-+			entry = pte_wrprotect(entry);
-+			entry = pte_mkclean(entry);
-+			set_pte_at(vma->vm_mm, address, pte, entry);
-+			ret = 1;
-+		} else {
-+#ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
-+			pmd_t *pmd = pvmw.pmd;
-+			pmd_t entry;
-+
-+			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
-+				continue;
-+
-+			flush_cache_page(vma, address, page_to_pfn(page));
-+			entry = pmdp_huge_clear_flush(vma, address, pmd);
-+			entry = pmd_wrprotect(entry);
-+			entry = pmd_mkclean(entry);
-+			set_pmd_at(vma->vm_mm, address, pmd, entry);
-+			ret = 1;
-+#else
-+			/* unexpected pmd-mapped page? */
-+			WARN_ON_ONCE(1);
-+#endif
-+		}
-+
-+		if (ret) {
-+			mmu_notifier_invalidate_page(vma->vm_mm, address);
-+			(*cleaned)++;
-+		}
- 	}
- 
--	pte_unmap_unlock(pte, ptl);
--
--	if (ret) {
--		mmu_notifier_invalidate_page(mm, address);
--		(*cleaned)++;
--	}
--out:
- 	return SWAP_AGAIN;
+-	for (i = 0; i < HPAGE_PMD_NR; i++)
+-		remove_migration_ptes(page + i, page + i, true);
++	if (PageTransHuge(page)) {
++		remove_migration_ptes(page, page, true);
++	} else {
++		for (i = 0; i < HPAGE_PMD_NR; i++)
++			remove_migration_ptes(page + i, page + i, true);
++	}
  }
  
+ static void __split_huge_page_tail(struct page *head, int tail,
+diff -puN /dev/null mm/page_vma_mapped.c
+--- /dev/null
++++ a/mm/page_vma_mapped.c
+@@ -0,0 +1,188 @@
++#include <linux/mm.h>
++#include <linux/rmap.h>
++#include <linux/hugetlb.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
++
++#include "internal.h"
++
++static inline bool check_pmd(struct page_vma_mapped_walk *pvmw)
++{
++	pmd_t pmde;
++	/*
++	 * Make sure we don't re-load pmd between present and !trans_huge check.
++	 * We need a consistent view.
++	 */
++	pmde = READ_ONCE(*pvmw->pmd);
++	return pmd_present(pmde) && !pmd_trans_huge(pmde);
++}
++
++static inline bool not_found(struct page_vma_mapped_walk *pvmw)
++{
++	page_vma_mapped_walk_done(pvmw);
++	return false;
++}
++
++static bool map_pte(struct page_vma_mapped_walk *pvmw)
++{
++	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
++	if (!(pvmw->flags & PVMW_SYNC)) {
++		if (pvmw->flags & PVMW_MIGRATION) {
++			if (!is_swap_pte(*pvmw->pte))
++				return false;
++		} else {
++			if (!pte_present(*pvmw->pte))
++				return false;
++		}
++	}
++	pvmw->ptl = pte_lockptr(pvmw->vma->vm_mm, pvmw->pmd);
++	spin_lock(pvmw->ptl);
++	return true;
++}
++
++static bool check_pte(struct page_vma_mapped_walk *pvmw)
++{
++	if (pvmw->flags & PVMW_MIGRATION) {
++#ifdef CONFIG_MIGRATION
++		swp_entry_t entry;
++		if (!is_swap_pte(*pvmw->pte))
++			return false;
++		entry = pte_to_swp_entry(*pvmw->pte);
++		if (!is_migration_entry(entry))
++			return false;
++		if (migration_entry_to_page(entry) - pvmw->page >=
++				hpage_nr_pages(pvmw->page)) {
++			return false;
++		}
++		if (migration_entry_to_page(entry) < pvmw->page)
++			return false;
++#else
++		WARN_ON_ONCE(1);
++#endif
++	} else {
++		if (!pte_present(*pvmw->pte))
++			return false;
++
++		/* THP can be referenced by any subpage */
++		if (pte_page(*pvmw->pte) - pvmw->page >=
++				hpage_nr_pages(pvmw->page)) {
++			return false;
++		}
++		if (pte_page(*pvmw->pte) < pvmw->page)
++			return false;
++	}
++
++	return true;
++}
++
++/**
++ * page_vma_mapped_walk - check if @pvmw->page is mapped in @pvmw->vma at
++ * @pvmw->address
++ * @pvmw: pointer to struct page_vma_mapped_walk. page, vma, address and flags
++ * must be set. pmd, pte and ptl must be NULL.
++ *
++ * Returns true if the page is mapped in the vma. @pvmw->pmd and @pvmw->pte point
++ * to relevant page table entries. @pvmw->ptl is locked. @pvmw->address is
++ * adjusted if needed (for PTE-mapped THPs).
++ *
++ * If @pvmw->pmd is set but @pvmw->pte is not, you have found PMD-mapped page
++ * (usually THP). For PTE-mapped THP, you should run page_vma_mapped_walk() in
++ * a loop to find all PTEs that map the THP.
++ *
++ * For HugeTLB pages, @pvmw->pte is set to the relevant page table entry
++ * regardless of which page table level the page is mapped at. @pvmw->pmd is
++ * NULL.
++ *
++ * Retruns false if there are no more page table entries for the page in
++ * the vma. @pvmw->ptl is unlocked and @pvmw->pte is unmapped.
++ *
++ * If you need to stop the walk before page_vma_mapped_walk() returned false,
++ * use page_vma_mapped_walk_done(). It will do the housekeeping.
++ */
++bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
++{
++	struct mm_struct *mm = pvmw->vma->vm_mm;
++	struct page *page = pvmw->page;
++	pgd_t *pgd;
++	pud_t *pud;
++
++	/* The only possible pmd mapping has been handled on last iteration */
++	if (pvmw->pmd && !pvmw->pte)
++		return not_found(pvmw);
++
++	/* Only for THP, seek to next pte entry makes sense */
++	if (pvmw->pte) {
++		if (!PageTransHuge(pvmw->page) || PageHuge(pvmw->page))
++			return not_found(pvmw);
++		goto next_pte;
++	}
++
++	if (unlikely(PageHuge(pvmw->page))) {
++		/* when pud is not present, pte will be NULL */
++		pvmw->pte = huge_pte_offset(mm, pvmw->address);
++		if (!pvmw->pte)
++			return false;
++
++		pvmw->ptl = huge_pte_lockptr(page_hstate(page), mm, pvmw->pte);
++		spin_lock(pvmw->ptl);
++		if (!check_pte(pvmw))
++			return not_found(pvmw);
++		return true;
++	}
++restart:
++	pgd = pgd_offset(mm, pvmw->address);
++	if (!pgd_present(*pgd))
++		return false;
++	pud = pud_offset(pgd, pvmw->address);
++	if (!pud_present(*pud))
++		return false;
++	pvmw->pmd = pmd_offset(pud, pvmw->address);
++	if (pmd_trans_huge(*pvmw->pmd)) {
++		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
++		if (!pmd_present(*pvmw->pmd))
++			return not_found(pvmw);
++		if (likely(pmd_trans_huge(*pvmw->pmd))) {
++			if (pvmw->flags & PVMW_MIGRATION)
++				return not_found(pvmw);
++			if (pmd_page(*pvmw->pmd) != page)
++				return not_found(pvmw);
++			return true;
++		} else {
++			/* THP pmd was split under us: handle on pte level */
++			spin_unlock(pvmw->ptl);
++			pvmw->ptl = NULL;
++		}
++	} else {
++		if (!check_pmd(pvmw))
++			return false;
++	}
++	if (!map_pte(pvmw))
++		goto next_pte;
++	while (1) {
++		if (check_pte(pvmw))
++			return true;
++next_pte:	do {
++			pvmw->address += PAGE_SIZE;
++			if (pvmw->address >=
++					__vma_address(pvmw->page, pvmw->vma) +
++					hpage_nr_pages(pvmw->page) * PAGE_SIZE)
++				return not_found(pvmw);
++			/* Did we cross page table boundary? */
++			if (pvmw->address % PMD_SIZE == 0) {
++				pte_unmap(pvmw->pte);
++				if (pvmw->ptl) {
++					spin_unlock(pvmw->ptl);
++					pvmw->ptl = NULL;
++				}
++				goto restart;
++			} else {
++				pvmw->pte++;
++			}
++		} while (pte_none(*pvmw->pte));
++
++		if (!pvmw->ptl) {
++			pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
++			spin_lock(pvmw->ptl);
++		}
++	}
++}
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
