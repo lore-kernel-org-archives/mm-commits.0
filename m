@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch added
+ mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch added
  to -mm tree
-Date: Tue, 31 Jan 2017 16:10:19 -0800
-Message-ID: <5891276b.M5X5z8xMRNwssBxe%akpm@linux-foundation.org>
+Date: Tue, 31 Jan 2017 16:10:22 -0800
+Message-ID: <5891276e.S9IXvh7wp/y2lFNM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751061AbdBAAKf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:35 -0500
+        with ESMTP id S1751061AbdBAAKh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, ksm: convert write_protect_page() to use page_vma_mapped_walk()
+     Subject: mm, uprobes: convert __replace_page() to use page_vma_mapped_walk()
 has been added to the -mm tree.  Its filename is
-     mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
+     mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,13 +41,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, ksm: convert write_protect_page() to use page_vma_mapped_walk()
+Subject: mm, uprobes: convert __replace_page() to use page_vma_mapped_walk()
 
 For consistency, it worth converting all page_check_address() to
 page_vma_mapped_walk(), so we could drop the former.
 
-Link: http://lkml.kernel.org/r/20170129173858.45174-9-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/20170129173858.45174-10-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -55,95 +56,72 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ kernel/events/uprobes.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN mm/ksm.c~mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk mm/ksm.c
---- a/mm/ksm.c~mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk
-+++ a/mm/ksm.c
-@@ -856,33 +856,35 @@ static int write_protect_page(struct vm_
- 			      pte_t *orig_pte)
+diff -puN kernel/events/uprobes.c~mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk
++++ a/kernel/events/uprobes.c
+@@ -153,14 +153,19 @@ static int __replace_page(struct vm_area
+ 				struct page *old_page, struct page *new_page)
  {
  	struct mm_struct *mm = vma->vm_mm;
--	unsigned long addr;
--	pte_t *ptep;
 -	spinlock_t *ptl;
+-	pte_t *ptep;
 +	struct page_vma_mapped_walk pvmw = {
-+		.page = page,
++		.page = old_page,
 +		.vma = vma,
++		.address = addr,
 +	};
- 	int swapped;
- 	int err = -EFAULT;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
+ 	int err;
+ 	/* For mmu_notifiers */
+ 	const unsigned long mmun_start = addr;
+ 	const unsigned long mmun_end   = addr + PAGE_SIZE;
+ 	struct mem_cgroup *memcg;
  
--	addr = page_address_in_vma(page, vma);
--	if (addr == -EFAULT)
-+	pvmw.address = page_address_in_vma(page, vma);
-+	if (pvmw.address == -EFAULT)
- 		goto out;
++	VM_BUG_ON_PAGE(PageTransHuge(old_page), old_page);
++
+ 	err = mem_cgroup_try_charge(new_page, vma->vm_mm, GFP_KERNEL, &memcg,
+ 			false);
+ 	if (err)
+@@ -171,11 +176,11 @@ static int __replace_page(struct vm_area
  
- 	BUG_ON(PageTransCompound(page));
- 
--	mmun_start = addr;
--	mmun_end   = addr + PAGE_SIZE;
-+	mmun_start = pvmw.address;
-+	mmun_end   = pvmw.address + PAGE_SIZE;
  	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 
--	ptep = page_check_address(page, mm, addr, &ptl, 0);
--	if (!ptep)
-+	if (!page_vma_mapped_walk(&pvmw))
- 		goto out_mn;
-+	if (WARN_ONCE(!pvmw.pte, "Unexpected PMD mapping?"))
-+		goto out_unlock;
- 
--	if (pte_write(*ptep) || pte_dirty(*ptep)) {
-+	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte)) {
- 		pte_t entry;
- 
- 		swapped = PageSwapCache(page);
--		flush_cache_page(vma, addr, page_to_pfn(page));
-+		flush_cache_page(vma, pvmw.address, page_to_pfn(page));
- 		/*
- 		 * Ok this is tricky, when get_user_pages_fast() run it doesn't
- 		 * take any lock, therefore the check that we are going to make
-@@ -892,25 +894,25 @@ static int write_protect_page(struct vm_
- 		 * this assure us that no O_DIRECT can happen after the check
- 		 * or in the middle of the check.
- 		 */
--		entry = ptep_clear_flush_notify(vma, addr, ptep);
-+		entry = ptep_clear_flush_notify(vma, pvmw.address, pvmw.pte);
- 		/*
- 		 * Check that no O_DIRECT or similar I/O is in progress on the
- 		 * page
- 		 */
- 		if (page_mapcount(page) + 1 + swapped != page_count(page)) {
--			set_pte_at(mm, addr, ptep, entry);
-+			set_pte_at(mm, pvmw.address, pvmw.pte, entry);
- 			goto out_unlock;
- 		}
- 		if (pte_dirty(entry))
- 			set_page_dirty(page);
- 		entry = pte_mkclean(pte_wrprotect(entry));
--		set_pte_at_notify(mm, addr, ptep, entry);
-+		set_pte_at_notify(mm, pvmw.address, pvmw.pte, entry);
+ 	err = -EAGAIN;
+-	ptep = page_check_address(old_page, mm, addr, &ptl, 0);
+-	if (!ptep) {
++	if (!page_vma_mapped_walk(&pvmw)) {
+ 		mem_cgroup_cancel_charge(new_page, memcg, false);
+ 		goto unlock;
  	}
--	*orig_pte = *ptep;
-+	*orig_pte = *pvmw.pte;
- 	err = 0;
++	VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
  
- out_unlock:
+ 	get_page(new_page);
+ 	page_add_new_anon_rmap(new_page, vma, addr, false);
+@@ -187,14 +192,15 @@ static int __replace_page(struct vm_area
+ 		inc_mm_counter(mm, MM_ANONPAGES);
+ 	}
+ 
+-	flush_cache_page(vma, addr, pte_pfn(*ptep));
+-	ptep_clear_flush_notify(vma, addr, ptep);
+-	set_pte_at_notify(mm, addr, ptep, mk_pte(new_page, vma->vm_page_prot));
++	flush_cache_page(vma, addr, pte_pfn(*pvmw.pte));
++	ptep_clear_flush_notify(vma, addr, pvmw.pte);
++	set_pte_at_notify(mm, addr, pvmw.pte,
++			mk_pte(new_page, vma->vm_page_prot));
+ 
+ 	page_remove_rmap(old_page, false);
+ 	if (!page_mapped(old_page))
+ 		try_to_free_swap(old_page);
 -	pte_unmap_unlock(ptep, ptl);
 +	page_vma_mapped_walk_done(&pvmw);
- out_mn:
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- out:
+ 
+ 	if (vma->vm_flags & VM_LOCKED)
+ 		munlock_vma_page(old_page);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
