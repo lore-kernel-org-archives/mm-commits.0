@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fs-check-for-fatal-signals-in-do_generic_file_read.patch
- added to -mm tree
-Date: Wed, 01 Feb 2017 14:21:30 -0800
-Message-ID: <58925f6a.xGNVybNgLlSooXWr%akpm@linux-foundation.org>
+Subject: + vmalloc-back-of-when-the-current-is-killed.patch added to -mm
+ tree
+Date: Wed, 01 Feb 2017 14:22:44 -0800
+Message-ID: <58925fb4.QeDHyHcbBfL5uQJV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42230 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753239AbdBAWVb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2017 17:21:31 -0500
+        with ESMTP id S1752974AbdBAWWp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2017 17:22:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hch@lst.de, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hch@lst.de, penguin-kernel@I-love.SAKURA.ne.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, fs: check for fatal signals in do_generic_file_read()
+     Subject: vmalloc: back off when the current task is killed
 has been added to the -mm tree.  Its filename is
-     mm-fs-check-for-fatal-signals-in-do_generic_file_read.patch
+     vmalloc-back-of-when-the-current-is-killed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fs-check-for-fatal-signals-in-do_generic_file_read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmalloc-back-of-when-the-current-is-killed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-check-for-fatal-signals-in-do_generic_file_read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-back-of-when-the-current-is-killed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, fs: check for fatal signals in do_generic_file_read()
+Subject: vmalloc: back off when the current task is killed
 
-do_generic_file_read() can be told to perform a large request from
-userspace.  If the system is under OOM and the reading task is the OOM
-victim then it has an access to memory reserves and finishing the full
-request can lead to the full memory depletion which is dangerous.  Make
-sure we rather go with a short read and allow the killed task to
-terminate.
+__vmalloc_area_node() allocates pages to cover the requested vmalloc size.
+This can be a lot of memory.  If the current task is killed by the OOM
+killer, and thus has an unlimited access to memory reserves, it can
+consume all the memory theoretically.  Fix this by checking for
+fatal_signal_pending and back off early.
 
-Link: http://lkml.kernel.org/r/20170201092706.9966-3-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170201092706.9966-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    5 +++++
+ mm/vmalloc.c |    5 +++++
  1 file changed, 5 insertions(+)
 
-diff -puN mm/filemap.c~mm-fs-check-for-fatal-signals-in-do_generic_file_read mm/filemap.c
---- a/mm/filemap.c~mm-fs-check-for-fatal-signals-in-do_generic_file_read
-+++ a/mm/filemap.c
-@@ -1791,6 +1791,11 @@ static ssize_t do_generic_file_read(stru
+diff -puN mm/vmalloc.c~vmalloc-back-of-when-the-current-is-killed mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-back-of-when-the-current-is-killed
++++ a/mm/vmalloc.c
+@@ -1642,6 +1642,11 @@ static void *__vmalloc_area_node(struct
+ 	for (i = 0; i < area->nr_pages; i++) {
+ 		struct page *page;
  
- 		cond_resched();
- find_page:
 +		if (fatal_signal_pending(current)) {
-+			error = -EINTR;
-+			goto out;
++			area->nr_pages = i;
++			goto fail;
 +		}
 +
- 		page = find_get_page(mapping, index);
- 		if (!page) {
- 			page_cache_sync_readahead(mapping,
+ 		if (node == NUMA_NO_NODE)
+ 			page = alloc_page(alloc_mask);
+ 		else
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
