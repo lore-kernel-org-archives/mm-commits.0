@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + uprobes-split-thps-before-trying-replace-them.patch added to
+Subject: +
+ mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch added to
  -mm tree
-Date: Tue, 31 Jan 2017 16:10:01 -0800
-Message-ID: <58912759.O5cTLDph7bCB9kli%akpm@linux-foundation.org>
+Date: Tue, 31 Jan 2017 16:10:08 -0800
+Message-ID: <58912760.OCs09uS2wqSH8Pav%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35570 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750978AbdBAAKD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:03 -0500
+        with ESMTP id S1750980AbdBAAKK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uprobes: split THPs before trying replace them
+     Subject: mm: fix handling PTE-mapped THPs in page_idle_clear_pte_refs()
 has been added to the -mm tree.  Its filename is
-     uprobes-split-thps-before-trying-replace-them.patch
+     mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/uprobes-split-thps-before-trying-replace-them.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/uprobes-split-thps-before-trying-replace-them.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +41,80 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: uprobes: split THPs before trying replace them
+Subject: mm: fix handling PTE-mapped THPs in page_idle_clear_pte_refs()
 
-For THPs page_check_address() always fails.  It leads to endless loop in
-uprobe_write_opcode().
+For PTE-mapped THP page_check_address_transhuge() is not adequate: it
+cannot find all relevant PTEs, only the first one.i
 
-Testcase with huge-tmpfs (uprobes cannot probe anonymous memory).
+Let's switch it to page_vma_mapped_walk().
 
-	mount -t debugfs none /sys/kernel/debug
-	mount -t tmpfs -o huge=always none /mnt
-	gcc -Wall -O2 -o /mnt/test -x c - <<EOF
-	int main(void)
-	{
-		return 0;
-	}
-	/* Padding to map the code segment with huge pmd */
-	asm (".zero 2097152");
-	EOF
-	echo 'p /mnt/test:0' > /sys/kernel/debug/tracing/uprobe_events
-	echo 1 > /sys/kernel/debug/tracing/events/uprobes/enable
-	/mnt/test
+I don't think it's subject for stable@: it's not fatal.
 
-Let's split THPs before trying to replace.
-
-Link: http://lkml.kernel.org/r/20170129173858.45174-2-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/20170129173858.45174-5-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_idle.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN kernel/events/uprobes.c~uprobes-split-thps-before-trying-replace-them kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~uprobes-split-thps-before-trying-replace-them
-+++ a/kernel/events/uprobes.c
-@@ -300,8 +300,8 @@ int uprobe_write_opcode(struct mm_struct
+diff -puN mm/page_idle.c~mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs mm/page_idle.c
+--- a/mm/page_idle.c~mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs
++++ a/mm/page_idle.c
+@@ -54,27 +54,27 @@ static int page_idle_clear_pte_refs_one(
+ 					struct vm_area_struct *vma,
+ 					unsigned long addr, void *arg)
+ {
+-	struct mm_struct *mm = vma->vm_mm;
+-	pmd_t *pmd;
+-	pte_t *pte;
+-	spinlock_t *ptl;
++	struct page_vma_mapped_walk pvmw = {
++		.page = page,
++		.vma = vma,
++		.address = addr,
++	};
+ 	bool referenced = false;
  
- retry:
- 	/* Read the page with vaddr into memory */
--	ret = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &old_page,
--			&vma, NULL);
-+	ret = get_user_pages_remote(NULL, mm, vaddr, 1,
-+			FOLL_FORCE | FOLL_SPLIT, &old_page, &vma, NULL);
- 	if (ret <= 0)
- 		return ret;
+-	if (!page_check_address_transhuge(page, mm, addr, &pmd, &pte, &ptl))
+-		return SWAP_AGAIN;
+-
+-	if (pte) {
+-		referenced = ptep_clear_young_notify(vma, addr, pte);
+-		pte_unmap(pte);
+-	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+-		referenced = pmdp_clear_young_notify(vma, addr, pmd);
+-	} else {
+-		/* unexpected pmd-mapped page? */
+-		WARN_ON_ONCE(1);
++	while (page_vma_mapped_walk(&pvmw)) {
++		addr = pvmw.address;
++		if (pvmw.pte) {
++			referenced = ptep_clear_young_notify(vma, addr,
++					pvmw.pte);
++		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
++			referenced = pmdp_clear_young_notify(vma, addr,
++					pvmw.pmd);
++		} else {
++			/* unexpected pmd-mapped page? */
++			WARN_ON_ONCE(1);
++		}
+ 	}
  
+-	spin_unlock(ptl);
+-
+ 	if (referenced) {
+ 		clear_page_idle(page);
+ 		/*
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
