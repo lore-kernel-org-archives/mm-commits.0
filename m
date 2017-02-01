@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch added to -mm tree
-Date: Tue, 31 Jan 2017 17:03:01 -0800
-Message-ID: <589133c5.eg96U5Ch/EuPyQ5t%akpm@linux-foundation.org>
+Subject: + mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
+ added to -mm tree
+Date: Tue, 31 Jan 2017 17:05:21 -0800
+Message-ID: <58913451.OJLu4GyscYJZyZSU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43458 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751033AbdBABDH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 20:03:07 -0500
+        with ESMTP id S1750830AbdBABFr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 20:05:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, corbet@lwn.net, hannes@cmpxchg.org, jmarchan@redhat.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: jaewon31.kim@samsung.com, iamjoonsoo.kim@lge.com, labbott@redhat.com, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, madvise: fail with ENOMEM when splitting vma will hit max_map_count
+     Subject: mm: cma: print allocation failure reason and bitmap status
 has been added to the -mm tree.  Its filename is
-     mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch
+     mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,201 +39,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, madvise: fail with ENOMEM when splitting vma will hit max_map_count
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm: cma: print allocation failure reason and bitmap status
 
-If madvise(2) advice will result in the underlying vma being split and the
-number of areas mapped by the process will exceed
-/proc/sys/vm/max_map_count as a result, return ENOMEM instead of EAGAIN.
+There are many reasons of CMA allocation failure such as EBUSY, ENOMEM,
+EINTR.  But we did not know error reason so far.  This patch prints the
+error value.
 
-EAGAIN is returned by madvise(2) when a kernel resource, such as slab, is
-temporarily unavailable.  It indicates that userspace should retry the
-advice in the near future.  This is important for advice such as
-MADV_DONTNEED which is often used by malloc implementations to free memory
-back to the system: we really do want to free memory back when madvise(2)
-returns EAGAIN because slab allocations (for vmas, anon_vmas, or
-mempolicies) cannot be allocated.
+Additionally if CONFIG_CMA_DEBUG is enabled, this patch shows bitmap
+status to know available pages.  Actually CMA internally tries on all
+available regions because some regions can be failed because of EBUSY. 
+Bitmap status is useful to know in detail on both ENONEM and EBUSY;
 
-Encountering /proc/sys/vm/max_map_count is not a temporary failure,
-however, so return ENOMEM to indicate this is a more serious issue.  A
-followup patch to the man page will specify this behavior.
+ ENOMEM: not tried at all because of no available region
+         it could be too small total region or could be fragmentation issue
+ EBUSY:  tried some region but all failed
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701241431120.42507@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+This is an ENOMEM example with this patch.
+[   12.415458]  [2:   Binder:714_1:  744] cma: cma_alloc: alloc failed, req-size: 256 pages, ret: -12
+
+If CONFIG_CMA_DEBUG is enabled, avabile pages also will be shown as
+concatenated size@position format.  So 4@572 means that there are 4
+available pages at 572 position starting from 0 position.
+[   12.415503]  [2:   Binder:714_1:  744] cma: number of available pages: 4@572+7@585+7@601+8@632+38@730+166@1114+127@1921=> 357 free of 2048 total pages
+
+Link: http://lkml.kernel.org/r/1485909785-3952-1-git-send-email-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    4 +-
- Documentation/vm/ksm.txt    |    4 ++
- include/linux/mm.h          |    6 ++--
- mm/madvise.c                |   51 ++++++++++++++++++++++++++++------
- mm/mmap.c                   |    8 ++---
- 5 files changed, 56 insertions(+), 17 deletions(-)
+ mm/cma.c |   34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count
-+++ a/Documentation/sysctl/vm.txt
-@@ -376,8 +376,8 @@ max_map_count:
+diff -puN mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status mm/cma.c
+--- a/mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status
++++ a/mm/cma.c
+@@ -353,6 +353,32 @@ err:
+ 	return ret;
+ }
  
- This file contains the maximum number of memory map areas a process
- may have. Memory map areas are used as a side-effect of calling
--malloc, directly by mmap and mprotect, and also when loading shared
--libraries.
-+malloc, directly by mmap, mprotect, and madvise, and also when loading
-+shared libraries.
- 
- While most applications need less than a thousand maps, certain
- programs, particularly malloc debuggers, may consume lots of them,
-diff -puN Documentation/vm/ksm.txt~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count Documentation/vm/ksm.txt
---- a/Documentation/vm/ksm.txt~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count
-+++ a/Documentation/vm/ksm.txt
-@@ -38,6 +38,10 @@ the range for whenever the KSM daemon is
- cannot contain any pages which KSM could actually merge; even if
- MADV_UNMERGEABLE is applied to a range which was never MADV_MERGEABLE.
- 
-+If a region of memory must be split into at least one new MADV_MERGEABLE
-+or MADV_UNMERGEABLE region, the madvise may return ENOMEM if the process
-+will exceed vm.max_map_count (see Documentation/sysctl/vm.txt).
++#ifdef CONFIG_CMA_DEBUG
++static void cma_debug_show_areas(struct cma *cma)
++{
++	unsigned long next_zero_bit, next_set_bit;
++	unsigned long start = 0;
++	unsigned int nr_zero, nr_total = 0;
 +
- Like other madvise calls, they are intended for use on mapped areas of
- the user address space: they will report ENOMEM if the specified range
- includes unmapped gaps (though working on the intervening mapped areas),
-diff -puN include/linux/mm.h~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count include/linux/mm.h
---- a/include/linux/mm.h~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count
-+++ a/include/linux/mm.h
-@@ -2035,8 +2035,10 @@ extern struct vm_area_struct *vma_merge(
- 	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
- 	struct mempolicy *, struct vm_userfaultfd_ctx);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
--extern int split_vma(struct mm_struct *,
--	struct vm_area_struct *, unsigned long addr, int new_below);
-+extern int __split_vma(struct mm_struct *, struct vm_area_struct *,
-+	unsigned long addr, int new_below);
-+extern int split_vma(struct mm_struct *, struct vm_area_struct *,
-+	unsigned long addr, int new_below);
- extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void __vma_link_rb(struct mm_struct *, struct vm_area_struct *,
- 	struct rb_node **, struct rb_node *);
-diff -puN mm/madvise.c~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count mm/madvise.c
---- a/mm/madvise.c~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count
-+++ a/mm/madvise.c
-@@ -92,14 +92,28 @@ static long madvise_behavior(struct vm_a
- 	case MADV_MERGEABLE:
- 	case MADV_UNMERGEABLE:
- 		error = ksm_madvise(vma, start, end, behavior, &new_flags);
--		if (error)
-+		if (error) {
-+			/*
-+			 * madvise() returns EAGAIN if kernel resources, such as
-+			 * slab, are temporarily unavailable.
-+			 */
-+			if (error == -ENOMEM)
-+				error = -EAGAIN;
- 			goto out;
-+		}
- 		break;
- 	case MADV_HUGEPAGE:
- 	case MADV_NOHUGEPAGE:
- 		error = hugepage_madvise(vma, &new_flags, behavior);
--		if (error)
-+		if (error) {
-+			/*
-+			 * madvise() returns EAGAIN if kernel resources, such as
-+			 * slab, are temporarily unavailable.
-+			 */
-+			if (error == -ENOMEM)
-+				error = -EAGAIN;
- 			goto out;
-+		}
- 		break;
- 	}
++	mutex_lock(&cma->lock);
++	pr_info("number of available pages: ");
++	for (;;) {
++		next_zero_bit = find_next_zero_bit(cma->bitmap, cma->count, start);
++		if (next_zero_bit >= cma->count)
++			break;
++		next_set_bit = find_next_bit(cma->bitmap, cma->count, next_zero_bit);
++		nr_zero = next_set_bit - next_zero_bit;
++		pr_cont("%s%u@%lu", nr_total ? "+" : "", nr_zero, next_zero_bit);
++		nr_total += nr_zero;
++		start = next_zero_bit + nr_zero;
++	}
++	pr_cont("=> %u free of %lu total pages\n", nr_total, cma->count);
++	mutex_unlock(&cma->lock);
++}
++#else
++static inline void cma_debug_show_areas(struct cma *cma) { }
++#endif
++
+ /**
+  * cma_alloc() - allocate pages from contiguous area
+  * @cma:   Contiguous memory region for which the allocation is performed.
+@@ -370,7 +396,7 @@ struct page *cma_alloc(struct cma *cma,
+ 	unsigned long start = 0;
+ 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
+ 	struct page *page = NULL;
+-	int ret;
++	int ret = -ENOMEM;
  
-@@ -120,15 +134,37 @@ static long madvise_behavior(struct vm_a
- 	*prev = vma;
+ 	if (!cma || !cma->count)
+ 		return NULL;
+@@ -428,6 +454,12 @@ struct page *cma_alloc(struct cma *cma,
  
- 	if (start != vma->vm_start) {
--		error = split_vma(mm, vma, start, 1);
--		if (error)
-+		if (unlikely(mm->map_count >= sysctl_max_map_count)) {
-+			error = -ENOMEM;
- 			goto out;
-+		}
-+		error = __split_vma(mm, vma, start, 1);
-+		if (error) {
-+			/*
-+			 * madvise() returns EAGAIN if kernel resources, such as
-+			 * slab, are temporarily unavailable.
-+			 */
-+			if (error == -ENOMEM)
-+				error = -EAGAIN;
-+			goto out;
-+		}
- 	}
+ 	trace_cma_alloc(pfn, page, count, align);
  
- 	if (end != vma->vm_end) {
--		error = split_vma(mm, vma, end, 0);
--		if (error)
-+		if (unlikely(mm->map_count >= sysctl_max_map_count)) {
-+			error = -ENOMEM;
-+			goto out;
-+		}
-+		error = __split_vma(mm, vma, end, 0);
-+		if (error) {
-+			/*
-+			 * madvise() returns EAGAIN if kernel resources, such as
-+			 * slab, are temporarily unavailable.
-+			 */
-+			if (error == -ENOMEM)
-+				error = -EAGAIN;
- 			goto out;
-+		}
- 	}
- 
- success:
-@@ -136,10 +172,7 @@ success:
- 	 * vm_flags is protected by the mmap_sem held in write mode.
- 	 */
- 	vma->vm_flags = new_flags;
--
- out:
--	if (error == -ENOMEM)
--		error = -EAGAIN;
- 	return error;
++	if (ret) {
++		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
++			__func__, count, ret);
++		cma_debug_show_areas(cma);
++	}
++
+ 	pr_debug("%s(): returned %p\n", __func__, page);
+ 	return page;
  }
- 
-diff -puN mm/mmap.c~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count mm/mmap.c
---- a/mm/mmap.c~mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count
-+++ a/mm/mmap.c
-@@ -2499,11 +2499,11 @@ detach_vmas_to_be_unmapped(struct mm_str
- }
- 
- /*
-- * __split_vma() bypasses sysctl_max_map_count checking.  We use this on the
-- * munmap path where it doesn't make sense to fail.
-+ * __split_vma() bypasses sysctl_max_map_count checking.  We use this where it
-+ * has already been checked or doesn't make sense to fail.
-  */
--static int __split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
--	      unsigned long addr, int new_below)
-+int __split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
-+		unsigned long addr, int new_below)
- {
- 	struct vm_area_struct *new;
- 	int err;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-mm-compaction-add-vmstats-for-kcompactd-work.patch
-mm-thp-add-new-defermadvise-defrag-option.patch
-mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
-mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
-mm-oom-header-nodemask-is-null-when-cpusets-are-disabled-fix.patch
-mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch
+mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
 
