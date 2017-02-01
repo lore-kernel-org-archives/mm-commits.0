@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: +
  mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch added to -mm tree
-Date: Tue, 31 Jan 2017 17:02:44 -0800
-Message-ID: <589133b4.IfXfk+yjevlBykVQ%akpm@linux-foundation.org>
+Date: Tue, 31 Jan 2017 17:03:01 -0800
+Message-ID: <589133c5.eg96U5Ch/EuPyQ5t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42778 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750828AbdBABCp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 20:02:45 -0500
+        with ESMTP id S1751033AbdBABDH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 20:03:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, corbet@lwn.net, hannes@cmpxchg.org, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, corbet@lwn.net, hannes@cmpxchg.org, jmarchan@redhat.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -65,6 +65,7 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
