@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch added to
+Subject: + mm-alloc_contig_range-allow-to-specify-gfp-mask.patch added to
  -mm tree
-Date: Tue, 31 Jan 2017 16:55:30 -0800
-Message-ID: <58913202./O59Tr7QaulgG/8W%akpm@linux-foundation.org>
+Date: Tue, 31 Jan 2017 16:58:50 -0800
+Message-ID: <589132ca.AVfEQVvSDjRZCKY3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751183AbdBAAzb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:55:31 -0500
+        with ESMTP id S1750828AbdBAA6v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:58:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gidisrael@gmail.com, geert@linux-m68k.org, gerg@linux-m68k.org, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
+To: l.stach@pengutronix.de, agraf@suse.com, catalin.marinas@arm.com, chris@zankel.net, iamjoonsoo.kim@lge.com, mhocko@suse.com, pbonzini@redhat.com, ralf@linux-mips.org, rkrcmar@redhat.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: replac gcc specific macros with ones from compiler.h
+     Subject: mm: alloc_contig_range: allow to specify GFP mask
 has been added to the -mm tree.  Its filename is
-     m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch
+     mm-alloc_contig_range-allow-to-specify-gfp-mask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-alloc_contig_range-allow-to-specify-gfp-mask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-alloc_contig_range-allow-to-specify-gfp-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,207 +39,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gideon Israel Dsouza <gidisrael@gmail.com>
-Subject: m68k: replac gcc specific macros with ones from compiler.h
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: mm: alloc_contig_range: allow to specify GFP mask
 
-There is <linux/compiler.h> which provides macros for various gcc specific
-constructs.  Eg: __weak for __attribute__((weak)).  I've cleaned all
-instances of gcc specific attributes with the right macros for all files
-under /arch/m68k
+Currently alloc_contig_range assumes that the compaction should be done
+with the default GFP_KERNEL flags.  This is probably right for all current
+uses of this interface, but may change as CMA is used in more use-cases
+(including being the default DMA memory allocator on some platforms).
 
-Link: http://lkml.kernel.org/r/1485540901-1988-3-git-send-email-gidisrael@gmail.com
-Signed-off-by: Gideon Israel Dsouza <gidisrael@gmail.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Change the function prototype, to allow for passing through the GFP mask
+set by upper layers.
+
+Also respect global restrictions by applying memalloc_noio_flags to the
+passed in flags.
+
+Link: http://lkml.kernel.org/r/20170127172328.18574-1-l.stach@pengutronix.de
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Radim Krcmar <rkrcmar@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Alexander Graf <agraf@suse.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/68000/bootlogo-vz.h     |    4 +++-
- arch/m68k/68000/bootlogo.h        |    4 +++-
- arch/m68k/include/asm/MC68328.h   |    3 ++-
- arch/m68k/include/asm/MC68EZ328.h |    3 ++-
- arch/m68k/include/asm/MC68VZ328.h |    2 +-
- arch/m68k/include/asm/natfeat.h   |    3 ++-
- arch/m68k/lib/ashldi3.c           |    8 ++++----
- arch/m68k/lib/ashrdi3.c           |    8 ++++----
- arch/m68k/lib/lshrdi3.c           |    8 ++++----
- arch/m68k/lib/muldi3.c            |    8 ++++----
- 10 files changed, 29 insertions(+), 22 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/cma.c            |    3 ++-
+ mm/hugetlb.c        |    3 ++-
+ mm/page_alloc.c     |    5 +++--
+ 4 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/m68k/68000/bootlogo-vz.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/68000/bootlogo-vz.h
---- a/arch/m68k/68000/bootlogo-vz.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/68000/bootlogo-vz.h
-@@ -1,6 +1,8 @@
-+#include <linux/compiler.h>
-+
- #define splash_width 640
- #define splash_height 480
--unsigned char __attribute__ ((aligned(16))) bootlogo_bits[] = {
-+unsigned char __aligned(16) bootlogo_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-diff -puN arch/m68k/68000/bootlogo.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/68000/bootlogo.h
---- a/arch/m68k/68000/bootlogo.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/68000/bootlogo.h
-@@ -1,6 +1,8 @@
-+#include <linux/compiler.h>
-+
- #define bootlogo_width 160
- #define bootlogo_height 160
--unsigned char __attribute__ ((aligned(16))) bootlogo_bits[] = {
-+unsigned char __aligned(16) bootlogo_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x01, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x40, 0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-diff -puN arch/m68k/include/asm/MC68328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68328.h
---- a/arch/m68k/include/asm/MC68328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/MC68328.h
-@@ -8,6 +8,7 @@
-  * Copyright (C) 1998  Kenneth Albanowski <kjahds@kjahds.com>,
+diff -puN include/linux/gfp.h~mm-alloc_contig_range-allow-to-specify-gfp-mask include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-alloc_contig_range-allow-to-specify-gfp-mask
++++ a/include/linux/gfp.h
+@@ -541,7 +541,7 @@ static inline bool pm_suspended_storage(
+ #if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ /* The below functions must be run on a range from a single zone. */
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+-			      unsigned migratetype);
++			      unsigned migratetype, gfp_t gfp_mask);
+ extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
+ #endif
+ 
+diff -puN mm/cma.c~mm-alloc_contig_range-allow-to-specify-gfp-mask mm/cma.c
+--- a/mm/cma.c~mm-alloc_contig_range-allow-to-specify-gfp-mask
++++ a/mm/cma.c
+@@ -407,7 +407,8 @@ struct page *cma_alloc(struct cma *cma,
+ 
+ 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
+ 		mutex_lock(&cma_mutex);
+-		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA);
++		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
++					 GFP_KERNEL);
+ 		mutex_unlock(&cma_mutex);
+ 		if (ret == 0) {
+ 			page = pfn_to_page(pfn);
+diff -puN mm/hugetlb.c~mm-alloc_contig_range-allow-to-specify-gfp-mask mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-alloc_contig_range-allow-to-specify-gfp-mask
++++ a/mm/hugetlb.c
+@@ -1052,7 +1052,8 @@ static int __alloc_gigantic_page(unsigne
+ 				unsigned long nr_pages)
+ {
+ 	unsigned long end_pfn = start_pfn + nr_pages;
+-	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE,
++				  GFP_KERNEL);
+ }
+ 
+ static bool pfn_range_valid_gigantic(struct zone *z,
+diff -puN mm/page_alloc.c~mm-alloc_contig_range-allow-to-specify-gfp-mask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-alloc_contig_range-allow-to-specify-gfp-mask
++++ a/mm/page_alloc.c
+@@ -7399,6 +7399,7 @@ static int __alloc_contig_migrate_range(
+  *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
+  *			in range must have the same migratetype and it must
+  *			be either of the two.
++ * @gfp_mask:	GFP mask to use during compaction
   *
+  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+  * aligned, however it's the caller's responsibility to guarantee that
+@@ -7412,7 +7413,7 @@ static int __alloc_contig_migrate_range(
+  * need to be freed with free_contig_range().
   */
-+#include <linux/compiler.h>
- 
- #ifndef _MC68328_H_
- #define _MC68328_H_
-@@ -993,7 +994,7 @@ typedef volatile struct {
-   volatile unsigned short int pad1;
-   volatile unsigned short int pad2;
-   volatile unsigned short int pad3;
--} __attribute__((packed)) m68328_uart;
-+} __packed m68328_uart;
- 
- 
- /**********
-diff -puN arch/m68k/include/asm/MC68EZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68EZ328.h
---- a/arch/m68k/include/asm/MC68EZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/MC68EZ328.h
-@@ -9,6 +9,7 @@
-  *                     The Silver Hammer Group, Ltd.
-  *
-  */
-+#include <linux/compiler.h>
- 
- #ifndef _MC68EZ328_H_
- #define _MC68EZ328_H_
-@@ -815,7 +816,7 @@ typedef volatile struct {
-   volatile unsigned short int nipr;
-   volatile unsigned short int pad1;
-   volatile unsigned short int pad2;
--} __attribute__((packed)) m68328_uart;
-+} __packed m68328_uart;
- 
- 
- /**********
-diff -puN arch/m68k/include/asm/MC68VZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68VZ328.h
---- a/arch/m68k/include/asm/MC68VZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/MC68VZ328.h
-@@ -909,7 +909,7 @@ typedef struct {
-   volatile unsigned short int nipr;
-   volatile unsigned short int hmark;
-   volatile unsigned short int unused;
--} __attribute__((packed)) m68328_uart;
-+} __packed m68328_uart;
- 
- 
- 
-diff -puN arch/m68k/include/asm/natfeat.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/natfeat.h
---- a/arch/m68k/include/asm/natfeat.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/natfeat.h
-@@ -6,6 +6,7 @@
-  * This software may be used and distributed according to the terms of
-  * the GNU General Public License (GPL), incorporated herein by reference.
-  */
-+#include <linux/compiler.h>
- 
- #ifndef _NATFEAT_H
- #define _NATFEAT_H
-@@ -17,6 +18,6 @@ void nf_init(void);
- void nf_shutdown(void);
- 
- void nfprint(const char *fmt, ...)
--	__attribute__ ((format (printf, 1, 2)));
-+	__printf(1, 2);
- 
- # endif /* _NATFEAT_H */
-diff -puN arch/m68k/lib/ashldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/ashldi3.c
---- a/arch/m68k/lib/ashldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/ashldi3.c
-@@ -18,10 +18,10 @@ GNU General Public License for more deta
- 
- #define BITS_PER_UNIT 8
- 
--typedef		 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef		 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
- 
-diff -puN arch/m68k/lib/ashrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/ashrdi3.c
---- a/arch/m68k/lib/ashrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/ashrdi3.c
-@@ -18,10 +18,10 @@ GNU General Public License for more deta
- 
- #define BITS_PER_UNIT 8
- 
--typedef		 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef		 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
- 
-diff -puN arch/m68k/lib/lshrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/lshrdi3.c
---- a/arch/m68k/lib/lshrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/lshrdi3.c
-@@ -18,10 +18,10 @@ GNU General Public License for more deta
- 
- #define BITS_PER_UNIT 8
- 
--typedef		 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef		 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
- 
-diff -puN arch/m68k/lib/muldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/muldi3.c
---- a/arch/m68k/lib/muldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/muldi3.c
-@@ -65,10 +65,10 @@ GNU General Public License for more deta
-     umul_ppmm (__w.s.high, __w.s.low, u, v);				\
-     __w.ll; })
- 
--typedef 	 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef 	 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
+ int alloc_contig_range(unsigned long start, unsigned long end,
+-		       unsigned migratetype)
++		       unsigned migratetype, gfp_t gfp_mask)
+ {
+ 	unsigned long outer_start, outer_end;
+ 	unsigned int order;
+@@ -7424,7 +7425,7 @@ int alloc_contig_range(unsigned long sta
+ 		.zone = page_zone(pfn_to_page(start)),
+ 		.mode = MIGRATE_SYNC,
+ 		.ignore_skip_hint = true,
+-		.gfp_mask = GFP_KERNEL,
++		.gfp_mask = memalloc_noio_flags(gfp_mask),
+ 	};
+ 	INIT_LIST_HEAD(&cc.migratepages);
  
 _
 
-Patches currently in -mm which might be from gidisrael@gmail.com are
+Patches currently in -mm which might be from l.stach@pengutronix.de are
 
-compiler-gcch-added-a-new-macro-to-wrap-gcc-attribute.patch
-m68k-replaced-gcc-specific-macros-with-ones-from-compilerh.patch
+mm-alloc_contig_range-allow-to-specify-gfp-mask.patch
+mm-cma_alloc-allow-to-specify-gfp-mask.patch
+mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous.patch
 
