@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch added to -mm tree
-Date: Tue, 31 Jan 2017 16:10:11 -0800
-Message-ID: <58912763.rAzPGfwAPrZDSCYw%akpm@linux-foundation.org>
+Subject: + mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
+ added to -mm tree
+Date: Tue, 31 Jan 2017 16:10:14 -0800
+Message-ID: <58912766.Z+xrp77/mNV/iEqr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35588 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35830 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750967AbdBAAKN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:13 -0500
+        with ESMTP id S1751002AbdBAAKW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:10:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, rmap: check all VMAs that PTE-mapped THP can be part of
+     Subject: mm: convert page_mkclean_one() to use page_vma_mapped_walk()
 has been added to the -mm tree.  Its filename is
-     mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch
+     mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,21 +40,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, rmap: check all VMAs that PTE-mapped THP can be part of
+Subject: mm: convert page_mkclean_one() to use page_vma_mapped_walk()
 
-Current rmap code can miss a VMA that maps PTE-mapped THP if the first
-suppage of the THP was unmapped from the VMA.
+For consistency, it worth converting all page_check_address() to
+page_vma_mapped_walk(), so we could drop the former.
 
-We need to walk rmap for the whole range of offsets that THP covers, not
-only the first one.
+PMD handling here is future-proofing, we don't have users yet. ext4 with
+huge pages will be the first.
 
-vma_address() also need to be corrected to check the range instead of
-the first subpage.
-
-Link: http://lkml.kernel.org/r/20170129173858.45174-6-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/20170129173858.45174-7-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -64,81 +62,93 @@ Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    9 ++++++---
- mm/rmap.c     |   16 ++++++++++------
- 2 files changed, 16 insertions(+), 9 deletions(-)
+ mm/rmap.c |   70 ++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 46 insertions(+), 24 deletions(-)
 
-diff -puN mm/internal.h~mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of mm/internal.h
---- a/mm/internal.h~mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of
-+++ a/mm/internal.h
-@@ -335,12 +335,15 @@ __vma_address(struct page *page, struct
- static inline unsigned long
- vma_address(struct page *page, struct vm_area_struct *vma)
+diff -puN mm/rmap.c~mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk mm/rmap.c
+--- a/mm/rmap.c~mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk
++++ a/mm/rmap.c
+@@ -1017,34 +1017,56 @@ int page_referenced(struct page *page,
+ static int page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+ 			    unsigned long address, void *arg)
  {
--	unsigned long address = __vma_address(page, vma);
-+	unsigned long start, end;
+-	struct mm_struct *mm = vma->vm_mm;
+-	pte_t *pte;
+-	spinlock_t *ptl;
+-	int ret = 0;
++	struct page_vma_mapped_walk pvmw = {
++		.page = page,
++		.vma = vma,
++		.address = address,
++		.flags = PVMW_SYNC,
++	};
+ 	int *cleaned = arg;
+ 
+-	pte = page_check_address(page, mm, address, &ptl, 1);
+-	if (!pte)
+-		goto out;
+-
+-	if (pte_dirty(*pte) || pte_write(*pte)) {
+-		pte_t entry;
+-
+-		flush_cache_page(vma, address, pte_pfn(*pte));
+-		entry = ptep_clear_flush(vma, address, pte);
+-		entry = pte_wrprotect(entry);
+-		entry = pte_mkclean(entry);
+-		set_pte_at(mm, address, pte, entry);
+-		ret = 1;
++	while (page_vma_mapped_walk(&pvmw)) {
++		int ret = 0;
++		address = pvmw.address;
++		if (pvmw.pte) {
++			pte_t entry;
++			pte_t *pte = pvmw.pte;
 +
-+	start = __vma_address(page, vma);
-+	end = start + PAGE_SIZE * (hpage_nr_pages(page) - 1);
++			if (!pte_dirty(*pte) && !pte_write(*pte))
++				continue;
++
++			flush_cache_page(vma, address, pte_pfn(*pte));
++			entry = ptep_clear_flush(vma, address, pte);
++			entry = pte_wrprotect(entry);
++			entry = pte_mkclean(entry);
++			set_pte_at(vma->vm_mm, address, pte, entry);
++			ret = 1;
++		} else {
++#ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
++			pmd_t *pmd = pvmw.pmd;
++			pmd_t entry;
++
++			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
++				continue;
++
++			flush_cache_page(vma, address, page_to_pfn(page));
++			entry = pmdp_huge_clear_flush(vma, address, pmd);
++			entry = pmd_wrprotect(entry);
++			entry = pmd_mkclean(entry);
++			set_pmd_at(vma->vm_mm, address, pmd, entry);
++			ret = 1;
++#else
++			/* unexpected pmd-mapped page? */
++			WARN_ON_ONCE(1);
++#endif
++		}
++
++		if (ret) {
++			mmu_notifier_invalidate_page(vma->vm_mm, address);
++			(*cleaned)++;
++		}
+ 	}
  
- 	/* page should be within @vma mapping range */
--	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
-+	VM_BUG_ON_VMA(end < vma->vm_start || start >= vma->vm_end, vma);
- 
--	return address;
-+	return max(start, vma->vm_start);
+-	pte_unmap_unlock(pte, ptl);
+-
+-	if (ret) {
+-		mmu_notifier_invalidate_page(mm, address);
+-		(*cleaned)++;
+-	}
+-out:
+ 	return SWAP_AGAIN;
  }
  
- #else /* !CONFIG_MMU */
-diff -puN mm/rmap.c~mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of mm/rmap.c
---- a/mm/rmap.c~mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of
-+++ a/mm/rmap.c
-@@ -1757,7 +1757,7 @@ static int rmap_walk_anon(struct page *p
- 		bool locked)
- {
- 	struct anon_vma *anon_vma;
--	pgoff_t pgoff;
-+	pgoff_t pgoff_start, pgoff_end;
- 	struct anon_vma_chain *avc;
- 	int ret = SWAP_AGAIN;
- 
-@@ -1771,8 +1771,10 @@ static int rmap_walk_anon(struct page *p
- 	if (!anon_vma)
- 		return ret;
- 
--	pgoff = page_to_pgoff(page);
--	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root, pgoff, pgoff) {
-+	pgoff_start = page_to_pgoff(page);
-+	pgoff_end = pgoff_start + hpage_nr_pages(page) - 1;
-+	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root,
-+			pgoff_start, pgoff_end) {
- 		struct vm_area_struct *vma = avc->vma;
- 		unsigned long address = vma_address(page, vma);
- 
-@@ -1810,7 +1812,7 @@ static int rmap_walk_file(struct page *p
- 		bool locked)
- {
- 	struct address_space *mapping = page_mapping(page);
--	pgoff_t pgoff;
-+	pgoff_t pgoff_start, pgoff_end;
- 	struct vm_area_struct *vma;
- 	int ret = SWAP_AGAIN;
- 
-@@ -1825,10 +1827,12 @@ static int rmap_walk_file(struct page *p
- 	if (!mapping)
- 		return ret;
- 
--	pgoff = page_to_pgoff(page);
-+	pgoff_start = page_to_pgoff(page);
-+	pgoff_end = pgoff_start + hpage_nr_pages(page) - 1;
- 	if (!locked)
- 		i_mmap_lock_read(mapping);
--	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap,
-+			pgoff_start, pgoff_end) {
- 		unsigned long address = vma_address(page, vma);
- 
- 		cond_resched();
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
