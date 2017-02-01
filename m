@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
- added to -mm tree
-Date: Tue, 31 Jan 2017 16:46:51 -0800
-Message-ID: <58912ffb.4xgkfq3uHoKA/zhE%akpm@linux-foundation.org>
+Subject: + userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch added
+ to -mm tree
+Date: Tue, 31 Jan 2017 16:46:53 -0800
+Message-ID: <58912ffd.N5W/dFFBi7GKZcvp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39968 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751064AbdBAAqw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:46:52 -0500
+        with ESMTP id S1751064AbdBAAqy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2017 19:46:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: mcopy_atomic: return -ENOENT when no compatible VMA found
+     Subject: userfaultfd_copy: return -ENOSPC in case mm has gone
 has been added to the -mm tree.  Its filename is
-     userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+     userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,21 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: mcopy_atomic: return -ENOENT when no compatible VMA found
+Subject: userfaultfd_copy: return -ENOSPC in case mm has gone
 
-The memory mapping of a process may change between #PF event and the call
-to mcopy_atomic that comes to resolve the page fault.  In such case, there
-will be no VMA covering the range passed to mcopy_atomic or the VMA will
-not have userfaultfd context.
+In the non-cooperative userfaultfd case, the process exit may race with
+outstanding mcopy_atomic called by the uffd monitor.  Returning -ENOSPC
+instead of -EINVAL when mm is already gone will allow uffd monitor to
+distinguish this case from other error conditions.
 
-To allow uffd monitor to distinguish those case from other errors, let's
-return -ENOENT instead of -EINVAL.
-
-Note, that despite availability of UFFD_EVENT_UNMAP there still might be
-race between the processing of UFFD_EVENT_UNMAP and outstanding
-mcopy_atomic in case of non-cooperative uffd usage.
-
-Link: http://lkml.kernel.org/r/1485542673-24387-5-git-send-email-rppt@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1485542673-24387-6-git-send-email-rppt@linux.vnet.ibm.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -65,89 +57,21 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   42 ++++++++++++++++++++++--------------------
- 1 file changed, 22 insertions(+), 20 deletions(-)
+ fs/userfaultfd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found
-+++ a/mm/userfaultfd.c
-@@ -195,11 +195,18 @@ retry:
- 	 * retry, dst_vma will be set to NULL and we must lookup again.
- 	 */
- 	if (!dst_vma) {
--		err = -EINVAL;
-+		err = -ENOENT;
- 		dst_vma = find_vma(dst_mm, dst_start);
- 		if (!dst_vma || !is_vm_hugetlb_page(dst_vma))
- 			goto out_unlock;
-+		/*
-+		 * Only allow __mcopy_atomic_hugetlb on userfaultfd
-+		 * registered ranges.
-+		 */
-+		if (!dst_vma->vm_userfaultfd_ctx.ctx)
-+			goto out_unlock;
- 
-+		err = -EINVAL;
- 		if (vma_hpagesize != vma_kernel_pagesize(dst_vma))
- 			goto out_unlock;
- 
-@@ -219,12 +226,6 @@ retry:
- 		goto out_unlock;
- 
- 	/*
--	 * Only allow __mcopy_atomic_hugetlb on userfaultfd registered ranges.
--	 */
--	if (!dst_vma->vm_userfaultfd_ctx.ctx)
--		goto out_unlock;
--
--	/*
- 	 * Ensure the dst_vma has a anon_vma.
- 	 */
- 	err = -ENOMEM;
-@@ -368,10 +369,23 @@ retry:
- 	 * Make sure the vma is not shared, that the dst range is
- 	 * both valid and fully within a single existing vma.
- 	 */
--	err = -EINVAL;
-+	err = -ENOENT;
- 	dst_vma = find_vma(dst_mm, dst_start);
- 	if (!dst_vma)
- 		goto out_unlock;
-+	/*
-+	 * Be strict and only allow __mcopy_atomic on userfaultfd
-+	 * registered ranges to prevent userland errors going
-+	 * unnoticed. As far as the VM consistency is concerned, it
-+	 * would be perfectly safe to remove this check, but there's
-+	 * no useful usage for __mcopy_atomic ouside of userfaultfd
-+	 * registered ranges. This is after all why these are ioctls
-+	 * belonging to the userfaultfd and not syscalls.
-+	 */
-+	if (!dst_vma->vm_userfaultfd_ctx.ctx)
-+		goto out_unlock;
-+
-+	err = -EINVAL;
- 	if (!vma_is_shmem(dst_vma) && dst_vma->vm_flags & VM_SHARED)
- 		goto out_unlock;
- 	if (dst_start < dst_vma->vm_start ||
-@@ -385,18 +399,6 @@ retry:
- 		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
- 						src_start, len, zeropage);
- 
--	/*
--	 * Be strict and only allow __mcopy_atomic on userfaultfd
--	 * registered ranges to prevent userland errors going
--	 * unnoticed. As far as the VM consistency is concerned, it
--	 * would be perfectly safe to remove this check, but there's
--	 * no useful usage for __mcopy_atomic ouside of userfaultfd
--	 * registered ranges. This is after all why these are ioctls
--	 * belonging to the userfaultfd and not syscalls.
--	 */
--	if (!dst_vma->vm_userfaultfd_ctx.ctx)
--		goto out_unlock;
--
- 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
- 		goto out_unlock;
- 
+diff -puN fs/userfaultfd.c~userfaultfd_copy-return-enospc-in-case-mm-has-gone fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd_copy-return-enospc-in-case-mm-has-gone
++++ a/fs/userfaultfd.c
+@@ -1603,6 +1603,8 @@ static int userfaultfd_copy(struct userf
+ 		ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
+ 				   uffdio_copy.len);
+ 		mmput(ctx->mm);
++	} else {
++		return -ENOSPC;
+ 	}
+ 	if (unlikely(put_user(ret, &user_uffdio_copy->copy)))
+ 		return -EFAULT;
 _
 
 Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
