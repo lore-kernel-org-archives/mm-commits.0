@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mmfsdax-change-pmd_fault-to-huge_fault-fix-fix.patch added to
- -mm tree
-Date: Thu, 02 Feb 2017 14:40:17 -0800
-Message-ID: <5893b551.yLLxPfwbj+QF/rL6%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mmfsdax-change-pmd_fault-to-huge_fault-fix-fix.patch removed from -mm tree
+Date: Thu, 02 Feb 2017 14:42:11 -0800
+Message-ID: <5893b5c3.CS3BDLCzZpO/7T1e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52136 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52222 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751496AbdBBWkS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:40:18 -0500
+        with ESMTP id S1751520AbdBBWmM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:42:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, dave.jiang@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
@@ -19,24 +19,10 @@ To: arnd@arndb.de, dave.jiang@intel.com, sfr@canb.auug.org.au, mm-commits@vger.k
 
 The patch titled
      Subject: ext4: fix up huge_fault rename
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mmfsdax-change-pmd_fault-to-huge_fault-fix-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmfsdax-change-pmd_fault-to-huge_fault-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmfsdax-change-pmd_fault-to-huge_fault-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
@@ -79,6 +65,5 @@ Patches currently in -mm which might be from arnd@arndb.de are
 mm-track-active-portions-of-a-section-at-boot-fix-fix.patch
 mm-support-section-unaligned-zone_device-memory-ranges-fix.patch
 mm-fs-reduce-fault-page_mkwrite-and-pfn_mkwrite-to-take-only-vmf-fix.patch
-mmfsdax-change-pmd_fault-to-huge_fault-fix-fix.patch
 lib-add-config_test_sort-to-enable-self-test-of-sort-fix.patch
 
