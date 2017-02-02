@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+ log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
  added to -mm tree
-Date: Thu, 02 Feb 2017 14:48:23 -0800
-Message-ID: <5893b737.fMIAC3ob1iyTAY60%akpm@linux-foundation.org>
+Date: Thu, 02 Feb 2017 14:51:26 -0800
+Message-ID: <5893b7ee.1W/hJNKWGq5YzbW2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53348 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751565AbdBBWsY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:48:24 -0500
+        with ESMTP id S1751585AbdBBWv1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:51:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: ard.biesheuvel@linaro.org, gregory.clement@free-electrons.com, james.greenhalgh@arm.com, labbott@fedoraproject.org, markus@trippelsdorf.de, mingo@kernel.org, peterz@infradead.org, sboyd@codeaurora.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: move dirty pages out of the way until they're flushed fix
+     Subject: log2: make order_base_2() behave correctly on const input value zero
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+     log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +40,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: move dirty pages out of the way until they're flushed fix
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: log2: make order_base_2() behave correctly on const input value zero
 
-Mention the trade-off between waiting for writeback and potentially
-causing hot cache refaults in the code where we make this decisions
-and activate writeback pages.
+The function order_base_2() is defined (according to the comment block) as
+returning zero on input zero, but subsequently passes the input into
+roundup_pow_of_two(), which is explicitly undefined for input zero.
 
-Link: http://lkml.kernel.org/r/20170202191957.22872-8-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+This has gone unnoticed until now, but optimization passes in GCC 7 may
+produce constant folded function instances where a constant value of zero
+is passed into order_base_2(), resulting in link errors against the
+deliberately undefined '____ilog2_NaN'.
+
+So update order_base_2() to adhere to its own documented interface.
+
+Link: http://lkml.kernel.org/r/1486058726-7262-1-git-send-email-ard.biesheuvel@linaro.org
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Laura Abbott <labbott@fedoraproject.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Cc: James Greenlaigh <james.greenhalgh@arm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/log2.h |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix
-+++ a/mm/vmscan.c
-@@ -1056,6 +1056,15 @@ static unsigned long shrink_page_list(st
- 		 *    throttling so we could easily OOM just because too many
- 		 *    pages are in writeback and there is nothing else to
- 		 *    reclaim. Wait for the writeback to complete.
-+		 *
-+		 * In cases 1) and 2) we activate the pages to get them out of
-+		 * the way while we continue scanning for clean pages on the
-+		 * inactive list and refilling from the active list. The
-+		 * observation here is that waiting for disk writes is more
-+		 * expensive than potentially causing reloads down the line.
-+		 * Since they're marked for immediate reclaim, they won't put
-+		 * memory pressure on the cache working set any longer than it
-+		 * takes to write them to disk.
- 		 */
- 		if (PageWriteback(page)) {
- 			/* Case 1 above */
+diff -puN include/linux/log2.h~log2-make-order_base_2-behave-correctly-on-const-input-value-zero include/linux/log2.h
+--- a/include/linux/log2.h~log2-make-order_base_2-behave-correctly-on-const-input-value-zero
++++ a/include/linux/log2.h
+@@ -203,6 +203,17 @@ unsigned long __rounddown_pow_of_two(uns
+  *  ... and so on.
+  */
+ 
+-#define order_base_2(n) ilog2(roundup_pow_of_two(n))
++static inline __attribute_const__
++int __order_base_2(unsigned long n)
++{
++	return n > 1 ? ilog2(n - 1) + 1 : 0;
++}
+ 
++#define order_base_2(n)				\
++(						\
++	__builtin_constant_p(n) ? (		\
++		((n) == 0 || (n) == 1) ? 0 :	\
++		ilog2((n) - 1) + 1) :		\
++	__order_base_2(n)			\
++)
+ #endif /* _LINUX_LOG2_H */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
 
-mm-vmscan-scan-dirty-pages-even-in-laptop-mode.patch
-mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
-mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru-fix.patch
-mm-vmscan-remove-old-flusher-wakeup-from-direct-reclaim-path.patch
-mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice.patch
-mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed.patch
-mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
 
