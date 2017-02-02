@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mmfsdax-change-pmd_fault-to-huge_fault-fix-2.patch added to -mm tree
-Date: Thu, 02 Feb 2017 14:42:59 -0800
-Message-ID: <5893b5f3.7D7/gQVpPEGcJJV7%akpm@linux-foundation.org>
+Subject: +
+ mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+ added to -mm tree
+Date: Thu, 02 Feb 2017 14:48:23 -0800
+Message-ID: <5893b737.fMIAC3ob1iyTAY60%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52416 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751520AbdBBWnA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:43:00 -0500
+        with ESMTP id S1751565AbdBBWsY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:48:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, arnd@arndb.de, dave.jiang@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: Remove unused function ext4_dax_huge_fault()
+     Subject: mm: vmscan: move dirty pages out of the way until they're flushed fix
 has been added to the -mm tree.  Its filename is
-     mmfsdax-change-pmd_fault-to-huge_fault-fix-2.patch
+     mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmfsdax-change-pmd_fault-to-huge_fault-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmfsdax-change-pmd_fault-to-huge_fault-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,64 +40,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: ext4: Remove unused function ext4_dax_huge_fault()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: move dirty pages out of the way until they're flushed fix
 
-ext4_dax_pmd_fault() was renamed to ext4_dax_huge_fault() in this commit:
+Mention the trade-off between waiting for writeback and potentially
+causing hot cache refaults in the code where we make this decisions
+and activate writeback pages.
 
-commit 7e90fc0f8785 ("mm,fs,dax: change ->pmd_fault to ->huge_fault")
-
-However, the vm_operations_struct ops table for ext4 was modified in that
-commit so that .huge_fault called ext4_dax_fault(), not
-ext4_dax_huge_fault().  This is actually fine, though, since as of that
-commit ext4_dax_fault() and ext4_dax_huge_fault() are identical, both
-eventually calling dax_iomap_fault().
-
-So, instead of changing the opts table to have .huge_fault call
-ext4_dax_huge_fault(), just leave it calling ext4_dax_fault() and remove
-the unused function.
-
-This fix also quiets the following compilation warning:
-
-/ext4/file.c:279:1: warning: `ext4_dax_huge_fault' defined but not used [-Wunused-function]
- ext4_dax_huge_fault(struct vm_fault *vmf)
-
-Fixes: 7e90fc0f8785 ("mm,fs,dax: change ->pmd_fault to ->huge_fault")
-Link: http://lkml.kernel.org/r/1485813172-7284-1-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/20170202191957.22872-8-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/file.c |   21 ---------------------
- 1 file changed, 21 deletions(-)
+ mm/vmscan.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/ext4/file.c~mmfsdax-change-pmd_fault-to-huge_fault-fix-2 fs/ext4/file.c
---- a/fs/ext4/file.c~mmfsdax-change-pmd_fault-to-huge_fault-fix-2
-+++ a/fs/ext4/file.c
-@@ -275,27 +275,6 @@ static int ext4_dax_fault(struct vm_faul
- 	return result;
- }
- 
--static int
--ext4_dax_huge_fault(struct vm_fault *vmf)
--{
--	int result;
--	struct inode *inode = file_inode(vmf->vma->vm_file);
--	struct super_block *sb = inode->i_sb;
--	bool write = vmf->flags & FAULT_FLAG_WRITE;
--
--	if (write) {
--		sb_start_pagefault(sb);
--		file_update_time(vmf->vma->vm_file);
--	}
--	down_read(&EXT4_I(inode)->i_mmap_sem);
--	result = dax_iomap_fault(vmf, &ext4_iomap_ops);
--	up_read(&EXT4_I(inode)->i_mmap_sem);
--	if (write)
--		sb_end_pagefault(sb);
--
--	return result;
--}
+diff -puN mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix
++++ a/mm/vmscan.c
+@@ -1056,6 +1056,15 @@ static unsigned long shrink_page_list(st
+ 		 *    throttling so we could easily OOM just because too many
+ 		 *    pages are in writeback and there is nothing else to
+ 		 *    reclaim. Wait for the writeback to complete.
++		 *
++		 * In cases 1) and 2) we activate the pages to get them out of
++		 * the way while we continue scanning for clean pages on the
++		 * inactive list and refilling from the active list. The
++		 * observation here is that waiting for disk writes is more
++		 * expensive than potentially causing reloads down the line.
++		 * Since they're marked for immediate reclaim, they won't put
++		 * memory pressure on the cache working set any longer than it
++		 * takes to write them to disk.
+ 		 */
+ 		if (PageWriteback(page)) {
+ 			/* Case 1 above */
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+mm-vmscan-scan-dirty-pages-even-in-laptop-mode.patch
+mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
+mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru-fix.patch
+mm-vmscan-remove-old-flusher-wakeup-from-direct-reclaim-path.patch
+mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice.patch
+mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed.patch
+mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+
