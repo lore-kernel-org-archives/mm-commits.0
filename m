@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
- added to -mm tree
-Date: Thu, 02 Feb 2017 14:51:26 -0800
-Message-ID: <5893b7ee.1W/hJNKWGq5YzbW2%akpm@linux-foundation.org>
+Subject: + ipc-shm-fix-shmat-mmap-nil-page-protection.patch added to -mm
+ tree
+Date: Thu, 02 Feb 2017 14:53:30 -0800
+Message-ID: <5893b86a.CelHF/y8KGi1z0dI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53370 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751585AbdBBWv1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:51:27 -0500
+        with ESMTP id S1751585AbdBBWxb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:53:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, gregory.clement@free-electrons.com, james.greenhalgh@arm.com, labbott@fedoraproject.org, markus@trippelsdorf.de, mingo@kernel.org, peterz@infradead.org, sboyd@codeaurora.org, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, gareth.evans@contextis.co.uk, manfred@colorfullife.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: log2: make order_base_2() behave correctly on const input value zero
+     Subject: ipc/shm: Fix shmat mmap nil-page protection
 has been added to the -mm tree.  Its filename is
-     log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
+     ipc-shm-fix-shmat-mmap-nil-page-protection.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-fix-shmat-mmap-nil-page-protection.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-fix-shmat-mmap-nil-page-protection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +39,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: log2: make order_base_2() behave correctly on const input value zero
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc/shm: Fix shmat mmap nil-page protection
 
-The function order_base_2() is defined (according to the comment block) as
-returning zero on input zero, but subsequently passes the input into
-roundup_pow_of_two(), which is explicitly undefined for input zero.
+The issue is described here, with a nice testcase:
 
-This has gone unnoticed until now, but optimization passes in GCC 7 may
-produce constant folded function instances where a constant value of zero
-is passed into order_base_2(), resulting in link errors against the
-deliberately undefined '____ilog2_NaN'.
+    https://bugzilla.kernel.org/show_bug.cgi?id=192931
 
-So update order_base_2() to adhere to its own documented interface.
+The problem is that shmat() calls do_mmap_pgoff() with MAP_FIXED, and the
+address rounded down to 0.  For the regular mmap case, the protection
+mentioned above is that the kernel gets to generate the address --
+arch_get_unmapped_area() will always check for MAP_FIXED and return that
+address.  So by the time we do security_mmap_addr(0) things get funky for
+shmat().
 
-Link: http://lkml.kernel.org/r/1486058726-7262-1-git-send-email-ard.biesheuvel@linaro.org
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Laura Abbott <labbott@fedoraproject.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Cc: James Greenlaigh <james.greenhalgh@arm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
+The testcase itself shows that while a regular user crashes, root will not
+have a problem attaching a nil-page.  There are two possible fixes to
+this.  The first, and which this patch does, is to simply allow root to
+crash as well -- this is also regular mmap behavior, ie when hacking up
+the testcase and adding mmap(...  |MAP_FIXED).  While this approach is the
+safer option, the second alternative is to ignore SHM_RND if the rounded
+address is 0, thus only having MAP_SHARED flags.  This makes the behavior
+of shmat() identical to the mmap() case.  The downside of this is
+obviously user visible, but does make sense in that it maintains semantics
+after the round-down wrt 0 address and mmap.
+
+Passes shm related ltp tests.
+
+Link: http://lkml.kernel.org/r/1486050195-18629-1-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Reported-by: Gareth Evans <gareth.evans@contextis.co.uk>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ ipc/shm.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/log2.h~log2-make-order_base_2-behave-correctly-on-const-input-value-zero include/linux/log2.h
---- a/include/linux/log2.h~log2-make-order_base_2-behave-correctly-on-const-input-value-zero
-+++ a/include/linux/log2.h
-@@ -203,6 +203,17 @@ unsigned long __rounddown_pow_of_two(uns
-  *  ... and so on.
+diff -puN ipc/shm.c~ipc-shm-fix-shmat-mmap-nil-page-protection ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-fix-shmat-mmap-nil-page-protection
++++ a/ipc/shm.c
+@@ -1091,8 +1091,8 @@ out_unlock1:
+  * "raddr" thing points to kernel space, and there has to be a wrapper around
+  * this.
   */
- 
--#define order_base_2(n) ilog2(roundup_pow_of_two(n))
-+static inline __attribute_const__
-+int __order_base_2(unsigned long n)
-+{
-+	return n > 1 ? ilog2(n - 1) + 1 : 0;
-+}
- 
-+#define order_base_2(n)				\
-+(						\
-+	__builtin_constant_p(n) ? (		\
-+		((n) == 0 || (n) == 1) ? 0 :	\
-+		ilog2((n) - 1) + 1) :		\
-+	__order_base_2(n)			\
-+)
- #endif /* _LINUX_LOG2_H */
+-long do_shmat(int shmid, char __user *shmaddr, int shmflg, ulong *raddr,
+-	      unsigned long shmlba)
++long do_shmat(int shmid, char __user *shmaddr, int shmflg,
++	      ulong *raddr, unsigned long shmlba)
+ {
+ 	struct shmid_kernel *shp;
+ 	unsigned long addr;
+@@ -1113,8 +1113,13 @@ long do_shmat(int shmid, char __user *sh
+ 		goto out;
+ 	else if ((addr = (ulong)shmaddr)) {
+ 		if (addr & (shmlba - 1)) {
+-			if (shmflg & SHM_RND)
+-				addr &= ~(shmlba - 1);	   /* round down */
++			/*
++			 * Round down to the nearest multiple of shmlba.
++			 * For sane do_mmap_pgoff() parameters, avoid
++			 * round downs that trigger nil-page and MAP_FIXED.
++			 */
++			if ((shmflg & SHM_RND) && addr >= shmlba)
++				addr &= ~(shmlba - 1);
+ 			else
+ #ifndef __ARCH_FORCE_SHMLBA
+ 				if (addr & ~PAGE_MASK)
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-log2-make-order_base_2-behave-correctly-on-const-input-value-zero.patch
+cris-use-generic-currenth.patch
+m32r-use-generic-currenth.patch
+score-remove-asm-currenth.patch
+parisc-use-generic-currenth.patch
+mmcompaction-serialize-waitqueue_active-checks.patch
+alpha-use-generic-currenth.patch
+ipc-shm-fix-shmat-mmap-nil-page-protection.patch
 
