@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch added to -mm tree
-Date: Thu, 02 Feb 2017 14:55:16 -0800
-Message-ID: <5893b8d4.flhx1uUrdSzpOSa0%akpm@linux-foundation.org>
+ block-use-for_each_thread-in-sys_ioprio_set-sys_ioprio_get.patch added to
+ -mm tree
+Date: Thu, 02 Feb 2017 14:57:01 -0800
+Message-ID: <5893b93d.pV6uy74J/pE1p7tU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54214 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751720AbdBBWzR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:55:17 -0500
+        with ESMTP id S1751585AbdBBW5C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2017 17:57:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, axboe@kernel.dk, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-non-cooperative-add-event-for-exit-notification-fix
+     Subject: block: use for_each_thread() in sys_ioprio_set()/sys_ioprio_get()
 has been added to the -mm tree.  Its filename is
-     userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
+     block-use-for_each_thread-in-sys_ioprio_set-sys_ioprio_get.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-use-for_each_thread-in-sys_ioprio_set-sys_ioprio_get.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-use-for_each_thread-in-sys_ioprio_set-sys_ioprio_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +40,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd-non-cooperative-add-event-for-exit-notification-fix
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: block: use for_each_thread() in sys_ioprio_set()/sys_ioprio_get()
 
-add comment
+IOPRIO_WHO_USER case in sys_ioprio_set()/sys_ioprio_get() are using
+while_each_thread(), which is unsafe under RCU lock according to commit
+0c740d0afc3bff0a ("introduce for_each_thread() to replace the buggy
+while_each_thread()").  Use for_each_thread() (via
+for_each_process_thread()) which is safe under RCU lock.
 
-Link: http://lkml.kernel.org/r/20170202135448.GB19804@rapoport-lnx
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/201702011947.DBD56740.OMVHOLOtSJFFFQ@I-love.SAKURA.ne.jp
+Link: http://lkml.kernel.org/r/1486041779-4401-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ block/ioprio.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-event-for-exit-notification-fix fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-event-for-exit-notification-fix
-+++ a/fs/userfaultfd.c
-@@ -778,6 +778,10 @@ void userfaultfd_exit(struct mm_struct *
- {
- 	struct vm_area_struct *vma = mm->mmap;
+diff -puN block/ioprio.c~block-use-for_each_thread-in-sys_ioprio_set-sys_ioprio_get block/ioprio.c
+--- a/block/ioprio.c~block-use-for_each_thread-in-sys_ioprio_set-sys_ioprio_get
++++ a/block/ioprio.c
+@@ -122,14 +122,14 @@ SYSCALL_DEFINE3(ioprio_set, int, which,
+ 			if (!user)
+ 				break;
  
-+	/*
-+	 * We can do the vma walk without locking because the caller
-+	 * (exit_mm) knows it now has exclusive access
-+	 */
- 	while (vma) {
- 		struct userfaultfd_ctx *ctx = vma->vm_userfaultfd_ctx.ctx;
+-			do_each_thread(g, p) {
++			for_each_process_thread(g, p) {
+ 				if (!uid_eq(task_uid(p), uid) ||
+ 				    !task_pid_vnr(p))
+ 					continue;
+ 				ret = set_task_ioprio(p, ioprio);
+ 				if (ret)
+ 					goto free_uid;
+-			} while_each_thread(g, p);
++			}
+ free_uid:
+ 			if (who)
+ 				free_uid(user);
+@@ -222,7 +222,7 @@ SYSCALL_DEFINE2(ioprio_get, int, which,
+ 			if (!user)
+ 				break;
  
+-			do_each_thread(g, p) {
++			for_each_process_thread(g, p) {
+ 				if (!uid_eq(task_uid(p), user->uid) ||
+ 				    !task_pid_vnr(p))
+ 					continue;
+@@ -233,7 +233,7 @@ SYSCALL_DEFINE2(ioprio_get, int, which,
+ 					ret = tmpio;
+ 				else
+ 					ret = ioprio_best(ret, tmpio);
+-			} while_each_thread(g, p);
++			}
+ 
+ 			if (who)
+ 				free_uid(user);
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users.patch
-userfaultfd-introduce-vma_can_userfault.patch
-userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
-userfaultfd-shmem-introduce-vma_is_shmem.patch
-userfaultfd-shmem-use-shmem_mcopy_atomic_pte-for-shared-memory.patch
-userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults.patch
-userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
-userfaultfd-shmem-add-userfaultfd_shmem-test.patch
-userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
-userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page.patch
-userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
-userfaultfd-non-cooperative-rename-event_madvdontneed-to-event_remove.patch
-userfaultfd-non-cooperative-add-madvise-event-for-madv_remove-request.patch
-userfaultfd-non-cooperative-selftest-enable-remove-event-test-for-shmem.patch
-mm-call-vm_munmap-in-munmap-syscall-instead-of-using-open-coded-version.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps.patch
-userfaultfd-non-cooperative-add-event-for-exit-notification.patch
-userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
-userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
+block-use-for_each_thread-in-sys_ioprio_set-sys_ioprio_get.patch
 
