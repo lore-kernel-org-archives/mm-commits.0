@@ -1,179 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 6/8] base/memory, hotplug: fix a kernel oops in
- show_valid_zones()
-Date: Fri, 03 Feb 2017 13:13:23 -0800
-Message-ID: <5894f273.OiPLXhq2L/IPPqye%akpm@linux-foundation.org>
+Subject: [patch 7/8] fs: break out of iomap_file_buffered_write on fatal
+ signals
+Date: Fri, 03 Feb 2017 13:13:26 -0800
+Message-ID: <5894f276.zI3ojP1dHzr6fjNT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50304 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50320 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752331AbdBCVNY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:13:24 -0500
+        with ESMTP id S1752331AbdBCVN1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:13:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, toshi.kani@hpe.com, arbab@linux.vnet.ibm.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, rientjes@google.com, stable@vger.kernel.org, zhenzhang.zhang@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hch@lst.de, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: base/memory, hotplug: fix a kernel oops in show_valid_zones()
+From: Michal Hocko <mhocko@suse.com>
+Subject: fs: break out of iomap_file_buffered_write on fatal signals
 
-Reading a sysfs "memoryN/valid_zones" file leads to the following oops
-when the first page of a range is not backed by struct page. 
-show_valid_zones() assumes that 'start_pfn' is always valid for
-page_zone().
+Tetsuo has noticed that an OOM stress test which performs large write
+requests can cause the full memory reserves depletion.  He has tracked
+this down to the following path
 
- BUG: unable to handle kernel paging request at ffffea017a000000
- IP: show_valid_zones+0x6f/0x160
+	__alloc_pages_nodemask+0x436/0x4d0
+	alloc_pages_current+0x97/0x1b0
+	__page_cache_alloc+0x15d/0x1a0          mm/filemap.c:728
+	pagecache_get_page+0x5a/0x2b0           mm/filemap.c:1331
+	grab_cache_page_write_begin+0x23/0x40   mm/filemap.c:2773
+	iomap_write_begin+0x50/0xd0             fs/iomap.c:118
+	iomap_write_actor+0xb5/0x1a0            fs/iomap.c:190
+	? iomap_write_end+0x80/0x80             fs/iomap.c:150
+	iomap_apply+0xb3/0x130                  fs/iomap.c:79
+	iomap_file_buffered_write+0x68/0xa0     fs/iomap.c:243
+	? iomap_write_end+0x80/0x80
+	xfs_file_buffered_aio_write+0x132/0x390 [xfs]
+	? remove_wait_queue+0x59/0x60
+	xfs_file_write_iter+0x90/0x130 [xfs]
+	__vfs_write+0xe5/0x140
+	vfs_write+0xc7/0x1f0
+	? syscall_trace_enter+0x1d0/0x380
+	SyS_write+0x58/0xc0
+	do_syscall_64+0x6c/0x200
+	entry_SYSCALL64_slow_path+0x25/0x25
 
-This issue may happen on x86-64 systems with 64GiB or more memory since
-their memory block size is bumped up to 2GiB.  [1] An example of such
-systems is desribed below.  0x3240000000 is only aligned by 1GiB and this
-memory block starts from 0x3200000000, which is not backed by struct page.
+the oom victim has access to all memory reserves to make a forward
+progress to exit easier.  But iomap_file_buffered_write and other callers
+of iomap_apply loop to complete the full request.  We need to check for
+fatal signals and back off with a short write instead.  As the iomap_apply
+delegates all the work down to the actor we have to hook into those.  All
+callers that work with the page cache are calling iomap_write_begin so we
+will check for signals there.  dax_iomap_actor has to handle the situation
+explicitly because it copies data to the userspace directly.  Other
+callers like iomap_page_mkwrite work on a single page or
+iomap_fiemap_actor do not allocate memory based on the given len.
 
- BIOS-e820: [mem 0x0000003240000000-0x000000603fffffff] usable
-
-Since test_pages_in_a_zone() already checks holes, fix this issue by
-extending this function to return 'valid_start' and 'valid_end' for a
-given range.  show_valid_zones() then proceeds with the valid range.
-
-[1] 'Commit bdee237c0343 ("x86: mm: Use 2GB memory block size on
-    large-memory x86-64 systems")'
-
-Link: http://lkml.kernel.org/r/20170127222149.30893-3-toshi.kani@hpe.com
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>	[4.4+]
-
+Fixes: 68a9f5e7007c ("xfs: implement iomap based buffered write path")
+Link: http://lkml.kernel.org/r/20170201092706.9966-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>	[4.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   12 ++++++------
- include/linux/memory_hotplug.h |    3 ++-
- mm/memory_hotplug.c            |   20 +++++++++++++++-----
- 3 files changed, 23 insertions(+), 12 deletions(-)
+ fs/dax.c   |    5 +++++
+ fs/iomap.c |    3 +++
+ 2 files changed, 8 insertions(+)
 
-diff -puN drivers/base/memory.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones drivers/base/memory.c
---- a/drivers/base/memory.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones
-+++ a/drivers/base/memory.c
-@@ -389,33 +389,33 @@ static ssize_t show_valid_zones(struct d
- {
- 	struct memory_block *mem = to_memory_block(dev);
- 	unsigned long start_pfn, end_pfn;
-+	unsigned long valid_start, valid_end, valid_pages;
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
--	struct page *first_page;
- 	struct zone *zone;
- 	int zone_shift = 0;
+diff -puN fs/dax.c~fs-break-out-of-iomap_file_buffered_write-on-fatal-signals fs/dax.c
+--- a/fs/dax.c~fs-break-out-of-iomap_file_buffered_write-on-fatal-signals
++++ a/fs/dax.c
+@@ -1031,6 +1031,11 @@ dax_iomap_actor(struct inode *inode, lof
+ 		struct blk_dax_ctl dax = { 0 };
+ 		ssize_t map_len;
  
- 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	end_pfn = start_pfn + nr_pages;
--	first_page = pfn_to_page(start_pfn);
++		if (fatal_signal_pending(current)) {
++			ret = -EINTR;
++			break;
++		}
++
+ 		dax.sector = dax_iomap_sector(iomap, pos);
+ 		dax.size = (length + offset + PAGE_SIZE - 1) & PAGE_MASK;
+ 		map_len = dax_map_atomic(iomap->bdev, &dax);
+diff -puN fs/iomap.c~fs-break-out-of-iomap_file_buffered_write-on-fatal-signals fs/iomap.c
+--- a/fs/iomap.c~fs-break-out-of-iomap_file_buffered_write-on-fatal-signals
++++ a/fs/iomap.c
+@@ -114,6 +114,9 @@ iomap_write_begin(struct inode *inode, l
  
- 	/* The block contains more than one zone can not be offlined. */
--	if (!test_pages_in_a_zone(start_pfn, end_pfn))
-+	if (!test_pages_in_a_zone(start_pfn, end_pfn, &valid_start, &valid_end))
- 		return sprintf(buf, "none\n");
+ 	BUG_ON(pos + len > iomap->offset + iomap->length);
  
--	zone = page_zone(first_page);
-+	zone = page_zone(pfn_to_page(valid_start));
-+	valid_pages = valid_end - valid_start;
- 
- 	/* MMOP_ONLINE_KEEP */
- 	sprintf(buf, "%s", zone->name);
- 
- 	/* MMOP_ONLINE_KERNEL */
--	zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL, &zone_shift);
-+	zone_can_shift(valid_start, valid_pages, ZONE_NORMAL, &zone_shift);
- 	if (zone_shift) {
- 		strcat(buf, " ");
- 		strcat(buf, (zone + zone_shift)->name);
- 	}
- 
- 	/* MMOP_ONLINE_MOVABLE */
--	zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE, &zone_shift);
-+	zone_can_shift(valid_start, valid_pages, ZONE_MOVABLE, &zone_shift);
- 	if (zone_shift) {
- 		strcat(buf, " ");
- 		strcat(buf, (zone + zone_shift)->name);
-diff -puN include/linux/memory_hotplug.h~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones
-+++ a/include/linux/memory_hotplug.h
-@@ -85,7 +85,8 @@ extern int zone_grow_waitqueues(struct z
- extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
- /* VM interface that may be used by firmware interface */
- extern int online_pages(unsigned long, unsigned long, int);
--extern int test_pages_in_a_zone(unsigned long, unsigned long);
-+extern int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn,
-+	unsigned long *valid_start, unsigned long *valid_end);
- extern void __offline_isolated_pages(unsigned long, unsigned long);
- 
- typedef void (*online_page_callback_t)(struct page *page);
-diff -puN mm/memory_hotplug.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones
-+++ a/mm/memory_hotplug.c
-@@ -1484,10 +1484,13 @@ bool is_mem_section_removable(unsigned l
- 
- /*
-  * Confirm all pages in a range [start, end) belong to the same zone.
-+ * When true, return its valid [start, end).
-  */
--int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
-+int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn,
-+			 unsigned long *valid_start, unsigned long *valid_end)
- {
- 	unsigned long pfn, sec_end_pfn;
-+	unsigned long start, end;
- 	struct zone *zone = NULL;
- 	struct page *page;
- 	int i;
-@@ -1509,14 +1512,20 @@ int test_pages_in_a_zone(unsigned long s
- 			page = pfn_to_page(pfn + i);
- 			if (zone && page_zone(page) != zone)
- 				return 0;
-+			if (!zone)
-+				start = pfn + i;
- 			zone = page_zone(page);
-+			end = pfn + MAX_ORDER_NR_PAGES;
- 		}
- 	}
- 
--	if (zone)
-+	if (zone) {
-+		*valid_start = start;
-+		*valid_end = end;
- 		return 1;
--	else
-+	} else {
- 		return 0;
-+	}
- }
- 
- /*
-@@ -1843,6 +1852,7 @@ static int __ref __offline_pages(unsigne
- 	long offlined_pages;
- 	int ret, drain, retry_max, node;
- 	unsigned long flags;
-+	unsigned long valid_start, valid_end;
- 	struct zone *zone;
- 	struct memory_notify arg;
- 
-@@ -1853,10 +1863,10 @@ static int __ref __offline_pages(unsigne
- 		return -EINVAL;
- 	/* This makes hotplug much easier...and readable.
- 	   we assume this for now. .*/
--	if (!test_pages_in_a_zone(start_pfn, end_pfn))
-+	if (!test_pages_in_a_zone(start_pfn, end_pfn, &valid_start, &valid_end))
- 		return -EINVAL;
- 
--	zone = page_zone(pfn_to_page(start_pfn));
-+	zone = page_zone(pfn_to_page(valid_start));
- 	node = zone_to_nid(zone);
- 	nr_pages = end_pfn - start_pfn;
- 
++	if (fatal_signal_pending(current))
++		return -EINTR;
++
+ 	page = grab_cache_page_write_begin(inode->i_mapping, index, flags);
+ 	if (!page)
+ 		return -ENOMEM;
 _
