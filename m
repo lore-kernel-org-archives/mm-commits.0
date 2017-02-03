@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
- added to -mm tree
-Date: Fri, 03 Feb 2017 15:15:44 -0800
-Message-ID: <58950f20.S41wMp/TOQk8LjVd%akpm@linux-foundation.org>
+ slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch added
+ to -mm tree
+Date: Fri, 03 Feb 2017 15:15:48 -0800
+Message-ID: <58950f24.XSMN1I1cbJ+y9lfi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39716 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753117AbdBCXPq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:15:46 -0500
+        with ESMTP id S1752870AbdBCXQp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:16:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: remove synchronous rcu_barrier() call in memcg cache release path
+     Subject: slab: link memcg kmem_caches on their associated memory cgroup
 has been added to the -mm tree.  Its filename is
-     slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
+     slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: slab: remove synchronous rcu_barrier() call in memcg cache release path
+Subject: slab: link memcg kmem_caches on their associated memory cgroup
 
 With kmem cgroup support enabled, kmem_caches can be created and destroyed
 frequently and a great number of near empty kmem_caches can accumulate if
@@ -52,33 +52,26 @@ hundreds of thousands on moderately large systems, exposing scalability
 issues in the current slab management code.  This is one of the patches to
 address the issue.
 
-SLAB_DESTORY_BY_RCU caches need to flush all RCU operations before
-destruction because slab pages are freed through RCU and they need to be
-able to dereference the associated kmem_cache.  Currently, it's done
-synchronously with rcu_barrier().  As rcu_barrier() is expensive
-time-wise, slab implements a batching mechanism so that rcu_barrier() can
-be done for multiple caches at the same time.
+While a memcg kmem_cache is listed on its root cache's ->children list,
+there is no direct way to iterate all kmem_caches which are assocaited
+with a memory cgroup.  The only way to iterate them is walking all caches
+while filtering out caches which don't match, which would be most of them.
 
-Unfortunately, the rcu_barrier() is in synchronous path which is called
-while holding cgroup_mutex and the batching is too limited to be actually
-helpful.
+This makes memcg destruction operations O(N^2) where N is the total number
+of slab caches which can be huge.  This combined with the synchronous RCU
+operations can tie up a CPU and affect the whole machine for many hours
+when memory reclaim triggers offlining and destruction of the stale
+memcgs.
 
-This patch updates the cache release path so that the batching is
-asynchronous and global.  All SLAB_DESTORY_BY_RCU caches are queued
-globally and a work item consumes the list.  The work item calls
-rcu_barrier() only once for all caches that are currently queued.
+This patch adds mem_cgroup->kmem_caches list which goes through
+memcg_cache_params->kmem_caches_node of all kmem_caches which are
+associated with the memcg.  All memcg specific iterations, including stat
+file access, are updated to use the new list instead.
 
-* release_caches() is removed and shutdown_cache() now either directly
-  release the cache or schedules a RCU callback to do that.  This
-  makes the cache inaccessible once shutdown_cache() is called and
-  makes it impossible for shutdown_memcg_caches() to do memcg-specific
-  cleanups afterwards.  Move memcg-specific part into a helper,
-  unlink_memcg_cache(), and make shutdown_cache() call it directly.
-
-Link: http://lkml.kernel.org/r/20170117235411.9408-4-tj@kernel.org
+Link: http://lkml.kernel.org/r/20170117235411.9408-6-tj@kernel.org
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Reported-by: Jay Vana <jsvana@fb.com>
-Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -86,214 +79,172 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |  102 ++++++++++++++++++++++++++-------------------
- 1 file changed, 60 insertions(+), 42 deletions(-)
+ include/linux/memcontrol.h |    1 
+ include/linux/slab.h       |    3 ++
+ mm/memcontrol.c            |    7 +++---
+ mm/slab.h                  |    3 ++
+ mm/slab_common.c           |   36 ++++++++++++++++++++++++++++-------
+ 5 files changed, 40 insertions(+), 10 deletions(-)
 
-diff -puN mm/slab_common.c~slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path mm/slab_common.c
---- a/mm/slab_common.c~slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path
-+++ a/mm/slab_common.c
-@@ -30,6 +30,11 @@ LIST_HEAD(slab_caches);
- DEFINE_MUTEX(slab_mutex);
- struct kmem_cache *kmem_cache;
+diff -puN include/linux/memcontrol.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/include/linux/memcontrol.h
+@@ -253,6 +253,7 @@ struct mem_cgroup {
+         /* Index in the kmem_cache->memcg_params.memcg_caches array */
+ 	int kmemcg_id;
+ 	enum memcg_kmem_state kmem_state;
++	struct list_head kmem_caches;
+ #endif
  
-+static LIST_HEAD(slab_caches_to_rcu_destroy);
-+static void slab_caches_to_rcu_destroy_workfn(struct work_struct *work);
-+static DECLARE_WORK(slab_caches_to_rcu_destroy_work,
-+		    slab_caches_to_rcu_destroy_workfn);
-+
- /*
-  * Set of flags that will prevent slab merging
+ 	int last_scanned_node;
+diff -puN include/linux/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup include/linux/slab.h
+--- a/include/linux/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/include/linux/slab.h
+@@ -565,6 +565,8 @@ struct memcg_cache_array {
+  * @memcg:	Pointer to the memcg this cache belongs to.
+  *
+  * @children_node: List node for @root_cache->children list.
++ *
++ * @kmem_caches_node: List node for @memcg->kmem_caches list.
   */
-@@ -215,6 +220,11 @@ int memcg_update_all_caches(int num_memc
- 	mutex_unlock(&slab_mutex);
- 	return ret;
+ struct memcg_cache_params {
+ 	struct kmem_cache *root_cache;
+@@ -576,6 +578,7 @@ struct memcg_cache_params {
+ 		struct {
+ 			struct mem_cgroup *memcg;
+ 			struct list_head children_node;
++			struct list_head kmem_caches_node;
+ 		};
+ 	};
+ };
+diff -puN mm/memcontrol.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/mm/memcontrol.c
+@@ -2837,6 +2837,7 @@ static int memcg_online_kmem(struct mem_
+ 	 */
+ 	memcg->kmemcg_id = memcg_id;
+ 	memcg->kmem_state = KMEM_ONLINE;
++	INIT_LIST_HEAD(&memcg->kmem_caches);
+ 
+ 	return 0;
  }
-+
-+static void unlink_memcg_cache(struct kmem_cache *s)
-+{
-+	list_del(&s->memcg_params.list);
-+}
+@@ -4002,9 +4003,9 @@ static struct cftype mem_cgroup_legacy_f
+ #ifdef CONFIG_SLABINFO
+ 	{
+ 		.name = "kmem.slabinfo",
+-		.seq_start = slab_start,
+-		.seq_next = slab_next,
+-		.seq_stop = slab_stop,
++		.seq_start = memcg_slab_start,
++		.seq_next = memcg_slab_next,
++		.seq_stop = memcg_slab_stop,
+ 		.seq_show = memcg_slab_show,
+ 	},
+ #endif
+diff -puN mm/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/slab.h
+--- a/mm/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/mm/slab.h
+@@ -489,6 +489,9 @@ static inline struct kmem_cache_node *ge
+ void *slab_start(struct seq_file *m, loff_t *pos);
+ void *slab_next(struct seq_file *m, void *p, loff_t *pos);
+ void slab_stop(struct seq_file *m, void *p);
++void *memcg_slab_start(struct seq_file *m, loff_t *pos);
++void *memcg_slab_next(struct seq_file *m, void *p, loff_t *pos);
++void memcg_slab_stop(struct seq_file *m, void *p);
+ int memcg_slab_show(struct seq_file *m, void *p);
+ 
+ void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr);
+diff -puN mm/slab_common.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/slab_common.c
+--- a/mm/slab_common.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/mm/slab_common.c
+@@ -154,6 +154,7 @@ static int init_memcg_params(struct kmem
+ 		s->memcg_params.root_cache = root_cache;
+ 		s->memcg_params.memcg = memcg;
+ 		INIT_LIST_HEAD(&s->memcg_params.children_node);
++		INIT_LIST_HEAD(&s->memcg_params.kmem_caches_node);
+ 		return 0;
+ 	}
+ 
+@@ -224,6 +225,7 @@ int memcg_update_all_caches(int num_memc
+ static void unlink_memcg_cache(struct kmem_cache *s)
+ {
+ 	list_del(&s->memcg_params.children_node);
++	list_del(&s->memcg_params.kmem_caches_node);
+ }
  #else
  static inline int init_memcg_params(struct kmem_cache *s,
- 		struct mem_cgroup *memcg, struct kmem_cache *root_cache)
-@@ -225,6 +235,10 @@ static inline int init_memcg_params(stru
- static inline void destroy_memcg_params(struct kmem_cache *s)
- {
- }
-+
-+static inline void unlink_memcg_cache(struct kmem_cache *s)
-+{
-+}
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+@@ -596,6 +598,7 @@ void memcg_create_kmem_cache(struct mem_
  
- /*
-@@ -461,33 +475,59 @@ out_unlock:
- }
- EXPORT_SYMBOL(kmem_cache_create);
+ 	list_add(&s->memcg_params.children_node,
+ 		 &root_cache->memcg_params.children);
++	list_add(&s->memcg_params.kmem_caches_node, &memcg->kmem_caches);
  
--static int shutdown_cache(struct kmem_cache *s,
--		struct list_head *release, bool *need_rcu_barrier)
-+static void slab_caches_to_rcu_destroy_workfn(struct work_struct *work)
- {
--	if (__kmem_cache_shutdown(s) != 0)
--		return -EBUSY;
-+	LIST_HEAD(to_destroy);
-+	struct kmem_cache *s, *s2;
+ 	/*
+ 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
+@@ -651,9 +654,8 @@ void memcg_destroy_kmem_caches(struct me
+ 	get_online_mems();
  
--	if (s->flags & SLAB_DESTROY_BY_RCU)
--		*need_rcu_barrier = true;
-+	/*
-+	 * On destruction, SLAB_DESTROY_BY_RCU kmem_caches are put on the
-+	 * @slab_caches_to_rcu_destroy list.  The slab pages are freed
-+	 * through RCU and and the associated kmem_cache are dereferenced
-+	 * while freeing the pages, so the kmem_caches should be freed only
-+	 * after the pending RCU operations are finished.  As rcu_barrier()
-+	 * is a pretty slow operation, we batch all pending destructions
-+	 * asynchronously.
-+	 */
-+	mutex_lock(&slab_mutex);
-+	list_splice_init(&slab_caches_to_rcu_destroy, &to_destroy);
-+	mutex_unlock(&slab_mutex);
- 
--	list_move(&s->list, release);
--	return 0;
-+	if (list_empty(&to_destroy))
-+		return;
-+
-+	rcu_barrier();
-+
-+	list_for_each_entry_safe(s, s2, &to_destroy, list) {
-+#ifdef SLAB_SUPPORTS_SYSFS
-+		sysfs_slab_release(s);
-+#else
-+		slab_kmem_cache_release(s);
-+#endif
-+	}
- }
- 
--static void release_caches(struct list_head *release, bool need_rcu_barrier)
-+static int shutdown_cache(struct kmem_cache *s)
- {
--	struct kmem_cache *s, *s2;
-+	if (__kmem_cache_shutdown(s) != 0)
-+		return -EBUSY;
- 
--	if (need_rcu_barrier)
--		rcu_barrier();
-+	list_del(&s->list);
-+	if (!is_root_cache(s))
-+		unlink_memcg_cache(s);
- 
--	list_for_each_entry_safe(s, s2, release, list) {
-+	if (s->flags & SLAB_DESTROY_BY_RCU) {
-+		list_add_tail(&s->list, &slab_caches_to_rcu_destroy);
-+		schedule_work(&slab_caches_to_rcu_destroy_work);
-+	} else {
- #ifdef SLAB_SUPPORTS_SYSFS
- 		sysfs_slab_release(s);
- #else
- 		slab_kmem_cache_release(s);
- #endif
- 	}
-+
-+	return 0;
+ 	mutex_lock(&slab_mutex);
+-	list_for_each_entry_safe(s, s2, &slab_caches, list) {
+-		if (is_root_cache(s) || s->memcg_params.memcg != memcg)
+-			continue;
++	list_for_each_entry_safe(s, s2, &memcg->kmem_caches,
++				 memcg_params.kmem_caches_node) {
+ 		/*
+ 		 * The cgroup is about to be freed and therefore has no charges
+ 		 * left. Hence, all its caches must be empty by now.
+@@ -1209,15 +1211,35 @@ static int slab_show(struct seq_file *m,
  }
  
  #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
-@@ -602,22 +642,8 @@ void memcg_deactivate_kmem_caches(struct
- 	put_online_cpus();
- }
- 
--static int __shutdown_memcg_cache(struct kmem_cache *s,
--		struct list_head *release, bool *need_rcu_barrier)
--{
--	BUG_ON(is_root_cache(s));
--
--	if (shutdown_cache(s, release, need_rcu_barrier))
--		return -EBUSY;
--
--	list_del(&s->memcg_params.list);
--	return 0;
--}
--
- void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
++void *memcg_slab_start(struct seq_file *m, loff_t *pos)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++
++	mutex_lock(&slab_mutex);
++	return seq_list_start(&memcg->kmem_caches, *pos);
++}
++
++void *memcg_slab_next(struct seq_file *m, void *p, loff_t *pos)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++
++	return seq_list_next(p, &memcg->kmem_caches, pos);
++}
++
++void memcg_slab_stop(struct seq_file *m, void *p)
++{
++	mutex_unlock(&slab_mutex);
++}
++
+ int memcg_slab_show(struct seq_file *m, void *p)
  {
--	LIST_HEAD(release);
--	bool need_rcu_barrier = false;
- 	struct kmem_cache *s, *s2;
+-	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
++	struct kmem_cache *s = list_entry(p, struct kmem_cache,
++					  memcg_params.kmem_caches_node);
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
  
- 	get_online_cpus();
-@@ -631,18 +657,15 @@ void memcg_destroy_kmem_caches(struct me
- 		 * The cgroup is about to be freed and therefore has no charges
- 		 * left. Hence, all its caches must be empty by now.
- 		 */
--		BUG_ON(__shutdown_memcg_cache(s, &release, &need_rcu_barrier));
-+		BUG_ON(shutdown_cache(s));
- 	}
- 	mutex_unlock(&slab_mutex);
- 
- 	put_online_mems();
- 	put_online_cpus();
--
--	release_caches(&release, need_rcu_barrier);
- }
- 
--static int shutdown_memcg_caches(struct kmem_cache *s,
--		struct list_head *release, bool *need_rcu_barrier)
-+static int shutdown_memcg_caches(struct kmem_cache *s)
- {
- 	struct memcg_cache_array *arr;
- 	struct kmem_cache *c, *c2;
-@@ -661,7 +684,7 @@ static int shutdown_memcg_caches(struct
- 		c = arr->entries[i];
- 		if (!c)
- 			continue;
--		if (__shutdown_memcg_cache(c, release, need_rcu_barrier))
-+		if (shutdown_cache(c))
- 			/*
- 			 * The cache still has objects. Move it to a temporary
- 			 * list so as not to try to destroy it for a second
-@@ -684,7 +707,7 @@ static int shutdown_memcg_caches(struct
- 	 */
- 	list_for_each_entry_safe(c, c2, &s->memcg_params.list,
- 				 memcg_params.list)
--		__shutdown_memcg_cache(c, release, need_rcu_barrier);
-+		shutdown_cache(c);
- 
- 	list_splice(&busy, &s->memcg_params.list);
- 
-@@ -697,8 +720,7 @@ static int shutdown_memcg_caches(struct
+-	if (p == slab_caches.next)
++	if (p == memcg->kmem_caches.next)
+ 		print_slabinfo_header(m);
+-	if (!is_root_cache(s) && s->memcg_params.memcg == memcg)
+-		cache_show(s, m);
++	cache_show(s, m);
  	return 0;
  }
- #else
--static inline int shutdown_memcg_caches(struct kmem_cache *s,
--		struct list_head *release, bool *need_rcu_barrier)
-+static inline int shutdown_memcg_caches(struct kmem_cache *s)
- {
- 	return 0;
- }
-@@ -714,8 +736,6 @@ void slab_kmem_cache_release(struct kmem
- 
- void kmem_cache_destroy(struct kmem_cache *s)
- {
--	LIST_HEAD(release);
--	bool need_rcu_barrier = false;
- 	int err;
- 
- 	if (unlikely(!s))
-@@ -731,9 +751,9 @@ void kmem_cache_destroy(struct kmem_cach
- 	if (s->refcount)
- 		goto out_unlock;
- 
--	err = shutdown_memcg_caches(s, &release, &need_rcu_barrier);
-+	err = shutdown_memcg_caches(s);
- 	if (!err)
--		err = shutdown_cache(s, &release, &need_rcu_barrier);
-+		err = shutdown_cache(s);
- 
- 	if (err) {
- 		pr_err("kmem_cache_destroy %s: Slab cache still has objects\n",
-@@ -745,8 +765,6 @@ out_unlock:
- 
- 	put_online_mems();
- 	put_online_cpus();
+ #endif
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
+slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove.patch
+slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
+slab-reorganize-memcg_cache_params.patch
+slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
+slab-implement-slab_root_caches-list.patch
+slab-introduce-__kmemcg_cache_deactivate.patch
+slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
+slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches.patch
+slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
+
