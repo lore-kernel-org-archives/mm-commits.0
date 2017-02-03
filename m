@@ -1,135 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: + drm-remove-unnecessary-fault-wrappers.patch added to -mm tree
-Date: Fri, 03 Feb 2017 13:09:13 -0800
-Message-ID: <5894f179.qR4C4ItyoWc+N3HJ%akpm@linux-foundation.org>
+Subject: [patch 1/8] zswap: disable changing params if init fails
+Date: Fri, 03 Feb 2017 13:13:09 -0800
+Message-ID: <5894f265.qvzNz5Ru6zFZ/7p2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50244 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752504AbdBCVJO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:09:14 -0500
+        with ESMTP id S1752477AbdBCVNL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:13:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, daniel.vetter@ffwll.ch, dave.jiang@intel.com, seanpaul@chromium.org, mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ddstreet@ieee.org, dan.streetman@canonical.com, marcin@mejor.pl, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, sjenning@redhat.com, stable@vger.kernel.org
 
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: zswap: disable changing params if init fails
 
-The patch titled
-     Subject: drm: remove unnecessary fault wrappers
-has been added to the -mm tree.  Its filename is
-     drm-remove-unnecessary-fault-wrappers.patch
+Add zswap_init_failed bool that prevents changing any of the module
+params, if init_zswap() fails, and set zswap_enabled to false.  Change
+'enabled' param to a callback, and check zswap_init_failed before allowing
+any change to 'enabled', 'zpool', or 'compressor' params.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-remove-unnecessary-fault-wrappers.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-remove-unnecessary-fault-wrappers.patch
+Any driver that is built-in to the kernel will not be unloaded if its init
+function returns error, and its module params remain accessible for users
+to change via sysfs.  Since zswap uses param callbacks, which assume that
+zswap has been initialized, changing the zswap params after a failed
+initialization will result in WARNING due to the param callbacks expecting
+a pool to already exist.  This prevents that by immediately exiting any of
+the param callbacks if initialization failed.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This was reported here:
+https://marc.info/?l=linux-mm&m=147004228125528&w=4
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+And fixes this WARNING:
+[  429.723476] WARNING: CPU: 0 PID: 5140 at mm/zswap.c:503
+__zswap_pool_current+0x56/0x60
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The warning is just noise, and not serious.  However, when init fails,
+zswap frees all its percpu dstmem pages and its kmem cache.  The kmem
+cache might be serious, if kmem_cache_alloc(NULL, gfp) has problems;
+but the percpu dstmem pages are definitely a problem, as they're used
+as temporary buffer for compressed pages before copying into place in
+the zpool.
 
-------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: drm: remove unnecessary fault wrappers
+If the user does get zswap enabled after an init failure, then zswap
+will likely Oops on the first page it tries to compress (or worse,
+start corrupting memory).
 
-The fault wrappers drm_vm_fault(), drm_vm_shm_fault(), drm_vm_dma_fault()
-and drm_vm_sg_fault() used to provide extra logic beyond what was in the
-"drm_do_*" versions of these functions, but as of this commit:
-
-commit ca0b07d9a969 ("drm: convert drm from nopage to fault.")
-
-They are just unnecessary wrappers that do nothing.  Remove them, and
-rename the the drm_do_* fault handlers to remove the "do_" since they no
-longer have corresponding wrappers.
-
-Link: http://lkml.kernel.org/r/1486155698-25717-1-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Sean Paul <seanpaul@chromium.org>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Fixes: 90b0fc26d5db ("zswap: change zpool/compressor at runtime")
+Link: http://lkml.kernel.org/r/20170124200259.16191-2-ddstreet@ieee.org
+Signed-off-by: Dan Streetman <dan.streetman@canonical.com>
+Reported-by: Marcin Miroslaw <marcin@mejor.pl>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_vm.c |   30 +++++-------------------------
- 1 file changed, 5 insertions(+), 25 deletions(-)
+ mm/zswap.c |   30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/drm_vm.c~drm-remove-unnecessary-fault-wrappers drivers/gpu/drm/drm_vm.c
---- a/drivers/gpu/drm/drm_vm.c~drm-remove-unnecessary-fault-wrappers
-+++ a/drivers/gpu/drm/drm_vm.c
-@@ -96,7 +96,7 @@ static pgprot_t drm_dma_prot(uint32_t ma
-  * map, get the page, increment the use count and return it.
-  */
- #if IS_ENABLED(CONFIG_AGP)
--static int drm_do_vm_fault(struct vm_fault *vmf)
-+static int drm_vm_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct drm_file *priv = vma->vm_file->private_data;
-@@ -169,7 +169,7 @@ vm_fault_error:
- 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
- }
- #else
--static int drm_do_vm_fault(struct vm_fault *vmf)
-+static int drm_vm_fault(struct vm_fault *vmf)
- {
- 	return VM_FAULT_SIGBUS;
- }
-@@ -185,7 +185,7 @@ static int drm_do_vm_fault(struct vm_fau
-  * Get the mapping, find the real physical page to map, get the page, and
-  * return it.
-  */
--static int drm_do_vm_shm_fault(struct vm_fault *vmf)
-+static int drm_vm_shm_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct drm_local_map *map = vma->vm_private_data;
-@@ -287,7 +287,7 @@ static void drm_vm_shm_close(struct vm_a
-  *
-  * Determine the page number from the page offset and get it from drm_device_dma::pagelist.
-  */
--static int drm_do_vm_dma_fault(struct vm_fault *vmf)
-+static int drm_vm_dma_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct drm_file *priv = vma->vm_file->private_data;
-@@ -322,7 +322,7 @@ static int drm_do_vm_dma_fault(struct vm
-  *
-  * Determine the map offset from the page offset and get it from drm_sg_mem::pagelist.
-  */
--static int drm_do_vm_sg_fault(struct vm_fault *vmf)
-+static int drm_vm_sg_fault(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct drm_local_map *map = vma->vm_private_data;
-@@ -349,26 +349,6 @@ static int drm_do_vm_sg_fault(struct vm_
- 	return 0;
+diff -puN mm/zswap.c~zswap-disable-changing-params-if-init-fails mm/zswap.c
+--- a/mm/zswap.c~zswap-disable-changing-params-if-init-fails
++++ a/mm/zswap.c
+@@ -78,7 +78,13 @@ static u64 zswap_duplicate_entry;
+ 
+ /* Enable/disable zswap (disabled by default) */
+ static bool zswap_enabled;
+-module_param_named(enabled, zswap_enabled, bool, 0644);
++static int zswap_enabled_param_set(const char *,
++				   const struct kernel_param *);
++static struct kernel_param_ops zswap_enabled_param_ops = {
++	.set =		zswap_enabled_param_set,
++	.get =		param_get_bool,
++};
++module_param_cb(enabled, &zswap_enabled_param_ops, &zswap_enabled, 0644);
+ 
+ /* Crypto compressor to use */
+ #define ZSWAP_COMPRESSOR_DEFAULT "lzo"
+@@ -176,6 +182,9 @@ static atomic_t zswap_pools_count = ATOM
+ /* used by param callback function */
+ static bool zswap_init_started;
+ 
++/* fatal error during init */
++static bool zswap_init_failed;
++
+ /*********************************
+ * helpers and fwd declarations
+ **********************************/
+@@ -624,6 +633,11 @@ static int __zswap_param_set(const char
+ 	char *s = strstrip((char *)val);
+ 	int ret;
+ 
++	if (zswap_init_failed) {
++		pr_err("can't set param, initialization failed\n");
++		return -ENODEV;
++	}
++
+ 	/* no change required */
+ 	if (!strcmp(s, *(char **)kp->arg))
+ 		return 0;
+@@ -703,6 +717,17 @@ static int zswap_zpool_param_set(const c
+ 	return __zswap_param_set(val, kp, NULL, zswap_compressor);
  }
  
--static int drm_vm_fault(struct vm_fault *vmf)
--{
--	return drm_do_vm_fault(vmf);
--}
--
--static int drm_vm_shm_fault(struct vm_fault *vmf)
--{
--	return drm_do_vm_shm_fault(vmf);
--}
--
--static int drm_vm_dma_fault(struct vm_fault *vmf)
--{
--	return drm_do_vm_dma_fault(vmf);
--}
--
--static int drm_vm_sg_fault(struct vm_fault *vmf)
--{
--	return drm_do_vm_sg_fault(vmf);
--}
++static int zswap_enabled_param_set(const char *val,
++				   const struct kernel_param *kp)
++{
++	if (zswap_init_failed) {
++		pr_err("can't enable, initialization failed\n");
++		return -ENODEV;
++	}
++
++	return param_set_bool(val, kp);
++}
++
+ /*********************************
+ * writeback code
+ **********************************/
+@@ -1201,6 +1226,9 @@ hp_fail:
+ dstmem_fail:
+ 	zswap_entry_cache_destroy();
+ cache_fail:
++	/* if built-in, we aren't unloaded on failure; don't allow use */
++	zswap_init_failed = true;
++	zswap_enabled = false;
+ 	return -ENOMEM;
+ }
+ /* must be late so crypto has time to come up */
+_
