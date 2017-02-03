@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch added to -mm tree
-Date: Fri, 03 Feb 2017 15:21:23 -0800
-Message-ID: <58951073.Ok/a78qoWubyI2KU%akpm@linux-foundation.org>
+Subject: + mm-migration-make-isolate_movable_page-return-int-type-v6.patch added to -mm tree
+Date: Fri, 03 Feb 2017 15:30:35 -0800
+Message-ID: <5895129b.tB+YgySgKxdRq1wy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752527AbdBCXVY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:21:24 -0500
+        with ESMTP id S1752820AbdBCXag (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:30:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, viro@ZenIV.linux.org.uk, willy@infradead.org, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid returning VM_FAULT_RETRY from ->page_mkwrite handlers
+     Subject: mm/migration: make isolate_movable_page() return int type
 has been added to the -mm tree.  Its filename is
-     mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
+     mm-migration-make-isolate_movable_page-return-int-type-v6.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migration-make-isolate_movable_page-return-int-type-v6.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-make-isolate_movable_page-return-int-type-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: avoid returning VM_FAULT_RETRY from ->page_mkwrite handlers
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/migration: make isolate_movable_page() return int type
 
-Some ->page_mkwrite handlers may return VM_FAULT_RETRY as its return code
-(GFS2 or Lustre can definitely do this).  However VM_FAULT_RETRY from
-->page_mkwrite is completely unhandled by the mm code and results in
-locking and writeably mapping the page which definitely is not what the
-caller wanted.  Fix Lustre and block_page_mkwrite_ret() used by other
-filesystems (notably GFS2) to return VM_FAULT_NOPAGE instead which results
-in bailing out from the fault code, the CPU then retries the access, and
-we fault again effectively doing what the handler wanted.
-
-Link: http://lkml.kernel.org/r/20170203150729.15863-1-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/1486108770-630-2-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/llite/llite_mmap.c |    4 +---
- include/linux/buffer_head.h                      |    4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ mm/migrate.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers drivers/staging/lustre/lustre/llite/llite_mmap.c
---- a/drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
-+++ a/drivers/staging/lustre/lustre/llite/llite_mmap.c
-@@ -390,15 +390,13 @@ static int ll_page_mkwrite(struct vm_are
- 		result = VM_FAULT_LOCKED;
- 		break;
- 	case -ENODATA:
-+	case -EAGAIN:
- 	case -EFAULT:
- 		result = VM_FAULT_NOPAGE;
- 		break;
- 	case -ENOMEM:
- 		result = VM_FAULT_OOM;
- 		break;
--	case -EAGAIN:
--		result = VM_FAULT_RETRY;
--		break;
- 	default:
- 		result = VM_FAULT_SIGBUS;
- 		break;
-diff -puN include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
-+++ a/include/linux/buffer_head.h
-@@ -243,12 +243,10 @@ static inline int block_page_mkwrite_ret
+diff -puN mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type-v6 mm/migrate.c
+--- a/mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type-v6
++++ a/mm/migrate.c
+@@ -76,7 +76,6 @@ int migrate_prep_local(void)
+ 
+ int isolate_movable_page(struct page *page, isolate_mode_t mode)
  {
- 	if (err == 0)
- 		return VM_FAULT_LOCKED;
--	if (err == -EFAULT)
-+	if (err == -EFAULT || err == -EAGAIN)
- 		return VM_FAULT_NOPAGE;
- 	if (err == -ENOMEM)
- 		return VM_FAULT_OOM;
--	if (err == -EAGAIN)
--		return VM_FAULT_RETRY;
- 	/* -ENOSPC, -EDQUOT, -EIO ... */
- 	return VM_FAULT_SIGBUS;
+-	int ret = -EBUSY;
+ 	struct address_space *mapping;
+ 
+ 	/*
+@@ -96,10 +95,8 @@ int isolate_movable_page(struct page *pa
+ 	 * assumes anybody doesn't touch PG_lock of newly allocated page
+ 	 * so unconditionally grapping the lock ruins page's owner side.
+ 	 */
+-	if (unlikely(!__PageMovable(page))) {
+-		ret = -EINVAL;
++	if (unlikely(!__PageMovable(page)))
+ 		goto out_putpage;
+-	}
+ 	/*
+ 	 * As movable pages are not isolated from LRU lists, concurrent
+ 	 * compaction threads can race against page migration functions
+@@ -135,7 +132,7 @@ out_no_isolated:
+ out_putpage:
+ 	put_page(page);
+ out:
+-	return ret;
++	return -EBUSY;
  }
+ 
+ /* It should be called on page which is PG_movable */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
-mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
+mm-migration-make-isolate_movable_page-return-int-type.patch
+mm-migration-make-isolate_movable_page-return-int-type-v6.patch
+mm-migration-make-isolate_movable_page-always-defined.patch
+hwpoison-soft-offlining-for-non-lru-movable-page.patch
+mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
 
