@@ -1,123 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/8] shmem: fix sleeping from atomic context
-Date: Fri, 03 Feb 2017 13:13:15 -0800
-Message-ID: <5894f26b.Oo2kvOLoENYGzYp/%akpm@linux-foundation.org>
+Subject: [patch 6/8] base/memory, hotplug: fix a kernel oops in
+ show_valid_zones()
+Date: Fri, 03 Feb 2017 13:13:23 -0800
+Message-ID: <5894f273.OiPLXhq2L/IPPqye%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50304 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752508AbdBCVNQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:13:16 -0500
+        with ESMTP id S1752331AbdBCVNY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:13:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, dvyukov@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, toshi.kani@hpe.com, arbab@linux.vnet.ibm.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, rientjes@google.com, stable@vger.kernel.org, zhenzhang.zhang@huawei.com
 
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: fix sleeping from atomic context
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: base/memory, hotplug: fix a kernel oops in show_valid_zones()
 
-Syzkaller fuzzer managed to trigger this:
+Reading a sysfs "memoryN/valid_zones" file leads to the following oops
+when the first page of a range is not backed by struct page. 
+show_valid_zones() assumes that 'start_pfn' is always valid for
+page_zone().
 
-BUG: sleeping function called from invalid context at mm/shmem.c:852
-in_atomic(): 1, irqs_disabled(): 0, pid: 529, name: khugepaged
-3 locks held by khugepaged/529:
- #0:  (shrinker_rwsem){++++..}, at: [<ffffffff818d7ef1>]
-shrink_slab.part.59+0x121/0xd30 mm/vmscan.c:451
- #1:  (&type->s_umount_key#29){++++..}, at: [<ffffffff81a63630>]
-trylock_super+0x20/0x100 fs/super.c:392
- #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
-[<ffffffff818fd83e>] spin_lock include/linux/spinlock.h:302 [inline]
- #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
-[<ffffffff818fd83e>] shmem_unused_huge_shrink+0x28e/0x1490
-mm/shmem.c:427
-CPU: 2 PID: 529 Comm: khugepaged Not tainted 4.10.0-rc5+ #201
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:15 [inline]
- dump_stack+0x2ee/0x3ef lib/dump_stack.c:51
- ___might_sleep+0x47e/0x650 kernel/sched/core.c:7780
- shmem_undo_range+0xb20/0x2710 mm/shmem.c:852
- shmem_truncate_range+0x27/0xa0 mm/shmem.c:939
- shmem_evict_inode+0x35f/0xca0 mm/shmem.c:1030
- evict+0x46e/0x980 fs/inode.c:553
- iput_final fs/inode.c:1515 [inline]
- iput+0x589/0xb20 fs/inode.c:1542
- shmem_unused_huge_shrink+0xbad/0x1490 mm/shmem.c:446
- shmem_unused_huge_scan+0x10c/0x170 mm/shmem.c:512
- super_cache_scan+0x376/0x450 fs/super.c:106
- do_shrink_slab mm/vmscan.c:378 [inline]
- shrink_slab.part.59+0x543/0xd30 mm/vmscan.c:481
- shrink_slab mm/vmscan.c:2592 [inline]
- shrink_node+0x2c7/0x870 mm/vmscan.c:2592
- shrink_zones mm/vmscan.c:2734 [inline]
- do_try_to_free_pages+0x369/0xc80 mm/vmscan.c:2776
- try_to_free_pages+0x3c6/0x900 mm/vmscan.c:2982
- __perform_reclaim mm/page_alloc.c:3301 [inline]
- __alloc_pages_direct_reclaim mm/page_alloc.c:3322 [inline]
- __alloc_pages_slowpath+0xa24/0x1c30 mm/page_alloc.c:3683
- __alloc_pages_nodemask+0x544/0xae0 mm/page_alloc.c:3848
- __alloc_pages include/linux/gfp.h:426 [inline]
- __alloc_pages_node include/linux/gfp.h:439 [inline]
- khugepaged_alloc_page+0xc2/0x1b0 mm/khugepaged.c:750
- collapse_huge_page+0x182/0x1fe0 mm/khugepaged.c:955
- khugepaged_scan_pmd+0xfdf/0x12a0 mm/khugepaged.c:1208
- khugepaged_scan_mm_slot mm/khugepaged.c:1727 [inline]
- khugepaged_do_scan mm/khugepaged.c:1808 [inline]
- khugepaged+0xe9b/0x1590 mm/khugepaged.c:1853
- kthread+0x326/0x3f0 kernel/kthread.c:227
- ret_from_fork+0x31/0x40 arch/x86/entry/entry_64.S:430
+ BUG: unable to handle kernel paging request at ffffea017a000000
+ IP: show_valid_zones+0x6f/0x160
 
-The iput() from atomic context was a bad idea: if after igrab() somebody
-else calls iput() and we left with the last inode reference, our iput()
-would lead to inode eviction and therefore sleeping.
+This issue may happen on x86-64 systems with 64GiB or more memory since
+their memory block size is bumped up to 2GiB.  [1] An example of such
+systems is desribed below.  0x3240000000 is only aligned by 1GiB and this
+memory block starts from 0x3200000000, which is not backed by struct page.
 
-This patch should fix the situation.
+ BIOS-e820: [mem 0x0000003240000000-0x000000603fffffff] usable
 
-Link: http://lkml.kernel.org/r/20170131093141.GA15899@node.shutemov.name
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Since test_pages_in_a_zone() already checks holes, fix this issue by
+extending this function to return 'valid_start' and 'valid_end' for a
+given range.  show_valid_zones() then proceeds with the valid range.
+
+[1] 'Commit bdee237c0343 ("x86: mm: Use 2GB memory block size on
+    large-memory x86-64 systems")'
+
+Link: http://lkml.kernel.org/r/20170127222149.30893-3-toshi.kani@hpe.com
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: <stable@vger.kernel.org>	[4.4+]
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/base/memory.c          |   12 ++++++------
+ include/linux/memory_hotplug.h |    3 ++-
+ mm/memory_hotplug.c            |   20 +++++++++++++++-----
+ 3 files changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range mm/shmem.c
---- a/mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range
-+++ a/mm/shmem.c
-@@ -415,6 +415,7 @@ static unsigned long shmem_unused_huge_s
- 		struct shrink_control *sc, unsigned long nr_to_split)
+diff -puN drivers/base/memory.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones drivers/base/memory.c
+--- a/drivers/base/memory.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones
++++ a/drivers/base/memory.c
+@@ -389,33 +389,33 @@ static ssize_t show_valid_zones(struct d
  {
- 	LIST_HEAD(list), *pos, *next;
-+	LIST_HEAD(to_remove);
- 	struct inode *inode;
- 	struct shmem_inode_info *info;
- 	struct page *page;
-@@ -441,9 +442,8 @@ static unsigned long shmem_unused_huge_s
- 		/* Check if there's anything to gain */
- 		if (round_up(inode->i_size, PAGE_SIZE) ==
- 				round_up(inode->i_size, HPAGE_PMD_SIZE)) {
--			list_del_init(&info->shrinklist);
-+			list_move(&info->shrinklist, &to_remove);
- 			removed++;
--			iput(inode);
- 			goto next;
- 		}
+ 	struct memory_block *mem = to_memory_block(dev);
+ 	unsigned long start_pfn, end_pfn;
++	unsigned long valid_start, valid_end, valid_pages;
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+-	struct page *first_page;
+ 	struct zone *zone;
+ 	int zone_shift = 0;
  
-@@ -454,6 +454,13 @@ next:
+ 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	end_pfn = start_pfn + nr_pages;
+-	first_page = pfn_to_page(start_pfn);
+ 
+ 	/* The block contains more than one zone can not be offlined. */
+-	if (!test_pages_in_a_zone(start_pfn, end_pfn))
++	if (!test_pages_in_a_zone(start_pfn, end_pfn, &valid_start, &valid_end))
+ 		return sprintf(buf, "none\n");
+ 
+-	zone = page_zone(first_page);
++	zone = page_zone(pfn_to_page(valid_start));
++	valid_pages = valid_end - valid_start;
+ 
+ 	/* MMOP_ONLINE_KEEP */
+ 	sprintf(buf, "%s", zone->name);
+ 
+ 	/* MMOP_ONLINE_KERNEL */
+-	zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL, &zone_shift);
++	zone_can_shift(valid_start, valid_pages, ZONE_NORMAL, &zone_shift);
+ 	if (zone_shift) {
+ 		strcat(buf, " ");
+ 		strcat(buf, (zone + zone_shift)->name);
  	}
- 	spin_unlock(&sbinfo->shrinklist_lock);
  
-+	list_for_each_safe(pos, next, &to_remove) {
-+		info = list_entry(pos, struct shmem_inode_info, shrinklist);
-+		inode = &info->vfs_inode;
-+		list_del_init(&info->shrinklist);
-+		iput(inode);
+ 	/* MMOP_ONLINE_MOVABLE */
+-	zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE, &zone_shift);
++	zone_can_shift(valid_start, valid_pages, ZONE_MOVABLE, &zone_shift);
+ 	if (zone_shift) {
+ 		strcat(buf, " ");
+ 		strcat(buf, (zone + zone_shift)->name);
+diff -puN include/linux/memory_hotplug.h~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones
++++ a/include/linux/memory_hotplug.h
+@@ -85,7 +85,8 @@ extern int zone_grow_waitqueues(struct z
+ extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
+ /* VM interface that may be used by firmware interface */
+ extern int online_pages(unsigned long, unsigned long, int);
+-extern int test_pages_in_a_zone(unsigned long, unsigned long);
++extern int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn,
++	unsigned long *valid_start, unsigned long *valid_end);
+ extern void __offline_isolated_pages(unsigned long, unsigned long);
+ 
+ typedef void (*online_page_callback_t)(struct page *page);
+diff -puN mm/memory_hotplug.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~base-memory-hotplug-fix-a-kernel-oops-in-show_valid_zones
++++ a/mm/memory_hotplug.c
+@@ -1484,10 +1484,13 @@ bool is_mem_section_removable(unsigned l
+ 
+ /*
+  * Confirm all pages in a range [start, end) belong to the same zone.
++ * When true, return its valid [start, end).
+  */
+-int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn,
++			 unsigned long *valid_start, unsigned long *valid_end)
+ {
+ 	unsigned long pfn, sec_end_pfn;
++	unsigned long start, end;
+ 	struct zone *zone = NULL;
+ 	struct page *page;
+ 	int i;
+@@ -1509,14 +1512,20 @@ int test_pages_in_a_zone(unsigned long s
+ 			page = pfn_to_page(pfn + i);
+ 			if (zone && page_zone(page) != zone)
+ 				return 0;
++			if (!zone)
++				start = pfn + i;
+ 			zone = page_zone(page);
++			end = pfn + MAX_ORDER_NR_PAGES;
+ 		}
+ 	}
+ 
+-	if (zone)
++	if (zone) {
++		*valid_start = start;
++		*valid_end = end;
+ 		return 1;
+-	else
++	} else {
+ 		return 0;
 +	}
-+
- 	list_for_each_safe(pos, next, &list) {
- 		int ret;
+ }
+ 
+ /*
+@@ -1843,6 +1852,7 @@ static int __ref __offline_pages(unsigne
+ 	long offlined_pages;
+ 	int ret, drain, retry_max, node;
+ 	unsigned long flags;
++	unsigned long valid_start, valid_end;
+ 	struct zone *zone;
+ 	struct memory_notify arg;
+ 
+@@ -1853,10 +1863,10 @@ static int __ref __offline_pages(unsigne
+ 		return -EINVAL;
+ 	/* This makes hotplug much easier...and readable.
+ 	   we assume this for now. .*/
+-	if (!test_pages_in_a_zone(start_pfn, end_pfn))
++	if (!test_pages_in_a_zone(start_pfn, end_pfn, &valid_start, &valid_end))
+ 		return -EINVAL;
+ 
+-	zone = page_zone(pfn_to_page(start_pfn));
++	zone = page_zone(pfn_to_page(valid_start));
+ 	node = zone_to_nid(zone);
+ 	nr_pages = end_pfn - start_pfn;
  
 _
