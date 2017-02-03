@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch added to -mm tree
-Date: Fri, 03 Feb 2017 15:16:02 -0800
-Message-ID: <58950f32.5BKjGCYYEqnZajyP%akpm@linux-foundation.org>
+ slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch added to -mm tree
+Date: Fri, 03 Feb 2017 15:15:57 -0800
+Message-ID: <58950f2d.xFBM63iU9ROukddh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39758 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752886AbdBCXQp (ORCPT
+        with ESMTP id S1752873AbdBCXQp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:16:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: use memcg_kmem_cache_wq for slab destruction operations
+     Subject: slab: remove synchronous synchronize_sched() from memcg cache deactivation path
 has been added to the -mm tree.  Its filename is
-     slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
+     slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: slab: use memcg_kmem_cache_wq for slab destruction operations
+Subject: slab: remove synchronous synchronize_sched() from memcg cache deactivation path
 
-If there's contention on slab_mutex, queueing the per-cache destruction
-work item on the system_wq can unnecessarily create and tie up a lot of
-kworkers.
+With kmem cgroup support enabled, kmem_caches can be created and destroyed
+frequently and a great number of near empty kmem_caches can accumulate if
+there are a lot of transient cgroups and the system is not under memory
+pressure.  When memory reclaim starts under such conditions, it can lead
+to consecutive deactivation and destruction of many kmem_caches, easily
+hundreds of thousands on moderately large systems, exposing scalability
+issues in the current slab management code.  This is one of the patches to
+address the issue.
 
-Rename memcg_kmem_cache_create_wq to memcg_kmem_cache_wq and make it
-global and use that workqueue for the destruction work items too.  While
-at it, convert the workqueue from an unbound workqueue to a per-cpu one
-with concurrency limited to 1.  It's generally preferable to use per-cpu
-workqueues and concurrency limit of 1 is safe enough.
+slub uses synchronize_sched() to deactivate a memcg cache. 
+synchronize_sched() is an expensive and slow operation and doesn't scale
+when a huge number of caches are destroyed back-to-back.  While there used
+to be a simple batching mechanism, the batching was too restricted to be
+helpful.
 
-This is suggested by Joonsoo Kim.
+This patch implements slab_deactivate_memcg_cache_rcu_sched() which slub
+can use to schedule sched RCU callback instead of performing
+synchronize_sched() synchronously while holding cgroup_mutex.  While this
+adds online cpus, mems and slab_mutex operations, operating on these locks
+back-to-back from the same kworker, which is what's gonna happen when
+there are many to deactivate, isn't expensive at all and this gets rid of
+the scalability problem completely.
 
-Link: http://lkml.kernel.org/r/20170117235411.9408-11-tj@kernel.org
+Link: http://lkml.kernel.org/r/20170117235411.9408-9-tj@kernel.org
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Reported-by: Jay Vana <jsvana@fb.com>
-Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -65,94 +76,131 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 +
- mm/memcontrol.c            |   16 ++++++++--------
- mm/slab_common.c           |    2 +-
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/slab.h |    6 ++++
+ mm/slab.h            |    2 +
+ mm/slab_common.c     |   60 +++++++++++++++++++++++++++++++++++++++++
+ mm/slub.c            |   12 +++++---
+ 4 files changed, 76 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
-+++ a/include/linux/memcontrol.h
-@@ -830,6 +830,7 @@ void memcg_kmem_uncharge(struct page *pa
- 
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
- extern struct static_key_false memcg_kmem_enabled_key;
-+extern struct workqueue_struct *memcg_kmem_cache_wq;
- 
- extern int memcg_nr_cache_ids;
- void memcg_get_cache_ids(void);
-diff -puN mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/memcontrol.c
---- a/mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
-+++ a/mm/memcontrol.c
-@@ -317,6 +317,8 @@ void memcg_put_cache_ids(void)
- DEFINE_STATIC_KEY_FALSE(memcg_kmem_enabled_key);
- EXPORT_SYMBOL(memcg_kmem_enabled_key);
- 
-+struct workqueue_struct *memcg_kmem_cache_wq;
+diff -puN include/linux/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path include/linux/slab.h
+--- a/include/linux/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
++++ a/include/linux/slab.h
+@@ -582,6 +582,12 @@ struct memcg_cache_params {
+ 			struct mem_cgroup *memcg;
+ 			struct list_head children_node;
+ 			struct list_head kmem_caches_node;
 +
- #endif /* !CONFIG_SLOB */
- 
- /**
-@@ -2143,8 +2145,6 @@ struct memcg_kmem_cache_create_work {
- 	struct work_struct work;
++			void (*deact_fn)(struct kmem_cache *);
++			union {
++				struct rcu_head deact_rcu_head;
++				struct work_struct deact_work;
++			};
+ 		};
+ 	};
  };
+diff -puN mm/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path mm/slab.h
+--- a/mm/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
++++ a/mm/slab.h
+@@ -302,6 +302,8 @@ static __always_inline void memcg_unchar
  
--static struct workqueue_struct *memcg_kmem_cache_create_wq;
--
- static void memcg_kmem_cache_create_func(struct work_struct *w)
- {
- 	struct memcg_kmem_cache_create_work *cw =
-@@ -2176,7 +2176,7 @@ static void __memcg_schedule_kmem_cache_
- 	cw->cachep = cachep;
- 	INIT_WORK(&cw->work, memcg_kmem_cache_create_func);
+ extern void slab_init_memcg_params(struct kmem_cache *);
+ extern void memcg_link_cache(struct kmem_cache *s);
++extern void slab_deactivate_memcg_cache_rcu_sched(struct kmem_cache *s,
++				void (*deact_fn)(struct kmem_cache *));
  
--	queue_work(memcg_kmem_cache_create_wq, &cw->work);
-+	queue_work(memcg_kmem_cache_wq, &cw->work);
- }
+ #else /* CONFIG_MEMCG && !CONFIG_SLOB */
  
- static void memcg_schedule_kmem_cache_create(struct mem_cgroup *memcg,
-@@ -5778,12 +5778,12 @@ static int __init mem_cgroup_init(void)
- #ifndef CONFIG_SLOB
- 	/*
- 	 * Kmem cache creation is mostly done with the slab_mutex held,
--	 * so use a special workqueue to avoid stalling all worker
--	 * threads in case lots of cgroups are created simultaneously.
-+	 * so use a workqueue with limited concurrency to avoid stalling
-+	 * all worker threads in case lots of cgroups are created and
-+	 * destroyed simultaneously.
- 	 */
--	memcg_kmem_cache_create_wq =
--		alloc_ordered_workqueue("memcg_kmem_cache_create", 0);
--	BUG_ON(!memcg_kmem_cache_create_wq);
-+	memcg_kmem_cache_wq = alloc_workqueue("memcg_kmem_cache", 0, 1);
-+	BUG_ON(!memcg_kmem_cache_wq);
- #endif
- 
- 	cpuhp_setup_state_nocalls(CPUHP_MM_MEMCQ_DEAD, "mm/memctrl:dead", NULL,
-diff -puN mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/slab_common.c
---- a/mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
+diff -puN mm/slab_common.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path mm/slab_common.c
+--- a/mm/slab_common.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
 +++ a/mm/slab_common.c
-@@ -659,7 +659,7 @@ static void kmemcg_deactivate_rcufn(stru
- 	 * initialized eariler.
- 	 */
- 	INIT_WORK(&s->memcg_params.deact_work, kmemcg_deactivate_workfn);
--	schedule_work(&s->memcg_params.deact_work);
-+	queue_work(memcg_kmem_cache_wq, &s->memcg_params.deact_work);
+@@ -627,6 +627,66 @@ out_unlock:
+ 	put_online_cpus();
  }
  
- /**
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
-slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove.patch
-slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
-slab-reorganize-memcg_cache_params.patch
-slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
-slab-implement-slab_root_caches-list.patch
-slab-introduce-__kmemcg_cache_deactivate.patch
-slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
-slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches.patch
-slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
-
++static void kmemcg_deactivate_workfn(struct work_struct *work)
++{
++	struct kmem_cache *s = container_of(work, struct kmem_cache,
++					    memcg_params.deact_work);
++
++	get_online_cpus();
++	get_online_mems();
++
++	mutex_lock(&slab_mutex);
++
++	s->memcg_params.deact_fn(s);
++
++	mutex_unlock(&slab_mutex);
++
++	put_online_mems();
++	put_online_cpus();
++
++	/* done, put the ref from slab_deactivate_memcg_cache_rcu_sched() */
++	css_put(&s->memcg_params.memcg->css);
++}
++
++static void kmemcg_deactivate_rcufn(struct rcu_head *head)
++{
++	struct kmem_cache *s = container_of(head, struct kmem_cache,
++					    memcg_params.deact_rcu_head);
++
++	/*
++	 * We need to grab blocking locks.  Bounce to ->deact_work.  The
++	 * work item shares the space with the RCU head and can't be
++	 * initialized eariler.
++	 */
++	INIT_WORK(&s->memcg_params.deact_work, kmemcg_deactivate_workfn);
++	schedule_work(&s->memcg_params.deact_work);
++}
++
++/**
++ * slab_deactivate_memcg_cache_rcu_sched - schedule deactivation after a
++ *					   sched RCU grace period
++ * @s: target kmem_cache
++ * @deact_fn: deactivation function to call
++ *
++ * Schedule @deact_fn to be invoked with online cpus, mems and slab_mutex
++ * held after a sched RCU grace period.  The slab is guaranteed to stay
++ * alive until @deact_fn is finished.  This is to be used from
++ * __kmemcg_cache_deactivate().
++ */
++void slab_deactivate_memcg_cache_rcu_sched(struct kmem_cache *s,
++					   void (*deact_fn)(struct kmem_cache *))
++{
++	if (WARN_ON_ONCE(is_root_cache(s)) ||
++	    WARN_ON_ONCE(s->memcg_params.deact_fn))
++		return;
++
++	/* pin memcg so that @s doesn't get destroyed in the middle */
++	css_get(&s->memcg_params.memcg->css);
++
++	s->memcg_params.deact_fn = deact_fn;
++	call_rcu_sched(&s->memcg_params.deact_rcu_head, kmemcg_deactivate_rcufn);
++}
++
+ void memcg_deactivate_kmem_caches(struct mem_cgroup *memcg)
+ {
+ 	int idx;
+diff -puN mm/slub.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path mm/slub.c
+--- a/mm/slub.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
++++ a/mm/slub.c
+@@ -3953,6 +3953,12 @@ int __kmem_cache_shrink(struct kmem_cach
+ }
+ 
+ #ifdef CONFIG_MEMCG
++static void kmemcg_cache_deact_after_rcu(struct kmem_cache *s)
++{
++	/* called with all the locks held after a sched RCU grace period */
++	__kmem_cache_shrink(s);
++}
++
+ void __kmemcg_cache_deactivate(struct kmem_cache *s)
+ {
+ 	/*
+@@ -3964,11 +3970,9 @@ void __kmemcg_cache_deactivate(struct km
+ 
+ 	/*
+ 	 * s->cpu_partial is checked locklessly (see put_cpu_partial), so
+-	 * we have to make sure the change is visible.
++	 * we have to make sure the change is visible before shrinking.
+ 	 */
+-	synchronize_sched();
