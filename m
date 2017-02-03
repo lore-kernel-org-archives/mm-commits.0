@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch added
- to -mm tree
-Date: Fri, 03 Feb 2017 15:15:48 -0800
-Message-ID: <58950f24.XSMN1I1cbJ+y9lfi%akpm@linux-foundation.org>
+ slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch added to -mm tree
+Date: Fri, 03 Feb 2017 15:16:02 -0800
+Message-ID: <58950f32.5BKjGCYYEqnZajyP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39786 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752870AbdBCXQp (ORCPT
+        with ESMTP id S1752886AbdBCXQp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:16:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: link memcg kmem_caches on their associated memory cgroup
+     Subject: slab: use memcg_kmem_cache_wq for slab destruction operations
 has been added to the -mm tree.  Its filename is
-     slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
+     slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,37 +40,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: slab: link memcg kmem_caches on their associated memory cgroup
+Subject: slab: use memcg_kmem_cache_wq for slab destruction operations
 
-With kmem cgroup support enabled, kmem_caches can be created and destroyed
-frequently and a great number of near empty kmem_caches can accumulate if
-there are a lot of transient cgroups and the system is not under memory
-pressure.  When memory reclaim starts under such conditions, it can lead
-to consecutive deactivation and destruction of many kmem_caches, easily
-hundreds of thousands on moderately large systems, exposing scalability
-issues in the current slab management code.  This is one of the patches to
-address the issue.
+If there's contention on slab_mutex, queueing the per-cache destruction
+work item on the system_wq can unnecessarily create and tie up a lot of
+kworkers.
 
-While a memcg kmem_cache is listed on its root cache's ->children list,
-there is no direct way to iterate all kmem_caches which are assocaited
-with a memory cgroup.  The only way to iterate them is walking all caches
-while filtering out caches which don't match, which would be most of them.
+Rename memcg_kmem_cache_create_wq to memcg_kmem_cache_wq and make it
+global and use that workqueue for the destruction work items too.  While
+at it, convert the workqueue from an unbound workqueue to a per-cpu one
+with concurrency limited to 1.  It's generally preferable to use per-cpu
+workqueues and concurrency limit of 1 is safe enough.
 
-This makes memcg destruction operations O(N^2) where N is the total number
-of slab caches which can be huge.  This combined with the synchronous RCU
-operations can tie up a CPU and affect the whole machine for many hours
-when memory reclaim triggers offlining and destruction of the stale
-memcgs.
+This is suggested by Joonsoo Kim.
 
-This patch adds mem_cgroup->kmem_caches list which goes through
-memcg_cache_params->kmem_caches_node of all kmem_caches which are
-associated with the memcg.  All memcg specific iterations, including stat
-file access, are updated to use the new list instead.
-
-Link: http://lkml.kernel.org/r/20170117235411.9408-6-tj@kernel.org
+Link: http://lkml.kernel.org/r/20170117235411.9408-11-tj@kernel.org
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Reported-by: Jay Vana <jsvana@fb.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -79,160 +65,82 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 
- include/linux/slab.h       |    3 ++
- mm/memcontrol.c            |    7 +++---
- mm/slab.h                  |    3 ++
- mm/slab_common.c           |   36 ++++++++++++++++++++++++++++-------
- 5 files changed, 40 insertions(+), 10 deletions(-)
+ include/linux/memcontrol.h |    1 +
+ mm/memcontrol.c            |   16 ++++++++--------
+ mm/slab_common.c           |    2 +-
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/memcontrol.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
+diff -puN include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
 +++ a/include/linux/memcontrol.h
-@@ -253,6 +253,7 @@ struct mem_cgroup {
-         /* Index in the kmem_cache->memcg_params.memcg_caches array */
- 	int kmemcg_id;
- 	enum memcg_kmem_state kmem_state;
-+	struct list_head kmem_caches;
- #endif
- 
- 	int last_scanned_node;
-diff -puN include/linux/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup include/linux/slab.h
---- a/include/linux/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
-+++ a/include/linux/slab.h
-@@ -565,6 +565,8 @@ struct memcg_cache_array {
-  * @memcg:	Pointer to the memcg this cache belongs to.
-  *
-  * @children_node: List node for @root_cache->children list.
-+ *
-+ * @kmem_caches_node: List node for @memcg->kmem_caches list.
-  */
- struct memcg_cache_params {
- 	struct kmem_cache *root_cache;
-@@ -576,6 +578,7 @@ struct memcg_cache_params {
- 		struct {
- 			struct mem_cgroup *memcg;
- 			struct list_head children_node;
-+			struct list_head kmem_caches_node;
- 		};
- 	};
- };
-diff -puN mm/memcontrol.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
-+++ a/mm/memcontrol.c
-@@ -2837,6 +2837,7 @@ static int memcg_online_kmem(struct mem_
- 	 */
- 	memcg->kmemcg_id = memcg_id;
- 	memcg->kmem_state = KMEM_ONLINE;
-+	INIT_LIST_HEAD(&memcg->kmem_caches);
- 
- 	return 0;
- }
-@@ -4002,9 +4003,9 @@ static struct cftype mem_cgroup_legacy_f
- #ifdef CONFIG_SLABINFO
- 	{
- 		.name = "kmem.slabinfo",
--		.seq_start = slab_start,
--		.seq_next = slab_next,
--		.seq_stop = slab_stop,
-+		.seq_start = memcg_slab_start,
-+		.seq_next = memcg_slab_next,
-+		.seq_stop = memcg_slab_stop,
- 		.seq_show = memcg_slab_show,
- 	},
- #endif
-diff -puN mm/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/slab.h
---- a/mm/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
-+++ a/mm/slab.h
-@@ -489,6 +489,9 @@ static inline struct kmem_cache_node *ge
- void *slab_start(struct seq_file *m, loff_t *pos);
- void *slab_next(struct seq_file *m, void *p, loff_t *pos);
- void slab_stop(struct seq_file *m, void *p);
-+void *memcg_slab_start(struct seq_file *m, loff_t *pos);
-+void *memcg_slab_next(struct seq_file *m, void *p, loff_t *pos);
-+void memcg_slab_stop(struct seq_file *m, void *p);
- int memcg_slab_show(struct seq_file *m, void *p);
- 
- void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr);
-diff -puN mm/slab_common.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/slab_common.c
---- a/mm/slab_common.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
-+++ a/mm/slab_common.c
-@@ -154,6 +154,7 @@ static int init_memcg_params(struct kmem
- 		s->memcg_params.root_cache = root_cache;
- 		s->memcg_params.memcg = memcg;
- 		INIT_LIST_HEAD(&s->memcg_params.children_node);
-+		INIT_LIST_HEAD(&s->memcg_params.kmem_caches_node);
- 		return 0;
- 	}
- 
-@@ -224,6 +225,7 @@ int memcg_update_all_caches(int num_memc
- static void unlink_memcg_cache(struct kmem_cache *s)
- {
- 	list_del(&s->memcg_params.children_node);
-+	list_del(&s->memcg_params.kmem_caches_node);
- }
- #else
- static inline int init_memcg_params(struct kmem_cache *s,
-@@ -596,6 +598,7 @@ void memcg_create_kmem_cache(struct mem_
- 
- 	list_add(&s->memcg_params.children_node,
- 		 &root_cache->memcg_params.children);
-+	list_add(&s->memcg_params.kmem_caches_node, &memcg->kmem_caches);
- 
- 	/*
- 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
-@@ -651,9 +654,8 @@ void memcg_destroy_kmem_caches(struct me
- 	get_online_mems();
- 
- 	mutex_lock(&slab_mutex);
--	list_for_each_entry_safe(s, s2, &slab_caches, list) {
--		if (is_root_cache(s) || s->memcg_params.memcg != memcg)
--			continue;
-+	list_for_each_entry_safe(s, s2, &memcg->kmem_caches,
-+				 memcg_params.kmem_caches_node) {
- 		/*
- 		 * The cgroup is about to be freed and therefore has no charges
- 		 * left. Hence, all its caches must be empty by now.
-@@ -1209,15 +1211,35 @@ static int slab_show(struct seq_file *m,
- }
+@@ -830,6 +830,7 @@ void memcg_kmem_uncharge(struct page *pa
  
  #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
-+void *memcg_slab_start(struct seq_file *m, loff_t *pos)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+
-+	mutex_lock(&slab_mutex);
-+	return seq_list_start(&memcg->kmem_caches, *pos);
-+}
-+
-+void *memcg_slab_next(struct seq_file *m, void *p, loff_t *pos)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+
-+	return seq_list_next(p, &memcg->kmem_caches, pos);
-+}
-+
-+void memcg_slab_stop(struct seq_file *m, void *p)
-+{
-+	mutex_unlock(&slab_mutex);
-+}
-+
- int memcg_slab_show(struct seq_file *m, void *p)
- {
--	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
-+	struct kmem_cache *s = list_entry(p, struct kmem_cache,
-+					  memcg_params.kmem_caches_node);
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+ extern struct static_key_false memcg_kmem_enabled_key;
++extern struct workqueue_struct *memcg_kmem_cache_wq;
  
--	if (p == slab_caches.next)
-+	if (p == memcg->kmem_caches.next)
- 		print_slabinfo_header(m);
--	if (!is_root_cache(s) && s->memcg_params.memcg == memcg)
--		cache_show(s, m);
-+	cache_show(s, m);
- 	return 0;
+ extern int memcg_nr_cache_ids;
+ void memcg_get_cache_ids(void);
+diff -puN mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
++++ a/mm/memcontrol.c
+@@ -317,6 +317,8 @@ void memcg_put_cache_ids(void)
+ DEFINE_STATIC_KEY_FALSE(memcg_kmem_enabled_key);
+ EXPORT_SYMBOL(memcg_kmem_enabled_key);
+ 
++struct workqueue_struct *memcg_kmem_cache_wq;
++
+ #endif /* !CONFIG_SLOB */
+ 
+ /**
+@@ -2143,8 +2145,6 @@ struct memcg_kmem_cache_create_work {
+ 	struct work_struct work;
+ };
+ 
+-static struct workqueue_struct *memcg_kmem_cache_create_wq;
+-
+ static void memcg_kmem_cache_create_func(struct work_struct *w)
+ {
+ 	struct memcg_kmem_cache_create_work *cw =
+@@ -2176,7 +2176,7 @@ static void __memcg_schedule_kmem_cache_
+ 	cw->cachep = cachep;
+ 	INIT_WORK(&cw->work, memcg_kmem_cache_create_func);
+ 
+-	queue_work(memcg_kmem_cache_create_wq, &cw->work);
++	queue_work(memcg_kmem_cache_wq, &cw->work);
  }
+ 
+ static void memcg_schedule_kmem_cache_create(struct mem_cgroup *memcg,
+@@ -5778,12 +5778,12 @@ static int __init mem_cgroup_init(void)
+ #ifndef CONFIG_SLOB
+ 	/*
+ 	 * Kmem cache creation is mostly done with the slab_mutex held,
+-	 * so use a special workqueue to avoid stalling all worker
+-	 * threads in case lots of cgroups are created simultaneously.
++	 * so use a workqueue with limited concurrency to avoid stalling
++	 * all worker threads in case lots of cgroups are created and
++	 * destroyed simultaneously.
+ 	 */
+-	memcg_kmem_cache_create_wq =
+-		alloc_ordered_workqueue("memcg_kmem_cache_create", 0);
+-	BUG_ON(!memcg_kmem_cache_create_wq);
++	memcg_kmem_cache_wq = alloc_workqueue("memcg_kmem_cache", 0, 1);
++	BUG_ON(!memcg_kmem_cache_wq);
  #endif
+ 
+ 	cpuhp_setup_state_nocalls(CPUHP_MM_MEMCQ_DEAD, "mm/memctrl:dead", NULL,
+diff -puN mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/slab_common.c
+--- a/mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
++++ a/mm/slab_common.c
+@@ -659,7 +659,7 @@ static void kmemcg_deactivate_rcufn(stru
+ 	 * initialized eariler.
+ 	 */
+ 	INIT_WORK(&s->memcg_params.deact_work, kmemcg_deactivate_workfn);
+-	schedule_work(&s->memcg_params.deact_work);
++	queue_work(memcg_kmem_cache_wq, &s->memcg_params.deact_work);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
