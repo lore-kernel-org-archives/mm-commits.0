@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- shm-fix-unlikely-test-of-info-seals-to-test-only-for-write-and-grow.patch
- added to -mm tree
-Date: Fri, 03 Feb 2017 15:17:41 -0800
-Message-ID: <58950f95./557Xr4AadWzyDRg%akpm@linux-foundation.org>
+ mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch added to -mm tree
+Date: Fri, 03 Feb 2017 15:21:23 -0800
+Message-ID: <58951073.Ok/a78qoWubyI2KU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39864 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752735AbdBCXRr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:17:47 -0500
+        with ESMTP id S1752527AbdBCXVY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 18:21:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, dh.herrmann@gmail.com, hughd@google.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, viro@ZenIV.linux.org.uk, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem.c: fix unlikely() test of info->seals to test only for WRITE and GROW
+     Subject: mm: avoid returning VM_FAULT_RETRY from ->page_mkwrite handlers
 has been added to the -mm tree.  Its filename is
-     shm-fix-unlikely-test-of-info-seals-to-test-only-for-write-and-grow.patch
+     mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shm-fix-unlikely-test-of-info-seals-to-test-only-for-write-and-grow.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shm-fix-unlikely-test-of-info-seals-to-test-only-for-write-and-grow.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
-Subject: mm/shmem.c: fix unlikely() test of info->seals to test only for WRITE and GROW
+From: Jan Kara <jack@suse.cz>
+Subject: mm: avoid returning VM_FAULT_RETRY from ->page_mkwrite handlers
 
-Running my likely/unlikely profiler, I discovered that the test in
-shmem_write_begin() that tests for info->seals as unlikely, is always
-incorrect.  This is because shmem_get_inode() sets info->seals to have
-F_SEAL_SEAL set by default, and it is unlikely to be cleared when
-shmem_write_begin() is called.  Thus, the if statement is very likely.
+Some ->page_mkwrite handlers may return VM_FAULT_RETRY as its return code
+(GFS2 or Lustre can definitely do this).  However VM_FAULT_RETRY from
+->page_mkwrite is completely unhandled by the mm code and results in
+locking and writeably mapping the page which definitely is not what the
+caller wanted.  Fix Lustre and block_page_mkwrite_ret() used by other
+filesystems (notably GFS2) to return VM_FAULT_NOPAGE instead which results
+in bailing out from the fault code, the CPU then retries the access, and
+we fault again effectively doing what the handler wanted.
 
-But as the if statement block only cares about F_SEAL_WRITE and
-F_SEAL_GROW, change the test to only test those two bits.
-
-Link: http://lkml.kernel.org/r/20170203105656.7aec6237@gandalf.local.home
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: David Herrmann <dh.herrmann@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20170203150729.15863-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/lustre/lustre/llite/llite_mmap.c |    4 +---
+ include/linux/buffer_head.h                      |    4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN mm/shmem.c~shm-fix-unlikely-test-of-info-seals-to-test-only-for-write-and-grow mm/shmem.c
---- a/mm/shmem.c~shm-fix-unlikely-test-of-info-seals-to-test-only-for-write-and-grow
-+++ a/mm/shmem.c
-@@ -2331,7 +2331,7 @@ shmem_write_begin(struct file *file, str
- 	pgoff_t index = pos >> PAGE_SHIFT;
- 
- 	/* i_mutex is held by caller */
--	if (unlikely(info->seals)) {
-+	if (unlikely(info->seals & (F_SEAL_WRITE | F_SEAL_GROW))) {
- 		if (info->seals & F_SEAL_WRITE)
- 			return -EPERM;
- 		if ((info->seals & F_SEAL_GROW) && pos + len > inode->i_size)
+diff -puN drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers drivers/staging/lustre/lustre/llite/llite_mmap.c
+--- a/drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
++++ a/drivers/staging/lustre/lustre/llite/llite_mmap.c
+@@ -390,15 +390,13 @@ static int ll_page_mkwrite(struct vm_are
+ 		result = VM_FAULT_LOCKED;
+ 		break;
+ 	case -ENODATA:
++	case -EAGAIN:
+ 	case -EFAULT:
+ 		result = VM_FAULT_NOPAGE;
+ 		break;
+ 	case -ENOMEM:
+ 		result = VM_FAULT_OOM;
+ 		break;
+-	case -EAGAIN:
+-		result = VM_FAULT_RETRY;
+-		break;
+ 	default:
+ 		result = VM_FAULT_SIGBUS;
+ 		break;
+diff -puN include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
++++ a/include/linux/buffer_head.h
+@@ -243,12 +243,10 @@ static inline int block_page_mkwrite_ret
+ {
+ 	if (err == 0)
+ 		return VM_FAULT_LOCKED;
+-	if (err == -EFAULT)
++	if (err == -EFAULT || err == -EAGAIN)
+ 		return VM_FAULT_NOPAGE;
+ 	if (err == -ENOMEM)
+ 		return VM_FAULT_OOM;
+-	if (err == -EAGAIN)
+-		return VM_FAULT_RETRY;
+ 	/* -ENOSPC, -EDQUOT, -EIO ... */
+ 	return VM_FAULT_SIGBUS;
+ }
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-page_alloc-swap-likely-to-unlikely-as-code-logic-is-different-for-next_zones_zonelist.patch
-shm-fix-unlikely-test-of-info-seals-to-test-only-for-write-and-grow.patch
+mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
 
