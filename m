@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix.patch added to -mm tree
-Date: Fri, 03 Feb 2017 12:41:40 -0800
-Message-ID: <5894eb04.LCS0wjYY0LBCVKnQ%akpm@linux-foundation.org>
+Subject: + drm-remove-unnecessary-fault-wrappers.patch added to -mm tree
+Date: Fri, 03 Feb 2017 13:09:13 -0800
+Message-ID: <5894f179.qR4C4ItyoWc+N3HJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49836 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752245AbdBCUll (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 15:41:41 -0500
+        with ESMTP id S1752504AbdBCVJO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:09:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, daniel.vetter@ffwll.ch, dave.jiang@intel.com, seanpaul@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix
+     Subject: drm: remove unnecessary fault wrappers
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix.patch
+     drm-remove-unnecessary-fault-wrappers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-remove-unnecessary-fault-wrappers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-remove-unnecessary-fault-wrappers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +38,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: drm: remove unnecessary fault wrappers
 
-The following patch is not applied correctly.
-http://lkml.kernel.org/r/2c29bd9f-5b67-02d0-18a3-8828e78bbb6f@gmail.com
+The fault wrappers drm_vm_fault(), drm_vm_shm_fault(), drm_vm_dma_fault()
+and drm_vm_sg_fault() used to provide extra logic beyond what was in the
+"drm_do_*" versions of these functions, but as of this commit:
 
-So the following unnecessary code still remains.
+commit ca0b07d9a969 ("drm: convert drm from nopage to fault.")
 
-get_page_bootmem()
-{
-...
-        page->lru.next = (struct list_head *)type;
-...
+They are just unnecessary wrappers that do nothing.  Remove them, and
+rename the the drm_do_* fault handlers to remove the "do_" since they no
+longer have corresponding wrappers.
 
-The patch removes this code from get_page_bootmem()
-
-Link: http://lkml.kernel.org/r/722b1cc4-93ac-dd8b-2be2-7a7e313b3b0b@gmail.com
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Link: http://lkml.kernel.org/r/1486155698-25717-1-git-send-email-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Sean Paul <seanpaul@chromium.org>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/gpu/drm/drm_vm.c |   30 +++++-------------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix
-+++ a/mm/memory_hotplug.c
-@@ -179,7 +179,6 @@ static void release_memory_resource(stru
- void get_page_bootmem(unsigned long info,  struct page *page,
- 		      unsigned long type)
+diff -puN drivers/gpu/drm/drm_vm.c~drm-remove-unnecessary-fault-wrappers drivers/gpu/drm/drm_vm.c
+--- a/drivers/gpu/drm/drm_vm.c~drm-remove-unnecessary-fault-wrappers
++++ a/drivers/gpu/drm/drm_vm.c
+@@ -96,7 +96,7 @@ static pgprot_t drm_dma_prot(uint32_t ma
+  * map, get the page, increment the use count and return it.
+  */
+ #if IS_ENABLED(CONFIG_AGP)
+-static int drm_do_vm_fault(struct vm_fault *vmf)
++static int drm_vm_fault(struct vm_fault *vmf)
  {
--	page->lru.next = (struct list_head *)type;
- 	page->freelist = (void *)type;
- 	SetPagePrivate(page);
- 	set_page_private(page, info);
-_
-
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
-
-mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix.patch
-
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct drm_file *priv = vma->vm_file->private_data;
+@@ -169,7 +169,7 @@ vm_fault_error:
+ 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
+ }
+ #else
+-static int drm_do_vm_fault(struct vm_fault *vmf)
++static int drm_vm_fault(struct vm_fault *vmf)
+ {
+ 	return VM_FAULT_SIGBUS;
+ }
+@@ -185,7 +185,7 @@ static int drm_do_vm_fault(struct vm_fau
+  * Get the mapping, find the real physical page to map, get the page, and
+  * return it.
+  */
+-static int drm_do_vm_shm_fault(struct vm_fault *vmf)
++static int drm_vm_shm_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct drm_local_map *map = vma->vm_private_data;
+@@ -287,7 +287,7 @@ static void drm_vm_shm_close(struct vm_a
+  *
+  * Determine the page number from the page offset and get it from drm_device_dma::pagelist.
+  */
+-static int drm_do_vm_dma_fault(struct vm_fault *vmf)
++static int drm_vm_dma_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct drm_file *priv = vma->vm_file->private_data;
+@@ -322,7 +322,7 @@ static int drm_do_vm_dma_fault(struct vm
+  *
+  * Determine the map offset from the page offset and get it from drm_sg_mem::pagelist.
+  */
+-static int drm_do_vm_sg_fault(struct vm_fault *vmf)
++static int drm_vm_sg_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct drm_local_map *map = vma->vm_private_data;
+@@ -349,26 +349,6 @@ static int drm_do_vm_sg_fault(struct vm_
+ 	return 0;
+ }
+ 
+-static int drm_vm_fault(struct vm_fault *vmf)
+-{
+-	return drm_do_vm_fault(vmf);
+-}
+-
+-static int drm_vm_shm_fault(struct vm_fault *vmf)
+-{
+-	return drm_do_vm_shm_fault(vmf);
+-}
+-
+-static int drm_vm_dma_fault(struct vm_fault *vmf)
+-{
+-	return drm_do_vm_dma_fault(vmf);
+-}
+-
+-static int drm_vm_sg_fault(struct vm_fault *vmf)
+-{
+-	return drm_do_vm_sg_fault(vmf);
+-}
