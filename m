@@ -1,108 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/8] mm/memory_hotplug.c: check start_pfn in
- test_pages_in_a_zone()
-Date: Fri, 03 Feb 2017 13:13:20 -0800
-Message-ID: <5894f270.k6CVgm268xdc45zu%akpm@linux-foundation.org>
+Subject: [patch 3/8] shmem: fix sleeping from atomic context
+Date: Fri, 03 Feb 2017 13:13:15 -0800
+Message-ID: <5894f26b.Oo2kvOLoENYGzYp/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50274 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752508AbdBCVNV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:13:21 -0500
+        with ESMTP id S1752508AbdBCVNQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2017 16:13:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, toshi.kani@hpe.com, abanman@sgi.com, arbab@linux.vnet.ibm.com, greg@kroah.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, dvyukov@google.com
 
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: mm/memory_hotplug.c: check start_pfn in test_pages_in_a_zone()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: shmem: fix sleeping from atomic context
 
-Patch series "fix a kernel oops when reading sysfs valid_zones", v2.
+Syzkaller fuzzer managed to trigger this:
 
-A sysfs memory file is created for each 2GiB memory block on x86-64 when
-the system has 64GiB or more memory.  [1] When the start address of a
-memory block is not backed by struct page, i.e.  a memory range is not
-aligned by 2GiB, reading its 'valid_zones' attribute file leads to a
-kernel oops.  This issue was observed on multiple x86-64 systems with more
-than 64GiB of memory.  This patch-set fixes this issue.
+BUG: sleeping function called from invalid context at mm/shmem.c:852
+in_atomic(): 1, irqs_disabled(): 0, pid: 529, name: khugepaged
+3 locks held by khugepaged/529:
+ #0:  (shrinker_rwsem){++++..}, at: [<ffffffff818d7ef1>]
+shrink_slab.part.59+0x121/0xd30 mm/vmscan.c:451
+ #1:  (&type->s_umount_key#29){++++..}, at: [<ffffffff81a63630>]
+trylock_super+0x20/0x100 fs/super.c:392
+ #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
+[<ffffffff818fd83e>] spin_lock include/linux/spinlock.h:302 [inline]
+ #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
+[<ffffffff818fd83e>] shmem_unused_huge_shrink+0x28e/0x1490
+mm/shmem.c:427
+CPU: 2 PID: 529 Comm: khugepaged Not tainted 4.10.0-rc5+ #201
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:15 [inline]
+ dump_stack+0x2ee/0x3ef lib/dump_stack.c:51
+ ___might_sleep+0x47e/0x650 kernel/sched/core.c:7780
+ shmem_undo_range+0xb20/0x2710 mm/shmem.c:852
+ shmem_truncate_range+0x27/0xa0 mm/shmem.c:939
+ shmem_evict_inode+0x35f/0xca0 mm/shmem.c:1030
+ evict+0x46e/0x980 fs/inode.c:553
+ iput_final fs/inode.c:1515 [inline]
+ iput+0x589/0xb20 fs/inode.c:1542
+ shmem_unused_huge_shrink+0xbad/0x1490 mm/shmem.c:446
+ shmem_unused_huge_scan+0x10c/0x170 mm/shmem.c:512
+ super_cache_scan+0x376/0x450 fs/super.c:106
+ do_shrink_slab mm/vmscan.c:378 [inline]
+ shrink_slab.part.59+0x543/0xd30 mm/vmscan.c:481
+ shrink_slab mm/vmscan.c:2592 [inline]
+ shrink_node+0x2c7/0x870 mm/vmscan.c:2592
+ shrink_zones mm/vmscan.c:2734 [inline]
+ do_try_to_free_pages+0x369/0xc80 mm/vmscan.c:2776
+ try_to_free_pages+0x3c6/0x900 mm/vmscan.c:2982
+ __perform_reclaim mm/page_alloc.c:3301 [inline]
+ __alloc_pages_direct_reclaim mm/page_alloc.c:3322 [inline]
+ __alloc_pages_slowpath+0xa24/0x1c30 mm/page_alloc.c:3683
+ __alloc_pages_nodemask+0x544/0xae0 mm/page_alloc.c:3848
+ __alloc_pages include/linux/gfp.h:426 [inline]
+ __alloc_pages_node include/linux/gfp.h:439 [inline]
+ khugepaged_alloc_page+0xc2/0x1b0 mm/khugepaged.c:750
+ collapse_huge_page+0x182/0x1fe0 mm/khugepaged.c:955
+ khugepaged_scan_pmd+0xfdf/0x12a0 mm/khugepaged.c:1208
+ khugepaged_scan_mm_slot mm/khugepaged.c:1727 [inline]
+ khugepaged_do_scan mm/khugepaged.c:1808 [inline]
+ khugepaged+0xe9b/0x1590 mm/khugepaged.c:1853
+ kthread+0x326/0x3f0 kernel/kthread.c:227
+ ret_from_fork+0x31/0x40 arch/x86/entry/entry_64.S:430
 
-Patch 1 first fixes an issue in test_pages_in_a_zone(), which does
-not test the start section.
+The iput() from atomic context was a bad idea: if after igrab() somebody
+else calls iput() and we left with the last inode reference, our iput()
+would lead to inode eviction and therefore sleeping.
 
-Patch 2 then fixes the kernel oops by extending test_pages_in_a_zone()
-to return valid [start, end).
+This patch should fix the situation.
 
-Note for stable kernels: The memory block size change was made by commit
-bdee237c034, which was accepted to 3.9.  However, this patch-set depends
-on (and fixes) the change to test_pages_in_a_zone() made by commit
-5f0f2887f4, which was accepted to 4.4.  So, I recommend that we backport
-it up to 4.4.
-
-[1] 'Commit bdee237c0343 ("x86: mm: Use 2GB memory block size on
-    large-memory x86-64 systems")'
-
-
-This patch (of 2):
-
-test_pages_in_a_zone() does not check 'start_pfn' when it is aligned by
-section since 'sec_end_pfn' is set equal to 'pfn'.  Since this function is
-called for testing the range of a sysfs memory file, 'start_pfn' is always
-aligned by section.
-
-Fix it by properly setting 'sec_end_pfn' to the next section pfn.
-
-Also make sure that this function returns 1 only when the range belongs to
-a zone.
-
-Link: http://lkml.kernel.org/r/20170127222149.30893-2-toshi.kani@hpe.com
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Banman <abanman@sgi.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@vger.kernel.org>	[4.4+]
+Link: http://lkml.kernel.org/r/20170131093141.GA15899@node.shutemov.name
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/shmem.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-check-start_pfn-in-test_pages_in_a_zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplugc-check-start_pfn-in-test_pages_in_a_zone
-+++ a/mm/memory_hotplug.c
-@@ -1483,7 +1483,7 @@ bool is_mem_section_removable(unsigned l
- }
- 
- /*
-- * Confirm all pages in a range [start, end) is belongs to the same zone.
-+ * Confirm all pages in a range [start, end) belong to the same zone.
-  */
- int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
+diff -puN mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range mm/shmem.c
+--- a/mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range
++++ a/mm/shmem.c
+@@ -415,6 +415,7 @@ static unsigned long shmem_unused_huge_s
+ 		struct shrink_control *sc, unsigned long nr_to_split)
  {
-@@ -1491,9 +1491,9 @@ int test_pages_in_a_zone(unsigned long s
- 	struct zone *zone = NULL;
+ 	LIST_HEAD(list), *pos, *next;
++	LIST_HEAD(to_remove);
+ 	struct inode *inode;
+ 	struct shmem_inode_info *info;
  	struct page *page;
- 	int i;
--	for (pfn = start_pfn, sec_end_pfn = SECTION_ALIGN_UP(start_pfn);
-+	for (pfn = start_pfn, sec_end_pfn = SECTION_ALIGN_UP(start_pfn + 1);
- 	     pfn < end_pfn;
--	     pfn = sec_end_pfn + 1, sec_end_pfn += PAGES_PER_SECTION) {
-+	     pfn = sec_end_pfn, sec_end_pfn += PAGES_PER_SECTION) {
- 		/* Make sure the memory section is present first */
- 		if (!present_section_nr(pfn_to_section_nr(pfn)))
- 			continue;
-@@ -1512,7 +1512,11 @@ int test_pages_in_a_zone(unsigned long s
- 			zone = page_zone(page);
+@@ -441,9 +442,8 @@ static unsigned long shmem_unused_huge_s
+ 		/* Check if there's anything to gain */
+ 		if (round_up(inode->i_size, PAGE_SIZE) ==
+ 				round_up(inode->i_size, HPAGE_PMD_SIZE)) {
+-			list_del_init(&info->shrinklist);
++			list_move(&info->shrinklist, &to_remove);
+ 			removed++;
+-			iput(inode);
+ 			goto next;
  		}
- 	}
--	return 1;
-+
-+	if (zone)
-+		return 1;
-+	else
-+		return 0;
- }
  
- /*
+@@ -454,6 +454,13 @@ next:
+ 	}
+ 	spin_unlock(&sbinfo->shrinklist_lock);
+ 
++	list_for_each_safe(pos, next, &to_remove) {
++		info = list_entry(pos, struct shmem_inode_info, shrinklist);
++		inode = &info->vfs_inode;
++		list_del_init(&info->shrinklist);
++		iput(inode);
++	}
++
+ 	list_for_each_safe(pos, next, &list) {
+ 		int ret;
+ 
 _
