@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-lz4-remove-back-compat-wrappers.patch added to -mm tree
-Date: Mon, 06 Feb 2017 15:49:20 -0800
-Message-ID: <58990b80.gDobu/6fxW4ZBDTc%akpm@linux-foundation.org>
+Subject: + zram-extend-zero-pages-to-same-element-pages.patch added to -mm tree
+Date: Mon, 06 Feb 2017 15:56:30 -0800
+Message-ID: <58990d2e.etQXGHluq8y/XFLV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35934 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751592AbdBFXtW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 18:49:22 -0500
+        with ESMTP id S1751606AbdBFX4l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 18:56:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 4sschmid@informatik.uni-hamburg.de, anton@enomsg.org, bongkyu.kim@lge.com, ccross@android.com, davem@davemloft.net, gregkh@linuxfoundation.org, herbert@gondor.apana.org.au, keescook@chromium.org, rsalvaterra@gmail.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: zhouxianrong@huawei.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/lz4: remove back-compat wrappers
+     Subject: zram: extend zero pages to same element pages
 has been added to the -mm tree.  Its filename is
-     lib-lz4-remove-back-compat-wrappers.patch
+     zram-extend-zero-pages-to-same-element-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-lz4-remove-back-compat-wrappers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-extend-zero-pages-to-same-element-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-lz4-remove-back-compat-wrappers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-extend-zero-pages-to-same-element-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,242 +38,280 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
-Subject: lib/lz4: remove back-compat wrappers
+From: zhouxianrong <zhouxianrong@huawei.com>
+Subject: zram: extend zero pages to same element pages
 
-Remove the functions introduced as wrappers for providing backwards
-compatibility to the prior LZ4 version.  They're not needed anymore since
-there's no callers left.
+The idea is that without doing more calculations we extend zero pages to
+same element pages for zram.  zero page is special case of same element
+page with zero element.
 
-Link: http://lkml.kernel.org/r/1486321748-19085-6-git-send-email-4sschmid@informatik.uni-hamburg.de
-Signed-off-by: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
-Cc: Bongkyu Kim <bongkyu.kim@lge.com>
-Cc: Rui Salvaterra <rsalvaterra@gmail.com>
+1. the test is done under android 7.0
+2. startup too many applications circularly
+3. sample the zero pages, same pages (none-zero element)
+   and total pages in function page_zero_filled
+
+the result is listed as below:
+
+ZERO	SAME	TOTAL
+36214	17842	598196
+
+		ZERO/TOTAL	 SAME/TOTAL	  (ZERO+SAME)/TOTAL ZERO/SAME
+AVERAGE	0.060631909	 0.024990816  0.085622726		2.663825038
+STDEV	0.00674612	 0.005887625  0.009707034		2.115881328
+MAX		0.069698422	 0.030046087  0.094975336		7.56043956
+MIN		0.03959586	 0.007332205  0.056055193		1.928985507
+
+from the above data, the benefit is about 2.5% and up to 3% of total
+swapout pages.
+
+The defect of the patch is that when we recovery a page from non-zero
+element the operations are low efficient for partial read.
+
+This patch extends zero_page to same_page so if there is any user to have
+monitored zero_pages, he will be surprised if the number is increased but
+it's not harmful, I believe.
+
+Link: http://lkml.kernel.org/r/1483692145-75357-1-git-send-email-zhouxianrong@huawei.com
+Link: http://lkml.kernel.org/r/1486307804-27903-1-git-send-email-minchan@kernel.org
+Signed-off-by: zhouxianrong <zhouxianrong@huawei.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Tony Luck" <tony.luck@intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lz4.h      |   69 -------------------------------------
- lib/lz4/lz4_compress.c   |   22 -----------
- lib/lz4/lz4_decompress.c |   42 ----------------------
- lib/lz4/lz4hc_compress.c |   23 ------------
- 4 files changed, 156 deletions(-)
+ Documentation/blockdev/zram.txt |    6 +-
+ drivers/block/zram/zram_drv.c   |   80 ++++++++++++++++++++----------
+ drivers/block/zram/zram_drv.h   |    9 ++-
+ 3 files changed, 64 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/lz4.h~lib-lz4-remove-back-compat-wrappers include/linux/lz4.h
---- a/include/linux/lz4.h~lib-lz4-remove-back-compat-wrappers
-+++ a/include/linux/lz4.h
-@@ -173,18 +173,6 @@ static inline int LZ4_compressBound(size
+diff -puN Documentation/blockdev/zram.txt~zram-extend-zero-pages-to-same-element-pages Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-extend-zero-pages-to-same-element-pages
++++ a/Documentation/blockdev/zram.txt
+@@ -201,8 +201,8 @@ File /sys/block/zram<id>/mm_stat
+ The stat file represents device's mm statistics. It consists of a single
+ line of text and contains the following stats separated by whitespace:
+  orig_data_size   uncompressed size of data stored in this disk.
+-                  This excludes zero-filled pages (zero_pages) since no
+-                  memory is allocated for them.
++		  This excludes same-element-filled pages (same_pages) since
++		  no memory is allocated for them.
+                   Unit: bytes
+  compr_data_size  compressed size of data stored in this disk
+  mem_used_total   the amount of memory allocated for this disk. This
+@@ -214,7 +214,7 @@ line of text and contains the following
+                   the compressed data
+  mem_used_max     the maximum amount of memory zram have consumed to
+                   store the data
+- zero_pages       the number of zero filled pages written to this disk.
++ same_pages       the number of same element filled pages written to this disk.
+                   No memory is allocated for such pages.
+  pages_compacted  the number of pages freed during compaction
+ 
+diff -puN drivers/block/zram/zram_drv.c~zram-extend-zero-pages-to-same-element-pages drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-extend-zero-pages-to-same-element-pages
++++ a/drivers/block/zram/zram_drv.c
+@@ -74,6 +74,17 @@ static void zram_clear_flag(struct zram_
+ 	meta->table[index].value &= ~BIT(flag);
  }
  
- /**
-- * lz4_compressbound() - For backwards compatibility; see LZ4_compressBound
-- * @isize: Size of the input data
-- *
-- * Return: Max. size LZ4 may output in a "worst case" szenario
-- *	(data not compressible)
-- */
--static inline int lz4_compressbound(size_t isize)
--{
--	return LZ4_COMPRESSBOUND(isize);
--}
--
--/**
-  * LZ4_compress_default() - Compress data from source to dest
-  * @source: source address of the original data
-  * @dest: output buffer address of the compressed data
-@@ -257,20 +245,6 @@ int LZ4_compress_fast(const char *source
- int LZ4_compress_destSize(const char *source, char *dest, int *sourceSizePtr,
- 	int targetDestSize, void *wrkmem);
- 
--/*
-- * lz4_compress() - For backward compatibility, see LZ4_compress_default
-- * @src: source address of the original data
-- * @src_len: size of the original data
-- * @dst: output buffer address of the compressed data. This requires 'dst'
-- *	of size LZ4_COMPRESSBOUND
-- * @dst_len: is the output size, which is returned after compress done
-- * @workmem: address of the working memory.
-- *
-- * Return: Success if return 0, Error if return < 0
-- */
--int lz4_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
--	size_t *dst_len, void *wrkmem);
--
- /*-************************************************************************
-  *	Decompression Functions
-  **************************************************************************/
-@@ -346,34 +320,6 @@ int LZ4_decompress_safe(const char *sour
- int LZ4_decompress_safe_partial(const char *source, char *dest,
- 	int compressedSize, int targetOutputSize, int maxDecompressedSize);
- 
--/*
-- * lz4_decompress_unknownoutputsize() - For backwards compatibility,
-- *	see LZ4_decompress_safe
-- * @src: source address of the compressed data
-- * @src_len: is the input size, therefore the compressed size
-- * @dest: output buffer address of the decompressed data
-- *	which must be already allocated
-- * @dest_len: is the max size of the destination buffer, which is
-- *	returned with actual size of decompressed data after decompress done
-- *
-- * Return: Success if return 0, Error if return (< 0)
-- */
--int lz4_decompress_unknownoutputsize(const unsigned char *src, size_t src_len,
--	unsigned char *dest, size_t *dest_len);
--
--/**
-- * lz4_decompress() - For backwards cocmpatibility, see LZ4_decompress_fast
-- * @src: source address of the compressed data
-- * @src_len: is the input size, which is returned after decompress done
-- * @dest: output buffer address of the decompressed data,
-- *	which must be already allocated
-- * @actual_dest_len: is the size of uncompressed data, supposing it's known
-- *
-- * Return: Success if return 0, Error if return (< 0)
-- */
--int lz4_decompress(const unsigned char *src, size_t *src_len,
--	unsigned char *dest, size_t actual_dest_len);
--
- /*-************************************************************************
-  *	LZ4 HC Compression
-  **************************************************************************/
-@@ -401,21 +347,6 @@ int LZ4_compress_HC(const char *src, cha
- 	int compressionLevel, void *wrkmem);
- 
- /**
-- * lz4hc_compress() - For backwards compatibility, see LZ4_compress_HC
-- * @src: source address of the original data
-- * @src_len: size of the original data
-- * @dst: output buffer address of the compressed data. This requires 'dst'
-- *	of size LZ4_COMPRESSBOUND.
-- * @dst_len: is the output size, which is returned after compress done
-- * @wrkmem: address of the working memory.
-- *	This requires 'workmem' of size LZ4HC_MEM_COMPRESS.
-- *
-- * Return	: Success if return 0, Error if return (< 0)
-- */
--int lz4hc_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
--	size_t *dst_len, void *wrkmem);
--
--/**
-  * LZ4_resetStreamHC() - Init an allocated 'LZ4_streamHC_t' structure
-  * @streamHCPtr: pointer to the 'LZ4_streamHC_t' structure
-  * @compressionLevel: Recommended values are between 4 and 9, although any
-diff -puN lib/lz4/lz4_compress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4_compress.c
---- a/lib/lz4/lz4_compress.c~lib-lz4-remove-back-compat-wrappers
-+++ a/lib/lz4/lz4_compress.c
-@@ -883,27 +883,5 @@ int LZ4_compress_fast_continue(LZ4_strea
++static inline void zram_set_element(struct zram_meta *meta, u32 index,
++			unsigned long element)
++{
++	meta->table[index].element = element;
++}
++
++static inline void zram_clear_element(struct zram_meta *meta, u32 index)
++{
++	meta->table[index].element = 0;
++}
++
+ static size_t zram_get_obj_size(struct zram_meta *meta, u32 index)
+ {
+ 	return meta->table[index].value & (BIT(ZRAM_FLAG_SHIFT) - 1);
+@@ -146,31 +157,46 @@ static inline void update_used_max(struc
+ 	} while (old_max != cur_max);
  }
- EXPORT_SYMBOL(LZ4_compress_fast_continue);
  
--/*-******************************
-- *	For backwards compatibility
-- ********************************/
--int lz4_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
--	size_t *dst_len, void *wrkmem) {
--	*dst_len = LZ4_compress_default(src, dst, src_len,
--		*dst_len, wrkmem);
--
--	/*
--	 * Prior lz4_compress will return -1 in case of error
--	 * and 0 on success
--	 * while new LZ4_compress_fast/default
--	 * returns 0 in case of error
--	 * and the output length on success
--	 */
--	if (!*dst_len)
--		return -1;
--	else
--		return 0;
--}
--EXPORT_SYMBOL(lz4_compress);
--
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_DESCRIPTION("LZ4 compressor");
-diff -puN lib/lz4/lz4_decompress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4_decompress.c
---- a/lib/lz4/lz4_decompress.c~lib-lz4-remove-back-compat-wrappers
-+++ a/lib/lz4/lz4_decompress.c
-@@ -483,47 +483,5 @@ int LZ4_decompress_fast_usingDict(const
+-static bool page_zero_filled(void *ptr)
++static inline void zram_fill_page(char *ptr, unsigned long len,
++					unsigned long value)
++{
++	int i;
++	unsigned long *page = (unsigned long *)ptr;
++
++	WARN_ON_ONCE(!IS_ALIGNED(len, sizeof(unsigned long)));
++
++	if (likely(value == 0)) {
++		memset(ptr, 0, len);
++	} else {
++		for (i = 0; i < len / sizeof(*page); i++)
++			page[i] = value;
++	}
++}
++
++static bool page_same_filled(void *ptr, unsigned long *element)
+ {
+ 	unsigned int pos;
+ 	unsigned long *page;
+ 
+ 	page = (unsigned long *)ptr;
+ 
+-	for (pos = 0; pos != PAGE_SIZE / sizeof(*page); pos++) {
+-		if (page[pos])
++	for (pos = 0; pos < PAGE_SIZE / sizeof(*page) - 1; pos++) {
++		if (page[pos] != page[pos + 1])
+ 			return false;
+ 	}
+ 
++	*element = page[pos];
++
+ 	return true;
  }
- EXPORT_SYMBOL(LZ4_decompress_fast_usingDict);
  
--/*-******************************
-- *	For backwards compatibility
-- ********************************/
--int lz4_decompress_unknownoutputsize(const unsigned char *src,
--	size_t src_len, unsigned char *dest, size_t *dest_len) {
--	*dest_len = LZ4_decompress_safe(src, dest,
--		src_len, *dest_len);
--
--	/*
--	 * Prior lz4_decompress_unknownoutputsize will return
--	 * 0 for success and a negative result for error
--	 * new LZ4_decompress_safe returns
--	 * - the length of data read on success
--	 * - and also a negative result on error
--	 * meaning when result > 0, we just return 0 here
--	 */
--	if (src_len > 0)
--		return 0;
--	else
--		return -1;
--}
--EXPORT_SYMBOL(lz4_decompress_unknownoutputsize);
--
--int lz4_decompress(const unsigned char *src, size_t *src_len,
--	unsigned char *dest, size_t actual_dest_len) {
--	*src_len = LZ4_decompress_fast(src, dest, actual_dest_len);
--
--	/*
--	 * Prior lz4_decompress will return
--	 * 0 for success and a negative result for error
--	 * new LZ4_decompress_fast returns
--	 * - the length of data read on success
--	 * - and also a negative result on error
--	 * meaning when result > 0, we just return 0 here
--	 */
--	if (*src_len > 0)
--		return 0;
--	else
--		return -1;
--}
--EXPORT_SYMBOL(lz4_decompress);
--
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_DESCRIPTION("LZ4 decompressor");
-diff -puN lib/lz4/lz4hc_compress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4hc_compress.c
---- a/lib/lz4/lz4hc_compress.c~lib-lz4-remove-back-compat-wrappers
-+++ a/lib/lz4/lz4hc_compress.c
-@@ -765,28 +765,5 @@ int LZ4_saveDictHC(
- }
- EXPORT_SYMBOL(LZ4_saveDictHC);
+-static void handle_zero_page(struct bio_vec *bvec)
++static void handle_same_page(struct bio_vec *bvec, unsigned long element)
+ {
+ 	struct page *page = bvec->bv_page;
+ 	void *user_mem;
  
--/*-******************************
-- *	For backwards compatibility
-- ********************************/
--int lz4hc_compress(const unsigned char *src, size_t src_len,
--	unsigned char *dst, size_t *dst_len, void *wrkmem)
--{
--	*dst_len = LZ4_compress_HC(src, dst, src_len,
--		*dst_len, LZ4HC_DEFAULT_CLEVEL, wrkmem);
--
--	/*
--	 * Prior lz4hc_compress will return -1 in case of error
--	 * and 0 on success
--	 * while new LZ4_compress_HC
--	 * returns 0 in case of error
--	 * and the output length on success
--	 */
--	if (!*dst_len)
--		return -1;
+ 	user_mem = kmap_atomic(page);
+-	if (is_partial_io(bvec))
+-		memset(user_mem + bvec->bv_offset, 0, bvec->bv_len);
 -	else
--		return 0;
--}
--EXPORT_SYMBOL(lz4hc_compress);
+-		clear_page(user_mem);
++	zram_fill_page(user_mem + bvec->bv_offset, bvec->bv_len, element);
+ 	kunmap_atomic(user_mem);
+ 
+ 	flush_dcache_page(page);
+@@ -363,7 +389,7 @@ static ssize_t mm_stat_show(struct devic
+ 			mem_used << PAGE_SHIFT,
+ 			zram->limit_pages << PAGE_SHIFT,
+ 			max_used << PAGE_SHIFT,
+-			(u64)atomic64_read(&zram->stats.zero_pages),
++			(u64)atomic64_read(&zram->stats.same_pages),
+ 			pool_stats.pages_compacted);
+ 	up_read(&zram->init_lock);
+ 
+@@ -450,18 +476,20 @@ static void zram_free_page(struct zram *
+ 	struct zram_meta *meta = zram->meta;
+ 	unsigned long handle = meta->table[index].handle;
+ 
+-	if (unlikely(!handle)) {
+-		/*
+-		 * No memory is allocated for zero filled pages.
+-		 * Simply clear zero page flag.
+-		 */
+-		if (zram_test_flag(meta, index, ZRAM_ZERO)) {
+-			zram_clear_flag(meta, index, ZRAM_ZERO);
+-			atomic64_dec(&zram->stats.zero_pages);
+-		}
++	/*
++	 * No memory is allocated for same element filled pages.
++	 * Simply clear same page flag.
++	 */
++	if (zram_test_flag(meta, index, ZRAM_SAME)) {
++		zram_clear_flag(meta, index, ZRAM_SAME);
++		zram_clear_element(meta, index);
++		atomic64_dec(&zram->stats.same_pages);
+ 		return;
+ 	}
+ 
++	if (!handle)
++		return;
++
+ 	zs_free(meta->mem_pool, handle);
+ 
+ 	atomic64_sub(zram_get_obj_size(meta, index),
+@@ -484,9 +512,9 @@ static int zram_decompress_page(struct z
+ 	handle = meta->table[index].handle;
+ 	size = zram_get_obj_size(meta, index);
+ 
+-	if (!handle || zram_test_flag(meta, index, ZRAM_ZERO)) {
++	if (!handle || zram_test_flag(meta, index, ZRAM_SAME)) {
+ 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
+-		clear_page(mem);
++		zram_fill_page(mem, PAGE_SIZE, meta->table[index].element);
+ 		return 0;
+ 	}
+ 
+@@ -522,9 +550,9 @@ static int zram_bvec_read(struct zram *z
+ 
+ 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
+ 	if (unlikely(!meta->table[index].handle) ||
+-			zram_test_flag(meta, index, ZRAM_ZERO)) {
++			zram_test_flag(meta, index, ZRAM_SAME)) {
+ 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
+-		handle_zero_page(bvec);
++		handle_same_page(bvec, meta->table[index].element);
+ 		return 0;
+ 	}
+ 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
+@@ -572,6 +600,7 @@ static int zram_bvec_write(struct zram *
+ 	struct zram_meta *meta = zram->meta;
+ 	struct zcomp_strm *zstrm = NULL;
+ 	unsigned long alloced_pages;
++	unsigned long element;
+ 
+ 	page = bvec->bv_page;
+ 	if (is_partial_io(bvec)) {
+@@ -600,16 +629,17 @@ compress_again:
+ 		uncmem = user_mem;
+ 	}
+ 
+-	if (page_zero_filled(uncmem)) {
++	if (page_same_filled(uncmem, &element)) {
+ 		if (user_mem)
+ 			kunmap_atomic(user_mem);
+ 		/* Free memory associated with this sector now. */
+ 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
+ 		zram_free_page(zram, index);
+-		zram_set_flag(meta, index, ZRAM_ZERO);
++		zram_set_flag(meta, index, ZRAM_SAME);
++		zram_set_element(meta, index, element);
+ 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
+ 
+-		atomic64_inc(&zram->stats.zero_pages);
++		atomic64_inc(&zram->stats.same_pages);
+ 		ret = 0;
+ 		goto out;
+ 	}
+diff -puN drivers/block/zram/zram_drv.h~zram-extend-zero-pages-to-same-element-pages drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-extend-zero-pages-to-same-element-pages
++++ a/drivers/block/zram/zram_drv.h
+@@ -61,7 +61,7 @@ static const size_t max_zpage_size = PAG
+ /* Flags for zram pages (table[page_no].value) */
+ enum zram_pageflags {
+ 	/* Page consists entirely of zeros */
+-	ZRAM_ZERO = ZRAM_FLAG_SHIFT,
++	ZRAM_SAME = ZRAM_FLAG_SHIFT,
+ 	ZRAM_ACCESS,	/* page is now accessed */
+ 
+ 	__NR_ZRAM_PAGEFLAGS,
+@@ -71,7 +71,10 @@ enum zram_pageflags {
+ 
+ /* Allocated for each disk page */
+ struct zram_table_entry {
+-	unsigned long handle;
++	union {
++		unsigned long handle;
++		unsigned long element;
++	};
+ 	unsigned long value;
+ };
+ 
+@@ -83,7 +86,7 @@ struct zram_stats {
+ 	atomic64_t failed_writes;	/* can happen when memory is too low */
+ 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
+ 	atomic64_t notify_free;	/* no. of swap slot free notifications */
+-	atomic64_t zero_pages;		/* no. of zero filled pages */
++	atomic64_t same_pages;		/* no. of same element filled pages */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
+ 	atomic64_t writestall;		/* no. of write slow paths */
+_
+
+Patches currently in -mm which might be from zhouxianrong@huawei.com are
+
+zram-extend-zero-pages-to-same-element-pages.patch
+
