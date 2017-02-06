@@ -1,73 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-respect-proc-sys-kernel-traceoff_on_warning.patch
+Subject: [merged]
+ mm-sleeping-function-called-from-invalid-context-shmem_undo_range.patch
  removed from -mm tree
-Date: Mon, 06 Feb 2017 13:24:34 -0800
-Message-ID: <5898e992.jNZtVItAajaNSXV5%akpm@linux-foundation.org>
+Date: Mon, 06 Feb 2017 13:24:37 -0800
+Message-ID: <5898e995.DUhARGoZozYMSVJ7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57762 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751920AbdBFVYf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 16:24:35 -0500
+        with ESMTP id S1752321AbdBFVYi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 16:24:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dvyukov@google.com, hillf.zj@alibaba-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: respect /proc/sys/kernel/traceoff_on_warning
+     Subject: shmem: fix sleeping from atomic context
 has been removed from the -mm tree.  Its filename was
-     kasan-respect-proc-sys-kernel-traceoff_on_warning.patch
+     mm-sleeping-function-called-from-invalid-context-shmem_undo_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: kasan: respect /proc/sys/kernel/traceoff_on_warning
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: shmem: fix sleeping from atomic context
 
-After much waiting I finally reproduced a KASAN issue, only to find my
-trace-buffer empty of useful information because it got spooled out :/
+Syzkaller fuzzer managed to trigger this:
 
-Make kasan_report honour the /proc/sys/kernel/traceoff_on_warning
-interface.
+BUG: sleeping function called from invalid context at mm/shmem.c:852
+in_atomic(): 1, irqs_disabled(): 0, pid: 529, name: khugepaged
+3 locks held by khugepaged/529:
+ #0:  (shrinker_rwsem){++++..}, at: [<ffffffff818d7ef1>]
+shrink_slab.part.59+0x121/0xd30 mm/vmscan.c:451
+ #1:  (&type->s_umount_key#29){++++..}, at: [<ffffffff81a63630>]
+trylock_super+0x20/0x100 fs/super.c:392
+ #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
+[<ffffffff818fd83e>] spin_lock include/linux/spinlock.h:302 [inline]
+ #2:  (&(&sbinfo->shrinklist_lock)->rlock){+.+.-.}, at:
+[<ffffffff818fd83e>] shmem_unused_huge_shrink+0x28e/0x1490
+mm/shmem.c:427
+CPU: 2 PID: 529 Comm: khugepaged Not tainted 4.10.0-rc5+ #201
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:15 [inline]
+ dump_stack+0x2ee/0x3ef lib/dump_stack.c:51
+ ___might_sleep+0x47e/0x650 kernel/sched/core.c:7780
+ shmem_undo_range+0xb20/0x2710 mm/shmem.c:852
+ shmem_truncate_range+0x27/0xa0 mm/shmem.c:939
+ shmem_evict_inode+0x35f/0xca0 mm/shmem.c:1030
+ evict+0x46e/0x980 fs/inode.c:553
+ iput_final fs/inode.c:1515 [inline]
+ iput+0x589/0xb20 fs/inode.c:1542
+ shmem_unused_huge_shrink+0xbad/0x1490 mm/shmem.c:446
+ shmem_unused_huge_scan+0x10c/0x170 mm/shmem.c:512
+ super_cache_scan+0x376/0x450 fs/super.c:106
+ do_shrink_slab mm/vmscan.c:378 [inline]
+ shrink_slab.part.59+0x543/0xd30 mm/vmscan.c:481
+ shrink_slab mm/vmscan.c:2592 [inline]
+ shrink_node+0x2c7/0x870 mm/vmscan.c:2592
+ shrink_zones mm/vmscan.c:2734 [inline]
+ do_try_to_free_pages+0x369/0xc80 mm/vmscan.c:2776
+ try_to_free_pages+0x3c6/0x900 mm/vmscan.c:2982
+ __perform_reclaim mm/page_alloc.c:3301 [inline]
+ __alloc_pages_direct_reclaim mm/page_alloc.c:3322 [inline]
+ __alloc_pages_slowpath+0xa24/0x1c30 mm/page_alloc.c:3683
+ __alloc_pages_nodemask+0x544/0xae0 mm/page_alloc.c:3848
+ __alloc_pages include/linux/gfp.h:426 [inline]
+ __alloc_pages_node include/linux/gfp.h:439 [inline]
+ khugepaged_alloc_page+0xc2/0x1b0 mm/khugepaged.c:750
+ collapse_huge_page+0x182/0x1fe0 mm/khugepaged.c:955
+ khugepaged_scan_pmd+0xfdf/0x12a0 mm/khugepaged.c:1208
+ khugepaged_scan_mm_slot mm/khugepaged.c:1727 [inline]
+ khugepaged_do_scan mm/khugepaged.c:1808 [inline]
+ khugepaged+0xe9b/0x1590 mm/khugepaged.c:1853
+ kthread+0x326/0x3f0 kernel/kthread.c:227
+ ret_from_fork+0x31/0x40 arch/x86/entry/entry_64.S:430
 
-Link: http://lkml.kernel.org/r/20170125164106.3514-1-aryabinin@virtuozzo.com
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+The iput() from atomic context was a bad idea: if after igrab() somebody
+else calls iput() and we left with the last inode reference, our iput()
+would lead to inode eviction and therefore sleeping.
+
+This patch should fix the situation.
+
+Link: http://lkml.kernel.org/r/20170131093141.GA15899@node.shutemov.name
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/shmem.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-respect-proc-sys-kernel-traceoff_on_warning mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-respect-proc-sys-kernel-traceoff_on_warning
-+++ a/mm/kasan/report.c
-@@ -13,6 +13,7 @@
-  *
-  */
+diff -puN mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range mm/shmem.c
+--- a/mm/shmem.c~mm-sleeping-function-called-from-invalid-context-shmem_undo_range
++++ a/mm/shmem.c
+@@ -415,6 +415,7 @@ static unsigned long shmem_unused_huge_s
+ 		struct shrink_control *sc, unsigned long nr_to_split)
+ {
+ 	LIST_HEAD(list), *pos, *next;
++	LIST_HEAD(to_remove);
+ 	struct inode *inode;
+ 	struct shmem_inode_info *info;
+ 	struct page *page;
+@@ -441,9 +442,8 @@ static unsigned long shmem_unused_huge_s
+ 		/* Check if there's anything to gain */
+ 		if (round_up(inode->i_size, PAGE_SIZE) ==
+ 				round_up(inode->i_size, HPAGE_PMD_SIZE)) {
+-			list_del_init(&info->shrinklist);
++			list_move(&info->shrinklist, &to_remove);
+ 			removed++;
+-			iput(inode);
+ 			goto next;
+ 		}
  
-+#include <linux/ftrace.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/printk.h>
-@@ -300,6 +301,8 @@ void kasan_report(unsigned long addr, si
- 	if (likely(!kasan_report_enabled()))
- 		return;
+@@ -454,6 +454,13 @@ next:
+ 	}
+ 	spin_unlock(&sbinfo->shrinklist_lock);
  
-+	disable_trace_on_warning();
++	list_for_each_safe(pos, next, &to_remove) {
++		info = list_entry(pos, struct shmem_inode_info, shrinklist);
++		inode = &info->vfs_inode;
++		list_del_init(&info->shrinklist);
++		iput(inode);
++	}
 +
- 	info.access_addr = (void *)addr;
- 	info.access_size = size;
- 	info.is_write = is_write;
+ 	list_for_each_safe(pos, next, &list) {
+ 		int ret;
+ 
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+mm-drop-zap_details-ignore_dirty.patch
+mm-drop-zap_details-check_swap_entries.patch
+mm-drop-unused-argument-of-zap_page_range.patch
+oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma.patch
+uprobes-split-thps-before-trying-replace-them.patch
+mm-introduce-page_vma_mapped_walk.patch
+mm-fix-handling-pte-mapped-thps-in-page_referenced.patch
+mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
+mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch
+mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
+mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk.patch
+mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
+mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch
+mm-convert-page_mapped_in_vma-to-use-page_vma_mapped_walk.patch
+mm-drop-page_check_address_transhuge.patch
+mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk.patch
 
