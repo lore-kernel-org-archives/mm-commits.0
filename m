@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-spellingtxt-fix-incorrect-typo-words-fix.patch added to -mm tree
-Date: Mon, 06 Feb 2017 16:37:27 -0800
-Message-ID: <589916c7.VA604FYMI/W1lkN4%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 07 Feb 2017 13:01:21 -0800
+Message-ID: <589a35a1.wA4NJHKhh50+PlZC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51586 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751395AbdBGAh2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 19:37:28 -0500
+        with ESMTP id S932101AbdBGVKw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2017 16:10:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts-spellingtxt-fix-incorrect-typo-words-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scripts-spellingtxt-fix-incorrect-typo-words-fix
+Subject: linux-next-git-rejects
 
-"licencing" is valid British spelling and should be kept, per Joe
-
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/crypto/chelsio/chcr_core.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN scripts/spelling.txt~scripts-spellingtxt-fix-incorrect-typo-words-fix scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-fix-incorrect-typo-words-fix
-+++ a/scripts/spelling.txt
-@@ -604,7 +604,7 @@ libaries||libraries
- libary||library
- librairies||libraries
- libraris||libraries
--licenceing||licensing
-+licenceing||licencing
- loggging||logging
- loggin||login
- logile||logfile
+diff -puN drivers/crypto/chelsio/chcr_core.c~linux-next-git-rejects drivers/crypto/chelsio/chcr_core.c
+--- a/drivers/crypto/chelsio/chcr_core.c~linux-next-git-rejects
++++ a/drivers/crypto/chelsio/chcr_core.c
+@@ -61,11 +61,7 @@ int assign_chcr_device(struct chcr_dev *
+ 	 */
+ 	mutex_lock(&dev_mutex); /* TODO ? */
+ 	list_for_each_entry(u_ctx, &uld_ctx_list, entry)
+-<<<<<<< HEAD
+-		if (u_ctx && u_ctx->dev) {
+-=======
+ 		if (u_ctx->dev) {
+->>>>>>> linux-next/akpm-base
+ 			*dev = u_ctx->dev;
+ 			ret = 0;
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,4 +86,5 @@ linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
 linux-next-rejects.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
