@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sigaltstack-support-ss_autodisarm-for-config_compat.patch added to -mm tree
-Date: Mon, 06 Feb 2017 16:03:29 -0800
-Message-ID: <58990ed1.AlXa3lHajHYqy8Vp%akpm@linux-foundation.org>
+Subject: + slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch added to -mm tree
+Date: Mon, 06 Feb 2017 16:22:20 -0800
+Message-ID: <5899133c.Tp27amrHvj7Ll9L/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36026 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752270AbdBGADb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 19:03:31 -0500
+        with ESMTP id S1751938AbdBGAWW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 19:22:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stsp@list.ru, Waiman.Long@hpe.com, arnd@arndb.de, dave.hansen@linux.intel.com, dsafonov@virtuozzo.com, luto@kernel.org, milosz@adfin.com, mingo@kernel.org, nicolas.pitre@linaro.org, oleg@redhat.com, stable@vger.kernel.org, stsp@users.sourceforge.net, tglx@linutronix.de, viro@zeniv.linux.org.uk, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
+     Subject: slub: make sysfs directories for memcg sub-caches optional
 has been added to the -mm tree.  Its filename is
-     sigaltstack-support-ss_autodisarm-for-config_compat.patch
+     slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sigaltstack-support-ss_autodisarm-for-config_compat.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sigaltstack-support-ss_autodisarm-for-config_compat.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +38,173 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stas Sergeev <stsp@list.ru>
-Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
+From: Tejun Heo <tj@kernel.org>
+Subject: slub: make sysfs directories for memcg sub-caches optional
 
-Currently SS_AUTODISARM is not supported in compatibility mode, but does
-not return -EINVAL either.  This makes dosemu built with -m32 on x86_64 to
-crash.  Also the kernel's sigaltstack selftest fails if compiled with
--m32.
+SLUB creates a per-cache directory under /sys/kernel/slab which hosts a
+bunch of debug files.  Usually, there aren't that many caches on a system
+and this doesn't really matter; however, if memcg is in use, each cache
+can have per-cgroup sub-caches.  SLUB creates the same directories for
+these sub-caches under /sys/kernel/slab/$CACHE/cgroup.
 
-This patch adds the needed support.
+Unfortunately, because there can be a lot of cgroups, active or draining,
+the product of the numbers of caches, cgroups and files in each directory
+can reach a very high number - hundreds of thousands is commonplace. 
+Millions and beyond aren't difficult to reach either.
 
-Link: http://lkml.kernel.org/r/20170205101213.8163-2-stsp@list.ru
-Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
-Cc: Milosz Tanski <milosz@adfin.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Waiman Long <Waiman.Long@hpe.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+What's under /sys/kernel/slab is primarily for debugging and the
+information and control on the a root cache already cover its sub-caches. 
+While having a separate directory for each sub-cache can be helpful for
+development, it doesn't make much sense to pay this amount of overhead by
+default.
+
+This patch introduces a boot parameter slub_memcg_sysfs which determines
+whether to create sysfs directories for per-memcg sub-caches.  It also
+adds CONFIG_SLUB_MEMCG_SYSFS_ON which determines the boot parameter's
+default value and defaults to 0.
+
+Link: http://lkml.kernel.org/r/20170204145203.GB26958@mtj.duckdns.org
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |    4 +++-
- kernel/signal.c        |   11 +++++++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    8 +++
+ init/Kconfig                                    |   14 ++++++
+ mm/slub.c                                       |   29 ++++++++++++--
+ 3 files changed, 48 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat include/linux/compat.h
---- a/include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat
-+++ a/include/linux/compat.h
-@@ -711,8 +711,10 @@ int __compat_save_altstack(compat_stack_
- 	compat_stack_t __user *__uss = uss; \
- 	struct task_struct *t = current; \
- 	put_user_ex(ptr_to_compat((void __user *)t->sas_ss_sp), &__uss->ss_sp); \
--	put_user_ex(sas_ss_flags(sp), &__uss->ss_flags); \
-+	put_user_ex(t->sas_ss_flags, &__uss->ss_flags); \
- 	put_user_ex(t->sas_ss_size, &__uss->ss_size); \
-+	if (t->sas_ss_flags & SS_AUTODISARM) \
-+		sas_ss_reset(t); \
- } while (0);
+diff -puN Documentation/admin-guide/kernel-parameters.txt~slub-make-sysfs-directories-for-memcg-sub-caches-optional Documentation/admin-guide/kernel-parameters.txt
+--- a/Documentation/admin-guide/kernel-parameters.txt~slub-make-sysfs-directories-for-memcg-sub-caches-optional
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3679,6 +3679,14 @@
+ 			last alloc / free. For more information see
+ 			Documentation/vm/slub.txt.
  
- asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
-diff -puN kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat kernel/signal.c
---- a/kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat
-+++ a/kernel/signal.c
-@@ -3239,10 +3239,17 @@ int compat_restore_altstack(const compat
++	slub_memcg_sysfs=	[MM, SLUB]
++			Determines whether to enable sysfs directories for
++			memory cgroup sub-caches. 1 to enable, 0 to disable.
++			The default is determined by CONFIG_SLUB_MEMCG_SYSFS_ON.
++			Enabling this can lead to a very high number of	debug
++			directories and files being created under
++			/sys/kernel/slub.
++
+ 	slub_max_order= [MM, SLUB]
+ 			Determines the maximum allowed order for slabs.
+ 			A high setting may cause OOMs due to memory
+diff -puN init/Kconfig~slub-make-sysfs-directories-for-memcg-sub-caches-optional init/Kconfig
+--- a/init/Kconfig~slub-make-sysfs-directories-for-memcg-sub-caches-optional
++++ a/init/Kconfig
+@@ -1786,6 +1786,20 @@ config SLUB_DEBUG
+ 	  SLUB sysfs support. /sys/slab will not exist and there will be
+ 	  no support for cache validation etc.
  
- int __compat_save_altstack(compat_stack_t __user *uss, unsigned long sp)
++config SLUB_MEMCG_SYSFS_ON
++	default n
++	bool "Enable memcg SLUB sysfs support by default" if EXPERT
++	depends on SLUB && SYSFS && MEMCG
++	help
++	  SLUB creates a directory under /sys/kernel/slab for each
++	  allocation cache to host info and debug files. If memory
++	  cgroup is enabled, each cache can have per memory cgroup
++	  caches. SLUB can create the same sysfs directories for these
++	  caches under /sys/kernel/slab/CACHE/cgroup but it can lead
++	  to a very high number of debug files being created. This is
++	  controlled by slub_memcg_sysfs boot parameter and this
++	  config option determines the parameter's default value.
++
+ config COMPAT_BRK
+ 	bool "Disable heap randomization"
+ 	default y
+diff -puN mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional mm/slub.c
+--- a/mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional
++++ a/mm/slub.c
+@@ -4704,6 +4704,22 @@ enum slab_stat_type {
+ #define SO_OBJECTS	(1 << SL_OBJECTS)
+ #define SO_TOTAL	(1 << SL_TOTAL)
+ 
++#ifdef CONFIG_MEMCG
++static bool memcg_sysfs_enabled = IS_ENABLED(CONFIG_SLUB_MEMCG_SYSFS_ON);
++
++static int __init setup_slub_memcg_sysfs(char *str)
++{
++	int v;
++
++	if (get_option(&str, &v) > 0)
++		memcg_sysfs_enabled = v;
++
++	return 1;
++}
++
++__setup("slub_memcg_sysfs=", setup_slub_memcg_sysfs);
++#endif
++
+ static ssize_t show_slab_objects(struct kmem_cache *s,
+ 			    char *buf, unsigned long flags)
  {
-+	int err;
- 	struct task_struct *t = current;
--	return  __put_user(ptr_to_compat((void __user *)t->sas_ss_sp), &uss->ss_sp) |
--		__put_user(sas_ss_flags(sp), &uss->ss_flags) |
-+	err = __put_user(ptr_to_compat((void __user *)t->sas_ss_sp),
-+			 &uss->ss_sp) |
-+		__put_user(t->sas_ss_flags, &uss->ss_flags) |
- 		__put_user(t->sas_ss_size, &uss->ss_size);
-+	if (err)
-+		return err;
-+	if (t->sas_ss_flags & SS_AUTODISARM)
-+		sas_ss_reset(t);
-+	return 0;
- }
- #endif
+@@ -5607,8 +5623,14 @@ static int sysfs_slab_add(struct kmem_ca
+ {
+ 	int err;
+ 	const char *name;
++	struct kset *kset = cache_kset(s);
+ 	int unmergeable = slab_unmergeable(s);
  
++	if (!kset) {
++		kobject_init(&s->kobj, &slab_ktype);
++		return 0;
++	}
++
+ 	if (unmergeable) {
+ 		/*
+ 		 * Slabcache can never be merged so we can use the name proper.
+@@ -5625,7 +5647,7 @@ static int sysfs_slab_add(struct kmem_ca
+ 		name = create_unique_id(s);
+ 	}
+ 
+-	s->kobj.kset = cache_kset(s);
++	s->kobj.kset = kset;
+ 	err = kobject_init_and_add(&s->kobj, &slab_ktype, NULL, "%s", name);
+ 	if (err)
+ 		goto out;
+@@ -5635,7 +5657,7 @@ static int sysfs_slab_add(struct kmem_ca
+ 		goto out_del_kobj;
+ 
+ #ifdef CONFIG_MEMCG
+-	if (is_root_cache(s)) {
++	if (is_root_cache(s) && memcg_sysfs_enabled) {
+ 		s->memcg_kset = kset_create_and_add("cgroup", NULL, &s->kobj);
+ 		if (!s->memcg_kset) {
+ 			err = -ENOMEM;
+@@ -5677,7 +5699,8 @@ static void sysfs_slab_remove(struct kme
+ 		return;
+ 
+ #ifdef CONFIG_MEMCG
+-	kset_unregister(s->memcg_kset);
++	if (s->memcg_kset)
++		kset_unregister(s->memcg_kset);
+ #endif
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
 _
 
-Patches currently in -mm which might be from stsp@list.ru are
+Patches currently in -mm which might be from tj@kernel.org are
 
-sigaltstack-support-ss_autodisarm-for-config_compat.patch
+cpumask-use-nr_cpumask_bits-for-parsing-functions.patch
+revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
+slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove.patch
+slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
+slab-reorganize-memcg_cache_params.patch
+slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
+slab-implement-slab_root_caches-list.patch
+slab-introduce-__kmemcg_cache_deactivate.patch
+slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
+slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches.patch
+slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
+slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch
 
