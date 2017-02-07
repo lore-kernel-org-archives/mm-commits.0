@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + scatterlist-do-not-disable-irqs-in-sg_copy_buffer.patch added
- to -mm tree
-Date: Mon, 06 Feb 2017 16:28:55 -0800
-Message-ID: <589914c7.2AGdJy/dafYVwlPh%akpm@linux-foundation.org>
+Subject: + scripts-spellingtxt-fix-incorrect-typo-words-fix.patch added to -mm tree
+Date: Mon, 06 Feb 2017 16:37:27 -0800
+Message-ID: <589916c7.VA604FYMI/W1lkN4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37388 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751414AbdBGA24 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 19:28:56 -0500
+        with ESMTP id S1751395AbdBGAh2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 19:37:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gilad@benyossef.com, axboe@kernel.dk, ofir.drang@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scatterlist: do not disable IRQs in sg_copy_buffer
+     Subject: scripts-spellingtxt-fix-incorrect-typo-words-fix
 has been added to the -mm tree.  Its filename is
-     scatterlist-do-not-disable-irqs-in-sg_copy_buffer.patch
+     scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scatterlist-do-not-disable-irqs-in-sg_copy_buffer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scatterlist-do-not-disable-irqs-in-sg_copy_buffer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +38,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gilad Ben-Yossef <gilad@benyossef.com>
-Subject: scatterlist: do not disable IRQs in sg_copy_buffer
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scripts-spellingtxt-fix-incorrect-typo-words-fix
 
-Commit 50bed2e2862a ("sg: disable interrupts inside sg_copy_buffer")
-introduced disabling interrupts in sg_copy_buffer() since atomic uses of
-miter required it due to use of kmap_atomic().
+"licencing" is valid British spelling and should be kept, per Joe
 
-However, as commit 8290e2d2dcbf ("scatterlist: atomic sg_mapping_iter() no
-longer needs disabled IRQs") acknowledges disabling interrupts is no
-longer needed for calls to kmap_atomic() and therefore unneeded for miter
-ops either, so remove it from sg_copy_buffer().
-
-Link: http://lkml.kernel.org/r/1486040150-14109-3-git-send-email-gilad@benyossef.com
-Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <ofir.drang@arm.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    4 ----
- 1 file changed, 4 deletions(-)
+ scripts/spelling.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/scatterlist.c~scatterlist-do-not-disable-irqs-in-sg_copy_buffer lib/scatterlist.c
---- a/lib/scatterlist.c~scatterlist-do-not-disable-irqs-in-sg_copy_buffer
-+++ a/lib/scatterlist.c
-@@ -665,7 +665,6 @@ size_t sg_copy_buffer(struct scatterlist
- {
- 	unsigned int offset = 0;
- 	struct sg_mapping_iter miter;
--	unsigned long flags;
- 	unsigned int sg_flags = SG_MITER_ATOMIC;
- 
- 	if (to_buffer)
-@@ -678,8 +677,6 @@ size_t sg_copy_buffer(struct scatterlist
- 	if (!sg_miter_skip(&miter, skip))
- 		return false;
- 
--	local_irq_save(flags);
+diff -puN scripts/spelling.txt~scripts-spellingtxt-fix-incorrect-typo-words-fix scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-fix-incorrect-typo-words-fix
++++ a/scripts/spelling.txt
+@@ -604,7 +604,7 @@ libaries||libraries
+ libary||library
+ librairies||libraries
+ libraris||libraries
+-licenceing||licensing
++licenceing||licencing
+ loggging||logging
+ loggin||login
+ logile||logfile
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
+mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
+mm-track-active-portions-of-a-section-at-boot-fix.patch
+mm-memory_hotplugc-unexport-__remove_pages.patch
+z3fold-add-kref-refcounting-checkpatch-fixes.patch
+mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
