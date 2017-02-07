@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch added to -mm tree
-Date: Tue, 07 Feb 2017 13:40:54 -0800
-Message-ID: <589a3ee6.uiQy+tRG1GOKRkC/%akpm@linux-foundation.org>
+Subject: + mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
+ added to -mm tree
+Date: Tue, 07 Feb 2017 13:38:42 -0800
+Message-ID: <589a3e62.msWpParDuHE29QXJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932472AbdBGVkz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2017 16:40:55 -0500
+        with ESMTP id S932414AbdBGVqH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2017 16:46:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mawilcox@microsoft.com, penberg@kernel.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: mcopy_atomic: update cases returning -ENOENT
+     Subject: mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix
 has been added to the -mm tree.  Its filename is
-     userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch
+     mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,94 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: mcopy_atomic: update cases returning -ENOENT
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix
 
-As Andrea commented in [1], if the VMA covering the address was unmapped,
-we may end up with a VMA a way above the faulting address. In this case we
-would like to return -ENOENT to allow uffd monitor detection of VMA
-removal.
+make get_kmalloc_cache_name() __init
 
-[1] http://www.spinics.net/lists/linux-mm/msg121267.html
-
-Link: http://lkml.kernel.org/r/20170207150249.GA6709@rapoport-lnx
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/slab_common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix
-+++ a/mm/userfaultfd.c
-@@ -206,6 +206,10 @@ retry:
- 		if (!dst_vma->vm_userfaultfd_ctx.ctx)
- 			goto out_unlock;
+diff -puN mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix
++++ a/mm/slab_common.c
+@@ -935,7 +935,7 @@ static struct {
+ 	{"kmalloc-67108864", 67108864}
+ };
  
-+		if (dst_start < dst_vma->vm_start ||
-+		    dst_start + len > dst_vma->vm_end)
-+			goto out_unlock;
-+
- 		err = -EINVAL;
- 		if (vma_hpagesize != vma_kernel_pagesize(dst_vma))
- 			goto out_unlock;
-@@ -216,9 +220,6 @@ retry:
- 		 */
- 		if (dst_vma->vm_flags & VM_SHARED)
- 			goto out_unlock;
--		if (dst_start < dst_vma->vm_start ||
--		    dst_start + len > dst_vma->vm_end)
--			goto out_unlock;
- 	}
- 
- 	if (WARN_ON(dst_addr & (vma_hpagesize - 1) ||
-@@ -385,13 +386,14 @@ retry:
- 	if (!dst_vma->vm_userfaultfd_ctx.ctx)
- 		goto out_unlock;
- 
--	err = -EINVAL;
--	if (!vma_is_shmem(dst_vma) && dst_vma->vm_flags & VM_SHARED)
--		goto out_unlock;
- 	if (dst_start < dst_vma->vm_start ||
- 	    dst_start + len > dst_vma->vm_end)
- 		goto out_unlock;
- 
-+	err = -EINVAL;
-+	if (!vma_is_shmem(dst_vma) && dst_vma->vm_flags & VM_SHARED)
-+		goto out_unlock;
-+
- 	/*
- 	 * If this is a HUGETLB vma, pass off to appropriate routine
- 	 */
+-const char *get_kmalloc_cache_name(int index)
++const char * __init get_kmalloc_cache_name(int index)
+ {
+ 	return kmalloc_info[index].name;
+ }
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users.patch
-userfaultfd-introduce-vma_can_userfault.patch
-userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
-userfaultfd-shmem-introduce-vma_is_shmem.patch
-userfaultfd-shmem-use-shmem_mcopy_atomic_pte-for-shared-memory.patch
-userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults.patch
-userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
-userfaultfd-shmem-add-userfaultfd_shmem-test.patch
-userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
-userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page.patch
-userfaultfd-non-cooperative-selftest-add-test-for-fork-madvdontneed-and-remap-events.patch
-userfaultfd-non-cooperative-rename-event_madvdontneed-to-event_remove.patch
-userfaultfd-non-cooperative-add-madvise-event-for-madv_remove-request.patch
-userfaultfd-non-cooperative-selftest-enable-remove-event-test-for-shmem.patch
-mm-call-vm_munmap-in-munmap-syscall-instead-of-using-open-coded-version.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps.patch
-userfaultfd-non-cooperative-add-event-for-exit-notification.patch
-userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch
-userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
+slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch
+mm-throttle-show_mem-from-warn_alloc-fix.patch
+userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
+mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
+mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
+mm-track-active-portions-of-a-section-at-boot-fix.patch
+mm-memory_hotplugc-unexport-__remove_pages.patch
+z3fold-add-kref-refcounting-checkpatch-fixes.patch
+mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
+mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
+linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
