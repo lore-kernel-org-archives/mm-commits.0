@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 07 Feb 2017 13:01:21 -0800
-Message-ID: <589a35a1.wA4NJHKhh50+PlZC%akpm@linux-foundation.org>
+Subject: +
+ mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch added to -mm tree
+Date: Tue, 07 Feb 2017 13:23:25 -0800
+Message-ID: <589a3acd.0zO0BTkcsIvA70y9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56680 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932101AbdBGVKw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2017 16:10:52 -0500
+        with ESMTP id S1754736AbdBGVaw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2017 16:30:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix
 
+remove unwanted ppc change, per Aneesh
+
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/chelsio/chcr_core.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/powerpc/mm/pgtable.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/crypto/chelsio/chcr_core.c~linux-next-git-rejects drivers/crypto/chelsio/chcr_core.c
---- a/drivers/crypto/chelsio/chcr_core.c~linux-next-git-rejects
-+++ a/drivers/crypto/chelsio/chcr_core.c
-@@ -61,11 +61,7 @@ int assign_chcr_device(struct chcr_dev *
- 	 */
- 	mutex_lock(&dev_mutex); /* TODO ? */
- 	list_for_each_entry(u_ctx, &uld_ctx_list, entry)
--<<<<<<< HEAD
--		if (u_ctx && u_ctx->dev) {
--=======
- 		if (u_ctx->dev) {
-->>>>>>> linux-next/akpm-base
- 			*dev = u_ctx->dev;
- 			ret = 0;
- 			break;
+diff -puN arch/powerpc/mm/pgtable.c~mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix arch/powerpc/mm/pgtable.c
+--- a/arch/powerpc/mm/pgtable.c~mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix
++++ a/arch/powerpc/mm/pgtable.c
+@@ -186,7 +186,12 @@ static pte_t set_access_flags_filter(pte
+ void set_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
+ 		pte_t pte)
+ {
+-	VM_WARN_ON(pte_present(*ptep));
++	/*
++	 * When handling numa faults, we already have the pte marked
++	 * _PAGE_PRESENT, but we can be sure that it is not in hpte.
++	 * Hence we can use set_pte_at for them.
++	 */
++	VM_WARN_ON(pte_present(*ptep) && !pte_protnone(*ptep));
+ 
+ 	/*
+ 	 * Add the pte bit when tryint set a pte
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,9 +91,10 @@ mm-track-active-portions-of-a-section-at-boot-fix.patch
 mm-memory_hotplugc-unexport-__remove_pages.patch
 z3fold-add-kref-refcounting-checkpatch-fixes.patch
 mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
+mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
 linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
 
