@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-add-cluster-lock-v5-fix.patch added to -mm tree
-Date: Tue, 07 Feb 2017 14:52:26 -0800
-Message-ID: <589a4faa.DkzQOQc8plfGV0Fp%akpm@linux-foundation.org>
+Subject: + tests-improve-output-of-sigaltstack-testcase.patch added to -mm tree
+Date: Tue, 07 Feb 2017 14:47:27 -0800
+Message-ID: <589a4e7f.7V0vmX8V2QkTNGDG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35928 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753026AbdBGWw1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2017 17:52:27 -0500
+        with ESMTP id S1752868AbdBGWzx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2017 17:55:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hughd@google.com, tim.c.chen@linux.intel.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: stsp@list.ru, luto@kernel.org, mingo@kernel.org, oleg@redhat.com, shuah@kernel.org, stsp@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swapfile: initialize spinlock for swap_cluster_info
+     Subject: tools/testing/selftests/sigaltstack/sas.c: improve output of sigaltstack testcase
 has been added to the -mm tree.  Its filename is
-     mm-swap-add-cluster-lock-v5-fix.patch
+     tests-improve-output-of-sigaltstack-testcase.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-add-cluster-lock-v5-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tests-improve-output-of-sigaltstack-testcase.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-add-cluster-lock-v5-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tests-improve-output-of-sigaltstack-testcase.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,61 +38,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: swapfile: initialize spinlock for swap_cluster_info
+From: Stas Sergeev <stsp@list.ru>
+Subject: tools/testing/selftests/sigaltstack/sas.c: improve output of sigaltstack testcase
 
-We changed swap_cluster_info lock from bit_spin_lock to spinlock so we
-need to initialize the spinlock before the using.  Otherwise, lockdep is
-broken.
+Currently it uses %i for bitmasks, which makes it difficult to properly
+decode the values.  Use %x instead.
 
-Link: http://lkml.kernel.org/r/1486434945-29753-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-
+Link: http://lkml.kernel.org/r/b7b4c45d-2f21-de6c-d1c8-16c8386da27c@list.ru
+Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ tools/testing/selftests/sigaltstack/sas.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-add-cluster-lock-v5-fix mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-add-cluster-lock-v5-fix
-+++ a/mm/swapfile.c
-@@ -2591,6 +2591,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+diff -puN tools/testing/selftests/sigaltstack/sas.c~tests-improve-output-of-sigaltstack-testcase tools/testing/selftests/sigaltstack/sas.c
+--- a/tools/testing/selftests/sigaltstack/sas.c~tests-improve-output-of-sigaltstack-testcase
++++ a/tools/testing/selftests/sigaltstack/sas.c
+@@ -57,7 +57,7 @@ void my_usr1(int sig, siginfo_t *si, voi
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	if (stk.ss_flags != SS_DISABLE)
+-		printf("[FAIL]\tss_flags=%i, should be SS_DISABLE\n",
++		printf("[FAIL]\tss_flags=%x, should be SS_DISABLE\n",
+ 				stk.ss_flags);
+ 	else
+ 		printf("[OK]\tsigaltstack is disabled in sighandler\n");
+@@ -122,7 +122,8 @@ int main(void)
+ 	if (stk.ss_flags == SS_DISABLE) {
+ 		printf("[OK]\tInitial sigaltstack state was SS_DISABLE\n");
+ 	} else {
+-		printf("[FAIL]\tInitial sigaltstack state was %i; should have been SS_DISABLE\n", stk.ss_flags);
++		printf("[FAIL]\tInitial sigaltstack state was %x; "
++		       "should have been SS_DISABLE\n", stk.ss_flags);
+ 		return EXIT_FAILURE;
+ 	}
  
- 	if (p->bdev && blk_queue_nonrot(bdev_get_queue(p->bdev))) {
- 		int cpu;
-+		unsigned long ci, nr_cluster;
- 
- 		p->flags |= SWP_SOLIDSTATE;
- 		/*
-@@ -2598,13 +2599,17 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		 * SSD
- 		 */
- 		p->cluster_next = 1 + (prandom_u32() % p->highest_bit);
-+		nr_cluster = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
- 
--		cluster_info = vzalloc(DIV_ROUND_UP(maxpages,
--			SWAPFILE_CLUSTER) * sizeof(*cluster_info));
-+		cluster_info = vzalloc(nr_cluster * sizeof(*cluster_info));
- 		if (!cluster_info) {
- 			error = -ENOMEM;
- 			goto bad_swap;
- 		}
-+
-+		for (ci = 0; ci < nr_cluster; ci++)
-+			spin_lock_init(&((cluster_info + ci)->lock));
-+
- 		p->percpu_cluster = alloc_percpu(struct percpu_cluster);
- 		if (!p->percpu_cluster) {
- 			error = -ENOMEM;
+@@ -165,7 +166,7 @@ int main(void)
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	if (stk.ss_flags != SS_AUTODISARM) {
+-		printf("[FAIL]\tss_flags=%i, should be SS_AUTODISARM\n",
++		printf("[FAIL]\tss_flags=%x, should be SS_AUTODISARM\n",
+ 				stk.ss_flags);
+ 		exit(EXIT_FAILURE);
+ 	}
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from stsp@list.ru are
 
-mm-swap-add-cluster-lock-v5-fix.patch
-zram-remove-waitqueue-for-io-done.patch
-zram-extend-zero-pages-to-same-element-pages-fix.patch
+sigaltstack-support-ss_autodisarm-for-config_compat.patch
+tests-improve-output-of-sigaltstack-testcase.patch
 
