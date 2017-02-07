@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-extend-zero-pages-to-same-element-pages.patch added to -mm tree
-Date: Mon, 06 Feb 2017 15:56:30 -0800
-Message-ID: <58990d2e.etQXGHluq8y/XFLV%akpm@linux-foundation.org>
+Subject: + sigaltstack-support-ss_autodisarm-for-config_compat.patch added to -mm tree
+Date: Mon, 06 Feb 2017 16:03:29 -0800
+Message-ID: <58990ed1.AlXa3lHajHYqy8Vp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36026 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751606AbdBFX4l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 18:56:41 -0500
+        with ESMTP id S1752270AbdBGADb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2017 19:03:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhouxianrong@huawei.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: stsp@list.ru, Waiman.Long@hpe.com, arnd@arndb.de, dave.hansen@linux.intel.com, dsafonov@virtuozzo.com, luto@kernel.org, milosz@adfin.com, mingo@kernel.org, nicolas.pitre@linaro.org, oleg@redhat.com, stable@vger.kernel.org, stsp@users.sourceforge.net, tglx@linutronix.de, viro@zeniv.linux.org.uk, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: extend zero pages to same element pages
+     Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
 has been added to the -mm tree.  Its filename is
-     zram-extend-zero-pages-to-same-element-pages.patch
+     sigaltstack-support-ss_autodisarm-for-config_compat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-extend-zero-pages-to-same-element-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sigaltstack-support-ss_autodisarm-for-config_compat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-extend-zero-pages-to-same-element-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sigaltstack-support-ss_autodisarm-for-config_compat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,280 +38,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: zhouxianrong <zhouxianrong@huawei.com>
-Subject: zram: extend zero pages to same element pages
+From: Stas Sergeev <stsp@list.ru>
+Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
 
-The idea is that without doing more calculations we extend zero pages to
-same element pages for zram.  zero page is special case of same element
-page with zero element.
+Currently SS_AUTODISARM is not supported in compatibility mode, but does
+not return -EINVAL either.  This makes dosemu built with -m32 on x86_64 to
+crash.  Also the kernel's sigaltstack selftest fails if compiled with
+-m32.
 
-1. the test is done under android 7.0
-2. startup too many applications circularly
-3. sample the zero pages, same pages (none-zero element)
-   and total pages in function page_zero_filled
+This patch adds the needed support.
 
-the result is listed as below:
-
-ZERO	SAME	TOTAL
-36214	17842	598196
-
-		ZERO/TOTAL	 SAME/TOTAL	  (ZERO+SAME)/TOTAL ZERO/SAME
-AVERAGE	0.060631909	 0.024990816  0.085622726		2.663825038
-STDEV	0.00674612	 0.005887625  0.009707034		2.115881328
-MAX		0.069698422	 0.030046087  0.094975336		7.56043956
-MIN		0.03959586	 0.007332205  0.056055193		1.928985507
-
-from the above data, the benefit is about 2.5% and up to 3% of total
-swapout pages.
-
-The defect of the patch is that when we recovery a page from non-zero
-element the operations are low efficient for partial read.
-
-This patch extends zero_page to same_page so if there is any user to have
-monitored zero_pages, he will be surprised if the number is increased but
-it's not harmful, I believe.
-
-Link: http://lkml.kernel.org/r/1483692145-75357-1-git-send-email-zhouxianrong@huawei.com
-Link: http://lkml.kernel.org/r/1486307804-27903-1-git-send-email-minchan@kernel.org
-Signed-off-by: zhouxianrong <zhouxianrong@huawei.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20170205101213.8163-2-stsp@list.ru
+Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
+Cc: Milosz Tanski <milosz@adfin.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Waiman Long <Waiman.Long@hpe.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |    6 +-
- drivers/block/zram/zram_drv.c   |   80 ++++++++++++++++++++----------
- drivers/block/zram/zram_drv.h   |    9 ++-
- 3 files changed, 64 insertions(+), 31 deletions(-)
+ include/linux/compat.h |    4 +++-
+ kernel/signal.c        |   11 +++++++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/blockdev/zram.txt~zram-extend-zero-pages-to-same-element-pages Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-extend-zero-pages-to-same-element-pages
-+++ a/Documentation/blockdev/zram.txt
-@@ -201,8 +201,8 @@ File /sys/block/zram<id>/mm_stat
- The stat file represents device's mm statistics. It consists of a single
- line of text and contains the following stats separated by whitespace:
-  orig_data_size   uncompressed size of data stored in this disk.
--                  This excludes zero-filled pages (zero_pages) since no
--                  memory is allocated for them.
-+		  This excludes same-element-filled pages (same_pages) since
-+		  no memory is allocated for them.
-                   Unit: bytes
-  compr_data_size  compressed size of data stored in this disk
-  mem_used_total   the amount of memory allocated for this disk. This
-@@ -214,7 +214,7 @@ line of text and contains the following
-                   the compressed data
-  mem_used_max     the maximum amount of memory zram have consumed to
-                   store the data
-- zero_pages       the number of zero filled pages written to this disk.
-+ same_pages       the number of same element filled pages written to this disk.
-                   No memory is allocated for such pages.
-  pages_compacted  the number of pages freed during compaction
+diff -puN include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat include/linux/compat.h
+--- a/include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat
++++ a/include/linux/compat.h
+@@ -711,8 +711,10 @@ int __compat_save_altstack(compat_stack_
+ 	compat_stack_t __user *__uss = uss; \
+ 	struct task_struct *t = current; \
+ 	put_user_ex(ptr_to_compat((void __user *)t->sas_ss_sp), &__uss->ss_sp); \
+-	put_user_ex(sas_ss_flags(sp), &__uss->ss_flags); \
++	put_user_ex(t->sas_ss_flags, &__uss->ss_flags); \
+ 	put_user_ex(t->sas_ss_size, &__uss->ss_size); \
++	if (t->sas_ss_flags & SS_AUTODISARM) \
++		sas_ss_reset(t); \
+ } while (0);
  
-diff -puN drivers/block/zram/zram_drv.c~zram-extend-zero-pages-to-same-element-pages drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-extend-zero-pages-to-same-element-pages
-+++ a/drivers/block/zram/zram_drv.c
-@@ -74,6 +74,17 @@ static void zram_clear_flag(struct zram_
- 	meta->table[index].value &= ~BIT(flag);
- }
+ asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
+diff -puN kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat kernel/signal.c
+--- a/kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat
++++ a/kernel/signal.c
+@@ -3239,10 +3239,17 @@ int compat_restore_altstack(const compat
  
-+static inline void zram_set_element(struct zram_meta *meta, u32 index,
-+			unsigned long element)
-+{
-+	meta->table[index].element = element;
-+}
-+
-+static inline void zram_clear_element(struct zram_meta *meta, u32 index)
-+{
-+	meta->table[index].element = 0;
-+}
-+
- static size_t zram_get_obj_size(struct zram_meta *meta, u32 index)
+ int __compat_save_altstack(compat_stack_t __user *uss, unsigned long sp)
  {
- 	return meta->table[index].value & (BIT(ZRAM_FLAG_SHIFT) - 1);
-@@ -146,31 +157,46 @@ static inline void update_used_max(struc
- 	} while (old_max != cur_max);
++	int err;
+ 	struct task_struct *t = current;
+-	return  __put_user(ptr_to_compat((void __user *)t->sas_ss_sp), &uss->ss_sp) |
+-		__put_user(sas_ss_flags(sp), &uss->ss_flags) |
++	err = __put_user(ptr_to_compat((void __user *)t->sas_ss_sp),
++			 &uss->ss_sp) |
++		__put_user(t->sas_ss_flags, &uss->ss_flags) |
+ 		__put_user(t->sas_ss_size, &uss->ss_size);
++	if (err)
++		return err;
++	if (t->sas_ss_flags & SS_AUTODISARM)
++		sas_ss_reset(t);
++	return 0;
  }
+ #endif
  
--static bool page_zero_filled(void *ptr)
-+static inline void zram_fill_page(char *ptr, unsigned long len,
-+					unsigned long value)
-+{
-+	int i;
-+	unsigned long *page = (unsigned long *)ptr;
-+
-+	WARN_ON_ONCE(!IS_ALIGNED(len, sizeof(unsigned long)));
-+
-+	if (likely(value == 0)) {
-+		memset(ptr, 0, len);
-+	} else {
-+		for (i = 0; i < len / sizeof(*page); i++)
-+			page[i] = value;
-+	}
-+}
-+
-+static bool page_same_filled(void *ptr, unsigned long *element)
- {
- 	unsigned int pos;
- 	unsigned long *page;
- 
- 	page = (unsigned long *)ptr;
- 
--	for (pos = 0; pos != PAGE_SIZE / sizeof(*page); pos++) {
--		if (page[pos])
-+	for (pos = 0; pos < PAGE_SIZE / sizeof(*page) - 1; pos++) {
-+		if (page[pos] != page[pos + 1])
- 			return false;
- 	}
- 
-+	*element = page[pos];
-+
- 	return true;
- }
- 
--static void handle_zero_page(struct bio_vec *bvec)
-+static void handle_same_page(struct bio_vec *bvec, unsigned long element)
- {
- 	struct page *page = bvec->bv_page;
- 	void *user_mem;
- 
- 	user_mem = kmap_atomic(page);
--	if (is_partial_io(bvec))
--		memset(user_mem + bvec->bv_offset, 0, bvec->bv_len);
--	else
--		clear_page(user_mem);
-+	zram_fill_page(user_mem + bvec->bv_offset, bvec->bv_len, element);
- 	kunmap_atomic(user_mem);
- 
- 	flush_dcache_page(page);
-@@ -363,7 +389,7 @@ static ssize_t mm_stat_show(struct devic
- 			mem_used << PAGE_SHIFT,
- 			zram->limit_pages << PAGE_SHIFT,
- 			max_used << PAGE_SHIFT,
--			(u64)atomic64_read(&zram->stats.zero_pages),
-+			(u64)atomic64_read(&zram->stats.same_pages),
- 			pool_stats.pages_compacted);
- 	up_read(&zram->init_lock);
- 
-@@ -450,18 +476,20 @@ static void zram_free_page(struct zram *
- 	struct zram_meta *meta = zram->meta;
- 	unsigned long handle = meta->table[index].handle;
- 
--	if (unlikely(!handle)) {
--		/*
--		 * No memory is allocated for zero filled pages.
--		 * Simply clear zero page flag.
--		 */
--		if (zram_test_flag(meta, index, ZRAM_ZERO)) {
--			zram_clear_flag(meta, index, ZRAM_ZERO);
--			atomic64_dec(&zram->stats.zero_pages);
--		}
-+	/*
-+	 * No memory is allocated for same element filled pages.
-+	 * Simply clear same page flag.
-+	 */
-+	if (zram_test_flag(meta, index, ZRAM_SAME)) {
-+		zram_clear_flag(meta, index, ZRAM_SAME);
-+		zram_clear_element(meta, index);
-+		atomic64_dec(&zram->stats.same_pages);
- 		return;
- 	}
- 
-+	if (!handle)
-+		return;
-+
- 	zs_free(meta->mem_pool, handle);
- 
- 	atomic64_sub(zram_get_obj_size(meta, index),
-@@ -484,9 +512,9 @@ static int zram_decompress_page(struct z
- 	handle = meta->table[index].handle;
- 	size = zram_get_obj_size(meta, index);
- 
--	if (!handle || zram_test_flag(meta, index, ZRAM_ZERO)) {
-+	if (!handle || zram_test_flag(meta, index, ZRAM_SAME)) {
- 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
--		clear_page(mem);
-+		zram_fill_page(mem, PAGE_SIZE, meta->table[index].element);
- 		return 0;
- 	}
- 
-@@ -522,9 +550,9 @@ static int zram_bvec_read(struct zram *z
- 
- 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
- 	if (unlikely(!meta->table[index].handle) ||
--			zram_test_flag(meta, index, ZRAM_ZERO)) {
-+			zram_test_flag(meta, index, ZRAM_SAME)) {
- 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
--		handle_zero_page(bvec);
-+		handle_same_page(bvec, meta->table[index].element);
- 		return 0;
- 	}
- 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
-@@ -572,6 +600,7 @@ static int zram_bvec_write(struct zram *
- 	struct zram_meta *meta = zram->meta;
- 	struct zcomp_strm *zstrm = NULL;
- 	unsigned long alloced_pages;
-+	unsigned long element;
- 
- 	page = bvec->bv_page;
- 	if (is_partial_io(bvec)) {
-@@ -600,16 +629,17 @@ compress_again:
- 		uncmem = user_mem;
- 	}
- 
--	if (page_zero_filled(uncmem)) {
-+	if (page_same_filled(uncmem, &element)) {
- 		if (user_mem)
- 			kunmap_atomic(user_mem);
- 		/* Free memory associated with this sector now. */
- 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
- 		zram_free_page(zram, index);
--		zram_set_flag(meta, index, ZRAM_ZERO);
-+		zram_set_flag(meta, index, ZRAM_SAME);
-+		zram_set_element(meta, index, element);
- 		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
- 
--		atomic64_inc(&zram->stats.zero_pages);
-+		atomic64_inc(&zram->stats.same_pages);
- 		ret = 0;
- 		goto out;
- 	}
-diff -puN drivers/block/zram/zram_drv.h~zram-extend-zero-pages-to-same-element-pages drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-extend-zero-pages-to-same-element-pages
-+++ a/drivers/block/zram/zram_drv.h
-@@ -61,7 +61,7 @@ static const size_t max_zpage_size = PAG
- /* Flags for zram pages (table[page_no].value) */
- enum zram_pageflags {
- 	/* Page consists entirely of zeros */
--	ZRAM_ZERO = ZRAM_FLAG_SHIFT,
-+	ZRAM_SAME = ZRAM_FLAG_SHIFT,
- 	ZRAM_ACCESS,	/* page is now accessed */
- 
- 	__NR_ZRAM_PAGEFLAGS,
-@@ -71,7 +71,10 @@ enum zram_pageflags {
- 
- /* Allocated for each disk page */
- struct zram_table_entry {
--	unsigned long handle;
-+	union {
-+		unsigned long handle;
-+		unsigned long element;
-+	};
- 	unsigned long value;
- };
- 
-@@ -83,7 +86,7 @@ struct zram_stats {
- 	atomic64_t failed_writes;	/* can happen when memory is too low */
- 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
- 	atomic64_t notify_free;	/* no. of swap slot free notifications */
--	atomic64_t zero_pages;		/* no. of zero filled pages */
-+	atomic64_t same_pages;		/* no. of same element filled pages */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
- 	atomic64_t writestall;		/* no. of write slow paths */
 _
 
-Patches currently in -mm which might be from zhouxianrong@huawei.com are
+Patches currently in -mm which might be from stsp@list.ru are
 
-zram-extend-zero-pages-to-same-element-pages.patch
+sigaltstack-support-ss_autodisarm-for-config_compat.patch
 
