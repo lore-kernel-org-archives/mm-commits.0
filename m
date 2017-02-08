@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch added to -mm tree
-Date: Wed, 08 Feb 2017 13:27:08 -0800
-Message-ID: <589b8d2c.vapLiU78VTXu0PBl%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-fix-nodes-for-reclaim-in-fast-path.patch added to -mm tree
+Date: Wed, 08 Feb 2017 13:58:11 -0800
+Message-ID: <589b9473.d6nlLiF0nssrQXK5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53522 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751209AbdBHVvJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 16:51:09 -0500
+        with ESMTP id S1751011AbdBHV6M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 16:58:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, dvyukov@google.com, mgorman@techsingularity.net, tj@kernel.org, mm-commits@vger.kernel.org
+To: gwshan@linux.vnet.ibm.com, anton@samba.org, mgorman@suse.de, mhocko@suse.com, mpe@ellerman.id.au, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: do not depend on cpu hotplug locks inside the allocator
+     Subject: mm/page_alloc: fix nodes for reclaim in fast path
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
+     mm-page_alloc-fix-nodes-for-reclaim-in-fast-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-nodes-for-reclaim-in-fast-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-nodes-for-reclaim-in-fast-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,165 +38,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: do not depend on cpu hotplug locks inside the allocator
+From: Gavin Shan <gwshan@linux.vnet.ibm.com>
+Subject: mm/page_alloc: fix nodes for reclaim in fast path
 
-Dmitry has reported the following lockdep splat
-[<ffffffff81571db1>] lock_acquire+0x2a1/0x630 kernel/locking/lockdep.c:3753
-[<ffffffff8436697e>] __mutex_lock_common kernel/locking/mutex.c:521 [inline]
-[<ffffffff8436697e>] mutex_lock_nested+0x24e/0xff0 kernel/locking/mutex.c:621
-[<ffffffff818f07ea>] pcpu_alloc+0xbda/0x1280 mm/percpu.c:896
-[<ffffffff818f0ee4>] __alloc_percpu+0x24/0x30 mm/percpu.c:1075
-[<ffffffff816543e3>] smpcfd_prepare_cpu+0x73/0xd0 kernel/smp.c:44
-[<ffffffff814240b4>] cpuhp_invoke_callback+0x254/0x1480 kernel/cpu.c:136
-[<ffffffff81425821>] cpuhp_up_callbacks+0x81/0x2a0 kernel/cpu.c:493
-[<ffffffff81427bf3>] _cpu_up+0x1e3/0x2a0 kernel/cpu.c:1057
-[<ffffffff81427d23>] do_cpu_up+0x73/0xa0 kernel/cpu.c:1087
-[<ffffffff81427d68>] cpu_up+0x18/0x20 kernel/cpu.c:1095
-[<ffffffff854ede84>] smp_init+0xe9/0xee kernel/smp.c:564
-[<ffffffff85482f81>] kernel_init_freeable+0x439/0x690 init/main.c:1010
-[<ffffffff84357083>] kernel_init+0x13/0x180 init/main.c:941
-[<ffffffff84377baa>] ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:433
+When @node_reclaim_node isn't 0, the page allocator tries to reclaim pages
+if the amount of free memory in the zones are below the low watermark.  On
+Power platform, none of NUMA nodes are scanned for page reclaim because no
+nodes match the condition in zone_allows_reclaim().  On Power platform,
+RECLAIM_DISTANCE is set to 10 which is the distance of Node-A to Node-A. 
+So the preferred node even won't be scanned for page reclaim.
 
-cpu_hotplug_begin
-  cpu_hotplug.lock
-pcpu_alloc
-  pcpu_alloc_mutex
+   __alloc_pages_nodemask()
+   get_page_from_freelist()
+      zone_allows_reclaim()
 
-[<ffffffff81423012>] get_online_cpus+0x62/0x90 kernel/cpu.c:248
-[<ffffffff8185fcf8>] drain_all_pages+0xf8/0x710 mm/page_alloc.c:2385
-[<ffffffff81865e5d>] __alloc_pages_direct_reclaim mm/page_alloc.c:3440 [inline]
-[<ffffffff81865e5d>] __alloc_pages_slowpath+0x8fd/0x2370 mm/page_alloc.c:3778
-[<ffffffff818681c5>] __alloc_pages_nodemask+0x8f5/0xc60 mm/page_alloc.c:3980
-[<ffffffff818ed0c1>] __alloc_pages include/linux/gfp.h:426 [inline]
-[<ffffffff818ed0c1>] __alloc_pages_node include/linux/gfp.h:439 [inline]
-[<ffffffff818ed0c1>] alloc_pages_node include/linux/gfp.h:453 [inline]
-[<ffffffff818ed0c1>] pcpu_alloc_pages mm/percpu-vm.c:93 [inline]
-[<ffffffff818ed0c1>] pcpu_populate_chunk+0x1e1/0x900 mm/percpu-vm.c:282
-[<ffffffff818f0a11>] pcpu_alloc+0xe01/0x1280 mm/percpu.c:998
-[<ffffffff818f0eb7>] __alloc_percpu_gfp+0x27/0x30 mm/percpu.c:1062
-[<ffffffff817d25b2>] bpf_array_alloc_percpu kernel/bpf/arraymap.c:34 [inline]
-[<ffffffff817d25b2>] array_map_alloc+0x532/0x710 kernel/bpf/arraymap.c:99
-[<ffffffff817ba034>] find_and_alloc_map kernel/bpf/syscall.c:34 [inline]
-[<ffffffff817ba034>] map_create kernel/bpf/syscall.c:188 [inline]
-[<ffffffff817ba034>] SYSC_bpf kernel/bpf/syscall.c:870 [inline]
-[<ffffffff817ba034>] SyS_bpf+0xd64/0x2500 kernel/bpf/syscall.c:827
-[<ffffffff84377941>] entry_SYSCALL_64_fastpath+0x1f/0xc2
+Anton proposed the test code as below:
 
-pcpu_alloc
-  pcpu_alloc_mutex
-drain_all_pages
-  get_online_cpus
-    cpu_hotplug.lock
+   # cat alloc.c
+      :
+   int main(int argc, char *argv[])
+   {
+	void *p;
+	unsigned long size;
+	unsigned long start, end;
 
-[<ffffffff81427876>] cpu_hotplug_begin+0x206/0x2e0 kernel/cpu.c:304
-[<ffffffff81427ada>] _cpu_up+0xca/0x2a0 kernel/cpu.c:1011
-[<ffffffff81427d23>] do_cpu_up+0x73/0xa0 kernel/cpu.c:1087
-[<ffffffff81427d68>] cpu_up+0x18/0x20 kernel/cpu.c:1095
-[<ffffffff854ede84>] smp_init+0xe9/0xee kernel/smp.c:564
-[<ffffffff85482f81>] kernel_init_freeable+0x439/0x690 init/main.c:1010
-[<ffffffff84357083>] kernel_init+0x13/0x180 init/main.c:941
-[<ffffffff84377baa>] ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:433
+	start = time(NULL);
+	size = strtoul(argv[1], NULL, 0);
+	printf("To allocate %ldGB memory\n", size);
 
-cpu_hotplug_begin
-  cpu_hotplug.lock
+	size <<= 30;
+	p = malloc(size);
+	assert(p);
+	memset(p, 0, size);
 
-Pulling cpu hotplug locks inside the page allocator is just too
-dangerous. Let's remove the dependency by dropping get_online_cpus()
-from drain_all_pages. This is not so simple though because now we do not
-have a protection against cpu hotplug which means 2 things:
-	- the work item might be executed on a different cpu in worker
-	  from unbound pool so it doesn't run on pinned on the cpu
-	- we have to make sure that we do not race with page_alloc_cpu_dead
-	  calling drain_pages_zone
+	end = time(NULL);
+	printf("Used time: %ld seconds\n", end - start);
+	sleep(3600);
+	return 0;
+   }
 
-Disabling preemption in drain_local_pages_wq will solve the first
-problem drain_local_pages will determine its local CPU from the WQ
-context which will be stable after that point, page_alloc_cpu_dead
-is pinned to the CPU already. The later condition is achieved
-by disabling IRQs in drain_pages_zone.
+The system I use for testing has two NUMA nodes.  Both have 128GB memory. 
+In below scnario, the page caches on node#0 should be reclaimed when it
+encounters pressure to accommodate request of allocation.
 
-Fixes: mm, page_alloc: drain per-cpu pages from workqueue context
-Link: http://lkml.kernel.org/r/20170207201950.20482-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+   # echo 2 > /proc/sys/vm/zone_reclaim_mode; \
+     sync; \
+     echo 3 > /proc/sys/vm/drop_caches; \
+   # taskset -c 0 cat file.32G > /dev/null; \
+     grep FilePages /sys/devices/system/node/node0/meminfo
+     Node 0 FilePages:       33619712 kB
+   # taskset -c 0 ./alloc 128
+   # grep FilePages /sys/devices/system/node/node0/meminfo
+     Node 0 FilePages:       33619840 kB
+   # grep MemFree /sys/devices/system/node/node0/meminfo
+     Node 0 MemFree:          186816 kB
+
+With the patch applied, the pagecache on node-0 is reclaimed when
+its free memory is running out. It's the expected behaviour.
+
+   # echo 2 > /proc/sys/vm/zone_reclaim_mode; \
+     sync; \
+     echo 3 > /proc/sys/vm/drop_caches
+   # taskset -c 0 cat file.32G > /dev/null; \
+     grep FilePages /sys/devices/system/node/node0/meminfo
+     Node 0 FilePages:       33605568 kB
+   # taskset -c 0 ./alloc 128
+   # grep FilePages /sys/devices/system/node/node0/meminfo
+     Node 0 FilePages:        1379520 kB
+   # grep MemFree /sys/devices/system/node/node0/meminfo
+     Node 0 MemFree:           317120 kB
+
+Fixes: 5f7a75acdb24 ("mm: page_alloc: do not cache reclaim distances")
+Link: http://lkml.kernel.org/r/1486532455-29613-1-git-send-email-gwshan@linux.vnet.ibm.com
+Signed-off-by: Gavin Shan <gwshan@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: <stable@vger.kernel.org>	[3.16+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-nodes-for-reclaim-in-fast-path mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-nodes-for-reclaim-in-fast-path
 +++ a/mm/page_alloc.c
-@@ -2341,7 +2341,16 @@ void drain_local_pages(struct zone *zone
- 
- static void drain_local_pages_wq(struct work_struct *work)
+@@ -2944,7 +2944,7 @@ bool zone_watermark_ok_safe(struct zone
+ #ifdef CONFIG_NUMA
+ static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
  {
-+	/*
-+	 * drain_all_pages doesn't use proper cpu hotplug protection so
-+	 * we can race with cpu offline when the WQ can move this from
-+	 * a cpu pinned worker to an unbound one. We can operate on a different
-+	 * cpu which is allright but we also have to make sure to not move to
-+	 * a different one.
-+	 */
-+	preempt_disable();
- 	drain_local_pages(NULL);
-+	preempt_enable();
+-	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <
++	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <=
+ 				RECLAIM_DISTANCE;
  }
- 
- /*
-@@ -2366,11 +2375,6 @@ void drain_all_pages(struct zone *zone)
- 	if (current->flags & PF_WQ_WORKER)
- 		return;
- 
--	/*
--	 * As this can be called from reclaim context, do not reenter reclaim.
--	 * An allocation failure can be handled, it's simply slower
--	 */
--	get_online_cpus();
- 	works = alloc_percpu_gfp(struct work_struct, GFP_ATOMIC);
- 
- 	/*
-@@ -2421,7 +2425,6 @@ void drain_all_pages(struct zone *zone)
- 			flush_work(&work);
- 		}
- 	}
--	put_online_cpus();
- }
- 
- #ifdef CONFIG_HIBERNATION
+ #else	/* CONFIG_NUMA */
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from gwshan@linux.vnet.ibm.com are
 
-mm-throttle-show_mem-from-warn_alloc.patch
-mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
-oom-trace-add-oom-detection-tracepoints.patch
-oom-trace-add-compaction-retry-tracepoint.patch
-mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
-mm-vmscan-add-active-list-aging-tracepoint.patch
-mm-vmscan-add-active-list-aging-tracepoint-update.patch
-mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
-mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
-mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
-mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
-mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
-trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
-mm-vmscan-do-not-count-freed-pages-as-pgdeactivate.patch
-mm-vmscan-cleanup-lru-size-claculations.patch
-mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
-revert-mm-bail-out-in-shrink_inactive_list.patch
-mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
-mm-page_alloc-warn_alloc-print-nodemask.patch
-arch-mm-remove-arch-specific-show_mem.patch
-lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask.patch
-mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath.patch
-mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically.patch
-mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer.patch
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
+mm-page_alloc-fix-nodes-for-reclaim-in-fast-path.patch
 
