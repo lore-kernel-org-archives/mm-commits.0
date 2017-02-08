@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-update-lz4-compressor-module-fix-fix-fix.patch added to -mm tree
-Date: Wed, 08 Feb 2017 14:09:50 -0800
-Message-ID: <589b972e./MKdtWgi77KTJKb3%akpm@linux-foundation.org>
+Subject: + mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch added to -mm tree
+Date: Wed, 08 Feb 2017 14:21:50 -0800
+Message-ID: <589b99fe.f+CmcE2tChvXPcmo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54934 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751346AbdBHWK1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 17:10:27 -0500
+        with ESMTP id S1751670AbdBHWWG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 17:22:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, 4sschmid@informatik.uni-hamburg.de, arnd@arndb.de, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, aquini@redhat.com, gi-oh.kim@profitbricks.com, guohanjun@huawei.com, jasowang@redhat.com, koct9i@gmail.com, mhocko@kernel.org, minchan@kernel.org, mst@redhat.com, qiuxishi@huawei.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-update-lz4-compressor-module-fix-fix-fix
+     Subject: mm balloon: umount balloon_mnt when removing vb device
 has been added to the -mm tree.  Its filename is
-     lib-update-lz4-compressor-module-fix-fix-fix.patch
+     mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-update-lz4-compressor-module-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-update-lz4-compressor-module-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,92 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-update-lz4-compressor-module-fix-fix-fix
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm balloon: umount balloon_mnt when removing vb device
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
+With CONFIG_BALLOON_COMPACTION=y the kernel will mount balloon_mnt for
+balloon page migration when we probe a virtio_balloon device.  However we
+do not unmount it when removing the device.  Fix this.
+
+Fixes: b1123ea6d3b3 ("mm: balloon: use general non-lru movable page feature")
+Link: http://lkml.kernel.org/r/1486531318-35189-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lz4/lz4_decompress.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/virtio/virtio_balloon.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN lib/lz4/lz4_decompress.c~lib-update-lz4-compressor-module-fix-fix-fix lib/lz4/lz4_decompress.c
---- a/lib/lz4/lz4_decompress.c~lib-update-lz4-compressor-module-fix-fix-fix
-+++ a/lib/lz4/lz4_decompress.c
-@@ -475,17 +475,6 @@ int LZ4_decompress_fast_usingDict(const
- 		originalSize, 0, dictStart, dictSize);
- }
+diff -puN drivers/virtio/virtio_balloon.c~mm-balloon-umount-balloon_mnt-when-remove-vb-device drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~mm-balloon-umount-balloon_mnt-when-remove-vb-device
++++ a/drivers/virtio/virtio_balloon.c
+@@ -615,8 +615,12 @@ static void virtballoon_remove(struct vi
+ 	cancel_work_sync(&vb->update_balloon_stats_work);
  
--#ifndef STATIC
--EXPORT_SYMBOL(LZ4_decompress_safe);
--EXPORT_SYMBOL(LZ4_decompress_safe_partial);
--EXPORT_SYMBOL(LZ4_decompress_fast);
--EXPORT_SYMBOL(LZ4_setStreamDecode);
--EXPORT_SYMBOL(LZ4_decompress_safe_continue);
--EXPORT_SYMBOL(LZ4_decompress_fast_continue);
--EXPORT_SYMBOL(LZ4_decompress_safe_usingDict);
--EXPORT_SYMBOL(LZ4_decompress_fast_usingDict);
--#endif
--
- /*-******************************
-  *	For backwards compatibility
-  ********************************/
-@@ -507,7 +496,6 @@ int lz4_decompress_unknownoutputsize(con
- 	else
- 		return -1;
- }
--EXPORT_SYMBOL(lz4_decompress_unknownoutputsize);
- 
- int lz4_decompress(const unsigned char *src, size_t *src_len,
- 	unsigned char *dest, size_t actual_dest_len) {
-@@ -526,7 +514,19 @@ int lz4_decompress(const unsigned char *
- 	else
- 		return -1;
- }
+ 	remove_common(vb);
++#ifdef CONFIG_BALLOON_COMPACTION
+ 	if (vb->vb_dev_info.inode)
+ 		iput(vb->vb_dev_info.inode);
 +
-+#ifndef STATIC
-+EXPORT_SYMBOL(LZ4_decompress_safe);
-+EXPORT_SYMBOL(LZ4_decompress_safe_partial);
-+EXPORT_SYMBOL(LZ4_decompress_fast);
-+EXPORT_SYMBOL(LZ4_setStreamDecode);
-+EXPORT_SYMBOL(LZ4_decompress_safe_continue);
-+EXPORT_SYMBOL(LZ4_decompress_fast_continue);
-+EXPORT_SYMBOL(LZ4_decompress_safe_usingDict);
-+EXPORT_SYMBOL(LZ4_decompress_fast_usingDict);
-+EXPORT_SYMBOL(lz4_decompress_unknownoutputsize);
- EXPORT_SYMBOL(lz4_decompress);
- 
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_DESCRIPTION("LZ4 decompressor");
++	kern_unmount(balloon_mnt);
 +#endif
+ 	kfree(vb);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
-slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
-lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
-mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
-mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
-mm-track-active-portions-of-a-section-at-boot-fix.patch
-mm-memory_hotplugc-unexport-__remove_pages.patch
-z3fold-add-kref-refcounting-checkpatch-fixes.patch
-mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
-mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-lib-update-lz4-compressor-module-fix-fix.patch
-lib-update-lz4-compressor-module-fix-fix-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-migration-make-isolate_movable_page-return-int-type.patch
+mm-migration-make-isolate_movable_page-return-int-type-v6.patch
+mm-migration-make-isolate_movable_page-always-defined.patch
+hwpoison-soft-offlining-for-non-lru-movable-page.patch
+mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
 
