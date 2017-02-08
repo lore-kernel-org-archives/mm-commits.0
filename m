@@ -1,96 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/4] cpumask: use nr_cpumask_bits for parsing functions
-Date: Wed, 08 Feb 2017 14:30:56 -0800
-Message-ID: <589b9c20.YP3d+YM0h5yoxx+M%akpm__18791.9411379427$1486593078$gmane$org@linux-foundation.org>
+Subject: [patch 4/4] mm/slub.c: fix random_seq offset destruction
+Date: Wed, 08 Feb 2017 14:30:59 -0800
+Message-ID: <589b9c23.fZ9kkQx7erWrcNEk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55454 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752245AbdBHWa5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 17:30:57 -0500
+        with ESMTP id S1752264AbdBHWbF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 17:31:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, ben.hutchings@codethink.co.uk, martin.steigerwald@teamix.de, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sean@erifax.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, thgarnie@google.com, userwithuid@gmail.com
 
-From: Tejun Heo <tj@kernel.org>
-Subject: cpumask: use nr_cpumask_bits for parsing functions
+From: Sean Rees <sean@erifax.org>
+Subject: mm/slub.c: fix random_seq offset destruction
 
-513e3d2d11c9 ("cpumask: always use nr_cpu_ids in formatting and parsing
-functions") converted both cpumask printing and parsing functions to use
-nr_cpu_ids instead of nr_cpumask_bits.  While this was okay for the
-printing functions as it just picked one of the two output formats that we
-were alternating between depending on a kernel config, doing the same for
-parsing wasn't okay.
+210e7a43fa90 ("mm: SLUB freelist randomization") broke USB hub
+initialisation as described in
+https://bugzilla.kernel.org/show_bug.cgi?id=177551.
 
-nr_cpumask_bits can be either nr_cpu_ids or NR_CPUS.  We can always use
-nr_cpu_ids but that is a variable while NR_CPUS is a constant, so it can
-be more efficient to use NR_CPUS when we can get away with it.  Converting
-the printing functions to nr_cpu_ids makes sense because it affects how
-the masks get presented to userspace and doesn't break anything; however,
-using nr_cpu_ids for parsing functions can incorrectly leave the higher
-bits uninitialized while reading in these masks from userland.  As all
-testing and comparison functions use nr_cpumask_bits which can be larger
-than nr_cpu_ids, the parsed cpumasks can erroneously yield false negative
-results.
+Bail out early from init_cache_random_seq if s->random_seq is already
+initialised.  This prevents destroying the previously computed random_seq
+offsets later in the function.
 
-This made the taskstats interface incorrectly return -EINVAL even when the
-inputs were correct.
+If the offsets are destroyed, then shuffle_freelist will truncate
+page->freelist to just the first object (orphaning the rest).
 
-Fix it by restoring the parse functions to use nr_cpumask_bits instead of
-nr_cpu_ids.
-
-Link: http://lkml.kernel.org/r/20170206182442.GB31078@htj.duckdns.org
-Fixes: 513e3d2d11c9 ("cpumask: always use nr_cpu_ids in formatting and parsing functions")
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Martin Steigerwald <martin.steigerwald@teamix.de>
-Debugged-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
-Cc: <stable@vger.kernel.org>	[4.0+]
+Fixes: 210e7a43fa90 ("mm: SLUB freelist randomization")
+Link: http://lkml.kernel.org/r/20170207140707.20824-1-sean@erifax.org
+Signed-off-by: Sean Rees <sean@erifax.org>
+Reported-by: <userwithuid@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/slub.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/cpumask.h~cpumask-use-nr_cpumask_bits-for-parsing-functions include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpumask-use-nr_cpumask_bits-for-parsing-functions
-+++ a/include/linux/cpumask.h
-@@ -560,7 +560,7 @@ static inline void cpumask_copy(struct c
- static inline int cpumask_parse_user(const char __user *buf, int len,
- 				     struct cpumask *dstp)
- {
--	return bitmap_parse_user(buf, len, cpumask_bits(dstp), nr_cpu_ids);
-+	return bitmap_parse_user(buf, len, cpumask_bits(dstp), nr_cpumask_bits);
- }
+diff -puN mm/slub.c~mm-slub-fix-random_seq-offset-destruction mm/slub.c
+--- a/mm/slub.c~mm-slub-fix-random_seq-offset-destruction
++++ a/mm/slub.c
+@@ -1422,6 +1422,10 @@ static int init_cache_random_seq(struct
+ 	int err;
+ 	unsigned long i, count = oo_objects(s->oo);
  
- /**
-@@ -575,7 +575,7 @@ static inline int cpumask_parselist_user
- 				     struct cpumask *dstp)
- {
- 	return bitmap_parselist_user(buf, len, cpumask_bits(dstp),
--				     nr_cpu_ids);
-+				     nr_cpumask_bits);
- }
- 
- /**
-@@ -590,7 +590,7 @@ static inline int cpumask_parse(const ch
- 	char *nl = strchr(buf, '\n');
- 	unsigned int len = nl ? (unsigned int)(nl - buf) : strlen(buf);
- 
--	return bitmap_parse(buf, len, cpumask_bits(dstp), nr_cpu_ids);
-+	return bitmap_parse(buf, len, cpumask_bits(dstp), nr_cpumask_bits);
- }
- 
- /**
-@@ -602,7 +602,7 @@ static inline int cpumask_parse(const ch
-  */
- static inline int cpulist_parse(const char *buf, struct cpumask *dstp)
- {
--	return bitmap_parselist(buf, cpumask_bits(dstp), nr_cpu_ids);
-+	return bitmap_parselist(buf, cpumask_bits(dstp), nr_cpumask_bits);
- }
- 
- /**
++	/* Bailout if already initialised */
++	if (s->random_seq)
++		return 0;
++
+ 	err = cache_random_seq_create(s, count, GFP_KERNEL);
+ 	if (err) {
+ 		pr_err("SLUB: Unable to initialize free list for %s\n",
 _
