@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch added to -mm tree
-Date: Wed, 08 Feb 2017 13:21:47 -0800
-Message-ID: <589b8beb.tXmSYY8eZkoLtaAX%akpm@linux-foundation.org>
+ mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix.patch
+ added to -mm tree
+Date: Wed, 08 Feb 2017 13:23:30 -0800
+Message-ID: <589b8c52.3H0tOjUYIgBzQ+Xw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49026 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751338AbdBHVVs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 16:21:48 -0500
+        with ESMTP id S1751011AbdBHVXb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 16:23:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@kernel.org, broonie@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, mhocko@kernel.org, mingo@kernel.org, peterz@infradead.org, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
+     Subject: mm, page_alloc: only use per-cpu allocator for irq-safe requests -fix
 has been added to the -mm tree.  Its filename is
-     kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
+     mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +40,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: only use per-cpu allocator for irq-safe requests -fix
 
-On Wed, Feb 8, 2017 at 9:22 AM, Mark Brown <broonie@kernel.org> wrote:
-> On Wed, Feb 08, 2017 at 10:54:16AM +0000, Build bot for Mark Brown wrote:
->
-> Today's -next fails to build an arm64 allmodconfig due to:
->
->>       arm64-allmodconfig
->> ../arch/arm64/kernel/armv8_deprecated.c:359:31: error: expected '=',
->> ',', ';',
-> +'asm' or '__attribute__' before 'aarch32_check_condition'
->> ../arch/arm64/kernel/armv8_deprecated.c:386:10: error: implicit
->> declaration of
-> +function 'aarch32_check_condition'
-> [-Werror=implicit-function-declaration]
->
-> triggered by 1930faf201e83f6 (kprobes: move kprobe declarations to
-> asm-generic/kprobes.h) according to a bisect, though I didn't
-> immediately see how.
+fix a dumb mistake and stick to preempt_enable
 
-This fixes that, will send patch.
-
-Link: http://lkml.kernel.org/r/CAB=NE6X1WMByuARS4mZ1g9+W=LuVBnMDnh_5zyN0CLADaVh=Jw@mail.gmail.com
-Cc: Mark Brown <broonie@kernel.org>
+Link: http://lkml.kernel.org/r/20170208143128.25ahymqlyspjcixu@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/armv8_deprecated.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix arch/arm64/kernel/armv8_deprecated.c
---- a/arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
-+++ a/arch/arm64/kernel/armv8_deprecated.c
-@@ -19,6 +19,7 @@
- #include <asm/sysreg.h>
- #include <asm/system_misc.h>
- #include <asm/traps.h>
-+#include <asm/kprobes.h>
- #include <linux/uaccess.h>
- #include <asm/cpufeature.h>
+diff -puN mm/page_alloc.c~mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix
++++ a/mm/page_alloc.c
+@@ -2517,7 +2517,7 @@ void free_hot_cold_page(struct page *pag
+ 	}
+ 
+ out:
+-	preempt_enable_no_resched();
++	preempt_enable();
+ }
+ 
+ /*
+@@ -2683,7 +2683,7 @@ static struct page *rmqueue_pcplist(stru
+ 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+ 		zone_statistics(preferred_zone, zone);
+ 	}
+-	preempt_enable_no_resched();
++	preempt_enable();
+ 	return page;
+ }
  
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-ucount-mark-user_header-with-kmemleak_ignore.patch
-kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
-kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
+mm-page_alloc-split-buffered_rmqueue.patch
+mm-page_alloc-split-buffered_rmqueue-fix.patch
+mm-page_alloc-split-alloc_pages_nodemask.patch
+mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
+mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix.patch
+mm-page_alloc-use-static-global-work_struct-for-draining-per-cpu-pages.patch
 
