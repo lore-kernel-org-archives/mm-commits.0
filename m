@@ -1,80 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/4] mm: avoid returning VM_FAULT_RETRY from
- ->page_mkwrite handlers
-Date: Wed, 08 Feb 2017 14:30:53 -0800
-Message-ID: <589b9c1d.aztBQGfJJwg3K6hC%akpm@linux-foundation.org>
+Subject: [patch 3/4] cpumask: use nr_cpumask_bits for parsing functions
+Date: Wed, 08 Feb 2017 14:30:56 -0800
+Message-ID: <589b9c20.YP3d+YM0h5yoxx+M%akpm__18791.9411379427$1486593078$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55438 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752180AbdBHWay (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 17:30:54 -0500
+        with ESMTP id S1752245AbdBHWa5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 17:30:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, jinshan.xiong@intel.com, viro@ZenIV.linux.org.uk, willy@infradead.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, ben.hutchings@codethink.co.uk, martin.steigerwald@teamix.de, stable@vger.kernel.org
 
-From: Jan Kara <jack@suse.cz>
-Subject: mm: avoid returning VM_FAULT_RETRY from ->page_mkwrite handlers
+From: Tejun Heo <tj@kernel.org>
+Subject: cpumask: use nr_cpumask_bits for parsing functions
 
-Some ->page_mkwrite handlers may return VM_FAULT_RETRY as its return code
-(GFS2 or Lustre can definitely do this).  However VM_FAULT_RETRY from
-->page_mkwrite is completely unhandled by the mm code and results in
-locking and writeably mapping the page which definitely is not what the
-caller wanted.  Fix Lustre and block_page_mkwrite_ret() used by other
-filesystems (notably GFS2) to return VM_FAULT_NOPAGE instead which results
-in bailing out from the fault code, the CPU then retries the access, and
-we fault again effectively doing what the handler wanted.
+513e3d2d11c9 ("cpumask: always use nr_cpu_ids in formatting and parsing
+functions") converted both cpumask printing and parsing functions to use
+nr_cpu_ids instead of nr_cpumask_bits.  While this was okay for the
+printing functions as it just picked one of the two output formats that we
+were alternating between depending on a kernel config, doing the same for
+parsing wasn't okay.
 
-Link: http://lkml.kernel.org/r/20170203150729.15863-1-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
-Reviewed-by: Jinshan Xiong <jinshan.xiong@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+nr_cpumask_bits can be either nr_cpu_ids or NR_CPUS.  We can always use
+nr_cpu_ids but that is a variable while NR_CPUS is a constant, so it can
+be more efficient to use NR_CPUS when we can get away with it.  Converting
+the printing functions to nr_cpu_ids makes sense because it affects how
+the masks get presented to userspace and doesn't break anything; however,
+using nr_cpu_ids for parsing functions can incorrectly leave the higher
+bits uninitialized while reading in these masks from userland.  As all
+testing and comparison functions use nr_cpumask_bits which can be larger
+than nr_cpu_ids, the parsed cpumasks can erroneously yield false negative
+results.
+
+This made the taskstats interface incorrectly return -EINVAL even when the
+inputs were correct.
+
+Fix it by restoring the parse functions to use nr_cpumask_bits instead of
+nr_cpu_ids.
+
+Link: http://lkml.kernel.org/r/20170206182442.GB31078@htj.duckdns.org
+Fixes: 513e3d2d11c9 ("cpumask: always use nr_cpu_ids in formatting and parsing functions")
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Martin Steigerwald <martin.steigerwald@teamix.de>
+Debugged-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/llite/llite_mmap.c |    4 +---
- include/linux/buffer_head.h                      |    4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ include/linux/cpumask.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers drivers/staging/lustre/lustre/llite/llite_mmap.c
---- a/drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
-+++ a/drivers/staging/lustre/lustre/llite/llite_mmap.c
-@@ -390,15 +390,13 @@ static int ll_page_mkwrite(struct vm_are
- 		result = VM_FAULT_LOCKED;
- 		break;
- 	case -ENODATA:
-+	case -EAGAIN:
- 	case -EFAULT:
- 		result = VM_FAULT_NOPAGE;
- 		break;
- 	case -ENOMEM:
- 		result = VM_FAULT_OOM;
- 		break;
--	case -EAGAIN:
--		result = VM_FAULT_RETRY;
--		break;
- 	default:
- 		result = VM_FAULT_SIGBUS;
- 		break;
-diff -puN include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
-+++ a/include/linux/buffer_head.h
-@@ -243,12 +243,10 @@ static inline int block_page_mkwrite_ret
+diff -puN include/linux/cpumask.h~cpumask-use-nr_cpumask_bits-for-parsing-functions include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-use-nr_cpumask_bits-for-parsing-functions
++++ a/include/linux/cpumask.h
+@@ -560,7 +560,7 @@ static inline void cpumask_copy(struct c
+ static inline int cpumask_parse_user(const char __user *buf, int len,
+ 				     struct cpumask *dstp)
  {
- 	if (err == 0)
- 		return VM_FAULT_LOCKED;
--	if (err == -EFAULT)
-+	if (err == -EFAULT || err == -EAGAIN)
- 		return VM_FAULT_NOPAGE;
- 	if (err == -ENOMEM)
- 		return VM_FAULT_OOM;
--	if (err == -EAGAIN)
--		return VM_FAULT_RETRY;
- 	/* -ENOSPC, -EDQUOT, -EIO ... */
- 	return VM_FAULT_SIGBUS;
+-	return bitmap_parse_user(buf, len, cpumask_bits(dstp), nr_cpu_ids);
++	return bitmap_parse_user(buf, len, cpumask_bits(dstp), nr_cpumask_bits);
  }
+ 
+ /**
+@@ -575,7 +575,7 @@ static inline int cpumask_parselist_user
+ 				     struct cpumask *dstp)
+ {
+ 	return bitmap_parselist_user(buf, len, cpumask_bits(dstp),
+-				     nr_cpu_ids);
++				     nr_cpumask_bits);
+ }
+ 
+ /**
+@@ -590,7 +590,7 @@ static inline int cpumask_parse(const ch
+ 	char *nl = strchr(buf, '\n');
+ 	unsigned int len = nl ? (unsigned int)(nl - buf) : strlen(buf);
+ 
+-	return bitmap_parse(buf, len, cpumask_bits(dstp), nr_cpu_ids);
++	return bitmap_parse(buf, len, cpumask_bits(dstp), nr_cpumask_bits);
+ }
+ 
+ /**
+@@ -602,7 +602,7 @@ static inline int cpumask_parse(const ch
+  */
+ static inline int cpulist_parse(const char *buf, struct cpumask *dstp)
+ {
+-	return bitmap_parselist(buf, cpumask_bits(dstp), nr_cpu_ids);
++	return bitmap_parselist(buf, cpumask_bits(dstp), nr_cpumask_bits);
+ }
+ 
+ /**
 _
