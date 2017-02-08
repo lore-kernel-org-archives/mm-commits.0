@@ -1,77 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 08 Feb 2017 12:20:49 -0800
-Message-ID: <589b7da1.bwtZMn3ECMigwf0F%akpm@linux-foundation.org>
+Subject: +
+ kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch added to -mm tree
+Date: Wed, 08 Feb 2017 13:21:47 -0800
+Message-ID: <589b8beb.tXmSYY8eZkoLtaAX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49000 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751307AbdBHUa7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 15:30:59 -0500
+        with ESMTP id S1751338AbdBHVVs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 16:21:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mcgrof@kernel.org, broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
+has been added to the -mm tree.  Its filename is
+     kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
 
+On Wed, Feb 8, 2017 at 9:22 AM, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, Feb 08, 2017 at 10:54:16AM +0000, Build bot for Mark Brown wrote:
+>
+> Today's -next fails to build an arm64 allmodconfig due to:
+>
+>>       arm64-allmodconfig
+>> ../arch/arm64/kernel/armv8_deprecated.c:359:31: error: expected '=',
+>> ',', ';',
+> +'asm' or '__attribute__' before 'aarch32_check_condition'
+>> ../arch/arm64/kernel/armv8_deprecated.c:386:10: error: implicit
+>> declaration of
+> +function 'aarch32_check_condition'
+> [-Werror=implicit-function-declaration]
+>
+> triggered by 1930faf201e83f6 (kprobes: move kprobe declarations to
+> asm-generic/kprobes.h) according to a bisect, though I didn't
+> immediately see how.
+
+This fixes that, will send patch.
+
+Link: http://lkml.kernel.org/r/CAB=NE6X1WMByuARS4mZ1g9+W=LuVBnMDnh_5zyN0CLADaVh=Jw@mail.gmail.com
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/chelsio/chcr_core.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/arm64/kernel/armv8_deprecated.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/crypto/chelsio/chcr_core.c~linux-next-git-rejects drivers/crypto/chelsio/chcr_core.c
---- a/drivers/crypto/chelsio/chcr_core.c~linux-next-git-rejects
-+++ a/drivers/crypto/chelsio/chcr_core.c
-@@ -61,11 +61,7 @@ int assign_chcr_device(struct chcr_dev *
- 	 */
- 	mutex_lock(&dev_mutex); /* TODO ? */
- 	list_for_each_entry(u_ctx, &uld_ctx_list, entry)
--<<<<<<< HEAD
--		if (u_ctx && u_ctx->dev) {
--=======
- 		if (u_ctx->dev) {
-->>>>>>> linux-next/akpm-base
- 			*dev = u_ctx->dev;
- 			ret = 0;
- 			break;
+diff -puN arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix arch/arm64/kernel/armv8_deprecated.c
+--- a/arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
++++ a/arch/arm64/kernel/armv8_deprecated.c
+@@ -19,6 +19,7 @@
+ #include <asm/sysreg.h>
+ #include <asm/system_misc.h>
+ #include <asm/traps.h>
++#include <asm/kprobes.h>
+ #include <linux/uaccess.h>
+ #include <asm/cpufeature.h>
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
-slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
-lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
-mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
-mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
-mm-track-active-portions-of-a-section-at-boot-fix.patch
-mm-memory_hotplugc-unexport-__remove_pages.patch
-z3fold-add-kref-refcounting-checkpatch-fixes.patch
-mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
-mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+ucount-mark-user_header-with-kmemleak_ignore.patch
+kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
+kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
 
