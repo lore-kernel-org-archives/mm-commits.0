@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch added to -mm tree
-Date: Wed, 08 Feb 2017 14:18:15 -0800
-Message-ID: <589b9927.r9juNv0Ugu5AXPM5%akpm@linux-foundation.org>
+Subject: + mm-remove-shmem_mapping-shmem_zero_setup-duplicates.patch added to -mm tree
+Date: Wed, 08 Feb 2017 17:22:07 -0800
+Message-ID: <589bc43f.ogYP/5l3YzGC65Rg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45172 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751563AbdBHW41 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 17:56:27 -0500
+        with ESMTP id S1752497AbdBIBbC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 20:31:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.jiang@intel.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, nilesh.choudhury@oracle.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: hughd@google.com, hannes@cmpxchg.org, monstr@monstr.eu, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix get_user_pages() vs device-dax pud mappings
+     Subject: mm: remove shmem_mapping() shmem_zero_setup() duplicates
 has been added to the -mm tree.  Its filename is
-     mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
+     mm-remove-shmem_mapping-shmem_zero_setup-duplicates.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-shmem_mapping-shmem_zero_setup-duplicates.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-shmem_mapping-shmem_zero_setup-duplicates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,121 +38,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix get_user_pages() vs device-dax pud mappings
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: remove shmem_mapping() shmem_zero_setup() duplicates
 
-A new unit test for the device-dax 1GB enabling currently fails with this
-warning before hanging the test thread:
+Remove the prototypes for shmem_mapping() and shmem_zero_setup() from
+linux/mm.h, since they are already provided in linux/shmem_fs.h.  But
+shmem_fs.h must then provide the inline stub for shmem_mapping() when
+CONFIG_SHMEM is not set, and a few more cfiles now need to #include it.
 
- WARNING: CPU: 0 PID: 21 at lib/percpu-refcount.c:155 percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
- percpu ref (dax_pmem_percpu_release [dax_pmem]) <= 0 (0) after switching to atomic
- [..]
- CPU: 0 PID: 21 Comm: rcuos/1 Tainted: G           O    4.10.0-rc7-next-20170207+ #944
- [..]
- Call Trace:
-  dump_stack+0x86/0xc3
-  __warn+0xcb/0xf0
-  warn_slowpath_fmt+0x5f/0x80
-  ? rcu_nocb_kthread+0x27a/0x510
-  ? dax_pmem_percpu_exit+0x50/0x50 [dax_pmem]
-  percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
-  ? percpu_ref_exit+0x60/0x60
-  rcu_nocb_kthread+0x339/0x510
-  ? rcu_nocb_kthread+0x27a/0x510
-  kthread+0x101/0x140
-
-The get_user_pages() path needs to arrange for references to be taken
-against the dev_pagemap instance backing the pud mapping. Refactor the
-existing __gup_device_huge_pmd() to also account for the pud case.
-
-Link: http://lkml.kernel.org/r/148653181153.38226.9605457830505509385.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1702081658250.1549@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/gup.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ arch/microblaze/pci/pci-common.c |    1 +
+ arch/powerpc/kernel/pci-common.c |    1 +
+ include/linux/mm.h               |   10 ----------
+ include/linux/shmem_fs.h         |    7 +++++++
+ mm/madvise.c                     |    1 +
+ mm/memcontrol.c                  |    1 +
+ mm/mincore.c                     |    1 +
+ mm/truncate.c                    |    1 +
+ mm/workingset.c                  |    1 +
+ 9 files changed, 14 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/mm/gup.c~mm-fix-get_user_pages-vs-device-dax-pud-mappings arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~mm-fix-get_user_pages-vs-device-dax-pud-mappings
-+++ a/arch/x86/mm/gup.c
-@@ -154,14 +154,12 @@ static inline void get_head_page_multipl
- 	SetPageReferenced(page);
- }
+diff -puN arch/microblaze/pci/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates arch/microblaze/pci/pci-common.c
+--- a/arch/microblaze/pci/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/arch/microblaze/pci/pci-common.c
+@@ -22,6 +22,7 @@
+ #include <linux/init.h>
+ #include <linux/bootmem.h>
+ #include <linux/mm.h>
++#include <linux/shmem_fs.h>
+ #include <linux/list.h>
+ #include <linux/syscalls.h>
+ #include <linux/irq.h>
+diff -puN arch/powerpc/kernel/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates arch/powerpc/kernel/pci-common.c
+--- a/arch/powerpc/kernel/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/arch/powerpc/kernel/pci-common.c
+@@ -25,6 +25,7 @@
+ #include <linux/of_address.h>
+ #include <linux/of_pci.h>
+ #include <linux/mm.h>
++#include <linux/shmem_fs.h>
+ #include <linux/list.h>
+ #include <linux/syscalls.h>
+ #include <linux/irq.h>
+diff -puN include/linux/mm.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/include/linux/mm.h
+@@ -1164,16 +1164,6 @@ extern void pagefault_out_of_memory(void
  
--static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-+static int __gup_device_huge(unsigned long pfn, unsigned long addr,
- 		unsigned long end, struct page **pages, int *nr)
- {
- 	int nr_start = *nr;
--	unsigned long pfn = pmd_pfn(pmd);
- 	struct dev_pagemap *pgmap = NULL;
+ extern void show_free_areas(unsigned int flags, nodemask_t *nodemask);
  
--	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
- 	do {
- 		struct page *page = pfn_to_page(pfn);
- 
-@@ -180,6 +178,24 @@ static int __gup_device_huge_pmd(pmd_t p
- 	return 1;
- }
- 
-+static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-+		unsigned long end, struct page **pages, int *nr)
+-int shmem_zero_setup(struct vm_area_struct *);
+-#ifdef CONFIG_SHMEM
+-bool shmem_mapping(struct address_space *mapping);
+-#else
+-static inline bool shmem_mapping(struct address_space *mapping)
+-{
+-	return false;
+-}
+-#endif
+-
+ extern bool can_do_mlock(void);
+ extern int user_shm_lock(size_t, struct user_struct *);
+ extern void user_shm_unlock(size_t, struct user_struct *);
+diff -puN include/linux/shmem_fs.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/include/linux/shmem_fs.h
+@@ -57,7 +57,14 @@ extern int shmem_zero_setup(struct vm_ar
+ extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags);
+ extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
++#ifdef CONFIG_SHMEM
+ extern bool shmem_mapping(struct address_space *mapping);
++#else
++static inline bool shmem_mapping(struct address_space *mapping)
 +{
-+	unsigned long fault_pfn;
-+
-+	fault_pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
++	return false;
 +}
-+
-+static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
-+		unsigned long end, struct page **pages, int *nr)
-+{
-+	unsigned long fault_pfn;
-+
-+	fault_pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-+}
-+
- static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
- 		unsigned long end, int write, struct page **pages, int *nr)
- {
-@@ -251,9 +267,13 @@ static noinline int gup_huge_pud(pud_t p
++#endif /* CONFIG_SHMEM */
+ extern void shmem_unlock_mapping(struct address_space *mapping);
+ extern struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
+ 					pgoff_t index, gfp_t gfp_mask);
+diff -puN mm/madvise.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/madvise.c
+--- a/mm/madvise.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/mm/madvise.c
+@@ -21,6 +21,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
++#include <linux/shmem_fs.h>
+ #include <linux/mmu_notifier.h>
  
- 	if (!pte_allows_gup(pud_val(pud), write))
- 		return 0;
-+
-+	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
-+	if (pud_devmap(pud))
-+		return __gup_device_huge_pud(pud, addr, end, pages, nr);
-+
- 	/* hugepages are never "special" */
- 	VM_BUG_ON(pud_flags(pud) & _PAGE_SPECIAL);
--	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
+ #include <asm/tlb.h>
+diff -puN mm/memcontrol.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/mm/memcontrol.c
+@@ -35,6 +35,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+ #include <linux/mm.h>
++#include <linux/shmem_fs.h>
+ #include <linux/hugetlb.h>
+ #include <linux/pagemap.h>
+ #include <linux/smp.h>
+diff -puN mm/mincore.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/mincore.c
+--- a/mm/mincore.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/mm/mincore.c
+@@ -14,6 +14,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
++#include <linux/shmem_fs.h>
+ #include <linux/hugetlb.h>
  
- 	refs = 0;
- 	head = pud_page(pud);
+ #include <linux/uaccess.h>
+diff -puN mm/truncate.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/truncate.c
+--- a/mm/truncate.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/mm/truncate.c
+@@ -20,6 +20,7 @@
+ #include <linux/task_io_accounting_ops.h>
+ #include <linux/buffer_head.h>	/* grr. try_to_release_page,
+ 				   do_invalidatepage */
++#include <linux/shmem_fs.h>
+ #include <linux/cleancache.h>
+ #include <linux/rmap.h>
+ #include "internal.h"
+diff -puN mm/workingset.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/workingset.c
+--- a/mm/workingset.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
++++ a/mm/workingset.c
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/memcontrol.h>
+ #include <linux/writeback.h>
++#include <linux/shmem_fs.h>
+ #include <linux/pagemap.h>
+ #include <linux/atomic.h>
+ #include <linux/module.h>
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-fix-type-width-of-section-to-from-pfn-conversion-macros.patch
-mm-devm_memremap_pages-use-multi-order-radix-for-zone_device-lookups.patch
-mm-introduce-struct-mem_section_usage-to-track-partial-population-of-a-section.patch
-mm-introduce-common-definitions-for-the-size-and-mask-of-a-section.patch
-mm-cleanup-sparse_init_one_section-return-value.patch
-mm-track-active-portions-of-a-section-at-boot.patch
-mm-fix-register_new_memory-zone-type-detection.patch
-mm-convert-kmalloc_section_memmap-to-populate_section_memmap.patch
-mm-prepare-for-hot-add-remove-of-sub-section-ranges.patch
-mm-support-section-unaligned-zone_device-memory-ranges.patch
-mm-support-section-unaligned-zone_device-memory-ranges-fix-2.patch
-mm-enable-section-unaligned-devm_memremap_pages.patch
-libnvdimm-pfn-dax-stop-padding-pmem-namespaces-to-section-alignment.patch
-mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
+tmpfs-change-shmem_mapping-to-test-shmem_aops.patch
+mm-remove-shmem_mapping-shmem_zero_setup-duplicates.patch
 
