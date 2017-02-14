@@ -1,82 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ucount-mark-user_header-with-kmemleak_ignore.patch
+Subject: [merged] cpumask-use-nr_cpumask_bits-for-parsing-functions.patch
  removed from -mm tree
-Date: Tue, 14 Feb 2017 13:44:34 -0800
-Message-ID: <58a37a42.GIHv3QNM/D63nOs+%akpm@linux-foundation.org>
+Date: Tue, 14 Feb 2017 13:44:40 -0800
+Message-ID: <58a37a48./IDQZng+JqegDyNn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55246 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755849AbdBNVog (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2017 16:44:36 -0500
+        with ESMTP id S1755849AbdBNVol (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2017 16:44:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@kernel.org, ebiederm@xmission.com, jack@suse.cz, keescook@chromium.org, n.borisov.lkml@gmail.com, serge@hallyn.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, ben.hutchings@codethink.co.uk, martin.steigerwald@teamix.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/ucount.c: mark user_header with kmemleak_ignore()
+     Subject: cpumask: use nr_cpumask_bits for parsing functions
 has been removed from the -mm tree.  Its filename was
-     ucount-mark-user_header-with-kmemleak_ignore.patch
+     cpumask-use-nr_cpumask_bits-for-parsing-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kernel/ucount.c: mark user_header with kmemleak_ignore()
+From: Tejun Heo <tj@kernel.org>
+Subject: cpumask: use nr_cpumask_bits for parsing functions
 
-The user_header gets caught by kmemleak with the following splat as
-missing a free:
+513e3d2d11c9 ("cpumask: always use nr_cpu_ids in formatting and parsing
+functions") converted both cpumask printing and parsing functions to use
+nr_cpu_ids instead of nr_cpumask_bits.  While this was okay for the
+printing functions as it just picked one of the two output formats that we
+were alternating between depending on a kernel config, doing the same for
+parsing wasn't okay.
 
-unreferenced object 0xffff99667a733d80 (size 96):
-  comm "swapper/0", pid 1, jiffies 4294892317 (age 62191.468s)
-  hex dump (first 32 bytes):
-    a0 b6 92 b4 ff ff ff ff 00 00 00 00 01 00 00 00  ................
-    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffffb3a5f7ea>] kmemleak_alloc+0x4a/0xa0
-    [<ffffffffb36050d4>] __kmalloc+0x144/0x260
-    [<ffffffffb36a7144>] __register_sysctl_table+0x54/0x5e0
-    [<ffffffffb36a76eb>] register_sysctl+0x1b/0x20
-    [<ffffffffb416fe17>] user_namespace_sysctl_init+0x17/0x34
-    [<ffffffffb3402192>] do_one_initcall+0x52/0x1a0
-    [<ffffffffb414d1bd>] kernel_init_freeable+0x173/0x200
-    [<ffffffffb3a5c23e>] kernel_init+0xe/0x100
-    [<ffffffffb3a6b57c>] ret_from_fork+0x2c/0x40
-    [<ffffffffffffffff>] 0xffffffffffffffff
+nr_cpumask_bits can be either nr_cpu_ids or NR_CPUS.  We can always use
+nr_cpu_ids but that is a variable while NR_CPUS is a constant, so it can
+be more efficient to use NR_CPUS when we can get away with it.  Converting
+the printing functions to nr_cpu_ids makes sense because it affects how
+the masks get presented to userspace and doesn't break anything; however,
+using nr_cpu_ids for parsing functions can incorrectly leave the higher
+bits uninitialized while reading in these masks from userland.  As all
+testing and comparison functions use nr_cpumask_bits which can be larger
+than nr_cpu_ids, the parsed cpumasks can erroneously yield false negative
+results.
 
-The BUG_ON()s are intended to crash so no need to clean up after ourselves
-on error there.  This is also a kernel/ subsys_init() we don't need a
-respective exit call here as this is never modular, so just white list it.
+This made the taskstats interface incorrectly return -EINVAL even when the
+inputs were correct.
 
-Link: http://lkml.kernel.org/r/20170203211404.31458-1-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Jan Kara <jack@suse.cz>
+Fix it by restoring the parse functions to use nr_cpumask_bits instead of
+nr_cpu_ids.
+
+Link: http://lkml.kernel.org/r/20170206182442.GB31078@htj.duckdns.org
+Fixes: 513e3d2d11c9 ("cpumask: always use nr_cpu_ids in formatting and parsing functions")
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Martin Steigerwald <martin.steigerwald@teamix.de>
+Debugged-by: Ben Hutchings <ben.hutchings@codethink.co.uk>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ucount.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/cpumask.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/ucount.c~ucount-mark-user_header-with-kmemleak_ignore kernel/ucount.c
---- a/kernel/ucount.c~ucount-mark-user_header-with-kmemleak_ignore
-+++ a/kernel/ucount.c
-@@ -227,11 +227,10 @@ static __init int user_namespace_sysctl_
- 	 * properly.
- 	 */
- 	user_header = register_sysctl("user", empty);
-+	kmemleak_ignore(user_header);
- 	BUG_ON(!user_header);
- 	BUG_ON(!setup_userns_sysctls(&init_user_ns));
- #endif
- 	return 0;
+diff -puN include/linux/cpumask.h~cpumask-use-nr_cpumask_bits-for-parsing-functions include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-use-nr_cpumask_bits-for-parsing-functions
++++ a/include/linux/cpumask.h
+@@ -560,7 +560,7 @@ static inline void cpumask_copy(struct c
+ static inline int cpumask_parse_user(const char __user *buf, int len,
+ 				     struct cpumask *dstp)
+ {
+-	return bitmap_parse_user(buf, len, cpumask_bits(dstp), nr_cpu_ids);
++	return bitmap_parse_user(buf, len, cpumask_bits(dstp), nr_cpumask_bits);
  }
- subsys_initcall(user_namespace_sysctl_init);
--
+ 
+ /**
+@@ -575,7 +575,7 @@ static inline int cpumask_parselist_user
+ 				     struct cpumask *dstp)
+ {
+ 	return bitmap_parselist_user(buf, len, cpumask_bits(dstp),
+-				     nr_cpu_ids);
++				     nr_cpumask_bits);
+ }
+ 
+ /**
+@@ -590,7 +590,7 @@ static inline int cpumask_parse(const ch
+ 	char *nl = strchr(buf, '\n');
+ 	unsigned int len = nl ? (unsigned int)(nl - buf) : strlen(buf);
+ 
+-	return bitmap_parse(buf, len, cpumask_bits(dstp), nr_cpu_ids);
++	return bitmap_parse(buf, len, cpumask_bits(dstp), nr_cpumask_bits);
+ }
+ 
+ /**
+@@ -602,7 +602,7 @@ static inline int cpumask_parse(const ch
+  */
+ static inline int cpulist_parse(const char *buf, struct cpumask *dstp)
+ {
+-	return bitmap_parselist(buf, cpumask_bits(dstp), nr_cpu_ids);
++	return bitmap_parselist(buf, cpumask_bits(dstp), nr_cpumask_bits);
+ }
+ 
+ /**
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
+slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove.patch
+slab-remove-synchronous-rcu_barrier-call-in-memcg-cache-release-path.patch
+slab-reorganize-memcg_cache_params.patch
+slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup.patch
+slab-implement-slab_root_caches-list.patch
+slab-introduce-__kmemcg_cache_deactivate.patch
+slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
+slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches.patch
+slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
+slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch
+
