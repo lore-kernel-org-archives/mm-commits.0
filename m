@@ -1,83 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-fix-comment-in-zsmalloc.patch added to -mm tree
-Date: Wed, 08 Feb 2017 19:32:16 -0800
-Message-ID: <589be2c0.FOdCLSxrlGYZltcT%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch removed
+ from -mm tree
+Date: Tue, 14 Feb 2017 13:44:37 -0800
+Message-ID: <58a37a45.8K4siajeYhBFXEXh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57304 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55236 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751346AbdBIDmN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2017 22:42:13 -0500
+        with ESMTP id S1755849AbdBNVoi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2017 16:44:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xieyisheng1@huawei.com, guohanjun@huawei.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, jinshan.xiong@intel.com, viro@ZenIV.linux.org.uk, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc.c: fix comment in zsmalloc
-has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-fix-comment-in-zsmalloc.patch
+     Subject: mm: avoid returning VM_FAULT_RETRY from ->page_mkwrite handlers
+has been removed from the -mm tree.  Its filename was
+     mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-fix-comment-in-zsmalloc.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-fix-comment-in-zsmalloc.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/zsmalloc.c: fix comment in zsmalloc
+From: Jan Kara <jack@suse.cz>
+Subject: mm: avoid returning VM_FAULT_RETRY from ->page_mkwrite handlers
 
-The class index and fullness group are not encoded in (first)page->mapping
-any more, after commit 3783689a1aa8 ("zsmalloc: introduce zspage
-structure").  Instead, they are store in struct zspage.
+Some ->page_mkwrite handlers may return VM_FAULT_RETRY as its return code
+(GFS2 or Lustre can definitely do this).  However VM_FAULT_RETRY from
+->page_mkwrite is completely unhandled by the mm code and results in
+locking and writeably mapping the page which definitely is not what the
+caller wanted.  Fix Lustre and block_page_mkwrite_ret() used by other
+filesystems (notably GFS2) to return VM_FAULT_NOPAGE instead which results
+in bailing out from the fault code, the CPU then retries the access, and
+we fault again effectively doing what the handler wanted.
 
-Link: http://lkml.kernel.org/r/1486610619-57588-1-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>
+Link: http://lkml.kernel.org/r/20170203150729.15863-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Reviewed-by: Jinshan Xiong <jinshan.xiong@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/lustre/lustre/llite/llite_mmap.c |    4 +---
+ include/linux/buffer_head.h                      |    4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc
-+++ a/mm/zsmalloc.c
-@@ -270,7 +270,7 @@ struct zs_pool {
- 
- /*
-  * A zspage's class index and fullness group
-- * are encoded in its (first)page->mapping
-+ * are stored in struct zspage.
-  */
- #define FULLNESS_BITS	2
- #define CLASS_BITS	8
+diff -puN drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers drivers/staging/lustre/lustre/llite/llite_mmap.c
+--- a/drivers/staging/lustre/lustre/llite/llite_mmap.c~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
++++ a/drivers/staging/lustre/lustre/llite/llite_mmap.c
+@@ -390,15 +390,13 @@ static int ll_page_mkwrite(struct vm_are
+ 		result = VM_FAULT_LOCKED;
+ 		break;
+ 	case -ENODATA:
++	case -EAGAIN:
+ 	case -EFAULT:
+ 		result = VM_FAULT_NOPAGE;
+ 		break;
+ 	case -ENOMEM:
+ 		result = VM_FAULT_OOM;
+ 		break;
+-	case -EAGAIN:
+-		result = VM_FAULT_RETRY;
+-		break;
+ 	default:
+ 		result = VM_FAULT_SIGBUS;
+ 		break;
+diff -puN include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~mm-avoid-returning-vm_fault_retry-from-page_mkwrite-handlers
++++ a/include/linux/buffer_head.h
+@@ -243,12 +243,10 @@ static inline int block_page_mkwrite_ret
+ {
+ 	if (err == 0)
+ 		return VM_FAULT_LOCKED;
+-	if (err == -EFAULT)
++	if (err == -EFAULT || err == -EAGAIN)
+ 		return VM_FAULT_NOPAGE;
+ 	if (err == -ENOMEM)
+ 		return VM_FAULT_OOM;
+-	if (err == -EAGAIN)
+-		return VM_FAULT_RETRY;
+ 	/* -ENOSPC, -EDQUOT, -EIO ... */
+ 	return VM_FAULT_SIGBUS;
+ }
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-migration-make-isolate_movable_page-return-int-type.patch
-mm-migration-make-isolate_movable_page-return-int-type-v6.patch
-mm-migration-make-isolate_movable_page-always-defined.patch
-hwpoison-soft-offlining-for-non-lru-movable-page.patch
-mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
-mm-zsmalloc-fix-comment-in-zsmalloc.patch
-mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
 
