@@ -1,86 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch removed from
- -mm tree
-Date: Wed, 15 Feb 2017 13:02:59 -0800
-Message-ID: <58a4c203.F4q2Olug8MFrawx5%akpm@linux-foundation.org>
+Subject: + mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch added to -mm tree
+Date: Wed, 15 Feb 2017 13:03:16 -0800
+Message-ID: <58a4c214.9VLZyGDJi1wDXFFL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751356AbdBOVDA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:03:00 -0500
+        with ESMTP id S1751356AbdBOVDR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:03:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, mawilcox@microsoft.com, penberg@kernel.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mawilcox@microsoft.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix
-has been removed from the -mm tree.  Its filename was
-     mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix.patch
+     Subject: mm, slab: rename kmalloc-node cache to kmalloc-<size>-fix2
+has been added to the -mm tree.  Its filename is
+     mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab: rename kmalloc-node cache to kmalloc-<size>-fix2
 
-make get_kmalloc_cache_name() __init
+Export the whole kmalloc_info structure instead of just a name accessor,
+per Christoph Lameter.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/54e80303-b814-4232-66d4-95b34d3eb9d0@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c        |    2 +-
+ mm/slab.h        |    7 ++++++-
+ mm/slab_common.c |   10 +---------
+ 3 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix
+diff -puN mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix mm/slab.c
+--- a/mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix
++++ a/mm/slab.c
+@@ -1289,7 +1289,7 @@ void __init kmem_cache_init(void)
+ 	 * structures first.  Without this, further allocations will bug.
+ 	 */
+ 	kmalloc_caches[INDEX_NODE] = create_kmalloc_cache(
+-				get_kmalloc_cache_name(INDEX_NODE),
++				kmalloc_info[INDEX_NODE].name,
+ 				kmalloc_size(INDEX_NODE), ARCH_KMALLOC_FLAGS);
+ 	slab_state = PARTIAL_NODE;
+ 	setup_kmalloc_cache_index_table();
+diff -puN mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix mm/slab.h
+--- a/mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix
++++ a/mm/slab.h
+@@ -71,6 +71,12 @@ extern struct list_head slab_caches;
+ /* The slab cache that manages slab cache information */
+ extern struct kmem_cache *kmem_cache;
+ 
++/* A table of kmalloc cache names and sizes */
++extern const struct kmalloc_info_struct {
++	const char *name;
++	unsigned long size;
++} kmalloc_info[];
++
+ unsigned long calculate_alignment(unsigned long flags,
+ 		unsigned long align, unsigned long size);
+ 
+@@ -78,7 +84,6 @@ unsigned long calculate_alignment(unsign
+ /* Kmalloc array related functions */
+ void setup_kmalloc_cache_index_table(void);
+ void create_kmalloc_caches(unsigned long);
+-const char *get_kmalloc_cache_name(int index);
+ 
+ /* Find the kmalloc slab corresponding for a certain size */
+ struct kmem_cache *kmalloc_slab(size_t, gfp_t);
+diff -puN mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix
 +++ a/mm/slab_common.c
-@@ -935,7 +935,7 @@ static struct {
+@@ -915,10 +915,7 @@ struct kmem_cache *kmalloc_slab(size_t s
+  * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
+  * kmalloc-67108864.
+  */
+-static struct {
+-	const char *name;
+-	unsigned long size;
+-} const kmalloc_info[] __initconst = {
++const struct kmalloc_info_struct kmalloc_info[] __initconst = {
+ 	{NULL,                      0},		{"kmalloc-96",             96},
+ 	{"kmalloc-192",           192},		{"kmalloc-8",               8},
+ 	{"kmalloc-16",             16},		{"kmalloc-32",             32},
+@@ -935,11 +932,6 @@ static struct {
  	{"kmalloc-67108864", 67108864}
  };
  
 -const char *get_kmalloc_cache_name(int index)
-+const char * __init get_kmalloc_cache_name(int index)
- {
- 	return kmalloc_info[index].name;
- }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch
-mm-throttle-show_mem-from-warn_alloc-fix.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
-lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
-mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath-fix.patch
-mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
-mm-track-active-portions-of-a-section-at-boot-fix.patch
-mm-memory_hotplugc-unexport-__remove_pages.patch
-z3fold-add-kref-refcounting-checkpatch-fixes.patch
-mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
-mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-lib-update-lz4-compressor-module.patch
-lib-update-lz4-compressor-module-fix-fix.patch
-lib-update-lz4-compressor-module-fix-fix-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+-{
+-	return kmalloc_info[index].name;
+-}
