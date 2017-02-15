@@ -1,120 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch added to -mm tree
-Date: Wed, 15 Feb 2017 13:03:16 -0800
-Message-ID: <58a4c214.9VLZyGDJi1wDXFFL%akpm@linux-foundation.org>
+Subject: [alternative-merged] mm-zsmalloc-fix-comment-in-zsmalloc.patch
+ removed from -mm tree
+Date: Wed, 15 Feb 2017 13:21:01 -0800
+Message-ID: <58a4c63d.5xU5CZvKa52ahIWU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751356AbdBOVDR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:03:17 -0500
+        with ESMTP id S1751430AbdBOVVD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:21:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mawilcox@microsoft.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, guohanjun@huawei.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: rename kmalloc-node cache to kmalloc-<size>-fix2
-has been added to the -mm tree.  Its filename is
-     mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch
+     Subject: mm/zsmalloc.c: fix comment in zsmalloc
+has been removed from the -mm tree.  Its filename was
+     mm-zsmalloc-fix-comment-in-zsmalloc.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab: rename kmalloc-node cache to kmalloc-<size>-fix2
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/zsmalloc.c: fix comment in zsmalloc
 
-Export the whole kmalloc_info structure instead of just a name accessor,
-per Christoph Lameter.
+The class index and fullness group are not encoded in (first)page->mapping
+any more, after commit 3783689a1aa8 ("zsmalloc: introduce zspage
+structure").  Instead, they are store in struct zspage.
 
-Link: http://lkml.kernel.org/r/54e80303-b814-4232-66d4-95b34d3eb9d0@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/1486610619-57588-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |    2 +-
- mm/slab.h        |    7 ++++++-
- mm/slab_common.c |   10 +---------
- 3 files changed, 8 insertions(+), 11 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix mm/slab.c
---- a/mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix
-+++ a/mm/slab.c
-@@ -1289,7 +1289,7 @@ void __init kmem_cache_init(void)
- 	 * structures first.  Without this, further allocations will bug.
- 	 */
- 	kmalloc_caches[INDEX_NODE] = create_kmalloc_cache(
--				get_kmalloc_cache_name(INDEX_NODE),
-+				kmalloc_info[INDEX_NODE].name,
- 				kmalloc_size(INDEX_NODE), ARCH_KMALLOC_FLAGS);
- 	slab_state = PARTIAL_NODE;
- 	setup_kmalloc_cache_index_table();
-diff -puN mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix mm/slab.h
---- a/mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix
-+++ a/mm/slab.h
-@@ -71,6 +71,12 @@ extern struct list_head slab_caches;
- /* The slab cache that manages slab cache information */
- extern struct kmem_cache *kmem_cache;
+diff -puN mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc
++++ a/mm/zsmalloc.c
+@@ -270,7 +270,7 @@ struct zs_pool {
  
-+/* A table of kmalloc cache names and sizes */
-+extern const struct kmalloc_info_struct {
-+	const char *name;
-+	unsigned long size;
-+} kmalloc_info[];
-+
- unsigned long calculate_alignment(unsigned long flags,
- 		unsigned long align, unsigned long size);
- 
-@@ -78,7 +84,6 @@ unsigned long calculate_alignment(unsign
- /* Kmalloc array related functions */
- void setup_kmalloc_cache_index_table(void);
- void create_kmalloc_caches(unsigned long);
--const char *get_kmalloc_cache_name(int index);
- 
- /* Find the kmalloc slab corresponding for a certain size */
- struct kmem_cache *kmalloc_slab(size_t, gfp_t);
-diff -puN mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size-fix-fix
-+++ a/mm/slab_common.c
-@@ -915,10 +915,7 @@ struct kmem_cache *kmalloc_slab(size_t s
-  * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
-  * kmalloc-67108864.
+ /*
+  * A zspage's class index and fullness group
+- * are encoded in its (first)page->mapping
++ * are stored in struct zspage.
   */
--static struct {
--	const char *name;
--	unsigned long size;
--} const kmalloc_info[] __initconst = {
-+const struct kmalloc_info_struct kmalloc_info[] __initconst = {
- 	{NULL,                      0},		{"kmalloc-96",             96},
- 	{"kmalloc-192",           192},		{"kmalloc-8",               8},
- 	{"kmalloc-16",             16},		{"kmalloc-32",             32},
-@@ -935,11 +932,6 @@ static struct {
- 	{"kmalloc-67108864", 67108864}
- };
- 
--const char *get_kmalloc_cache_name(int index)
--{
--	return kmalloc_info[index].name;
--}
+ #define FULLNESS_BITS	2
+ #define CLASS_BITS	8
+_
+
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
+
+mm-migration-make-isolate_movable_page-return-int-type.patch
+mm-migration-make-isolate_movable_page-return-int-type-v6.patch
+mm-migration-make-isolate_movable_page-always-defined.patch
+hwpoison-soft-offlining-for-non-lru-movable-page.patch
+mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain.patch
+mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
+
