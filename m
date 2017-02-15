@@ -1,301 +1,142 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-convert-kmalloc_section_memmap-to-populate_section_memmap.patch removed
- from -mm tree
-Date: Wed, 15 Feb 2017 13:51:59 -0800
-Message-ID: <58a4cd7f.ukNNdPH56GvrbyoS%akpm@linux-foundation.org>
+ libnvdimm-pfn-dax-stop-padding-pmem-namespaces-to-section-alignment.patch
+ removed from -mm tree
+Date: Wed, 15 Feb 2017 13:52:11 -0800
+Message-ID: <58a4cd8b.tGS3kVKo0EcSATsx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49736 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49792 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752403AbdBOVwF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:52:05 -0500
+        with ESMTP id S1750806AbdBOVwM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:52:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, hannes@cmpxchg.org, logang@deltatee.com, mgorman@techsingularity.net, mhocko@suse.com, stephen.bates@microsemi.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, toshi.kani@hpe.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert kmalloc_section_memmap() to populate_section_memmap()
+     Subject: libnvdimm, pfn, dax: stop padding pmem namespaces to section alignment
 has been removed from the -mm tree.  Its filename was
-     mm-convert-kmalloc_section_memmap-to-populate_section_memmap.patch
+     libnvdimm-pfn-dax-stop-padding-pmem-namespaces-to-section-alignment.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: convert kmalloc_section_memmap() to populate_section_memmap()
+Subject: libnvdimm, pfn, dax: stop padding pmem namespaces to section alignment
 
-Allow sub-section sized ranges to be added to the memmap. 
-populate_section_memmap() takes an explict pfn range rather than assuming
-a full section, and those parameters are plumbed all the way through to
-vmmemap_populate().  There should be no sub-section in current code.  New
-warnings are added to clarify which memmap allocation paths are
-sub-section capable.
+Now that the mm core supports section-unaligned hotplug of ZONE_DEVICE
+memory, we no longer need to add padding at pfn/dax device creation time. 
+The kernel will still honor padding established by older kernels.
 
-Link: http://lkml.kernel.org/r/148486364441.19694.15498867968502173386.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: http://lkml.kernel.org/r/148486366619.19694.12717075723603032515.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Stephen Bates <stephen.bates@microsemi.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    4 ++
- include/linux/mm.h    |    3 +-
- mm/sparse-vmemmap.c   |   24 +++++++++++-----
- mm/sparse.c           |   60 ++++++++++++++++++++++++++--------------
- 4 files changed, 61 insertions(+), 30 deletions(-)
+ drivers/nvdimm/pfn_devs.c |   42 ++++++------------------------------
+ 1 file changed, 7 insertions(+), 35 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~mm-convert-kmalloc_section_memmap-to-populate_section_memmap arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-convert-kmalloc_section_memmap-to-populate_section_memmap
-+++ a/arch/x86/mm/init_64.c
-@@ -1220,7 +1220,9 @@ int __meminit vmemmap_populate(unsigned
- 	struct vmem_altmap *altmap = to_vmem_altmap(start);
- 	int err;
- 
--	if (boot_cpu_has(X86_FEATURE_PSE))
-+	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
-+		err = vmemmap_populate_basepages(start, end, node);
-+	else if (boot_cpu_has(X86_FEATURE_PSE))
- 		err = vmemmap_populate_hugepages(start, end, node, altmap);
- 	else if (altmap) {
- 		pr_err_once("%s: no cpu support for altmap allocations\n",
-diff -puN include/linux/mm.h~mm-convert-kmalloc_section_memmap-to-populate_section_memmap include/linux/mm.h
---- a/include/linux/mm.h~mm-convert-kmalloc_section_memmap-to-populate_section_memmap
-+++ a/include/linux/mm.h
-@@ -2345,7 +2345,8 @@ void sparse_mem_maps_populate_node(struc
- 				   unsigned long map_count,
- 				   int nodeid);
- 
--struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
-+struct page *__populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid);
- pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(pgd_t *pgd, unsigned long addr, int node);
- pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
-diff -puN mm/sparse-vmemmap.c~mm-convert-kmalloc_section_memmap-to-populate_section_memmap mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-convert-kmalloc_section_memmap-to-populate_section_memmap
-+++ a/mm/sparse-vmemmap.c
-@@ -248,20 +248,28 @@ int __meminit vmemmap_populate_basepages
- 	return 0;
- }
- 
--struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
-+struct page * __meminit __populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
+diff -puN drivers/nvdimm/pfn_devs.c~libnvdimm-pfn-dax-stop-padding-pmem-namespaces-to-section-alignment drivers/nvdimm/pfn_devs.c
+--- a/drivers/nvdimm/pfn_devs.c~libnvdimm-pfn-dax-stop-padding-pmem-namespaces-to-section-alignment
++++ a/drivers/nvdimm/pfn_devs.c
+@@ -538,7 +538,7 @@ static struct vmem_altmap *__nvdimm_setu
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		altmap = NULL;
+ 	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
+-		nd_pfn->npfns = (resource_size(res) - offset) / PAGE_SIZE;
++		nd_pfn->npfns = PHYS_PFN((resource_size(res) - offset));
+ 		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
+ 			dev_info(&nd_pfn->dev,
+ 					"number of pfns truncated from %lld to %ld\n",
+@@ -557,7 +557,6 @@ static int nd_pfn_init(struct nd_pfn *nd
  {
- 	unsigned long start;
- 	unsigned long end;
--	struct page *map;
+ 	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+-	u32 start_pad = 0, end_trunc = 0;
+ 	resource_size_t start, size;
+ 	struct nd_namespace_io *nsio;
+ 	struct nd_region *nd_region;
+@@ -590,42 +589,16 @@ static int nd_pfn_init(struct nd_pfn *nd
+ 		return -ENXIO;
+ 	}
  
--	map = pfn_to_page(pnum * PAGES_PER_SECTION);
--	start = (unsigned long)map;
--	end = (unsigned long)(map + PAGES_PER_SECTION);
-+	/*
-+	 * The minimum granularity of memmap extensions is
-+	 * SECTION_ACTIVE_SIZE as allocations are tracked in the
-+	 * 'map_active' bitmap of the section.
-+	 */
-+	end = ALIGN(pfn + nr_pages, PHYS_PFN(SECTION_ACTIVE_SIZE));
-+	pfn &= PHYS_PFN(SECTION_ACTIVE_MASK);
-+	nr_pages = end - pfn;
-+
-+	start = (unsigned long) pfn_to_page(pfn);
-+	end = start + nr_pages * sizeof(struct page);
- 
- 	if (vmemmap_populate(start, end, nid))
- 		return NULL;
- 
--	return map;
-+	return pfn_to_page(pfn);
- }
- 
- void __init sparse_mem_maps_populate_node(struct page **map_map,
-@@ -284,11 +292,13 @@ void __init sparse_mem_maps_populate_nod
- 
- 	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 		struct mem_section *ms;
-+		unsigned long pfn = section_nr_to_pfn(pnum);
- 
- 		if (!present_section_nr(pnum))
- 			continue;
- 
--		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
-+		map_map[pnum] = __populate_section_memmap(pfn,
-+				PAGES_PER_SECTION, nodeid);
- 		if (map_map[pnum])
- 			continue;
- 		ms = __nr_to_section(pnum);
-diff -puN mm/sparse.c~mm-convert-kmalloc_section_memmap-to-populate_section_memmap mm/sparse.c
---- a/mm/sparse.c~mm-convert-kmalloc_section_memmap-to-populate_section_memmap
-+++ a/mm/sparse.c
-@@ -423,7 +423,8 @@ static void __init sparse_early_usemaps_
- }
- 
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
-+struct page __init *__populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
- {
- 	struct page *map;
- 	unsigned long size;
-@@ -475,10 +476,12 @@ void __init sparse_mem_maps_populate_nod
- 	/* fallback */
- 	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 		struct mem_section *ms;
-+		unsigned long pfn = section_nr_to_pfn(pnum);
- 
- 		if (!present_section_nr(pnum))
- 			continue;
--		map_map[pnum] = sparse_mem_map_populate(pnum, nodeid);
-+		map_map[pnum] = __populate_section_memmap(pfn,
-+				PAGES_PER_SECTION, nodeid);
- 		if (map_map[pnum])
- 			continue;
- 		ms = __nr_to_section(pnum);
-@@ -506,7 +509,8 @@ static struct page __init *sparse_early_
- 	struct mem_section *ms = __nr_to_section(pnum);
- 	int nid = sparse_early_nid(ms);
- 
--	map = sparse_mem_map_populate(pnum, nid);
-+	map = __populate_section_memmap(section_nr_to_pfn(pnum),
-+			PAGES_PER_SECTION, nid);
- 	if (map)
- 		return map;
- 
-@@ -648,15 +652,16 @@ void __init sparse_init(void)
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
-+static struct page *populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
- {
--	/* This will make the necessary allocations eventually. */
--	return sparse_mem_map_populate(pnum, nid);
-+	return __populate_section_memmap(pfn, nr_pages, nid);
- }
--static void __kfree_section_memmap(struct page *memmap)
-+
-+static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages)
- {
--	unsigned long start = (unsigned long)memmap;
--	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
-+	unsigned long start = (unsigned long) pfn_to_page(pfn);
-+	unsigned long end = start + nr_pages * sizeof(struct page);
- 
- 	vmemmap_free(start, end);
- }
-@@ -670,11 +675,18 @@ static void free_map_bootmem(struct page
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #else
--static struct page *__kmalloc_section_memmap(void)
-+struct page *populate_section_memmap(unsigned long pfn,
-+		unsigned long nr_pages, int nid)
- {
- 	struct page *page, *ret;
- 	unsigned long memmap_size = sizeof(struct page) * PAGES_PER_SECTION;
- 
-+	if ((pfn & ~PAGE_SECTION_MASK) || nr_pages != PAGES_PER_SECTION) {
-+		WARN(1, "%s: called with section unaligned parameters\n",
-+				__func__);
-+		return NULL;
-+	}
-+
- 	page = alloc_pages(GFP_KERNEL|__GFP_NOWARN, get_order(memmap_size));
- 	if (page)
- 		goto got_map_page;
-@@ -691,13 +703,16 @@ got_map_ptr:
- 	return ret;
- }
- 
--static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid)
-+static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages)
- {
--	return __kmalloc_section_memmap();
--}
-+	struct page *memmap = pfn_to_page(pfn);
-+
-+	if ((pfn & ~PAGE_SECTION_MASK) || nr_pages != PAGES_PER_SECTION) {
-+		WARN(1, "%s: called with section unaligned parameters\n",
-+				__func__);
-+		return;
-+	}
- 
--static void __kfree_section_memmap(struct page *memmap)
--{
- 	if (is_vmalloc_addr(memmap))
- 		vfree(memmap);
+-	memset(pfn_sb, 0, sizeof(*pfn_sb));
+-
+-	/*
+-	 * Check if pmem collides with 'System RAM' when section aligned and
+-	 * trim it accordingly
+-	 */
+-	nsio = to_nd_namespace_io(&ndns->dev);
+-	start = PHYS_SECTION_ALIGN_DOWN(nsio->res.start);
+-	size = resource_size(&nsio->res);
+-	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED) {
+-		start = nsio->res.start;
+-		start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+-	}
+-
+-	start = nsio->res.start;
+-	size = PHYS_SECTION_ALIGN_UP(start + size) - start;
+-	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED) {
+-		size = resource_size(&nsio->res);
+-		end_trunc = start + size - PHYS_SECTION_ALIGN_DOWN(start + size);
+-	}
+-
+-	if (start_pad + end_trunc)
+-		dev_info(&nd_pfn->dev, "%s section collision, truncate %d bytes\n",
+-				dev_name(&ndns->dev), start_pad + end_trunc);
+-
+ 	/*
+ 	 * Note, we use 64 here for the standard size of struct page,
+ 	 * debugging options may cause it to be larger in which case the
+ 	 * implementation will limit the pfns advertised through
+ 	 * ->direct_access() to those that are included in the memmap.
+ 	 */
+-	start += start_pad;
++	nsio = to_nd_namespace_io(&ndns->dev);
++	start = nsio->res.start;
+ 	size = resource_size(&nsio->res);
+-	npfns = (size - start_pad - end_trunc - SZ_8K) / SZ_4K;
++	npfns = PHYS_PFN(size - SZ_8K);
+ 	if (nd_pfn->mode == PFN_MODE_PMEM) {
+ 		/*
+ 		 * vmemmap_populate_hugepages() allocates the memmap array in
+@@ -639,13 +612,14 @@ static int nd_pfn_init(struct nd_pfn *nd
  	else
-@@ -755,12 +770,13 @@ int __meminit sparse_add_one_section(str
- 	ret = sparse_index_init(section_nr, pgdat->node_id);
- 	if (ret < 0 && ret != -EEXIST)
- 		return ret;
--	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id);
-+	memmap = populate_section_memmap(start_pfn, PAGES_PER_SECTION,
-+			pgdat->node_id);
- 	if (!memmap)
- 		return -ENOMEM;
- 	usage = __alloc_section_usage();
- 	if (!usage) {
--		__kfree_section_memmap(memmap);
-+		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
- 		return -ENOMEM;
+ 		return -ENXIO;
+ 
+-	if (offset + start_pad + end_trunc >= size) {
++	if (offset >= size) {
+ 		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
+ 				dev_name(&ndns->dev));
+ 		return -ENXIO;
  	}
  
-@@ -782,7 +798,7 @@ out:
- 	pgdat_resize_unlock(pgdat, &flags);
- 	if (ret < 0 && ret != -EEXIST) {
- 		kfree(usage);
--		__kfree_section_memmap(memmap);
-+		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION);
- 		return ret;
- 	}
- 	return 0;
-@@ -811,7 +827,8 @@ static inline void clear_hwpoisoned_page
- #endif
- 
- static void free_section_usage(struct page *memmap,
--		struct mem_section_usage *usage)
-+		struct mem_section_usage *usage, unsigned long pfn,
-+		unsigned long nr_pages)
- {
- 	struct page *usemap_page;
- 
-@@ -825,7 +842,7 @@ static void free_section_usage(struct pa
- 	if (PageSlab(usemap_page) || PageCompound(usemap_page)) {
- 		kfree(usage);
- 		if (memmap)
--			__kfree_section_memmap(memmap);
-+			depopulate_section_memmap(pfn, nr_pages);
- 		return;
- 	}
- 
-@@ -858,7 +875,8 @@ void sparse_remove_one_section(struct zo
- 
- 	clear_hwpoisoned_pages(memmap + map_offset,
- 			PAGES_PER_SECTION - map_offset);
--	free_section_usage(memmap, usage);
-+	free_section_usage(memmap, usage, section_nr_to_pfn(__section_nr(ms)),
-+			PAGES_PER_SECTION);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- #endif /* CONFIG_MEMORY_HOTPLUG */
+-	npfns = (size - offset - start_pad - end_trunc) / SZ_4K;
++	memset(pfn_sb, 0, sizeof(*pfn_sb));
++	npfns = PHYS_PFN(size - offset);
+ 	pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
+ 	pfn_sb->dataoff = cpu_to_le64(offset);
+ 	pfn_sb->npfns = cpu_to_le64(npfns);
+@@ -654,8 +628,6 @@ static int nd_pfn_init(struct nd_pfn *nd
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+ 	pfn_sb->version_minor = cpu_to_le16(2);
+-	pfn_sb->start_pad = cpu_to_le32(start_pad);
+-	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-prepare-for-hot-add-remove-of-sub-section-ranges.patch
-mm-support-section-unaligned-zone_device-memory-ranges.patch
-mm-enable-section-unaligned-devm_memremap_pages.patch
-libnvdimm-pfn-dax-stop-padding-pmem-namespaces-to-section-alignment.patch
 mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
 
