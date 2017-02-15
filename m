@@ -1,46 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-fix-register_new_memory-zone-type-detection.patch removed from -mm tree
-Date: Wed, 15 Feb 2017 13:51:56 -0800
-Message-ID: <58a4cd7c.NdTNV6VxYtIdwiY1%akpm@linux-foundation.org>
+ mm-track-active-portions-of-a-section-at-boot.patch removed from -mm tree
+Date: Wed, 15 Feb 2017 13:51:53 -0800
+Message-ID: <58a4cd79.XWsRu2q1Gmam7Jol%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49706 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752394AbdBOVv5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:51:57 -0500
+        with ESMTP id S1752363AbdBOVvy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:51:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, hannes@cmpxchg.org, logang@deltatee.com, mgorman@techsingularity.net, mhocko@suse.com, stephen.bates@microsemi.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, arnd@arndb.de, hannes@cmpxchg.org, logang@deltatee.com, mgorman@techsingularity.net, mhocko@suse.com, stephen.bates@microsemi.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix register_new_memory() zone type detection
+     Subject: mm: track active portions of a section at boot
 has been removed from the -mm tree.  Its filename was
-     mm-fix-register_new_memory-zone-type-detection.patch
+     mm-track-active-portions-of-a-section-at-boot.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix register_new_memory() zone type detection
+Subject: mm: track active portions of a section at boot
 
-In preparation for sub-section memory hotplug support, remove a dependency
-on ->section_mem_map being populated.  In SPARSEMEM_VMEMMAP=y
-configurations pfn_to_page() does not use ->section_mem_map.  The
-sub-section hotplug support relies on this fact and skips initializing it.
-Without ->section_mem_map populated, or aligned to section boundary,
-conversions of mem_section instances to zones is not possible.
+Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
+section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
+map_active bitmask length (64)).
 
-So, this removes a false dependency on a structure field that will only be
-valid in the SPARSEMEM_VMEMMAP=n case, and only used for pfn_to_page()
-(and similar) operations.
-
-Link: http://lkml.kernel.org/r/148486363923.19694.16803321290568634521.stgit@dwillia2-desk3.amr.corp.intel.com
+[akpm@linux-foundation.org: make section_active_init() init, use static inline for stub]
+[arnd@arndb.de: fix __init markers]
+  Link: http://lkml.kernel.org/r/20170123121509.3143377-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/148486363375.19694.14661926204436340901.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -50,119 +47,120 @@ Cc: Stephen Bates <stephen.bates@microsemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   26 +++++++++-----------------
- include/linux/memory.h |    4 ++--
- mm/memory_hotplug.c    |    4 ++--
- 3 files changed, 13 insertions(+), 21 deletions(-)
+ include/linux/mmzone.h |    7 +++++
+ mm/page_alloc.c        |    4 ++
+ mm/sparse.c            |   53 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 63 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~mm-fix-register_new_memory-zone-type-detection drivers/base/memory.c
---- a/drivers/base/memory.c~mm-fix-register_new_memory-zone-type-detection
-+++ a/drivers/base/memory.c
-@@ -685,24 +685,16 @@ static int add_memory_block(int base_sec
- 	return 0;
- }
+diff -puN include/linux/mmzone.h~mm-track-active-portions-of-a-section-at-boot include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-track-active-portions-of-a-section-at-boot
++++ a/include/linux/mmzone.h
+@@ -1087,6 +1087,8 @@ struct mem_section_usage {
+ 	unsigned long pageblock_flags[0];
+ };
  
--static bool is_zone_device_section(struct mem_section *ms)
--{
--	struct page *page;
--
--	page = sparse_decode_mem_map(ms->section_mem_map, __section_nr(ms));
--	return is_zone_device_page(page);
--}
--
++void __init section_active_init(unsigned long pfn, unsigned long nr_pages);
++
+ struct page;
+ struct page_ext;
+ struct mem_section {
+@@ -1228,6 +1230,11 @@ void sparse_init(void);
+ #else
+ #define sparse_init()	do {} while (0)
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
++static inline void section_active_init(unsigned long pfn,
++				       unsigned long nr_pages)
++{
++}
++#define section_active_init(_pfn, _nr_pages) do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
+ 
  /*
-  * need an interface for the VM to add new memory regions,
-  * but without onlining it.
-  */
--int register_new_memory(int nid, struct mem_section *section)
-+int register_new_memory(struct zone *zone, int nid, struct mem_section *section)
- {
- 	int ret = 0;
- 	struct memory_block *mem;
+diff -puN mm/page_alloc.c~mm-track-active-portions-of-a-section-at-boot mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-track-active-portions-of-a-section-at-boot
++++ a/mm/page_alloc.c
+@@ -6454,10 +6454,12 @@ void __init free_area_init_nodes(unsigne
  
--	if (is_zone_device_section(section))
-+	if (is_dev_zone(zone))
- 		return 0;
+ 	/* Print out the early node map */
+ 	pr_info("Early memory node ranges\n");
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+ 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
+ 			(u64)start_pfn << PAGE_SHIFT,
+ 			((u64)end_pfn << PAGE_SHIFT) - 1);
++		section_active_init(start_pfn, end_pfn - start_pfn);
++	}
  
- 	mutex_lock(&mem_sysfs_mutex);
-@@ -736,14 +728,11 @@ unregister_memory(struct memory_block *m
- 	device_unregister(&memory->dev);
+ 	/* Initialise every node */
+ 	mminit_verify_pageflags_layout();
+diff -puN mm/sparse.c~mm-track-active-portions-of-a-section-at-boot mm/sparse.c
+--- a/mm/sparse.c~mm-track-active-portions-of-a-section-at-boot
++++ a/mm/sparse.c
+@@ -168,6 +168,59 @@ void __meminit mminit_validate_memmodel_
+ 	}
  }
  
--static int remove_memory_section(unsigned long node_id,
--			       struct mem_section *section, int phys_device)
-+static int remove_memory_section(struct zone *zone, unsigned long node_id,
-+		struct mem_section *section, int phys_device)
- {
- 	struct memory_block *mem;
- 
--	if (is_zone_device_section(section))
--		return 0;
--
- 	mutex_lock(&mem_sysfs_mutex);
- 	mem = find_memory_block(section);
- 	unregister_mem_sect_under_nodes(mem, __section_nr(section));
-@@ -758,12 +747,15 @@ static int remove_memory_section(unsigne
- 	return 0;
- }
- 
--int unregister_memory_section(struct mem_section *section)
-+int unregister_memory_section(struct zone *zone, struct mem_section *section)
- {
-+	if (is_dev_zone(zone))
++static int __init section_active_index(phys_addr_t phys)
++{
++	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
++}
++
++static unsigned long section_active_mask(unsigned long pfn,
++					 unsigned long nr_pages)
++{
++	int idx_start, idx_size;
++	phys_addr_t start, size;
++
++	if (!nr_pages)
 +		return 0;
 +
- 	if (!present_section(section))
- 		return -EINVAL;
- 
--	return remove_memory_section(0, section, 0);
-+	return remove_memory_section(zone, 0, section, 0);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-diff -puN include/linux/memory.h~mm-fix-register_new_memory-zone-type-detection include/linux/memory.h
---- a/include/linux/memory.h~mm-fix-register_new_memory-zone-type-detection
-+++ a/include/linux/memory.h
-@@ -108,12 +108,12 @@ extern int register_memory_notifier(stru
- extern void unregister_memory_notifier(struct notifier_block *nb);
- extern int register_memory_isolate_notifier(struct notifier_block *nb);
- extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
--extern int register_new_memory(int, struct mem_section *);
-+extern int register_new_memory(struct zone *, int, struct mem_section *);
- extern int memory_block_change_state(struct memory_block *mem,
- 				     unsigned long to_state,
- 				     unsigned long from_state_req);
- #ifdef CONFIG_MEMORY_HOTREMOVE
--extern int unregister_memory_section(struct mem_section *);
-+extern int unregister_memory_section(struct zone *, struct mem_section *);
- #endif
- extern int memory_dev_init(void);
- extern int memory_notify(unsigned long val, void *v);
-diff -puN mm/memory_hotplug.c~mm-fix-register_new_memory-zone-type-detection mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-fix-register_new_memory-zone-type-detection
-+++ a/mm/memory_hotplug.c
-@@ -517,7 +517,7 @@ static int __meminit __add_section(int n
- 	if (ret < 0)
- 		return ret;
- 
--	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
-+	return register_new_memory(zone, nid, __pfn_to_section(phys_start_pfn));
- }
- 
- /*
-@@ -784,7 +784,7 @@ static int __remove_section(struct zone
- 	if (!valid_section(ms))
- 		return ret;
- 
--	ret = unregister_memory_section(ms);
-+	ret = unregister_memory_section(zone, ms);
- 	if (ret)
- 		return ret;
- 
++	start = PFN_PHYS(pfn);
++	size = PFN_PHYS(min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK)));
++	size = ALIGN(size, SECTION_ACTIVE_SIZE);
++
++	idx_start = section_active_index(start);
++	idx_size = section_active_index(size);
++
++	if (idx_size == 0)
++		return -1;
++	return ((1UL << idx_size) - 1) << idx_start;
++}
++
++void __init section_active_init(unsigned long pfn, unsigned long nr_pages)
++{
++	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
++	int i, start_sec = pfn_to_section_nr(pfn);
++
++	if (!nr_pages)
++		return;
++
++	for (i = start_sec; i <= end_sec; i++) {
++		struct mem_section *ms;
++		unsigned long mask;
++		unsigned long pfns;
++
++		pfns = min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK));
++		mask = section_active_mask(pfn, pfns);
++
++		ms = __nr_to_section(i);
++		pr_debug("%s: sec: %d mask: %#018lx\n", __func__, i, mask);
++		ms->usage->map_active = mask;
++
++		pfn += pfns;
++		nr_pages -= pfns;
++	}
++}
++
+ /* Record a memory area against a node. */
+ void __init memory_present(int nid, unsigned long start, unsigned long end)
+ {
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
 
+mm-fix-register_new_memory-zone-type-detection.patch
 mm-convert-kmalloc_section_memmap-to-populate_section_memmap.patch
 mm-prepare-for-hot-add-remove-of-sub-section-ranges.patch
 mm-support-section-unaligned-zone_device-memory-ranges.patch
