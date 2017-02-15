@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-remove-redundant-init-code-for-zone_movable.patch added to -mm tree
-Date: Wed, 15 Feb 2017 12:54:14 -0800
-Message-ID: <58a4bff6.cpAzPfR5AJkUvebU%akpm@linux-foundation.org>
+Subject: + mm-add-arch-independent-testcases-for-rodata-fix.patch added to -mm tree
+Date: Wed, 15 Feb 2017 13:00:24 -0800
+Message-ID: <58a4c168.7IfsFxoEcjGOSBtx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43480 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751299AbdBOUyP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 15:54:15 -0500
+        with ESMTP id S1751383AbdBOVAa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2017 16:00:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.weiyang@gmail.com, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org
+To: jinb.park7@gmail.com, keescook@chromium.org, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: remove redundant init code for ZONE_MOVABLE
+     Subject: mm: testcases for RODATA: fix config dependency
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-remove-redundant-init-code-for-zone_movable.patch
+     mm-add-arch-independent-testcases-for-rodata-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-redundant-init-code-for-zone_movable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-arch-independent-testcases-for-rodata-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-redundant-init-code-for-zone_movable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-arch-independent-testcases-for-rodata-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,43 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc.c: remove redundant init code for ZONE_MOVABLE
+From: Jinbum Park <jinb.park7@gmail.com>
+Subject: mm: testcases for RODATA: fix config dependency
 
-arch_zone_lowest/highest_possible_pfn[] is set to 0 and [ZONE_MOVABLE] is
-skipped in the loop. No need to reset them to 0 again.
+Since DEBUG_RODATA has renamed to STRICT_KERNEL_RWX,
+Fix the config dependency.
 
-This patch just removes the redundant code.
-
-Link: http://lkml.kernel.org/r/20170209141731.60208-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170209131625.GA16954@pjb1027-Latitude-E5410
+Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
+Reported-by: Valentin Rothberg <valentinrothberg@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-redundant-init-code-for-zone_movable mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-redundant-init-code-for-zone_movable
-+++ a/mm/page_alloc.c
-@@ -6494,8 +6494,6 @@ void __init free_area_init_nodes(unsigne
+diff -puN mm/Kconfig.debug~mm-add-arch-independent-testcases-for-rodata-fix mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-add-arch-independent-testcases-for-rodata-fix
++++ a/mm/Kconfig.debug
+@@ -93,7 +93,7 @@ config DEBUG_PAGE_REF
  
- 		start_pfn = end_pfn;
- 	}
--	arch_zone_lowest_possible_pfn[ZONE_MOVABLE] = 0;
--	arch_zone_highest_possible_pfn[ZONE_MOVABLE] = 0;
+ config DEBUG_RODATA_TEST
+     bool "Testcase for the marking rodata read-only"
+-    depends on DEBUG_RODATA
++    depends on STRICT_KERNEL_RWX
+     ---help---
+       This option enables a testcase for the setting rodata read-only.
  
- 	/* Find the PFNs that ZONE_MOVABLE begins at in each node */
- 	memset(zone_movable_pfn, 0, sizeof(zone_movable_pfn));
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from jinb.park7@gmail.com are
 
-mm-memblockc-trivial-code-refine-in-memblock_is_region_memory.patch
-mm-memblockc-check-return-value-of-memblock_reserve-in-memblock_virt_alloc_internal.patch
-mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
-mm-page_alloc-remove-redundant-init-code-for-zone_movable.patch
+scripts-spellingtxt-add-some-typo-words.patch
+mm-add-arch-independent-testcases-for-rodata.patch
+mm-add-arch-independent-testcases-for-rodata-fix.patch
 
