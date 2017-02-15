@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte.patch added to -mm tree
-Date: Tue, 14 Feb 2017 16:20:17 -0800
-Message-ID: <58a39ec1.bxq3atJBESsCGgMr%akpm@linux-foundation.org>
+ powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write.patch added to -mm tree
+Date: Tue, 14 Feb 2017 16:20:20 -0800
+Message-ID: <58a39ec4.pBlr3dYzwzHM9jXZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59402 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750902AbdBOAUS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2017 19:20:18 -0500
+        with ESMTP id S1750905AbdBOAU1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2017 19:20:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, michaele@au1.ibm.com, mikey@neuling.org, paulus@samba.org, riel@surriel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/autonuma: let architecture override how the write bit should be stashed in a protnone pte.
+     Subject: powerpc/mm/autonuma: switch ppc64 to its own implementation of saved write
 has been added to the -mm tree.  Its filename is
-     mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte.patch
+     powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/autonuma: let architecture override how the write bit should be stashed in a protnone pte.
+Subject: powerpc/mm/autonuma: switch ppc64 to its own implementation of saved write
 
-Patch series "Numabalancing preserve write fix", v2.
+With this our protnone becomes a present pte with READ/WRITE/EXEC bit
+cleared.  By default we also set _PAGE_PRIVILEGED on such pte.  This is
+now used to help us identify a protnone pte that as saved write bit.  For
+such pte, we will clear the _PAGE_PRIVILEGED bit.  The pte still remain
+non-accessible from both user and kernel.
 
-This patch series address an issue w.r.t THP migration and autonuma
-preserve write feature. migrate_misplaced_transhuge_page() cannot deal with
-concurrent modification of the page. It does a page copy without
-following the migration pte sequence. IIUC, this was done to keep the
-migration simpler and at the time of implemenation we didn't had THP
-page cache which would have required a more elaborate migration scheme.
-That means thp autonuma migration expect the protnone with saved write
-to be done such that both kernel and user cannot update
-the page content. This patch series enables archs like ppc64 to do that.
-We are good with the hash translation mode with the current code,
-because we never create a hardware page table entry for a protnone pte. 
-
-
-This patch (of 2):
-
-Autonuma preserves the write permission across numa fault to avoid taking
-a writefault after a numa fault (Commit: b191f9b106ea " mm: numa: preserve
-PTE write permissions across a NUMA hinting fault").  Architecture can
-implement protnone in different ways and some may choose to implement that
-by clearing Read/ Write/Exec bit of pte.  Setting the write bit on such
-pte can result in wrong behaviour.  Fix this up by allowing arch to
-override how to save the write bit on a protnone pte.
-
-Link: http://lkml.kernel.org/r/1487050314-3892-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1487050314-3892-3-git-send-email-aneesh.kumar@linux.vnet.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Acked-by: Michael Neuling <mikey@neuling.org>
 Cc: Rik van Riel <riel@surriel.com>
@@ -78,90 +59,86 @@ Cc: Michael Ellerman <michaele@au1.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   16 ++++++++++++++++
- mm/huge_memory.c              |    4 ++--
- mm/memory.c                   |    2 +-
- mm/mprotect.c                 |    4 ++--
- 4 files changed, 21 insertions(+), 5 deletions(-)
+ arch/powerpc/include/asm/book3s/64/mmu-hash.h |    3 +
+ arch/powerpc/include/asm/book3s/64/pgtable.h  |   32 +++++++++++++++-
+ 2 files changed, 33 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/include/asm-generic/pgtable.h
-@@ -225,6 +225,22 @@ static inline void ptep_set_wrprotect(st
+diff -puN arch/powerpc/include/asm/book3s/64/mmu-hash.h~powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write arch/powerpc/include/asm/book3s/64/mmu-hash.h
+--- a/arch/powerpc/include/asm/book3s/64/mmu-hash.h~powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write
++++ a/arch/powerpc/include/asm/book3s/64/mmu-hash.h
+@@ -16,6 +16,9 @@
+ #include <asm/page.h>
+ #include <asm/bug.h>
+ 
++#ifndef __ASSEMBLY__
++#include <linux/mmdebug.h>
++#endif
+ /*
+  * This is necessary to get the definition of PGTABLE_RANGE which we
+  * need for various slices related matters. Note that this isn't the
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -424,8 +424,8 @@ static inline pte_t pte_clear_soft_dirty
+  */
+ static inline int pte_protnone(pte_t pte)
+ {
+-	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED)) ==
+-		cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED);
++	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_RWX)) ==
++		cpu_to_be64(_PAGE_PRESENT);
  }
- #endif
+ #endif /* CONFIG_NUMA_BALANCING */
  
-+#ifndef pte_savedwrite
-+#define pte_savedwrite pte_write
-+#endif
+@@ -495,6 +495,32 @@ static inline pte_t pte_mkhuge(pte_t pte
+ 	return pte;
+ }
+ 
++#define pte_mk_savedwrite pte_mk_savedwrite
++static inline pte_t pte_mk_savedwrite(pte_t pte)
++{
++	/*
++	 * Used by Autonuma subsystem to preserve the write bit
++	 * while marking the pte PROT_NONE. Only allow this
++	 * on PROT_NONE pte
++	 */
++	VM_BUG_ON((pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_RWX | _PAGE_PRIVILEGED)) !=
++		  cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED));
++	return __pte(pte_val(pte) & ~_PAGE_PRIVILEGED);
++}
 +
-+#ifndef pte_mk_savedwrite
-+#define pte_mk_savedwrite pte_mkwrite
-+#endif
++#define pte_savedwrite pte_savedwrite
++static inline bool pte_savedwrite(pte_t pte)
++{
++	/*
++	 * Saved write ptes are prot none ptes that doesn't have
++	 * privileged bit sit. We mark prot none as one which has
++	 * present and pviliged bit set and RWX cleared. To mark
++	 * protnone which used to have _PAGE_WRITE set we clear
++	 * the privileged bit.
++	 */
++	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
++}
 +
-+#ifndef pmd_savedwrite
-+#define pmd_savedwrite pmd_write
-+#endif
-+
-+#ifndef pmd_mk_savedwrite
-+#define pmd_mk_savedwrite pmd_mkwrite
-+#endif
-+
- #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	/* FIXME!! check whether this need to be a conditional */
+@@ -856,6 +882,7 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+ #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
++#define pmd_mk_savedwrite(pmd)	pte_pmd(pte_mk_savedwrite(pmd_pte(pmd)))
+ 
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ #define pmd_soft_dirty(pmd)    pte_soft_dirty(pmd_pte(pmd))
+@@ -872,6 +899,7 @@ static inline int pmd_protnone(pmd_t pmd
+ 
+ #define __HAVE_ARCH_PMD_WRITE
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
++#define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
+ 
  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-diff -puN mm/huge_memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/huge_memory.c
---- a/mm/huge_memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/mm/huge_memory.c
-@@ -1489,7 +1489,7 @@ int do_huge_pmd_numa_page(struct vm_faul
- 	goto out;
- clear_pmdnuma:
- 	BUG_ON(!PageLocked(page));
--	was_writable = pmd_write(pmd);
-+	was_writable = pmd_savedwrite(pmd);
- 	pmd = pmd_modify(pmd, vma->vm_page_prot);
- 	pmd = pmd_mkyoung(pmd);
- 	if (was_writable)
-@@ -1744,7 +1744,7 @@ int change_huge_pmd(struct vm_area_struc
- 			entry = pmdp_huge_get_and_clear_notify(mm, addr, pmd);
- 			entry = pmd_modify(entry, newprot);
- 			if (preserve_write)
--				entry = pmd_mkwrite(entry);
-+				entry = pmd_mk_savedwrite(entry);
- 			ret = HPAGE_PMD_NR;
- 			set_pmd_at(mm, addr, pmd, entry);
- 			BUG_ON(vma_is_anonymous(vma) && !preserve_write &&
-diff -puN mm/memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/memory.c
---- a/mm/memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/mm/memory.c
-@@ -3401,7 +3401,7 @@ static int do_numa_page(struct vm_fault
- 	int target_nid;
- 	bool migrated = false;
- 	pte_t pte;
--	bool was_writable = pte_write(vmf->orig_pte);
-+	bool was_writable = pte_savedwrite(vmf->orig_pte);
- 	int flags = 0;
- 
- 	/*
-diff -puN mm/mprotect.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/mprotect.c
---- a/mm/mprotect.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/mm/mprotect.c
-@@ -99,13 +99,13 @@ static unsigned long change_pte_range(st
- 			ptent = ptep_modify_prot_start(mm, addr, pte);
- 			ptent = pte_modify(ptent, newprot);
- 			if (preserve_write)
--				ptent = pte_mkwrite(ptent);
-+				ptent = pte_mk_savedwrite(ptent);
- 
- 			/* Avoid taking write faults for known dirty pages */
- 			if (dirty_accountable && pte_dirty(ptent) &&
- 					(pte_soft_dirty(ptent) ||
- 					 !(vma->vm_flags & VM_SOFTDIRTY))) {
--				ptent = pte_mkwrite(ptent);
-+				ptent = pte_mk_savedwrite(ptent);
- 			}
- 			ptep_modify_prot_commit(mm, addr, pte, ptent);
- 			pages++;
+ extern pmd_t pfn_pmd(unsigned long pfn, pgprot_t pgprot);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
