@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-notice-unbalanced-else-braces-in-a-patch.patch added to -mm tree
-Date: Tue, 14 Feb 2017 17:05:52 -0800
-Message-ID: <58a3a970.LTUvusugGEmcNeMf%akpm@linux-foundation.org>
+Subject: + 9p-fix-a-potential-acl-leak.patch added to -mm tree
+Date: Tue, 14 Feb 2017 17:11:14 -0800
+Message-ID: <58a3aab2.Wornw3DbZU8zJ3hn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33754 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33842 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751103AbdBOBFx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2017 20:05:53 -0500
+        with ESMTP id S1750931AbdBOBLP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2017 20:11:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, ericvh@gmail.com, groug@kaod.org, jack@suse.cz, lucho@ionkov.net, rminnich@sandia.gov, salyzyn@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: notice unbalanced else braces in a patch
+     Subject: 9p: fix a potential acl leak
 has been added to the -mm tree.  Its filename is
-     checkpatch-notice-unbalanced-else-braces-in-a-patch.patch
+     9p-fix-a-potential-acl-leak.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-notice-unbalanced-else-braces-in-a-patch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/9p-fix-a-potential-acl-leak.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-notice-unbalanced-else-braces-in-a-patch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/9p-fix-a-potential-acl-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +38,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: notice unbalanced else braces in a patch
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: 9p: fix a potential acl leak
 
-Patches that add or modify code like
-	} else
-		<foo>
-or
-	else {
-		<bar>
+posix_acl_update_mode() could possibly clear 'acl', if so we leak the
+memory pointed by 'acl'.  Save this pointer before calling
+posix_acl_update_mode() and release the memory if 'acl' really gets
+cleared.
 
-where one branch appears to have a brace and the other branch
-does not have a brace should emit a --strict style message.
-
-Link: http://lkml.kernel.org/r/c6be32747fc725cbc235802991746700a0f54fdc.1486754390.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1486678332-2430-1-git-send-email-xiyou.wangcong@gmail.com
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Reported-by: Mark Salyzyn <salyzyn@android.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Greg Kurz <groug@kaod.org>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/9p/acl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-notice-unbalanced-else-braces-in-a-patch scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-notice-unbalanced-else-braces-in-a-patch
-+++ a/scripts/checkpatch.pl
-@@ -5104,6 +5104,12 @@ sub process {
- 			}
- 		}
+diff -puN fs/9p/acl.c~9p-fix-a-potential-acl-leak fs/9p/acl.c
+--- a/fs/9p/acl.c~9p-fix-a-potential-acl-leak
++++ a/fs/9p/acl.c
+@@ -277,6 +277,7 @@ static int v9fs_xattr_set_acl(const stru
+ 	case ACL_TYPE_ACCESS:
+ 		if (acl) {
+ 			struct iattr iattr;
++			struct posix_acl *old_acl = acl;
  
-+# check for single line unbalanced braces
-+		if ($sline =~ /.\s*\}\s*else\s*$/ ||
-+		    $sline =~ /.\s*else\s*\{\s*$/) {
-+			CHK("BRACES", "Unbalanced braces around else statement\n" . $herecurr);
-+		}
-+
- # check for unnecessary blank lines around braces
- 		if (($line =~ /^.\s*}\s*$/ && $prevrawline =~ /^.\s*$/)) {
- 			if (CHK("BRACES",
+ 			retval = posix_acl_update_mode(inode, &iattr.ia_mode, &acl);
+ 			if (retval)
+@@ -287,6 +288,7 @@ static int v9fs_xattr_set_acl(const stru
+ 				 * by the mode bits. So don't
+ 				 * update ACL.
+ 				 */
++				posix_acl_release(old_acl);
+ 				value = NULL;
+ 				size = 0;
+ 			}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-checkpatch-warn-on-embedded-function-names.patch
-checkpatch-warn-on-logging-continuations.patch
-checkpatch-notice-unbalanced-else-braces-in-a-patch.patch
-checkpatchpl-warn-against-using-%z-fix.patch
+9p-fix-a-potential-acl-leak.patch
 
