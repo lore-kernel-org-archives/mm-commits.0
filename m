@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update.patch added to -mm tree
-Date: Thu, 16 Feb 2017 16:57:38 -0800
-Message-ID: <58a64a82.5/W/CGH/JKlq7znm%akpm@linux-foundation.org>
+Subject: + printk-use-rcuidle-console-tracepoint.patch added to -mm tree
+Date: Thu, 16 Feb 2017 18:25:03 -0800
+Message-ID: <58a65eff.eVMV4aALe/bDawjj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44442 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48682 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754774AbdBQA5j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2017 19:57:39 -0500
+        with ESMTP id S1754309AbdBQCZF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2017 21:25:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, pmladek@suse.com, rmk@armlinux.org.uk, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, tglx@linutronix.de, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update
+     Subject: printk: use rcuidle console tracepoint
 has been added to the -mm tree.  Its filename is
-     userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update.patch
+     printk-use-rcuidle-console-tracepoint.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-use-rcuidle-console-tracepoint.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-use-rcuidle-console-tracepoint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,170 +38,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: printk: use rcuidle console tracepoint
 
-Thanks Andrea, I incorporated your suggestions into a new version of the patch.
-While changing (dst_vma->vm_flags & VM_SHARED) to integers, I noticed an issue
-in the error path of __mcopy_atomic_hugetlb().
+Use rcuidle console tracepoint because, apparently, it may be issued from
+an idle CPU:
 
->                */
-> -             ClearPagePrivate(page);
-> +             if (dst_vma->vm_flags & VM_SHARED)
-> +                     SetPagePrivate(page);
-> +             else
-> +                     ClearPagePrivate(page);
->               put_page(page);
+[    2.581939] hw-breakpoint: Failed to enable monitor mode on CPU 0.
+[    2.591613] hw-breakpoint: CPU 0 failed to disable vector catch
+[    2.597686]
+[    2.597717] ===============================
+[    2.597717] [ ERR: suspicious RCU usage.  ]
+[    2.597717] 4.10.0-rc8-next-20170215+ #119 Not tainted
+[    2.597717] -------------------------------
+[    2.597717] ./include/trace/events/printk.h:32 suspicious rcu_dereference_check() usage!
+[    2.597717]
+[    2.597717] other info that might help us debug this:
+[    2.597717]
+[    2.597717]
+[    2.597717] RCU used illegally from idle CPU!
+[    2.597717] rcu_scheduler_active = 2, debug_locks = 0
+[    2.597747] RCU used illegally from extended quiescent state!
+[    2.597747] 2 locks held by swapper/0/0:
+[    2.597747]  #0:  (cpu_pm_notifier_lock){......}, at: [<c0237e2c>] cpu_pm_exit+0x10/0x54
+[    2.597747]  #1:  (console_lock){+.+.+.}, at: [<c01ab350>] vprintk_emit+0x264/0x474
+[    2.597747]
+[    2.597747] stack backtrace:
+[    2.597778] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.10.0-rc8-next-20170215+ #119
+[    2.597778] Hardware name: Generic OMAP4 (Flattened Device Tree)
+[    2.597778] [<c0110228>] (unwind_backtrace) from [<c010c224>] (show_stack+0x10/0x14)
+[    2.597778] [<c010c224>] (show_stack) from [<c04ca8a0>] (dump_stack+0xac/0xe0)
+[    2.597778] [<c04ca8a0>] (dump_stack) from [<c01ab084>] (console_unlock+0x5e8/0x650)
+[    2.597778] [<c01ab084>] (console_unlock) from [<c01ab35c>] (vprintk_emit+0x270/0x474)
+[    2.597778] [<c01ab35c>] (vprintk_emit) from [<c01ab6f0>] (vprintk_default+0x20/0x28)
+[    2.597808] [<c01ab6f0>] (vprintk_default) from [<c0250c94>] (printk+0x20/0x30)
+[    2.597808] [<c0250c94>] (printk) from [<c0111004>] (reset_ctrl_regs+0x108/0x288)
+[    2.597808] [<c0111004>] (reset_ctrl_regs) from [<c0111220>] (dbg_cpu_pm_notify+0x28/0x30)
+[    2.597808] [<c0111220>] (dbg_cpu_pm_notify) from [<c015f3ac>] (notifier_call_chain+0x44/0x80)
+[    2.597808] [<c015f3ac>] (notifier_call_chain) from [<c0237e48>] (cpu_pm_exit+0x2c/0x54)
+[    2.597808] [<c0237e48>] (cpu_pm_exit) from [<c0126ca0>] (omap_enter_idle_coupled+0x80/0x208)
+[    2.597808] [<c0126ca0>] (omap_enter_idle_coupled) from [<c0680d80>] (cpuidle_enter_state+0x118/0x4ac)
+[    2.597808] [<c0680d80>] (cpuidle_enter_state) from [<c0682e54>] (cpuidle_enter_state_coupled+0x3a8/0x40c)
+[    2.597839] [<c0682e54>] (cpuidle_enter_state_coupled) from [<c0190c04>] (do_idle+0x1a4/0x218)
+[    2.597839] [<c0190c04>] (do_idle) from [<c0190ffc>] (cpu_startup_entry+0x18/0x1c)
+[    2.597839] [<c0190ffc>] (cpu_startup_entry) from [<c0c00c40>] (start_kernel+0x35c/0x3d4)
+[    2.597839] [<c0c00c40>] (start_kernel) from [<8000807c>] (0x8000807c)
 
-We can not use dst_vma here as it may be different than the vma for which the
-page was originally allocated, or even NULL.  Remember, we may drop mmap_sem
-and look up dst_vma again.  Therefore, we need to save the value of
-(dst_vma->vm_flags & VM_SHARED) for the vma which was used when the page was
-allocated.  This change as well as your suggestions are in the patch below:
+This RCU warning, however, is suppressed by lockdep_off() in printk(). 
+lockdep_off() increments the ->lockdep_recursion counter and thus disables
+RCU_LOCKDEP_WARN() and debug_lockdep_rcu_enabled(), which want lockdep to
+be enabled "current->lockdep_recursion == 0".
 
-Link: http://lkml.kernel.org/r/c9c8cafe-baa7-05b4-34ea-1dfa5523a85f@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Link: http://lkml.kernel.org/r/20170217015932.11898-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: "Paul E . McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk@armlinux.org.uk>
+Cc: <stable@vger.kernel.org> [3.4+]
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c     |    9 +++++----
- mm/userfaultfd.c |   22 ++++++++++++++++++----
- 2 files changed, 23 insertions(+), 8 deletions(-)
+ kernel/printk/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update
-+++ a/mm/hugetlb.c
-@@ -3992,6 +3992,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 			    unsigned long src_addr,
- 			    struct page **pagep)
+diff -puN kernel/printk/printk.c~printk-use-rcuidle-console-tracepoint kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-use-rcuidle-console-tracepoint
++++ a/kernel/printk/printk.c
+@@ -1516,7 +1516,7 @@ static void call_console_drivers(int lev
  {
-+	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	struct hstate *h = hstate_vma(dst_vma);
- 	pte_t _dst_pte;
- 	spinlock_t *ptl;
-@@ -4031,7 +4032,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	/*
- 	 * If shared, add to page cache
- 	 */
--	if (dst_vma->vm_flags & VM_SHARED) {
-+	if (vm_shared) {
- 		struct address_space *mapping = dst_vma->vm_file->f_mapping;
- 		pgoff_t idx = vma_hugecache_offset(h, dst_vma, dst_addr);
+ 	struct console *con;
  
-@@ -4047,7 +4048,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	if (!huge_pte_none(huge_ptep_get(dst_pte)))
- 		goto out_release_unlock;
+-	trace_console(text, len);
++	trace_console_rcuidle(text, len);
  
--	if (dst_vma->vm_flags & VM_SHARED) {
-+	if (vm_shared) {
- 		page_dup_rmap(page, true);
- 	} else {
- 		ClearPagePrivate(page);
-@@ -4069,7 +4070,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
- 
- 	spin_unlock(ptl);
--	if (dst_vma->vm_flags & VM_SHARED)
-+	if (vm_shared)
- 		unlock_page(page);
- 	ret = 0;
- out:
-@@ -4077,7 +4078,7 @@ out:
- out_release_unlock:
- 	spin_unlock(ptl);
- out_release_nounlock:
--	if (dst_vma->vm_flags & VM_SHARED)
-+	if (vm_shared)
- 		unlock_page(page);
- 	put_page(page);
- 	goto out;
-diff -puN mm/userfaultfd.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update
-+++ a/mm/userfaultfd.c
-@@ -154,6 +154,8 @@ static __always_inline ssize_t __mcopy_a
- 					      unsigned long len,
- 					      bool zeropage)
- {
-+	int vm_alloc_shared = dst_vma->vm_flags & VM_SHARED;
-+	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	ssize_t err;
- 	pte_t *dst_pte;
- 	unsigned long src_addr, dst_addr;
-@@ -210,6 +212,8 @@ retry:
- 		if (dst_start < dst_vma->vm_start ||
- 		    dst_start + len > dst_vma->vm_end)
- 			goto out_unlock;
-+
-+		vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	}
- 
- 	if (WARN_ON(dst_addr & (vma_hpagesize - 1) ||
-@@ -226,7 +230,7 @@ retry:
- 	 * If not shared, ensure the dst_vma has a anon_vma.
- 	 */
- 	err = -ENOMEM;
--	if (!(dst_vma->vm_flags & VM_SHARED)) {
-+	if (!vm_shared) {
- 		if (unlikely(anon_vma_prepare(dst_vma)))
- 			goto out_unlock;
- 	}
-@@ -266,6 +270,7 @@ retry:
- 						dst_addr, src_addr, &page);
- 
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+		vm_alloc_shared = vm_shared;
- 
- 		cond_resched();
- 
-@@ -339,8 +344,12 @@ out:
- 		 * reserved page.  In this case, set PagePrivate so that the
- 		 * global reserve count will be incremented to match the
- 		 * reservation map entry which was created.
-+		 *
-+		 * Note that vm_alloc_shared is based on the flags of the vma
-+		 * for which the page was originally allocated.  dst_vma could
-+		 * be different or NULL on error.
- 		 */
--		if (dst_vma->vm_flags & VM_SHARED)
-+		if (vm_alloc_shared)
- 			SetPagePrivate(page);
- 		else
- 			ClearPagePrivate(page);
-@@ -399,9 +408,14 @@ retry:
- 	dst_vma = find_vma(dst_mm, dst_start);
- 	if (!dst_vma)
- 		goto out_unlock;
--	if (!vma_is_shmem(dst_vma) && !is_vm_hugetlb_page(dst_vma) &&
--	    dst_vma->vm_flags & VM_SHARED)
-+	/*
-+	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
-+	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
-+	 */
-+	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
-+	    dst_vma->vm_flags & VM_SHARED))
- 		goto out_unlock;
-+
- 	if (dst_start < dst_vma->vm_start ||
- 	    dst_start + len > dst_vma->vm_end)
- 		goto out_unlock;
+ 	if (!console_drivers)
+ 		return;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support.patch
-userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support.patch
-userfaultfd-hugetlbfs-add-__mcopy_atomic_hugetlb-for-huge-page-uffdio_copy.patch
-userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing.patch
-userfaultfd-hugetlbfs-add-userfaultfd-hugetlb-hook.patch
-userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages.patch
-userfaultfd-hugetlbfs-add-userfaultfd_hugetlb-test.patch
-userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
-userfaultfd-hugetlbfs-reserve-count-on-error-in-__mcopy_atomic_hugetlb.patch
-userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings.patch
-userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings-update.patch
+printk-use-rcuidle-console-tracepoint.patch
+zram-remove-obsolete-sysfs-attrs.patch
 
