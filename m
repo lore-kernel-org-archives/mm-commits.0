@@ -1,120 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- debugobjects-scale-thresholds-with-of-cpus.patch removed from -mm tree
-Date: Fri, 17 Feb 2017 12:32:21 -0800
-Message-ID: <58a75dd5.tTDNPWrtbYYN4H9P%akpm@linux-foundation.org>
+Subject: +
+ mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled-fix.patch added to -mm tree
+Date: Fri, 17 Feb 2017 13:32:41 -0800
+Message-ID: <58a76bf9.VhUhp5/q0WD/P9MS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43798 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934937AbdBQUch (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2017 15:32:37 -0500
+        with ESMTP id S934415AbdBQVcm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2017 16:32:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: longman@redhat.com, borntraeger@de.ibm.com, changbin.du@intel.com, jstancek@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, hughd@google.com, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debugobjects: scale thresholds with # of CPUs
-has been removed from the -mm tree.  Its filename was
-     debugobjects-scale-thresholds-with-of-cpus.patch
+     Subject: mm, swap: Fix memory leak in __read_swap_cache_async()
+has been added to the -mm tree.  Its filename is
+     mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: debugobjects: scale thresholds with # of CPUs
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, swap: Fix memory leak in __read_swap_cache_async()
 
-On a large SMP systems with hundreds of CPUs, the current thresholds for
-allocating and freeing debug objects (256 and 1024 respectively) may not
-work well.  This can cause a lot of needless calls to kmem_aloc() and
-kmem_free() on those systems.
+The memory may be leaked in __read_swap_cache_async().  For the cases
+as below,
 
-To alleviate this thrashing problem, the object freeing threshold is now
-increased to "1024 + # of CPUs * 32".  Whereas the object allocation
-threshold is increased to "256 + # of CPUs * 4".  That should make the
-debug objects subsystem scale better with the number of CPUs available in
-the system.
+CPU 0						CPU 1
+-----						-----
 
-Link: http://lkml.kernel.org/r/1483647425-4135-3-git-send-email-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Du Changbin" <changbin.du@intel.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Jan Stancek <jstancek@redhat.com>
+find_get_page() == NULL
+__swp_swapcount() != 0
+new_page = alloc_page_vma()
+radix_tree_maybe_preload()
+						swap in swap slot
+swapcache_prepare() == -EEXIST
+cond_resched()
+						reclaim the swap slot
+find_get_page() == NULL
+__swp_swapcount() == 0
+return NULL				<- new_page leaked here !!!
+
+The memory leak has been confirmed via checking the value of new_page
+when returning inside the loop in __read_swap_cache_async().
+
+This is fixed via replacing return with break inside of loop in
+__read_swap_cache_async(), so that there is opportunity for the
+new_page to be checked and freed.
+
+Link: http://lkml.kernel.org/r/874lzt6znd.fsf@yhuang-dev.intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Tested-by: Hugh Dickins <hughd@google.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/debugobjects.c~debugobjects-scale-thresholds-with-of-cpus lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-scale-thresholds-with-of-cpus
-+++ a/lib/debugobjects.c
-@@ -52,7 +52,10 @@ static int			debug_objects_fixups __read
- static int			debug_objects_warnings __read_mostly;
- static int			debug_objects_enabled __read_mostly
- 				= CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT;
--
-+static int			debug_objects_pool_size __read_mostly
-+				= ODEBUG_POOL_SIZE;
-+static int			debug_objects_pool_min_level __read_mostly
-+				= ODEBUG_POOL_MIN_LEVEL;
- static struct debug_obj_descr	*descr_test  __read_mostly;
+diff -puN mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled-fix mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled-fix
++++ a/mm/swap_state.c
+@@ -333,7 +333,7 @@ struct page *__read_swap_cache_async(swp
+ 		 * else swap_off will be aborted if we return NULL.
+ 		 */
+ 		if (!__swp_swapcount(entry) && swap_slot_cache_enabled)
+-			return NULL;
++			break;
  
- /*
-@@ -94,13 +97,13 @@ static void fill_pool(void)
- 	struct debug_obj *new;
- 	unsigned long flags;
- 
--	if (likely(obj_pool_free >= ODEBUG_POOL_MIN_LEVEL))
-+	if (likely(obj_pool_free >= debug_objects_pool_min_level))
- 		return;
- 
- 	if (unlikely(!obj_cache))
- 		return;
- 
--	while (obj_pool_free < ODEBUG_POOL_MIN_LEVEL) {
-+	while (obj_pool_free < debug_objects_pool_min_level) {
- 
- 		new = kmem_cache_zalloc(obj_cache, gfp);
- 		if (!new)
-@@ -176,7 +179,7 @@ static void free_obj_work(struct work_st
- 	unsigned long flags;
- 
- 	raw_spin_lock_irqsave(&pool_lock, flags);
--	while (obj_pool_free > ODEBUG_POOL_SIZE) {
-+	while (obj_pool_free > debug_objects_pool_size) {
- 		obj = hlist_entry(obj_pool.first, typeof(*obj), node);
- 		hlist_del(&obj->node);
- 		obj_pool_free--;
-@@ -206,7 +209,7 @@ static void free_object(struct debug_obj
- 	 * schedule work when the pool is filled and the cache is
- 	 * initialized:
- 	 */
--	if (obj_pool_free > ODEBUG_POOL_SIZE && obj_cache)
-+	if (obj_pool_free > debug_objects_pool_size && obj_cache)
- 		sched = 1;
- 	hlist_add_head(&obj->node, &obj_pool);
- 	obj_pool_free++;
-@@ -1126,4 +1129,11 @@ void __init debug_objects_mem_init(void)
- 		pr_warn("out of memory.\n");
- 	} else
- 		debug_objects_selftest();
-+
-+	/*
-+	 * Increase the thresholds for allocating and freeing objects
-+	 * according to the number of possible CPUs available in the system.
-+	 */
-+	debug_objects_pool_size += num_possible_cpus() * 32;
-+	debug_objects_pool_min_level += num_possible_cpus() * 4;
- }
+ 		/*
+ 		 * Get a new page to read into from swap.
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-debugobjects-reduce-contention-on-the-global-pool_lock.patch
+mm-swap-fix-kernel-message-in-swap_info_get.patch
+mm-swap-add-cluster-lock.patch
+mm-swap-add-cluster-lock-v5.patch
+mm-swap-split-swap-cache-into-64mb-trunks.patch
+mm-swap-add-cache-for-swap-slots-allocation-fix.patch
+mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
+mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled-fix.patch
 
