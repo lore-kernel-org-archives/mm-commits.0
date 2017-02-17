@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: [alternative-merged]
- debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done.patch
- removed from -mm tree
-Date: Fri, 17 Feb 2017 12:32:18 -0800
-Message-ID: <58a75dd2.pLDcroPtkja3xcF7%akpm@linux-foundation.org>
+ debugobjects-reduce-contention-on-the-global-pool_lock.patch removed from
+ -mm tree
+Date: Fri, 17 Feb 2017 12:32:24 -0800
+Message-ID: <58a75dd8.WkfJOjACYRhIVLHy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60260 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934907AbdBQUch (ORCPT
+        with ESMTP id S934938AbdBQUch (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2017 15:32:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,22 +19,20 @@ To: longman@redhat.com, borntraeger@de.ibm.com, changbin.du@intel.com, jstancek@
 
 
 The patch titled
-     Subject: debugobjects: track number of kmem_cache_alloc/kmem_cache_free done
+     Subject: debugobjects: reduce contention on the global pool_lock
 has been removed from the -mm tree.  Its filename was
-     debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done.patch
+     debugobjects-reduce-contention-on-the-global-pool_lock.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: debugobjects: track number of kmem_cache_alloc/kmem_cache_free done
+Subject: debugobjects: reduce contention on the global pool_lock
 
-Patch series "debugobjects: Reduce global pool_lock contention", v2.
-
-This patchset aims to reduce contention of the global pool_lock while
-improving performance at the same time.  It is done to resolve the
-following soft lockup problem with a debug kernel in some of the large SMP
-systems:
+On a large SMP system with many CPUs, the global pool_lock may become a
+performance bottleneck as all the CPUs that need to allocate or free debug
+objects have to take the lock.  That can sometimes cause soft lockups
+like:
 
  NMI watchdog: BUG: soft lockup - CPU#35 stuck for 22s! [rcuos/1:21]
  ...
@@ -56,20 +54,16 @@ systems:
   [<ffffffff81101a59>] ? trace_hardirqs_on_caller+0xf9/0x1c0
   [<ffffffff817c2d32>] ret_from_fork+0x22/0x50
 
-On a 8-socket IvyBridge-EX system (120 cores, 240 threads), the elapsed
-time of a 4.9-rc7 kernel parallel build (make -j 240) was reduced from
-7m57s to 7m19s with a patched 4.9-rc7 kernel.  There was also about a 10X
-reduction in the number of debug objects being allocated from or freed to
-the kmemcache during the kernel build.
+To reduce the amount of contention on the pool_lock, the actual
+kmem_cache_free() of the debug objects will be delayed if the pool_lock is
+busy.  This will temporarily increase the amount of free objects available
+at the free pool when the system is busy.  As a result, the number of
+kmem_cache allocation and freeing should be reduced.
 
+This patch also groups the freeing of debug objects in a batch of 4 to
+reduce the total number of lock/unlock cycles.
 
-This patch (of 3):
-
-New debugfs stat counters are added to track the numbers of
-kmem_cache_alloc() and kmem_cache_free() function calls to get a sense of
-how the internal debug objects cache management is performing.
-
-Link: http://lkml.kernel.org/r/1483647425-4135-2-git-send-email-longman@redhat.com
+Link: http://lkml.kernel.org/r/1483647425-4135-4-git-send-email-longman@redhat.com
 Signed-off-by: Waiman Long <longman@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "Du Changbin" <changbin.du@intel.com>
@@ -78,54 +72,62 @@ Cc: Jan Stancek <jstancek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ lib/debugobjects.c |   31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-diff -puN lib/debugobjects.c~debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-track-number-of-kmem_cache_alloc-kmem_cache_free-done
+diff -puN lib/debugobjects.c~debugobjects-reduce-contention-on-the-global-pool_lock lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-reduce-contention-on-the-global-pool_lock
 +++ a/lib/debugobjects.c
-@@ -55,6 +55,12 @@ static int			debug_objects_enabled __rea
+@@ -172,25 +172,38 @@ alloc_object(void *addr, struct debug_bu
  
- static struct debug_obj_descr	*descr_test  __read_mostly;
+ /*
+  * workqueue function to free objects.
++ *
++ * To reduce contention on the global pool_lock, the actual freeing of
++ * debug objects will be delayed if the pool_lock is busy. We also free
++ * the objects in a batch of 4 for each lock/unlock cycle.
+  */
++#define ODEBUG_FREE_BATCH	4
+ static void free_obj_work(struct work_struct *work)
+ {
+-	struct debug_obj *obj;
++	struct debug_obj *objs[ODEBUG_FREE_BATCH];
+ 	unsigned long flags;
++	int i;
  
-+/*
-+ * Track numbers of kmem_cache_alloc and kmem_cache_free done.
-+ */
-+static int			debug_objects_alloc;
-+static int			debug_objects_freed;
+-	raw_spin_lock_irqsave(&pool_lock, flags);
+-	while (obj_pool_free > debug_objects_pool_size) {
+-		obj = hlist_entry(obj_pool.first, typeof(*obj), node);
+-		hlist_del(&obj->node);
+-		obj_pool_free--;
+-		debug_objects_freed++;
++	if (!raw_spin_trylock_irqsave(&pool_lock, flags))
++		return;
++	while (obj_pool_free >= debug_objects_pool_size + ODEBUG_FREE_BATCH) {
++		for (i = 0; i < ODEBUG_FREE_BATCH; i++) {
++			objs[i] = hlist_entry(obj_pool.first,
++					      typeof(*objs[0]), node);
++			hlist_del(&objs[i]->node);
++		}
 +
- static void free_obj_work(struct work_struct *work);
- static DECLARE_WORK(debug_obj_work, free_obj_work);
- 
-@@ -102,6 +108,7 @@ static void fill_pool(void)
- 
- 		raw_spin_lock_irqsave(&pool_lock, flags);
- 		hlist_add_head(&new->node, &obj_pool);
-+		debug_objects_alloc++;
- 		obj_pool_free++;
- 		raw_spin_unlock_irqrestore(&pool_lock, flags);
- 	}
-@@ -173,6 +180,7 @@ static void free_obj_work(struct work_st
- 		obj = hlist_entry(obj_pool.first, typeof(*obj), node);
- 		hlist_del(&obj->node);
- 		obj_pool_free--;
-+		debug_objects_freed++;
++		obj_pool_free -= ODEBUG_FREE_BATCH;
++		debug_objects_freed += ODEBUG_FREE_BATCH;
  		/*
  		 * We release pool_lock across kmem_cache_free() to
  		 * avoid contention on pool_lock.
-@@ -758,6 +766,8 @@ static int debug_stats_show(struct seq_f
- 	seq_printf(m, "pool_min_free :%d\n", obj_pool_min_free);
- 	seq_printf(m, "pool_used     :%d\n", obj_pool_used);
- 	seq_printf(m, "pool_max_used :%d\n", obj_pool_max_used);
-+	seq_printf(m, "objects_alloc :%d\n", debug_objects_alloc);
-+	seq_printf(m, "objects_freed :%d\n", debug_objects_freed);
- 	return 0;
+ 		 */
+ 		raw_spin_unlock_irqrestore(&pool_lock, flags);
+-		kmem_cache_free(obj_cache, obj);
+-		raw_spin_lock_irqsave(&pool_lock, flags);
++		for (i = 0; i < ODEBUG_FREE_BATCH; i++)
++			kmem_cache_free(obj_cache, objs[i]);
++		if (!raw_spin_trylock_irqsave(&pool_lock, flags))
++			return;
+ 	}
+ 	raw_spin_unlock_irqrestore(&pool_lock, flags);
  }
- 
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
 
-debugobjects-scale-thresholds-with-of-cpus.patch
-debugobjects-reduce-contention-on-the-global-pool_lock.patch
 
