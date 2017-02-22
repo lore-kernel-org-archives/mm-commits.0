@@ -1,107 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 040/142] mm: throttle show_mem() from warn_alloc()
-Date: Wed, 22 Feb 2017 15:41:45 -0800
-Message-ID: <58ae21b9.GK7yL9guLCrmuPsG%akpm@linux-foundation.org>
+Subject: [patch 055/142] userfaultfd: non-cooperative: dup_userfaultfd:
+ use mm_count instead of mm_users
+Date: Wed, 22 Feb 2017 15:42:30 -0800
+Message-ID: <58ae21e6.GRabmZvgyQmfQMzK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48252 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48438 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934550AbdBVXmJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:09 -0500
+        with ESMTP id S934638AbdBVXmo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: throttle show_mem() from warn_alloc()
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: dup_userfaultfd: use mm_count instead of mm_users
 
-Tetsuo has been stressing OOM killer path with many parallel allocation
-requests when he has noticed that it is not all that hard to swamp kernel
-logs with warn_alloc messages caused by allocation stalls.  Even though
-the allocation stall message is triggered only once in 10s there might be
-many different tasks hitting it roughly around the same time.
+Since commit d2005e3f41d4 (userfaultfd: don't pin the user memory in
+userfaultfd_file_create()) userfaultfd uses mm_count rather than mm_users
+to pin mm_struct.  Make dup_userfaultfd consistent with this behaviour
 
-A big part of the output is show_mem() which can generate a lot of output
-even on a small machines.  There is no reason to show the state of memory
-counter for each allocation stall, especially when multiple of them are
-reported in a short time period.  Chances are that not much has changed
-since the last report.  This patch simply rate limits show_mem called from
-warn_alloc to only dump something once per second.  This should be enough
-to give us a clue why an allocation might be stalling while burst of
-warnings will not swamp log with too much data.
-
-While we are at it, extract all the show_mem related handling (filters)
-into a separate function warn_alloc_show_mem.  This will make the code
-cleaner and as a bonus point we can distinguish which part of warn_alloc
-got throttled due to rate limiting as ___ratelimit dumps the caller.
-
-[akpm@linux-foundation.org: reduce scope of the ratelimit_states]
-Link: http://lkml.kernel.org/r/20161215101510.9030-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Link: http://lkml.kernel.org/r/20161216144821.5183-11-aarcange@redhat.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ fs/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-throttle-show_mem-from-warn_alloc mm/page_alloc.c
---- a/mm/page_alloc.c~mm-throttle-show_mem-from-warn_alloc
-+++ a/mm/page_alloc.c
-@@ -3007,18 +3007,12 @@ static inline bool should_suppress_show_
- 	return ret;
- }
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-dup_userfaultfd-use-mm_count-instead-of-mm_users
++++ a/fs/userfaultfd.c
+@@ -558,7 +558,7 @@ int dup_userfaultfd(struct vm_area_struc
+ 		ctx->features = octx->features;
+ 		ctx->released = false;
+ 		ctx->mm = vma->vm_mm;
+-		atomic_inc(&ctx->mm->mm_users);
++		atomic_inc(&ctx->mm->mm_count);
  
--static DEFINE_RATELIMIT_STATE(nopage_rs,
--		DEFAULT_RATELIMIT_INTERVAL,
--		DEFAULT_RATELIMIT_BURST);
--
--void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
-+static void warn_alloc_show_mem(gfp_t gfp_mask)
- {
- 	unsigned int filter = SHOW_MEM_FILTER_NODES;
--	struct va_format vaf;
--	va_list args;
-+	static DEFINE_RATELIMIT_STATE(show_mem_rs, HZ, 1);
- 
--	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
--	    debug_guardpage_minorder() > 0)
-+	if (should_suppress_show_mem() || !__ratelimit(&show_mem_rs))
- 		return;
- 
- 	/*
-@@ -3033,6 +3027,20 @@ void warn_alloc(gfp_t gfp_mask, const ch
- 	if (in_interrupt() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		filter &= ~SHOW_MEM_FILTER_NODES;
- 
-+	show_mem(filter);
-+}
-+
-+void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
-+				      DEFAULT_RATELIMIT_BURST);
-+
-+	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
-+	    debug_guardpage_minorder() > 0)
-+		return;
-+
- 	pr_warn("%s: ", current->comm);
- 
- 	va_start(args, fmt);
-@@ -3044,8 +3052,7 @@ void warn_alloc(gfp_t gfp_mask, const ch
- 	pr_cont(", mode:%#x(%pGg)\n", gfp_mask, &gfp_mask);
- 
- 	dump_stack();
--	if (!should_suppress_show_mem())
--		show_mem(filter);
-+	warn_alloc_show_mem(gfp_mask);
- }
- 
- static inline struct page *
+ 		userfaultfd_ctx_get(octx);
+ 		fctx->orig = octx;
 _
