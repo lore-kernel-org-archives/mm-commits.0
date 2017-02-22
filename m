@@ -1,61 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [patch 112/142] mm/swap: fix kernel message in swap_info_get()
-Date: Wed, 22 Feb 2017 15:45:19 -0800
-Message-ID: <58ae228f.+hYGQzoMM91JNJek%akpm@linux-foundation.org>
+Subject: [patch 115/142] mm/swap: skip readahead for unreferenced swap
+ slots
+Date: Wed, 22 Feb 2017 15:45:29 -0800
+Message-ID: <58ae2299.uFpxL/wxtYfuyEeh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49370 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934382AbdBVXpV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:21 -0500
+        with ESMTP id S934481AbdBVXpd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tim.c.chen@linux.intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, vdavydov.dev@gmail.com, ying.huang@intel.com
 
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: mm/swap: fix kernel message in swap_info_get()
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: mm/swap: skip readahead for unreferenced swap slots
 
-Patch series "mm/swap: Regular page swap optimizations", v5.
+We can avoid needlessly allocating page for swap slots that are not used
+by anyone.  No pages have to be read in for these slots.
 
-Times have changed.  Coming generation of Solid state Block device
-latencies are getting down to sub 100 usec, which is within an order of
-magnitude of DRAM, and their performance is orders of magnitude higher
-than the single- spindle rotational media we've swapped to historically.
-
-This could benefit many usage scenearios.  For example cloud providers who
-overcommit their memory (as VM don't use all the memory provisioned). 
-Having a fast swap will allow them to be more aggressive in memory
-overcommit and fit more VMs to a platform.
-
-In our testing [see footnote], the median latency that the kernel adds to
-a page fault is 15 usec, which comes quite close to the amount that will
-be contributed by the underlying I/O devices.
-
-The software latency comes mostly from contentions on the locks protecting
-the radix tree of the swap cache and also the locks protecting the
-individual swap devices.  The lock contentions already consumed 35% of cpu
-cycles in our test.  In the very near future, software latency will become
-the bottleneck to swap performnace as block device I/O latency gets within
-the shouting distance of DRAM speed.
-
-This patch set, reduced the median page fault latency from 15 usec to 4
-usec (375% reduction) for DRAM based pmem block device.
-
-
-This patch (of 9):
-
-swap_info_get() is used not only in swap free code path but also in
-page_swapcount(), etc.  So the original kernel message in swap_info_get()
-is not correct now.  Fix it via replacing "swap_free" to "swap_info_get"
-in the message.
-
-Link: http://lkml.kernel.org/r/9b5f8bd6266f9da978c373f2384c8044df5e262c.1484082593.git.tim.c.chen@linux.intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Link: http://lkml.kernel.org/r/0784b3f20b9bd3aa5552219624cb78dc4ae710c9.1484082593.git.tim.c.chen@linux.intel.com
 Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Aaron Lu <aaron.lu@intel.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -69,36 +38,132 @@ Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Shaohua Li <shli@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/swap.h |    6 +++++
+ mm/swap_state.c      |    4 +++
+ mm/swapfile.c        |   47 +++++++++++++++++++++++++++++++++++------
+ 3 files changed, 51 insertions(+), 6 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-fix-kernel-message-in-swap_info_get mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-fix-kernel-message-in-swap_info_get
+diff -puN include/linux/swap.h~mm-swap-skip-read-ahead-for-unreferenced-swap-slots include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-skip-read-ahead-for-unreferenced-swap-slots
++++ a/include/linux/swap.h
+@@ -398,6 +398,7 @@ extern unsigned int count_swap_pages(int
+ extern sector_t map_swap_page(struct page *, struct block_device **);
+ extern sector_t swapdev_block(int, pgoff_t);
+ extern int page_swapcount(struct page *);
++extern int __swp_swapcount(swp_entry_t entry);
+ extern int swp_swapcount(swp_entry_t entry);
+ extern struct swap_info_struct *page_swap_info(struct page *);
+ extern bool reuse_swap_page(struct page *, int *);
+@@ -491,6 +492,11 @@ static inline int page_swapcount(struct
+ {
+ 	return 0;
+ }
++
++static inline int __swp_swapcount(swp_entry_t entry)
++{
++	return 0;
++}
+ 
+ static inline int swp_swapcount(swp_entry_t entry)
+ {
+diff -puN mm/swap_state.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots
++++ a/mm/swap_state.c
+@@ -323,6 +323,10 @@ struct page *__read_swap_cache_async(swp
+ 		if (found_page)
+ 			break;
+ 
++		/* Just skip read ahead for unused swap slot */
++		if (!__swp_swapcount(entry))
++			return NULL;
++
+ 		/*
+ 		 * Get a new page to read into from swap.
+ 		 */
+diff -puN mm/swapfile.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots
 +++ a/mm/swapfile.c
-@@ -753,16 +753,16 @@ static struct swap_info_struct *swap_inf
+@@ -798,7 +798,7 @@ swp_entry_t get_swap_page_of_type(int ty
+ 	return (swp_entry_t) {0};
+ }
+ 
+-static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
++static struct swap_info_struct *__swap_info_get(swp_entry_t entry)
+ {
+ 	struct swap_info_struct *p;
+ 	unsigned long offset, type;
+@@ -814,13 +814,8 @@ static struct swap_info_struct *_swap_in
+ 	offset = swp_offset(entry);
+ 	if (offset >= p->max)
+ 		goto bad_offset;
+-	if (!p->swap_map[offset])
+-		goto bad_free;
  	return p;
  
- bad_free:
--	pr_err("swap_free: %s%08lx\n", Unused_offset, entry.val);
-+	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
- 	goto out;
+-bad_free:
+-	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
+-	goto out;
  bad_offset:
--	pr_err("swap_free: %s%08lx\n", Bad_offset, entry.val);
-+	pr_err("swap_info_get: %s%08lx\n", Bad_offset, entry.val);
+ 	pr_err("swap_info_get: %s%08lx\n", Bad_offset, entry.val);
  	goto out;
- bad_device:
--	pr_err("swap_free: %s%08lx\n", Unused_file, entry.val);
-+	pr_err("swap_info_get: %s%08lx\n", Unused_file, entry.val);
- 	goto out;
- bad_nofile:
--	pr_err("swap_free: %s%08lx\n", Bad_file, entry.val);
-+	pr_err("swap_info_get: %s%08lx\n", Bad_file, entry.val);
- out:
+@@ -833,6 +828,24 @@ out:
  	return NULL;
  }
+ 
++static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
++{
++	struct swap_info_struct *p;
++
++	p = __swap_info_get(entry);
++	if (!p)
++		goto out;
++	if (!p->swap_map[swp_offset(entry)])
++		goto bad_free;
++	return p;
++
++bad_free:
++	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
++	goto out;
++out:
++	return NULL;
++}
++
+ static struct swap_info_struct *swap_info_get(swp_entry_t entry)
+ {
+ 	struct swap_info_struct *p;
+@@ -985,6 +998,28 @@ int page_swapcount(struct page *page)
+ 	}
+ 	return count;
+ }
++
++/*
++ * How many references to @entry are currently swapped out?
++ * This does not give an exact answer when swap count is continued,
++ * but does include the high COUNT_CONTINUED flag to allow for that.
++ */
++int __swp_swapcount(swp_entry_t entry)
++{
++	int count = 0;
++	pgoff_t offset;
++	struct swap_info_struct *si;
++	struct swap_cluster_info *ci;
++
++	si = __swap_info_get(entry);
++	if (si) {
++		offset = swp_offset(entry);
++		ci = lock_cluster_or_swap_info(si, offset);
++		count = swap_count(si->swap_map[offset]);
++		unlock_cluster_or_swap_info(si, ci);
++	}
++	return count;
++}
+ 
+ /*
+  * How many references to @entry are currently swapped out?
 _
