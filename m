@@ -1,75 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [patch 123/142] mm, vmscan: do not count freed pages as
- PGDEACTIVATE
-Date: Wed, 22 Feb 2017 15:45:55 -0800
-Message-ID: <58ae22b3.7svp9NaWN6UIZD5B%akpm@linux-foundation.org>
+Subject: [patch 001/142] tracing: add __print_flags_u64()
+Date: Wed, 22 Feb 2017 15:39:47 -0800
+Message-ID: <58ae2143.x8nwl2qShUGpHPpM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49520 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934187AbdBVXqC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:02 -0500
+        with ESMTP id S934489AbdBVXpx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dave.jiang@intel.com, david@fromorbit.com, jack@suse.cz, mawilcox@microsoft.com, rostedt@goodmis.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: do not count freed pages as PGDEACTIVATE
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: tracing: add __print_flags_u64()
 
-PGDEACTIVATE represents the number of pages moved from the active list to
-the inactive list.  At least this sounds like the original motivation of
-the counter.  move_active_pages_to_lru, however, counts pages which got
-freed in the mean time as deactivated as well.  This is a very rare event
-and counting them as deactivation in itself is not harmful but it makes
-the code more convoluted than necessary - we have to count both all pages
-and those which are freed which is a bit confusing.
+Patch series "DAX tracepoints, mm argument simplification", v4.
 
-After this patch the PGDEACTIVATE should have a slightly more clear
-semantic and only count those pages which are moved from the active to the
-inactive list which is a plus.
+This contains both my DAX tracepoint code and Dave Jiang's MM argument
+simplifications.  Dave's code was written with my tracepoint code as a
+baseline, so it seemed simplest to keep them together in a single series.
 
-Link: http://lkml.kernel.org/r/20170112211221.17636-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
+
+This patch (of 7):
+
+Add __print_flags_u64() and the helper trace_print_flags_seq_u64() in the
+same spirit as __print_symbolic_u64() and trace_print_symbols_seq_u64(). 
+These functions allow us to print symbols associated with flags that are
+64 bits wide even on 32 bit machines.
+
+These will be used by the DAX code so that we can print the flags set in a
+pfn_t such as PFN_SG_CHAIN, PFN_SG_LAST, PFN_DEV and PFN_MAP.
+
+Without this new function I was getting errors like the following when
+compiling for i386:
+
+./include/linux/pfn_t.h:13:22: warning: large integer implicitly truncated
+to unsigned type [-Woverflow]
+ #define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
+  ^
+
+Link: http://lkml.kernel.org/r/1484085142-2297-2-git-send-email-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/trace_events.h |    4 +++
+ include/trace/trace_events.h |   11 +++++++++
+ kernel/trace/trace_output.c  |   38 +++++++++++++++++++++++++++++++++
+ 3 files changed, 53 insertions(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-count-freed-pages-as-pgdeactivate mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-count-freed-pages-as-pgdeactivate
-+++ a/mm/vmscan.c
-@@ -1878,7 +1878,6 @@ static unsigned move_active_pages_to_lru
- 				     enum lru_list lru)
+diff -puN include/linux/trace_events.h~tracing-add-__print_flags_u64 include/linux/trace_events.h
+--- a/include/linux/trace_events.h~tracing-add-__print_flags_u64
++++ a/include/linux/trace_events.h
+@@ -23,6 +23,10 @@ const char *trace_print_symbols_seq(stru
+ 				    const struct trace_print_flags *symbol_array);
+ 
+ #if BITS_PER_LONG == 32
++const char *trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
++		      unsigned long long flags,
++		      const struct trace_print_flags_u64 *flag_array);
++
+ const char *trace_print_symbols_seq_u64(struct trace_seq *p,
+ 					unsigned long long val,
+ 					const struct trace_print_flags_u64
+diff -puN include/trace/trace_events.h~tracing-add-__print_flags_u64 include/trace/trace_events.h
+--- a/include/trace/trace_events.h~tracing-add-__print_flags_u64
++++ a/include/trace/trace_events.h
+@@ -283,8 +283,16 @@ TRACE_MAKE_SYSTEM_STR();
+ 		trace_print_symbols_seq(p, value, symbols);		\
+ 	})
+ 
++#undef __print_flags_u64
+ #undef __print_symbolic_u64
+ #if BITS_PER_LONG == 32
++#define __print_flags_u64(flag, delim, flag_array...)			\
++	({								\
++		static const struct trace_print_flags_u64 __flags[] =	\
++			{ flag_array, { -1, NULL } };			\
++		trace_print_flags_seq_u64(p, delim, flag, __flags);	\
++	})
++
+ #define __print_symbolic_u64(value, symbol_array...)			\
+ 	({								\
+ 		static const struct trace_print_flags_u64 symbols[] =	\
+@@ -292,6 +300,9 @@ TRACE_MAKE_SYSTEM_STR();
+ 		trace_print_symbols_seq_u64(p, value, symbols);	\
+ 	})
+ #else
++#define __print_flags_u64(flag, delim, flag_array...)			\
++			__print_flags(flag, delim, flag_array)
++
+ #define __print_symbolic_u64(value, symbol_array...)			\
+ 			__print_symbolic(value, symbol_array)
+ #endif
+diff -puN kernel/trace/trace_output.c~tracing-add-__print_flags_u64 kernel/trace/trace_output.c
+--- a/kernel/trace/trace_output.c~tracing-add-__print_flags_u64
++++ a/kernel/trace/trace_output.c
+@@ -124,6 +124,44 @@ EXPORT_SYMBOL(trace_print_symbols_seq);
+ 
+ #if BITS_PER_LONG == 32
+ const char *
++trace_print_flags_seq_u64(struct trace_seq *p, const char *delim,
++		      unsigned long long flags,
++		      const struct trace_print_flags_u64 *flag_array)
++{
++	unsigned long long mask;
++	const char *str;
++	const char *ret = trace_seq_buffer_ptr(p);
++	int i, first = 1;
++
++	for (i = 0;  flag_array[i].name && flags; i++) {
++
++		mask = flag_array[i].mask;
++		if ((flags & mask) != mask)
++			continue;
++
++		str = flag_array[i].name;
++		flags &= ~mask;
++		if (!first && delim)
++			trace_seq_puts(p, delim);
++		else
++			first = 0;
++		trace_seq_puts(p, str);
++	}
++
++	/* check for left over flags */
++	if (flags) {
++		if (!first && delim)
++			trace_seq_puts(p, delim);
++		trace_seq_printf(p, "0x%llx", flags);
++	}
++
++	trace_seq_putc(p, 0);
++
++	return ret;
++}
++EXPORT_SYMBOL(trace_print_flags_seq_u64);
++
++const char *
+ trace_print_symbols_seq_u64(struct trace_seq *p, unsigned long long val,
+ 			 const struct trace_print_flags_u64 *symbol_array)
  {
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
--	unsigned long pgmoved = 0;
- 	struct page *page;
- 	int nr_pages;
- 	int nr_moved = 0;
-@@ -1893,7 +1892,6 @@ static unsigned move_active_pages_to_lru
- 		nr_pages = hpage_nr_pages(page);
- 		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
- 		list_move(&page->lru, &lruvec->lists[lru]);
--		pgmoved += nr_pages;
- 
- 		if (put_page_testzero(page)) {
- 			__ClearPageLRU(page);
-@@ -1913,7 +1911,7 @@ static unsigned move_active_pages_to_lru
- 	}
- 
- 	if (!is_active_lru(lru))
--		__count_vm_events(PGDEACTIVATE, pgmoved);
-+		__count_vm_events(PGDEACTIVATE, nr_moved);
- 
- 	return nr_moved;
- }
 _
