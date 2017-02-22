@@ -1,87 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do-not-access-page-mapping-directly-on-page_endio.patch
- added to -mm tree
-Date: Wed, 22 Feb 2017 14:18:36 -0800
-Message-ID: <58ae0e3c.8nvTx5XbWVsi1cJ1%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch removed
+ from -mm tree
+Date: Wed, 22 Feb 2017 15:11:55 -0800
+Message-ID: <58ae1abb./XE6PZcZYzc7amMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44342 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932247AbdBVWSi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 17:18:38 -0500
+        with ESMTP id S934202AbdBVXL5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:11:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, stable@vger.kernel.org, willy@infradead.org, mm-commits@vger.kernel.org
+To: dave.jiang@intel.com, david@fromorbit.com, jack@suse.cz, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not access page->mapping directly on page_endio
-has been added to the -mm tree.  Its filename is
-     mm-do-not-access-page-mapping-directly-on-page_endio.patch
+     Subject: mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7
+has been removed from the -mm tree.  Its filename was
+     mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-access-page-mapping-directly-on-page_endio.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-access-page-mapping-directly-on-page_endio.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: do not access page->mapping directly on page_endio
+From: Dave Jiang <dave.jiang@intel.com>
+Subject: mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7
 
-With rw_page, page_endio is used for completing IO on a page and it
-propagates write error to the address space if the IO fails.  The problem
-is it accesses page->mapping directly which might be okay for file-backed
-pages but it shouldn't for anonymous page.  Otherwise, it can corrupt one
-of field from anon_vma under us and system goes panic randomly.
+v7:
+Xiong found issue with xfs_tests stall when DAX option is turned out. It
+seems the issue has to do with dax_iomap_pmd_fault(). The pgoff needs
+to be linear_page_index(vma, vmf->address & PMD_MASK) in this funciton.
+However, the passed in address is linear_page_index(vma, vmf->address)
+and based on the PTE and not the PMD. The vmf->pgoff needs to be what was
+passed in when returned. Therefore we go back to having a local variable
+of pgoff in the dax_iomap_pmd_fault that is based on address & PMD_MASK.
 
-Link: http://lkml.kernel.org/r/1487741964-17913-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/148469861071.195597.3619476895250028518.stgit@djiang5-desk3.ch.intel.com
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/dax.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/filemap.c~mm-do-not-access-page-mapping-directly-on-page_endio mm/filemap.c
---- a/mm/filemap.c~mm-do-not-access-page-mapping-directly-on-page_endio
-+++ a/mm/filemap.c
-@@ -1008,9 +1008,12 @@ void page_endio(struct page *page, bool
- 		unlock_page(page);
- 	} else {
- 		if (err) {
-+			struct address_space *mapping;
-+
- 			SetPageError(page);
--			if (page->mapping)
--				mapping_set_error(page->mapping, err);
-+			mapping = page_mapping(page);
-+			if (mapping)
-+				mapping_set_error(mapping, err);
- 		}
- 		end_page_writeback(page);
+diff -puN fs/dax.c~mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7 fs/dax.c
+--- a/fs/dax.c~mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault-v7
++++ a/fs/dax.c
+@@ -1350,7 +1350,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	struct inode *inode = mapping->host;
+ 	int result = VM_FAULT_FALLBACK;
+ 	struct iomap iomap = { 0 };
+-	pgoff_t max_pgoff;
++	pgoff_t max_pgoff, pgoff;
+ 	void *entry;
+ 	loff_t pos;
+ 	int error;
+@@ -1360,7 +1360,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	 * supposed to hold locks serializing us with truncate / punch hole so
+ 	 * this is a reliable test.
+ 	 */
+-	vmf->pgoff = linear_page_index(vma, pmd_addr);
++	pgoff = linear_page_index(vma, pmd_addr);
+ 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
+ 
+ 	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
+@@ -1375,13 +1375,13 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
+ 		goto fallback;
+ 
+-	if (vmf->pgoff > max_pgoff) {
++	if (pgoff > max_pgoff) {
+ 		result = VM_FAULT_SIGBUS;
+ 		goto out;
  	}
+ 
+ 	/* If the PMD would extend beyond the file size */
+-	if ((vmf->pgoff | PG_PMD_COLOUR) > max_pgoff)
++	if ((pgoff | PG_PMD_COLOUR) > max_pgoff)
+ 		goto fallback;
+ 
+ 	/*
+@@ -1389,7 +1389,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	 * setting up a mapping, so really we're using iomap_begin() as a way
+ 	 * to look up our filesystem block.
+ 	 */
+-	pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
++	pos = (loff_t)pgoff << PAGE_SHIFT;
+ 	error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap);
+ 	if (error)
+ 		goto fallback;
+@@ -1403,7 +1403,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	 * the tree, for instance), it will return -EEXIST and we just fall
+ 	 * back to 4k entries.
+ 	 */
+-	entry = grab_mapping_entry(mapping, vmf->pgoff, RADIX_DAX_PMD);
++	entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);
+ 	if (IS_ERR(entry))
+ 		goto finish_iomap;
+ 
+@@ -1425,7 +1425,7 @@ int dax_iomap_pmd_fault(struct vm_area_s
+ 	}
+ 
+  unlock_entry:
+-	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++	put_locked_mapping_entry(mapping, pgoff, entry);
+  finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PMD_SIZE;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from dave.jiang@intel.com are
 
-mm-swap-add-cluster-lock-v5-fix.patch
-zram-remove-waitqueue-for-io-done.patch
-zram-extend-zero-pages-to-same-element-pages-fix.patch
-mm-do-not-access-page-mapping-directly-on-page_endio.patch
+mm-dax-make-pmd_fault-and-friends-to-be-the-same-as-fault.patch
+mm-dax-move-pmd_fault-to-take-only-vmf-parameter.patch
 
