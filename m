@@ -1,78 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 101/142] mm/mmzone.c: swap likely to unlikely as code
- logic is different for next_zones_zonelist()
-Date: Wed, 22 Feb 2017 15:44:47 -0800
-Message-ID: <58ae226f.2E549rSK8Q5j+pYQ%akpm@linux-foundation.org>
+Subject: [patch 104/142] mm,compaction: serialize waitqueue_active()
+ checks
+Date: Wed, 22 Feb 2017 15:44:55 -0800
+Message-ID: <58ae2277.lZZScQQ2Nrsp3G2I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49154 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933134AbdBVXos (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:48 -0500
+        with ESMTP id S933878AbdBVXo5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rostedt@goodmis.org, mgorman@techsingularity.net, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, vbabka@suse.cz
 
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: mm/mmzone.c: swap likely to unlikely as code logic is different for next_zones_zonelist()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm,compaction: serialize waitqueue_active() checks
 
-Commit 682a3385e773 "mm, page_alloc: inline the fast path of the
-zonelist iterator" changed how next_zones_zonelist() is called, by
-adding a static inline function to do the fast path. This function adds:
+Without a memory barrier, the following race can occur with a high-order
+allocation:
 
-       if (likely(!nodes && zonelist_zone_idx(z) <= highest_zoneidx))
-               return z;
-       return __next_zones_zonelist(z, highest_zoneidx, nodes);
+wakeup_kcompactd(order == 1)  		     kcompactd()
+  [L] waitqueue_active(kcompactd_wait)
+						[S] prepare_to_wait_event(kcompactd_wait)
+						[L] (kcompactd_max_order == 0)
+  [S] kcompactd_max_order = order;		      schedule()
 
-Where __next_zones_zonelist() is only called when nodes is not NULL or
-zonelist_zone_idx(z) is less than highest_zoneidx.
+Where the waitqueue_active() check is speculatively re-ordered to before
+setting the actual condition (max_order), not seeing the threads that's
+going to block; making us miss a wakeup. There are a couple of options to
+fix this, including calling wq_has_sleepers() which adds a full barrier,
+or unconditionally doing the wake_up_interruptible() and serialize on the
+q->lock. However, to make use of the control dependency, we just need to
+add L->L guarantees.
 
-The original next_zone_zonelist() was converted to
-__next_zones_zonelist() but it still maintained:
+While this bug is theoretical, there have been other offenders of the lockless
+waitqueue_active() in the past -- this is also documented in the call itself.
 
-	if (likely(nodes == NULL))
-
-Which is now actually a very unlikely, as it is only called with nodes
-equal to NULL when zonelist_zone_idx(z) is greater than highest_zoneidx.
-
-Before this commit, this if had this statistic:
-
- correct incorrect  %        Function                  File              Line
- ------- ---------  -        --------                  ----              ----
-  837895   446078  34 next_zones_zonelist            mmzone.c             63
-
-After this commit, it has:
-
- correct incorrect  %        Function                  File              Line
- ------- ---------  -        --------                  ----              ----
-      10   173840  99 __next_zones_zonelist          mmzone.c             63
-
-Thus, the if statement is now much more unlikely than it ever was as a
-likely.
-
-Link: http://lkml.kernel.org/r/20170105200102.77989567@gandalf.local.home
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/1483975528-24342-1-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmzone.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/mmzone.c~mm-page_alloc-swap-likely-to-unlikely-as-code-logic-is-different-for-next_zones_zonelist mm/mmzone.c
---- a/mm/mmzone.c~mm-page_alloc-swap-likely-to-unlikely-as-code-logic-is-different-for-next_zones_zonelist
-+++ a/mm/mmzone.c
-@@ -60,7 +60,7 @@ struct zoneref *__next_zones_zonelist(st
- 	 * Find the next suitable zone to use for the allocation.
- 	 * Only filter based on nodemask if it's set
- 	 */
--	if (likely(nodes == NULL))
-+	if (unlikely(nodes == NULL))
- 		while (zonelist_zone_idx(z) > highest_zoneidx)
- 			z++;
- 	else
+diff -puN mm/compaction.c~mmcompaction-serialize-waitqueue_active-checks mm/compaction.c
+--- a/mm/compaction.c~mmcompaction-serialize-waitqueue_active-checks
++++ a/mm/compaction.c
+@@ -1966,6 +1966,13 @@ void wakeup_kcompactd(pg_data_t *pgdat,
+ 	if (pgdat->kcompactd_max_order < order)
+ 		pgdat->kcompactd_max_order = order;
+ 
++	/*
++	 * Pairs with implicit barrier in wait_event_freezable()
++	 * such that wakeups are not missed in the lockless
++	 * waitqueue_active() call.
++	 */
++	smp_acquire__after_ctrl_dep();
++
+ 	if (pgdat->kcompactd_classzone_idx > classzone_idx)
+ 		pgdat->kcompactd_classzone_idx = classzone_idx;
+ 
 _
