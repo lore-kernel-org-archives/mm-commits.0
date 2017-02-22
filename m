@@ -1,213 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [patch 044/142] mm, trace: extract COMPACTION_STATUS and
- ZONE_TYPE to a common header
-Date: Wed, 22 Feb 2017 15:41:57 -0800
-Message-ID: <58ae21c5.0ZtS1rUH1a4AxiX+%akpm@linux-foundation.org>
+Subject: [patch 020/142] ocfs2: fix deadlock issue when taking inode lock
+ at vfs entry points
+Date: Wed, 22 Feb 2017 15:40:44 -0800
+Message-ID: <58ae217c.H2QzjfDixsR3QYGf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47922 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934617AbdBVXmo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:44 -0500
+        with ESMTP id S934354AbdBVXl4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, rientjes@google.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, trace: extract COMPACTION_STATUS and ZONE_TYPE to a common header
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix deadlock issue when taking inode lock at vfs entry points
 
-COMPACTION_STATUS resp.  ZONE_TYPE are currently used to translate enum
-compact_result resp.  struct zone index into their symbolic names for an
-easier post processing.  The follow up patch would like to reuse this as
-well.  The code involves some preprocessor black magic which is better not
-duplicated elsewhere so move it to a common mm tracing relate header.
+Commit 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+results in a deadlock, as the author "Tariq Saeed" realized shortly after
+the patch was merged.  The discussion happened here
+(https://oss.oracle.com/pipermail/ocfs2-devel/2015-September/011085.html).
 
-Link: http://lkml.kernel.org/r/20161220130135.15719-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+The reason why taking cluster inode lock at vfs entry points opens up a
+self deadlock window, is explained in the previous patch of this series.
+
+So far, we have seen two different code paths that have this issue.
+1. do_sys_open
+     may_open
+      inode_permission
+       ocfs2_permission
+        ocfs2_inode_lock() <=== take PR
+         generic_permission
+          get_acl
+           ocfs2_iop_get_acl
+            ocfs2_inode_lock() <=== take PR
+2. fchmod|fchmodat
+    chmod_common
+     notify_change
+      ocfs2_setattr <=== take EX
+       posix_acl_chmod
+        get_acl
+         ocfs2_iop_get_acl <=== take PR
+        ocfs2_iop_set_acl <=== take EX
+
+Fixes them by adding the tracking logic (in the previous patch) for these
+funcs above, ocfs2_permission(), ocfs2_iop_[set|get]_acl(),
+ocfs2_setattr().
+
+Link: http://lkml.kernel.org/r/20170117100948.11657-3-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |   60 +-------------------------
- include/trace/events/mmflags.h    |   64 ++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 57 deletions(-)
+ fs/ocfs2/acl.c  |   29 ++++++++++-------------
+ fs/ocfs2/file.c |   58 +++++++++++++++++++++++++++++++++++-----------
+ 2 files changed, 58 insertions(+), 29 deletions(-)
 
-diff -puN include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
-+++ a/include/trace/events/compaction.h
-@@ -9,62 +9,6 @@
- #include <linux/tracepoint.h>
- #include <trace/events/mmflags.h>
+diff -puN fs/ocfs2/acl.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/acl.c
+@@ -283,16 +283,14 @@ int ocfs2_set_acl(handle_t *handle,
+ int ocfs2_iop_set_acl(struct inode *inode, struct posix_acl *acl, int type)
+ {
+ 	struct buffer_head *bh = NULL;
+-	int status = 0;
++	int status, had_lock;
++	struct ocfs2_lock_holder oh;
  
--#define COMPACTION_STATUS					\
--	EM( COMPACT_SKIPPED,		"skipped")		\
--	EM( COMPACT_DEFERRED,		"deferred")		\
--	EM( COMPACT_CONTINUE,		"continue")		\
--	EM( COMPACT_SUCCESS,		"success")		\
--	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
--	EM( COMPACT_COMPLETE,		"complete")		\
--	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
--	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
--	EMe(COMPACT_CONTENDED,		"contended")
--
--#ifdef CONFIG_ZONE_DMA
--#define IFDEF_ZONE_DMA(X) X
--#else
--#define IFDEF_ZONE_DMA(X)
--#endif
--
--#ifdef CONFIG_ZONE_DMA32
--#define IFDEF_ZONE_DMA32(X) X
--#else
--#define IFDEF_ZONE_DMA32(X)
--#endif
--
--#ifdef CONFIG_HIGHMEM
--#define IFDEF_ZONE_HIGHMEM(X) X
--#else
--#define IFDEF_ZONE_HIGHMEM(X)
--#endif
--
--#define ZONE_TYPE						\
--	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
--	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
--				EM (ZONE_NORMAL, "Normal")	\
--	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
--				EMe(ZONE_MOVABLE,"Movable")
--
--/*
-- * First define the enums in the above macros to be exported to userspace
-- * via TRACE_DEFINE_ENUM().
-- */
--#undef EM
--#undef EMe
--#define EM(a, b)	TRACE_DEFINE_ENUM(a);
--#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
--
--COMPACTION_STATUS
--ZONE_TYPE
--
--/*
-- * Now redefine the EM() and EMe() macros to map the enums to the strings
-- * that will be printed in the output.
-- */
--#undef EM
--#undef EMe
--#define EM(a, b)	{a, b},
--#define EMe(a, b)	{a, b}
+-	status = ocfs2_inode_lock(inode, &bh, 1);
+-	if (status < 0) {
+-		if (status != -ENOENT)
+-			mlog_errno(status);
+-		return status;
+-	}
++	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
++	if (had_lock < 0)
++		return had_lock;
+ 	status = ocfs2_set_acl(NULL, inode, bh, type, acl, NULL, NULL);
+-	ocfs2_inode_unlock(inode, 1);
++	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 	brelse(bh);
+ 	return status;
+ }
+@@ -302,21 +300,20 @@ struct posix_acl *ocfs2_iop_get_acl(stru
+ 	struct ocfs2_super *osb;
+ 	struct buffer_head *di_bh = NULL;
+ 	struct posix_acl *acl;
+-	int ret;
++	int had_lock;
++	struct ocfs2_lock_holder oh;
  
- DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
- 
-@@ -187,6 +131,7 @@ TRACE_EVENT(mm_compaction_begin,
- 		__entry->sync ? "sync" : "async")
- );
- 
-+#ifdef CONFIG_COMPACTION
- TRACE_EVENT(mm_compaction_end,
- 	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
- 		unsigned long free_pfn, unsigned long zone_end, bool sync,
-@@ -220,6 +165,7 @@ TRACE_EVENT(mm_compaction_end,
- 		__entry->sync ? "sync" : "async",
- 		__print_symbolic(__entry->status, COMPACTION_STATUS))
- );
-+#endif
- 
- TRACE_EVENT(mm_compaction_try_to_compact_pages,
- 
-@@ -248,6 +194,7 @@ TRACE_EVENT(mm_compaction_try_to_compact
- 		__entry->prio)
- );
- 
-+#ifdef CONFIG_COMPACTION
- DECLARE_EVENT_CLASS(mm_compaction_suitable_template,
- 
- 	TP_PROTO(struct zone *zone,
-@@ -295,7 +242,6 @@ DEFINE_EVENT(mm_compaction_suitable_temp
- 	TP_ARGS(zone, order, ret)
- );
- 
--#ifdef CONFIG_COMPACTION
- DECLARE_EVENT_CLASS(mm_compaction_defer_template,
- 
- 	TP_PROTO(struct zone *zone, int order),
-diff -puN include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/mmflags.h
---- a/include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
-+++ a/include/trace/events/mmflags.h
-@@ -1,3 +1,6 @@
-+#include <linux/node.h>
-+#include <linux/mmzone.h>
-+#include <linux/compaction.h>
- /*
-  * The order of these masks is important. Matching masks will be seen
-  * first and the left over flags will end up showing by themselves.
-@@ -171,3 +174,64 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
- 	(flags) ? __print_flags(flags, "|",				\
- 	__def_vmaflag_names						\
- 	) : "none"
+ 	osb = OCFS2_SB(inode->i_sb);
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return NULL;
+-	ret = ocfs2_inode_lock(inode, &di_bh, 0);
+-	if (ret < 0) {
+-		if (ret != -ENOENT)
+-			mlog_errno(ret);
+-		return ERR_PTR(ret);
+-	}
 +
-+#ifdef CONFIG_COMPACTION
-+#define COMPACTION_STATUS					\
-+	EM( COMPACT_SKIPPED,		"skipped")		\
-+	EM( COMPACT_DEFERRED,		"deferred")		\
-+	EM( COMPACT_CONTINUE,		"continue")		\
-+	EM( COMPACT_SUCCESS,		"success")		\
-+	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
-+	EM( COMPACT_COMPLETE,		"complete")		\
-+	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
-+	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
-+	EMe(COMPACT_CONTENDED,		"contended")
-+#else
-+#define COMPACTION_STATUS
-+#endif
-+
-+#ifdef CONFIG_ZONE_DMA
-+#define IFDEF_ZONE_DMA(X) X
-+#else
-+#define IFDEF_ZONE_DMA(X)
-+#endif
-+
-+#ifdef CONFIG_ZONE_DMA32
-+#define IFDEF_ZONE_DMA32(X) X
-+#else
-+#define IFDEF_ZONE_DMA32(X)
-+#endif
-+
-+#ifdef CONFIG_HIGHMEM
-+#define IFDEF_ZONE_HIGHMEM(X) X
-+#else
-+#define IFDEF_ZONE_HIGHMEM(X)
-+#endif
-+
-+#define ZONE_TYPE						\
-+	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
-+	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
-+				EM (ZONE_NORMAL, "Normal")	\
-+	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
-+				EMe(ZONE_MOVABLE,"Movable")
-+
-+/*
-+ * First define the enums in the above macros to be exported to userspace
-+ * via TRACE_DEFINE_ENUM().
-+ */
-+#undef EM
-+#undef EMe
-+#define EM(a, b)	TRACE_DEFINE_ENUM(a);
-+#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
-+
-+COMPACTION_STATUS
-+ZONE_TYPE
-+
-+/*
-+ * Now redefine the EM() and EMe() macros to map the enums to the strings
-+ * that will be printed in the output.
-+ */
-+#undef EM
-+#undef EMe
-+#define EM(a, b)	{a, b},
-+#define EMe(a, b)	{a, b}
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 0, &oh);
++	if (had_lock < 0)
++		return ERR_PTR(had_lock);
+ 
+ 	acl = ocfs2_get_acl_nolock(inode, type, di_bh);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ 	brelse(di_bh);
+ 	return acl;
+ }
+diff -puN fs/ocfs2/file.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-deadlock-issue-when-taking-inode-lock-at-vfs-entry-points
++++ a/fs/ocfs2/file.c
+@@ -1138,6 +1138,8 @@ int ocfs2_setattr(struct dentry *dentry,
+ 	handle_t *handle = NULL;
+ 	struct dquot *transfer_to[MAXQUOTAS] = { };
+ 	int qtype;
++	int had_lock;
++	struct ocfs2_lock_holder oh;
+ 
+ 	trace_ocfs2_setattr(inode, dentry,
+ 			    (unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -1173,11 +1175,30 @@ int ocfs2_setattr(struct dentry *dentry,
+ 		}
+ 	}
+ 
+-	status = ocfs2_inode_lock(inode, &bh, 1);
+-	if (status < 0) {
+-		if (status != -ENOENT)
+-			mlog_errno(status);
++	had_lock = ocfs2_inode_lock_tracker(inode, &bh, 1, &oh);
++	if (had_lock < 0) {
++		status = had_lock;
+ 		goto bail_unlock_rw;
++	} else if (had_lock) {
++		/*
++		 * As far as we know, ocfs2_setattr() could only be the first
++		 * VFS entry point in the call chain of recursive cluster
++		 * locking issue.
++		 *
++		 * For instance:
++		 * chmod_common()
++		 *  notify_change()
++		 *   ocfs2_setattr()
++		 *    posix_acl_chmod()
++		 *     ocfs2_iop_get_acl()
++		 *
++		 * But, we're not 100% sure if it's always true, because the
++		 * ordering of the VFS entry points in the call chain is out
++		 * of our control. So, we'd better dump the stack here to
++		 * catch the other cases of recursive locking.
++		 */
++		mlog(ML_ERROR, "Another case of recursive locking:\n");
++		dump_stack();
+ 	}
+ 	inode_locked = 1;
+ 
+@@ -1260,8 +1281,8 @@ int ocfs2_setattr(struct dentry *dentry,
+ bail_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ bail_unlock:
+-	if (status) {
+-		ocfs2_inode_unlock(inode, 1);
++	if (status && inode_locked) {
++		ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 		inode_locked = 0;
+ 	}
+ bail_unlock_rw:
+@@ -1279,7 +1300,7 @@ bail:
+ 			mlog_errno(status);
+ 	}
+ 	if (inode_locked)
+-		ocfs2_inode_unlock(inode, 1);
++		ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ 
+ 	brelse(bh);
+ 	return status;
+@@ -1320,21 +1341,32 @@ bail:
+ 
+ int ocfs2_permission(struct inode *inode, int mask)
+ {
+-	int ret;
++	int ret, had_lock;
++	struct ocfs2_lock_holder oh;
+ 
+ 	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+-	ret = ocfs2_inode_lock(inode, NULL, 0);
+-	if (ret) {
+-		if (ret != -ENOENT)
+-			mlog_errno(ret);
++	had_lock = ocfs2_inode_lock_tracker(inode, NULL, 0, &oh);
++	if (had_lock < 0) {
++		ret = had_lock;
+ 		goto out;
++	} else if (had_lock) {
++		/* See comments in ocfs2_setattr() for details.
++		 * The call chain of this case could be:
++		 * do_sys_open()
++		 *  may_open()
++		 *   inode_permission()
++		 *    ocfs2_permission()
++		 *     ocfs2_iop_get_acl()
++		 */
++		mlog(ML_ERROR, "Another case of recursive locking:\n");
++		dump_stack();
+ 	}
+ 
+ 	ret = generic_permission(inode, mask);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ out:
+ 	return ret;
+ }
 _
