@@ -1,293 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [patch 019/142] ocfs2/dlmglue: prepare tracking logic to avoid
- recursive cluster lock
-Date: Wed, 22 Feb 2017 15:40:41 -0800
-Message-ID: <58ae2179.9vyTo/JpaaBMwRSS%akpm@linux-foundation.org>
+Subject: [patch 027/142] mm, slab: rename kmalloc-node cache to
+ kmalloc-<size>
+Date: Wed, 22 Feb 2017 15:41:05 -0800
+Message-ID: <58ae2191.mx3hd93Do36Fxk2o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48020 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934342AbdBVXl4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:56 -0500
+        with ESMTP id S934382AbdBVXl5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, sfr@canb.auug.org.au
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mawilcox@microsoft.com, penberg@kernel.org, rientjes@google.com
 
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab: rename kmalloc-node cache to kmalloc-<size>
 
-We are in the situation that we have to avoid recursive cluster locking,
-but there is no way to check if a cluster lock has been taken by a precess
-already.
+SLAB as part of its bootstrap pre-creates one kmalloc cache that can fit the
+kmem_cache_node management structure, and puts it into the generic kmalloc
+cache array (e.g. for 128b objects). The name of this cache is "kmalloc-node",
+which is confusing for readers of /proc/slabinfo as the cache is used for
+generic allocations (and not just the kmem_cache_node struct) and it appears as
+the kmalloc-128 cache is missing.
 
-Mostly, we can avoid recursive locking by writing code carefully. 
-However, we found that it's very hard to handle the routines that are
-invoked directly by vfs code.  For instance:
+An easy solution is to use the kmalloc-<size> name when pre-creating the cache,
+which we can get from the kmalloc_info array.
 
-const struct inode_operations ocfs2_file_iops = {
-    .permission     = ocfs2_permission,
-    .get_acl        = ocfs2_iop_get_acl,
-    .set_acl        = ocfs2_iop_set_acl,
-};
+Example /proc/slabinfo before the patch:
 
-Both ocfs2_permission() and ocfs2_iop_get_acl() call ocfs2_inode_lock(PR):
-do_sys_open
- may_open
-  inode_permission
-   ocfs2_permission
-    ocfs2_inode_lock() <=== first time
-     generic_permission
-      get_acl
-       ocfs2_iop_get_acl
-	ocfs2_inode_lock() <=== recursive one
+...
+kmalloc-256         1647   1984    256   16    1 : tunables  120   60    8 : slabdata    124    124    828
+kmalloc-192         1974   1974    192   21    1 : tunables  120   60    8 : slabdata     94     94    133
+kmalloc-96          1332   1344    128   32    1 : tunables  120   60    8 : slabdata     42     42    219
+kmalloc-64          2505   5952     64   64    1 : tunables  120   60    8 : slabdata     93     93    715
+kmalloc-32          4278   4464     32  124    1 : tunables  120   60    8 : slabdata     36     36    346
+kmalloc-node        1352   1376    128   32    1 : tunables  120   60    8 : slabdata     43     43     53
+kmem_cache           132    147    192   21    1 : tunables  120   60    8 : slabdata      7      7      0
 
-A deadlock will occur if a remote EX request comes in between two of
-ocfs2_inode_lock().  Briefly describe how the deadlock is formed:
+After the patch:
 
-On one hand, OCFS2_LOCK_BLOCKED flag of this lockres is set in
-BAST(ocfs2_generic_handle_bast) when downconvert is started on behalf of
-the remote EX lock request.  Another hand, the recursive cluster lock (the
-second one) will be blocked in in __ocfs2_cluster_lock() because of
-OCFS2_LOCK_BLOCKED.  But, the downconvert never complete, why?  because
-there is no chance for the first cluster lock on this node to be unlocked
-- we block ourselves in the code path.
+...
+kmalloc-256         1672   2160    256   16    1 : tunables  120   60    8 : slabdata    135    135    807
+kmalloc-192         1992   2016    192   21    1 : tunables  120   60    8 : slabdata     96     96    203
+kmalloc-96          1159   1184    128   32    1 : tunables  120   60    8 : slabdata     37     37    116
+kmalloc-64          2561   4864     64   64    1 : tunables  120   60    8 : slabdata     76     76    785
+kmalloc-32          4253   4340     32  124    1 : tunables  120   60    8 : slabdata     35     35    270
+kmalloc-128         1256   1280    128   32    1 : tunables  120   60    8 : slabdata     40     40     39
+kmem_cache           125    147    192   21    1 : tunables  120   60    8 : slabdata      7      7      0
 
-The idea to fix this issue is mostly taken from gfs2 code.
-
-1. introduce a new field: struct ocfs2_lock_res.l_holders, to keep
-   track of the processes' pid who has taken the cluster lock of this lock
-   resource;
-
-2. introduce a new flag for ocfs2_inode_lock_full:
-   OCFS2_META_LOCK_GETBH; it means just getting back disk inode bh for us
-   if we've got cluster lock.
-
-3. export a helper: ocfs2_is_locked_by_me() is used to check if we
-   have got the cluster lock in the upper code path.
-
-The tracking logic should be used by some of the ocfs2 vfs's callbacks, to
-solve the recursive locking issue cuased by the fact that vfs routines can
-call into each other.
-
-The performance penalty of processing the holder list should only be seen
-at a few cases where the tracking logic is used, such as get/set acl.
-
-You may ask what if the first time we got a PR lock, and the second time
-we want a EX lock?  fortunately, this case never happens in the real
-world, as far as I can see, including permission check,
-(get|set)_(acl|attr), and the gfs2 code also do so.
-
-[sfr@canb.auug.org.au remove some inlines]
-Link: http://lkml.kernel.org/r/20170117100948.11657-2-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+[vbabka@suse.cz: export the whole kmalloc_info structure instead of just a name accessor, per Christoph Lameter]
+  Link: http://lkml.kernel.org/r/54e80303-b814-4232-66d4-95b34d3eb9d0@suse.cz
+Link: http://lkml.kernel.org/r/20170203181008.24898-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |  105 +++++++++++++++++++++++++++++++++++++++++--
- fs/ocfs2/dlmglue.h |   18 +++++++
- fs/ocfs2/ocfs2.h   |    1 
- 3 files changed, 121 insertions(+), 3 deletions(-)
+ mm/slab.c        |    3 ++-
+ mm/slab.h        |    6 ++++++
+ mm/slab_common.c |    5 +----
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -532,6 +532,7 @@ void ocfs2_lock_res_init_once(struct ocf
- 	init_waitqueue_head(&res->l_event);
- 	INIT_LIST_HEAD(&res->l_blocked_list);
- 	INIT_LIST_HEAD(&res->l_mask_waiters);
-+	INIT_LIST_HEAD(&res->l_holders);
- }
+diff -puN mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size mm/slab.c
+--- a/mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size
++++ a/mm/slab.c
+@@ -1288,7 +1288,8 @@ void __init kmem_cache_init(void)
+ 	 * Initialize the caches that provide memory for the  kmem_cache_node
+ 	 * structures first.  Without this, further allocations will bug.
+ 	 */
+-	kmalloc_caches[INDEX_NODE] = create_kmalloc_cache("kmalloc-node",
++	kmalloc_caches[INDEX_NODE] = create_kmalloc_cache(
++				kmalloc_info[INDEX_NODE].name,
+ 				kmalloc_size(INDEX_NODE), ARCH_KMALLOC_FLAGS);
+ 	slab_state = PARTIAL_NODE;
+ 	setup_kmalloc_cache_index_table();
+diff -puN mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size mm/slab.h
+--- a/mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size
++++ a/mm/slab.h
+@@ -71,6 +71,12 @@ extern struct list_head slab_caches;
+ /* The slab cache that manages slab cache information */
+ extern struct kmem_cache *kmem_cache;
  
- void ocfs2_inode_lock_res_init(struct ocfs2_lock_res *res,
-@@ -749,6 +750,50 @@ void ocfs2_lock_res_free(struct ocfs2_lo
- 	res->l_flags = 0UL;
- }
++/* A table of kmalloc cache names and sizes */
++extern const struct kmalloc_info_struct {
++	const char *name;
++	unsigned long size;
++} kmalloc_info[];
++
+ unsigned long calculate_alignment(unsigned long flags,
+ 		unsigned long align, unsigned long size);
  
-+/*
-+ * Keep a list of processes who have interest in a lockres.
-+ * Note: this is now only uesed for check recursive cluster locking.
-+ */
-+static inline void ocfs2_add_holder(struct ocfs2_lock_res *lockres,
-+				   struct ocfs2_lock_holder *oh)
-+{
-+	INIT_LIST_HEAD(&oh->oh_list);
-+	oh->oh_owner_pid = get_pid(task_pid(current));
-+
-+	spin_lock(&lockres->l_lock);
-+	list_add_tail(&oh->oh_list, &lockres->l_holders);
-+	spin_unlock(&lockres->l_lock);
-+}
-+
-+static inline void ocfs2_remove_holder(struct ocfs2_lock_res *lockres,
-+				       struct ocfs2_lock_holder *oh)
-+{
-+	spin_lock(&lockres->l_lock);
-+	list_del(&oh->oh_list);
-+	spin_unlock(&lockres->l_lock);
-+
-+	put_pid(oh->oh_owner_pid);
-+}
-+
-+static inline int ocfs2_is_locked_by_me(struct ocfs2_lock_res *lockres)
-+{
-+	struct ocfs2_lock_holder *oh;
-+	struct pid *pid;
-+
-+	/* look in the list of holders for one with the current task as owner */
-+	spin_lock(&lockres->l_lock);
-+	pid = task_pid(current);
-+	list_for_each_entry(oh, &lockres->l_holders, oh_list) {
-+		if (oh->oh_owner_pid == pid) {
-+			spin_unlock(&lockres->l_lock);
-+			return 1;
-+		}
-+	}
-+	spin_unlock(&lockres->l_lock);
-+
-+	return 0;
-+}
-+
- static inline void ocfs2_inc_holders(struct ocfs2_lock_res *lockres,
- 				     int level)
- {
-@@ -2333,8 +2378,9 @@ int ocfs2_inode_lock_full_nested(struct
- 		goto getbh;
- 	}
- 
--	if (ocfs2_mount_local(osb))
--		goto local;
-+	if ((arg_flags & OCFS2_META_LOCK_GETBH) ||
-+	    ocfs2_mount_local(osb))
-+		goto update;
- 
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
-@@ -2363,7 +2409,7 @@ int ocfs2_inode_lock_full_nested(struct
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
- 
--local:
-+update:
- 	/*
- 	 * We only see this flag if we're being called from
- 	 * ocfs2_read_locked_inode(). It means we're locking an inode
-@@ -2497,6 +2543,59 @@ void ocfs2_inode_unlock(struct inode *in
- 		ocfs2_cluster_unlock(OCFS2_SB(inode->i_sb), lockres, level);
- }
- 
-+/*
-+ * This _tracker variantes are introduced to deal with the recursive cluster
-+ * locking issue. The idea is to keep track of a lock holder on the stack of
-+ * the current process. If there's a lock holder on the stack, we know the
-+ * task context is already protected by cluster locking. Currently, they're
-+ * used in some VFS entry routines.
-+ *
-+ * return < 0 on error, return == 0 if there's no lock holder on the stack
-+ * before this call, return == 1 if this call would be a recursive locking.
-+ */
-+int ocfs2_inode_lock_tracker(struct inode *inode,
-+			     struct buffer_head **ret_bh,
-+			     int ex,
-+			     struct ocfs2_lock_holder *oh)
-+{
-+	int status;
-+	int arg_flags = 0, has_locked;
-+	struct ocfs2_lock_res *lockres;
-+
-+	lockres = &OCFS2_I(inode)->ip_inode_lockres;
-+	has_locked = ocfs2_is_locked_by_me(lockres);
-+	/* Just get buffer head if the cluster lock has been taken */
-+	if (has_locked)
-+		arg_flags = OCFS2_META_LOCK_GETBH;
-+
-+	if (likely(!has_locked || ret_bh)) {
-+		status = ocfs2_inode_lock_full(inode, ret_bh, ex, arg_flags);
-+		if (status < 0) {
-+			if (status != -ENOENT)
-+				mlog_errno(status);
-+			return status;
-+		}
-+	}
-+	if (!has_locked)
-+		ocfs2_add_holder(lockres, oh);
-+
-+	return has_locked;
-+}
-+
-+void ocfs2_inode_unlock_tracker(struct inode *inode,
-+				int ex,
-+				struct ocfs2_lock_holder *oh,
-+				int had_lock)
-+{
-+	struct ocfs2_lock_res *lockres;
-+
-+	lockres = &OCFS2_I(inode)->ip_inode_lockres;
-+	if (!had_lock) {
-+		ocfs2_remove_holder(lockres, oh);
-+		ocfs2_inode_unlock(inode, ex);
-+	}
-+}
-+
- int ocfs2_orphan_scan_lock(struct ocfs2_super *osb, u32 *seqno)
- {
- 	struct ocfs2_lock_res *lockres;
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.h
-@@ -70,6 +70,11 @@ struct ocfs2_orphan_scan_lvb {
- 	__be32	lvb_os_seqno;
- };
- 
-+struct ocfs2_lock_holder {
-+	struct list_head oh_list;
-+	struct pid *oh_owner_pid;
-+};
-+
- /* ocfs2_inode_lock_full() 'arg_flags' flags */
- /* don't wait on recovery. */
- #define OCFS2_META_LOCK_RECOVERY	(0x01)
-@@ -77,6 +82,8 @@ struct ocfs2_orphan_scan_lvb {
- #define OCFS2_META_LOCK_NOQUEUE		(0x02)
- /* don't block waiting for the downconvert thread, instead return -EAGAIN */
- #define OCFS2_LOCK_NONBLOCK		(0x04)
-+/* just get back disk inode bh if we've got cluster lock. */
-+#define OCFS2_META_LOCK_GETBH		(0x08)
- 
- /* Locking subclasses of inode cluster lock */
- enum {
-@@ -170,4 +177,15 @@ void ocfs2_put_dlm_debug(struct ocfs2_dl
- 
- /* To set the locking protocol on module initialization */
- void ocfs2_set_locking_protocol(void);
-+
-+/* The _tracker pair is used to avoid cluster recursive locking */
-+int ocfs2_inode_lock_tracker(struct inode *inode,
-+			     struct buffer_head **ret_bh,
-+			     int ex,
-+			     struct ocfs2_lock_holder *oh);
-+void ocfs2_inode_unlock_tracker(struct inode *inode,
-+				int ex,
-+				struct ocfs2_lock_holder *oh,
-+				int had_lock);
-+
- #endif	/* DLMGLUE_H */
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/ocfs2.h
-@@ -172,6 +172,7 @@ struct ocfs2_lock_res {
- 
- 	struct list_head         l_blocked_list;
- 	struct list_head         l_mask_waiters;
-+	struct list_head	 l_holders;
- 
- 	unsigned long		 l_flags;
- 	char                     l_name[OCFS2_LOCK_ID_MAX_LEN];
+diff -puN mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size
++++ a/mm/slab_common.c
+@@ -915,10 +915,7 @@ struct kmem_cache *kmalloc_slab(size_t s
+  * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
+  * kmalloc-67108864.
+  */
+-static struct {
+-	const char *name;
+-	unsigned long size;
+-} const kmalloc_info[] __initconst = {
++const struct kmalloc_info_struct kmalloc_info[] __initconst = {
+ 	{NULL,                      0},		{"kmalloc-96",             96},
+ 	{"kmalloc-192",           192},		{"kmalloc-8",               8},
+ 	{"kmalloc-16",             16},		{"kmalloc-32",             32},
 _
