@@ -1,156 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [patch 062/142] userfaultfd: hugetlbfs: add
- hugetlb_mcopy_atomic_pte for userfaultfd support
-Date: Wed, 22 Feb 2017 15:42:52 -0800
-Message-ID: <58ae21fc.K5oK97oy2BgfJFml%akpm@linux-foundation.org>
+Subject: [patch 040/142] mm: throttle show_mem() from warn_alloc()
+Date: Wed, 22 Feb 2017 15:41:45 -0800
+Message-ID: <58ae21b9.GK7yL9guLCrmuPsG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48252 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934635AbdBVXmy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:54 -0500
+        with ESMTP id S934550AbdBVXmJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd: hugetlbfs: add hugetlb_mcopy_atomic_pte for userfaultfd support
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: throttle show_mem() from warn_alloc()
 
-hugetlb_mcopy_atomic_pte is the low level routine that implements the
-userfaultfd UFFDIO_COPY command.  It is based on the existing
-mcopy_atomic_pte routine with modifications for huge pages.
+Tetsuo has been stressing OOM killer path with many parallel allocation
+requests when he has noticed that it is not all that hard to swamp kernel
+logs with warn_alloc messages caused by allocation stalls.  Even though
+the allocation stall message is triggered only once in 10s there might be
+many different tasks hitting it roughly around the same time.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-18-aarcange@redhat.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+A big part of the output is show_mem() which can generate a lot of output
+even on a small machines.  There is no reason to show the state of memory
+counter for each allocation stall, especially when multiple of them are
+reported in a short time period.  Chances are that not much has changed
+since the last report.  This patch simply rate limits show_mem called from
+warn_alloc to only dump something once per second.  This should be enough
+to give us a clue why an allocation might be stalling while burst of
+warnings will not swamp log with too much data.
+
+While we are at it, extract all the show_mem related handling (filters)
+into a separate function warn_alloc_show_mem.  This will make the code
+cleaner and as a bonus point we can distinguish which part of warn_alloc
+got throttled due to rate limiting as ___ratelimit dumps the caller.
+
+[akpm@linux-foundation.org: reduce scope of the ratelimit_states]
+Link: http://lkml.kernel.org/r/20161215101510.9030-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 +++
- mm/hugetlb.c            |   81 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 88 insertions(+)
+ mm/page_alloc.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/hugetlb.h~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support
-+++ a/include/linux/hugetlb.h
-@@ -81,6 +81,11 @@ void hugetlb_show_meminfo(void);
- unsigned long hugetlb_total_pages(void);
- int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, unsigned int flags);
-+int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
-+				struct vm_area_struct *dst_vma,
-+				unsigned long dst_addr,
-+				unsigned long src_addr,
-+				struct page **pagep);
- int hugetlb_reserve_pages(struct inode *inode, long from, long to,
- 						struct vm_area_struct *vma,
- 						vm_flags_t vm_flags);
-@@ -149,6 +154,8 @@ static inline void hugetlb_show_meminfo(
- #define is_hugepage_only_range(mm, addr, len)	0
- #define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
- #define hugetlb_fault(mm, vma, addr, flags)	({ BUG(); 0; })
-+#define hugetlb_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma, dst_addr, \
-+				src_addr, pagep)	({ BUG(); 0; })
- #define huge_pte_offset(mm, address)	0
- static inline int dequeue_hwpoisoned_huge_page(struct page *page)
- {
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support
-+++ a/mm/hugetlb.c
-@@ -3948,6 +3948,87 @@ out_mutex:
+diff -puN mm/page_alloc.c~mm-throttle-show_mem-from-warn_alloc mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-throttle-show_mem-from-warn_alloc
++++ a/mm/page_alloc.c
+@@ -3007,18 +3007,12 @@ static inline bool should_suppress_show_
  	return ret;
  }
  
-+/*
-+ * Used by userfaultfd UFFDIO_COPY.  Based on mcopy_atomic_pte with
-+ * modifications for huge pages.
-+ */
-+int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
-+			    pte_t *dst_pte,
-+			    struct vm_area_struct *dst_vma,
-+			    unsigned long dst_addr,
-+			    unsigned long src_addr,
-+			    struct page **pagep)
-+{
-+	struct hstate *h = hstate_vma(dst_vma);
-+	pte_t _dst_pte;
-+	spinlock_t *ptl;
-+	int ret;
-+	struct page *page;
-+
-+	if (!*pagep) {
-+		ret = -ENOMEM;
-+		page = alloc_huge_page(dst_vma, dst_addr, 0);
-+		if (IS_ERR(page))
-+			goto out;
-+
-+		ret = copy_huge_page_from_user(page,
-+						(const void __user *) src_addr,
-+						pages_per_huge_page(h));
-+
-+		/* fallback to copy_from_user outside mmap_sem */
-+		if (unlikely(ret)) {
-+			ret = -EFAULT;
-+			*pagep = page;
-+			/* don't free the page */
-+			goto out;
-+		}
-+	} else {
-+		page = *pagep;
-+		*pagep = NULL;
-+	}
-+
-+	/*
-+	 * The memory barrier inside __SetPageUptodate makes sure that
-+	 * preceding stores to the page contents become visible before
-+	 * the set_pte_at() write.
-+	 */
-+	__SetPageUptodate(page);
-+	set_page_huge_active(page);
-+
-+	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
-+	spin_lock(ptl);
-+
-+	ret = -EEXIST;
-+	if (!huge_pte_none(huge_ptep_get(dst_pte)))
-+		goto out_release_unlock;
-+
-+	ClearPagePrivate(page);
-+	hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
-+
-+	_dst_pte = make_huge_pte(dst_vma, page, dst_vma->vm_flags & VM_WRITE);
-+	if (dst_vma->vm_flags & VM_WRITE)
-+		_dst_pte = huge_pte_mkdirty(_dst_pte);
-+	_dst_pte = pte_mkyoung(_dst_pte);
-+
-+	set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
-+
-+	(void)huge_ptep_set_access_flags(dst_vma, dst_addr, dst_pte, _dst_pte,
-+					dst_vma->vm_flags & VM_WRITE);
-+	hugetlb_count_add(pages_per_huge_page(h), dst_mm);
-+
-+	/* No need to invalidate - it was non-present before */
-+	update_mmu_cache(dst_vma, dst_addr, dst_pte);
-+
-+	spin_unlock(ptl);
-+	ret = 0;
-+out:
-+	return ret;
-+out_release_unlock:
-+	spin_unlock(ptl);
-+	put_page(page);
-+	goto out;
+-static DEFINE_RATELIMIT_STATE(nopage_rs,
+-		DEFAULT_RATELIMIT_INTERVAL,
+-		DEFAULT_RATELIMIT_BURST);
+-
+-void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
++static void warn_alloc_show_mem(gfp_t gfp_mask)
+ {
+ 	unsigned int filter = SHOW_MEM_FILTER_NODES;
+-	struct va_format vaf;
+-	va_list args;
++	static DEFINE_RATELIMIT_STATE(show_mem_rs, HZ, 1);
+ 
+-	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
+-	    debug_guardpage_minorder() > 0)
++	if (should_suppress_show_mem() || !__ratelimit(&show_mem_rs))
+ 		return;
+ 
+ 	/*
+@@ -3033,6 +3027,20 @@ void warn_alloc(gfp_t gfp_mask, const ch
+ 	if (in_interrupt() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
+ 		filter &= ~SHOW_MEM_FILTER_NODES;
+ 
++	show_mem(filter);
 +}
 +
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			 struct page **pages, struct vm_area_struct **vmas,
- 			 unsigned long *position, unsigned long *nr_pages,
++void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
++				      DEFAULT_RATELIMIT_BURST);
++
++	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
++	    debug_guardpage_minorder() > 0)
++		return;
++
+ 	pr_warn("%s: ", current->comm);
+ 
+ 	va_start(args, fmt);
+@@ -3044,8 +3052,7 @@ void warn_alloc(gfp_t gfp_mask, const ch
+ 	pr_cont(", mode:%#x(%pGg)\n", gfp_mask, &gfp_mask);
+ 
+ 	dump_stack();
+-	if (!should_suppress_show_mem())
+-		show_mem(filter);
++	warn_alloc_show_mem(gfp_mask);
+ }
+ 
+ static inline struct page *
 _
