@@ -1,248 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: [patch 002/142] dax: add tracepoint infrastructure, PMD tracing
-Date: Wed, 22 Feb 2017 15:39:50 -0800
-Message-ID: <58ae2146.bP1rrT/5ily5b5Aq%akpm@linux-foundation.org>
+Subject: [patch 124/142] mm, vmscan: cleanup lru size claculations
+Date: Wed, 22 Feb 2017 15:45:58 -0800
+Message-ID: <58ae22b6.E/VCONtzzV0DtvwQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49566 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934497AbdBVXpx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:53 -0500
+        with ESMTP id S934187AbdBVXp7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dave.jiang@intel.com, david@fromorbit.com, jack@suse.cz, mawilcox@microsoft.com, rostedt@goodmis.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, minchan@kernel.org
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: add tracepoint infrastructure, PMD tracing
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmscan: cleanup lru size claculations
 
-Tracepoints are the standard way to capture debugging and tracing
-information in many parts of the kernel, including the XFS and ext4
-filesystems.  Create a tracepoint header for FS DAX and add the first DAX
-tracepoints to the PMD fault handler.  This allows the tracing for DAX to
-be done in the same way as the filesystem tracing so that developers can
-look at them together and get a coherent idea of what the system is doing.
+lruvec_lru_size returns the full size of the LRU list while we sometimes
+need a value reduced only to eligible zones (e.g. for lowmem requests).
+inactive_list_is_low is one such user. Later patches will add more of
+them. Add a new parameter to lruvec_lru_size and allow it filter out
+zones which are not eligible for the given context.
 
-I added both an entry and exit tracepoint because future patches will add
-tracepoints to child functions of dax_iomap_pmd_fault() like
-dax_pmd_load_hole() and dax_pmd_insert_mapping().  We want those messages
-to be wrapped by the parent function tracepoints so the code flow is more
-easily understood.  Having entry and exit tracepoints for faults also
-allows us to easily see what filesystems functions were called during the
-fault.  These filesystem functions get executed via iomap_begin() and
-iomap_end() calls, for example, and will have their own tracepoints.
-
-For PMD faults we primarily want to understand the type of mapping, the
-fault flags, the faulting address and whether it fell back to 4k faults. 
-If it fell back to 4k faults the tracepoints should let us understand why.
-
-I named the new tracepoint header file "fs_dax.h" to allow for device DAX
-to have its own separate tracing header in the same directory at some
-point.
-
-Here is an example output for these events from a successful PMD fault:
-
-big-1441  [005] ....    32.582758: xfs_filemap_pmd_fault: dev 259:0 ino
-0x1003
-
-big-1441  [005] ....    32.582776: dax_pmd_fault: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400
-
-big-1441  [005] ....    32.583292: dax_pmd_fault_done: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start
-0x10200000 vm_end 0x10700000 pgoff 0x200 max_pgoff 0x1400 NOPAGE
-
-Link: http://lkml.kernel.org/r/1484085142-2297-3-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/20170117103702.28542-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                      |   30 +++++++++-----
- include/linux/mm.h            |   25 +++++++++++
- include/trace/events/fs_dax.h |   68 ++++++++++++++++++++++++++++++++
- 3 files changed, 113 insertions(+), 10 deletions(-)
+ include/linux/mmzone.h |    2 
+ mm/vmscan.c            |   89 +++++++++++++++++++--------------------
+ mm/workingset.c        |    2 
+ 3 files changed, 46 insertions(+), 47 deletions(-)
 
-diff -puN fs/dax.c~dax-add-tracepoint-infrastructure-pmd-tracing fs/dax.c
---- a/fs/dax.c~dax-add-tracepoint-infrastructure-pmd-tracing
-+++ a/fs/dax.c
-@@ -35,6 +35,9 @@
- #include <linux/iomap.h>
- #include "internal.h"
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/fs_dax.h>
-+
- /* We choose 4096 entries - same as per-zone page wait tables */
- #define DAX_WAIT_TABLE_BITS 12
- #define DAX_WAIT_TABLE_ENTRIES (1 << DAX_WAIT_TABLE_BITS)
-@@ -1341,6 +1344,16 @@ int dax_iomap_pmd_fault(struct vm_area_s
- 	loff_t pos;
- 	int error;
- 
-+	/*
-+	 * Check whether offset isn't beyond end of file now. Caller is
-+	 * supposed to hold locks serializing us with truncate / punch hole so
-+	 * this is a reliable test.
-+	 */
-+	pgoff = linear_page_index(vma, pmd_addr);
-+	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
-+
-+	trace_dax_pmd_fault(inode, vma, address, flags, pgoff, max_pgoff, 0);
-+
- 	/* Fall back to PTEs if we're going to COW */
- 	if (write && !(vma->vm_flags & VM_SHARED))
- 		goto fallback;
-@@ -1351,16 +1364,10 @@ int dax_iomap_pmd_fault(struct vm_area_s
- 	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
- 		goto fallback;
- 
--	/*
--	 * Check whether offset isn't beyond end of file now. Caller is
--	 * supposed to hold locks serializing us with truncate / punch hole so
--	 * this is a reliable test.
--	 */
--	pgoff = linear_page_index(vma, pmd_addr);
--	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
--
--	if (pgoff > max_pgoff)
--		return VM_FAULT_SIGBUS;
-+	if (pgoff > max_pgoff) {
-+		result = VM_FAULT_SIGBUS;
-+		goto out;
-+	}
- 
- 	/* If the PMD would extend beyond the file size */
- 	if ((pgoff | PG_PMD_COLOUR) > max_pgoff)
-@@ -1432,6 +1439,9 @@ int dax_iomap_pmd_fault(struct vm_area_s
- 		split_huge_pmd(vma, pmd, address);
- 		count_vm_event(THP_FAULT_FALLBACK);
- 	}
-+out:
-+	trace_dax_pmd_fault_done(inode, vma, address, flags, pgoff, max_pgoff,
-+			result);
- 	return result;
+diff -puN include/linux/mmzone.h~mm-vmscan-cleanup-lru-size-claculations include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-vmscan-cleanup-lru-size-claculations
++++ a/include/linux/mmzone.h
+@@ -779,7 +779,7 @@ static inline struct pglist_data *lruvec
+ #endif
  }
- EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
-diff -puN include/linux/mm.h~dax-add-tracepoint-infrastructure-pmd-tracing include/linux/mm.h
---- a/include/linux/mm.h~dax-add-tracepoint-infrastructure-pmd-tracing
-+++ a/include/linux/mm.h
-@@ -285,6 +285,17 @@ extern pgprot_t protection_map[16];
- #define FAULT_FLAG_REMOTE	0x80	/* faulting for non current tsk/mm */
- #define FAULT_FLAG_INSTRUCTION  0x100	/* The fault was during an instruction fetch */
  
-+#define FAULT_FLAG_TRACE \
-+	{ FAULT_FLAG_WRITE,		"WRITE" }, \
-+	{ FAULT_FLAG_MKWRITE,		"MKWRITE" }, \
-+	{ FAULT_FLAG_ALLOW_RETRY,	"ALLOW_RETRY" }, \
-+	{ FAULT_FLAG_RETRY_NOWAIT,	"RETRY_NOWAIT" }, \
-+	{ FAULT_FLAG_KILLABLE,		"KILLABLE" }, \
-+	{ FAULT_FLAG_TRIED,		"TRIED" }, \
-+	{ FAULT_FLAG_USER,		"USER" }, \
-+	{ FAULT_FLAG_REMOTE,		"REMOTE" }, \
-+	{ FAULT_FLAG_INSTRUCTION,	"INSTRUCTION" }
+-extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru);
++extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
+ 
+ #ifdef CONFIG_HAVE_MEMORY_PRESENT
+ void memory_present(int nid, unsigned long start, unsigned long end);
+diff -puN mm/vmscan.c~mm-vmscan-cleanup-lru-size-claculations mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-cleanup-lru-size-claculations
++++ a/mm/vmscan.c
+@@ -234,22 +234,39 @@ bool pgdat_reclaimable(struct pglist_dat
+ 		pgdat_reclaimable_pages(pgdat) * 6;
+ }
+ 
+-unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru)
++/**
++ * lruvec_lru_size -  Returns the number of pages on the given LRU list.
++ * @lruvec: lru vector
++ * @lru: lru to use
++ * @zone_idx: zones to consider (use MAX_NR_ZONES for the whole LRU list)
++ */
++unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx)
+ {
++	unsigned long lru_size;
++	int zid;
 +
+ 	if (!mem_cgroup_disabled())
+-		return mem_cgroup_get_lru_size(lruvec, lru);
++		lru_size = mem_cgroup_get_lru_size(lruvec, lru);
++	else
++		lru_size = node_page_state(lruvec_pgdat(lruvec), NR_LRU_BASE + lru);
+ 
+-	return node_page_state(lruvec_pgdat(lruvec), NR_LRU_BASE + lru);
+-}
++	for (zid = zone_idx + 1; zid < MAX_NR_ZONES; zid++) {
++		struct zone *zone = &lruvec_pgdat(lruvec)->node_zones[zid];
++		unsigned long size;
+ 
+-unsigned long lruvec_zone_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-				   int zone_idx)
+-{
+-	if (!mem_cgroup_disabled())
+-		return mem_cgroup_get_zone_lru_size(lruvec, lru, zone_idx);
++		if (!managed_zone(zone))
++			continue;
++
++		if (!mem_cgroup_disabled())
++			size = mem_cgroup_get_zone_lru_size(lruvec, lru, zid);
++		else
++			size = zone_page_state(&lruvec_pgdat(lruvec)->node_zones[zid],
++				       NR_ZONE_LRU_BASE + lru);
++		lru_size -= min(size, lru_size);
++	}
++
++	return lru_size;
+ 
+-	return zone_page_state(&lruvec_pgdat(lruvec)->node_zones[zone_idx],
+-			       NR_ZONE_LRU_BASE + lru);
+ }
+ 
  /*
-  * vm_fault is filled by the the pagefault handler and passed to the vma's
-  * ->fault function. The vma's ->fault is responsible for returning a bitmask
-@@ -1111,6 +1122,20 @@ static inline void clear_page_pfmemalloc
- 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
- 			 VM_FAULT_FALLBACK)
+@@ -2049,11 +2066,10 @@ static bool inactive_list_is_low(struct
+ 						struct scan_control *sc, bool trace)
+ {
+ 	unsigned long inactive_ratio;
+-	unsigned long total_inactive, inactive;
+-	unsigned long total_active, active;
++	unsigned long inactive, active;
++	enum lru_list inactive_lru = file * LRU_FILE;
++	enum lru_list active_lru = file * LRU_FILE + LRU_ACTIVE;
+ 	unsigned long gb;
+-	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+-	int zid;
  
-+#define VM_FAULT_RESULT_TRACE \
-+	{ VM_FAULT_OOM,			"OOM" }, \
-+	{ VM_FAULT_SIGBUS,		"SIGBUS" }, \
-+	{ VM_FAULT_MAJOR,		"MAJOR" }, \
-+	{ VM_FAULT_WRITE,		"WRITE" }, \
-+	{ VM_FAULT_HWPOISON,		"HWPOISON" }, \
-+	{ VM_FAULT_HWPOISON_LARGE,	"HWPOISON_LARGE" }, \
-+	{ VM_FAULT_SIGSEGV,		"SIGSEGV" }, \
-+	{ VM_FAULT_NOPAGE,		"NOPAGE" }, \
-+	{ VM_FAULT_LOCKED,		"LOCKED" }, \
-+	{ VM_FAULT_RETRY,		"RETRY" }, \
-+	{ VM_FAULT_FALLBACK,		"FALLBACK" }, \
-+	{ VM_FAULT_DONE_COW,		"DONE_COW" }
+ 	/*
+ 	 * If we don't have swap space, anonymous page deactivation
+@@ -2062,27 +2078,8 @@ static bool inactive_list_is_low(struct
+ 	if (!file && !total_swap_pages)
+ 		return false;
+ 
+-	total_inactive = inactive = lruvec_lru_size(lruvec, file * LRU_FILE);
+-	total_active = active = lruvec_lru_size(lruvec, file * LRU_FILE + LRU_ACTIVE);
+-
+-	/*
+-	 * For zone-constrained allocations, it is necessary to check if
+-	 * deactivations are required for lowmem to be reclaimed. This
+-	 * calculates the inactive/active pages available in eligible zones.
+-	 */
+-	for (zid = sc->reclaim_idx + 1; zid < MAX_NR_ZONES; zid++) {
+-		struct zone *zone = &pgdat->node_zones[zid];
+-		unsigned long inactive_zone, active_zone;
+-
+-		if (!managed_zone(zone))
+-			continue;
+-
+-		inactive_zone = lruvec_zone_lru_size(lruvec, file * LRU_FILE, zid);
+-		active_zone = lruvec_zone_lru_size(lruvec, (file * LRU_FILE) + LRU_ACTIVE, zid);
+-
+-		inactive -= min(inactive, inactive_zone);
+-		active -= min(active, active_zone);
+-	}
++	inactive = lruvec_lru_size(lruvec, inactive_lru, sc->reclaim_idx);
++	active = lruvec_lru_size(lruvec, active_lru, sc->reclaim_idx);
+ 
+ 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
+ 	if (gb)
+@@ -2091,10 +2088,12 @@ static bool inactive_list_is_low(struct
+ 		inactive_ratio = 1;
+ 
+ 	if (trace)
+-		trace_mm_vmscan_inactive_list_is_low(pgdat->node_id,
++		trace_mm_vmscan_inactive_list_is_low(lruvec_pgdat(lruvec)->node_id,
+ 				sc->reclaim_idx,
+-				total_inactive, inactive,
+-				total_active, active, inactive_ratio, file);
++				lruvec_lru_size(lruvec, inactive_lru, MAX_NR_ZONES), inactive,
++				lruvec_lru_size(lruvec, active_lru, MAX_NR_ZONES), active,
++				inactive_ratio, file);
 +
- /* Encode hstate index for a hwpoisoned large page */
- #define VM_FAULT_SET_HINDEX(x) ((x) << 12)
- #define VM_FAULT_GET_HINDEX(x) (((x) >> 12) & 0xf)
-diff -puN /dev/null include/trace/events/fs_dax.h
---- /dev/null
-+++ a/include/trace/events/fs_dax.h
-@@ -0,0 +1,68 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM fs_dax
-+
-+#if !defined(_TRACE_FS_DAX_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_FS_DAX_H
-+
-+#include <linux/tracepoint.h>
-+
-+DECLARE_EVENT_CLASS(dax_pmd_fault_class,
-+	TP_PROTO(struct inode *inode, struct vm_area_struct *vma,
-+		unsigned long address, unsigned int flags, pgoff_t pgoff,
-+		pgoff_t max_pgoff, int result),
-+	TP_ARGS(inode, vma, address, flags, pgoff, max_pgoff, result),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, ino)
-+		__field(unsigned long, vm_start)
-+		__field(unsigned long, vm_end)
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
-+		__field(pgoff_t, pgoff)
-+		__field(pgoff_t, max_pgoff)
-+		__field(dev_t, dev)
-+		__field(unsigned int, flags)
-+		__field(int, result)
-+	),
-+	TP_fast_assign(
-+		__entry->dev = inode->i_sb->s_dev;
-+		__entry->ino = inode->i_ino;
-+		__entry->vm_start = vma->vm_start;
-+		__entry->vm_end = vma->vm_end;
-+		__entry->vm_flags = vma->vm_flags;
-+		__entry->address = address;
-+		__entry->flags = flags;
-+		__entry->pgoff = pgoff;
-+		__entry->max_pgoff = max_pgoff;
-+		__entry->result = result;
-+	),
-+	TP_printk("dev %d:%d ino %#lx %s %s address %#lx vm_start "
-+			"%#lx vm_end %#lx pgoff %#lx max_pgoff %#lx %s",
-+		MAJOR(__entry->dev),
-+		MINOR(__entry->dev),
-+		__entry->ino,
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__print_flags(__entry->flags, "|", FAULT_FLAG_TRACE),
-+		__entry->address,
-+		__entry->vm_start,
-+		__entry->vm_end,
-+		__entry->pgoff,
-+		__entry->max_pgoff,
-+		__print_flags(__entry->result, "|", VM_FAULT_RESULT_TRACE)
-+	)
-+)
-+
-+#define DEFINE_PMD_FAULT_EVENT(name) \
-+DEFINE_EVENT(dax_pmd_fault_class, name, \
-+	TP_PROTO(struct inode *inode, struct vm_area_struct *vma, \
-+		unsigned long address, unsigned int flags, pgoff_t pgoff, \
-+		pgoff_t max_pgoff, int result), \
-+	TP_ARGS(inode, vma, address, flags, pgoff, max_pgoff, result))
-+
-+DEFINE_PMD_FAULT_EVENT(dax_pmd_fault);
-+DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
-+
-+
-+#endif /* _TRACE_FS_DAX_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+ 	return inactive * inactive_ratio < active;
+ }
+ 
+@@ -2234,7 +2233,7 @@ static void get_scan_count(struct lruvec
+ 	 * system is under heavy pressure.
+ 	 */
+ 	if (!inactive_list_is_low(lruvec, true, sc, false) &&
+-	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
++	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES) >> sc->priority) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+ 	}
+@@ -2260,10 +2259,10 @@ static void get_scan_count(struct lruvec
+ 	 * anon in [0], file in [1]
+ 	 */
+ 
+-	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON) +
+-		lruvec_lru_size(lruvec, LRU_INACTIVE_ANON);
+-	file  = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE) +
+-		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE);
++	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON, MAX_NR_ZONES) +
++		lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, MAX_NR_ZONES);
++	file  = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES) +
++		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES);
+ 
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 	if (unlikely(reclaim_stat->recent_scanned[0] > anon / 4)) {
+@@ -2301,7 +2300,7 @@ out:
+ 			unsigned long size;
+ 			unsigned long scan;
+ 
+-			size = lruvec_lru_size(lruvec, lru);
++			size = lruvec_lru_size(lruvec, lru, MAX_NR_ZONES);
+ 			scan = size >> sc->priority;
+ 
+ 			if (!scan && pass && force_scan)
+diff -puN mm/workingset.c~mm-vmscan-cleanup-lru-size-claculations mm/workingset.c
+--- a/mm/workingset.c~mm-vmscan-cleanup-lru-size-claculations
++++ a/mm/workingset.c
+@@ -267,7 +267,7 @@ bool workingset_refault(void *shadow)
+ 	}
+ 	lruvec = mem_cgroup_lruvec(pgdat, memcg);
+ 	refault = atomic_long_read(&lruvec->inactive_age);
+-	active_file = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
++	active_file = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES);
+ 	rcu_read_unlock();
+ 
+ 	/*
 _
