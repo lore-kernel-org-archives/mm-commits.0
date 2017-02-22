@@ -1,68 +1,127 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix.patch removed from -mm tree
-Date: Wed, 22 Feb 2017 15:24:34 -0800
-Message-ID: <58ae1db2.eKdl1tstMF/HYAAY%akpm@linux-foundation.org>
+ mm-vmscan-add-active-list-aging-tracepoint-update.patch removed from -mm
+ tree
+Date: Wed, 22 Feb 2017 15:23:23 -0800
+Message-ID: <58ae1d6b.E6TysedutRNyaAqh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933777AbdBVXZB (ORCPT
+        with ESMTP id S932493AbdBVXZB (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:25:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix
+     Subject: mm-vmscan-add-active-list-aging-tracepoint-update
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix.patch
+     mm-vmscan-add-active-list-aging-tracepoint-update.patch
 
-This patch was dropped because it was folded into mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+This patch was dropped because it was folded into mm-vmscan-add-active-list-aging-tracepoint.patch
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm-vmscan-add-active-list-aging-tracepoint-update
 
-The following patch is not applied correctly.
-http://lkml.kernel.org/r/2c29bd9f-5b67-02d0-18a3-8828e78bbb6f@gmail.com
+Our reclaim process has several tracepoints to tell us more about how
+things are progressing. We are, however, missing a tracepoint to track
+active list aging. Introduce mm_vmscan_lru_shrink_active which reports
+the number of
+	- nr_taken is number of isolated pages from the active list
+	- nr_referenced pages which tells us that we are hitting referenced
+	  pages which are deactivated. If this is a large part of the
+	  reported nr_deactivated pages then we might be hitting into
+	  the active list too early because they might be still part of
+	  the working set. This might help to debug performance issues.
+	- nr_active pages which tells us how many pages are kept on the
+	  active list - mostly exec file backed pages. A high number can
+	  indicate that we might be trashing on executables.
 
-So the following unnecessary code still remains.
-
-get_page_bootmem()
-{
-...
-        page->lru.next = (struct list_head *)type;
-...
-
-The patch removes this code from get_page_bootmem()
-
-Link: http://lkml.kernel.org/r/722b1cc4-93ac-dd8b-2be2-7a7e313b3b0b@gmail.com
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Link: http://lkml.kernel.org/r/20170104135244.GJ25453@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/trace/events/vmscan.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext-fix
-+++ a/mm/memory_hotplug.c
-@@ -179,7 +179,6 @@ static void release_memory_resource(stru
- void get_page_bootmem(unsigned long info,  struct page *page,
- 		      unsigned long type)
- {
--	page->lru.next = (struct list_head *)type;
- 	page->freelist = (void *)type;
- 	SetPagePrivate(page);
- 	set_page_private(page, info);
+diff -puN include/trace/events/vmscan.h~mm-vmscan-add-active-list-aging-tracepoint-update include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-vmscan-add-active-list-aging-tracepoint-update
++++ a/include/trace/events/vmscan.h
+@@ -366,15 +366,15 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
+ TRACE_EVENT(mm_vmscan_lru_shrink_active,
+ 
+ 	TP_PROTO(int nid, unsigned long nr_taken,
+-		unsigned long nr_activate, unsigned long nr_deactivated,
++		unsigned long nr_active, unsigned long nr_deactivated,
+ 		unsigned long nr_referenced, int priority, int file),
+ 
+-	TP_ARGS(nid, nr_taken, nr_activate, nr_deactivated, nr_referenced, priority, file),
++	TP_ARGS(nid, nr_taken, nr_active, nr_deactivated, nr_referenced, priority, file),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(int, nid)
+ 		__field(unsigned long, nr_taken)
+-		__field(unsigned long, nr_activate)
++		__field(unsigned long, nr_active)
+ 		__field(unsigned long, nr_deactivated)
+ 		__field(unsigned long, nr_referenced)
+ 		__field(int, priority)
+@@ -384,17 +384,17 @@ TRACE_EVENT(mm_vmscan_lru_shrink_active,
+ 	TP_fast_assign(
+ 		__entry->nid = nid;
+ 		__entry->nr_taken = nr_taken;
+-		__entry->nr_activate = nr_activate;
++		__entry->nr_active = nr_active;
+ 		__entry->nr_deactivated = nr_deactivated;
+ 		__entry->nr_referenced = nr_referenced;
+ 		__entry->priority = priority;
+ 		__entry->reclaim_flags = trace_shrink_flags(file);
+ 	),
+ 
+-	TP_printk("nid=%d nr_taken=%ld nr_activated=%ld nr_deactivated=%ld nr_referenced=%ld priority=%d flags=%s",
++	TP_printk("nid=%d nr_taken=%ld nr_active=%ld nr_deactivated=%ld nr_referenced=%ld priority=%d flags=%s",
+ 		__entry->nid,
+ 		__entry->nr_taken,
+-		__entry->nr_activate, __entry->nr_deactivated, __entry->nr_referenced,
++		__entry->nr_active, __entry->nr_deactivated, __entry->nr_referenced,
+ 		__entry->priority,
+ 		show_reclaim_flags(__entry->reclaim_flags))
+ );
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-memory_hotplug-set-magic-number-to-page-freelsit-instead-of-page-lrunext.patch
+mm-throttle-show_mem-from-warn_alloc.patch
+mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+oom-trace-add-oom-detection-tracepoints.patch
+oom-trace-add-compaction-retry-tracepoint.patch
+mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+mm-vmscan-add-active-list-aging-tracepoint.patch
+mm-vmscan-show-the-number-of-skipped-pages-in-mm_vmscan_lru_isolate.patch
+mm-vmscan-show-lru-name-in-mm_vmscan_lru_isolate-tracepoint.patch
+mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+mm-vmscan-enhance-mm_vmscan_lru_shrink_inactive-tracepoint.patch
+mm-vmscan-add-mm_vmscan_inactive_list_is_low-tracepoint.patch
+trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+mm-vmscan-do-not-count-freed-pages-as-pgdeactivate.patch
+mm-vmscan-cleanup-lru-size-claculations.patch
+mm-vmscan-consider-eligible-zones-in-get_scan_count.patch
+revert-mm-bail-out-in-shrink_inactive_list.patch
+mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
+mm-page_alloc-warn_alloc-print-nodemask.patch
+arch-mm-remove-arch-specific-show_mem.patch
+lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask.patch
+mm-consolidate-gfp_nofail-checks-in-the-allocator-slowpath.patch
+mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically.patch
+mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer.patch
 
