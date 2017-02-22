@@ -1,26 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [patch 085/142] userfaultfd: non-cooperative: selftest: introduce userfaultfd_open
-Date: Wed, 22 Feb 2017 15:44:01 -0800
-Message-ID: <58ae2241.FJCljEcbPA7O4sFA%akpm@linux-foundation.org>
+Subject: [patch 086/142] userfaultfd: non-cooperative: selftest: add ufd
+ parameter to copy_page
+Date: Wed, 22 Feb 2017 15:44:04 -0800
+Message-ID: <58ae2244.4EiaZvxJVRGXZgtc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48926 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934046AbdBVXoC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:02 -0500
+        with ESMTP id S933833AbdBVXoF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com
 
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: non-cooperative: selftest: introduce userfaultfd_open
+Subject: userfaultfd: non-cooperative: selftest: add ufd parameter to copy_page
 
-userfaultfd_open will be needed by the non cooperative selftest.
+With future addition of event tests, copy_page will be called with
+different userfault file descriptors
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-39-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-40-aarcange@redhat.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
@@ -31,74 +33,55 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   41 ++++++++++++---------
- 1 file changed, 25 insertions(+), 16 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -81,7 +81,7 @@ static int huge_fd;
- static char *huge_fd_off0;
- #endif
- static unsigned long long *count_verify;
--static int uffd, finished, *pipefd;
-+static int uffd, uffd_flags, finished, *pipefd;
- static char *area_src, *area_dst;
- static char *zeropage;
- pthread_attr_t attr;
-@@ -512,23 +512,9 @@ static int stress(unsigned long *userfau
- 	return 0;
+@@ -317,7 +317,7 @@ static void *locking_thread(void *arg)
+ 	return NULL;
  }
  
--static int userfaultfd_stress(void)
-+static int userfaultfd_open(void)
+-static int copy_page(unsigned long offset)
++static int copy_page(int ufd, unsigned long offset)
  {
--	void *area;
--	char *tmp_area;
--	unsigned long nr;
--	struct uffdio_register uffdio_register;
- 	struct uffdio_api uffdio_api;
--	unsigned long cpu;
--	int uffd_flags, err;
--	unsigned long userfaults[nr_cpus];
--
--	allocate_area((void **)&area_src);
--	if (!area_src)
--		return 1;
--	allocate_area((void **)&area_dst);
--	if (!area_dst)
--		return 1;
+ 	struct uffdio_copy uffdio_copy;
  
- 	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
- 	if (uffd < 0) {
-@@ -549,6 +535,29 @@ static int userfaultfd_stress(void)
- 		return 1;
+@@ -329,7 +329,7 @@ static int copy_page(unsigned long offse
+ 	uffdio_copy.len = page_size;
+ 	uffdio_copy.mode = 0;
+ 	uffdio_copy.copy = 0;
+-	if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy)) {
++	if (ioctl(ufd, UFFDIO_COPY, &uffdio_copy)) {
+ 		/* real retval in ufdio_copy.copy */
+ 		if (uffdio_copy.copy != -EEXIST)
+ 			fprintf(stderr, "UFFDIO_COPY error %Ld\n",
+@@ -386,7 +386,7 @@ static void *uffd_poll_thread(void *arg)
+ 		offset = (char *)(unsigned long)msg.arg.pagefault.address -
+ 			 area_dst;
+ 		offset &= ~(page_size-1);
+-		if (copy_page(offset))
++		if (copy_page(uffd, offset))
+ 			userfaults++;
  	}
+ 	return (void *)userfaults;
+@@ -424,7 +424,7 @@ static void *uffd_read_thread(void *arg)
+ 		offset = (char *)(unsigned long)msg.arg.pagefault.address -
+ 			 area_dst;
+ 		offset &= ~(page_size-1);
+-		if (copy_page(offset))
++		if (copy_page(uffd, offset))
+ 			(*this_cpu_userfaults)++;
+ 	}
+ 	return (void *)NULL;
+@@ -438,7 +438,7 @@ static void *background_thread(void *arg
+ 	for (page_nr = cpu * nr_pages_per_cpu;
+ 	     page_nr < (cpu+1) * nr_pages_per_cpu;
+ 	     page_nr++)
+-		copy_page(page_nr * page_size);
++		copy_page(uffd, page_nr * page_size);
  
-+	return 0;
-+}
-+
-+static int userfaultfd_stress(void)
-+{
-+	void *area;
-+	char *tmp_area;
-+	unsigned long nr;
-+	struct uffdio_register uffdio_register;
-+	unsigned long cpu;
-+	int err;
-+	unsigned long userfaults[nr_cpus];
-+
-+	allocate_area((void **)&area_src);
-+	if (!area_src)
-+		return 1;
-+	allocate_area((void **)&area_dst);
-+	if (!area_dst)
-+		return 1;
-+
-+	if (userfaultfd_open() < 0)
-+		return 1;
-+
- 	count_verify = malloc(nr_pages * sizeof(unsigned long long));
- 	if (!count_verify) {
- 		perror("count_verify");
+ 	return NULL;
+ }
 _
