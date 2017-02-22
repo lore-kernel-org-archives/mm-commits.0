@@ -1,90 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [patch 065/142] userfaultfd: hugetlbfs: add userfaultfd hugetlb
- hook
-Date: Wed, 22 Feb 2017 15:43:01 -0800
-Message-ID: <58ae2205.BXz3vQhjwSg+d8zV%akpm@linux-foundation.org>
+Subject: [patch 034/142] slab: introduce __kmemcg_cache_deactivate()
+Date: Wed, 22 Feb 2017 15:41:27 -0800
+Message-ID: <58ae21a7.63+Ar3XkL2xy6ySJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48280 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933368AbdBVXnC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:02 -0500
+        with ESMTP id S934483AbdBVXmC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd: hugetlbfs: add userfaultfd hugetlb hook
+From: Tejun Heo <tj@kernel.org>
+Subject: slab: introduce __kmemcg_cache_deactivate()
 
-When processing a hugetlb fault for no page present, check the vma to
-determine if faults are to be handled via userfaultfd.  If so, drop the
-hugetlb_fault_mutex and call handle_userfault().
+__kmem_cache_shrink() is called with %true @deactivate only for memcg
+caches.  Remove @deactivate from __kmem_cache_shrink() and introduce
+__kmemcg_cache_deactivate() instead.  Each memcg-supporting allocator
+should implement it and it should deactivate and drain the cache.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-21-aarcange@redhat.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+This is to allow memcg cache deactivation behavior to further deviate from
+simple shrinking without messing up __kmem_cache_shrink().
+
+This is pure reorganization and doesn't introduce any observable behavior
+changes.
+
+v2: Dropped unnecessary ifdef in mm/slab.h as suggested by Vladimir.
+
+Link: http://lkml.kernel.org/r/20170117235411.9408-8-tj@kernel.org
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ mm/slab.c        |   11 +++++++++--
+ mm/slab.h        |    3 ++-
+ mm/slab_common.c |    4 ++--
+ mm/slob.c        |    2 +-
+ mm/slub.c        |   39 ++++++++++++++++++++++-----------------
+ 5 files changed, 36 insertions(+), 23 deletions(-)
 
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-add-userfaultfd-hugetlb-hook mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-add-userfaultfd-hugetlb-hook
-+++ a/mm/hugetlb.c
-@@ -32,6 +32,7 @@
- #include <linux/hugetlb.h>
- #include <linux/hugetlb_cgroup.h>
- #include <linux/node.h>
-+#include <linux/userfaultfd_k.h>
- #include "internal.h"
+diff -puN mm/slab.c~slab-introduce-__kmemcg_cache_deactivate mm/slab.c
+--- a/mm/slab.c~slab-introduce-__kmemcg_cache_deactivate
++++ a/mm/slab.c
+@@ -2315,7 +2315,7 @@ out:
+ 	return nr_freed;
+ }
  
- int hugepages_treat_as_movable;
-@@ -3680,6 +3681,38 @@ retry:
- 		size = i_size_read(mapping->host) >> huge_page_shift(h);
- 		if (idx >= size)
- 			goto out;
+-int __kmem_cache_shrink(struct kmem_cache *cachep, bool deactivate)
++int __kmem_cache_shrink(struct kmem_cache *cachep)
+ {
+ 	int ret = 0;
+ 	int node;
+@@ -2333,9 +2333,16 @@ int __kmem_cache_shrink(struct kmem_cach
+ 	return (ret ? 1 : 0);
+ }
+ 
++#ifdef CONFIG_MEMCG
++void __kmemcg_cache_deactivate(struct kmem_cache *cachep)
++{
++	__kmem_cache_shrink(cachep);
++}
++#endif
 +
-+		/*
-+		 * Check for page in userfault range
-+		 */
-+		if (userfaultfd_missing(vma)) {
-+			u32 hash;
-+			struct vm_fault vmf = {
-+				.vma = vma,
-+				.address = address,
-+				.flags = flags,
-+				/*
-+				 * Hard to debug if it ends up being
-+				 * used by a callee that assumes
-+				 * something about the other
-+				 * uninitialized fields... same as in
-+				 * memory.c
-+				 */
-+			};
+ int __kmem_cache_shutdown(struct kmem_cache *cachep)
+ {
+-	return __kmem_cache_shrink(cachep, false);
++	return __kmem_cache_shrink(cachep);
+ }
+ 
+ void __kmem_cache_release(struct kmem_cache *cachep)
+diff -puN mm/slab.h~slab-introduce-__kmemcg_cache_deactivate mm/slab.h
+--- a/mm/slab.h~slab-introduce-__kmemcg_cache_deactivate
++++ a/mm/slab.h
+@@ -167,7 +167,8 @@ static inline unsigned long kmem_cache_f
+ 
+ int __kmem_cache_shutdown(struct kmem_cache *);
+ void __kmem_cache_release(struct kmem_cache *);
+-int __kmem_cache_shrink(struct kmem_cache *, bool);
++int __kmem_cache_shrink(struct kmem_cache *);
++void __kmemcg_cache_deactivate(struct kmem_cache *s);
+ void slab_kmem_cache_release(struct kmem_cache *);
+ 
+ struct seq_file;
+diff -puN mm/slab_common.c~slab-introduce-__kmemcg_cache_deactivate mm/slab_common.c
+--- a/mm/slab_common.c~slab-introduce-__kmemcg_cache_deactivate
++++ a/mm/slab_common.c
+@@ -646,7 +646,7 @@ void memcg_deactivate_kmem_caches(struct
+ 		if (!c)
+ 			continue;
+ 
+-		__kmem_cache_shrink(c, true);
++		__kmemcg_cache_deactivate(c);
+ 		arr->entries[idx] = NULL;
+ 	}
+ 	mutex_unlock(&slab_mutex);
+@@ -794,7 +794,7 @@ int kmem_cache_shrink(struct kmem_cache
+ 	get_online_cpus();
+ 	get_online_mems();
+ 	kasan_cache_shrink(cachep);
+-	ret = __kmem_cache_shrink(cachep, false);
++	ret = __kmem_cache_shrink(cachep);
+ 	put_online_mems();
+ 	put_online_cpus();
+ 	return ret;
+diff -puN mm/slob.c~slab-introduce-__kmemcg_cache_deactivate mm/slob.c
+--- a/mm/slob.c~slab-introduce-__kmemcg_cache_deactivate
++++ a/mm/slob.c
+@@ -634,7 +634,7 @@ void __kmem_cache_release(struct kmem_ca
+ {
+ }
+ 
+-int __kmem_cache_shrink(struct kmem_cache *d, bool deactivate)
++int __kmem_cache_shrink(struct kmem_cache *d)
+ {
+ 	return 0;
+ }
+diff -puN mm/slub.c~slab-introduce-__kmemcg_cache_deactivate mm/slub.c
+--- a/mm/slub.c~slab-introduce-__kmemcg_cache_deactivate
++++ a/mm/slub.c
+@@ -3894,7 +3894,7 @@ EXPORT_SYMBOL(kfree);
+  * being allocated from last increasing the chance that the last objects
+  * are freed in them.
+  */
+-int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
++int __kmem_cache_shrink(struct kmem_cache *s)
+ {
+ 	int node;
+ 	int i;
+@@ -3906,21 +3906,6 @@ int __kmem_cache_shrink(struct kmem_cach
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
+-	if (deactivate) {
+-		/*
+-		 * Disable empty slabs caching. Used to avoid pinning offline
+-		 * memory cgroups by kmem pages that can be freed.
+-		 */
+-		s->cpu_partial = 0;
+-		s->min_partial = 0;
+-
+-		/*
+-		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
+-		 * so we have to make sure the change is visible.
+-		 */
+-		synchronize_sched();
+-	}
+-
+ 	flush_all(s);
+ 	for_each_kmem_cache_node(s, node, n) {
+ 		INIT_LIST_HEAD(&discard);
+@@ -3971,13 +3956,33 @@ int __kmem_cache_shrink(struct kmem_cach
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_MEMCG
++void __kmemcg_cache_deactivate(struct kmem_cache *s)
++{
++	/*
++	 * Disable empty slabs caching. Used to avoid pinning offline
++	 * memory cgroups by kmem pages that can be freed.
++	 */
++	s->cpu_partial = 0;
++	s->min_partial = 0;
 +
-+			/*
-+			 * hugetlb_fault_mutex must be dropped before
-+			 * handling userfault.  Reacquire after handling
-+			 * fault to make calling code simpler.
-+			 */
-+			hash = hugetlb_fault_mutex_hash(h, mm, vma, mapping,
-+							idx, address);
-+			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+			ret = handle_userfault(&vmf, VM_UFFD_MISSING);
-+			mutex_lock(&hugetlb_fault_mutex_table[hash]);
-+			goto out;
-+		}
++	/*
++	 * s->cpu_partial is checked locklessly (see put_cpu_partial), so
++	 * we have to make sure the change is visible.
++	 */
++	synchronize_sched();
 +
- 		page = alloc_huge_page(vma, address, 0);
- 		if (IS_ERR(page)) {
- 			ret = PTR_ERR(page);
++	__kmem_cache_shrink(s);
++}
++#endif
++
+ static int slab_mem_going_offline_callback(void *arg)
+ {
+ 	struct kmem_cache *s;
+ 
+ 	mutex_lock(&slab_mutex);
+ 	list_for_each_entry(s, &slab_caches, list)
+-		__kmem_cache_shrink(s, false);
++		__kmem_cache_shrink(s);
+ 	mutex_unlock(&slab_mutex);
+ 
+ 	return 0;
 _
