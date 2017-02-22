@@ -1,162 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: [patch 038/142] slub: make sysfs directories for memcg sub-caches optional
-Date: Wed, 22 Feb 2017 15:41:39 -0800
-Message-ID: <58ae21b3.N6w6czJzvXDKY6yf%akpm@linux-foundation.org>
+Subject: [patch 032/142] slab: link memcg kmem_caches on their associated
+ memory cgroup
+Date: Wed, 22 Feb 2017 15:41:21 -0800
+Message-ID: <58ae21a1.p6gf8ZShue6oEcnJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47908 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934257AbdBVXmN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:13 -0500
+        with ESMTP id S934455AbdBVXl6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
 
 From: Tejun Heo <tj@kernel.org>
-Subject: slub: make sysfs directories for memcg sub-caches optional
+Subject: slab: link memcg kmem_caches on their associated memory cgroup
 
-SLUB creates a per-cache directory under /sys/kernel/slab which hosts a
-bunch of debug files.  Usually, there aren't that many caches on a system
-and this doesn't really matter; however, if memcg is in use, each cache
-can have per-cgroup sub-caches.  SLUB creates the same directories for
-these sub-caches under /sys/kernel/slab/$CACHE/cgroup.
+With kmem cgroup support enabled, kmem_caches can be created and destroyed
+frequently and a great number of near empty kmem_caches can accumulate if
+there are a lot of transient cgroups and the system is not under memory
+pressure.  When memory reclaim starts under such conditions, it can lead
+to consecutive deactivation and destruction of many kmem_caches, easily
+hundreds of thousands on moderately large systems, exposing scalability
+issues in the current slab management code.  This is one of the patches to
+address the issue.
 
-Unfortunately, because there can be a lot of cgroups, active or draining,
-the product of the numbers of caches, cgroups and files in each directory
-can reach a very high number - hundreds of thousands is commonplace. 
-Millions and beyond aren't difficult to reach either.
+While a memcg kmem_cache is listed on its root cache's ->children list,
+there is no direct way to iterate all kmem_caches which are assocaited
+with a memory cgroup.  The only way to iterate them is walking all caches
+while filtering out caches which don't match, which would be most of them.
 
-What's under /sys/kernel/slab is primarily for debugging and the
-information and control on the a root cache already cover its sub-caches. 
-While having a separate directory for each sub-cache can be helpful for
-development, it doesn't make much sense to pay this amount of overhead by
-default.
+This makes memcg destruction operations O(N^2) where N is the total number
+of slab caches which can be huge.  This combined with the synchronous RCU
+operations can tie up a CPU and affect the whole machine for many hours
+when memory reclaim triggers offlining and destruction of the stale
+memcgs.
 
-This patch introduces a boot parameter slub_memcg_sysfs which determines
-whether to create sysfs directories for per-memcg sub-caches.  It also
-adds CONFIG_SLUB_MEMCG_SYSFS_ON which determines the boot parameter's
-default value and defaults to 0.
+This patch adds mem_cgroup->kmem_caches list which goes through
+memcg_cache_params->kmem_caches_node of all kmem_caches which are
+associated with the memcg.  All memcg specific iterations, including stat
+file access, are updated to use the new list instead.
 
-[akpm@linux-foundation.org: kset_unregister(NULL) is legal]
-Link: http://lkml.kernel.org/r/20170204145203.GB26958@mtj.duckdns.org
+Link: http://lkml.kernel.org/r/20170117235411.9408-6-tj@kernel.org
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Jay Vana <jsvana@fb.com>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    8 ++++
- init/Kconfig                                    |   14 +++++++
- mm/slub.c                                       |   26 ++++++++++++--
- 3 files changed, 46 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    1 
+ include/linux/slab.h       |    3 ++
+ mm/memcontrol.c            |    7 +++---
+ mm/slab.h                  |    3 ++
+ mm/slab_common.c           |   36 ++++++++++++++++++++++++++++-------
+ 5 files changed, 40 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/admin-guide/kernel-parameters.txt~slub-make-sysfs-directories-for-memcg-sub-caches-optional Documentation/admin-guide/kernel-parameters.txt
---- a/Documentation/admin-guide/kernel-parameters.txt~slub-make-sysfs-directories-for-memcg-sub-caches-optional
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3694,6 +3694,14 @@
- 			last alloc / free. For more information see
- 			Documentation/vm/slub.txt.
+diff -puN include/linux/memcontrol.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/include/linux/memcontrol.h
+@@ -253,6 +253,7 @@ struct mem_cgroup {
+         /* Index in the kmem_cache->memcg_params.memcg_caches array */
+ 	int kmemcg_id;
+ 	enum memcg_kmem_state kmem_state;
++	struct list_head kmem_caches;
+ #endif
  
-+	slub_memcg_sysfs=	[MM, SLUB]
-+			Determines whether to enable sysfs directories for
-+			memory cgroup sub-caches. 1 to enable, 0 to disable.
-+			The default is determined by CONFIG_SLUB_MEMCG_SYSFS_ON.
-+			Enabling this can lead to a very high number of	debug
-+			directories and files being created under
-+			/sys/kernel/slub.
-+
- 	slub_max_order= [MM, SLUB]
- 			Determines the maximum allowed order for slabs.
- 			A high setting may cause OOMs due to memory
-diff -puN init/Kconfig~slub-make-sysfs-directories-for-memcg-sub-caches-optional init/Kconfig
---- a/init/Kconfig~slub-make-sysfs-directories-for-memcg-sub-caches-optional
-+++ a/init/Kconfig
-@@ -1779,6 +1779,20 @@ config SLUB_DEBUG
- 	  SLUB sysfs support. /sys/slab will not exist and there will be
- 	  no support for cache validation etc.
+ 	int last_scanned_node;
+diff -puN include/linux/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup include/linux/slab.h
+--- a/include/linux/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/include/linux/slab.h
+@@ -565,6 +565,8 @@ struct memcg_cache_array {
+  * @memcg:	Pointer to the memcg this cache belongs to.
+  *
+  * @children_node: List node for @root_cache->children list.
++ *
++ * @kmem_caches_node: List node for @memcg->kmem_caches list.
+  */
+ struct memcg_cache_params {
+ 	struct kmem_cache *root_cache;
+@@ -576,6 +578,7 @@ struct memcg_cache_params {
+ 		struct {
+ 			struct mem_cgroup *memcg;
+ 			struct list_head children_node;
++			struct list_head kmem_caches_node;
+ 		};
+ 	};
+ };
+diff -puN mm/memcontrol.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/mm/memcontrol.c
+@@ -2837,6 +2837,7 @@ static int memcg_online_kmem(struct mem_
+ 	 */
+ 	memcg->kmemcg_id = memcg_id;
+ 	memcg->kmem_state = KMEM_ONLINE;
++	INIT_LIST_HEAD(&memcg->kmem_caches);
  
-+config SLUB_MEMCG_SYSFS_ON
-+	default n
-+	bool "Enable memcg SLUB sysfs support by default" if EXPERT
-+	depends on SLUB && SYSFS && MEMCG
-+	help
-+	  SLUB creates a directory under /sys/kernel/slab for each
-+	  allocation cache to host info and debug files. If memory
-+	  cgroup is enabled, each cache can have per memory cgroup
-+	  caches. SLUB can create the same sysfs directories for these
-+	  caches under /sys/kernel/slab/CACHE/cgroup but it can lead
-+	  to a very high number of debug files being created. This is
-+	  controlled by slub_memcg_sysfs boot parameter and this
-+	  config option determines the parameter's default value.
-+
- config COMPAT_BRK
- 	bool "Disable heap randomization"
- 	default y
-diff -puN mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional mm/slub.c
---- a/mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional
-+++ a/mm/slub.c
-@@ -4708,6 +4708,22 @@ enum slab_stat_type {
- #define SO_OBJECTS	(1 << SL_OBJECTS)
- #define SO_TOTAL	(1 << SL_TOTAL)
+ 	return 0;
+ }
+@@ -4002,9 +4003,9 @@ static struct cftype mem_cgroup_legacy_f
+ #ifdef CONFIG_SLABINFO
+ 	{
+ 		.name = "kmem.slabinfo",
+-		.seq_start = slab_start,
+-		.seq_next = slab_next,
+-		.seq_stop = slab_stop,
++		.seq_start = memcg_slab_start,
++		.seq_next = memcg_slab_next,
++		.seq_stop = memcg_slab_stop,
+ 		.seq_show = memcg_slab_show,
+ 	},
+ #endif
+diff -puN mm/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/slab.h
+--- a/mm/slab.h~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/mm/slab.h
+@@ -494,6 +494,9 @@ static inline struct kmem_cache_node *ge
+ void *slab_start(struct seq_file *m, loff_t *pos);
+ void *slab_next(struct seq_file *m, void *p, loff_t *pos);
+ void slab_stop(struct seq_file *m, void *p);
++void *memcg_slab_start(struct seq_file *m, loff_t *pos);
++void *memcg_slab_next(struct seq_file *m, void *p, loff_t *pos);
++void memcg_slab_stop(struct seq_file *m, void *p);
+ int memcg_slab_show(struct seq_file *m, void *p);
  
-+#ifdef CONFIG_MEMCG
-+static bool memcg_sysfs_enabled = IS_ENABLED(CONFIG_SLUB_MEMCG_SYSFS_ON);
-+
-+static int __init setup_slub_memcg_sysfs(char *str)
-+{
-+	int v;
-+
-+	if (get_option(&str, &v) > 0)
-+		memcg_sysfs_enabled = v;
-+
-+	return 1;
-+}
-+
-+__setup("slub_memcg_sysfs=", setup_slub_memcg_sysfs);
-+#endif
-+
- static ssize_t show_slab_objects(struct kmem_cache *s,
- 			    char *buf, unsigned long flags)
- {
-@@ -5611,8 +5627,14 @@ static int sysfs_slab_add(struct kmem_ca
- {
- 	int err;
- 	const char *name;
-+	struct kset *kset = cache_kset(s);
- 	int unmergeable = slab_unmergeable(s);
- 
-+	if (!kset) {
-+		kobject_init(&s->kobj, &slab_ktype);
-+		return 0;
-+	}
-+
- 	if (unmergeable) {
- 		/*
- 		 * Slabcache can never be merged so we can use the name proper.
-@@ -5629,7 +5651,7 @@ static int sysfs_slab_add(struct kmem_ca
- 		name = create_unique_id(s);
+ void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr);
+diff -puN mm/slab_common.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup mm/slab_common.c
+--- a/mm/slab_common.c~slab-link-memcg-kmem_caches-on-their-associated-memory-cgroup
++++ a/mm/slab_common.c
+@@ -154,6 +154,7 @@ static int init_memcg_params(struct kmem
+ 		s->memcg_params.root_cache = root_cache;
+ 		s->memcg_params.memcg = memcg;
+ 		INIT_LIST_HEAD(&s->memcg_params.children_node);
++		INIT_LIST_HEAD(&s->memcg_params.kmem_caches_node);
+ 		return 0;
  	}
  
--	s->kobj.kset = cache_kset(s);
-+	s->kobj.kset = kset;
- 	err = kobject_init_and_add(&s->kobj, &slab_ktype, NULL, "%s", name);
- 	if (err)
- 		goto out;
-@@ -5639,7 +5661,7 @@ static int sysfs_slab_add(struct kmem_ca
- 		goto out_del_kobj;
+@@ -224,6 +225,7 @@ int memcg_update_all_caches(int num_memc
+ static void unlink_memcg_cache(struct kmem_cache *s)
+ {
+ 	list_del(&s->memcg_params.children_node);
++	list_del(&s->memcg_params.kmem_caches_node);
+ }
+ #else
+ static inline int init_memcg_params(struct kmem_cache *s,
+@@ -596,6 +598,7 @@ void memcg_create_kmem_cache(struct mem_
  
- #ifdef CONFIG_MEMCG
--	if (is_root_cache(s)) {
-+	if (is_root_cache(s) && memcg_sysfs_enabled) {
- 		s->memcg_kset = kset_create_and_add("cgroup", NULL, &s->kobj);
- 		if (!s->memcg_kset) {
- 			err = -ENOMEM;
+ 	list_add(&s->memcg_params.children_node,
+ 		 &root_cache->memcg_params.children);
++	list_add(&s->memcg_params.kmem_caches_node, &memcg->kmem_caches);
+ 
+ 	/*
+ 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
+@@ -651,9 +654,8 @@ void memcg_destroy_kmem_caches(struct me
+ 	get_online_mems();
+ 
+ 	mutex_lock(&slab_mutex);
+-	list_for_each_entry_safe(s, s2, &slab_caches, list) {
+-		if (is_root_cache(s) || s->memcg_params.memcg != memcg)
+-			continue;
++	list_for_each_entry_safe(s, s2, &memcg->kmem_caches,
++				 memcg_params.kmem_caches_node) {
+ 		/*
+ 		 * The cgroup is about to be freed and therefore has no charges
+ 		 * left. Hence, all its caches must be empty by now.
+@@ -1201,15 +1203,35 @@ static int slab_show(struct seq_file *m,
+ }
+ 
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
++void *memcg_slab_start(struct seq_file *m, loff_t *pos)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++
++	mutex_lock(&slab_mutex);
++	return seq_list_start(&memcg->kmem_caches, *pos);
++}
++
++void *memcg_slab_next(struct seq_file *m, void *p, loff_t *pos)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++
++	return seq_list_next(p, &memcg->kmem_caches, pos);
++}
++
++void memcg_slab_stop(struct seq_file *m, void *p)
++{
++	mutex_unlock(&slab_mutex);
++}
++
+ int memcg_slab_show(struct seq_file *m, void *p)
+ {
+-	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
++	struct kmem_cache *s = list_entry(p, struct kmem_cache,
++					  memcg_params.kmem_caches_node);
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+ 
+-	if (p == slab_caches.next)
++	if (p == memcg->kmem_caches.next)
+ 		print_slabinfo_header(m);
+-	if (!is_root_cache(s) && s->memcg_params.memcg == memcg)
+-		cache_show(s, m);
++	cache_show(s, m);
+ 	return 0;
+ }
+ #endif
 _
