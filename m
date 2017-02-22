@@ -1,305 +1,291 @@
 From: akpm@linux-foundation.org
-Subject: [patch 130/142] lib/show_mem.c: teach show_mem to work with the
- given nodemask
-Date: Wed, 22 Feb 2017 15:46:16 -0800
-Message-ID: <58ae22c8.ljLpRn9ol5PwDEnJ%akpm@linux-foundation.org>
+Subject: [patch 129/142] arch, mm: remove arch specific show_mem
+Date: Wed, 22 Feb 2017 15:46:13 -0800
+Message-ID: <58ae22c5.ag2zNlQ6QWIOnx4c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49670 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934311AbdBVXqR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:17 -0500
+        with ESMTP id S934311AbdBVXqO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, cmetcalf@mellanox.com, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, gxt@mprc.pku.edu.cn, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, jejb@parisc-linux.org, mgorman@suse.de, rientjes@google.com, tony.luck@intel.com, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: lib/show_mem.c: teach show_mem to work with the given nodemask
+Subject: arch, mm: remove arch specific show_mem
 
-show_mem() allows to filter out node specific data which is irrelevant to
-the allocation request via SHOW_MEM_FILTER_NODES.  The filtering is done
-in skip_free_areas_node which skips all nodes which are not in the
-mems_allowed of the current process.  This works most of the time as
-expected because the nodemask shouldn't be outside of the allocating task
-but there are some exceptions.  E.g.  memory hotplug might want to request
-allocations from outside of the allowed nodes (see new_node_page).
+We have a generic implementation for quite some time already.  If there is
+any arch specific information to be printed then we should add a callback
+called from the generic code rather than duplicate the whole show_mem. 
+The current code has resulted in the code duplication and the output
+divergence which is both confusing and adds maintainance costs.  Let's
+just get rid of this mess.
 
-Get rid of this hardcoded behavior and push the allocation mask down the
-show_mem path and use it instead of cpuset_current_mems_allowed.  NULL
-nodemask is interpreted as cpuset_current_mems_allowed.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170117091543.25850-5-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170117091543.25850-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn> [UniCore32]
+Acked-by: Helge Deller <deller@gmx.de> [for parisc]
+Acked-by: Chris Metcalf <cmetcalf@mellanox.com> [for tile]
 Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/xmon/xmon.c            |    2 -
- arch/sparc/kernel/setup_32.c        |    2 -
- drivers/net/ethernet/sgi/ioc3-eth.c |    2 -
- drivers/tty/sysrq.c                 |    2 -
- drivers/tty/vt/keyboard.c           |    2 -
- include/linux/mm.h                  |    5 +--
- lib/show_mem.c                      |    4 +-
- mm/nommu.c                          |    6 ++--
- mm/oom_kill.c                       |    2 -
- mm/page_alloc.c                     |   38 +++++++++++++-------------
- 10 files changed, 32 insertions(+), 33 deletions(-)
+ arch/ia64/mm/init.c      |   48 ------------------------------------
+ arch/parisc/mm/init.c    |   49 -------------------------------------
+ arch/sparc/mm/init_32.c  |   11 --------
+ arch/tile/mm/pgtable.c   |   45 ---------------------------------
+ arch/unicore32/mm/init.c |   44 ---------------------------------
+ 5 files changed, 197 deletions(-)
 
-diff -puN arch/powerpc/xmon/xmon.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask arch/powerpc/xmon/xmon.c
---- a/arch/powerpc/xmon/xmon.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/arch/powerpc/xmon/xmon.c
-@@ -916,7 +916,7 @@ cmds(struct pt_regs *excp)
- 				memzcan();
- 				break;
- 			case 'i':
--				show_mem(0);
-+				show_mem(0, NULL);
- 				break;
- 			default:
- 				termch = cmd;
-diff -puN arch/sparc/kernel/setup_32.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask arch/sparc/kernel/setup_32.c
---- a/arch/sparc/kernel/setup_32.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/arch/sparc/kernel/setup_32.c
-@@ -82,7 +82,7 @@ static void prom_sync_me(void)
- 			     "nop\n\t" : : "r" (&trapbase));
- 
- 	prom_printf("PROM SYNC COMMAND...\n");
--	show_free_areas(0);
-+	show_free_areas(0, NULL);
- 	if (!is_idle_task(current)) {
- 		local_irq_enable();
- 		sys_sync();
-diff -puN drivers/net/ethernet/sgi/ioc3-eth.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask drivers/net/ethernet/sgi/ioc3-eth.c
---- a/drivers/net/ethernet/sgi/ioc3-eth.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/drivers/net/ethernet/sgi/ioc3-eth.c
-@@ -914,7 +914,7 @@ static void ioc3_alloc_rings(struct net_
- 
- 			skb = ioc3_alloc_skb(RX_BUF_ALLOC_SIZE, GFP_ATOMIC);
- 			if (!skb) {
--				show_free_areas(0);
-+				show_free_areas(0, NULL);
- 				continue;
- 			}
- 
-diff -puN drivers/tty/sysrq.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/drivers/tty/sysrq.c
-@@ -317,7 +317,7 @@ static struct sysrq_key_op sysrq_ftrace_
- 
- static void sysrq_handle_showmem(int key)
- {
--	show_mem(0);
-+	show_mem(0, NULL);
+diff -puN arch/ia64/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/ia64/mm/init.c
+@@ -684,51 +684,3 @@ int arch_remove_memory(u64 start, u64 si
  }
- static struct sysrq_key_op sysrq_showmem_op = {
- 	.handler	= sysrq_handle_showmem,
-diff -puN drivers/tty/vt/keyboard.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask drivers/tty/vt/keyboard.c
---- a/drivers/tty/vt/keyboard.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/drivers/tty/vt/keyboard.c
-@@ -572,7 +572,7 @@ static void fn_scroll_back(struct vc_dat
- 
- static void fn_show_mem(struct vc_data *vc)
- {
--	show_mem(0);
-+	show_mem(0, NULL);
- }
- 
- static void fn_show_state(struct vc_data *vc)
-diff -puN include/linux/mm.h~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask include/linux/mm.h
---- a/include/linux/mm.h~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/include/linux/mm.h
-@@ -1152,8 +1152,7 @@ extern void pagefault_out_of_memory(void
-  */
- #define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
- 
--extern void show_free_areas(unsigned int flags);
--extern bool skip_free_areas_node(unsigned int flags, int nid);
-+extern void show_free_areas(unsigned int flags, nodemask_t *nodemask);
- 
- int shmem_zero_setup(struct vm_area_struct *);
- #ifdef CONFIG_SHMEM
-@@ -1934,7 +1933,7 @@ extern void setup_per_zone_wmarks(void);
- extern int __meminit init_per_zone_wmark_min(void);
- extern void mem_init(void);
- extern void __init mmap_init(void);
--extern void show_mem(unsigned int flags);
-+extern void show_mem(unsigned int flags, nodemask_t *nodemask);
- extern long si_mem_available(void);
- extern void si_meminfo(struct sysinfo * val);
- extern void si_meminfo_node(struct sysinfo *val, int nid);
-diff -puN lib/show_mem.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask lib/show_mem.c
---- a/lib/show_mem.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/lib/show_mem.c
-@@ -9,13 +9,13 @@
- #include <linux/quicklist.h>
- #include <linux/cma.h>
+ #endif
+ #endif
+-
+-/**
+- * show_mem - give short summary of memory stats
+- *
+- * Shows a simple page count of reserved and used pages in the system.
+- * For discontig machines, it does this on a per-pgdat basis.
+- */
+-void show_mem(unsigned int filter)
+-{
+-	int total_reserved = 0;
+-	unsigned long total_present = 0;
+-	pg_data_t *pgdat;
+-
+-	printk(KERN_INFO "Mem-info:\n");
+-	show_free_areas(filter);
+-	printk(KERN_INFO "Node memory in pages:\n");
+-	for_each_online_pgdat(pgdat) {
+-		unsigned long present;
+-		unsigned long flags;
+-		int reserved = 0;
+-		int nid = pgdat->node_id;
+-		int zoneid;
+-
+-		if (skip_free_areas_node(filter, nid))
+-			continue;
+-		pgdat_resize_lock(pgdat, &flags);
+-
+-		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+-			struct zone *zone = &pgdat->node_zones[zoneid];
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			reserved += zone->present_pages - zone->managed_pages;
+-		}
+-		present = pgdat->node_present_pages;
+-
+-		pgdat_resize_unlock(pgdat, &flags);
+-		total_present += present;
+-		total_reserved += reserved;
+-		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, ",
+-		       nid, present, reserved);
+-	}
+-	printk(KERN_INFO "%ld pages of RAM\n", total_present);
+-	printk(KERN_INFO "%d reserved pages\n", total_reserved);
+-	printk(KERN_INFO "Total of %ld pages in page table cache\n",
+-	       quicklist_total_size());
+-	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
+-}
+diff -puN arch/parisc/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/parisc/mm/init.c
+@@ -653,55 +653,6 @@ void __init mem_init(void)
+ unsigned long *empty_zero_page __read_mostly;
+ EXPORT_SYMBOL(empty_zero_page);
  
 -void show_mem(unsigned int filter)
-+void show_mem(unsigned int filter, nodemask_t *nodemask)
- {
- 	pg_data_t *pgdat;
- 	unsigned long total = 0, reserved = 0, highmem = 0;
- 
- 	printk("Mem-Info:\n");
--	show_free_areas(filter);
-+	show_free_areas(filter, nodemask);
- 
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long flags;
-diff -puN mm/nommu.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask mm/nommu.c
---- a/mm/nommu.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/mm/nommu.c
-@@ -1191,7 +1191,7 @@ error_free:
- enomem:
- 	pr_err("Allocation of length %lu from process %d (%s) failed\n",
- 	       len, current->pid, current->comm);
--	show_free_areas(0);
-+	show_free_areas(0, NULL);
- 	return -ENOMEM;
- }
- 
-@@ -1412,13 +1412,13 @@ error_getting_vma:
- 	kmem_cache_free(vm_region_jar, region);
- 	pr_warn("Allocation of vma for %lu byte allocation from process %d failed\n",
- 			len, current->pid);
--	show_free_areas(0);
-+	show_free_areas(0, NULL);
- 	return -ENOMEM;
- 
- error_getting_region:
- 	pr_warn("Allocation of vm region for %lu byte allocation from process %d failed\n",
- 			len, current->pid);
--	show_free_areas(0);
-+	show_free_areas(0, NULL);
- 	return -ENOMEM;
- }
- 
-diff -puN mm/oom_kill.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask mm/oom_kill.c
---- a/mm/oom_kill.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/mm/oom_kill.c
-@@ -417,7 +417,7 @@ static void dump_header(struct oom_contr
- 	if (oc->memcg)
- 		mem_cgroup_print_oom_info(oc->memcg, p);
- 	else
--		show_mem(SHOW_MEM_FILTER_NODES);
-+		show_mem(SHOW_MEM_FILTER_NODES, nm);
- 	if (sysctl_oom_dump_tasks)
- 		dump_tasks(oc->memcg, oc->nodemask);
- }
-diff -puN mm/page_alloc.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask
-+++ a/mm/page_alloc.c
-@@ -3005,7 +3005,7 @@ static inline bool should_suppress_show_
- 	return ret;
- }
- 
--static void warn_alloc_show_mem(gfp_t gfp_mask)
-+static void warn_alloc_show_mem(gfp_t gfp_mask, nodemask_t *nodemask)
- {
- 	unsigned int filter = SHOW_MEM_FILTER_NODES;
- 	static DEFINE_RATELIMIT_STATE(show_mem_rs, HZ, 1);
-@@ -3025,7 +3025,7 @@ static void warn_alloc_show_mem(gfp_t gf
- 	if (in_interrupt() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		filter &= ~SHOW_MEM_FILTER_NODES;
- 
--	show_mem(filter);
-+	show_mem(filter, nodemask);
- }
- 
- void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
-@@ -3052,7 +3052,7 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	cpuset_print_current_mems_allowed();
- 
- 	dump_stack();
--	warn_alloc_show_mem(gfp_mask);
-+	warn_alloc_show_mem(gfp_mask, nm);
- }
- 
- static inline struct page *
-@@ -4274,20 +4274,20 @@ void si_meminfo_node(struct sysinfo *val
-  * Determine whether the node should be displayed or not, depending on whether
-  * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
-  */
--bool skip_free_areas_node(unsigned int flags, int nid)
-+static bool show_mem_node_skip(unsigned int flags, int nid, nodemask_t *nodemask)
- {
--	bool ret = false;
--	unsigned int cpuset_mems_cookie;
+-{
+-	int total = 0,reserved = 0;
+-	pg_data_t *pgdat;
 -
- 	if (!(flags & SHOW_MEM_FILTER_NODES))
--		goto out;
-+		return false;
+-	printk(KERN_INFO "Mem-info:\n");
+-	show_free_areas(filter);
+-
+-	for_each_online_pgdat(pgdat) {
+-		unsigned long flags;
+-		int zoneid;
+-
+-		pgdat_resize_lock(pgdat, &flags);
+-		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+-			struct zone *zone = &pgdat->node_zones[zoneid];
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			total += zone->present_pages;
+-			reserved = zone->present_pages - zone->managed_pages;
+-		}
+-		pgdat_resize_unlock(pgdat, &flags);
+-	}
+-
+-	printk(KERN_INFO "%d pages of RAM\n", total);
+-	printk(KERN_INFO "%d reserved pages\n", reserved);
+-
+-#ifdef CONFIG_DISCONTIGMEM
+-	{
+-		struct zonelist *zl;
+-		int i, j;
+-
+-		for (i = 0; i < npmem_ranges; i++) {
+-			zl = node_zonelist(i, 0);
+-			for (j = 0; j < MAX_NR_ZONES; j++) {
+-				struct zoneref *z;
+-				struct zone *zone;
+-
+-				printk("Zone list for zone %d on node %d: ", j, i);
+-				for_each_zone_zonelist(zone, z, zl, j)
+-					printk("[%d/%s] ", zone_to_nid(zone),
+-								zone->name);
+-				printk("\n");
+-			}
+-		}
+-	}
+-#endif
+-}
+-
+ /*
+  * pagetable_init() sets up the page tables
+  *
+diff -puN arch/sparc/mm/init_32.c~arch-mm-remove-arch-specific-show_mem arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/sparc/mm/init_32.c
+@@ -55,17 +55,6 @@ extern unsigned int sparc_ramdisk_size;
  
--	do {
--		cpuset_mems_cookie = read_mems_allowed_begin();
--		ret = !node_isset(nid, cpuset_current_mems_allowed);
--	} while (read_mems_allowed_retry(cpuset_mems_cookie));
--out:
--	return ret;
-+	/*
-+	 * no node mask - aka implicit memory numa policy. Do not bother with
-+	 * the synchronization - read_mems_allowed_begin - because we do not
-+	 * have to be precise here.
-+	 */
-+	if (!nodemask)
-+		nodemask = &cpuset_current_mems_allowed;
-+
-+	return !node_isset(nid, *nodemask);
- }
+ unsigned long highstart_pfn, highend_pfn;
+ 
+-void show_mem(unsigned int filter)
+-{
+-	printk("Mem-info:\n");
+-	show_free_areas(filter);
+-	printk("Free swap:       %6ldkB\n",
+-	       get_nr_swap_pages() << (PAGE_SHIFT-10));
+-	printk("%ld pages of RAM\n", totalram_pages);
+-	printk("%ld free pages\n", nr_free_pages());
+-}
+-
+-
+ unsigned long last_valid_pfn;
+ 
+ unsigned long calc_highpages(void)
+diff -puN arch/tile/mm/pgtable.c~arch-mm-remove-arch-specific-show_mem arch/tile/mm/pgtable.c
+--- a/arch/tile/mm/pgtable.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/tile/mm/pgtable.c
+@@ -36,51 +36,6 @@
  
  #define K(x) ((x) << (PAGE_SHIFT-10))
-@@ -4328,7 +4328,7 @@ static void show_migration_types(unsigne
-  * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
-  *   cpuset.
+ 
+-/*
+- * The normal show_free_areas() is too verbose on Tile, with dozens
+- * of processors and often four NUMA zones each with high and lowmem.
+- */
+-void show_mem(unsigned int filter)
+-{
+-	struct zone *zone;
+-
+-	pr_err("Active:%lu inactive:%lu dirty:%lu writeback:%lu unstable:%lu free:%lu\n slab:%lu mapped:%lu pagetables:%lu bounce:%lu pagecache:%lu swap:%lu\n",
+-	       (global_node_page_state(NR_ACTIVE_ANON) +
+-		global_node_page_state(NR_ACTIVE_FILE)),
+-	       (global_node_page_state(NR_INACTIVE_ANON) +
+-		global_node_page_state(NR_INACTIVE_FILE)),
+-	       global_node_page_state(NR_FILE_DIRTY),
+-	       global_node_page_state(NR_WRITEBACK),
+-	       global_node_page_state(NR_UNSTABLE_NFS),
+-	       global_page_state(NR_FREE_PAGES),
+-	       (global_page_state(NR_SLAB_RECLAIMABLE) +
+-		global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-	       global_node_page_state(NR_FILE_MAPPED),
+-	       global_page_state(NR_PAGETABLE),
+-	       global_page_state(NR_BOUNCE),
+-	       global_node_page_state(NR_FILE_PAGES),
+-	       get_nr_swap_pages());
+-
+-	for_each_zone(zone) {
+-		unsigned long flags, order, total = 0, largest_order = -1;
+-
+-		if (!populated_zone(zone))
+-			continue;
+-
+-		spin_lock_irqsave(&zone->lock, flags);
+-		for (order = 0; order < MAX_ORDER; order++) {
+-			int nr = zone->free_area[order].nr_free;
+-			total += nr << order;
+-			if (nr)
+-				largest_order = order;
+-		}
+-		spin_unlock_irqrestore(&zone->lock, flags);
+-		pr_err("Node %d %7s: %lukB (largest %luKb)\n",
+-		       zone_to_nid(zone), zone->name,
+-		       K(total), largest_order ? K(1UL) << largest_order : 0);
+-	}
+-}
+-
+ /**
+  * shatter_huge_page() - ensure a given address is mapped by a small page.
+  *
+diff -puN arch/unicore32/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/unicore32/mm/init.c
+--- a/arch/unicore32/mm/init.c~arch-mm-remove-arch-specific-show_mem
++++ a/arch/unicore32/mm/init.c
+@@ -57,50 +57,6 @@ early_param("initrd", early_initrd);
   */
--void show_free_areas(unsigned int filter)
-+void show_free_areas(unsigned int filter, nodemask_t *nodemask)
- {
- 	unsigned long free_pcp = 0;
- 	int cpu;
-@@ -4336,7 +4336,7 @@ void show_free_areas(unsigned int filter
- 	pg_data_t *pgdat;
+ struct meminfo meminfo;
  
- 	for_each_populated_zone(zone) {
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
- 			continue;
- 
- 		for_each_online_cpu(cpu)
-@@ -4370,7 +4370,7 @@ void show_free_areas(unsigned int filter
- 		global_page_state(NR_FREE_CMA_PAGES));
- 
- 	for_each_online_pgdat(pgdat) {
--		if (skip_free_areas_node(filter, pgdat->node_id))
-+		if (show_mem_node_skip(filter, pgdat->node_id, nodemask))
- 			continue;
- 
- 		printk("Node %d"
-@@ -4422,7 +4422,7 @@ void show_free_areas(unsigned int filter
- 	for_each_populated_zone(zone) {
- 		int i;
- 
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
- 			continue;
- 
- 		free_pcp = 0;
-@@ -4487,7 +4487,7 @@ void show_free_areas(unsigned int filter
- 		unsigned long nr[MAX_ORDER], flags, total = 0;
- 		unsigned char types[MAX_ORDER];
- 
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
- 			continue;
- 		show_node(zone);
- 		printk(KERN_CONT "%s: ", zone->name);
-_
+-void show_mem(unsigned int filter)
+-{
+-	int free = 0, total = 0, reserved = 0;
+-	int shared = 0, cached = 0, slab = 0, i;
+-	struct meminfo *mi = &meminfo;
+-
+-	printk(KERN_DEFAULT "Mem-info:\n");
+-	show_free_areas(filter);
+-
+-	for_each_bank(i, mi) {
+-		struct membank *bank = &mi->bank[i];
+-		unsigned int pfn1, pfn2;
+-		struct page *page, *end;
+-
+-		pfn1 = bank_pfn_start(bank);
+-		pfn2 = bank_pfn_end(bank);
+-
+-		page = pfn_to_page(pfn1);
+-		end  = pfn_to_page(pfn2 - 1) + 1;
+-
+-		do {
+-			total++;
+-			if (PageReserved(page))
+-				reserved++;
+-			else if (PageSwapCache(page))
+-				cached++;
+-			else if (PageSlab(page))
+-				slab++;
+-			else if (!page_count(page))
+-				free++;
+-			else
+-				shared += page_count(page) - 1;
+-			page++;
+-		} while (page < end);
+-	}
+-
+-	printk(KERN_DEFAULT "%d pages of RAM\n", total);
+-	printk(KERN_DEFAULT "%d free pages\n", free);
+-	printk(KERN_DEFAULT "%d reserved pages\n", reserved);
+-	printk(KERN_DEFAULT "%d slab pages\n", slab);
+-	printk(KERN_DEFAULT "%d pages shared\n", shared);
+-	printk(KERN_DEFAULT "%d pages swap cached\n", cached);
+-}
