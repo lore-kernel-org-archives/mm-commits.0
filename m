@@ -1,108 +1,298 @@
 From: akpm@linux-foundation.org
-Subject: [patch 068/142] userfaultfd: hugetlbfs:
- userfaultfd_huge_must_wait for hugepmd ranges
-Date: Wed, 22 Feb 2017 15:43:10 -0800
-Message-ID: <58ae220e.mXtXZhJBYvbRpR2a%akpm@linux-foundation.org>
+Subject: [patch 033/142] slab: implement slab_root_caches list
+Date: Wed, 22 Feb 2017 15:41:24 -0800
+Message-ID: <58ae21a4.YC2YL1MDRs/praxF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47984 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934685AbdBVXnM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:12 -0500
+        with ESMTP id S933134AbdBVXmB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd: hugetlbfs: userfaultfd_huge_must_wait for hugepmd ranges
+From: Tejun Heo <tj@kernel.org>
+Subject: slab: implement slab_root_caches list
 
-Add routine userfaultfd_huge_must_wait which has the same functionality as
-the existing userfaultfd_must_wait routine.  Only difference is that new
-routine must handle page table structure for hugepmd vmas.
+With kmem cgroup support enabled, kmem_caches can be created and destroyed
+frequently and a great number of near empty kmem_caches can accumulate if
+there are a lot of transient cgroups and the system is not under memory
+pressure.  When memory reclaim starts under such conditions, it can lead
+to consecutive deactivation and destruction of many kmem_caches, easily
+hundreds of thousands on moderately large systems, exposing scalability
+issues in the current slab management code.  This is one of the patches to
+address the issue.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-24-aarcange@redhat.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+slab_caches currently lists all caches including root and memcg ones. 
+This is the only data structure which lists the root caches and iterating
+root caches can only be done by walking the list while skipping over memcg
+caches.  As there can be a huge number of memcg caches, this can become
+very expensive.
+
+This also can make /proc/slabinfo behave very badly.  seq_file processes
+reads in 4k chunks and seeks to the previous Nth position on slab_caches
+list to resume after each chunk.  With a lot of memcg cache churns on the
+list, reading /proc/slabinfo can become very slow and its content often
+ends up with duplicate and/or missing entries.
+
+This patch adds a new list slab_root_caches which lists only the root
+caches.  When memcg is not enabled, it becomes just an alias of
+slab_caches.  memcg specific list operations are collected into
+memcg_[un]link_cache().
+
+Link: http://lkml.kernel.org/r/20170117235411.9408-7-tj@kernel.org
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Jay Vana <jsvana@fb.com>
+Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   51 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 2 deletions(-)
+ include/linux/slab.h |    3 ++
+ mm/slab.h            |   15 ++++++++++
+ mm/slab_common.c     |   59 +++++++++++++++++++++++------------------
+ mm/slub.c            |    1 
+ 4 files changed, 53 insertions(+), 25 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges
-+++ a/fs/userfaultfd.c
-@@ -202,6 +202,49 @@ static inline struct uffd_msg userfault_
- 	return msg;
- }
+diff -puN include/linux/slab.h~slab-implement-slab_root_caches-list include/linux/slab.h
+--- a/include/linux/slab.h~slab-implement-slab_root_caches-list
++++ a/include/linux/slab.h
+@@ -556,6 +556,8 @@ struct memcg_cache_array {
+  *		used to index child cachces during allocation and cleared
+  *		early during shutdown.
+  *
++ * @root_caches_node: List node for slab_root_caches list.
++ *
+  * @children:	List of all child caches.  While the child caches are also
+  *		reachable through @memcg_caches, a child cache remains on
+  *		this list until it is actually destroyed.
+@@ -573,6 +575,7 @@ struct memcg_cache_params {
+ 	union {
+ 		struct {
+ 			struct memcg_cache_array __rcu *memcg_caches;
++			struct list_head __root_caches_node;
+ 			struct list_head children;
+ 		};
+ 		struct {
+diff -puN mm/slab.h~slab-implement-slab_root_caches-list mm/slab.h
+--- a/mm/slab.h~slab-implement-slab_root_caches-list
++++ a/mm/slab.h
+@@ -201,6 +201,11 @@ void __kmem_cache_free_bulk(struct kmem_
+ int __kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+/*
-+ * Same functionality as userfaultfd_must_wait below with modifications for
-+ * hugepmd ranges.
-+ */
-+static inline bool userfaultfd_huge_must_wait(struct userfaultfd_ctx *ctx,
-+					 unsigned long address,
-+					 unsigned long flags,
-+					 unsigned long reason)
-+{
-+	struct mm_struct *mm = ctx->mm;
-+	pte_t *pte;
-+	bool ret = true;
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
 +
-+	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
-+
-+	pte = huge_pte_offset(mm, address);
-+	if (!pte)
-+		goto out;
-+
-+	ret = false;
-+
-+	/*
-+	 * Lockless access: we're in a wait_event so it's ok if it
-+	 * changes under us.
-+	 */
-+	if (huge_pte_none(*pte))
-+		ret = true;
-+	if (!huge_pte_write(*pte) && (reason & VM_UFFD_WP))
-+		ret = true;
-+out:
-+	return ret;
-+}
-+#else
-+static inline bool userfaultfd_huge_must_wait(struct userfaultfd_ctx *ctx,
-+					 unsigned long address,
-+					 unsigned long flags,
-+					 unsigned long reason)
-+{
-+	return false;	/* should never get here */
-+}
-+#endif /* CONFIG_HUGETLB_PAGE */
++/* List of all root caches. */
++extern struct list_head		slab_root_caches;
++#define root_caches_node	memcg_params.__root_caches_node
 +
  /*
-  * Verify the pagetables are still not ok after having reigstered into
-  * the fault_pending_wqh to avoid userland having to UFFDIO_WAKE any
-@@ -378,8 +421,12 @@ int handle_userfault(struct vm_fault *vm
- 	set_current_state(blocking_state);
- 	spin_unlock(&ctx->fault_pending_wqh.lock);
+  * Iterate over all memcg caches of the given root cache. The caller must hold
+  * slab_mutex.
+@@ -300,9 +305,14 @@ static __always_inline void memcg_unchar
+ }
  
--	must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
--					  reason);
-+	if (!is_vm_hugetlb_page(vmf->vma))
-+		must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
-+						  reason);
-+	else
-+		must_wait = userfaultfd_huge_must_wait(ctx, vmf->address,
-+						       vmf->flags, reason);
- 	up_read(&mm->mmap_sem);
+ extern void slab_init_memcg_params(struct kmem_cache *);
++extern void memcg_link_cache(struct kmem_cache *s);
  
- 	if (likely(must_wait && !ACCESS_ONCE(ctx->released) &&
+ #else /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 
++/* If !memcg, all caches are root. */
++#define slab_root_caches	slab_caches
++#define root_caches_node	list
++
+ #define for_each_memcg_cache(iter, root) \
+ 	for ((void)(iter), (void)(root); 0; )
+ 
+@@ -347,6 +357,11 @@ static inline void memcg_uncharge_slab(s
+ static inline void slab_init_memcg_params(struct kmem_cache *s)
+ {
+ }
++
++static inline void memcg_link_cache(struct kmem_cache *s)
++{
++}
++
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 
+ static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
+diff -puN mm/slab_common.c~slab-implement-slab_root_caches-list mm/slab_common.c
+--- a/mm/slab_common.c~slab-implement-slab_root_caches-list
++++ a/mm/slab_common.c
+@@ -138,6 +138,9 @@ int __kmem_cache_alloc_bulk(struct kmem_
+ }
+ 
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
++
++LIST_HEAD(slab_root_caches);
++
+ void slab_init_memcg_params(struct kmem_cache *s)
+ {
+ 	s->memcg_params.root_cache = NULL;
+@@ -183,9 +186,6 @@ static int update_memcg_params(struct km
+ {
+ 	struct memcg_cache_array *old, *new;
+ 
+-	if (!is_root_cache(s))
+-		return 0;
+-
+ 	new = kzalloc(sizeof(struct memcg_cache_array) +
+ 		      new_array_size * sizeof(void *), GFP_KERNEL);
+ 	if (!new)
+@@ -209,7 +209,7 @@ int memcg_update_all_caches(int num_memc
+ 	int ret = 0;
+ 
+ 	mutex_lock(&slab_mutex);
+-	list_for_each_entry(s, &slab_caches, list) {
++	list_for_each_entry(s, &slab_root_caches, root_caches_node) {
+ 		ret = update_memcg_params(s, num_memcgs);
+ 		/*
+ 		 * Instead of freeing the memory, we'll just leave the caches
+@@ -222,10 +222,26 @@ int memcg_update_all_caches(int num_memc
+ 	return ret;
+ }
+ 
+-static void unlink_memcg_cache(struct kmem_cache *s)
++void memcg_link_cache(struct kmem_cache *s)
+ {
+-	list_del(&s->memcg_params.children_node);
+-	list_del(&s->memcg_params.kmem_caches_node);
++	if (is_root_cache(s)) {
++		list_add(&s->root_caches_node, &slab_root_caches);
++	} else {
++		list_add(&s->memcg_params.children_node,
++			 &s->memcg_params.root_cache->memcg_params.children);
++		list_add(&s->memcg_params.kmem_caches_node,
++			 &s->memcg_params.memcg->kmem_caches);
++	}
++}
++
++static void memcg_unlink_cache(struct kmem_cache *s)
++{
++	if (is_root_cache(s)) {
++		list_del(&s->root_caches_node);
++	} else {
++		list_del(&s->memcg_params.children_node);
++		list_del(&s->memcg_params.kmem_caches_node);
++	}
+ }
+ #else
+ static inline int init_memcg_params(struct kmem_cache *s,
+@@ -238,7 +254,7 @@ static inline void destroy_memcg_params(
+ {
+ }
+ 
+-static inline void unlink_memcg_cache(struct kmem_cache *s)
++static inline void memcg_unlink_cache(struct kmem_cache *s)
+ {
+ }
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+@@ -285,7 +301,7 @@ struct kmem_cache *find_mergeable(size_t
+ 	if (flags & SLAB_NEVER_MERGE)
+ 		return NULL;
+ 
+-	list_for_each_entry_reverse(s, &slab_caches, list) {
++	list_for_each_entry_reverse(s, &slab_root_caches, root_caches_node) {
+ 		if (slab_unmergeable(s))
+ 			continue;
+ 
+@@ -369,6 +385,7 @@ static struct kmem_cache *create_cache(c
+ 
+ 	s->refcount = 1;
+ 	list_add(&s->list, &slab_caches);
++	memcg_link_cache(s);
+ out:
+ 	if (err)
+ 		return ERR_PTR(err);
+@@ -514,9 +531,8 @@ static int shutdown_cache(struct kmem_ca
+ 	if (__kmem_cache_shutdown(s) != 0)
+ 		return -EBUSY;
+ 
++	memcg_unlink_cache(s);
+ 	list_del(&s->list);
+-	if (!is_root_cache(s))
+-		unlink_memcg_cache(s);
+ 
+ 	if (s->flags & SLAB_DESTROY_BY_RCU) {
+ 		list_add_tail(&s->list, &slab_caches_to_rcu_destroy);
+@@ -596,10 +612,6 @@ void memcg_create_kmem_cache(struct mem_
+ 		goto out_unlock;
+ 	}
+ 
+-	list_add(&s->memcg_params.children_node,
+-		 &root_cache->memcg_params.children);
+-	list_add(&s->memcg_params.kmem_caches_node, &memcg->kmem_caches);
+-
+ 	/*
+ 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
+ 	 * barrier here to ensure nobody will see the kmem_cache partially
+@@ -627,10 +639,7 @@ void memcg_deactivate_kmem_caches(struct
+ 	get_online_mems();
+ 
+ 	mutex_lock(&slab_mutex);
+-	list_for_each_entry(s, &slab_caches, list) {
+-		if (!is_root_cache(s))
+-			continue;
+-
++	list_for_each_entry(s, &slab_root_caches, root_caches_node) {
+ 		arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
+ 						lockdep_is_held(&slab_mutex));
+ 		c = arr->entries[idx];
+@@ -829,6 +838,7 @@ struct kmem_cache *__init create_kmalloc
+ 
+ 	create_boot_cache(s, name, size, flags);
+ 	list_add(&s->list, &slab_caches);
++	memcg_link_cache(s);
+ 	s->refcount = 1;
+ 	return s;
+ }
+@@ -1136,12 +1146,12 @@ static void print_slabinfo_header(struct
+ void *slab_start(struct seq_file *m, loff_t *pos)
+ {
+ 	mutex_lock(&slab_mutex);
+-	return seq_list_start(&slab_caches, *pos);
++	return seq_list_start(&slab_root_caches, *pos);
+ }
+ 
+ void *slab_next(struct seq_file *m, void *p, loff_t *pos)
+ {
+-	return seq_list_next(p, &slab_caches, pos);
++	return seq_list_next(p, &slab_root_caches, pos);
+ }
+ 
+ void slab_stop(struct seq_file *m, void *p)
+@@ -1193,12 +1203,11 @@ static void cache_show(struct kmem_cache
+ 
+ static int slab_show(struct seq_file *m, void *p)
+ {
+-	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
++	struct kmem_cache *s = list_entry(p, struct kmem_cache, root_caches_node);
+ 
+-	if (p == slab_caches.next)
++	if (p == slab_root_caches.next)
+ 		print_slabinfo_header(m);
+-	if (is_root_cache(s))
+-		cache_show(s, m);
++	cache_show(s, m);
+ 	return 0;
+ }
+ 
+diff -puN mm/slub.c~slab-implement-slab_root_caches-list mm/slub.c
+--- a/mm/slub.c~slab-implement-slab_root_caches-list
++++ a/mm/slub.c
+@@ -4127,6 +4127,7 @@ static struct kmem_cache * __init bootst
+ 	}
+ 	slab_init_memcg_params(s);
+ 	list_add(&s->list, &slab_caches);
++	memcg_link_cache(s);
+ 	return s;
+ }
+ 
 _
