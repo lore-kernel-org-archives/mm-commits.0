@@ -1,119 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [patch 089/142] mm: mprotect: use pmd_trans_unstable instead of
- taking the pmd_lock
-Date: Wed, 22 Feb 2017 15:44:12 -0800
-Message-ID: <58ae224c.I8WaKUG4w3pRW+zd%akpm@linux-foundation.org>
+Subject: [patch 090/142] mm, vmscan: remove unused mm_vmscan_memcg_isolate
+Date: Wed, 22 Feb 2017 15:44:15 -0800
+Message-ID: <58ae224f.cVsrX7Zfy6AI3Snm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48986 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934300AbdBVXoO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:14 -0500
+        with ESMTP id S933833AbdBVXoR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, kirill@shutemov.name, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, vbabka@suse.cz
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: mprotect: use pmd_trans_unstable instead of taking the pmd_lock
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmscan: remove unused mm_vmscan_memcg_isolate
 
-pmd_trans_unstable does an atomic read on the pmd so it doesn't
-require the pmd_lock for the same check.
+Patch series "vm, vmscan: enahance vmscan tracepoints", v2.
 
-This also removes the special assumption that the mmap_sem is hold for
-writing if prot_numa is not set. userfaultfd will hold the mmap_sem
-only for reading in change_pte_range like prot_numa, but it will not
-set prot_numa.
+While debugging [2] I've realized that there is some room for improvements
+in the tracepoints set we offer currently.  I had hard times to make any
+conclusion from the existing ones.  The resulting problem turned out to be
+active list aging [3] and we are missing at least two tracepoints to debug
+such a problem.
 
-This is always a valid micro-optimization regardless of userfaultfd.
+Some existing tracepoints could export more information to see _why_ the
+reclaim progress cannot be made not only _how much_ we could reclaim.  The
+later could be seen quite reasonably from the vmstat counters already.  It
+can be argued that we are showing too many implementation details in those
+tracepoints but I consider them way too lowlevel already to be usable by
+any kernel independent userspace.  I would be _really_ surprised if
+anything but debugging tools have used them.
 
-[kirill@shutemov.name: drop unneeded pmd_trans_unstable(pmd) check after __split_huge_pmd()]
-  Link: http://lkml.kernel.org/r/20170208120421.GE5578@node.shutemov.name
-Link: http://lkml.kernel.org/r/20161216144821.5183-43-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Any feedback is highly appreciated.
+
+[1] http://lkml.kernel.org/r/20161228153032.10821-1-mhocko@kernel.org
+[2] http://lkml.kernel.org/r/20161215225702.GA27944@boerne.fritz.box
+[3] http://lkml.kernel.org/r/20161223105157.GB23109@dhcp22.suse.cz
+
+
+This patch (of 8):
+
+The trace point is not used since 925b7673cce3 ("mm: make per-memcg LRU
+lists exclusive") so it can be removed.
+
+Link: http://lkml.kernel.org/r/20170104101942.4860-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   46 +++++++++++++++-------------------------------
- 1 file changed, 15 insertions(+), 31 deletions(-)
+ include/trace/events/vmscan.h |   31 +------------------------------
+ 1 file changed, 1 insertion(+), 30 deletions(-)
 
-diff -puN mm/mprotect.c~mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock mm/mprotect.c
---- a/mm/mprotect.c~mm-mprotect-use-pmd_trans_unstable-instead-of-taking-the-pmd_lock
-+++ a/mm/mprotect.c
-@@ -33,34 +33,6 @@
+diff -puN include/trace/events/vmscan.h~mm-vmscan-remove-unused-mm_vmscan_memcg_isolate include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-vmscan-remove-unused-mm_vmscan_memcg_isolate
++++ a/include/trace/events/vmscan.h
+@@ -269,8 +269,7 @@ TRACE_EVENT(mm_shrink_slab_end,
+ 		__entry->retval)
+ );
  
- #include "internal.h"
+-DECLARE_EVENT_CLASS(mm_vmscan_lru_isolate_template,
+-
++TRACE_EVENT(mm_vmscan_lru_isolate,
+ 	TP_PROTO(int classzone_idx,
+ 		int order,
+ 		unsigned long nr_requested,
+@@ -311,34 +310,6 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		__entry->file)
+ );
  
--/*
-- * For a prot_numa update we only hold mmap_sem for read so there is a
-- * potential race with faulting where a pmd was temporarily none. This
-- * function checks for a transhuge pmd under the appropriate lock. It
-- * returns a pte if it was successfully locked or NULL if it raced with
-- * a transhuge insertion.
-- */
--static pte_t *lock_pte_protection(struct vm_area_struct *vma, pmd_t *pmd,
--			unsigned long addr, int prot_numa, spinlock_t **ptl)
--{
--	pte_t *pte;
--	spinlock_t *pmdl;
+-DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_lru_isolate,
 -
--	/* !prot_numa is protected by mmap_sem held for write */
--	if (!prot_numa)
--		return pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
+-	TP_PROTO(int classzone_idx,
+-		int order,
+-		unsigned long nr_requested,
+-		unsigned long nr_scanned,
+-		unsigned long nr_taken,
+-		isolate_mode_t isolate_mode,
+-		int file),
 -
--	pmdl = pmd_lock(vma->vm_mm, pmd);
--	if (unlikely(pmd_trans_huge(*pmd) || pmd_none(*pmd))) {
--		spin_unlock(pmdl);
--		return NULL;
--	}
+-	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
 -
--	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
--	spin_unlock(pmdl);
--	return pte;
--}
+-);
 -
- static unsigned long change_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, unsigned long end, pgprot_t newprot,
- 		int dirty_accountable, int prot_numa)
-@@ -71,7 +43,21 @@ static unsigned long change_pte_range(st
- 	unsigned long pages = 0;
- 	int target_node = NUMA_NO_NODE;
- 
--	pte = lock_pte_protection(vma, pmd, addr, prot_numa, &ptl);
-+	/*
-+	 * Can be called with only the mmap_sem for reading by
-+	 * prot_numa so we must check the pmd isn't constantly
-+	 * changing from under us from pmd_none to pmd_trans_huge
-+	 * and/or the other way around.
-+	 */
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
-+
-+	/*
-+	 * The pmd points to a regular pte so the pmd can't change
-+	 * from under us even if the mmap_sem is only hold for
-+	 * reading.
-+	 */
-+	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	if (!pte)
- 		return 0;
- 
-@@ -177,8 +163,6 @@ static inline unsigned long change_pmd_r
- 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
- 				__split_huge_pmd(vma, pmd, addr, false, NULL);
--				if (pmd_trans_unstable(pmd))
--					continue;
- 			} else {
- 				int nr_ptes = change_huge_pmd(vma, pmd, addr,
- 						newprot, prot_numa);
-_
+-DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_memcg_isolate,
+-
+-	TP_PROTO(int classzone_idx,
+-		int order,
+-		unsigned long nr_requested,
+-		unsigned long nr_scanned,
+-		unsigned long nr_taken,
+-		isolate_mode_t isolate_mode,
+-		int file),
+-
+-	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
+-
+-);
