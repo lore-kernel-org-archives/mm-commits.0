@@ -1,291 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [patch 129/142] arch, mm: remove arch specific show_mem
-Date: Wed, 22 Feb 2017 15:46:13 -0800
-Message-ID: <58ae22c5.ag2zNlQ6QWIOnx4c%akpm@linux-foundation.org>
+Subject: [patch 132/142] mm, oom: do not enforce OOM killer for
+ __GFP_NOFAIL automatically
+Date: Wed, 22 Feb 2017 15:46:22 -0800
+Message-ID: <58ae22ce.QkO4zgdc7ky/FpmS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49650 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49704 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934311AbdBVXqO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:14 -0500
+        with ESMTP id S934311AbdBVXqY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, cmetcalf@mellanox.com, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, gxt@mprc.pku.edu.cn, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, jejb@parisc-linux.org, mgorman@suse.de, rientjes@google.com, tony.luck@intel.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, nholland@tisys.org, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: arch, mm: remove arch specific show_mem
+Subject: mm, oom: do not enforce OOM killer for __GFP_NOFAIL automatically
 
-We have a generic implementation for quite some time already.  If there is
-any arch specific information to be printed then we should add a callback
-called from the generic code rather than duplicate the whole show_mem. 
-The current code has resulted in the code duplication and the output
-divergence which is both confusing and adds maintainance costs.  Let's
-just get rid of this mess.
+__alloc_pages_may_oom makes sure to skip the OOM killer depending on the
+allocation request.  This includes lowmem requests, costly high order
+requests and others.  For a long time __GFP_NOFAIL acted as an override
+for all those rules.  This is not documented and it can be quite
+surprising as well.  E.g.  GFP_NOFS requests are not invoking the OOM
+killer but GFP_NOFS|__GFP_NOFAIL does so if we try to convert some of the
+existing open coded loops around allocator to nofail request (and we have
+done that in the past) then such a change would have a non trivial side
+effect which is far from obvious.  Note that the primary motivation for
+skipping the OOM killer is to prevent from pre-mature invocation.
 
-Link: http://lkml.kernel.org/r/20170117091543.25850-4-mhocko@kernel.org
+The exception has been added by 82553a937f12 ("oom: invoke oom killer
+for __GFP_NOFAIL"). The changelog points out that the oom killer has to
+be invoked otherwise the request would be looping for ever. But this
+argument is rather weak because the OOM killer doesn't really guarantee
+a forward progress for those exceptional cases:
+
+- it will hardly help to form costly order which in turn can result in
+  the system panic because of no oom killable task in the end - I believe
+  we certainly do not want to put the system down just because there is a
+  nasty driver asking for order-9 page with GFP_NOFAIL not realizing all
+  the consequences.  It is much better this request would loop for ever
+  than the massive system disruption
+
+- lowmem is also highly unlikely to be freed during OOM killer
+
+- GFP_NOFS request could trigger while there is still a lot of memory
+  pinned by filesystems.
+
+This patch simply removes the __GFP_NOFAIL special case in order to have a
+more clear semantic without surprising side effects.
+
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn> [UniCore32]
-Acked-by: Helge Deller <deller@gmx.de> [for parisc]
-Acked-by: Chris Metcalf <cmetcalf@mellanox.com> [for tile]
-Acked-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Nils Holland <nholland@tisys.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c      |   48 ------------------------------------
- arch/parisc/mm/init.c    |   49 -------------------------------------
- arch/sparc/mm/init_32.c  |   11 --------
- arch/tile/mm/pgtable.c   |   45 ---------------------------------
- arch/unicore32/mm/init.c |   44 ---------------------------------
- 5 files changed, 197 deletions(-)
+ mm/oom_kill.c   |    2 -
+ mm/page_alloc.c |   49 ++++++++++++++++++++++------------------------
+ 2 files changed, 25 insertions(+), 26 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~arch-mm-remove-arch-specific-show_mem
-+++ a/arch/ia64/mm/init.c
-@@ -684,51 +684,3 @@ int arch_remove_memory(u64 start, u64 si
- }
- #endif
- #endif
--
--/**
-- * show_mem - give short summary of memory stats
-- *
-- * Shows a simple page count of reserved and used pages in the system.
-- * For discontig machines, it does this on a per-pgdat basis.
-- */
--void show_mem(unsigned int filter)
--{
--	int total_reserved = 0;
--	unsigned long total_present = 0;
--	pg_data_t *pgdat;
--
--	printk(KERN_INFO "Mem-info:\n");
--	show_free_areas(filter);
--	printk(KERN_INFO "Node memory in pages:\n");
--	for_each_online_pgdat(pgdat) {
--		unsigned long present;
--		unsigned long flags;
--		int reserved = 0;
--		int nid = pgdat->node_id;
--		int zoneid;
--
--		if (skip_free_areas_node(filter, nid))
--			continue;
--		pgdat_resize_lock(pgdat, &flags);
--
--		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
--			struct zone *zone = &pgdat->node_zones[zoneid];
--			if (!populated_zone(zone))
--				continue;
--
--			reserved += zone->present_pages - zone->managed_pages;
--		}
--		present = pgdat->node_present_pages;
--
--		pgdat_resize_unlock(pgdat, &flags);
--		total_present += present;
--		total_reserved += reserved;
--		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, ",
--		       nid, present, reserved);
+diff -puN mm/oom_kill.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically
++++ a/mm/oom_kill.c
+@@ -1013,7 +1013,7 @@ bool out_of_memory(struct oom_control *o
+ 	 * make sure exclude 0 mask - all other users should have at least
+ 	 * ___GFP_DIRECT_RECLAIM to get here.
+ 	 */
+-	if (oc->gfp_mask && !(oc->gfp_mask & (__GFP_FS|__GFP_NOFAIL)))
++	if (oc->gfp_mask && !(oc->gfp_mask & __GFP_FS))
+ 		return true;
+ 
+ 	/*
+diff -puN mm/page_alloc.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically
++++ a/mm/page_alloc.c
+@@ -3090,32 +3090,31 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	if (page)
+ 		goto out;
+ 
+-	if (!(gfp_mask & __GFP_NOFAIL)) {
+-		/* Coredumps can quickly deplete all memory reserves */
+-		if (current->flags & PF_DUMPCORE)
+-			goto out;
+-		/* The OOM killer will not help higher order allocs */
+-		if (order > PAGE_ALLOC_COSTLY_ORDER)
+-			goto out;
+-		/* The OOM killer does not needlessly kill tasks for lowmem */
+-		if (ac->high_zoneidx < ZONE_NORMAL)
+-			goto out;
+-		if (pm_suspended_storage())
+-			goto out;
+-		/*
+-		 * XXX: GFP_NOFS allocations should rather fail than rely on
+-		 * other request to make a forward progress.
+-		 * We are in an unfortunate situation where out_of_memory cannot
+-		 * do much for this context but let's try it to at least get
+-		 * access to memory reserved if the current task is killed (see
+-		 * out_of_memory). Once filesystems are ready to handle allocation
+-		 * failures more gracefully we should just bail out here.
+-		 */
++	/* Coredumps can quickly deplete all memory reserves */
++	if (current->flags & PF_DUMPCORE)
++		goto out;
++	/* The OOM killer will not help higher order allocs */
++	if (order > PAGE_ALLOC_COSTLY_ORDER)
++		goto out;
++	/* The OOM killer does not needlessly kill tasks for lowmem */
++	if (ac->high_zoneidx < ZONE_NORMAL)
++		goto out;
++	if (pm_suspended_storage())
++		goto out;
++	/*
++	 * XXX: GFP_NOFS allocations should rather fail than rely on
++	 * other request to make a forward progress.
++	 * We are in an unfortunate situation where out_of_memory cannot
++	 * do much for this context but let's try it to at least get
++	 * access to memory reserved if the current task is killed (see
++	 * out_of_memory). Once filesystems are ready to handle allocation
++	 * failures more gracefully we should just bail out here.
++	 */
++
++	/* The OOM killer may not free memory on a specific node */
++	if (gfp_mask & __GFP_THISNODE)
++		goto out;
+ 
+-		/* The OOM killer may not free memory on a specific node */
+-		if (gfp_mask & __GFP_THISNODE)
+-			goto out;
 -	}
--	printk(KERN_INFO "%ld pages of RAM\n", total_present);
--	printk(KERN_INFO "%d reserved pages\n", total_reserved);
--	printk(KERN_INFO "Total of %ld pages in page table cache\n",
--	       quicklist_total_size());
--	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
--}
-diff -puN arch/parisc/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~arch-mm-remove-arch-specific-show_mem
-+++ a/arch/parisc/mm/init.c
-@@ -653,55 +653,6 @@ void __init mem_init(void)
- unsigned long *empty_zero_page __read_mostly;
- EXPORT_SYMBOL(empty_zero_page);
- 
--void show_mem(unsigned int filter)
--{
--	int total = 0,reserved = 0;
--	pg_data_t *pgdat;
--
--	printk(KERN_INFO "Mem-info:\n");
--	show_free_areas(filter);
--
--	for_each_online_pgdat(pgdat) {
--		unsigned long flags;
--		int zoneid;
--
--		pgdat_resize_lock(pgdat, &flags);
--		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
--			struct zone *zone = &pgdat->node_zones[zoneid];
--			if (!populated_zone(zone))
--				continue;
--
--			total += zone->present_pages;
--			reserved = zone->present_pages - zone->managed_pages;
--		}
--		pgdat_resize_unlock(pgdat, &flags);
--	}
--
--	printk(KERN_INFO "%d pages of RAM\n", total);
--	printk(KERN_INFO "%d reserved pages\n", reserved);
--
--#ifdef CONFIG_DISCONTIGMEM
--	{
--		struct zonelist *zl;
--		int i, j;
--
--		for (i = 0; i < npmem_ranges; i++) {
--			zl = node_zonelist(i, 0);
--			for (j = 0; j < MAX_NR_ZONES; j++) {
--				struct zoneref *z;
--				struct zone *zone;
--
--				printk("Zone list for zone %d on node %d: ", j, i);
--				for_each_zone_zonelist(zone, z, zl, j)
--					printk("[%d/%s] ", zone_to_nid(zone),
--								zone->name);
--				printk("\n");
--			}
--		}
--	}
--#endif
--}
--
- /*
-  * pagetable_init() sets up the page tables
-  *
-diff -puN arch/sparc/mm/init_32.c~arch-mm-remove-arch-specific-show_mem arch/sparc/mm/init_32.c
---- a/arch/sparc/mm/init_32.c~arch-mm-remove-arch-specific-show_mem
-+++ a/arch/sparc/mm/init_32.c
-@@ -55,17 +55,6 @@ extern unsigned int sparc_ramdisk_size;
- 
- unsigned long highstart_pfn, highend_pfn;
- 
--void show_mem(unsigned int filter)
--{
--	printk("Mem-info:\n");
--	show_free_areas(filter);
--	printk("Free swap:       %6ldkB\n",
--	       get_nr_swap_pages() << (PAGE_SHIFT-10));
--	printk("%ld pages of RAM\n", totalram_pages);
--	printk("%ld free pages\n", nr_free_pages());
--}
--
--
- unsigned long last_valid_pfn;
- 
- unsigned long calc_highpages(void)
-diff -puN arch/tile/mm/pgtable.c~arch-mm-remove-arch-specific-show_mem arch/tile/mm/pgtable.c
---- a/arch/tile/mm/pgtable.c~arch-mm-remove-arch-specific-show_mem
-+++ a/arch/tile/mm/pgtable.c
-@@ -36,51 +36,6 @@
- 
- #define K(x) ((x) << (PAGE_SHIFT-10))
- 
--/*
-- * The normal show_free_areas() is too verbose on Tile, with dozens
-- * of processors and often four NUMA zones each with high and lowmem.
-- */
--void show_mem(unsigned int filter)
--{
--	struct zone *zone;
--
--	pr_err("Active:%lu inactive:%lu dirty:%lu writeback:%lu unstable:%lu free:%lu\n slab:%lu mapped:%lu pagetables:%lu bounce:%lu pagecache:%lu swap:%lu\n",
--	       (global_node_page_state(NR_ACTIVE_ANON) +
--		global_node_page_state(NR_ACTIVE_FILE)),
--	       (global_node_page_state(NR_INACTIVE_ANON) +
--		global_node_page_state(NR_INACTIVE_FILE)),
--	       global_node_page_state(NR_FILE_DIRTY),
--	       global_node_page_state(NR_WRITEBACK),
--	       global_node_page_state(NR_UNSTABLE_NFS),
--	       global_page_state(NR_FREE_PAGES),
--	       (global_page_state(NR_SLAB_RECLAIMABLE) +
--		global_page_state(NR_SLAB_UNRECLAIMABLE)),
--	       global_node_page_state(NR_FILE_MAPPED),
--	       global_page_state(NR_PAGETABLE),
--	       global_page_state(NR_BOUNCE),
--	       global_node_page_state(NR_FILE_PAGES),
--	       get_nr_swap_pages());
--
--	for_each_zone(zone) {
--		unsigned long flags, order, total = 0, largest_order = -1;
--
--		if (!populated_zone(zone))
--			continue;
--
--		spin_lock_irqsave(&zone->lock, flags);
--		for (order = 0; order < MAX_ORDER; order++) {
--			int nr = zone->free_area[order].nr_free;
--			total += nr << order;
--			if (nr)
--				largest_order = order;
--		}
--		spin_unlock_irqrestore(&zone->lock, flags);
--		pr_err("Node %d %7s: %lukB (largest %luKb)\n",
--		       zone_to_nid(zone), zone->name,
--		       K(total), largest_order ? K(1UL) << largest_order : 0);
--	}
--}
--
- /**
-  * shatter_huge_page() - ensure a given address is mapped by a small page.
-  *
-diff -puN arch/unicore32/mm/init.c~arch-mm-remove-arch-specific-show_mem arch/unicore32/mm/init.c
---- a/arch/unicore32/mm/init.c~arch-mm-remove-arch-specific-show_mem
-+++ a/arch/unicore32/mm/init.c
-@@ -57,50 +57,6 @@ early_param("initrd", early_initrd);
-  */
- struct meminfo meminfo;
- 
--void show_mem(unsigned int filter)
--{
--	int free = 0, total = 0, reserved = 0;
--	int shared = 0, cached = 0, slab = 0, i;
--	struct meminfo *mi = &meminfo;
--
--	printk(KERN_DEFAULT "Mem-info:\n");
--	show_free_areas(filter);
--
--	for_each_bank(i, mi) {
--		struct membank *bank = &mi->bank[i];
--		unsigned int pfn1, pfn2;
--		struct page *page, *end;
--
--		pfn1 = bank_pfn_start(bank);
--		pfn2 = bank_pfn_end(bank);
--
--		page = pfn_to_page(pfn1);
--		end  = pfn_to_page(pfn2 - 1) + 1;
--
--		do {
--			total++;
--			if (PageReserved(page))
--				reserved++;
--			else if (PageSwapCache(page))
--				cached++;
--			else if (PageSlab(page))
--				slab++;
--			else if (!page_count(page))
--				free++;
--			else
--				shared += page_count(page) - 1;
--			page++;
--		} while (page < end);
--	}
--
--	printk(KERN_DEFAULT "%d pages of RAM\n", total);
--	printk(KERN_DEFAULT "%d free pages\n", free);
--	printk(KERN_DEFAULT "%d reserved pages\n", reserved);
--	printk(KERN_DEFAULT "%d slab pages\n", slab);
--	printk(KERN_DEFAULT "%d pages shared\n", shared);
--	printk(KERN_DEFAULT "%d pages swap cached\n", cached);
--}
+ 	/* Exhausted what can be done so it's blamo time */
+ 	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
+ 		*did_some_progress = 1;
+_
