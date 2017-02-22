@@ -1,88 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [patch 072/142] userfaultfd: introduce vma_can_userfault
-Date: Wed, 22 Feb 2017 15:43:22 -0800
-Message-ID: <58ae221a.6TUHF46uYFZJ07m0%akpm@linux-foundation.org>
+Subject: [patch 074/142] userfaultfd: shmem: introduce vma_is_shmem
+Date: Wed, 22 Feb 2017 15:43:28 -0800
+Message-ID: <58ae2220.Qak5YwuCkk1zwhOF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48708 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48740 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933368AbdBVXnX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:23 -0500
+        with ESMTP id S934171AbdBVXn3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com
 
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: introduce vma_can_userfault
+Subject: userfaultfd: shmem: introduce vma_is_shmem
 
-Check whether a VMA can be used with userfault in more compact way
+Currently userfault relies on vma_is_anonymous and vma_is_hugetlb to
+ensure compatibility of a VMA with userfault.  Introduction of
+vma_is_shmem allows detection if tmpfs backed VMAs, so that they may be
+used with userfaultfd.  Current implementation presumes usage of
+vma_is_shmem only by slow path routines in userfaultfd, therefore the
+vma_is_shmem is not made inline to leave the few remaining free bits in
+vm_flags.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-28-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-30-aarcange@redhat.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ include/linux/mm.h |   10 ++++++++++
+ mm/shmem.c         |    5 +++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN fs/userfaultfd.c~userfaultfd-introduce-vma_can_userfault fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-introduce-vma_can_userfault
-+++ a/fs/userfaultfd.c
-@@ -1096,6 +1096,11 @@ static __always_inline int validate_rang
- 	return 0;
+diff -puN include/linux/mm.h~userfaultfd-shmem-introduce-vma_is_shmem include/linux/mm.h
+--- a/include/linux/mm.h~userfaultfd-shmem-introduce-vma_is_shmem
++++ a/include/linux/mm.h
+@@ -1383,6 +1383,16 @@ static inline bool vma_is_anonymous(stru
+ 	return !vma->vm_ops;
  }
  
-+static inline bool vma_can_userfault(struct vm_area_struct *vma)
++#ifdef CONFIG_SHMEM
++/*
++ * The vma_is_shmem is not inline because it is used only by slow
++ * paths in userfault.
++ */
++bool vma_is_shmem(struct vm_area_struct *vma);
++#else
++static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
++#endif
++
+ static inline int stack_guard_page_start(struct vm_area_struct *vma,
+ 					     unsigned long addr)
+ {
+diff -puN mm/shmem.c~userfaultfd-shmem-introduce-vma_is_shmem mm/shmem.c
+--- a/mm/shmem.c~userfaultfd-shmem-introduce-vma_is_shmem
++++ a/mm/shmem.c
+@@ -191,6 +191,11 @@ static const struct inode_operations shm
+ static const struct vm_operations_struct shmem_vm_ops;
+ static struct file_system_type shmem_fs_type;
+ 
++bool vma_is_shmem(struct vm_area_struct *vma)
 +{
-+	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma);
++	return vma->vm_ops == &shmem_vm_ops;
 +}
 +
- static int userfaultfd_register(struct userfaultfd_ctx *ctx,
- 				unsigned long arg)
- {
-@@ -1185,7 +1190,7 @@ static int userfaultfd_register(struct u
+ static LIST_HEAD(shmem_swaplist);
+ static DEFINE_MUTEX(shmem_swaplist_mutex);
  
- 		/* check not compatible vmas */
- 		ret = -EINVAL;
--		if (!vma_is_anonymous(cur) && !is_vm_hugetlb_page(cur))
-+		if (!vma_can_userfault(cur))
- 			goto out_unlock;
- 		/*
- 		 * If this vma contains ending address, and huge pages
-@@ -1229,7 +1234,7 @@ static int userfaultfd_register(struct u
- 	do {
- 		cond_resched();
- 
--		BUG_ON(!vma_is_anonymous(vma) && !is_vm_hugetlb_page(vma));
-+		BUG_ON(!vma_can_userfault(vma));
- 		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
- 		       vma->vm_userfaultfd_ctx.ctx != ctx);
- 
-@@ -1367,7 +1372,7 @@ static int userfaultfd_unregister(struct
- 		 * provides for more strict behavior to notice
- 		 * unregistration errors.
- 		 */
--		if (!vma_is_anonymous(cur) && !is_vm_hugetlb_page(cur))
-+		if (!vma_can_userfault(cur))
- 			goto out_unlock;
- 
- 		found = true;
-@@ -1381,7 +1386,7 @@ static int userfaultfd_unregister(struct
- 	do {
- 		cond_resched();
- 
--		BUG_ON(!vma_is_anonymous(vma) && !is_vm_hugetlb_page(vma));
-+		BUG_ON(!vma_can_userfault(vma));
- 
- 		/*
- 		 * Nothing to do: this vma is already registered into this
 _
