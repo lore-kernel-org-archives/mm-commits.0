@@ -1,298 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 033/142] slab: implement slab_root_caches list
-Date: Wed, 22 Feb 2017 15:41:24 -0800
-Message-ID: <58ae21a4.YC2YL1MDRs/praxF%akpm@linux-foundation.org>
+Subject: [patch 064/142] userfaultfd: hugetlbfs: fix
+ __mcopy_atomic_hugetlb retry/error processing
+Date: Wed, 22 Feb 2017 15:42:58 -0800
+Message-ID: <58ae2202.FrTSdN1bhzga30PS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48576 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933134AbdBVXmB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:01 -0500
+        with ESMTP id S934555AbdBVXnA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dan.carpenter@oracle.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, hughd@google.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
 
-From: Tejun Heo <tj@kernel.org>
-Subject: slab: implement slab_root_caches list
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: userfaultfd: hugetlbfs: fix __mcopy_atomic_hugetlb retry/error processing
 
-With kmem cgroup support enabled, kmem_caches can be created and destroyed
-frequently and a great number of near empty kmem_caches can accumulate if
-there are a lot of transient cgroups and the system is not under memory
-pressure.  When memory reclaim starts under such conditions, it can lead
-to consecutive deactivation and destruction of many kmem_caches, easily
-hundreds of thousands on moderately large systems, exposing scalability
-issues in the current slab management code.  This is one of the patches to
-address the issue.
+The new routine copy_huge_page_from_user() uses kmap_atomic() to map
+PAGE_SIZE pages.  However, this prevents page faults in the subsequent
+call to copy_from_user().  This is OK in the case where the routine is
+copied with mmap_sema held.  However, in another case we want to allow
+page faults.  So, add a new argument allow_pagefault to indicate if the
+routine should allow page faults.
 
-slab_caches currently lists all caches including root and memcg ones. 
-This is the only data structure which lists the root caches and iterating
-root caches can only be done by walking the list while skipping over memcg
-caches.  As there can be a huge number of memcg caches, this can become
-very expensive.
-
-This also can make /proc/slabinfo behave very badly.  seq_file processes
-reads in 4k chunks and seeks to the previous Nth position on slab_caches
-list to resume after each chunk.  With a lot of memcg cache churns on the
-list, reading /proc/slabinfo can become very slow and its content often
-ends up with duplicate and/or missing entries.
-
-This patch adds a new list slab_root_caches which lists only the root
-caches.  When memcg is not enabled, it becomes just an alias of
-slab_caches.  memcg specific list operations are collected into
-memcg_[un]link_cache().
-
-Link: http://lkml.kernel.org/r/20170117235411.9408-7-tj@kernel.org
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Jay Vana <jsvana@fb.com>
-Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+[dan.carpenter@oracle.com: unmap the correct pointer]
+  Link: http://lkml.kernel.org/r/20170113082608.GA3548@mwanda
+[akpm@linux-foundation.org: kunmap() takes a page*, per Hugh]
+Link: http://lkml.kernel.org/r/20161216144821.5183-20-aarcange@redhat.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    3 ++
- mm/slab.h            |   15 ++++++++++
- mm/slab_common.c     |   59 +++++++++++++++++++++++------------------
- mm/slub.c            |    1 
- 4 files changed, 53 insertions(+), 25 deletions(-)
+ include/linux/mm.h |    3 ++-
+ mm/hugetlb.c       |    2 +-
+ mm/memory.c        |   13 ++++++++++---
+ mm/userfaultfd.c   |    2 +-
+ 4 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/slab.h~slab-implement-slab_root_caches-list include/linux/slab.h
---- a/include/linux/slab.h~slab-implement-slab_root_caches-list
-+++ a/include/linux/slab.h
-@@ -556,6 +556,8 @@ struct memcg_cache_array {
-  *		used to index child cachces during allocation and cleared
-  *		early during shutdown.
-  *
-+ * @root_caches_node: List node for slab_root_caches list.
-+ *
-  * @children:	List of all child caches.  While the child caches are also
-  *		reachable through @memcg_caches, a child cache remains on
-  *		this list until it is actually destroyed.
-@@ -573,6 +575,7 @@ struct memcg_cache_params {
- 	union {
- 		struct {
- 			struct memcg_cache_array __rcu *memcg_caches;
-+			struct list_head __root_caches_node;
- 			struct list_head children;
- 		};
- 		struct {
-diff -puN mm/slab.h~slab-implement-slab_root_caches-list mm/slab.h
---- a/mm/slab.h~slab-implement-slab_root_caches-list
-+++ a/mm/slab.h
-@@ -201,6 +201,11 @@ void __kmem_cache_free_bulk(struct kmem_
- int __kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
+diff -puN include/linux/mm.h~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing include/linux/mm.h
+--- a/include/linux/mm.h~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing
++++ a/include/linux/mm.h
+@@ -2426,7 +2426,8 @@ extern void copy_user_huge_page(struct p
+ 				unsigned int pages_per_huge_page);
+ extern long copy_huge_page_from_user(struct page *dst_page,
+ 				const void __user *usr_src,
+-				unsigned int pages_per_huge_page);
++				unsigned int pages_per_huge_page,
++				bool allow_pagefault);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
  
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
-+
-+/* List of all root caches. */
-+extern struct list_head		slab_root_caches;
-+#define root_caches_node	memcg_params.__root_caches_node
-+
- /*
-  * Iterate over all memcg caches of the given root cache. The caller must hold
-  * slab_mutex.
-@@ -300,9 +305,14 @@ static __always_inline void memcg_unchar
- }
+ extern struct page_ext_operations debug_guardpage_ops;
+diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing mm/hugetlb.c
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing
++++ a/mm/hugetlb.c
+@@ -3973,7 +3973,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
  
- extern void slab_init_memcg_params(struct kmem_cache *);
-+extern void memcg_link_cache(struct kmem_cache *s);
+ 		ret = copy_huge_page_from_user(page,
+ 						(const void __user *) src_addr,
+-						pages_per_huge_page(h));
++						pages_per_huge_page(h), false);
  
- #else /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 		/* fallback to copy_from_user outside mmap_sem */
+ 		if (unlikely(ret)) {
+diff -puN mm/memory.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing mm/memory.c
+--- a/mm/memory.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing
++++ a/mm/memory.c
+@@ -4155,7 +4155,8 @@ void copy_user_huge_page(struct page *ds
  
-+/* If !memcg, all caches are root. */
-+#define slab_root_caches	slab_caches
-+#define root_caches_node	list
-+
- #define for_each_memcg_cache(iter, root) \
- 	for ((void)(iter), (void)(root); 0; )
- 
-@@ -347,6 +357,11 @@ static inline void memcg_uncharge_slab(s
- static inline void slab_init_memcg_params(struct kmem_cache *s)
+ long copy_huge_page_from_user(struct page *dst_page,
+ 				const void __user *usr_src,
+-				unsigned int pages_per_huge_page)
++				unsigned int pages_per_huge_page,
++				bool allow_pagefault)
  {
- }
-+
-+static inline void memcg_link_cache(struct kmem_cache *s)
-+{
-+}
-+
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 	void *src = (void *)usr_src;
+ 	void *page_kaddr;
+@@ -4163,11 +4164,17 @@ long copy_huge_page_from_user(struct pag
+ 	unsigned long ret_val = pages_per_huge_page * PAGE_SIZE;
  
- static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
-diff -puN mm/slab_common.c~slab-implement-slab_root_caches-list mm/slab_common.c
---- a/mm/slab_common.c~slab-implement-slab_root_caches-list
-+++ a/mm/slab_common.c
-@@ -138,6 +138,9 @@ int __kmem_cache_alloc_bulk(struct kmem_
- }
+ 	for (i = 0; i < pages_per_huge_page; i++) {
+-		page_kaddr = kmap_atomic(dst_page + i);
++		if (allow_pagefault)
++			page_kaddr = kmap(dst_page + i);
++		else
++			page_kaddr = kmap_atomic(dst_page + i);
+ 		rc = copy_from_user(page_kaddr,
+ 				(const void __user *)(src + i * PAGE_SIZE),
+ 				PAGE_SIZE);
+-		kunmap_atomic(page_kaddr);
++		if (allow_pagefault)
++			kunmap(dst_page + i);
++		else
++			kunmap_atomic(page_kaddr);
  
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
-+
-+LIST_HEAD(slab_root_caches);
-+
- void slab_init_memcg_params(struct kmem_cache *s)
- {
- 	s->memcg_params.root_cache = NULL;
-@@ -183,9 +186,6 @@ static int update_memcg_params(struct km
- {
- 	struct memcg_cache_array *old, *new;
+ 		ret_val -= (PAGE_SIZE - rc);
+ 		if (rc)
+diff -puN mm/userfaultfd.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing mm/userfaultfd.c
+--- a/mm/userfaultfd.c~userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing
++++ a/mm/userfaultfd.c
+@@ -274,7 +274,7 @@ retry:
  
--	if (!is_root_cache(s))
--		return 0;
--
- 	new = kzalloc(sizeof(struct memcg_cache_array) +
- 		      new_array_size * sizeof(void *), GFP_KERNEL);
- 	if (!new)
-@@ -209,7 +209,7 @@ int memcg_update_all_caches(int num_memc
- 	int ret = 0;
- 
- 	mutex_lock(&slab_mutex);
--	list_for_each_entry(s, &slab_caches, list) {
-+	list_for_each_entry(s, &slab_root_caches, root_caches_node) {
- 		ret = update_memcg_params(s, num_memcgs);
- 		/*
- 		 * Instead of freeing the memory, we'll just leave the caches
-@@ -222,10 +222,26 @@ int memcg_update_all_caches(int num_memc
- 	return ret;
- }
- 
--static void unlink_memcg_cache(struct kmem_cache *s)
-+void memcg_link_cache(struct kmem_cache *s)
- {
--	list_del(&s->memcg_params.children_node);
--	list_del(&s->memcg_params.kmem_caches_node);
-+	if (is_root_cache(s)) {
-+		list_add(&s->root_caches_node, &slab_root_caches);
-+	} else {
-+		list_add(&s->memcg_params.children_node,
-+			 &s->memcg_params.root_cache->memcg_params.children);
-+		list_add(&s->memcg_params.kmem_caches_node,
-+			 &s->memcg_params.memcg->kmem_caches);
-+	}
-+}
-+
-+static void memcg_unlink_cache(struct kmem_cache *s)
-+{
-+	if (is_root_cache(s)) {
-+		list_del(&s->root_caches_node);
-+	} else {
-+		list_del(&s->memcg_params.children_node);
-+		list_del(&s->memcg_params.kmem_caches_node);
-+	}
- }
- #else
- static inline int init_memcg_params(struct kmem_cache *s,
-@@ -238,7 +254,7 @@ static inline void destroy_memcg_params(
- {
- }
- 
--static inline void unlink_memcg_cache(struct kmem_cache *s)
-+static inline void memcg_unlink_cache(struct kmem_cache *s)
- {
- }
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
-@@ -285,7 +301,7 @@ struct kmem_cache *find_mergeable(size_t
- 	if (flags & SLAB_NEVER_MERGE)
- 		return NULL;
- 
--	list_for_each_entry_reverse(s, &slab_caches, list) {
-+	list_for_each_entry_reverse(s, &slab_root_caches, root_caches_node) {
- 		if (slab_unmergeable(s))
- 			continue;
- 
-@@ -369,6 +385,7 @@ static struct kmem_cache *create_cache(c
- 
- 	s->refcount = 1;
- 	list_add(&s->list, &slab_caches);
-+	memcg_link_cache(s);
- out:
- 	if (err)
- 		return ERR_PTR(err);
-@@ -514,9 +531,8 @@ static int shutdown_cache(struct kmem_ca
- 	if (__kmem_cache_shutdown(s) != 0)
- 		return -EBUSY;
- 
-+	memcg_unlink_cache(s);
- 	list_del(&s->list);
--	if (!is_root_cache(s))
--		unlink_memcg_cache(s);
- 
- 	if (s->flags & SLAB_DESTROY_BY_RCU) {
- 		list_add_tail(&s->list, &slab_caches_to_rcu_destroy);
-@@ -596,10 +612,6 @@ void memcg_create_kmem_cache(struct mem_
- 		goto out_unlock;
- 	}
- 
--	list_add(&s->memcg_params.children_node,
--		 &root_cache->memcg_params.children);
--	list_add(&s->memcg_params.kmem_caches_node, &memcg->kmem_caches);
--
- 	/*
- 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
- 	 * barrier here to ensure nobody will see the kmem_cache partially
-@@ -627,10 +639,7 @@ void memcg_deactivate_kmem_caches(struct
- 	get_online_mems();
- 
- 	mutex_lock(&slab_mutex);
--	list_for_each_entry(s, &slab_caches, list) {
--		if (!is_root_cache(s))
--			continue;
--
-+	list_for_each_entry(s, &slab_root_caches, root_caches_node) {
- 		arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
- 						lockdep_is_held(&slab_mutex));
- 		c = arr->entries[idx];
-@@ -829,6 +838,7 @@ struct kmem_cache *__init create_kmalloc
- 
- 	create_boot_cache(s, name, size, flags);
- 	list_add(&s->list, &slab_caches);
-+	memcg_link_cache(s);
- 	s->refcount = 1;
- 	return s;
- }
-@@ -1136,12 +1146,12 @@ static void print_slabinfo_header(struct
- void *slab_start(struct seq_file *m, loff_t *pos)
- {
- 	mutex_lock(&slab_mutex);
--	return seq_list_start(&slab_caches, *pos);
-+	return seq_list_start(&slab_root_caches, *pos);
- }
- 
- void *slab_next(struct seq_file *m, void *p, loff_t *pos)
- {
--	return seq_list_next(p, &slab_caches, pos);
-+	return seq_list_next(p, &slab_root_caches, pos);
- }
- 
- void slab_stop(struct seq_file *m, void *p)
-@@ -1193,12 +1203,11 @@ static void cache_show(struct kmem_cache
- 
- static int slab_show(struct seq_file *m, void *p)
- {
--	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
-+	struct kmem_cache *s = list_entry(p, struct kmem_cache, root_caches_node);
- 
--	if (p == slab_caches.next)
-+	if (p == slab_root_caches.next)
- 		print_slabinfo_header(m);
--	if (is_root_cache(s))
--		cache_show(s, m);
-+	cache_show(s, m);
- 	return 0;
- }
- 
-diff -puN mm/slub.c~slab-implement-slab_root_caches-list mm/slub.c
---- a/mm/slub.c~slab-implement-slab_root_caches-list
-+++ a/mm/slub.c
-@@ -4127,6 +4127,7 @@ static struct kmem_cache * __init bootst
- 	}
- 	slab_init_memcg_params(s);
- 	list_add(&s->list, &slab_caches);
-+	memcg_link_cache(s);
- 	return s;
- }
- 
+ 			err = copy_huge_page_from_user(page,
+ 						(const void __user *)src_addr,
+-						pages_per_huge_page(h));
++						pages_per_huge_page(h), true);
+ 			if (unlikely(err)) {
+ 				err = -EFAULT;
+ 				goto out;
 _
