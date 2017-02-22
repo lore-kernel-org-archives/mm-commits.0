@@ -1,87 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [patch 086/142] userfaultfd: non-cooperative: selftest: add ufd
- parameter to copy_page
-Date: Wed, 22 Feb 2017 15:44:04 -0800
-Message-ID: <58ae2244.4EiaZvxJVRGXZgtc%akpm@linux-foundation.org>
+Subject: [patch 088/142] userfaultfd: selftest: test UFFDIO_ZEROPAGE on
+ all memory types
+Date: Wed, 22 Feb 2017 15:44:10 -0800
+Message-ID: <58ae224a.mbJrMbm/kXyYiKyF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48956 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933833AbdBVXoF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:05 -0500
+        with ESMTP id S933833AbdBVXoL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: non-cooperative: selftest: add ufd parameter to copy_page
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: selftest: test UFFDIO_ZEROPAGE on all memory types
 
-With future addition of event tests, copy_page will be called with
-different userfault file descriptors
+This will verify -EINVAL is returned with hugetlbfs/shmem and it'll do
+a functional test of UFFDIO_ZEROPAGE on anonymous memory.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-40-aarcange@redhat.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-42-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   82 ++++++++++++++++++++-
+ 1 file changed, 81 insertions(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-add-ufd-parameter-to-copy_page
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -317,7 +317,7 @@ static void *locking_thread(void *arg)
- 	return NULL;
+@@ -625,6 +625,86 @@ static int faulting_process(void)
+ 	return 0;
  }
  
--static int copy_page(unsigned long offset)
-+static int copy_page(int ufd, unsigned long offset)
++static int uffdio_zeropage(int ufd, unsigned long offset)
++{
++	struct uffdio_zeropage uffdio_zeropage;
++	int ret;
++	unsigned long has_zeropage = EXPECTED_IOCTLS & (1 << _UFFDIO_ZEROPAGE);
++
++	if (offset >= nr_pages * page_size)
++		fprintf(stderr, "unexpected offset %lu\n",
++			offset), exit(1);
++	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
++	uffdio_zeropage.range.len = page_size;
++	uffdio_zeropage.mode = 0;
++	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
++	if (ret) {
++		/* real retval in ufdio_zeropage.zeropage */
++		if (has_zeropage) {
++			if (uffdio_zeropage.zeropage == -EEXIST)
++				fprintf(stderr, "UFFDIO_ZEROPAGE -EEXIST\n"),
++					exit(1);
++			else
++				fprintf(stderr, "UFFDIO_ZEROPAGE error %Ld\n",
++					uffdio_zeropage.zeropage), exit(1);
++		} else {
++			if (uffdio_zeropage.zeropage != -EINVAL)
++				fprintf(stderr,
++					"UFFDIO_ZEROPAGE not -EINVAL %Ld\n",
++					uffdio_zeropage.zeropage), exit(1);
++		}
++	} else if (has_zeropage) {
++		if (uffdio_zeropage.zeropage != page_size) {
++			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
++				uffdio_zeropage.zeropage), exit(1);
++		} else
++			return 1;
++	} else {
++		fprintf(stderr,
++			"UFFDIO_ZEROPAGE succeeded %Ld\n",
++			uffdio_zeropage.zeropage), exit(1);
++	}
++
++	return 0;
++}
++
++/* exercise UFFDIO_ZEROPAGE */
++static int userfaultfd_zeropage_test(void)
++{
++	struct uffdio_register uffdio_register;
++	unsigned long expected_ioctls;
++
++	printf("testing UFFDIO_ZEROPAGE: ");
++	fflush(stdout);
++
++	if (release_pages(area_dst))
++		return 1;
++
++	if (userfaultfd_open(0) < 0)
++		return 1;
++	uffdio_register.range.start = (unsigned long) area_dst;
++	uffdio_register.range.len = nr_pages * page_size;
++	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
++	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
++		fprintf(stderr, "register failure\n"), exit(1);
++
++	expected_ioctls = EXPECTED_IOCTLS;
++	if ((uffdio_register.ioctls & expected_ioctls) !=
++	    expected_ioctls)
++		fprintf(stderr,
++			"unexpected missing ioctl for anon memory\n"),
++			exit(1);
++
++	if (uffdio_zeropage(uffd, 0)) {
++		if (my_bcmp(area_dst, zeropage, page_size))
++			fprintf(stderr, "zeropage is not zero\n"), exit(1);
++	}
++
++	close(uffd);
++	printf("done.\n");
++	return 0;
++}
++
+ static int userfaultfd_events_test(void)
  {
- 	struct uffdio_copy uffdio_copy;
+ 	struct uffdio_register uffdio_register;
+@@ -853,7 +933,7 @@ static int userfaultfd_stress(void)
+ 		return err;
  
-@@ -329,7 +329,7 @@ static int copy_page(unsigned long offse
- 	uffdio_copy.len = page_size;
- 	uffdio_copy.mode = 0;
- 	uffdio_copy.copy = 0;
--	if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy)) {
-+	if (ioctl(ufd, UFFDIO_COPY, &uffdio_copy)) {
- 		/* real retval in ufdio_copy.copy */
- 		if (uffdio_copy.copy != -EEXIST)
- 			fprintf(stderr, "UFFDIO_COPY error %Ld\n",
-@@ -386,7 +386,7 @@ static void *uffd_poll_thread(void *arg)
- 		offset = (char *)(unsigned long)msg.arg.pagefault.address -
- 			 area_dst;
- 		offset &= ~(page_size-1);
--		if (copy_page(offset))
-+		if (copy_page(uffd, offset))
- 			userfaults++;
- 	}
- 	return (void *)userfaults;
-@@ -424,7 +424,7 @@ static void *uffd_read_thread(void *arg)
- 		offset = (char *)(unsigned long)msg.arg.pagefault.address -
- 			 area_dst;
- 		offset &= ~(page_size-1);
--		if (copy_page(offset))
-+		if (copy_page(uffd, offset))
- 			(*this_cpu_userfaults)++;
- 	}
- 	return (void *)NULL;
-@@ -438,7 +438,7 @@ static void *background_thread(void *arg
- 	for (page_nr = cpu * nr_pages_per_cpu;
- 	     page_nr < (cpu+1) * nr_pages_per_cpu;
- 	     page_nr++)
--		copy_page(page_nr * page_size);
-+		copy_page(uffd, page_nr * page_size);
- 
- 	return NULL;
+ 	close(uffd);
+-	return userfaultfd_events_test();
++	return userfaultfd_zeropage_test() || userfaultfd_events_test();
  }
+ 
+ #ifndef HUGETLB_TEST
 _
