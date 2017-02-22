@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: [patch 136/142] mm: drop zap_details::check_swap_entries
-Date: Wed, 22 Feb 2017 15:46:34 -0800
-Message-ID: <58ae22da.wsMBe0bUSwxG+wTO%akpm@linux-foundation.org>
+Subject: [patch 137/142] mm: drop unused argument of zap_page_range()
+Date: Wed, 22 Feb 2017 15:46:37 -0800
+Message-ID: <58ae22dd.57fJOo50QqA3mAtN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49776 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933791AbdBVXqf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:35 -0500
+        with ESMTP id S933791AbdBVXqi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, peterz@infradead.org, riel@redhat.com
 
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop zap_details::check_swap_entries
+Subject: mm: drop unused argument of zap_page_range()
 
-detail == NULL would give the same functionality as
-.check_swap_entries==true.
+There's no users of zap_page_range() who wants non-NULL 'details'.  Let's
+drop it.
 
-Link: http://lkml.kernel.org/r/20170118122429.43661-2-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/20170118122429.43661-3-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
@@ -30,54 +30,112 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/memory.c        |    4 ++--
- mm/oom_kill.c      |    3 +--
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ arch/s390/mm/gmap.c               |    2 +-
+ arch/x86/mm/mpx.c                 |    2 +-
+ drivers/android/binder.c          |    2 +-
+ drivers/staging/android/ion/ion.c |    3 +--
+ include/linux/mm.h                |    2 +-
+ mm/madvise.c                      |    2 +-
+ mm/memory.c                       |    5 ++---
+ 7 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/mm.h~mm-drop-zap_details-check_swap_entries include/linux/mm.h
---- a/include/linux/mm.h~mm-drop-zap_details-check_swap_entries
-+++ a/include/linux/mm.h
-@@ -1175,7 +1175,6 @@ struct zap_details {
- 	struct address_space *check_mapping;	/* Check page->mapping if set */
- 	pgoff_t	first_index;			/* Lowest page->index to unmap */
- 	pgoff_t last_index;			/* Highest page->index to unmap */
--	bool check_swap_entries;		/* Check also swap entries */
- };
- 
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
-diff -puN mm/memory.c~mm-drop-zap_details-check_swap_entries mm/memory.c
---- a/mm/memory.c~mm-drop-zap_details-check_swap_entries
-+++ a/mm/memory.c
-@@ -1173,8 +1173,8 @@ again:
- 			}
- 			continue;
- 		}
--		/* only check swap_entries if explicitly asked for in details */
--		if (unlikely(details && !details->check_swap_entries))
-+		/* If details->check_mapping, we leave swap entries. */
-+		if (unlikely(details))
- 			continue;
- 
- 		entry = pte_to_swp_entry(ptent);
-diff -puN mm/oom_kill.c~mm-drop-zap_details-check_swap_entries mm/oom_kill.c
---- a/mm/oom_kill.c~mm-drop-zap_details-check_swap_entries
-+++ a/mm/oom_kill.c
-@@ -465,7 +465,6 @@ static bool __oom_reap_task_mm(struct ta
- {
- 	struct mmu_gather tlb;
- 	struct vm_area_struct *vma;
--	struct zap_details details = {.check_swap_entries = true};
- 	bool ret = true;
- 
- 	/*
-@@ -531,7 +530,7 @@ static bool __oom_reap_task_mm(struct ta
- 		 */
- 		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
- 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
--					 &details);
-+					 NULL);
+diff -puN arch/s390/mm/gmap.c~mm-drop-unused-argument-of-zap_page_range arch/s390/mm/gmap.c
+--- a/arch/s390/mm/gmap.c~mm-drop-unused-argument-of-zap_page_range
++++ a/arch/s390/mm/gmap.c
+@@ -687,7 +687,7 @@ void gmap_discard(struct gmap *gmap, uns
+ 		/* Find vma in the parent mm */
+ 		vma = find_vma(gmap->mm, vmaddr);
+ 		size = min(to - gaddr, PMD_SIZE - (gaddr & ~PMD_MASK));
+-		zap_page_range(vma, vmaddr, size, NULL);
++		zap_page_range(vma, vmaddr, size);
  	}
- 	tlb_finish_mmu(&tlb, 0, -1);
- 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+ 	up_read(&gmap->mm->mmap_sem);
+ }
+diff -puN arch/x86/mm/mpx.c~mm-drop-unused-argument-of-zap_page_range arch/x86/mm/mpx.c
+--- a/arch/x86/mm/mpx.c~mm-drop-unused-argument-of-zap_page_range
++++ a/arch/x86/mm/mpx.c
+@@ -796,7 +796,7 @@ static noinline int zap_bt_entries_mappi
+ 			return -EINVAL;
+ 
+ 		len = min(vma->vm_end, end) - addr;
+-		zap_page_range(vma, addr, len, NULL);
++		zap_page_range(vma, addr, len);
+ 		trace_mpx_unmap_zap(addr, addr+len);
+ 
+ 		vma = vma->vm_next;
+diff -puN drivers/android/binder.c~mm-drop-unused-argument-of-zap_page_range drivers/android/binder.c
+--- a/drivers/android/binder.c~mm-drop-unused-argument-of-zap_page_range
++++ a/drivers/android/binder.c
+@@ -657,7 +657,7 @@ free_range:
+ 		page = &proc->pages[(page_addr - proc->buffer) / PAGE_SIZE];
+ 		if (vma)
+ 			zap_page_range(vma, (uintptr_t)page_addr +
+-				proc->user_buffer_offset, PAGE_SIZE, NULL);
++				proc->user_buffer_offset, PAGE_SIZE);
+ err_vm_insert_page_failed:
+ 		unmap_kernel_range((unsigned long)page_addr, PAGE_SIZE);
+ err_map_kernel_failed:
+diff -puN drivers/staging/android/ion/ion.c~mm-drop-unused-argument-of-zap_page_range drivers/staging/android/ion/ion.c
+--- a/drivers/staging/android/ion/ion.c~mm-drop-unused-argument-of-zap_page_range
++++ a/drivers/staging/android/ion/ion.c
+@@ -865,8 +865,7 @@ static void ion_buffer_sync_for_device(s
+ 	list_for_each_entry(vma_list, &buffer->vmas, list) {
+ 		struct vm_area_struct *vma = vma_list->vma;
+ 
+-		zap_page_range(vma, vma->vm_start, vma->vm_end - vma->vm_start,
+-			       NULL);
++		zap_page_range(vma, vma->vm_start, vma->vm_end - vma->vm_start);
+ 	}
+ 	mutex_unlock(&buffer->lock);
+ }
+diff -puN include/linux/mm.h~mm-drop-unused-argument-of-zap_page_range include/linux/mm.h
+--- a/include/linux/mm.h~mm-drop-unused-argument-of-zap_page_range
++++ a/include/linux/mm.h
+@@ -1185,7 +1185,7 @@ struct page *vm_normal_page_pmd(struct v
+ int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
+ 		unsigned long size);
+ void zap_page_range(struct vm_area_struct *vma, unsigned long address,
+-		unsigned long size, struct zap_details *);
++		unsigned long size);
+ void unmap_vmas(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long start, unsigned long end);
+ 
+diff -puN mm/madvise.c~mm-drop-unused-argument-of-zap_page_range mm/madvise.c
+--- a/mm/madvise.c~mm-drop-unused-argument-of-zap_page_range
++++ a/mm/madvise.c
+@@ -478,7 +478,7 @@ static long madvise_dontneed(struct vm_a
+ 		return -EINVAL;
+ 
+ 	madvise_userfault_dontneed(vma, prev, start, end);
+-	zap_page_range(vma, start, end - start, NULL);
++	zap_page_range(vma, start, end - start);
+ 	return 0;
+ }
+ 
+diff -puN mm/memory.c~mm-drop-unused-argument-of-zap_page_range mm/memory.c
+--- a/mm/memory.c~mm-drop-unused-argument-of-zap_page_range
++++ a/mm/memory.c
+@@ -1370,12 +1370,11 @@ void unmap_vmas(struct mmu_gather *tlb,
+  * @vma: vm_area_struct holding the applicable pages
+  * @start: starting address of pages to zap
+  * @size: number of bytes to zap
+- * @details: details of shared cache invalidation
+  *
+  * Caller must protect the VMA list
+  */
+ void zap_page_range(struct vm_area_struct *vma, unsigned long start,
+-		unsigned long size, struct zap_details *details)
++		unsigned long size)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_gather tlb;
+@@ -1386,7 +1385,7 @@ void zap_page_range(struct vm_area_struc
+ 	update_hiwater_rss(mm);
+ 	mmu_notifier_invalidate_range_start(mm, start, end);
+ 	for ( ; vma && vma->vm_start < end; vma = vma->vm_next)
+-		unmap_single_vma(&tlb, vma, start, end, details);
++		unmap_single_vma(&tlb, vma, start, end, NULL);
+ 	mmu_notifier_invalidate_range_end(mm, start, end);
+ 	tlb_finish_mmu(&tlb, start, end);
+ }
 _
