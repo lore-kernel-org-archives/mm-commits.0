@@ -1,177 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [patch 102/142] mm, compaction: add vmstats for kcompactd work
-Date: Wed, 22 Feb 2017 15:44:50 -0800
-Message-ID: <58ae2272.B+c95IFSlK62VGi3%akpm@linux-foundation.org>
+Subject: [patch 103/142] mm: page_alloc: skip over regions of invalid pfns where possible
+Date: Wed, 22 Feb 2017 15:44:53 -0800
+Message-ID: <58ae2275.FVYbCuxGULYK21DL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934078AbdBVXov (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:51 -0500
+        with ESMTP id S934166AbdBVXoy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:44:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, paul.burton@imgtec.com, james.hartley@imgtec.com
 
-From: David Rientjes <rientjes@google.com>
-Subject: mm, compaction: add vmstats for kcompactd work
+From: Paul Burton <paul.burton@imgtec.com>
+Subject: mm: page_alloc: skip over regions of invalid pfns where possible
 
-A "compact_daemon_wake" vmstat exists that represents the number of times
-kcompactd has woken up.  This doesn't represent how much work it actually
-did, though.
+When using a sparse memory model memmap_init_zone() when invoked with the
+MEMMAP_EARLY context will skip over pages which aren't valid - ie.  which
+aren't in a populated region of the sparse memory map.  However if the
+memory map is extremely sparse then it can spend a long time linearly
+checking each PFN in a large non-populated region of the memory map &
+skipping it in turn.
 
-It's useful to understand how much compaction work is being done by
-kcompactd versus other methods such as direct compaction and explicitly
-triggered per-node (or system) compaction.
+When CONFIG_HAVE_MEMBLOCK_NODE_MAP is enabled, we have sufficient
+information to quickly discover the next valid PFN given an invalid one by
+searching through the list of memory regions & skipping forwards to the
+first PFN covered by the memory region to the right of the non-populated
+region.  Implement this in order to speed up memmap_init_zone() for
+systems with extremely sparse memory maps.
 
-This adds two new vmstats: "compact_daemon_migrate_scanned" and
-"compact_daemon_free_scanned" to represent the number of pages kcompactd
-has scanned as part of its migration scanner and freeing scanner,
-respectively.
+James said "I have tested this patch on a virtual model of a Samurai
+CPU with a sparse memory map.  The kernel boot time drops from 109 to
+62 seconds. " 
 
-These values are still accounted for in the general
-"compact_migrate_scanned" and "compact_free_scanned" for compatibility.
-
-It could be argued that explicitly triggered compaction could also be
-tracked separately, and that could be added if others find it useful.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1612071749390.69852@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20161125185518.29885-1-paul.burton@imgtec.com
+Signed-off-by: Paul Burton <paul.burton@imgtec.com>
+Tested-by: James Hartley <james.hartley@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 +
- mm/compaction.c               |   22 +++++++++++++++++++---
- mm/internal.h                 |    2 ++
- mm/vmstat.c                   |    2 ++
- 4 files changed, 24 insertions(+), 3 deletions(-)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |   25 +++++++++++++++++++++++++
+ mm/page_alloc.c          |   11 ++++++++++-
+ 3 files changed, 36 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/vm_event_item.h~mm-compaction-add-vmstats-for-kcompactd-work include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-compaction-add-vmstats-for-kcompactd-work
-+++ a/include/linux/vm_event_item.h
-@@ -56,6 +56,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		COMPACTISOLATED,
- 		COMPACTSTALL, COMPACTFAIL, COMPACTSUCCESS,
- 		KCOMPACTD_WAKE,
-+		KCOMPACTD_MIGRATE_SCANNED, KCOMPACTD_FREE_SCANNED,
- #endif
- #ifdef CONFIG_HUGETLB_PAGE
- 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
-diff -puN mm/compaction.c~mm-compaction-add-vmstats-for-kcompactd-work mm/compaction.c
---- a/mm/compaction.c~mm-compaction-add-vmstats-for-kcompactd-work
-+++ a/mm/compaction.c
-@@ -548,7 +548,7 @@ isolate_fail:
- 	if (blockpfn == end_pfn)
- 		update_pageblock_skip(cc, valid_page, total_isolated, false);
+diff -puN include/linux/memblock.h~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
++++ a/include/linux/memblock.h
+@@ -203,6 +203,7 @@ int memblock_search_pfn_nid(unsigned lon
+ 			    unsigned long  *end_pfn);
+ void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
+ 			  unsigned long *out_end_pfn, int *out_nid);
++unsigned long memblock_next_valid_pfn(unsigned long pfn, unsigned long max_pfn);
  
--	count_compact_events(COMPACTFREE_SCANNED, nr_scanned);
-+	cc->total_free_scanned += nr_scanned;
- 	if (total_isolated)
- 		count_compact_events(COMPACTISOLATED, total_isolated);
- 	return total_isolated;
-@@ -931,7 +931,7 @@ isolate_fail:
- 	trace_mm_compaction_isolate_migratepages(start_pfn, low_pfn,
- 						nr_scanned, nr_isolated);
+ /**
+  * for_each_mem_pfn_range - early memory pfn range iterator
+diff -puN mm/memblock.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible mm/memblock.c
+--- a/mm/memblock.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
++++ a/mm/memblock.c
+@@ -1105,6 +1105,31 @@ void __init_memblock __next_mem_pfn_rang
+ 		*out_nid = r->nid;
+ }
  
--	count_compact_events(COMPACTMIGRATE_SCANNED, nr_scanned);
-+	cc->total_migrate_scanned += nr_scanned;
- 	if (nr_isolated)
- 		count_compact_events(COMPACTISOLATED, nr_isolated);
- 
-@@ -1631,6 +1631,9 @@ out:
- 			zone->compact_cached_free_pfn = free_pfn;
- 	}
- 
-+	count_compact_events(COMPACTMIGRATE_SCANNED, cc->total_migrate_scanned);
-+	count_compact_events(COMPACTFREE_SCANNED, cc->total_free_scanned);
++unsigned long __init_memblock memblock_next_valid_pfn(unsigned long pfn,
++						      unsigned long max_pfn)
++{
++	struct memblock_type *type = &memblock.memory;
++	unsigned int right = type->cnt;
++	unsigned int mid, left = 0;
++	phys_addr_t addr = PFN_PHYS(pfn + 1);
 +
- 	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
- 				cc->free_pfn, end_pfn, sync, ret);
- 
-@@ -1645,6 +1648,8 @@ static enum compact_result compact_zone_
- 	struct compact_control cc = {
- 		.nr_freepages = 0,
- 		.nr_migratepages = 0,
-+		.total_migrate_scanned = 0,
-+		.total_free_scanned = 0,
- 		.order = order,
- 		.gfp_mask = gfp_mask,
- 		.zone = zone,
-@@ -1757,6 +1762,8 @@ static void compact_node(int nid)
- 	struct zone *zone;
- 	struct compact_control cc = {
- 		.order = -1,
-+		.total_migrate_scanned = 0,
-+		.total_free_scanned = 0,
- 		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
- 		.whole_zone = true,
-@@ -1883,6 +1890,8 @@ static void kcompactd_do_work(pg_data_t
- 	struct zone *zone;
- 	struct compact_control cc = {
- 		.order = pgdat->kcompactd_max_order,
-+		.total_migrate_scanned = 0,
-+		.total_free_scanned = 0,
- 		.classzone_idx = pgdat->kcompactd_classzone_idx,
- 		.mode = MIGRATE_SYNC_LIGHT,
- 		.ignore_skip_hint = true,
-@@ -1891,7 +1900,7 @@ static void kcompactd_do_work(pg_data_t
- 	};
- 	trace_mm_compaction_kcompactd_wake(pgdat->node_id, cc.order,
- 							cc.classzone_idx);
--	count_vm_event(KCOMPACTD_WAKE);
-+	count_compact_event(KCOMPACTD_WAKE);
- 
- 	for (zoneid = 0; zoneid <= cc.classzone_idx; zoneid++) {
- 		int status;
-@@ -1909,6 +1918,8 @@ static void kcompactd_do_work(pg_data_t
- 
- 		cc.nr_freepages = 0;
- 		cc.nr_migratepages = 0;
-+		cc.total_migrate_scanned = 0;
-+		cc.total_free_scanned = 0;
- 		cc.zone = zone;
- 		INIT_LIST_HEAD(&cc.freepages);
- 		INIT_LIST_HEAD(&cc.migratepages);
-@@ -1927,6 +1938,11 @@ static void kcompactd_do_work(pg_data_t
- 			defer_compaction(zone, cc.order);
- 		}
- 
-+		count_compact_events(KCOMPACTD_MIGRATE_SCANNED,
-+				     cc.total_migrate_scanned);
-+		count_compact_events(KCOMPACTD_FREE_SCANNED,
-+				     cc.total_free_scanned);
++	do {
++		mid = (right + left) / 2;
 +
- 		VM_BUG_ON(!list_empty(&cc.freepages));
- 		VM_BUG_ON(!list_empty(&cc.migratepages));
- 	}
-diff -puN mm/internal.h~mm-compaction-add-vmstats-for-kcompactd-work mm/internal.h
---- a/mm/internal.h~mm-compaction-add-vmstats-for-kcompactd-work
-+++ a/mm/internal.h
-@@ -175,6 +175,8 @@ struct compact_control {
- 	struct list_head migratepages;	/* List of pages being migrated */
- 	unsigned long nr_freepages;	/* Number of isolated free pages */
- 	unsigned long nr_migratepages;	/* Number of pages to migrate */
-+	unsigned long total_migrate_scanned;
-+	unsigned long total_free_scanned;
- 	unsigned long free_pfn;		/* isolate_freepages search base */
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
- 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
-diff -puN mm/vmstat.c~mm-compaction-add-vmstats-for-kcompactd-work mm/vmstat.c
---- a/mm/vmstat.c~mm-compaction-add-vmstats-for-kcompactd-work
-+++ a/mm/vmstat.c
-@@ -1038,6 +1038,8 @@ const char * const vmstat_text[] = {
- 	"compact_fail",
- 	"compact_success",
- 	"compact_daemon_wake",
-+	"compact_daemon_migrate_scanned",
-+	"compact_daemon_free_scanned",
- #endif
++		if (addr < type->regions[mid].base)
++			right = mid;
++		else if (addr >= (type->regions[mid].base +
++				  type->regions[mid].size))
++			left = mid + 1;
++		else {
++			/* addr is within the region, so pfn + 1 is valid */
++			return min(pfn + 1, max_pfn);
++		}
++	} while (left < right);
++
++	return min(PHYS_PFN(type->regions[right].base), max_pfn);
++}
++
+ /**
+  * memblock_set_node - set node ID on memblock regions
+  * @base: base of area to set node ID for
+diff -puN mm/page_alloc.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-skip-over-regions-of-invalid-pfns-where-possible
++++ a/mm/page_alloc.c
+@@ -5103,8 +5103,17 @@ void __meminit memmap_init_zone(unsigned
+ 		if (context != MEMMAP_EARLY)
+ 			goto not_early;
  
- #ifdef CONFIG_HUGETLB_PAGE
+-		if (!early_pfn_valid(pfn))
++		if (!early_pfn_valid(pfn)) {
++#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
++			/*
++			 * Skip to the pfn preceding the next valid one (or
++			 * end_pfn), such that we hit a valid pfn (or end_pfn)
++			 * on our next iteration of the loop.
++			 */
++			pfn = memblock_next_valid_pfn(pfn, end_pfn) - 1;
++#endif
+ 			continue;
++		}
+ 		if (!early_pfn_in_nid(pfn, nid))
+ 			continue;
+ 		if (!update_defer_init(pgdat, pfn, end_pfn, &nr_initialised))
 _
