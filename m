@@ -1,163 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [patch 045/142] oom, trace: add oom detection tracepoints
-Date: Wed, 22 Feb 2017 15:42:00 -0800
-Message-ID: <58ae21c8.oLbNyTja8Oc0OouQ%akpm@linux-foundation.org>
+Subject: [patch 062/142] userfaultfd: hugetlbfs: add
+ hugetlb_mcopy_atomic_pte for userfaultfd support
+Date: Wed, 22 Feb 2017 15:42:52 -0800
+Message-ID: <58ae21fc.K5oK97oy2BgfJFml%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934263AbdBVXmP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:15 -0500
+        with ESMTP id S934635AbdBVXmy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, rientjes@google.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom, trace: add oom detection tracepoints
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: userfaultfd: hugetlbfs: add hugetlb_mcopy_atomic_pte for userfaultfd support
 
-should_reclaim_retry is the central decision point for declaring the OOM. 
-It might be really useful to expose data used for this decision making
-when debugging an unexpected oom situations.
+hugetlb_mcopy_atomic_pte is the low level routine that implements the
+userfaultfd UFFDIO_COPY command.  It is based on the existing
+mcopy_atomic_pte routine with modifications for huge pages.
 
-Say we have an OOM report:
-[   52.264001] mem_eater invoked oom-killer: gfp_mask=0x24280ca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), nodemask=0, order=0, oom_score_adj=0
-[   52.267549] CPU: 3 PID: 3148 Comm: mem_eater Tainted: G        W       4.8.0-oomtrace3-00006-gb21338b386d2 #1024
-
-Now we can check the tracepoint data to see how we have ended up in this
-situation:
-       mem_eater-3148  [003] ....    52.432801: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11134 min_wmark=11084 no_progress_loops=1 wmark_check=1
-       mem_eater-3148  [003] ....    52.433269: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11103 min_wmark=11084 no_progress_loops=1 wmark_check=1
-       mem_eater-3148  [003] ....    52.433712: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11100 min_wmark=11084 no_progress_loops=2 wmark_check=1
-       mem_eater-3148  [003] ....    52.434067: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11097 min_wmark=11084 no_progress_loops=3 wmark_check=1
-       mem_eater-3148  [003] ....    52.434414: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11094 min_wmark=11084 no_progress_loops=4 wmark_check=1
-       mem_eater-3148  [003] ....    52.434761: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11091 min_wmark=11084 no_progress_loops=5 wmark_check=1
-       mem_eater-3148  [003] ....    52.435108: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11087 min_wmark=11084 no_progress_loops=6 wmark_check=1
-       mem_eater-3148  [003] ....    52.435478: reclaim_retry_zone: node=0 zone=DMA32 order=0 reclaimable=51 available=11084 min_wmark=11084 no_progress_loops=7 wmark_check=0
-       mem_eater-3148  [003] ....    52.435478: reclaim_retry_zone: node=0 zone=DMA order=0 reclaimable=0 available=1126 min_wmark=179 no_progress_loops=7 wmark_check=0
-
-The above shows that we can quickly deduce that the reclaim stopped making
-any progress (see no_progress_loops increased in each round) and while
-there were still some 51 reclaimable pages they couldn't be dropped for
-some reason (vmscan trace points would tell us more about that part). 
-available will represent reclaimable + free_pages scaled down per
-no_progress_loops factor.  This is essentially an optimistic estimate of
-how much memory we would have when reclaiming everything.  This can be
-compared to min_wmark to get a rought idea but the wmark_check tells the
-result of the watermark check which is more precise (includes lowmem
-reserves, considers the order etc.).  As we can see no zone is eligible in
-the end and that is why we have triggered the oom in this situation.
-
-Please note that higher order requests might fail on the wmark_check even
-when there is much more memory available than min_wmark - e.g.  when the
-memory is fragmented.  A follow up tracepoint will help to debug those
-situations.
-
-Link: http://lkml.kernel.org/r/20161220130135.15719-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20161216144821.5183-18-aarcange@redhat.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/oom.h |   42 +++++++++++++++++++++++++++++++++++
- mm/page_alloc.c            |   10 ++++++--
- 2 files changed, 50 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |    7 +++
+ mm/hugetlb.c            |   81 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+)
 
-diff -puN include/trace/events/oom.h~oom-trace-add-oom-detection-tracepoints include/trace/events/oom.h
---- a/include/trace/events/oom.h~oom-trace-add-oom-detection-tracepoints
-+++ a/include/trace/events/oom.h
-@@ -4,6 +4,7 @@
- #if !defined(_TRACE_OOM_H) || defined(TRACE_HEADER_MULTI_READ)
- #define _TRACE_OOM_H
- #include <linux/tracepoint.h>
-+#include <trace/events/mmflags.h>
+diff -puN include/linux/hugetlb.h~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support
++++ a/include/linux/hugetlb.h
+@@ -81,6 +81,11 @@ void hugetlb_show_meminfo(void);
+ unsigned long hugetlb_total_pages(void);
+ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags);
++int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
++				struct vm_area_struct *dst_vma,
++				unsigned long dst_addr,
++				unsigned long src_addr,
++				struct page **pagep);
+ int hugetlb_reserve_pages(struct inode *inode, long from, long to,
+ 						struct vm_area_struct *vma,
+ 						vm_flags_t vm_flags);
+@@ -149,6 +154,8 @@ static inline void hugetlb_show_meminfo(
+ #define is_hugepage_only_range(mm, addr, len)	0
+ #define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
+ #define hugetlb_fault(mm, vma, addr, flags)	({ BUG(); 0; })
++#define hugetlb_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma, dst_addr, \
++				src_addr, pagep)	({ BUG(); 0; })
+ #define huge_pte_offset(mm, address)	0
+ static inline int dequeue_hwpoisoned_huge_page(struct page *page)
+ {
+diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support mm/hugetlb.c
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-add-hugetlb_mcopy_atomic_pte-for-userfaultfd-support
++++ a/mm/hugetlb.c
+@@ -3948,6 +3948,87 @@ out_mutex:
+ 	return ret;
+ }
  
- TRACE_EVENT(oom_score_adj_update,
- 
-@@ -27,6 +28,47 @@ TRACE_EVENT(oom_score_adj_update,
- 		__entry->pid, __entry->comm, __entry->oom_score_adj)
- );
- 
-+TRACE_EVENT(reclaim_retry_zone,
++/*
++ * Used by userfaultfd UFFDIO_COPY.  Based on mcopy_atomic_pte with
++ * modifications for huge pages.
++ */
++int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
++			    pte_t *dst_pte,
++			    struct vm_area_struct *dst_vma,
++			    unsigned long dst_addr,
++			    unsigned long src_addr,
++			    struct page **pagep)
++{
++	struct hstate *h = hstate_vma(dst_vma);
++	pte_t _dst_pte;
++	spinlock_t *ptl;
++	int ret;
++	struct page *page;
 +
-+	TP_PROTO(struct zoneref *zoneref,
-+		int order,
-+		unsigned long reclaimable,
-+		unsigned long available,
-+		unsigned long min_wmark,
-+		int no_progress_loops,
-+		bool wmark_check),
++	if (!*pagep) {
++		ret = -ENOMEM;
++		page = alloc_huge_page(dst_vma, dst_addr, 0);
++		if (IS_ERR(page))
++			goto out;
 +
-+	TP_ARGS(zoneref, order, reclaimable, available, min_wmark, no_progress_loops, wmark_check),
++		ret = copy_huge_page_from_user(page,
++						(const void __user *) src_addr,
++						pages_per_huge_page(h));
 +
-+	TP_STRUCT__entry(
-+		__field(	int, node)
-+		__field(	int, zone_idx)
-+		__field(	int,	order)
-+		__field(	unsigned long,	reclaimable)
-+		__field(	unsigned long,	available)
-+		__field(	unsigned long,	min_wmark)
-+		__field(	int,	no_progress_loops)
-+		__field(	bool,	wmark_check)
-+	),
++		/* fallback to copy_from_user outside mmap_sem */
++		if (unlikely(ret)) {
++			ret = -EFAULT;
++			*pagep = page;
++			/* don't free the page */
++			goto out;
++		}
++	} else {
++		page = *pagep;
++		*pagep = NULL;
++	}
 +
-+	TP_fast_assign(
-+		__entry->node = zone_to_nid(zoneref->zone);
-+		__entry->zone_idx = zoneref->zone_idx;
-+		__entry->order = order;
-+		__entry->reclaimable = reclaimable;
-+		__entry->available = available;
-+		__entry->min_wmark = min_wmark;
-+		__entry->no_progress_loops = no_progress_loops;
-+		__entry->wmark_check = wmark_check;
-+	),
++	/*
++	 * The memory barrier inside __SetPageUptodate makes sure that
++	 * preceding stores to the page contents become visible before
++	 * the set_pte_at() write.
++	 */
++	__SetPageUptodate(page);
++	set_page_huge_active(page);
 +
-+	TP_printk("node=%d zone=%-8s order=%d reclaimable=%lu available=%lu min_wmark=%lu no_progress_loops=%d wmark_check=%d",
-+			__entry->node, __print_symbolic(__entry->zone_idx, ZONE_TYPE),
-+			__entry->order,
-+			__entry->reclaimable, __entry->available, __entry->min_wmark,
-+			__entry->no_progress_loops,
-+			__entry->wmark_check)
-+);
- #endif
- 
- /* This part must be outside protection */
-diff -puN mm/page_alloc.c~oom-trace-add-oom-detection-tracepoints mm/page_alloc.c
---- a/mm/page_alloc.c~oom-trace-add-oom-detection-tracepoints
-+++ a/mm/page_alloc.c
-@@ -55,6 +55,7 @@
- #include <linux/kmemleak.h>
- #include <linux/compaction.h>
- #include <trace/events/kmem.h>
-+#include <trace/events/oom.h>
- #include <linux/prefetch.h>
- #include <linux/mm_inline.h>
- #include <linux/migrate.h>
-@@ -3468,6 +3469,8 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 					ac->nodemask) {
- 		unsigned long available;
- 		unsigned long reclaimable;
-+		unsigned long min_wmark = min_wmark_pages(zone);
-+		bool wmark;
- 
- 		available = reclaimable = zone_reclaimable_pages(zone);
- 		available -= DIV_ROUND_UP((*no_progress_loops) * available,
-@@ -3478,8 +3481,11 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 		 * Would the allocation succeed if we reclaimed the whole
- 		 * available?
- 		 */
--		if (__zone_watermark_ok(zone, order, min_wmark_pages(zone),
--				ac_classzone_idx(ac), alloc_flags, available)) {
-+		wmark = __zone_watermark_ok(zone, order, min_wmark,
-+				ac_classzone_idx(ac), alloc_flags, available);
-+		trace_reclaim_retry_zone(z, order, reclaimable,
-+				available, min_wmark, *no_progress_loops, wmark);
-+		if (wmark) {
- 			/*
- 			 * If we didn't make any progress and have a lot of
- 			 * dirty + writeback pages then we should wait for
++	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
++	spin_lock(ptl);
++
++	ret = -EEXIST;
++	if (!huge_pte_none(huge_ptep_get(dst_pte)))
++		goto out_release_unlock;
++
++	ClearPagePrivate(page);
++	hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
++
++	_dst_pte = make_huge_pte(dst_vma, page, dst_vma->vm_flags & VM_WRITE);
++	if (dst_vma->vm_flags & VM_WRITE)
++		_dst_pte = huge_pte_mkdirty(_dst_pte);
++	_dst_pte = pte_mkyoung(_dst_pte);
++
++	set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
++
++	(void)huge_ptep_set_access_flags(dst_vma, dst_addr, dst_pte, _dst_pte,
++					dst_vma->vm_flags & VM_WRITE);
++	hugetlb_count_add(pages_per_huge_page(h), dst_mm);
++
++	/* No need to invalidate - it was non-present before */
++	update_mmu_cache(dst_vma, dst_addr, dst_pte);
++
++	spin_unlock(ptl);
++	ret = 0;
++out:
++	return ret;
++out_release_unlock:
++	spin_unlock(ptl);
++	put_page(page);
++	goto out;
++}
++
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+ 			 unsigned long *position, unsigned long *nr_pages,
 _
