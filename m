@@ -1,103 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 120/142] mm/swap: skip readahead only when swap slot cache is enabled
-Date: Wed, 22 Feb 2017 15:45:46 -0800
-Message-ID: <58ae22aa.ldgFXbrUX7DT37Cu%akpm@linux-foundation.org>
+Subject: [patch 122/142] mm/backing-dev.c: use rb_entry()
+Date: Wed, 22 Feb 2017 15:45:52 -0800
+Message-ID: <58ae22b0.6bg/NZjnv0Vdytiy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933644AbdBVXps (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:48 -0500
+        with ESMTP id S934194AbdBVXpy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geliangtang@gmail.com, axboe@fb.com, tj@kernel.org
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/swap: skip readahead only when swap slot cache is enabled
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: mm/backing-dev.c: use rb_entry()
 
-Because during swap off, a swap entry may have swap_map[] ==
-SWAP_HAS_CACHE (for example, just allocated).  If we return NULL in
-__read_swap_cache_async(), the swap off will abort.  So when swap slot
-cache is disabled, (for swap off), we will wait for page to be put into
-swap cache in such race condition.  This should not be a problem for swap
-slot cache, because swap slot cache should be drained after clearing
-swap_slot_cache_enabled.
+To make the code clearer, use rb_entry() instead of container_of() to
+deal with rbtree.
 
-[ying.huang@intel.com: fix memory leak in __read_swap_cache_async()]
-  Link: http://lkml.kernel.org/r/874lzt6znd.fsf@yhuang-dev.intel.com
-Link: http://lkml.kernel.org/r/5e2c5f6abe8e6eb0797408897b1bba80938e9b9d.1484082593.git.tim.c.chen@linux.intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/671275de093d93ddc7c6f77ddc0d357149691a39.1484306840.git.geliangtang@gmail.com
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap_slots.h |    2 ++
- mm/swap_slots.c            |    2 +-
- mm/swap_state.c            |   13 ++++++++++---
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ mm/backing-dev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/swap_slots.h~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled include/linux/swap_slots.h
---- a/include/linux/swap_slots.h~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
-+++ a/include/linux/swap_slots.h
-@@ -25,4 +25,6 @@ void reenable_swap_slots_cache_unlock(vo
- int enable_swap_slots_cache(void);
- int free_swap_slot(swp_entry_t entry);
+diff -puN mm/backing-dev.c~writeback-use-rb_entry mm/backing-dev.c
+--- a/mm/backing-dev.c~writeback-use-rb_entry
++++ a/mm/backing-dev.c
+@@ -411,8 +411,8 @@ retry:
  
-+extern bool swap_slot_cache_enabled;
-+
- #endif /* _LINUX_SWAP_SLOTS_H */
-diff -puN mm/swap_slots.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled mm/swap_slots.c
---- a/mm/swap_slots.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
-+++ a/mm/swap_slots.c
-@@ -36,7 +36,7 @@
- 
- static DEFINE_PER_CPU(struct swap_slots_cache, swp_slots);
- static bool	swap_slot_cache_active;
--static bool	swap_slot_cache_enabled;
-+bool	swap_slot_cache_enabled;
- static bool	swap_slot_cache_initialized;
- DEFINE_MUTEX(swap_slots_cache_mutex);
- /* Serialize swap slots cache enable/disable operations */
-diff -puN mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
-+++ a/mm/swap_state.c
-@@ -324,9 +324,16 @@ struct page *__read_swap_cache_async(swp
- 		if (found_page)
- 			break;
- 
--		/* Just skip read ahead for unused swap slot */
--		if (!__swp_swapcount(entry))
--			return NULL;
-+		/*
-+		 * Just skip read ahead for unused swap slot.
-+		 * During swap_off when swap_slot_cache is disabled,
-+		 * we have to handle the race between putting
-+		 * swap entry in swap cache and marking swap slot
-+		 * as SWAP_HAS_CACHE.  That's done in later part of code or
-+		 * else swap_off will be aborted if we return NULL.
-+		 */
-+		if (!__swp_swapcount(entry) && swap_slot_cache_enabled)
-+			break;
- 
- 		/*
- 		 * Get a new page to read into from swap.
+ 	while (*node != NULL) {
+ 		parent = *node;
+-		congested = container_of(parent, struct bdi_writeback_congested,
+-					 rb_node);
++		congested = rb_entry(parent, struct bdi_writeback_congested,
++				     rb_node);
+ 		if (congested->blkcg_id < blkcg_id)
+ 			node = &parent->rb_left;
+ 		else if (congested->blkcg_id > blkcg_id)
 _
