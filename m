@@ -1,121 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [patch 037/142] slab: use memcg_kmem_cache_wq for slab
- destruction operations
-Date: Wed, 22 Feb 2017 15:41:36 -0800
-Message-ID: <58ae21b0.vl8EosASVB5m6/VT%akpm@linux-foundation.org>
+Subject: [patch 038/142] slub: make sysfs directories for memcg sub-caches optional
+Date: Wed, 22 Feb 2017 15:41:39 -0800
+Message-ID: <58ae21b3.N6w6czJzvXDKY6yf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48234 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48320 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934506AbdBVXmE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:04 -0500
+        with ESMTP id S934257AbdBVXmN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
 
 From: Tejun Heo <tj@kernel.org>
-Subject: slab: use memcg_kmem_cache_wq for slab destruction operations
+Subject: slub: make sysfs directories for memcg sub-caches optional
 
-If there's contention on slab_mutex, queueing the per-cache destruction
-work item on the system_wq can unnecessarily create and tie up a lot of
-kworkers.
+SLUB creates a per-cache directory under /sys/kernel/slab which hosts a
+bunch of debug files.  Usually, there aren't that many caches on a system
+and this doesn't really matter; however, if memcg is in use, each cache
+can have per-cgroup sub-caches.  SLUB creates the same directories for
+these sub-caches under /sys/kernel/slab/$CACHE/cgroup.
 
-Rename memcg_kmem_cache_create_wq to memcg_kmem_cache_wq and make it
-global and use that workqueue for the destruction work items too.  While
-at it, convert the workqueue from an unbound workqueue to a per-cpu one
-with concurrency limited to 1.  It's generally preferable to use per-cpu
-workqueues and concurrency limit of 1 is safe enough.
+Unfortunately, because there can be a lot of cgroups, active or draining,
+the product of the numbers of caches, cgroups and files in each directory
+can reach a very high number - hundreds of thousands is commonplace. 
+Millions and beyond aren't difficult to reach either.
 
-This is suggested by Joonsoo Kim.
+What's under /sys/kernel/slab is primarily for debugging and the
+information and control on the a root cache already cover its sub-caches. 
+While having a separate directory for each sub-cache can be helpful for
+development, it doesn't make much sense to pay this amount of overhead by
+default.
 
-Link: http://lkml.kernel.org/r/20170117235411.9408-11-tj@kernel.org
+This patch introduces a boot parameter slub_memcg_sysfs which determines
+whether to create sysfs directories for per-memcg sub-caches.  It also
+adds CONFIG_SLUB_MEMCG_SYSFS_ON which determines the boot parameter's
+default value and defaults to 0.
+
+[akpm@linux-foundation.org: kset_unregister(NULL) is legal]
+Link: http://lkml.kernel.org/r/20170204145203.GB26958@mtj.duckdns.org
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Jay Vana <jsvana@fb.com>
-Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 +
- mm/memcontrol.c            |   16 ++++++++--------
- mm/slab_common.c           |    2 +-
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    8 ++++
+ init/Kconfig                                    |   14 +++++++
+ mm/slub.c                                       |   26 ++++++++++++--
+ 3 files changed, 46 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
-+++ a/include/linux/memcontrol.h
-@@ -830,6 +830,7 @@ void memcg_kmem_uncharge(struct page *pa
+diff -puN Documentation/admin-guide/kernel-parameters.txt~slub-make-sysfs-directories-for-memcg-sub-caches-optional Documentation/admin-guide/kernel-parameters.txt
+--- a/Documentation/admin-guide/kernel-parameters.txt~slub-make-sysfs-directories-for-memcg-sub-caches-optional
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3694,6 +3694,14 @@
+ 			last alloc / free. For more information see
+ 			Documentation/vm/slub.txt.
  
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
- extern struct static_key_false memcg_kmem_enabled_key;
-+extern struct workqueue_struct *memcg_kmem_cache_wq;
- 
- extern int memcg_nr_cache_ids;
- void memcg_get_cache_ids(void);
-diff -puN mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/memcontrol.c
---- a/mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
-+++ a/mm/memcontrol.c
-@@ -317,6 +317,8 @@ void memcg_put_cache_ids(void)
- DEFINE_STATIC_KEY_FALSE(memcg_kmem_enabled_key);
- EXPORT_SYMBOL(memcg_kmem_enabled_key);
- 
-+struct workqueue_struct *memcg_kmem_cache_wq;
++	slub_memcg_sysfs=	[MM, SLUB]
++			Determines whether to enable sysfs directories for
++			memory cgroup sub-caches. 1 to enable, 0 to disable.
++			The default is determined by CONFIG_SLUB_MEMCG_SYSFS_ON.
++			Enabling this can lead to a very high number of	debug
++			directories and files being created under
++			/sys/kernel/slub.
 +
- #endif /* !CONFIG_SLOB */
+ 	slub_max_order= [MM, SLUB]
+ 			Determines the maximum allowed order for slabs.
+ 			A high setting may cause OOMs due to memory
+diff -puN init/Kconfig~slub-make-sysfs-directories-for-memcg-sub-caches-optional init/Kconfig
+--- a/init/Kconfig~slub-make-sysfs-directories-for-memcg-sub-caches-optional
++++ a/init/Kconfig
+@@ -1779,6 +1779,20 @@ config SLUB_DEBUG
+ 	  SLUB sysfs support. /sys/slab will not exist and there will be
+ 	  no support for cache validation etc.
  
- /**
-@@ -2143,8 +2145,6 @@ struct memcg_kmem_cache_create_work {
- 	struct work_struct work;
- };
++config SLUB_MEMCG_SYSFS_ON
++	default n
++	bool "Enable memcg SLUB sysfs support by default" if EXPERT
++	depends on SLUB && SYSFS && MEMCG
++	help
++	  SLUB creates a directory under /sys/kernel/slab for each
++	  allocation cache to host info and debug files. If memory
++	  cgroup is enabled, each cache can have per memory cgroup
++	  caches. SLUB can create the same sysfs directories for these
++	  caches under /sys/kernel/slab/CACHE/cgroup but it can lead
++	  to a very high number of debug files being created. This is
++	  controlled by slub_memcg_sysfs boot parameter and this
++	  config option determines the parameter's default value.
++
+ config COMPAT_BRK
+ 	bool "Disable heap randomization"
+ 	default y
+diff -puN mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional mm/slub.c
+--- a/mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional
++++ a/mm/slub.c
+@@ -4708,6 +4708,22 @@ enum slab_stat_type {
+ #define SO_OBJECTS	(1 << SL_OBJECTS)
+ #define SO_TOTAL	(1 << SL_TOTAL)
  
--static struct workqueue_struct *memcg_kmem_cache_create_wq;
--
- static void memcg_kmem_cache_create_func(struct work_struct *w)
++#ifdef CONFIG_MEMCG
++static bool memcg_sysfs_enabled = IS_ENABLED(CONFIG_SLUB_MEMCG_SYSFS_ON);
++
++static int __init setup_slub_memcg_sysfs(char *str)
++{
++	int v;
++
++	if (get_option(&str, &v) > 0)
++		memcg_sysfs_enabled = v;
++
++	return 1;
++}
++
++__setup("slub_memcg_sysfs=", setup_slub_memcg_sysfs);
++#endif
++
+ static ssize_t show_slab_objects(struct kmem_cache *s,
+ 			    char *buf, unsigned long flags)
  {
- 	struct memcg_kmem_cache_create_work *cw =
-@@ -2176,7 +2176,7 @@ static void __memcg_schedule_kmem_cache_
- 	cw->cachep = cachep;
- 	INIT_WORK(&cw->work, memcg_kmem_cache_create_func);
+@@ -5611,8 +5627,14 @@ static int sysfs_slab_add(struct kmem_ca
+ {
+ 	int err;
+ 	const char *name;
++	struct kset *kset = cache_kset(s);
+ 	int unmergeable = slab_unmergeable(s);
  
--	queue_work(memcg_kmem_cache_create_wq, &cw->work);
-+	queue_work(memcg_kmem_cache_wq, &cw->work);
- }
++	if (!kset) {
++		kobject_init(&s->kobj, &slab_ktype);
++		return 0;
++	}
++
+ 	if (unmergeable) {
+ 		/*
+ 		 * Slabcache can never be merged so we can use the name proper.
+@@ -5629,7 +5651,7 @@ static int sysfs_slab_add(struct kmem_ca
+ 		name = create_unique_id(s);
+ 	}
  
- static void memcg_schedule_kmem_cache_create(struct mem_cgroup *memcg,
-@@ -5778,12 +5778,12 @@ static int __init mem_cgroup_init(void)
- #ifndef CONFIG_SLOB
- 	/*
- 	 * Kmem cache creation is mostly done with the slab_mutex held,
--	 * so use a special workqueue to avoid stalling all worker
--	 * threads in case lots of cgroups are created simultaneously.
-+	 * so use a workqueue with limited concurrency to avoid stalling
-+	 * all worker threads in case lots of cgroups are created and
-+	 * destroyed simultaneously.
- 	 */
--	memcg_kmem_cache_create_wq =
--		alloc_ordered_workqueue("memcg_kmem_cache_create", 0);
--	BUG_ON(!memcg_kmem_cache_create_wq);
-+	memcg_kmem_cache_wq = alloc_workqueue("memcg_kmem_cache", 0, 1);
-+	BUG_ON(!memcg_kmem_cache_wq);
- #endif
+-	s->kobj.kset = cache_kset(s);
++	s->kobj.kset = kset;
+ 	err = kobject_init_and_add(&s->kobj, &slab_ktype, NULL, "%s", name);
+ 	if (err)
+ 		goto out;
+@@ -5639,7 +5661,7 @@ static int sysfs_slab_add(struct kmem_ca
+ 		goto out_del_kobj;
  
- 	cpuhp_setup_state_nocalls(CPUHP_MM_MEMCQ_DEAD, "mm/memctrl:dead", NULL,
-diff -puN mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/slab_common.c
---- a/mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
-+++ a/mm/slab_common.c
-@@ -659,7 +659,7 @@ static void kmemcg_deactivate_rcufn(stru
- 	 * initialized eariler.
- 	 */
- 	INIT_WORK(&s->memcg_params.deact_work, kmemcg_deactivate_workfn);
--	schedule_work(&s->memcg_params.deact_work);
-+	queue_work(memcg_kmem_cache_wq, &s->memcg_params.deact_work);
- }
- 
- /**
+ #ifdef CONFIG_MEMCG
+-	if (is_root_cache(s)) {
++	if (is_root_cache(s) && memcg_sysfs_enabled) {
+ 		s->memcg_kset = kset_create_and_add("cgroup", NULL, &s->kobj);
+ 		if (!s->memcg_kset) {
+ 			err = -ENOMEM;
 _
