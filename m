@@ -1,117 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/142] slub: separate out sysfs_slab_release() from
- sysfs_slab_remove()
-Date: Wed, 22 Feb 2017 15:41:11 -0800
-Message-ID: <58ae2197.MEDODu9jfDCLbh22%akpm@linux-foundation.org>
+Subject: [patch 023/142] 9p: fix a potential acl leak
+Date: Wed, 22 Feb 2017 15:40:53 -0800
+Message-ID: <58ae2185.5x53+lmFGeXkus5p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48260 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934391AbdBVXl5 (ORCPT
+        with ESMTP id S934311AbdBVXl5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xiyou.wangcong@gmail.com, ericvh@gmail.com, groug@kaod.org, jack@suse.cz, lucho@ionkov.net, rminnich@sandia.gov, salyzyn@android.com
 
-From: Tejun Heo <tj@kernel.org>
-Subject: slub: separate out sysfs_slab_release() from sysfs_slab_remove()
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: 9p: fix a potential acl leak
 
-Separate out slub sysfs removal and release, and call the former earlier
-from __kmem_cache_shutdown().  There's no reason to defer sysfs removal
-through RCU and this will later allow us to remove sysfs files way earlier
-during memory cgroup offline instead of release.
+posix_acl_update_mode() could possibly clear 'acl', if so we leak the
+memory pointed by 'acl'.  Save this pointer before calling
+posix_acl_update_mode() and release the memory if 'acl' really gets
+cleared.
 
-Link: http://lkml.kernel.org/r/20170117235411.9408-3-tj@kernel.org
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/1486678332-2430-1-git-send-email-xiyou.wangcong@gmail.com
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Reported-by: Mark Salyzyn <salyzyn@android.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Greg Kurz <groug@kaod.org>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    4 ++--
- mm/slab_common.c         |    2 +-
- mm/slub.c                |   12 ++++++++++--
- 3 files changed, 13 insertions(+), 5 deletions(-)
+ fs/9p/acl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/slub_def.h~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove
-+++ a/include/linux/slub_def.h
-@@ -113,9 +113,9 @@ struct kmem_cache {
+diff -puN fs/9p/acl.c~9p-fix-a-potential-acl-leak fs/9p/acl.c
+--- a/fs/9p/acl.c~9p-fix-a-potential-acl-leak
++++ a/fs/9p/acl.c
+@@ -277,6 +277,7 @@ static int v9fs_xattr_set_acl(const stru
+ 	case ACL_TYPE_ACCESS:
+ 		if (acl) {
+ 			struct iattr iattr;
++			struct posix_acl *old_acl = acl;
  
- #ifdef CONFIG_SYSFS
- #define SLAB_SUPPORTS_SYSFS
--void sysfs_slab_remove(struct kmem_cache *);
-+void sysfs_slab_release(struct kmem_cache *);
- #else
--static inline void sysfs_slab_remove(struct kmem_cache *s)
-+static inline void sysfs_slab_release(struct kmem_cache *s)
- {
- }
- #endif
-diff -puN mm/slab_common.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove mm/slab_common.c
---- a/mm/slab_common.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove
-+++ a/mm/slab_common.c
-@@ -483,7 +483,7 @@ static void release_caches(struct list_h
- 
- 	list_for_each_entry_safe(s, s2, release, list) {
- #ifdef SLAB_SUPPORTS_SYSFS
--		sysfs_slab_remove(s);
-+		sysfs_slab_release(s);
- #else
- 		slab_kmem_cache_release(s);
- #endif
-diff -puN mm/slub.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove mm/slub.c
---- a/mm/slub.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove
-+++ a/mm/slub.c
-@@ -214,11 +214,13 @@ enum track_item { TRACK_ALLOC, TRACK_FRE
- static int sysfs_slab_add(struct kmem_cache *);
- static int sysfs_slab_alias(struct kmem_cache *, const char *);
- static void memcg_propagate_slab_attrs(struct kmem_cache *s);
-+static void sysfs_slab_remove(struct kmem_cache *s);
- #else
- static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
- static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
- 							{ return 0; }
- static inline void memcg_propagate_slab_attrs(struct kmem_cache *s) { }
-+static inline void sysfs_slab_remove(struct kmem_cache *s) { }
- #endif
- 
- static inline void stat(const struct kmem_cache *s, enum stat_item si)
-@@ -3687,6 +3689,7 @@ int __kmem_cache_shutdown(struct kmem_ca
- 		if (n->nr_partial || slabs_node(s, node))
- 			return 1;
- 	}
-+	sysfs_slab_remove(s);
- 	return 0;
- }
- 
-@@ -5637,7 +5640,7 @@ out_del_kobj:
- 	goto out;
- }
- 
--void sysfs_slab_remove(struct kmem_cache *s)
-+static void sysfs_slab_remove(struct kmem_cache *s)
- {
- 	if (slab_state < FULL)
- 		/*
-@@ -5651,7 +5654,12 @@ void sysfs_slab_remove(struct kmem_cache
- #endif
- 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
- 	kobject_del(&s->kobj);
--	kobject_put(&s->kobj);
-+}
-+
-+void sysfs_slab_release(struct kmem_cache *s)
-+{
-+	if (slab_state >= FULL)
-+		kobject_put(&s->kobj);
- }
- 
- /*
+ 			retval = posix_acl_update_mode(inode, &iattr.ia_mode, &acl);
+ 			if (retval)
+@@ -287,6 +288,7 @@ static int v9fs_xattr_set_acl(const stru
+ 				 * by the mode bits. So don't
+ 				 * update ACL.
+ 				 */
++				posix_acl_release(old_acl);
+ 				value = NULL;
+ 				size = 0;
+ 			}
 _
