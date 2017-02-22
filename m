@@ -1,129 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [patch 024/142] kernel/watchdog.c: do not hardcode CPU 0 as the
- initial thread
-Date: Wed, 22 Feb 2017 15:40:56 -0800
-Message-ID: <58ae2188.iif9Cxzsc/7OHiMe%akpm@linux-foundation.org>
+Subject: [patch 029/142] slub: separate out sysfs_slab_release() from
+ sysfs_slab_remove()
+Date: Wed, 22 Feb 2017 15:41:11 -0800
+Message-ID: <58ae2197.MEDODu9jfDCLbh22%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47910 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934372AbdBVXl5 (ORCPT
+        with ESMTP id S934391AbdBVXl5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, prarit@redhat.com, ak@linux.intel.com, babu.moger@oracle.com, bp@suse.de, dzickus@redhat.com, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, mingo@kernel.org, tglx@linutronix.de, tj@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
 
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: kernel/watchdog.c: do not hardcode CPU 0 as the initial thread
+From: Tejun Heo <tj@kernel.org>
+Subject: slub: separate out sysfs_slab_release() from sysfs_slab_remove()
 
-When CONFIG_BOOTPARAM_HOTPLUG_CPU0 is enabled, the socket containing the
-boot cpu can be replaced.  During the hot add event, the message
+Separate out slub sysfs removal and release, and call the former earlier
+from __kmem_cache_shutdown().  There's no reason to defer sysfs removal
+through RCU and this will later allow us to remove sysfs files way earlier
+during memory cgroup offline instead of release.
 
-NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.
-
-is output implying that the NMI watchdog was disabled at some point.  This
-is not the case and the message has caused confusion for users of systems
-that support the removal of the boot cpu socket.
-
-The watchdog code is coded to assume that cpu 0 is always the first cpu to
-initialize the watchdog, and the last to stop its watchdog thread.  That
-is not the case for initializing if cpu 0 has been removed and added.  The
-removal case has never been correct because the smpboot code will remove
-the watchdog threads starting with the lowest cpu number.
-
-This patch adds watchdog_cpus to track the number of cpus with active NMI
-watchdog threads so that the first and last thread can be used to set and
-clear the value of firstcpu_err.  firstcpu_err is set when the first
-watchdog thread is enabled, and cleared when the last watchdog thread is
-disabled.
-
-Link: http://lkml.kernel.org/r/1480425321-32296-1-git-send-email-prarit@redhat.com
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Joshua Hunt <johunt@akamai.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Babu Moger <babu.moger@oracle.com>
+Link: http://lkml.kernel.org/r/20170117235411.9408-3-tj@kernel.org
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog_hld.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ include/linux/slub_def.h |    4 ++--
+ mm/slab_common.c         |    2 +-
+ mm/slub.c                |   12 ++++++++++--
+ 3 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN kernel/watchdog_hld.c~kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread kernel/watchdog_hld.c
---- a/kernel/watchdog_hld.c~kernel-watchdogc-do-not-hardcode-cpu-0-as-the-initial-thread
-+++ a/kernel/watchdog_hld.c
-@@ -137,12 +137,14 @@ static void watchdog_overflow_callback(s
-  * Reduce the watchdog noise by only printing messages
-  * that are different from what cpu0 displayed.
-  */
--static unsigned long cpu0_err;
-+static unsigned long firstcpu_err;
-+static atomic_t watchdog_cpus;
+diff -puN include/linux/slub_def.h~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove
++++ a/include/linux/slub_def.h
+@@ -113,9 +113,9 @@ struct kmem_cache {
  
- int watchdog_nmi_enable(unsigned int cpu)
+ #ifdef CONFIG_SYSFS
+ #define SLAB_SUPPORTS_SYSFS
+-void sysfs_slab_remove(struct kmem_cache *);
++void sysfs_slab_release(struct kmem_cache *);
+ #else
+-static inline void sysfs_slab_remove(struct kmem_cache *s)
++static inline void sysfs_slab_release(struct kmem_cache *s)
  {
- 	struct perf_event_attr *wd_attr;
- 	struct perf_event *event = per_cpu(watchdog_ev, cpu);
-+	int firstcpu = 0;
- 
- 	/* nothing to do if the hard lockup detector is disabled */
- 	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
-@@ -156,19 +158,22 @@ int watchdog_nmi_enable(unsigned int cpu
- 	if (event != NULL)
- 		goto out_enable;
- 
-+	if (atomic_inc_return(&watchdog_cpus) == 1)
-+		firstcpu = 1;
-+
- 	wd_attr = &wd_hw_attr;
- 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
- 
- 	/* Try to register using hardware perf events */
- 	event = perf_event_create_kernel_counter(wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
- 
--	/* save cpu0 error for future comparision */
--	if (cpu == 0 && IS_ERR(event))
--		cpu0_err = PTR_ERR(event);
-+	/* save the first cpu's error for future comparision */
-+	if (firstcpu && IS_ERR(event))
-+		firstcpu_err = PTR_ERR(event);
- 
- 	if (!IS_ERR(event)) {
--		/* only print for cpu0 or different than cpu0 */
--		if (cpu == 0 || cpu0_err)
-+		/* only print for the first cpu initialized */
-+		if (firstcpu || firstcpu_err)
- 			pr_info("enabled on all CPUs, permanently consumes one hw-PMU counter.\n");
- 		goto out_save;
- 	}
-@@ -186,7 +191,7 @@ int watchdog_nmi_enable(unsigned int cpu
- 	smp_mb__after_atomic();
- 
- 	/* skip displaying the same error again */
--	if (cpu > 0 && (PTR_ERR(event) == cpu0_err))
-+	if (!firstcpu && (PTR_ERR(event) == firstcpu_err))
- 		return PTR_ERR(event);
- 
- 	/* vary the KERN level based on the returned errno */
-@@ -222,9 +227,9 @@ void watchdog_nmi_disable(unsigned int c
- 
- 		/* should be in cleanup, but blocks oprofile */
- 		perf_event_release_kernel(event);
--	}
--	if (cpu == 0) {
-+
- 		/* watchdog_nmi_enable() expects this to be zero initially. */
--		cpu0_err = 0;
-+		if (atomic_dec_and_test(&watchdog_cpus))
-+			firstcpu_err = 0;
- 	}
  }
+ #endif
+diff -puN mm/slab_common.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove mm/slab_common.c
+--- a/mm/slab_common.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove
++++ a/mm/slab_common.c
+@@ -483,7 +483,7 @@ static void release_caches(struct list_h
+ 
+ 	list_for_each_entry_safe(s, s2, release, list) {
+ #ifdef SLAB_SUPPORTS_SYSFS
+-		sysfs_slab_remove(s);
++		sysfs_slab_release(s);
+ #else
+ 		slab_kmem_cache_release(s);
+ #endif
+diff -puN mm/slub.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove mm/slub.c
+--- a/mm/slub.c~slub-separate-out-sysfs_slab_release-from-sysfs_slab_remove
++++ a/mm/slub.c
+@@ -214,11 +214,13 @@ enum track_item { TRACK_ALLOC, TRACK_FRE
+ static int sysfs_slab_add(struct kmem_cache *);
+ static int sysfs_slab_alias(struct kmem_cache *, const char *);
+ static void memcg_propagate_slab_attrs(struct kmem_cache *s);
++static void sysfs_slab_remove(struct kmem_cache *s);
+ #else
+ static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
+ static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
+ 							{ return 0; }
+ static inline void memcg_propagate_slab_attrs(struct kmem_cache *s) { }
++static inline void sysfs_slab_remove(struct kmem_cache *s) { }
+ #endif
+ 
+ static inline void stat(const struct kmem_cache *s, enum stat_item si)
+@@ -3687,6 +3689,7 @@ int __kmem_cache_shutdown(struct kmem_ca
+ 		if (n->nr_partial || slabs_node(s, node))
+ 			return 1;
+ 	}
++	sysfs_slab_remove(s);
+ 	return 0;
+ }
+ 
+@@ -5637,7 +5640,7 @@ out_del_kobj:
+ 	goto out;
+ }
+ 
+-void sysfs_slab_remove(struct kmem_cache *s)
++static void sysfs_slab_remove(struct kmem_cache *s)
+ {
+ 	if (slab_state < FULL)
+ 		/*
+@@ -5651,7 +5654,12 @@ void sysfs_slab_remove(struct kmem_cache
+ #endif
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
+-	kobject_put(&s->kobj);
++}
++
++void sysfs_slab_release(struct kmem_cache *s)
++{
++	if (slab_state >= FULL)
++		kobject_put(&s->kobj);
+ }
+ 
+ /*
 _
