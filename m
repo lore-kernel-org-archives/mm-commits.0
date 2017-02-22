@@ -1,62 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 021/142] parisc: use generic current.h
-Date: Wed, 22 Feb 2017 15:40:47 -0800
-Message-ID: <58ae217f.OS3MZzXWNxKDGoxM%akpm@linux-foundation.org>
+Subject: [patch 049/142] userfaultfd: convert BUG() to WARN_ON_ONCE()
+Date: Wed, 22 Feb 2017 15:42:12 -0800
+Message-ID: <58ae21d4.2d8GONt3MhIiAXIB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48252 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48266 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934368AbdBVXl4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:56 -0500
+        with ESMTP id S934568AbdBVXmQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, deller@gmx.de, jejb@parisc-linux.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
 
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: parisc: use generic current.h
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: convert BUG() to WARN_ON_ONCE()
 
-Given that the arch does not add its own implementations, simply use the
-asm-generic/current.h (generic-y) header instead of duplicating code.
+Avoid BUG_ON()s and only WARN instead. This is just a cleanup, it
+can't make any runtime difference. This BUG_ON has never triggered and
+cannot trigger.
 
-Link: http://lkml.kernel.org/r/1485992878-4780-4-git-send-email-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
+Link: http://lkml.kernel.org/r/20161216144821.5183-4-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/Kbuild    |    1 +
- arch/parisc/include/asm/current.h |   15 ---------------
- 2 files changed, 1 insertion(+), 15 deletions(-)
+ fs/userfaultfd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/parisc/include/asm/Kbuild~parisc-use-generic-currenth arch/parisc/include/asm/Kbuild
---- a/arch/parisc/include/asm/Kbuild~parisc-use-generic-currenth
-+++ a/arch/parisc/include/asm/Kbuild
-@@ -2,6 +2,7 @@
- generic-y += auxvec.h
- generic-y += barrier.h
- generic-y += clkdev.h
-+generic-y += current.h
- generic-y += device.h
- generic-y += div64.h
- generic-y += emergency-restart.h
-diff -puN arch/parisc/include/asm/current.h~parisc-use-generic-currenth /dev/null
---- a/arch/parisc/include/asm/current.h
-+++ /dev/null
-@@ -1,15 +0,0 @@
--#ifndef _PARISC_CURRENT_H
--#define _PARISC_CURRENT_H
--
--#include <linux/thread_info.h>
--
--struct task_struct;
--
--static inline struct task_struct * get_current(void)
--{
--	return current_thread_info()->task;
--}
-- 
--#define current get_current()
+diff -puN fs/userfaultfd.c~userfaultfd-convert-bug-to-warn_on_once fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-convert-bug-to-warn_on_once
++++ a/fs/userfaultfd.c
+@@ -574,7 +574,8 @@ static unsigned int userfaultfd_poll(str
+ 			ret = POLLIN;
+ 		return ret;
+ 	default:
+-		BUG();
++		WARN_ON_ONCE(1);
++		return POLLERR;
+ 	}
+ }
+ 
+_
