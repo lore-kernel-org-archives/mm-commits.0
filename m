@@ -1,196 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [patch 034/142] slab: introduce __kmemcg_cache_deactivate()
-Date: Wed, 22 Feb 2017 15:41:27 -0800
-Message-ID: <58ae21a7.63+Ar3XkL2xy6ySJ%akpm@linux-foundation.org>
+Subject: [patch 069/142] userfaultfd: hugetlbfs: gup: support
+ VM_FAULT_RETRY
+Date: Wed, 22 Feb 2017 15:43:13 -0800
+Message-ID: <58ae2211.IfuJZKyagdLgNkmK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48658 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934483AbdBVXmC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:02 -0500
+        with ESMTP id S933368AbdBVXnP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
 
-From: Tejun Heo <tj@kernel.org>
-Subject: slab: introduce __kmemcg_cache_deactivate()
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: hugetlbfs: gup: support VM_FAULT_RETRY
 
-__kmem_cache_shrink() is called with %true @deactivate only for memcg
-caches.  Remove @deactivate from __kmem_cache_shrink() and introduce
-__kmemcg_cache_deactivate() instead.  Each memcg-supporting allocator
-should implement it and it should deactivate and drain the cache.
+Add support for VM_FAULT_RETRY to follow_hugetlb_page() so that
+get_user_pages_unlocked/locked and "nonblocking/FOLL_NOWAIT" features will
+work on hugetlbfs.  This is required for fully functional userfaultfd
+non-present support on hugetlbfs.
 
-This is to allow memcg cache deactivation behavior to further deviate from
-simple shrinking without messing up __kmem_cache_shrink().
-
-This is pure reorganization and doesn't introduce any observable behavior
-changes.
-
-v2: Dropped unnecessary ifdef in mm/slab.h as suggested by Vladimir.
-
-Link: http://lkml.kernel.org/r/20170117235411.9408-8-tj@kernel.org
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-25-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |   11 +++++++++--
- mm/slab.h        |    3 ++-
- mm/slab_common.c |    4 ++--
- mm/slob.c        |    2 +-
- mm/slub.c        |   39 ++++++++++++++++++++++-----------------
- 5 files changed, 36 insertions(+), 23 deletions(-)
+ include/linux/hugetlb.h |    5 ++-
+ mm/gup.c                |    2 -
+ mm/hugetlb.c            |   48 +++++++++++++++++++++++++++++++-------
+ 3 files changed, 44 insertions(+), 11 deletions(-)
 
-diff -puN mm/slab.c~slab-introduce-__kmemcg_cache_deactivate mm/slab.c
---- a/mm/slab.c~slab-introduce-__kmemcg_cache_deactivate
-+++ a/mm/slab.c
-@@ -2315,7 +2315,7 @@ out:
- 	return nr_freed;
+diff -puN include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/include/linux/hugetlb.h
+@@ -65,7 +65,8 @@ int hugetlb_mempolicy_sysctl_handler(str
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
+ long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
+ 			 struct page **, struct vm_area_struct **,
+-			 unsigned long *, unsigned long *, long, unsigned int);
++			 unsigned long *, unsigned long *, long, unsigned int,
++			 int *);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+@@ -136,7 +137,7 @@ static inline unsigned long hugetlb_tota
+ 	return 0;
  }
  
--int __kmem_cache_shrink(struct kmem_cache *cachep, bool deactivate)
-+int __kmem_cache_shrink(struct kmem_cache *cachep)
+-#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUG(); 0; })
++#define follow_hugetlb_page(m,v,p,vs,a,b,i,w,n)	({ BUG(); 0; })
+ #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
+ #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
+ static inline void hugetlb_report_meminfo(struct seq_file *m)
+diff -puN mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/gup.c
+--- a/mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/mm/gup.c
+@@ -572,7 +572,7 @@ static long __get_user_pages(struct task
+ 			if (is_vm_hugetlb_page(vma)) {
+ 				i = follow_hugetlb_page(mm, vma, pages, vmas,
+ 						&start, &nr_pages, i,
+-						gup_flags);
++						gup_flags, nonblocking);
+ 				continue;
+ 			}
+ 		}
+diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/hugetlb.c
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/mm/hugetlb.c
+@@ -4065,7 +4065,7 @@ out_release_unlock:
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+ 			 unsigned long *position, unsigned long *nr_pages,
+-			 long i, unsigned int flags)
++			 long i, unsigned int flags, int *nonblocking)
  {
- 	int ret = 0;
- 	int node;
-@@ -2333,9 +2333,16 @@ int __kmem_cache_shrink(struct kmem_cach
- 	return (ret ? 1 : 0);
- }
+ 	unsigned long pfn_offset;
+ 	unsigned long vaddr = *position;
+@@ -4128,16 +4128,43 @@ long follow_hugetlb_page(struct mm_struc
+ 		    ((flags & FOLL_WRITE) &&
+ 		      !huge_pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
++			unsigned int fault_flags = 0;
  
-+#ifdef CONFIG_MEMCG
-+void __kmemcg_cache_deactivate(struct kmem_cache *cachep)
-+{
-+	__kmem_cache_shrink(cachep);
-+}
-+#endif
-+
- int __kmem_cache_shutdown(struct kmem_cache *cachep)
- {
--	return __kmem_cache_shrink(cachep, false);
-+	return __kmem_cache_shrink(cachep);
- }
+ 			if (pte)
+ 				spin_unlock(ptl);
+-			ret = hugetlb_fault(mm, vma, vaddr,
+-				(flags & FOLL_WRITE) ? FAULT_FLAG_WRITE : 0);
+-			if (!(ret & VM_FAULT_ERROR))
+-				continue;
+-
+-			remainder = 0;
+-			break;
++			if (flags & FOLL_WRITE)
++				fault_flags |= FAULT_FLAG_WRITE;
++			if (nonblocking)
++				fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++			if (flags & FOLL_NOWAIT)
++				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
++					FAULT_FLAG_RETRY_NOWAIT;
++			if (flags & FOLL_TRIED) {
++				VM_WARN_ON_ONCE(fault_flags &
++						FAULT_FLAG_ALLOW_RETRY);
++				fault_flags |= FAULT_FLAG_TRIED;
++			}
++			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
++			if (ret & VM_FAULT_ERROR) {
++				remainder = 0;
++				break;
++			}
++			if (ret & VM_FAULT_RETRY) {
++				if (nonblocking)
++					*nonblocking = 0;
++				*nr_pages = 0;
++				/*
++				 * VM_FAULT_RETRY must not return an
++				 * error, it will return zero
++				 * instead.
++				 *
++				 * No need to update "position" as the
++				 * caller will not check it after
++				 * *nr_pages is set to 0.
++				 */
++				return i;
++			}
++			continue;
+ 		}
  
- void __kmem_cache_release(struct kmem_cache *cachep)
-diff -puN mm/slab.h~slab-introduce-__kmemcg_cache_deactivate mm/slab.h
---- a/mm/slab.h~slab-introduce-__kmemcg_cache_deactivate
-+++ a/mm/slab.h
-@@ -167,7 +167,8 @@ static inline unsigned long kmem_cache_f
- 
- int __kmem_cache_shutdown(struct kmem_cache *);
- void __kmem_cache_release(struct kmem_cache *);
--int __kmem_cache_shrink(struct kmem_cache *, bool);
-+int __kmem_cache_shrink(struct kmem_cache *);
-+void __kmemcg_cache_deactivate(struct kmem_cache *s);
- void slab_kmem_cache_release(struct kmem_cache *);
- 
- struct seq_file;
-diff -puN mm/slab_common.c~slab-introduce-__kmemcg_cache_deactivate mm/slab_common.c
---- a/mm/slab_common.c~slab-introduce-__kmemcg_cache_deactivate
-+++ a/mm/slab_common.c
-@@ -646,7 +646,7 @@ void memcg_deactivate_kmem_caches(struct
- 		if (!c)
- 			continue;
- 
--		__kmem_cache_shrink(c, true);
-+		__kmemcg_cache_deactivate(c);
- 		arr->entries[idx] = NULL;
+ 		pfn_offset = (vaddr & ~huge_page_mask(h)) >> PAGE_SHIFT;
+@@ -4166,6 +4193,11 @@ same_page:
+ 		spin_unlock(ptl);
  	}
- 	mutex_unlock(&slab_mutex);
-@@ -794,7 +794,7 @@ int kmem_cache_shrink(struct kmem_cache
- 	get_online_cpus();
- 	get_online_mems();
- 	kasan_cache_shrink(cachep);
--	ret = __kmem_cache_shrink(cachep, false);
-+	ret = __kmem_cache_shrink(cachep);
- 	put_online_mems();
- 	put_online_cpus();
- 	return ret;
-diff -puN mm/slob.c~slab-introduce-__kmemcg_cache_deactivate mm/slob.c
---- a/mm/slob.c~slab-introduce-__kmemcg_cache_deactivate
-+++ a/mm/slob.c
-@@ -634,7 +634,7 @@ void __kmem_cache_release(struct kmem_ca
- {
- }
- 
--int __kmem_cache_shrink(struct kmem_cache *d, bool deactivate)
-+int __kmem_cache_shrink(struct kmem_cache *d)
- {
- 	return 0;
- }
-diff -puN mm/slub.c~slab-introduce-__kmemcg_cache_deactivate mm/slub.c
---- a/mm/slub.c~slab-introduce-__kmemcg_cache_deactivate
-+++ a/mm/slub.c
-@@ -3894,7 +3894,7 @@ EXPORT_SYMBOL(kfree);
-  * being allocated from last increasing the chance that the last objects
-  * are freed in them.
-  */
--int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
-+int __kmem_cache_shrink(struct kmem_cache *s)
- {
- 	int node;
- 	int i;
-@@ -3906,21 +3906,6 @@ int __kmem_cache_shrink(struct kmem_cach
- 	unsigned long flags;
- 	int ret = 0;
- 
--	if (deactivate) {
--		/*
--		 * Disable empty slabs caching. Used to avoid pinning offline
--		 * memory cgroups by kmem pages that can be freed.
--		 */
--		s->cpu_partial = 0;
--		s->min_partial = 0;
--
--		/*
--		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
--		 * so we have to make sure the change is visible.
--		 */
--		synchronize_sched();
--	}
--
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n) {
- 		INIT_LIST_HEAD(&discard);
-@@ -3971,13 +3956,33 @@ int __kmem_cache_shrink(struct kmem_cach
- 	return ret;
- }
- 
-+#ifdef CONFIG_MEMCG
-+void __kmemcg_cache_deactivate(struct kmem_cache *s)
-+{
+ 	*nr_pages = remainder;
 +	/*
-+	 * Disable empty slabs caching. Used to avoid pinning offline
-+	 * memory cgroups by kmem pages that can be freed.
++	 * setting position is actually required only if remainder is
++	 * not zero but it's faster not to add a "if (remainder)"
++	 * branch.
 +	 */
-+	s->cpu_partial = 0;
-+	s->min_partial = 0;
-+
-+	/*
-+	 * s->cpu_partial is checked locklessly (see put_cpu_partial), so
-+	 * we have to make sure the change is visible.
-+	 */
-+	synchronize_sched();
-+
-+	__kmem_cache_shrink(s);
-+}
-+#endif
-+
- static int slab_mem_going_offline_callback(void *arg)
- {
- 	struct kmem_cache *s;
+ 	*position = vaddr;
  
- 	mutex_lock(&slab_mutex);
- 	list_for_each_entry(s, &slab_caches, list)
--		__kmem_cache_shrink(s, false);
-+		__kmem_cache_shrink(s);
- 	mutex_unlock(&slab_mutex);
- 
- 	return 0;
+ 	return i ? i : -EFAULT;
 _
