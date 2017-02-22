@@ -1,62 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- scripts-spellingtxt-fix-incorrect-typo-words-fix.patch removed from -mm
- tree
-Date: Wed, 22 Feb 2017 15:13:04 -0800
-Message-ID: <58ae1b00.qUoC6ORWoMabFs5j%akpm@linux-foundation.org>
+ slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch removed from -mm tree
+Date: Wed, 22 Feb 2017 15:17:11 -0800
+Message-ID: <58ae1bf7.veZNlWws0ZVlbvN1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45132 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932924AbdBVXO3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:14:29 -0500
+        with ESMTP id S933898AbdBVXSq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:18:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts-spellingtxt-fix-incorrect-typo-words-fix
+     Subject: slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-fix-incorrect-typo-words-fix.patch
+     slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch
 
-This patch was dropped because it was folded into scripts-spellingtxt-fix-incorrect-typo-words.patch
+This patch was dropped because it was folded into slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scripts-spellingtxt-fix-incorrect-typo-words-fix
+Subject: slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix
 
-"licencing" is valid British spelling and should be kept, per Joe
+kset_unregister(NULL) is legal
 
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN scripts/spelling.txt~scripts-spellingtxt-fix-incorrect-typo-words-fix scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-fix-incorrect-typo-words-fix
-+++ a/scripts/spelling.txt
-@@ -604,7 +604,7 @@ libaries||libraries
- libary||library
- librairies||libraries
- libraris||libraries
--licenceing||licensing
-+licenceing||licencing
- loggging||logging
- loggin||login
- logile||logfile
+diff -puN mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix mm/slub.c
+--- a/mm/slub.c~slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix
++++ a/mm/slub.c
+@@ -5703,8 +5703,7 @@ static void sysfs_slab_remove(struct kme
+ 		return;
+ 
+ #ifdef CONFIG_MEMCG
+-	if (s->memcg_kset)
+-		kset_unregister(s->memcg_kset);
++	kset_unregister(s->memcg_kset);
+ #endif
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-spellingtxt-fix-incorrect-typo-words.patch
-slub-make-sysfs-directories-for-memcg-sub-caches-optional-fix.patch
+slub-make-sysfs-directories-for-memcg-sub-caches-optional.patch
 mm-throttle-show_mem-from-warn_alloc-fix.patch
 userfaultfd-hugetlbfs-fix-__mcopy_atomic_hugetlb-retry-error-processing-fix-fix.patch
 lib-show_memc-teach-show_mem-to-work-with-the-given-nodemask-checkpatch-fixes.patch
