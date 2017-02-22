@@ -1,95 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: [patch 042/142] mm, page_alloc: avoid page_to_pfn() when merging
- buddies
-Date: Wed, 22 Feb 2017 15:41:51 -0800
-Message-ID: <58ae21bf.sSQbD3V4QHS7d1Pm%akpm@linux-foundation.org>
+Subject: [patch 052/142] userfaultfd: non-cooperative: add ability to
+ report non-PF events from uffd descriptor
+Date: Wed, 22 Feb 2017 15:42:21 -0800
+Message-ID: <58ae21dd.esDnZ/aMpOH7BCM9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47922 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934551AbdBVXmO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:14 -0500
+        with ESMTP id S934629AbdBVXmo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: avoid page_to_pfn() when merging buddies
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: userfaultfd: non-cooperative: add ability to report non-PF events from uffd descriptor
 
-On architectures that allow memory holes, page_is_buddy() has to perform
-page_to_pfn() to check for the memory hole.  After the previous patch, we
-have the pfn already available in __free_one_page(), which is the only
-caller of page_is_buddy(), so move the check there and avoid
-page_to_pfn().
+The custom events are queued in ctx->event_wqh not to disturb the
+fast-path-ed PF queue-wait-wakeup functions.
 
-Link: http://lkml.kernel.org/r/20161216120009.20064-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+The events to be generated (other than PF-s) are requested in UFFD_API
+ioctl with the uffd_api.features bits. Those, known by the kernel, are
+then turned on and reported back to the user-space.
+
+Link: http://lkml.kernel.org/r/20161216144821.5183-7-aarcange@redhat.com
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c     |   10 +++++-----
- mm/page_isolation.c |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/userfaultfd.c |   98 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 96 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies
-+++ a/mm/page_alloc.c
-@@ -714,7 +714,7 @@ static inline void rmv_page_order(struct
- /*
-  * This function checks whether a page is free && is the buddy
-  * we can do coalesce a page and its buddy if
-- * (a) the buddy is not in a hole &&
-+ * (a) the buddy is not in a hole (check before calling!) &&
-  * (b) the buddy is in the buddy system &&
-  * (c) a page and its buddy have the same order &&
-  * (d) a page and its buddy are in the same zone.
-@@ -729,9 +729,6 @@ static inline void rmv_page_order(struct
- static inline int page_is_buddy(struct page *page, struct page *buddy,
- 							unsigned int order)
- {
--	if (!pfn_valid_within(page_to_pfn(buddy)))
--		return 0;
--
- 	if (page_is_guard(buddy) && page_order(buddy) == order) {
- 		if (page_zone_id(page) != page_zone_id(buddy))
- 			return 0;
-@@ -808,6 +805,9 @@ continue_merging:
- 	while (order < max_order - 1) {
- 		buddy_pfn = __find_buddy_pfn(pfn, order);
- 		buddy = page + (buddy_pfn - pfn);
-+
-+		if (!pfn_valid_within(buddy_pfn))
-+			goto done_merging;
- 		if (!page_is_buddy(page, buddy, order))
- 			goto done_merging;
- 		/*
-@@ -862,7 +862,7 @@ done_merging:
- 	 * so it's less likely to be used soon and more likely to be merged
- 	 * as a higher order page
- 	 */
--	if ((order < MAX_ORDER-2) && pfn_valid_within(page_to_pfn(buddy))) {
-+	if ((order < MAX_ORDER-2) && pfn_valid_within(buddy_pfn)) {
- 		struct page *higher_page, *higher_buddy;
- 		combined_pfn = buddy_pfn & pfn;
- 		higher_page = page + (combined_pfn - pfn);
-diff -puN mm/page_isolation.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-avoid-page_to_pfn-when-merging-buddies
-+++ a/mm/page_isolation.c
-@@ -106,7 +106,7 @@ static void unset_migratetype_isolate(st
- 			buddy_pfn = __find_buddy_pfn(pfn, order);
- 			buddy = page + (buddy_pfn - pfn);
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor
++++ a/fs/userfaultfd.c
+@@ -12,6 +12,7 @@
+  *  mm/ksm.c (mm hashing).
+  */
  
--			if (pfn_valid_within(page_to_pfn(buddy)) &&
-+			if (pfn_valid_within(buddy_pfn) &&
- 			    !is_migrate_isolate_page(buddy)) {
- 				__isolate_free_page(page, order);
- 				isolated_page = true;
++#include <linux/list.h>
+ #include <linux/hashtable.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+@@ -45,12 +46,16 @@ struct userfaultfd_ctx {
+ 	wait_queue_head_t fault_wqh;
+ 	/* waitqueue head for the pseudo fd to wakeup poll/read */
+ 	wait_queue_head_t fd_wqh;
++	/* waitqueue head for events */
++	wait_queue_head_t event_wqh;
+ 	/* a refile sequence protected by fault_pending_wqh lock */
+ 	struct seqcount refile_seq;
+ 	/* pseudo fd refcounting */
+ 	atomic_t refcount;
+ 	/* userfaultfd syscall flags */
+ 	unsigned int flags;
++	/* features requested from the userspace */
++	unsigned int features;
+ 	/* state machine */
+ 	enum userfaultfd_state state;
+ 	/* released */
+@@ -142,6 +147,8 @@ static void userfaultfd_ctx_put(struct u
+ 		VM_BUG_ON(waitqueue_active(&ctx->fault_pending_wqh));
+ 		VM_BUG_ON(spin_is_locked(&ctx->fault_wqh.lock));
+ 		VM_BUG_ON(waitqueue_active(&ctx->fault_wqh));
++		VM_BUG_ON(spin_is_locked(&ctx->event_wqh.lock));
++		VM_BUG_ON(waitqueue_active(&ctx->event_wqh));
+ 		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
+ 		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
+ 		mmdrop(ctx->mm);
+@@ -458,6 +465,59 @@ out:
+ 	return ret;
+ }
+ 
++static int __maybe_unused userfaultfd_event_wait_completion(
++		struct userfaultfd_ctx *ctx,
++		struct userfaultfd_wait_queue *ewq)
++{
++	int ret = 0;
++
++	ewq->ctx = ctx;
++	init_waitqueue_entry(&ewq->wq, current);
++
++	spin_lock(&ctx->event_wqh.lock);
++	/*
++	 * After the __add_wait_queue the uwq is visible to userland
++	 * through poll/read().
++	 */
++	__add_wait_queue(&ctx->event_wqh, &ewq->wq);
++	for (;;) {
++		set_current_state(TASK_KILLABLE);
++		if (ewq->msg.event == 0)
++			break;
++		if (ACCESS_ONCE(ctx->released) ||
++		    fatal_signal_pending(current)) {
++			ret = -1;
++			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
++			break;
++		}
++
++		spin_unlock(&ctx->event_wqh.lock);
++
++		wake_up_poll(&ctx->fd_wqh, POLLIN);
++		schedule();
++
++		spin_lock(&ctx->event_wqh.lock);
++	}
++	__set_current_state(TASK_RUNNING);
++	spin_unlock(&ctx->event_wqh.lock);
++
++	/*
++	 * ctx may go away after this if the userfault pseudo fd is
++	 * already released.
++	 */
++
++	userfaultfd_ctx_put(ctx);
++	return ret;
++}
++
++static void userfaultfd_event_complete(struct userfaultfd_ctx *ctx,
++				       struct userfaultfd_wait_queue *ewq)
++{
++	ewq->msg.event = 0;
++	wake_up_locked(&ctx->event_wqh);
++	__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
++}
++
+ static int userfaultfd_release(struct inode *inode, struct file *file)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+@@ -546,6 +606,12 @@ static inline struct userfaultfd_wait_qu
+ 	return find_userfault_in(&ctx->fault_pending_wqh);
+ }
+ 
++static inline struct userfaultfd_wait_queue *find_userfault_evt(
++		struct userfaultfd_ctx *ctx)
++{
++	return find_userfault_in(&ctx->event_wqh);
++}
++
+ static unsigned int userfaultfd_poll(struct file *file, poll_table *wait)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+@@ -577,6 +643,9 @@ static unsigned int userfaultfd_poll(str
+ 		smp_mb();
+ 		if (waitqueue_active(&ctx->fault_pending_wqh))
+ 			ret = POLLIN;
++		else if (waitqueue_active(&ctx->event_wqh))
++			ret = POLLIN;
++
+ 		return ret;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -641,6 +710,19 @@ static ssize_t userfaultfd_ctx_read(stru
+ 			break;
+ 		}
+ 		spin_unlock(&ctx->fault_pending_wqh.lock);
++
++		spin_lock(&ctx->event_wqh.lock);
++		uwq = find_userfault_evt(ctx);
++		if (uwq) {
++			*msg = uwq->msg;
++
++			userfaultfd_event_complete(ctx, uwq);
++			spin_unlock(&ctx->event_wqh.lock);
++			ret = 0;
++			break;
++		}
++		spin_unlock(&ctx->event_wqh.lock);
++
+ 		if (signal_pending(current)) {
+ 			ret = -ERESTARTSYS;
+ 			break;
+@@ -1184,6 +1266,14 @@ out:
+ 	return ret;
+ }
+ 
++static inline unsigned int uffd_ctx_features(__u64 user_features)
++{
++	/*
++	 * For the current set of features the bits just coincide
++	 */
++	return (unsigned int)user_features;
++}
++
+ /*
+  * userland asks for a certain API version and we return which bits
+  * and ioctl commands are implemented in this kernel for such API
+@@ -1202,19 +1292,21 @@ static int userfaultfd_api(struct userfa
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_api, buf, sizeof(uffdio_api)))
+ 		goto out;
+-	if (uffdio_api.api != UFFD_API || uffdio_api.features) {
++	if (uffdio_api.api != UFFD_API ||
++	    (uffdio_api.features & ~UFFD_API_FEATURES)) {
+ 		memset(&uffdio_api, 0, sizeof(uffdio_api));
+ 		if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
+ 			goto out;
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+-	uffdio_api.features = UFFD_API_FEATURES;
++	uffdio_api.features &= UFFD_API_FEATURES;
+ 	uffdio_api.ioctls = UFFD_API_IOCTLS;
+ 	ret = -EFAULT;
+ 	if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
+ 		goto out;
+ 	ctx->state = UFFD_STATE_RUNNING;
++	ctx->features = uffd_ctx_features(uffdio_api.features);
+ 	ret = 0;
+ out:
+ 	return ret;
+@@ -1301,6 +1393,7 @@ static void init_once_userfaultfd_ctx(vo
+ 
+ 	init_waitqueue_head(&ctx->fault_pending_wqh);
+ 	init_waitqueue_head(&ctx->fault_wqh);
++	init_waitqueue_head(&ctx->event_wqh);
+ 	init_waitqueue_head(&ctx->fd_wqh);
+ 	seqcount_init(&ctx->refile_seq);
+ }
+@@ -1341,6 +1434,7 @@ static struct file *userfaultfd_file_cre
+ 
+ 	atomic_set(&ctx->refcount, 1);
+ 	ctx->flags = flags;
++	ctx->features = 0;
+ 	ctx->state = UFFD_STATE_WAIT_API;
+ 	ctx->released = false;
+ 	ctx->mm = current->mm;
 _
