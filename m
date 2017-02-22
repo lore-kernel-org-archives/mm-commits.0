@@ -1,158 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 139/142] mm/memblock.c: remove unnecessary log and clean
- up
-Date: Wed, 22 Feb 2017 15:46:42 -0800
-Message-ID: <58ae22e2.+mpg6HRoE/4pwYyK%akpm@linux-foundation.org>
+Subject: [patch 142/142] mm/z3fold.c: limit first_num to the actual range
+ of possible buddy indexes
+Date: Wed, 22 Feb 2017 15:46:51 -0800
+Message-ID: <58ae22eb.6cgugha0YEL+JdnA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933791AbdBVXqo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:44 -0500
+        with ESMTP id S933791AbdBVXqw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:46:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, miles.chen@mediatek.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhongjiang@huawei.com, ddstreet@ieee.org, vitalywool@gmail.com
 
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm/memblock.c: remove unnecessary log and clean up
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm/z3fold.c: limit first_num to the actual range of possible buddy indexes
 
-There is no variable named flags in memblock_add() and memblock_reserve()
-so remove it from the log messages.
+At present, Tying the first_num size to NCHUNKS_ORDER is confusing.  the
+number of chunks is completely unrelated to the number of buddies.
 
-This patch also cleans up the type casting for phys_addr_t by using %pa to
-print them.
+The patch limits the first_num to actual range of possible buddy indexes. 
+and that is more reasonable and obvious without functional change.
 
-Link: http://lkml.kernel.org/r/1484720165-25403-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Link: http://lkml.kernel.org/r/1476776569-29504-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Suggested-by: Dan Streetman <ddstreet@ieee.org>
+Acked-by: Dan Streetman <ddstreet@ieee.org>
+Acked-by: Vitaly Wool <vitalywool@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   54 ++++++++++++++++++++++--------------------------
- 1 file changed, 25 insertions(+), 29 deletions(-)
+ mm/z3fold.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblockc-remove-unnecessary-log-and-clean-up mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-remove-unnecessary-log-and-clean-up
-+++ a/mm/memblock.c
-@@ -611,10 +611,10 @@ int __init_memblock memblock_add_node(ph
+diff -puN mm/z3fold.c~z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes
++++ a/mm/z3fold.c
+@@ -50,7 +50,7 @@
+ #define ZHDR_SIZE_ALIGNED CHUNK_SIZE
+ #define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
  
- int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
- {
--	memblock_dbg("memblock_add: [%#016llx-%#016llx] flags %#02lx %pF\n",
--		     (unsigned long long)base,
--		     (unsigned long long)base + size - 1,
--		     0UL, (void *)_RET_IP_);
-+	phys_addr_t end = base + size - 1;
-+
-+	memblock_dbg("memblock_add: [%pa-%pa] %pF\n",
-+		     &base, &end, (void *)_RET_IP_);
+-#define BUDDY_MASK	((1 << NCHUNKS_ORDER) - 1)
++#define BUDDY_MASK	(0x3)
  
- 	return memblock_add_range(&memblock.memory, base, size, MAX_NUMNODES, 0);
- }
-@@ -718,10 +718,10 @@ int __init_memblock memblock_remove(phys
+ struct z3fold_pool;
+ struct z3fold_ops {
+@@ -109,7 +109,7 @@ struct z3fold_header {
+ 	unsigned short middle_chunks;
+ 	unsigned short last_chunks;
+ 	unsigned short start_middle;
+-	unsigned short first_num:NCHUNKS_ORDER;
++	unsigned short first_num:2;
+ };
  
- int __init_memblock memblock_free(phys_addr_t base, phys_addr_t size)
- {
--	memblock_dbg("   memblock_free: [%#016llx-%#016llx] %pF\n",
--		     (unsigned long long)base,
--		     (unsigned long long)base + size - 1,
--		     (void *)_RET_IP_);
-+	phys_addr_t end = base + size - 1;
-+
-+	memblock_dbg("   memblock_free: [%pa-%pa] %pF\n",
-+		     &base, &end, (void *)_RET_IP_);
- 
- 	kmemleak_free_part_phys(base, size);
- 	return memblock_remove_range(&memblock.reserved, base, size);
-@@ -729,10 +729,10 @@ int __init_memblock memblock_free(phys_a
- 
- int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
- {
--	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
--		     (unsigned long long)base,
--		     (unsigned long long)base + size - 1,
--		     0UL, (void *)_RET_IP_);
-+	phys_addr_t end = base + size - 1;
-+
-+	memblock_dbg("memblock_reserve: [%pa-%pa] %pF\n",
-+		     &base, &end, (void *)_RET_IP_);
- 
- 	return memblock_add_range(&memblock.reserved, base, size, MAX_NUMNODES, 0);
- }
-@@ -1227,8 +1227,8 @@ phys_addr_t __init memblock_alloc_base(p
- 	alloc = __memblock_alloc_base(size, align, max_addr);
- 
- 	if (alloc == 0)
--		panic("ERROR: Failed to allocate 0x%llx bytes below 0x%llx.\n",
--		      (unsigned long long) size, (unsigned long long) max_addr);
-+		panic("ERROR: Failed to allocate %pa bytes below %pa.\n",
-+		      &size, &max_addr);
- 
- 	return alloc;
- }
-@@ -1695,7 +1695,7 @@ phys_addr_t __init_memblock memblock_get
- 
- static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
- {
--	unsigned long long base, size;
-+	phys_addr_t base, end, size;
- 	unsigned long flags;
- 	int idx;
- 	struct memblock_region *rgn;
-@@ -1707,23 +1707,24 @@ static void __init_memblock memblock_dum
- 
- 		base = rgn->base;
- 		size = rgn->size;
-+		end = base + size - 1;
- 		flags = rgn->flags;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 		if (memblock_get_region_node(rgn) != MAX_NUMNODES)
- 			snprintf(nid_buf, sizeof(nid_buf), " on node %d",
- 				 memblock_get_region_node(rgn));
- #endif
--		pr_info(" %s[%#x]\t[%#016llx-%#016llx], %#llx bytes%s flags: %#lx\n",
--			name, idx, base, base + size - 1, size, nid_buf, flags);
-+		pr_info(" %s[%#x]\t[%pa-%pa], %pa bytes%s flags: %#lx\n",
-+			name, idx, &base, &end, &size, nid_buf, flags);
- 	}
+ /*
+@@ -179,7 +179,11 @@ static struct z3fold_header *handle_to_z
+ 	return (struct z3fold_header *)(handle & PAGE_MASK);
  }
  
- void __init_memblock __memblock_dump_all(void)
+-/* Returns buddy number */
++/*
++ * (handle & BUDDY_MASK) < zhdr->first_num is possible in encode_handle
++ *  but that doesn't matter. because the masking will result in the
++ *  correct buddy number.
++ */
+ static enum buddy handle_to_buddy(unsigned long handle)
  {
- 	pr_info("MEMBLOCK configuration:\n");
--	pr_info(" memory size = %#llx reserved size = %#llx\n",
--		(unsigned long long)memblock.memory.total_size,
--		(unsigned long long)memblock.reserved.total_size);
-+	pr_info(" memory size = %pa reserved size = %pa\n",
-+		&memblock.memory.total_size,
-+		&memblock.reserved.total_size);
- 
- 	memblock_dump(&memblock.memory, "memory");
- 	memblock_dump(&memblock.reserved, "reserved");
-@@ -1749,19 +1750,14 @@ static int memblock_debug_show(struct se
- 	struct memblock_type *type = m->private;
- 	struct memblock_region *reg;
- 	int i;
-+	phys_addr_t end;
- 
- 	for (i = 0; i < type->cnt; i++) {
- 		reg = &type->regions[i];
--		seq_printf(m, "%4d: ", i);
--		if (sizeof(phys_addr_t) == 4)
--			seq_printf(m, "0x%08lx..0x%08lx\n",
--				   (unsigned long)reg->base,
--				   (unsigned long)(reg->base + reg->size - 1));
--		else
--			seq_printf(m, "0x%016llx..0x%016llx\n",
--				   (unsigned long long)reg->base,
--				   (unsigned long long)(reg->base + reg->size - 1));
-+		end = reg->base + reg->size - 1;
- 
-+		seq_printf(m, "%4d: ", i);
-+		seq_printf(m, "%pa..%pa\n", &reg->base, &end);
- 	}
- 	return 0;
- }
+ 	struct z3fold_header *zhdr = handle_to_z3fold_header(handle);
 _
