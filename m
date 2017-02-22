@@ -1,29 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [patch 077/142] userfaultfd: shmem: add userfaultfd hook for
- shared memory faults
-Date: Wed, 22 Feb 2017 15:43:37 -0800
-Message-ID: <58ae2229.zt5pEigcA3k++Htl%akpm@linux-foundation.org>
+Subject: [patch 078/142] userfaultfd: shmem: allow registration of shared
+ memory ranges
+Date: Wed, 22 Feb 2017 15:43:40 -0800
+Message-ID: <58ae222c.nb3tgDiGuJNcC8hL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48808 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934171AbdBVXni (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:38 -0500
+        with ESMTP id S934171AbdBVXnl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:43:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com
 
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: shmem: add userfaultfd hook for shared memory faults
+Subject: userfaultfd: shmem: allow registration of shared memory ranges
 
-When processing a page fault in shared memory area for not present page,
-check the VMA determine if faults are to be handled by userfaultfd.  If
-so, delegate the page fault to handle_userfault.
+Expand the userfaultfd_register/unregister routines to allow shared memory
+VMAs.  Currently, there is no UFFDIO_ZEROPAGE and write-protection support
+for shared memory VMAs, which is reflected in ioctl methods supported by
+uffdio_register.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-33-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-34-aarcange@redhat.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
@@ -34,93 +35,101 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ fs/userfaultfd.c                         |   21 +++++++--------------
+ include/uapi/linux/userfaultfd.h         |    2 +-
+ tools/testing/selftests/vm/userfaultfd.c |    2 +-
+ 3 files changed, 9 insertions(+), 16 deletions(-)
 
-diff -puN mm/shmem.c~userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults mm/shmem.c
---- a/mm/shmem.c~userfaultfd-shmem-add-userfaultfd-hook-for-shared-memory-faults
-+++ a/mm/shmem.c
-@@ -72,6 +72,7 @@ static struct vfsmount *shm_mnt;
- #include <linux/syscalls.h>
- #include <linux/fcntl.h>
- #include <uapi/linux/memfd.h>
-+#include <linux/userfaultfd_k.h>
- #include <linux/rmap.h>
+diff -puN fs/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
++++ a/fs/userfaultfd.c
+@@ -1098,7 +1098,8 @@ static __always_inline int validate_rang
  
- #include <linux/uaccess.h>
-@@ -118,13 +119,14 @@ static int shmem_replace_page(struct pag
- 				struct shmem_inode_info *info, pgoff_t index);
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
- 		struct page **pagep, enum sgp_type sgp,
--		gfp_t gfp, struct mm_struct *fault_mm, int *fault_type);
-+		gfp_t gfp, struct vm_area_struct *vma,
-+		struct vm_fault *vmf, int *fault_type);
- 
- int shmem_getpage(struct inode *inode, pgoff_t index,
- 		struct page **pagep, enum sgp_type sgp)
+ static inline bool vma_can_userfault(struct vm_area_struct *vma)
  {
- 	return shmem_getpage_gfp(inode, index, pagep, sgp,
--		mapping_gfp_mask(inode->i_mapping), NULL, NULL);
-+		mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
+-	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma);
++	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma) ||
++		vma_is_shmem(vma);
  }
  
- static inline struct shmem_sb_info *SHMEM_SB(struct super_block *sb)
-@@ -1578,7 +1580,7 @@ static int shmem_replace_page(struct pag
-  */
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
- 	struct page **pagep, enum sgp_type sgp, gfp_t gfp,
--	struct mm_struct *fault_mm, int *fault_type)
-+	struct vm_area_struct *vma, struct vm_fault *vmf, int *fault_type)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-@@ -1632,7 +1634,7 @@ repeat:
- 	 * bring it back from swap or allocate.
+ static int userfaultfd_register(struct userfaultfd_ctx *ctx,
+@@ -1111,7 +1112,7 @@ static int userfaultfd_register(struct u
+ 	struct uffdio_register __user *user_uffdio_register;
+ 	unsigned long vm_flags, new_flags;
+ 	bool found;
+-	bool huge_pages;
++	bool non_anon_pages;
+ 	unsigned long start, end, vma_end;
+ 
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
+@@ -1175,13 +1176,9 @@ static int userfaultfd_register(struct u
+ 
+ 	/*
+ 	 * Search for not compatible vmas.
+-	 *
+-	 * FIXME: this shall be relaxed later so that it doesn't fail
+-	 * on tmpfs backed vmas (in addition to the current allowance
+-	 * on anonymous vmas).
  	 */
- 	sbinfo = SHMEM_SB(inode->i_sb);
--	charge_mm = fault_mm ? : current->mm;
-+	charge_mm = vma ? vma->vm_mm : current->mm;
+ 	found = false;
+-	huge_pages = false;
++	non_anon_pages = false;
+ 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
+ 		cond_resched();
  
- 	if (swap.val) {
- 		/* Look it up and read it in.. */
-@@ -1642,7 +1644,8 @@ repeat:
- 			if (fault_type) {
- 				*fault_type |= VM_FAULT_MAJOR;
- 				count_vm_event(PGMAJFAULT);
--				mem_cgroup_count_vm_event(fault_mm, PGMAJFAULT);
-+				mem_cgroup_count_vm_event(charge_mm,
-+							  PGMAJFAULT);
- 			}
- 			/* Here we actually start the io */
- 			page = shmem_swapin(swap, gfp, info, index);
-@@ -1711,6 +1714,11 @@ repeat:
- 		swap_free(swap);
+@@ -1220,8 +1217,8 @@ static int userfaultfd_register(struct u
+ 		/*
+ 		 * Note vmas containing huge pages
+ 		 */
+-		if (is_vm_hugetlb_page(cur))
+-			huge_pages = true;
++		if (is_vm_hugetlb_page(cur) || vma_is_shmem(cur))
++			non_anon_pages = true;
  
- 	} else {
-+		if (vma && userfaultfd_missing(vma)) {
-+			*fault_type = handle_userfault(vmf, VM_UFFD_MISSING);
-+			return 0;
-+		}
-+
- 		/* shmem_symlink() */
- 		if (mapping->a_ops != &shmem_aops)
- 			goto alloc_nohuge;
-@@ -1973,7 +1981,7 @@ static int shmem_fault(struct vm_area_st
- 		sgp = SGP_NOHUGE;
+ 		found = true;
+ 	}
+@@ -1292,7 +1289,7 @@ out_unlock:
+ 		 * userland which ioctls methods are guaranteed to
+ 		 * succeed on this range.
+ 		 */
+-		if (put_user(huge_pages ? UFFD_API_RANGE_IOCTLS_HPAGE :
++		if (put_user(non_anon_pages ? UFFD_API_RANGE_IOCTLS_BASIC :
+ 			     UFFD_API_RANGE_IOCTLS,
+ 			     &user_uffdio_register->ioctls))
+ 			ret = -EFAULT;
+@@ -1352,10 +1349,6 @@ static int userfaultfd_unregister(struct
  
- 	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, sgp,
--				  gfp, vma->vm_mm, &ret);
-+				  gfp, vma, vmf, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
- 	return ret;
-@@ -4254,7 +4262,7 @@ struct page *shmem_read_mapping_page_gfp
+ 	/*
+ 	 * Search for not compatible vmas.
+-	 *
+-	 * FIXME: this shall be relaxed later so that it doesn't fail
+-	 * on tmpfs backed vmas (in addition to the current allowance
+-	 * on anonymous vmas).
+ 	 */
+ 	found = false;
+ 	ret = -EINVAL;
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-shmem-allow-registration-of-shared-memory-ranges include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
++++ a/include/uapi/linux/userfaultfd.h
+@@ -30,7 +30,7 @@
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+ 	 (__u64)1 << _UFFDIO_COPY |		\
+ 	 (__u64)1 << _UFFDIO_ZEROPAGE)
+-#define UFFD_API_RANGE_IOCTLS_HPAGE		\
++#define UFFD_API_RANGE_IOCTLS_BASIC		\
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+ 	 (__u64)1 << _UFFDIO_COPY)
  
- 	BUG_ON(mapping->a_ops != &shmem_aops);
- 	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
--				  gfp, NULL, NULL);
-+				  gfp, NULL, NULL, NULL);
- 	if (error)
- 		page = ERR_PTR(error);
- 	else
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -129,7 +129,7 @@ static void allocate_area(void **alloc_a
+ 
+ #else /* HUGETLB_TEST */
+ 
+-#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_HPAGE
++#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_BASIC
+ 
+ static int release_pages(char *rel_area)
+ {
 _
