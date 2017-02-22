@@ -1,59 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 023/142] 9p: fix a potential acl leak
-Date: Wed, 22 Feb 2017 15:40:53 -0800
-Message-ID: <58ae2185.5x53+lmFGeXkus5p%akpm@linux-foundation.org>
+Subject: [patch 026/142] mm/slub: add a dump_stack() to the unexpected GFP check
+Date: Wed, 22 Feb 2017 15:41:02 -0800
+Message-ID: <58ae218e.x5CEpDkwwMYcRu8Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48264 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934311AbdBVXl5 (ORCPT
+        with ESMTP id S934398AbdBVXl5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:41:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xiyou.wangcong@gmail.com, ericvh@gmail.com, groug@kaod.org, jack@suse.cz, lucho@ionkov.net, rminnich@sandia.gov, salyzyn@android.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bp@suse.de, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
 
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: 9p: fix a potential acl leak
+From: Borislav Petkov <bp@suse.de>
+Subject: mm/slub: add a dump_stack() to the unexpected GFP check
 
-posix_acl_update_mode() could possibly clear 'acl', if so we leak the
-memory pointed by 'acl'.  Save this pointer before calling
-posix_acl_update_mode() and release the memory if 'acl' really gets
-cleared.
+We wish to know who is doing such a thing. slab.c does this.
 
-Link: http://lkml.kernel.org/r/1486678332-2430-1-git-send-email-xiyou.wangcong@gmail.com
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Reported-by: Mark Salyzyn <salyzyn@android.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Greg Kurz <groug@kaod.org>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Link: http://lkml.kernel.org/r/20170116091643.15260-1-bp@alien8.de
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/acl.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/9p/acl.c~9p-fix-a-potential-acl-leak fs/9p/acl.c
---- a/fs/9p/acl.c~9p-fix-a-potential-acl-leak
-+++ a/fs/9p/acl.c
-@@ -277,6 +277,7 @@ static int v9fs_xattr_set_acl(const stru
- 	case ACL_TYPE_ACCESS:
- 		if (acl) {
- 			struct iattr iattr;
-+			struct posix_acl *old_acl = acl;
+diff -puN mm/slub.c~mm-slub-add-a-dump_stack-to-the-unexpected-gfp-check mm/slub.c
+--- a/mm/slub.c~mm-slub-add-a-dump_stack-to-the-unexpected-gfp-check
++++ a/mm/slub.c
+@@ -1630,6 +1630,7 @@ static struct page *new_slab(struct kmem
+ 		flags &= ~GFP_SLAB_BUG_MASK;
+ 		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
+ 				invalid_mask, &invalid_mask, flags, &flags);
++		dump_stack();
+ 	}
  
- 			retval = posix_acl_update_mode(inode, &iattr.ia_mode, &acl);
- 			if (retval)
-@@ -287,6 +288,7 @@ static int v9fs_xattr_set_acl(const stru
- 				 * by the mode bits. So don't
- 				 * update ACL.
- 				 */
-+				posix_acl_release(old_acl);
- 				value = NULL;
- 				size = 0;
- 			}
+ 	return allocate_slab(s,
 _
