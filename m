@@ -1,263 +1,315 @@
 From: akpm@linux-foundation.org
-Subject: [patch 114/142] mm/swap: split swap cache into 64MB trunks
-Date: Wed, 22 Feb 2017 15:45:26 -0800
-Message-ID: <58ae2296.P4MryHXSCjRHa4U0%akpm@linux-foundation.org>
+Subject: [patch 111/142] powerpc: do not make the entire heap executable
+Date: Wed, 22 Feb 2017 15:45:16 -0800
+Message-ID: <58ae228c.nZSOTYmpWoe4M0j7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49240 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934315AbdBVXp2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:28 -0500
+        with ESMTP id S934354AbdBVXpR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:45:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvlasenk@redhat.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, fweimer@redhat.com, jgunthorpe@obsidianresearch.com, keescook@chromium.org, mpe@ellerman.id.au, oleg@redhat.com, paulus@samba.org
 
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: mm/swap: split swap cache into 64MB trunks
+From: Denys Vlasenko <dvlasenk@redhat.com>
+Subject: powerpc: do not make the entire heap executable
 
-The patch is to improve the scalability of the swap out/in via using fine
-grained locks for the swap cache.  In current kernel, one address space
-will be used for each swap device.  And in the common configuration, the
-number of the swap device is very small (one is typical).  This causes the
-heavy lock contention on the radix tree of the address space if multiple
-tasks swap out/in concurrently.  But in fact, there is no dependency
-between pages in the swap cache.  So that, we can split the one shared
-address space for each swap device into several address spaces to reduce
-the lock contention.  In the patch, the shared address space is split into
-64MB trunks.  64MB is chosen to balance the memory space usage and effect
-of lock contention reduction.
+On 32-bit powerpc the ELF PLT sections of binaries (built with --bss-plt,
+or with a toolchain which defaults to it) look like this:
 
-The size of struct address_space on x86_64 architecture is 408B, so with
-the patch, 6528B more memory will be used for every 1GB swap space on
-x86_64 architecture.
+  [17] .sbss             NOBITS          0002aff8 01aff8 000014 00  WA  0   0  4
+  [18] .plt              NOBITS          0002b00c 01aff8 000084 00 WAX  0   0  4
+  [19] .bss              NOBITS          0002b090 01aff8 0000a4 00  WA  0   0  4
 
-One address space is still shared for the swap entries in the same 64M
-trunks.  To avoid lock contention for the first round of swap space
-allocation, the order of the swap clusters in the initial free clusters
-list is changed.  The swap space distance between the consecutive swap
-clusters in the free cluster list is at least 64M.  After the first round
-of allocation, the swap clusters are expected to be freed randomly, so the
-lock contention should be reduced effectively.
+Which results in an ELF load header:
 
-Link: http://lkml.kernel.org/r/735bab895e64c930581ffb0a05b661e01da82bc5.1484082593.git.tim.c.chen@linux.intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+  LOAD           0x019c70 0x00029c70 0x00029c70 0x01388 0x014c4 RWE 0x10000
+
+This is all correct, the load region containing the PLT is marked as
+executable.  Note that the PLT starts at 0002b00c but the file mapping
+ends at 0002aff8, so the PLT falls in the 0 fill section described by the
+load header, and after a page boundary.
+
+Unfortunately the generic ELF loader ignores the X bit in the load headers
+when it creates the 0 filled non-file backed mappings.  It assumes all of
+these mappings are RW BSS sections, which is not the case for PPC.
+
+gcc/ld has an option (--secure-plt) to not do this, this is said to incur
+a small performance penalty.
+
+Currently, to support 32-bit binaries with PLT in BSS kernel maps *entire
+brk area* with executable rights for all binaries, even --secure-plt ones.
+
+Stop doing that.
+
+Teach the ELF loader to check the X bit in the relevant load header and
+create 0 filled anonymous mappings that are executable if the load header
+requests that.
+
+Test program showing the difference in /proc/$PID/maps:
+
+int main() {
+	char buf[16*1024];
+	char *p = malloc(123); /* make "[heap]" mapping appear */
+	int fd = open("/proc/self/maps", O_RDONLY);
+	int len = read(fd, buf, sizeof(buf));
+	write(1, buf, len);
+	printf("%p\n", p);
+	return 0;
+}
+
+Compiled using: gcc -mbss-plt -m32 -Os test.c -otest
+
+Unpatched ppc64 kernel:
+00100000-00120000 r-xp 00000000 00:00 0                                  [vdso]
+0fe10000-0ffd0000 r-xp 00000000 fd:00 67898094                           /usr/lib/libc-2.17.so
+0ffd0000-0ffe0000 r--p 001b0000 fd:00 67898094                           /usr/lib/libc-2.17.so
+0ffe0000-0fff0000 rw-p 001c0000 fd:00 67898094                           /usr/lib/libc-2.17.so
+10000000-10010000 r-xp 00000000 fd:00 100674505                          /home/user/test
+10010000-10020000 r--p 00000000 fd:00 100674505                          /home/user/test
+10020000-10030000 rw-p 00010000 fd:00 100674505                          /home/user/test
+10690000-106c0000 rwxp 00000000 00:00 0                                  [heap]
+f7f70000-f7fa0000 r-xp 00000000 fd:00 67898089                           /usr/lib/ld-2.17.so
+f7fa0000-f7fb0000 r--p 00020000 fd:00 67898089                           /usr/lib/ld-2.17.so
+f7fb0000-f7fc0000 rw-p 00030000 fd:00 67898089                           /usr/lib/ld-2.17.so
+ffa90000-ffac0000 rw-p 00000000 00:00 0                                  [stack]
+0x10690008
+
+Patched ppc64 kernel:
+00100000-00120000 r-xp 00000000 00:00 0                                  [vdso]
+0fe10000-0ffd0000 r-xp 00000000 fd:00 67898094                           /usr/lib/libc-2.17.so
+0ffd0000-0ffe0000 r--p 001b0000 fd:00 67898094                           /usr/lib/libc-2.17.so
+0ffe0000-0fff0000 rw-p 001c0000 fd:00 67898094                           /usr/lib/libc-2.17.so
+10000000-10010000 r-xp 00000000 fd:00 100674505                          /home/user/test
+10010000-10020000 r--p 00000000 fd:00 100674505                          /home/user/test
+10020000-10030000 rw-p 00010000 fd:00 100674505                          /home/user/test
+10180000-101b0000 rw-p 00000000 00:00 0                                  [heap]
+                  ^^^^ this has changed
+f7c60000-f7c90000 r-xp 00000000 fd:00 67898089                           /usr/lib/ld-2.17.so
+f7c90000-f7ca0000 r--p 00020000 fd:00 67898089                           /usr/lib/ld-2.17.so
+f7ca0000-f7cb0000 rw-p 00030000 fd:00 67898089                           /usr/lib/ld-2.17.so
+ff860000-ff890000 rw-p 00000000 00:00 0                                  [stack]
+0x10180008
+
+The patch was originally posted in 2012 by Jason Gunthorpe
+and apparently ignored:
+
+https://lkml.org/lkml/2012/9/30/138
+
+Lightly run-tested.
+
+Link: http://lkml.kernel.org/r/20161215131950.23054-1-dvlasenk@redhat.com
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Tested-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Florian Weimer <fweimer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   11 +++++-
- mm/swap.c            |    6 ---
- mm/swap_state.c      |   68 +++++++++++++++++++++++++++++++++--------
- mm/swapfile.c        |   16 ++++++++-
- 4 files changed, 79 insertions(+), 22 deletions(-)
+ arch/powerpc/include/asm/page.h |    4 +++-
+ fs/binfmt_elf.c                 |   30 ++++++++++++++++++++++--------
+ include/linux/mm.h              |    1 +
+ mm/mmap.c                       |   24 +++++++++++++++++++-----
+ 4 files changed, 45 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/swap.h~mm-swap-split-swap-cache-into-64mb-trunks include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-split-swap-cache-into-64mb-trunks
-+++ a/include/linux/swap.h
-@@ -343,8 +343,13 @@ int generic_swapfile_activate(struct swa
- 		sector_t *);
+diff -puN arch/powerpc/include/asm/page.h~powerpc-do-not-make-the-entire-heap-executable arch/powerpc/include/asm/page.h
+--- a/arch/powerpc/include/asm/page.h~powerpc-do-not-make-the-entire-heap-executable
++++ a/arch/powerpc/include/asm/page.h
+@@ -230,7 +230,9 @@ extern long long virt_phys_offset;
+  * and needs to be executable.  This means the whole heap ends
+  * up being executable.
+  */
+-#define VM_DATA_DEFAULT_FLAGS32	(VM_READ | VM_WRITE | VM_EXEC | \
++#define VM_DATA_DEFAULT_FLAGS32 \
++	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
++				 VM_READ | VM_WRITE | \
+ 				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
  
- /* linux/mm/swap_state.c */
--extern struct address_space swapper_spaces[];
--#define swap_address_space(entry) (&swapper_spaces[swp_type(entry)])
-+/* One swap address space for each 64M swap space */
-+#define SWAP_ADDRESS_SPACE_SHIFT	14
-+#define SWAP_ADDRESS_SPACE_PAGES	(1 << SWAP_ADDRESS_SPACE_SHIFT)
-+extern struct address_space *swapper_spaces[];
-+#define swap_address_space(entry)			    \
-+	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
-+		>> SWAP_ADDRESS_SPACE_SHIFT])
- extern unsigned long total_swapcache_pages(void);
- extern void show_swap_cache_info(void);
- extern int add_to_swap(struct page *, struct list_head *list);
-@@ -398,6 +403,8 @@ extern struct swap_info_struct *page_swa
- extern bool reuse_swap_page(struct page *, int *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
-+extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
-+extern void exit_swap_address_space(unsigned int type);
+ #define VM_DATA_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
+diff -puN fs/binfmt_elf.c~powerpc-do-not-make-the-entire-heap-executable fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~powerpc-do-not-make-the-entire-heap-executable
++++ a/fs/binfmt_elf.c
+@@ -91,12 +91,18 @@ static struct linux_binfmt elf_format =
  
- #else /* CONFIG_SWAP */
+ #define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
  
-diff -puN mm/swap.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swap.c
---- a/mm/swap.c~mm-swap-split-swap-cache-into-64mb-trunks
-+++ a/mm/swap.c
-@@ -971,12 +971,6 @@ EXPORT_SYMBOL(pagevec_lookup_tag);
- void __init swap_setup(void)
+-static int set_brk(unsigned long start, unsigned long end)
++static int set_brk(unsigned long start, unsigned long end, int prot)
  {
- 	unsigned long megs = totalram_pages >> (20 - PAGE_SHIFT);
--#ifdef CONFIG_SWAP
--	int i;
--
--	for (i = 0; i < MAX_SWAPFILES; i++)
--		spin_lock_init(&swapper_spaces[i].tree_lock);
--#endif
- 
- 	/* Use a smaller cluster for small-memory machines */
- 	if (megs < 16)
-diff -puN mm/swap_state.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-split-swap-cache-into-64mb-trunks
-+++ a/mm/swap_state.c
-@@ -17,6 +17,7 @@
- #include <linux/blkdev.h>
- #include <linux/pagevec.h>
- #include <linux/migrate.h>
-+#include <linux/vmalloc.h>
- 
- #include <asm/pgtable.h>
- 
-@@ -32,15 +33,8 @@ static const struct address_space_operat
- #endif
- };
- 
--struct address_space swapper_spaces[MAX_SWAPFILES] = {
--	[0 ... MAX_SWAPFILES - 1] = {
--		.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
--		.i_mmap_writable = ATOMIC_INIT(0),
--		.a_ops		= &swap_aops,
--		/* swap cache doesn't use writeback related tags */
--		.flags		= 1 << AS_NO_WRITEBACK_TAGS,
--	}
--};
-+struct address_space *swapper_spaces[MAX_SWAPFILES];
-+static unsigned int nr_swapper_spaces[MAX_SWAPFILES];
- 
- #define INC_CACHE_INFO(x)	do { swap_cache_info.x++; } while (0)
- 
-@@ -53,11 +47,26 @@ static struct {
- 
- unsigned long total_swapcache_pages(void)
- {
--	int i;
-+	unsigned int i, j, nr;
- 	unsigned long ret = 0;
-+	struct address_space *spaces;
- 
--	for (i = 0; i < MAX_SWAPFILES; i++)
--		ret += swapper_spaces[i].nrpages;
-+	rcu_read_lock();
-+	for (i = 0; i < MAX_SWAPFILES; i++) {
+ 	start = ELF_PAGEALIGN(start);
+ 	end = ELF_PAGEALIGN(end);
+ 	if (end > start) {
+-		int error = vm_brk(start, end - start);
 +		/*
-+		 * The corresponding entries in nr_swapper_spaces and
-+		 * swapper_spaces will be reused only after at least
-+		 * one grace period.  So it is impossible for them
-+		 * belongs to different usage.
++		 * Map the last of the bss segment.
++		 * If the header is requesting these pages to be
++		 * executable, honour that (ppc32 needs this).
 +		 */
-+		nr = nr_swapper_spaces[i];
-+		spaces = rcu_dereference(swapper_spaces[i]);
-+		if (!nr || !spaces)
-+			continue;
-+		for (j = 0; j < nr; j++)
-+			ret += spaces[j].nrpages;
-+	}
-+	rcu_read_unlock();
- 	return ret;
- }
- 
-@@ -505,3 +514,38 @@ struct page *swapin_readahead(swp_entry_
- skip:
- 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
- }
-+
-+int init_swap_address_space(unsigned int type, unsigned long nr_pages)
-+{
-+	struct address_space *spaces, *space;
-+	unsigned int i, nr;
-+
-+	nr = DIV_ROUND_UP(nr_pages, SWAP_ADDRESS_SPACE_PAGES);
-+	spaces = vzalloc(sizeof(struct address_space) * nr);
-+	if (!spaces)
-+		return -ENOMEM;
-+	for (i = 0; i < nr; i++) {
-+		space = spaces + i;
-+		INIT_RADIX_TREE(&space->page_tree, GFP_ATOMIC|__GFP_NOWARN);
-+		atomic_set(&space->i_mmap_writable, 0);
-+		space->a_ops = &swap_aops;
-+		/* swap cache doesn't use writeback related tags */
-+		mapping_set_no_writeback_tags(space);
-+		spin_lock_init(&space->tree_lock);
-+	}
-+	nr_swapper_spaces[type] = nr;
-+	rcu_assign_pointer(swapper_spaces[type], spaces);
-+
-+	return 0;
-+}
-+
-+void exit_swap_address_space(unsigned int type)
-+{
-+	struct address_space *spaces;
-+
-+	spaces = swapper_spaces[type];
-+	nr_swapper_spaces[type] = 0;
-+	rcu_assign_pointer(swapper_spaces[type], NULL);
-+	synchronize_rcu();
-+	kvfree(spaces);
-+}
-diff -puN mm/swapfile.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-split-swap-cache-into-64mb-trunks
-+++ a/mm/swapfile.c
-@@ -2084,6 +2084,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	vfree(frontswap_map);
- 	/* Destroy swap account information */
- 	swap_cgroup_swapoff(p->type);
-+	exit_swap_address_space(p->type);
- 
- 	inode = mapping->host;
- 	if (S_ISBLK(inode->i_mode)) {
-@@ -2407,8 +2408,12 @@ static unsigned long read_swap_header(st
- 	return maxpages;
- }
- 
--#define SWAP_CLUSTER_COLS						\
-+#define SWAP_CLUSTER_INFO_COLS						\
- 	DIV_ROUND_UP(L1_CACHE_BYTES, sizeof(struct swap_cluster_info))
-+#define SWAP_CLUSTER_SPACE_COLS						\
-+	DIV_ROUND_UP(SWAP_ADDRESS_SPACE_PAGES, SWAPFILE_CLUSTER)
-+#define SWAP_CLUSTER_COLS						\
-+	max_t(unsigned int, SWAP_CLUSTER_INFO_COLS, SWAP_CLUSTER_SPACE_COLS)
- 
- static int setup_swap_map_and_extents(struct swap_info_struct *p,
- 					union swap_header *swap_header,
-@@ -2471,7 +2476,10 @@ static int setup_swap_map_and_extents(st
- 		return nr_extents;
- 
- 
--	/* Reduce false cache line sharing between cluster_info */
-+	/*
-+	 * Reduce false cache line sharing between cluster_info and
-+	 * sharing same address space.
-+	 */
- 	for (k = 0; k < SWAP_CLUSTER_COLS; k++) {
- 		j = (k + col) % SWAP_CLUSTER_COLS;
- 		for (i = 0; i < DIV_ROUND_UP(nr_clusters, SWAP_CLUSTER_COLS); i++) {
-@@ -2661,6 +2669,10 @@ SYSCALL_DEFINE2(swapon, const char __use
++		int error = vm_brk_flags(start, end - start,
++				prot & PROT_EXEC ? VM_EXEC : 0);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -524,6 +530,7 @@ static unsigned long load_elf_interp(str
+ 	unsigned long load_addr = 0;
+ 	int load_addr_set = 0;
+ 	unsigned long last_bss = 0, elf_bss = 0;
++	int bss_prot = 0;
+ 	unsigned long error = ~0UL;
+ 	unsigned long total_size;
+ 	int i;
+@@ -606,8 +613,10 @@ static unsigned long load_elf_interp(str
+ 			 * elf_bss and last_bss is the bss section.
+ 			 */
+ 			k = load_addr + eppnt->p_vaddr + eppnt->p_memsz;
+-			if (k > last_bss)
++			if (k > last_bss) {
+ 				last_bss = k;
++				bss_prot = elf_prot;
++			}
  		}
  	}
  
-+	error = init_swap_address_space(p->type, maxpages);
-+	if (error)
-+		goto bad_swap;
+@@ -623,13 +632,14 @@ static unsigned long load_elf_interp(str
+ 	/*
+ 	 * Next, align both the file and mem bss up to the page size,
+ 	 * since this is where elf_bss was just zeroed up to, and where
+-	 * last_bss will end after the vm_brk() below.
++	 * last_bss will end after the vm_brk_flags() below.
+ 	 */
+ 	elf_bss = ELF_PAGEALIGN(elf_bss);
+ 	last_bss = ELF_PAGEALIGN(last_bss);
+ 	/* Finally, if there is still more bss to allocate, do it. */
+ 	if (last_bss > elf_bss) {
+-		error = vm_brk(elf_bss, last_bss - elf_bss);
++		error = vm_brk_flags(elf_bss, last_bss - elf_bss,
++				bss_prot & PROT_EXEC ? VM_EXEC : 0);
+ 		if (error)
+ 			goto out;
+ 	}
+@@ -674,6 +684,7 @@ static int load_elf_binary(struct linux_
+ 	unsigned long error;
+ 	struct elf_phdr *elf_ppnt, *elf_phdata, *interp_elf_phdata = NULL;
+ 	unsigned long elf_bss, elf_brk;
++	int bss_prot = 0;
+ 	int retval, i;
+ 	unsigned long elf_entry;
+ 	unsigned long interp_load_addr = 0;
+@@ -882,7 +893,8 @@ static int load_elf_binary(struct linux_
+ 			   before this one. Map anonymous pages, if needed,
+ 			   and clear the area.  */
+ 			retval = set_brk(elf_bss + load_bias,
+-					 elf_brk + load_bias);
++					 elf_brk + load_bias,
++					 bss_prot);
+ 			if (retval)
+ 				goto out_free_dentry;
+ 			nbyte = ELF_PAGEOFFSET(elf_bss);
+@@ -976,8 +988,10 @@ static int load_elf_binary(struct linux_
+ 		if (end_data < k)
+ 			end_data = k;
+ 		k = elf_ppnt->p_vaddr + elf_ppnt->p_memsz;
+-		if (k > elf_brk)
++		if (k > elf_brk) {
++			bss_prot = elf_prot;
+ 			elf_brk = k;
++		}
+ 	}
+ 
+ 	loc->elf_ex.e_entry += load_bias;
+@@ -993,7 +1007,7 @@ static int load_elf_binary(struct linux_
+ 	 * mapping in the interpreter, to make sure it doesn't wind
+ 	 * up getting placed where the bss needs to go.
+ 	 */
+-	retval = set_brk(elf_bss, elf_brk);
++	retval = set_brk(elf_bss, elf_brk, bss_prot);
+ 	if (retval)
+ 		goto out_free_dentry;
+ 	if (likely(elf_bss != elf_brk) && unlikely(padzero(elf_bss))) {
+diff -puN include/linux/mm.h~powerpc-do-not-make-the-entire-heap-executable include/linux/mm.h
+--- a/include/linux/mm.h~powerpc-do-not-make-the-entire-heap-executable
++++ a/include/linux/mm.h
+@@ -2083,6 +2083,7 @@ static inline void mm_populate(unsigned
+ 
+ /* These take the mm semaphore themselves */
+ extern int __must_check vm_brk(unsigned long, unsigned long);
++extern int __must_check vm_brk_flags(unsigned long, unsigned long, unsigned long);
+ extern int vm_munmap(unsigned long, size_t);
+ extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
+         unsigned long, unsigned long,
+diff -puN mm/mmap.c~powerpc-do-not-make-the-entire-heap-executable mm/mmap.c
+--- a/mm/mmap.c~powerpc-do-not-make-the-entire-heap-executable
++++ a/mm/mmap.c
+@@ -2806,11 +2806,11 @@ static inline void verify_mm_writelocked
+  *  anonymous maps.  eventually we may be able to do some
+  *  brk-specific accounting here.
+  */
+-static int do_brk(unsigned long addr, unsigned long request)
++static int do_brk_flags(unsigned long addr, unsigned long request, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma, *prev;
+-	unsigned long flags, len;
++	unsigned long len;
+ 	struct rb_node **rb_link, *rb_parent;
+ 	pgoff_t pgoff = addr >> PAGE_SHIFT;
+ 	int error;
+@@ -2821,7 +2821,10 @@ static int do_brk(unsigned long addr, un
+ 	if (!len)
+ 		return 0;
+ 
+-	flags = VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
++	/* Until we need other flags, refuse anything except VM_EXEC. */
++	if ((flags & (~VM_EXEC)) != 0)
++		return -EINVAL;
++	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
+ 
+ 	error = get_unmapped_area(NULL, addr, len, 0, MAP_FIXED);
+ 	if (offset_in_page(error))
+@@ -2889,7 +2892,12 @@ out:
+ 	return 0;
+ }
+ 
+-int vm_brk(unsigned long addr, unsigned long len)
++static int do_brk(unsigned long addr, unsigned long len)
++{
++	return do_brk_flags(addr, len, 0);
++}
 +
- 	mutex_lock(&swapon_mutex);
- 	prio = -1;
- 	if (swap_flags & SWAP_FLAG_PREFER)
++int vm_brk_flags(unsigned long addr, unsigned long len, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	int ret;
+@@ -2898,13 +2906,19 @@ int vm_brk(unsigned long addr, unsigned
+ 	if (down_write_killable(&mm->mmap_sem))
+ 		return -EINTR;
+ 
+-	ret = do_brk(addr, len);
++	ret = do_brk_flags(addr, len, flags);
+ 	populate = ((mm->def_flags & VM_LOCKED) != 0);
+ 	up_write(&mm->mmap_sem);
+ 	if (populate && !ret)
+ 		mm_populate(addr, len);
+ 	return ret;
+ }
++EXPORT_SYMBOL(vm_brk_flags);
++
++int vm_brk(unsigned long addr, unsigned long len)
++{
++	return vm_brk_flags(addr, len, 0);
++}
+ EXPORT_SYMBOL(vm_brk);
+ 
+ /* Release all mmaps. */
 _
