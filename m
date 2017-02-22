@@ -1,378 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: [patch 054/142] userfaultfd: non-cooperative: Add fork() event
-Date: Wed, 22 Feb 2017 15:42:27 -0800
-Message-ID: <58ae21e3.elA6394N9rCEu4vK%akpm@linux-foundation.org>
+Subject: [patch 044/142] mm, trace: extract COMPACTION_STATUS and
+ ZONE_TYPE to a common header
+Date: Wed, 22 Feb 2017 15:41:57 -0800
+Message-ID: <58ae21c5.0ZtS1rUH1a4AxiX+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48420 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48006 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934631AbdBVXmo (ORCPT
+        with ESMTP id S934617AbdBVXmo (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, rientjes@google.com, vbabka@suse.cz
 
-From: Pavel Emelyanov <xemul@parallels.com>
-Subject: userfaultfd: non-cooperative: Add fork() event
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, trace: extract COMPACTION_STATUS and ZONE_TYPE to a common header
 
-When the mm with uffd-ed vmas fork()-s the respective vmas notify their
-uffds with the event which contains a descriptor with new uffd.  This new
-descriptor can then be used to get events from the child and populate its
-mm with data.  Note, that there can be different uffd-s controlling
-different vmas within one mm, so first we should collect all those uffds
-(and ctx-s) in a list and then notify them all one by one but only once
-per fork().
+COMPACTION_STATUS resp.  ZONE_TYPE are currently used to translate enum
+compact_result resp.  struct zone index into their symbolic names for an
+easier post processing.  The follow up patch would like to reuse this as
+well.  The code involves some preprocessor black magic which is better not
+duplicated elsewhere so move it to a common mm tracing relate header.
 
-The context is created at fork() time but the descriptor, file struct and
-anon inode object is created at event read time.  So some trickery is
-added to the userfaultfd_ctx_read() to handle the ctx queues' locking vs
-file creation.
-
-Another thing worth noticing is that the task that fork()-s waits for the
-uffd event to get processed WITHOUT the mmap sem.
-
-[aarcange@redhat.com: build warning fix]
-  Link: http://lkml.kernel.org/r/20161216144821.5183-10-aarcange@redhat.com
-Link: http://lkml.kernel.org/r/20161216144821.5183-9-aarcange@redhat.com
-Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/20161220130135.15719-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |  148 ++++++++++++++++++++++++++++-
- include/linux/userfaultfd_k.h    |   13 ++
- include/uapi/linux/userfaultfd.h |   15 --
- kernel/fork.c                    |   10 +
- 4 files changed, 170 insertions(+), 16 deletions(-)
+ include/trace/events/compaction.h |   60 +-------------------------
+ include/trace/events/mmflags.h    |   64 ++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+), 57 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-fork-event fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-fork-event
-+++ a/fs/userfaultfd.c
-@@ -64,6 +64,12 @@ struct userfaultfd_ctx {
- 	struct mm_struct *mm;
- };
+diff -puN include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
++++ a/include/trace/events/compaction.h
+@@ -9,62 +9,6 @@
+ #include <linux/tracepoint.h>
+ #include <trace/events/mmflags.h>
  
-+struct userfaultfd_fork_ctx {
-+	struct userfaultfd_ctx *orig;
-+	struct userfaultfd_ctx *new;
-+	struct list_head list;
-+};
-+
- struct userfaultfd_wait_queue {
- 	struct uffd_msg msg;
- 	wait_queue_t wq;
-@@ -465,9 +471,8 @@ out:
- 	return ret;
- }
- 
--static int __maybe_unused userfaultfd_event_wait_completion(
--		struct userfaultfd_ctx *ctx,
--		struct userfaultfd_wait_queue *ewq)
-+static int userfaultfd_event_wait_completion(struct userfaultfd_ctx *ctx,
-+					     struct userfaultfd_wait_queue *ewq)
- {
- 	int ret = 0;
- 
-@@ -518,6 +523,79 @@ static void userfaultfd_event_complete(s
- 	__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
- }
- 
-+int dup_userfaultfd(struct vm_area_struct *vma, struct list_head *fcs)
-+{
-+	struct userfaultfd_ctx *ctx = NULL, *octx;
-+	struct userfaultfd_fork_ctx *fctx;
-+
-+	octx = vma->vm_userfaultfd_ctx.ctx;
-+	if (!octx || !(octx->features & UFFD_FEATURE_EVENT_FORK)) {
-+		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
-+		vma->vm_flags &= ~(VM_UFFD_WP | VM_UFFD_MISSING);
-+		return 0;
-+	}
-+
-+	list_for_each_entry(fctx, fcs, list)
-+		if (fctx->orig == octx) {
-+			ctx = fctx->new;
-+			break;
-+		}
-+
-+	if (!ctx) {
-+		fctx = kmalloc(sizeof(*fctx), GFP_KERNEL);
-+		if (!fctx)
-+			return -ENOMEM;
-+
-+		ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
-+		if (!ctx) {
-+			kfree(fctx);
-+			return -ENOMEM;
-+		}
-+
-+		atomic_set(&ctx->refcount, 1);
-+		ctx->flags = octx->flags;
-+		ctx->state = UFFD_STATE_RUNNING;
-+		ctx->features = octx->features;
-+		ctx->released = false;
-+		ctx->mm = vma->vm_mm;
-+		atomic_inc(&ctx->mm->mm_users);
-+
-+		userfaultfd_ctx_get(octx);
-+		fctx->orig = octx;
-+		fctx->new = ctx;
-+		list_add_tail(&fctx->list, fcs);
-+	}
-+
-+	vma->vm_userfaultfd_ctx.ctx = ctx;
-+	return 0;
-+}
-+
-+static int dup_fctx(struct userfaultfd_fork_ctx *fctx)
-+{
-+	struct userfaultfd_ctx *ctx = fctx->orig;
-+	struct userfaultfd_wait_queue ewq;
-+
-+	msg_init(&ewq.msg);
-+
-+	ewq.msg.event = UFFD_EVENT_FORK;
-+	ewq.msg.arg.reserved.reserved1 = (unsigned long)fctx->new;
-+
-+	return userfaultfd_event_wait_completion(ctx, &ewq);
-+}
-+
-+void dup_userfaultfd_complete(struct list_head *fcs)
-+{
-+	int ret = 0;
-+	struct userfaultfd_fork_ctx *fctx, *n;
-+
-+	list_for_each_entry_safe(fctx, n, fcs, list) {
-+		if (!ret)
-+			ret = dup_fctx(fctx);
-+		list_del(&fctx->list);
-+		kfree(fctx);
-+	}
-+}
-+
- static int userfaultfd_release(struct inode *inode, struct file *file)
- {
- 	struct userfaultfd_ctx *ctx = file->private_data;
-@@ -653,12 +731,49 @@ static unsigned int userfaultfd_poll(str
- 	}
- }
- 
-+static const struct file_operations userfaultfd_fops;
-+
-+static int resolve_userfault_fork(struct userfaultfd_ctx *ctx,
-+				  struct userfaultfd_ctx *new,
-+				  struct uffd_msg *msg)
-+{
-+	int fd;
-+	struct file *file;
-+	unsigned int flags = new->flags & UFFD_SHARED_FCNTL_FLAGS;
-+
-+	fd = get_unused_fd_flags(flags);
-+	if (fd < 0)
-+		return fd;
-+
-+	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, new,
-+				  O_RDWR | flags);
-+	if (IS_ERR(file)) {
-+		put_unused_fd(fd);
-+		return PTR_ERR(file);
-+	}
-+
-+	fd_install(fd, file);
-+	msg->arg.reserved.reserved1 = 0;
-+	msg->arg.fork.ufd = fd;
-+
-+	return 0;
-+}
-+
- static ssize_t userfaultfd_ctx_read(struct userfaultfd_ctx *ctx, int no_wait,
- 				    struct uffd_msg *msg)
- {
- 	ssize_t ret;
- 	DECLARE_WAITQUEUE(wait, current);
- 	struct userfaultfd_wait_queue *uwq;
-+	/*
-+	 * Handling fork event requires sleeping operations, so
-+	 * we drop the event_wqh lock, then do these ops, then
-+	 * lock it back and wake up the waiter. While the lock is
-+	 * dropped the ewq may go away so we keep track of it
-+	 * carefully.
-+	 */
-+	LIST_HEAD(fork_event);
-+	struct userfaultfd_ctx *fork_nctx = NULL;
- 
- 	/* always take the fd_wqh lock before the fault_pending_wqh lock */
- 	spin_lock(&ctx->fd_wqh.lock);
-@@ -716,6 +831,16 @@ static ssize_t userfaultfd_ctx_read(stru
- 		if (uwq) {
- 			*msg = uwq->msg;
- 
-+			if (uwq->msg.event == UFFD_EVENT_FORK) {
-+				fork_nctx = (struct userfaultfd_ctx *)
-+					(unsigned long)
-+					uwq->msg.arg.reserved.reserved1;
-+				list_move(&uwq->wq.task_list, &fork_event);
-+				spin_unlock(&ctx->event_wqh.lock);
-+				ret = 0;
-+				break;
-+			}
-+
- 			userfaultfd_event_complete(ctx, uwq);
- 			spin_unlock(&ctx->event_wqh.lock);
- 			ret = 0;
-@@ -739,6 +864,23 @@ static ssize_t userfaultfd_ctx_read(stru
- 	__set_current_state(TASK_RUNNING);
- 	spin_unlock(&ctx->fd_wqh.lock);
- 
-+	if (!ret && msg->event == UFFD_EVENT_FORK) {
-+		ret = resolve_userfault_fork(ctx, fork_nctx, msg);
-+
-+		if (!ret) {
-+			spin_lock(&ctx->event_wqh.lock);
-+			if (!list_empty(&fork_event)) {
-+				uwq = list_first_entry(&fork_event,
-+						       typeof(*uwq),
-+						       wq.task_list);
-+				list_del(&uwq->wq.task_list);
-+				__add_wait_queue(&ctx->event_wqh, &uwq->wq);
-+				userfaultfd_event_complete(ctx, uwq);
-+			}
-+			spin_unlock(&ctx->event_wqh.lock);
-+		}
-+	}
-+
- 	return ret;
- }
- 
-diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-fork-event include/linux/userfaultfd_k.h
---- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-fork-event
-+++ a/include/linux/userfaultfd_k.h
-@@ -52,6 +52,9 @@ static inline bool userfaultfd_armed(str
- 	return vma->vm_flags & (VM_UFFD_MISSING | VM_UFFD_WP);
- }
- 
-+extern int dup_userfaultfd(struct vm_area_struct *, struct list_head *);
-+extern void dup_userfaultfd_complete(struct list_head *);
-+
- #else /* CONFIG_USERFAULTFD */
- 
- /* mm helpers */
-@@ -76,6 +79,16 @@ static inline bool userfaultfd_armed(str
- 	return false;
- }
- 
-+static inline int dup_userfaultfd(struct vm_area_struct *vma,
-+				  struct list_head *l)
-+{
-+	return 0;
-+}
-+
-+static inline void dup_userfaultfd_complete(struct list_head *l)
-+{
-+}
-+
- #endif /* CONFIG_USERFAULTFD */
- 
- #endif /* _LINUX_USERFAULTFD_K_H */
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-fork-event include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-fork-event
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -18,12 +18,7 @@
-  * means the userland is reading).
-  */
- #define UFFD_API ((__u64)0xAA)
+-#define COMPACTION_STATUS					\
+-	EM( COMPACT_SKIPPED,		"skipped")		\
+-	EM( COMPACT_DEFERRED,		"deferred")		\
+-	EM( COMPACT_CONTINUE,		"continue")		\
+-	EM( COMPACT_SUCCESS,		"success")		\
+-	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
+-	EM( COMPACT_COMPLETE,		"complete")		\
+-	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
+-	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
+-	EMe(COMPACT_CONTENDED,		"contended")
+-
+-#ifdef CONFIG_ZONE_DMA
+-#define IFDEF_ZONE_DMA(X) X
+-#else
+-#define IFDEF_ZONE_DMA(X)
+-#endif
+-
+-#ifdef CONFIG_ZONE_DMA32
+-#define IFDEF_ZONE_DMA32(X) X
+-#else
+-#define IFDEF_ZONE_DMA32(X)
+-#endif
+-
+-#ifdef CONFIG_HIGHMEM
+-#define IFDEF_ZONE_HIGHMEM(X) X
+-#else
+-#define IFDEF_ZONE_HIGHMEM(X)
+-#endif
+-
+-#define ZONE_TYPE						\
+-	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
+-	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
+-				EM (ZONE_NORMAL, "Normal")	\
+-	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
+-				EMe(ZONE_MOVABLE,"Movable")
+-
 -/*
-- * After implementing the respective features it will become:
-- * #define UFFD_API_FEATURES (UFFD_FEATURE_PAGEFAULT_FLAG_WP | \
-- *			      UFFD_FEATURE_EVENT_FORK)
+- * First define the enums in the above macros to be exported to userspace
+- * via TRACE_DEFINE_ENUM().
 - */
--#define UFFD_API_FEATURES (0)
-+#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -78,6 +73,10 @@ struct uffd_msg {
- 		} pagefault;
+-#undef EM
+-#undef EMe
+-#define EM(a, b)	TRACE_DEFINE_ENUM(a);
+-#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
+-
+-COMPACTION_STATUS
+-ZONE_TYPE
+-
+-/*
+- * Now redefine the EM() and EMe() macros to map the enums to the strings
+- * that will be printed in the output.
+- */
+-#undef EM
+-#undef EMe
+-#define EM(a, b)	{a, b},
+-#define EMe(a, b)	{a, b}
  
- 		struct {
-+			__u32	ufd;
-+		} fork;
+ DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
+ 
+@@ -187,6 +131,7 @@ TRACE_EVENT(mm_compaction_begin,
+ 		__entry->sync ? "sync" : "async")
+ );
+ 
++#ifdef CONFIG_COMPACTION
+ TRACE_EVENT(mm_compaction_end,
+ 	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
+ 		unsigned long free_pfn, unsigned long zone_end, bool sync,
+@@ -220,6 +165,7 @@ TRACE_EVENT(mm_compaction_end,
+ 		__entry->sync ? "sync" : "async",
+ 		__print_symbolic(__entry->status, COMPACTION_STATUS))
+ );
++#endif
+ 
+ TRACE_EVENT(mm_compaction_try_to_compact_pages,
+ 
+@@ -248,6 +194,7 @@ TRACE_EVENT(mm_compaction_try_to_compact
+ 		__entry->prio)
+ );
+ 
++#ifdef CONFIG_COMPACTION
+ DECLARE_EVENT_CLASS(mm_compaction_suitable_template,
+ 
+ 	TP_PROTO(struct zone *zone,
+@@ -295,7 +242,6 @@ DEFINE_EVENT(mm_compaction_suitable_temp
+ 	TP_ARGS(zone, order, ret)
+ );
+ 
+-#ifdef CONFIG_COMPACTION
+ DECLARE_EVENT_CLASS(mm_compaction_defer_template,
+ 
+ 	TP_PROTO(struct zone *zone, int order),
+diff -puN include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/mmflags.h
+--- a/include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
++++ a/include/trace/events/mmflags.h
+@@ -1,3 +1,6 @@
++#include <linux/node.h>
++#include <linux/mmzone.h>
++#include <linux/compaction.h>
+ /*
+  * The order of these masks is important. Matching masks will be seen
+  * first and the left over flags will end up showing by themselves.
+@@ -171,3 +174,64 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
+ 	(flags) ? __print_flags(flags, "|",				\
+ 	__def_vmaflag_names						\
+ 	) : "none"
 +
-+		struct {
- 			/* unused reserved fields */
- 			__u64	reserved1;
- 			__u64	reserved2;
-@@ -90,9 +89,7 @@ struct uffd_msg {
-  * Start at 0x12 and not at 0 to be more strict against bugs.
-  */
- #define UFFD_EVENT_PAGEFAULT	0x12
--#if 0 /* not available yet */
- #define UFFD_EVENT_FORK		0x13
--#endif
- 
- /* flags for UFFD_EVENT_PAGEFAULT */
- #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
-@@ -111,10 +108,8 @@ struct uffdio_api {
- 	 * are to be considered implicitly always enabled in all kernels as
- 	 * long as the uffdio_api.api requested matches UFFD_API.
- 	 */
--#if 0 /* not available yet */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
--#endif
- 	__u64 features;
- 
- 	__u64 ioctls;
-diff -puN kernel/fork.c~userfaultfd-non-cooperative-add-fork-event kernel/fork.c
---- a/kernel/fork.c~userfaultfd-non-cooperative-add-fork-event
-+++ a/kernel/fork.c
-@@ -55,6 +55,7 @@
- #include <linux/rmap.h>
- #include <linux/ksm.h>
- #include <linux/acct.h>
-+#include <linux/userfaultfd_k.h>
- #include <linux/tsacct_kern.h>
- #include <linux/cn_proc.h>
- #include <linux/freezer.h>
-@@ -561,6 +562,7 @@ static __latent_entropy int dup_mmap(str
- 	struct rb_node **rb_link, *rb_parent;
- 	int retval;
- 	unsigned long charge;
-+	LIST_HEAD(uf);
- 
- 	uprobe_start_dup_mmap();
- 	if (down_write_killable(&oldmm->mmap_sem)) {
-@@ -617,12 +619,13 @@ static __latent_entropy int dup_mmap(str
- 		if (retval)
- 			goto fail_nomem_policy;
- 		tmp->vm_mm = mm;
-+		retval = dup_userfaultfd(tmp, &uf);
-+		if (retval)
-+			goto fail_nomem_anon_vma_fork;
- 		if (anon_vma_fork(tmp, mpnt))
- 			goto fail_nomem_anon_vma_fork;
--		tmp->vm_flags &=
--			~(VM_LOCKED|VM_LOCKONFAULT|VM_UFFD_MISSING|VM_UFFD_WP);
-+		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
- 		tmp->vm_next = tmp->vm_prev = NULL;
--		tmp->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
- 		file = tmp->vm_file;
- 		if (file) {
- 			struct inode *inode = file_inode(file);
-@@ -678,6 +681,7 @@ out:
- 	up_write(&mm->mmap_sem);
- 	flush_tlb_mm(oldmm);
- 	up_write(&oldmm->mmap_sem);
-+	dup_userfaultfd_complete(&uf);
- fail_uprobe_end:
- 	uprobe_end_dup_mmap();
- 	return retval;
++#ifdef CONFIG_COMPACTION
++#define COMPACTION_STATUS					\
++	EM( COMPACT_SKIPPED,		"skipped")		\
++	EM( COMPACT_DEFERRED,		"deferred")		\
++	EM( COMPACT_CONTINUE,		"continue")		\
++	EM( COMPACT_SUCCESS,		"success")		\
++	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
++	EM( COMPACT_COMPLETE,		"complete")		\
++	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
++	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
++	EMe(COMPACT_CONTENDED,		"contended")
++#else
++#define COMPACTION_STATUS
++#endif
++
++#ifdef CONFIG_ZONE_DMA
++#define IFDEF_ZONE_DMA(X) X
++#else
++#define IFDEF_ZONE_DMA(X)
++#endif
++
++#ifdef CONFIG_ZONE_DMA32
++#define IFDEF_ZONE_DMA32(X) X
++#else
++#define IFDEF_ZONE_DMA32(X)
++#endif
++
++#ifdef CONFIG_HIGHMEM
++#define IFDEF_ZONE_HIGHMEM(X) X
++#else
++#define IFDEF_ZONE_HIGHMEM(X)
++#endif
++
++#define ZONE_TYPE						\
++	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
++	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
++				EM (ZONE_NORMAL, "Normal")	\
++	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
++				EMe(ZONE_MOVABLE,"Movable")
++
++/*
++ * First define the enums in the above macros to be exported to userspace
++ * via TRACE_DEFINE_ENUM().
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)	TRACE_DEFINE_ENUM(a);
++#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
++
++COMPACTION_STATUS
++ZONE_TYPE
++
++/*
++ * Now redefine the EM() and EMe() macros to map the enums to the strings
++ * that will be printed in the output.
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)	{a, b},
++#define EMe(a, b)	{a, b}
 _
