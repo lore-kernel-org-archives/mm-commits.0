@@ -1,44 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 043/142] mm/vmalloc.c: use rb_entry_safe
-Date: Wed, 22 Feb 2017 15:41:54 -0800
-Message-ID: <58ae21c2.Z/mn6CtRmzeN0O7d%akpm@linux-foundation.org>
+Subject: [patch 039/142] tmpfs: change shmem_mapping() to test shmem_aops
+Date: Wed, 22 Feb 2017 15:41:42 -0800
+Message-ID: <58ae21b6.METO8FbRvXCnll+L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934555AbdBVXmO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:14 -0500
+        with ESMTP id S934543AbdBVXmI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geliangtang@gmail.com, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, oleg@redhat.com
 
-From: Geliang Tang <geliangtang@gmail.com>
-Subject: mm/vmalloc.c: use rb_entry_safe
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: change shmem_mapping() to test shmem_aops
 
-Use rb_entry_safe() instead of open-coding it.
+Callers of shmem_mapping() are interested in whether the mapping is swap
+backed - except for uprobes, which is interested in whether it should use
+shmem_read_mapping_page().  All these callers are better served by a
+shmem_mapping() which checks for shmem_aops, than the current version
+which goes through several indirections to find where the inode lives -
+and has the surprising effect that a private mmap of /dev/zero satisfies
+both vma_is_anonymous() and shmem_mapping(), when that device node is on
+devtmpfs.  I don't think anything in the tree suffers from that surprise,
+but it caught me out, and is better fixed.
 
-Link: http://lkml.kernel.org/r/81bb9820e5b9e4a1c596b3e76f88abf8c4a76cb0.1482221947.git.geliangtang@gmail.com
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1612052148530.13021@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-use-rb_entry_safe mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-use-rb_entry_safe
-+++ a/mm/vmalloc.c
-@@ -2309,7 +2309,7 @@ EXPORT_SYMBOL_GPL(free_vm_area);
- #ifdef CONFIG_SMP
- static struct vmap_area *node_to_va(struct rb_node *n)
- {
--	return n ? rb_entry(n, struct vmap_area, rb_node) : NULL;
-+	return rb_entry_safe(n, struct vmap_area, rb_node);
- }
+diff -puN mm/shmem.c~tmpfs-change-shmem_mapping-to-test-shmem_aops mm/shmem.c
+--- a/mm/shmem.c~tmpfs-change-shmem_mapping-to-test-shmem_aops
++++ a/mm/shmem.c
+@@ -2175,10 +2175,7 @@ static struct inode *shmem_get_inode(str
  
- /**
-_
+ bool shmem_mapping(struct address_space *mapping)
+ {
+-	if (!mapping->host)
+-		return false;
