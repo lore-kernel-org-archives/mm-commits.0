@@ -1,90 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [patch 057/142] userfaultfd: non-cooperative: optimize
- mremap_userfaultfd_complete()
-Date: Wed, 22 Feb 2017 15:42:37 -0800
-Message-ID: <58ae21ed.5fI5xD7sMXGBS79m%akpm@linux-foundation.org>
+Subject: [patch 051/142] userfaultfd: non-cooperative: Split the
+ find_userfault() routine
+Date: Wed, 22 Feb 2017 15:42:18 -0800
+Message-ID: <58ae21da.Ta6fo3tDmrWS7HCk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934645AbdBVXmo (ORCPT
+        with ESMTP id S934568AbdBVXmo (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2017 18:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: non-cooperative: optimize mremap_userfaultfd_complete()
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: userfaultfd: non-cooperative: Split the find_userfault() routine
 
-Optimize the mremap_userfaultfd_complete() interface to pass only the
-vm_userfaultfd_ctx pointer through the stack as a microoptimization.
+I will need one to lookup for userfaultfd_wait_queue-s in different
+wait queue
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-13-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-6-aarcange@redhat.com
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c              |    4 ++--
- include/linux/userfaultfd_k.h |    4 ++--
- mm/mremap.c                   |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ fs/userfaultfd.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-split-the-find_userfault-routine fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-split-the-find_userfault-routine
 +++ a/fs/userfaultfd.c
-@@ -608,11 +608,11 @@ void mremap_userfaultfd_prep(struct vm_a
- 	}
+@@ -522,25 +522,30 @@ wakeup:
  }
  
--void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx vm_ctx,
-+void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx *vm_ctx,
- 				 unsigned long from, unsigned long to,
- 				 unsigned long len)
+ /* fault_pending_wqh.lock must be hold by the caller */
+-static inline struct userfaultfd_wait_queue *find_userfault(
+-	struct userfaultfd_ctx *ctx)
++static inline struct userfaultfd_wait_queue *find_userfault_in(
++		wait_queue_head_t *wqh)
  {
--	struct userfaultfd_ctx *ctx = vm_ctx.ctx;
-+	struct userfaultfd_ctx *ctx = vm_ctx->ctx;
- 	struct userfaultfd_wait_queue ewq;
+ 	wait_queue_t *wq;
+ 	struct userfaultfd_wait_queue *uwq;
  
- 	if (!ctx)
-diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete include/linux/userfaultfd_k.h
---- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete
-+++ a/include/linux/userfaultfd_k.h
-@@ -57,7 +57,7 @@ extern void dup_userfaultfd_complete(str
+-	VM_BUG_ON(!spin_is_locked(&ctx->fault_pending_wqh.lock));
++	VM_BUG_ON(!spin_is_locked(&wqh->lock));
  
- extern void mremap_userfaultfd_prep(struct vm_area_struct *,
- 				    struct vm_userfaultfd_ctx *);
--extern void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx,
-+extern void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx *,
- 					unsigned long from, unsigned long to,
- 					unsigned long len);
+ 	uwq = NULL;
+-	if (!waitqueue_active(&ctx->fault_pending_wqh))
++	if (!waitqueue_active(wqh))
+ 		goto out;
+ 	/* walk in reverse to provide FIFO behavior to read userfaults */
+-	wq = list_last_entry(&ctx->fault_pending_wqh.task_list,
+-			     typeof(*wq), task_list);
++	wq = list_last_entry(&wqh->task_list, typeof(*wq), task_list);
+ 	uwq = container_of(wq, struct userfaultfd_wait_queue, wq);
+ out:
+ 	return uwq;
+ }
  
-@@ -100,7 +100,7 @@ static inline void mremap_userfaultfd_pr
++static inline struct userfaultfd_wait_queue *find_userfault(
++		struct userfaultfd_ctx *ctx)
++{
++	return find_userfault_in(&ctx->fault_pending_wqh);
++}
++
+ static unsigned int userfaultfd_poll(struct file *file, poll_table *wait)
  {
- }
- 
--static inline void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx ctx,
-+static inline void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx *ctx,
- 					       unsigned long from,
- 					       unsigned long to,
- 					       unsigned long len)
-diff -puN mm/mremap.c~userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete mm/mremap.c
---- a/mm/mremap.c~userfaultfd-non-cooperative-optimize-mremap_userfaultfd_complete
-+++ a/mm/mremap.c
-@@ -608,6 +608,6 @@ out:
- 	up_write(&current->mm->mmap_sem);
- 	if (locked && new_len > old_len)
- 		mm_populate(new_addr + old_len, new_len - old_len);
--	mremap_userfaultfd_complete(uf, addr, new_addr, old_len);
-+	mremap_userfaultfd_complete(&uf, addr, new_addr, old_len);
- 	return ret;
- }
+ 	struct userfaultfd_ctx *ctx = file->private_data;
 _
