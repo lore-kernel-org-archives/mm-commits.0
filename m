@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] 9p-fix-a-potential-acl-leak.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:12:04 -0800
-Message-ID: <58af5024.MIJs8tL0n/WR5wj4%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-do-not-merge-cache-if-slub_debug-contains-a-never-merge-flag.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:12:10 -0800
+Message-ID: <58af502a.LDv5Iz/m8uAqvcGu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39322 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751201AbdBWVMR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:17 -0500
+        with ESMTP id S1751246AbdBWVMS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, ericvh@gmail.com, groug@kaod.org, jack@suse.cz, lucho@ionkov.net, rminnich@sandia.gov, salyzyn@android.com, mm-commits@vger.kernel.org
+To: grygoriimkd@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: 9p: fix a potential acl leak
+     Subject: slub: do not merge cache if slub_debug contains a never-merge flag
 has been removed from the -mm tree.  Its filename was
-     9p-fix-a-potential-acl-leak.patch
+     slub-do-not-merge-cache-if-slub_debug-contains-a-never-merge-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: 9p: fix a potential acl leak
+From: Grygorii Maistrenko <grygoriimkd@gmail.com>
+Subject: slub: do not merge cache if slub_debug contains a never-merge flag
 
-posix_acl_update_mode() could possibly clear 'acl', if so we leak the
-memory pointed by 'acl'.  Save this pointer before calling
-posix_acl_update_mode() and release the memory if 'acl' really gets
-cleared.
+In case CONFIG_SLUB_DEBUG_ON=n, find_mergeable() gets debug features from
+commandline but never checks if there are features from the
+SLAB_NEVER_MERGE set.
 
-Link: http://lkml.kernel.org/r/1486678332-2430-1-git-send-email-xiyou.wangcong@gmail.com
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Reported-by: Mark Salyzyn <salyzyn@android.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Greg Kurz <groug@kaod.org>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+As a result selected by slub_debug caches are always mergeable if they
+have been created without a custom constructor set or without one of the
+SLAB_* debug features on.
+
+This moves the SLAB_NEVER_MERGE check below the flags update from
+commandline to make sure it won't merge the slab cache if one of the debug
+features is on.
+
+Link: http://lkml.kernel.org/r/20170101124451.GA4740@lp-laptop-d
+Signed-off-by: Grygorii Maistrenko <grygoriimkd@gmail.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/acl.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/slab_common.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/9p/acl.c~9p-fix-a-potential-acl-leak fs/9p/acl.c
---- a/fs/9p/acl.c~9p-fix-a-potential-acl-leak
-+++ a/fs/9p/acl.c
-@@ -277,6 +277,7 @@ static int v9fs_xattr_set_acl(const stru
- 	case ACL_TYPE_ACCESS:
- 		if (acl) {
- 			struct iattr iattr;
-+			struct posix_acl *old_acl = acl;
+diff -puN mm/slab_common.c~slub-do-not-merge-cache-if-slub_debug-contains-a-never-merge-flag mm/slab_common.c
+--- a/mm/slab_common.c~slub-do-not-merge-cache-if-slub_debug-contains-a-never-merge-flag
++++ a/mm/slab_common.c
+@@ -255,7 +255,7 @@ struct kmem_cache *find_mergeable(size_t
+ {
+ 	struct kmem_cache *s;
  
- 			retval = posix_acl_update_mode(inode, &iattr.ia_mode, &acl);
- 			if (retval)
-@@ -287,6 +288,7 @@ static int v9fs_xattr_set_acl(const stru
- 				 * by the mode bits. So don't
- 				 * update ACL.
- 				 */
-+				posix_acl_release(old_acl);
- 				value = NULL;
- 				size = 0;
- 			}
+-	if (slab_nomerge || (flags & SLAB_NEVER_MERGE))
++	if (slab_nomerge)
+ 		return NULL;
+ 
+ 	if (ctor)
+@@ -266,6 +266,9 @@ struct kmem_cache *find_mergeable(size_t
+ 	size = ALIGN(size, align);
+ 	flags = kmem_cache_flags(size, flags, name, NULL);
+ 
++	if (flags & SLAB_NEVER_MERGE)
++		return NULL;
++
+ 	list_for_each_entry_reverse(s, &slab_caches, list) {
+ 		if (slab_unmergeable(s))
+ 			continue;
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from grygoriimkd@gmail.com are
 
 
