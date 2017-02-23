@@ -1,153 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:15:16 -0800
-Message-ID: <58af50e4.Wjw5ljW4+LVaBWEm%akpm@linux-foundation.org>
+Subject: [merged] mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:15:22 -0800
+Message-ID: <58af50ea.OawQAmiFbOiSaPYQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40174 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbdBWVPR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:17 -0500
+        with ESMTP id S1751199AbdBWVPX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: selftest: test UFFDIO_ZEROPAGE on all memory types
+     Subject: mm, vmscan: remove unused mm_vmscan_memcg_isolate
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types.patch
+     mm-vmscan-remove-unused-mm_vmscan_memcg_isolate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: selftest: test UFFDIO_ZEROPAGE on all memory types
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmscan: remove unused mm_vmscan_memcg_isolate
 
-This will verify -EINVAL is returned with hugetlbfs/shmem and it'll do
-a functional test of UFFDIO_ZEROPAGE on anonymous memory.
+Patch series "vm, vmscan: enahance vmscan tracepoints", v2.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-42-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+While debugging [2] I've realized that there is some room for improvements
+in the tracepoints set we offer currently.  I had hard times to make any
+conclusion from the existing ones.  The resulting problem turned out to be
+active list aging [3] and we are missing at least two tracepoints to debug
+such a problem.
+
+Some existing tracepoints could export more information to see _why_ the
+reclaim progress cannot be made not only _how much_ we could reclaim.  The
+later could be seen quite reasonably from the vmstat counters already.  It
+can be argued that we are showing too many implementation details in those
+tracepoints but I consider them way too lowlevel already to be usable by
+any kernel independent userspace.  I would be _really_ surprised if
+anything but debugging tools have used them.
+
+Any feedback is highly appreciated.
+
+[1] http://lkml.kernel.org/r/20161228153032.10821-1-mhocko@kernel.org
+[2] http://lkml.kernel.org/r/20161215225702.GA27944@boerne.fritz.box
+[3] http://lkml.kernel.org/r/20161223105157.GB23109@dhcp22.suse.cz
+
+
+This patch (of 8):
+
+The trace point is not used since 925b7673cce3 ("mm: make per-memcg LRU
+lists exclusive") so it can be removed.
+
+Link: http://lkml.kernel.org/r/20170104101942.4860-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   82 ++++++++++++++++++++-
- 1 file changed, 81 insertions(+), 1 deletion(-)
+ include/trace/events/vmscan.h |   31 +------------------------------
+ 1 file changed, 1 insertion(+), 30 deletions(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-test-uffdio_zeropage-on-all-memory-types
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -625,6 +625,86 @@ static int faulting_process(void)
- 	return 0;
- }
+diff -puN include/trace/events/vmscan.h~mm-vmscan-remove-unused-mm_vmscan_memcg_isolate include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-vmscan-remove-unused-mm_vmscan_memcg_isolate
++++ a/include/trace/events/vmscan.h
+@@ -269,8 +269,7 @@ TRACE_EVENT(mm_shrink_slab_end,
+ 		__entry->retval)
+ );
  
-+static int uffdio_zeropage(int ufd, unsigned long offset)
-+{
-+	struct uffdio_zeropage uffdio_zeropage;
-+	int ret;
-+	unsigned long has_zeropage = EXPECTED_IOCTLS & (1 << _UFFDIO_ZEROPAGE);
-+
-+	if (offset >= nr_pages * page_size)
-+		fprintf(stderr, "unexpected offset %lu\n",
-+			offset), exit(1);
-+	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
-+	uffdio_zeropage.range.len = page_size;
-+	uffdio_zeropage.mode = 0;
-+	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
-+	if (ret) {
-+		/* real retval in ufdio_zeropage.zeropage */
-+		if (has_zeropage) {
-+			if (uffdio_zeropage.zeropage == -EEXIST)
-+				fprintf(stderr, "UFFDIO_ZEROPAGE -EEXIST\n"),
-+					exit(1);
-+			else
-+				fprintf(stderr, "UFFDIO_ZEROPAGE error %Ld\n",
-+					uffdio_zeropage.zeropage), exit(1);
-+		} else {
-+			if (uffdio_zeropage.zeropage != -EINVAL)
-+				fprintf(stderr,
-+					"UFFDIO_ZEROPAGE not -EINVAL %Ld\n",
-+					uffdio_zeropage.zeropage), exit(1);
-+		}
-+	} else if (has_zeropage) {
-+		if (uffdio_zeropage.zeropage != page_size) {
-+			fprintf(stderr, "UFFDIO_ZEROPAGE unexpected %Ld\n",
-+				uffdio_zeropage.zeropage), exit(1);
-+		} else
-+			return 1;
-+	} else {
-+		fprintf(stderr,
-+			"UFFDIO_ZEROPAGE succeeded %Ld\n",
-+			uffdio_zeropage.zeropage), exit(1);
-+	}
-+
-+	return 0;
-+}
-+
-+/* exercise UFFDIO_ZEROPAGE */
-+static int userfaultfd_zeropage_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+	unsigned long expected_ioctls;
-+
-+	printf("testing UFFDIO_ZEROPAGE: ");
-+	fflush(stdout);
-+
-+	if (release_pages(area_dst))
-+		return 1;
-+
-+	if (userfaultfd_open(0) < 0)
-+		return 1;
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		fprintf(stderr, "register failure\n"), exit(1);
-+
-+	expected_ioctls = EXPECTED_IOCTLS;
-+	if ((uffdio_register.ioctls & expected_ioctls) !=
-+	    expected_ioctls)
-+		fprintf(stderr,
-+			"unexpected missing ioctl for anon memory\n"),
-+			exit(1);
-+
-+	if (uffdio_zeropage(uffd, 0)) {
-+		if (my_bcmp(area_dst, zeropage, page_size))
-+			fprintf(stderr, "zeropage is not zero\n"), exit(1);
-+	}
-+
-+	close(uffd);
-+	printf("done.\n");
-+	return 0;
-+}
-+
- static int userfaultfd_events_test(void)
- {
- 	struct uffdio_register uffdio_register;
-@@ -853,7 +933,7 @@ static int userfaultfd_stress(void)
- 		return err;
+-DECLARE_EVENT_CLASS(mm_vmscan_lru_isolate_template,
+-
++TRACE_EVENT(mm_vmscan_lru_isolate,
+ 	TP_PROTO(int classzone_idx,
+ 		int order,
+ 		unsigned long nr_requested,
+@@ -311,34 +310,6 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		__entry->file)
+ );
  
- 	close(uffd);
--	return userfaultfd_events_test();
-+	return userfaultfd_zeropage_test() || userfaultfd_events_test();
- }
- 
- #ifndef HUGETLB_TEST
-_
-
-Patches currently in -mm which might be from aarcange@redhat.com are
-
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
-
+-DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_lru_isolate,
+-
+-	TP_PROTO(int classzone_idx,
+-		int order,
+-		unsigned long nr_requested,
+-		unsigned long nr_scanned,
+-		unsigned long nr_taken,
+-		isolate_mode_t isolate_mode,
+-		int file),
+-
+-	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
+-
+-);
+-
+-DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_memcg_isolate,
+-
+-	TP_PROTO(int classzone_idx,
+-		int order,
+-		unsigned long nr_requested,
+-		unsigned long nr_scanned,
+-		unsigned long nr_taken,
+-		isolate_mode_t isolate_mode,
+-		int file),
+-
+-	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
+-
+-);
