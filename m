@@ -1,58 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-bootmemc-cosmetic-improvement-of-code-readability.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:16:01 -0800
-Message-ID: <58af5111.q6VJMYcK495njqHv%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-some-typos-in-mm-zsmallocc.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:16:03 -0800
+Message-ID: <58af5113.h155X8WkWFZPeZA4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40440 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbdBWVQC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:16:02 -0500
+        with ESMTP id S1751195AbdBWVQE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:16:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ondar07@gmail.com, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/bootmem.c: cosmetic improvement of code readability
+     Subject: mm: fix some typos in mm/zsmalloc.c
 has been removed from the -mm tree.  Its filename was
-     mm-bootmemc-cosmetic-improvement-of-code-readability.patch
+     mm-fix-some-typos-in-mm-zsmallocc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Adygzhy Ondar <ondar07@gmail.com>
-Subject: mm/bootmem.c: cosmetic improvement of code readability
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm: fix some typos in mm/zsmalloc.c
 
-The obvious number of bits in a byte is replaced
-by BITS_PER_BYTE macro in bootmap_bytes()
+Delete extra semicolon, and fix some typos.
 
-Link: http://lkml.kernel.org/r/1483781600-5136-1-git-send-email-ondar07@gmail.com
-Signed-off-by: Adygzhy Ondar <ondar07@gmail.com>
+Link: http://lkml.kernel.org/r/586F1823.4050107@huawei.com
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zsmalloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/bootmem.c~mm-bootmemc-cosmetic-improvement-of-code-readability mm/bootmem.c
---- a/mm/bootmem.c~mm-bootmemc-cosmetic-improvement-of-code-readability
-+++ a/mm/bootmem.c
-@@ -53,7 +53,7 @@ early_param("bootmem_debug", bootmem_deb
+diff -puN mm/zsmalloc.c~mm-fix-some-typos-in-mm-zsmallocc mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-fix-some-typos-in-mm-zsmallocc
++++ a/mm/zsmalloc.c
+@@ -25,7 +25,7 @@
+  * Usage of struct page flags:
+  *	PG_private: identifies the first component page
+  *	PG_private2: identifies the last component page
+- *	PG_owner_priv_1: indentifies the huge component page
++ *	PG_owner_priv_1: identifies the huge component page
+  *
+  */
  
- static unsigned long __init bootmap_bytes(unsigned long pages)
+@@ -364,7 +364,7 @@ static struct zspage *cache_alloc_zspage
  {
--	unsigned long bytes = DIV_ROUND_UP(pages, 8);
-+	unsigned long bytes = DIV_ROUND_UP(pages, BITS_PER_BYTE);
+ 	return kmem_cache_alloc(pool->zspage_cachep,
+ 			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
+-};
++}
  
- 	return ALIGN(bytes, sizeof(long));
- }
+ static void cache_free_zspage(struct zs_pool *pool, struct zspage *zspage)
+ {
+@@ -2383,7 +2383,7 @@ struct zs_pool *zs_create_pool(const cha
+ 		goto err;
+ 
+ 	/*
+-	 * Iterate reversly, because, size of size_class that we want to use
++	 * Iterate reversely, because, size of size_class that we want to use
+ 	 * for merging should be larger or equal to current size.
+ 	 */
+ 	for (i = zs_size_classes - 1; i >= 0; i--) {
 _
 
-Patches currently in -mm which might be from ondar07@gmail.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
 
