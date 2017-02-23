@@ -1,87 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-mm-bail-out-in-shrink_inactive_list.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:17:00 -0800
-Message-ID: <58af514c.y0c7feF52V8g3h65%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:17:19 -0800
+Message-ID: <58af515f.O3II6z02aPpczOjy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41616 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751246AbdBWVRm (ORCPT
+        with ESMTP id S1751268AbdBWVRm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpchxg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm: bail out in shrink_inactive_list()"
+     Subject: mm: help __GFP_NOFAIL allocations which do not trigger OOM killer
 has been removed from the -mm tree.  Its filename was
-     revert-mm-bail-out-in-shrink_inactive_list.patch
+     mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: Revert "mm: bail out in shrink_inactive_list()"
+Subject: mm: help __GFP_NOFAIL allocations which do not trigger OOM killer
 
-This reverts commit 91dcade47a3d0e7.
+Now that __GFP_NOFAIL doesn't override decisions to skip the oom killer we
+are left with requests which require to loop inside the allocator without
+invoking the oom killer (e.g.  GFP_NOFS|__GFP_NOFAIL used by fs code) and
+so they might, in very unlikely situations, loop for ever - e.g.  other
+parallel request could starve them.
 
-inactive_reclaimable_pages shouldn't be needed anymore since that
-get_scan_count is aware of the eligble zones ("mm, vmscan: consider
-eligible zones in get_scan_count").
+This patch tries to limit the likelihood of such a lockup by giving these
+__GFP_NOFAIL requests a chance to move on by consuming a small part of
+memory reserves.  We are using ALLOC_HARDER which should be enough to
+prevent from the starvation by regular allocation requests, yet it
+shouldn't consume enough from the reserves to disrupt high priority
+requests (ALLOC_HIGH).
 
-Link: http://lkml.kernel.org/r/20170117103702.28542-4-mhocko@kernel.org
+While we are at it, let's introduce a helper __alloc_pages_cpuset_fallback
+which enforces the cpusets but allows to fallback to ignore them if the
+first attempt fails.  __GFP_NOFAIL requests can be considered important
+enough to allow cpuset runaway in order for the system to move on.  It is
+highly unlikely that any of these will be GFP_USER anyway.
+
+Link: http://lkml.kernel.org/r/20161220134904.21023-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpchxg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 ---------------------------
- 1 file changed, 27 deletions(-)
+ mm/page_alloc.c |   46 ++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 36 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~revert-mm-bail-out-in-shrink_inactive_list mm/vmscan.c
---- a/mm/vmscan.c~revert-mm-bail-out-in-shrink_inactive_list
-+++ a/mm/vmscan.c
-@@ -1701,30 +1701,6 @@ static int current_may_throttle(void)
- 		bdi_write_congested(current->backing_dev_info);
+diff -puN mm/page_alloc.c~mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer
++++ a/mm/page_alloc.c
+@@ -3056,6 +3056,26 @@ void warn_alloc(gfp_t gfp_mask, nodemask
  }
  
--static bool inactive_reclaimable_pages(struct lruvec *lruvec,
--				struct scan_control *sc, enum lru_list lru)
--{
--	int zid;
--	struct zone *zone;
--	int file = is_file_lru(lru);
--	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
--
--	if (!global_reclaim(sc))
--		return true;
--
--	for (zid = sc->reclaim_idx; zid >= 0; zid--) {
--		zone = &pgdat->node_zones[zid];
--		if (!managed_zone(zone))
--			continue;
--
--		if (zone_page_state_snapshot(zone, NR_ZONE_LRU_BASE +
--				LRU_FILE * file) >= SWAP_CLUSTER_MAX)
--			return true;
--	}
--
--	return false;
--}
--
- /*
-  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-@@ -1743,9 +1719,6 @@ shrink_inactive_list(unsigned long nr_to
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ static inline struct page *
++__alloc_pages_cpuset_fallback(gfp_t gfp_mask, unsigned int order,
++			      unsigned int alloc_flags,
++			      const struct alloc_context *ac)
++{
++	struct page *page;
++
++	page = get_page_from_freelist(gfp_mask, order,
++			alloc_flags|ALLOC_CPUSET, ac);
++	/*
++	 * fallback to ignore cpuset restriction if our nodes
++	 * are depleted
++	 */
++	if (!page)
++		page = get_page_from_freelist(gfp_mask, order,
++				alloc_flags, ac);
++
++	return page;
++}
++
++static inline struct page *
+ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
+ 	const struct alloc_context *ac, unsigned long *did_some_progress)
+ {
+@@ -3119,17 +3139,13 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
+ 		*did_some_progress = 1;
  
--	if (!inactive_reclaimable_pages(lruvec, sc, lru))
--		return 0;
+-		if (gfp_mask & __GFP_NOFAIL) {
+-			page = get_page_from_freelist(gfp_mask, order,
+-					ALLOC_NO_WATERMARKS|ALLOC_CPUSET, ac);
+-			/*
+-			 * fallback to ignore cpuset restriction if our nodes
+-			 * are depleted
+-			 */
+-			if (!page)
+-				page = get_page_from_freelist(gfp_mask, order,
++		/*
++		 * Help non-failing allocations by giving them access to memory
++		 * reserves
++		 */
++		if (gfp_mask & __GFP_NOFAIL)
++			page = __alloc_pages_cpuset_fallback(gfp_mask, order,
+ 					ALLOC_NO_WATERMARKS, ac);
+-		}
+ 	}
+ out:
+ 	mutex_unlock(&oom_lock);
+@@ -3785,6 +3801,16 @@ nopage:
+ 		 */
+ 		WARN_ON_ONCE(order > PAGE_ALLOC_COSTLY_ORDER);
+ 
++		/*
++		 * Help non-failing allocations by giving them access to memory
++		 * reserves but do not use ALLOC_NO_WATERMARKS because this
++		 * could deplete whole memory reserves which would just make
++		 * the situation worse
++		 */
++		page = __alloc_pages_cpuset_fallback(gfp_mask, order, ALLOC_HARDER, ac);
++		if (page)
++			goto got_pg;
++
+ 		cond_resched();
+ 		goto retry;
+ 	}
+_
+
+Patches currently in -mm which might be from mhocko@suse.com are
+
+mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
+userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
+vmalloc-back-of-when-the-current-is-killed.patch
+
