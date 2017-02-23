@@ -1,176 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-add-active-list-aging-tracepoint.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:15:25 -0800
-Message-ID: <58af50ed.bCkKqD6Ks+9AG2aA%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:15:34 -0800
+Message-ID: <58af50f6.ZW264W1jevVi0at2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40216 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdBWVP0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:26 -0500
+        with ESMTP id S1751195AbdBWVPf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: add active list aging tracepoint
+     Subject: mm, vmscan: extract shrink_page_list reclaim counters into a struct
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-add-active-list-aging-tracepoint.patch
+     mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: add active list aging tracepoint
+Subject: mm, vmscan: extract shrink_page_list reclaim counters into a struct
 
-Our reclaim process has several tracepoints to tell us more about how
-things are progressing.  We are, however, missing a tracepoint to track
-active list aging.  Introduce mm_vmscan_lru_shrink_active which reports
-the number of
+shrink_page_list returns quite some counters back to its caller.  Extract
+the existing 5 into struct reclaim_stat because this makes the code easier
+to follow and also allows further counters to be returned.
 
-	- nr_taken is number of isolated pages from the active list
-	- nr_referenced pages which tells us that we are hitting referenced
-	  pages which are deactivated. If this is a large part of the
-	  reported nr_deactivated pages then we might be hitting into
-	  the active list too early because they might be still part of
-	  the working set. This might help to debug performance issues.
-	- nr_active pages which tells us how many pages are kept on the
-	  active list - mostly exec file backed pages. A high number can
-	  indicate that we might be trashing on executables.
+While we are at it, make all of them unsigned rather than unsigned long as
+we do not really need full 64b for them (we never scan more than
+SWAP_CLUSTER_MAX pages at once).  This should reduce some stack space.
 
-[mhocko@suse.com: update]
-  Link: http://lkml.kernel.org/r/20170104135244.GJ25453@dhcp22.suse.cz
-Link: http://lkml.kernel.org/r/20170104101942.4860-3-mhocko@kernel.org
+This patch shouldn't introduce any functional change.
+
+Link: http://lkml.kernel.org/r/20170104101942.4860-6-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   36 ++++++++++++++++++++++++++++++++
- mm/vmscan.c                   |   18 ++++++++++++----
- 2 files changed, 50 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   61 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 30 insertions(+), 31 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-vmscan-add-active-list-aging-tracepoint include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-vmscan-add-active-list-aging-tracepoint
-+++ a/include/trace/events/vmscan.h
-@@ -363,6 +363,42 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
- 
-+TRACE_EVENT(mm_vmscan_lru_shrink_active,
-+
-+	TP_PROTO(int nid, unsigned long nr_taken,
-+		unsigned long nr_active, unsigned long nr_deactivated,
-+		unsigned long nr_referenced, int priority, int file),
-+
-+	TP_ARGS(nid, nr_taken, nr_active, nr_deactivated, nr_referenced, priority, file),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+		__field(unsigned long, nr_taken)
-+		__field(unsigned long, nr_active)
-+		__field(unsigned long, nr_deactivated)
-+		__field(unsigned long, nr_referenced)
-+		__field(int, priority)
-+		__field(int, reclaim_flags)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+		__entry->nr_taken = nr_taken;
-+		__entry->nr_active = nr_active;
-+		__entry->nr_deactivated = nr_deactivated;
-+		__entry->nr_referenced = nr_referenced;
-+		__entry->priority = priority;
-+		__entry->reclaim_flags = trace_shrink_flags(file);
-+	),
-+
-+	TP_printk("nid=%d nr_taken=%ld nr_active=%ld nr_deactivated=%ld nr_referenced=%ld priority=%d flags=%s",
-+		__entry->nid,
-+		__entry->nr_taken,
-+		__entry->nr_active, __entry->nr_deactivated, __entry->nr_referenced,
-+		__entry->priority,
-+		show_reclaim_flags(__entry->reclaim_flags))
-+);
-+
- #endif /* _TRACE_VMSCAN_H */
- 
- /* This part must be outside protection */
-diff -puN mm/vmscan.c~mm-vmscan-add-active-list-aging-tracepoint mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-add-active-list-aging-tracepoint
+diff -puN mm/vmscan.c~mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-extract-shrink_page_list-reclaim-counters-into-a-struct
 +++ a/mm/vmscan.c
-@@ -1855,9 +1855,11 @@ shrink_inactive_list(unsigned long nr_to
-  *
-  * The downside is that we have to touch page->_refcount against each page.
-  * But we had to alter page->flags anyway.
-+ *
-+ * Returns the number of pages moved to the given lru.
-  */
- 
--static void move_active_pages_to_lru(struct lruvec *lruvec,
-+static unsigned move_active_pages_to_lru(struct lruvec *lruvec,
- 				     struct list_head *list,
- 				     struct list_head *pages_to_free,
- 				     enum lru_list lru)
-@@ -1866,6 +1868,7 @@ static void move_active_pages_to_lru(str
- 	unsigned long pgmoved = 0;
- 	struct page *page;
- 	int nr_pages;
-+	int nr_moved = 0;
- 
- 	while (!list_empty(list)) {
- 		page = lru_to_page(list);
-@@ -1891,11 +1894,15 @@ static void move_active_pages_to_lru(str
- 				spin_lock_irq(&pgdat->lru_lock);
- 			} else
- 				list_add(&page->lru, pages_to_free);
-+		} else {
-+			nr_moved += nr_pages;
- 		}
- 	}
- 
- 	if (!is_active_lru(lru))
- 		__count_vm_events(PGDEACTIVATE, pgmoved);
-+
-+	return nr_moved;
+@@ -912,6 +912,14 @@ static void page_check_dirty_writeback(s
+ 		mapping->a_ops->is_dirty_writeback(page, dirty, writeback);
  }
  
- static void shrink_active_list(unsigned long nr_to_scan,
-@@ -1911,7 +1918,8 @@ static void shrink_active_list(unsigned
- 	LIST_HEAD(l_inactive);
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
--	unsigned long nr_rotated = 0;
-+	unsigned nr_deactivate, nr_activate;
-+	unsigned nr_rotated = 0;
++struct reclaim_stat {
++	unsigned nr_dirty;
++	unsigned nr_unqueued_dirty;
++	unsigned nr_congested;
++	unsigned nr_writeback;
++	unsigned nr_immediate;
++};
++
+ /*
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+@@ -919,22 +927,18 @@ static unsigned long shrink_page_list(st
+ 				      struct pglist_data *pgdat,
+ 				      struct scan_control *sc,
+ 				      enum ttu_flags ttu_flags,
+-				      unsigned long *ret_nr_dirty,
+-				      unsigned long *ret_nr_unqueued_dirty,
+-				      unsigned long *ret_nr_congested,
+-				      unsigned long *ret_nr_writeback,
+-				      unsigned long *ret_nr_immediate,
++				      struct reclaim_stat *stat,
+ 				      bool force_reclaim)
+ {
+ 	LIST_HEAD(ret_pages);
+ 	LIST_HEAD(free_pages);
+ 	int pgactivate = 0;
+-	unsigned long nr_unqueued_dirty = 0;
+-	unsigned long nr_dirty = 0;
+-	unsigned long nr_congested = 0;
+-	unsigned long nr_reclaimed = 0;
+-	unsigned long nr_writeback = 0;
+-	unsigned long nr_immediate = 0;
++	unsigned nr_unqueued_dirty = 0;
++	unsigned nr_dirty = 0;
++	unsigned nr_congested = 0;
++	unsigned nr_reclaimed = 0;
++	unsigned nr_writeback = 0;
++	unsigned nr_immediate = 0;
+ 
+ 	cond_resched();
+ 
+@@ -1276,11 +1280,13 @@ keep:
+ 	list_splice(&ret_pages, page_list);
+ 	count_vm_events(PGACTIVATE, pgactivate);
+ 
+-	*ret_nr_dirty += nr_dirty;
+-	*ret_nr_congested += nr_congested;
+-	*ret_nr_unqueued_dirty += nr_unqueued_dirty;
+-	*ret_nr_writeback += nr_writeback;
+-	*ret_nr_immediate += nr_immediate;
++	if (stat) {
++		stat->nr_dirty = nr_dirty;
++		stat->nr_congested = nr_congested;
++		stat->nr_unqueued_dirty = nr_unqueued_dirty;
++		stat->nr_writeback = nr_writeback;
++		stat->nr_immediate = nr_immediate;
++	}
+ 	return nr_reclaimed;
+ }
+ 
+@@ -1292,7 +1298,7 @@ unsigned long reclaim_clean_pages_from_l
+ 		.priority = DEF_PRIORITY,
+ 		.may_unmap = 1,
+ 	};
+-	unsigned long ret, dummy1, dummy2, dummy3, dummy4, dummy5;
++	unsigned long ret;
+ 	struct page *page, *next;
+ 	LIST_HEAD(clean_pages);
+ 
+@@ -1305,8 +1311,7 @@ unsigned long reclaim_clean_pages_from_l
+ 	}
+ 
+ 	ret = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
+-			TTU_UNMAP|TTU_IGNORE_ACCESS,
+-			&dummy1, &dummy2, &dummy3, &dummy4, &dummy5, true);
++			TTU_UNMAP|TTU_IGNORE_ACCESS, NULL, true);
+ 	list_splice(&clean_pages, page_list);
+ 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -ret);
+ 	return ret;
+@@ -1705,11 +1710,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_scanned;
+ 	unsigned long nr_reclaimed = 0;
+ 	unsigned long nr_taken;
+-	unsigned long nr_dirty = 0;
+-	unsigned long nr_congested = 0;
+-	unsigned long nr_unqueued_dirty = 0;
+-	unsigned long nr_writeback = 0;
+-	unsigned long nr_immediate = 0;
++	struct reclaim_stat stat = {};
  	isolate_mode_t isolate_mode = 0;
  	int file = is_file_lru(lru);
  	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-@@ -1989,13 +1997,15 @@ static void shrink_active_list(unsigned
+@@ -1754,9 +1755,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		return 0;
+ 
+ 	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, TTU_UNMAP,
+-				&nr_dirty, &nr_unqueued_dirty, &nr_congested,
+-				&nr_writeback, &nr_immediate,
+-				false);
++				&stat, false);
+ 
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 
+@@ -1790,7 +1789,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	 * of pages under pages flagged for immediate reclaim and stall if any
+ 	 * are encountered in the nr_immediate check below.
  	 */
- 	reclaim_stat->recent_rotated[file] += nr_rotated;
+-	if (nr_writeback && nr_writeback == nr_taken)
++	if (stat.nr_writeback && stat.nr_writeback == nr_taken)
+ 		set_bit(PGDAT_WRITEBACK, &pgdat->flags);
  
--	move_active_pages_to_lru(lruvec, &l_active, &l_hold, lru);
--	move_active_pages_to_lru(lruvec, &l_inactive, &l_hold, lru - LRU_ACTIVE);
-+	nr_activate = move_active_pages_to_lru(lruvec, &l_active, &l_hold, lru);
-+	nr_deactivate = move_active_pages_to_lru(lruvec, &l_inactive, &l_hold, lru - LRU_ACTIVE);
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
- 	spin_unlock_irq(&pgdat->lru_lock);
+ 	/*
+@@ -1802,7 +1801,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * Tag a zone as congested if all the dirty pages scanned were
+ 		 * backed by a congested BDI and wait_iff_congested will stall.
+ 		 */
+-		if (nr_dirty && nr_dirty == nr_congested)
++		if (stat.nr_dirty && stat.nr_dirty == stat.nr_congested)
+ 			set_bit(PGDAT_CONGESTED, &pgdat->flags);
  
- 	mem_cgroup_uncharge_list(&l_hold);
- 	free_hot_cold_page_list(&l_hold, true);
-+	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
-+			nr_deactivate, nr_rotated, sc->priority, file);
- }
+ 		/*
+@@ -1811,7 +1810,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * the pgdat PGDAT_DIRTY and kswapd will start writing pages from
+ 		 * reclaim context.
+ 		 */
+-		if (nr_unqueued_dirty == nr_taken)
++		if (stat.nr_unqueued_dirty == nr_taken)
+ 			set_bit(PGDAT_DIRTY, &pgdat->flags);
  
- /*
+ 		/*
+@@ -1820,7 +1819,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		 * that pages are cycling through the LRU faster than
+ 		 * they are written so also forcibly stall.
+ 		 */
+-		if (nr_immediate && current_may_throttle())
++		if (stat.nr_immediate && current_may_throttle())
+ 			congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
