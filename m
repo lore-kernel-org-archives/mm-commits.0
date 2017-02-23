@@ -1,108 +1,251 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userfaultfd-use-vma_is_anonymous.patch removed from -mm
- tree
-Date: Thu, 23 Feb 2017 13:13:22 -0800
-Message-ID: <58af5072.nJLMLvWPKa9r4EAB%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:13:28 -0800
+Message-ID: <58af5078.IE5PQINscOy/LI8p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41680 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751223AbdBWVV7 (ORCPT
+        with ESMTP id S1751201AbdBWVV7 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:21:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: use vma_is_anonymous
+     Subject: userfaultfd: non-cooperative: add ability to report non-PF events from uffd descriptor
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-use-vma_is_anonymous.patch
+     userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: use vma_is_anonymous
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: userfaultfd: non-cooperative: add ability to report non-PF events from uffd descriptor
 
-Cleanup the vma->vm_ops usage.
+The custom events are queued in ctx->event_wqh not to disturb the
+fast-path-ed PF queue-wait-wakeup functions.
 
-Side note: it would be more robust if vma_is_anonymous() would also
-check that vm_flags hasn't VM_PFNMAP set.
+The events to be generated (other than PF-s) are requested in UFFD_API
+ioctl with the uffd_api.features bits. Those, known by the kernel, are
+then turned on and reported back to the user-space.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-5-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-7-aarcange@redhat.com
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    8 ++++----
- mm/userfaultfd.c |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ fs/userfaultfd.c |   98 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 96 insertions(+), 2 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-use-vma_is_anonymous fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-use-vma_is_anonymous
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-ability-to-report-non-pf-events-from-uffd-descriptor
 +++ a/fs/userfaultfd.c
-@@ -830,7 +830,7 @@ static int userfaultfd_register(struct u
+@@ -12,6 +12,7 @@
+  *  mm/ksm.c (mm hashing).
+  */
  
- 		/* check not compatible vmas */
++#include <linux/list.h>
+ #include <linux/hashtable.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+@@ -45,12 +46,16 @@ struct userfaultfd_ctx {
+ 	wait_queue_head_t fault_wqh;
+ 	/* waitqueue head for the pseudo fd to wakeup poll/read */
+ 	wait_queue_head_t fd_wqh;
++	/* waitqueue head for events */
++	wait_queue_head_t event_wqh;
+ 	/* a refile sequence protected by fault_pending_wqh lock */
+ 	struct seqcount refile_seq;
+ 	/* pseudo fd refcounting */
+ 	atomic_t refcount;
+ 	/* userfaultfd syscall flags */
+ 	unsigned int flags;
++	/* features requested from the userspace */
++	unsigned int features;
+ 	/* state machine */
+ 	enum userfaultfd_state state;
+ 	/* released */
+@@ -142,6 +147,8 @@ static void userfaultfd_ctx_put(struct u
+ 		VM_BUG_ON(waitqueue_active(&ctx->fault_pending_wqh));
+ 		VM_BUG_ON(spin_is_locked(&ctx->fault_wqh.lock));
+ 		VM_BUG_ON(waitqueue_active(&ctx->fault_wqh));
++		VM_BUG_ON(spin_is_locked(&ctx->event_wqh.lock));
++		VM_BUG_ON(waitqueue_active(&ctx->event_wqh));
+ 		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
+ 		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
+ 		mmdrop(ctx->mm);
+@@ -458,6 +465,59 @@ out:
+ 	return ret;
+ }
+ 
++static int __maybe_unused userfaultfd_event_wait_completion(
++		struct userfaultfd_ctx *ctx,
++		struct userfaultfd_wait_queue *ewq)
++{
++	int ret = 0;
++
++	ewq->ctx = ctx;
++	init_waitqueue_entry(&ewq->wq, current);
++
++	spin_lock(&ctx->event_wqh.lock);
++	/*
++	 * After the __add_wait_queue the uwq is visible to userland
++	 * through poll/read().
++	 */
++	__add_wait_queue(&ctx->event_wqh, &ewq->wq);
++	for (;;) {
++		set_current_state(TASK_KILLABLE);
++		if (ewq->msg.event == 0)
++			break;
++		if (ACCESS_ONCE(ctx->released) ||
++		    fatal_signal_pending(current)) {
++			ret = -1;
++			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
++			break;
++		}
++
++		spin_unlock(&ctx->event_wqh.lock);
++
++		wake_up_poll(&ctx->fd_wqh, POLLIN);
++		schedule();
++
++		spin_lock(&ctx->event_wqh.lock);
++	}
++	__set_current_state(TASK_RUNNING);
++	spin_unlock(&ctx->event_wqh.lock);
++
++	/*
++	 * ctx may go away after this if the userfault pseudo fd is
++	 * already released.
++	 */
++
++	userfaultfd_ctx_put(ctx);
++	return ret;
++}
++
++static void userfaultfd_event_complete(struct userfaultfd_ctx *ctx,
++				       struct userfaultfd_wait_queue *ewq)
++{
++	ewq->msg.event = 0;
++	wake_up_locked(&ctx->event_wqh);
++	__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
++}
++
+ static int userfaultfd_release(struct inode *inode, struct file *file)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+@@ -546,6 +606,12 @@ static inline struct userfaultfd_wait_qu
+ 	return find_userfault_in(&ctx->fault_pending_wqh);
+ }
+ 
++static inline struct userfaultfd_wait_queue *find_userfault_evt(
++		struct userfaultfd_ctx *ctx)
++{
++	return find_userfault_in(&ctx->event_wqh);
++}
++
+ static unsigned int userfaultfd_poll(struct file *file, poll_table *wait)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+@@ -577,6 +643,9 @@ static unsigned int userfaultfd_poll(str
+ 		smp_mb();
+ 		if (waitqueue_active(&ctx->fault_pending_wqh))
+ 			ret = POLLIN;
++		else if (waitqueue_active(&ctx->event_wqh))
++			ret = POLLIN;
++
+ 		return ret;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -641,6 +710,19 @@ static ssize_t userfaultfd_ctx_read(stru
+ 			break;
+ 		}
+ 		spin_unlock(&ctx->fault_pending_wqh.lock);
++
++		spin_lock(&ctx->event_wqh.lock);
++		uwq = find_userfault_evt(ctx);
++		if (uwq) {
++			*msg = uwq->msg;
++
++			userfaultfd_event_complete(ctx, uwq);
++			spin_unlock(&ctx->event_wqh.lock);
++			ret = 0;
++			break;
++		}
++		spin_unlock(&ctx->event_wqh.lock);
++
+ 		if (signal_pending(current)) {
+ 			ret = -ERESTARTSYS;
+ 			break;
+@@ -1184,6 +1266,14 @@ out:
+ 	return ret;
+ }
+ 
++static inline unsigned int uffd_ctx_features(__u64 user_features)
++{
++	/*
++	 * For the current set of features the bits just coincide
++	 */
++	return (unsigned int)user_features;
++}
++
+ /*
+  * userland asks for a certain API version and we return which bits
+  * and ioctl commands are implemented in this kernel for such API
+@@ -1202,19 +1292,21 @@ static int userfaultfd_api(struct userfa
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_api, buf, sizeof(uffdio_api)))
+ 		goto out;
+-	if (uffdio_api.api != UFFD_API || uffdio_api.features) {
++	if (uffdio_api.api != UFFD_API ||
++	    (uffdio_api.features & ~UFFD_API_FEATURES)) {
+ 		memset(&uffdio_api, 0, sizeof(uffdio_api));
+ 		if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
+ 			goto out;
  		ret = -EINVAL;
--		if (cur->vm_ops)
-+		if (!vma_is_anonymous(cur))
- 			goto out_unlock;
+ 		goto out;
+ 	}
+-	uffdio_api.features = UFFD_API_FEATURES;
++	uffdio_api.features &= UFFD_API_FEATURES;
+ 	uffdio_api.ioctls = UFFD_API_IOCTLS;
+ 	ret = -EFAULT;
+ 	if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
+ 		goto out;
+ 	ctx->state = UFFD_STATE_RUNNING;
++	ctx->features = uffd_ctx_features(uffdio_api.features);
+ 	ret = 0;
+ out:
+ 	return ret;
+@@ -1301,6 +1393,7 @@ static void init_once_userfaultfd_ctx(vo
  
- 		/*
-@@ -855,7 +855,7 @@ static int userfaultfd_register(struct u
- 	do {
- 		cond_resched();
+ 	init_waitqueue_head(&ctx->fault_pending_wqh);
+ 	init_waitqueue_head(&ctx->fault_wqh);
++	init_waitqueue_head(&ctx->event_wqh);
+ 	init_waitqueue_head(&ctx->fd_wqh);
+ 	seqcount_init(&ctx->refile_seq);
+ }
+@@ -1341,6 +1434,7 @@ static struct file *userfaultfd_file_cre
  
--		BUG_ON(vma->vm_ops);
-+		BUG_ON(!vma_is_anonymous(vma));
- 		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
- 		       vma->vm_userfaultfd_ctx.ctx != ctx);
- 
-@@ -981,7 +981,7 @@ static int userfaultfd_unregister(struct
- 		 * provides for more strict behavior to notice
- 		 * unregistration errors.
- 		 */
--		if (cur->vm_ops)
-+		if (!vma_is_anonymous(cur))
- 			goto out_unlock;
- 
- 		found = true;
-@@ -995,7 +995,7 @@ static int userfaultfd_unregister(struct
- 	do {
- 		cond_resched();
- 
--		BUG_ON(vma->vm_ops);
-+		BUG_ON(!vma_is_anonymous(vma));
- 
- 		/*
- 		 * Nothing to do: this vma is already registered into this
-diff -puN mm/userfaultfd.c~userfaultfd-use-vma_is_anonymous mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-use-vma_is_anonymous
-+++ a/mm/userfaultfd.c
-@@ -197,7 +197,7 @@ retry:
- 	 * FIXME: only allow copying on anonymous vmas, tmpfs should
- 	 * be added.
- 	 */
--	if (dst_vma->vm_ops)
-+	if (!vma_is_anonymous(dst_vma))
- 		goto out_unlock;
- 
- 	/*
+ 	atomic_set(&ctx->refcount, 1);
+ 	ctx->flags = flags;
++	ctx->features = 0;
+ 	ctx->state = UFFD_STATE_WAIT_API;
+ 	ctx->released = false;
+ 	ctx->mm = current->mm;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from xemul@parallels.com are
 
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
