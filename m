@@ -1,36 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:14:55 -0800
-Message-ID: <58af50cf.Hh41d5ox1pcObAN2%akpm@linux-foundation.org>
+ userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:15:01 -0800
+Message-ID: <58af50d5.tzggUYdNcwZMPU1+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40070 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751282AbdBWVO4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:56 -0500
+        with ESMTP id S1751308AbdBWVPD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: shmem: lock the page before adding it to pagecache
+     Subject: userfaultfd: shmem: avoid leaking blocks and used blocks in UFFDIO_COPY
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache.patch
+     userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: shmem: lock the page before adding it to pagecache
+Subject: userfaultfd: shmem: avoid leaking blocks and used blocks in UFFDIO_COPY
 
-A VM_BUG_ON triggered on the shmem selftest.
+If the atomic copy_user fails because of a real dangling userland
+pointer, we won't go back into the shmem method, so when the method
+returns it must not leave anything charged up, except the page itself.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-36-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-37-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -41,31 +43,50 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/shmem.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN mm/shmem.c~userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache mm/shmem.c
---- a/mm/shmem.c~userfaultfd-shmem-lock-the-page-before-adding-it-to-pagecache
+diff -puN mm/shmem.c~userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy mm/shmem.c
+--- a/mm/shmem.c~userfaultfd-shmem-avoid-leaking-blocks-and-used-blocks-in-uffdio_copy
 +++ a/mm/shmem.c
-@@ -2245,6 +2245,10 @@ int shmem_mcopy_atomic_pte(struct mm_str
- 		*pagep = NULL;
- 	}
+@@ -2214,17 +2214,17 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 	pte_t _dst_pte, *dst_pte;
+ 	int ret;
  
-+	VM_BUG_ON(PageLocked(page) || PageSwapBacked(page));
-+	__SetPageLocked(page);
-+	__SetPageSwapBacked(page);
-+
- 	ret = mem_cgroup_try_charge(page, dst_mm, gfp, &memcg, false);
- 	if (ret)
- 		goto out_release;
-@@ -2294,6 +2298,7 @@ out_release_uncharge_unlock:
- out_release_uncharge:
- 	mem_cgroup_cancel_charge(page, memcg, false);
- out_release:
-+	unlock_page(page);
- 	put_page(page);
- out_dec_used_blocks:
- 	if (sbinfo->max_blocks)
+-	if (!*pagep) {
+-		ret = -ENOMEM;
+-		if (shmem_acct_block(info->flags, 1))
+-			goto out;
+-		if (sbinfo->max_blocks) {
+-			if (percpu_counter_compare(&sbinfo->used_blocks,
+-						   sbinfo->max_blocks) >= 0)
+-				goto out_unacct_blocks;
+-			percpu_counter_inc(&sbinfo->used_blocks);
+-		}
++	ret = -ENOMEM;
++	if (shmem_acct_block(info->flags, 1))
++		goto out;
++	if (sbinfo->max_blocks) {
++		if (percpu_counter_compare(&sbinfo->used_blocks,
++					   sbinfo->max_blocks) >= 0)
++			goto out_unacct_blocks;
++		percpu_counter_inc(&sbinfo->used_blocks);
++	}
+ 
++	if (!*pagep) {
+ 		page = shmem_alloc_page(gfp, info, pgoff);
+ 		if (!page)
+ 			goto out_dec_used_blocks;
+@@ -2237,6 +2237,9 @@ int shmem_mcopy_atomic_pte(struct mm_str
+ 		/* fallback to copy_from_user outside mmap_sem */
+ 		if (unlikely(ret)) {
+ 			*pagep = page;
++			if (sbinfo->max_blocks)
++				percpu_counter_add(&sbinfo->used_blocks, -1);
++			shmem_unacct_blocks(info->flags, 1);
+ 			/* don't free the page */
+ 			return -EFAULT;
+ 		}
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
