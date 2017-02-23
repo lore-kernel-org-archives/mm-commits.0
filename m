@@ -1,102 +1,182 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:13:55 -0800
-Message-ID: <58af5093.YpWStdZKIcuzc5yS%akpm@linux-foundation.org>
+ userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:13:46 -0800
+Message-ID: <58af508a.3ezdnZcMLdAb/oxJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39912 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751237AbdBWVOs (ORCPT
+        with ESMTP id S1751224AbdBWVOs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: add copy_huge_page_from_user for hugetlb userfaultfd support
+     Subject: userfaultfd: non-cooperative: add madvise() event for MADV_DONTNEED request
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support.patch
+     userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd: hugetlbfs: add copy_huge_page_from_user for hugetlb userfaultfd support
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: userfaultfd: non-cooperative: add madvise() event for MADV_DONTNEED request
 
-userfaultfd UFFDIO_COPY allows user level code to copy data to a page at
-fault time.  The data is copied from user space to a newly allocated huge
-page.  The new routine copy_huge_page_from_user performs this copy.
+If the page is punched out of the address space the uffd reader should
+know this and zeromap the respective area in case of the #PF event.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-17-aarcange@redhat.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-14-aarcange@redhat.com
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +++
- mm/memory.c        |   25 +++++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ fs/userfaultfd.c                 |   28 ++++++++++++++++++++++++++++
+ include/linux/userfaultfd_k.h    |   12 ++++++++++++
+ include/uapi/linux/userfaultfd.h |   10 +++++++++-
+ mm/madvise.c                     |    2 ++
+ 4 files changed, 51 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support include/linux/mm.h
---- a/include/linux/mm.h~userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support
-+++ a/include/linux/mm.h
-@@ -2424,6 +2424,9 @@ extern void clear_huge_page(struct page
- extern void copy_user_huge_page(struct page *dst, struct page *src,
- 				unsigned long addr, struct vm_area_struct *vma,
- 				unsigned int pages_per_huge_page);
-+extern long copy_huge_page_from_user(struct page *dst_page,
-+				const void __user *usr_src,
-+				unsigned int pages_per_huge_page);
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
++++ a/fs/userfaultfd.c
+@@ -633,6 +633,34 @@ void mremap_userfaultfd_complete(struct
+ 	userfaultfd_event_wait_completion(ctx, &ewq);
+ }
  
- extern struct page_ext_operations debug_guardpage_ops;
-diff -puN mm/memory.c~userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support mm/memory.c
---- a/mm/memory.c~userfaultfd-hugetlbfs-add-copy_huge_page_from_user-for-hugetlb-userfaultfd-support
-+++ a/mm/memory.c
-@@ -4152,6 +4152,31 @@ void copy_user_huge_page(struct page *ds
- 		copy_user_highpage(dst + i, src + i, addr + i*PAGE_SIZE, vma);
- 	}
++void madvise_userfault_dontneed(struct vm_area_struct *vma,
++				struct vm_area_struct **prev,
++				unsigned long start, unsigned long end)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	struct userfaultfd_ctx *ctx;
++	struct userfaultfd_wait_queue ewq;
++
++	ctx = vma->vm_userfaultfd_ctx.ctx;
++	if (!ctx || !(ctx->features & UFFD_FEATURE_EVENT_MADVDONTNEED))
++		return;
++
++	userfaultfd_ctx_get(ctx);
++	up_read(&mm->mmap_sem);
++
++	*prev = NULL; /* We wait for ACK w/o the mmap semaphore */
++
++	msg_init(&ewq.msg);
++
++	ewq.msg.event = UFFD_EVENT_MADVDONTNEED;
++	ewq.msg.arg.madv_dn.start = start;
++	ewq.msg.arg.madv_dn.end = end;
++
++	userfaultfd_event_wait_completion(ctx, &ewq);
++
++	down_read(&mm->mmap_sem);
++}
++
+ static int userfaultfd_release(struct inode *inode, struct file *file)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request include/linux/userfaultfd_k.h
+--- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
++++ a/include/linux/userfaultfd_k.h
+@@ -61,6 +61,11 @@ extern void mremap_userfaultfd_complete(
+ 					unsigned long from, unsigned long to,
+ 					unsigned long len);
+ 
++extern void madvise_userfault_dontneed(struct vm_area_struct *vma,
++				       struct vm_area_struct **prev,
++				       unsigned long start,
++				       unsigned long end);
++
+ #else /* CONFIG_USERFAULTFD */
+ 
+ /* mm helpers */
+@@ -106,6 +111,13 @@ static inline void mremap_userfaultfd_co
+ 					       unsigned long len)
+ {
  }
 +
-+long copy_huge_page_from_user(struct page *dst_page,
-+				const void __user *usr_src,
-+				unsigned int pages_per_huge_page)
++static inline void madvise_userfault_dontneed(struct vm_area_struct *vma,
++					      struct vm_area_struct **prev,
++					      unsigned long start,
++					      unsigned long end)
 +{
-+	void *src = (void *)usr_src;
-+	void *page_kaddr;
-+	unsigned long i, rc = 0;
-+	unsigned long ret_val = pages_per_huge_page * PAGE_SIZE;
-+
-+	for (i = 0; i < pages_per_huge_page; i++) {
-+		page_kaddr = kmap_atomic(dst_page + i);
-+		rc = copy_from_user(page_kaddr,
-+				(const void __user *)(src + i * PAGE_SIZE),
-+				PAGE_SIZE);
-+		kunmap_atomic(page_kaddr);
-+
-+		ret_val -= (PAGE_SIZE - rc);
-+		if (rc)
-+			break;
-+
-+		cond_resched();
-+	}
-+	return ret_val;
 +}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
+ #endif /* CONFIG_USERFAULTFD */
  
- #if USE_SPLIT_PTE_PTLOCKS && ALLOC_SPLIT_PTLOCKS
+ #endif /* _LINUX_USERFAULTFD_K_H */
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
++++ a/include/uapi/linux/userfaultfd.h
+@@ -19,7 +19,8 @@
+  */
+ #define UFFD_API ((__u64)0xAA)
+ #define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |	    \
+-			   UFFD_FEATURE_EVENT_REMAP)
++			   UFFD_FEATURE_EVENT_REMAP |	    \
++			   UFFD_FEATURE_EVENT_MADVDONTNEED)
+ #define UFFD_API_IOCTLS				\
+ 	((__u64)1 << _UFFDIO_REGISTER |		\
+ 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
+@@ -84,6 +85,11 @@ struct uffd_msg {
+ 		} remap;
+ 
+ 		struct {
++			__u64	start;
++			__u64	end;
++		} madv_dn;
++
++		struct {
+ 			/* unused reserved fields */
+ 			__u64	reserved1;
+ 			__u64	reserved2;
+@@ -98,6 +104,7 @@ struct uffd_msg {
+ #define UFFD_EVENT_PAGEFAULT	0x12
+ #define UFFD_EVENT_FORK		0x13
+ #define UFFD_EVENT_REMAP	0x14
++#define UFFD_EVENT_MADVDONTNEED	0x15
+ 
+ /* flags for UFFD_EVENT_PAGEFAULT */
+ #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
+@@ -119,6 +126,7 @@ struct uffdio_api {
+ #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
+ #define UFFD_FEATURE_EVENT_FORK			(1<<1)
+ #define UFFD_FEATURE_EVENT_REMAP		(1<<2)
++#define UFFD_FEATURE_EVENT_MADVDONTNEED		(1<<3)
+ 	__u64 features;
+ 
+ 	__u64 ioctls;
+diff -puN mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request mm/madvise.c
+--- a/mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
++++ a/mm/madvise.c
+@@ -10,6 +10,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/mempolicy.h>
+ #include <linux/page-isolation.h>
++#include <linux/userfaultfd_k.h>
+ #include <linux/hugetlb.h>
+ #include <linux/falloc.h>
+ #include <linux/sched.h>
+@@ -477,6 +478,7 @@ static long madvise_dontneed(struct vm_a
+ 		return -EINVAL;
+ 
+ 	zap_page_range(vma, start, end - start, NULL);
++	madvise_userfault_dontneed(vma, prev, start, end);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from xemul@parallels.com are
 
 
