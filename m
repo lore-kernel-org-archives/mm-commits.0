@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-implement-slab_root_caches-list.patch removed from
- -mm tree
-Date: Thu, 23 Feb 2017 13:12:34 -0800
-Message-ID: <58af5042.K99SRVZvEhAFP/SE%akpm@linux-foundation.org>
+Subject: [merged]
+ slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:12:40 -0800
+Message-ID: <58af5048.7gjccB8s4XMXmXhW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39434 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39460 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751240AbdBWVMf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:35 -0500
+        with ESMTP id S1751228AbdBWVMl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: implement slab_root_caches list
+     Subject: slab: remove synchronous synchronize_sched() from memcg cache deactivation path
 has been removed from the -mm tree.  Its filename was
-     slab-implement-slab_root_caches-list.patch
+     slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: slab: implement slab_root_caches list
+Subject: slab: remove synchronous synchronize_sched() from memcg cache deactivation path
 
 With kmem cgroup support enabled, kmem_caches can be created and destroyed
 frequently and a great number of near empty kmem_caches can accumulate if
@@ -37,27 +37,24 @@ hundreds of thousands on moderately large systems, exposing scalability
 issues in the current slab management code.  This is one of the patches to
 address the issue.
 
-slab_caches currently lists all caches including root and memcg ones. 
-This is the only data structure which lists the root caches and iterating
-root caches can only be done by walking the list while skipping over memcg
-caches.  As there can be a huge number of memcg caches, this can become
-very expensive.
+slub uses synchronize_sched() to deactivate a memcg cache. 
+synchronize_sched() is an expensive and slow operation and doesn't scale
+when a huge number of caches are destroyed back-to-back.  While there used
+to be a simple batching mechanism, the batching was too restricted to be
+helpful.
 
-This also can make /proc/slabinfo behave very badly.  seq_file processes
-reads in 4k chunks and seeks to the previous Nth position on slab_caches
-list to resume after each chunk.  With a lot of memcg cache churns on the
-list, reading /proc/slabinfo can become very slow and its content often
-ends up with duplicate and/or missing entries.
+This patch implements slab_deactivate_memcg_cache_rcu_sched() which slub
+can use to schedule sched RCU callback instead of performing
+synchronize_sched() synchronously while holding cgroup_mutex.  While this
+adds online cpus, mems and slab_mutex operations, operating on these locks
+back-to-back from the same kworker, which is what's gonna happen when
+there are many to deactivate, isn't expensive at all and this gets rid of
+the scalability problem completely.
 
-This patch adds a new list slab_root_caches which lists only the root
-caches.  When memcg is not enabled, it becomes just an alias of
-slab_caches.  memcg specific list operations are collected into
-memcg_[un]link_cache().
-
-Link: http://lkml.kernel.org/r/20170117235411.9408-7-tj@kernel.org
+Link: http://lkml.kernel.org/r/20170117235411.9408-9-tj@kernel.org
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Reported-by: Jay Vana <jsvana@fb.com>
-Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -65,248 +62,131 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    3 ++
- mm/slab.h            |   15 ++++++++++
- mm/slab_common.c     |   59 +++++++++++++++++++++++------------------
- mm/slub.c            |    1 
- 4 files changed, 53 insertions(+), 25 deletions(-)
+ include/linux/slab.h |    6 ++++
+ mm/slab.h            |    2 +
+ mm/slab_common.c     |   60 +++++++++++++++++++++++++++++++++++++++++
+ mm/slub.c            |   12 +++++---
+ 4 files changed, 76 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/slab.h~slab-implement-slab_root_caches-list include/linux/slab.h
---- a/include/linux/slab.h~slab-implement-slab_root_caches-list
+diff -puN include/linux/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path include/linux/slab.h
+--- a/include/linux/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
 +++ a/include/linux/slab.h
-@@ -556,6 +556,8 @@ struct memcg_cache_array {
-  *		used to index child cachces during allocation and cleared
-  *		early during shutdown.
-  *
-+ * @root_caches_node: List node for slab_root_caches list.
-+ *
-  * @children:	List of all child caches.  While the child caches are also
-  *		reachable through @memcg_caches, a child cache remains on
-  *		this list until it is actually destroyed.
-@@ -573,6 +575,7 @@ struct memcg_cache_params {
- 	union {
- 		struct {
- 			struct memcg_cache_array __rcu *memcg_caches;
-+			struct list_head __root_caches_node;
- 			struct list_head children;
+@@ -582,6 +582,12 @@ struct memcg_cache_params {
+ 			struct mem_cgroup *memcg;
+ 			struct list_head children_node;
+ 			struct list_head kmem_caches_node;
++
++			void (*deact_fn)(struct kmem_cache *);
++			union {
++				struct rcu_head deact_rcu_head;
++				struct work_struct deact_work;
++			};
  		};
- 		struct {
-diff -puN mm/slab.h~slab-implement-slab_root_caches-list mm/slab.h
---- a/mm/slab.h~slab-implement-slab_root_caches-list
+ 	};
+ };
+diff -puN mm/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path mm/slab.h
+--- a/mm/slab.h~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
 +++ a/mm/slab.h
-@@ -201,6 +201,11 @@ void __kmem_cache_free_bulk(struct kmem_
- int __kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
- 
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
-+
-+/* List of all root caches. */
-+extern struct list_head		slab_root_caches;
-+#define root_caches_node	memcg_params.__root_caches_node
-+
- /*
-  * Iterate over all memcg caches of the given root cache. The caller must hold
-  * slab_mutex.
-@@ -300,9 +305,14 @@ static __always_inline void memcg_unchar
- }
+@@ -307,6 +307,8 @@ static __always_inline void memcg_unchar
  
  extern void slab_init_memcg_params(struct kmem_cache *);
-+extern void memcg_link_cache(struct kmem_cache *s);
+ extern void memcg_link_cache(struct kmem_cache *s);
++extern void slab_deactivate_memcg_cache_rcu_sched(struct kmem_cache *s,
++				void (*deact_fn)(struct kmem_cache *));
  
  #else /* CONFIG_MEMCG && !CONFIG_SLOB */
  
-+/* If !memcg, all caches are root. */
-+#define slab_root_caches	slab_caches
-+#define root_caches_node	list
-+
- #define for_each_memcg_cache(iter, root) \
- 	for ((void)(iter), (void)(root); 0; )
- 
-@@ -347,6 +357,11 @@ static inline void memcg_uncharge_slab(s
- static inline void slab_init_memcg_params(struct kmem_cache *s)
- {
- }
-+
-+static inline void memcg_link_cache(struct kmem_cache *s)
-+{
-+}
-+
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
- 
- static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
-diff -puN mm/slab_common.c~slab-implement-slab_root_caches-list mm/slab_common.c
---- a/mm/slab_common.c~slab-implement-slab_root_caches-list
+diff -puN mm/slab_common.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path mm/slab_common.c
+--- a/mm/slab_common.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
 +++ a/mm/slab_common.c
-@@ -138,6 +138,9 @@ int __kmem_cache_alloc_bulk(struct kmem_
+@@ -627,6 +627,66 @@ out_unlock:
+ 	put_online_cpus();
  }
  
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
++static void kmemcg_deactivate_workfn(struct work_struct *work)
++{
++	struct kmem_cache *s = container_of(work, struct kmem_cache,
++					    memcg_params.deact_work);
 +
-+LIST_HEAD(slab_root_caches);
++	get_online_cpus();
++	get_online_mems();
 +
- void slab_init_memcg_params(struct kmem_cache *s)
- {
- 	s->memcg_params.root_cache = NULL;
-@@ -183,9 +186,6 @@ static int update_memcg_params(struct km
- {
- 	struct memcg_cache_array *old, *new;
- 
--	if (!is_root_cache(s))
--		return 0;
--
- 	new = kzalloc(sizeof(struct memcg_cache_array) +
- 		      new_array_size * sizeof(void *), GFP_KERNEL);
- 	if (!new)
-@@ -209,7 +209,7 @@ int memcg_update_all_caches(int num_memc
- 	int ret = 0;
- 
- 	mutex_lock(&slab_mutex);
--	list_for_each_entry(s, &slab_caches, list) {
-+	list_for_each_entry(s, &slab_root_caches, root_caches_node) {
- 		ret = update_memcg_params(s, num_memcgs);
- 		/*
- 		 * Instead of freeing the memory, we'll just leave the caches
-@@ -222,10 +222,26 @@ int memcg_update_all_caches(int num_memc
- 	return ret;
- }
- 
--static void unlink_memcg_cache(struct kmem_cache *s)
-+void memcg_link_cache(struct kmem_cache *s)
- {
--	list_del(&s->memcg_params.children_node);
--	list_del(&s->memcg_params.kmem_caches_node);
-+	if (is_root_cache(s)) {
-+		list_add(&s->root_caches_node, &slab_root_caches);
-+	} else {
-+		list_add(&s->memcg_params.children_node,
-+			 &s->memcg_params.root_cache->memcg_params.children);
-+		list_add(&s->memcg_params.kmem_caches_node,
-+			 &s->memcg_params.memcg->kmem_caches);
-+	}
++	mutex_lock(&slab_mutex);
++
++	s->memcg_params.deact_fn(s);
++
++	mutex_unlock(&slab_mutex);
++
++	put_online_mems();
++	put_online_cpus();
++
++	/* done, put the ref from slab_deactivate_memcg_cache_rcu_sched() */
++	css_put(&s->memcg_params.memcg->css);
 +}
 +
-+static void memcg_unlink_cache(struct kmem_cache *s)
++static void kmemcg_deactivate_rcufn(struct rcu_head *head)
 +{
-+	if (is_root_cache(s)) {
-+		list_del(&s->root_caches_node);
-+	} else {
-+		list_del(&s->memcg_params.children_node);
-+		list_del(&s->memcg_params.kmem_caches_node);
-+	}
- }
- #else
- static inline int init_memcg_params(struct kmem_cache *s,
-@@ -238,7 +254,7 @@ static inline void destroy_memcg_params(
++	struct kmem_cache *s = container_of(head, struct kmem_cache,
++					    memcg_params.deact_rcu_head);
++
++	/*
++	 * We need to grab blocking locks.  Bounce to ->deact_work.  The
++	 * work item shares the space with the RCU head and can't be
++	 * initialized eariler.
++	 */
++	INIT_WORK(&s->memcg_params.deact_work, kmemcg_deactivate_workfn);
++	schedule_work(&s->memcg_params.deact_work);
++}
++
++/**
++ * slab_deactivate_memcg_cache_rcu_sched - schedule deactivation after a
++ *					   sched RCU grace period
++ * @s: target kmem_cache
++ * @deact_fn: deactivation function to call
++ *
++ * Schedule @deact_fn to be invoked with online cpus, mems and slab_mutex
++ * held after a sched RCU grace period.  The slab is guaranteed to stay
++ * alive until @deact_fn is finished.  This is to be used from
++ * __kmemcg_cache_deactivate().
++ */
++void slab_deactivate_memcg_cache_rcu_sched(struct kmem_cache *s,
++					   void (*deact_fn)(struct kmem_cache *))
++{
++	if (WARN_ON_ONCE(is_root_cache(s)) ||
++	    WARN_ON_ONCE(s->memcg_params.deact_fn))
++		return;
++
++	/* pin memcg so that @s doesn't get destroyed in the middle */
++	css_get(&s->memcg_params.memcg->css);
++
++	s->memcg_params.deact_fn = deact_fn;
++	call_rcu_sched(&s->memcg_params.deact_rcu_head, kmemcg_deactivate_rcufn);
++}
++
+ void memcg_deactivate_kmem_caches(struct mem_cgroup *memcg)
  {
- }
- 
--static inline void unlink_memcg_cache(struct kmem_cache *s)
-+static inline void memcg_unlink_cache(struct kmem_cache *s)
- {
- }
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
-@@ -285,7 +301,7 @@ struct kmem_cache *find_mergeable(size_t
- 	if (flags & SLAB_NEVER_MERGE)
- 		return NULL;
- 
--	list_for_each_entry_reverse(s, &slab_caches, list) {
-+	list_for_each_entry_reverse(s, &slab_root_caches, root_caches_node) {
- 		if (slab_unmergeable(s))
- 			continue;
- 
-@@ -369,6 +385,7 @@ static struct kmem_cache *create_cache(c
- 
- 	s->refcount = 1;
- 	list_add(&s->list, &slab_caches);
-+	memcg_link_cache(s);
- out:
- 	if (err)
- 		return ERR_PTR(err);
-@@ -514,9 +531,8 @@ static int shutdown_cache(struct kmem_ca
- 	if (__kmem_cache_shutdown(s) != 0)
- 		return -EBUSY;
- 
-+	memcg_unlink_cache(s);
- 	list_del(&s->list);
--	if (!is_root_cache(s))
--		unlink_memcg_cache(s);
- 
- 	if (s->flags & SLAB_DESTROY_BY_RCU) {
- 		list_add_tail(&s->list, &slab_caches_to_rcu_destroy);
-@@ -596,10 +612,6 @@ void memcg_create_kmem_cache(struct mem_
- 		goto out_unlock;
- 	}
- 
--	list_add(&s->memcg_params.children_node,
--		 &root_cache->memcg_params.children);
--	list_add(&s->memcg_params.kmem_caches_node, &memcg->kmem_caches);
--
- 	/*
- 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
- 	 * barrier here to ensure nobody will see the kmem_cache partially
-@@ -627,10 +639,7 @@ void memcg_deactivate_kmem_caches(struct
- 	get_online_mems();
- 
- 	mutex_lock(&slab_mutex);
--	list_for_each_entry(s, &slab_caches, list) {
--		if (!is_root_cache(s))
--			continue;
--
-+	list_for_each_entry(s, &slab_root_caches, root_caches_node) {
- 		arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
- 						lockdep_is_held(&slab_mutex));
- 		c = arr->entries[idx];
-@@ -829,6 +838,7 @@ struct kmem_cache *__init create_kmalloc
- 
- 	create_boot_cache(s, name, size, flags);
- 	list_add(&s->list, &slab_caches);
-+	memcg_link_cache(s);
- 	s->refcount = 1;
- 	return s;
- }
-@@ -1136,12 +1146,12 @@ static void print_slabinfo_header(struct
- void *slab_start(struct seq_file *m, loff_t *pos)
- {
- 	mutex_lock(&slab_mutex);
--	return seq_list_start(&slab_caches, *pos);
-+	return seq_list_start(&slab_root_caches, *pos);
- }
- 
- void *slab_next(struct seq_file *m, void *p, loff_t *pos)
- {
--	return seq_list_next(p, &slab_caches, pos);
-+	return seq_list_next(p, &slab_root_caches, pos);
- }
- 
- void slab_stop(struct seq_file *m, void *p)
-@@ -1193,12 +1203,11 @@ static void cache_show(struct kmem_cache
- 
- static int slab_show(struct seq_file *m, void *p)
- {
--	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
-+	struct kmem_cache *s = list_entry(p, struct kmem_cache, root_caches_node);
- 
--	if (p == slab_caches.next)
-+	if (p == slab_root_caches.next)
- 		print_slabinfo_header(m);
--	if (is_root_cache(s))
--		cache_show(s, m);
-+	cache_show(s, m);
- 	return 0;
- }
- 
-diff -puN mm/slub.c~slab-implement-slab_root_caches-list mm/slub.c
---- a/mm/slub.c~slab-implement-slab_root_caches-list
+ 	int idx;
+diff -puN mm/slub.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path mm/slub.c
+--- a/mm/slub.c~slab-remove-synchronous-synchronize_sched-from-memcg-cache-deactivation-path
 +++ a/mm/slub.c
-@@ -4127,6 +4127,7 @@ static struct kmem_cache * __init bootst
- 	}
- 	slab_init_memcg_params(s);
- 	list_add(&s->list, &slab_caches);
-+	memcg_link_cache(s);
- 	return s;
+@@ -3957,6 +3957,12 @@ int __kmem_cache_shrink(struct kmem_cach
  }
  
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-
+ #ifdef CONFIG_MEMCG
++static void kmemcg_cache_deact_after_rcu(struct kmem_cache *s)
++{
++	/* called with all the locks held after a sched RCU grace period */
++	__kmem_cache_shrink(s);
++}
++
+ void __kmemcg_cache_deactivate(struct kmem_cache *s)
+ {
+ 	/*
+@@ -3968,11 +3974,9 @@ void __kmemcg_cache_deactivate(struct km
+ 
+ 	/*
+ 	 * s->cpu_partial is checked locklessly (see put_cpu_partial), so
+-	 * we have to make sure the change is visible.
++	 * we have to make sure the change is visible before shrinking.
+ 	 */
+-	synchronize_sched();
