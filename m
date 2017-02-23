@@ -1,75 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tools-vm-add-missing-makefile-rules.patch removed from
- -mm tree
-Date: Thu, 23 Feb 2017 13:11:32 -0800
-Message-ID: <58af5004.LSbBkHxu+jX2zYJe%akpm@linux-foundation.org>
+Subject: [merged] scripts-lindent-clean-up-and-optimize.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:11:39 -0800
+Message-ID: <58af500b.mKbgRQDc0aZ8rjH1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdBWVLd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:33 -0500
+        with ESMTP id S1751272AbdBWVLk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.thompson@linaro.org, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm: add missing Makefile rules
+     Subject: scripts/Lindent: clean up and optimize
 has been removed from the -mm tree.  Its filename was
-     tools-vm-add-missing-makefile-rules.patch
+     scripts-lindent-clean-up-and-optimize.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Subject: tools/vm: add missing Makefile rules
+From: Jean Delvare <jdelvare@suse.de>
+Subject: scripts/Lindent: clean up and optimize
 
-Currently the tools/vm Makefile has a rather arbitrary implicit build
-rule; page-types is the first value in TARGETS so lets just build that
-one!  Additionally there is no install rule and this is needed for make -C
-tools vm_install to work properly.
+* Add a few blank lines to improve readability.
+* Don't call cut 3 times when once is enough.
+* Drop a useless semicolon.
 
-Provide a more sensible implicit build rule and a new install rule.
-
-Note that the variables names used by the install rule (DESTDIR and
-sbindir) are copied from prior-art in tools/power/cpupower.
-
-Link: http://lkml.kernel.org/r/20170113165630.27541-1-daniel.thompson@linaro.org
-Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Link: http://lkml.kernel.org/r/20170104140356.162abab2@endymion
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/Makefile |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ scripts/Lindent |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN tools/vm/Makefile~tools-vm-add-missing-makefile-rules tools/vm/Makefile
---- a/tools/vm/Makefile~tools-vm-add-missing-makefile-rules
-+++ a/tools/vm/Makefile
-@@ -9,6 +9,8 @@ CC = $(CROSS_COMPILE)gcc
- CFLAGS = -Wall -Wextra -I../lib/
- LDFLAGS = $(LIBS)
- 
-+all: $(TARGETS)
+diff -puN scripts/Lindent~scripts-lindent-clean-up-and-optimize scripts/Lindent
+--- a/scripts/Lindent~scripts-lindent-clean-up-and-optimize
++++ a/scripts/Lindent
+@@ -1,21 +1,25 @@
+ #!/bin/sh
 +
- $(TARGETS): $(LIBS)
- 
- $(LIBS):
-@@ -20,3 +22,9 @@ $(LIBS):
- clean:
- 	$(RM) page-types slabinfo page_owner_sort
- 	make -C $(LIB_DIR) clean
+ PARAM="-npro -kr -i8 -ts8 -sob -l80 -ss -ncs -cp1"
+-RES=`indent --version`
 +
-+sbindir ?= /usr/sbin
++RES=`indent --version | cut -d' ' -f3`
+ if [ "$RES" = "" ]; then
+ 	exit 1
+ fi
+-V1=`echo $RES | cut -d' ' -f3 | cut -d'.' -f1`
+-V2=`echo $RES | cut -d' ' -f3 | cut -d'.' -f2`
+-V3=`echo $RES | cut -d' ' -f3 | cut -d'.' -f3`
++V1=`echo $RES | cut -d'.' -f1`
++V2=`echo $RES | cut -d'.' -f2`
++V3=`echo $RES | cut -d'.' -f3`
 +
-+install: all
-+	install -d $(DESTDIR)$(sbindir)
-+	install -m 755 -p $(TARGETS) $(DESTDIR)$(sbindir)
+ if [ $V1 -gt 2 ]; then
+   PARAM="$PARAM -il0"
+ elif [ $V1 -eq 2 ]; then
+   if [ $V2 -gt 2 ]; then
+-    PARAM="$PARAM -il0";
++    PARAM="$PARAM -il0"
+   elif [ $V2 -eq 2 ]; then
+     if [ $V3 -ge 10 ]; then
+       PARAM="$PARAM -il0"
+     fi
+   fi
+ fi
++
+ indent $PARAM "$@"
 _
 
-Patches currently in -mm which might be from daniel.thompson@linaro.org are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
 
