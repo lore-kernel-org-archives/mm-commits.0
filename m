@@ -1,82 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- scripts-checkincludes-add-exit-message-for-no-duplicates-found.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:11:43 -0800
-Message-ID: <58af500f.YnLZqjbS1NewZINc%akpm@linux-foundation.org>
+Subject: [merged] score-remove-asm-currenth.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:11:51 -0800
+Message-ID: <58af5017.4B2uFMhdFWL8/4CZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38758 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751228AbdBWVLo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:44 -0500
+        with ESMTP id S1751201AbdBWVLy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thrust73@gmail.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, lennox.wu@gmail.com, liqin.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/checkincludes.pl: add exit message for no duplicates found
+     Subject: score: remove asm/current.h
 has been removed from the -mm tree.  Its filename was
-     scripts-checkincludes-add-exit-message-for-no-duplicates-found.patch
+     score-remove-asm-currenth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cheah Kok Cheong <thrust73@gmail.com>
-Subject: scripts/checkincludes.pl: add exit message for no duplicates found
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: score: remove asm/current.h
 
-If no duplicates found, inform user.
+...  it's already using the generic version anyways, so just drop the file
+as do the other archs that do not implement their own version of the
+current macro.
 
-Link: http://lkml.kernel.org/r/1486391275-2843-1-git-send-email-thrust73@gmail.com
-Signed-off-by: Cheah Kok Cheong <thrust73@gmail.com>
+Link: http://lkml.kernel.org/r/1485992878-4780-5-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Chen Liqin <liqin.linux@gmail.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkincludes.pl |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/score/include/asm/Kbuild    |    2 +-
+ arch/score/include/asm/current.h |    6 ------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN scripts/checkincludes.pl~scripts-checkincludes-add-exit-message-for-no-duplicates-found scripts/checkincludes.pl
---- a/scripts/checkincludes.pl~scripts-checkincludes-add-exit-message-for-no-duplicates-found
-+++ a/scripts/checkincludes.pl
-@@ -37,6 +37,8 @@ if ($#ARGV >= 1) {
- 	}
- }
+diff -puN arch/score/include/asm/Kbuild~score-remove-asm-currenth arch/score/include/asm/Kbuild
+--- a/arch/score/include/asm/Kbuild~score-remove-asm-currenth
++++ a/arch/score/include/asm/Kbuild
+@@ -1,9 +1,9 @@
  
-+my $dup_counter = 0;
-+
- foreach my $file (@ARGV) {
- 	open(my $f, '<', $file)
- 	    or die "Cannot open $file: $!.\n";
-@@ -57,6 +59,7 @@ foreach my $file (@ARGV) {
- 		foreach my $filename (keys %includedfiles) {
- 			if ($includedfiles{$filename} > 1) {
- 				print "$file: $filename is included more than once.\n";
-+				++$dup_counter;
- 			}
- 		}
- 		next;
-@@ -73,6 +76,7 @@ foreach my $file (@ARGV) {
- 					if ($includedfiles{$filename} > 1) {
- 						$includedfiles{$filename}--;
- 						$dups++;
-+						++$dup_counter;
- 					} else {
- 						print {$f} $_;
- 					}
-@@ -87,3 +91,7 @@ foreach my $file (@ARGV) {
- 	}
- 	close($f);
- }
-+
-+if ($dup_counter == 0) {
-+	print "No duplicate includes found.\n";
-+}
-_
-
-Patches currently in -mm which might be from thrust73@gmail.com are
-
-
+ header-y +=
+ 
+-
+ generic-y += barrier.h
+ generic-y += clkdev.h
++generic-y += current.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
+ generic-y += mm-arch-hooks.h
+diff -puN arch/score/include/asm/current.h~score-remove-asm-currenth /dev/null
+--- a/arch/score/include/asm/current.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_SCORE_CURRENT_H
+-#define _ASM_SCORE_CURRENT_H
+-
+-#include <asm-generic/current.h>
