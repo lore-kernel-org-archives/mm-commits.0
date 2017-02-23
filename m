@@ -1,91 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
+Subject: [merged] mm-fix-linux-pagemaph-stray-kernel-doc-notation.patch
  removed from -mm tree
-Date: Thu, 23 Feb 2017 13:17:02 -0800
-Message-ID: <58af514e.yFS6cBL5XGbE57U7%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:17:42 -0800
+Message-ID: <58af5176.nAQHQaHoYX3w2MuX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41646 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751242AbdBWVRm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
+        with ESMTP id S1751290AbdBWVRn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, mawilcox@microsoft.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: do not report all nodes in show_mem
+     Subject: mm: fix <linux/pagemap.h> stray kernel-doc notation
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
+     mm-fix-linux-pagemaph-stray-kernel-doc-notation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: do not report all nodes in show_mem
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: fix <linux/pagemap.h> stray kernel-doc notation
 
-Patch series "show_mem updates", v2.
+Delete stray (second) function description in find_lock_page() kernel-doc
+notation.
 
-This is a mixture of one bug fix (patch 1), an enhancement (patch 2) and
-cleanups (the rest of the series).  First two patches should be really
-straightforward.  Patch 3 removes some arch specific show_mem
-implementations because I think they are quite outdated and do not really
-serve any useful purpose anymore.  I think we should really strive to have
-a consistent show_mem output regardless of the architecture.  If some
-architecture is really special and wants to dump something additional we
-should do that via an arch specific hook.
+Note: scripts/kernel-doc just ignores the second function description.
 
-The last patch adds nodemask parameter so that we do not rely on the
-hardcoded mems_allowed of the current task when doing the node filtering. 
-I consider this more a cleanup than a fix because basically all users use
-a nodemask which is a subset of mems_allowed.  There is only one call path
-in the memory hotplug which doesn't comply with this but that is hardly
-something to worry about.
-
-
-This patch (of 4):
-
-599d0c954f91 ("mm, vmscan: move LRU lists to node") has added per numa
-node statistics to show_mem but it forgot to add skip_free_areas_node
-to filter out nodes which are outside of the allocating task numa
-policy.  Add this check to not pollute the output with the pointless
-information.
-
-Link: http://lkml.kernel.org/r/20170117091543.25850-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Fixes: 2457aec63745e ("mm: non-atomically mark page accessed during page cache allocation where possible")
+Link: http://lkml.kernel.org/r/b037e9a3-516c-ec02-6c8e-fa5479747ba6@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/pagemap.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-do-not-report-all-nodes-in-show_mem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-do-not-report-all-nodes-in-show_mem
-+++ a/mm/page_alloc.c
-@@ -4368,6 +4368,9 @@ void show_free_areas(unsigned int filter
- 		global_page_state(NR_FREE_CMA_PAGES));
+diff -puN include/linux/pagemap.h~mm-fix-linux-pagemaph-stray-kernel-doc-notation include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-fix-linux-pagemaph-stray-kernel-doc-notation
++++ a/include/linux/pagemap.h
+@@ -266,7 +266,6 @@ static inline struct page *find_get_page
  
- 	for_each_online_pgdat(pgdat) {
-+		if (skip_free_areas_node(filter, pgdat->node_id))
-+			continue;
-+
- 		printk("Node %d"
- 			" active_anon:%lukB"
- 			" inactive_anon:%lukB"
+ /**
+  * find_lock_page - locate, pin and lock a pagecache page
+- * pagecache_get_page - find and get a page reference
+  * @mapping: the address_space to search
+  * @offset: the page index
+  *
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
+fonts-keep-non-sparc-fonts-listed-together.patch
 
