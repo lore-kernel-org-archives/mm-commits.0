@@ -1,182 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:13:46 -0800
-Message-ID: <58af508a.3ezdnZcMLdAb/oxJ%akpm@linux-foundation.org>
+ userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:13:52 -0800
+Message-ID: <58af5090.2X8imDw30Qgujxnq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39924 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751224AbdBWVOs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:48 -0500
+        with ESMTP id S1751228AbdBWVOr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: add madvise() event for MADV_DONTNEED request
+     Subject: userfaultfd: non-cooperative: wake userfaults after UFFDIO_UNREGISTER
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request.patch
+     userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Emelyanov <xemul@parallels.com>
-Subject: userfaultfd: non-cooperative: add madvise() event for MADV_DONTNEED request
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: non-cooperative: wake userfaults after UFFDIO_UNREGISTER
 
-If the page is punched out of the address space the uffd reader should
-know this and zeromap the respective area in case of the #PF event.
+Userfaults may still happen after the userfaultfd monitor thread received
+a UFFD_EVENT_MADVDONTNEED until UFFDIO_UNREGISTER is run.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-14-aarcange@redhat.com
-Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Wake any pending userfault within UFFDIO_UNREGISTER protected by the
+mmap_sem for writing, so they will not be reported to userland leading to
+UFFDIO_COPY returning -EINVAL (as the range was already unregistered) and
+they will not hang permanently either.
+
+Link: http://lkml.kernel.org/r/20161216144821.5183-16-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |   28 ++++++++++++++++++++++++++++
- include/linux/userfaultfd_k.h    |   12 ++++++++++++
- include/uapi/linux/userfaultfd.h |   10 +++++++++-
- mm/madvise.c                     |    2 ++
- 4 files changed, 51 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-wake-userfaults-after-uffdio_unregister
 +++ a/fs/userfaultfd.c
-@@ -633,6 +633,34 @@ void mremap_userfaultfd_complete(struct
- 	userfaultfd_event_wait_completion(ctx, &ewq);
- }
+@@ -1302,6 +1302,19 @@ static int userfaultfd_unregister(struct
+ 			start = vma->vm_start;
+ 		vma_end = min(end, vma->vm_end);
  
-+void madvise_userfault_dontneed(struct vm_area_struct *vma,
-+				struct vm_area_struct **prev,
-+				unsigned long start, unsigned long end)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct userfaultfd_ctx *ctx;
-+	struct userfaultfd_wait_queue ewq;
++		if (userfaultfd_missing(vma)) {
++			/*
++			 * Wake any concurrent pending userfault while
++			 * we unregister, so they will not hang
++			 * permanently and it avoids userland to call
++			 * UFFDIO_WAKE explicitly.
++			 */
++			struct userfaultfd_wake_range range;
++			range.start = start;
++			range.len = vma_end - start;
++			wake_userfault(vma->vm_userfaultfd_ctx.ctx, &range);
++		}
 +
-+	ctx = vma->vm_userfaultfd_ctx.ctx;
-+	if (!ctx || !(ctx->features & UFFD_FEATURE_EVENT_MADVDONTNEED))
-+		return;
-+
-+	userfaultfd_ctx_get(ctx);
-+	up_read(&mm->mmap_sem);
-+
-+	*prev = NULL; /* We wait for ACK w/o the mmap semaphore */
-+
-+	msg_init(&ewq.msg);
-+
-+	ewq.msg.event = UFFD_EVENT_MADVDONTNEED;
-+	ewq.msg.arg.madv_dn.start = start;
-+	ewq.msg.arg.madv_dn.end = end;
-+
-+	userfaultfd_event_wait_completion(ctx, &ewq);
-+
-+	down_read(&mm->mmap_sem);
-+}
-+
- static int userfaultfd_release(struct inode *inode, struct file *file)
- {
- 	struct userfaultfd_ctx *ctx = file->private_data;
-diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request include/linux/userfaultfd_k.h
---- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
-+++ a/include/linux/userfaultfd_k.h
-@@ -61,6 +61,11 @@ extern void mremap_userfaultfd_complete(
- 					unsigned long from, unsigned long to,
- 					unsigned long len);
- 
-+extern void madvise_userfault_dontneed(struct vm_area_struct *vma,
-+				       struct vm_area_struct **prev,
-+				       unsigned long start,
-+				       unsigned long end);
-+
- #else /* CONFIG_USERFAULTFD */
- 
- /* mm helpers */
-@@ -106,6 +111,13 @@ static inline void mremap_userfaultfd_co
- 					       unsigned long len)
- {
- }
-+
-+static inline void madvise_userfault_dontneed(struct vm_area_struct *vma,
-+					      struct vm_area_struct **prev,
-+					      unsigned long start,
-+					      unsigned long end)
-+{
-+}
- #endif /* CONFIG_USERFAULTFD */
- 
- #endif /* _LINUX_USERFAULTFD_K_H */
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -19,7 +19,8 @@
-  */
- #define UFFD_API ((__u64)0xAA)
- #define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |	    \
--			   UFFD_FEATURE_EVENT_REMAP)
-+			   UFFD_FEATURE_EVENT_REMAP |	    \
-+			   UFFD_FEATURE_EVENT_MADVDONTNEED)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -84,6 +85,11 @@ struct uffd_msg {
- 		} remap;
- 
- 		struct {
-+			__u64	start;
-+			__u64	end;
-+		} madv_dn;
-+
-+		struct {
- 			/* unused reserved fields */
- 			__u64	reserved1;
- 			__u64	reserved2;
-@@ -98,6 +104,7 @@ struct uffd_msg {
- #define UFFD_EVENT_PAGEFAULT	0x12
- #define UFFD_EVENT_FORK		0x13
- #define UFFD_EVENT_REMAP	0x14
-+#define UFFD_EVENT_MADVDONTNEED	0x15
- 
- /* flags for UFFD_EVENT_PAGEFAULT */
- #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
-@@ -119,6 +126,7 @@ struct uffdio_api {
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
- #define UFFD_FEATURE_EVENT_REMAP		(1<<2)
-+#define UFFD_FEATURE_EVENT_MADVDONTNEED		(1<<3)
- 	__u64 features;
- 
- 	__u64 ioctls;
-diff -puN mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request mm/madvise.c
---- a/mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_dontneed-request
-+++ a/mm/madvise.c
-@@ -10,6 +10,7 @@
- #include <linux/syscalls.h>
- #include <linux/mempolicy.h>
- #include <linux/page-isolation.h>
-+#include <linux/userfaultfd_k.h>
- #include <linux/hugetlb.h>
- #include <linux/falloc.h>
- #include <linux/sched.h>
-@@ -477,6 +478,7 @@ static long madvise_dontneed(struct vm_a
- 		return -EINVAL;
- 
- 	zap_page_range(vma, start, end - start, NULL);
-+	madvise_userfault_dontneed(vma, prev, start, end);
- 	return 0;
- }
- 
+ 		new_flags = vma->vm_flags & ~(VM_UFFD_MISSING | VM_UFFD_WP);
+ 		prev = vma_merge(mm, prev, start, vma_end, new_flags,
+ 				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
 _
 
-Patches currently in -mm which might be from xemul@parallels.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
