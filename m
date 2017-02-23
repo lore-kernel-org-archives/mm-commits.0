@@ -1,58 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-checkstackpl-add-support-for-nios2.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:11:41 -0800
-Message-ID: <58af500d./DWvPJW7bqk3WWa5%akpm@linux-foundation.org>
+Subject: [merged]
+ scripts-tagssh-include-arch-kconfig-for-tags-generation.patch removed from
+ -mm tree
+Date: Thu, 23 Feb 2017 13:11:45 -0800
+Message-ID: <58af5011.WzLIWt0qQKUwLXQG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38454 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751228AbdBWVLm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:42 -0500
+        with ESMTP id S1751228AbdBWVLq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tklauser@distanz.ch, lftan@altera.com, mm-commits@vger.kernel.org
+To: houtao1@huawei.com, joe@perches.com, mathieu.maret@gmail.com, mmarek@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/checkstack.pl: add support for nios2
+     Subject: scripts/tags.sh: include arch/Kconfig* for tags generation
 has been removed from the -mm tree.  Its filename was
-     scripts-checkstackpl-add-support-for-nios2.patch
+     scripts-tagssh-include-arch-kconfig-for-tags-generation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: scripts/checkstack.pl: add support for nios2
+From: Hou Tao <houtao1@huawei.com>
+Subject: scripts/tags.sh: include arch/Kconfig* for tags generation
 
-Adjust checkstack.pl for the nios2 architecture.
+Kconfig files under arch/ directory are ignored by all_kconfigs(),
+so include them for tags generation.
 
-Link: http://lkml.kernel.org/r/20170116113052.15034-1-tklauser@distanz.ch
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Ley Foon Tan <lftan@altera.com>
+Link: http://lkml.kernel.org/r/1486206053-38223-1-git-send-email-houtao1@huawei.com
+Signed-off-by: Hou Tao <houtao1@huawei.com>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Mathieu Maret <mathieu.maret@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkstack.pl |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/tags.sh |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkstack.pl~scripts-checkstackpl-add-support-for-nios2 scripts/checkstack.pl
---- a/scripts/checkstack.pl~scripts-checkstackpl-add-support-for-nios2
-+++ a/scripts/checkstack.pl
-@@ -78,6 +78,9 @@ my (@stack, $re, $dre, $x, $xs, $funcre)
- 	} elsif ($arch eq 'mips') {
- 		#88003254:       27bdffe0        addiu   sp,sp,-32
- 		$re = qr/.*addiu.*sp,sp,-(([0-9]{2}|[3-9])[0-9]{2})/o;
-+	} elsif ($arch eq 'nios2') {
-+		#25a8:	defffb04 	addi	sp,sp,-20
-+		$re = qr/.*addi.*sp,sp,-(([0-9]{2}|[3-9])[0-9]{2})/o;
- 	} elsif ($arch eq 'parisc' || $arch eq 'parisc64') {
- 		$re = qr/.*ldo ($x{1,8})\(sp\),sp/o;
- 	} elsif ($arch eq 'ppc') {
+diff -puN scripts/tags.sh~scripts-tagssh-include-arch-kconfig-for-tags-generation scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tagssh-include-arch-kconfig-for-tags-generation
++++ a/scripts/tags.sh
+@@ -128,6 +128,8 @@ all_target_sources()
+ 
+ all_kconfigs()
+ {
++	find ${tree}arch/ -maxdepth 1 $ignore \
++	       -name "Kconfig*" -not -type l -print;
+ 	for arch in $ALLSOURCE_ARCHS; do
+ 		find_sources $arch 'Kconfig*'
+ 	done
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from houtao1@huawei.com are
 
 
