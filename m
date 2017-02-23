@@ -1,222 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-trace-add-compaction-retry-tracepoint.patch removed
- from -mm tree
-Date: Thu, 23 Feb 2017 13:13:10 -0800
-Message-ID: <58af5066./N73rm4Xa7nYwGer%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-non-cooperative-report-all-available-features-to-userland.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:13:31 -0800
+Message-ID: <58af507b.pfvtilpD8IKQ3nff%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39582 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39864 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751277AbdBWVNL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:13:11 -0500
+        with ESMTP id S1751195AbdBWVOr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, trace: add compaction retry tracepoint
+     Subject: userfaultfd: non-cooperative: report all available features to userland
 has been removed from the -mm tree.  Its filename was
-     oom-trace-add-compaction-retry-tracepoint.patch
+     userfaultfd-non-cooperative-report-all-available-features-to-userland.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom, trace: add compaction retry tracepoint
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: non-cooperative: report all available features to userland
 
-Higher order requests oom debugging is currently quite hard.  We do have
-some compaction points which can tell us how the compaction is operating
-but there is no trace point to tell us about compaction retry logic.  This
-patch adds a one which will have the following format
+This will allow userland to probe all features available in the kernel. 
+It will however only enable the requested features in the open userfaultfd
+context.
 
-            bash-3126  [001] ....  1498.220001: compact_retry: order=9 priority=COMPACT_PRIO_SYNC_LIGHT compaction_result=withdrawn retries=0 max_retries=16 should_retry=0
-
-we can see that the order 9 request is not retried even though we are in
-the highest compaction priority mode becase the last compaction attempt
-was withdrawn.  This means that compaction_zonelist_suitable must have
-returned false and there is no suitable zone to compact for this request
-and so no need to retry further.
-
-another example would be
-           <...>-3137  [001] ....    81.501689: compact_retry: order=9 priority=COMPACT_PRIO_SYNC_LIGHT compaction_result=failed retries=0 max_retries=16 should_retry=0
-
-in this case the order-9 compaction failed to find any suitable block.  We
-do not retry anymore because this is a costly request and those do not go
-below COMPACT_PRIO_SYNC_LIGHT priority.
-
-Link: http://lkml.kernel.org/r/20161220130135.15719-4-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20161216144821.5183-8-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |   26 ++++++++++++++++++++
- include/trace/events/oom.h     |   39 +++++++++++++++++++++++++++++++
- mm/page_alloc.c                |   22 ++++++++++++-----
- 3 files changed, 81 insertions(+), 6 deletions(-)
+ fs/userfaultfd.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN include/trace/events/mmflags.h~oom-trace-add-compaction-retry-tracepoint include/trace/events/mmflags.h
---- a/include/trace/events/mmflags.h~oom-trace-add-compaction-retry-tracepoint
-+++ a/include/trace/events/mmflags.h
-@@ -186,8 +186,32 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
- 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
- 	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
- 	EMe(COMPACT_CONTENDED,		"contended")
-+
-+/* High-level compaction status feedback */
-+#define COMPACTION_FAILED	1
-+#define COMPACTION_WITHDRAWN	2
-+#define COMPACTION_PROGRESS	3
-+
-+#define compact_result_to_feedback(result)	\
-+({						\
-+ 	enum compact_result __result = result;	\
-+	(compaction_failed(__result)) ? COMPACTION_FAILED : \
-+		(compaction_withdrawn(__result)) ? COMPACTION_WITHDRAWN : COMPACTION_PROGRESS; \
-+})
-+
-+#define COMPACTION_FEEDBACK		\
-+	EM(COMPACTION_FAILED,		"failed")	\
-+	EM(COMPACTION_WITHDRAWN,	"withdrawn")	\
-+	EMe(COMPACTION_PROGRESS,	"progress")
-+
-+#define COMPACTION_PRIORITY						\
-+	EM(COMPACT_PRIO_SYNC_FULL,	"COMPACT_PRIO_SYNC_FULL")	\
-+	EM(COMPACT_PRIO_SYNC_LIGHT,	"COMPACT_PRIO_SYNC_LIGHT")	\
-+	EMe(COMPACT_PRIO_ASYNC,		"COMPACT_PRIO_ASYNC")
- #else
- #define COMPACTION_STATUS
-+#define COMPACTION_PRIORITY
-+#define COMPACTION_FEEDBACK
- #endif
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-report-all-available-features-to-userland fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-report-all-available-features-to-userland
++++ a/fs/userfaultfd.c
+@@ -1285,6 +1285,7 @@ static int userfaultfd_api(struct userfa
+ 	struct uffdio_api uffdio_api;
+ 	void __user *buf = (void __user *)arg;
+ 	int ret;
++	__u64 features;
  
- #ifdef CONFIG_ZONE_DMA
-@@ -225,6 +249,8 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
- #define EMe(a, b)	TRACE_DEFINE_ENUM(a);
- 
- COMPACTION_STATUS
-+COMPACTION_PRIORITY
-+COMPACTION_FEEDBACK
- ZONE_TYPE
- 
- /*
-diff -puN include/trace/events/oom.h~oom-trace-add-compaction-retry-tracepoint include/trace/events/oom.h
---- a/include/trace/events/oom.h~oom-trace-add-compaction-retry-tracepoint
-+++ a/include/trace/events/oom.h
-@@ -69,6 +69,45 @@ TRACE_EVENT(reclaim_retry_zone,
- 			__entry->no_progress_loops,
- 			__entry->wmark_check)
- );
-+
-+#ifdef CONFIG_COMPACTION
-+TRACE_EVENT(compact_retry,
-+
-+	TP_PROTO(int order,
-+		enum compact_priority priority,
-+		enum compact_result result,
-+		int retries,
-+		int max_retries,
-+		bool ret),
-+
-+	TP_ARGS(order, priority, result, retries, max_retries, ret),
-+
-+	TP_STRUCT__entry(
-+		__field(	int, order)
-+		__field(	int, priority)
-+		__field(	int, result)
-+		__field(	int, retries)
-+		__field(	int, max_retries)
-+		__field(	bool, ret)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->order = order;
-+		__entry->priority = priority;
-+		__entry->result = compact_result_to_feedback(result);
-+		__entry->retries = retries;
-+		__entry->max_retries = max_retries;
-+		__entry->ret = ret;
-+	),
-+
-+	TP_printk("order=%d priority=%s compaction_result=%s retries=%d max_retries=%d should_retry=%d",
-+			__entry->order,
-+			__print_symbolic(__entry->priority, COMPACTION_PRIORITY),
-+			__print_symbolic(__entry->result, COMPACTION_FEEDBACK),
-+			__entry->retries, __entry->max_retries,
-+			__entry->ret)
-+);
-+#endif /* CONFIG_COMPACTION */
- #endif
- 
- /* This part must be outside protection */
-diff -puN mm/page_alloc.c~oom-trace-add-compaction-retry-tracepoint mm/page_alloc.c
---- a/mm/page_alloc.c~oom-trace-add-compaction-retry-tracepoint
-+++ a/mm/page_alloc.c
-@@ -3197,6 +3197,9 @@ should_compact_retry(struct alloc_contex
- {
- 	int max_retries = MAX_COMPACT_RETRIES;
- 	int min_priority;
-+	bool ret = false;
-+	int retries = *compaction_retries;
-+	enum compact_priority priority = *compact_priority;
- 
- 	if (!order)
- 		return false;
-@@ -3218,8 +3221,10 @@ should_compact_retry(struct alloc_contex
- 	 * But do not retry if the given zonelist is not suitable for
- 	 * compaction.
- 	 */
--	if (compaction_withdrawn(compact_result))
--		return compaction_zonelist_suitable(ac, order, alloc_flags);
-+	if (compaction_withdrawn(compact_result)) {
-+		ret = compaction_zonelist_suitable(ac, order, alloc_flags);
-+		goto out;
-+	}
- 
- 	/*
- 	 * !costly requests are much more important than __GFP_REPEAT
-@@ -3231,8 +3236,10 @@ should_compact_retry(struct alloc_contex
- 	 */
- 	if (order > PAGE_ALLOC_COSTLY_ORDER)
- 		max_retries /= 4;
--	if (*compaction_retries <= max_retries)
--		return true;
-+	if (*compaction_retries <= max_retries) {
-+		ret = true;
-+		goto out;
-+	}
- 
- 	/*
- 	 * Make sure there are attempts at the highest priority if we exhausted
-@@ -3241,12 +3248,15 @@ should_compact_retry(struct alloc_contex
- check_priority:
- 	min_priority = (order > PAGE_ALLOC_COSTLY_ORDER) ?
- 			MIN_COMPACT_COSTLY_PRIORITY : MIN_COMPACT_PRIORITY;
-+
- 	if (*compact_priority > min_priority) {
- 		(*compact_priority)--;
- 		*compaction_retries = 0;
--		return true;
-+		ret = true;
+ 	ret = -EINVAL;
+ 	if (ctx->state != UFFD_STATE_WAIT_API)
+@@ -1292,21 +1293,23 @@ static int userfaultfd_api(struct userfa
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_api, buf, sizeof(uffdio_api)))
+ 		goto out;
+-	if (uffdio_api.api != UFFD_API ||
+-	    (uffdio_api.features & ~UFFD_API_FEATURES)) {
++	features = uffdio_api.features;
++	if (uffdio_api.api != UFFD_API || (features & ~UFFD_API_FEATURES)) {
+ 		memset(&uffdio_api, 0, sizeof(uffdio_api));
+ 		if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
+ 			goto out;
+ 		ret = -EINVAL;
+ 		goto out;
  	}
--	return false;
-+out:
-+	trace_compact_retry(order, priority, compact_result, retries, max_retries, ret);
-+	return ret;
- }
- #else
- static inline struct page *
+-	uffdio_api.features &= UFFD_API_FEATURES;
++	/* report all available features and ioctls to userland */
++	uffdio_api.features = UFFD_API_FEATURES;
+ 	uffdio_api.ioctls = UFFD_API_IOCTLS;
+ 	ret = -EFAULT;
+ 	if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
+ 		goto out;
+ 	ctx->state = UFFD_STATE_RUNNING;
+-	ctx->features = uffd_ctx_features(uffdio_api.features);
++	/* only enable the requested features for this uffd context */
++	ctx->features = uffd_ctx_features(features);
+ 	ret = 0;
+ out:
+ 	return ret;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
