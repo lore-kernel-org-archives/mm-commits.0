@@ -1,72 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-update-maintainers-entries-for-fs-dax.patch removed
- from -mm tree
-Date: Thu, 23 Feb 2017 13:11:15 -0800
-Message-ID: <58af4ff3.kEPvLZ9T2GJ3WV2B%akpm@linux-foundation.org>
+Subject: [merged]
+ dma-debug-add-comment-for-failed-to-check-map-error.patch removed from -mm
+ tree
+Date: Thu, 23 Feb 2017 13:11:30 -0800
+Message-ID: <58af5002.B1EV8ACjKNW6s03S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38294 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdBWVLQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:16 -0500
+        with ESMTP id S1751170AbdBWVLb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dave.jiang@intel.com, david@fromorbit.com, jack@suse.cz, mawilcox@microsoft.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: miles.chen@mediatek.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: update MAINTAINERS entries for FS DAX
+     Subject: dma-debug: add comment for failed to check map error
 has been removed from the -mm tree.  Its filename was
-     dax-update-maintainers-entries-for-fs-dax.patch
+     dma-debug-add-comment-for-failed-to-check-map-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: update MAINTAINERS entries for FS DAX
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: dma-debug: add comment for failed to check map error
 
-Add the new include/trace/events/fs_dax.h tracepoint header, the existing
-include/linux/dax.h header, update Matthew's email address and add myself
-as a maintainer for filesystem DAX.
+Add comment for failure to check a map error to help driver developers.
 
-Link: http://lkml.kernel.org/r/1484085142-2297-4-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/1484622289-22085-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/dma-debug.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN MAINTAINERS~dax-update-maintainers-entries-for-fs-dax MAINTAINERS
---- a/MAINTAINERS~dax-update-maintainers-entries-for-fs-dax
-+++ a/MAINTAINERS
-@@ -3926,10 +3926,13 @@ S:	Maintained
- F:	drivers/i2c/busses/i2c-diolan-u2c.c
+diff -puN lib/dma-debug.c~dma-debug-add-comment-for-failed-to-check-map-error lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-add-comment-for-failed-to-check-map-error
++++ a/lib/dma-debug.c
+@@ -1155,6 +1155,11 @@ static void check_unmap(struct dma_debug
+ 			   dir2name[ref->direction]);
+ 	}
  
- DIRECT ACCESS (DAX)
--M:	Matthew Wilcox <willy@linux.intel.com>
-+M:	Matthew Wilcox <mawilcox@microsoft.com>
-+M:	Ross Zwisler <ross.zwisler@linux.intel.com>
- L:	linux-fsdevel@vger.kernel.org
- S:	Supported
- F:	fs/dax.c
-+F:	include/linux/dax.h
-+F:	include/trace/events/fs_dax.h
- 
- DIRECTORY NOTIFICATION (DNOTIFY)
- M:	Eric Paris <eparis@parisplace.org>
++	/*
++	 * Drivers should use dma_mapping_error() to check the returned
++	 * addresses of dma_map_single() and dma_map_page().
++	 * If not, print this warning message. See Documentation/DMA-API.txt.
++	 */
+ 	if (entry->map_err_type == MAP_ERR_NOT_CHECKED) {
+ 		err_printk(ref->dev, entry,
+ 			   "DMA-API: device driver failed to check map error"
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
-mmfsdax-change-pmd_fault-to-huge_fault-fix-2.patch
-drm-remove-unnecessary-fault-wrappers.patch
+mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t.patch
+checkpatch-update-logfunctions.patch
 
