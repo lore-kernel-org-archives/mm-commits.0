@@ -1,106 +1,122 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:14:22 -0800
-Message-ID: <58af50ae.FCS2J4+ym9QecnqL%akpm@linux-foundation.org>
+ userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:14:16 -0800
+Message-ID: <58af50a8.YUk+8APuuK8BfJlZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40008 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751284AbdBWVOt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:49 -0500
+        with ESMTP id S1751282AbdBWVOs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_HUGETLBFS
+     Subject: userfaultfd: hugetlbfs: userfaultfd_huge_must_wait for hugepmd ranges
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
+     userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_HUGETLBFS
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: userfaultfd: hugetlbfs: userfaultfd_huge_must_wait for hugepmd ranges
 
-Userland developers asked to be notified immediately by the UFFDIO_API
-ioctl if hugetlbfs missing mode is supported by userfaultfd in the running
-kernel.  This avoids the need to run UFFDIO_REGISTER on a hugetlbfs
-virtual memory range to find out.
+Add routine userfaultfd_huge_must_wait which has the same functionality as
+the existing userfaultfd_must_wait routine.  Only difference is that new
+routine must handle page table structure for hugepmd vmas.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-27-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-24-aarcange@redhat.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/userfaultfd.h |   28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ fs/userfaultfd.c |   51 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 49 insertions(+), 2 deletions(-)
 
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -18,9 +18,10 @@
-  * means the userland is reading).
-  */
- #define UFFD_API ((__u64)0xAA)
--#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |	    \
--			   UFFD_FEATURE_EVENT_REMAP |	    \
--			   UFFD_FEATURE_EVENT_MADVDONTNEED)
-+#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |		\
-+			   UFFD_FEATURE_EVENT_REMAP |		\
-+			   UFFD_FEATURE_EVENT_MADVDONTNEED |	\
-+			   UFFD_FEATURE_MISSING_HUGETLBFS)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -125,11 +126,32 @@ struct uffdio_api {
- 	 * Note: UFFD_EVENT_PAGEFAULT and UFFD_PAGEFAULT_FLAG_WRITE
- 	 * are to be considered implicitly always enabled in all kernels as
- 	 * long as the uffdio_api.api requested matches UFFD_API.
-+	 *
-+	 * UFFD_FEATURE_MISSING_HUGETLBFS means an UFFDIO_REGISTER
-+	 * with UFFDIO_REGISTER_MODE_MISSING mode will succeed on
-+	 * hugetlbfs virtual memory ranges. Adding or not adding
-+	 * UFFD_FEATURE_MISSING_HUGETLBFS to uffdio_api.features has
-+	 * no real functional effect after UFFDIO_API returns, but
-+	 * it's only useful for an initial feature set probe at
-+	 * UFFDIO_API time. There are two ways to use it:
-+	 *
-+	 * 1) by adding UFFD_FEATURE_MISSING_HUGETLBFS to the
-+	 *    uffdio_api.features before calling UFFDIO_API, an error
-+	 *    will be returned by UFFDIO_API on a kernel without
-+	 *    hugetlbfs missing support
-+	 *
-+	 * 2) the UFFD_FEATURE_MISSING_HUGETLBFS can not be added in
-+	 *    uffdio_api.features and instead it will be set by the
-+	 *    kernel in the uffdio_api.features if the kernel supports
-+	 *    it, so userland can later check if the feature flag is
-+	 *    present in uffdio_api.features after UFFDIO_API
-+	 *    succeeded.
- 	 */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
- #define UFFD_FEATURE_EVENT_REMAP		(1<<2)
- #define UFFD_FEATURE_EVENT_MADVDONTNEED		(1<<3)
-+#define UFFD_FEATURE_MISSING_HUGETLBFS		(1<<4)
- 	__u64 features;
+diff -puN fs/userfaultfd.c~userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-hugetlbfs-userfaultfd_huge_must_wait-for-hugepmd-ranges
++++ a/fs/userfaultfd.c
+@@ -202,6 +202,49 @@ static inline struct uffd_msg userfault_
+ 	return msg;
+ }
  
- 	__u64 ioctls;
++#ifdef CONFIG_HUGETLB_PAGE
++/*
++ * Same functionality as userfaultfd_must_wait below with modifications for
++ * hugepmd ranges.
++ */
++static inline bool userfaultfd_huge_must_wait(struct userfaultfd_ctx *ctx,
++					 unsigned long address,
++					 unsigned long flags,
++					 unsigned long reason)
++{
++	struct mm_struct *mm = ctx->mm;
++	pte_t *pte;
++	bool ret = true;
++
++	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
++
++	pte = huge_pte_offset(mm, address);
++	if (!pte)
++		goto out;
++
++	ret = false;
++
++	/*
++	 * Lockless access: we're in a wait_event so it's ok if it
++	 * changes under us.
++	 */
++	if (huge_pte_none(*pte))
++		ret = true;
++	if (!huge_pte_write(*pte) && (reason & VM_UFFD_WP))
++		ret = true;
++out:
++	return ret;
++}
++#else
++static inline bool userfaultfd_huge_must_wait(struct userfaultfd_ctx *ctx,
++					 unsigned long address,
++					 unsigned long flags,
++					 unsigned long reason)
++{
++	return false;	/* should never get here */
++}
++#endif /* CONFIG_HUGETLB_PAGE */
++
+ /*
+  * Verify the pagetables are still not ok after having reigstered into
+  * the fault_pending_wqh to avoid userland having to UFFDIO_WAKE any
+@@ -378,8 +421,12 @@ int handle_userfault(struct vm_fault *vm
+ 	set_current_state(blocking_state);
+ 	spin_unlock(&ctx->fault_pending_wqh.lock);
+ 
+-	must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
+-					  reason);
++	if (!is_vm_hugetlb_page(vmf->vma))
++		must_wait = userfaultfd_must_wait(ctx, vmf->address, vmf->flags,
++						  reason);
++	else
++		must_wait = userfaultfd_huge_must_wait(ctx, vmf->address,
++						       vmf->flags, reason);
+ 	up_read(&mm->mmap_sem);
+ 
+ 	if (likely(must_wait && !ACCESS_ONCE(ctx->released) &&
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
