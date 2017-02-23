@@ -1,173 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memblockc-remove-unnecessary-log-and-clean-up.patch
+Subject: [merged]
+ mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically.patch
  removed from -mm tree
-Date: Thu, 23 Feb 2017 13:17:37 -0800
-Message-ID: <58af5171./Ztohxjl3HJtLdux%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:17:16 -0800
+Message-ID: <58af515c.EKSo5kmysXqi1WVH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41630 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751285AbdBWVRn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:43 -0500
+        with ESMTP id S1751222AbdBWVRm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miles.chen@mediatek.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, nholland@tisys.org, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: remove unnecessary log and clean up
+     Subject: mm, oom: do not enforce OOM killer for __GFP_NOFAIL automatically
 has been removed from the -mm tree.  Its filename was
-     mm-memblockc-remove-unnecessary-log-and-clean-up.patch
+     mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm/memblock.c: remove unnecessary log and clean up
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom: do not enforce OOM killer for __GFP_NOFAIL automatically
 
-There is no variable named flags in memblock_add() and memblock_reserve()
-so remove it from the log messages.
+__alloc_pages_may_oom makes sure to skip the OOM killer depending on the
+allocation request.  This includes lowmem requests, costly high order
+requests and others.  For a long time __GFP_NOFAIL acted as an override
+for all those rules.  This is not documented and it can be quite
+surprising as well.  E.g.  GFP_NOFS requests are not invoking the OOM
+killer but GFP_NOFS|__GFP_NOFAIL does so if we try to convert some of the
+existing open coded loops around allocator to nofail request (and we have
+done that in the past) then such a change would have a non trivial side
+effect which is far from obvious.  Note that the primary motivation for
+skipping the OOM killer is to prevent from pre-mature invocation.
 
-This patch also cleans up the type casting for phys_addr_t by using %pa to
-print them.
+The exception has been added by 82553a937f12 ("oom: invoke oom killer
+for __GFP_NOFAIL"). The changelog points out that the oom killer has to
+be invoked otherwise the request would be looping for ever. But this
+argument is rather weak because the OOM killer doesn't really guarantee
+a forward progress for those exceptional cases:
 
-Link: http://lkml.kernel.org/r/1484720165-25403-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+- it will hardly help to form costly order which in turn can result in
+  the system panic because of no oom killable task in the end - I believe
+  we certainly do not want to put the system down just because there is a
+  nasty driver asking for order-9 page with GFP_NOFAIL not realizing all
+  the consequences.  It is much better this request would loop for ever
+  than the massive system disruption
+
+- lowmem is also highly unlikely to be freed during OOM killer
+
+- GFP_NOFS request could trigger while there is still a lot of memory
+  pinned by filesystems.
+
+This patch simply removes the __GFP_NOFAIL special case in order to have a
+more clear semantic without surprising side effects.
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Nils Holland <nholland@tisys.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   54 ++++++++++++++++++++++--------------------------
- 1 file changed, 25 insertions(+), 29 deletions(-)
+ mm/oom_kill.c   |    2 -
+ mm/page_alloc.c |   49 ++++++++++++++++++++++------------------------
+ 2 files changed, 25 insertions(+), 26 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblockc-remove-unnecessary-log-and-clean-up mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-remove-unnecessary-log-and-clean-up
-+++ a/mm/memblock.c
-@@ -611,10 +611,10 @@ int __init_memblock memblock_add_node(ph
+diff -puN mm/oom_kill.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically
++++ a/mm/oom_kill.c
+@@ -1013,7 +1013,7 @@ bool out_of_memory(struct oom_control *o
+ 	 * make sure exclude 0 mask - all other users should have at least
+ 	 * ___GFP_DIRECT_RECLAIM to get here.
+ 	 */
+-	if (oc->gfp_mask && !(oc->gfp_mask & (__GFP_FS|__GFP_NOFAIL)))
++	if (oc->gfp_mask && !(oc->gfp_mask & __GFP_FS))
+ 		return true;
  
- int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
- {
--	memblock_dbg("memblock_add: [%#016llx-%#016llx] flags %#02lx %pF\n",
--		     (unsigned long long)base,
--		     (unsigned long long)base + size - 1,
--		     0UL, (void *)_RET_IP_);
-+	phys_addr_t end = base + size - 1;
+ 	/*
+diff -puN mm/page_alloc.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically
++++ a/mm/page_alloc.c
+@@ -3090,32 +3090,31 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	if (page)
+ 		goto out;
+ 
+-	if (!(gfp_mask & __GFP_NOFAIL)) {
+-		/* Coredumps can quickly deplete all memory reserves */
+-		if (current->flags & PF_DUMPCORE)
+-			goto out;
+-		/* The OOM killer will not help higher order allocs */
+-		if (order > PAGE_ALLOC_COSTLY_ORDER)
+-			goto out;
+-		/* The OOM killer does not needlessly kill tasks for lowmem */
+-		if (ac->high_zoneidx < ZONE_NORMAL)
+-			goto out;
+-		if (pm_suspended_storage())
+-			goto out;
+-		/*
+-		 * XXX: GFP_NOFS allocations should rather fail than rely on
+-		 * other request to make a forward progress.
+-		 * We are in an unfortunate situation where out_of_memory cannot
+-		 * do much for this context but let's try it to at least get
+-		 * access to memory reserved if the current task is killed (see
+-		 * out_of_memory). Once filesystems are ready to handle allocation
+-		 * failures more gracefully we should just bail out here.
+-		 */
++	/* Coredumps can quickly deplete all memory reserves */
++	if (current->flags & PF_DUMPCORE)
++		goto out;
++	/* The OOM killer will not help higher order allocs */
++	if (order > PAGE_ALLOC_COSTLY_ORDER)
++		goto out;
++	/* The OOM killer does not needlessly kill tasks for lowmem */
++	if (ac->high_zoneidx < ZONE_NORMAL)
++		goto out;
++	if (pm_suspended_storage())
++		goto out;
++	/*
++	 * XXX: GFP_NOFS allocations should rather fail than rely on
++	 * other request to make a forward progress.
++	 * We are in an unfortunate situation where out_of_memory cannot
++	 * do much for this context but let's try it to at least get
++	 * access to memory reserved if the current task is killed (see
++	 * out_of_memory). Once filesystems are ready to handle allocation
++	 * failures more gracefully we should just bail out here.
++	 */
 +
-+	memblock_dbg("memblock_add: [%pa-%pa] %pF\n",
-+		     &base, &end, (void *)_RET_IP_);
++	/* The OOM killer may not free memory on a specific node */
++	if (gfp_mask & __GFP_THISNODE)
++		goto out;
  
- 	return memblock_add_range(&memblock.memory, base, size, MAX_NUMNODES, 0);
- }
-@@ -718,10 +718,10 @@ int __init_memblock memblock_remove(phys
- 
- int __init_memblock memblock_free(phys_addr_t base, phys_addr_t size)
- {
--	memblock_dbg("   memblock_free: [%#016llx-%#016llx] %pF\n",
--		     (unsigned long long)base,
--		     (unsigned long long)base + size - 1,
--		     (void *)_RET_IP_);
-+	phys_addr_t end = base + size - 1;
-+
-+	memblock_dbg("   memblock_free: [%pa-%pa] %pF\n",
-+		     &base, &end, (void *)_RET_IP_);
- 
- 	kmemleak_free_part_phys(base, size);
- 	return memblock_remove_range(&memblock.reserved, base, size);
-@@ -729,10 +729,10 @@ int __init_memblock memblock_free(phys_a
- 
- int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
- {
--	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
--		     (unsigned long long)base,
--		     (unsigned long long)base + size - 1,
--		     0UL, (void *)_RET_IP_);
-+	phys_addr_t end = base + size - 1;
-+
-+	memblock_dbg("memblock_reserve: [%pa-%pa] %pF\n",
-+		     &base, &end, (void *)_RET_IP_);
- 
- 	return memblock_add_range(&memblock.reserved, base, size, MAX_NUMNODES, 0);
- }
-@@ -1227,8 +1227,8 @@ phys_addr_t __init memblock_alloc_base(p
- 	alloc = __memblock_alloc_base(size, align, max_addr);
- 
- 	if (alloc == 0)
--		panic("ERROR: Failed to allocate 0x%llx bytes below 0x%llx.\n",
--		      (unsigned long long) size, (unsigned long long) max_addr);
-+		panic("ERROR: Failed to allocate %pa bytes below %pa.\n",
-+		      &size, &max_addr);
- 
- 	return alloc;
- }
-@@ -1695,7 +1695,7 @@ phys_addr_t __init_memblock memblock_get
- 
- static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
- {
--	unsigned long long base, size;
-+	phys_addr_t base, end, size;
- 	unsigned long flags;
- 	int idx;
- 	struct memblock_region *rgn;
-@@ -1707,23 +1707,24 @@ static void __init_memblock memblock_dum
- 
- 		base = rgn->base;
- 		size = rgn->size;
-+		end = base + size - 1;
- 		flags = rgn->flags;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 		if (memblock_get_region_node(rgn) != MAX_NUMNODES)
- 			snprintf(nid_buf, sizeof(nid_buf), " on node %d",
- 				 memblock_get_region_node(rgn));
- #endif
--		pr_info(" %s[%#x]\t[%#016llx-%#016llx], %#llx bytes%s flags: %#lx\n",
--			name, idx, base, base + size - 1, size, nid_buf, flags);
-+		pr_info(" %s[%#x]\t[%pa-%pa], %pa bytes%s flags: %#lx\n",
-+			name, idx, &base, &end, &size, nid_buf, flags);
- 	}
- }
- 
- void __init_memblock __memblock_dump_all(void)
- {
- 	pr_info("MEMBLOCK configuration:\n");
--	pr_info(" memory size = %#llx reserved size = %#llx\n",
--		(unsigned long long)memblock.memory.total_size,
--		(unsigned long long)memblock.reserved.total_size);
-+	pr_info(" memory size = %pa reserved size = %pa\n",
-+		&memblock.memory.total_size,
-+		&memblock.reserved.total_size);
- 
- 	memblock_dump(&memblock.memory, "memory");
- 	memblock_dump(&memblock.reserved, "reserved");
-@@ -1749,19 +1750,14 @@ static int memblock_debug_show(struct se
- 	struct memblock_type *type = m->private;
- 	struct memblock_region *reg;
- 	int i;
-+	phys_addr_t end;
- 
- 	for (i = 0; i < type->cnt; i++) {
- 		reg = &type->regions[i];
--		seq_printf(m, "%4d: ", i);
--		if (sizeof(phys_addr_t) == 4)
--			seq_printf(m, "0x%08lx..0x%08lx\n",
--				   (unsigned long)reg->base,
--				   (unsigned long)(reg->base + reg->size - 1));
--		else
--			seq_printf(m, "0x%016llx..0x%016llx\n",
--				   (unsigned long long)reg->base,
--				   (unsigned long long)(reg->base + reg->size - 1));
-+		end = reg->base + reg->size - 1;
- 
-+		seq_printf(m, "%4d: ", i);
-+		seq_printf(m, "%pa..%pa\n", &reg->base, &end);
- 	}
- 	return 0;
- }
+-		/* The OOM killer may not free memory on a specific node */
+-		if (gfp_mask & __GFP_THISNODE)
+-			goto out;
+-	}
+ 	/* Exhausted what can be done so it's blamo time */
+ 	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
+ 		*did_some_progress = 1;
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t.patch
-checkpatch-update-logfunctions.patch
+mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
+userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
+vmalloc-back-of-when-the-current-is-killed.patch
 
