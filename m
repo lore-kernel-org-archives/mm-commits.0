@@ -1,47 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch removed from
- -mm tree
-Date: Thu, 23 Feb 2017 13:14:37 -0800
-Message-ID: <58af50bd.1GAr0ut54WvO7SkB%akpm@linux-foundation.org>
+Subject: [merged] userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:15:04 -0800
+Message-ID: <58af50d8.gY8pU/ajfDCbpU1l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40088 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751242AbdBWVOt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:49 -0500
+        with ESMTP id S1751279AbdBWVPF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: shmem: add tlbflush.h header for microblaze
+     Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_SHMEM
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
+     userfaultfd-hugetlbfs-uffd_feature_missing_shmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: shmem: add tlbflush.h header for microblaze
+Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_SHMEM
 
-It resolves this build error:
+Userland developers asked to be notified immediately by the UFFDIO_API
+ioctl if shmem missing mode is supported by userfaultfd in the running
+kernel. This avoids the need to run UFFDIO_REGISTER on a shmem virtual
+memory range to find out.
 
-All errors (new ones prefixed by >>):
-
-   mm/shmem.c: In function 'shmem_mcopy_atomic_pte':
-   >> mm/shmem.c:2228:2: error: implicit declaration of function
-   'update_mmu_cache' [-Werror=implicit-function-declaration]
-        update_mmu_cache(dst_vma, dst_addr, dst_pte);
-
-microblaze may have to be also updated to define it in asm/pgtable.h like
-the other archs, then this header inclusion can be removed.
-
-Link: http://lkml.kernel.org/r/20161216144821.5183-31-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-38-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -52,21 +44,40 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/uapi/linux/userfaultfd.h |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~userfaultfd-shmem-add-tlbflushh-header-for-microblaze mm/shmem.c
---- a/mm/shmem.c~userfaultfd-shmem-add-tlbflushh-header-for-microblaze
-+++ a/mm/shmem.c
-@@ -34,6 +34,8 @@
- #include <linux/uio.h>
- #include <linux/khugepaged.h>
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_shmem include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_shmem
++++ a/include/uapi/linux/userfaultfd.h
+@@ -21,7 +21,8 @@
+ #define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |		\
+ 			   UFFD_FEATURE_EVENT_REMAP |		\
+ 			   UFFD_FEATURE_EVENT_MADVDONTNEED |	\
+-			   UFFD_FEATURE_MISSING_HUGETLBFS)
++			   UFFD_FEATURE_MISSING_HUGETLBFS |	\
++			   UFFD_FEATURE_MISSING_SHMEM)
+ #define UFFD_API_IOCTLS				\
+ 	((__u64)1 << _UFFDIO_REGISTER |		\
+ 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
+@@ -146,12 +147,17 @@ struct uffdio_api {
+ 	 *    it, so userland can later check if the feature flag is
+ 	 *    present in uffdio_api.features after UFFDIO_API
+ 	 *    succeeded.
++	 *
++	 * UFFD_FEATURE_MISSING_SHMEM works the same as
++	 * UFFD_FEATURE_MISSING_HUGETLBFS, but it applies to shmem
++	 * (i.e. tmpfs and other shmem based APIs).
+ 	 */
+ #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
+ #define UFFD_FEATURE_EVENT_FORK			(1<<1)
+ #define UFFD_FEATURE_EVENT_REMAP		(1<<2)
+ #define UFFD_FEATURE_EVENT_MADVDONTNEED		(1<<3)
+ #define UFFD_FEATURE_MISSING_HUGETLBFS		(1<<4)
++#define UFFD_FEATURE_MISSING_SHMEM		(1<<5)
+ 	__u64 features;
  
-+#include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
-+
- static struct vfsmount *shm_mnt;
- 
- #ifdef CONFIG_SHMEM
+ 	__u64 ioctls;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
