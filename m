@@ -1,141 +1,124 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer.patch
+ oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma.patch
  removed from -mm tree
-Date: Thu, 23 Feb 2017 13:17:19 -0800
-Message-ID: <58af515f.O3II6z02aPpczOjy%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:17:34 -0800
+Message-ID: <58af516e.PX8jTlDDtblxyQM5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41616 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751268AbdBWVRm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
+        with ESMTP id S1751283AbdBWVRn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: help __GFP_NOFAIL allocations which do not trigger OOM killer
+     Subject: oom-reaper: use madvise_dontneed() logic to decide if unmap the VMA
 has been removed from the -mm tree.  Its filename was
-     mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer.patch
+     oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: help __GFP_NOFAIL allocations which do not trigger OOM killer
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: oom-reaper: use madvise_dontneed() logic to decide if unmap the VMA
 
-Now that __GFP_NOFAIL doesn't override decisions to skip the oom killer we
-are left with requests which require to loop inside the allocator without
-invoking the oom killer (e.g.  GFP_NOFS|__GFP_NOFAIL used by fs code) and
-so they might, in very unlikely situations, loop for ever - e.g.  other
-parallel request could starve them.
+Logic on whether we can reap pages from the VMA should match what we have
+in madvise_dontneed().  In particular, we should skip, VM_PFNMAP VMAs, but
+we don't now.
 
-This patch tries to limit the likelihood of such a lockup by giving these
-__GFP_NOFAIL requests a chance to move on by consuming a small part of
-memory reserves.  We are using ALLOC_HARDER which should be enough to
-prevent from the starvation by regular allocation requests, yet it
-shouldn't consume enough from the reserves to disrupt high priority
-requests (ALLOC_HIGH).
+Let's just extract condition on which we can shoot down pagesi from a VMA
+with MADV_DONTNEED into separate function and use it in both places.
 
-While we are at it, let's introduce a helper __alloc_pages_cpuset_fallback
-which enforces the cpusets but allows to fallback to ignore them if the
-first attempt fails.  __GFP_NOFAIL requests can be considered important
-enough to allow cpuset runaway in order for the system to move on.  It is
-highly unlikely that any of these will be GFP_USER anyway.
-
-Link: http://lkml.kernel.org/r/20161220134904.21023-4-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Link: http://lkml.kernel.org/r/20170118122429.43661-4-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   46 ++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 36 insertions(+), 10 deletions(-)
+ mm/internal.h |    5 +++++
+ mm/madvise.c  |    4 +++-
+ mm/oom_kill.c |    9 +--------
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer mm/page_alloc.c
---- a/mm/page_alloc.c~mm-help-__gfp_nofail-allocations-which-do-not-trigger-oom-killer
-+++ a/mm/page_alloc.c
-@@ -3056,6 +3056,26 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- }
+diff -puN mm/internal.h~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma mm/internal.h
+--- a/mm/internal.h~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma
++++ a/mm/internal.h
+@@ -43,6 +43,11 @@ int do_swap_page(struct vm_fault *vmf);
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long floor, unsigned long ceiling);
  
- static inline struct page *
-+__alloc_pages_cpuset_fallback(gfp_t gfp_mask, unsigned int order,
-+			      unsigned int alloc_flags,
-+			      const struct alloc_context *ac)
++static inline bool can_madv_dontneed_vma(struct vm_area_struct *vma)
 +{
-+	struct page *page;
-+
-+	page = get_page_from_freelist(gfp_mask, order,
-+			alloc_flags|ALLOC_CPUSET, ac);
-+	/*
-+	 * fallback to ignore cpuset restriction if our nodes
-+	 * are depleted
-+	 */
-+	if (!page)
-+		page = get_page_from_freelist(gfp_mask, order,
-+				alloc_flags, ac);
-+
-+	return page;
++	return !(vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP));
 +}
 +
-+static inline struct page *
- __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
- 	const struct alloc_context *ac, unsigned long *did_some_progress)
- {
-@@ -3119,17 +3139,13 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
- 		*did_some_progress = 1;
+ void unmap_page_range(struct mmu_gather *tlb,
+ 			     struct vm_area_struct *vma,
+ 			     unsigned long addr, unsigned long end,
+diff -puN mm/madvise.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma mm/madvise.c
+--- a/mm/madvise.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma
++++ a/mm/madvise.c
+@@ -25,6 +25,8 @@
  
--		if (gfp_mask & __GFP_NOFAIL) {
--			page = get_page_from_freelist(gfp_mask, order,
--					ALLOC_NO_WATERMARKS|ALLOC_CPUSET, ac);
--			/*
--			 * fallback to ignore cpuset restriction if our nodes
--			 * are depleted
--			 */
--			if (!page)
--				page = get_page_from_freelist(gfp_mask, order,
-+		/*
-+		 * Help non-failing allocations by giving them access to memory
-+		 * reserves
-+		 */
-+		if (gfp_mask & __GFP_NOFAIL)
-+			page = __alloc_pages_cpuset_fallback(gfp_mask, order,
- 					ALLOC_NO_WATERMARKS, ac);
--		}
- 	}
- out:
- 	mutex_unlock(&oom_lock);
-@@ -3785,6 +3801,16 @@ nopage:
- 		 */
- 		WARN_ON_ONCE(order > PAGE_ALLOC_COSTLY_ORDER);
+ #include <asm/tlb.h>
  
-+		/*
-+		 * Help non-failing allocations by giving them access to memory
-+		 * reserves but do not use ALLOC_NO_WATERMARKS because this
-+		 * could deplete whole memory reserves which would just make
-+		 * the situation worse
-+		 */
-+		page = __alloc_pages_cpuset_fallback(gfp_mask, order, ALLOC_HARDER, ac);
-+		if (page)
-+			goto got_pg;
++#include "internal.h"
 +
- 		cond_resched();
- 		goto retry;
- 	}
+ /*
+  * Any behaviour which results in changes to the vma->vm_flags needs to
+  * take mmap_sem for writing. Others, which simply traverse vmas, need
+@@ -474,7 +476,7 @@ static long madvise_dontneed(struct vm_a
+ 			     unsigned long start, unsigned long end)
+ {
+ 	*prev = vma;
+-	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
++	if (!can_madv_dontneed_vma(vma))
+ 		return -EINVAL;
+ 
+ 	madvise_userfault_dontneed(vma, prev, start, end);
+diff -puN mm/oom_kill.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma
++++ a/mm/oom_kill.c
+@@ -508,14 +508,7 @@ static bool __oom_reap_task_mm(struct ta
+ 
+ 	tlb_gather_mmu(&tlb, mm, 0, -1);
+ 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+-		if (is_vm_hugetlb_page(vma))
+-			continue;
+-
+-		/*
+-		 * mlocked VMAs require explicit munlocking before unmap.
+-		 * Let's keep it simple here and skip such VMAs.
+-		 */
+-		if (vma->vm_flags & VM_LOCKED)
++		if (!can_madv_dontneed_vma(vma))
+ 			continue;
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
+uprobes-split-thps-before-trying-replace-them.patch
+mm-introduce-page_vma_mapped_walk.patch
+mm-fix-handling-pte-mapped-thps-in-page_referenced.patch
+mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
+mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch
+mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
+mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk.patch
+mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
+mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch
+mm-convert-page_mapped_in_vma-to-use-page_vma_mapped_walk.patch
+mm-drop-page_check_address_transhuge.patch
+mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk.patch
 
