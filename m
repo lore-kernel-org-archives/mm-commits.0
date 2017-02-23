@@ -1,230 +1,568 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-cleanup-lru-size-claculations.patch removed
- from -mm tree
-Date: Thu, 23 Feb 2017 13:16:54 -0800
-Message-ID: <58af5146.k3w8KlyqAJubSdeK%akpm@linux-foundation.org>
+Subject: [merged] zram-remove-obsolete-sysfs-attrs.patch removed from -mm
+ tree
+Date: Thu, 23 Feb 2017 13:17:39 -0800
+Message-ID: <58af5173.coFSMTJGe7a9qoG1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41624 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751240AbdBWVRm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
+        with ESMTP id S1751198AbdBWVRn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, corbet@lwn.net, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: cleanup lru size claculations
+     Subject: zram: remove obsolete sysfs attrs
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-cleanup-lru-size-claculations.patch
+     zram-remove-obsolete-sysfs-attrs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: cleanup lru size claculations
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zram: remove obsolete sysfs attrs
 
-lruvec_lru_size returns the full size of the LRU list while we sometimes
-need a value reduced only to eligible zones (e.g. for lowmem requests).
-inactive_list_is_low is one such user. Later patches will add more of
-them. Add a new parameter to lruvec_lru_size and allow it filter out
-zones which are not eligible for the given context.
+We had a deprecated_attr_warn() warning for 2 years and now the time has
+come and we finally can do the cleanup.
 
-Link: http://lkml.kernel.org/r/20170117103702.28542-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+The plan was as follows:
+
+: per-stat sysfs attributes are considered to be deprecated.
+: The basic strategy is:
+: -- the existing RW nodes will be downgraded to WO nodes (in linux 4.11)
+: -- deprecated RO sysfs nodes will eventually be removed (in linux 4.11)
+:
+: The list of deprecated attributes can be found here:
+: Documentation/ABI/obsolete/sysfs-block-zram
+:
+: Basically, every attribute that has its own read accessible sysfs
+: node (e.g. num_reads) *AND* is accessible via one of the stat files
+: (zram<id>/stat or zram<id>/io_stat or zram<id>/mm_stat) is considered
+: to be deprecated.
+
+The patch also removes `obsolete/sysfs-block-zram', clean ups
+`testing/sysfs-block-zram' and tweaks zram.txt files.
+
+Link: http://lkml.kernel.org/r/20170118035838.11090-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 
- mm/vmscan.c            |   89 +++++++++++++++++++--------------------
- mm/workingset.c        |    2 
- 3 files changed, 46 insertions(+), 47 deletions(-)
+ Documentation/ABI/obsolete/sysfs-block-zram |  119 ------------------
+ Documentation/ABI/testing/sysfs-block-zram  |  101 +--------------
+ Documentation/blockdev/zram.txt             |   74 ++++-------
+ drivers/block/zram/zram_drv.c               |  101 ---------------
+ 4 files changed, 42 insertions(+), 353 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-vmscan-cleanup-lru-size-claculations include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-vmscan-cleanup-lru-size-claculations
-+++ a/include/linux/mmzone.h
-@@ -779,7 +779,7 @@ static inline struct pglist_data *lruvec
- #endif
- }
+diff -puN Documentation/ABI/obsolete/sysfs-block-zram~zram-remove-obsolete-sysfs-attrs /dev/null
+--- a/Documentation/ABI/obsolete/sysfs-block-zram
++++ /dev/null
+@@ -1,119 +0,0 @@
+-What:		/sys/block/zram<id>/num_reads
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The num_reads file is read-only and specifies the number of
+-		reads (failed or successful) done on this device.
+-		Now accessible via zram<id>/stat node.
+-
+-What:		/sys/block/zram<id>/num_writes
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The num_writes file is read-only and specifies the number of
+-		writes (failed or successful) done on this device.
+-		Now accessible via zram<id>/stat node.
+-
+-What:		/sys/block/zram<id>/invalid_io
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The invalid_io file is read-only and specifies the number of
+-		non-page-size-aligned I/O requests issued to this device.
+-		Now accessible via zram<id>/io_stat node.
+-
+-What:		/sys/block/zram<id>/failed_reads
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The failed_reads file is read-only and specifies the number of
+-		failed reads happened on this device.
+-		Now accessible via zram<id>/io_stat node.
+-
+-What:		/sys/block/zram<id>/failed_writes
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The failed_writes file is read-only and specifies the number of
+-		failed writes happened on this device.
+-		Now accessible via zram<id>/io_stat node.
+-
+-What:		/sys/block/zram<id>/notify_free
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The notify_free file is read-only. Depending on device usage
+-		scenario it may account a) the number of pages freed because
+-		of swap slot free notifications or b) the number of pages freed
+-		because of REQ_DISCARD requests sent by bio. The former ones
+-		are sent to a swap block device when a swap slot is freed, which
+-		implies that this disk is being used as a swap disk. The latter
+-		ones are sent by filesystem mounted with discard option,
+-		whenever some data blocks are getting discarded.
+-		Now accessible via zram<id>/io_stat node.
+-
+-What:		/sys/block/zram<id>/zero_pages
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The zero_pages file is read-only and specifies number of zero
+-		filled pages written to this disk. No memory is allocated for
+-		such pages.
+-		Now accessible via zram<id>/mm_stat node.
+-
+-What:		/sys/block/zram<id>/orig_data_size
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The orig_data_size file is read-only and specifies uncompressed
+-		size of data stored in this disk. This excludes zero-filled
+-		pages (zero_pages) since no memory is allocated for them.
+-		Unit: bytes
+-		Now accessible via zram<id>/mm_stat node.
+-
+-What:		/sys/block/zram<id>/compr_data_size
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The compr_data_size file is read-only and specifies compressed
+-		size of data stored in this disk. So, compression ratio can be
+-		calculated using orig_data_size and this statistic.
+-		Unit: bytes
+-		Now accessible via zram<id>/mm_stat node.
+-
+-What:		/sys/block/zram<id>/mem_used_total
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The mem_used_total file is read-only and specifies the amount
+-		of memory, including allocator fragmentation and metadata
+-		overhead, allocated for this disk. So, allocator space
+-		efficiency can be calculated using compr_data_size and this
+-		statistic.
+-		Unit: bytes
+-		Now accessible via zram<id>/mm_stat node.
+-
+-What:		/sys/block/zram<id>/mem_used_max
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The mem_used_max file is read/write and specifies the amount
+-		of maximum memory zram have consumed to store compressed data.
+-		For resetting the value, you should write "0". Otherwise,
+-		you could see -EINVAL.
+-		Unit: bytes
+-		Downgraded to write-only node: so it's possible to set new
+-		value only; its current value is stored in zram<id>/mm_stat
+-		node.
+-
+-What:		/sys/block/zram<id>/mem_limit
+-Date:		August 2015
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The mem_limit file is read/write and specifies the maximum
+-		amount of memory ZRAM can use to store the compressed data.
+-		The limit could be changed in run time and "0" means disable
+-		the limit.  No limit is the initial state.  Unit: bytes
+-		Downgraded to write-only node: so it's possible to set new
+-		value only; its current value is stored in zram<id>/mm_stat
+-		node.
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-remove-obsolete-sysfs-attrs Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-remove-obsolete-sysfs-attrs
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -22,41 +22,6 @@ Description:
+ 		device. The reset operation frees all the memory associated
+ 		with this device.
  
--extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru);
-+extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
+-What:		/sys/block/zram<id>/num_reads
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The num_reads file is read-only and specifies the number of
+-		reads (failed or successful) done on this device.
+-
+-What:		/sys/block/zram<id>/num_writes
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The num_writes file is read-only and specifies the number of
+-		writes (failed or successful) done on this device.
+-
+-What:		/sys/block/zram<id>/invalid_io
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The invalid_io file is read-only and specifies the number of
+-		non-page-size-aligned I/O requests issued to this device.
+-
+-What:		/sys/block/zram<id>/failed_reads
+-Date:		February 2014
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The failed_reads file is read-only and specifies the number of
+-		failed reads happened on this device.
+-
+-What:		/sys/block/zram<id>/failed_writes
+-Date:		February 2014
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The failed_writes file is read-only and specifies the number of
+-		failed writes happened on this device.
+-
+ What:		/sys/block/zram<id>/max_comp_streams
+ Date:		February 2014
+ Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+@@ -73,74 +38,24 @@ Description:
+ 		available and selected compression algorithms, change
+ 		compression algorithm selection.
  
- #ifdef CONFIG_HAVE_MEMORY_PRESENT
- void memory_present(int nid, unsigned long start, unsigned long end);
-diff -puN mm/vmscan.c~mm-vmscan-cleanup-lru-size-claculations mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-cleanup-lru-size-claculations
-+++ a/mm/vmscan.c
-@@ -234,22 +234,39 @@ bool pgdat_reclaimable(struct pglist_dat
- 		pgdat_reclaimable_pages(pgdat) * 6;
- }
+-What:		/sys/block/zram<id>/notify_free
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The notify_free file is read-only. Depending on device usage
+-		scenario it may account a) the number of pages freed because
+-		of swap slot free notifications or b) the number of pages freed
+-		because of REQ_DISCARD requests sent by bio. The former ones
+-		are sent to a swap block device when a swap slot is freed, which
+-		implies that this disk is being used as a swap disk. The latter
+-		ones are sent by filesystem mounted with discard option,
+-		whenever some data blocks are getting discarded.
+-
+-What:		/sys/block/zram<id>/zero_pages
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The zero_pages file is read-only and specifies number of zero
+-		filled pages written to this disk. No memory is allocated for
+-		such pages.
+-
+-What:		/sys/block/zram<id>/orig_data_size
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The orig_data_size file is read-only and specifies uncompressed
+-		size of data stored in this disk. This excludes zero-filled
+-		pages (zero_pages) since no memory is allocated for them.
+-		Unit: bytes
+-
+-What:		/sys/block/zram<id>/compr_data_size
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The compr_data_size file is read-only and specifies compressed
+-		size of data stored in this disk. So, compression ratio can be
+-		calculated using orig_data_size and this statistic.
+-		Unit: bytes
+-
+-What:		/sys/block/zram<id>/mem_used_total
+-Date:		August 2010
+-Contact:	Nitin Gupta <ngupta@vflare.org>
+-Description:
+-		The mem_used_total file is read-only and specifies the amount
+-		of memory, including allocator fragmentation and metadata
+-		overhead, allocated for this disk. So, allocator space
+-		efficiency can be calculated using compr_data_size and this
+-		statistic.
+-		Unit: bytes
+-
+ What:		/sys/block/zram<id>/mem_used_max
+ Date:		August 2014
+ Contact:	Minchan Kim <minchan@kernel.org>
+ Description:
+-		The mem_used_max file is read/write and specifies the amount
+-		of maximum memory zram have consumed to store compressed data.
+-		For resetting the value, you should write "0". Otherwise,
+-		you could see -EINVAL.
++		The mem_used_max file is write-only and is used to reset
++		the counter of maximum memory zram have consumed to store
++		compressed data. For resetting the value, you should write
++		"0". Otherwise, you could see -EINVAL.
+ 		Unit: bytes
  
--unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru)
-+/**
-+ * lruvec_lru_size -  Returns the number of pages on the given LRU list.
-+ * @lruvec: lru vector
-+ * @lru: lru to use
-+ * @zone_idx: zones to consider (use MAX_NR_ZONES for the whole LRU list)
-+ */
-+unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx)
- {
-+	unsigned long lru_size;
-+	int zid;
-+
- 	if (!mem_cgroup_disabled())
--		return mem_cgroup_get_lru_size(lruvec, lru);
-+		lru_size = mem_cgroup_get_lru_size(lruvec, lru);
-+	else
-+		lru_size = node_page_state(lruvec_pgdat(lruvec), NR_LRU_BASE + lru);
+ What:		/sys/block/zram<id>/mem_limit
+ Date:		August 2014
+ Contact:	Minchan Kim <minchan@kernel.org>
+ Description:
+-		The mem_limit file is read/write and specifies the maximum
+-		amount of memory ZRAM can use to store the compressed data.  The
+-		limit could be changed in run time and "0" means disable the
+-		limit.  No limit is the initial state.  Unit: bytes
++		The mem_limit file is write-only and specifies the maximum
++		amount of memory ZRAM can use to store the compressed data.
++		The limit could be changed in run time and "0" means disable
++		the limit. No limit is the initial state.  Unit: bytes
  
--	return node_page_state(lruvec_pgdat(lruvec), NR_LRU_BASE + lru);
--}
-+	for (zid = zone_idx + 1; zid < MAX_NR_ZONES; zid++) {
-+		struct zone *zone = &lruvec_pgdat(lruvec)->node_zones[zid];
-+		unsigned long size;
+ What:		/sys/block/zram<id>/compact
+ Date:		August 2015
+diff -puN Documentation/blockdev/zram.txt~zram-remove-obsolete-sysfs-attrs Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-remove-obsolete-sysfs-attrs
++++ a/Documentation/blockdev/zram.txt
+@@ -161,42 +161,14 @@ Name            access            descri
+ disksize          RW    show and set the device's disk size
+ initstate         RO    shows the initialization state of the device
+ reset             WO    trigger device reset
+-num_reads         RO    the number of reads
+-failed_reads      RO    the number of failed reads
+-num_write         RO    the number of writes
+-failed_writes     RO    the number of failed writes
+-invalid_io        RO    the number of non-page-size-aligned I/O requests
++mem_used_max      WO    reset the `mem_used_max' counter (see later)
++mem_limit         WO    specifies the maximum amount of memory ZRAM can use
++                        to store the compressed data
+ max_comp_streams  RW    the number of possible concurrent compress operations
+ comp_algorithm    RW    show and change the compression algorithm
+-notify_free       RO    the number of notifications to free pages (either
+-                        slot free notifications or REQ_DISCARD requests)
+-zero_pages        RO    the number of zero filled pages written to this disk
+-orig_data_size    RO    uncompressed size of data stored in this disk
+-compr_data_size   RO    compressed size of data stored in this disk
+-mem_used_total    RO    the amount of memory allocated for this disk
+-mem_used_max      RW    the maximum amount of memory zram have consumed to
+-                        store the data (to reset this counter to the actual
+-                        current value, write 1 to this attribute)
+-mem_limit         RW    the maximum amount of memory ZRAM can use to store
+-                        the compressed data
+-pages_compacted   RO    the number of pages freed during compaction
+-                        (available only via zram<id>/mm_stat node)
+ compact           WO    trigger memory compaction
+ debug_stat        RO    this file is used for zram debugging purposes
  
--unsigned long lruvec_zone_lru_size(struct lruvec *lruvec, enum lru_list lru,
--				   int zone_idx)
+-WARNING
+-=======
+-per-stat sysfs attributes are considered to be deprecated.
+-The basic strategy is:
+--- the existing RW nodes will be downgraded to WO nodes (in linux 4.11)
+--- deprecated RO sysfs nodes will eventually be removed (in linux 4.11)
+-
+-The list of deprecated attributes can be found here:
+-Documentation/ABI/obsolete/sysfs-block-zram
+-
+-Basically, every attribute that has its own read accessible sysfs node
+-(e.g. num_reads) *AND* is accessible via one of the stat files (zram<id>/stat
+-or zram<id>/io_stat or zram<id>/mm_stat) is considered to be deprecated.
+ 
+ User space is advised to use the following files to read the device statistics.
+ 
+@@ -211,22 +183,40 @@ The stat file represents device's I/O st
+ layer and, thus, not available in zram<id>/stat file. It consists of a
+ single line of text and contains the following stats separated by
+ whitespace:
+-	failed_reads
+-	failed_writes
+-	invalid_io
+-	notify_free
++ failed_reads     the number of failed reads
++ failed_writes    the number of failed writes
++ invalid_io       the number of non-page-size-aligned I/O requests
++ notify_free      Depending on device usage scenario it may account
++                  a) the number of pages freed because of swap slot free
++                  notifications or b) the number of pages freed because of
++                  REQ_DISCARD requests sent by bio. The former ones are
++                  sent to a swap block device when a swap slot is freed,
++                  which implies that this disk is being used as a swap disk.
++                  The latter ones are sent by filesystem mounted with
++                  discard option, whenever some data blocks are getting
++                  discarded.
+ 
+ File /sys/block/zram<id>/mm_stat
+ 
+ The stat file represents device's mm statistics. It consists of a single
+ line of text and contains the following stats separated by whitespace:
+-	orig_data_size
+-	compr_data_size
+-	mem_used_total
+-	mem_limit
+-	mem_used_max
+-	zero_pages
+-	num_migrated
++ orig_data_size   uncompressed size of data stored in this disk.
++                  This excludes zero-filled pages (zero_pages) since no
++                  memory is allocated for them.
++                  Unit: bytes
++ compr_data_size  compressed size of data stored in this disk
++ mem_used_total   the amount of memory allocated for this disk. This
++                  includes allocator fragmentation and metadata overhead,
++                  allocated for this disk. So, allocator space efficiency
++                  can be calculated using compr_data_size and this statistic.
++                  Unit: bytes
++ mem_limit        the maximum amount of memory ZRAM can use to store
++                  the compressed data
++ mem_used_max     the maximum amount of memory zram have consumed to
++                  store the data
++ zero_pages       the number of zero filled pages written to this disk.
++                  No memory is allocated for such pages.
++ pages_compacted  the number of pages freed during compaction
+ 
+ 9) Deactivate:
+ 	swapoff /dev/zram0
+diff -puN drivers/block/zram/zram_drv.c~zram-remove-obsolete-sysfs-attrs drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-remove-obsolete-sysfs-attrs
++++ a/drivers/block/zram/zram_drv.c
+@@ -45,27 +45,6 @@ static const char *default_compressor =
+ /* Module params (documentation at end) */
+ static unsigned int num_devices = 1;
+ 
+-static inline void deprecated_attr_warn(const char *name)
 -{
--	if (!mem_cgroup_disabled())
--		return mem_cgroup_get_zone_lru_size(lruvec, lru, zone_idx);
-+		if (!managed_zone(zone))
-+			continue;
-+
-+		if (!mem_cgroup_disabled())
-+			size = mem_cgroup_get_zone_lru_size(lruvec, lru, zid);
-+		else
-+			size = zone_page_state(&lruvec_pgdat(lruvec)->node_zones[zid],
-+				       NR_ZONE_LRU_BASE + lru);
-+		lru_size -= min(size, lru_size);
-+	}
-+
-+	return lru_size;
- 
--	return zone_page_state(&lruvec_pgdat(lruvec)->node_zones[zone_idx],
--			       NR_ZONE_LRU_BASE + lru);
- }
- 
- /*
-@@ -2049,11 +2066,10 @@ static bool inactive_list_is_low(struct
- 						struct scan_control *sc, bool trace)
+-	pr_warn_once("%d (%s) Attribute %s (and others) will be removed. %s\n",
+-			task_pid_nr(current),
+-			current->comm,
+-			name,
+-			"See zram documentation.");
+-}
+-
+-#define ZRAM_ATTR_RO(name)						\
+-static ssize_t name##_show(struct device *d,				\
+-				struct device_attribute *attr, char *b)	\
+-{									\
+-	struct zram *zram = dev_to_zram(d);				\
+-									\
+-	deprecated_attr_warn(__stringify(name));			\
+-	return scnprintf(b, PAGE_SIZE, "%llu\n",			\
+-		(u64)atomic64_read(&zram->stats.name));			\
+-}									\
+-static DEVICE_ATTR_RO(name);
+-
+ static inline bool init_done(struct zram *zram)
  {
- 	unsigned long inactive_ratio;
--	unsigned long total_inactive, inactive;
--	unsigned long total_active, active;
-+	unsigned long inactive, active;
-+	enum lru_list inactive_lru = file * LRU_FILE;
-+	enum lru_list active_lru = file * LRU_FILE + LRU_ACTIVE;
- 	unsigned long gb;
--	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
--	int zid;
- 
- 	/*
- 	 * If we don't have swap space, anonymous page deactivation
-@@ -2062,27 +2078,8 @@ static bool inactive_list_is_low(struct
- 	if (!file && !total_swap_pages)
- 		return false;
- 
--	total_inactive = inactive = lruvec_lru_size(lruvec, file * LRU_FILE);
--	total_active = active = lruvec_lru_size(lruvec, file * LRU_FILE + LRU_ACTIVE);
--
--	/*
--	 * For zone-constrained allocations, it is necessary to check if
--	 * deactivations are required for lowmem to be reclaimed. This
--	 * calculates the inactive/active pages available in eligible zones.
--	 */
--	for (zid = sc->reclaim_idx + 1; zid < MAX_NR_ZONES; zid++) {
--		struct zone *zone = &pgdat->node_zones[zid];
--		unsigned long inactive_zone, active_zone;
--
--		if (!managed_zone(zone))
--			continue;
--
--		inactive_zone = lruvec_zone_lru_size(lruvec, file * LRU_FILE, zid);
--		active_zone = lruvec_zone_lru_size(lruvec, (file * LRU_FILE) + LRU_ACTIVE, zid);
--
--		inactive -= min(inactive, inactive_zone);
--		active -= min(active, active_zone);
--	}
-+	inactive = lruvec_lru_size(lruvec, inactive_lru, sc->reclaim_idx);
-+	active = lruvec_lru_size(lruvec, active_lru, sc->reclaim_idx);
- 
- 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
- 	if (gb)
-@@ -2091,10 +2088,12 @@ static bool inactive_list_is_low(struct
- 		inactive_ratio = 1;
- 
- 	if (trace)
--		trace_mm_vmscan_inactive_list_is_low(pgdat->node_id,
-+		trace_mm_vmscan_inactive_list_is_low(lruvec_pgdat(lruvec)->node_id,
- 				sc->reclaim_idx,
--				total_inactive, inactive,
--				total_active, active, inactive_ratio, file);
-+				lruvec_lru_size(lruvec, inactive_lru, MAX_NR_ZONES), inactive,
-+				lruvec_lru_size(lruvec, active_lru, MAX_NR_ZONES), active,
-+				inactive_ratio, file);
-+
- 	return inactive * inactive_ratio < active;
+ 	return zram->disksize;
+@@ -218,47 +197,6 @@ static ssize_t disksize_show(struct devi
+ 	return scnprintf(buf, PAGE_SIZE, "%llu\n", zram->disksize);
  }
  
-@@ -2234,7 +2233,7 @@ static void get_scan_count(struct lruvec
- 	 * system is under heavy pressure.
- 	 */
- 	if (!inactive_list_is_low(lruvec, true, sc, false) &&
--	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
-+	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES) >> sc->priority) {
- 		scan_balance = SCAN_FILE;
- 		goto out;
- 	}
-@@ -2260,10 +2259,10 @@ static void get_scan_count(struct lruvec
- 	 * anon in [0], file in [1]
- 	 */
+-static ssize_t orig_data_size_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	struct zram *zram = dev_to_zram(dev);
+-
+-	deprecated_attr_warn("orig_data_size");
+-	return scnprintf(buf, PAGE_SIZE, "%llu\n",
+-		(u64)(atomic64_read(&zram->stats.pages_stored)) << PAGE_SHIFT);
+-}
+-
+-static ssize_t mem_used_total_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	u64 val = 0;
+-	struct zram *zram = dev_to_zram(dev);
+-
+-	deprecated_attr_warn("mem_used_total");
+-	down_read(&zram->init_lock);
+-	if (init_done(zram)) {
+-		struct zram_meta *meta = zram->meta;
+-		val = zs_get_total_pages(meta->mem_pool);
+-	}
+-	up_read(&zram->init_lock);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%llu\n", val << PAGE_SHIFT);
+-}
+-
+-static ssize_t mem_limit_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	u64 val;
+-	struct zram *zram = dev_to_zram(dev);
+-
+-	deprecated_attr_warn("mem_limit");
+-	down_read(&zram->init_lock);
+-	val = zram->limit_pages;
+-	up_read(&zram->init_lock);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%llu\n", val << PAGE_SHIFT);
+-}
+-
+ static ssize_t mem_limit_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+@@ -277,21 +215,6 @@ static ssize_t mem_limit_store(struct de
+ 	return len;
+ }
  
--	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON) +
--		lruvec_lru_size(lruvec, LRU_INACTIVE_ANON);
--	file  = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE) +
--		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE);
-+	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON, MAX_NR_ZONES) +
-+		lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, MAX_NR_ZONES);
-+	file  = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES) +
-+		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES);
+-static ssize_t mem_used_max_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	u64 val = 0;
+-	struct zram *zram = dev_to_zram(dev);
+-
+-	deprecated_attr_warn("mem_used_max");
+-	down_read(&zram->init_lock);
+-	if (init_done(zram))
+-		val = atomic_long_read(&zram->stats.max_used_pages);
+-	up_read(&zram->init_lock);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%llu\n", val << PAGE_SHIFT);
+-}
+-
+ static ssize_t mem_used_max_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+@@ -467,14 +390,6 @@ static ssize_t debug_stat_show(struct de
+ static DEVICE_ATTR_RO(io_stat);
+ static DEVICE_ATTR_RO(mm_stat);
+ static DEVICE_ATTR_RO(debug_stat);
+-ZRAM_ATTR_RO(num_reads);
+-ZRAM_ATTR_RO(num_writes);
+-ZRAM_ATTR_RO(failed_reads);
+-ZRAM_ATTR_RO(failed_writes);
+-ZRAM_ATTR_RO(invalid_io);
+-ZRAM_ATTR_RO(notify_free);
+-ZRAM_ATTR_RO(zero_pages);
+-ZRAM_ATTR_RO(compr_data_size);
  
- 	spin_lock_irq(&pgdat->lru_lock);
- 	if (unlikely(reclaim_stat->recent_scanned[0] > anon / 4)) {
-@@ -2301,7 +2300,7 @@ out:
- 			unsigned long size;
- 			unsigned long scan;
+ static inline bool zram_meta_get(struct zram *zram)
+ {
+@@ -1188,10 +1103,8 @@ static DEVICE_ATTR_WO(compact);
+ static DEVICE_ATTR_RW(disksize);
+ static DEVICE_ATTR_RO(initstate);
+ static DEVICE_ATTR_WO(reset);
+-static DEVICE_ATTR_RO(orig_data_size);
+-static DEVICE_ATTR_RO(mem_used_total);
+-static DEVICE_ATTR_RW(mem_limit);
+-static DEVICE_ATTR_RW(mem_used_max);
++static DEVICE_ATTR_WO(mem_limit);
++static DEVICE_ATTR_WO(mem_used_max);
+ static DEVICE_ATTR_RW(max_comp_streams);
+ static DEVICE_ATTR_RW(comp_algorithm);
  
--			size = lruvec_lru_size(lruvec, lru);
-+			size = lruvec_lru_size(lruvec, lru, MAX_NR_ZONES);
- 			scan = size >> sc->priority;
- 
- 			if (!scan && pass && force_scan)
-diff -puN mm/workingset.c~mm-vmscan-cleanup-lru-size-claculations mm/workingset.c
---- a/mm/workingset.c~mm-vmscan-cleanup-lru-size-claculations
-+++ a/mm/workingset.c
-@@ -267,7 +267,7 @@ bool workingset_refault(void *shadow)
- 	}
- 	lruvec = mem_cgroup_lruvec(pgdat, memcg);
- 	refault = atomic_long_read(&lruvec->inactive_age);
--	active_file = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
-+	active_file = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES);
- 	rcu_read_unlock();
- 
- 	/*
+@@ -1199,17 +1112,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_disksize.attr,
+ 	&dev_attr_initstate.attr,
+ 	&dev_attr_reset.attr,
+-	&dev_attr_num_reads.attr,
+-	&dev_attr_num_writes.attr,
+-	&dev_attr_failed_reads.attr,
+-	&dev_attr_failed_writes.attr,
+ 	&dev_attr_compact.attr,
+-	&dev_attr_invalid_io.attr,
+-	&dev_attr_notify_free.attr,
+-	&dev_attr_zero_pages.attr,
+-	&dev_attr_orig_data_size.attr,
+-	&dev_attr_compr_data_size.attr,
+-	&dev_attr_mem_used_total.attr,
+ 	&dev_attr_mem_limit.attr,
+ 	&dev_attr_mem_used_max.attr,
+ 	&dev_attr_max_comp_streams.attr,
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
 
