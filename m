@@ -1,118 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch removed
- from -mm tree
-Date: Thu, 23 Feb 2017 13:16:43 -0800
-Message-ID: <58af513b.iEd/PVOiMjqx1FxQ%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:17:02 -0800
+Message-ID: <58af514e.yFS6cBL5XGbE57U7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41620 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdBWVRl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:41 -0500
+        with ESMTP id S1751242AbdBWVRm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: skip readahead only when swap slot cache is enabled
+     Subject: mm, page_alloc: do not report all nodes in show_mem
 has been removed from the -mm tree.  Its filename was
-     mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
+     mm-page_alloc-do-not-report-all-nodes-in-show_mem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/swap: skip readahead only when swap slot cache is enabled
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, page_alloc: do not report all nodes in show_mem
 
-Because during swap off, a swap entry may have swap_map[] ==
-SWAP_HAS_CACHE (for example, just allocated).  If we return NULL in
-__read_swap_cache_async(), the swap off will abort.  So when swap slot
-cache is disabled, (for swap off), we will wait for page to be put into
-swap cache in such race condition.  This should not be a problem for swap
-slot cache, because swap slot cache should be drained after clearing
-swap_slot_cache_enabled.
+Patch series "show_mem updates", v2.
 
-[ying.huang@intel.com: fix memory leak in __read_swap_cache_async()]
-  Link: http://lkml.kernel.org/r/874lzt6znd.fsf@yhuang-dev.intel.com
-Link: http://lkml.kernel.org/r/5e2c5f6abe8e6eb0797408897b1bba80938e9b9d.1484082593.git.tim.c.chen@linux.intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+This is a mixture of one bug fix (patch 1), an enhancement (patch 2) and
+cleanups (the rest of the series).  First two patches should be really
+straightforward.  Patch 3 removes some arch specific show_mem
+implementations because I think they are quite outdated and do not really
+serve any useful purpose anymore.  I think we should really strive to have
+a consistent show_mem output regardless of the architecture.  If some
+architecture is really special and wants to dump something additional we
+should do that via an arch specific hook.
+
+The last patch adds nodemask parameter so that we do not rely on the
+hardcoded mems_allowed of the current task when doing the node filtering. 
+I consider this more a cleanup than a fix because basically all users use
+a nodemask which is a subset of mems_allowed.  There is only one call path
+in the memory hotplug which doesn't comply with this but that is hardly
+something to worry about.
+
+
+This patch (of 4):
+
+599d0c954f91 ("mm, vmscan: move LRU lists to node") has added per numa
+node statistics to show_mem but it forgot to add skip_free_areas_node
+to filter out nodes which are outside of the allocating task numa
+policy.  Add this check to not pollute the output with the pointless
+information.
+
+Link: http://lkml.kernel.org/r/20170117091543.25850-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap_slots.h |    2 ++
- mm/swap_slots.c            |    2 +-
- mm/swap_state.c            |   13 ++++++++++---
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/swap_slots.h~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled include/linux/swap_slots.h
---- a/include/linux/swap_slots.h~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
-+++ a/include/linux/swap_slots.h
-@@ -25,4 +25,6 @@ void reenable_swap_slots_cache_unlock(vo
- int enable_swap_slots_cache(void);
- int free_swap_slot(swp_entry_t entry);
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-report-all-nodes-in-show_mem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-report-all-nodes-in-show_mem
++++ a/mm/page_alloc.c
+@@ -4368,6 +4368,9 @@ void show_free_areas(unsigned int filter
+ 		global_page_state(NR_FREE_CMA_PAGES));
  
-+extern bool swap_slot_cache_enabled;
+ 	for_each_online_pgdat(pgdat) {
++		if (skip_free_areas_node(filter, pgdat->node_id))
++			continue;
 +
- #endif /* _LINUX_SWAP_SLOTS_H */
-diff -puN mm/swap_slots.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled mm/swap_slots.c
---- a/mm/swap_slots.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
-+++ a/mm/swap_slots.c
-@@ -36,7 +36,7 @@
- 
- static DEFINE_PER_CPU(struct swap_slots_cache, swp_slots);
- static bool	swap_slot_cache_active;
--static bool	swap_slot_cache_enabled;
-+bool	swap_slot_cache_enabled;
- static bool	swap_slot_cache_initialized;
- DEFINE_MUTEX(swap_slots_cache_mutex);
- /* Serialize swap slots cache enable/disable operations */
-diff -puN mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
-+++ a/mm/swap_state.c
-@@ -324,9 +324,16 @@ struct page *__read_swap_cache_async(swp
- 		if (found_page)
- 			break;
- 
--		/* Just skip read ahead for unused swap slot */
--		if (!__swp_swapcount(entry))
--			return NULL;
-+		/*
-+		 * Just skip read ahead for unused swap slot.
-+		 * During swap_off when swap_slot_cache is disabled,
-+		 * we have to handle the race between putting
-+		 * swap entry in swap cache and marking swap slot
-+		 * as SWAP_HAS_CACHE.  That's done in later part of code or
-+		 * else swap_off will be aborted if we return NULL.
-+		 */
-+		if (!__swp_swapcount(entry) && swap_slot_cache_enabled)
-+			break;
- 
- 		/*
- 		 * Get a new page to read into from swap.
+ 		printk("Node %d"
+ 			" active_anon:%lukB"
+ 			" inactive_anon:%lukB"
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
+userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
+vmalloc-back-of-when-the-current-is-killed.patch
 
