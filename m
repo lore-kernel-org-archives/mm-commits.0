@@ -1,124 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma.patch
+Subject: [merged] mm-memblockc-remove-unnecessary-log-and-clean-up.patch
  removed from -mm tree
-Date: Thu, 23 Feb 2017 13:17:34 -0800
-Message-ID: <58af516e.PX8jTlDDtblxyQM5%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:17:37 -0800
+Message-ID: <58af5171./Ztohxjl3HJtLdux%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41644 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751283AbdBWVRn (ORCPT
+        with ESMTP id S1751285AbdBWVRn (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: miles.chen@mediatek.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom-reaper: use madvise_dontneed() logic to decide if unmap the VMA
+     Subject: mm/memblock.c: remove unnecessary log and clean up
 has been removed from the -mm tree.  Its filename was
-     oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma.patch
+     mm-memblockc-remove-unnecessary-log-and-clean-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: oom-reaper: use madvise_dontneed() logic to decide if unmap the VMA
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: mm/memblock.c: remove unnecessary log and clean up
 
-Logic on whether we can reap pages from the VMA should match what we have
-in madvise_dontneed().  In particular, we should skip, VM_PFNMAP VMAs, but
-we don't now.
+There is no variable named flags in memblock_add() and memblock_reserve()
+so remove it from the log messages.
 
-Let's just extract condition on which we can shoot down pagesi from a VMA
-with MADV_DONTNEED into separate function and use it in both places.
+This patch also cleans up the type casting for phys_addr_t by using %pa to
+print them.
 
-Link: http://lkml.kernel.org/r/20170118122429.43661-4-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
+Link: http://lkml.kernel.org/r/1484720165-25403-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    5 +++++
- mm/madvise.c  |    4 +++-
- mm/oom_kill.c |    9 +--------
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ mm/memblock.c |   54 ++++++++++++++++++++++--------------------------
+ 1 file changed, 25 insertions(+), 29 deletions(-)
 
-diff -puN mm/internal.h~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma mm/internal.h
---- a/mm/internal.h~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma
-+++ a/mm/internal.h
-@@ -43,6 +43,11 @@ int do_swap_page(struct vm_fault *vmf);
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
- 		unsigned long floor, unsigned long ceiling);
+diff -puN mm/memblock.c~mm-memblockc-remove-unnecessary-log-and-clean-up mm/memblock.c
+--- a/mm/memblock.c~mm-memblockc-remove-unnecessary-log-and-clean-up
++++ a/mm/memblock.c
+@@ -611,10 +611,10 @@ int __init_memblock memblock_add_node(ph
  
-+static inline bool can_madv_dontneed_vma(struct vm_area_struct *vma)
-+{
-+	return !(vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP));
-+}
-+
- void unmap_page_range(struct mmu_gather *tlb,
- 			     struct vm_area_struct *vma,
- 			     unsigned long addr, unsigned long end,
-diff -puN mm/madvise.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma mm/madvise.c
---- a/mm/madvise.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma
-+++ a/mm/madvise.c
-@@ -25,6 +25,8 @@
- 
- #include <asm/tlb.h>
- 
-+#include "internal.h"
-+
- /*
-  * Any behaviour which results in changes to the vma->vm_flags needs to
-  * take mmap_sem for writing. Others, which simply traverse vmas, need
-@@ -474,7 +476,7 @@ static long madvise_dontneed(struct vm_a
- 			     unsigned long start, unsigned long end)
+ int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
  {
- 	*prev = vma;
--	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
-+	if (!can_madv_dontneed_vma(vma))
- 		return -EINVAL;
+-	memblock_dbg("memblock_add: [%#016llx-%#016llx] flags %#02lx %pF\n",
+-		     (unsigned long long)base,
+-		     (unsigned long long)base + size - 1,
+-		     0UL, (void *)_RET_IP_);
++	phys_addr_t end = base + size - 1;
++
++	memblock_dbg("memblock_add: [%pa-%pa] %pF\n",
++		     &base, &end, (void *)_RET_IP_);
  
- 	madvise_userfault_dontneed(vma, prev, start, end);
-diff -puN mm/oom_kill.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma mm/oom_kill.c
---- a/mm/oom_kill.c~oom-reaper-use-madvise_dontneed-logic-to-decide-if-unmap-the-vma
-+++ a/mm/oom_kill.c
-@@ -508,14 +508,7 @@ static bool __oom_reap_task_mm(struct ta
+ 	return memblock_add_range(&memblock.memory, base, size, MAX_NUMNODES, 0);
+ }
+@@ -718,10 +718,10 @@ int __init_memblock memblock_remove(phys
  
- 	tlb_gather_mmu(&tlb, mm, 0, -1);
- 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
--		if (is_vm_hugetlb_page(vma))
--			continue;
--
--		/*
--		 * mlocked VMAs require explicit munlocking before unmap.
--		 * Let's keep it simple here and skip such VMAs.
--		 */
--		if (vma->vm_flags & VM_LOCKED)
-+		if (!can_madv_dontneed_vma(vma))
- 			continue;
+ int __init_memblock memblock_free(phys_addr_t base, phys_addr_t size)
+ {
+-	memblock_dbg("   memblock_free: [%#016llx-%#016llx] %pF\n",
+-		     (unsigned long long)base,
+-		     (unsigned long long)base + size - 1,
+-		     (void *)_RET_IP_);
++	phys_addr_t end = base + size - 1;
++
++	memblock_dbg("   memblock_free: [%pa-%pa] %pF\n",
++		     &base, &end, (void *)_RET_IP_);
  
- 		/*
+ 	kmemleak_free_part_phys(base, size);
+ 	return memblock_remove_range(&memblock.reserved, base, size);
+@@ -729,10 +729,10 @@ int __init_memblock memblock_free(phys_a
+ 
+ int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
+ {
+-	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
+-		     (unsigned long long)base,
+-		     (unsigned long long)base + size - 1,
+-		     0UL, (void *)_RET_IP_);
++	phys_addr_t end = base + size - 1;
++
++	memblock_dbg("memblock_reserve: [%pa-%pa] %pF\n",
++		     &base, &end, (void *)_RET_IP_);
+ 
+ 	return memblock_add_range(&memblock.reserved, base, size, MAX_NUMNODES, 0);
+ }
+@@ -1227,8 +1227,8 @@ phys_addr_t __init memblock_alloc_base(p
+ 	alloc = __memblock_alloc_base(size, align, max_addr);
+ 
+ 	if (alloc == 0)
+-		panic("ERROR: Failed to allocate 0x%llx bytes below 0x%llx.\n",
+-		      (unsigned long long) size, (unsigned long long) max_addr);
++		panic("ERROR: Failed to allocate %pa bytes below %pa.\n",
++		      &size, &max_addr);
+ 
+ 	return alloc;
+ }
+@@ -1695,7 +1695,7 @@ phys_addr_t __init_memblock memblock_get
+ 
+ static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
+ {
+-	unsigned long long base, size;
++	phys_addr_t base, end, size;
+ 	unsigned long flags;
+ 	int idx;
+ 	struct memblock_region *rgn;
+@@ -1707,23 +1707,24 @@ static void __init_memblock memblock_dum
+ 
+ 		base = rgn->base;
+ 		size = rgn->size;
++		end = base + size - 1;
+ 		flags = rgn->flags;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 		if (memblock_get_region_node(rgn) != MAX_NUMNODES)
+ 			snprintf(nid_buf, sizeof(nid_buf), " on node %d",
+ 				 memblock_get_region_node(rgn));
+ #endif
+-		pr_info(" %s[%#x]\t[%#016llx-%#016llx], %#llx bytes%s flags: %#lx\n",
+-			name, idx, base, base + size - 1, size, nid_buf, flags);
++		pr_info(" %s[%#x]\t[%pa-%pa], %pa bytes%s flags: %#lx\n",
++			name, idx, &base, &end, &size, nid_buf, flags);
+ 	}
+ }
+ 
+ void __init_memblock __memblock_dump_all(void)
+ {
+ 	pr_info("MEMBLOCK configuration:\n");
+-	pr_info(" memory size = %#llx reserved size = %#llx\n",
+-		(unsigned long long)memblock.memory.total_size,
+-		(unsigned long long)memblock.reserved.total_size);
++	pr_info(" memory size = %pa reserved size = %pa\n",
++		&memblock.memory.total_size,
++		&memblock.reserved.total_size);
+ 
+ 	memblock_dump(&memblock.memory, "memory");
+ 	memblock_dump(&memblock.reserved, "reserved");
+@@ -1749,19 +1750,14 @@ static int memblock_debug_show(struct se
+ 	struct memblock_type *type = m->private;
+ 	struct memblock_region *reg;
+ 	int i;
++	phys_addr_t end;
+ 
+ 	for (i = 0; i < type->cnt; i++) {
+ 		reg = &type->regions[i];
+-		seq_printf(m, "%4d: ", i);
+-		if (sizeof(phys_addr_t) == 4)
+-			seq_printf(m, "0x%08lx..0x%08lx\n",
+-				   (unsigned long)reg->base,
+-				   (unsigned long)(reg->base + reg->size - 1));
+-		else
+-			seq_printf(m, "0x%016llx..0x%016llx\n",
+-				   (unsigned long long)reg->base,
+-				   (unsigned long long)(reg->base + reg->size - 1));
++		end = reg->base + reg->size - 1;
+ 
++		seq_printf(m, "%4d: ", i);
++		seq_printf(m, "%pa..%pa\n", &reg->base, &end);
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
-uprobes-split-thps-before-trying-replace-them.patch
-mm-introduce-page_vma_mapped_walk.patch
-mm-fix-handling-pte-mapped-thps-in-page_referenced.patch
-mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
-mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch
-mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
-mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk.patch
-mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
-mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch
-mm-convert-page_mapped_in_vma-to-use-page_vma_mapped_walk.patch
-mm-drop-page_check_address_transhuge.patch
-mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk.patch
+mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t.patch
+checkpatch-update-logfunctions.patch
 
