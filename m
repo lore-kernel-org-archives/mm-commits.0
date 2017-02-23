@@ -1,307 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:11:54 -0800
-Message-ID: <58af501a.pfz20CcS6XBXBcSo%akpm@linux-foundation.org>
+Subject: [merged] parisc-use-generic-currenth.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:11:59 -0800
+Message-ID: <58af501f.OQRoyc24JFacDi3p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751265AbdBWVL4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:56 -0500
+        with ESMTP id S1751201AbdBWVMK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, deller@gmx.de, jejb@parisc-linux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+     Subject: parisc: use generic current.h
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock.patch
+     parisc-use-generic-currenth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2/dlmglue: prepare tracking logic to avoid recursive cluster lock
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: parisc: use generic current.h
 
-We are in the situation that we have to avoid recursive cluster locking,
-but there is no way to check if a cluster lock has been taken by a precess
-already.
+Given that the arch does not add its own implementations, simply use the
+asm-generic/current.h (generic-y) header instead of duplicating code.
 
-Mostly, we can avoid recursive locking by writing code carefully. 
-However, we found that it's very hard to handle the routines that are
-invoked directly by vfs code.  For instance:
-
-const struct inode_operations ocfs2_file_iops = {
-    .permission     = ocfs2_permission,
-    .get_acl        = ocfs2_iop_get_acl,
-    .set_acl        = ocfs2_iop_set_acl,
-};
-
-Both ocfs2_permission() and ocfs2_iop_get_acl() call ocfs2_inode_lock(PR):
-do_sys_open
- may_open
-  inode_permission
-   ocfs2_permission
-    ocfs2_inode_lock() <=== first time
-     generic_permission
-      get_acl
-       ocfs2_iop_get_acl
-	ocfs2_inode_lock() <=== recursive one
-
-A deadlock will occur if a remote EX request comes in between two of
-ocfs2_inode_lock().  Briefly describe how the deadlock is formed:
-
-On one hand, OCFS2_LOCK_BLOCKED flag of this lockres is set in
-BAST(ocfs2_generic_handle_bast) when downconvert is started on behalf of
-the remote EX lock request.  Another hand, the recursive cluster lock (the
-second one) will be blocked in in __ocfs2_cluster_lock() because of
-OCFS2_LOCK_BLOCKED.  But, the downconvert never complete, why?  because
-there is no chance for the first cluster lock on this node to be unlocked
-- we block ourselves in the code path.
-
-The idea to fix this issue is mostly taken from gfs2 code.
-
-1. introduce a new field: struct ocfs2_lock_res.l_holders, to keep
-   track of the processes' pid who has taken the cluster lock of this lock
-   resource;
-
-2. introduce a new flag for ocfs2_inode_lock_full:
-   OCFS2_META_LOCK_GETBH; it means just getting back disk inode bh for us
-   if we've got cluster lock.
-
-3. export a helper: ocfs2_is_locked_by_me() is used to check if we
-   have got the cluster lock in the upper code path.
-
-The tracking logic should be used by some of the ocfs2 vfs's callbacks, to
-solve the recursive locking issue cuased by the fact that vfs routines can
-call into each other.
-
-The performance penalty of processing the holder list should only be seen
-at a few cases where the tracking logic is used, such as get/set acl.
-
-You may ask what if the first time we got a PR lock, and the second time
-we want a EX lock?  fortunately, this case never happens in the real
-world, as far as I can see, including permission check,
-(get|set)_(acl|attr), and the gfs2 code also do so.
-
-[sfr@canb.auug.org.au remove some inlines]
-Link: http://lkml.kernel.org/r/20170117100948.11657-2-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Link: http://lkml.kernel.org/r/1485992878-4780-4-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |  105 +++++++++++++++++++++++++++++++++++++++++--
- fs/ocfs2/dlmglue.h |   18 +++++++
- fs/ocfs2/ocfs2.h   |    1 
- 3 files changed, 121 insertions(+), 3 deletions(-)
+ arch/parisc/include/asm/Kbuild    |    1 +
+ arch/parisc/include/asm/current.h |   15 ---------------
+ 2 files changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -532,6 +532,7 @@ void ocfs2_lock_res_init_once(struct ocf
- 	init_waitqueue_head(&res->l_event);
- 	INIT_LIST_HEAD(&res->l_blocked_list);
- 	INIT_LIST_HEAD(&res->l_mask_waiters);
-+	INIT_LIST_HEAD(&res->l_holders);
- }
- 
- void ocfs2_inode_lock_res_init(struct ocfs2_lock_res *res,
-@@ -749,6 +750,50 @@ void ocfs2_lock_res_free(struct ocfs2_lo
- 	res->l_flags = 0UL;
- }
- 
-+/*
-+ * Keep a list of processes who have interest in a lockres.
-+ * Note: this is now only uesed for check recursive cluster locking.
-+ */
-+static inline void ocfs2_add_holder(struct ocfs2_lock_res *lockres,
-+				   struct ocfs2_lock_holder *oh)
-+{
-+	INIT_LIST_HEAD(&oh->oh_list);
-+	oh->oh_owner_pid = get_pid(task_pid(current));
-+
-+	spin_lock(&lockres->l_lock);
-+	list_add_tail(&oh->oh_list, &lockres->l_holders);
-+	spin_unlock(&lockres->l_lock);
-+}
-+
-+static inline void ocfs2_remove_holder(struct ocfs2_lock_res *lockres,
-+				       struct ocfs2_lock_holder *oh)
-+{
-+	spin_lock(&lockres->l_lock);
-+	list_del(&oh->oh_list);
-+	spin_unlock(&lockres->l_lock);
-+
-+	put_pid(oh->oh_owner_pid);
-+}
-+
-+static inline int ocfs2_is_locked_by_me(struct ocfs2_lock_res *lockres)
-+{
-+	struct ocfs2_lock_holder *oh;
-+	struct pid *pid;
-+
-+	/* look in the list of holders for one with the current task as owner */
-+	spin_lock(&lockres->l_lock);
-+	pid = task_pid(current);
-+	list_for_each_entry(oh, &lockres->l_holders, oh_list) {
-+		if (oh->oh_owner_pid == pid) {
-+			spin_unlock(&lockres->l_lock);
-+			return 1;
-+		}
-+	}
-+	spin_unlock(&lockres->l_lock);
-+
-+	return 0;
-+}
-+
- static inline void ocfs2_inc_holders(struct ocfs2_lock_res *lockres,
- 				     int level)
- {
-@@ -2333,8 +2378,9 @@ int ocfs2_inode_lock_full_nested(struct
- 		goto getbh;
- 	}
- 
--	if (ocfs2_mount_local(osb))
--		goto local;
-+	if ((arg_flags & OCFS2_META_LOCK_GETBH) ||
-+	    ocfs2_mount_local(osb))
-+		goto update;
- 
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
-@@ -2363,7 +2409,7 @@ int ocfs2_inode_lock_full_nested(struct
- 	if (!(arg_flags & OCFS2_META_LOCK_RECOVERY))
- 		ocfs2_wait_for_recovery(osb);
- 
--local:
-+update:
- 	/*
- 	 * We only see this flag if we're being called from
- 	 * ocfs2_read_locked_inode(). It means we're locking an inode
-@@ -2497,6 +2543,59 @@ void ocfs2_inode_unlock(struct inode *in
- 		ocfs2_cluster_unlock(OCFS2_SB(inode->i_sb), lockres, level);
- }
- 
-+/*
-+ * This _tracker variantes are introduced to deal with the recursive cluster
-+ * locking issue. The idea is to keep track of a lock holder on the stack of
-+ * the current process. If there's a lock holder on the stack, we know the
-+ * task context is already protected by cluster locking. Currently, they're
-+ * used in some VFS entry routines.
-+ *
-+ * return < 0 on error, return == 0 if there's no lock holder on the stack
-+ * before this call, return == 1 if this call would be a recursive locking.
-+ */
-+int ocfs2_inode_lock_tracker(struct inode *inode,
-+			     struct buffer_head **ret_bh,
-+			     int ex,
-+			     struct ocfs2_lock_holder *oh)
-+{
-+	int status;
-+	int arg_flags = 0, has_locked;
-+	struct ocfs2_lock_res *lockres;
-+
-+	lockres = &OCFS2_I(inode)->ip_inode_lockres;
-+	has_locked = ocfs2_is_locked_by_me(lockres);
-+	/* Just get buffer head if the cluster lock has been taken */
-+	if (has_locked)
-+		arg_flags = OCFS2_META_LOCK_GETBH;
-+
-+	if (likely(!has_locked || ret_bh)) {
-+		status = ocfs2_inode_lock_full(inode, ret_bh, ex, arg_flags);
-+		if (status < 0) {
-+			if (status != -ENOENT)
-+				mlog_errno(status);
-+			return status;
-+		}
-+	}
-+	if (!has_locked)
-+		ocfs2_add_holder(lockres, oh);
-+
-+	return has_locked;
-+}
-+
-+void ocfs2_inode_unlock_tracker(struct inode *inode,
-+				int ex,
-+				struct ocfs2_lock_holder *oh,
-+				int had_lock)
-+{
-+	struct ocfs2_lock_res *lockres;
-+
-+	lockres = &OCFS2_I(inode)->ip_inode_lockres;
-+	if (!had_lock) {
-+		ocfs2_remove_holder(lockres, oh);
-+		ocfs2_inode_unlock(inode, ex);
-+	}
-+}
-+
- int ocfs2_orphan_scan_lock(struct ocfs2_super *osb, u32 *seqno)
- {
- 	struct ocfs2_lock_res *lockres;
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/dlmglue.h
-@@ -70,6 +70,11 @@ struct ocfs2_orphan_scan_lvb {
- 	__be32	lvb_os_seqno;
- };
- 
-+struct ocfs2_lock_holder {
-+	struct list_head oh_list;
-+	struct pid *oh_owner_pid;
-+};
-+
- /* ocfs2_inode_lock_full() 'arg_flags' flags */
- /* don't wait on recovery. */
- #define OCFS2_META_LOCK_RECOVERY	(0x01)
-@@ -77,6 +82,8 @@ struct ocfs2_orphan_scan_lvb {
- #define OCFS2_META_LOCK_NOQUEUE		(0x02)
- /* don't block waiting for the downconvert thread, instead return -EAGAIN */
- #define OCFS2_LOCK_NONBLOCK		(0x04)
-+/* just get back disk inode bh if we've got cluster lock. */
-+#define OCFS2_META_LOCK_GETBH		(0x08)
- 
- /* Locking subclasses of inode cluster lock */
- enum {
-@@ -170,4 +177,15 @@ void ocfs2_put_dlm_debug(struct ocfs2_dl
- 
- /* To set the locking protocol on module initialization */
- void ocfs2_set_locking_protocol(void);
-+
-+/* The _tracker pair is used to avoid cluster recursive locking */
-+int ocfs2_inode_lock_tracker(struct inode *inode,
-+			     struct buffer_head **ret_bh,
-+			     int ex,
-+			     struct ocfs2_lock_holder *oh);
-+void ocfs2_inode_unlock_tracker(struct inode *inode,
-+				int ex,
-+				struct ocfs2_lock_holder *oh,
-+				int had_lock);
-+
- #endif	/* DLMGLUE_H */
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-dlmglue-prepare-tracking-logic-to-avoid-recursive-cluster-lock
-+++ a/fs/ocfs2/ocfs2.h
-@@ -172,6 +172,7 @@ struct ocfs2_lock_res {
- 
- 	struct list_head         l_blocked_list;
- 	struct list_head         l_mask_waiters;
-+	struct list_head	 l_holders;
- 
- 	unsigned long		 l_flags;
- 	char                     l_name[OCFS2_LOCK_ID_MAX_LEN];
-_
-
-Patches currently in -mm which might be from zren@suse.com are
-
-
+diff -puN arch/parisc/include/asm/Kbuild~parisc-use-generic-currenth arch/parisc/include/asm/Kbuild
+--- a/arch/parisc/include/asm/Kbuild~parisc-use-generic-currenth
++++ a/arch/parisc/include/asm/Kbuild
+@@ -2,6 +2,7 @@
+ generic-y += auxvec.h
+ generic-y += barrier.h
+ generic-y += clkdev.h
++generic-y += current.h
+ generic-y += device.h
+ generic-y += div64.h
+ generic-y += emergency-restart.h
+diff -puN arch/parisc/include/asm/current.h~parisc-use-generic-currenth /dev/null
+--- a/arch/parisc/include/asm/current.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-#ifndef _PARISC_CURRENT_H
+-#define _PARISC_CURRENT_H
+-
+-#include <linux/thread_info.h>
+-
+-struct task_struct;
+-
+-static inline struct task_struct * get_current(void)
+-{
+-	return current_thread_info()->task;
+-}
+- 
+-#define current get_current()
