@@ -1,156 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:17:16 -0800
-Message-ID: <58af515c.EKSo5kmysXqi1WVH%akpm@linux-foundation.org>
+Subject: [merged] mm-drop-zap_details-check_swap_entries.patch removed
+ from -mm tree
+Date: Thu, 23 Feb 2017 13:17:28 -0800
+Message-ID: <58af5168.YfdlD1tlwV6DPHyz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41636 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751222AbdBWVRm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
+        with ESMTP id S1751282AbdBWVRn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, nholland@tisys.org, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, peterz@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: do not enforce OOM killer for __GFP_NOFAIL automatically
+     Subject: mm: drop zap_details::check_swap_entries
 has been removed from the -mm tree.  Its filename was
-     mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically.patch
+     mm-drop-zap_details-check_swap_entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: do not enforce OOM killer for __GFP_NOFAIL automatically
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: drop zap_details::check_swap_entries
 
-__alloc_pages_may_oom makes sure to skip the OOM killer depending on the
-allocation request.  This includes lowmem requests, costly high order
-requests and others.  For a long time __GFP_NOFAIL acted as an override
-for all those rules.  This is not documented and it can be quite
-surprising as well.  E.g.  GFP_NOFS requests are not invoking the OOM
-killer but GFP_NOFS|__GFP_NOFAIL does so if we try to convert some of the
-existing open coded loops around allocator to nofail request (and we have
-done that in the past) then such a change would have a non trivial side
-effect which is far from obvious.  Note that the primary motivation for
-skipping the OOM killer is to prevent from pre-mature invocation.
+detail == NULL would give the same functionality as
+.check_swap_entries==true.
 
-The exception has been added by 82553a937f12 ("oom: invoke oom killer
-for __GFP_NOFAIL"). The changelog points out that the oom killer has to
-be invoked otherwise the request would be looping for ever. But this
-argument is rather weak because the OOM killer doesn't really guarantee
-a forward progress for those exceptional cases:
-
-- it will hardly help to form costly order which in turn can result in
-  the system panic because of no oom killable task in the end - I believe
-  we certainly do not want to put the system down just because there is a
-  nasty driver asking for order-9 page with GFP_NOFAIL not realizing all
-  the consequences.  It is much better this request would loop for ever
-  than the massive system disruption
-
-- lowmem is also highly unlikely to be freed during OOM killer
-
-- GFP_NOFS request could trigger while there is still a lot of memory
-  pinned by filesystems.
-
-This patch simply removes the __GFP_NOFAIL special case in order to have a
-more clear semantic without surprising side effects.
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Nils Holland <nholland@tisys.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Link: http://lkml.kernel.org/r/20170118122429.43661-2-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c   |    2 -
- mm/page_alloc.c |   49 ++++++++++++++++++++++------------------------
- 2 files changed, 25 insertions(+), 26 deletions(-)
+ include/linux/mm.h |    1 -
+ mm/memory.c        |    4 ++--
+ mm/oom_kill.c      |    3 +--
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically
+diff -puN include/linux/mm.h~mm-drop-zap_details-check_swap_entries include/linux/mm.h
+--- a/include/linux/mm.h~mm-drop-zap_details-check_swap_entries
++++ a/include/linux/mm.h
+@@ -1175,7 +1175,6 @@ struct zap_details {
+ 	struct address_space *check_mapping;	/* Check page->mapping if set */
+ 	pgoff_t	first_index;			/* Lowest page->index to unmap */
+ 	pgoff_t last_index;			/* Highest page->index to unmap */
+-	bool check_swap_entries;		/* Check also swap entries */
+ };
+ 
+ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+diff -puN mm/memory.c~mm-drop-zap_details-check_swap_entries mm/memory.c
+--- a/mm/memory.c~mm-drop-zap_details-check_swap_entries
++++ a/mm/memory.c
+@@ -1173,8 +1173,8 @@ again:
+ 			}
+ 			continue;
+ 		}
+-		/* only check swap_entries if explicitly asked for in details */
+-		if (unlikely(details && !details->check_swap_entries))
++		/* If details->check_mapping, we leave swap entries. */
++		if (unlikely(details))
+ 			continue;
+ 
+ 		entry = pte_to_swp_entry(ptent);
+diff -puN mm/oom_kill.c~mm-drop-zap_details-check_swap_entries mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-drop-zap_details-check_swap_entries
 +++ a/mm/oom_kill.c
-@@ -1013,7 +1013,7 @@ bool out_of_memory(struct oom_control *o
- 	 * make sure exclude 0 mask - all other users should have at least
- 	 * ___GFP_DIRECT_RECLAIM to get here.
- 	 */
--	if (oc->gfp_mask && !(oc->gfp_mask & (__GFP_FS|__GFP_NOFAIL)))
-+	if (oc->gfp_mask && !(oc->gfp_mask & __GFP_FS))
- 		return true;
+@@ -465,7 +465,6 @@ static bool __oom_reap_task_mm(struct ta
+ {
+ 	struct mmu_gather tlb;
+ 	struct vm_area_struct *vma;
+-	struct zap_details details = {.check_swap_entries = true};
+ 	bool ret = true;
  
  	/*
-diff -puN mm/page_alloc.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-do-not-enfore-oom-killer-for-__gfp_nofail-automatically
-+++ a/mm/page_alloc.c
-@@ -3090,32 +3090,31 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	if (page)
- 		goto out;
- 
--	if (!(gfp_mask & __GFP_NOFAIL)) {
--		/* Coredumps can quickly deplete all memory reserves */
--		if (current->flags & PF_DUMPCORE)
--			goto out;
--		/* The OOM killer will not help higher order allocs */
--		if (order > PAGE_ALLOC_COSTLY_ORDER)
--			goto out;
--		/* The OOM killer does not needlessly kill tasks for lowmem */
--		if (ac->high_zoneidx < ZONE_NORMAL)
--			goto out;
--		if (pm_suspended_storage())
--			goto out;
--		/*
--		 * XXX: GFP_NOFS allocations should rather fail than rely on
--		 * other request to make a forward progress.
--		 * We are in an unfortunate situation where out_of_memory cannot
--		 * do much for this context but let's try it to at least get
--		 * access to memory reserved if the current task is killed (see
--		 * out_of_memory). Once filesystems are ready to handle allocation
--		 * failures more gracefully we should just bail out here.
--		 */
-+	/* Coredumps can quickly deplete all memory reserves */
-+	if (current->flags & PF_DUMPCORE)
-+		goto out;
-+	/* The OOM killer will not help higher order allocs */
-+	if (order > PAGE_ALLOC_COSTLY_ORDER)
-+		goto out;
-+	/* The OOM killer does not needlessly kill tasks for lowmem */
-+	if (ac->high_zoneidx < ZONE_NORMAL)
-+		goto out;
-+	if (pm_suspended_storage())
-+		goto out;
-+	/*
-+	 * XXX: GFP_NOFS allocations should rather fail than rely on
-+	 * other request to make a forward progress.
-+	 * We are in an unfortunate situation where out_of_memory cannot
-+	 * do much for this context but let's try it to at least get
-+	 * access to memory reserved if the current task is killed (see
-+	 * out_of_memory). Once filesystems are ready to handle allocation
-+	 * failures more gracefully we should just bail out here.
-+	 */
-+
-+	/* The OOM killer may not free memory on a specific node */
-+	if (gfp_mask & __GFP_THISNODE)
-+		goto out;
- 
--		/* The OOM killer may not free memory on a specific node */
--		if (gfp_mask & __GFP_THISNODE)
--			goto out;
--	}
- 	/* Exhausted what can be done so it's blamo time */
- 	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
- 		*did_some_progress = 1;
+@@ -531,7 +530,7 @@ static bool __oom_reap_task_mm(struct ta
+ 		 */
+ 		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
+ 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
+-					 &details);
++					 NULL);
+ 	}
+ 	tlb_finish_mmu(&tlb, 0, -1);
+ 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
+uprobes-split-thps-before-trying-replace-them.patch
+mm-introduce-page_vma_mapped_walk.patch
+mm-fix-handling-pte-mapped-thps-in-page_referenced.patch
+mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
+mm-rmap-check-all-vmas-that-pte-mapped-thp-can-be-part-of.patch
+mm-convert-page_mkclean_one-to-use-page_vma_mapped_walk.patch
+mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk.patch
+mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
+mm-uprobes-convert-__replace_page-to-use-page_vma_mapped_walk.patch
+mm-convert-page_mapped_in_vma-to-use-page_vma_mapped_walk.patch
+mm-drop-page_check_address_transhuge.patch
+mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk.patch
 
