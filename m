@@ -1,265 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userfaultfd-non-cooperative-add-mremap-event.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:13:40 -0800
-Message-ID: <58af5084.GBHlzh0Eua9Uqg/w%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch removed from -mm tree
+Date: Thu, 23 Feb 2017 13:14:22 -0800
+Message-ID: <58af50ae.FCS2J4+ym9QecnqL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751199AbdBWVOs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:48 -0500
+        with ESMTP id S1751284AbdBWVOt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: add mremap() event
+     Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_HUGETLBFS
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-non-cooperative-add-mremap-event.patch
+     userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Emelyanov <xemul@parallels.com>
-Subject: userfaultfd: non-cooperative: add mremap() event
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: hugetlbfs: UFFD_FEATURE_MISSING_HUGETLBFS
 
-The event denotes that an area [start:end] moves to different location. 
-Length change isn't reported as "new" addresses, if they appear on the
-uffd reader side they will not contain any data and the latter can just
-zeromap them.
+Userland developers asked to be notified immediately by the UFFDIO_API
+ioctl if hugetlbfs missing mode is supported by userfaultfd in the running
+kernel.  This avoids the need to run UFFDIO_REGISTER on a hugetlbfs
+virtual memory range to find out.
 
-Waiting for the event ACK is also done outside of mmap sem, as
-for fork event.
-
-Link: http://lkml.kernel.org/r/20161216144821.5183-12-aarcange@redhat.com
-Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-27-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |   37 +++++++++++++++++++++++++++++
- include/linux/userfaultfd_k.h    |   17 +++++++++++++
- include/uapi/linux/userfaultfd.h |   11 +++++++-
- mm/mremap.c                      |   17 +++++++++----
- 4 files changed, 76 insertions(+), 6 deletions(-)
+ include/uapi/linux/userfaultfd.h |   28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-mremap-event fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-mremap-event
-+++ a/fs/userfaultfd.c
-@@ -596,6 +596,43 @@ void dup_userfaultfd_complete(struct lis
- 	}
- }
- 
-+void mremap_userfaultfd_prep(struct vm_area_struct *vma,
-+			     struct vm_userfaultfd_ctx *vm_ctx)
-+{
-+	struct userfaultfd_ctx *ctx;
-+
-+	ctx = vma->vm_userfaultfd_ctx.ctx;
-+	if (ctx && (ctx->features & UFFD_FEATURE_EVENT_REMAP)) {
-+		vm_ctx->ctx = ctx;
-+		userfaultfd_ctx_get(ctx);
-+	}
-+}
-+
-+void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx vm_ctx,
-+				 unsigned long from, unsigned long to,
-+				 unsigned long len)
-+{
-+	struct userfaultfd_ctx *ctx = vm_ctx.ctx;
-+	struct userfaultfd_wait_queue ewq;
-+
-+	if (!ctx)
-+		return;
-+
-+	if (to & ~PAGE_MASK) {
-+		userfaultfd_ctx_put(ctx);
-+		return;
-+	}
-+
-+	msg_init(&ewq.msg);
-+
-+	ewq.msg.event = UFFD_EVENT_REMAP;
-+	ewq.msg.arg.remap.from = from;
-+	ewq.msg.arg.remap.to = to;
-+	ewq.msg.arg.remap.len = len;
-+
-+	userfaultfd_event_wait_completion(ctx, &ewq);
-+}
-+
- static int userfaultfd_release(struct inode *inode, struct file *file)
- {
- 	struct userfaultfd_ctx *ctx = file->private_data;
-diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-mremap-event include/linux/userfaultfd_k.h
---- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-mremap-event
-+++ a/include/linux/userfaultfd_k.h
-@@ -55,6 +55,12 @@ static inline bool userfaultfd_armed(str
- extern int dup_userfaultfd(struct vm_area_struct *, struct list_head *);
- extern void dup_userfaultfd_complete(struct list_head *);
- 
-+extern void mremap_userfaultfd_prep(struct vm_area_struct *,
-+				    struct vm_userfaultfd_ctx *);
-+extern void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx,
-+					unsigned long from, unsigned long to,
-+					unsigned long len);
-+
- #else /* CONFIG_USERFAULTFD */
- 
- /* mm helpers */
-@@ -89,6 +95,17 @@ static inline void dup_userfaultfd_compl
- {
- }
- 
-+static inline void mremap_userfaultfd_prep(struct vm_area_struct *vma,
-+					   struct vm_userfaultfd_ctx *ctx)
-+{
-+}
-+
-+static inline void mremap_userfaultfd_complete(struct vm_userfaultfd_ctx ctx,
-+					       unsigned long from,
-+					       unsigned long to,
-+					       unsigned long len)
-+{
-+}
- #endif /* CONFIG_USERFAULTFD */
- 
- #endif /* _LINUX_USERFAULTFD_K_H */
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-mremap-event include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-mremap-event
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-uffd_feature_missing_hugetlbfs
 +++ a/include/uapi/linux/userfaultfd.h
-@@ -18,7 +18,8 @@
+@@ -18,9 +18,10 @@
   * means the userland is reading).
   */
  #define UFFD_API ((__u64)0xAA)
--#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK)
-+#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |	    \
-+			   UFFD_FEATURE_EVENT_REMAP)
+-#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |	    \
+-			   UFFD_FEATURE_EVENT_REMAP |	    \
+-			   UFFD_FEATURE_EVENT_MADVDONTNEED)
++#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |		\
++			   UFFD_FEATURE_EVENT_REMAP |		\
++			   UFFD_FEATURE_EVENT_MADVDONTNEED |	\
++			   UFFD_FEATURE_MISSING_HUGETLBFS)
  #define UFFD_API_IOCTLS				\
  	((__u64)1 << _UFFDIO_REGISTER |		\
  	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -77,6 +78,12 @@ struct uffd_msg {
- 		} fork;
- 
- 		struct {
-+			__u64	from;
-+			__u64	to;
-+			__u64	len;
-+		} remap;
-+
-+		struct {
- 			/* unused reserved fields */
- 			__u64	reserved1;
- 			__u64	reserved2;
-@@ -90,6 +97,7 @@ struct uffd_msg {
-  */
- #define UFFD_EVENT_PAGEFAULT	0x12
- #define UFFD_EVENT_FORK		0x13
-+#define UFFD_EVENT_REMAP	0x14
- 
- /* flags for UFFD_EVENT_PAGEFAULT */
- #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
-@@ -110,6 +118,7 @@ struct uffdio_api {
+@@ -125,11 +126,32 @@ struct uffdio_api {
+ 	 * Note: UFFD_EVENT_PAGEFAULT and UFFD_PAGEFAULT_FLAG_WRITE
+ 	 * are to be considered implicitly always enabled in all kernels as
+ 	 * long as the uffdio_api.api requested matches UFFD_API.
++	 *
++	 * UFFD_FEATURE_MISSING_HUGETLBFS means an UFFDIO_REGISTER
++	 * with UFFDIO_REGISTER_MODE_MISSING mode will succeed on
++	 * hugetlbfs virtual memory ranges. Adding or not adding
++	 * UFFD_FEATURE_MISSING_HUGETLBFS to uffdio_api.features has
++	 * no real functional effect after UFFDIO_API returns, but
++	 * it's only useful for an initial feature set probe at
++	 * UFFDIO_API time. There are two ways to use it:
++	 *
++	 * 1) by adding UFFD_FEATURE_MISSING_HUGETLBFS to the
++	 *    uffdio_api.features before calling UFFDIO_API, an error
++	 *    will be returned by UFFDIO_API on a kernel without
++	 *    hugetlbfs missing support
++	 *
++	 * 2) the UFFD_FEATURE_MISSING_HUGETLBFS can not be added in
++	 *    uffdio_api.features and instead it will be set by the
++	 *    kernel in the uffdio_api.features if the kernel supports
++	 *    it, so userland can later check if the feature flag is
++	 *    present in uffdio_api.features after UFFDIO_API
++	 *    succeeded.
  	 */
  #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
  #define UFFD_FEATURE_EVENT_FORK			(1<<1)
-+#define UFFD_FEATURE_EVENT_REMAP		(1<<2)
+ #define UFFD_FEATURE_EVENT_REMAP		(1<<2)
+ #define UFFD_FEATURE_EVENT_MADVDONTNEED		(1<<3)
++#define UFFD_FEATURE_MISSING_HUGETLBFS		(1<<4)
  	__u64 features;
  
  	__u64 ioctls;
-diff -puN mm/mremap.c~userfaultfd-non-cooperative-add-mremap-event mm/mremap.c
---- a/mm/mremap.c~userfaultfd-non-cooperative-add-mremap-event
-+++ a/mm/mremap.c
-@@ -22,6 +22,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/uaccess.h>
- #include <linux/mm-arch-hooks.h>
-+#include <linux/userfaultfd_k.h>
- 
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
-@@ -250,7 +251,8 @@ unsigned long move_page_tables(struct vm
- 
- static unsigned long move_vma(struct vm_area_struct *vma,
- 		unsigned long old_addr, unsigned long old_len,
--		unsigned long new_len, unsigned long new_addr, bool *locked)
-+		unsigned long new_len, unsigned long new_addr,
-+		bool *locked, struct vm_userfaultfd_ctx *uf)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *new_vma;
-@@ -309,6 +311,7 @@ static unsigned long move_vma(struct vm_
- 		old_addr = new_addr;
- 		new_addr = err;
- 	} else {
-+		mremap_userfaultfd_prep(new_vma, uf);
- 		arch_remap(mm, old_addr, old_addr + old_len,
- 			   new_addr, new_addr + new_len);
- 	}
-@@ -413,7 +416,8 @@ static struct vm_area_struct *vma_to_res
- }
- 
- static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
--		unsigned long new_addr, unsigned long new_len, bool *locked)
-+		unsigned long new_addr, unsigned long new_len, bool *locked,
-+		struct vm_userfaultfd_ctx *uf)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
-@@ -458,7 +462,7 @@ static unsigned long mremap_to(unsigned
- 	if (offset_in_page(ret))
- 		goto out1;
- 
--	ret = move_vma(vma, addr, old_len, new_len, new_addr, locked);
-+	ret = move_vma(vma, addr, old_len, new_len, new_addr, locked, uf);
- 	if (!(offset_in_page(ret)))
- 		goto out;
- out1:
-@@ -497,6 +501,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	unsigned long ret = -EINVAL;
- 	unsigned long charged = 0;
- 	bool locked = false;
-+	struct vm_userfaultfd_ctx uf = NULL_VM_UFFD_CTX;
- 
- 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
- 		return ret;
-@@ -523,7 +528,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 
- 	if (flags & MREMAP_FIXED) {
- 		ret = mremap_to(addr, old_len, new_addr, new_len,
--				&locked);
-+				&locked, &uf);
- 		goto out;
- 	}
- 
-@@ -592,7 +597,8 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			goto out;
- 		}
- 
--		ret = move_vma(vma, addr, old_len, new_len, new_addr, &locked);
-+		ret = move_vma(vma, addr, old_len, new_len, new_addr,
-+			       &locked, &uf);
- 	}
- out:
- 	if (offset_in_page(ret)) {
-@@ -602,5 +608,6 @@ out:
- 	up_write(&current->mm->mmap_sem);
- 	if (locked && new_len > old_len)
- 		mm_populate(new_addr + old_len, new_len - old_len);
-+	mremap_userfaultfd_complete(uf, addr, new_addr, old_len);
- 	return ret;
- }
 _
 
-Patches currently in -mm which might be from xemul@parallels.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
