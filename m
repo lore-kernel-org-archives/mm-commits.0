@@ -1,52 +1,50 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:12:43 -0800
-Message-ID: <58af504b.xxKvXjGoygpzqWdu%akpm@linux-foundation.org>
+ slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch removed
+ from -mm tree
+Date: Thu, 23 Feb 2017 13:12:46 -0800
+Message-ID: <58af504e.xzCz7TDOO4XiEKqD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39492 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751228AbdBWVMo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:44 -0500
+        with ESMTP id S1751279AbdBWVMw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov@tarantool.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: remove slub sysfs interface files early for empty memcg caches
+     Subject: slab: use memcg_kmem_cache_wq for slab destruction operations
 has been removed from the -mm tree.  Its filename was
-     slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches.patch
+     slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: slab: remove slub sysfs interface files early for empty memcg caches
+Subject: slab: use memcg_kmem_cache_wq for slab destruction operations
 
-With kmem cgroup support enabled, kmem_caches can be created and destroyed
-frequently and a great number of near empty kmem_caches can accumulate if
-there are a lot of transient cgroups and the system is not under memory
-pressure.  When memory reclaim starts under such conditions, it can lead
-to consecutive deactivation and destruction of many kmem_caches, easily
-hundreds of thousands on moderately large systems, exposing scalability
-issues in the current slab management code.  This is one of the patches to
-address the issue.
+If there's contention on slab_mutex, queueing the per-cache destruction
+work item on the system_wq can unnecessarily create and tie up a lot of
+kworkers.
 
-Each cache has a number of sysfs interface files under /sys/kernel/slab. 
-On a system with a lot of memory and transient memcgs, the number of
-interface files which have to be removed once memory reclaim kicks in can
-reach millions.
+Rename memcg_kmem_cache_create_wq to memcg_kmem_cache_wq and make it
+global and use that workqueue for the destruction work items too.  While
+at it, convert the workqueue from an unbound workqueue to a per-cpu one
+with concurrency limited to 1.  It's generally preferable to use per-cpu
+workqueues and concurrency limit of 1 is safe enough.
 
-Link: http://lkml.kernel.org/r/20170117235411.9408-10-tj@kernel.org
+This is suggested by Joonsoo Kim.
+
+Link: http://lkml.kernel.org/r/20170117235411.9408-11-tj@kernel.org
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Reported-by: Jay Vana <jsvana@fb.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -54,51 +52,82 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    1 +
+ mm/memcontrol.c            |   16 ++++++++--------
+ mm/slab_common.c           |    2 +-
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN mm/slub.c~slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches mm/slub.c
---- a/mm/slub.c~slab-remove-slub-sysfs-interface-files-early-for-empty-memcg-caches
-+++ a/mm/slub.c
-@@ -3959,8 +3959,20 @@ int __kmem_cache_shrink(struct kmem_cach
- #ifdef CONFIG_MEMCG
- static void kmemcg_cache_deact_after_rcu(struct kmem_cache *s)
+diff -puN include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
++++ a/include/linux/memcontrol.h
+@@ -830,6 +830,7 @@ void memcg_kmem_uncharge(struct page *pa
+ 
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
+ extern struct static_key_false memcg_kmem_enabled_key;
++extern struct workqueue_struct *memcg_kmem_cache_wq;
+ 
+ extern int memcg_nr_cache_ids;
+ void memcg_get_cache_ids(void);
+diff -puN mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
++++ a/mm/memcontrol.c
+@@ -317,6 +317,8 @@ void memcg_put_cache_ids(void)
+ DEFINE_STATIC_KEY_FALSE(memcg_kmem_enabled_key);
+ EXPORT_SYMBOL(memcg_kmem_enabled_key);
+ 
++struct workqueue_struct *memcg_kmem_cache_wq;
++
+ #endif /* !CONFIG_SLOB */
+ 
+ /**
+@@ -2143,8 +2145,6 @@ struct memcg_kmem_cache_create_work {
+ 	struct work_struct work;
+ };
+ 
+-static struct workqueue_struct *memcg_kmem_cache_create_wq;
+-
+ static void memcg_kmem_cache_create_func(struct work_struct *w)
  {
--	/* called with all the locks held after a sched RCU grace period */
--	__kmem_cache_shrink(s);
-+	/*
-+	 * Called with all the locks held after a sched RCU grace period.
-+	 * Even if @s becomes empty after shrinking, we can't know that @s
-+	 * doesn't have allocations already in-flight and thus can't
-+	 * destroy @s until the associated memcg is released.
-+	 *
-+	 * However, let's remove the sysfs files for empty caches here.
-+	 * Each cache has a lot of interface files which aren't
-+	 * particularly useful for empty draining caches; otherwise, we can
-+	 * easily end up with millions of unnecessary sysfs files on
-+	 * systems which have a lot of memory and transient cgroups.
-+	 */
-+	if (!__kmem_cache_shrink(s))
-+		sysfs_slab_remove(s);
+ 	struct memcg_kmem_cache_create_work *cw =
+@@ -2176,7 +2176,7 @@ static void __memcg_schedule_kmem_cache_
+ 	cw->cachep = cachep;
+ 	INIT_WORK(&cw->work, memcg_kmem_cache_create_func);
+ 
+-	queue_work(memcg_kmem_cache_create_wq, &cw->work);
++	queue_work(memcg_kmem_cache_wq, &cw->work);
  }
  
- void __kmemcg_cache_deactivate(struct kmem_cache *s)
-@@ -5659,6 +5671,15 @@ static void sysfs_slab_remove(struct kme
- 		 */
- 		return;
- 
-+	if (!s->kobj.state_in_sysfs)
-+		/*
-+		 * For a memcg cache, this may be called during
-+		 * deactivation and again on shutdown.  Remove only once.
-+		 * A cache is never shut down before deactivation is
-+		 * complete, so no need to worry about synchronization.
-+		 */
-+		return;
-+
- #ifdef CONFIG_MEMCG
- 	kset_unregister(s->memcg_kset);
+ static void memcg_schedule_kmem_cache_create(struct mem_cgroup *memcg,
+@@ -5778,12 +5778,12 @@ static int __init mem_cgroup_init(void)
+ #ifndef CONFIG_SLOB
+ 	/*
+ 	 * Kmem cache creation is mostly done with the slab_mutex held,
+-	 * so use a special workqueue to avoid stalling all worker
+-	 * threads in case lots of cgroups are created simultaneously.
++	 * so use a workqueue with limited concurrency to avoid stalling
++	 * all worker threads in case lots of cgroups are created and
++	 * destroyed simultaneously.
+ 	 */
+-	memcg_kmem_cache_create_wq =
+-		alloc_ordered_workqueue("memcg_kmem_cache_create", 0);
+-	BUG_ON(!memcg_kmem_cache_create_wq);
++	memcg_kmem_cache_wq = alloc_workqueue("memcg_kmem_cache", 0, 1);
++	BUG_ON(!memcg_kmem_cache_wq);
  #endif
+ 
+ 	cpuhp_setup_state_nocalls(CPUHP_MM_MEMCQ_DEAD, "mm/memctrl:dead", NULL,
+diff -puN mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations mm/slab_common.c
+--- a/mm/slab_common.c~slab-use-memcg_kmem_cache_wq-for-slab-destruction-operations
++++ a/mm/slab_common.c
+@@ -659,7 +659,7 @@ static void kmemcg_deactivate_rcufn(stru
+ 	 * initialized eariler.
+ 	 */
+ 	INIT_WORK(&s->memcg_params.deact_work, kmemcg_deactivate_workfn);
+-	schedule_work(&s->memcg_params.deact_work);
++	queue_work(memcg_kmem_cache_wq, &s->memcg_params.deact_work);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
