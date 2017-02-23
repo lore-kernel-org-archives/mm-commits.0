@@ -1,230 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:13:05 -0800
-Message-ID: <58af5061.f4X4BIPSuQ7HVySZ%akpm@linux-foundation.org>
+Subject: [merged] userfaultfd-document-_ior-_iow.patch removed from -mm
+ tree
+Date: Thu, 23 Feb 2017 13:13:13 -0800
+Message-ID: <58af5069.94WxKxzCngTWDtPS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751277AbdBWVNG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:13:06 -0500
+        with ESMTP id S1751277AbdBWVNO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, ldv@altlinux.org, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, trace: extract COMPACTION_STATUS and ZONE_TYPE to a common header
+     Subject: userfaultfd: document _IOR/_IOW
 has been removed from the -mm tree.  Its filename was
-     mm-trace-extract-compaction_status-and-zone_type-to-a-common-header.patch
+     userfaultfd-document-_ior-_iow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, trace: extract COMPACTION_STATUS and ZONE_TYPE to a common header
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: document _IOR/_IOW
 
-COMPACTION_STATUS resp.  ZONE_TYPE are currently used to translate enum
-compact_result resp.  struct zone index into their symbolic names for an
-easier post processing.  The follow up patch would like to reuse this as
-well.  The code involves some preprocessor black magic which is better not
-duplicated elsewhere so move it to a common mm tracing relate header.
+Patch series "userfaultfd tmpfs/hugetlbfs/non-cooperative", v2
 
-Link: http://lkml.kernel.org/r/20161220130135.15719-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+
+These userfaultfd features are finished and are ready for larger
+exposure in -mm and upstream merging.
+
+1) tmpfs non present userfault
+2) hugetlbfs non present userfault
+3) non cooperative userfault for fork/madvise/mremap
+
+qemu development code is already exercising 2) and container postcopy
+live migration needs 3).
+
+1) is not currently used but there's a self test and we know some qemu
+user for various reasons uses tmpfs as backing for KVM so it'll need
+it too to use postcopy live migration with tmpfs memory.
+
+All review feedback from the previous submit has been handled and the
+fixes are included.  There's no outstanding issue AFIK.
+
+Upstream code just did a s/fe/vmf/ conversion in the page faults and this
+has been converted as well incrementally.
+
+In addition to the previous submits, this also wakes up stuck userfaults
+during UFFDIO_UNREGISTER.  The non cooperative testcase actually
+reproduced this problem by getting stuck instead of quitting clean in some
+rare case as it could call UFFDIO_UNREGISTER while some userfault could be
+still in flight.  The other option would have been to keep leaving it up
+to userland to serialize itself and to patch the testcase instead but the
+wakeup during unregister I think is preferable.
+
+David also asked the UFFD_FEATURE_MISSING_HUGETLBFS and
+UFFD_FEATURE_MISSING_SHMEM feature flags to be added so QEMU can avoid to
+probe if the hugetlbfs/shmem missing support is available by calling
+UFFDIO_REGISTER.  QEMU already checks HUGETLBFS_MAGIC with fstatfs so if
+UFFD_FEATURE_MISSING_HUGETLBFS is also set, it knows UFFDIO_REGISTER will
+succeed (or if it fails, it's for some other more concerning reason). 
+There's no reason to worry about adding too many feature flags.  There are
+64 available and worst case we've to bump the API if someday we're really
+going to run out of them.
+
+The round-trip network latency of hugetlbfs userfaults during postcopy
+live migration is still of the order of dozen milliseconds on 10GBit if at
+2MB hugepage granularity so it's working perfectly and it should provide
+for higher bandwidth or lower CPU usage (which makes it interesting to add
+an option in the future to support THP granularity too for anonymous
+memory, UFFDIO_COPY would then have to create THP if alignment/len allows
+for it).  1GB hugetlbfs granularity will require big changes in hugetlbfs
+to work so it's deferred for later.
+
+
+
+This patch (of 42):
+
+This adds proper documentation (inline) to avoid the risk of further
+misunderstandings about the semantics of _IOW/_IOR and it also reminds
+whoever will bump the UFFDIO_API in the future, to change the two ioctl to
+_IOW.
+
+This was found while implementing strace support for those ioctl,
+otherwise we could have never found it by just reviewing kernel code and
+testing it.
+
+_IOC_READ or _IOC_WRITE alters nothing but the ioctl number itself, so
+it's only worth fixing if the UFFDIO_API is bumped someday.
+
+Link: http://lkml.kernel.org/r/20161216144821.5183-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: "Dmitry V. Levin" <ldv@altlinux.org>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |   60 +-------------------------
- include/trace/events/mmflags.h    |   64 ++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 57 deletions(-)
+ include/uapi/asm-generic/ioctl.h |   10 +++++++++-
+ include/uapi/linux/userfaultfd.h |    6 ++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
-+++ a/include/trace/events/compaction.h
-@@ -9,62 +9,6 @@
- #include <linux/tracepoint.h>
- #include <trace/events/mmflags.h>
- 
--#define COMPACTION_STATUS					\
--	EM( COMPACT_SKIPPED,		"skipped")		\
--	EM( COMPACT_DEFERRED,		"deferred")		\
--	EM( COMPACT_CONTINUE,		"continue")		\
--	EM( COMPACT_SUCCESS,		"success")		\
--	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
--	EM( COMPACT_COMPLETE,		"complete")		\
--	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
--	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
--	EMe(COMPACT_CONTENDED,		"contended")
--
--#ifdef CONFIG_ZONE_DMA
--#define IFDEF_ZONE_DMA(X) X
--#else
--#define IFDEF_ZONE_DMA(X)
--#endif
--
--#ifdef CONFIG_ZONE_DMA32
--#define IFDEF_ZONE_DMA32(X) X
--#else
--#define IFDEF_ZONE_DMA32(X)
--#endif
--
--#ifdef CONFIG_HIGHMEM
--#define IFDEF_ZONE_HIGHMEM(X) X
--#else
--#define IFDEF_ZONE_HIGHMEM(X)
--#endif
--
--#define ZONE_TYPE						\
--	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
--	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
--				EM (ZONE_NORMAL, "Normal")	\
--	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
--				EMe(ZONE_MOVABLE,"Movable")
--
--/*
-- * First define the enums in the above macros to be exported to userspace
-- * via TRACE_DEFINE_ENUM().
-- */
--#undef EM
--#undef EMe
--#define EM(a, b)	TRACE_DEFINE_ENUM(a);
--#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
--
--COMPACTION_STATUS
--ZONE_TYPE
--
--/*
-- * Now redefine the EM() and EMe() macros to map the enums to the strings
-- * that will be printed in the output.
-- */
--#undef EM
--#undef EMe
--#define EM(a, b)	{a, b},
--#define EMe(a, b)	{a, b}
- 
- DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
- 
-@@ -187,6 +131,7 @@ TRACE_EVENT(mm_compaction_begin,
- 		__entry->sync ? "sync" : "async")
- );
- 
-+#ifdef CONFIG_COMPACTION
- TRACE_EVENT(mm_compaction_end,
- 	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
- 		unsigned long free_pfn, unsigned long zone_end, bool sync,
-@@ -220,6 +165,7 @@ TRACE_EVENT(mm_compaction_end,
- 		__entry->sync ? "sync" : "async",
- 		__print_symbolic(__entry->status, COMPACTION_STATUS))
- );
-+#endif
- 
- TRACE_EVENT(mm_compaction_try_to_compact_pages,
- 
-@@ -248,6 +194,7 @@ TRACE_EVENT(mm_compaction_try_to_compact
- 		__entry->prio)
- );
- 
-+#ifdef CONFIG_COMPACTION
- DECLARE_EVENT_CLASS(mm_compaction_suitable_template,
- 
- 	TP_PROTO(struct zone *zone,
-@@ -295,7 +242,6 @@ DEFINE_EVENT(mm_compaction_suitable_temp
- 	TP_ARGS(zone, order, ret)
- );
- 
--#ifdef CONFIG_COMPACTION
- DECLARE_EVENT_CLASS(mm_compaction_defer_template,
- 
- 	TP_PROTO(struct zone *zone, int order),
-diff -puN include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header include/trace/events/mmflags.h
---- a/include/trace/events/mmflags.h~mm-trace-extract-compaction_status-and-zone_type-to-a-common-header
-+++ a/include/trace/events/mmflags.h
-@@ -1,3 +1,6 @@
-+#include <linux/node.h>
-+#include <linux/mmzone.h>
-+#include <linux/compaction.h>
+diff -puN include/uapi/asm-generic/ioctl.h~userfaultfd-document-_ior-_iow include/uapi/asm-generic/ioctl.h
+--- a/include/uapi/asm-generic/ioctl.h~userfaultfd-document-_ior-_iow
++++ a/include/uapi/asm-generic/ioctl.h
+@@ -48,6 +48,9 @@
  /*
-  * The order of these masks is important. Matching masks will be seen
-  * first and the left over flags will end up showing by themselves.
-@@ -171,3 +174,64 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
- 	(flags) ? __print_flags(flags, "|",				\
- 	__def_vmaflag_names						\
- 	) : "none"
-+
-+#ifdef CONFIG_COMPACTION
-+#define COMPACTION_STATUS					\
-+	EM( COMPACT_SKIPPED,		"skipped")		\
-+	EM( COMPACT_DEFERRED,		"deferred")		\
-+	EM( COMPACT_CONTINUE,		"continue")		\
-+	EM( COMPACT_SUCCESS,		"success")		\
-+	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
-+	EM( COMPACT_COMPLETE,		"complete")		\
-+	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
-+	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
-+	EMe(COMPACT_CONTENDED,		"contended")
-+#else
-+#define COMPACTION_STATUS
-+#endif
-+
-+#ifdef CONFIG_ZONE_DMA
-+#define IFDEF_ZONE_DMA(X) X
-+#else
-+#define IFDEF_ZONE_DMA(X)
-+#endif
-+
-+#ifdef CONFIG_ZONE_DMA32
-+#define IFDEF_ZONE_DMA32(X) X
-+#else
-+#define IFDEF_ZONE_DMA32(X)
-+#endif
-+
-+#ifdef CONFIG_HIGHMEM
-+#define IFDEF_ZONE_HIGHMEM(X) X
-+#else
-+#define IFDEF_ZONE_HIGHMEM(X)
-+#endif
-+
-+#define ZONE_TYPE						\
-+	IFDEF_ZONE_DMA(		EM (ZONE_DMA,	 "DMA"))	\
-+	IFDEF_ZONE_DMA32(	EM (ZONE_DMA32,	 "DMA32"))	\
-+				EM (ZONE_NORMAL, "Normal")	\
-+	IFDEF_ZONE_HIGHMEM(	EM (ZONE_HIGHMEM,"HighMem"))	\
-+				EMe(ZONE_MOVABLE,"Movable")
-+
+  * Direction bits, which any architecture can choose to override
+  * before including this file.
++ *
++ * NOTE: _IOC_WRITE means userland is writing and kernel is
++ * reading. _IOC_READ means userland is reading and kernel is writing.
+  */
+ 
+ #ifndef _IOC_NONE
+@@ -72,7 +75,12 @@
+ #define _IOC_TYPECHECK(t) (sizeof(t))
+ #endif
+ 
+-/* used to create numbers */
 +/*
-+ * First define the enums in the above macros to be exported to userspace
-+ * via TRACE_DEFINE_ENUM().
++ * Used to create numbers.
++ *
++ * NOTE: _IOW means userland is writing and kernel is reading. _IOR
++ * means userland is reading and kernel is writing.
 + */
-+#undef EM
-+#undef EMe
-+#define EM(a, b)	TRACE_DEFINE_ENUM(a);
-+#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
-+
-+COMPACTION_STATUS
-+ZONE_TYPE
-+
+ #define _IO(type,nr)		_IOC(_IOC_NONE,(type),(nr),0)
+ #define _IOR(type,nr,size)	_IOC(_IOC_READ,(type),(nr),(_IOC_TYPECHECK(size)))
+ #define _IOW(type,nr,size)	_IOC(_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-document-_ior-_iow include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-document-_ior-_iow
++++ a/include/uapi/linux/userfaultfd.h
+@@ -11,6 +11,12 @@
+ 
+ #include <linux/types.h>
+ 
 +/*
-+ * Now redefine the EM() and EMe() macros to map the enums to the strings
-+ * that will be printed in the output.
++ * If the UFFDIO_API is upgraded someday, the UFFDIO_UNREGISTER and
++ * UFFDIO_WAKE ioctls should be defined as _IOW and not as _IOR.  In
++ * userfaultfd.h we assumed the kernel was reading (instead _IOC_READ
++ * means the userland is reading).
 + */
-+#undef EM
-+#undef EMe
-+#define EM(a, b)	{a, b},
-+#define EMe(a, b)	{a, b}
+ #define UFFD_API ((__u64)0xAA)
+ /*
+  * After implementing the respective features it will become:
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
