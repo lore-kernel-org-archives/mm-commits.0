@@ -1,206 +1,212 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages.patch removed from -mm tree
-Date: Thu, 23 Feb 2017 13:14:10 -0800
-Message-ID: <58af50a2.gcMi2luipB0wtmfd%akpm@linux-foundation.org>
+ userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:14:31 -0800
+Message-ID: <58af50b7.TQ40Di1HAMaIfOKS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751277AbdBWVOs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:48 -0500
+        with ESMTP id S1751290AbdBWVOt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: allow registration of ranges containing huge pages
+     Subject: userfaultfd: shmem: add shmem_mcopy_atomic_pte for userfaultfd support
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages.patch
+     userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd: hugetlbfs: allow registration of ranges containing huge pages
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: shmem: add shmem_mcopy_atomic_pte for userfaultfd support
 
-Expand the userfaultfd_register/unregister routines to allow VM_HUGETLB
-vmas.  huge page alignment checking is performed after a VM_HUGETLB vma is
-encountered.
+shmem_mcopy_atomic_pte is the low level routine that implements the
+userfaultfd UFFDIO_COPY command.  It is based on the existing
+mcopy_atomic_pte routine with modifications for shared memory pages.
 
-Also, since there is no UFFDIO_ZEROPAGE support for huge pages do not
-return that as a valid ioctl method for huge page ranges.
-
-Link: http://lkml.kernel.org/r/20161216144821.5183-22-aarcange@redhat.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-29-aarcange@redhat.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |   55 ++++++++++++++++++++++++++---
- include/uapi/linux/userfaultfd.h |    3 +
- 2 files changed, 53 insertions(+), 5 deletions(-)
+ include/linux/shmem_fs.h |   11 +++
+ mm/shmem.c               |  110 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 121 insertions(+)
 
-diff -puN fs/userfaultfd.c~userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages
-+++ a/fs/userfaultfd.c
-@@ -27,6 +27,7 @@
- #include <linux/mempolicy.h>
- #include <linux/ioctl.h>
- #include <linux/security.h>
-+#include <linux/hugetlb.h>
+diff -puN include/linux/shmem_fs.h~userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support
++++ a/include/linux/shmem_fs.h
+@@ -124,4 +124,15 @@ static inline bool shmem_huge_enabled(st
+ }
+ #endif
  
- static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
- 
-@@ -1058,6 +1059,7 @@ static int userfaultfd_register(struct u
- 	struct uffdio_register __user *user_uffdio_register;
- 	unsigned long vm_flags, new_flags;
- 	bool found;
-+	bool huge_pages;
- 	unsigned long start, end, vma_end;
- 
- 	user_uffdio_register = (struct uffdio_register __user *) arg;
-@@ -1109,6 +1111,17 @@ static int userfaultfd_register(struct u
- 		goto out_unlock;
- 
- 	/*
-+	 * If the first vma contains huge pages, make sure start address
-+	 * is aligned to huge page size.
-+	 */
-+	if (is_vm_hugetlb_page(vma)) {
-+		unsigned long vma_hpagesize = vma_kernel_pagesize(vma);
++#ifdef CONFIG_SHMEM
++extern int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
++				  struct vm_area_struct *dst_vma,
++				  unsigned long dst_addr,
++				  unsigned long src_addr,
++				  struct page **pagep);
++#else
++#define shmem_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma, dst_addr, \
++			       src_addr, pagep)        ({ BUG(); 0; })
++#endif
 +
-+		if (start & (vma_hpagesize - 1))
-+			goto out_unlock;
-+	}
-+
-+	/*
- 	 * Search for not compatible vmas.
- 	 *
- 	 * FIXME: this shall be relaxed later so that it doesn't fail
-@@ -1116,6 +1129,7 @@ static int userfaultfd_register(struct u
- 	 * on anonymous vmas).
- 	 */
- 	found = false;
-+	huge_pages = false;
- 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
- 		cond_resched();
+ #endif
+diff -puN mm/shmem.c~userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support mm/shmem.c
+--- a/mm/shmem.c~userfaultfd-shmem-add-shmem_mcopy_atomic_pte-for-userfaultfd-support
++++ a/mm/shmem.c
+@@ -70,6 +70,7 @@ static struct vfsmount *shm_mnt;
+ #include <linux/syscalls.h>
+ #include <linux/fcntl.h>
+ #include <uapi/linux/memfd.h>
++#include <linux/rmap.h>
  
-@@ -1124,8 +1138,21 @@ static int userfaultfd_register(struct u
+ #include <linux/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -2178,6 +2179,115 @@ bool shmem_mapping(struct address_space
+ 	return mapping->a_ops == &shmem_aops;
+ }
  
- 		/* check not compatible vmas */
- 		ret = -EINVAL;
--		if (!vma_is_anonymous(cur))
-+		if (!vma_is_anonymous(cur) && !is_vm_hugetlb_page(cur))
- 			goto out_unlock;
-+		/*
-+		 * If this vma contains ending address, and huge pages
-+		 * check alignment.
-+		 */
-+		if (is_vm_hugetlb_page(cur) && end <= cur->vm_end &&
-+		    end > cur->vm_start) {
-+			unsigned long vma_hpagesize = vma_kernel_pagesize(cur);
++int shmem_mcopy_atomic_pte(struct mm_struct *dst_mm,
++			   pmd_t *dst_pmd,
++			   struct vm_area_struct *dst_vma,
++			   unsigned long dst_addr,
++			   unsigned long src_addr,
++			   struct page **pagep)
++{
++	struct inode *inode = file_inode(dst_vma->vm_file);
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++	struct address_space *mapping = inode->i_mapping;
++	gfp_t gfp = mapping_gfp_mask(mapping);
++	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
++	struct mem_cgroup *memcg;
++	spinlock_t *ptl;
++	void *page_kaddr;
++	struct page *page;
++	pte_t _dst_pte, *dst_pte;
++	int ret;
 +
-+			ret = -EINVAL;
-+
-+			if (end & (vma_hpagesize - 1))
-+				goto out_unlock;
++	if (!*pagep) {
++		ret = -ENOMEM;
++		if (shmem_acct_block(info->flags, 1))
++			goto out;
++		if (sbinfo->max_blocks) {
++			if (percpu_counter_compare(&sbinfo->used_blocks,
++						   sbinfo->max_blocks) >= 0)
++				goto out_unacct_blocks;
++			percpu_counter_inc(&sbinfo->used_blocks);
 +		}
- 
- 		/*
- 		 * Check that this vma isn't already owned by a
-@@ -1138,6 +1165,12 @@ static int userfaultfd_register(struct u
- 		    cur->vm_userfaultfd_ctx.ctx != ctx)
- 			goto out_unlock;
- 
-+		/*
-+		 * Note vmas containing huge pages
-+		 */
-+		if (is_vm_hugetlb_page(cur))
-+			huge_pages = true;
 +
- 		found = true;
- 	}
- 	BUG_ON(!found);
-@@ -1149,7 +1182,7 @@ static int userfaultfd_register(struct u
- 	do {
- 		cond_resched();
- 
--		BUG_ON(!vma_is_anonymous(vma));
-+		BUG_ON(!vma_is_anonymous(vma) && !is_vm_hugetlb_page(vma));
- 		BUG_ON(vma->vm_userfaultfd_ctx.ctx &&
- 		       vma->vm_userfaultfd_ctx.ctx != ctx);
- 
-@@ -1207,7 +1240,8 @@ out_unlock:
- 		 * userland which ioctls methods are guaranteed to
- 		 * succeed on this range.
- 		 */
--		if (put_user(UFFD_API_RANGE_IOCTLS,
-+		if (put_user(huge_pages ? UFFD_API_RANGE_IOCTLS_HPAGE :
-+			     UFFD_API_RANGE_IOCTLS,
- 			     &user_uffdio_register->ioctls))
- 			ret = -EFAULT;
- 	}
-@@ -1254,6 +1288,17 @@ static int userfaultfd_unregister(struct
- 		goto out_unlock;
- 
- 	/*
-+	 * If the first vma contains huge pages, make sure start address
-+	 * is aligned to huge page size.
-+	 */
-+	if (is_vm_hugetlb_page(vma)) {
-+		unsigned long vma_hpagesize = vma_kernel_pagesize(vma);
++		page = shmem_alloc_page(gfp, info, pgoff);
++		if (!page)
++			goto out_dec_used_blocks;
 +
-+		if (start & (vma_hpagesize - 1))
-+			goto out_unlock;
++		page_kaddr = kmap_atomic(page);
++		ret = copy_from_user(page_kaddr, (const void __user *)src_addr,
++				     PAGE_SIZE);
++		kunmap_atomic(page_kaddr);
++
++		/* fallback to copy_from_user outside mmap_sem */
++		if (unlikely(ret)) {
++			*pagep = page;
++			/* don't free the page */
++			return -EFAULT;
++		}
++	} else {
++		page = *pagep;
++		*pagep = NULL;
 +	}
 +
-+	/*
- 	 * Search for not compatible vmas.
- 	 *
- 	 * FIXME: this shall be relaxed later so that it doesn't fail
-@@ -1275,7 +1320,7 @@ static int userfaultfd_unregister(struct
- 		 * provides for more strict behavior to notice
- 		 * unregistration errors.
- 		 */
--		if (!vma_is_anonymous(cur))
-+		if (!vma_is_anonymous(cur) && !is_vm_hugetlb_page(cur))
- 			goto out_unlock;
- 
- 		found = true;
-@@ -1289,7 +1334,7 @@ static int userfaultfd_unregister(struct
- 	do {
- 		cond_resched();
- 
--		BUG_ON(!vma_is_anonymous(vma));
-+		BUG_ON(!vma_is_anonymous(vma) && !is_vm_hugetlb_page(vma));
- 
- 		/*
- 		 * Nothing to do: this vma is already registered into this
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-hugetlbfs-allow-registration-of-ranges-containing-huge-pages
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -29,6 +29,9 @@
- 	((__u64)1 << _UFFDIO_WAKE |		\
- 	 (__u64)1 << _UFFDIO_COPY |		\
- 	 (__u64)1 << _UFFDIO_ZEROPAGE)
-+#define UFFD_API_RANGE_IOCTLS_HPAGE		\
-+	((__u64)1 << _UFFDIO_WAKE |		\
-+	 (__u64)1 << _UFFDIO_COPY)
- 
- /*
-  * Valid ioctl command number range with this API is from 0x00 to
++	ret = mem_cgroup_try_charge(page, dst_mm, gfp, &memcg, false);
++	if (ret)
++		goto out_release;
++
++	ret = radix_tree_maybe_preload(gfp & GFP_RECLAIM_MASK);
++	if (!ret) {
++		ret = shmem_add_to_page_cache(page, mapping, pgoff, NULL);
++		radix_tree_preload_end();
++	}
++	if (ret)
++		goto out_release_uncharge;
++
++	mem_cgroup_commit_charge(page, memcg, false, false);
++
++	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
++	if (dst_vma->vm_flags & VM_WRITE)
++		_dst_pte = pte_mkwrite(pte_mkdirty(_dst_pte));
++
++	ret = -EEXIST;
++	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
++	if (!pte_none(*dst_pte))
++		goto out_release_uncharge_unlock;
++
++	__SetPageUptodate(page);
++
++	lru_cache_add_anon(page);
++
++	spin_lock(&info->lock);
++	info->alloced++;
++	inode->i_blocks += BLOCKS_PER_PAGE;
++	shmem_recalc_inode(inode);
++	spin_unlock(&info->lock);
++
++	inc_mm_counter(dst_mm, mm_counter_file(page));
++	page_add_file_rmap(page, false);
++	set_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
++
++	/* No need to invalidate - it was non-present before */
++	update_mmu_cache(dst_vma, dst_addr, dst_pte);
++	unlock_page(page);
++	pte_unmap_unlock(dst_pte, ptl);
++	ret = 0;
++out:
++	return ret;
++out_release_uncharge_unlock:
++	pte_unmap_unlock(dst_pte, ptl);
++out_release_uncharge:
++	mem_cgroup_cancel_charge(page, memcg, false);
++out_release:
++	put_page(page);
++out_dec_used_blocks:
++	if (sbinfo->max_blocks)
++		percpu_counter_add(&sbinfo->used_blocks, -1);
++out_unacct_blocks:
++	shmem_unacct_blocks(info->flags, 1);
++	goto out;
++}
++
+ #ifdef CONFIG_TMPFS
+ static const struct inode_operations shmem_symlink_inode_operations;
+ static const struct inode_operations shmem_short_symlink_operations;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
+userfaultfd-non-cooperative-rename-event_madvdontneed-to-event_remove.patch
+userfaultfd-non-cooperative-add-madvise-event-for-madv_remove-request.patch
+userfaultfd-non-cooperative-selftest-enable-remove-event-test-for-shmem.patch
+mm-call-vm_munmap-in-munmap-syscall-instead-of-using-open-coded-version.patch
+userfaultfd-non-cooperative-add-event-for-memory-unmaps.patch
+userfaultfd-non-cooperative-add-event-for-exit-notification.patch
+userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch
+userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
+userfaultfd-documentation-update.patch
 
