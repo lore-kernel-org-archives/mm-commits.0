@@ -1,142 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-warn_alloc-print-nodemask.patch removed
+Subject: [merged]
+ mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch removed
  from -mm tree
-Date: Thu, 23 Feb 2017 13:17:05 -0800
-Message-ID: <58af5151.2hgbUao0EhBdmUIU%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:16:43 -0800
+Message-ID: <58af513b.iEd/PVOiMjqx1FxQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40728 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751259AbdBWVRm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:42 -0500
+        with ESMTP id S1751198AbdBWVRl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: warn_alloc print nodemask
+     Subject: mm/swap: skip readahead only when swap slot cache is enabled
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-warn_alloc-print-nodemask.patch
+     mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: warn_alloc print nodemask
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/swap: skip readahead only when swap slot cache is enabled
 
-warn_alloc is currently used for to report an allocation failure or an
-allocation stall.  We print some details of the allocation request like
-the gfp mask and the request order.  We do not print the allocation
-nodemask which is important when debugging the reason for the allocation
-failure as well.  We alreaddy print the nodemask in the OOM report.
+Because during swap off, a swap entry may have swap_map[] ==
+SWAP_HAS_CACHE (for example, just allocated).  If we return NULL in
+__read_swap_cache_async(), the swap off will abort.  So when swap slot
+cache is disabled, (for swap off), we will wait for page to be put into
+swap cache in such race condition.  This should not be a problem for swap
+slot cache, because swap slot cache should be drained after clearing
+swap_slot_cache_enabled.
 
-Add nodemask to warn_alloc and print it in warn_alloc as well.
-
-Link: http://lkml.kernel.org/r/20170117091543.25850-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+[ying.huang@intel.com: fix memory leak in __read_swap_cache_async()]
+  Link: http://lkml.kernel.org/r/874lzt6znd.fsf@yhuang-dev.intel.com
+Link: http://lkml.kernel.org/r/5e2c5f6abe8e6eb0797408897b1bba80938e9b9d.1484082593.git.tim.c.chen@linux.intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net> escreveu:
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- mm/page_alloc.c    |   10 ++++++----
- mm/vmalloc.c       |    4 ++--
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ include/linux/swap_slots.h |    2 ++
+ mm/swap_slots.c            |    2 +-
+ mm/swap_state.c            |   13 ++++++++++---
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~mm-page_alloc-warn_alloc-print-nodemask include/linux/mm.h
---- a/include/linux/mm.h~mm-page_alloc-warn_alloc-print-nodemask
-+++ a/include/linux/mm.h
-@@ -1942,8 +1942,8 @@ extern void si_meminfo_node(struct sysin
- extern unsigned long arch_reserved_kernel_pages(void);
- #endif
+diff -puN include/linux/swap_slots.h~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled include/linux/swap_slots.h
+--- a/include/linux/swap_slots.h~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
++++ a/include/linux/swap_slots.h
+@@ -25,4 +25,6 @@ void reenable_swap_slots_cache_unlock(vo
+ int enable_swap_slots_cache(void);
+ int free_swap_slot(swp_entry_t entry);
  
--extern __printf(2, 3)
--void warn_alloc(gfp_t gfp_mask, const char *fmt, ...);
-+extern __printf(3, 4)
-+void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...);
++extern bool swap_slot_cache_enabled;
++
+ #endif /* _LINUX_SWAP_SLOTS_H */
+diff -puN mm/swap_slots.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled mm/swap_slots.c
+--- a/mm/swap_slots.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
++++ a/mm/swap_slots.c
+@@ -36,7 +36,7 @@
  
- extern void setup_per_cpu_pageset(void);
+ static DEFINE_PER_CPU(struct swap_slots_cache, swp_slots);
+ static bool	swap_slot_cache_active;
+-static bool	swap_slot_cache_enabled;
++bool	swap_slot_cache_enabled;
+ static bool	swap_slot_cache_initialized;
+ DEFINE_MUTEX(swap_slots_cache_mutex);
+ /* Serialize swap slots cache enable/disable operations */
+diff -puN mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-skip-readahead-only-when-swap-slot-cache-is-enabled
++++ a/mm/swap_state.c
+@@ -324,9 +324,16 @@ struct page *__read_swap_cache_async(swp
+ 		if (found_page)
+ 			break;
  
-diff -puN mm/page_alloc.c~mm-page_alloc-warn_alloc-print-nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-warn_alloc-print-nodemask
-+++ a/mm/page_alloc.c
-@@ -3028,12 +3028,13 @@ static void warn_alloc_show_mem(gfp_t gf
- 	show_mem(filter);
- }
+-		/* Just skip read ahead for unused swap slot */
+-		if (!__swp_swapcount(entry))
+-			return NULL;
++		/*
++		 * Just skip read ahead for unused swap slot.
++		 * During swap_off when swap_slot_cache is disabled,
++		 * we have to handle the race between putting
++		 * swap entry in swap cache and marking swap slot
++		 * as SWAP_HAS_CACHE.  That's done in later part of code or
++		 * else swap_off will be aborted if we return NULL.
++		 */
++		if (!__swp_swapcount(entry) && swap_slot_cache_enabled)
++			break;
  
--void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
-+void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
- {
- 	struct va_format vaf;
- 	va_list args;
- 	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
- 				      DEFAULT_RATELIMIT_BURST);
-+	nodemask_t *nm = (nodemask) ? nodemask : &cpuset_current_mems_allowed;
- 
- 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
- 	    debug_guardpage_minorder() > 0)
-@@ -3047,7 +3048,8 @@ void warn_alloc(gfp_t gfp_mask, const ch
- 	pr_cont("%pV", &vaf);
- 	va_end(args);
- 
--	pr_cont(", mode:%#x(%pGg)\n", gfp_mask, &gfp_mask);
-+	pr_cont(", mode:%#x(%pGg), nodemask=%*pbl\n", gfp_mask, &gfp_mask, nodemask_pr_args(nm));
-+	cpuset_print_current_mems_allowed();
- 
- 	dump_stack();
- 	warn_alloc_show_mem(gfp_mask);
-@@ -3724,7 +3726,7 @@ retry:
- 
- 	/* Make sure we know about allocations which stall for too long */
- 	if (time_after(jiffies, alloc_start + stall_timeout)) {
--		warn_alloc(gfp_mask,
-+		warn_alloc(gfp_mask, ac->nodemask,
- 			"page allocation stalls for %ums, order:%u",
- 			jiffies_to_msecs(jiffies-alloc_start), order);
- 		stall_timeout += 10 * HZ;
-@@ -3775,7 +3777,7 @@ nopage:
- 	if (read_mems_allowed_retry(cpuset_mems_cookie))
- 		goto retry_cpuset;
- 
--	warn_alloc(gfp_mask,
-+	warn_alloc(gfp_mask, ac->nodemask,
- 			"page allocation failure: order:%u", order);
- got_pg:
- 	return page;
-diff -puN mm/vmalloc.c~mm-page_alloc-warn_alloc-print-nodemask mm/vmalloc.c
---- a/mm/vmalloc.c~mm-page_alloc-warn_alloc-print-nodemask
-+++ a/mm/vmalloc.c
-@@ -1662,7 +1662,7 @@ static void *__vmalloc_area_node(struct
- 	return area->addr;
- 
- fail:
--	warn_alloc(gfp_mask,
-+	warn_alloc(gfp_mask, NULL,
- 			  "vmalloc: allocation failure, allocated %ld of %ld bytes",
- 			  (area->nr_pages*PAGE_SIZE), area->size);
- 	vfree(area->addr);
-@@ -1724,7 +1724,7 @@ void *__vmalloc_node_range(unsigned long
- 	return addr;
- 
- fail:
--	warn_alloc(gfp_mask,
-+	warn_alloc(gfp_mask, NULL,
- 			  "vmalloc: allocation failure: %lu bytes", real_size);
- 	return NULL;
- }
+ 		/*
+ 		 * Get a new page to read into from swap.
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
 
