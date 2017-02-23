@@ -1,167 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:14:19 -0800
-Message-ID: <58af50ab.TK2bQmDbW3jQ/rEZ%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch removed
+ from -mm tree
+Date: Thu, 23 Feb 2017 13:14:46 -0800
+Message-ID: <58af50c6.XSYoU5yPCTLJokIz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39864 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751279AbdBWVOs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:48 -0500
+        with ESMTP id S1751303AbdBWVOt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: gup: support VM_FAULT_RETRY
+     Subject: userfaultfd: shmem: allow registration of shared memory ranges
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
+     userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: hugetlbfs: gup: support VM_FAULT_RETRY
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: shmem: allow registration of shared memory ranges
 
-Add support for VM_FAULT_RETRY to follow_hugetlb_page() so that
-get_user_pages_unlocked/locked and "nonblocking/FOLL_NOWAIT" features will
-work on hugetlbfs.  This is required for fully functional userfaultfd
-non-present support on hugetlbfs.
+Expand the userfaultfd_register/unregister routines to allow shared memory
+VMAs.  Currently, there is no UFFDIO_ZEROPAGE and write-protection support
+for shared memory VMAs, which is reflected in ioctl methods supported by
+uffdio_register.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-25-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-34-aarcange@redhat.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 ++-
- mm/gup.c                |    2 -
- mm/hugetlb.c            |   48 +++++++++++++++++++++++++++++++-------
- 3 files changed, 44 insertions(+), 11 deletions(-)
+ fs/userfaultfd.c                         |   21 +++++++--------------
+ include/uapi/linux/userfaultfd.h         |    2 +-
+ tools/testing/selftests/vm/userfaultfd.c |    2 +-
+ 3 files changed, 9 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
-+++ a/include/linux/hugetlb.h
-@@ -65,7 +65,8 @@ int hugetlb_mempolicy_sysctl_handler(str
- int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
- long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
- 			 struct page **, struct vm_area_struct **,
--			 unsigned long *, unsigned long *, long, unsigned int);
-+			 unsigned long *, unsigned long *, long, unsigned int,
-+			 int *);
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *);
- void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-@@ -136,7 +137,7 @@ static inline unsigned long hugetlb_tota
- 	return 0;
+diff -puN fs/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
++++ a/fs/userfaultfd.c
+@@ -1098,7 +1098,8 @@ static __always_inline int validate_rang
+ 
+ static inline bool vma_can_userfault(struct vm_area_struct *vma)
+ {
+-	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma);
++	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma) ||
++		vma_is_shmem(vma);
  }
  
--#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUG(); 0; })
-+#define follow_hugetlb_page(m,v,p,vs,a,b,i,w,n)	({ BUG(); 0; })
- #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
- #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
- static inline void hugetlb_report_meminfo(struct seq_file *m)
-diff -puN mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/gup.c
---- a/mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
-+++ a/mm/gup.c
-@@ -572,7 +572,7 @@ static long __get_user_pages(struct task
- 			if (is_vm_hugetlb_page(vma)) {
- 				i = follow_hugetlb_page(mm, vma, pages, vmas,
- 						&start, &nr_pages, i,
--						gup_flags);
-+						gup_flags, nonblocking);
- 				continue;
- 			}
- 		}
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
-+++ a/mm/hugetlb.c
-@@ -4065,7 +4065,7 @@ out_release_unlock:
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			 struct page **pages, struct vm_area_struct **vmas,
- 			 unsigned long *position, unsigned long *nr_pages,
--			 long i, unsigned int flags)
-+			 long i, unsigned int flags, int *nonblocking)
- {
- 	unsigned long pfn_offset;
- 	unsigned long vaddr = *position;
-@@ -4128,16 +4128,43 @@ long follow_hugetlb_page(struct mm_struc
- 		    ((flags & FOLL_WRITE) &&
- 		      !huge_pte_write(huge_ptep_get(pte)))) {
- 			int ret;
-+			unsigned int fault_flags = 0;
+ static int userfaultfd_register(struct userfaultfd_ctx *ctx,
+@@ -1111,7 +1112,7 @@ static int userfaultfd_register(struct u
+ 	struct uffdio_register __user *user_uffdio_register;
+ 	unsigned long vm_flags, new_flags;
+ 	bool found;
+-	bool huge_pages;
++	bool non_anon_pages;
+ 	unsigned long start, end, vma_end;
  
- 			if (pte)
- 				spin_unlock(ptl);
--			ret = hugetlb_fault(mm, vma, vaddr,
--				(flags & FOLL_WRITE) ? FAULT_FLAG_WRITE : 0);
--			if (!(ret & VM_FAULT_ERROR))
--				continue;
--
--			remainder = 0;
--			break;
-+			if (flags & FOLL_WRITE)
-+				fault_flags |= FAULT_FLAG_WRITE;
-+			if (nonblocking)
-+				fault_flags |= FAULT_FLAG_ALLOW_RETRY;
-+			if (flags & FOLL_NOWAIT)
-+				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
-+					FAULT_FLAG_RETRY_NOWAIT;
-+			if (flags & FOLL_TRIED) {
-+				VM_WARN_ON_ONCE(fault_flags &
-+						FAULT_FLAG_ALLOW_RETRY);
-+				fault_flags |= FAULT_FLAG_TRIED;
-+			}
-+			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
-+			if (ret & VM_FAULT_ERROR) {
-+				remainder = 0;
-+				break;
-+			}
-+			if (ret & VM_FAULT_RETRY) {
-+				if (nonblocking)
-+					*nonblocking = 0;
-+				*nr_pages = 0;
-+				/*
-+				 * VM_FAULT_RETRY must not return an
-+				 * error, it will return zero
-+				 * instead.
-+				 *
-+				 * No need to update "position" as the
-+				 * caller will not check it after
-+				 * *nr_pages is set to 0.
-+				 */
-+				return i;
-+			}
-+			continue;
- 		}
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
+@@ -1175,13 +1176,9 @@ static int userfaultfd_register(struct u
  
- 		pfn_offset = (vaddr & ~huge_page_mask(h)) >> PAGE_SHIFT;
-@@ -4166,6 +4193,11 @@ same_page:
- 		spin_unlock(ptl);
+ 	/*
+ 	 * Search for not compatible vmas.
+-	 *
+-	 * FIXME: this shall be relaxed later so that it doesn't fail
+-	 * on tmpfs backed vmas (in addition to the current allowance
+-	 * on anonymous vmas).
+ 	 */
+ 	found = false;
+-	huge_pages = false;
++	non_anon_pages = false;
+ 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
+ 		cond_resched();
+ 
+@@ -1220,8 +1217,8 @@ static int userfaultfd_register(struct u
+ 		/*
+ 		 * Note vmas containing huge pages
+ 		 */
+-		if (is_vm_hugetlb_page(cur))
+-			huge_pages = true;
++		if (is_vm_hugetlb_page(cur) || vma_is_shmem(cur))
++			non_anon_pages = true;
+ 
+ 		found = true;
  	}
- 	*nr_pages = remainder;
-+	/*
-+	 * setting position is actually required only if remainder is
-+	 * not zero but it's faster not to add a "if (remainder)"
-+	 * branch.
-+	 */
- 	*position = vaddr;
+@@ -1292,7 +1289,7 @@ out_unlock:
+ 		 * userland which ioctls methods are guaranteed to
+ 		 * succeed on this range.
+ 		 */
+-		if (put_user(huge_pages ? UFFD_API_RANGE_IOCTLS_HPAGE :
++		if (put_user(non_anon_pages ? UFFD_API_RANGE_IOCTLS_BASIC :
+ 			     UFFD_API_RANGE_IOCTLS,
+ 			     &user_uffdio_register->ioctls))
+ 			ret = -EFAULT;
+@@ -1352,10 +1349,6 @@ static int userfaultfd_unregister(struct
  
- 	return i ? i : -EFAULT;
+ 	/*
+ 	 * Search for not compatible vmas.
+-	 *
+-	 * FIXME: this shall be relaxed later so that it doesn't fail
+-	 * on tmpfs backed vmas (in addition to the current allowance
+-	 * on anonymous vmas).
+ 	 */
+ 	found = false;
+ 	ret = -EINVAL;
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-shmem-allow-registration-of-shared-memory-ranges include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
++++ a/include/uapi/linux/userfaultfd.h
+@@ -30,7 +30,7 @@
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+ 	 (__u64)1 << _UFFDIO_COPY |		\
+ 	 (__u64)1 << _UFFDIO_ZEROPAGE)
+-#define UFFD_API_RANGE_IOCTLS_HPAGE		\
++#define UFFD_API_RANGE_IOCTLS_BASIC		\
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+ 	 (__u64)1 << _UFFDIO_COPY)
+ 
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -129,7 +129,7 @@ static void allocate_area(void **alloc_a
+ 
+ #else /* HUGETLB_TEST */
+ 
+-#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_HPAGE
++#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_BASIC
+ 
+ static int release_pages(char *rel_area)
+ {
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
+userfaultfd-non-cooperative-rename-event_madvdontneed-to-event_remove.patch
+userfaultfd-non-cooperative-add-madvise-event-for-madv_remove-request.patch
+userfaultfd-non-cooperative-selftest-enable-remove-event-test-for-shmem.patch
+mm-call-vm_munmap-in-munmap-syscall-instead-of-using-open-coded-version.patch
+userfaultfd-non-cooperative-add-event-for-memory-unmaps.patch
+userfaultfd-non-cooperative-add-event-for-exit-notification.patch
+userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch
+userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
+userfaultfd-documentation-update.patch
 
