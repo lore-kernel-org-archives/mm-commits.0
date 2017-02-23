@@ -1,120 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- trace-vmscan-postprocess-sync-with-tracepoints-updates.patch removed from
- -mm tree
-Date: Thu, 23 Feb 2017 13:15:43 -0800
-Message-ID: <58af50ff.NgtVJGSBWS/iXsxd%akpm@linux-foundation.org>
+Subject: [merged] nfs-no-pg_private-waiters-remain-remove-waker.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:15:46 -0800
+Message-ID: <58af5102.TpNoduioHWuC4ve4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40250 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbdBWVPo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:44 -0500
+        with ESMTP id S1751195AbdBWVPr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: npiggin@gmail.com, anna.schumaker@netapp.com, trond.myklebust@primarydata.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: trace-vmscan-postprocess: sync with tracepoints updates
+     Subject: nfs: no PG_private waiters remain, remove waker
 has been removed from the -mm tree.  Its filename was
-     trace-vmscan-postprocess-sync-with-tracepoints-updates.patch
+     nfs-no-pg_private-waiters-remain-remove-waker.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: trace-vmscan-postprocess: sync with tracepoints updates
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: nfs: no PG_private waiters remain, remove waker
 
-Both mm_vmscan_lru_shrink_active and mm_vmscan_lru_isolate have changed
-so the script needs to be update to reflect those changes
+Since commit 4f52b6bb ("NFS: Don't call COMMIT in ->releasepage()"), no
+tasks wait on PagePrivate, so the wake introduced in commit 95905446
+("NFS: avoid deadlocks with loop-back mounted NFS filesystems.") can be
+removed.
 
-Link: http://lkml.kernel.org/r/20170105151737.GU21618@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20170103182234.30141-2-npiggin@gmail.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: Anna Schumaker <anna.schumaker@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/postprocess/trace-vmscan-postprocess.pl |   26 +++++-----
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ fs/nfs/write.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN Documentation/trace/postprocess/trace-vmscan-postprocess.pl~trace-vmscan-postprocess-sync-with-tracepoints-updates Documentation/trace/postprocess/trace-vmscan-postprocess.pl
---- a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl~trace-vmscan-postprocess-sync-with-tracepoints-updates
-+++ a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl
-@@ -112,8 +112,8 @@ my $regex_direct_end_default = 'nr_recla
- my $regex_kswapd_wake_default = 'nid=([0-9]*) order=([0-9]*)';
- my $regex_kswapd_sleep_default = 'nid=([0-9]*)';
- my $regex_wakeup_kswapd_default = 'nid=([0-9]*) zid=([0-9]*) order=([0-9]*)';
--my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_taken=([0-9]*) file=([0-9]*)';
--my $regex_lru_shrink_inactive_default = 'nid=([0-9]*) zid=([0-9]*) nr_scanned=([0-9]*) nr_reclaimed=([0-9]*) priority=([0-9]*) flags=([A-Z_|]*)';
-+my $regex_lru_isolate_default = 'isolate_mode=([0-9]*) classzone_idx=([0-9]*) order=([0-9]*) nr_requested=([0-9]*) nr_scanned=([0-9]*) nr_skipped=([0-9]*) nr_taken=([0-9]*) lru=([a-z_]*)';
-+my $regex_lru_shrink_inactive_default = 'nid=([0-9]*) nr_scanned=([0-9]*) nr_reclaimed=([0-9]*) nr_dirty=([0-9]*) nr_writeback=([0-9]*) nr_congested=([0-9]*) nr_immediate=([0-9]*) nr_activate=([0-9]*) nr_ref_keep=([0-9]*) nr_unmap_fail=([0-9]*) priority=([0-9]*) flags=([A-Z_|]*)';
- my $regex_lru_shrink_active_default = 'lru=([A-Z_]*) nr_scanned=([0-9]*) nr_rotated=([0-9]*) priority=([0-9]*)';
- my $regex_writepage_default = 'page=([0-9a-f]*) pfn=([0-9]*) flags=([A-Z_|]*)';
- 
-@@ -205,15 +205,15 @@ $regex_wakeup_kswapd = generate_traceeve
- $regex_lru_isolate = generate_traceevent_regex(
- 			"vmscan/mm_vmscan_lru_isolate",
- 			$regex_lru_isolate_default,
--			"isolate_mode", "order",
--			"nr_requested", "nr_scanned", "nr_taken",
--			"file");
-+			"isolate_mode", "classzone_idx", "order",
-+			"nr_requested", "nr_scanned", "nr_skipped", "nr_taken",
-+			"lru");
- $regex_lru_shrink_inactive = generate_traceevent_regex(
- 			"vmscan/mm_vmscan_lru_shrink_inactive",
- 			$regex_lru_shrink_inactive_default,
--			"nid", "zid",
--			"nr_scanned", "nr_reclaimed", "priority",
--			"flags");
-+			"nid", "nr_scanned", "nr_reclaimed", "nr_dirty", "nr_writeback",
-+			"nr_congested", "nr_immediate", "nr_activate", "nr_ref_keep",
-+			"nr_unmap_fail", "priority", "flags");
- $regex_lru_shrink_active = generate_traceevent_regex(
- 			"vmscan/mm_vmscan_lru_shrink_active",
- 			$regex_lru_shrink_active_default,
-@@ -381,8 +381,8 @@ EVENT_PROCESS:
- 				next;
- 			}
- 			my $isolate_mode = $1;
--			my $nr_scanned = $4;
--			my $file = $6;
-+			my $nr_scanned = $5;
-+			my $file = $8;
- 
- 			# To closer match vmstat scanning statistics, only count isolate_both
- 			# and isolate_inactive as scanning. isolate_active is rotation
-@@ -391,7 +391,7 @@ EVENT_PROCESS:
- 			# isolate_both     == 3
- 			if ($isolate_mode != 2) {
- 				$perprocesspid{$process_pid}->{HIGH_NR_SCANNED} += $nr_scanned;
--				if ($file == 1) {
-+				if ($file =~ /_file/) {
- 					$perprocesspid{$process_pid}->{HIGH_NR_FILE_SCANNED} += $nr_scanned;
- 				} else {
- 					$perprocesspid{$process_pid}->{HIGH_NR_ANON_SCANNED} += $nr_scanned;
-@@ -406,8 +406,8 @@ EVENT_PROCESS:
- 				next;
- 			}
- 
--			my $nr_reclaimed = $4;
--			my $flags = $6;
-+			my $nr_reclaimed = $3;
-+			my $flags = $12;
- 			my $file = 0;
- 			if ($flags =~ /RECLAIM_WB_FILE/) {
- 				$file = 1;
+diff -puN fs/nfs/write.c~nfs-no-pg_private-waiters-remain-remove-waker fs/nfs/write.c
+--- a/fs/nfs/write.c~nfs-no-pg_private-waiters-remain-remove-waker
++++ a/fs/nfs/write.c
+@@ -728,8 +728,6 @@ static void nfs_inode_remove_request(str
+ 		if (likely(head->wb_page && !PageSwapCache(head->wb_page))) {
+ 			set_page_private(head->wb_page, 0);
+ 			ClearPagePrivate(head->wb_page);
+-			smp_mb__after_atomic();
+-			wake_up_page(head->wb_page, PG_private);
+ 			clear_bit(PG_MAPPED, &head->wb_flags);
+ 		}
+ 		nfsi->nrequests--;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps-fix.patch
-vmalloc-back-of-when-the-current-is-killed.patch
 
