@@ -1,40 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-swap-skip-read-ahead-for-unreferenced-swap-slots.patch removed from -mm
- tree
-Date: Thu, 23 Feb 2017 13:16:28 -0800
-Message-ID: <58af512c.yAlOUJp5duxVUnzo%akpm@linux-foundation.org>
+Subject: [merged] mm-swap-split-swap-cache-into-64mb-trunks.patch removed
+ from -mm tree
+Date: Thu, 23 Feb 2017 13:16:25 -0800
+Message-ID: <58af5129.V4Uj7BaRCQanStGP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdBWVQ3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:16:29 -0500
+        with ESMTP id S1751198AbdBWVQ1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:16:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.c.chen@linux.intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, vdavydov.dev@gmail.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: skip readahead for unreferenced swap slots
+     Subject: mm/swap: split swap cache into 64MB trunks
 has been removed from the -mm tree.  Its filename was
-     mm-swap-skip-read-ahead-for-unreferenced-swap-slots.patch
+     mm-swap-split-swap-cache-into-64mb-trunks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: mm/swap: skip readahead for unreferenced swap slots
+From: "Huang, Ying" <ying.huang@intel.com>
+Subject: mm/swap: split swap cache into 64MB trunks
 
-We can avoid needlessly allocating page for swap slots that are not used
-by anyone.  No pages have to be read in for these slots.
+The patch is to improve the scalability of the swap out/in via using fine
+grained locks for the swap cache.  In current kernel, one address space
+will be used for each swap device.  And in the common configuration, the
+number of the swap device is very small (one is typical).  This causes the
+heavy lock contention on the radix tree of the address space if multiple
+tasks swap out/in concurrently.  But in fact, there is no dependency
+between pages in the swap cache.  So that, we can split the one shared
+address space for each swap device into several address spaces to reduce
+the lock contention.  In the patch, the shared address space is split into
+64MB trunks.  64MB is chosen to balance the memory space usage and effect
+of lock contention reduction.
 
-Link: http://lkml.kernel.org/r/0784b3f20b9bd3aa5552219624cb78dc4ae710c9.1484082593.git.tim.c.chen@linux.intel.com
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+The size of struct address_space on x86_64 architecture is 408B, so with
+the patch, 6528B more memory will be used for every 1GB swap space on
+x86_64 architecture.
+
+One address space is still shared for the swap entries in the same 64M
+trunks.  To avoid lock contention for the first round of swap space
+allocation, the order of the swap clusters in the initial free clusters
+list is changed.  The swap space distance between the consecutive swap
+clusters in the free cluster list is at least 64M.  After the first round
+of allocation, the swap clusters are expected to be freed randomly, so the
+lock contention should be reduced effectively.
+
+Link: http://lkml.kernel.org/r/735bab895e64c930581ffb0a05b661e01da82bc5.1484082593.git.tim.c.chen@linux.intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
 Cc: Aaron Lu <aaron.lu@intel.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -54,130 +74,204 @@ Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 +++++
- mm/swap_state.c      |    4 +++
- mm/swapfile.c        |   47 +++++++++++++++++++++++++++++++++++------
- 3 files changed, 51 insertions(+), 6 deletions(-)
+ include/linux/swap.h |   11 +++++-
+ mm/swap.c            |    6 ---
+ mm/swap_state.c      |   68 +++++++++++++++++++++++++++++++++--------
+ mm/swapfile.c        |   16 ++++++++-
+ 4 files changed, 79 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/swap.h~mm-swap-skip-read-ahead-for-unreferenced-swap-slots include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-skip-read-ahead-for-unreferenced-swap-slots
+diff -puN include/linux/swap.h~mm-swap-split-swap-cache-into-64mb-trunks include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-split-swap-cache-into-64mb-trunks
 +++ a/include/linux/swap.h
-@@ -398,6 +398,7 @@ extern unsigned int count_swap_pages(int
- extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
- extern int page_swapcount(struct page *);
-+extern int __swp_swapcount(swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
+@@ -343,8 +343,13 @@ int generic_swapfile_activate(struct swa
+ 		sector_t *);
+ 
+ /* linux/mm/swap_state.c */
+-extern struct address_space swapper_spaces[];
+-#define swap_address_space(entry) (&swapper_spaces[swp_type(entry)])
++/* One swap address space for each 64M swap space */
++#define SWAP_ADDRESS_SPACE_SHIFT	14
++#define SWAP_ADDRESS_SPACE_PAGES	(1 << SWAP_ADDRESS_SPACE_SHIFT)
++extern struct address_space *swapper_spaces[];
++#define swap_address_space(entry)			    \
++	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
++		>> SWAP_ADDRESS_SPACE_SHIFT])
+ extern unsigned long total_swapcache_pages(void);
+ extern void show_swap_cache_info(void);
+ extern int add_to_swap(struct page *, struct list_head *list);
+@@ -398,6 +403,8 @@ extern struct swap_info_struct *page_swa
  extern bool reuse_swap_page(struct page *, int *);
-@@ -491,6 +492,11 @@ static inline int page_swapcount(struct
+ extern int try_to_free_swap(struct page *);
+ struct backing_dev_info;
++extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
++extern void exit_swap_address_space(unsigned int type);
+ 
+ #else /* CONFIG_SWAP */
+ 
+diff -puN mm/swap.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swap.c
+--- a/mm/swap.c~mm-swap-split-swap-cache-into-64mb-trunks
++++ a/mm/swap.c
+@@ -971,12 +971,6 @@ EXPORT_SYMBOL(pagevec_lookup_tag);
+ void __init swap_setup(void)
  {
- 	return 0;
+ 	unsigned long megs = totalram_pages >> (20 - PAGE_SHIFT);
+-#ifdef CONFIG_SWAP
+-	int i;
+-
+-	for (i = 0; i < MAX_SWAPFILES; i++)
+-		spin_lock_init(&swapper_spaces[i].tree_lock);
+-#endif
+ 
+ 	/* Use a smaller cluster for small-memory machines */
+ 	if (megs < 16)
+diff -puN mm/swap_state.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-split-swap-cache-into-64mb-trunks
++++ a/mm/swap_state.c
+@@ -17,6 +17,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/pagevec.h>
+ #include <linux/migrate.h>
++#include <linux/vmalloc.h>
+ 
+ #include <asm/pgtable.h>
+ 
+@@ -32,15 +33,8 @@ static const struct address_space_operat
+ #endif
+ };
+ 
+-struct address_space swapper_spaces[MAX_SWAPFILES] = {
+-	[0 ... MAX_SWAPFILES - 1] = {
+-		.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
+-		.i_mmap_writable = ATOMIC_INIT(0),
+-		.a_ops		= &swap_aops,
+-		/* swap cache doesn't use writeback related tags */
+-		.flags		= 1 << AS_NO_WRITEBACK_TAGS,
+-	}
+-};
++struct address_space *swapper_spaces[MAX_SWAPFILES];
++static unsigned int nr_swapper_spaces[MAX_SWAPFILES];
+ 
+ #define INC_CACHE_INFO(x)	do { swap_cache_info.x++; } while (0)
+ 
+@@ -53,11 +47,26 @@ static struct {
+ 
+ unsigned long total_swapcache_pages(void)
+ {
+-	int i;
++	unsigned int i, j, nr;
+ 	unsigned long ret = 0;
++	struct address_space *spaces;
+ 
+-	for (i = 0; i < MAX_SWAPFILES; i++)
+-		ret += swapper_spaces[i].nrpages;
++	rcu_read_lock();
++	for (i = 0; i < MAX_SWAPFILES; i++) {
++		/*
++		 * The corresponding entries in nr_swapper_spaces and
++		 * swapper_spaces will be reused only after at least
++		 * one grace period.  So it is impossible for them
++		 * belongs to different usage.
++		 */
++		nr = nr_swapper_spaces[i];
++		spaces = rcu_dereference(swapper_spaces[i]);
++		if (!nr || !spaces)
++			continue;
++		for (j = 0; j < nr; j++)
++			ret += spaces[j].nrpages;
++	}
++	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+@@ -505,3 +514,38 @@ struct page *swapin_readahead(swp_entry_
+ skip:
+ 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
  }
 +
-+static inline int __swp_swapcount(swp_entry_t entry)
++int init_swap_address_space(unsigned int type, unsigned long nr_pages)
 +{
++	struct address_space *spaces, *space;
++	unsigned int i, nr;
++
++	nr = DIV_ROUND_UP(nr_pages, SWAP_ADDRESS_SPACE_PAGES);
++	spaces = vzalloc(sizeof(struct address_space) * nr);
++	if (!spaces)
++		return -ENOMEM;
++	for (i = 0; i < nr; i++) {
++		space = spaces + i;
++		INIT_RADIX_TREE(&space->page_tree, GFP_ATOMIC|__GFP_NOWARN);
++		atomic_set(&space->i_mmap_writable, 0);
++		space->a_ops = &swap_aops;
++		/* swap cache doesn't use writeback related tags */
++		mapping_set_no_writeback_tags(space);
++		spin_lock_init(&space->tree_lock);
++	}
++	nr_swapper_spaces[type] = nr;
++	rcu_assign_pointer(swapper_spaces[type], spaces);
++
 +	return 0;
 +}
- 
- static inline int swp_swapcount(swp_entry_t entry)
- {
-diff -puN mm/swap_state.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots
-+++ a/mm/swap_state.c
-@@ -323,6 +323,10 @@ struct page *__read_swap_cache_async(swp
- 		if (found_page)
- 			break;
- 
-+		/* Just skip read ahead for unused swap slot */
-+		if (!__swp_swapcount(entry))
-+			return NULL;
 +
- 		/*
- 		 * Get a new page to read into from swap.
- 		 */
-diff -puN mm/swapfile.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-skip-read-ahead-for-unreferenced-swap-slots
++void exit_swap_address_space(unsigned int type)
++{
++	struct address_space *spaces;
++
++	spaces = swapper_spaces[type];
++	nr_swapper_spaces[type] = 0;
++	rcu_assign_pointer(swapper_spaces[type], NULL);
++	synchronize_rcu();
++	kvfree(spaces);
++}
+diff -puN mm/swapfile.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-split-swap-cache-into-64mb-trunks
 +++ a/mm/swapfile.c
-@@ -798,7 +798,7 @@ swp_entry_t get_swap_page_of_type(int ty
- 	return (swp_entry_t) {0};
+@@ -2084,6 +2084,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	vfree(frontswap_map);
+ 	/* Destroy swap account information */
+ 	swap_cgroup_swapoff(p->type);
++	exit_swap_address_space(p->type);
+ 
+ 	inode = mapping->host;
+ 	if (S_ISBLK(inode->i_mode)) {
+@@ -2407,8 +2408,12 @@ static unsigned long read_swap_header(st
+ 	return maxpages;
  }
  
--static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
-+static struct swap_info_struct *__swap_info_get(swp_entry_t entry)
- {
- 	struct swap_info_struct *p;
- 	unsigned long offset, type;
-@@ -814,13 +814,8 @@ static struct swap_info_struct *_swap_in
- 	offset = swp_offset(entry);
- 	if (offset >= p->max)
- 		goto bad_offset;
--	if (!p->swap_map[offset])
--		goto bad_free;
- 	return p;
+-#define SWAP_CLUSTER_COLS						\
++#define SWAP_CLUSTER_INFO_COLS						\
+ 	DIV_ROUND_UP(L1_CACHE_BYTES, sizeof(struct swap_cluster_info))
++#define SWAP_CLUSTER_SPACE_COLS						\
++	DIV_ROUND_UP(SWAP_ADDRESS_SPACE_PAGES, SWAPFILE_CLUSTER)
++#define SWAP_CLUSTER_COLS						\
++	max_t(unsigned int, SWAP_CLUSTER_INFO_COLS, SWAP_CLUSTER_SPACE_COLS)
  
--bad_free:
--	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
--	goto out;
- bad_offset:
- 	pr_err("swap_info_get: %s%08lx\n", Bad_offset, entry.val);
- 	goto out;
-@@ -833,6 +828,24 @@ out:
- 	return NULL;
- }
+ static int setup_swap_map_and_extents(struct swap_info_struct *p,
+ 					union swap_header *swap_header,
+@@ -2471,7 +2476,10 @@ static int setup_swap_map_and_extents(st
+ 		return nr_extents;
  
-+static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
-+{
-+	struct swap_info_struct *p;
-+
-+	p = __swap_info_get(entry);
-+	if (!p)
-+		goto out;
-+	if (!p->swap_map[swp_offset(entry)])
-+		goto bad_free;
-+	return p;
-+
-+bad_free:
-+	pr_err("swap_info_get: %s%08lx\n", Unused_offset, entry.val);
-+	goto out;
-+out:
-+	return NULL;
-+}
-+
- static struct swap_info_struct *swap_info_get(swp_entry_t entry)
- {
- 	struct swap_info_struct *p;
-@@ -985,6 +998,28 @@ int page_swapcount(struct page *page)
+ 
+-	/* Reduce false cache line sharing between cluster_info */
++	/*
++	 * Reduce false cache line sharing between cluster_info and
++	 * sharing same address space.
++	 */
+ 	for (k = 0; k < SWAP_CLUSTER_COLS; k++) {
+ 		j = (k + col) % SWAP_CLUSTER_COLS;
+ 		for (i = 0; i < DIV_ROUND_UP(nr_clusters, SWAP_CLUSTER_COLS); i++) {
+@@ -2661,6 +2669,10 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		}
  	}
- 	return count;
- }
-+
-+/*
-+ * How many references to @entry are currently swapped out?
-+ * This does not give an exact answer when swap count is continued,
-+ * but does include the high COUNT_CONTINUED flag to allow for that.
-+ */
-+int __swp_swapcount(swp_entry_t entry)
-+{
-+	int count = 0;
-+	pgoff_t offset;
-+	struct swap_info_struct *si;
-+	struct swap_cluster_info *ci;
-+
-+	si = __swap_info_get(entry);
-+	if (si) {
-+		offset = swp_offset(entry);
-+		ci = lock_cluster_or_swap_info(si, offset);
-+		count = swap_count(si->swap_map[offset]);
-+		unlock_cluster_or_swap_info(si, ci);
-+	}
-+	return count;
-+}
  
- /*
-  * How many references to @entry are currently swapped out?
++	error = init_swap_address_space(p->type, maxpages);
++	if (error)
++		goto bad_swap;
++
+ 	mutex_lock(&swapon_mutex);
+ 	prio = -1;
+ 	if (swap_flags & SWAP_FLAG_PREFER)
 _
 
-Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
