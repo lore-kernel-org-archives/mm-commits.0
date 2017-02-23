@@ -1,160 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch removed
- from -mm tree
-Date: Thu, 23 Feb 2017 13:14:46 -0800
-Message-ID: <58af50c6.XSYoU5yPCTLJokIz%akpm@linux-foundation.org>
+ userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch removed from
+ -mm tree
+Date: Thu, 23 Feb 2017 13:14:37 -0800
+Message-ID: <58af50bd.1GAr0ut54WvO7SkB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39912 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751303AbdBWVOt (ORCPT
+        with ESMTP id S1751242AbdBWVOt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: shmem: allow registration of shared memory ranges
+     Subject: userfaultfd: shmem: add tlbflush.h header for microblaze
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-shmem-allow-registration-of-shared-memory-ranges.patch
+     userfaultfd-shmem-add-tlbflushh-header-for-microblaze.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: shmem: allow registration of shared memory ranges
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: shmem: add tlbflush.h header for microblaze
 
-Expand the userfaultfd_register/unregister routines to allow shared memory
-VMAs.  Currently, there is no UFFDIO_ZEROPAGE and write-protection support
-for shared memory VMAs, which is reflected in ioctl methods supported by
-uffdio_register.
+It resolves this build error:
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-34-aarcange@redhat.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+All errors (new ones prefixed by >>):
+
+   mm/shmem.c: In function 'shmem_mcopy_atomic_pte':
+   >> mm/shmem.c:2228:2: error: implicit declaration of function
+   'update_mmu_cache' [-Werror=implicit-function-declaration]
+        update_mmu_cache(dst_vma, dst_addr, dst_pte);
+
+microblaze may have to be also updated to define it in asm/pgtable.h like
+the other archs, then this header inclusion can be removed.
+
+Link: http://lkml.kernel.org/r/20161216144821.5183-31-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                         |   21 +++++++--------------
- include/uapi/linux/userfaultfd.h         |    2 +-
- tools/testing/selftests/vm/userfaultfd.c |    2 +-
- 3 files changed, 9 insertions(+), 16 deletions(-)
+ mm/shmem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
-+++ a/fs/userfaultfd.c
-@@ -1098,7 +1098,8 @@ static __always_inline int validate_rang
+diff -puN mm/shmem.c~userfaultfd-shmem-add-tlbflushh-header-for-microblaze mm/shmem.c
+--- a/mm/shmem.c~userfaultfd-shmem-add-tlbflushh-header-for-microblaze
++++ a/mm/shmem.c
+@@ -34,6 +34,8 @@
+ #include <linux/uio.h>
+ #include <linux/khugepaged.h>
  
- static inline bool vma_can_userfault(struct vm_area_struct *vma)
- {
--	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma);
-+	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma) ||
-+		vma_is_shmem(vma);
- }
++#include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
++
+ static struct vfsmount *shm_mnt;
  
- static int userfaultfd_register(struct userfaultfd_ctx *ctx,
-@@ -1111,7 +1112,7 @@ static int userfaultfd_register(struct u
- 	struct uffdio_register __user *user_uffdio_register;
- 	unsigned long vm_flags, new_flags;
- 	bool found;
--	bool huge_pages;
-+	bool non_anon_pages;
- 	unsigned long start, end, vma_end;
- 
- 	user_uffdio_register = (struct uffdio_register __user *) arg;
-@@ -1175,13 +1176,9 @@ static int userfaultfd_register(struct u
- 
- 	/*
- 	 * Search for not compatible vmas.
--	 *
--	 * FIXME: this shall be relaxed later so that it doesn't fail
--	 * on tmpfs backed vmas (in addition to the current allowance
--	 * on anonymous vmas).
- 	 */
- 	found = false;
--	huge_pages = false;
-+	non_anon_pages = false;
- 	for (cur = vma; cur && cur->vm_start < end; cur = cur->vm_next) {
- 		cond_resched();
- 
-@@ -1220,8 +1217,8 @@ static int userfaultfd_register(struct u
- 		/*
- 		 * Note vmas containing huge pages
- 		 */
--		if (is_vm_hugetlb_page(cur))
--			huge_pages = true;
-+		if (is_vm_hugetlb_page(cur) || vma_is_shmem(cur))
-+			non_anon_pages = true;
- 
- 		found = true;
- 	}
-@@ -1292,7 +1289,7 @@ out_unlock:
- 		 * userland which ioctls methods are guaranteed to
- 		 * succeed on this range.
- 		 */
--		if (put_user(huge_pages ? UFFD_API_RANGE_IOCTLS_HPAGE :
-+		if (put_user(non_anon_pages ? UFFD_API_RANGE_IOCTLS_BASIC :
- 			     UFFD_API_RANGE_IOCTLS,
- 			     &user_uffdio_register->ioctls))
- 			ret = -EFAULT;
-@@ -1352,10 +1349,6 @@ static int userfaultfd_unregister(struct
- 
- 	/*
- 	 * Search for not compatible vmas.
--	 *
--	 * FIXME: this shall be relaxed later so that it doesn't fail
--	 * on tmpfs backed vmas (in addition to the current allowance
--	 * on anonymous vmas).
- 	 */
- 	found = false;
- 	ret = -EINVAL;
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-shmem-allow-registration-of-shared-memory-ranges include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -30,7 +30,7 @@
- 	((__u64)1 << _UFFDIO_WAKE |		\
- 	 (__u64)1 << _UFFDIO_COPY |		\
- 	 (__u64)1 << _UFFDIO_ZEROPAGE)
--#define UFFD_API_RANGE_IOCTLS_HPAGE		\
-+#define UFFD_API_RANGE_IOCTLS_BASIC		\
- 	((__u64)1 << _UFFDIO_WAKE |		\
- 	 (__u64)1 << _UFFDIO_COPY)
- 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-shmem-allow-registration-of-shared-memory-ranges
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -129,7 +129,7 @@ static void allocate_area(void **alloc_a
- 
- #else /* HUGETLB_TEST */
- 
--#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_HPAGE
-+#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_BASIC
- 
- static int release_pages(char *rel_area)
- {
+ #ifdef CONFIG_SHMEM
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-userfaultfd-non-cooperative-rename-event_madvdontneed-to-event_remove.patch
-userfaultfd-non-cooperative-add-madvise-event-for-madv_remove-request.patch
-userfaultfd-non-cooperative-selftest-enable-remove-event-test-for-shmem.patch
-mm-call-vm_munmap-in-munmap-syscall-instead-of-using-open-coded-version.patch
-userfaultfd-non-cooperative-add-event-for-memory-unmaps.patch
-userfaultfd-non-cooperative-add-event-for-exit-notification.patch
-userfaultfd-non-cooperative-add-event-for-exit-notification-fix.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix.patch
-userfaultfd_copy-return-enospc-in-case-mm-has-gone.patch
-userfaultfd-documentation-update.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
