@@ -1,60 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swap-split-swap-cache-into-64mb-trunks.patch removed
+Subject: [merged] mm-swap-allocate-swap-slots-in-batches.patch removed
  from -mm tree
-Date: Thu, 23 Feb 2017 13:16:25 -0800
-Message-ID: <58af5129.V4Uj7BaRCQanStGP%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:16:31 -0800
+Message-ID: <58af512f.oaW1Wf+y8u5ehXzE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40630 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdBWVQ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:16:27 -0500
+        with ESMTP id S1751198AbdBWVQc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:16:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: tim.c.chen@linux.intel.com, aarcange@redhat.com, aaron.lu@intel.com, ak@linux.intel.com, borntraeger@de.ibm.com, corbet@lwn.net, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, vdavydov.dev@gmail.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: split swap cache into 64MB trunks
+     Subject: mm/swap: allocate swap slots in batches
 has been removed from the -mm tree.  Its filename was
-     mm-swap-split-swap-cache-into-64mb-trunks.patch
+     mm-swap-allocate-swap-slots-in-batches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Huang, Ying" <ying.huang@intel.com>
-Subject: mm/swap: split swap cache into 64MB trunks
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: mm/swap: allocate swap slots in batches
 
-The patch is to improve the scalability of the swap out/in via using fine
-grained locks for the swap cache.  In current kernel, one address space
-will be used for each swap device.  And in the common configuration, the
-number of the swap device is very small (one is typical).  This causes the
-heavy lock contention on the radix tree of the address space if multiple
-tasks swap out/in concurrently.  But in fact, there is no dependency
-between pages in the swap cache.  So that, we can split the one shared
-address space for each swap device into several address spaces to reduce
-the lock contention.  In the patch, the shared address space is split into
-64MB trunks.  64MB is chosen to balance the memory space usage and effect
-of lock contention reduction.
+Currently, the swap slots are allocated one page at a time, causing
+contention to the swap_info lock protecting the swap partition on every
+page being swapped.
 
-The size of struct address_space on x86_64 architecture is 408B, so with
-the patch, 6528B more memory will be used for every 1GB swap space on
-x86_64 architecture.
+This patch adds new functions get_swap_pages and scan_swap_map_slots to
+request multiple swap slots at once.  This will reduces the lock
+contention on the swap_info lock.  Also scan_swap_map_slots can operate
+more efficiently as swap slots often occurs in clusters close to each
+other on a swap device and it is quicker to allocate them together.
 
-One address space is still shared for the swap entries in the same 64M
-trunks.  To avoid lock contention for the first round of swap space
-allocation, the order of the swap clusters in the initial free clusters
-list is changed.  The swap space distance between the consecutive swap
-clusters in the free cluster list is at least 64M.  After the first round
-of allocation, the swap clusters are expected to be freed randomly, so the
-lock contention should be reduced effectively.
-
-Link: http://lkml.kernel.org/r/735bab895e64c930581ffb0a05b661e01da82bc5.1484082593.git.tim.c.chen@linux.intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Link: http://lkml.kernel.org/r/9fec2845544371f62c3763d43510045e33d286a6.1484082593.git.tim.c.chen@linux.intel.com
 Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Aaron Lu <aaron.lu@intel.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -74,204 +60,265 @@ Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   11 +++++-
- mm/swap.c            |    6 ---
- mm/swap_state.c      |   68 +++++++++++++++++++++++++++++++++--------
- mm/swapfile.c        |   16 ++++++++-
- 4 files changed, 79 insertions(+), 22 deletions(-)
+ include/linux/swap.h |    2 
+ mm/swapfile.c        |  136 +++++++++++++++++++++++++++++++++--------
+ 2 files changed, 113 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/swap.h~mm-swap-split-swap-cache-into-64mb-trunks include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-split-swap-cache-into-64mb-trunks
+diff -puN include/linux/swap.h~mm-swap-allocate-swap-slots-in-batches include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-allocate-swap-slots-in-batches
 +++ a/include/linux/swap.h
-@@ -343,8 +343,13 @@ int generic_swapfile_activate(struct swa
- 		sector_t *);
+@@ -27,6 +27,7 @@ struct bio;
+ #define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
+ 				 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
+ 				 SWAP_FLAG_DISCARD_PAGES)
++#define SWAP_BATCH 64
  
- /* linux/mm/swap_state.c */
--extern struct address_space swapper_spaces[];
--#define swap_address_space(entry) (&swapper_spaces[swp_type(entry)])
-+/* One swap address space for each 64M swap space */
-+#define SWAP_ADDRESS_SPACE_SHIFT	14
-+#define SWAP_ADDRESS_SPACE_PAGES	(1 << SWAP_ADDRESS_SPACE_SHIFT)
-+extern struct address_space *swapper_spaces[];
-+#define swap_address_space(entry)			    \
-+	(&swapper_spaces[swp_type(entry)][swp_offset(entry) \
-+		>> SWAP_ADDRESS_SPACE_SHIFT])
- extern unsigned long total_swapcache_pages(void);
- extern void show_swap_cache_info(void);
- extern int add_to_swap(struct page *, struct list_head *list);
-@@ -398,6 +403,8 @@ extern struct swap_info_struct *page_swa
- extern bool reuse_swap_page(struct page *, int *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
-+extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
-+extern void exit_swap_address_space(unsigned int type);
- 
- #else /* CONFIG_SWAP */
- 
-diff -puN mm/swap.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swap.c
---- a/mm/swap.c~mm-swap-split-swap-cache-into-64mb-trunks
-+++ a/mm/swap.c
-@@ -971,12 +971,6 @@ EXPORT_SYMBOL(pagevec_lookup_tag);
- void __init swap_setup(void)
+ static inline int current_is_kswapd(void)
  {
- 	unsigned long megs = totalram_pages >> (20 - PAGE_SHIFT);
--#ifdef CONFIG_SWAP
--	int i;
--
--	for (i = 0; i < MAX_SWAPFILES; i++)
--		spin_lock_init(&swapper_spaces[i].tree_lock);
--#endif
- 
- 	/* Use a smaller cluster for small-memory machines */
- 	if (megs < 16)
-diff -puN mm/swap_state.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-split-swap-cache-into-64mb-trunks
-+++ a/mm/swap_state.c
-@@ -17,6 +17,7 @@
- #include <linux/blkdev.h>
- #include <linux/pagevec.h>
- #include <linux/migrate.h>
-+#include <linux/vmalloc.h>
- 
- #include <asm/pgtable.h>
- 
-@@ -32,15 +33,8 @@ static const struct address_space_operat
- #endif
- };
- 
--struct address_space swapper_spaces[MAX_SWAPFILES] = {
--	[0 ... MAX_SWAPFILES - 1] = {
--		.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
--		.i_mmap_writable = ATOMIC_INIT(0),
--		.a_ops		= &swap_aops,
--		/* swap cache doesn't use writeback related tags */
--		.flags		= 1 << AS_NO_WRITEBACK_TAGS,
--	}
--};
-+struct address_space *swapper_spaces[MAX_SWAPFILES];
-+static unsigned int nr_swapper_spaces[MAX_SWAPFILES];
- 
- #define INC_CACHE_INFO(x)	do { swap_cache_info.x++; } while (0)
- 
-@@ -53,11 +47,26 @@ static struct {
- 
- unsigned long total_swapcache_pages(void)
- {
--	int i;
-+	unsigned int i, j, nr;
- 	unsigned long ret = 0;
-+	struct address_space *spaces;
- 
--	for (i = 0; i < MAX_SWAPFILES; i++)
--		ret += swapper_spaces[i].nrpages;
-+	rcu_read_lock();
-+	for (i = 0; i < MAX_SWAPFILES; i++) {
-+		/*
-+		 * The corresponding entries in nr_swapper_spaces and
-+		 * swapper_spaces will be reused only after at least
-+		 * one grace period.  So it is impossible for them
-+		 * belongs to different usage.
-+		 */
-+		nr = nr_swapper_spaces[i];
-+		spaces = rcu_dereference(swapper_spaces[i]);
-+		if (!nr || !spaces)
-+			continue;
-+		for (j = 0; j < nr; j++)
-+			ret += spaces[j].nrpages;
-+	}
-+	rcu_read_unlock();
- 	return ret;
- }
- 
-@@ -505,3 +514,38 @@ struct page *swapin_readahead(swp_entry_
- skip:
- 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
- }
-+
-+int init_swap_address_space(unsigned int type, unsigned long nr_pages)
-+{
-+	struct address_space *spaces, *space;
-+	unsigned int i, nr;
-+
-+	nr = DIV_ROUND_UP(nr_pages, SWAP_ADDRESS_SPACE_PAGES);
-+	spaces = vzalloc(sizeof(struct address_space) * nr);
-+	if (!spaces)
-+		return -ENOMEM;
-+	for (i = 0; i < nr; i++) {
-+		space = spaces + i;
-+		INIT_RADIX_TREE(&space->page_tree, GFP_ATOMIC|__GFP_NOWARN);
-+		atomic_set(&space->i_mmap_writable, 0);
-+		space->a_ops = &swap_aops;
-+		/* swap cache doesn't use writeback related tags */
-+		mapping_set_no_writeback_tags(space);
-+		spin_lock_init(&space->tree_lock);
-+	}
-+	nr_swapper_spaces[type] = nr;
-+	rcu_assign_pointer(swapper_spaces[type], spaces);
-+
-+	return 0;
-+}
-+
-+void exit_swap_address_space(unsigned int type)
-+{
-+	struct address_space *spaces;
-+
-+	spaces = swapper_spaces[type];
-+	nr_swapper_spaces[type] = 0;
-+	rcu_assign_pointer(swapper_spaces[type], NULL);
-+	synchronize_rcu();
-+	kvfree(spaces);
-+}
-diff -puN mm/swapfile.c~mm-swap-split-swap-cache-into-64mb-trunks mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-split-swap-cache-into-64mb-trunks
+@@ -386,6 +387,7 @@ static inline long get_nr_swap_pages(voi
+ extern void si_swapinfo(struct sysinfo *);
+ extern swp_entry_t get_swap_page(void);
+ extern swp_entry_t get_swap_page_of_type(int);
++extern int get_swap_pages(int n, swp_entry_t swp_entries[]);
+ extern int add_swap_count_continuation(swp_entry_t, gfp_t);
+ extern void swap_shmem_alloc(swp_entry_t);
+ extern int swap_duplicate(swp_entry_t);
+diff -puN mm/swapfile.c~mm-swap-allocate-swap-slots-in-batches mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-allocate-swap-slots-in-batches
 +++ a/mm/swapfile.c
-@@ -2084,6 +2084,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	vfree(frontswap_map);
- 	/* Destroy swap account information */
- 	swap_cgroup_swapoff(p->type);
-+	exit_swap_address_space(p->type);
- 
- 	inode = mapping->host;
- 	if (S_ISBLK(inode->i_mode)) {
-@@ -2407,8 +2408,12 @@ static unsigned long read_swap_header(st
- 	return maxpages;
- }
- 
--#define SWAP_CLUSTER_COLS						\
-+#define SWAP_CLUSTER_INFO_COLS						\
- 	DIV_ROUND_UP(L1_CACHE_BYTES, sizeof(struct swap_cluster_info))
-+#define SWAP_CLUSTER_SPACE_COLS						\
-+	DIV_ROUND_UP(SWAP_ADDRESS_SPACE_PAGES, SWAPFILE_CLUSTER)
-+#define SWAP_CLUSTER_COLS						\
-+	max_t(unsigned int, SWAP_CLUSTER_INFO_COLS, SWAP_CLUSTER_SPACE_COLS)
- 
- static int setup_swap_map_and_extents(struct swap_info_struct *p,
- 					union swap_header *swap_header,
-@@ -2471,7 +2476,10 @@ static int setup_swap_map_and_extents(st
- 		return nr_extents;
- 
- 
--	/* Reduce false cache line sharing between cluster_info */
-+	/*
-+	 * Reduce false cache line sharing between cluster_info and
-+	 * sharing same address space.
-+	 */
- 	for (k = 0; k < SWAP_CLUSTER_COLS; k++) {
- 		j = (k + col) % SWAP_CLUSTER_COLS;
- 		for (i = 0; i < DIV_ROUND_UP(nr_clusters, SWAP_CLUSTER_COLS); i++) {
-@@ -2661,6 +2669,10 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		}
+@@ -496,7 +496,7 @@ scan_swap_map_ssd_cluster_conflict(struc
+  * Try to get a swap entry from current cpu's swap entry pool (a cluster). This
+  * might involve allocating a new cluster for current CPU too.
+  */
+-static void scan_swap_map_try_ssd_cluster(struct swap_info_struct *si,
++static bool scan_swap_map_try_ssd_cluster(struct swap_info_struct *si,
+ 	unsigned long *offset, unsigned long *scan_base)
+ {
+ 	struct percpu_cluster *cluster;
+@@ -520,7 +520,7 @@ new_cluster:
+ 			*scan_base = *offset = si->cluster_next;
+ 			goto new_cluster;
+ 		} else
+-			return;
++			return false;
  	}
  
-+	error = init_swap_address_space(p->type, maxpages);
-+	if (error)
-+		goto bad_swap;
+ 	found_free = false;
+@@ -552,16 +552,22 @@ new_cluster:
+ 	cluster->next = tmp + 1;
+ 	*offset = tmp;
+ 	*scan_base = tmp;
++	return found_free;
+ }
+ 
+-static unsigned long scan_swap_map(struct swap_info_struct *si,
+-				   unsigned char usage)
++static int scan_swap_map_slots(struct swap_info_struct *si,
++			       unsigned char usage, int nr,
++			       swp_entry_t slots[])
+ {
+ 	struct swap_cluster_info *ci;
+ 	unsigned long offset;
+ 	unsigned long scan_base;
+ 	unsigned long last_in_cluster = 0;
+ 	int latency_ration = LATENCY_LIMIT;
++	int n_ret = 0;
 +
- 	mutex_lock(&swapon_mutex);
- 	prio = -1;
- 	if (swap_flags & SWAP_FLAG_PREFER)
++	if (nr > SWAP_BATCH)
++		nr = SWAP_BATCH;
+ 
+ 	/*
+ 	 * We try to cluster swap pages by allocating them sequentially
+@@ -579,8 +585,10 @@ static unsigned long scan_swap_map(struc
+ 
+ 	/* SSD algorithm */
+ 	if (si->cluster_info) {
+-		scan_swap_map_try_ssd_cluster(si, &offset, &scan_base);
+-		goto checks;
++		if (scan_swap_map_try_ssd_cluster(si, &offset, &scan_base))
++			goto checks;
++		else
++			goto scan;
+ 	}
+ 
+ 	if (unlikely(!si->cluster_nr--)) {
+@@ -624,8 +632,14 @@ static unsigned long scan_swap_map(struc
+ 
+ checks:
+ 	if (si->cluster_info) {
+-		while (scan_swap_map_ssd_cluster_conflict(si, offset))
+-			scan_swap_map_try_ssd_cluster(si, &offset, &scan_base);
++		while (scan_swap_map_ssd_cluster_conflict(si, offset)) {
++		/* take a break if we already got some slots */
++			if (n_ret)
++				goto done;
++			if (!scan_swap_map_try_ssd_cluster(si, &offset,
++							&scan_base))
++				goto scan;
++		}
+ 	}
+ 	if (!(si->flags & SWP_WRITEOK))
+ 		goto no_page;
+@@ -650,7 +664,10 @@ checks:
+ 
+ 	if (si->swap_map[offset]) {
+ 		unlock_cluster(ci);
+-		goto scan;
++		if (!n_ret)
++			goto scan;
++		else
++			goto done;
+ 	}
+ 
+ 	if (offset == si->lowest_bit)
+@@ -669,9 +686,43 @@ checks:
+ 	inc_cluster_info_page(si, si->cluster_info, offset);
+ 	unlock_cluster(ci);
+ 	si->cluster_next = offset + 1;
+-	si->flags -= SWP_SCANNING;
++	slots[n_ret++] = swp_entry(si->type, offset);
+ 
+-	return offset;
++	/* got enough slots or reach max slots? */
++	if ((n_ret == nr) || (offset >= si->highest_bit))
++		goto done;
++
++	/* search for next available slot */
++
++	/* time to take a break? */
++	if (unlikely(--latency_ration < 0)) {
++		if (n_ret)
++			goto done;
++		spin_unlock(&si->lock);
++		cond_resched();
++		spin_lock(&si->lock);
++		latency_ration = LATENCY_LIMIT;
++	}
++
++	/* try to get more slots in cluster */
++	if (si->cluster_info) {
++		if (scan_swap_map_try_ssd_cluster(si, &offset, &scan_base))
++			goto checks;
++		else
++			goto done;
++	}
++	/* non-ssd case */
++	++offset;
++
++	/* non-ssd case, still more slots in cluster? */
++	if (si->cluster_nr && !si->swap_map[offset]) {
++		--si->cluster_nr;
++		goto checks;
++	}
++
++done:
++	si->flags -= SWP_SCANNING;
++	return n_ret;
+ 
+ scan:
+ 	spin_unlock(&si->lock);
+@@ -709,17 +760,41 @@ scan:
+ 
+ no_page:
+ 	si->flags -= SWP_SCANNING;
+-	return 0;
++	return n_ret;
+ }
+ 
+-swp_entry_t get_swap_page(void)
++static unsigned long scan_swap_map(struct swap_info_struct *si,
++				   unsigned char usage)
++{
++	swp_entry_t entry;
++	int n_ret;
++
++	n_ret = scan_swap_map_slots(si, usage, 1, &entry);
++
++	if (n_ret)
++		return swp_offset(entry);
++	else
++		return 0;
++
++}
++
++int get_swap_pages(int n_goal, swp_entry_t swp_entries[])
+ {
+ 	struct swap_info_struct *si, *next;
+-	pgoff_t offset;
++	long avail_pgs;
++	int n_ret = 0;
+ 
+-	if (atomic_long_read(&nr_swap_pages) <= 0)
++	avail_pgs = atomic_long_read(&nr_swap_pages);
++	if (avail_pgs <= 0)
+ 		goto noswap;
+-	atomic_long_dec(&nr_swap_pages);
++
++	if (n_goal > SWAP_BATCH)
++		n_goal = SWAP_BATCH;
++
++	if (n_goal > avail_pgs)
++		n_goal = avail_pgs;
++
++	atomic_long_sub(n_goal, &nr_swap_pages);
+ 
+ 	spin_lock(&swap_avail_lock);
+ 
+@@ -745,14 +820,14 @@ start_over:
+ 			spin_unlock(&si->lock);
+ 			goto nextsi;
+ 		}
+-
+-		/* This is called for allocating swap entry for cache */
+-		offset = scan_swap_map(si, SWAP_HAS_CACHE);
++		n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
++					    n_goal, swp_entries);
+ 		spin_unlock(&si->lock);
+-		if (offset)
+-			return swp_entry(si->type, offset);
++		if (n_ret)
++			goto check_out;
+ 		pr_debug("scan_swap_map of si %d failed to find offset\n",
+-		       si->type);
++			si->type);
++
+ 		spin_lock(&swap_avail_lock);
+ nextsi:
+ 		/*
+@@ -763,7 +838,8 @@ nextsi:
+ 		 * up between us dropping swap_avail_lock and taking si->lock.
+ 		 * Since we dropped the swap_avail_lock, the swap_avail_head
+ 		 * list may have been modified; so if next is still in the
+-		 * swap_avail_head list then try it, otherwise start over.
++		 * swap_avail_head list then try it, otherwise start over
++		 * if we have not gotten any slots.
+ 		 */
+ 		if (plist_node_empty(&next->avail_list))
+ 			goto start_over;
+@@ -771,9 +847,19 @@ nextsi:
+ 
+ 	spin_unlock(&swap_avail_lock);
+ 
+-	atomic_long_inc(&nr_swap_pages);
++check_out:
++	if (n_ret < n_goal)
++		atomic_long_add((long) (n_goal-n_ret), &nr_swap_pages);
+ noswap:
+-	return (swp_entry_t) {0};
++	return n_ret;
++}
++
++swp_entry_t get_swap_page(void)
++{
++	swp_entry_t entry;
++
++	get_swap_pages(1, &entry);
++	return entry;
+ }
+ 
+ /* The only caller of this function is now suspend routine */
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
 
 
