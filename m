@@ -1,271 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
+Subject: [merged] mm-slab-rename-kmalloc-node-cache-to-kmalloc-size.patch
  removed from -mm tree
-Date: Thu, 23 Feb 2017 13:12:19 -0800
-Message-ID: <58af5033.0WbsP875UPO2Tw9L%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:12:16 -0800
+Message-ID: <58af5030.6/y2BGDGsOo23YDV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39352 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751282AbdBWVMU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:20 -0500
+        with ESMTP id S1751277AbdBWVMT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, jsvana@fb.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mawilcox@microsoft.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "slub: move synchronize_sched out of slab_mutex on shrink"
+     Subject: mm, slab: rename kmalloc-node cache to kmalloc-<size>
 has been removed from the -mm tree.  Its filename was
-     revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
+     mm-slab-rename-kmalloc-node-cache-to-kmalloc-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: Revert "slub: move synchronize_sched out of slab_mutex on shrink"
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab: rename kmalloc-node cache to kmalloc-<size>
 
-Patch series "slab: make memcg slab destruction scalable", v3.
+SLAB as part of its bootstrap pre-creates one kmalloc cache that can fit the
+kmem_cache_node management structure, and puts it into the generic kmalloc
+cache array (e.g. for 128b objects). The name of this cache is "kmalloc-node",
+which is confusing for readers of /proc/slabinfo as the cache is used for
+generic allocations (and not just the kmem_cache_node struct) and it appears as
+the kmalloc-128 cache is missing.
 
-With kmem cgroup support enabled, kmem_caches can be created and destroyed
-frequently and a great number of near empty kmem_caches can accumulate if
-there are a lot of transient cgroups and the system is not under memory
-pressure.  When memory reclaim starts under such conditions, it can lead
-to consecutive deactivation and destruction of many kmem_caches, easily
-hundreds of thousands on moderately large systems, exposing scalability
-issues in the current slab management code.
+An easy solution is to use the kmalloc-<size> name when pre-creating the cache,
+which we can get from the kmalloc_info array.
 
-I've seen machines which end up with hundred thousands of caches and many
-millions of kernfs_nodes.  The current code is O(N^2) on the total number
-of caches and has synchronous rcu_barrier() and synchronize_sched() in
-cgroup offline / release path which is executed while holding
-cgroup_mutex.  Combined, this leads to very expensive and slow cache
-destruction operations which can easily keep running for half a day.
+Example /proc/slabinfo before the patch:
 
-This also messes up /proc/slabinfo along with other cache iterating
-operations.  seq_file operates on 4k chunks and on each 4k boundary tries
-to seek to the last position in the list.  With a huge number of caches on
-the list, this becomes very slow and very prone to the list content
-changing underneath it leading to a lot of missing and/or duplicate
-entries.
+...
+kmalloc-256         1647   1984    256   16    1 : tunables  120   60    8 : slabdata    124    124    828
+kmalloc-192         1974   1974    192   21    1 : tunables  120   60    8 : slabdata     94     94    133
+kmalloc-96          1332   1344    128   32    1 : tunables  120   60    8 : slabdata     42     42    219
+kmalloc-64          2505   5952     64   64    1 : tunables  120   60    8 : slabdata     93     93    715
+kmalloc-32          4278   4464     32  124    1 : tunables  120   60    8 : slabdata     36     36    346
+kmalloc-node        1352   1376    128   32    1 : tunables  120   60    8 : slabdata     43     43     53
+kmem_cache           132    147    192   21    1 : tunables  120   60    8 : slabdata      7      7      0
 
-This patchset addresses the scalability problem.
+After the patch:
 
-* Add root and per-memcg lists.  Update each user to use the
-  appropriate list.
+...
+kmalloc-256         1672   2160    256   16    1 : tunables  120   60    8 : slabdata    135    135    807
+kmalloc-192         1992   2016    192   21    1 : tunables  120   60    8 : slabdata     96     96    203
+kmalloc-96          1159   1184    128   32    1 : tunables  120   60    8 : slabdata     37     37    116
+kmalloc-64          2561   4864     64   64    1 : tunables  120   60    8 : slabdata     76     76    785
+kmalloc-32          4253   4340     32  124    1 : tunables  120   60    8 : slabdata     35     35    270
+kmalloc-128         1256   1280    128   32    1 : tunables  120   60    8 : slabdata     40     40     39
+kmem_cache           125    147    192   21    1 : tunables  120   60    8 : slabdata      7      7      0
 
-* Make rcu_barrier() for SLAB_DESTROY_BY_RCU caches globally batched
-  and asynchronous.
-
-* For dying empty slub caches, remove the sysfs files after
-  deactivation so that we don't end up with millions of sysfs files
-  without any useful information on them.
-
-This patchset contains the following nine patches.
-
- 0001-Revert-slub-move-synchronize_sched-out-of-slab_mutex.patch
- 0002-slub-separate-out-sysfs_slab_release-from-sysfs_slab.patch
- 0003-slab-remove-synchronous-rcu_barrier-call-in-memcg-ca.patch
- 0004-slab-reorganize-memcg_cache_params.patch
- 0005-slab-link-memcg-kmem_caches-on-their-associated-memo.patch
- 0006-slab-implement-slab_root_caches-list.patch
- 0007-slab-introduce-__kmemcg_cache_deactivate.patch
- 0008-slab-remove-synchronous-synchronize_sched-from-memcg.patch
- 0009-slab-remove-slub-sysfs-interface-files-early-for-emp.patch
- 0010-slab-use-memcg_kmem_cache_wq-for-slab-destruction-op.patch
-
-0001 reverts an existing optimization to prepare for the following
-changes.  0002 is a prep patch.  0003 makes rcu_barrier() in release path
-batched and asynchronous.  0004-0006 separate out the lists.  0007-0008
-replace synchronize_sched() in slub destruction path with
-call_rcu_sched().  0009 removes sysfs files early for empty dying caches. 
-0010 makes destruction work items use a workqueue with limited
-concurrency.
-
-
-
-This patch (of 10):
-
-Revert 89e364db71fb5e ("slub: move synchronize_sched out of slab_mutex on
-shrink").
-
-With kmem cgroup support enabled, kmem_caches can be created and destroyed
-frequently and a great number of near empty kmem_caches can accumulate if
-there are a lot of transient cgroups and the system is not under memory
-pressure.  When memory reclaim starts under such conditions, it can lead
-to consecutive deactivation and destruction of many kmem_caches, easily
-hundreds of thousands on moderately large systems, exposing scalability
-issues in the current slab management code.  This is one of the patches to
-address the issue.
-
-Moving synchronize_sched() out of slab_mutex isn't enough as it's still
-inside cgroup_mutex.  The whole deactivation / release path will be
-updated to avoid all synchronous RCU operations.  Revert this insufficient
-optimization in preparation to ease future changes.
-
-Link: http://lkml.kernel.org/r/20170117235411.9408-2-tj@kernel.org
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Jay Vana <jsvana@fb.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+[vbabka@suse.cz: export the whole kmalloc_info structure instead of just a name accessor, per Christoph Lameter]
+  Link: http://lkml.kernel.org/r/54e80303-b814-4232-66d4-95b34d3eb9d0@suse.cz
+Link: http://lkml.kernel.org/r/20170203181008.24898-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |    4 ++--
- mm/slab.h        |    2 +-
- mm/slab_common.c |   27 ++-------------------------
- mm/slob.c        |    2 +-
- mm/slub.c        |   19 +++++++++++++++++--
- 5 files changed, 23 insertions(+), 31 deletions(-)
+ mm/slab.c        |    3 ++-
+ mm/slab.h        |    6 ++++++
+ mm/slab_common.c |    5 +----
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN mm/slab.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slab.c
---- a/mm/slab.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
+diff -puN mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size mm/slab.c
+--- a/mm/slab.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size
 +++ a/mm/slab.c
-@@ -2315,7 +2315,7 @@ out:
- 	return nr_freed;
- }
- 
--int __kmem_cache_shrink(struct kmem_cache *cachep)
-+int __kmem_cache_shrink(struct kmem_cache *cachep, bool deactivate)
- {
- 	int ret = 0;
- 	int node;
-@@ -2335,7 +2335,7 @@ int __kmem_cache_shrink(struct kmem_cach
- 
- int __kmem_cache_shutdown(struct kmem_cache *cachep)
- {
--	return __kmem_cache_shrink(cachep);
-+	return __kmem_cache_shrink(cachep, false);
- }
- 
- void __kmem_cache_release(struct kmem_cache *cachep)
-diff -puN mm/slab.h~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slab.h
---- a/mm/slab.h~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
+@@ -1288,7 +1288,8 @@ void __init kmem_cache_init(void)
+ 	 * Initialize the caches that provide memory for the  kmem_cache_node
+ 	 * structures first.  Without this, further allocations will bug.
+ 	 */
+-	kmalloc_caches[INDEX_NODE] = create_kmalloc_cache("kmalloc-node",
++	kmalloc_caches[INDEX_NODE] = create_kmalloc_cache(
++				kmalloc_info[INDEX_NODE].name,
+ 				kmalloc_size(INDEX_NODE), ARCH_KMALLOC_FLAGS);
+ 	slab_state = PARTIAL_NODE;
+ 	setup_kmalloc_cache_index_table();
+diff -puN mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size mm/slab.h
+--- a/mm/slab.h~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size
 +++ a/mm/slab.h
-@@ -167,7 +167,7 @@ static inline unsigned long kmem_cache_f
+@@ -71,6 +71,12 @@ extern struct list_head slab_caches;
+ /* The slab cache that manages slab cache information */
+ extern struct kmem_cache *kmem_cache;
  
- int __kmem_cache_shutdown(struct kmem_cache *);
- void __kmem_cache_release(struct kmem_cache *);
--int __kmem_cache_shrink(struct kmem_cache *);
-+int __kmem_cache_shrink(struct kmem_cache *, bool);
- void slab_kmem_cache_release(struct kmem_cache *);
++/* A table of kmalloc cache names and sizes */
++extern const struct kmalloc_info_struct {
++	const char *name;
++	unsigned long size;
++} kmalloc_info[];
++
+ unsigned long calculate_alignment(unsigned long flags,
+ 		unsigned long align, unsigned long size);
  
- struct seq_file;
-diff -puN mm/slab_common.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slab_common.c
---- a/mm/slab_common.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
+diff -puN mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-rename-kmalloc-node-cache-to-kmalloc-size
 +++ a/mm/slab_common.c
-@@ -582,29 +582,6 @@ void memcg_deactivate_kmem_caches(struct
- 	get_online_cpus();
- 	get_online_mems();
- 
--#ifdef CONFIG_SLUB
--	/*
--	 * In case of SLUB, we need to disable empty slab caching to
--	 * avoid pinning the offline memory cgroup by freeable kmem
--	 * pages charged to it. SLAB doesn't need this, as it
--	 * periodically purges unused slabs.
--	 */
--	mutex_lock(&slab_mutex);
--	list_for_each_entry(s, &slab_caches, list) {
--		c = is_root_cache(s) ? cache_from_memcg_idx(s, idx) : NULL;
--		if (c) {
--			c->cpu_partial = 0;
--			c->min_partial = 0;
--		}
--	}
--	mutex_unlock(&slab_mutex);
--	/*
--	 * kmem_cache->cpu_partial is checked locklessly (see
--	 * put_cpu_partial()). Make sure the change is visible.
--	 */
--	synchronize_sched();
--#endif
--
- 	mutex_lock(&slab_mutex);
- 	list_for_each_entry(s, &slab_caches, list) {
- 		if (!is_root_cache(s))
-@@ -616,7 +593,7 @@ void memcg_deactivate_kmem_caches(struct
- 		if (!c)
- 			continue;
- 
--		__kmem_cache_shrink(c);
-+		__kmem_cache_shrink(c, true);
- 		arr->entries[idx] = NULL;
- 	}
- 	mutex_unlock(&slab_mutex);
-@@ -787,7 +764,7 @@ int kmem_cache_shrink(struct kmem_cache
- 	get_online_cpus();
- 	get_online_mems();
- 	kasan_cache_shrink(cachep);
--	ret = __kmem_cache_shrink(cachep);
-+	ret = __kmem_cache_shrink(cachep, false);
- 	put_online_mems();
- 	put_online_cpus();
- 	return ret;
-diff -puN mm/slob.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slob.c
---- a/mm/slob.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
-+++ a/mm/slob.c
-@@ -634,7 +634,7 @@ void __kmem_cache_release(struct kmem_ca
- {
- }
- 
--int __kmem_cache_shrink(struct kmem_cache *d)
-+int __kmem_cache_shrink(struct kmem_cache *d, bool deactivate)
- {
- 	return 0;
- }
-diff -puN mm/slub.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink mm/slub.c
---- a/mm/slub.c~revert-slub-move-synchronize_sched-out-of-slab_mutex-on-shrink
-+++ a/mm/slub.c
-@@ -3891,7 +3891,7 @@ EXPORT_SYMBOL(kfree);
-  * being allocated from last increasing the chance that the last objects
-  * are freed in them.
+@@ -915,10 +915,7 @@ struct kmem_cache *kmalloc_slab(size_t s
+  * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
+  * kmalloc-67108864.
   */
--int __kmem_cache_shrink(struct kmem_cache *s)
-+int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
- {
- 	int node;
- 	int i;
-@@ -3903,6 +3903,21 @@ int __kmem_cache_shrink(struct kmem_cach
- 	unsigned long flags;
- 	int ret = 0;
- 
-+	if (deactivate) {
-+		/*
-+		 * Disable empty slabs caching. Used to avoid pinning offline
-+		 * memory cgroups by kmem pages that can be freed.
-+		 */
-+		s->cpu_partial = 0;
-+		s->min_partial = 0;
-+
-+		/*
-+		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
-+		 * so we have to make sure the change is visible.
-+		 */
-+		synchronize_sched();
-+	}
-+
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n) {
- 		INIT_LIST_HEAD(&discard);
-@@ -3959,7 +3974,7 @@ static int slab_mem_going_offline_callba
- 
- 	mutex_lock(&slab_mutex);
- 	list_for_each_entry(s, &slab_caches, list)
--		__kmem_cache_shrink(s);
-+		__kmem_cache_shrink(s, false);
- 	mutex_unlock(&slab_mutex);
- 
- 	return 0;
+-static struct {
+-	const char *name;
+-	unsigned long size;
+-} const kmalloc_info[] __initconst = {
++const struct kmalloc_info_struct kmalloc_info[] __initconst = {
+ 	{NULL,                      0},		{"kmalloc-96",             96},
+ 	{"kmalloc-192",           192},		{"kmalloc-8",               8},
+ 	{"kmalloc-16",             16},		{"kmalloc-32",             32},
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
+mm-page_alloc-remove-redundant-checks-from-alloc-fastpath.patch
+mm-page_alloc-dont-check-cpuset-allowed-twice-in-fast-path.patch
 
