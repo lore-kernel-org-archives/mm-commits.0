@@ -1,62 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-tagssh-include-arch-kconfig-for-tags-generation.patch removed from
- -mm tree
-Date: Thu, 23 Feb 2017 13:11:45 -0800
-Message-ID: <58af5011.WzLIWt0qQKUwLXQG%akpm@linux-foundation.org>
+ scripts-checkincludes-add-exit-message-for-no-duplicates-found.patch
+ removed from -mm tree
+Date: Thu, 23 Feb 2017 13:11:43 -0800
+Message-ID: <58af500f.YnLZqjbS1NewZINc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38326 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751228AbdBWVLq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:46 -0500
+        with ESMTP id S1751228AbdBWVLo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:11:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: houtao1@huawei.com, joe@perches.com, mathieu.maret@gmail.com, mmarek@suse.com, mm-commits@vger.kernel.org
+To: thrust73@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/tags.sh: include arch/Kconfig* for tags generation
+     Subject: scripts/checkincludes.pl: add exit message for no duplicates found
 has been removed from the -mm tree.  Its filename was
-     scripts-tagssh-include-arch-kconfig-for-tags-generation.patch
+     scripts-checkincludes-add-exit-message-for-no-duplicates-found.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hou Tao <houtao1@huawei.com>
-Subject: scripts/tags.sh: include arch/Kconfig* for tags generation
+From: Cheah Kok Cheong <thrust73@gmail.com>
+Subject: scripts/checkincludes.pl: add exit message for no duplicates found
 
-Kconfig files under arch/ directory are ignored by all_kconfigs(),
-so include them for tags generation.
+If no duplicates found, inform user.
 
-Link: http://lkml.kernel.org/r/1486206053-38223-1-git-send-email-houtao1@huawei.com
-Signed-off-by: Hou Tao <houtao1@huawei.com>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Mathieu Maret <mathieu.maret@gmail.com>
+Link: http://lkml.kernel.org/r/1486391275-2843-1-git-send-email-thrust73@gmail.com
+Signed-off-by: Cheah Kok Cheong <thrust73@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/checkincludes.pl |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN scripts/tags.sh~scripts-tagssh-include-arch-kconfig-for-tags-generation scripts/tags.sh
---- a/scripts/tags.sh~scripts-tagssh-include-arch-kconfig-for-tags-generation
-+++ a/scripts/tags.sh
-@@ -128,6 +128,8 @@ all_target_sources()
+diff -puN scripts/checkincludes.pl~scripts-checkincludes-add-exit-message-for-no-duplicates-found scripts/checkincludes.pl
+--- a/scripts/checkincludes.pl~scripts-checkincludes-add-exit-message-for-no-duplicates-found
++++ a/scripts/checkincludes.pl
+@@ -37,6 +37,8 @@ if ($#ARGV >= 1) {
+ 	}
+ }
  
- all_kconfigs()
- {
-+	find ${tree}arch/ -maxdepth 1 $ignore \
-+	       -name "Kconfig*" -not -type l -print;
- 	for arch in $ALLSOURCE_ARCHS; do
- 		find_sources $arch 'Kconfig*'
- 	done
++my $dup_counter = 0;
++
+ foreach my $file (@ARGV) {
+ 	open(my $f, '<', $file)
+ 	    or die "Cannot open $file: $!.\n";
+@@ -57,6 +59,7 @@ foreach my $file (@ARGV) {
+ 		foreach my $filename (keys %includedfiles) {
+ 			if ($includedfiles{$filename} > 1) {
+ 				print "$file: $filename is included more than once.\n";
++				++$dup_counter;
+ 			}
+ 		}
+ 		next;
+@@ -73,6 +76,7 @@ foreach my $file (@ARGV) {
+ 					if ($includedfiles{$filename} > 1) {
+ 						$includedfiles{$filename}--;
+ 						$dups++;
++						++$dup_counter;
+ 					} else {
+ 						print {$f} $_;
+ 					}
+@@ -87,3 +91,7 @@ foreach my $file (@ARGV) {
+ 	}
+ 	close($f);
+ }
++
++if ($dup_counter == 0) {
++	print "No duplicate includes found.\n";
++}
 _
 
-Patches currently in -mm which might be from houtao1@huawei.com are
+Patches currently in -mm which might be from thrust73@gmail.com are
 
 
