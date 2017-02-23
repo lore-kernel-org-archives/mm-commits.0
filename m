@@ -1,37 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:15:07 -0800
-Message-ID: <58af50db.4qZwGZ+iaodswG12%akpm@linux-foundation.org>
+Subject: [merged] userfaultfd-shmem-introduce-vma_is_shmem.patch removed
+ from -mm tree
+Date: Thu, 23 Feb 2017 13:14:34 -0800
+Message-ID: <58af50ba.0kNQvAwYO7OYiCZ+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40102 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40014 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751279AbdBWVPI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:08 -0500
+        with ESMTP id S1751296AbdBWVOt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rppt@linux.vnet.ibm.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: selftest: introduce userfaultfd_open
+     Subject: userfaultfd: shmem: introduce vma_is_shmem
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open.patch
+     userfaultfd-shmem-introduce-vma_is_shmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: non-cooperative: selftest: introduce userfaultfd_open
+Subject: userfaultfd: shmem: introduce vma_is_shmem
 
-userfaultfd_open will be needed by the non cooperative selftest.
+Currently userfault relies on vma_is_anonymous and vma_is_hugetlb to
+ensure compatibility of a VMA with userfault.  Introduction of
+vma_is_shmem allows detection if tmpfs backed VMAs, so that they may be
+used with userfaultfd.  Current implementation presumes usage of
+vma_is_shmem only by slow path routines in userfaultfd, therefore the
+vma_is_shmem is not made inline to leave the few remaining free bits in
+vm_flags.
 
-Link: http://lkml.kernel.org/r/20161216144821.5183-39-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20161216144821.5183-30-aarcange@redhat.com
 Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
@@ -42,76 +47,45 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   41 ++++++++++++---------
- 1 file changed, 25 insertions(+), 16 deletions(-)
+ include/linux/mm.h |   10 ++++++++++
+ mm/shmem.c         |    5 +++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-non-cooperative-selftest-introduce-userfaultfd_open
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -81,7 +81,7 @@ static int huge_fd;
- static char *huge_fd_off0;
- #endif
- static unsigned long long *count_verify;
--static int uffd, finished, *pipefd;
-+static int uffd, uffd_flags, finished, *pipefd;
- static char *area_src, *area_dst;
- static char *zeropage;
- pthread_attr_t attr;
-@@ -512,23 +512,9 @@ static int stress(unsigned long *userfau
- 	return 0;
+diff -puN include/linux/mm.h~userfaultfd-shmem-introduce-vma_is_shmem include/linux/mm.h
+--- a/include/linux/mm.h~userfaultfd-shmem-introduce-vma_is_shmem
++++ a/include/linux/mm.h
+@@ -1383,6 +1383,16 @@ static inline bool vma_is_anonymous(stru
+ 	return !vma->vm_ops;
  }
  
--static int userfaultfd_stress(void)
-+static int userfaultfd_open(void)
++#ifdef CONFIG_SHMEM
++/*
++ * The vma_is_shmem is not inline because it is used only by slow
++ * paths in userfault.
++ */
++bool vma_is_shmem(struct vm_area_struct *vma);
++#else
++static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
++#endif
++
+ static inline int stack_guard_page_start(struct vm_area_struct *vma,
+ 					     unsigned long addr)
  {
--	void *area;
--	char *tmp_area;
--	unsigned long nr;
--	struct uffdio_register uffdio_register;
- 	struct uffdio_api uffdio_api;
--	unsigned long cpu;
--	int uffd_flags, err;
--	unsigned long userfaults[nr_cpus];
--
--	allocate_area((void **)&area_src);
--	if (!area_src)
--		return 1;
--	allocate_area((void **)&area_dst);
--	if (!area_dst)
--		return 1;
+diff -puN mm/shmem.c~userfaultfd-shmem-introduce-vma_is_shmem mm/shmem.c
+--- a/mm/shmem.c~userfaultfd-shmem-introduce-vma_is_shmem
++++ a/mm/shmem.c
+@@ -191,6 +191,11 @@ static const struct inode_operations shm
+ static const struct vm_operations_struct shmem_vm_ops;
+ static struct file_system_type shmem_fs_type;
  
- 	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
- 	if (uffd < 0) {
-@@ -549,6 +535,29 @@ static int userfaultfd_stress(void)
- 		return 1;
- 	}
- 
-+	return 0;
++bool vma_is_shmem(struct vm_area_struct *vma)
++{
++	return vma->vm_ops == &shmem_vm_ops;
 +}
 +
-+static int userfaultfd_stress(void)
-+{
-+	void *area;
-+	char *tmp_area;
-+	unsigned long nr;
-+	struct uffdio_register uffdio_register;
-+	unsigned long cpu;
-+	int err;
-+	unsigned long userfaults[nr_cpus];
-+
-+	allocate_area((void **)&area_src);
-+	if (!area_src)
-+		return 1;
-+	allocate_area((void **)&area_dst);
-+	if (!area_dst)
-+		return 1;
-+
-+	if (userfaultfd_open() < 0)
-+		return 1;
-+
- 	count_verify = malloc(nr_pages * sizeof(unsigned long long));
- 	if (!count_verify) {
- 		perror("count_verify");
+ static LIST_HEAD(shmem_swaplist);
+ static DEFINE_MUTEX(shmem_swaplist_mutex);
+ 
 _
 
 Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
