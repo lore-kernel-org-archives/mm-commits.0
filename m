@@ -1,255 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings.patch
+Subject: [merged] userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
  removed from -mm tree
-Date: Thu, 23 Feb 2017 13:14:49 -0800
-Message-ID: <58af50c9.lSancy92KehGg+Yi%akpm@linux-foundation.org>
+Date: Thu, 23 Feb 2017 13:14:19 -0800
+Message-ID: <58af50ab.TK2bQmDbW3jQ/rEZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39866 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdBWVOu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:50 -0500
+        with ESMTP id S1751279AbdBWVOs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:14:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aarcange@redhat.com, akpm@linux-foundation.org, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, RAPOPORT@il.ibm.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: hugetlbfs: add UFFDIO_COPY support for shared mappings
+     Subject: userfaultfd: hugetlbfs: gup: support VM_FAULT_RETRY
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings.patch
+     userfaultfd-hugetlbfs-gup-support-vm_fault_retry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: userfaultfd: hugetlbfs: add UFFDIO_COPY support for shared mappings
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: hugetlbfs: gup: support VM_FAULT_RETRY
 
-When userfaultfd hugetlbfs support was originally added, it followed the
-pattern of anon mappings and did not support any vmas marked VM_SHARED. 
-As such, support was only added for private mappings.
+Add support for VM_FAULT_RETRY to follow_hugetlb_page() so that
+get_user_pages_unlocked/locked and "nonblocking/FOLL_NOWAIT" features will
+work on hugetlbfs.  This is required for fully functional userfaultfd
+non-present support on hugetlbfs.
 
-Remove this limitation and support shared mappings.  The primary
-functional change required is adding pages to the page cache.  More subtle
-changes are required for huge page reservation handling in error paths.  A
-lengthy comment in the code describes the reservation handling.
-
-[mike.kravetz@oracle.com: update]
-  Link: http://lkml.kernel.org/r/c9c8cafe-baa7-05b4-34ea-1dfa5523a85f@oracle.com
-Link: http://lkml.kernel.org/r/1487195210-12839-1-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20161216144821.5183-25-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c     |   26 ++++++++++++++-
- mm/userfaultfd.c |   74 +++++++++++++++++++++++++++++++++++----------
- 2 files changed, 82 insertions(+), 18 deletions(-)
+ include/linux/hugetlb.h |    5 ++-
+ mm/gup.c                |    2 -
+ mm/hugetlb.c            |   48 +++++++++++++++++++++++++++++++-------
+ 3 files changed, 44 insertions(+), 11 deletions(-)
 
-diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings mm/hugetlb.c
---- a/mm/hugetlb.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings
-+++ a/mm/hugetlb.c
-@@ -3992,6 +3992,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 			    unsigned long src_addr,
- 			    struct page **pagep)
- {
-+	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	struct hstate *h = hstate_vma(dst_vma);
- 	pte_t _dst_pte;
- 	spinlock_t *ptl;
-@@ -4028,6 +4029,18 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	__SetPageUptodate(page);
- 	set_page_huge_active(page);
- 
-+	/*
-+	 * If shared, add to page cache
-+	 */
-+	if (vm_shared) {
-+		struct address_space *mapping = dst_vma->vm_file->f_mapping;
-+		pgoff_t idx = vma_hugecache_offset(h, dst_vma, dst_addr);
-+
-+		ret = huge_add_to_page_cache(page, mapping, idx);
-+		if (ret)
-+			goto out_release_nounlock;
-+	}
-+
- 	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
- 	spin_lock(ptl);
- 
-@@ -4035,8 +4048,12 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	if (!huge_pte_none(huge_ptep_get(dst_pte)))
- 		goto out_release_unlock;
- 
--	ClearPagePrivate(page);
--	hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
-+	if (vm_shared) {
-+		page_dup_rmap(page, true);
-+	} else {
-+		ClearPagePrivate(page);
-+		hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
-+	}
- 
- 	_dst_pte = make_huge_pte(dst_vma, page, dst_vma->vm_flags & VM_WRITE);
- 	if (dst_vma->vm_flags & VM_WRITE)
-@@ -4053,11 +4070,16 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
- 
- 	spin_unlock(ptl);
-+	if (vm_shared)
-+		unlock_page(page);
- 	ret = 0;
- out:
- 	return ret;
- out_release_unlock:
- 	spin_unlock(ptl);
-+out_release_nounlock:
-+	if (vm_shared)
-+		unlock_page(page);
- 	put_page(page);
- 	goto out;
+diff -puN include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/include/linux/hugetlb.h
+@@ -65,7 +65,8 @@ int hugetlb_mempolicy_sysctl_handler(str
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
+ long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
+ 			 struct page **, struct vm_area_struct **,
+-			 unsigned long *, unsigned long *, long, unsigned int);
++			 unsigned long *, unsigned long *, long, unsigned int,
++			 int *);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+@@ -136,7 +137,7 @@ static inline unsigned long hugetlb_tota
+ 	return 0;
  }
-diff -puN mm/userfaultfd.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-hugetlbfs-add-uffdio_copy-support-for-shared-mappings
-+++ a/mm/userfaultfd.c
-@@ -154,6 +154,8 @@ static __always_inline ssize_t __mcopy_a
- 					      unsigned long len,
- 					      bool zeropage)
+ 
+-#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUG(); 0; })
++#define follow_hugetlb_page(m,v,p,vs,a,b,i,w,n)	({ BUG(); 0; })
+ #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
+ #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
+ static inline void hugetlb_report_meminfo(struct seq_file *m)
+diff -puN mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/gup.c
+--- a/mm/gup.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/mm/gup.c
+@@ -572,7 +572,7 @@ static long __get_user_pages(struct task
+ 			if (is_vm_hugetlb_page(vma)) {
+ 				i = follow_hugetlb_page(mm, vma, pages, vmas,
+ 						&start, &nr_pages, i,
+-						gup_flags);
++						gup_flags, nonblocking);
+ 				continue;
+ 			}
+ 		}
+diff -puN mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry mm/hugetlb.c
+--- a/mm/hugetlb.c~userfaultfd-hugetlbfs-gup-support-vm_fault_retry
++++ a/mm/hugetlb.c
+@@ -4065,7 +4065,7 @@ out_release_unlock:
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+ 			 unsigned long *position, unsigned long *nr_pages,
+-			 long i, unsigned int flags)
++			 long i, unsigned int flags, int *nonblocking)
  {
-+	int vm_alloc_shared = dst_vma->vm_flags & VM_SHARED;
-+	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	ssize_t err;
- 	pte_t *dst_pte;
- 	unsigned long src_addr, dst_addr;
-@@ -204,14 +206,14 @@ retry:
- 			goto out_unlock;
+ 	unsigned long pfn_offset;
+ 	unsigned long vaddr = *position;
+@@ -4128,16 +4128,43 @@ long follow_hugetlb_page(struct mm_struc
+ 		    ((flags & FOLL_WRITE) &&
+ 		      !huge_pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
++			unsigned int fault_flags = 0;
  
- 		/*
--		 * Make sure the vma is not shared, that the remaining dst
--		 * range is both valid and fully within a single existing vma.
-+		 * Make sure the remaining dst range is both valid and
-+		 * fully within a single existing vma.
- 		 */
--		if (dst_vma->vm_flags & VM_SHARED)
--			goto out_unlock;
- 		if (dst_start < dst_vma->vm_start ||
- 		    dst_start + len > dst_vma->vm_end)
- 			goto out_unlock;
-+
-+		vm_shared = dst_vma->vm_flags & VM_SHARED;
+ 			if (pte)
+ 				spin_unlock(ptl);
+-			ret = hugetlb_fault(mm, vma, vaddr,
+-				(flags & FOLL_WRITE) ? FAULT_FLAG_WRITE : 0);
+-			if (!(ret & VM_FAULT_ERROR))
+-				continue;
+-
+-			remainder = 0;
+-			break;
++			if (flags & FOLL_WRITE)
++				fault_flags |= FAULT_FLAG_WRITE;
++			if (nonblocking)
++				fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++			if (flags & FOLL_NOWAIT)
++				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
++					FAULT_FLAG_RETRY_NOWAIT;
++			if (flags & FOLL_TRIED) {
++				VM_WARN_ON_ONCE(fault_flags &
++						FAULT_FLAG_ALLOW_RETRY);
++				fault_flags |= FAULT_FLAG_TRIED;
++			}
++			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
++			if (ret & VM_FAULT_ERROR) {
++				remainder = 0;
++				break;
++			}
++			if (ret & VM_FAULT_RETRY) {
++				if (nonblocking)
++					*nonblocking = 0;
++				*nr_pages = 0;
++				/*
++				 * VM_FAULT_RETRY must not return an
++				 * error, it will return zero
++				 * instead.
++				 *
++				 * No need to update "position" as the
++				 * caller will not check it after
++				 * *nr_pages is set to 0.
++				 */
++				return i;
++			}
++			continue;
+ 		}
+ 
+ 		pfn_offset = (vaddr & ~huge_page_mask(h)) >> PAGE_SHIFT;
+@@ -4166,6 +4193,11 @@ same_page:
+ 		spin_unlock(ptl);
  	}
- 
- 	if (WARN_ON(dst_addr & (vma_hpagesize - 1) ||
-@@ -225,11 +227,13 @@ retry:
- 		goto out_unlock;
- 
- 	/*
--	 * Ensure the dst_vma has a anon_vma.
-+	 * If not shared, ensure the dst_vma has a anon_vma.
- 	 */
- 	err = -ENOMEM;
--	if (unlikely(anon_vma_prepare(dst_vma)))
--		goto out_unlock;
-+	if (!vm_shared) {
-+		if (unlikely(anon_vma_prepare(dst_vma)))
-+			goto out_unlock;
-+	}
- 
- 	h = hstate_vma(dst_vma);
- 
-@@ -266,6 +270,7 @@ retry:
- 						dst_addr, src_addr, &page);
- 
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+		vm_alloc_shared = vm_shared;
- 
- 		cond_resched();
- 
-@@ -305,18 +310,49 @@ out:
- 	if (page) {
- 		/*
- 		 * We encountered an error and are about to free a newly
--		 * allocated huge page.  It is possible that there was a
--		 * reservation associated with the page that has been
--		 * consumed.  See the routine restore_reserve_on_error
--		 * for details.  Unfortunately, we can not call
--		 * restore_reserve_on_error now as it would require holding
--		 * mmap_sem.  Clear the PagePrivate flag so that the global
-+		 * allocated huge page.
-+		 *
-+		 * Reservation handling is very subtle, and is different for
-+		 * private and shared mappings.  See the routine
-+		 * restore_reserve_on_error for details.  Unfortunately, we
-+		 * can not call restore_reserve_on_error now as it would
-+		 * require holding mmap_sem.
-+		 *
-+		 * If a reservation for the page existed in the reservation
-+		 * map of a private mapping, the map was modified to indicate
-+		 * the reservation was consumed when the page was allocated.
-+		 * We clear the PagePrivate flag now so that the global
- 		 * reserve count will not be incremented in free_huge_page.
- 		 * The reservation map will still indicate the reservation
- 		 * was consumed and possibly prevent later page allocation.
--		 * This is better than leaking a global reservation.
-+		 * This is better than leaking a global reservation.  If no
-+		 * reservation existed, it is still safe to clear PagePrivate
-+		 * as no adjustments to reservation counts were made during
-+		 * allocation.
-+		 *
-+		 * The reservation map for shared mappings indicates which
-+		 * pages have reservations.  When a huge page is allocated
-+		 * for an address with a reservation, no change is made to
-+		 * the reserve map.  In this case PagePrivate will be set
-+		 * to indicate that the global reservation count should be
-+		 * incremented when the page is freed.  This is the desired
-+		 * behavior.  However, when a huge page is allocated for an
-+		 * address without a reservation a reservation entry is added
-+		 * to the reservation map, and PagePrivate will not be set.
-+		 * When the page is freed, the global reserve count will NOT
-+		 * be incremented and it will appear as though we have leaked
-+		 * reserved page.  In this case, set PagePrivate so that the
-+		 * global reserve count will be incremented to match the
-+		 * reservation map entry which was created.
-+		 *
-+		 * Note that vm_alloc_shared is based on the flags of the vma
-+		 * for which the page was originally allocated.  dst_vma could
-+		 * be different or NULL on error.
- 		 */
--		ClearPagePrivate(page);
-+		if (vm_alloc_shared)
-+			SetPagePrivate(page);
-+		else
-+			ClearPagePrivate(page);
- 		put_page(page);
- 	}
- 	BUG_ON(copied < 0);
-@@ -372,8 +408,14 @@ retry:
- 	dst_vma = find_vma(dst_mm, dst_start);
- 	if (!dst_vma)
- 		goto out_unlock;
--	if (!vma_is_shmem(dst_vma) && dst_vma->vm_flags & VM_SHARED)
+ 	*nr_pages = remainder;
 +	/*
-+	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
-+	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
++	 * setting position is actually required only if remainder is
++	 * not zero but it's faster not to add a "if (remainder)"
++	 * branch.
 +	 */
-+	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
-+	    dst_vma->vm_flags & VM_SHARED))
- 		goto out_unlock;
-+
- 	if (dst_start < dst_vma->vm_start ||
- 	    dst_start + len > dst_vma->vm_end)
- 		goto out_unlock;
+ 	*position = vaddr;
+ 
+ 	return i ? i : -EFAULT;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2.patch
+userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix-fix.patch
 
