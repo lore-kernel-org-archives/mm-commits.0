@@ -1,92 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:17:22 -0800
-Message-ID: <58af5162.c0IQnon/ssQU5kgR%akpm@linux-foundation.org>
+ userfaultfd-non-cooperative-split-the-find_userfault-routine.patch removed
+ from -mm tree
+Date: Thu, 23 Feb 2017 13:13:25 -0800
+Message-ID: <58af5075.Si9QeD9s9nut7l4z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41678 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751272AbdBWVRn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:17:43 -0500
+        with ESMTP id S1751222AbdBWVV7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:21:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: xemul@parallels.com, RAPOPORT@il.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: warn_alloc nodemask is NULL when cpusets are disabled
+     Subject: userfaultfd: non-cooperative: Split the find_userfault() routine
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled.patch
+     userfaultfd-non-cooperative-split-the-find_userfault-routine.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, page_alloc: warn_alloc nodemask is NULL when cpusets are disabled
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: userfaultfd: non-cooperative: Split the find_userfault() routine
 
-The patch "mm, page_alloc: warn_alloc print nodemask" implicitly sets the
-allocation nodemask to cpuset_current_mems_allowed when there is no
-effective mempolicy.  cpuset_current_mems_allowed is only effective when
-cpusets are enabled, which is also printed by warn_alloc(), so setting the
-nodemask to cpuset_current_mems_allowed is redundant and prevents
-debugging issues where ac->nodemask is not set properly in the page
-allocator.
+I will need one to lookup for userfaultfd_wait_queue-s in different
+wait queue
 
-This provides better debugging output since
-cpuset_print_current_mems_allowed() is already provided.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701181347320.142399@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20161216144821.5183-6-aarcange@redhat.com
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michael Rapoport <RAPOPORT@il.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ fs/userfaultfd.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-warn_alloc-nodemask-is-null-when-cpusets-are-disabled
-+++ a/mm/page_alloc.c
-@@ -3034,7 +3034,6 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	va_list args;
- 	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
- 				      DEFAULT_RATELIMIT_BURST);
--	nodemask_t *nm = (nodemask) ? nodemask : &cpuset_current_mems_allowed;
- 
- 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
- 	    debug_guardpage_minorder() > 0)
-@@ -3048,11 +3047,16 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	pr_cont("%pV", &vaf);
- 	va_end(args);
- 
--	pr_cont(", mode:%#x(%pGg), nodemask=%*pbl\n", gfp_mask, &gfp_mask, nodemask_pr_args(nm));
-+	pr_cont(", mode:%#x(%pGg), nodemask=", gfp_mask, &gfp_mask);
-+	if (nodemask)
-+		pr_cont("%*pbl\n", nodemask_pr_args(nodemask));
-+	else
-+		pr_cont("(null)\n");
-+
- 	cpuset_print_current_mems_allowed();
- 
- 	dump_stack();
--	warn_alloc_show_mem(gfp_mask, nm);
-+	warn_alloc_show_mem(gfp_mask, nodemask);
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-split-the-find_userfault-routine fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-split-the-find_userfault-routine
++++ a/fs/userfaultfd.c
+@@ -522,25 +522,30 @@ wakeup:
  }
  
- static inline struct page *
+ /* fault_pending_wqh.lock must be hold by the caller */
+-static inline struct userfaultfd_wait_queue *find_userfault(
+-	struct userfaultfd_ctx *ctx)
++static inline struct userfaultfd_wait_queue *find_userfault_in(
++		wait_queue_head_t *wqh)
+ {
+ 	wait_queue_t *wq;
+ 	struct userfaultfd_wait_queue *uwq;
+ 
+-	VM_BUG_ON(!spin_is_locked(&ctx->fault_pending_wqh.lock));
++	VM_BUG_ON(!spin_is_locked(&wqh->lock));
+ 
+ 	uwq = NULL;
+-	if (!waitqueue_active(&ctx->fault_pending_wqh))
++	if (!waitqueue_active(wqh))
+ 		goto out;
+ 	/* walk in reverse to provide FIFO behavior to read userfaults */
+-	wq = list_last_entry(&ctx->fault_pending_wqh.task_list,
+-			     typeof(*wq), task_list);
++	wq = list_last_entry(&wqh->task_list, typeof(*wq), task_list);
+ 	uwq = container_of(wq, struct userfaultfd_wait_queue, wq);
+ out:
+ 	return uwq;
+ }
+ 
++static inline struct userfaultfd_wait_queue *find_userfault(
++		struct userfaultfd_ctx *ctx)
++{
++	return find_userfault_in(&ctx->fault_pending_wqh);
++}
++
+ static unsigned int userfaultfd_poll(struct file *file, poll_table *wait)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from xemul@parallels.com are
 
-mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
-mm-oom-header-nodemask-is-null-when-cpusets-are-disabled-fix.patch
-mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch
 
