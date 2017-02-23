@@ -1,60 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nfs-no-pg_private-waiters-remain-remove-waker.patch
- removed from -mm tree
-Date: Thu, 23 Feb 2017 13:15:46 -0800
-Message-ID: <58af5102.TpNoduioHWuC4ve4%akpm@linux-foundation.org>
+Subject: [merged] mm-un-export-wake_up_page-functions.patch removed from
+ -mm tree
+Date: Thu, 23 Feb 2017 13:15:48 -0800
+Message-ID: <58af5104.U9ZMs/1NVho5uxDb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40258 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbdBWVPr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:47 -0500
+        with ESMTP id S1751195AbdBWVPt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2017 16:15:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@gmail.com, anna.schumaker@netapp.com, trond.myklebust@primarydata.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfs: no PG_private waiters remain, remove waker
+     Subject: mm: un-export wake_up_page functions
 has been removed from the -mm tree.  Its filename was
-     nfs-no-pg_private-waiters-remain-remove-waker.patch
+     mm-un-export-wake_up_page-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: nfs: no PG_private waiters remain, remove waker
+Subject: mm: un-export wake_up_page functions
 
-Since commit 4f52b6bb ("NFS: Don't call COMMIT in ->releasepage()"), no
-tasks wait on PagePrivate, so the wake introduced in commit 95905446
-("NFS: avoid deadlocks with loop-back mounted NFS filesystems.") can be
-removed.
+These are no longer used outside mm/filemap.c, so un-export them and make
+them static where possible.  These were exported specifically for NFS use
+in commit a4796e37c12e ("MM: export page_wakeup functions").
 
-Link: http://lkml.kernel.org/r/20170103182234.30141-2-npiggin@gmail.com
+Link: http://lkml.kernel.org/r/20170103182234.30141-3-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Cc: Trond Myklebust <trond.myklebust@primarydata.com>
 Cc: Anna Schumaker <anna.schumaker@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/pagemap.h |   12 ++----------
+ mm/filemap.c            |   10 ++++++++--
+ 2 files changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN fs/nfs/write.c~nfs-no-pg_private-waiters-remain-remove-waker fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-no-pg_private-waiters-remain-remove-waker
-+++ a/fs/nfs/write.c
-@@ -728,8 +728,6 @@ static void nfs_inode_remove_request(str
- 		if (likely(head->wb_page && !PageSwapCache(head->wb_page))) {
- 			set_page_private(head->wb_page, 0);
- 			ClearPagePrivate(head->wb_page);
--			smp_mb__after_atomic();
--			wake_up_page(head->wb_page, PG_private);
- 			clear_bit(PG_MAPPED, &head->wb_flags);
- 		}
- 		nfsi->nrequests--;
+diff -puN include/linux/pagemap.h~mm-un-export-wake_up_page-functions include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-un-export-wake_up_page-functions
++++ a/include/linux/pagemap.h
+@@ -482,19 +482,11 @@ static inline int lock_page_or_retry(str
+ }
+ 
+ /*
+- * This is exported only for wait_on_page_locked/wait_on_page_writeback,
+- * and for filesystems which need to wait on PG_private.
++ * This is exported only for wait_on_page_locked/wait_on_page_writeback, etc.,
++ * and should not be used directly.
+  */
+ extern void wait_on_page_bit(struct page *page, int bit_nr);
+ extern int wait_on_page_bit_killable(struct page *page, int bit_nr);
+-extern void wake_up_page_bit(struct page *page, int bit_nr);
+-
+-static inline void wake_up_page(struct page *page, int bit)
+-{
+-	if (!PageWaiters(page))
+-		return;
+-	wake_up_page_bit(page, bit);
+-}
+ 
+ /* 
+  * Wait for a page to be unlocked.
+diff -puN mm/filemap.c~mm-un-export-wake_up_page-functions mm/filemap.c
+--- a/mm/filemap.c~mm-un-export-wake_up_page-functions
++++ a/mm/filemap.c
+@@ -788,7 +788,7 @@ static int wake_page_function(wait_queue
+ 	return autoremove_wake_function(wait, mode, sync, key);
+ }
+ 
+-void wake_up_page_bit(struct page *page, int bit_nr)
++static void wake_up_page_bit(struct page *page, int bit_nr)
+ {
+ 	wait_queue_head_t *q = page_waitqueue(page);
+ 	struct wait_page_key key;
+@@ -821,7 +821,13 @@ void wake_up_page_bit(struct page *page,
+ 	}
+ 	spin_unlock_irqrestore(&q->lock, flags);
+ }
+-EXPORT_SYMBOL(wake_up_page_bit);
++
++static void wake_up_page(struct page *page, int bit)
++{
++	if (!PageWaiters(page))
++		return;
++	wake_up_page_bit(page, bit);
++}
+ 
+ static inline int wait_on_page_bit_common(wait_queue_head_t *q,
+ 		struct page *page, int bit_nr, int state, bool lock)
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
