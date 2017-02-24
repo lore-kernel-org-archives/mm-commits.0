@@ -1,129 +1,402 @@
 From: akpm@linux-foundation.org
-Subject: [patch 102/124] bug: switch data corruption check to __must_check
-Date: Fri, 24 Feb 2017 15:00:38 -0800
-Message-ID: <58b0bb16.0nbX6oX7h7VtXNJg%akpm@linux-foundation.org>
+Subject: [patch 107/124] lib: add module support to glob tests
+Date: Fri, 24 Feb 2017 15:00:52 -0800
+Message-ID: <58b0bb24.Ez5Nhd91ecIy7CT/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39012 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39084 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751757AbdBXXAt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:49 -0500
+        with ESMTP id S1751759AbdBXXAy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, arnd@arndb.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert@linux-m68k.org, andy.shevchenko@gmail.com
 
-From: Kees Cook <keescook@chromium.org>
-Subject: bug: switch data corruption check to __must_check
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: lib: add module support to glob tests
 
-The CHECK_DATA_CORRUPTION() macro was designed to have callers do
-something meaningful/protective on failure.  However, using "return false"
-in the macro too strictly limits the design patterns of callers.  Instead,
-let callers handle the logic test directly, but make sure that the result
-IS checked by forcing __must_check (which appears to not be able to be
-used directly on macro expressions).
+Extract the glob test code into its own source file, to allow to
+compile it either to a loadable module, or builtin into the kernel.
 
-Link: http://lkml.kernel.org/r/20170206204547.GA125312@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/1483470276-10517-2-git-send-email-geert@linux-m68k.org
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bug.h |   12 ++++++-----
- lib/list_debug.c    |   45 ++++++++++++++++++++++--------------------
- 2 files changed, 31 insertions(+), 26 deletions(-)
+ lib/Kconfig    |    3 
+ lib/Makefile   |    1 
+ lib/glob.c     |  164 ----------------------------------------------
+ lib/globtest.c |  167 +++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 169 insertions(+), 166 deletions(-)
 
-diff -puN include/linux/bug.h~bug-switch-data-corruption-check-to-__must_check include/linux/bug.h
---- a/include/linux/bug.h~bug-switch-data-corruption-check-to-__must_check
-+++ a/include/linux/bug.h
-@@ -124,18 +124,20 @@ static inline enum bug_trap_type report_
+diff -puN lib/Kconfig~lib-add-module-support-to-glob-tests lib/Kconfig
+--- a/lib/Kconfig~lib-add-module-support-to-glob-tests
++++ a/lib/Kconfig
+@@ -431,8 +431,7 @@ config GLOB
+ 	  depends on this.
  
- /*
-  * Since detected data corruption should stop operation on the affected
-- * structures, this returns false if the corruption condition is found.
-+ * structures. Return value must be checked and sanely acted on by caller.
-  */
-+static inline __must_check bool check_data_corruption(bool v) { return v; }
- #define CHECK_DATA_CORRUPTION(condition, fmt, ...)			 \
--	do {								 \
--		if (unlikely(condition)) {				 \
-+	check_data_corruption(({					 \
-+		bool corruption = unlikely(condition);			 \
-+		if (corruption) {					 \
- 			if (IS_ENABLED(CONFIG_BUG_ON_DATA_CORRUPTION)) { \
- 				pr_err(fmt, ##__VA_ARGS__);		 \
- 				BUG();					 \
- 			} else						 \
- 				WARN(1, fmt, ##__VA_ARGS__);		 \
--			return false;					 \
- 		}							 \
--	} while (0)
-+		corruption;						 \
-+	}))
+ config GLOB_SELFTEST
+-	bool "glob self-test on init"
+-	default n
++	tristate "glob self-test on init"
+ 	depends on GLOB
+ 	help
+ 	  This option enables a simple self-test of the glob_match
+diff -puN lib/Makefile~lib-add-module-support-to-glob-tests lib/Makefile
+--- a/lib/Makefile~lib-add-module-support-to-glob-tests
++++ a/lib/Makefile
+@@ -162,6 +162,7 @@ obj-$(CONFIG_CORDIC) += cordic.o
+ obj-$(CONFIG_DQL) += dynamic_queue_limits.o
  
- #endif	/* _LINUX_BUG_H */
-diff -puN lib/list_debug.c~bug-switch-data-corruption-check-to-__must_check lib/list_debug.c
---- a/lib/list_debug.c~bug-switch-data-corruption-check-to-__must_check
-+++ a/lib/list_debug.c
-@@ -20,15 +20,16 @@
- bool __list_add_valid(struct list_head *new, struct list_head *prev,
- 		      struct list_head *next)
- {
--	CHECK_DATA_CORRUPTION(next->prev != prev,
--		"list_add corruption. next->prev should be prev (%p), but was %p. (next=%p).\n",
--		prev, next->prev, next);
--	CHECK_DATA_CORRUPTION(prev->next != next,
--		"list_add corruption. prev->next should be next (%p), but was %p. (prev=%p).\n",
--		next, prev->next, prev);
--	CHECK_DATA_CORRUPTION(new == prev || new == next,
--		"list_add double add: new=%p, prev=%p, next=%p.\n",
--		new, prev, next);
-+	if (CHECK_DATA_CORRUPTION(next->prev != prev,
-+			"list_add corruption. next->prev should be prev (%p), but was %p. (next=%p).\n",
-+			prev, next->prev, next) ||
-+	    CHECK_DATA_CORRUPTION(prev->next != next,
-+			"list_add corruption. prev->next should be next (%p), but was %p. (prev=%p).\n",
-+			next, prev->next, prev) ||
-+	    CHECK_DATA_CORRUPTION(new == prev || new == next,
-+			"list_add double add: new=%p, prev=%p, next=%p.\n",
-+			new, prev, next))
-+		return false;
+ obj-$(CONFIG_GLOB) += glob.o
++obj-$(CONFIG_GLOB_SELFTEST) += globtest.o
  
- 	return true;
+ obj-$(CONFIG_MPILIB) += mpi/
+ obj-$(CONFIG_SIGNATURE) += digsig.o
+diff -puN lib/glob.c~lib-add-module-support-to-glob-tests lib/glob.c
+--- a/lib/glob.c~lib-add-module-support-to-glob-tests
++++ a/lib/glob.c
+@@ -121,167 +121,3 @@ backtrack:
+ 	}
  }
-@@ -41,18 +42,20 @@ bool __list_del_entry_valid(struct list_
- 	prev = entry->prev;
- 	next = entry->next;
- 
--	CHECK_DATA_CORRUPTION(next == LIST_POISON1,
--		"list_del corruption, %p->next is LIST_POISON1 (%p)\n",
--		entry, LIST_POISON1);
--	CHECK_DATA_CORRUPTION(prev == LIST_POISON2,
--		"list_del corruption, %p->prev is LIST_POISON2 (%p)\n",
--		entry, LIST_POISON2);
--	CHECK_DATA_CORRUPTION(prev->next != entry,
--		"list_del corruption. prev->next should be %p, but was %p\n",
--		entry, prev->next);
--	CHECK_DATA_CORRUPTION(next->prev != entry,
--		"list_del corruption. next->prev should be %p, but was %p\n",
--		entry, next->prev);
-+	if (CHECK_DATA_CORRUPTION(next == LIST_POISON1,
-+			"list_del corruption, %p->next is LIST_POISON1 (%p)\n",
-+			entry, LIST_POISON1) ||
-+	    CHECK_DATA_CORRUPTION(prev == LIST_POISON2,
-+			"list_del corruption, %p->prev is LIST_POISON2 (%p)\n",
-+			entry, LIST_POISON2) ||
-+	    CHECK_DATA_CORRUPTION(prev->next != entry,
-+			"list_del corruption. prev->next should be %p, but was %p\n",
-+			entry, prev->next) ||
-+	    CHECK_DATA_CORRUPTION(next->prev != entry,
-+			"list_del corruption. next->prev should be %p, but was %p\n",
-+			entry, next->prev))
-+		return false;
+ EXPORT_SYMBOL(glob_match);
+-
+-
+-#ifdef CONFIG_GLOB_SELFTEST
+-
+-#include <linux/printk.h>
+-#include <linux/moduleparam.h>
+-
+-/* Boot with "glob.verbose=1" to show successful tests, too */
+-static bool verbose = false;
+-module_param(verbose, bool, 0);
+-
+-struct glob_test {
+-	char const *pat, *str;
+-	bool expected;
+-};
+-
+-static bool __pure __init test(char const *pat, char const *str, bool expected)
+-{
+-	bool match = glob_match(pat, str);
+-	bool success = match == expected;
+-
+-	/* Can't get string literals into a particular section, so... */
+-	static char const msg_error[] __initconst =
+-		KERN_ERR "glob: \"%s\" vs. \"%s\": %s *** ERROR ***\n";
+-	static char const msg_ok[] __initconst =
+-		KERN_DEBUG "glob: \"%s\" vs. \"%s\": %s OK\n";
+-	static char const mismatch[] __initconst = "mismatch";
+-	char const *message;
+-
+-	if (!success)
+-		message = msg_error;
+-	else if (verbose)
+-		message = msg_ok;
+-	else
+-		return success;
+-
+-	printk(message, pat, str, mismatch + 3*match);
+-	return success;
+-}
+-
+-/*
+- * The tests are all jammed together in one array to make it simpler
+- * to place that array in the .init.rodata section.  The obvious
+- * "array of structures containing char *" has no way to force the
+- * pointed-to strings to be in a particular section.
+- *
+- * Anyway, a test consists of:
+- * 1. Expected glob_match result: '1' or '0'.
+- * 2. Pattern to match: null-terminated string
+- * 3. String to match against: null-terminated string
+- *
+- * The list of tests is terminated with a final '\0' instead of
+- * a glob_match result character.
+- */
+-static char const glob_tests[] __initconst =
+-	/* Some basic tests */
+-	"1" "a\0" "a\0"
+-	"0" "a\0" "b\0"
+-	"0" "a\0" "aa\0"
+-	"0" "a\0" "\0"
+-	"1" "\0" "\0"
+-	"0" "\0" "a\0"
+-	/* Simple character class tests */
+-	"1" "[a]\0" "a\0"
+-	"0" "[a]\0" "b\0"
+-	"0" "[!a]\0" "a\0"
+-	"1" "[!a]\0" "b\0"
+-	"1" "[ab]\0" "a\0"
+-	"1" "[ab]\0" "b\0"
+-	"0" "[ab]\0" "c\0"
+-	"1" "[!ab]\0" "c\0"
+-	"1" "[a-c]\0" "b\0"
+-	"0" "[a-c]\0" "d\0"
+-	/* Corner cases in character class parsing */
+-	"1" "[a-c-e-g]\0" "-\0"
+-	"0" "[a-c-e-g]\0" "d\0"
+-	"1" "[a-c-e-g]\0" "f\0"
+-	"1" "[]a-ceg-ik[]\0" "a\0"
+-	"1" "[]a-ceg-ik[]\0" "]\0"
+-	"1" "[]a-ceg-ik[]\0" "[\0"
+-	"1" "[]a-ceg-ik[]\0" "h\0"
+-	"0" "[]a-ceg-ik[]\0" "f\0"
+-	"0" "[!]a-ceg-ik[]\0" "h\0"
+-	"0" "[!]a-ceg-ik[]\0" "]\0"
+-	"1" "[!]a-ceg-ik[]\0" "f\0"
+-	/* Simple wild cards */
+-	"1" "?\0" "a\0"
+-	"0" "?\0" "aa\0"
+-	"0" "??\0" "a\0"
+-	"1" "?x?\0" "axb\0"
+-	"0" "?x?\0" "abx\0"
+-	"0" "?x?\0" "xab\0"
+-	/* Asterisk wild cards (backtracking) */
+-	"0" "*??\0" "a\0"
+-	"1" "*??\0" "ab\0"
+-	"1" "*??\0" "abc\0"
+-	"1" "*??\0" "abcd\0"
+-	"0" "??*\0" "a\0"
+-	"1" "??*\0" "ab\0"
+-	"1" "??*\0" "abc\0"
+-	"1" "??*\0" "abcd\0"
+-	"0" "?*?\0" "a\0"
+-	"1" "?*?\0" "ab\0"
+-	"1" "?*?\0" "abc\0"
+-	"1" "?*?\0" "abcd\0"
+-	"1" "*b\0" "b\0"
+-	"1" "*b\0" "ab\0"
+-	"0" "*b\0" "ba\0"
+-	"1" "*b\0" "bb\0"
+-	"1" "*b\0" "abb\0"
+-	"1" "*b\0" "bab\0"
+-	"1" "*bc\0" "abbc\0"
+-	"1" "*bc\0" "bc\0"
+-	"1" "*bc\0" "bbc\0"
+-	"1" "*bc\0" "bcbc\0"
+-	/* Multiple asterisks (complex backtracking) */
+-	"1" "*ac*\0" "abacadaeafag\0"
+-	"1" "*ac*ae*ag*\0" "abacadaeafag\0"
+-	"1" "*a*b*[bc]*[ef]*g*\0" "abacadaeafag\0"
+-	"0" "*a*b*[ef]*[cd]*g*\0" "abacadaeafag\0"
+-	"1" "*abcd*\0" "abcabcabcabcdefg\0"
+-	"1" "*ab*cd*\0" "abcabcabcabcdefg\0"
+-	"1" "*abcd*abcdef*\0" "abcabcdabcdeabcdefg\0"
+-	"0" "*abcd*\0" "abcabcabcabcefg\0"
+-	"0" "*ab*cd*\0" "abcabcabcabcefg\0";
+-
+-static int __init glob_init(void)
+-{
+-	unsigned successes = 0;
+-	unsigned n = 0;
+-	char const *p = glob_tests;
+-	static char const message[] __initconst =
+-		KERN_INFO "glob: %u self-tests passed, %u failed\n";
+-
+-	/*
+-	 * Tests are jammed together in a string.  The first byte is '1'
+-	 * or '0' to indicate the expected outcome, or '\0' to indicate the
+-	 * end of the tests.  Then come two null-terminated strings: the
+-	 * pattern and the string to match it against.
+-	 */
+-	while (*p) {
+-		bool expected = *p++ & 1;
+-		char const *pat = p;
+-
+-		p += strlen(p) + 1;
+-		successes += test(pat, p, expected);
+-		p += strlen(p) + 1;
+-		n++;
+-	}
+-
+-	n -= successes;
+-	printk(message, successes, n);
+-
+-	/* What's the errno for "kernel bug detected"?  Guess... */
+-	return n ? -ECANCELED : 0;
+-}
+-
+-/* We need a dummy exit function to allow unload */
+-static void __exit glob_fini(void) { }
+-
+-module_init(glob_init);
+-module_exit(glob_fini);
+-
+-#endif /* CONFIG_GLOB_SELFTEST */
+diff -puN /dev/null lib/globtest.c
+--- /dev/null
++++ a/lib/globtest.c
+@@ -0,0 +1,167 @@
++/*
++ * Extracted fronm glob.c
++ */
 +
- 	return true;
- 
- }
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/glob.h>
++#include <linux/printk.h>
++
++/* Boot with "glob.verbose=1" to show successful tests, too */
++static bool verbose = false;
++module_param(verbose, bool, 0);
++
++struct glob_test {
++	char const *pat, *str;
++	bool expected;
++};
++
++static bool __pure __init test(char const *pat, char const *str, bool expected)
++{
++	bool match = glob_match(pat, str);
++	bool success = match == expected;
++
++	/* Can't get string literals into a particular section, so... */
++	static char const msg_error[] __initconst =
++		KERN_ERR "glob: \"%s\" vs. \"%s\": %s *** ERROR ***\n";
++	static char const msg_ok[] __initconst =
++		KERN_DEBUG "glob: \"%s\" vs. \"%s\": %s OK\n";
++	static char const mismatch[] __initconst = "mismatch";
++	char const *message;
++
++	if (!success)
++		message = msg_error;
++	else if (verbose)
++		message = msg_ok;
++	else
++		return success;
++
++	printk(message, pat, str, mismatch + 3*match);
++	return success;
++}
++
++/*
++ * The tests are all jammed together in one array to make it simpler
++ * to place that array in the .init.rodata section.  The obvious
++ * "array of structures containing char *" has no way to force the
++ * pointed-to strings to be in a particular section.
++ *
++ * Anyway, a test consists of:
++ * 1. Expected glob_match result: '1' or '0'.
++ * 2. Pattern to match: null-terminated string
++ * 3. String to match against: null-terminated string
++ *
++ * The list of tests is terminated with a final '\0' instead of
++ * a glob_match result character.
++ */
++static char const glob_tests[] __initconst =
++	/* Some basic tests */
++	"1" "a\0" "a\0"
++	"0" "a\0" "b\0"
++	"0" "a\0" "aa\0"
++	"0" "a\0" "\0"
++	"1" "\0" "\0"
++	"0" "\0" "a\0"
++	/* Simple character class tests */
++	"1" "[a]\0" "a\0"
++	"0" "[a]\0" "b\0"
++	"0" "[!a]\0" "a\0"
++	"1" "[!a]\0" "b\0"
++	"1" "[ab]\0" "a\0"
++	"1" "[ab]\0" "b\0"
++	"0" "[ab]\0" "c\0"
++	"1" "[!ab]\0" "c\0"
++	"1" "[a-c]\0" "b\0"
++	"0" "[a-c]\0" "d\0"
++	/* Corner cases in character class parsing */
++	"1" "[a-c-e-g]\0" "-\0"
++	"0" "[a-c-e-g]\0" "d\0"
++	"1" "[a-c-e-g]\0" "f\0"
++	"1" "[]a-ceg-ik[]\0" "a\0"
++	"1" "[]a-ceg-ik[]\0" "]\0"
++	"1" "[]a-ceg-ik[]\0" "[\0"
++	"1" "[]a-ceg-ik[]\0" "h\0"
++	"0" "[]a-ceg-ik[]\0" "f\0"
++	"0" "[!]a-ceg-ik[]\0" "h\0"
++	"0" "[!]a-ceg-ik[]\0" "]\0"
++	"1" "[!]a-ceg-ik[]\0" "f\0"
++	/* Simple wild cards */
++	"1" "?\0" "a\0"
++	"0" "?\0" "aa\0"
++	"0" "??\0" "a\0"
++	"1" "?x?\0" "axb\0"
++	"0" "?x?\0" "abx\0"
++	"0" "?x?\0" "xab\0"
++	/* Asterisk wild cards (backtracking) */
++	"0" "*??\0" "a\0"
++	"1" "*??\0" "ab\0"
++	"1" "*??\0" "abc\0"
++	"1" "*??\0" "abcd\0"
++	"0" "??*\0" "a\0"
++	"1" "??*\0" "ab\0"
++	"1" "??*\0" "abc\0"
++	"1" "??*\0" "abcd\0"
++	"0" "?*?\0" "a\0"
++	"1" "?*?\0" "ab\0"
++	"1" "?*?\0" "abc\0"
++	"1" "?*?\0" "abcd\0"
++	"1" "*b\0" "b\0"
++	"1" "*b\0" "ab\0"
++	"0" "*b\0" "ba\0"
++	"1" "*b\0" "bb\0"
++	"1" "*b\0" "abb\0"
++	"1" "*b\0" "bab\0"
++	"1" "*bc\0" "abbc\0"
++	"1" "*bc\0" "bc\0"
++	"1" "*bc\0" "bbc\0"
++	"1" "*bc\0" "bcbc\0"
++	/* Multiple asterisks (complex backtracking) */
++	"1" "*ac*\0" "abacadaeafag\0"
++	"1" "*ac*ae*ag*\0" "abacadaeafag\0"
++	"1" "*a*b*[bc]*[ef]*g*\0" "abacadaeafag\0"
++	"0" "*a*b*[ef]*[cd]*g*\0" "abacadaeafag\0"
++	"1" "*abcd*\0" "abcabcabcabcdefg\0"
++	"1" "*ab*cd*\0" "abcabcabcabcdefg\0"
++	"1" "*abcd*abcdef*\0" "abcabcdabcdeabcdefg\0"
++	"0" "*abcd*\0" "abcabcabcabcefg\0"
++	"0" "*ab*cd*\0" "abcabcabcabcefg\0";
++
++static int __init glob_init(void)
++{
++	unsigned successes = 0;
++	unsigned n = 0;
++	char const *p = glob_tests;
++	static char const message[] __initconst =
++		KERN_INFO "glob: %u self-tests passed, %u failed\n";
++
++	/*
++	 * Tests are jammed together in a string.  The first byte is '1'
++	 * or '0' to indicate the expected outcome, or '\0' to indicate the
++	 * end of the tests.  Then come two null-terminated strings: the
++	 * pattern and the string to match it against.
++	 */
++	while (*p) {
++		bool expected = *p++ & 1;
++		char const *pat = p;
++
++		p += strlen(p) + 1;
++		successes += test(pat, p, expected);
++		p += strlen(p) + 1;
++		n++;
++	}
++
++	n -= successes;
++	printk(message, successes, n);
++
++	/* What's the errno for "kernel bug detected"?  Guess... */
++	return n ? -ECANCELED : 0;
++}
++
++/* We need a dummy exit function to allow unload */
++static void __exit glob_fini(void) { }
++
++module_init(glob_init);
++module_exit(glob_fini);
++
++MODULE_DESCRIPTION("glob(7) matching tests");
++MODULE_LICENSE("Dual MIT/GPL");
 _
