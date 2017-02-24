@@ -1,94 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [patch 119/124] checkpatch: warn on embedded function names
-Date: Fri, 24 Feb 2017 15:01:28 -0800
-Message-ID: <58b0bb48.umirtPxVZZebfV4k%akpm@linux-foundation.org>
+Subject: [patch 117/124] fs/pstore: fs/squashfs: change usage of LZ4 to
+ work with new LZ4 version
+Date: Fri, 24 Feb 2017 15:01:22 -0800
+Message-ID: <58b0bb42.1/OLreXAR2+ObYMp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751876AbdBXXBa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:30 -0500
+        with ESMTP id S1751902AbdBXXBe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, apw@canonical.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, 4sschmid@informatik.uni-hamburg.de, anton@enomsg.org, bongkyu.kim@lge.com, ccross@android.com, davem@davemloft.net, gregkh@linuxfoundation.org, herbert@gondor.apana.org.au, keescook@chromium.org, rsalvaterra@gmail.com, sergey.senozhatsky@gmail.com, tony.luck@intel.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on embedded function names
+From: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
+Subject: fs/pstore: fs/squashfs: change usage of LZ4 to work with new LZ4 version
 
-Embedded function names are less appropriate to use when refactoring can
-cause function renaming.  Prefer the use of "%s", __func__ to embedded
-function names.
+Update fs/pstore and fs/squashfs to use the updated functions from the new
+LZ4 module.
 
-Link: http://lkml.kernel.org/r/ac9631fdbac5af3507c5bfe88ad9064f0ed764ec.1483510416.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Andy Whitcroft <apw@canonical.com>
+Link: http://lkml.kernel.org/r/1486321748-19085-5-git-send-email-4sschmid@informatik.uni-hamburg.de
+Signed-off-by: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
+Cc: Bongkyu Kim <bongkyu.kim@lge.com>
+Cc: Rui Salvaterra <rsalvaterra@gmail.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ fs/pstore/platform.c      |   22 +++++++++++++---------
+ fs/squashfs/lz4_wrapper.c |   12 ++++++------
+ 2 files changed, 19 insertions(+), 15 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-embedded-function-names scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-embedded-function-names
-+++ a/scripts/checkpatch.pl
-@@ -2134,7 +2134,7 @@ sub process {
- 	my $in_header_lines = $file ? 0 : 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
- 	my $has_commit_log = 0;		#Encountered lines before patch
--       my $commit_log_possible_stack_dump = 0;
-+	my $commit_log_possible_stack_dump = 0;
- 	my $commit_log_long_line = 0;
- 	my $commit_log_has_diff = 0;
- 	my $reported_maintainer_file = 0;
-@@ -2154,6 +2154,7 @@ sub process {
- 	my $realline = 0;
- 	my $realcnt = 0;
- 	my $here = '';
-+	my $context_function;		#undef'd unless there's a known function
- 	my $in_comment = 0;
- 	my $comment_edge = 0;
- 	my $first_line = 0;
-@@ -2192,7 +2193,8 @@ sub process {
- 			}
- 			#next;
- 		}
--		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
-+		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@(.*)/) {
-+			my $context = $4;
- 			$realline=$1-1;
- 			if (defined $2) {
- 				$realcnt=$3+1;
-@@ -2201,6 +2203,12 @@ sub process {
- 			}
- 			$in_comment = 0;
+diff -puN fs/pstore/platform.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version fs/pstore/platform.c
+--- a/fs/pstore/platform.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version
++++ a/fs/pstore/platform.c
+@@ -342,31 +342,35 @@ static int compress_lz4(const void *in,
+ {
+ 	int ret;
  
-+			if ($context =~ /\b(\w+)\s*\(/) {
-+				$context_function = $1;
-+			} else {
-+				undef $context_function;
-+			}
-+
- 			# Guestimate if this is a continuing comment.  Run
- 			# the context looking for a comment "edge".  If this
- 			# edge is a close comment then we must be in a comment
-@@ -5157,6 +5165,16 @@ sub process {
- 			     "break quoted strings at a space character\n" . $hereprev);
- 		}
+-	ret = lz4_compress(in, inlen, out, &outlen, workspace);
+-	if (ret) {
+-		pr_err("lz4_compress error, ret = %d!\n", ret);
++	ret = LZ4_compress_default(in, out, inlen, outlen, workspace);
++	if (!ret) {
++		pr_err("LZ4_compress_default error; compression failed!\n");
+ 		return -EIO;
+ 	}
  
-+#check for an embedded function name in a string when the function is known
-+# as part of a diff.  This does not work for -f --file checking as it
-+#depends on patch context providing the function name
-+		if ($line =~ /^\+.*$String/ &&
-+		    defined($context_function) &&
-+		    get_quoted_string($line, $rawline) =~ /\b$context_function\b/) {
-+			WARN("EMBEDDED_FUNCTION_NAME",
-+			     "Prefer using \"%s\", __func__ to embedded function names\n" . $herecurr);
-+		}
+-	return outlen;
++	return ret;
+ }
+ 
+ static int decompress_lz4(void *in, void *out, size_t inlen, size_t outlen)
+ {
+ 	int ret;
+ 
+-	ret = lz4_decompress_unknownoutputsize(in, inlen, out, &outlen);
+-	if (ret) {
+-		pr_err("lz4_decompress error, ret = %d!\n", ret);
++	ret = LZ4_decompress_safe(in, out, inlen, outlen);
++	if (ret < 0) {
++		/*
++		 * LZ4_decompress_safe will return an error code
++		 * (< 0) if decompression failed
++		 */
++		pr_err("LZ4_decompress_safe error, ret = %d!\n", ret);
+ 		return -EIO;
+ 	}
+ 
+-	return outlen;
++	return ret;
+ }
+ 
+ static void allocate_lz4(void)
+ {
+-	big_oops_buf_sz = lz4_compressbound(psinfo->bufsize);
++	big_oops_buf_sz = LZ4_compressBound(psinfo->bufsize);
+ 	big_oops_buf = kmalloc(big_oops_buf_sz, GFP_KERNEL);
+ 	if (big_oops_buf) {
+ 		workspace = kmalloc(LZ4_MEM_COMPRESS, GFP_KERNEL);
+diff -puN fs/squashfs/lz4_wrapper.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version fs/squashfs/lz4_wrapper.c
+--- a/fs/squashfs/lz4_wrapper.c~fs-pstore-fs-squashfs-change-usage-of-lz4-to-work-with-new-lz4-version
++++ a/fs/squashfs/lz4_wrapper.c
+@@ -97,7 +97,6 @@ static int lz4_uncompress(struct squashf
+ 	struct squashfs_lz4 *stream = strm;
+ 	void *buff = stream->input, *data;
+ 	int avail, i, bytes = length, res;
+-	size_t dest_len = output->length;
+ 
+ 	for (i = 0; i < b; i++) {
+ 		avail = min(bytes, msblk->devblksize - offset);
+@@ -108,12 +107,13 @@ static int lz4_uncompress(struct squashf
+ 		put_bh(bh[i]);
+ 	}
+ 
+-	res = lz4_decompress_unknownoutputsize(stream->input, length,
+-					stream->output, &dest_len);
+-	if (res)
++	res = LZ4_decompress_safe(stream->input, stream->output,
++		length, output->length);
 +
- # check for spaces before a quoted newline
- 		if ($rawline =~ /^.*\".*\s\\n/) {
- 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
++	if (res < 0)
+ 		return -EIO;
+ 
+-	bytes = dest_len;
++	bytes = res;
+ 	data = squashfs_first_page(output);
+ 	buff = stream->output;
+ 	while (data) {
+@@ -128,7 +128,7 @@ static int lz4_uncompress(struct squashf
+ 	}
+ 	squashfs_finish_page(output);
+ 
+-	return dest_len;
++	return res;
+ }
+ 
+ const struct squashfs_decompressor squashfs_lz4_comp_ops = {
 _
