@@ -1,116 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [patch 092/124] kasan: add memcg kmem_cache test
-Date: Fri, 24 Feb 2017 15:00:08 -0800
-Message-ID: <58b0baf8.eP/LGX7JoAwakKCw%akpm@linux-foundation.org>
+Subject: [patch 094/124] alpha: use generic current.h
+Date: Fri, 24 Feb 2017 15:00:14 -0800
+Message-ID: <58b0bafe.5rGN3PJ9MHFomNkc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38940 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751685AbdBXXAK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:10 -0500
+        with ESMTP id S1751692AbdBXXAQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gthelen@google.com, aryabinin@virtuozzo.com, cl@linux.com, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
-From: Greg Thelen <gthelen@google.com>
-Subject: kasan: add memcg kmem_cache test
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: alpha: use generic current.h
 
-Make a kasan test which uses a SLAB_ACCOUNT slab cache.  If the test is
-run within a non default memcg, then it uncovers the bug fixed by
-"kasan: drain quarantine of memcg slab objects"[1].
+Given that the arch does not add its own implementations, simply use the
+asm-generic/current.h (generic-y) header instead of duplicating code.
 
-If run without fix [1] it shows "Slab cache still has objects", and the
-kmem_cache structure is leaked.
-Here's an unpatched kernel test:
-$ dmesg -c > /dev/null
-$ mkdir /sys/fs/cgroup/memory/test
-$ echo $$ > /sys/fs/cgroup/memory/test/tasks
-$ modprobe test_kasan 2> /dev/null
-$ dmesg | grep -B1 still
-[ 123.456789] kasan test: memcg_accounted_kmem_cache allocate memcg accounted object
-[ 124.456789] kmem_cache_destroy test_cache: Slab cache still has objects
-
-Kernels with fix [1] don't have the "Slab cache still has objects"
-warning or the underlying leak.
-
-The new test runs and passes in the default (root) memcg, though in the
-root memcg it won't uncover the problem fixed by [1].
-
-Link: http://lkml.kernel.org/r/1482257462-36948-2-git-send-email-gthelen@google.com
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Reviewed-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/1485992878-4780-2-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ arch/alpha/include/asm/Kbuild    |    1 +
+ arch/alpha/include/asm/current.h |    9 ---------
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN lib/test_kasan.c~kasan-add-memcg-kmem_cache-test lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-add-memcg-kmem_cache-test
-+++ a/lib/test_kasan.c
-@@ -11,6 +11,7 @@
- 
- #define pr_fmt(fmt) "kasan test: %s " fmt, __func__
- 
-+#include <linux/delay.h>
- #include <linux/kernel.h>
- #include <linux/mman.h>
- #include <linux/mm.h>
-@@ -331,6 +332,38 @@ static noinline void __init kmem_cache_o
- 	kmem_cache_destroy(cache);
- }
- 
-+static noinline void __init memcg_accounted_kmem_cache(void)
-+{
-+	int i;
-+	char *p;
-+	size_t size = 200;
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, SLAB_ACCOUNT, NULL);
-+	if (!cache) {
-+		pr_err("Cache allocation failed\n");
-+		return;
-+	}
-+
-+	pr_info("allocate memcg accounted object\n");
-+	/*
-+	 * Several allocations with a delay to allow for lazy per memcg kmem
-+	 * cache creation.
-+	 */
-+	for (i = 0; i < 5; i++) {
-+		p = kmem_cache_alloc(cache, GFP_KERNEL);
-+		if (!p) {
-+			pr_err("Allocation failed\n");
-+			goto free_cache;
-+		}
-+		kmem_cache_free(cache, p);
-+		msleep(100);
-+	}
-+
-+free_cache:
-+	kmem_cache_destroy(cache);
-+}
-+
- static char global_array[10];
- 
- static noinline void __init kasan_global_oob(void)
-@@ -460,6 +493,7 @@ static int __init kmalloc_tests_init(voi
- 	kmalloc_uaf_memset();
- 	kmalloc_uaf2();
- 	kmem_cache_oob();
-+	memcg_accounted_kmem_cache();
- 	kasan_stack_oob();
- 	kasan_global_oob();
- 	ksize_unpoisons_memory();
-_
+diff -puN arch/alpha/include/asm/Kbuild~alpha-use-generic-currenth arch/alpha/include/asm/Kbuild
+--- a/arch/alpha/include/asm/Kbuild~alpha-use-generic-currenth
++++ a/arch/alpha/include/asm/Kbuild
+@@ -9,3 +9,4 @@ generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += sections.h
+ generic-y += trace_clock.h
++generic-y += current.h
+diff -puN arch/alpha/include/asm/current.h~alpha-use-generic-currenth /dev/null
+--- a/arch/alpha/include/asm/current.h
++++ /dev/null
+@@ -1,9 +0,0 @@
+-#ifndef _ALPHA_CURRENT_H
+-#define _ALPHA_CURRENT_H
+-
+-#include <linux/thread_info.h>
+-
+-#define get_current()	(current_thread_info()->task)
+-#define current		get_current()
