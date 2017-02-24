@@ -1,60 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 087/124] mm/gup: check for protnone only if it is a PTE
- entry
-Date: Fri, 24 Feb 2017 14:59:53 -0800
-Message-ID: <58b0bae9.JItMYKzBqxRFPaFo%akpm@linux-foundation.org>
+Subject: [patch 089/124] mm: do not access page->mapping directly on
+ page_endio
+Date: Fri, 24 Feb 2017 14:59:59 -0800
+Message-ID: <58b0baef.VQvJojC4/dGeAwHY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38874 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbdBXW7z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:55 -0500
+        with ESMTP id S1751676AbdBXXAB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, riel@surriel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, mhocko@suse.com, stable@vger.kernel.org, willy@infradead.org
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/gup: check for protnone only if it is a PTE entry
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: do not access page->mapping directly on page_endio
 
-Do the prot_none/FOLL_NUMA check after we are sure this is a THP pte. 
-Archs can implement prot_none such that it can return true for regular pmd
-entries.
+With rw_page, page_endio is used for completing IO on a page and it
+propagates write error to the address space if the IO fails.  The
+problem is it accesses page->mapping directly which might be okay for
+file-backed pages but it shouldn't for anonymous page.  Otherwise, it
+can corrupt one of field from anon_vma under us and system goes panic
+randomly.
 
-Link: http://lkml.kernel.org/r/1487498326-8734-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+swap_writepage
+  bdev_writepage
+    ops->rw_page
+
+I encountered the BUG during developing new zram feature and it was
+really hard to figure it out because it made random crash, somtime
+mmap_sem lockdep, sometime other places where places never related to
+zram/zsmalloc, and not reproducible with some configuration.
+
+When I consider how that bug is subtle and people do fast-swap test
+with brd, it's worth to add stable mark, I think.
+
+Fixes: dd6bd0d9c7db ("swap: use bdev_read_page() / bdev_write_page()")
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/filemap.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/gup.c~mm-gup-check-for-protnone-only-if-it-is-a-pte-entry mm/gup.c
---- a/mm/gup.c~mm-gup-check-for-protnone-only-if-it-is-a-pte-entry
-+++ a/mm/gup.c
-@@ -272,8 +272,6 @@ struct page *follow_page_mask(struct vm_
- 			return page;
- 		return no_page_table(vma, flags);
- 	}
--	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
--		return no_page_table(vma, flags);
- 	if (pmd_devmap(*pmd)) {
- 		ptl = pmd_lock(mm, pmd);
- 		page = follow_devmap_pmd(vma, address, pmd, flags);
-@@ -284,6 +282,9 @@ struct page *follow_page_mask(struct vm_
- 	if (likely(!pmd_trans_huge(*pmd)))
- 		return follow_page_pte(vma, address, pmd, flags);
- 
-+	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
-+		return no_page_table(vma, flags);
+diff -puN mm/filemap.c~mm-do-not-access-page-mapping-directly-on-page_endio mm/filemap.c
+--- a/mm/filemap.c~mm-do-not-access-page-mapping-directly-on-page_endio
++++ a/mm/filemap.c
+@@ -1008,9 +1008,12 @@ void page_endio(struct page *page, bool
+ 		unlock_page(page);
+ 	} else {
+ 		if (err) {
++			struct address_space *mapping;
 +
- 	ptl = pmd_lock(mm, pmd);
- 	if (unlikely(!pmd_trans_huge(*pmd))) {
- 		spin_unlock(ptl);
+ 			SetPageError(page);
+-			if (page->mapping)
+-				mapping_set_error(page->mapping, err);
++			mapping = page_mapping(page);
++			if (mapping)
++				mapping_set_error(mapping, err);
+ 		}
+ 		end_page_writeback(page);
+ 	}
 _
