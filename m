@@ -1,50 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 084/124] mm/page_alloc.c: remove redundant init code for
- ZONE_MOVABLE
-Date: Fri, 24 Feb 2017 14:59:45 -0800
-Message-ID: <58b0bae1.r5UG4fVAHhZb/KfO%akpm@linux-foundation.org>
+Subject: [patch 085/124] mm/zsmalloc: fix comment in zsmalloc
+Date: Fri, 24 Feb 2017 14:59:48 -0800
+Message-ID: <58b0bae4.TLo81qXwODyjuF0O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751660AbdBXW7q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:46 -0500
+        with ESMTP id S1751663AbdBXW7t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, richard.weiyang@gmail.com, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xieyisheng1@huawei.com, guohanjun@huawei.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com
 
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc.c: remove redundant init code for ZONE_MOVABLE
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/zsmalloc: fix comment in zsmalloc
 
-arch_zone_lowest/highest_possible_pfn[] is set to 0 and [ZONE_MOVABLE] is
-skipped in the loop. No need to reset them to 0 again.
+The class index and fullness group are not encoded in (first)page->mapping
+any more, after commit 3783689a1aa8 ("zsmalloc: introduce zspage
+structure").  Instead, they are store in struct zspage.  Just delete this
+unneeded comment.
 
-This patch just removes the redundant code.
-
-Link: http://lkml.kernel.org/r/20170209141731.60208-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1486620822-36826-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Suggested-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/zsmalloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-redundant-init-code-for-zone_movable mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-redundant-init-code-for-zone_movable
-+++ a/mm/page_alloc.c
-@@ -6489,8 +6489,6 @@ void __init free_area_init_nodes(unsigne
+diff -puN mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc
++++ a/mm/zsmalloc.c
+@@ -267,10 +267,6 @@ struct zs_pool {
+ #endif
+ };
  
- 		start_pfn = end_pfn;
- 	}
--	arch_zone_lowest_possible_pfn[ZONE_MOVABLE] = 0;
--	arch_zone_highest_possible_pfn[ZONE_MOVABLE] = 0;
- 
- 	/* Find the PFNs that ZONE_MOVABLE begins at in each node */
- 	memset(zone_movable_pfn, 0, sizeof(zone_movable_pfn));
+-/*
+- * A zspage's class index and fullness group
+- * are encoded in its (first)page->mapping
+- */
+ #define FULLNESS_BITS	2
+ #define CLASS_BITS	8
+ #define ISOLATED_BITS	3
 _
