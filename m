@@ -1,73 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch removed from -mm tree
-Date: Fri, 24 Feb 2017 14:25:02 -0800
-Message-ID: <58b0b2be.DSvIsRUoKjmt1Oho%akpm@linux-foundation.org>
+ mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2.patch
+ removed from -mm tree
+Date: Fri, 24 Feb 2017 14:25:05 -0800
+Message-ID: <58b0b2c1.K4QiLFfGUMzccuGU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33258 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751277AbdBXWZD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:25:03 -0500
+        with ESMTP id S1751277AbdBXWZG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:25:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, borntraeger@de.ibm.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: imbrenda@linux.vnet.ibm.com, aarcange@redhat.com, borntraeger@de.ibm.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix
+     Subject: mm/ksm: documentation for coloured zero pages deduplication
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix.patch
+     mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2.patch
 
 This patch was dropped because it was folded into mm-ksm-improve-deduplication-of-zero-pages-with-colouring.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix
+From: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
+Subject: mm/ksm: documentation for coloured zero pages deduplication
 
-make zero_checksum and ksm_use_zero_pages __read_mostly, per Andrea
+This patch adds the needed documentation for the use_zero_pages property.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/1484927522-1964-1-git-send-email-imbrenda@linux.vnet.ibm.com
+Signed-off-by: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/vm/ksm.txt |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN mm/ksm.c~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix mm/ksm.c
---- a/mm/ksm.c~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix
-+++ a/mm/ksm.c
-@@ -224,10 +224,10 @@ static unsigned int ksm_thread_pages_to_
- static unsigned int ksm_thread_sleep_millisecs = 20;
+diff -puN Documentation/vm/ksm.txt~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2 Documentation/vm/ksm.txt
+--- a/Documentation/vm/ksm.txt~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2
++++ a/Documentation/vm/ksm.txt
+@@ -80,6 +80,20 @@ run              - set 0 to stop ksmd fr
+                    Default: 0 (must be changed to 1 to activate KSM,
+                                except if CONFIG_SYSFS is disabled)
  
- /* Checksum of an empty (zeroed) page */
--static unsigned int zero_checksum;
-+static unsigned int zero_checksum __read_mostly;
++use_zero_pages   - specifies whether empty pages (i.e. allocated pages
++                   that only contain zeroes) should be treated specially.
++                   When set to 1, empty pages are merged with the kernel
++                   zero page(s) instead of with each other as it would
++                   happen normally. This can improve the performance on
++                   architectures with coloured zero pages, depending on
++                   the workload. Care should be taken when enabling this
++                   setting, as it can potentially degrade the performance
++                   of KSM for some workloads, for example if the checksums
++                   of pages candidate for merging match the checksum of
++                   an empty page. This setting can be changed at any time,
++                   it is only effective for pages merged after the change.
++                   Default: 0 (normal KSM behaviour as in earlier releases)
++
+ The effectiveness of KSM and MADV_MERGEABLE is shown in /sys/kernel/mm/ksm/:
  
- /* Whether to merge empty (zeroed) pages with actual zero pages */
--static bool ksm_use_zero_pages;
-+static bool ksm_use_zero_pages __read_mostly;
- 
- #ifdef CONFIG_NUMA
- /* Zeroed when merging across nodes is not allowed */
+ pages_shared     - how many shared pages are being used
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from imbrenda@linux.vnet.ibm.com are
 
 mm-ksm-improve-deduplication-of-zero-pages-with-colouring.patch
-mm-memory_hotplugc-unexport-__remove_pages.patch
-z3fold-add-kref-refcounting-checkpatch-fixes.patch
-mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk-checkpatch-fixes.patch
-userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found-fix-2-fix.patch
-mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes-fix.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-divisors-fix.patch
-lib-update-lz4-compressor-module.patch
-lib-update-lz4-compressor-module-fix-fix.patch
-lib-update-lz4-compressor-module-fix-fix-fix.patch
 
