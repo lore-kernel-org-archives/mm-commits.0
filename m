@@ -1,53 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 085/124] mm/zsmalloc: fix comment in zsmalloc
-Date: Fri, 24 Feb 2017 14:59:48 -0800
-Message-ID: <58b0bae4.TLo81qXwODyjuF0O%akpm@linux-foundation.org>
+Subject: [patch 086/124] mm: cleanups for printing phys_addr_t and
+ dma_addr_t
+Date: Fri, 24 Feb 2017 14:59:51 -0800
+Message-ID: <58b0bae7.pzbunrXWvMRp0neD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38836 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751663AbdBXW7t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:49 -0500
+        with ESMTP id S1751665AbdBXW7w (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xieyisheng1@huawei.com, guohanjun@huawei.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, miles.chen@mediatek.com
 
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/zsmalloc: fix comment in zsmalloc
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: mm: cleanups for printing phys_addr_t and dma_addr_t
 
-The class index and fullness group are not encoded in (first)page->mapping
-any more, after commit 3783689a1aa8 ("zsmalloc: introduce zspage
-structure").  Instead, they are store in struct zspage.  Just delete this
-unneeded comment.
+cleanup rest of dma_addr_t and phys_addr_t type casting in mm
+use %pad for dma_addr_t
+use %pa for phys_addr_t
 
-Link: http://lkml.kernel.org/r/1486620822-36826-1-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Suggested-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>
+Link: http://lkml.kernel.org/r/1486618489-13912-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/dmapool.c |   16 ++++++++--------
+ mm/vmalloc.c |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc
-+++ a/mm/zsmalloc.c
-@@ -267,10 +267,6 @@ struct zs_pool {
- #endif
- };
+diff -puN mm/dmapool.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t mm/dmapool.c
+--- a/mm/dmapool.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t
++++ a/mm/dmapool.c
+@@ -434,11 +434,11 @@ void dma_pool_free(struct dma_pool *pool
+ 		spin_unlock_irqrestore(&pool->lock, flags);
+ 		if (pool->dev)
+ 			dev_err(pool->dev,
+-				"dma_pool_free %s, %p (bad vaddr)/%Lx\n",
+-				pool->name, vaddr, (unsigned long long)dma);
++				"dma_pool_free %s, %p (bad vaddr)/%pad\n",
++				pool->name, vaddr, &dma);
+ 		else
+-			pr_err("dma_pool_free %s, %p (bad vaddr)/%Lx\n",
+-			       pool->name, vaddr, (unsigned long long)dma);
++			pr_err("dma_pool_free %s, %p (bad vaddr)/%pad\n",
++			       pool->name, vaddr, &dma);
+ 		return;
+ 	}
+ 	{
+@@ -450,11 +450,11 @@ void dma_pool_free(struct dma_pool *pool
+ 			}
+ 			spin_unlock_irqrestore(&pool->lock, flags);
+ 			if (pool->dev)
+-				dev_err(pool->dev, "dma_pool_free %s, dma %Lx already free\n",
+-					pool->name, (unsigned long long)dma);
++				dev_err(pool->dev, "dma_pool_free %s, dma %pad already free\n",
++					pool->name, &dma);
+ 			else
+-				pr_err("dma_pool_free %s, dma %Lx already free\n",
+-				       pool->name, (unsigned long long)dma);
++				pr_err("dma_pool_free %s, dma %pad already free\n",
++				       pool->name, &dma);
+ 			return;
+ 		}
+ 	}
+diff -puN mm/vmalloc.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t
++++ a/mm/vmalloc.c
+@@ -2659,7 +2659,7 @@ static int s_show(struct seq_file *m, vo
+ 		seq_printf(m, " pages=%d", v->nr_pages);
  
--/*
-- * A zspage's class index and fullness group
-- * are encoded in its (first)page->mapping
-- */
- #define FULLNESS_BITS	2
- #define CLASS_BITS	8
- #define ISOLATED_BITS	3
+ 	if (v->phys_addr)
+-		seq_printf(m, " phys=%llx", (unsigned long long)v->phys_addr);
++		seq_printf(m, " phys=%pa", &v->phys_addr);
+ 
+ 	if (v->flags & VM_IOREMAP)
+ 		seq_puts(m, " ioremap");
 _
