@@ -1,88 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mmfsdax-change-pmd_fault-to-huge_fault-fix-2.patch removed from -mm tree
-Date: Fri, 24 Feb 2017 14:32:01 -0800
-Message-ID: <58b0b461.UIWdbvu0nxjMY/eV%akpm@linux-foundation.org>
+ mm-migration-make-isolate_movable_page-return-int-type-v6.patch removed
+ from -mm tree
+Date: Fri, 24 Feb 2017 14:35:13 -0800
+Message-ID: <58b0b521.L5aTzM0+rMYwb5ei%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33794 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751277AbdBXWcC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:32:02 -0500
+        with ESMTP id S1751163AbdBXWg0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:36:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, arnd@arndb.de, dave.jiang@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: Remove unused function ext4_dax_huge_fault()
+     Subject: mm/migration: make isolate_movable_page() return int type
 has been removed from the -mm tree.  Its filename was
-     mmfsdax-change-pmd_fault-to-huge_fault-fix-2.patch
+     mm-migration-make-isolate_movable_page-return-int-type-v6.patch
 
-This patch was dropped because it was folded into mmfsdax-change-pmd_fault-to-huge_fault.patch
+This patch was dropped because it was folded into mm-migration-make-isolate_movable_page-return-int-type.patch
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: ext4: Remove unused function ext4_dax_huge_fault()
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/migration: make isolate_movable_page() return int type
 
-ext4_dax_pmd_fault() was renamed to ext4_dax_huge_fault() in this commit:
-
-commit 7e90fc0f8785 ("mm,fs,dax: change ->pmd_fault to ->huge_fault")
-
-However, the vm_operations_struct ops table for ext4 was modified in that
-commit so that .huge_fault called ext4_dax_fault(), not
-ext4_dax_huge_fault().  This is actually fine, though, since as of that
-commit ext4_dax_fault() and ext4_dax_huge_fault() are identical, both
-eventually calling dax_iomap_fault().
-
-So, instead of changing the opts table to have .huge_fault call
-ext4_dax_huge_fault(), just leave it calling ext4_dax_fault() and remove
-the unused function.
-
-This fix also quiets the following compilation warning:
-
-/ext4/file.c:279:1: warning: `ext4_dax_huge_fault' defined but not used [-Wunused-function]
- ext4_dax_huge_fault(struct vm_fault *vmf)
-
-Fixes: 7e90fc0f8785 ("mm,fs,dax: change ->pmd_fault to ->huge_fault")
-Link: http://lkml.kernel.org/r/1485813172-7284-1-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/1486108770-630-2-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/file.c |   21 ---------------------
- 1 file changed, 21 deletions(-)
+ mm/migrate.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext4/file.c~mmfsdax-change-pmd_fault-to-huge_fault-fix-2 fs/ext4/file.c
---- a/fs/ext4/file.c~mmfsdax-change-pmd_fault-to-huge_fault-fix-2
-+++ a/fs/ext4/file.c
-@@ -273,27 +273,6 @@ static int ext4_dax_fault(struct vm_faul
- 	return result;
+diff -puN mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type-v6 mm/migrate.c
+--- a/mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type-v6
++++ a/mm/migrate.c
+@@ -76,7 +76,6 @@ int migrate_prep_local(void)
+ 
+ int isolate_movable_page(struct page *page, isolate_mode_t mode)
+ {
+-	int ret = -EBUSY;
+ 	struct address_space *mapping;
+ 
+ 	/*
+@@ -96,10 +95,8 @@ int isolate_movable_page(struct page *pa
+ 	 * assumes anybody doesn't touch PG_lock of newly allocated page
+ 	 * so unconditionally grapping the lock ruins page's owner side.
+ 	 */
+-	if (unlikely(!__PageMovable(page))) {
+-		ret = -EINVAL;
++	if (unlikely(!__PageMovable(page)))
+ 		goto out_putpage;
+-	}
+ 	/*
+ 	 * As movable pages are not isolated from LRU lists, concurrent
+ 	 * compaction threads can race against page migration functions
+@@ -135,7 +132,7 @@ out_no_isolated:
+ out_putpage:
+ 	put_page(page);
+ out:
+-	return ret;
++	return -EBUSY;
  }
  
--static int
--ext4_dax_huge_fault(struct vm_fault *vmf)
--{
--	int result;
--	struct inode *inode = file_inode(vmf->vma->vm_file);
--	struct super_block *sb = inode->i_sb;
--	bool write = vmf->flags & FAULT_FLAG_WRITE;
--
--	if (write) {
--		sb_start_pagefault(sb);
--		file_update_time(vmf->vma->vm_file);
--	}
--	down_read(&EXT4_I(inode)->i_mmap_sem);
--	result = dax_iomap_fault(vmf, &ext4_iomap_ops);
--	up_read(&EXT4_I(inode)->i_mmap_sem);
--	if (write)
--		sb_end_pagefault(sb);
--
--	return result;
--}
+ /* It should be called on page which is PG_movable */
+_
+
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
+
+mm-migration-make-isolate_movable_page-return-int-type.patch
+mm-migration-make-isolate_movable_page-always-defined.patch
+hwpoison-soft-offlining-for-non-lru-movable-page.patch
+mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain.patch
+mm-zsmalloc-fix-comment-in-zsmalloc.patch
+mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
+
