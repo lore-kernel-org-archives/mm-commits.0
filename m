@@ -1,82 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 086/124] mm: cleanups for printing phys_addr_t and
- dma_addr_t
-Date: Fri, 24 Feb 2017 14:59:51 -0800
-Message-ID: <58b0bae7.pzbunrXWvMRp0neD%akpm@linux-foundation.org>
+Subject: [patch 088/124] mm/thp/autonuma: use TNF flag instead of vm fault
+Date: Fri, 24 Feb 2017 14:59:56 -0800
+Message-ID: <58b0baec.wiYyYZyDIeFIC/U0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38868 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751665AbdBXW7w (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:52 -0500
+        with ESMTP id S1751673AbdBXW76 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, miles.chen@mediatek.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, riel@surriel.com
 
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm: cleanups for printing phys_addr_t and dma_addr_t
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/thp/autonuma: use TNF flag instead of vm fault
 
-cleanup rest of dma_addr_t and phys_addr_t type casting in mm
-use %pad for dma_addr_t
-use %pa for phys_addr_t
+We are using the wrong flag value in task_numa_falt function.  This can
+result in us doing wrong numa fault statistics update, because we update
+num_pages_migrate and numa_fault_locality etc based on the flag argument
+passed.
 
-Link: http://lkml.kernel.org/r/1486618489-13912-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Fixes: bae473a423 ("mm: introduce fault_env")
+Link: http://lkml.kernel.org/r/1487498395-9544-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |   16 ++++++++--------
- mm/vmalloc.c |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/dmapool.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t mm/dmapool.c
---- a/mm/dmapool.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t
-+++ a/mm/dmapool.c
-@@ -434,11 +434,11 @@ void dma_pool_free(struct dma_pool *pool
- 		spin_unlock_irqrestore(&pool->lock, flags);
- 		if (pool->dev)
- 			dev_err(pool->dev,
--				"dma_pool_free %s, %p (bad vaddr)/%Lx\n",
--				pool->name, vaddr, (unsigned long long)dma);
-+				"dma_pool_free %s, %p (bad vaddr)/%pad\n",
-+				pool->name, vaddr, &dma);
- 		else
--			pr_err("dma_pool_free %s, %p (bad vaddr)/%Lx\n",
--			       pool->name, vaddr, (unsigned long long)dma);
-+			pr_err("dma_pool_free %s, %p (bad vaddr)/%pad\n",
-+			       pool->name, vaddr, &dma);
- 		return;
- 	}
- 	{
-@@ -450,11 +450,11 @@ void dma_pool_free(struct dma_pool *pool
- 			}
- 			spin_unlock_irqrestore(&pool->lock, flags);
- 			if (pool->dev)
--				dev_err(pool->dev, "dma_pool_free %s, dma %Lx already free\n",
--					pool->name, (unsigned long long)dma);
-+				dev_err(pool->dev, "dma_pool_free %s, dma %pad already free\n",
-+					pool->name, &dma);
- 			else
--				pr_err("dma_pool_free %s, dma %Lx already free\n",
--				       pool->name, (unsigned long long)dma);
-+				pr_err("dma_pool_free %s, dma %pad already free\n",
-+				       pool->name, &dma);
- 			return;
- 		}
- 	}
-diff -puN mm/vmalloc.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t mm/vmalloc.c
---- a/mm/vmalloc.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t
-+++ a/mm/vmalloc.c
-@@ -2659,7 +2659,7 @@ static int s_show(struct seq_file *m, vo
- 		seq_printf(m, " pages=%d", v->nr_pages);
+diff -puN mm/huge_memory.c~mm-thp-autonuma-use-tnf-flag-instead-of-vm-fault mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-autonuma-use-tnf-flag-instead-of-vm-fault
++++ a/mm/huge_memory.c
+@@ -1506,7 +1506,7 @@ out:
  
- 	if (v->phys_addr)
--		seq_printf(m, " phys=%llx", (unsigned long long)v->phys_addr);
-+		seq_printf(m, " phys=%pa", &v->phys_addr);
+ 	if (page_nid != -1)
+ 		task_numa_fault(last_cpupid, page_nid, HPAGE_PMD_NR,
+-				vmf->flags);
++				flags);
  
- 	if (v->flags & VM_IOREMAP)
- 		seq_puts(m, " ioremap");
+ 	return 0;
+ }
 _
