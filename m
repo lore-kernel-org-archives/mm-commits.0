@@ -1,161 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 081/124] mm: remove shmem_mapping() shmem_zero_setup()
- duplicates
-Date: Fri, 24 Feb 2017 14:59:36 -0800
-Message-ID: <58b0bad8.N9Yh9VKMN9y4Cyui%akpm@linux-foundation.org>
+Subject: [patch 083/124] mm/zsmalloc: remove redundant SetPagePrivate2 in
+ create_page_chain
+Date: Fri, 24 Feb 2017 14:59:42 -0800
+Message-ID: <58b0bade.Bq9Hdk3/Z1xuTRaM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38808 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751647AbdBXW7h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:37 -0500
+        with ESMTP id S1751659AbdBXW7n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, hannes@cmpxchg.org, monstr@monstr.eu, mpe@ellerman.id.au
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xieyisheng1@huawei.com, minchan@kernel.org, sergey.senozhatsky@gmail.com
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: remove shmem_mapping() shmem_zero_setup() duplicates
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/zsmalloc: remove redundant SetPagePrivate2 in create_page_chain
 
-Remove the prototypes for shmem_mapping() and shmem_zero_setup() from
-linux/mm.h, since they are already provided in linux/shmem_fs.h.  But
-shmem_fs.h must then provide the inline stub for shmem_mapping() when
-CONFIG_SHMEM is not set, and a few more cfiles now need to #include it.
+We had used page->lru to link the component pages (except the first page)
+of a zspage, and used INIT_LIST_HEAD(&page->lru) to init it.  Therefore,
+to get the last page's next page, which is NULL, we had to use page flag
+PG_Private_2 to identify it.
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1702081658250.1549@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+But now, we use page->freelist to link all of the pages in zspage and init
+the page->freelist as NULL for last page, so no need to use PG_Private_2
+anymore.
+
+This remove redundant SetPagePrivate2 in create_page_chain and
+ClearPagePrivate2 in reset_page().  Save a few cycles for migration of
+zsmalloc page :)
+
+Link: http://lkml.kernel.org/r/1487076509-49270-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/pci/pci-common.c |    1 +
- arch/powerpc/kernel/pci-common.c |    1 +
- include/linux/mm.h               |   10 ----------
- include/linux/shmem_fs.h         |    7 +++++++
- mm/madvise.c                     |    1 +
- mm/memcontrol.c                  |    1 +
- mm/mincore.c                     |    1 +
- mm/truncate.c                    |    1 +
- mm/workingset.c                  |    1 +
- 9 files changed, 14 insertions(+), 10 deletions(-)
+ mm/zsmalloc.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/microblaze/pci/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates arch/microblaze/pci/pci-common.c
---- a/arch/microblaze/pci/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/arch/microblaze/pci/pci-common.c
-@@ -22,6 +22,7 @@
- #include <linux/init.h>
- #include <linux/bootmem.h>
- #include <linux/mm.h>
-+#include <linux/shmem_fs.h>
- #include <linux/list.h>
- #include <linux/syscalls.h>
- #include <linux/irq.h>
-diff -puN arch/powerpc/kernel/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates arch/powerpc/kernel/pci-common.c
---- a/arch/powerpc/kernel/pci-common.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/arch/powerpc/kernel/pci-common.c
-@@ -25,6 +25,7 @@
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
- #include <linux/mm.h>
-+#include <linux/shmem_fs.h>
- #include <linux/list.h>
- #include <linux/syscalls.h>
- #include <linux/irq.h>
-diff -puN include/linux/mm.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/include/linux/mm.h
-@@ -1168,16 +1168,6 @@ extern void pagefault_out_of_memory(void
- 
- extern void show_free_areas(unsigned int flags, nodemask_t *nodemask);
- 
--int shmem_zero_setup(struct vm_area_struct *);
--#ifdef CONFIG_SHMEM
--bool shmem_mapping(struct address_space *mapping);
--#else
--static inline bool shmem_mapping(struct address_space *mapping)
--{
--	return false;
--}
--#endif
--
- extern bool can_do_mlock(void);
- extern int user_shm_lock(size_t, struct user_struct *);
- extern void user_shm_unlock(size_t, struct user_struct *);
-diff -puN include/linux/shmem_fs.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/include/linux/shmem_fs.h
-@@ -57,7 +57,14 @@ extern int shmem_zero_setup(struct vm_ar
- extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags);
- extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
-+#ifdef CONFIG_SHMEM
- extern bool shmem_mapping(struct address_space *mapping);
-+#else
-+static inline bool shmem_mapping(struct address_space *mapping)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_SHMEM */
- extern void shmem_unlock_mapping(struct address_space *mapping);
- extern struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
- 					pgoff_t index, gfp_t gfp_mask);
-diff -puN mm/madvise.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/madvise.c
---- a/mm/madvise.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/mm/madvise.c
-@@ -21,6 +21,7 @@
- #include <linux/backing-dev.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/shmem_fs.h>
- #include <linux/mmu_notifier.h>
- 
- #include <asm/tlb.h>
-diff -puN mm/memcontrol.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/memcontrol.c
---- a/mm/memcontrol.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/mm/memcontrol.c
-@@ -35,6 +35,7 @@
- #include <linux/memcontrol.h>
- #include <linux/cgroup.h>
- #include <linux/mm.h>
-+#include <linux/shmem_fs.h>
- #include <linux/hugetlb.h>
- #include <linux/pagemap.h>
- #include <linux/smp.h>
-diff -puN mm/mincore.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/mincore.c
---- a/mm/mincore.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/mm/mincore.c
-@@ -14,6 +14,7 @@
- #include <linux/syscalls.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/shmem_fs.h>
- #include <linux/hugetlb.h>
- 
- #include <linux/uaccess.h>
-diff -puN mm/truncate.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/truncate.c
---- a/mm/truncate.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/mm/truncate.c
-@@ -20,6 +20,7 @@
- #include <linux/task_io_accounting_ops.h>
- #include <linux/buffer_head.h>	/* grr. try_to_release_page,
- 				   do_invalidatepage */
-+#include <linux/shmem_fs.h>
- #include <linux/cleancache.h>
- #include <linux/rmap.h>
- #include "internal.h"
-diff -puN mm/workingset.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates mm/workingset.c
---- a/mm/workingset.c~mm-remove-shmem_mapping-shmem_zero_setup-duplicates
-+++ a/mm/workingset.c
-@@ -6,6 +6,7 @@
- 
- #include <linux/memcontrol.h>
- #include <linux/writeback.h>
-+#include <linux/shmem_fs.h>
- #include <linux/pagemap.h>
- #include <linux/atomic.h>
- #include <linux/module.h>
+diff -puN mm/zsmalloc.c~mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain
++++ a/mm/zsmalloc.c
+@@ -24,7 +24,6 @@
+  *
+  * Usage of struct page flags:
+  *	PG_private: identifies the first component page
+- *	PG_private2: identifies the last component page
+  *	PG_owner_priv_1: identifies the huge component page
+  *
+  */
+@@ -938,7 +937,6 @@ static void reset_page(struct page *page
+ {
+ 	__ClearPageMovable(page);
+ 	ClearPagePrivate(page);
+-	ClearPagePrivate2(page);
+ 	set_page_private(page, 0);
+ 	page_mapcount_reset(page);
+ 	ClearPageHugeObject(page);
+@@ -1085,7 +1083,7 @@ static void create_page_chain(struct siz
+ 	 * 2. each sub-page point to zspage using page->private
+ 	 *
+ 	 * we set PG_private to identify the first page (i.e. no other sub-page
+-	 * has this flag set) and PG_private_2 to identify the last page.
++	 * has this flag set).
+ 	 */
+ 	for (i = 0; i < nr_pages; i++) {
+ 		page = pages[i];
+@@ -1100,8 +1098,6 @@ static void create_page_chain(struct siz
+ 		} else {
+ 			prev_page->freelist = page;
+ 		}
+-		if (i == nr_pages - 1)
+-			SetPagePrivate2(page);
+ 		prev_page = page;
+ 	}
+ }
 _
