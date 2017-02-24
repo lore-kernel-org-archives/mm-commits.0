@@ -1,99 +1,320 @@
 From: akpm@linux-foundation.org
-Subject: [patch 043/124] uprobes: split THPs before trying to replace them
-Date: Fri, 24 Feb 2017 14:57:42 -0800
-Message-ID: <58b0ba66.ecC+a3swuOrfe3d9%akpm@linux-foundation.org>
+Subject: [patch 044/124] mm: introduce page_vma_mapped_walk()
+Date: Fri, 24 Feb 2017 14:57:45 -0800
+Message-ID: <58b0ba69.f79dmxJ1tr67nqi+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38192 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751470AbdBXW5o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:57:44 -0500
+        with ESMTP id S1751470AbdBXW5r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:57:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com
 
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: uprobes: split THPs before trying to replace them
+Subject: mm: introduce page_vma_mapped_walk()
 
-Patch series "Fix few rmap-related THP bugs", v3.
+Introduce a new interface to check if a page is mapped into a vma.  It
+aims to address shortcomings of page_check_address{,_transhuge}.
 
-The patchset fixes handing PTE-mapped THPs in page_referenced() and
-page_idle_clear_pte_refs().
+Existing interface is not able to handle PTE-mapped THPs: it only finds
+the first PTE.  The rest lefted unnoticed.
 
-To achieve that I've intrdocued new helper -- page_vma_mapped_walk() --
-which replaces all page_check_address{,_transhuge}() and covers all THP
-cases.
+page_vma_mapped_walk() iterates over all possible mapping of the page in
+the vma.
 
-Patchset overview:
-  - First patch fixes one uprobe bug (unrelated to the rest of the
-    patchset, just spotted it at the same time);
-
-  - Patches 2-5 fix handling PTE-mapped THPs in page_referenced(),
-    page_idle_clear_pte_refs() and rmap core;
-
-  - Patches 6-12 convert all page_check_address{,_transhuge}() users (plus
-    remove_migration_pte()) to page_vma_mapped_walk() and drop unused helpers.
-
-I think the fixes are not critical enough for stable@ as they don't lead
-to crashes or hangs, only suboptimal behaviour.
-
-
-
-This patch (of 12):
-
-For THPs page_check_address() always fails.  It leads to endless loop in
-uprobe_write_opcode().
-
-Testcase with huge-tmpfs (uprobes cannot probe anonymous memory).
-
-	mount -t debugfs none /sys/kernel/debug
-	mount -t tmpfs -o huge=always none /mnt
-	gcc -Wall -O2 -o /mnt/test -x c - <<EOF
-	int main(void)
-	{
-		return 0;
-	}
-	/* Padding to map the code segment with huge pmd */
-	asm (".zero 2097152");
-	EOF
-	echo 'p /mnt/test:0' > /sys/kernel/debug/tracing/uprobe_events
-	echo 1 > /sys/kernel/debug/tracing/events/uprobes/enable
-	/mnt/test
-
-Let's split THPs before trying to replace.
-
-Link: http://lkml.kernel.org/r/20170129173858.45174-2-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/20170129173858.45174-3-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/rmap.h |   26 +++++
+ mm/Makefile          |    6 -
+ mm/huge_memory.c     |    9 +
+ mm/page_vma_mapped.c |  188 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 224 insertions(+), 5 deletions(-)
 
-diff -puN kernel/events/uprobes.c~uprobes-split-thps-before-trying-replace-them kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~uprobes-split-thps-before-trying-replace-them
-+++ a/kernel/events/uprobes.c
-@@ -300,8 +300,8 @@ int uprobe_write_opcode(struct mm_struct
+diff -puN include/linux/rmap.h~mm-introduce-page_vma_mapped_walk include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-introduce-page_vma_mapped_walk
++++ a/include/linux/rmap.h
+@@ -9,6 +9,7 @@
+ #include <linux/mm.h>
+ #include <linux/rwsem.h>
+ #include <linux/memcontrol.h>
++#include <linux/highmem.h>
  
- retry:
- 	/* Read the page with vaddr into memory */
--	ret = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &old_page,
--			&vma, NULL);
-+	ret = get_user_pages_remote(NULL, mm, vaddr, 1,
-+			FOLL_FORCE | FOLL_SPLIT, &old_page, &vma, NULL);
- 	if (ret <= 0)
- 		return ret;
+ /*
+  * The anon_vma heads a list of private "related" vmas, to scan if
+@@ -232,6 +233,31 @@ static inline bool page_check_address_tr
+ }
+ #endif
  
++/* Avoid racy checks */
++#define PVMW_SYNC		(1 << 0)
++/* Look for migarion entries rather than present PTEs */
++#define PVMW_MIGRATION		(1 << 1)
++
++struct page_vma_mapped_walk {
++	struct page *page;
++	struct vm_area_struct *vma;
++	unsigned long address;
++	pmd_t *pmd;
++	pte_t *pte;
++	spinlock_t *ptl;
++	unsigned int flags;
++};
++
++static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
++{
++	if (pvmw->pte)
++		pte_unmap(pvmw->pte);
++	if (pvmw->ptl)
++		spin_unlock(pvmw->ptl);
++}
++
++bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw);
++
+ /*
+  * Used by swapoff to help locate where page is expected in vma.
+  */
+diff -puN mm/Makefile~mm-introduce-page_vma_mapped_walk mm/Makefile
+--- a/mm/Makefile~mm-introduce-page_vma_mapped_walk
++++ a/mm/Makefile
+@@ -23,8 +23,10 @@ KCOV_INSTRUMENT_vmstat.o := n
+ 
+ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= gup.o highmem.o memory.o mincore.o \
+-			   mlock.o mmap.o mprotect.o mremap.o msync.o rmap.o \
+-			   vmalloc.o pagewalk.o pgtable-generic.o
++			   mlock.o mmap.o mprotect.o mremap.o msync.o \
++			   page_vma_mapped.o pagewalk.o pgtable-generic.o \
++			   rmap.o vmalloc.o
++
+ 
+ ifdef CONFIG_CROSS_MEMORY_ATTACH
+ mmu-$(CONFIG_MMU)	+= process_vm_access.o
+diff -puN mm/huge_memory.c~mm-introduce-page_vma_mapped_walk mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-introduce-page_vma_mapped_walk
++++ a/mm/huge_memory.c
+@@ -2129,9 +2129,12 @@ static void freeze_page(struct page *pag
+ static void unfreeze_page(struct page *page)
+ {
+ 	int i;
+-
+-	for (i = 0; i < HPAGE_PMD_NR; i++)
+-		remove_migration_ptes(page + i, page + i, true);
++	if (PageTransHuge(page)) {
++		remove_migration_ptes(page, page, true);
++	} else {
++		for (i = 0; i < HPAGE_PMD_NR; i++)
++			remove_migration_ptes(page + i, page + i, true);
++	}
+ }
+ 
+ static void __split_huge_page_tail(struct page *head, int tail,
+diff -puN /dev/null mm/page_vma_mapped.c
+--- /dev/null
++++ a/mm/page_vma_mapped.c
+@@ -0,0 +1,188 @@
++#include <linux/mm.h>
++#include <linux/rmap.h>
++#include <linux/hugetlb.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
++
++#include "internal.h"
++
++static inline bool check_pmd(struct page_vma_mapped_walk *pvmw)
++{
++	pmd_t pmde;
++	/*
++	 * Make sure we don't re-load pmd between present and !trans_huge check.
++	 * We need a consistent view.
++	 */
++	pmde = READ_ONCE(*pvmw->pmd);
++	return pmd_present(pmde) && !pmd_trans_huge(pmde);
++}
++
++static inline bool not_found(struct page_vma_mapped_walk *pvmw)
++{
++	page_vma_mapped_walk_done(pvmw);
++	return false;
++}
++
++static bool map_pte(struct page_vma_mapped_walk *pvmw)
++{
++	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
++	if (!(pvmw->flags & PVMW_SYNC)) {
++		if (pvmw->flags & PVMW_MIGRATION) {
++			if (!is_swap_pte(*pvmw->pte))
++				return false;
++		} else {
++			if (!pte_present(*pvmw->pte))
++				return false;
++		}
++	}
++	pvmw->ptl = pte_lockptr(pvmw->vma->vm_mm, pvmw->pmd);
++	spin_lock(pvmw->ptl);
++	return true;
++}
++
++static bool check_pte(struct page_vma_mapped_walk *pvmw)
++{
++	if (pvmw->flags & PVMW_MIGRATION) {
++#ifdef CONFIG_MIGRATION
++		swp_entry_t entry;
++		if (!is_swap_pte(*pvmw->pte))
++			return false;
++		entry = pte_to_swp_entry(*pvmw->pte);
++		if (!is_migration_entry(entry))
++			return false;
++		if (migration_entry_to_page(entry) - pvmw->page >=
++				hpage_nr_pages(pvmw->page)) {
++			return false;
++		}
++		if (migration_entry_to_page(entry) < pvmw->page)
++			return false;
++#else
++		WARN_ON_ONCE(1);
++#endif
++	} else {
++		if (!pte_present(*pvmw->pte))
++			return false;
++
++		/* THP can be referenced by any subpage */
++		if (pte_page(*pvmw->pte) - pvmw->page >=
++				hpage_nr_pages(pvmw->page)) {
++			return false;
++		}
++		if (pte_page(*pvmw->pte) < pvmw->page)
++			return false;
++	}
++
++	return true;
++}
++
++/**
++ * page_vma_mapped_walk - check if @pvmw->page is mapped in @pvmw->vma at
++ * @pvmw->address
++ * @pvmw: pointer to struct page_vma_mapped_walk. page, vma, address and flags
++ * must be set. pmd, pte and ptl must be NULL.
++ *
++ * Returns true if the page is mapped in the vma. @pvmw->pmd and @pvmw->pte point
++ * to relevant page table entries. @pvmw->ptl is locked. @pvmw->address is
++ * adjusted if needed (for PTE-mapped THPs).
++ *
++ * If @pvmw->pmd is set but @pvmw->pte is not, you have found PMD-mapped page
++ * (usually THP). For PTE-mapped THP, you should run page_vma_mapped_walk() in
++ * a loop to find all PTEs that map the THP.
++ *
++ * For HugeTLB pages, @pvmw->pte is set to the relevant page table entry
++ * regardless of which page table level the page is mapped at. @pvmw->pmd is
++ * NULL.
++ *
++ * Retruns false if there are no more page table entries for the page in
++ * the vma. @pvmw->ptl is unlocked and @pvmw->pte is unmapped.
++ *
++ * If you need to stop the walk before page_vma_mapped_walk() returned false,
++ * use page_vma_mapped_walk_done(). It will do the housekeeping.
++ */
++bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
++{
++	struct mm_struct *mm = pvmw->vma->vm_mm;
++	struct page *page = pvmw->page;
++	pgd_t *pgd;
++	pud_t *pud;
++
++	/* The only possible pmd mapping has been handled on last iteration */
++	if (pvmw->pmd && !pvmw->pte)
++		return not_found(pvmw);
++
++	/* Only for THP, seek to next pte entry makes sense */
++	if (pvmw->pte) {
++		if (!PageTransHuge(pvmw->page) || PageHuge(pvmw->page))
++			return not_found(pvmw);
++		goto next_pte;
++	}
++
++	if (unlikely(PageHuge(pvmw->page))) {
++		/* when pud is not present, pte will be NULL */
++		pvmw->pte = huge_pte_offset(mm, pvmw->address);
++		if (!pvmw->pte)
++			return false;
++
++		pvmw->ptl = huge_pte_lockptr(page_hstate(page), mm, pvmw->pte);
++		spin_lock(pvmw->ptl);
++		if (!check_pte(pvmw))
++			return not_found(pvmw);
++		return true;
++	}
++restart:
++	pgd = pgd_offset(mm, pvmw->address);
++	if (!pgd_present(*pgd))
++		return false;
++	pud = pud_offset(pgd, pvmw->address);
++	if (!pud_present(*pud))
++		return false;
++	pvmw->pmd = pmd_offset(pud, pvmw->address);
++	if (pmd_trans_huge(*pvmw->pmd)) {
++		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
++		if (!pmd_present(*pvmw->pmd))
++			return not_found(pvmw);
++		if (likely(pmd_trans_huge(*pvmw->pmd))) {
++			if (pvmw->flags & PVMW_MIGRATION)
++				return not_found(pvmw);
++			if (pmd_page(*pvmw->pmd) != page)
++				return not_found(pvmw);
++			return true;
++		} else {
++			/* THP pmd was split under us: handle on pte level */
++			spin_unlock(pvmw->ptl);
++			pvmw->ptl = NULL;
++		}
++	} else {
++		if (!check_pmd(pvmw))
++			return false;
++	}
++	if (!map_pte(pvmw))
++		goto next_pte;
++	while (1) {
++		if (check_pte(pvmw))
++			return true;
++next_pte:	do {
++			pvmw->address += PAGE_SIZE;
++			if (pvmw->address >=
++					__vma_address(pvmw->page, pvmw->vma) +
++					hpage_nr_pages(pvmw->page) * PAGE_SIZE)
++				return not_found(pvmw);
++			/* Did we cross page table boundary? */
++			if (pvmw->address % PMD_SIZE == 0) {
++				pte_unmap(pvmw->pte);
++				if (pvmw->ptl) {
++					spin_unlock(pvmw->ptl);
++					pvmw->ptl = NULL;
++				}
++				goto restart;
++			} else {
++				pvmw->pte++;
++			}
++		} while (pte_none(*pvmw->pte));
++
++		if (!pvmw->ptl) {
++			pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
++			spin_lock(pvmw->ptl);
++		}
++	}
++}
 _
