@@ -1,63 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [patch 015/124] mm: vmscan: remove old flusher wakeup from direct reclaim path
-Date: Fri, 24 Feb 2017 14:56:17 -0800
-Message-ID: <58b0ba11.Dxynis9F3zLXgeeK%akpm@linux-foundation.org>
+Subject: [patch 016/124] mm: vmscan: only write dirty pages that the
+ scanner has seen twice
+Date: Fri, 24 Feb 2017 14:56:20 -0800
+Message-ID: <58b0ba14.8rpHpZ9+HMIYXasg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37140 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751268AbdBXW4T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:19 -0500
+        with ESMTP id S1751268AbdBXW4W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, riel@redhat.com
 
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: remove old flusher wakeup from direct reclaim path
+Subject: mm: vmscan: only write dirty pages that the scanner has seen twice
 
-Direct reclaim has been replaced by kswapd reclaim in pretty much all
-common memory pressure situations, so this code most likely doesn't
-accomplish the described effect anymore.  The previous patch wakes up
-flushers for all reclaimers when we encounter dirty pages at the tail end
-of the LRU.  Remove the crufty old direct reclaim invocation.
+Dirty pages can easily reach the end of the LRU while there are still
+clean pages to reclaim around.  Don't let kswapd write them back just
+because there are a lot of them.  It costs more CPU to find the clean
+pages, but that's almost certainly better than to disrupt writeback from
+the flushers with LRU-order single-page writes from reclaim.  And the
+flushers have been woken up by that point, so we spend IO capacity on
+flushing and CPU capacity on finding the clean cache.
 
-Link: http://lkml.kernel.org/r/20170123181641.23938-4-hannes@cmpxchg.org
+Only start writing dirty pages if they have cycled around the LRU twice
+now and STILL haven't been queued on the IO device.  It's possible that
+the dirty pages are so sparsely distributed across different bdis, inodes,
+memory cgroups, that the flushers take forever to get to the ones we want
+reclaimed.  Once we see them twice on the LRU, we know that's the quicker
+way to find them, so do LRU writeback.
+
+Link: http://lkml.kernel.org/r/20170123181641.23938-5-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ mm/vmscan.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-remove-old-flusher-wakeup-from-direct-reclaim-path mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-old-flusher-wakeup-from-direct-reclaim-path
+diff -puN mm/vmscan.c~mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice
 +++ a/mm/vmscan.c
-@@ -2757,8 +2757,6 @@ static unsigned long do_try_to_free_page
- 					  struct scan_control *sc)
- {
- 	int initial_priority = sc->priority;
--	unsigned long total_scanned = 0;
--	unsigned long writeback_threshold;
- retry:
- 	delayacct_freepages_start();
+@@ -1153,13 +1153,18 @@ static unsigned long shrink_page_list(st
  
-@@ -2771,7 +2769,6 @@ retry:
- 		sc->nr_scanned = 0;
- 		shrink_zones(zonelist, sc);
- 
--		total_scanned += sc->nr_scanned;
- 		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
- 			break;
- 
-@@ -2784,20 +2781,6 @@ retry:
- 		 */
- 		if (sc->priority < DEF_PRIORITY - 2)
- 			sc->may_writepage = 1;
+ 		if (PageDirty(page)) {
+ 			/*
+-			 * Only kswapd can writeback filesystem pages to
+-			 * avoid risk of stack overflow but only writeback
+-			 * if many dirty pages have been encountered.
++			 * Only kswapd can writeback filesystem pages
++			 * to avoid risk of stack overflow. But avoid
++			 * injecting inefficient single-page IO into
++			 * flusher writeback as much as possible: only
++			 * write pages when we've encountered many
++			 * dirty pages, and when we've already scanned
++			 * the rest of the LRU for clean pages and see
++			 * the same dirty pages again (PageReclaim).
+ 			 */
+ 			if (page_is_file_cache(page) &&
+-					(!current_is_kswapd() ||
+-					 !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
++			    (!current_is_kswapd() || !PageReclaim(page) ||
++			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+ 				 * Similar in principal to deactivate_page()
+_
