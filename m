@@ -1,70 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [patch 089/124] mm: do not access page->mapping directly on
- page_endio
-Date: Fri, 24 Feb 2017 14:59:59 -0800
-Message-ID: <58b0baef.VQvJojC4/dGeAwHY%akpm@linux-foundation.org>
+Subject: [patch 091/124] kasan: drain quarantine of memcg slab objects
+Date: Fri, 24 Feb 2017 15:00:05 -0800
+Message-ID: <58b0baf5.fvmwfBG17pxXaCq1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38874 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751676AbdBXXAB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:01 -0500
+        with ESMTP id S1751568AbdBXXAH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, mhocko@suse.com, stable@vger.kernel.org, willy@infradead.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gthelen@google.com, aryabinin@virtuozzo.com, cl@linux.com, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: do not access page->mapping directly on page_endio
+From: Greg Thelen <gthelen@google.com>
+Subject: kasan: drain quarantine of memcg slab objects
 
-With rw_page, page_endio is used for completing IO on a page and it
-propagates write error to the address space if the IO fails.  The
-problem is it accesses page->mapping directly which might be okay for
-file-backed pages but it shouldn't for anonymous page.  Otherwise, it
-can corrupt one of field from anon_vma under us and system goes panic
-randomly.
+Per memcg slab accounting and kasan have a problem with kmem_cache
+destruction.
+- kmem_cache_create() allocates a kmem_cache, which is used for
+  allocations from processes running in root (top) memcg.
+- Processes running in non root memcg and allocating with either
+  __GFP_ACCOUNT or from a SLAB_ACCOUNT cache use a per memcg kmem_cache.
+- Kasan catches use-after-free by having kfree() and kmem_cache_free()
+  defer freeing of objects.  Objects are placed in a quarantine.
+- kmem_cache_destroy() destroys root and non root kmem_caches.  It takes
+  care to drain the quarantine of objects from the root memcg's
+  kmem_cache, but ignores objects associated with non root memcg.  This
+  causes leaks because quarantined per memcg objects refer to per memcg
+  kmem cache being destroyed.
 
-swap_writepage
-  bdev_writepage
-    ops->rw_page
+To see the problem:
+1) create a slab cache with kmem_cache_create(,,,SLAB_ACCOUNT,)
+2) from non root memcg, allocate and free a few objects from cache
+3) dispose of the cache with kmem_cache_destroy()
+kmem_cache_destroy() will trigger a "Slab cache still has objects"
+warning indicating that the per memcg kmem_cache structure was leaked.
 
-I encountered the BUG during developing new zram feature and it was
-really hard to figure it out because it made random crash, somtime
-mmap_sem lockdep, sometime other places where places never related to
-zram/zsmalloc, and not reproducible with some configuration.
+Fix the leak by draining kasan quarantined objects allocated from non
+root memcg.
 
-When I consider how that bug is subtle and people do fast-swap test
-with brd, it's worth to add stable mark, I think.
+Racing memcg deletion is tricky, but handled.  kmem_cache_destroy() =>
+shutdown_memcg_caches() => __shutdown_memcg_cache() => shutdown_cache()
+flushes per memcg quarantined objects, even if that memcg has been
+rmdir'd and gone through memcg_deactivate_kmem_caches().
 
-Fixes: dd6bd0d9c7db ("swap: use bdev_read_page() / bdev_write_page()")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+This leak only affects destroyed SLAB_ACCOUNT kmem caches when kasan is
+enabled.  So I don't think it's worth patching stable kernels.
+
+Link: http://lkml.kernel.org/r/1482257462-36948-1-git-send-email-gthelen@google.com
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Reviewed-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/kasan.h |    4 ++--
+ mm/kasan/kasan.c      |    2 +-
+ mm/kasan/quarantine.c |    1 +
+ mm/slab_common.c      |    4 +++-
+ 4 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/filemap.c~mm-do-not-access-page-mapping-directly-on-page_endio mm/filemap.c
---- a/mm/filemap.c~mm-do-not-access-page-mapping-directly-on-page_endio
-+++ a/mm/filemap.c
-@@ -1008,9 +1008,12 @@ void page_endio(struct page *page, bool
- 		unlock_page(page);
- 	} else {
- 		if (err) {
-+			struct address_space *mapping;
+diff -puN include/linux/kasan.h~kasan-drain-quarantine-of-memcg-slab-objects include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/include/linux/kasan.h
+@@ -52,7 +52,7 @@ void kasan_free_pages(struct page *page,
+ void kasan_cache_create(struct kmem_cache *cache, size_t *size,
+ 			unsigned long *flags);
+ void kasan_cache_shrink(struct kmem_cache *cache);
+-void kasan_cache_destroy(struct kmem_cache *cache);
++void kasan_cache_shutdown(struct kmem_cache *cache);
+ 
+ void kasan_poison_slab(struct page *page);
+ void kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
+@@ -98,7 +98,7 @@ static inline void kasan_cache_create(st
+ 				      size_t *size,
+ 				      unsigned long *flags) {}
+ static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
+-static inline void kasan_cache_destroy(struct kmem_cache *cache) {}
++static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
+ 
+ static inline void kasan_poison_slab(struct page *page) {}
+ static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
+diff -puN mm/kasan/kasan.c~kasan-drain-quarantine-of-memcg-slab-objects mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/mm/kasan/kasan.c
+@@ -435,7 +435,7 @@ void kasan_cache_shrink(struct kmem_cach
+ 	quarantine_remove_cache(cache);
+ }
+ 
+-void kasan_cache_destroy(struct kmem_cache *cache)
++void kasan_cache_shutdown(struct kmem_cache *cache)
+ {
+ 	quarantine_remove_cache(cache);
+ }
+diff -puN mm/kasan/quarantine.c~kasan-drain-quarantine-of-memcg-slab-objects mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/mm/kasan/quarantine.c
+@@ -274,6 +274,7 @@ static void per_cpu_remove_cache(void *a
+ 	qlist_free_all(&to_free, cache);
+ }
+ 
++/* Free all quarantined objects belonging to cache. */
+ void quarantine_remove_cache(struct kmem_cache *cache)
+ {
+ 	unsigned long flags, i;
+diff -puN mm/slab_common.c~kasan-drain-quarantine-of-memcg-slab-objects mm/slab_common.c
+--- a/mm/slab_common.c~kasan-drain-quarantine-of-memcg-slab-objects
++++ a/mm/slab_common.c
+@@ -528,6 +528,9 @@ static void slab_caches_to_rcu_destroy_w
+ 
+ static int shutdown_cache(struct kmem_cache *s)
+ {
++	/* free asan quarantined objects */
++	kasan_cache_shutdown(s);
 +
- 			SetPageError(page);
--			if (page->mapping)
--				mapping_set_error(page->mapping, err);
-+			mapping = page_mapping(page);
-+			if (mapping)
-+				mapping_set_error(mapping, err);
- 		}
- 		end_page_writeback(page);
- 	}
+ 	if (__kmem_cache_shutdown(s) != 0)
+ 		return -EBUSY;
+ 
+@@ -816,7 +819,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 	get_online_cpus();
+ 	get_online_mems();
+ 
+-	kasan_cache_destroy(s);
+ 	mutex_lock(&slab_mutex);
+ 
+ 	s->refcount--;
 _
