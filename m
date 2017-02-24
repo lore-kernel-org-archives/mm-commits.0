@@ -1,72 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+Subject: [folded-merged] mm-page_alloc-split-buffered_rmqueue-fix.patch
  removed from -mm tree
-Date: Fri, 24 Feb 2017 14:27:51 -0800
-Message-ID: <58b0b367.+JKqR8NRNKnzmOeB%akpm@linux-foundation.org>
+Date: Fri, 24 Feb 2017 14:28:42 -0800
+Message-ID: <58b0b39a.vmaO2+GYqXy55j07%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33438 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751163AbdBXW1w (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:27:52 -0500
+        with ESMTP id S1751163AbdBXW2n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:28:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: move dirty pages out of the way until they're flushed fix
+     Subject: mm, page_alloc: split buffered_rmqueue -fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix.patch
+     mm-page_alloc-split-buffered_rmqueue-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed.patch
+This patch was dropped because it was folded into mm-page_alloc-split-buffered_rmqueue.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: move dirty pages out of the way until they're flushed fix
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: split buffered_rmqueue -fix
 
-Mention the trade-off between waiting for writeback and potentially
-causing hot cache refaults in the code where we make this decisions
-and activate writeback pages.
+Vlastimil Babka pointed out that a failed per-cpu refill on a kernel with
+CONFIG_DEBUG_VM may blow up on a VM_BUG_ON_PAGE.  This patch is a fix to
+the mmotm patch mm-page_alloc-split-buffered_rmqueue.patch
 
-Link: http://lkml.kernel.org/r/20170202191957.22872-8-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20170124112723.mshmgwq2ihxku2um@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed-fix
-+++ a/mm/vmscan.c
-@@ -1056,6 +1056,15 @@ static unsigned long shrink_page_list(st
- 		 *    throttling so we could easily OOM just because too many
- 		 *    pages are in writeback and there is nothing else to
- 		 *    reclaim. Wait for the writeback to complete.
-+		 *
-+		 * In cases 1) and 2) we activate the pages to get them out of
-+		 * the way while we continue scanning for clean pages on the
-+		 * inactive list and refilling from the active list. The
-+		 * observation here is that waiting for disk writes is more
-+		 * expensive than potentially causing reloads down the line.
-+		 * Since they're marked for immediate reclaim, they won't put
-+		 * memory pressure on the cache working set any longer than it
-+		 * takes to write them to disk.
- 		 */
- 		if (PageWriteback(page)) {
- 			/* Case 1 above */
+diff -puN mm/page_alloc.c~mm-page_alloc-split-buffered_rmqueue-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-buffered_rmqueue-fix
++++ a/mm/page_alloc.c
+@@ -2697,7 +2697,7 @@ struct page *rmqueue(struct zone *prefer
+ 	local_irq_restore(flags);
+ 
+ out:
+-	VM_BUG_ON_PAGE(bad_range(zone, page), page);
++	VM_BUG_ON_PAGE(page && bad_range(zone, page), page);
+ 	return page;
+ 
+ failed:
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-vmscan-scan-dirty-pages-even-in-laptop-mode.patch
-mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
-mm-vmscan-remove-old-flusher-wakeup-from-direct-reclaim-path.patch
-mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice.patch
-mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed.patch
+mm-page_alloc-split-buffered_rmqueue.patch
+mm-page_alloc-split-alloc_pages_nodemask.patch
+mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
+mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests-fix.patch
+mm-page_alloc-use-static-global-work_struct-for-draining-per-cpu-pages.patch
 
