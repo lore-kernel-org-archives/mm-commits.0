@@ -1,151 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/124] zram: remove waitqueue for IO done
-Date: Fri, 24 Feb 2017 14:56:47 -0800
-Message-ID: <58b0ba2f.9ZFnXL/t8vh5lIjA%akpm@linux-foundation.org>
+Subject: [patch 026/124] mm, page_alloc: remove redundant checks from
+ alloc fastpath
+Date: Fri, 24 Feb 2017 14:56:50 -0800
+Message-ID: <58b0ba32.WWaTOYg9hRHJFLWz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37882 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751407AbdBXW45 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:57 -0500
+        with ESMTP id S1751407AbdBXW47 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: remove waitqueue for IO done
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: remove redundant checks from alloc fastpath
 
-zram_reset_device() waits for ongoing writepage pages to be completed by
-zram->refcount logic.  However, it's pointless because before the reset,
-we prevent further opening of zram by zram->claim and flush all of pending
-IO by fsync_bdev so there should be no pending IO at the
-zram_reset_device().
+The allocation fast path contains two similar checks for zoneref->zone
+being NULL, where zoneref points either to the first zone in the zonelist,
+or to the preferred zone.  These can be NULL either due to empty zonelist,
+or no zone being compatible with given nodemask or task's cpuset.
 
-So let's remove that code which is even broken due to the lack of wake_up
-elsewhere.
+These checks are unnecessary, because the zonelist walks in
+first_zones_zonelist() and get_page_from_freelist() handle a NULL starting
+zoneref->zone or preferred_zoneref->zone safely.  It's safe to fallback to
+__alloc_pages_slowpath() where we also have the check early enough.
 
-Link: http://lkml.kernel.org/r/1485145031-11661-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20170124150511.5710-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   40 ++------------------------------
- drivers/block/zram/zram_drv.h |    3 --
- 2 files changed, 3 insertions(+), 40 deletions(-)
+ mm/page_alloc.c |   18 ------------------
+ 1 file changed, 18 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-waitqueue-for-io-done drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-waitqueue-for-io-done
-+++ a/drivers/block/zram/zram_drv.c
-@@ -391,18 +391,6 @@ static DEVICE_ATTR_RO(io_stat);
- static DEVICE_ATTR_RO(mm_stat);
- static DEVICE_ATTR_RO(debug_stat);
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-redundant-checks-from-alloc-fastpath mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-redundant-checks-from-alloc-fastpath
++++ a/mm/page_alloc.c
+@@ -3915,14 +3915,6 @@ static inline bool prepare_alloc_pages(g
+ 	if (should_fail_alloc_page(gfp_mask, order))
+ 		return false;
  
--static inline bool zram_meta_get(struct zram *zram)
--{
--	if (atomic_inc_not_zero(&zram->refcount))
--		return true;
--	return false;
--}
--
--static inline void zram_meta_put(struct zram *zram)
--{
--	atomic_dec(&zram->refcount);
--}
--
- static void zram_meta_free(struct zram_meta *meta, u64 disksize)
- {
- 	size_t num_pages = disksize >> PAGE_SHIFT;
-@@ -859,22 +847,17 @@ static blk_qc_t zram_make_request(struct
- {
- 	struct zram *zram = queue->queuedata;
- 
--	if (unlikely(!zram_meta_get(zram)))
--		goto error;
--
- 	blk_queue_split(queue, &bio, queue->bio_split);
- 
- 	if (!valid_io_request(zram, bio->bi_iter.bi_sector,
- 					bio->bi_iter.bi_size)) {
- 		atomic64_inc(&zram->stats.invalid_io);
--		goto put_zram;
-+		goto error;
- 	}
- 
- 	__zram_make_request(zram, bio);
--	zram_meta_put(zram);
- 	return BLK_QC_T_NONE;
--put_zram:
--	zram_meta_put(zram);
-+
- error:
- 	bio_io_error(bio);
- 	return BLK_QC_T_NONE;
-@@ -904,13 +887,11 @@ static int zram_rw_page(struct block_dev
- 	struct bio_vec bv;
- 
- 	zram = bdev->bd_disk->private_data;
--	if (unlikely(!zram_meta_get(zram)))
--		goto out;
- 
- 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
- 		atomic64_inc(&zram->stats.invalid_io);
- 		err = -EINVAL;
--		goto put_zram;
-+		goto out;
- 	}
- 
- 	index = sector >> SECTORS_PER_PAGE_SHIFT;
-@@ -921,8 +902,6 @@ static int zram_rw_page(struct block_dev
- 	bv.bv_offset = 0;
- 
- 	err = zram_bvec_rw(zram, &bv, index, offset, is_write);
--put_zram:
--	zram_meta_put(zram);
- out:
- 	/*
- 	 * If I/O fails, just return error(ie, non-zero) without
-@@ -955,17 +934,6 @@ static void zram_reset_device(struct zra
- 	meta = zram->meta;
- 	comp = zram->comp;
- 	disksize = zram->disksize;
 -	/*
--	 * Refcount will go down to 0 eventually and r/w handler
--	 * cannot handle further I/O so it will bail out by
--	 * check zram_meta_get.
+-	 * Check the zones suitable for the gfp_mask contain at least one
+-	 * valid zone. It's possible to have an empty zonelist as a result
+-	 * of __GFP_THISNODE and a memoryless node
 -	 */
--	zram_meta_put(zram);
--	/*
--	 * We want to free zram_meta in process context to avoid
--	 * deadlock between reclaim path and any other locks.
--	 */
--	wait_event(zram->io_done, atomic_read(&zram->refcount) == 0);
+-	if (unlikely(!ac->zonelist->_zonerefs->zone))
+-		return false;
+-
+ 	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
+ 		*alloc_flags |= ALLOC_CMA;
  
- 	/* Reset stats */
- 	memset(&zram->stats, 0, sizeof(zram->stats));
-@@ -1013,8 +981,6 @@ static ssize_t disksize_store(struct dev
- 		goto out_destroy_comp;
- 	}
+@@ -3962,22 +3954,12 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 		return NULL;
  
--	init_waitqueue_head(&zram->io_done);
--	atomic_set(&zram->refcount, 1);
- 	zram->meta = meta;
- 	zram->comp = comp;
- 	zram->disksize = disksize;
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-waitqueue-for-io-done drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-waitqueue-for-io-done
-+++ a/drivers/block/zram/zram_drv.h
-@@ -106,9 +106,6 @@ struct zram {
- 	unsigned long limit_pages;
+ 	finalise_ac(gfp_mask, order, &ac);
+-	if (!ac.preferred_zoneref->zone) {
+-		page = NULL;
+-		/*
+-		 * This might be due to race with cpuset_current_mems_allowed
+-		 * update, so make sure we retry with original nodemask in the
+-		 * slow path.
+-		 */
+-		goto no_zone;
+-	}
  
- 	struct zram_stats stats;
--	atomic_t refcount; /* refcount for zram_meta */
--	/* wait all IO under all of cpu are done */
--	wait_queue_head_t io_done;
+ 	/* First allocation attempt */
+ 	page = get_page_from_freelist(alloc_mask, order, alloc_flags, &ac);
+ 	if (likely(page))
+ 		goto out;
+ 
+-no_zone:
  	/*
- 	 * This is the limit on amount of *uncompressed* worth of data
- 	 * we can store in a disk.
+ 	 * Runtime PM, block IO and its error handling path can deadlock
+ 	 * because I/O on the device might not complete.
 _
