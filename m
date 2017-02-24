@@ -1,38 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [patch 061/124] mm: alloc_contig_range: allow to specify GFP mask
-Date: Fri, 24 Feb 2017 14:58:37 -0800
-Message-ID: <58b0ba9d.lU4/dFl9wj+qlIVs%akpm@linux-foundation.org>
+Subject: [patch 062/124] mm: cma_alloc: allow to specify GFP mask
+Date: Fri, 24 Feb 2017 14:58:41 -0800
+Message-ID: <58b0baa1.uTJAN6NCv8857Xqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38524 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751518AbdBXW6j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:58:39 -0500
+        with ESMTP id S1751520AbdBXW6m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:58:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, l.stach@pengutronix.de, agraf@suse.com, catalin.marinas@arm.com, chris@zankel.net, iamjoonsoo.kim@lge.com, mhocko@suse.com, pbonzini@redhat.com, ralf@linux-mips.org, rkrcmar@redhat.com, vbabka@suse.cz, will.deacon@arm.com
 
 From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm: alloc_contig_range: allow to specify GFP mask
+Subject: mm: cma_alloc: allow to specify GFP mask
 
-Currently alloc_contig_range assumes that the compaction should be done
-with the default GFP_KERNEL flags.  This is probably right for all current
-uses of this interface, but may change as CMA is used in more use-cases
-(including being the default DMA memory allocator on some platforms).
+Most users of this interface just want to use it with the default
+GFP_KERNEL flags, but for cases where DMA memory is allocated it may be
+called from a different context.
 
-Change the function prototype, to allow for passing through the GFP mask
-set by upper layers.
+No functional change yet, just passing through the flag to the underlying
+alloc_contig_range function.
 
-Also respect global restrictions by applying memalloc_noio_flags to the
-passed in flags.
-
-Link: http://lkml.kernel.org/r/20170127172328.18574-1-l.stach@pengutronix.de
+Link: http://lkml.kernel.org/r/20170127172328.18574-2-l.stach@pengutronix.de
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Radim Krcmar <rkrcmar@redhat.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
@@ -44,77 +40,82 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- mm/cma.c            |    3 ++-
- mm/hugetlb.c        |    3 ++-
- mm/page_alloc.c     |    5 +++--
- 4 files changed, 8 insertions(+), 5 deletions(-)
+ arch/powerpc/kvm/book3s_hv_builtin.c |    3 ++-
+ drivers/base/dma-contiguous.c        |    2 +-
+ include/linux/cma.h                  |    3 ++-
+ mm/cma.c                             |    5 +++--
+ mm/cma_debug.c                       |    2 +-
+ 5 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-alloc_contig_range-allow-to-specify-gfp-mask include/linux/gfp.h
---- a/include/linux/gfp.h~mm-alloc_contig_range-allow-to-specify-gfp-mask
-+++ a/include/linux/gfp.h
-@@ -541,7 +541,7 @@ static inline bool pm_suspended_storage(
- #if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
- /* The below functions must be run on a range from a single zone. */
- extern int alloc_contig_range(unsigned long start, unsigned long end,
--			      unsigned migratetype);
-+			      unsigned migratetype, gfp_t gfp_mask);
- extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
+diff -puN arch/powerpc/kvm/book3s_hv_builtin.c~mm-cma_alloc-allow-to-specify-gfp-mask arch/powerpc/kvm/book3s_hv_builtin.c
+--- a/arch/powerpc/kvm/book3s_hv_builtin.c~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/arch/powerpc/kvm/book3s_hv_builtin.c
+@@ -56,7 +56,8 @@ struct page *kvm_alloc_hpt_cma(unsigned
+ {
+ 	VM_BUG_ON(order_base_2(nr_pages) < KVM_CMA_CHUNK_ORDER - PAGE_SHIFT);
+ 
+-	return cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES));
++	return cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES),
++			 GFP_KERNEL);
+ }
+ EXPORT_SYMBOL_GPL(kvm_alloc_hpt_cma);
+ 
+diff -puN drivers/base/dma-contiguous.c~mm-cma_alloc-allow-to-specify-gfp-mask drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/drivers/base/dma-contiguous.c
+@@ -193,7 +193,7 @@ struct page *dma_alloc_from_contiguous(s
+ 	if (align > CONFIG_CMA_ALIGNMENT)
+ 		align = CONFIG_CMA_ALIGNMENT;
+ 
+-	return cma_alloc(dev_get_cma_area(dev), count, align);
++	return cma_alloc(dev_get_cma_area(dev), count, align, GFP_KERNEL);
+ }
+ 
+ /**
+diff -puN include/linux/cma.h~mm-cma_alloc-allow-to-specify-gfp-mask include/linux/cma.h
+--- a/include/linux/cma.h~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/include/linux/cma.h
+@@ -29,6 +29,7 @@ extern int __init cma_declare_contiguous
+ extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ 					unsigned int order_per_bit,
+ 					struct cma **res_cma);
+-extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align);
++extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
++			      gfp_t gfp_mask);
+ extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
  #endif
- 
-diff -puN mm/cma.c~mm-alloc_contig_range-allow-to-specify-gfp-mask mm/cma.c
---- a/mm/cma.c~mm-alloc_contig_range-allow-to-specify-gfp-mask
+diff -puN mm/cma.c~mm-cma_alloc-allow-to-specify-gfp-mask mm/cma.c
+--- a/mm/cma.c~mm-cma_alloc-allow-to-specify-gfp-mask
 +++ a/mm/cma.c
-@@ -402,7 +402,8 @@ struct page *cma_alloc(struct cma *cma,
- 
+@@ -357,7 +357,8 @@ err:
+  * This function allocates part of contiguous memory on specific
+  * contiguous memory area.
+  */
+-struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align)
++struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
++		       gfp_t gfp_mask)
+ {
+ 	unsigned long mask, offset;
+ 	unsigned long pfn = -1;
+@@ -403,7 +404,7 @@ struct page *cma_alloc(struct cma *cma,
  		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
  		mutex_lock(&cma_mutex);
--		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA);
-+		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
-+					 GFP_KERNEL);
+ 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
+-					 GFP_KERNEL);
++					 gfp_mask);
  		mutex_unlock(&cma_mutex);
  		if (ret == 0) {
  			page = pfn_to_page(pfn);
-diff -puN mm/hugetlb.c~mm-alloc_contig_range-allow-to-specify-gfp-mask mm/hugetlb.c
---- a/mm/hugetlb.c~mm-alloc_contig_range-allow-to-specify-gfp-mask
-+++ a/mm/hugetlb.c
-@@ -1052,7 +1052,8 @@ static int __alloc_gigantic_page(unsigne
- 				unsigned long nr_pages)
- {
- 	unsigned long end_pfn = start_pfn + nr_pages;
--	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
-+	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE,
-+				  GFP_KERNEL);
- }
+diff -puN mm/cma_debug.c~mm-cma_alloc-allow-to-specify-gfp-mask mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/mm/cma_debug.c
+@@ -138,7 +138,7 @@ static int cma_alloc_mem(struct cma *cma
+ 	if (!mem)
+ 		return -ENOMEM;
  
- static bool pfn_range_valid_gigantic(struct zone *z,
-diff -puN mm/page_alloc.c~mm-alloc_contig_range-allow-to-specify-gfp-mask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-alloc_contig_range-allow-to-specify-gfp-mask
-+++ a/mm/page_alloc.c
-@@ -7399,6 +7399,7 @@ static int __alloc_contig_migrate_range(
-  *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-  *			in range must have the same migratetype and it must
-  *			be either of the two.
-+ * @gfp_mask:	GFP mask to use during compaction
-  *
-  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-  * aligned, however it's the caller's responsibility to guarantee that
-@@ -7412,7 +7413,7 @@ static int __alloc_contig_migrate_range(
-  * need to be freed with free_contig_range().
-  */
- int alloc_contig_range(unsigned long start, unsigned long end,
--		       unsigned migratetype)
-+		       unsigned migratetype, gfp_t gfp_mask)
- {
- 	unsigned long outer_start, outer_end;
- 	unsigned int order;
-@@ -7424,7 +7425,7 @@ int alloc_contig_range(unsigned long sta
- 		.zone = page_zone(pfn_to_page(start)),
- 		.mode = MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
--		.gfp_mask = GFP_KERNEL,
-+		.gfp_mask = memalloc_noio_flags(gfp_mask),
- 	};
- 	INIT_LIST_HEAD(&cc.migratepages);
- 
+-	p = cma_alloc(cma, count, 0);
++	p = cma_alloc(cma, count, 0, GFP_KERNEL);
+ 	if (!p) {
+ 		kfree(mem);
+ 		return -ENOMEM;
 _
