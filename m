@@ -1,86 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [patch 073/124] mm/autonuma: don't use set_pte_at when updating
- protnone ptes
-Date: Fri, 24 Feb 2017 14:59:13 -0800
-Message-ID: <58b0bac1.oACZJMxdP+mT41P9%akpm@linux-foundation.org>
+Subject: [patch 074/124] mm/autonuma: let architecture override how the
+ write bit should be stashed in a protnone pte.
+Date: Fri, 24 Feb 2017 14:59:16 -0800
+Message-ID: <58b0bac4.jVsy9129ZjM0IL8J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38684 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751624AbdBXW7O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:14 -0500
+        with ESMTP id S1751627AbdBXW7R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, riel@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, michaele@au1.ibm.com, mikey@neuling.org, paulus@samba.org, riel@surriel.com
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/autonuma: don't use set_pte_at when updating protnone ptes
+Subject: mm/autonuma: let architecture override how the write bit should be stashed in a protnone pte.
 
-Architectures like ppc64, use privilege access bit to mark pte non
-accessible.  This implies that kernel can do a copy_to_user to an address
-marked for numa fault.  This also implies that there can be a parallel
-hardware update for the pte.  set_pte_at cannot be used in such scenarios.
-Hence switch the pte update to use ptep_get_and_clear and set_pte_at
-combination.
+Patch series "Numabalancing preserve write fix", v2.
 
-[akpm@linux-foundation.org: remove unwanted ppc change, per Aneesh]
-Link: http://lkml.kernel.org/r/1486400776-28114-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+This patch series address an issue w.r.t THP migration and autonuma
+preserve write feature. migrate_misplaced_transhuge_page() cannot deal with
+concurrent modification of the page. It does a page copy without
+following the migration pte sequence. IIUC, this was done to keep the
+migration simpler and at the time of implemenation we didn't had THP
+page cache which would have required a more elaborate migration scheme.
+That means thp autonuma migration expect the protnone with saved write
+to be done such that both kernel and user cannot update
+the page content. This patch series enables archs like ppc64 to do that.
+We are good with the hash translation mode with the current code,
+because we never create a hardware page table entry for a protnone pte. 
+
+
+This patch (of 2):
+
+Autonuma preserves the write permission across numa fault to avoid taking
+a writefault after a numa fault (Commit: b191f9b106ea " mm: numa: preserve
+PTE write permissions across a NUMA hinting fault").  Architecture can
+implement protnone in different ways and some may choose to implement that
+by clearing Read/ Write/Exec bit of pte.  Setting the write bit on such
+pte can result in wrong behaviour.  Fix this up by allowing arch to
+override how to save the write bit on a protnone pte.
+
+[aneesh.kumar@linux.vnet.ibm.com: don't mark pte saved write in case of dirty_accountable]
+  Link: http://lkml.kernel.org/r/1487942884-16517-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+[aneesh.kumar@linux.vnet.ibm.com: v3]
+  Link: http://lkml.kernel.org/r/1487498625-10891-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1487050314-3892-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Michael Neuling <mikey@neuling.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <michaele@au1.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/asm-generic/pgtable.h |   16 ++++++++++++++++
+ mm/huge_memory.c              |    6 +++---
+ mm/memory.c                   |    2 +-
+ mm/mprotect.c                 |    2 +-
+ 4 files changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN mm/memory.c~mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes mm/memory.c
---- a/mm/memory.c~mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes
+diff -puN include/asm-generic/pgtable.h~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
++++ a/include/asm-generic/pgtable.h
+@@ -225,6 +225,22 @@ static inline void ptep_set_wrprotect(st
+ }
+ #endif
+ 
++#ifndef pte_savedwrite
++#define pte_savedwrite pte_write
++#endif
++
++#ifndef pte_mk_savedwrite
++#define pte_mk_savedwrite pte_mkwrite
++#endif
++
++#ifndef pmd_savedwrite
++#define pmd_savedwrite pmd_write
++#endif
++
++#ifndef pmd_mk_savedwrite
++#define pmd_mk_savedwrite pmd_mkwrite
++#endif
++
+ #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+diff -puN mm/huge_memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
++++ a/mm/huge_memory.c
+@@ -1426,7 +1426,7 @@ int do_huge_pmd_numa_page(struct vm_faul
+ 	}
+ 
+ 	/* See similar comment in do_numa_page for explanation */
+-	if (!pmd_write(pmd))
++	if (!pmd_savedwrite(pmd))
+ 		flags |= TNF_NO_GROUP;
+ 
+ 	/*
+@@ -1489,7 +1489,7 @@ int do_huge_pmd_numa_page(struct vm_faul
+ 	goto out;
+ clear_pmdnuma:
+ 	BUG_ON(!PageLocked(page));
+-	was_writable = pmd_write(pmd);
++	was_writable = pmd_savedwrite(pmd);
+ 	pmd = pmd_modify(pmd, vma->vm_page_prot);
+ 	pmd = pmd_mkyoung(pmd);
+ 	if (was_writable)
+@@ -1744,7 +1744,7 @@ int change_huge_pmd(struct vm_area_struc
+ 			entry = pmdp_huge_get_and_clear_notify(mm, addr, pmd);
+ 			entry = pmd_modify(entry, newprot);
+ 			if (preserve_write)
+-				entry = pmd_mkwrite(entry);
++				entry = pmd_mk_savedwrite(entry);
+ 			ret = HPAGE_PMD_NR;
+ 			set_pmd_at(mm, addr, pmd, entry);
+ 			BUG_ON(vma_is_anonymous(vma) && !preserve_write &&
+diff -puN mm/memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/memory.c
+--- a/mm/memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
 +++ a/mm/memory.c
-@@ -3400,32 +3400,32 @@ static int do_numa_page(struct vm_fault
- 	int last_cpupid;
+@@ -3401,7 +3401,7 @@ static int do_numa_page(struct vm_fault
  	int target_nid;
  	bool migrated = false;
--	pte_t pte = vmf->orig_pte;
--	bool was_writable = pte_write(pte);
-+	pte_t pte;
-+	bool was_writable = pte_write(vmf->orig_pte);
+ 	pte_t pte;
+-	bool was_writable = pte_write(vmf->orig_pte);
++	bool was_writable = pte_savedwrite(vmf->orig_pte);
  	int flags = 0;
  
  	/*
- 	 * The "pte" at this point cannot be used safely without
- 	 * validation through pte_unmap_same(). It's of NUMA type but
- 	 * the pfn may be screwed if the read is non atomic.
--	 *
--	 * We can safely just do a "set_pte_at()", because the old
--	 * page table entry is not accessible, so there would be no
--	 * concurrent hardware modifications to the PTE.
- 	 */
- 	vmf->ptl = pte_lockptr(vma->vm_mm, vmf->pmd);
- 	spin_lock(vmf->ptl);
--	if (unlikely(!pte_same(*vmf->pte, pte))) {
-+	if (unlikely(!pte_same(*vmf->pte, vmf->orig_pte))) {
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 		goto out;
- 	}
+diff -puN mm/mprotect.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/mprotect.c
+--- a/mm/mprotect.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
++++ a/mm/mprotect.c
+@@ -99,7 +99,7 @@ static unsigned long change_pte_range(st
+ 			ptent = ptep_modify_prot_start(mm, addr, pte);
+ 			ptent = pte_modify(ptent, newprot);
+ 			if (preserve_write)
+-				ptent = pte_mkwrite(ptent);
++				ptent = pte_mk_savedwrite(ptent);
  
--	/* Make it present again */
-+	/*
-+	 * Make it present again, Depending on how arch implementes non
-+	 * accessible ptes, some can allow access by kernel mode.
-+	 */
-+	pte = ptep_modify_prot_start(vma->vm_mm, vmf->address, vmf->pte);
- 	pte = pte_modify(pte, vma->vm_page_prot);
- 	pte = pte_mkyoung(pte);
- 	if (was_writable)
- 		pte = pte_mkwrite(pte);
--	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
-+	ptep_modify_prot_commit(vma->vm_mm, vmf->address, vmf->pte, pte);
- 	update_mmu_cache(vma, vmf->address, vmf->pte);
- 
- 	page = vm_normal_page(vma, vmf->address, pte);
+ 			/* Avoid taking write faults for known dirty pages */
+ 			if (dirty_accountable && pte_dirty(ptent) &&
 _
