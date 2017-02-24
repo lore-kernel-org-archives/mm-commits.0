@@ -1,59 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 124/124] checkpatch: remove false unbalanced braces
- warning
-Date: Fri, 24 Feb 2017 15:01:43 -0800
-Message-ID: <58b0bb57.Mu37RCxUyG2bdS6x%akpm@linux-foundation.org>
+Subject: [patch 122/124] checkpatch: add another old address for the FSF
+Date: Fri, 24 Feb 2017 15:01:38 -0800
+Message-ID: <58b0bb52.7Vf4iuGXMEPjRZUL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39336 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751859AbdBXXBp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:45 -0500
+        with ESMTP id S1751860AbdBXXBj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sven@narfation.org, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mawilcox@microsoft.com, joe@perches.com
 
-From: Sven Eckelmann <sven@narfation.org>
-Subject: checkpatch: remove false unbalanced braces warning
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: checkpatch: add another old address for the FSF
 
-Lines containing "} else {" should not be detected as unbalanced braces. 
-But the second check can be reduced to ".+else\s*{" and it therefore never
-checked if the beginning of a line contains any other character (like the
-relevant "}").  This check would also return true for "} else {" and
-create warnings like
+We still have a lot of old addresses for the FSF in the kernel.
 
-    CHECK: Unbalanced braces around else statement
-    #391: FILE: ./net/batman-adv/tvlv.c:391:
-    +   } else {
+willy@harry:~/kernel/idr$ git grep '675 Mass' |wc -l
+1502
+willy@harry:~/kernel/idr$ git grep '59 Temple' |wc -l
+2825
+willy@harry:~/kernel/idr$ git grep '51 Franklin' |wc -l
+2020
 
-The check can be changed to check the whole line for the missing "}" to
-avoid this false positive.
+Let's discourage adding the oldest one too.
 
-Fixes: 0d1532456c26 ("checkpatch: notice unbalanced else braces in a patch")
-Link: http://lkml.kernel.org/r/20170220121644.12209-1-sven@narfation.org
-Signed-off-by: Sven Eckelmann <sven@narfation.org>
+Link: http://lkml.kernel.org/r/20170128173052.GA23532@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-remove-false-unbalanced-braces-warning scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-remove-false-unbalanced-braces-warning
+diff -puN scripts/checkpatch.pl~checkpatch-add-another-old-address-for-the-fsf scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-another-old-address-for-the-fsf
 +++ a/scripts/checkpatch.pl
-@@ -5105,8 +5105,8 @@ sub process {
- 		}
+@@ -2703,6 +2703,7 @@ sub process {
  
- # check for single line unbalanced braces
--		if ($sline =~ /.\s*\}\s*else\s*$/ ||
--		    $sline =~ /.\s*else\s*\{\s*$/) {
-+		if ($sline =~ /^.\s*\}\s*else\s*$/ ||
-+		    $sline =~ /^.\s*else\s*\{\s*$/) {
- 			CHK("BRACES", "Unbalanced braces around else statement\n" . $herecurr);
- 		}
- 
+ # Check for FSF mailing addresses.
+ 		if ($rawline =~ /\bwrite to the Free/i ||
++		    $rawline =~ /\b675\s+Mass\s+Ave/i ||
+ 		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
+ 		    $rawline =~ /\b51\s+Franklin\s+St/i) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
 _
