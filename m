@@ -1,216 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 101/124] m68k: replace gcc specific macros with ones from
- compiler.h
-Date: Fri, 24 Feb 2017 15:00:35 -0800
-Message-ID: <58b0bb13.v2lUqnYAfjEfLeDP%akpm@linux-foundation.org>
+Subject: [patch 105/124] kernel/ksysfs.c: add __ro_after_init to
+ bin_attribute structure
+Date: Fri, 24 Feb 2017 15:00:46 -0800
+Message-ID: <58b0bb1e.P/IEq/AFL8gVLTjd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39040 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751736AbdBXXAg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:36 -0500
+        with ESMTP id S1751756AbdBXXAs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gidisrael@gmail.com, geert@linux-m68k.org, gerg@linux-m68k.org, paul.gortmaker@windriver.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bhumirks@gmail.com, keescook@chromium.org
 
-From: Gideon Israel Dsouza <gidisrael@gmail.com>
-Subject: m68k: replace gcc specific macros with ones from compiler.h
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: kernel/ksysfs.c: add __ro_after_init to bin_attribute structure
 
-There is <linux/compiler.h> which provides macros for various gcc specific
-constructs.  Eg: __weak for __attribute__((weak)).  I've cleaned all
-instances of gcc specific attributes with the right macros for all files
-under /arch/m68k
+The object notes_attr of type bin_attribute is not modified after getting
+initailized by ksysfs_init.  Apart from initialization in ksysfs_init it
+is also passed as an argument to the function sysfs_create_bin_file but
+this argument is of type const.  Therefore, add __ro_after_init to its
+declaration.
 
-Link: http://lkml.kernel.org/r/1485540901-1988-3-git-send-email-gidisrael@gmail.com
-Signed-off-by: Gideon Israel Dsouza <gidisrael@gmail.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Link: http://lkml.kernel.org/r/1486839969-16891-1-git-send-email-bhumirks@gmail.com
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/68000/bootlogo-vz.h     |    4 +++-
- arch/m68k/68000/bootlogo.h        |    4 +++-
- arch/m68k/include/asm/MC68328.h   |    3 ++-
- arch/m68k/include/asm/MC68EZ328.h |    3 ++-
- arch/m68k/include/asm/MC68VZ328.h |    2 +-
- arch/m68k/include/asm/natfeat.h   |    3 ++-
- arch/m68k/lib/ashldi3.c           |    8 ++++----
- arch/m68k/lib/ashrdi3.c           |    8 ++++----
- arch/m68k/lib/lshrdi3.c           |    8 ++++----
- arch/m68k/lib/muldi3.c            |    8 ++++----
- 10 files changed, 29 insertions(+), 22 deletions(-)
+ kernel/ksysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m68k/68000/bootlogo-vz.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/68000/bootlogo-vz.h
---- a/arch/m68k/68000/bootlogo-vz.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/68000/bootlogo-vz.h
-@@ -1,6 +1,8 @@
-+#include <linux/compiler.h>
-+
- #define splash_width 640
- #define splash_height 480
--unsigned char __attribute__ ((aligned(16))) bootlogo_bits[] = {
-+unsigned char __aligned(16) bootlogo_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-diff -puN arch/m68k/68000/bootlogo.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/68000/bootlogo.h
---- a/arch/m68k/68000/bootlogo.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/68000/bootlogo.h
-@@ -1,6 +1,8 @@
-+#include <linux/compiler.h>
-+
- #define bootlogo_width 160
- #define bootlogo_height 160
--unsigned char __attribute__ ((aligned(16))) bootlogo_bits[] = {
-+unsigned char __aligned(16) bootlogo_bits[] = {
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x01, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-   0x00, 0x00, 0x40, 0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-diff -puN arch/m68k/include/asm/MC68328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68328.h
---- a/arch/m68k/include/asm/MC68328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/MC68328.h
-@@ -8,6 +8,7 @@
-  * Copyright (C) 1998  Kenneth Albanowski <kjahds@kjahds.com>,
-  *
-  */
-+#include <linux/compiler.h>
+diff -puN kernel/ksysfs.c~kernel-ksysfs-add-__ro_after_init-to-bin_attribute-structure kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kernel-ksysfs-add-__ro_after_init-to-bin_attribute-structure
++++ a/kernel/ksysfs.c
+@@ -195,7 +195,7 @@ static ssize_t notes_read(struct file *f
+ 	return count;
+ }
  
- #ifndef _MC68328_H_
- #define _MC68328_H_
-@@ -993,7 +994,7 @@ typedef volatile struct {
-   volatile unsigned short int pad1;
-   volatile unsigned short int pad2;
-   volatile unsigned short int pad3;
--} __attribute__((packed)) m68328_uart;
-+} __packed m68328_uart;
- 
- 
- /**********
-diff -puN arch/m68k/include/asm/MC68EZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68EZ328.h
---- a/arch/m68k/include/asm/MC68EZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/MC68EZ328.h
-@@ -9,6 +9,7 @@
-  *                     The Silver Hammer Group, Ltd.
-  *
-  */
-+#include <linux/compiler.h>
- 
- #ifndef _MC68EZ328_H_
- #define _MC68EZ328_H_
-@@ -815,7 +816,7 @@ typedef volatile struct {
-   volatile unsigned short int nipr;
-   volatile unsigned short int pad1;
-   volatile unsigned short int pad2;
--} __attribute__((packed)) m68328_uart;
-+} __packed m68328_uart;
- 
- 
- /**********
-diff -puN arch/m68k/include/asm/MC68VZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/MC68VZ328.h
---- a/arch/m68k/include/asm/MC68VZ328.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/MC68VZ328.h
-@@ -909,7 +909,7 @@ typedef struct {
-   volatile unsigned short int nipr;
-   volatile unsigned short int hmark;
-   volatile unsigned short int unused;
--} __attribute__((packed)) m68328_uart;
-+} __packed m68328_uart;
- 
- 
- 
-diff -puN arch/m68k/include/asm/natfeat.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/include/asm/natfeat.h
---- a/arch/m68k/include/asm/natfeat.h~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/include/asm/natfeat.h
-@@ -6,6 +6,7 @@
-  * This software may be used and distributed according to the terms of
-  * the GNU General Public License (GPL), incorporated herein by reference.
-  */
-+#include <linux/compiler.h>
- 
- #ifndef _NATFEAT_H
- #define _NATFEAT_H
-@@ -17,6 +18,6 @@ void nf_init(void);
- void nf_shutdown(void);
- 
- void nfprint(const char *fmt, ...)
--	__attribute__ ((format (printf, 1, 2)));
-+	__printf(1, 2);
- 
- # endif /* _NATFEAT_H */
-diff -puN arch/m68k/lib/ashldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/ashldi3.c
---- a/arch/m68k/lib/ashldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/ashldi3.c
-@@ -18,10 +18,10 @@ GNU General Public License for more deta
- 
- #define BITS_PER_UNIT 8
- 
--typedef		 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef		 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
- 
-diff -puN arch/m68k/lib/ashrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/ashrdi3.c
---- a/arch/m68k/lib/ashrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/ashrdi3.c
-@@ -18,10 +18,10 @@ GNU General Public License for more deta
- 
- #define BITS_PER_UNIT 8
- 
--typedef		 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef		 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
- 
-diff -puN arch/m68k/lib/lshrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/lshrdi3.c
---- a/arch/m68k/lib/lshrdi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/lshrdi3.c
-@@ -18,10 +18,10 @@ GNU General Public License for more deta
- 
- #define BITS_PER_UNIT 8
- 
--typedef		 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef		 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
- 
-diff -puN arch/m68k/lib/muldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh arch/m68k/lib/muldi3.c
---- a/arch/m68k/lib/muldi3.c~m68k-replaced-gcc-specific-macros-with-ones-from-compilerh
-+++ a/arch/m68k/lib/muldi3.c
-@@ -65,10 +65,10 @@ GNU General Public License for more deta
-     umul_ppmm (__w.s.high, __w.s.low, u, v);				\
-     __w.ll; })
- 
--typedef 	 int SItype	__attribute__ ((mode (SI)));
--typedef unsigned int USItype	__attribute__ ((mode (SI)));
--typedef		 int DItype	__attribute__ ((mode (DI)));
--typedef int word_type __attribute__ ((mode (__word__)));
-+typedef 	 int SItype	__mode(SI);
-+typedef unsigned int USItype	__mode(SI);
-+typedef		 int DItype	__mode(DI);
-+typedef int word_type           __mode(__word__);
- 
- struct DIstruct {SItype high, low;};
- 
+-static struct bin_attribute notes_attr = {
++static struct bin_attribute notes_attr __ro_after_init  = {
+ 	.attr = {
+ 		.name = "notes",
+ 		.mode = S_IRUGO,
 _
