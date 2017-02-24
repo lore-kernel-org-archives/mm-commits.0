@@ -1,74 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2.patch
- removed from -mm tree
-Date: Fri, 24 Feb 2017 14:25:05 -0800
-Message-ID: <58b0b2c1.K4QiLFfGUMzccuGU%akpm@linux-foundation.org>
+ mm-oom-header-nodemask-is-null-when-cpusets-are-disabled-fix.patch removed
+ from -mm tree
+Date: Fri, 24 Feb 2017 14:26:01 -0800
+Message-ID: <58b0b2f9.YAgp51H4dCCyJCHc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33258 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33392 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751277AbdBXWZG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:25:06 -0500
+        with ESMTP id S1751277AbdBXW0C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:26:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: imbrenda@linux.vnet.ibm.com, aarcange@redhat.com, borntraeger@de.ibm.com, hughd@google.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: documentation for coloured zero pages deduplication
+     Subject: mm, oom: header nodemask is NULL when cpusets are disabled fix
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2.patch
+     mm-oom-header-nodemask-is-null-when-cpusets-are-disabled-fix.patch
 
-This patch was dropped because it was folded into mm-ksm-improve-deduplication-of-zero-pages-with-colouring.patch
+This patch was dropped because it was folded into mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
 
 ------------------------------------------------------
-From: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
-Subject: mm/ksm: documentation for coloured zero pages deduplication
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: header nodemask is NULL when cpusets are disabled fix
 
-This patch adds the needed documentation for the use_zero_pages property.
+Newline per Hillf
 
-Link: http://lkml.kernel.org/r/1484927522-1964-1-git-send-email-imbrenda@linux.vnet.ibm.com
-Signed-off-by: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701200158300.88321@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/ksm.txt |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/ksm.txt~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2 Documentation/vm/ksm.txt
---- a/Documentation/vm/ksm.txt~mm-ksm-improve-deduplication-of-zero-pages-with-colouring-fix-2
-+++ a/Documentation/vm/ksm.txt
-@@ -80,6 +80,20 @@ run              - set 0 to stop ksmd fr
-                    Default: 0 (must be changed to 1 to activate KSM,
-                                except if CONFIG_SYSFS is disabled)
- 
-+use_zero_pages   - specifies whether empty pages (i.e. allocated pages
-+                   that only contain zeroes) should be treated specially.
-+                   When set to 1, empty pages are merged with the kernel
-+                   zero page(s) instead of with each other as it would
-+                   happen normally. This can improve the performance on
-+                   architectures with coloured zero pages, depending on
-+                   the workload. Care should be taken when enabling this
-+                   setting, as it can potentially degrade the performance
-+                   of KSM for some workloads, for example if the checksums
-+                   of pages candidate for merging match the checksum of
-+                   an empty page. This setting can be changed at any time,
-+                   it is only effective for pages merged after the change.
-+                   Default: 0 (normal KSM behaviour as in earlier releases)
-+
- The effectiveness of KSM and MADV_MERGEABLE is shown in /sys/kernel/mm/ksm/:
- 
- pages_shared     - how many shared pages are being used
+diff -puN mm/oom_kill.c~mm-oom-header-nodemask-is-null-when-cpusets-are-disabled-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-header-nodemask-is-null-when-cpusets-are-disabled-fix
++++ a/mm/oom_kill.c
+@@ -408,7 +408,7 @@ static void dump_header(struct oom_contr
+ 	if (oc->nodemask)
+ 		pr_cont("%*pbl", nodemask_pr_args(oc->nodemask));
+ 	else
+-		pr_cont("(null)\n");
++		pr_cont("(null)");
+ 	pr_cont(",  order=%d, oom_score_adj=%hd\n",
+ 		oc->order, current->signal->oom_score_adj);
+ 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
 _
 
-Patches currently in -mm which might be from imbrenda@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-ksm-improve-deduplication-of-zero-pages-with-colouring.patch
+mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
+mm-madvise-fail-with-enomem-when-splitting-vma-will-hit-max_map_count.patch
 
