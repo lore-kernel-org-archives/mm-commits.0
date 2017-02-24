@@ -1,54 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 094/124] alpha: use generic current.h
-Date: Fri, 24 Feb 2017 15:00:14 -0800
-Message-ID: <58b0bafe.5rGN3PJ9MHFomNkc%akpm@linux-foundation.org>
+Subject: [patch 093/124] arch/frv/mb93090-mb00/pci-frv.c: fix build
+ warning
+Date: Fri, 24 Feb 2017 15:00:11 -0800
+Message-ID: <58b0bafb.cIZ0Wd9VtmV5lBlm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38922 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751692AbdBXXAQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:16 -0500
+        with ESMTP id S1751687AbdBXXAN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:00:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, dhowells@redhat.com, sudip.mukherjee@codethink.co.uk
 
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: alpha: use generic current.h
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: arch/frv/mb93090-mb00/pci-frv.c: fix build warning
 
-Given that the arch does not add its own implementations, simply use the
-asm-generic/current.h (generic-y) header instead of duplicating code.
+The build of frv defconfig gives warning:
 
-Link: http://lkml.kernel.org/r/1485992878-4780-2-git-send-email-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+arch/frv/mb93090-mb00/pci-frv.c:176:5: warning:
+	ignoring return value of 'pci_assign_resource',
+		declared with attribute warn_unused_result
+
+Just print an error message to silence the warning. We can not do much
+here on error.
+
+Link: http://lkml.kernel.org/r/1484256471-5379-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/Kbuild    |    1 +
- arch/alpha/include/asm/current.h |    9 ---------
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ arch/frv/mb93090-mb00/pci-frv.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/alpha/include/asm/Kbuild~alpha-use-generic-currenth arch/alpha/include/asm/Kbuild
---- a/arch/alpha/include/asm/Kbuild~alpha-use-generic-currenth
-+++ a/arch/alpha/include/asm/Kbuild
-@@ -9,3 +9,4 @@ generic-y += mm-arch-hooks.h
- generic-y += preempt.h
- generic-y += sections.h
- generic-y += trace_clock.h
-+generic-y += current.h
-diff -puN arch/alpha/include/asm/current.h~alpha-use-generic-currenth /dev/null
---- a/arch/alpha/include/asm/current.h
-+++ /dev/null
-@@ -1,9 +0,0 @@
--#ifndef _ALPHA_CURRENT_H
--#define _ALPHA_CURRENT_H
--
--#include <linux/thread_info.h>
--
--#define get_current()	(current_thread_info()->task)
--#define current		get_current()
+diff -puN arch/frv/mb93090-mb00/pci-frv.c~frv-pci-frv-fix-build-warning arch/frv/mb93090-mb00/pci-frv.c
+--- a/arch/frv/mb93090-mb00/pci-frv.c~frv-pci-frv-fix-build-warning
++++ a/arch/frv/mb93090-mb00/pci-frv.c
+@@ -147,7 +147,7 @@ static void __init pcibios_allocate_reso
+ static void __init pcibios_assign_resources(void)
+ {
+ 	struct pci_dev *dev = NULL;
+-	int idx;
++	int idx, err;
+ 	struct resource *r;
+ 
+ 	for_each_pci_dev(dev) {
+@@ -172,8 +172,13 @@ static void __init pcibios_assign_resour
+ 			 *  the BIOS forgot to do so or because we have decided the old
+ 			 *  address was unusable for some reason.
+ 			 */
+-			if (!r->start && r->end)
+-				pci_assign_resource(dev, idx);
++			if (!r->start && r->end) {
++				err = pci_assign_resource(dev, idx);
++				if (err)
++					dev_err(&dev->dev,
++						"Failed to assign new address to %d\n",
++						idx);
++			}
+ 		}
+ 	}
+ }
+_
