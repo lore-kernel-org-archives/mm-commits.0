@@ -1,52 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [patch 122/124] checkpatch: add another old address for the FSF
-Date: Fri, 24 Feb 2017 15:01:38 -0800
-Message-ID: <58b0bb52.7Vf4iuGXMEPjRZUL%akpm@linux-foundation.org>
+Subject: [patch 112/124] lib: add CONFIG_TEST_SORT to enable self-test of
+ sort()
+Date: Fri, 24 Feb 2017 15:01:07 -0800
+Message-ID: <58b0bb33.KHGkCusvGiTc1YxZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39172 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751860AbdBXXBj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:39 -0500
+        with ESMTP id S1751845AbdBXXBI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mawilcox@microsoft.com, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fkostenzer@live.at, arnd@arndb.de
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: checkpatch: add another old address for the FSF
+From: Kostenzer Felix <fkostenzer@live.at>
+Subject: lib: add CONFIG_TEST_SORT to enable self-test of sort()
 
-We still have a lot of old addresses for the FSF in the kernel.
+Along with the addition made to Kconfig.debug, the prior existing but
+permanently disabled test function has been slightly refactored.
 
-willy@harry:~/kernel/idr$ git grep '675 Mass' |wc -l
-1502
-willy@harry:~/kernel/idr$ git grep '59 Temple' |wc -l
-2825
-willy@harry:~/kernel/idr$ git grep '51 Franklin' |wc -l
-2020
+Patch has been tested using QEMU 2.1.2 with a .config obtained through
+'make defconfig' (x86_64) and manually enabling the option.
 
-Let's discourage adding the oldest one too.
-
-Link: http://lkml.kernel.org/r/20170128173052.GA23532@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Joe Perches <joe@perches.com>
+[arnd@arndb.de: move sort self-test into a separate file]
+  Link: http://lkml.kernel.org/r/20170112110657.3123790-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/HE1PR09MB0394B0418D504DCD27167D4FD49B0@HE1PR09MB0394.eurprd09.prod.outlook.com
+Signed-off-by: Kostenzer Felix <fkostenzer@live.at>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ lib/Kconfig.debug |    8 ++++++++
+ lib/Makefile      |    1 +
+ lib/sort.c        |   41 ++---------------------------------------
+ lib/test_sort.c   |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 54 insertions(+), 39 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-another-old-address-for-the-fsf scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-another-old-address-for-the-fsf
-+++ a/scripts/checkpatch.pl
-@@ -2703,6 +2703,7 @@ sub process {
+diff -puN lib/Kconfig.debug~lib-add-config_test_sort-to-enable-self-test-of-sort lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-add-config_test_sort-to-enable-self-test-of-sort
++++ a/lib/Kconfig.debug
+@@ -1739,6 +1739,14 @@ config TEST_LIST_SORT
  
- # Check for FSF mailing addresses.
- 		if ($rawline =~ /\bwrite to the Free/i ||
-+		    $rawline =~ /\b675\s+Mass\s+Ave/i ||
- 		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
- 		    $rawline =~ /\b51\s+Franklin\s+St/i) {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ 	  If unsure, say N.
+ 
++config TEST_SORT
++	bool "Array-based sort test"
++	depends on DEBUG_KERNEL
++	help
++	  This option enables the self-test function of 'sort()' at boot.
++
++	  If unsure, say N.
++
+ config KPROBES_SANITY_TEST
+ 	bool "Kprobes sanity tests"
+ 	depends on DEBUG_KERNEL
+diff -puN lib/Makefile~lib-add-config_test_sort-to-enable-self-test-of-sort lib/Makefile
+--- a/lib/Makefile~lib-add-config_test_sort-to-enable-self-test-of-sort
++++ a/lib/Makefile
+@@ -50,6 +50,7 @@ obj-$(CONFIG_TEST_KASAN) += test_kasan.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+ obj-$(CONFIG_TEST_LKM) += test_module.o
+ obj-$(CONFIG_TEST_RHASHTABLE) += test_rhashtable.o
++obj-$(CONFIG_TEST_SORT) += test_sort.o
+ obj-$(CONFIG_TEST_USER_COPY) += test_user_copy.o
+ obj-$(CONFIG_TEST_STATIC_KEYS) += test_static_keys.o
+ obj-$(CONFIG_TEST_STATIC_KEYS) += test_static_key_base.o
+diff -puN lib/sort.c~lib-add-config_test_sort-to-enable-self-test-of-sort lib/sort.c
+--- a/lib/sort.c~lib-add-config_test_sort-to-enable-self-test-of-sort
++++ a/lib/sort.c
+@@ -4,6 +4,8 @@
+  * Jan 23 2005  Matt Mackall <mpm@selenic.com>
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/types.h>
+ #include <linux/export.h>
+ #include <linux/sort.h>
+@@ -101,42 +103,3 @@ void sort(void *base, size_t num, size_t
+ }
+ 
+ EXPORT_SYMBOL(sort);
+-
+-#if 0
+-#include <linux/slab.h>
+-/* a simple boot-time regression test */
+-
+-int cmpint(const void *a, const void *b)
+-{
+-	return *(int *)a - *(int *)b;
+-}
+-
+-static int sort_test(void)
+-{
+-	int *a, i, r = 1;
+-
+-	a = kmalloc(1000 * sizeof(int), GFP_KERNEL);
+-	BUG_ON(!a);
+-
+-	printk("testing sort()\n");
+-
+-	for (i = 0; i < 1000; i++) {
+-		r = (r * 725861) % 6599;
+-		a[i] = r;
+-	}
+-
+-	sort(a, 1000, sizeof(int), cmpint, NULL);
+-
+-	for (i = 0; i < 999; i++)
+-		if (a[i] > a[i+1]) {
+-			printk("sort() failed!\n");
+-			break;
+-		}
+-
+-	kfree(a);
+-
+-	return 0;
+-}
+-
+-module_init(sort_test);
+-#endif
+diff -puN /dev/null lib/test_sort.c
+--- /dev/null
++++ a/lib/test_sort.c
+@@ -0,0 +1,43 @@
++#include <linux/sort.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++
++/* a simple boot-time regression test */
++
++#define TEST_LEN 1000
++
++static int __init cmpint(const void *a, const void *b)
++{
++	return *(int *)a - *(int *)b;
++}
++
++static int __init test_sort_init(void)
++{
++	int *a, i, r = 1, err = -ENOMEM;
++
++	a = kmalloc_array(TEST_LEN, sizeof(*a), GFP_KERNEL);
++	if (!a)
++		return err;
++
++	for (i = 0; i < TEST_LEN; i++) {
++		r = (r * 725861) % 6599;
++		a[i] = r;
++	}
++
++	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
++
++	err = -EINVAL;
++	for (i = 0; i < TEST_LEN-1; i++)
++		if (a[i] > a[i+1]) {
++			pr_err("test has failed\n");
++			goto exit;
++		}
++	err = 0;
++	pr_info("test passed\n");
++exit:
++	kfree(a);
++	return err;
++}
++
++module_init(test_sort_init);
++MODULE_LICENSE("GPL");
 _
