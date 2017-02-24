@@ -1,158 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [patch 017/124] mm: vmscan: move dirty pages out of the way until they're flushed
-Date: Fri, 24 Feb 2017 14:56:23 -0800
-Message-ID: <58b0ba17.0U8r7DM47dWRRPUF%akpm@linux-foundation.org>
+Subject: [patch 019/124] mm, page_alloc: split alloc_pages_nodemask()
+Date: Fri, 24 Feb 2017 14:56:29 -0800
+Message-ID: <58b0ba1d.aO+64QMqw9BQR8UO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37296 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751268AbdBXW4Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:25 -0500
+        with ESMTP id S1751268AbdBXW4b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, riel@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: move dirty pages out of the way until they're flushed
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: split alloc_pages_nodemask()
 
-We noticed a performance regression when moving hadoop workloads from 3.10
-kernels to 4.0 and 4.6.  This is accompanied by increased pageout activity
-initiated by kswapd as well as frequent bursts of allocation stalls and
-direct reclaim scans.  Even lowering the dirty ratios to the equivalent of
-less than 1% of memory would not eliminate the issue, suggesting that
-dirty pages concentrate where the scanner is looking.
+alloc_pages_nodemask does a number of preperation steps that determine
+what zones can be used for the allocation depending on a variety of
+factors. This is fine but a hypothetical caller that wanted multiple
+order-0 pages has to do the preparation steps multiple times. This patch
+structures __alloc_pages_nodemask such that it's relatively easy to build
+a bulk order-0 page allocator. There is no functional change.
 
-This can be traced back to recent efforts of thrash avoidance.  Where 3.10
-would not detect refaulting pages and continuously supply clean cache to
-the inactive list, a thrashing workload on 4.0+ will detect and activate
-refaulting pages right away, distilling used-once pages on the inactive
-list much more effectively.  This is by design, and it makes sense for
-clean cache.  But for the most part our workload's cache faults are
-refaults and its use-once cache is from streaming writes.  We end up with
-most of the inactive list dirty, and we don't go after the active cache as
-long as we have use-once pages around.
-
-But waiting for writes to avoid reclaiming clean cache that *might*
-refault is a bad trade-off.  Even if the refaults happen, reads are faster
-than writes.  Before getting bogged down on writeback, reclaim should
-first look at *all* cache in the system, even active cache.
-
-To accomplish this, activate pages that are dirty or under writeback
-when they reach the end of the inactive LRU.  The pages are marked for
-immediate reclaim, meaning they'll get moved back to the inactive LRU
-tail as soon as they're written back and become reclaimable.  But in
-the meantime, by reducing the inactive list to only immediately
-reclaimable pages, we allow the scanner to deactivate and refill the
-inactive list with clean cache from the active list tail to guarantee
-forward progress.
-
-[hannes@cmpxchg.org: update comment]
-  Link: http://lkml.kernel.org/r/20170202191957.22872-8-hannes@cmpxchg.org
-Link: http://lkml.kernel.org/r/20170123181641.23938-6-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170123153906.3122-3-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    7 +++++++
- mm/swap.c                 |    9 +++++----
- mm/vmscan.c               |   15 ++++++++++++---
- 3 files changed, 24 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |   75 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 46 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed
-+++ a/include/linux/mm_inline.h
-@@ -50,6 +50,13 @@ static __always_inline void add_page_to_
- 	list_add(&page->lru, &lruvec->lists[lru]);
+diff -puN mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask
++++ a/mm/page_alloc.c
+@@ -3855,60 +3855,77 @@ got_pg:
+ 	return page;
  }
  
-+static __always_inline void add_page_to_lru_list_tail(struct page *page,
-+				struct lruvec *lruvec, enum lru_list lru)
+-/*
+- * This is the 'heart' of the zoned buddy allocator.
+- */
+-struct page *
+-__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
+-			struct zonelist *zonelist, nodemask_t *nodemask)
++static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
++		struct zonelist *zonelist, nodemask_t *nodemask,
++		struct alloc_context *ac, gfp_t *alloc_mask,
++		unsigned int *alloc_flags)
+ {
+-	struct page *page;
+-	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
+-	struct alloc_context ac = {
+-		.high_zoneidx = gfp_zone(gfp_mask),
+-		.zonelist = zonelist,
+-		.nodemask = nodemask,
+-		.migratetype = gfpflags_to_migratetype(gfp_mask),
+-	};
++	ac->high_zoneidx = gfp_zone(gfp_mask);
++	ac->zonelist = zonelist;
++	ac->nodemask = nodemask;
++	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
+ 
+ 	if (cpusets_enabled()) {
+-		alloc_mask |= __GFP_HARDWALL;
+-		alloc_flags |= ALLOC_CPUSET;
+-		if (!ac.nodemask)
+-			ac.nodemask = &cpuset_current_mems_allowed;
++		*alloc_mask |= __GFP_HARDWALL;
++		*alloc_flags |= ALLOC_CPUSET;
++		if (!ac->nodemask)
++			ac->nodemask = &cpuset_current_mems_allowed;
+ 	}
+ 
+-	gfp_mask &= gfp_allowed_mask;
+-
+ 	lockdep_trace_alloc(gfp_mask);
+ 
+ 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
+ 
+ 	if (should_fail_alloc_page(gfp_mask, order))
+-		return NULL;
++		return false;
+ 
+ 	/*
+ 	 * Check the zones suitable for the gfp_mask contain at least one
+ 	 * valid zone. It's possible to have an empty zonelist as a result
+ 	 * of __GFP_THISNODE and a memoryless node
+ 	 */
+-	if (unlikely(!zonelist->_zonerefs->zone))
+-		return NULL;
++	if (unlikely(!ac->zonelist->_zonerefs->zone))
++		return false;
++
++	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
++		*alloc_flags |= ALLOC_CMA;
+ 
+-	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
+-		alloc_flags |= ALLOC_CMA;
++	return true;
++}
+ 
++/* Determine whether to spread dirty pages and what the first usable zone */
++static inline void finalise_ac(gfp_t gfp_mask,
++		unsigned int order, struct alloc_context *ac)
 +{
-+	update_lru_size(lruvec, lru, page_zonenum(page), hpage_nr_pages(page));
-+	list_add_tail(&page->lru, &lruvec->lists[lru]);
+ 	/* Dirty zone balancing only done in the fast path */
+-	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
++	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+ 
+ 	/*
+ 	 * The preferred zone is used for statistics but crucially it is
+ 	 * also used as the starting point for the zonelist iterator. It
+ 	 * may get reset for allocations that ignore memory policies.
+ 	 */
+-	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+-					ac.high_zoneidx, ac.nodemask);
++	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
++					ac->high_zoneidx, ac->nodemask);
 +}
 +
- static __always_inline void del_page_from_lru_list(struct page *page,
- 				struct lruvec *lruvec, enum lru_list lru)
- {
-diff -puN mm/swap.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed mm/swap.c
---- a/mm/swap.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed
-+++ a/mm/swap.c
-@@ -209,9 +209,10 @@ static void pagevec_move_tail_fn(struct
- {
- 	int *pgmoved = arg;
- 
--	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
--		enum lru_list lru = page_lru_base_type(page);
--		list_move_tail(&page->lru, &lruvec->lists[lru]);
-+	if (PageLRU(page) && !PageUnevictable(page)) {
-+		del_page_from_lru_list(page, lruvec, page_lru(page));
-+		ClearPageActive(page);
-+		add_page_to_lru_list_tail(page, lruvec, page_lru(page));
- 		(*pgmoved)++;
- 	}
- }
-@@ -235,7 +236,7 @@ static void pagevec_move_tail(struct pag
-  */
- void rotate_reclaimable_page(struct page *page)
- {
--	if (!PageLocked(page) && !PageDirty(page) && !PageActive(page) &&
-+	if (!PageLocked(page) && !PageDirty(page) &&
- 	    !PageUnevictable(page) && PageLRU(page)) {
- 		struct pagevec *pvec;
- 		unsigned long flags;
-diff -puN mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed
-+++ a/mm/vmscan.c
-@@ -1056,6 +1056,15 @@ static unsigned long shrink_page_list(st
- 		 *    throttling so we could easily OOM just because too many
- 		 *    pages are in writeback and there is nothing else to
- 		 *    reclaim. Wait for the writeback to complete.
-+		 *
-+		 * In cases 1) and 2) we activate the pages to get them out of
-+		 * the way while we continue scanning for clean pages on the
-+		 * inactive list and refilling from the active list. The
-+		 * observation here is that waiting for disk writes is more
-+		 * expensive than potentially causing reloads down the line.
-+		 * Since they're marked for immediate reclaim, they won't put
-+		 * memory pressure on the cache working set any longer than it
-+		 * takes to write them to disk.
- 		 */
- 		if (PageWriteback(page)) {
- 			/* Case 1 above */
-@@ -1063,7 +1072,7 @@ static unsigned long shrink_page_list(st
- 			    PageReclaim(page) &&
- 			    test_bit(PGDAT_WRITEBACK, &pgdat->flags)) {
- 				nr_immediate++;
--				goto keep_locked;
-+				goto activate_locked;
- 
- 			/* Case 2 above */
- 			} else if (sane_reclaim(sc) ||
-@@ -1081,7 +1090,7 @@ static unsigned long shrink_page_list(st
- 				 */
- 				SetPageReclaim(page);
- 				nr_writeback++;
--				goto keep_locked;
-+				goto activate_locked;
- 
- 			/* Case 3 above */
- 			} else {
-@@ -1174,7 +1183,7 @@ static unsigned long shrink_page_list(st
- 				inc_node_page_state(page, NR_VMSCAN_IMMEDIATE);
- 				SetPageReclaim(page);
- 
--				goto keep_locked;
-+				goto activate_locked;
- 			}
- 
- 			if (references == PAGEREF_RECLAIM_CLEAN)
++/*
++ * This is the 'heart' of the zoned buddy allocator.
++ */
++struct page *
++__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
++			struct zonelist *zonelist, nodemask_t *nodemask)
++{
++	struct page *page;
++	unsigned int alloc_flags = ALLOC_WMARK_LOW;
++	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
++	struct alloc_context ac = { };
++
++	gfp_mask &= gfp_allowed_mask;
++	if (!prepare_alloc_pages(gfp_mask, order, zonelist, nodemask, &ac, &alloc_mask, &alloc_flags))
++		return NULL;
++
++	finalise_ac(gfp_mask, order, &ac);
+ 	if (!ac.preferred_zoneref->zone) {
+ 		page = NULL;
+ 		/*
 _
