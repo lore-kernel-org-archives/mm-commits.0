@@ -1,114 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [patch 080/124] mm/page_alloc: fix nodes for reclaim in fast path
-Date: Fri, 24 Feb 2017 14:59:33 -0800
-Message-ID: <58b0bad5.o0NAftth2VRGLePR%akpm@linux-foundation.org>
+Subject: [patch 082/124] mm: vmpressure: fix sending wrong events on
+ underflow
+Date: Fri, 24 Feb 2017 14:59:39 -0800
+Message-ID: <58b0badb.BszoVWEtriYhC7kx%akpm__44804.3557502844$1487977183$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38790 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751645AbdBXW7f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:35 -0500
+        with ESMTP id S1751654AbdBXW7l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:59:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gwshan@linux.vnet.ibm.com, anton@samba.org, mgorman@suse.de, mhocko@suse.com, mpe@ellerman.id.au, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vinmenon@codeaurora.org, anton.vorontsov@linaro.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, shashim@codeaurora.org, stable@vger.kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com
 
-From: Gavin Shan <gwshan@linux.vnet.ibm.com>
-Subject: mm/page_alloc: fix nodes for reclaim in fast path
+From: Vinayak Menon <vinmenon@codeaurora.org>
+Subject: mm: vmpressure: fix sending wrong events on underflow
 
-When @node_reclaim_node isn't 0, the page allocator tries to reclaim pages
-if the amount of free memory in the zones are below the low watermark.  On
-Power platform, none of NUMA nodes are scanned for page reclaim because no
-nodes match the condition in zone_allows_reclaim().  On Power platform,
-RECLAIM_DISTANCE is set to 10 which is the distance of Node-A to Node-A. 
-So the preferred node even won't be scanned for page reclaim.
+At the end of a window period, if the reclaimed pages is greater than
+scanned, an unsigned underflow can result in a huge pressure value and
+thus a critical event.  Reclaimed pages is found to go higher than scanned
+because of the addition of reclaimed slab pages to reclaimed in
+shrink_node without a corresponding increment to scanned pages.  Minchan
+Kim mentioned that this can also happen in the case of a THP page where
+the scanned is 1 and reclaimed could be 512.
 
-   __alloc_pages_nodemask()
-   get_page_from_freelist()
-      zone_allows_reclaim()
-
-Anton proposed the test code as below:
-
-   # cat alloc.c
-      :
-   int main(int argc, char *argv[])
-   {
-	void *p;
-	unsigned long size;
-	unsigned long start, end;
-
-	start = time(NULL);
-	size = strtoul(argv[1], NULL, 0);
-	printf("To allocate %ldGB memory\n", size);
-
-	size <<= 30;
-	p = malloc(size);
-	assert(p);
-	memset(p, 0, size);
-
-	end = time(NULL);
-	printf("Used time: %ld seconds\n", end - start);
-	sleep(3600);
-	return 0;
-   }
-
-The system I use for testing has two NUMA nodes.  Both have 128GB memory. 
-In below scnario, the page caches on node#0 should be reclaimed when it
-encounters pressure to accommodate request of allocation.
-
-   # echo 2 > /proc/sys/vm/zone_reclaim_mode; \
-     sync; \
-     echo 3 > /proc/sys/vm/drop_caches; \
-   # taskset -c 0 cat file.32G > /dev/null; \
-     grep FilePages /sys/devices/system/node/node0/meminfo
-     Node 0 FilePages:       33619712 kB
-   # taskset -c 0 ./alloc 128
-   # grep FilePages /sys/devices/system/node/node0/meminfo
-     Node 0 FilePages:       33619840 kB
-   # grep MemFree /sys/devices/system/node/node0/meminfo
-     Node 0 MemFree:          186816 kB
-
-With the patch applied, the pagecache on node-0 is reclaimed when
-its free memory is running out. It's the expected behaviour.
-
-   # echo 2 > /proc/sys/vm/zone_reclaim_mode; \
-     sync; \
-     echo 3 > /proc/sys/vm/drop_caches
-   # taskset -c 0 cat file.32G > /dev/null; \
-     grep FilePages /sys/devices/system/node/node0/meminfo
-     Node 0 FilePages:       33605568 kB
-   # taskset -c 0 ./alloc 128
-   # grep FilePages /sys/devices/system/node/node0/meminfo
-     Node 0 FilePages:        1379520 kB
-   # grep MemFree /sys/devices/system/node/node0/meminfo
-     Node 0 MemFree:           317120 kB
-
-Fixes: 5f7a75acdb24 ("mm: page_alloc: do not cache reclaim distances")
-Link: http://lkml.kernel.org/r/1486532455-29613-1-git-send-email-gwshan@linux.vnet.ibm.com
-Signed-off-by: Gavin Shan <gwshan@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
+Link: http://lkml.kernel.org/r/1486641577-11685-1-git-send-email-vinmenon@codeaurora.org
+Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: <stable@vger.kernel.org>	[3.16+]
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
+Cc: Shiraz Hashim <shashim@codeaurora.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmpressure.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-nodes-for-reclaim-in-fast-path mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-nodes-for-reclaim-in-fast-path
-+++ a/mm/page_alloc.c
-@@ -2944,7 +2944,7 @@ bool zone_watermark_ok_safe(struct zone
- #ifdef CONFIG_NUMA
- static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
+diff -puN mm/vmpressure.c~mm-vmpressure-fix-sending-wrong-events-on-underflow mm/vmpressure.c
+--- a/mm/vmpressure.c~mm-vmpressure-fix-sending-wrong-events-on-underflow
++++ a/mm/vmpressure.c
+@@ -112,9 +112,16 @@ static enum vmpressure_levels vmpressure
+ 						    unsigned long reclaimed)
  {
--	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <
-+	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <=
- 				RECLAIM_DISTANCE;
- }
- #else	/* CONFIG_NUMA */
+ 	unsigned long scale = scanned + reclaimed;
+-	unsigned long pressure;
++	unsigned long pressure = 0;
+ 
+ 	/*
++	 * reclaimed can be greater than scanned in cases
++	 * like THP, where the scanned is 1 and reclaimed
++	 * could be 512
++	 */
++	if (reclaimed >= scanned)
++		goto out;
++	/*
+ 	 * We calculate the ratio (in percents) of how many pages were
+ 	 * scanned vs. reclaimed in a given time frame (window). Note that
+ 	 * time is in VM reclaimer's "ticks", i.e. number of pages
+@@ -124,6 +131,7 @@ static enum vmpressure_levels vmpressure
+ 	pressure = scale - (reclaimed * scale / scanned);
+ 	pressure = pressure * 100 / scale;
+ 
++out:
+ 	pr_debug("%s: %3lu  (s: %lu  r: %lu)\n", __func__, pressure,
+ 		 scanned, reclaimed);
+ 
 _
