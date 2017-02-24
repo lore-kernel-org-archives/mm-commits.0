@@ -1,305 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [patch 038/124] z3fold: add kref refcounting
-Date: Fri, 24 Feb 2017 14:57:26 -0800
-Message-ID: <58b0ba56.Qcu6pnELoQDWOgGf%akpm@linux-foundation.org>
+Subject: [patch 039/124] mm/migration: make isolate_movable_page() return
+ int type
+Date: Fri, 24 Feb 2017 14:57:29 -0800
+Message-ID: <58b0ba59.iU4H/cXjUHu7f03r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38076 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbdBXW51 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:57:27 -0500
+        with ESMTP id S1751455AbdBXW5b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:57:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vitalywool@gmail.com, ddstreet@ieee.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xieyisheng1@huawei.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, guohanjun@huawei.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com
 
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: add kref refcounting
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/migration: make isolate_movable_page() return int type
 
-With both coming and already present locking optimizations, introducing
-kref to reference-count z3fold objects is the right thing to do. 
-Moreover, it makes buddied list no longer necessary, and allows for a
-simpler handling of headless pages.
+Patch series "HWPOISON: soft offlining for non-lru movable page", v6.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170131214650.8ea78033d91ded233f552bc0@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Reviewed-by: Dan Streetman <ddstreet@ieee.org>
+After Minchan's commit bda807d44454 ("mm: migrate: support non-lru movable
+page migration"), some type of non-lru page like zsmalloc and
+virtio-balloon page also support migration.
+
+Therefore, we can:
+
+1) soft offlining no-lru movable pages, which means when memory
+   corrected errors occur on a non-lru movable page, we can stop to use it
+   by migrating data onto another page and disable the original (maybe
+   half-broken) one.
+
+2) enable memory hotplug for non-lru movable pages, i.e.  we may
+   offline blocks, which include such pages, by using non-lru page
+   migration.
+
+This patchset is heavily dependent on non-lru movable page migration.
+
+
+This patch (of 4):
+
+Change the return type of isolate_movable_page() from bool to int.  It
+will return 0 when isolate movable page successfully, and return -EBUSY
+when it isolates failed.
+
+There is no functional change within this patch but prepare for later
+patch.
+
+[xieyisheng1@huawei.com: v6]
+  Link: http://lkml.kernel.org/r/1486108770-630-2-git-send-email-xieyisheng1@huawei.com
+Link: http://lkml.kernel.org/r/1485867981-16037-2-git-send-email-ysxie@foxmail.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |  155 ++++++++++++++++++++++----------------------------
- 1 file changed, 69 insertions(+), 86 deletions(-)
+ include/linux/migrate.h |    2 +-
+ mm/compaction.c         |    2 +-
+ mm/migrate.c            |    6 +++---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-add-kref-refcounting mm/z3fold.c
---- a/mm/z3fold.c~z3fold-add-kref-refcounting
-+++ a/mm/z3fold.c
-@@ -52,6 +52,7 @@ enum buddy {
-  *			z3fold page, except for HEADLESS pages
-  * @buddy:	links the z3fold page into the relevant list in the pool
-  * @page_lock:		per-page lock
-+ * @refcount:		reference cound for the z3fold page
-  * @first_chunks:	the size of the first buddy in chunks, 0 if free
-  * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
-  * @last_chunks:	the size of the last buddy in chunks, 0 if free
-@@ -60,6 +61,7 @@ enum buddy {
- struct z3fold_header {
- 	struct list_head buddy;
- 	spinlock_t page_lock;
-+	struct kref refcount;
- 	unsigned short first_chunks;
- 	unsigned short middle_chunks;
- 	unsigned short last_chunks;
-@@ -95,8 +97,6 @@ struct z3fold_header {
-  * @unbuddied:	array of lists tracking z3fold pages that contain 2- buddies;
-  *		the lists each z3fold page is added to depends on the size of
-  *		its free region.
-- * @buddied:	list tracking the z3fold pages that contain 3 buddies;
-- *		these z3fold pages are full
-  * @lru:	list tracking the z3fold pages in LRU order by most recently
-  *		added buddy.
-  * @pages_nr:	number of z3fold pages in the pool.
-@@ -109,7 +109,6 @@ struct z3fold_header {
- struct z3fold_pool {
- 	spinlock_t lock;
- 	struct list_head unbuddied[NCHUNKS];
--	struct list_head buddied;
- 	struct list_head lru;
- 	atomic64_t pages_nr;
- 	const struct z3fold_ops *ops;
-@@ -121,8 +120,7 @@ struct z3fold_pool {
-  * Internal z3fold page flags
-  */
- enum z3fold_page_flags {
--	UNDER_RECLAIM = 0,
--	PAGE_HEADLESS,
-+	PAGE_HEADLESS = 0,
- 	MIDDLE_CHUNK_MAPPED,
- };
+diff -puN include/linux/migrate.h~mm-migration-make-isolate_movable_page-return-int-type include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migration-make-isolate_movable_page-return-int-type
++++ a/include/linux/migrate.h
+@@ -37,7 +37,7 @@ extern int migrate_page(struct address_s
+ 			struct page *, struct page *, enum migrate_mode);
+ extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
+ 		unsigned long private, enum migrate_mode mode, int reason);
+-extern bool isolate_movable_page(struct page *page, isolate_mode_t mode);
++extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
+ extern void putback_movable_page(struct page *page);
  
-@@ -146,11 +144,11 @@ static struct z3fold_header *init_z3fold
- 	struct z3fold_header *zhdr = page_address(page);
+ extern int migrate_prep(void);
+diff -puN mm/compaction.c~mm-migration-make-isolate_movable_page-return-int-type mm/compaction.c
+--- a/mm/compaction.c~mm-migration-make-isolate_movable_page-return-int-type
++++ a/mm/compaction.c
+@@ -802,7 +802,7 @@ isolate_migratepages_block(struct compac
+ 					locked = false;
+ 				}
  
- 	INIT_LIST_HEAD(&page->lru);
--	clear_bit(UNDER_RECLAIM, &page->private);
- 	clear_bit(PAGE_HEADLESS, &page->private);
- 	clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
+-				if (isolate_movable_page(page, isolate_mode))
++				if (!isolate_movable_page(page, isolate_mode))
+ 					goto isolate_success;
+ 			}
  
- 	spin_lock_init(&zhdr->page_lock);
-+	kref_init(&zhdr->refcount);
- 	zhdr->first_chunks = 0;
- 	zhdr->middle_chunks = 0;
- 	zhdr->last_chunks = 0;
-@@ -161,9 +159,24 @@ static struct z3fold_header *init_z3fold
+diff -puN mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type mm/migrate.c
+--- a/mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type
++++ a/mm/migrate.c
+@@ -74,7 +74,7 @@ int migrate_prep_local(void)
+ 	return 0;
  }
  
- /* Resets the struct page fields and frees the page */
--static void free_z3fold_page(struct z3fold_header *zhdr)
-+static void free_z3fold_page(struct page *page)
+-bool isolate_movable_page(struct page *page, isolate_mode_t mode)
++int isolate_movable_page(struct page *page, isolate_mode_t mode)
  {
--	__free_page(virt_to_page(zhdr));
-+	__free_page(page);
-+}
-+
-+static void release_z3fold_page(struct kref *ref)
-+{
-+	struct z3fold_header *zhdr;
-+	struct page *page;
-+
-+	zhdr = container_of(ref, struct z3fold_header, refcount);
-+	page = virt_to_page(zhdr);
-+
-+	if (!list_empty(&zhdr->buddy))
-+		list_del(&zhdr->buddy);
-+	if (!list_empty(&page->lru))
-+		list_del(&page->lru);
-+	free_z3fold_page(page);
+ 	struct address_space *mapping;
+ 
+@@ -125,14 +125,14 @@ bool isolate_movable_page(struct page *p
+ 	__SetPageIsolated(page);
+ 	unlock_page(page);
+ 
+-	return true;
++	return 0;
+ 
+ out_no_isolated:
+ 	unlock_page(page);
+ out_putpage:
+ 	put_page(page);
+ out:
+-	return false;
++	return -EBUSY;
  }
  
- /* Lock a z3fold page */
-@@ -178,7 +191,6 @@ static inline void z3fold_page_unlock(st
- 	spin_unlock(&zhdr->page_lock);
- }
- 
--
- /*
-  * Encodes the handle of a particular buddy within a z3fold page
-  * Pool lock should be held as this function accesses first_num
-@@ -257,7 +269,6 @@ static struct z3fold_pool *z3fold_create
- 	spin_lock_init(&pool->lock);
- 	for_each_unbuddied_list(i, 0)
- 		INIT_LIST_HEAD(&pool->unbuddied[i]);
--	INIT_LIST_HEAD(&pool->buddied);
- 	INIT_LIST_HEAD(&pool->lru);
- 	atomic64_set(&pool->pages_nr, 0);
- 	pool->ops = ops;
-@@ -378,6 +389,7 @@ static int z3fold_alloc(struct z3fold_po
- 				spin_unlock(&pool->lock);
- 				continue;
- 			}
-+			kref_get(&zhdr->refcount);
- 			list_del_init(&zhdr->buddy);
- 			spin_unlock(&pool->lock);
- 
-@@ -394,10 +406,12 @@ static int z3fold_alloc(struct z3fold_po
- 			else if (zhdr->middle_chunks == 0)
- 				bud = MIDDLE;
- 			else {
-+				z3fold_page_unlock(zhdr);
- 				spin_lock(&pool->lock);
--				list_add(&zhdr->buddy, &pool->buddied);
-+				if (kref_put(&zhdr->refcount,
-+					     release_z3fold_page))
-+					atomic64_dec(&pool->pages_nr);
- 				spin_unlock(&pool->lock);
--				z3fold_page_unlock(zhdr);
- 				pr_err("No free chunks in unbuddied\n");
- 				WARN_ON(1);
- 				continue;
-@@ -438,9 +452,6 @@ found:
- 		/* Add to unbuddied list */
- 		freechunks = num_free_chunks(zhdr);
- 		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
--	} else {
--		/* Add to buddied list */
--		list_add(&zhdr->buddy, &pool->buddied);
- 	}
- 
- headless:
-@@ -504,52 +515,29 @@ static void z3fold_free(struct z3fold_po
- 		}
- 	}
- 
--	if (test_bit(UNDER_RECLAIM, &page->private)) {
--		/* z3fold page is under reclaim, reclaim will free */
--		if (bud != HEADLESS)
--			z3fold_page_unlock(zhdr);
--		return;
--	}
--
--	/* Remove from existing buddy list */
--	if (bud != HEADLESS) {
--		spin_lock(&pool->lock);
--		/*
--		 * this object may have been removed from its list by
--		 * z3fold_alloc(). In that case we just do nothing,
--		 * z3fold_alloc() will allocate an object and add the page
--		 * to the relevant list.
--		 */
--		if (!list_empty(&zhdr->buddy)) {
--			list_del(&zhdr->buddy);
--		} else {
--			spin_unlock(&pool->lock);
--			z3fold_page_unlock(zhdr);
--			return;
--		}
--		spin_unlock(&pool->lock);
--	}
--
--	if (bud == HEADLESS ||
--	    (zhdr->first_chunks == 0 && zhdr->middle_chunks == 0 &&
--			zhdr->last_chunks == 0)) {
--		/* z3fold page is empty, free */
-+	if (bud == HEADLESS) {
- 		spin_lock(&pool->lock);
- 		list_del(&page->lru);
- 		spin_unlock(&pool->lock);
--		clear_bit(PAGE_HEADLESS, &page->private);
--		if (bud != HEADLESS)
--			z3fold_page_unlock(zhdr);
--		free_z3fold_page(zhdr);
-+		free_z3fold_page(page);
- 		atomic64_dec(&pool->pages_nr);
- 	} else {
--		z3fold_compact_page(zhdr);
--		/* Add to the unbuddied list */
-+		if (zhdr->first_chunks != 0 || zhdr->middle_chunks != 0 ||
-+		    zhdr->last_chunks != 0) {
-+			z3fold_compact_page(zhdr);
-+			/* Add to the unbuddied list */
-+			spin_lock(&pool->lock);
-+			if (!list_empty(&zhdr->buddy))
-+				list_del(&zhdr->buddy);
-+			freechunks = num_free_chunks(zhdr);
-+			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+			spin_unlock(&pool->lock);
-+		}
-+		z3fold_page_unlock(zhdr);
- 		spin_lock(&pool->lock);
--		freechunks = num_free_chunks(zhdr);
--		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		if (kref_put(&zhdr->refcount, release_z3fold_page))
-+			atomic64_dec(&pool->pages_nr);
- 		spin_unlock(&pool->lock);
--		z3fold_page_unlock(zhdr);
- 	}
- 
- }
-@@ -608,13 +596,13 @@ static int z3fold_reclaim_page(struct z3
- 			return -EINVAL;
- 		}
- 		page = list_last_entry(&pool->lru, struct page, lru);
--		list_del(&page->lru);
-+		list_del_init(&page->lru);
- 
--		/* Protect z3fold page against free */
--		set_bit(UNDER_RECLAIM, &page->private);
- 		zhdr = page_address(page);
- 		if (!test_bit(PAGE_HEADLESS, &page->private)) {
--			list_del(&zhdr->buddy);
-+			if (!list_empty(&zhdr->buddy))
-+				list_del_init(&zhdr->buddy);
-+			kref_get(&zhdr->refcount);
- 			spin_unlock(&pool->lock);
- 			z3fold_page_lock(zhdr);
- 			/*
-@@ -655,30 +643,19 @@ static int z3fold_reclaim_page(struct z3
- 				goto next;
- 		}
- next:
--		if (!test_bit(PAGE_HEADLESS, &page->private))
--			z3fold_page_lock(zhdr);
--		clear_bit(UNDER_RECLAIM, &page->private);
--		if ((test_bit(PAGE_HEADLESS, &page->private) && ret == 0) ||
--		    (zhdr->first_chunks == 0 && zhdr->last_chunks == 0 &&
--		     zhdr->middle_chunks == 0)) {
--			/*
--			 * All buddies are now free, free the z3fold page and
--			 * return success.
--			 */
--			if (!test_and_clear_bit(PAGE_HEADLESS, &page->private))
--				z3fold_page_unlock(zhdr);
--			free_z3fold_page(zhdr);
--			atomic64_dec(&pool->pages_nr);
--			return 0;
--		}  else if (!test_bit(PAGE_HEADLESS, &page->private)) {
--			if (zhdr->first_chunks != 0 &&
--			    zhdr->last_chunks != 0 &&
--			    zhdr->middle_chunks != 0) {
--				/* Full, add to buddied list */
--				spin_lock(&pool->lock);
--				list_add(&zhdr->buddy, &pool->buddied);
--				spin_unlock(&pool->lock);
-+		if (test_bit(PAGE_HEADLESS, &page->private)) {
-+			if (ret == 0) {
-+				free_z3fold_page(page);
-+				return 0;
- 			} else {
-+				spin_lock(&pool->lock);
-+			}
-+		} else {
-+			z3fold_page_lock(zhdr);
-+			if ((zhdr->first_chunks || zhdr->last_chunks ||
-+			     zhdr->middle_chunks) &&
-+			    !(zhdr->first_chunks && zhdr->last_chunks &&
-+			      zhdr->middle_chunks)) {
- 				z3fold_compact_page(zhdr);
- 				/* add to unbuddied list */
- 				spin_lock(&pool->lock);
-@@ -687,13 +664,19 @@ next:
- 					 &pool->unbuddied[freechunks]);
- 				spin_unlock(&pool->lock);
- 			}
--		}
+ /* It should be called on page which is PG_movable */
+_
