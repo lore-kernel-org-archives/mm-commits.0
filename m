@@ -1,46 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 121/124] checkpatch: update $logFunctions
-Date: Fri, 24 Feb 2017 15:01:34 -0800
-Message-ID: <58b0bb4e.KvLuY+XtrkeHh36M%akpm@linux-foundation.org>
+Subject: [patch 113/124] lib/test_sort.c: make it explicitly non-modular
+Date: Fri, 24 Feb 2017 15:01:09 -0800
+Message-ID: <58b0bb35.nV4ei1U/EMIGndyZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39180 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751908AbdBXXBl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:41 -0500
+        with ESMTP id S1751864AbdBXXBL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 18:01:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, miles.chen@mediatek.com, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, paul.gortmaker@windriver.com, arnd@arndb.de, fkostenzer@live.at
 
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: checkpatch: update $logFunctions
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: lib/test_sort.c: make it explicitly non-modular
 
-Currently checkpatch.pl does not recognize printk_deferred* functions as
-log functions and complains about the line length of printk_deferred*
-functions.  Add printk_deferred* to logFunctions to fix it.
+The Kconfig currently controlling compilation of this code is:
 
-Link: http://lkml.kernel.org/r/1484537124-18083-1-git-send-email-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Acked-by: Joe Perches <joe@perches.com>
+     lib/Kconfig.debug:config TEST_SORT
+     lib/Kconfig.debug:      bool "Array-based sort test"
+
+...meaning that it currently is not being built as a module by anyone.
+
+Lets remove the couple traces of modular infrastructure use, so that
+when reading the code there is no doubt it is builtin-only.
+
+Since module_init translates to device_initcall in the non-modular
+case, the init ordering becomes slightly earlier when we change it
+to use subsys_initcall as done here.  However, since it is a self
+contained test, this shouldn't be an issue and subsys_initcall
+seems like a better fit for this particular case.
+
+We also delete the MODULE_LICENSE tag since that information is now
+contained at the top of the file in the comments.
+
+Link: http://lkml.kernel.org/r/20170124225608.7319-1-paul.gortmaker@windriver.com
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Kostenzer Felix <fkostenzer@live.at>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_sort.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-logfunctions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-logfunctions
-+++ a/scripts/checkpatch.pl
-@@ -424,7 +424,7 @@ our $typeTypedefs = qr{(?x:
- our $zero_initializer = qr{(?:(?:0[xX])?0+$Int_type?|NULL|false)\b};
+diff -puN lib/test_sort.c~lib-test_sort-make-it-explicitly-non-modular lib/test_sort.c
+--- a/lib/test_sort.c~lib-test_sort-make-it-explicitly-non-modular
++++ a/lib/test_sort.c
+@@ -1,8 +1,11 @@
+ #include <linux/sort.h>
+ #include <linux/slab.h>
+-#include <linux/module.h>
++#include <linux/init.h>
  
- our $logFunctions = qr{(?x:
--	printk(?:_ratelimited|_once|)|
-+	printk(?:_ratelimited|_once|_deferred_once|_deferred|)|
- 	(?:[a-z0-9]+_){1,2}(?:printk|emerg|alert|crit|err|warning|warn|notice|info|debug|dbg|vdbg|devel|cont|WARN)(?:_ratelimited|_once|)|
- 	WARN(?:_RATELIMIT|_ONCE|)|
- 	panic|
-_
+-/* a simple boot-time regression test */
++/*
++ * A simple boot-time regression test
++ * License: GPL
++ */
+ 
+ #define TEST_LEN 1000
+ 
+@@ -38,6 +41,4 @@ exit:
+ 	kfree(a);
+ 	return err;
+ }
