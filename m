@@ -1,149 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [patch 019/124] mm, page_alloc: split alloc_pages_nodemask()
-Date: Fri, 24 Feb 2017 14:56:29 -0800
-Message-ID: <58b0ba1d.aO+64QMqw9BQR8UO%akpm@linux-foundation.org>
+Subject: [patch 020/124] mm, page_alloc: drain per-cpu pages from
+ workqueue context
+Date: Fri, 24 Feb 2017 14:56:32 -0800
+Message-ID: <58b0ba20.S5030UgFVExsUO8f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751268AbdBXW4b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:31 -0500
+        with ESMTP id S1751268AbdBXW4e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, tj@kernel.org, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: split alloc_pages_nodemask()
+Subject: mm, page_alloc: drain per-cpu pages from workqueue context
 
-alloc_pages_nodemask does a number of preperation steps that determine
-what zones can be used for the allocation depending on a variety of
-factors. This is fine but a hypothetical caller that wanted multiple
-order-0 pages has to do the preparation steps multiple times. This patch
-structures __alloc_pages_nodemask such that it's relatively easy to build
-a bulk order-0 page allocator. There is no functional change.
+The per-cpu page allocator can be drained immediately via
+drain_all_pages() which sends IPIs to every CPU.  In the next patch, the
+per-cpu allocator will only be used for interrupt-safe allocations which
+prevents draining it from IPI context.  This patch uses workqueues to
+drain the per-cpu lists instead.
 
-Link: http://lkml.kernel.org/r/20170123153906.3122-3-mgorman@techsingularity.net
+This is slower but no slowdown during intensive reclaim was measured and
+the paths that use drain_all_pages() are not that sensitive to
+performance.  This is particularly true as the path would only be
+triggered when reclaim is failing.  It also makes a some sense to avoid
+storming a machine with IPIs when it's under memory pressure.  Arguably,
+it should be further adjusted so that only one caller at a time is
+draining pages but it's beyond the scope of the current patch.
+
+Link: http://lkml.kernel.org/r/20170123153906.3122-4-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   75 ++++++++++++++++++++++++++++------------------
- 1 file changed, 46 insertions(+), 29 deletions(-)
+ mm/page_alloc.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask
+diff -puN mm/page_alloc.c~mm-page_alloc-drain-per-cpu-pages-from-workqueue-context mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-drain-per-cpu-pages-from-workqueue-context
 +++ a/mm/page_alloc.c
-@@ -3855,60 +3855,77 @@ got_pg:
- 	return page;
+@@ -2339,19 +2339,21 @@ void drain_local_pages(struct zone *zone
+ 		drain_pages(cpu);
  }
  
--/*
-- * This is the 'heart' of the zoned buddy allocator.
-- */
--struct page *
--__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
--			struct zonelist *zonelist, nodemask_t *nodemask)
-+static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
-+		struct zonelist *zonelist, nodemask_t *nodemask,
-+		struct alloc_context *ac, gfp_t *alloc_mask,
-+		unsigned int *alloc_flags)
++static void drain_local_pages_wq(struct work_struct *work)
++{
++	drain_local_pages(NULL);
++}
++
+ /*
+  * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
+  *
+  * When zone parameter is non-NULL, spill just the single zone's pages.
+  *
+- * Note that this code is protected against sending an IPI to an offline
+- * CPU but does not guarantee sending an IPI to newly hotplugged CPUs:
+- * on_each_cpu_mask() blocks hotplug and won't talk to offlined CPUs but
+- * nothing keeps CPUs from showing up after we populated the cpumask and
+- * before the call to on_each_cpu_mask().
++ * Note that this can be extremely slow as the draining happens in a workqueue.
+  */
+ void drain_all_pages(struct zone *zone)
  {
--	struct page *page;
--	unsigned int alloc_flags = ALLOC_WMARK_LOW;
--	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
--	struct alloc_context ac = {
--		.high_zoneidx = gfp_zone(gfp_mask),
--		.zonelist = zonelist,
--		.nodemask = nodemask,
--		.migratetype = gfpflags_to_migratetype(gfp_mask),
--	};
-+	ac->high_zoneidx = gfp_zone(gfp_mask);
-+	ac->zonelist = zonelist;
-+	ac->nodemask = nodemask;
-+	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
++	struct work_struct __percpu *works;
+ 	int cpu;
  
- 	if (cpusets_enabled()) {
--		alloc_mask |= __GFP_HARDWALL;
--		alloc_flags |= ALLOC_CPUSET;
--		if (!ac.nodemask)
--			ac.nodemask = &cpuset_current_mems_allowed;
-+		*alloc_mask |= __GFP_HARDWALL;
-+		*alloc_flags |= ALLOC_CPUSET;
-+		if (!ac->nodemask)
-+			ac->nodemask = &cpuset_current_mems_allowed;
+ 	/*
+@@ -2360,6 +2362,17 @@ void drain_all_pages(struct zone *zone)
+ 	 */
+ 	static cpumask_t cpus_with_pcps;
+ 
++	/* Workqueues cannot recurse */
++	if (current->flags & PF_WQ_WORKER)
++		return;
++
++	/*
++	 * As this can be called from reclaim context, do not reenter reclaim.
++	 * An allocation failure can be handled, it's simply slower
++	 */
++	get_online_cpus();
++	works = alloc_percpu_gfp(struct work_struct, GFP_ATOMIC);
++
+ 	/*
+ 	 * We don't care about racing with CPU hotplug event
+ 	 * as offline notification will cause the notified
+@@ -2390,8 +2403,25 @@ void drain_all_pages(struct zone *zone)
+ 		else
+ 			cpumask_clear_cpu(cpu, &cpus_with_pcps);
  	}
- 
--	gfp_mask &= gfp_allowed_mask;
--
- 	lockdep_trace_alloc(gfp_mask);
- 
- 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
- 
- 	if (should_fail_alloc_page(gfp_mask, order))
--		return NULL;
-+		return false;
- 
- 	/*
- 	 * Check the zones suitable for the gfp_mask contain at least one
- 	 * valid zone. It's possible to have an empty zonelist as a result
- 	 * of __GFP_THISNODE and a memoryless node
- 	 */
--	if (unlikely(!zonelist->_zonerefs->zone))
--		return NULL;
-+	if (unlikely(!ac->zonelist->_zonerefs->zone))
-+		return false;
+-	on_each_cpu_mask(&cpus_with_pcps, (smp_call_func_t) drain_local_pages,
+-								zone, 1);
 +
-+	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
-+		*alloc_flags |= ALLOC_CMA;
- 
--	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
--		alloc_flags |= ALLOC_CMA;
-+	return true;
-+}
- 
-+/* Determine whether to spread dirty pages and what the first usable zone */
-+static inline void finalise_ac(gfp_t gfp_mask,
-+		unsigned int order, struct alloc_context *ac)
-+{
- 	/* Dirty zone balancing only done in the fast path */
--	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
-+	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
- 
- 	/*
- 	 * The preferred zone is used for statistics but crucially it is
- 	 * also used as the starting point for the zonelist iterator. It
- 	 * may get reset for allocations that ignore memory policies.
- 	 */
--	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
--					ac.high_zoneidx, ac.nodemask);
-+	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
-+					ac->high_zoneidx, ac->nodemask);
-+}
++	if (works) {
++		for_each_cpu(cpu, &cpus_with_pcps) {
++			struct work_struct *work = per_cpu_ptr(works, cpu);
++			INIT_WORK(work, drain_local_pages_wq);
++			schedule_work_on(cpu, work);
++		}
++		for_each_cpu(cpu, &cpus_with_pcps)
++			flush_work(per_cpu_ptr(works, cpu));
++	} else {
++		for_each_cpu(cpu, &cpus_with_pcps) {
++			struct work_struct work;
 +
-+/*
-+ * This is the 'heart' of the zoned buddy allocator.
-+ */
-+struct page *
-+__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
-+			struct zonelist *zonelist, nodemask_t *nodemask)
-+{
-+	struct page *page;
-+	unsigned int alloc_flags = ALLOC_WMARK_LOW;
-+	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
-+	struct alloc_context ac = { };
-+
-+	gfp_mask &= gfp_allowed_mask;
-+	if (!prepare_alloc_pages(gfp_mask, order, zonelist, nodemask, &ac, &alloc_mask, &alloc_flags))
-+		return NULL;
-+
-+	finalise_ac(gfp_mask, order, &ac);
- 	if (!ac.preferred_zoneref->zone) {
- 		page = NULL;
- 		/*
++			INIT_WORK(&work, drain_local_pages_wq);
++			schedule_work_on(cpu, &work);
++			flush_work(&work);
++		}
++	}
++	put_online_cpus();
+ }
+ 
+ #ifdef CONFIG_HIBERNATION
 _
