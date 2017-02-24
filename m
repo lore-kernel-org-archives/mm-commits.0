@@ -1,149 +1,338 @@
 From: akpm@linux-foundation.org
-Subject: [patch 021/124] mm, page_alloc: do not depend on cpu hotplug
- locks inside the allocator
-Date: Fri, 24 Feb 2017 14:56:35 -0800
-Message-ID: <58b0ba23.pq4e+TxyREDZ+ivY%akpm@linux-foundation.org>
+Subject: [patch 022/124] mm, page_alloc: only use per-cpu allocator for
+ irq-safe requests
+Date: Fri, 24 Feb 2017 14:56:38 -0800
+Message-ID: <58b0ba26.uZa6S1RI7z+gG23M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751268AbdBXW4k (ORCPT
+        with ESMTP id S1751407AbdBXW4k (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2017 17:56:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, dvyukov@google.com, mgorman@techsingularity.net, tj@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, tglx@linutronix.de, vbabka@suse.cz
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: do not depend on cpu hotplug locks inside the allocator
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: only use per-cpu allocator for irq-safe requests
 
-Dmitry has reported the following lockdep splat
-[<ffffffff81571db1>] lock_acquire+0x2a1/0x630 kernel/locking/lockdep.c:3753
-[<ffffffff8436697e>] __mutex_lock_common kernel/locking/mutex.c:521 [inline]
-[<ffffffff8436697e>] mutex_lock_nested+0x24e/0xff0 kernel/locking/mutex.c:621
-[<ffffffff818f07ea>] pcpu_alloc+0xbda/0x1280 mm/percpu.c:896
-[<ffffffff818f0ee4>] __alloc_percpu+0x24/0x30 mm/percpu.c:1075
-[<ffffffff816543e3>] smpcfd_prepare_cpu+0x73/0xd0 kernel/smp.c:44
-[<ffffffff814240b4>] cpuhp_invoke_callback+0x254/0x1480 kernel/cpu.c:136
-[<ffffffff81425821>] cpuhp_up_callbacks+0x81/0x2a0 kernel/cpu.c:493
-[<ffffffff81427bf3>] _cpu_up+0x1e3/0x2a0 kernel/cpu.c:1057
-[<ffffffff81427d23>] do_cpu_up+0x73/0xa0 kernel/cpu.c:1087
-[<ffffffff81427d68>] cpu_up+0x18/0x20 kernel/cpu.c:1095
-[<ffffffff854ede84>] smp_init+0xe9/0xee kernel/smp.c:564
-[<ffffffff85482f81>] kernel_init_freeable+0x439/0x690 init/main.c:1010
-[<ffffffff84357083>] kernel_init+0x13/0x180 init/main.c:941
-[<ffffffff84377baa>] ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:433
+Many workloads that allocate pages are not handling an interrupt at a
+time.  As allocation requests may be from IRQ context, it's necessary to
+disable/enable IRQs for every page allocation.  This cost is the bulk of
+the free path but also a significant percentage of the allocation path.
 
-cpu_hotplug_begin
-  cpu_hotplug.lock
-pcpu_alloc
-  pcpu_alloc_mutex
+This patch alters the locking and checks such that only irq-safe
+allocation requests use the per-cpu allocator.  All others acquire the
+irq-safe zone->lock and allocate from the buddy allocator.  It relies on
+disabling preemption to safely access the per-cpu structures.  It could be
+slightly modified to avoid soft IRQs using it but it's not clear it's
+worthwhile.
 
-[<ffffffff81423012>] get_online_cpus+0x62/0x90 kernel/cpu.c:248
-[<ffffffff8185fcf8>] drain_all_pages+0xf8/0x710 mm/page_alloc.c:2385
-[<ffffffff81865e5d>] __alloc_pages_direct_reclaim mm/page_alloc.c:3440 [inline]
-[<ffffffff81865e5d>] __alloc_pages_slowpath+0x8fd/0x2370 mm/page_alloc.c:3778
-[<ffffffff818681c5>] __alloc_pages_nodemask+0x8f5/0xc60 mm/page_alloc.c:3980
-[<ffffffff818ed0c1>] __alloc_pages include/linux/gfp.h:426 [inline]
-[<ffffffff818ed0c1>] __alloc_pages_node include/linux/gfp.h:439 [inline]
-[<ffffffff818ed0c1>] alloc_pages_node include/linux/gfp.h:453 [inline]
-[<ffffffff818ed0c1>] pcpu_alloc_pages mm/percpu-vm.c:93 [inline]
-[<ffffffff818ed0c1>] pcpu_populate_chunk+0x1e1/0x900 mm/percpu-vm.c:282
-[<ffffffff818f0a11>] pcpu_alloc+0xe01/0x1280 mm/percpu.c:998
-[<ffffffff818f0eb7>] __alloc_percpu_gfp+0x27/0x30 mm/percpu.c:1062
-[<ffffffff817d25b2>] bpf_array_alloc_percpu kernel/bpf/arraymap.c:34 [inline]
-[<ffffffff817d25b2>] array_map_alloc+0x532/0x710 kernel/bpf/arraymap.c:99
-[<ffffffff817ba034>] find_and_alloc_map kernel/bpf/syscall.c:34 [inline]
-[<ffffffff817ba034>] map_create kernel/bpf/syscall.c:188 [inline]
-[<ffffffff817ba034>] SYSC_bpf kernel/bpf/syscall.c:870 [inline]
-[<ffffffff817ba034>] SyS_bpf+0xd64/0x2500 kernel/bpf/syscall.c:827
-[<ffffffff84377941>] entry_SYSCALL_64_fastpath+0x1f/0xc2
+This modification may slow allocations from IRQ context slightly but the
+main gain from the per-cpu allocator is that it scales better for
+allocations from multiple contexts.  There is an implicit assumption that
+intensive allocations from IRQ contexts on multiple CPUs from a single
+NUMA node are rare and that the fast majority of scaling issues are
+encountered in !IRQ contexts such as page faulting.  It's worth noting
+that this patch is not required for a bulk page allocator but it
+significantly reduces the overhead.
 
-pcpu_alloc
-  pcpu_alloc_mutex
-drain_all_pages
-  get_online_cpus
-    cpu_hotplug.lock
+The following is results from a page allocator micro-benchmark.  Only
+order-0 is interesting as higher orders do not use the per-cpu allocator
 
-[<ffffffff81427876>] cpu_hotplug_begin+0x206/0x2e0 kernel/cpu.c:304
-[<ffffffff81427ada>] _cpu_up+0xca/0x2a0 kernel/cpu.c:1011
-[<ffffffff81427d23>] do_cpu_up+0x73/0xa0 kernel/cpu.c:1087
-[<ffffffff81427d68>] cpu_up+0x18/0x20 kernel/cpu.c:1095
-[<ffffffff854ede84>] smp_init+0xe9/0xee kernel/smp.c:564
-[<ffffffff85482f81>] kernel_init_freeable+0x439/0x690 init/main.c:1010
-[<ffffffff84357083>] kernel_init+0x13/0x180 init/main.c:941
-[<ffffffff84377baa>] ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:433
+                                          4.10.0-rc2                 4.10.0-rc2
+                                             vanilla               irqsafe-v1r5
+Amean    alloc-odr0-1               287.15 (  0.00%)           219.00 ( 23.73%)
+Amean    alloc-odr0-2               221.23 (  0.00%)           183.23 ( 17.18%)
+Amean    alloc-odr0-4               187.00 (  0.00%)           151.38 ( 19.05%)
+Amean    alloc-odr0-8               167.54 (  0.00%)           132.77 ( 20.75%)
+Amean    alloc-odr0-16              156.00 (  0.00%)           123.00 ( 21.15%)
+Amean    alloc-odr0-32              149.00 (  0.00%)           118.31 ( 20.60%)
+Amean    alloc-odr0-64              138.77 (  0.00%)           116.00 ( 16.41%)
+Amean    alloc-odr0-128             145.00 (  0.00%)           118.00 ( 18.62%)
+Amean    alloc-odr0-256             136.15 (  0.00%)           125.00 (  8.19%)
+Amean    alloc-odr0-512             147.92 (  0.00%)           121.77 ( 17.68%)
+Amean    alloc-odr0-1024            147.23 (  0.00%)           126.15 ( 14.32%)
+Amean    alloc-odr0-2048            155.15 (  0.00%)           129.92 ( 16.26%)
+Amean    alloc-odr0-4096            164.00 (  0.00%)           136.77 ( 16.60%)
+Amean    alloc-odr0-8192            166.92 (  0.00%)           138.08 ( 17.28%)
+Amean    alloc-odr0-16384           159.00 (  0.00%)           138.00 ( 13.21%)
+Amean    free-odr0-1                165.00 (  0.00%)            89.00 ( 46.06%)
+Amean    free-odr0-2                113.00 (  0.00%)            63.00 ( 44.25%)
+Amean    free-odr0-4                 99.00 (  0.00%)            54.00 ( 45.45%)
+Amean    free-odr0-8                 88.00 (  0.00%)            47.38 ( 46.15%)
+Amean    free-odr0-16                83.00 (  0.00%)            46.00 ( 44.58%)
+Amean    free-odr0-32                80.00 (  0.00%)            44.38 ( 44.52%)
+Amean    free-odr0-64                72.62 (  0.00%)            43.00 ( 40.78%)
+Amean    free-odr0-128               78.00 (  0.00%)            42.00 ( 46.15%)
+Amean    free-odr0-256               80.46 (  0.00%)            57.00 ( 29.16%)
+Amean    free-odr0-512               96.38 (  0.00%)            64.69 ( 32.88%)
+Amean    free-odr0-1024             107.31 (  0.00%)            72.54 ( 32.40%)
+Amean    free-odr0-2048             108.92 (  0.00%)            78.08 ( 28.32%)
+Amean    free-odr0-4096             113.38 (  0.00%)            82.23 ( 27.48%)
+Amean    free-odr0-8192             112.08 (  0.00%)            82.85 ( 26.08%)
+Amean    free-odr0-16384            110.38 (  0.00%)            81.92 ( 25.78%)
+Amean    total-odr0-1               452.15 (  0.00%)           308.00 ( 31.88%)
+Amean    total-odr0-2               334.23 (  0.00%)           246.23 ( 26.33%)
+Amean    total-odr0-4               286.00 (  0.00%)           205.38 ( 28.19%)
+Amean    total-odr0-8               255.54 (  0.00%)           180.15 ( 29.50%)
+Amean    total-odr0-16              239.00 (  0.00%)           169.00 ( 29.29%)
+Amean    total-odr0-32              229.00 (  0.00%)           162.69 ( 28.96%)
+Amean    total-odr0-64              211.38 (  0.00%)           159.00 ( 24.78%)
+Amean    total-odr0-128             223.00 (  0.00%)           160.00 ( 28.25%)
+Amean    total-odr0-256             216.62 (  0.00%)           182.00 ( 15.98%)
+Amean    total-odr0-512             244.31 (  0.00%)           186.46 ( 23.68%)
+Amean    total-odr0-1024            254.54 (  0.00%)           198.69 ( 21.94%)
+Amean    total-odr0-2048            264.08 (  0.00%)           208.00 ( 21.24%)
+Amean    total-odr0-4096            277.38 (  0.00%)           219.00 ( 21.05%)
+Amean    total-odr0-8192            279.00 (  0.00%)           220.92 ( 20.82%)
+Amean    total-odr0-16384           269.38 (  0.00%)           219.92 ( 18.36%)
 
-cpu_hotplug_begin
-  cpu_hotplug.lock
+This is the alloc, free and total overhead of allocating order-0 pages in
+batches of 1 page up to 16384 pages.  Avoiding disabling/enabling overhead
+massively reduces overhead.  Alloc overhead is roughly reduced by 14-20%
+in most cases.  The free path is reduced by 26-46% and the total reduction
+is significant.
 
-Pulling cpu hotplug locks inside the page allocator is just too
-dangerous. Let's remove the dependency by dropping get_online_cpus()
-from drain_all_pages. This is not so simple though because now we do not
-have a protection against cpu hotplug which means 2 things:
-	- the work item might be executed on a different cpu in worker
-	  from unbound pool so it doesn't run on pinned on the cpu
-	- we have to make sure that we do not race with page_alloc_cpu_dead
-	  calling drain_pages_zone
+Many users require zeroing of pages from the page allocator which is the
+vast cost of allocation.  Hence, the impact on a basic page faulting
+benchmark is not that significant
 
-Disabling preemption in drain_local_pages_wq will solve the first
-problem drain_local_pages will determine its local CPU from the WQ
-context which will be stable after that point, page_alloc_cpu_dead
-is pinned to the CPU already. The later condition is achieved
-by disabling IRQs in drain_pages_zone.
+                              4.10.0-rc2            4.10.0-rc2
+                                 vanilla          irqsafe-v1r5
+Hmean    page_test   656632.98 (  0.00%)   675536.13 (  2.88%)
+Hmean    brk_test   3845502.67 (  0.00%)  3867186.94 (  0.56%)
+Stddev   page_test    10543.29 (  0.00%)     4104.07 ( 61.07%)
+Stddev   brk_test     33472.36 (  0.00%)    15538.39 ( 53.58%)
+CoeffVar page_test        1.61 (  0.00%)        0.61 ( 62.15%)
+CoeffVar brk_test         0.87 (  0.00%)        0.40 ( 53.84%)
+Max      page_test   666513.33 (  0.00%)   678640.00 (  1.82%)
+Max      brk_test   3882800.00 (  0.00%)  3887008.66 (  0.11%)
 
-Fixes: mm, page_alloc: drain per-cpu pages from workqueue context
-Link: http://lkml.kernel.org/r/20170207201950.20482-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+This is from aim9 and the most notable outcome is that fault variability
+is reduced by the patch.  The headline improvement is small as the overall
+fault cost, zeroing, page table insertion etc dominate relative to
+disabling/enabling IRQs in the per-cpu allocator.
+
+Similarly, little benefit was seen on networking benchmarks both localhost
+and between physical server/clients where other costs dominate.  It's
+possible that this will only be noticable on very high speed networks.
+
+Jesper Dangaard Brouer independently tested
+this with a separate microbenchmark from
+https://github.com/netoptimizer/prototype-kernel/tree/master/kernel/mm/bench
+
+Micro-benchmarked with [1] page_bench02:
+ modprobe page_bench02 page_order=0 run_flags=$((2#010)) loops=$((10**8)); \
+  rmmod page_bench02 ; dmesg --notime | tail -n 4
+
+Compared to baseline: 213 cycles(tsc) 53.417 ns
+ - against this     : 184 cycles(tsc) 46.056 ns
+ - Saving           : -29 cycles
+ - Very close to expected 27 cycles saving [see below [2]]
+
+Micro benchmarking via time_bench_sample[3], we get the cost of these
+operations:
+
+ time_bench: Type:for_loop                 Per elem: 0 cycles(tsc) 0.232 ns (step:0)
+ time_bench: Type:spin_lock_unlock         Per elem: 33 cycles(tsc) 8.334 ns (step:0)
+ time_bench: Type:spin_lock_unlock_irqsave Per elem: 62 cycles(tsc) 15.607 ns (step:0)
+ time_bench: Type:irqsave_before_lock      Per elem: 57 cycles(tsc) 14.344 ns (step:0)
+ time_bench: Type:spin_lock_unlock_irq     Per elem: 34 cycles(tsc) 8.560 ns (step:0)
+ time_bench: Type:simple_irq_disable_before_lock Per elem: 37 cycles(tsc) 9.289 ns (step:0)
+ time_bench: Type:local_BH_disable_enable  Per elem: 19 cycles(tsc) 4.920 ns (step:0)
+ time_bench: Type:local_IRQ_disable_enable Per elem: 7 cycles(tsc) 1.864 ns (step:0)
+ time_bench: Type:local_irq_save_restore   Per elem: 38 cycles(tsc) 9.665 ns (step:0)
+ [Mel's patch removes a ^^^^^^^^^^^^^^^^]            ^^^^^^^^^ expected saving - preempt cost
+ time_bench: Type:preempt_disable_enable   Per elem: 11 cycles(tsc) 2.794 ns (step:0)
+ [adds a preempt  ^^^^^^^^^^^^^^^^^^^^^^]            ^^^^^^^^^ adds this cost
+ time_bench: Type:funcion_call_cost        Per elem: 6 cycles(tsc) 1.689 ns (step:0)
+ time_bench: Type:func_ptr_call_cost       Per elem: 11 cycles(tsc) 2.767 ns (step:0)
+ time_bench: Type:page_alloc_put           Per elem: 211 cycles(tsc) 52.803 ns (step:0)
+
+Thus, expected improvement is: 38-11 = 27 cycles.
+
+[mgorman@techsingularity.net: s/preempt_enable_no_resched/preempt_enable/]
+  Link: http://lkml.kernel.org/r/20170208143128.25ahymqlyspjcixu@techsingularity.net
+Link: http://lkml.kernel.org/r/20170123153906.3122-5-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   43 +++++++++++++++++++++++--------------------
+ 1 file changed, 23 insertions(+), 20 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator
+diff -puN mm/page_alloc.c~mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests
 +++ a/mm/page_alloc.c
-@@ -2341,7 +2341,16 @@ void drain_local_pages(struct zone *zone
- 
- static void drain_local_pages_wq(struct work_struct *work)
+@@ -1085,10 +1085,10 @@ static void free_pcppages_bulk(struct zo
  {
-+	/*
-+	 * drain_all_pages doesn't use proper cpu hotplug protection so
-+	 * we can race with cpu offline when the WQ can move this from
-+	 * a cpu pinned worker to an unbound one. We can operate on a different
-+	 * cpu which is allright but we also have to make sure to not move to
-+	 * a different one.
-+	 */
+ 	int migratetype = 0;
+ 	int batch_free = 0;
+-	unsigned long nr_scanned;
++	unsigned long nr_scanned, flags;
+ 	bool isolated_pageblocks;
+ 
+-	spin_lock(&zone->lock);
++	spin_lock_irqsave(&zone->lock, flags);
+ 	isolated_pageblocks = has_isolate_pageblock(zone);
+ 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
+ 	if (nr_scanned)
+@@ -1137,7 +1137,7 @@ static void free_pcppages_bulk(struct zo
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
+ 		} while (--count && --batch_free && !list_empty(list));
+ 	}
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+ 
+ static void free_one_page(struct zone *zone,
+@@ -1145,8 +1145,9 @@ static void free_one_page(struct zone *z
+ 				unsigned int order,
+ 				int migratetype)
+ {
+-	unsigned long nr_scanned;
+-	spin_lock(&zone->lock);
++	unsigned long nr_scanned, flags;
++	spin_lock_irqsave(&zone->lock, flags);
++	__count_vm_events(PGFREE, 1 << order);
+ 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
+ 	if (nr_scanned)
+ 		__mod_node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED, -nr_scanned);
+@@ -1156,7 +1157,7 @@ static void free_one_page(struct zone *z
+ 		migratetype = get_pfnblock_migratetype(page, pfn);
+ 	}
+ 	__free_one_page(page, pfn, zone, order, migratetype);
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+ 
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+@@ -1234,7 +1235,6 @@ void __meminit reserve_bootmem_region(ph
+ 
+ static void __free_pages_ok(struct page *page, unsigned int order)
+ {
+-	unsigned long flags;
+ 	int migratetype;
+ 	unsigned long pfn = page_to_pfn(page);
+ 
+@@ -1242,10 +1242,7 @@ static void __free_pages_ok(struct page
+ 		return;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+-	local_irq_save(flags);
+-	__count_vm_events(PGFREE, 1 << order);
+ 	free_one_page(page_zone(page), page, pfn, order, migratetype);
+-	local_irq_restore(flags);
+ }
+ 
+ static void __init __free_pages_boot_core(struct page *page, unsigned int order)
+@@ -2217,8 +2214,9 @@ static int rmqueue_bulk(struct zone *zon
+ 			int migratetype, bool cold)
+ {
+ 	int i, alloced = 0;
++	unsigned long flags;
+ 
+-	spin_lock(&zone->lock);
++	spin_lock_irqsave(&zone->lock, flags);
+ 	for (i = 0; i < count; ++i) {
+ 		struct page *page = __rmqueue(zone, order, migratetype);
+ 		if (unlikely(page == NULL))
+@@ -2254,7 +2252,7 @@ static int rmqueue_bulk(struct zone *zon
+ 	 * pages added to the pcp list.
+ 	 */
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+-	spin_unlock(&zone->lock);
++	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return alloced;
+ }
+ 
+@@ -2475,17 +2473,20 @@ void free_hot_cold_page(struct page *pag
+ {
+ 	struct zone *zone = page_zone(page);
+ 	struct per_cpu_pages *pcp;
+-	unsigned long flags;
+ 	unsigned long pfn = page_to_pfn(page);
+ 	int migratetype;
+ 
++	if (in_interrupt()) {
++		__free_pages_ok(page, 0);
++		return;
++	}
++
+ 	if (!free_pcp_prepare(page))
+ 		return;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+ 	set_pcppage_migratetype(page, migratetype);
+-	local_irq_save(flags);
+-	__count_vm_event(PGFREE);
 +	preempt_disable();
- 	drain_local_pages(NULL);
+ 
+ 	/*
+ 	 * We only track unmovable, reclaimable and movable on pcp lists.
+@@ -2502,6 +2503,7 @@ void free_hot_cold_page(struct page *pag
+ 		migratetype = MIGRATE_MOVABLE;
+ 	}
+ 
++	__count_vm_event(PGFREE);
+ 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+ 	if (!cold)
+ 		list_add(&page->lru, &pcp->lists[migratetype]);
+@@ -2515,7 +2517,7 @@ void free_hot_cold_page(struct page *pag
+ 	}
+ 
+ out:
+-	local_irq_restore(flags);
 +	preempt_enable();
  }
  
  /*
-@@ -2366,11 +2375,6 @@ void drain_all_pages(struct zone *zone)
- 	if (current->flags & PF_WQ_WORKER)
- 		return;
+@@ -2640,6 +2642,8 @@ static struct page *__rmqueue_pcplist(st
+ {
+ 	struct page *page;
  
--	/*
--	 * As this can be called from reclaim context, do not reenter reclaim.
--	 * An allocation failure can be handled, it's simply slower
--	 */
--	get_online_cpus();
- 	works = alloc_percpu_gfp(struct work_struct, GFP_ATOMIC);
++	VM_BUG_ON(in_interrupt());
++
+ 	do {
+ 		if (list_empty(list)) {
+ 			pcp->count += rmqueue_bulk(zone, 0,
+@@ -2670,9 +2674,8 @@ static struct page *rmqueue_pcplist(stru
+ 	struct list_head *list;
+ 	bool cold = ((gfp_flags & __GFP_COLD) != 0);
+ 	struct page *page;
+-	unsigned long flags;
  
- 	/*
-@@ -2421,7 +2425,6 @@ void drain_all_pages(struct zone *zone)
- 			flush_work(&work);
- 		}
+-	local_irq_save(flags);
++	preempt_disable();
+ 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+ 	list = &pcp->lists[migratetype];
+ 	page = __rmqueue_pcplist(zone,  migratetype, cold, pcp, list);
+@@ -2680,7 +2683,7 @@ static struct page *rmqueue_pcplist(stru
+ 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+ 		zone_statistics(preferred_zone, zone);
  	}
--	put_online_cpus();
+-	local_irq_restore(flags);
++	preempt_enable();
+ 	return page;
  }
  
- #ifdef CONFIG_HIBERNATION
+@@ -2696,7 +2699,7 @@ struct page *rmqueue(struct zone *prefer
+ 	unsigned long flags;
+ 	struct page *page;
+ 
+-	if (likely(order == 0)) {
++	if (likely(order == 0) && !in_interrupt()) {
+ 		page = rmqueue_pcplist(preferred_zone, zone, order,
+ 				gfp_flags, migratetype);
+ 		goto out;
 _
