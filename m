@@ -1,161 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:27:25 -0800
-Message-ID: <58b48bad.6hqlpvm0TBHh/ync%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-checkpatch-warnings-whitespace.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:27:12 -0800
+Message-ID: <58b48ba0.QVpGJwBh9CFLn723%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60478 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751882AbdB0U2A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:00 -0500
+        with ESMTP id S1751735AbdB0U17 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, michaele@au1.ibm.com, mikey@neuling.org, paulus@samba.org, riel@surriel.com, mm-commits@vger.kernel.org
+To: me@tobin.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/autonuma: let architecture override how the write bit should be stashed in a protnone pte.
+     Subject: mm: codgin-style fixes
 has been removed from the -mm tree.  Its filename was
-     mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte.patch
+     mm-fix-checkpatch-warnings-whitespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/autonuma: let architecture override how the write bit should be stashed in a protnone pte.
+From: Tobin C Harding <me@tobin.cc>
+Subject: mm: codgin-style fixes
 
-Patch series "Numabalancing preserve write fix", v2.
+Fix whitespace issues, extraneous braces.
 
-This patch series address an issue w.r.t THP migration and autonuma
-preserve write feature. migrate_misplaced_transhuge_page() cannot deal with
-concurrent modification of the page. It does a page copy without
-following the migration pte sequence. IIUC, this was done to keep the
-migration simpler and at the time of implemenation we didn't had THP
-page cache which would have required a more elaborate migration scheme.
-That means thp autonuma migration expect the protnone with saved write
-to be done such that both kernel and user cannot update
-the page content. This patch series enables archs like ppc64 to do that.
-We are good with the hash translation mode with the current code,
-because we never create a hardware page table entry for a protnone pte. 
-
-
-This patch (of 2):
-
-Autonuma preserves the write permission across numa fault to avoid taking
-a writefault after a numa fault (Commit: b191f9b106ea " mm: numa: preserve
-PTE write permissions across a NUMA hinting fault").  Architecture can
-implement protnone in different ways and some may choose to implement that
-by clearing Read/ Write/Exec bit of pte.  Setting the write bit on such
-pte can result in wrong behaviour.  Fix this up by allowing arch to
-override how to save the write bit on a protnone pte.
-
-[aneesh.kumar@linux.vnet.ibm.com: don't mark pte saved write in case of dirty_accountable]
-  Link: http://lkml.kernel.org/r/1487942884-16517-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-[aneesh.kumar@linux.vnet.ibm.com: v3]
-  Link: http://lkml.kernel.org/r/1487498625-10891-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Link: http://lkml.kernel.org/r/1487050314-3892-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Michael Neuling <mikey@neuling.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <michaele@au1.ibm.com>
+Link: http://lkml.kernel.org/r/1485992240-10986-5-git-send-email-me@tobin.cc
+Signed-off-by: Tobin C Harding <me@tobin.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   16 ++++++++++++++++
- mm/huge_memory.c              |    6 +++---
- mm/memory.c                   |    2 +-
- mm/mprotect.c                 |    2 +-
- 4 files changed, 21 insertions(+), 5 deletions(-)
+ mm/memory.c |   60 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 29 insertions(+), 31 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/include/asm-generic/pgtable.h
-@@ -225,6 +225,22 @@ static inline void ptep_set_wrprotect(st
- }
+diff -puN mm/memory.c~mm-fix-checkpatch-warnings-whitespace mm/memory.c
+--- a/mm/memory.c~mm-fix-checkpatch-warnings-whitespace
++++ a/mm/memory.c
+@@ -30,7 +30,7 @@
+ 
+ /*
+  * 05.04.94  -  Multi-page memory management added for v1.1.
+- * 		Idea by Alex Bligh (alex@cconcepts.co.uk)
++ *              Idea by Alex Bligh (alex@cconcepts.co.uk)
+  *
+  * 16.07.99  -  Support of BIGMEM added by Gerhard Wichert, Siemens AG
+  *		(Gerhard.Wichert@pdb.siemens.de)
+@@ -82,9 +82,9 @@
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ /* use the per-pgdat data instead for discontigmem - mbligh */
+ unsigned long max_mapnr;
+-struct page *mem_map;
+-
+ EXPORT_SYMBOL(max_mapnr);
++
++struct page *mem_map;
+ EXPORT_SYMBOL(mem_map);
  #endif
  
-+#ifndef pte_savedwrite
-+#define pte_savedwrite pte_write
-+#endif
+@@ -95,8 +95,7 @@ EXPORT_SYMBOL(mem_map);
+  * highstart_pfn must be the same; there must be no gap between ZONE_NORMAL
+  * and ZONE_HIGHMEM.
+  */
+-void * high_memory;
+-
++void *high_memory;
+ EXPORT_SYMBOL(high_memory);
+ 
+ /*
+@@ -120,10 +119,10 @@ static int __init disable_randmaps(char
+ __setup("norandmaps", disable_randmaps);
+ 
+ unsigned long zero_pfn __read_mostly;
+-unsigned long highest_memmap_pfn __read_mostly;
+-
+ EXPORT_SYMBOL(zero_pfn);
+ 
++unsigned long highest_memmap_pfn __read_mostly;
 +
-+#ifndef pte_mk_savedwrite
-+#define pte_mk_savedwrite pte_mkwrite
-+#endif
-+
-+#ifndef pmd_savedwrite
-+#define pmd_savedwrite pmd_write
-+#endif
-+
-+#ifndef pmd_mk_savedwrite
-+#define pmd_mk_savedwrite pmd_mkwrite
-+#endif
-+
- #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-diff -puN mm/huge_memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/huge_memory.c
---- a/mm/huge_memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/mm/huge_memory.c
-@@ -1426,7 +1426,7 @@ int do_huge_pmd_numa_page(struct vm_faul
+ /*
+  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
+  */
+@@ -556,7 +555,7 @@ void free_pgtables(struct mmu_gather *tl
+ 
+ 		if (is_vm_hugetlb_page(vma)) {
+ 			hugetlb_free_pgd_range(tlb, addr, vma->vm_end,
+-				floor, next? next->vm_start: ceiling);
++				floor, next ? next->vm_start : ceiling);
+ 		} else {
+ 			/*
+ 			 * Optimization: gather nearby vmas into one call down
+@@ -569,7 +568,7 @@ void free_pgtables(struct mmu_gather *tl
+ 				unlink_file_vma(vma);
+ 			}
+ 			free_pgd_range(tlb, addr, vma->vm_end,
+-				floor, next? next->vm_start: ceiling);
++				floor, next ? next->vm_start : ceiling);
+ 		}
+ 		vma = next;
+ 	}
+@@ -1141,9 +1140,8 @@ again:
+ 	arch_enter_lazy_mmu_mode();
+ 	do {
+ 		pte_t ptent = *pte;
+-		if (pte_none(ptent)) {
++		if (pte_none(ptent))
+ 			continue;
+-		}
+ 
+ 		if (pte_present(ptent)) {
+ 			struct page *page;
+@@ -1463,10 +1461,10 @@ EXPORT_SYMBOL_GPL(zap_vma_ptes);
+ pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
+ 			spinlock_t **ptl)
+ {
+-	pgd_t * pgd = pgd_offset(mm, addr);
+-	pud_t * pud = pud_alloc(mm, pgd, addr);
++	pgd_t *pgd = pgd_offset(mm, addr);
++	pud_t *pud = pud_alloc(mm, pgd, addr);
+ 	if (pud) {
+-		pmd_t * pmd = pmd_alloc(mm, pud, addr);
++		pmd_t *pmd = pmd_alloc(mm, pud, addr);
+ 		if (pmd) {
+ 			VM_BUG_ON(pmd_trans_huge(*pmd));
+ 			return pte_alloc_map_lock(mm, pmd, addr, ptl);
+@@ -2525,7 +2523,7 @@ void unmap_mapping_range(struct address_
+ 			hlen = ULONG_MAX - hba + 1;
  	}
  
- 	/* See similar comment in do_numa_page for explanation */
--	if (!pmd_write(pmd))
-+	if (!pmd_savedwrite(pmd))
- 		flags |= TNF_NO_GROUP;
- 
- 	/*
-@@ -1489,7 +1489,7 @@ int do_huge_pmd_numa_page(struct vm_faul
- 	goto out;
- clear_pmdnuma:
- 	BUG_ON(!PageLocked(page));
--	was_writable = pmd_write(pmd);
-+	was_writable = pmd_savedwrite(pmd);
- 	pmd = pmd_modify(pmd, vma->vm_page_prot);
- 	pmd = pmd_mkyoung(pmd);
- 	if (was_writable)
-@@ -1744,7 +1744,7 @@ int change_huge_pmd(struct vm_area_struc
- 			entry = pmdp_huge_get_and_clear_notify(mm, addr, pmd);
- 			entry = pmd_modify(entry, newprot);
- 			if (preserve_write)
--				entry = pmd_mkwrite(entry);
-+				entry = pmd_mk_savedwrite(entry);
- 			ret = HPAGE_PMD_NR;
- 			set_pmd_at(mm, addr, pmd, entry);
- 			BUG_ON(vma_is_anonymous(vma) && !preserve_write &&
-diff -puN mm/memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/memory.c
---- a/mm/memory.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/mm/memory.c
-@@ -3401,7 +3401,7 @@ static int do_numa_page(struct vm_fault
- 	int target_nid;
- 	bool migrated = false;
- 	pte_t pte;
--	bool was_writable = pte_write(vmf->orig_pte);
-+	bool was_writable = pte_savedwrite(vmf->orig_pte);
+-	details.check_mapping = even_cows? NULL: mapping;
++	details.check_mapping = even_cows ? NULL : mapping;
+ 	details.first_index = hba;
+ 	details.last_index = hba + hlen - 1;
+ 	if (details.last_index < details.first_index)
+@@ -3407,14 +3405,14 @@ static int do_numa_page(struct vm_fault
  	int flags = 0;
  
  	/*
-diff -puN mm/mprotect.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte mm/mprotect.c
---- a/mm/mprotect.c~mm-autonuma-let-architecture-override-how-the-write-bit-should-be-stashed-in-a-protnone-pte
-+++ a/mm/mprotect.c
-@@ -99,7 +99,7 @@ static unsigned long change_pte_range(st
- 			ptent = ptep_modify_prot_start(mm, addr, pte);
- 			ptent = pte_modify(ptent, newprot);
- 			if (preserve_write)
--				ptent = pte_mkwrite(ptent);
-+				ptent = pte_mk_savedwrite(ptent);
+-	* The "pte" at this point cannot be used safely without
+-	* validation through pte_unmap_same(). It's of NUMA type but
+-	* the pfn may be screwed if the read is non atomic.
+-	*
+-	* We can safely just do a "set_pte_at()", because the old
+-	* page table entry is not accessible, so there would be no
+-	* concurrent hardware modifications to the PTE.
+-	*/
++	 * The "pte" at this point cannot be used safely without
++	 * validation through pte_unmap_same(). It's of NUMA type but
++	 * the pfn may be screwed if the read is non atomic.
++	 *
++	 * We can safely just do a "set_pte_at()", because the old
++	 * page table entry is not accessible, so there would be no
++	 * concurrent hardware modifications to the PTE.
++	 */
+ 	vmf->ptl = pte_lockptr(vma->vm_mm, vmf->pmd);
+ 	spin_lock(vmf->ptl);
+ 	if (unlikely(!pte_same(*vmf->pte, pte))) {
+@@ -3750,14 +3748,14 @@ int handle_mm_fault(struct vm_area_struc
  
- 			/* Avoid taking write faults for known dirty pages */
- 			if (dirty_accountable && pte_dirty(ptent) &&
+ 	if (flags & FAULT_FLAG_USER) {
+ 		mem_cgroup_oom_disable();
+-                /*
+-                 * The task may have entered a memcg OOM situation but
+-                 * if the allocation error was handled gracefully (no
+-                 * VM_FAULT_OOM), there is no need to kill anything.
+-                 * Just clean up the OOM state peacefully.
+-                 */
+-                if (task_in_memcg_oom(current) && !(ret & VM_FAULT_OOM))
+-                        mem_cgroup_oom_synchronize(false);
++		/*
++		 * The task may have entered a memcg OOM situation but
++		 * if the allocation error was handled gracefully (no
++		 * VM_FAULT_OOM), there is no need to kill anything.
++		 * Just clean up the OOM state peacefully.
++		 */
++		if (task_in_memcg_oom(current) && !(ret & VM_FAULT_OOM))
++			mem_cgroup_oom_synchronize(false);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from me@tobin.cc are
 
 
