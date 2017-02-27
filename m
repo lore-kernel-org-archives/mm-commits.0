@@ -1,125 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-cma-print-allocation-failure-reason-and-bitmap-status.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:27:02 -0800
-Message-ID: <58b48b96.x65ajnrBClo54CXs%akpm@linux-foundation.org>
+Subject: [merged] mm-cma_alloc-allow-to-specify-gfp-mask.patch removed
+ from -mm tree
+Date: Mon, 27 Feb 2017 12:26:53 -0800
+Message-ID: <58b48b8d.IimFzeMlpwGwWKcN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60732 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751845AbdB0U16 (ORCPT
+        with ESMTP id S1751778AbdB0U16 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaewon31.kim@samsung.com, iamjoonsoo.kim@lge.com, labbott@redhat.com, mina86@mina86.com, mm-commits@vger.kernel.org
+To: l.stach@pengutronix.de, agraf@suse.com, catalin.marinas@arm.com, chris@zankel.net, iamjoonsoo.kim@lge.com, mhocko@suse.com, pbonzini@redhat.com, ralf@linux-mips.org, rkrcmar@redhat.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: print allocation failure reason and bitmap status
+     Subject: mm: cma_alloc: allow to specify GFP mask
 has been removed from the -mm tree.  Its filename was
-     mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
+     mm-cma_alloc-allow-to-specify-gfp-mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: mm: cma: print allocation failure reason and bitmap status
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: mm: cma_alloc: allow to specify GFP mask
 
-There are many reasons of CMA allocation failure such as EBUSY, ENOMEM,
-EINTR.  But we did not know error reason so far.  This patch prints the
-error value.
+Most users of this interface just want to use it with the default
+GFP_KERNEL flags, but for cases where DMA memory is allocated it may be
+called from a different context.
 
-Additionally if CONFIG_CMA_DEBUG is enabled, this patch shows bitmap
-status to know available pages.  Actually CMA internally tries on all
-available regions because some regions can be failed because of EBUSY. 
-Bitmap status is useful to know in detail on both ENONEM and EBUSY;
+No functional change yet, just passing through the flag to the underlying
+alloc_contig_range function.
 
- ENOMEM: not tried at all because of no available region
-         it could be too small total region or could be fragmentation issue
- EBUSY:  tried some region but all failed
-
-This is an ENOMEM example with this patch.
-[   12.415458]  [2:   Binder:714_1:  744] cma: cma_alloc: alloc failed, req-size: 256 pages, ret: -12
-
-If CONFIG_CMA_DEBUG is enabled, avabile pages also will be shown as
-concatenated size@position format.  So 4@572 means that there are 4
-available pages at 572 position starting from 0 position.
-[   12.415503]  [2:   Binder:714_1:  744] cma: number of available pages: 4@572+7@585+7@601+8@632+38@730+166@1114+127@1921=> 357 free of 2048 total pages
-
-Link: http://lkml.kernel.org/r/1485909785-3952-1-git-send-email-jaewon31.kim@samsung.com
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Laura Abbott <labbott@redhat.com>
+Link: http://lkml.kernel.org/r/20170127172328.18574-2-l.stach@pengutronix.de
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Radim Krcmar <rkrcmar@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Alexander Graf <agraf@suse.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ arch/powerpc/kvm/book3s_hv_builtin.c |    3 ++-
+ drivers/base/dma-contiguous.c        |    2 +-
+ include/linux/cma.h                  |    3 ++-
+ mm/cma.c                             |    5 +++--
+ mm/cma_debug.c                       |    2 +-
+ 5 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status mm/cma.c
---- a/mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status
-+++ a/mm/cma.c
-@@ -348,6 +348,32 @@ err:
- 	return ret;
+diff -puN arch/powerpc/kvm/book3s_hv_builtin.c~mm-cma_alloc-allow-to-specify-gfp-mask arch/powerpc/kvm/book3s_hv_builtin.c
+--- a/arch/powerpc/kvm/book3s_hv_builtin.c~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/arch/powerpc/kvm/book3s_hv_builtin.c
+@@ -56,7 +56,8 @@ struct page *kvm_alloc_hpt_cma(unsigned
+ {
+ 	VM_BUG_ON(order_base_2(nr_pages) < KVM_CMA_CHUNK_ORDER - PAGE_SHIFT);
+ 
+-	return cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES));
++	return cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES),
++			 GFP_KERNEL);
+ }
+ EXPORT_SYMBOL_GPL(kvm_alloc_hpt_cma);
+ 
+diff -puN drivers/base/dma-contiguous.c~mm-cma_alloc-allow-to-specify-gfp-mask drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/drivers/base/dma-contiguous.c
+@@ -193,7 +193,7 @@ struct page *dma_alloc_from_contiguous(s
+ 	if (align > CONFIG_CMA_ALIGNMENT)
+ 		align = CONFIG_CMA_ALIGNMENT;
+ 
+-	return cma_alloc(dev_get_cma_area(dev), count, align);
++	return cma_alloc(dev_get_cma_area(dev), count, align, GFP_KERNEL);
  }
  
-+#ifdef CONFIG_CMA_DEBUG
-+static void cma_debug_show_areas(struct cma *cma)
-+{
-+	unsigned long next_zero_bit, next_set_bit;
-+	unsigned long start = 0;
-+	unsigned int nr_zero, nr_total = 0;
-+
-+	mutex_lock(&cma->lock);
-+	pr_info("number of available pages: ");
-+	for (;;) {
-+		next_zero_bit = find_next_zero_bit(cma->bitmap, cma->count, start);
-+		if (next_zero_bit >= cma->count)
-+			break;
-+		next_set_bit = find_next_bit(cma->bitmap, cma->count, next_zero_bit);
-+		nr_zero = next_set_bit - next_zero_bit;
-+		pr_cont("%s%u@%lu", nr_total ? "+" : "", nr_zero, next_zero_bit);
-+		nr_total += nr_zero;
-+		start = next_zero_bit + nr_zero;
-+	}
-+	pr_cont("=> %u free of %lu total pages\n", nr_total, cma->count);
-+	mutex_unlock(&cma->lock);
-+}
-+#else
-+static inline void cma_debug_show_areas(struct cma *cma) { }
-+#endif
-+
  /**
-  * cma_alloc() - allocate pages from contiguous area
-  * @cma:   Contiguous memory region for which the allocation is performed.
-@@ -365,7 +391,7 @@ struct page *cma_alloc(struct cma *cma,
- 	unsigned long start = 0;
- 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
- 	struct page *page = NULL;
--	int ret;
-+	int ret = -ENOMEM;
+diff -puN include/linux/cma.h~mm-cma_alloc-allow-to-specify-gfp-mask include/linux/cma.h
+--- a/include/linux/cma.h~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/include/linux/cma.h
+@@ -29,6 +29,7 @@ extern int __init cma_declare_contiguous
+ extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ 					unsigned int order_per_bit,
+ 					struct cma **res_cma);
+-extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align);
++extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
++			      gfp_t gfp_mask);
+ extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
+ #endif
+diff -puN mm/cma.c~mm-cma_alloc-allow-to-specify-gfp-mask mm/cma.c
+--- a/mm/cma.c~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/mm/cma.c
+@@ -357,7 +357,8 @@ err:
+  * This function allocates part of contiguous memory on specific
+  * contiguous memory area.
+  */
+-struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align)
++struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
++		       gfp_t gfp_mask)
+ {
+ 	unsigned long mask, offset;
+ 	unsigned long pfn = -1;
+@@ -403,7 +404,7 @@ struct page *cma_alloc(struct cma *cma,
+ 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
+ 		mutex_lock(&cma_mutex);
+ 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
+-					 GFP_KERNEL);
++					 gfp_mask);
+ 		mutex_unlock(&cma_mutex);
+ 		if (ret == 0) {
+ 			page = pfn_to_page(pfn);
+diff -puN mm/cma_debug.c~mm-cma_alloc-allow-to-specify-gfp-mask mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma_alloc-allow-to-specify-gfp-mask
++++ a/mm/cma_debug.c
+@@ -138,7 +138,7 @@ static int cma_alloc_mem(struct cma *cma
+ 	if (!mem)
+ 		return -ENOMEM;
  
- 	if (!cma || !cma->count)
- 		return NULL;
-@@ -423,6 +449,12 @@ struct page *cma_alloc(struct cma *cma,
- 
- 	trace_cma_alloc(pfn, page, count, align);
- 
-+	if (ret) {
-+		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
-+			__func__, count, ret);
-+		cma_debug_show_areas(cma);
-+	}
-+
- 	pr_debug("%s(): returned %p\n", __func__, page);
- 	return page;
- }
+-	p = cma_alloc(cma, count, 0);
++	p = cma_alloc(cma, count, 0, GFP_KERNEL);
+ 	if (!p) {
+ 		kfree(mem);
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from l.stach@pengutronix.de are
 
 
