@@ -1,108 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-warn-on-embedded-function-names.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:29:21 -0800
-Message-ID: <58b48c21.uWaXE/lJm3lxwuVB%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-comments-for-mmap_init.patch removed from -mm
+ tree
+Date: Mon, 27 Feb 2017 12:25:08 -0800
+Message-ID: <58b48b24.ij1i5/RHPzFyoPa3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751516AbdB0Ujs (ORCPT
+        with ESMTP id S1751605AbdB0Ujs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:39:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: iamyooon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on embedded function names
+     Subject: mm: fix comments for mmap_init()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-embedded-function-names.patch
+     mm-fix-comments-for-mmap_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on embedded function names
+From: "seokhoon.yoon" <iamyooon@gmail.com>
+Subject: mm: fix comments for mmap_init()
 
-Embedded function names are less appropriate to use when refactoring can
-cause function renaming.  Prefer the use of "%s", __func__ to embedded
-function names.
+mmap_init() is no longer associated with VMA slab. so fix it.
 
-Link: http://lkml.kernel.org/r/ac9631fdbac5af3507c5bfe88ad9064f0ed764ec.1483510416.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Andy Whitcroft <apw@canonical.com>
+Link: http://lkml.kernel.org/r/1485182601-9294-1-git-send-email-iamyooon@gmail.com
+Signed-off-by: seokhoon.yoon <iamyooon@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ mm/mmap.c  |    2 +-
+ mm/nommu.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-embedded-function-names scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-embedded-function-names
-+++ a/scripts/checkpatch.pl
-@@ -2134,7 +2134,7 @@ sub process {
- 	my $in_header_lines = $file ? 0 : 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
- 	my $has_commit_log = 0;		#Encountered lines before patch
--       my $commit_log_possible_stack_dump = 0;
-+	my $commit_log_possible_stack_dump = 0;
- 	my $commit_log_long_line = 0;
- 	my $commit_log_has_diff = 0;
- 	my $reported_maintainer_file = 0;
-@@ -2154,6 +2154,7 @@ sub process {
- 	my $realline = 0;
- 	my $realcnt = 0;
- 	my $here = '';
-+	my $context_function;		#undef'd unless there's a known function
- 	my $in_comment = 0;
- 	my $comment_edge = 0;
- 	my $first_line = 0;
-@@ -2192,7 +2193,8 @@ sub process {
- 			}
- 			#next;
- 		}
--		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
-+		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@(.*)/) {
-+			my $context = $4;
- 			$realline=$1-1;
- 			if (defined $2) {
- 				$realcnt=$3+1;
-@@ -2201,6 +2203,12 @@ sub process {
- 			}
- 			$in_comment = 0;
+diff -puN mm/mmap.c~mm-fix-comments-for-mmap_init mm/mmap.c
+--- a/mm/mmap.c~mm-fix-comments-for-mmap_init
++++ a/mm/mmap.c
+@@ -3446,7 +3446,7 @@ void mm_drop_all_locks(struct mm_struct
+ }
  
-+			if ($context =~ /\b(\w+)\s*\(/) {
-+				$context_function = $1;
-+			} else {
-+				undef $context_function;
-+			}
-+
- 			# Guestimate if this is a continuing comment.  Run
- 			# the context looking for a comment "edge".  If this
- 			# edge is a close comment then we must be in a comment
-@@ -5157,6 +5165,16 @@ sub process {
- 			     "break quoted strings at a space character\n" . $hereprev);
- 		}
+ /*
+- * initialise the VMA slab
++ * initialise the percpu counter for VM
+  */
+ void __init mmap_init(void)
+ {
+diff -puN mm/nommu.c~mm-fix-comments-for-mmap_init mm/nommu.c
+--- a/mm/nommu.c~mm-fix-comments-for-mmap_init
++++ a/mm/nommu.c
+@@ -517,7 +517,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ }
  
-+#check for an embedded function name in a string when the function is known
-+# as part of a diff.  This does not work for -f --file checking as it
-+#depends on patch context providing the function name
-+		if ($line =~ /^\+.*$String/ &&
-+		    defined($context_function) &&
-+		    get_quoted_string($line, $rawline) =~ /\b$context_function\b/) {
-+			WARN("EMBEDDED_FUNCTION_NAME",
-+			     "Prefer using \"%s\", __func__ to embedded function names\n" . $herecurr);
-+		}
-+
- # check for spaces before a quoted newline
- 		if ($rawline =~ /^.*\".*\s\\n/) {
- 			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
+ /*
+- * initialise the VMA and region record slabs
++ * initialise the percpu counter for VM and region record slabs
+  */
+ void __init mmap_init(void)
+ {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from iamyooon@gmail.com are
 
-checkpatchpl-warn-against-using-%z-fix.patch
 
