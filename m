@@ -1,65 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- fs-affs-make-export-work-with-cold-dcache-fix.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 14:18:36 -0800
-Message-ID: <58b4a5bc.qbcEXxD4dDyqYGBm%akpm@linux-foundation.org>
+Subject: [merged]
+ linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:29:02 -0800
+Message-ID: <58b48c0e.B8pvsDkfhB+2yrfZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44532 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751813AbdB0WT1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:19:27 -0500
+        with ESMTP id S1751586AbdB0WV7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:21:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weiyongjun1@huawei.com, fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: niklas.soderlund+renesas@ragnatech.se, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs: fix return value check in affs_get_parent()
+     Subject: linux/kernel.h: fix DIV_ROUND_CLOSEST to support negative divisors
 has been removed from the -mm tree.  Its filename was
-     fs-affs-make-export-work-with-cold-dcache-fix.patch
+     linux-kernelh-fix-div_round_closest-to-support-negative-divisors.patch
 
-This patch was dropped because it was folded into fs-affs-make-export-work-with-cold-dcache.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: fs/affs: fix return value check in affs_get_parent()
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Subject: linux/kernel.h: fix DIV_ROUND_CLOSEST to support negative divisors
 
-In case of error, the function affs_bread() returns NULL pointer not
-ERR_PTR().  The IS_ERR() test in the return value check should be replaced
-with NULL test.
+While working on a thermal driver I encounter a scenario where the divisor
+could be negative, instead of adding local code to handle this I though I
+first try to add support for this in DIV_ROUND_CLOSEST.
 
-Fixes: e393e82a7d09 ("fs/affs: make export work with cold dcache")
-Link: http://lkml.kernel.org/r/20170123141018.2331-1-weiyj.lk@gmail.com
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Add support to DIV_ROUND_CLOSEST for negative divisors if both dividend
+and divisor variable types are signed.  This should not alter current
+behavior for users of the macro as previously negative divisors where not
+supported.
+
+Before:
+
+DIV_ROUND_CLOSEST(  59,  4) =  15
+DIV_ROUND_CLOSEST(  59, -4) = -14
+DIV_ROUND_CLOSEST( -59,  4) = -15
+DIV_ROUND_CLOSEST( -59, -4) =  14
+
+After:
+
+DIV_ROUND_CLOSEST(  59,  4) =  15
+DIV_ROUND_CLOSEST(  59, -4) = -15
+DIV_ROUND_CLOSEST( -59,  4) = -15
+DIV_ROUND_CLOSEST( -59, -4) =  15
+
+[akpm@linux-foundation.org: fix comment, per Guenter]
+Link: http://lkml.kernel.org/r/20161222102217.29011-1-niklas.soderlund+renesas@ragnatech.se
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/namei.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kernel.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache-fix fs/affs/namei.c
---- a/fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache-fix
-+++ a/fs/affs/namei.c
-@@ -453,8 +453,8 @@ static struct dentry *affs_get_parent(st
- 	struct buffer_head *bh;
+diff -puN include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-divisors include/linux/kernel.h
+--- a/include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-divisors
++++ a/include/linux/kernel.h
+@@ -100,16 +100,18 @@
+ )
  
- 	bh = affs_bread(child->d_sb, d_inode(child)->i_ino);
--	if (IS_ERR(bh))
--		return ERR_CAST(bh);
-+	if (!bh)
-+		return ERR_PTR(-EIO);
- 
- 	parent = affs_iget(child->d_sb,
- 			   be32_to_cpu(AFFS_TAIL(child->d_sb, bh)->parent));
+ /*
+- * Divide positive or negative dividend by positive divisor and round
+- * to closest integer. Result is undefined for negative divisors and
+- * for negative dividends if the divisor variable type is unsigned.
++ * Divide positive or negative dividend by positive or negative divisor
++ * and round to closest integer. Result is undefined for negative
++ * divisors if he dividend variable type is unsigned and for negative
++ * dividends if the divisor variable type is unsigned.
+  */
+ #define DIV_ROUND_CLOSEST(x, divisor)(			\
+ {							\
+ 	typeof(x) __x = x;				\
+ 	typeof(divisor) __d = divisor;			\
+ 	(((typeof(x))-1) > 0 ||				\
+-	 ((typeof(divisor))-1) > 0 || (__x) > 0) ?	\
++	 ((typeof(divisor))-1) > 0 ||			\
++	 (((__x) > 0) == ((__d) > 0))) ?		\
+ 		(((__x) + ((__d) / 2)) / (__d)) :	\
+ 		(((__x) - ((__d) / 2)) / (__d));	\
+ }							\
 _
 
-Patches currently in -mm which might be from weiyongjun1@huawei.com are
+Patches currently in -mm which might be from niklas.soderlund+renesas@ragnatech.se are
 
-fs-affs-make-export-work-with-cold-dcache.patch
 
