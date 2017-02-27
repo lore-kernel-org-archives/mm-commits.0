@@ -1,189 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-checkpatch-warnings-whitespace.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:27:12 -0800
-Message-ID: <58b48ba0.QVpGJwBh9CFLn723%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t.patch removed from -mm
+ tree
+Date: Mon, 27 Feb 2017 12:27:57 -0800
+Message-ID: <58b48bcd.6rmQt/1CptBWrI2o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60466 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751735AbdB0U17 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:59 -0500
+        with ESMTP id S1751979AbdB0U2H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@tobin.cc, mm-commits@vger.kernel.org
+To: miles.chen@mediatek.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: codgin-style fixes
+     Subject: mm: cleanups for printing phys_addr_t and dma_addr_t
 has been removed from the -mm tree.  Its filename was
-     mm-fix-checkpatch-warnings-whitespace.patch
+     mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tobin C Harding <me@tobin.cc>
-Subject: mm: codgin-style fixes
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: mm: cleanups for printing phys_addr_t and dma_addr_t
 
-Fix whitespace issues, extraneous braces.
+cleanup rest of dma_addr_t and phys_addr_t type casting in mm
+use %pad for dma_addr_t
+use %pa for phys_addr_t
 
-Link: http://lkml.kernel.org/r/1485992240-10986-5-git-send-email-me@tobin.cc
-Signed-off-by: Tobin C Harding <me@tobin.cc>
+Link: http://lkml.kernel.org/r/1486618489-13912-1-git-send-email-miles.chen@mediatek.com
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   60 ++++++++++++++++++++++++--------------------------
- 1 file changed, 29 insertions(+), 31 deletions(-)
+ mm/dmapool.c |   16 ++++++++--------
+ mm/vmalloc.c |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-checkpatch-warnings-whitespace mm/memory.c
---- a/mm/memory.c~mm-fix-checkpatch-warnings-whitespace
-+++ a/mm/memory.c
-@@ -30,7 +30,7 @@
- 
- /*
-  * 05.04.94  -  Multi-page memory management added for v1.1.
-- * 		Idea by Alex Bligh (alex@cconcepts.co.uk)
-+ *              Idea by Alex Bligh (alex@cconcepts.co.uk)
-  *
-  * 16.07.99  -  Support of BIGMEM added by Gerhard Wichert, Siemens AG
-  *		(Gerhard.Wichert@pdb.siemens.de)
-@@ -82,9 +82,9 @@
- #ifndef CONFIG_NEED_MULTIPLE_NODES
- /* use the per-pgdat data instead for discontigmem - mbligh */
- unsigned long max_mapnr;
--struct page *mem_map;
--
- EXPORT_SYMBOL(max_mapnr);
-+
-+struct page *mem_map;
- EXPORT_SYMBOL(mem_map);
- #endif
- 
-@@ -95,8 +95,7 @@ EXPORT_SYMBOL(mem_map);
-  * highstart_pfn must be the same; there must be no gap between ZONE_NORMAL
-  * and ZONE_HIGHMEM.
-  */
--void * high_memory;
--
-+void *high_memory;
- EXPORT_SYMBOL(high_memory);
- 
- /*
-@@ -120,10 +119,10 @@ static int __init disable_randmaps(char
- __setup("norandmaps", disable_randmaps);
- 
- unsigned long zero_pfn __read_mostly;
--unsigned long highest_memmap_pfn __read_mostly;
--
- EXPORT_SYMBOL(zero_pfn);
- 
-+unsigned long highest_memmap_pfn __read_mostly;
-+
- /*
-  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
-  */
-@@ -556,7 +555,7 @@ void free_pgtables(struct mmu_gather *tl
- 
- 		if (is_vm_hugetlb_page(vma)) {
- 			hugetlb_free_pgd_range(tlb, addr, vma->vm_end,
--				floor, next? next->vm_start: ceiling);
-+				floor, next ? next->vm_start : ceiling);
- 		} else {
- 			/*
- 			 * Optimization: gather nearby vmas into one call down
-@@ -569,7 +568,7 @@ void free_pgtables(struct mmu_gather *tl
- 				unlink_file_vma(vma);
+diff -puN mm/dmapool.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t mm/dmapool.c
+--- a/mm/dmapool.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t
++++ a/mm/dmapool.c
+@@ -434,11 +434,11 @@ void dma_pool_free(struct dma_pool *pool
+ 		spin_unlock_irqrestore(&pool->lock, flags);
+ 		if (pool->dev)
+ 			dev_err(pool->dev,
+-				"dma_pool_free %s, %p (bad vaddr)/%Lx\n",
+-				pool->name, vaddr, (unsigned long long)dma);
++				"dma_pool_free %s, %p (bad vaddr)/%pad\n",
++				pool->name, vaddr, &dma);
+ 		else
+-			pr_err("dma_pool_free %s, %p (bad vaddr)/%Lx\n",
+-			       pool->name, vaddr, (unsigned long long)dma);
++			pr_err("dma_pool_free %s, %p (bad vaddr)/%pad\n",
++			       pool->name, vaddr, &dma);
+ 		return;
+ 	}
+ 	{
+@@ -450,11 +450,11 @@ void dma_pool_free(struct dma_pool *pool
  			}
- 			free_pgd_range(tlb, addr, vma->vm_end,
--				floor, next? next->vm_start: ceiling);
-+				floor, next ? next->vm_start : ceiling);
+ 			spin_unlock_irqrestore(&pool->lock, flags);
+ 			if (pool->dev)
+-				dev_err(pool->dev, "dma_pool_free %s, dma %Lx already free\n",
+-					pool->name, (unsigned long long)dma);
++				dev_err(pool->dev, "dma_pool_free %s, dma %pad already free\n",
++					pool->name, &dma);
+ 			else
+-				pr_err("dma_pool_free %s, dma %Lx already free\n",
+-				       pool->name, (unsigned long long)dma);
++				pr_err("dma_pool_free %s, dma %pad already free\n",
++				       pool->name, &dma);
+ 			return;
  		}
- 		vma = next;
  	}
-@@ -1141,9 +1140,8 @@ again:
- 	arch_enter_lazy_mmu_mode();
- 	do {
- 		pte_t ptent = *pte;
--		if (pte_none(ptent)) {
-+		if (pte_none(ptent))
- 			continue;
--		}
+diff -puN mm/vmalloc.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-cleanups-for-printing-phys_addr_t-and-dma_addr_t
++++ a/mm/vmalloc.c
+@@ -2659,7 +2659,7 @@ static int s_show(struct seq_file *m, vo
+ 		seq_printf(m, " pages=%d", v->nr_pages);
  
- 		if (pte_present(ptent)) {
- 			struct page *page;
-@@ -1463,10 +1461,10 @@ EXPORT_SYMBOL_GPL(zap_vma_ptes);
- pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
- 			spinlock_t **ptl)
- {
--	pgd_t * pgd = pgd_offset(mm, addr);
--	pud_t * pud = pud_alloc(mm, pgd, addr);
-+	pgd_t *pgd = pgd_offset(mm, addr);
-+	pud_t *pud = pud_alloc(mm, pgd, addr);
- 	if (pud) {
--		pmd_t * pmd = pmd_alloc(mm, pud, addr);
-+		pmd_t *pmd = pmd_alloc(mm, pud, addr);
- 		if (pmd) {
- 			VM_BUG_ON(pmd_trans_huge(*pmd));
- 			return pte_alloc_map_lock(mm, pmd, addr, ptl);
-@@ -2525,7 +2523,7 @@ void unmap_mapping_range(struct address_
- 			hlen = ULONG_MAX - hba + 1;
- 	}
+ 	if (v->phys_addr)
+-		seq_printf(m, " phys=%llx", (unsigned long long)v->phys_addr);
++		seq_printf(m, " phys=%pa", &v->phys_addr);
  
--	details.check_mapping = even_cows? NULL: mapping;
-+	details.check_mapping = even_cows ? NULL : mapping;
- 	details.first_index = hba;
- 	details.last_index = hba + hlen - 1;
- 	if (details.last_index < details.first_index)
-@@ -3407,14 +3405,14 @@ static int do_numa_page(struct vm_fault
- 	int flags = 0;
- 
- 	/*
--	* The "pte" at this point cannot be used safely without
--	* validation through pte_unmap_same(). It's of NUMA type but
--	* the pfn may be screwed if the read is non atomic.
--	*
--	* We can safely just do a "set_pte_at()", because the old
--	* page table entry is not accessible, so there would be no
--	* concurrent hardware modifications to the PTE.
--	*/
-+	 * The "pte" at this point cannot be used safely without
-+	 * validation through pte_unmap_same(). It's of NUMA type but
-+	 * the pfn may be screwed if the read is non atomic.
-+	 *
-+	 * We can safely just do a "set_pte_at()", because the old
-+	 * page table entry is not accessible, so there would be no
-+	 * concurrent hardware modifications to the PTE.
-+	 */
- 	vmf->ptl = pte_lockptr(vma->vm_mm, vmf->pmd);
- 	spin_lock(vmf->ptl);
- 	if (unlikely(!pte_same(*vmf->pte, pte))) {
-@@ -3750,14 +3748,14 @@ int handle_mm_fault(struct vm_area_struc
- 
- 	if (flags & FAULT_FLAG_USER) {
- 		mem_cgroup_oom_disable();
--                /*
--                 * The task may have entered a memcg OOM situation but
--                 * if the allocation error was handled gracefully (no
--                 * VM_FAULT_OOM), there is no need to kill anything.
--                 * Just clean up the OOM state peacefully.
--                 */
--                if (task_in_memcg_oom(current) && !(ret & VM_FAULT_OOM))
--                        mem_cgroup_oom_synchronize(false);
-+		/*
-+		 * The task may have entered a memcg OOM situation but
-+		 * if the allocation error was handled gracefully (no
-+		 * VM_FAULT_OOM), there is no need to kill anything.
-+		 * Just clean up the OOM state peacefully.
-+		 */
-+		if (task_in_memcg_oom(current) && !(ret & VM_FAULT_OOM))
-+			mem_cgroup_oom_synchronize(false);
- 	}
- 
- 	/*
+ 	if (v->flags & VM_IOREMAP)
+ 		seq_puts(m, " ioremap");
 _
 
-Patches currently in -mm which might be from me@tobin.cc are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
 
