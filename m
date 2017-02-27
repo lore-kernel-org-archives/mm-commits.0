@@ -1,280 +1,333 @@
 From: akpm@linux-foundation.org
-Subject: [patch 47/78] scripts/spelling.txt: add "aligment" pattern and
- fix typo instances
-Date: Mon, 27 Feb 2017 14:28:58 -0800
-Message-ID: <58b4a82a.UEPn871EzXPvpCk2%akpm@linux-foundation.org>
+Subject: [merged] mm-introduce-page_vma_mapped_walk.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:25:59 -0800
+Message-ID: <58b48b57.GUxzBU8yt1mvrWez%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45656 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751030AbdB0Wnv (ORCPT
+        with ESMTP id S1751531AbdB0Wnv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:43:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "aligment" pattern and fix typo instances
 
-Fix typos and add the following to the scripts/spelling.txt:
+The patch titled
+     Subject: mm: introduce page_vma_mapped_walk()
+has been removed from the -mm tree.  Its filename was
+     mm-introduce-page_vma_mapped_walk.patch
 
-  aligment||alignment
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-I did not touch the "N_BYTE_ALIGMENT" macro in
-drivers/net/wireless/realtek/rtlwifi/wifi.h to avoid unpredictable
-impact.
+------------------------------------------------------
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: introduce page_vma_mapped_walk()
 
-I fixed "_aligment_handler" in arch/openrisc/kernel/entry.S because
-it is surrounded by #if 0 ... #endif.  It is surely safe and I
-confirmed "_alignment_handler" is correct.
+Introduce a new interface to check if a page is mapped into a vma.  It
+aims to address shortcomings of page_check_address{,_transhuge}.
 
-I also fixed the "controler" I found in the same hunk in
-arch/openrisc/kernel/head.S.
+Existing interface is not able to handle PTE-mapped THPs: it only finds
+the first PTE.  The rest lefted unnoticed.
 
-Link: http://lkml.kernel.org/r/1481573103-11329-8-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+page_vma_mapped_walk() iterates over all possible mapping of the page in
+the vma.
+
+Link: http://lkml.kernel.org/r/20170129173858.45174-3-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/unwind.c                            |    4 ++--
- arch/openrisc/kernel/entry.S                        |    4 ++--
- arch/openrisc/kernel/head.S                         |    6 +++---
- arch/openrisc/kernel/vmlinux.lds.S                  |    4 ++--
- drivers/gpu/drm/amd/include/atombios.h              |    6 +++---
- drivers/gpu/drm/i915/i915_gem_render_state.c        |    2 +-
- drivers/gpu/drm/radeon/atombios.h                   |    4 ++--
- drivers/media/platform/exynos4-is/fimc-core.h       |    2 +-
- drivers/net/wireless/ath/ath9k/ani.c                |    4 ++--
- drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c |    4 ++--
- drivers/scsi/bfa/bfi_ms.h                           |    2 +-
- net/netfilter/x_tables.c                            |    2 +-
- scripts/spelling.txt                                |    1 +
- 13 files changed, 23 insertions(+), 22 deletions(-)
+ include/linux/rmap.h |   26 +++++
+ mm/Makefile          |    6 -
+ mm/huge_memory.c     |    9 +
+ mm/page_vma_mapped.c |  188 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 224 insertions(+), 5 deletions(-)
 
-diff -puN arch/arc/kernel/unwind.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/arc/kernel/unwind.c
---- a/arch/arc/kernel/unwind.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/arc/kernel/unwind.c
-@@ -1051,9 +1051,9 @@ int arc_unwind(struct unwind_frame_info
- 		++ptr;
- 	}
- 	if (cie != NULL) {
--		/* get code aligment factor */
-+		/* get code alignment factor */
- 		state.codeAlign = get_uleb128(&ptr, end);
--		/* get data aligment factor */
-+		/* get data alignment factor */
- 		state.dataAlign = get_sleb128(&ptr, end);
- 		if (state.codeAlign == 0 || state.dataAlign == 0 || ptr >= end)
- 			cie = NULL;
-diff -puN arch/openrisc/kernel/entry.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/openrisc/kernel/entry.S
---- a/arch/openrisc/kernel/entry.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/openrisc/kernel/entry.S
-@@ -319,7 +319,7 @@ EXCEPTION_ENTRY(_timer_handler)
- 	l.j    _ret_from_intr
- 	 l.nop
+diff -puN include/linux/rmap.h~mm-introduce-page_vma_mapped_walk include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-introduce-page_vma_mapped_walk
++++ a/include/linux/rmap.h
+@@ -9,6 +9,7 @@
+ #include <linux/mm.h>
+ #include <linux/rwsem.h>
+ #include <linux/memcontrol.h>
++#include <linux/highmem.h>
  
--/* ---[ 0x600: Aligment exception ]-------------------------------------- */
-+/* ---[ 0x600: Alignment exception ]-------------------------------------- */
- 
- EXCEPTION_ENTRY(_alignment_handler)
- 	CLEAR_LWA_FLAG(r3)
-@@ -331,7 +331,7 @@ EXCEPTION_ENTRY(_alignment_handler)
- 	 l.nop
- 
- #if 0
--EXCEPTION_ENTRY(_aligment_handler)
-+EXCEPTION_ENTRY(_alignment_handler)
- //        l.mfspr r2,r0,SPR_EEAR_BASE     /* Load the efective addres */
- 	l.addi	r2,r4,0
- //        l.mfspr r5,r0,SPR_EPCR_BASE     /* Load the insn address */
-diff -puN arch/openrisc/kernel/head.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/openrisc/kernel/head.S
---- a/arch/openrisc/kernel/head.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/openrisc/kernel/head.S
-@@ -325,7 +325,7 @@ _dispatch_do_ipage_fault:
-     .org 0x500
- 	EXCEPTION_HANDLE(_timer_handler)
- 
--/* ---[ 0x600: Aligment exception ]-------------------------------------- */
-+/* ---[ 0x600: Alignment exception ]-------------------------------------- */
-     .org 0x600
- 	EXCEPTION_HANDLE(_alignment_handler)
- 
-@@ -640,8 +640,8 @@ _flush_tlb:
- 
- /* ========================================[ cache ]=== */
- 
--	/* aligment here so we don't change memory offsets with
--	 * memory controler defined
-+	/* alignment here so we don't change memory offsets with
-+	 * memory controller defined
- 	 */
- 	.align 0x2000
- 
-diff -puN arch/openrisc/kernel/vmlinux.lds.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/openrisc/kernel/vmlinux.lds.S
---- a/arch/openrisc/kernel/vmlinux.lds.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/openrisc/kernel/vmlinux.lds.S
-@@ -19,8 +19,8 @@
- 
- /* TODO
-  *		- clean up __offset & stuff
-- *		- change all 8192 aligment to PAGE !!!
-- *		- recheck if all aligments are really needed
-+ *		- change all 8192 alignment to PAGE !!!
-+ *		- recheck if all alignments are really needed
-  */
- 
- #  define LOAD_OFFSET  PAGE_OFFSET
-diff -puN drivers/gpu/drm/amd/include/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/gpu/drm/amd/include/atombios.h
---- a/drivers/gpu/drm/amd/include/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/amd/include/atombios.h
-@@ -188,7 +188,7 @@
- #define HW_ASSISTED_I2C_STATUS_FAILURE     2
- #define HW_ASSISTED_I2C_STATUS_SUCCESS     1
- 
--#pragma pack(1)                                       // BIOS data must use byte aligment
-+#pragma pack(1)                                       // BIOS data must use byte alignment
- 
- // Define offset to location of ROM header.
- #define OFFSET_TO_POINTER_TO_ATOM_ROM_HEADER         0x00000048L
-@@ -9180,7 +9180,7 @@ typedef struct  _ATOM_POWERPLAY_INFO_V3
- 
- /*********************************************************************************/
- 
--#pragma pack() // BIOS data must use byte aligment
-+#pragma pack() // BIOS data must use byte alignment
- 
- #pragma pack(1)
- 
-@@ -9211,7 +9211,7 @@ typedef struct _ATOM_SERVICE_INFO
- 
- 
- 
--#pragma pack() // BIOS data must use byte aligment
-+#pragma pack() // BIOS data must use byte alignment
- 
- //
- // AMD ACPI Table
-diff -puN drivers/gpu/drm/i915/i915_gem_render_state.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/gpu/drm/i915/i915_gem_render_state.c
---- a/drivers/gpu/drm/i915/i915_gem_render_state.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/i915/i915_gem_render_state.c
-@@ -60,7 +60,7 @@ render_state_get_rodata(const struct int
-  * this is sufficient as the null state generator makes the final batch
-  * with two passes to build command and state separately. At this point
-  * the size of both are known and it compacts them by relocating the state
-- * right after the commands taking care of aligment so we should sufficient
-+ * right after the commands taking care of alignment so we should sufficient
-  * space below them for adding new commands.
-  */
- #define OUT_BATCH(batch, i, val)				\
-diff -puN drivers/gpu/drm/radeon/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/gpu/drm/radeon/atombios.h
---- a/drivers/gpu/drm/radeon/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/radeon/atombios.h
-@@ -181,7 +181,7 @@
- #define HW_ASSISTED_I2C_STATUS_FAILURE          2
- #define HW_ASSISTED_I2C_STATUS_SUCCESS          1
- 
--#pragma pack(1)                                       /* BIOS data must use byte aligment */
-+#pragma pack(1)                                       /* BIOS data must use byte alignment */
- 
- /*  Define offset to location of ROM header. */
- 
-@@ -7909,7 +7909,7 @@ typedef struct  _ATOM_POWERPLAY_INFO_V3
- 
- /*********************************************************************************/
- 
--#pragma pack() // BIOS data must use byte aligment
-+#pragma pack() // BIOS data must use byte alignment
- 
- //
- // AMD ACPI Table
-diff -puN drivers/media/platform/exynos4-is/fimc-core.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/media/platform/exynos4-is/fimc-core.h
---- a/drivers/media/platform/exynos4-is/fimc-core.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/media/platform/exynos4-is/fimc-core.h
-@@ -358,7 +358,7 @@ struct fimc_pix_limit {
-  * @pix_limit: pixel size constraints for the scaler
-  * @min_inp_pixsize: minimum input pixel size
-  * @min_out_pixsize: minimum output pixel size
-- * @hor_offs_align: horizontal pixel offset aligment
-+ * @hor_offs_align: horizontal pixel offset alignment
-  * @min_vsize_align: minimum vertical pixel size alignment
-  */
- struct fimc_variant {
-diff -puN drivers/net/wireless/ath/ath9k/ani.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/net/wireless/ath/ath9k/ani.c
---- a/drivers/net/wireless/ath/ath9k/ani.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/ath/ath9k/ani.c
-@@ -59,13 +59,13 @@ static const struct ani_ofdm_level_entry
  /*
-  * MRC (Maximal Ratio Combining) has always been used with multi-antenna ofdm.
-  * With OFDM for single stream you just add up all antenna inputs, you're
-- * only interested in what you get after FFT. Signal aligment is also not
-+ * only interested in what you get after FFT. Signal alignment is also not
-  * required for OFDM because any phase difference adds up in the frequency
-  * domain.
-  *
-  * MRC requires extra work for use with CCK. You need to align the antenna
-  * signals from the different antenna before you can add the signals together.
-- * You need aligment of signals as CCK is in time domain, so addition can cancel
-+ * You need alignment of signals as CCK is in time domain, so addition can cancel
-  * your signal completely if phase is 180 degrees (think of adding sine waves).
-  * You also need to remove noise before the addition and this is where ANI
-  * MRC CCK comes into play. One of the antenna inputs may be stronger but
-diff -puN drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c
---- a/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c
-@@ -455,7 +455,7 @@ static u32 _rtl92s_fill_h2c_cmd(struct s
- 	u8 i = 0;
+  * The anon_vma heads a list of private "related" vmas, to scan if
+@@ -232,6 +233,31 @@ static inline bool page_check_address_tr
+ }
+ #endif
  
- 	do {
--		/* 8 - Byte aligment */
-+		/* 8 - Byte alignment */
- 		len = H2C_TX_CMD_HDR_LEN + N_BYTE_ALIGMENT(pcmd_len[i], 8);
++/* Avoid racy checks */
++#define PVMW_SYNC		(1 << 0)
++/* Look for migarion entries rather than present PTEs */
++#define PVMW_MIGRATION		(1 << 1)
++
++struct page_vma_mapped_walk {
++	struct page *page;
++	struct vm_area_struct *vma;
++	unsigned long address;
++	pmd_t *pmd;
++	pte_t *pte;
++	spinlock_t *ptl;
++	unsigned int flags;
++};
++
++static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
++{
++	if (pvmw->pte)
++		pte_unmap(pvmw->pte);
++	if (pvmw->ptl)
++		spin_unlock(pvmw->ptl);
++}
++
++bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw);
++
+ /*
+  * Used by swapoff to help locate where page is expected in vma.
+  */
+diff -puN mm/Makefile~mm-introduce-page_vma_mapped_walk mm/Makefile
+--- a/mm/Makefile~mm-introduce-page_vma_mapped_walk
++++ a/mm/Makefile
+@@ -23,8 +23,10 @@ KCOV_INSTRUMENT_vmstat.o := n
  
- 		/* Buffer length is not enough */
-@@ -504,7 +504,7 @@ static u32 _rtl92s_get_h2c_cmdlen(u32 h2
- 	u8 i = 0;
+ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= gup.o highmem.o memory.o mincore.o \
+-			   mlock.o mmap.o mprotect.o mremap.o msync.o rmap.o \
+-			   vmalloc.o pagewalk.o pgtable-generic.o
++			   mlock.o mmap.o mprotect.o mremap.o msync.o \
++			   page_vma_mapped.o pagewalk.o pgtable-generic.o \
++			   rmap.o vmalloc.o
++
  
- 	do {
--		/* 8 - Byte aligment */
-+		/* 8 - Byte alignment */
- 		len = H2C_TX_CMD_HDR_LEN + N_BYTE_ALIGMENT(pcmd_len[i], 8);
+ ifdef CONFIG_CROSS_MEMORY_ATTACH
+ mmu-$(CONFIG_MMU)	+= process_vm_access.o
+diff -puN mm/huge_memory.c~mm-introduce-page_vma_mapped_walk mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-introduce-page_vma_mapped_walk
++++ a/mm/huge_memory.c
+@@ -2129,9 +2129,12 @@ static void freeze_page(struct page *pag
+ static void unfreeze_page(struct page *page)
+ {
+ 	int i;
+-
+-	for (i = 0; i < HPAGE_PMD_NR; i++)
+-		remove_migration_ptes(page + i, page + i, true);
++	if (PageTransHuge(page)) {
++		remove_migration_ptes(page, page, true);
++	} else {
++		for (i = 0; i < HPAGE_PMD_NR; i++)
++			remove_migration_ptes(page + i, page + i, true);
++	}
+ }
  
- 		/* Buffer length is not enough */
-diff -puN drivers/scsi/bfa/bfi_ms.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/scsi/bfa/bfi_ms.h
---- a/drivers/scsi/bfa/bfi_ms.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/bfa/bfi_ms.h
-@@ -680,7 +680,7 @@ struct bfi_ioim_req_s {
- 
- 	/*
- 	 * SG elements array within the IO request must be double word
--	 * aligned. This aligment is required to optimize SGM setup for the IO.
-+	 * aligned. This alignment is required to optimize SGM setup for the IO.
- 	 */
- 	struct bfi_sge_s	sges[BFI_SGE_INLINE_MAX];
- 	u8	io_timeout;
-diff -puN net/netfilter/x_tables.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances net/netfilter/x_tables.c
---- a/net/netfilter/x_tables.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/net/netfilter/x_tables.c
-@@ -667,7 +667,7 @@ int xt_compat_check_entry_offsets(const
- 	    COMPAT_XT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
- 		return -EINVAL;
- 
--	/* compat_xt_entry match has less strict aligment requirements,
-+	/* compat_xt_entry match has less strict alignment requirements,
- 	 * otherwise they are identical.  In case of padding differences
- 	 * we need to add compat version of xt_check_entry_match.
- 	 */
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -71,6 +71,7 @@ algoritm||algorithm
- algoritms||algorithms
- algorrithm||algorithm
- algorritm||algorithm
-+aligment||alignment
- allign||align
- allocatrd||allocated
- allocte||allocate
+ static void __split_huge_page_tail(struct page *head, int tail,
+diff -puN /dev/null mm/page_vma_mapped.c
+--- /dev/null
++++ a/mm/page_vma_mapped.c
+@@ -0,0 +1,188 @@
++#include <linux/mm.h>
++#include <linux/rmap.h>
++#include <linux/hugetlb.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
++
++#include "internal.h"
++
++static inline bool check_pmd(struct page_vma_mapped_walk *pvmw)
++{
++	pmd_t pmde;
++	/*
++	 * Make sure we don't re-load pmd between present and !trans_huge check.
++	 * We need a consistent view.
++	 */
++	pmde = READ_ONCE(*pvmw->pmd);
++	return pmd_present(pmde) && !pmd_trans_huge(pmde);
++}
++
++static inline bool not_found(struct page_vma_mapped_walk *pvmw)
++{
++	page_vma_mapped_walk_done(pvmw);
++	return false;
++}
++
++static bool map_pte(struct page_vma_mapped_walk *pvmw)
++{
++	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
++	if (!(pvmw->flags & PVMW_SYNC)) {
++		if (pvmw->flags & PVMW_MIGRATION) {
++			if (!is_swap_pte(*pvmw->pte))
++				return false;
++		} else {
++			if (!pte_present(*pvmw->pte))
++				return false;
++		}
++	}
++	pvmw->ptl = pte_lockptr(pvmw->vma->vm_mm, pvmw->pmd);
++	spin_lock(pvmw->ptl);
++	return true;
++}
++
++static bool check_pte(struct page_vma_mapped_walk *pvmw)
++{
++	if (pvmw->flags & PVMW_MIGRATION) {
++#ifdef CONFIG_MIGRATION
++		swp_entry_t entry;
++		if (!is_swap_pte(*pvmw->pte))
++			return false;
++		entry = pte_to_swp_entry(*pvmw->pte);
++		if (!is_migration_entry(entry))
++			return false;
++		if (migration_entry_to_page(entry) - pvmw->page >=
++				hpage_nr_pages(pvmw->page)) {
++			return false;
++		}
++		if (migration_entry_to_page(entry) < pvmw->page)
++			return false;
++#else
++		WARN_ON_ONCE(1);
++#endif
++	} else {
++		if (!pte_present(*pvmw->pte))
++			return false;
++
++		/* THP can be referenced by any subpage */
++		if (pte_page(*pvmw->pte) - pvmw->page >=
++				hpage_nr_pages(pvmw->page)) {
++			return false;
++		}
++		if (pte_page(*pvmw->pte) < pvmw->page)
++			return false;
++	}
++
++	return true;
++}
++
++/**
++ * page_vma_mapped_walk - check if @pvmw->page is mapped in @pvmw->vma at
++ * @pvmw->address
++ * @pvmw: pointer to struct page_vma_mapped_walk. page, vma, address and flags
++ * must be set. pmd, pte and ptl must be NULL.
++ *
++ * Returns true if the page is mapped in the vma. @pvmw->pmd and @pvmw->pte point
++ * to relevant page table entries. @pvmw->ptl is locked. @pvmw->address is
++ * adjusted if needed (for PTE-mapped THPs).
++ *
++ * If @pvmw->pmd is set but @pvmw->pte is not, you have found PMD-mapped page
++ * (usually THP). For PTE-mapped THP, you should run page_vma_mapped_walk() in
++ * a loop to find all PTEs that map the THP.
++ *
++ * For HugeTLB pages, @pvmw->pte is set to the relevant page table entry
++ * regardless of which page table level the page is mapped at. @pvmw->pmd is
++ * NULL.
++ *
++ * Retruns false if there are no more page table entries for the page in
++ * the vma. @pvmw->ptl is unlocked and @pvmw->pte is unmapped.
++ *
++ * If you need to stop the walk before page_vma_mapped_walk() returned false,
++ * use page_vma_mapped_walk_done(). It will do the housekeeping.
++ */
++bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
++{
++	struct mm_struct *mm = pvmw->vma->vm_mm;
++	struct page *page = pvmw->page;
++	pgd_t *pgd;
++	pud_t *pud;
++
++	/* The only possible pmd mapping has been handled on last iteration */
++	if (pvmw->pmd && !pvmw->pte)
++		return not_found(pvmw);
++
++	/* Only for THP, seek to next pte entry makes sense */
++	if (pvmw->pte) {
++		if (!PageTransHuge(pvmw->page) || PageHuge(pvmw->page))
++			return not_found(pvmw);
++		goto next_pte;
++	}
++
++	if (unlikely(PageHuge(pvmw->page))) {
++		/* when pud is not present, pte will be NULL */
++		pvmw->pte = huge_pte_offset(mm, pvmw->address);
++		if (!pvmw->pte)
++			return false;
++
++		pvmw->ptl = huge_pte_lockptr(page_hstate(page), mm, pvmw->pte);
++		spin_lock(pvmw->ptl);
++		if (!check_pte(pvmw))
++			return not_found(pvmw);
++		return true;
++	}
++restart:
++	pgd = pgd_offset(mm, pvmw->address);
++	if (!pgd_present(*pgd))
++		return false;
++	pud = pud_offset(pgd, pvmw->address);
++	if (!pud_present(*pud))
++		return false;
++	pvmw->pmd = pmd_offset(pud, pvmw->address);
++	if (pmd_trans_huge(*pvmw->pmd)) {
++		pvmw->ptl = pmd_lock(mm, pvmw->pmd);
++		if (!pmd_present(*pvmw->pmd))
++			return not_found(pvmw);
++		if (likely(pmd_trans_huge(*pvmw->pmd))) {
++			if (pvmw->flags & PVMW_MIGRATION)
++				return not_found(pvmw);
++			if (pmd_page(*pvmw->pmd) != page)
++				return not_found(pvmw);
++			return true;
++		} else {
++			/* THP pmd was split under us: handle on pte level */
++			spin_unlock(pvmw->ptl);
++			pvmw->ptl = NULL;
++		}
++	} else {
++		if (!check_pmd(pvmw))
++			return false;
++	}
++	if (!map_pte(pvmw))
++		goto next_pte;
++	while (1) {
++		if (check_pte(pvmw))
++			return true;
++next_pte:	do {
++			pvmw->address += PAGE_SIZE;
++			if (pvmw->address >=
++					__vma_address(pvmw->page, pvmw->vma) +
++					hpage_nr_pages(pvmw->page) * PAGE_SIZE)
++				return not_found(pvmw);
++			/* Did we cross page table boundary? */
++			if (pvmw->address % PMD_SIZE == 0) {
++				pte_unmap(pvmw->pte);
++				if (pvmw->ptl) {
++					spin_unlock(pvmw->ptl);
++					pvmw->ptl = NULL;
++				}
++				goto restart;
++			} else {
++				pvmw->pte++;
++			}
++		} while (pte_none(*pvmw->pte));
++
++		if (!pvmw->ptl) {
++			pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
++			spin_lock(pvmw->ptl);
++		}
++	}
++}
 _
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+
