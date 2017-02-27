@@ -1,86 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [patch 62/78] scripts/spelling.txt: add "omited" pattern and fix
- typo instances
-Date: Mon, 27 Feb 2017 14:29:39 -0800
-Message-ID: <58b4a853.hgET9pgA2xTofvvh%akpm@linux-foundation.org>
+Subject: [patch 61/78] scripts/spelling.txt: add "explictely" pattern and
+ fix typo instances
+Date: Mon, 27 Feb 2017 14:29:36 -0800
+Message-ID: <58b4a850.b6yKJDeKntF9OsLp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45222 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751422AbdB0Wdi (ORCPT
+        with ESMTP id S1751372AbdB0Wdi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:33:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
 
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "omited" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "explictely" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  omited||omitted
-  omiting||omitting
+  explictely||explicitly
 
-Link: http://lkml.kernel.org/r/1481573103-11329-26-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-25-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c |    2 +-
- drivers/nfc/pn533/pn533.c                          |    2 +-
- drivers/scsi/fcoe/fcoe_ctlr.c                      |    2 +-
- scripts/spelling.txt                               |    2 ++
- 4 files changed, 5 insertions(+), 3 deletions(-)
+ Documentation/device-mapper/dm-raid.txt |    2 +-
+ drivers/char/pcmcia/cm4000_cs.c         |    2 +-
+ scripts/spelling.txt                    |    1 +
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
-@@ -1416,7 +1416,7 @@ static unsigned int xdigit2int(unsigned
-  * <pattern data>[/<pattern mask>][@<anchor>]
-  *
-  * Up to 2 filter patterns can be specified.  If 2 are supplied the first one
-- * must be anchored at 0.  An omited mask is taken as a mask of 1s, an omitted
-+ * must be anchored at 0.  An omitted mask is taken as a mask of 1s, an omitted
-  * anchor is taken as 0.
+diff -puN Documentation/device-mapper/dm-raid.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances Documentation/device-mapper/dm-raid.txt
+--- a/Documentation/device-mapper/dm-raid.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances
++++ a/Documentation/device-mapper/dm-raid.txt
+@@ -319,7 +319,7 @@ Version History
+ 1.5.2   'mismatch_cnt' is zero unless [last_]sync_action is "check".
+ 1.6.0   Add discard support (and devices_handle_discard_safely module param).
+ 1.7.0   Add support for MD RAID0 mappings.
+-1.8.0   Explictely check for compatible flags in the superblock metadata
++1.8.0   Explicitly check for compatible flags in the superblock metadata
+ 	and reject to start the raid set if any are set by a newer
+ 	target version, thus avoiding data corruption on a raid set
+ 	with a reshape in progress.
+diff -puN drivers/char/pcmcia/cm4000_cs.c~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -655,7 +655,7 @@ static void terminate_monitor(struct cm4
+  * monitor the card every 50msec. as a side-effect, retrieve the
+  * atr once a card is inserted. another side-effect of retrieving the
+  * atr is that the card will be powered on, so there is no need to
+- * power on the card explictely from the application: the driver
++ * power on the card explicitly from the application: the driver
+  * is already doing that for you.
   */
- static ssize_t mps_trc_write(struct file *file, const char __user *buf,
-diff -puN drivers/nfc/pn533/pn533.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/nfc/pn533/pn533.c
---- a/drivers/nfc/pn533/pn533.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/nfc/pn533/pn533.c
-@@ -487,7 +487,7 @@ static int pn533_send_cmd_async(struct p
- /*
-  * pn533_send_cmd_direct_async
-  *
-- * The function sends a piority cmd directly to the chip omiting the cmd
-+ * The function sends a piority cmd directly to the chip omitting the cmd
-  * queue. It's intended to be used by chaining mechanism of received responses
-  * where the host has to request every single chunk of data before scheduling
-  * next cmd from the queue.
-diff -puN drivers/scsi/fcoe/fcoe_ctlr.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/scsi/fcoe/fcoe_ctlr.c
---- a/drivers/scsi/fcoe/fcoe_ctlr.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/fcoe/fcoe_ctlr.c
-@@ -1387,7 +1387,7 @@ static void fcoe_ctlr_recv_clr_vlink(str
- 	/*
- 	 * Actually need to subtract 'sizeof(*mp) - sizeof(*wp)' from 'rlen'
- 	 * before determining max Vx_Port descriptor but a buggy FCF could have
--	 * omited either or both MAC Address and Name Identifier descriptors
-+	 * omitted either or both MAC Address and Name Identifier descriptors
- 	 */
- 	num_vlink_desc = rlen / sizeof(*vp);
- 	if (num_vlink_desc)
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
+ 
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -706,6 +706,8 @@ occure||occurred
- occured||occurred
- occuring||occurring
- offet||offset
-+omited||omitted
-+omiting||omitting
- omitt||omit
- ommiting||omitting
- ommitted||omitted
+@@ -428,6 +428,7 @@ expecially||especially
+ explicite||explicit
+ explicitely||explicitly
+ explict||explicit
++explictely||explicitly
+ explictly||explicitly
+ expresion||expression
+ exprimental||experimental
 _
