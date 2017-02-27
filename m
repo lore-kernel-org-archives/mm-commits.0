@@ -1,53 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [patch 19/78] include/linux/pid.h: use for_each_thread() in
- do_each_pid_thread()
-Date: Mon, 27 Feb 2017 14:27:37 -0800
-Message-ID: <58b4a7d9.Et+zfOgUVIv0voVc%akpm@linux-foundation.org>
+Subject: [patch 18/78] rapidio: use get_user_pages_unlocked()
+Date: Mon, 27 Feb 2017 14:27:34 -0800
+Message-ID: <58b4a7d6.T1dmLP4EzI2A9Waa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45432 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751921AbdB0WgF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:05 -0500
+        with ESMTP id S1751852AbdB0Wfy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:35:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, oleg@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, lstoakes@gmail.com, alexandre.bounine@idt.com, mporter@kernel.crashing.org
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: include/linux/pid.h: use for_each_thread() in do_each_pid_thread()
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: rapidio: use get_user_pages_unlocked()
 
-while_each_pid_thread() is using while_each_thread(), which is unsafe
-under RCU lock according to commit 0c740d0afc3bff0a ("introduce
-for_each_thread() to replace the buggy while_each_thread()").  Use
-for_each_thread() in do_each_pid_thread() which is safe under RCU lock.
+Moving from get_user_pages() to get_user_pages_unlocked() simplifies the code
+and takes advantage of VM_FAULT_RETRY functionality when faulting in pages.
 
-Link: http://lkml.kernel.org/r/201702011947.DBD56740.OMVHOLOtSJFFFQ@I-love.SAKURA.ne.jp
-Link: http://lkml.kernel.org/r/1486041779-4401-2-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/20170103205024.6704-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/pid.h~pid-use-for_each_thread-in-do_each_pid_thread include/linux/pid.h
---- a/include/linux/pid.h~pid-use-for_each_thread-in-do_each_pid_thread
-+++ a/include/linux/pid.h
-@@ -191,10 +191,10 @@ pid_t pid_vnr(struct pid *pid);
- #define do_each_pid_thread(pid, type, task)				\
- 	do_each_pid_task(pid, type, task) {				\
- 		struct task_struct *tg___ = task;			\
--		do {
-+		for_each_thread(tg___, task) {
+diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked drivers/rapidio/devices/rio_mport_cdev.c
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -889,17 +889,16 @@ rio_dma_transfer(struct file *filp, u32
+ 			goto err_req;
+ 		}
  
- #define while_each_pid_thread(pid, type, task)				\
--		} while_each_thread(tg___, task);			\
-+		}							\
- 		task = tg___;						\
- 	} while_each_pid_task(pid, type, task)
- #endif /* _LINUX_PID_H */
+-		down_read(&current->mm->mmap_sem);
+-		pinned = get_user_pages(
++		pinned = get_user_pages_unlocked(
+ 				(unsigned long)xfer->loc_addr & PAGE_MASK,
+ 				nr_pages,
+-				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0,
+-				page_list, NULL);
+-		up_read(&current->mm->mmap_sem);
++				page_list,
++				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0);
+ 
+ 		if (pinned != nr_pages) {
+ 			if (pinned < 0) {
+-				rmcd_error("get_user_pages err=%ld", pinned);
++				rmcd_error("get_user_pages_unlocked err=%ld",
++					   pinned);
+ 				nr_pages = 0;
+ 			} else
+ 				rmcd_error("pinned %ld out of %ld pages",
 _
