@@ -1,63 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [patch 30/78] lib/fonts/Kconfig: keep non-Sparc fonts listed
- together
-Date: Mon, 27 Feb 2017 14:28:09 -0800
-Message-ID: <58b4a7f9.7bWvRHS2KMpDxsjc%akpm@linux-foundation.org>
+Subject: [patch 24/78] fs/affs: use octal for permissions
+Date: Mon, 27 Feb 2017 14:27:52 -0800
+Message-ID: <58b4a7e8.trifOPVGhyZQqWOp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751714AbdB0WgE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:04 -0500
+        with ESMTP id S1751914AbdB0WgF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rdunlap@infradead.org, geert@linux-m68k.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be, viro@zeniv.linux.org.uk
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib/fonts/Kconfig: keep non-Sparc fonts listed together
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs: use octal for permissions
 
-Keep fonts together and indented (in menu) as much as possible.
-This moves the Sparc font choices to the end of the menu since they
-have different dependencies.
+According to commit f90774e1fd27 ("checkpatch: look for symbolic
+permissions and suggest octal instead")
 
-Link: http://lkml.kernel.org/r/de6d8977-c6d6-a82d-c953-f2a2fefdb8a5@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Link: http://lkml.kernel.org/r/20170109191208.6085-5-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fonts/Kconfig |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/affs/amigaffs.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN lib/fonts/Kconfig~fonts-keep-non-sparc-fonts-listed-together lib/fonts/Kconfig
---- a/lib/fonts/Kconfig~fonts-keep-non-sparc-fonts-listed-together
-+++ a/lib/fonts/Kconfig
-@@ -87,6 +87,14 @@ config FONT_6x10
- 	  embedded devices with a 320x240 screen, to get a reasonable number
- 	  of characters (53x24) that are still at a readable size.
+diff -puN fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions
++++ a/fs/affs/amigaffs.c
+@@ -391,23 +391,23 @@ prot_to_mode(u32 prot)
+ 	umode_t mode = 0;
  
-+config FONT_10x18
-+	bool "console 10x18 font (not supported by all drivers)" if FONTS
-+	depends on FRAMEBUFFER_CONSOLE
-+	help
-+	  This is a high resolution console font for machines with very
-+	  big letters. It fits between the sun 12x22 and the normal 8x16 font.
-+	  If other fonts are too big or too small for you, say Y, otherwise say N.
-+
- config FONT_SUN8x16
- 	bool "Sparc console 8x16 font"
- 	depends on FRAMEBUFFER_CONSOLE && (!SPARC && FONTS || SPARC)
-@@ -101,14 +109,6 @@ config FONT_SUN12x22
- 	  big letters (like the letters used in the SPARC PROM). If the
- 	  standard font is unreadable for you, say Y, otherwise say N.
+ 	if (!(prot & FIBF_NOWRITE))
+-		mode |= S_IWUSR;
++		mode |= 0200;
+ 	if (!(prot & FIBF_NOREAD))
+-		mode |= S_IRUSR;
++		mode |= 0400;
+ 	if (!(prot & FIBF_NOEXECUTE))
+-		mode |= S_IXUSR;
++		mode |= 0100;
+ 	if (prot & FIBF_GRP_WRITE)
+-		mode |= S_IWGRP;
++		mode |= 0020;
+ 	if (prot & FIBF_GRP_READ)
+-		mode |= S_IRGRP;
++		mode |= 0040;
+ 	if (prot & FIBF_GRP_EXECUTE)
+-		mode |= S_IXGRP;
++		mode |= 0010;
+ 	if (prot & FIBF_OTR_WRITE)
+-		mode |= S_IWOTH;
++		mode |= 0002;
+ 	if (prot & FIBF_OTR_READ)
+-		mode |= S_IROTH;
++		mode |= 0004;
+ 	if (prot & FIBF_OTR_EXECUTE)
+-		mode |= S_IXOTH;
++		mode |= 0001;
  
--config FONT_10x18
--	bool "console 10x18 font (not supported by all drivers)" if FONTS
--	depends on FRAMEBUFFER_CONSOLE
--	help
--	  This is a high resolution console font for machines with very
--	  big letters. It fits between the sun 12x22 and the normal 8x16 font.
--	  If other fonts are too big or too small for you, say Y, otherwise say N.
+ 	return mode;
+ }
+@@ -418,23 +418,23 @@ mode_to_prot(struct inode *inode)
+ 	u32 prot = AFFS_I(inode)->i_protect;
+ 	umode_t mode = inode->i_mode;
+ 
+-	if (!(mode & S_IXUSR))
++	if (!(mode & 0100))
+ 		prot |= FIBF_NOEXECUTE;
+-	if (!(mode & S_IRUSR))
++	if (!(mode & 0400))
+ 		prot |= FIBF_NOREAD;
+-	if (!(mode & S_IWUSR))
++	if (!(mode & 0200))
+ 		prot |= FIBF_NOWRITE;
+-	if (mode & S_IXGRP)
++	if (mode & 0010)
+ 		prot |= FIBF_GRP_EXECUTE;
+-	if (mode & S_IRGRP)
++	if (mode & 0040)
+ 		prot |= FIBF_GRP_READ;
+-	if (mode & S_IWGRP)
++	if (mode & 0020)
+ 		prot |= FIBF_GRP_WRITE;
+-	if (mode & S_IXOTH)
++	if (mode & 0001)
+ 		prot |= FIBF_OTR_EXECUTE;
+-	if (mode & S_IROTH)
++	if (mode & 0004)
+ 		prot |= FIBF_OTR_READ;
+-	if (mode & S_IWOTH)
++	if (mode & 0002)
+ 		prot |= FIBF_OTR_WRITE;
+ 
+ 	AFFS_I(inode)->i_protect = prot;
+_
