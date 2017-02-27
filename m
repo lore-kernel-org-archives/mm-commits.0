@@ -1,264 +1,125 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:26:56 -0800
-Message-ID: <58b48b90.PA7dHWyI7E4rah8+%akpm@linux-foundation.org>
+ mm-cma-print-allocation-failure-reason-and-bitmap-status.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:27:02 -0800
+Message-ID: <58b48b96.x65ajnrBClo54CXs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60466 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751787AbdB0U16 (ORCPT
+        with ESMTP id S1751845AbdB0U16 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: l.stach@pengutronix.de, agraf@suse.com, catalin.marinas@arm.com, chris@zankel.net, iamjoonsoo.kim@lge.com, mhocko@suse.com, pbonzini@redhat.com, ralf@linux-mips.org, rkrcmar@redhat.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: jaewon31.kim@samsung.com, iamjoonsoo.kim@lge.com, labbott@redhat.com, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: wire up GFP flag passing in dma_alloc_from_contiguous
+     Subject: mm: cma: print allocation failure reason and bitmap status
 has been removed from the -mm tree.  Its filename was
-     mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous.patch
+     mm-cma-print-allocation-failure-reason-and-bitmap-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm: wire up GFP flag passing in dma_alloc_from_contiguous
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm: cma: print allocation failure reason and bitmap status
 
-The callers of the DMA alloc functions already provide the proper context
-GFP flags.  Make sure to pass them through to the CMA allocator, to make
-the CMA compaction context aware.
+There are many reasons of CMA allocation failure such as EBUSY, ENOMEM,
+EINTR.  But we did not know error reason so far.  This patch prints the
+error value.
 
-Link: http://lkml.kernel.org/r/20170127172328.18574-3-l.stach@pengutronix.de
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Radim Krcmar <rkrcmar@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Alexander Graf <agraf@suse.com>
+Additionally if CONFIG_CMA_DEBUG is enabled, this patch shows bitmap
+status to know available pages.  Actually CMA internally tries on all
+available regions because some regions can be failed because of EBUSY. 
+Bitmap status is useful to know in detail on both ENONEM and EBUSY;
+
+ ENOMEM: not tried at all because of no available region
+         it could be too small total region or could be fragmentation issue
+ EBUSY:  tried some region but all failed
+
+This is an ENOMEM example with this patch.
+[   12.415458]  [2:   Binder:714_1:  744] cma: cma_alloc: alloc failed, req-size: 256 pages, ret: -12
+
+If CONFIG_CMA_DEBUG is enabled, avabile pages also will be shown as
+concatenated size@position format.  So 4@572 means that there are 4
+available pages at 572 position starting from 0 position.
+[   12.415503]  [2:   Binder:714_1:  744] cma: number of available pages: 4@572+7@585+7@601+8@632+38@730+166@1114+127@1921=> 357 free of 2048 total pages
+
+Link: http://lkml.kernel.org/r/1485909785-3952-1-git-send-email-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Laura Abbott <labbott@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/dma-mapping.c      |   16 +++++++++-------
- arch/arm64/mm/dma-mapping.c    |    4 ++--
- arch/mips/mm/dma-default.c     |    4 ++--
- arch/x86/kernel/pci-dma.c      |    3 ++-
- arch/xtensa/kernel/pci-dma.c   |    3 ++-
- drivers/base/dma-contiguous.c  |    5 +++--
- drivers/iommu/amd_iommu.c      |    2 +-
- drivers/iommu/intel-iommu.c    |    2 +-
- include/linux/dma-contiguous.h |    4 ++--
- 9 files changed, 24 insertions(+), 19 deletions(-)
+ mm/cma.c |   34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/mm/dma-mapping.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous arch/arm/mm/dma-mapping.c
---- a/arch/arm/mm/dma-mapping.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/arch/arm/mm/dma-mapping.c
-@@ -349,7 +349,7 @@ static void __dma_free_buffer(struct pag
- static void *__alloc_from_contiguous(struct device *dev, size_t size,
- 				     pgprot_t prot, struct page **ret_page,
- 				     const void *caller, bool want_vaddr,
--				     int coherent_flag);
-+				     int coherent_flag, gfp_t gfp);
- 
- static void *__alloc_remap_buffer(struct device *dev, size_t size, gfp_t gfp,
- 				 pgprot_t prot, struct page **ret_page,
-@@ -420,7 +420,8 @@ static int __init atomic_pool_init(void)
- 	 */
- 	if (dev_get_cma_area(NULL))
- 		ptr = __alloc_from_contiguous(NULL, atomic_pool_size, prot,
--				      &page, atomic_pool_init, true, NORMAL);
-+				      &page, atomic_pool_init, true, NORMAL,
-+				      GFP_KERNEL);
- 	else
- 		ptr = __alloc_remap_buffer(NULL, atomic_pool_size, gfp, prot,
- 					   &page, atomic_pool_init, true);
-@@ -594,14 +595,14 @@ static int __free_from_pool(void *start,
- static void *__alloc_from_contiguous(struct device *dev, size_t size,
- 				     pgprot_t prot, struct page **ret_page,
- 				     const void *caller, bool want_vaddr,
--				     int coherent_flag)
-+				     int coherent_flag, gfp_t gfp)
- {
- 	unsigned long order = get_order(size);
- 	size_t count = size >> PAGE_SHIFT;
- 	struct page *page;
- 	void *ptr = NULL;
- 
--	page = dma_alloc_from_contiguous(dev, count, order);
-+	page = dma_alloc_from_contiguous(dev, count, order, gfp);
- 	if (!page)
- 		return NULL;
- 
-@@ -655,7 +656,7 @@ static inline pgprot_t __get_dma_pgprot(
- #define __get_dma_pgprot(attrs, prot)				__pgprot(0)
- #define __alloc_remap_buffer(dev, size, gfp, prot, ret, c, wv)	NULL
- #define __alloc_from_pool(size, ret_page)			NULL
--#define __alloc_from_contiguous(dev, size, prot, ret, c, wv, coherent_flag)	NULL
-+#define __alloc_from_contiguous(dev, size, prot, ret, c, wv, coherent_flag, gfp)	NULL
- #define __free_from_pool(cpu_addr, size)			do { } while (0)
- #define __free_from_contiguous(dev, page, cpu_addr, size, wv)	do { } while (0)
- #define __dma_free_remap(cpu_addr, size)			do { } while (0)
-@@ -697,7 +698,8 @@ static void *cma_allocator_alloc(struct
- {
- 	return __alloc_from_contiguous(args->dev, args->size, args->prot,
- 				       ret_page, args->caller,
--				       args->want_vaddr, args->coherent_flag);
-+				       args->want_vaddr, args->coherent_flag,
-+				       args->gfp);
+diff -puN mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status mm/cma.c
+--- a/mm/cma.c~mm-cma-print-allocation-failure-reason-and-bitmap-status
++++ a/mm/cma.c
+@@ -348,6 +348,32 @@ err:
+ 	return ret;
  }
  
- static void cma_allocator_free(struct arm_dma_free_args *args)
-@@ -1312,7 +1314,7 @@ static struct page **__iommu_alloc_buffe
- 		unsigned long order = get_order(size);
- 		struct page *page;
- 
--		page = dma_alloc_from_contiguous(dev, count, order);
-+		page = dma_alloc_from_contiguous(dev, count, order, gfp);
- 		if (!page)
- 			goto error;
- 
-diff -puN arch/arm64/mm/dma-mapping.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous arch/arm64/mm/dma-mapping.c
---- a/arch/arm64/mm/dma-mapping.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/arch/arm64/mm/dma-mapping.c
-@@ -107,7 +107,7 @@ static void *__dma_alloc_coherent(struct
- 		void *addr;
- 
- 		page = dma_alloc_from_contiguous(dev, size >> PAGE_SHIFT,
--							get_order(size));
-+						 get_order(size), flags);
- 		if (!page)
- 			return NULL;
- 
-@@ -390,7 +390,7 @@ static int __init atomic_pool_init(void)
- 
- 	if (dev_get_cma_area(NULL))
- 		page = dma_alloc_from_contiguous(NULL, nr_pages,
--							pool_size_order);
-+						 pool_size_order, GFP_KERNEL);
- 	else
- 		page = alloc_pages(GFP_DMA, pool_size_order);
- 
-diff -puN arch/mips/mm/dma-default.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous arch/mips/mm/dma-default.c
---- a/arch/mips/mm/dma-default.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/arch/mips/mm/dma-default.c
-@@ -148,8 +148,8 @@ static void *mips_dma_alloc_coherent(str
- 	gfp = massage_gfp_flags(dev, gfp);
- 
- 	if (IS_ENABLED(CONFIG_DMA_CMA) && gfpflags_allow_blocking(gfp))
--		page = dma_alloc_from_contiguous(dev,
--					count, get_order(size));
-+		page = dma_alloc_from_contiguous(dev, count, get_order(size),
-+						 gfp);
- 	if (!page)
- 		page = alloc_pages(gfp, get_order(size));
- 
-diff -puN arch/x86/kernel/pci-dma.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous arch/x86/kernel/pci-dma.c
---- a/arch/x86/kernel/pci-dma.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/arch/x86/kernel/pci-dma.c
-@@ -91,7 +91,8 @@ again:
- 	page = NULL;
- 	/* CMA can be used only in the context which permits sleeping */
- 	if (gfpflags_allow_blocking(flag)) {
--		page = dma_alloc_from_contiguous(dev, count, get_order(size));
-+		page = dma_alloc_from_contiguous(dev, count, get_order(size),
-+						 flag);
- 		if (page && page_to_phys(page) + size > dma_mask) {
- 			dma_release_from_contiguous(dev, page, count);
- 			page = NULL;
-diff -puN arch/xtensa/kernel/pci-dma.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous arch/xtensa/kernel/pci-dma.c
---- a/arch/xtensa/kernel/pci-dma.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/arch/xtensa/kernel/pci-dma.c
-@@ -158,7 +158,8 @@ static void *xtensa_dma_alloc(struct dev
- 		flag |= GFP_DMA;
- 
- 	if (gfpflags_allow_blocking(flag))
--		page = dma_alloc_from_contiguous(dev, count, get_order(size));
-+		page = dma_alloc_from_contiguous(dev, count, get_order(size),
-+						 flag);
- 
- 	if (!page)
- 		page = alloc_pages(flag, get_order(size));
-diff -puN drivers/base/dma-contiguous.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/drivers/base/dma-contiguous.c
-@@ -181,6 +181,7 @@ int __init dma_contiguous_reserve_area(p
-  * @dev:   Pointer to device for which the allocation is performed.
-  * @count: Requested number of pages.
-  * @align: Requested alignment of pages (in PAGE_SIZE order).
-+ * @gfp_mask: GFP flags to use for this allocation.
-  *
-  * This function allocates memory buffer for specified device. It uses
-  * device specific contiguous memory area if available or the default
-@@ -188,12 +189,12 @@ int __init dma_contiguous_reserve_area(p
-  * function.
-  */
- struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
--				       unsigned int align)
-+				       unsigned int align, gfp_t gfp_mask)
- {
- 	if (align > CONFIG_CMA_ALIGNMENT)
- 		align = CONFIG_CMA_ALIGNMENT;
- 
--	return cma_alloc(dev_get_cma_area(dev), count, align, GFP_KERNEL);
-+	return cma_alloc(dev_get_cma_area(dev), count, align, gfp_mask);
- }
- 
++#ifdef CONFIG_CMA_DEBUG
++static void cma_debug_show_areas(struct cma *cma)
++{
++	unsigned long next_zero_bit, next_set_bit;
++	unsigned long start = 0;
++	unsigned int nr_zero, nr_total = 0;
++
++	mutex_lock(&cma->lock);
++	pr_info("number of available pages: ");
++	for (;;) {
++		next_zero_bit = find_next_zero_bit(cma->bitmap, cma->count, start);
++		if (next_zero_bit >= cma->count)
++			break;
++		next_set_bit = find_next_bit(cma->bitmap, cma->count, next_zero_bit);
++		nr_zero = next_set_bit - next_zero_bit;
++		pr_cont("%s%u@%lu", nr_total ? "+" : "", nr_zero, next_zero_bit);
++		nr_total += nr_zero;
++		start = next_zero_bit + nr_zero;
++	}
++	pr_cont("=> %u free of %lu total pages\n", nr_total, cma->count);
++	mutex_unlock(&cma->lock);
++}
++#else
++static inline void cma_debug_show_areas(struct cma *cma) { }
++#endif
++
  /**
-diff -puN drivers/iommu/amd_iommu.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous drivers/iommu/amd_iommu.c
---- a/drivers/iommu/amd_iommu.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/drivers/iommu/amd_iommu.c
-@@ -2672,7 +2672,7 @@ static void *alloc_coherent(struct devic
- 			return NULL;
+  * cma_alloc() - allocate pages from contiguous area
+  * @cma:   Contiguous memory region for which the allocation is performed.
+@@ -365,7 +391,7 @@ struct page *cma_alloc(struct cma *cma,
+ 	unsigned long start = 0;
+ 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
+ 	struct page *page = NULL;
+-	int ret;
++	int ret = -ENOMEM;
  
- 		page = dma_alloc_from_contiguous(dev, size >> PAGE_SHIFT,
--						 get_order(size));
-+						 get_order(size), flag);
- 		if (!page)
- 			return NULL;
- 	}
-diff -puN drivers/iommu/intel-iommu.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/drivers/iommu/intel-iommu.c
-@@ -3829,7 +3829,7 @@ static void *intel_alloc_coherent(struct
- 	if (gfpflags_allow_blocking(flags)) {
- 		unsigned int count = size >> PAGE_SHIFT;
+ 	if (!cma || !cma->count)
+ 		return NULL;
+@@ -423,6 +449,12 @@ struct page *cma_alloc(struct cma *cma,
  
--		page = dma_alloc_from_contiguous(dev, count, order);
-+		page = dma_alloc_from_contiguous(dev, count, order, flags);
- 		if (page && iommu_no_mapping(dev) &&
- 		    page_to_phys(page) + size > dev->coherent_dma_mask) {
- 			dma_release_from_contiguous(dev, page, count);
-diff -puN include/linux/dma-contiguous.h~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous include/linux/dma-contiguous.h
---- a/include/linux/dma-contiguous.h~mm-wire-up-gfp-flag-passing-in-dma_alloc_from_contiguous
-+++ a/include/linux/dma-contiguous.h
-@@ -112,7 +112,7 @@ static inline int dma_declare_contiguous
- }
+ 	trace_cma_alloc(pfn, page, count, align);
  
- struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
--				       unsigned int order);
-+				       unsigned int order, gfp_t gfp_mask);
- bool dma_release_from_contiguous(struct device *dev, struct page *pages,
- 				 int count);
- 
-@@ -145,7 +145,7 @@ int dma_declare_contiguous(struct device
- 
- static inline
- struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
--				       unsigned int order)
-+				       unsigned int order, gfp_t gfp_mask)
- {
- 	return NULL;
++	if (ret) {
++		pr_info("%s: alloc failed, req-size: %zu pages, ret: %d\n",
++			__func__, count, ret);
++		cma_debug_show_areas(cma);
++	}
++
+ 	pr_debug("%s(): returned %p\n", __func__, page);
+ 	return page;
  }
 _
 
-Patches currently in -mm which might be from l.stach@pengutronix.de are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
 
