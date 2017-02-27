@@ -1,165 +1,409 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 12:26:41 -0800
-Message-ID: <58b48b81.4XHM3RtRv+752065%akpm@linux-foundation.org>
+ mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk.patch removed from
+ -mm tree
+Date: Mon, 27 Feb 2017 12:26:14 -0800
+Message-ID: <58b48b66./VFogACz8eE7yemh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60806 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751740AbdB0U16 (ORCPT
+        with ESMTP id S1751568AbdB0U16 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: mcopy_atomic: return -ENOENT when no compatible VMA found
+     Subject: mm: convert try_to_unmap_one() to use page_vma_mapped_walk()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+     mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: mcopy_atomic: return -ENOENT when no compatible VMA found
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: convert try_to_unmap_one() to use page_vma_mapped_walk()
 
-The memory mapping of a process may change between #PF event and the call
-to mcopy_atomic that comes to resolve the page fault.  In such case, there
-will be no VMA covering the range passed to mcopy_atomic or the VMA will
-not have userfaultfd context.
+For consistency, it worth converting all page_check_address() to
+page_vma_mapped_walk(), so we could drop the former.
 
-To allow uffd monitor to distinguish those case from other errors, let's
-return -ENOENT instead of -EINVAL.
+It also makes freeze_page() as we walk though rmap only once.
 
-Note, that despite availability of UFFD_EVENT_UNMAP there still might be
-race between the processing of UFFD_EVENT_UNMAP and outstanding
-mcopy_atomic in case of non-cooperative uffd usage.
-
-[rppt@linux.vnet.ibm.com: update cases returning -ENOENT]
-  Link: http://lkml.kernel.org/r/20170207150249.GA6709@rapoport-lnx
-[aarcange@redhat.com: merge fix]
-[akpm@linux-foundation.org: fix the merge fix]
-Link: http://lkml.kernel.org/r/1485542673-24387-5-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Link: http://lkml.kernel.org/r/20170129173858.45174-8-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   58 +++++++++++++++++++++------------------------
- 1 file changed, 28 insertions(+), 30 deletions(-)
+ mm/huge_memory.c |   16 --
+ mm/rmap.c        |  260 +++++++++++++++++++++++----------------------
+ 2 files changed, 137 insertions(+), 139 deletions(-)
 
-diff -puN mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found
-+++ a/mm/userfaultfd.c
-@@ -197,22 +197,25 @@ retry:
- 	 * retry, dst_vma will be set to NULL and we must lookup again.
- 	 */
- 	if (!dst_vma) {
--		err = -EINVAL;
-+		err = -ENOENT;
- 		dst_vma = find_vma(dst_mm, dst_start);
- 		if (!dst_vma || !is_vm_hugetlb_page(dst_vma))
- 			goto out_unlock;
--
--		if (vma_hpagesize != vma_kernel_pagesize(dst_vma))
--			goto out_unlock;
--
- 		/*
--		 * Make sure the remaining dst range is both valid and
--		 * fully within a single existing vma.
-+		 * Only allow __mcopy_atomic_hugetlb on userfaultfd
-+		 * registered ranges.
- 		 */
-+		if (!dst_vma->vm_userfaultfd_ctx.ctx)
-+			goto out_unlock;
-+
- 		if (dst_start < dst_vma->vm_start ||
- 		    dst_start + len > dst_vma->vm_end)
- 			goto out_unlock;
+diff -puN mm/huge_memory.c~mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk
++++ a/mm/huge_memory.c
+@@ -2106,24 +2106,16 @@ void vma_adjust_trans_huge(struct vm_are
+ static void freeze_page(struct page *page)
+ {
+ 	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS |
+-		TTU_RMAP_LOCKED;
+-	int i, ret;
++		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
++	int ret;
  
-+		err = -EINVAL;
-+		if (vma_hpagesize != vma_kernel_pagesize(dst_vma))
-+			goto out_unlock;
-+
- 		vm_shared = dst_vma->vm_flags & VM_SHARED;
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
+ 
+ 	if (PageAnon(page))
+ 		ttu_flags |= TTU_MIGRATION;
+ 
+-	/* We only need TTU_SPLIT_HUGE_PMD once */
+-	ret = try_to_unmap(page, ttu_flags | TTU_SPLIT_HUGE_PMD);
+-	for (i = 1; !ret && i < HPAGE_PMD_NR; i++) {
+-		/* Cut short if the page is unmapped */
+-		if (page_count(page) == 1)
+-			return;
+-
+-		ret = try_to_unmap(page + i, ttu_flags);
+-	}
+-	VM_BUG_ON_PAGE(ret, page + i - 1);
++	ret = try_to_unmap(page, ttu_flags);
++	VM_BUG_ON_PAGE(ret, page);
+ }
+ 
+ static void unfreeze_page(struct page *page)
+diff -puN mm/rmap.c~mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk mm/rmap.c
+--- a/mm/rmap.c~mm-convert-try_to_unmap_one-to-use-page_vma_mapped_walk
++++ a/mm/rmap.c
+@@ -607,8 +607,7 @@ void try_to_unmap_flush_dirty(void)
+ 		try_to_unmap_flush();
+ }
+ 
+-static void set_tlb_ubc_flush_pending(struct mm_struct *mm,
+-		struct page *page, bool writable)
++static void set_tlb_ubc_flush_pending(struct mm_struct *mm, bool writable)
+ {
+ 	struct tlbflush_unmap_batch *tlb_ubc = &current->tlb_ubc;
+ 
+@@ -643,8 +642,7 @@ static bool should_defer_flush(struct mm
+ 	return should_defer;
+ }
+ #else
+-static void set_tlb_ubc_flush_pending(struct mm_struct *mm,
+-		struct page *page, bool writable)
++static void set_tlb_ubc_flush_pending(struct mm_struct *mm, bool writable)
+ {
+ }
+ 
+@@ -1459,155 +1457,163 @@ static int try_to_unmap_one(struct page
+ 		     unsigned long address, void *arg)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+-	pte_t *pte;
++	struct page_vma_mapped_walk pvmw = {
++		.page = page,
++		.vma = vma,
++		.address = address,
++	};
+ 	pte_t pteval;
+-	spinlock_t *ptl;
++	struct page *subpage;
+ 	int ret = SWAP_AGAIN;
+ 	struct rmap_private *rp = arg;
+ 	enum ttu_flags flags = rp->flags;
+ 
+ 	/* munlock has nothing to gain from examining un-locked vmas */
+ 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
+-		goto out;
++		return SWAP_AGAIN;
+ 
+ 	if (flags & TTU_SPLIT_HUGE_PMD) {
+ 		split_huge_pmd_address(vma, address,
+ 				flags & TTU_MIGRATION, page);
+-		/* check if we have anything to do after split */
+-		if (page_mapcount(page) == 0)
+-			goto out;
  	}
  
-@@ -221,12 +224,6 @@ retry:
- 		goto out_unlock;
+-	pte = page_check_address(page, mm, address, &ptl,
+-				 PageTransCompound(page));
+-	if (!pte)
+-		goto out;
++	while (page_vma_mapped_walk(&pvmw)) {
++		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
++		address = pvmw.address;
  
- 	/*
--	 * Only allow __mcopy_atomic_hugetlb on userfaultfd registered ranges.
+-	/*
+-	 * If the page is mlock()d, we cannot swap it out.
+-	 * If it's recently referenced (perhaps page_referenced
+-	 * skipped over this mm) then we should reactivate it.
 -	 */
--	if (!dst_vma->vm_userfaultfd_ctx.ctx)
--		goto out_unlock;
+-	if (!(flags & TTU_IGNORE_MLOCK)) {
+-		if (vma->vm_flags & VM_LOCKED) {
+-			/* PTE-mapped THP are never mlocked */
+-			if (!PageTransCompound(page)) {
+-				/*
+-				 * Holding pte lock, we do *not* need
+-				 * mmap_sem here
+-				 */
+-				mlock_vma_page(page);
+-			}
+-			ret = SWAP_MLOCK;
+-			goto out_unmap;
+-		}
+-		if (flags & TTU_MUNLOCK)
+-			goto out_unmap;
+-	}
+-	if (!(flags & TTU_IGNORE_ACCESS)) {
+-		if (ptep_clear_flush_young_notify(vma, address, pte)) {
+-			ret = SWAP_FAIL;
+-			goto out_unmap;
+-		}
+-  	}
++		/* Unexpected PMD-mapped THP? */
++		VM_BUG_ON_PAGE(!pvmw.pte, page);
+ 
+-	/* Nuke the page table entry. */
+-	flush_cache_page(vma, address, page_to_pfn(page));
+-	if (should_defer_flush(mm, flags)) {
+ 		/*
+-		 * We clear the PTE but do not flush so potentially a remote
+-		 * CPU could still be writing to the page. If the entry was
+-		 * previously clean then the architecture must guarantee that
+-		 * a clear->dirty transition on a cached TLB entry is written
+-		 * through and traps if the PTE is unmapped.
++		 * If the page is mlock()d, we cannot swap it out.
++		 * If it's recently referenced (perhaps page_referenced
++		 * skipped over this mm) then we should reactivate it.
+ 		 */
+-		pteval = ptep_get_and_clear(mm, address, pte);
 -
--	/*
- 	 * If not shared, ensure the dst_vma has a anon_vma.
- 	 */
- 	err = -ENOMEM;
-@@ -404,22 +401,35 @@ retry:
- 	 * Make sure the vma is not shared, that the dst range is
- 	 * both valid and fully within a single existing vma.
- 	 */
--	err = -EINVAL;
-+	err = -ENOENT;
- 	dst_vma = find_vma(dst_mm, dst_start);
- 	if (!dst_vma)
- 		goto out_unlock;
- 	/*
--	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
--	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
-+	 * Be strict and only allow __mcopy_atomic on userfaultfd
-+	 * registered ranges to prevent userland errors going
-+	 * unnoticed. As far as the VM consistency is concerned, it
-+	 * would be perfectly safe to remove this check, but there's
-+	 * no useful usage for __mcopy_atomic ouside of userfaultfd
-+	 * registered ranges. This is after all why these are ioctls
-+	 * belonging to the userfaultfd and not syscalls.
- 	 */
--	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
--	    dst_vma->vm_flags & VM_SHARED))
-+	if (!dst_vma->vm_userfaultfd_ctx.ctx)
- 		goto out_unlock;
+-		set_tlb_ubc_flush_pending(mm, page, pte_dirty(pteval));
+-	} else {
+-		pteval = ptep_clear_flush(vma, address, pte);
+-	}
++		if (!(flags & TTU_IGNORE_MLOCK)) {
++			if (vma->vm_flags & VM_LOCKED) {
++				/* PTE-mapped THP are never mlocked */
++				if (!PageTransCompound(page)) {
++					/*
++					 * Holding pte lock, we do *not* need
++					 * mmap_sem here
++					 */
++					mlock_vma_page(page);
++				}
++				ret = SWAP_MLOCK;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
++			if (flags & TTU_MUNLOCK)
++				continue;
++		}
  
- 	if (dst_start < dst_vma->vm_start ||
- 	    dst_start + len > dst_vma->vm_end)
- 		goto out_unlock;
+-	/* Move the dirty bit to the physical page now the pte is gone. */
+-	if (pte_dirty(pteval))
+-		set_page_dirty(page);
++		if (!(flags & TTU_IGNORE_ACCESS)) {
++			if (ptep_clear_flush_young_notify(vma, address,
++						pvmw.pte)) {
++				ret = SWAP_FAIL;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
++		}
  
-+	err = -EINVAL;
-+	/*
-+	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
-+	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
-+	 */
-+	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
-+	    dst_vma->vm_flags & VM_SHARED))
-+		goto out_unlock;
+-	/* Update high watermark before we lower rss */
+-	update_hiwater_rss(mm);
++		/* Nuke the page table entry. */
++		flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
++		if (should_defer_flush(mm, flags)) {
++			/*
++			 * We clear the PTE but do not flush so potentially
++			 * a remote CPU could still be writing to the page.
++			 * If the entry was previously clean then the
++			 * architecture must guarantee that a clear->dirty
++			 * transition on a cached TLB entry is written through
++			 * and traps if the PTE is unmapped.
++			 */
++			pteval = ptep_get_and_clear(mm, address, pvmw.pte);
+ 
+-	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
+-		if (PageHuge(page)) {
+-			hugetlb_count_sub(1 << compound_order(page), mm);
++			set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
+ 		} else {
+-			dec_mm_counter(mm, mm_counter(page));
++			pteval = ptep_clear_flush(vma, address, pvmw.pte);
+ 		}
+-		set_pte_at(mm, address, pte,
+-			   swp_entry_to_pte(make_hwpoison_entry(page)));
+-	} else if (pte_unused(pteval)) {
+-		/*
+-		 * The guest indicated that the page content is of no
+-		 * interest anymore. Simply discard the pte, vmscan
+-		 * will take care of the rest.
+-		 */
+-		dec_mm_counter(mm, mm_counter(page));
+-	} else if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION)) {
+-		swp_entry_t entry;
+-		pte_t swp_pte;
+-		/*
+-		 * Store the pfn of the page in a special migration
+-		 * pte. do_swap_page() will wait until the migration
+-		 * pte is removed and then restart fault handling.
+-		 */
+-		entry = make_migration_entry(page, pte_write(pteval));
+-		swp_pte = swp_entry_to_pte(entry);
+-		if (pte_soft_dirty(pteval))
+-			swp_pte = pte_swp_mksoft_dirty(swp_pte);
+-		set_pte_at(mm, address, pte, swp_pte);
+-	} else if (PageAnon(page)) {
+-		swp_entry_t entry = { .val = page_private(page) };
+-		pte_t swp_pte;
+-		/*
+-		 * Store the swap location in the pte.
+-		 * See handle_pte_fault() ...
+-		 */
+-		VM_BUG_ON_PAGE(!PageSwapCache(page), page);
+ 
+-		if (!PageDirty(page) && (flags & TTU_LZFREE)) {
+-			/* It's a freeable page by MADV_FREE */
+-			dec_mm_counter(mm, MM_ANONPAGES);
+-			rp->lazyfreed++;
+-			goto discard;
+-		}
++		/* Move the dirty bit to the page. Now the pte is gone. */
++		if (pte_dirty(pteval))
++			set_page_dirty(page);
 +
- 	/*
- 	 * If this is a HUGETLB vma, pass off to appropriate routine
- 	 */
-@@ -427,18 +437,6 @@ retry:
- 		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
- 						src_start, len, zeropage);
++		/* Update high watermark before we lower rss */
++		update_hiwater_rss(mm);
++
++		if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
++			if (PageHuge(page)) {
++				int nr = 1 << compound_order(page);
++				hugetlb_count_sub(nr, mm);
++			} else {
++				dec_mm_counter(mm, mm_counter(page));
++			}
  
--	/*
--	 * Be strict and only allow __mcopy_atomic on userfaultfd
--	 * registered ranges to prevent userland errors going
--	 * unnoticed. As far as the VM consistency is concerned, it
--	 * would be perfectly safe to remove this check, but there's
--	 * no useful usage for __mcopy_atomic ouside of userfaultfd
--	 * registered ranges. This is after all why these are ioctls
--	 * belonging to the userfaultfd and not syscalls.
--	 */
--	if (!dst_vma->vm_userfaultfd_ctx.ctx)
--		goto out_unlock;
+-		if (swap_duplicate(entry) < 0) {
+-			set_pte_at(mm, address, pte, pteval);
+-			ret = SWAP_FAIL;
+-			goto out_unmap;
+-		}
+-		if (list_empty(&mm->mmlist)) {
+-			spin_lock(&mmlist_lock);
+-			if (list_empty(&mm->mmlist))
+-				list_add(&mm->mmlist, &init_mm.mmlist);
+-			spin_unlock(&mmlist_lock);
+-		}
+-		dec_mm_counter(mm, MM_ANONPAGES);
+-		inc_mm_counter(mm, MM_SWAPENTS);
+-		swp_pte = swp_entry_to_pte(entry);
+-		if (pte_soft_dirty(pteval))
+-			swp_pte = pte_swp_mksoft_dirty(swp_pte);
+-		set_pte_at(mm, address, pte, swp_pte);
+-	} else
+-		dec_mm_counter(mm, mm_counter_file(page));
++			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
++			set_pte_at(mm, address, pvmw.pte, pteval);
++		} else if (pte_unused(pteval)) {
++			/*
++			 * The guest indicated that the page content is of no
++			 * interest anymore. Simply discard the pte, vmscan
++			 * will take care of the rest.
++			 */
++			dec_mm_counter(mm, mm_counter(page));
++		} else if (IS_ENABLED(CONFIG_MIGRATION) &&
++				(flags & TTU_MIGRATION)) {
++			swp_entry_t entry;
++			pte_t swp_pte;
++			/*
++			 * Store the pfn of the page in a special migration
++			 * pte. do_swap_page() will wait until the migration
++			 * pte is removed and then restart fault handling.
++			 */
++			entry = make_migration_entry(subpage,
++					pte_write(pteval));
++			swp_pte = swp_entry_to_pte(entry);
++			if (pte_soft_dirty(pteval))
++				swp_pte = pte_swp_mksoft_dirty(swp_pte);
++			set_pte_at(mm, address, pvmw.pte, swp_pte);
++		} else if (PageAnon(page)) {
++			swp_entry_t entry = { .val = page_private(subpage) };
++			pte_t swp_pte;
++			/*
++			 * Store the swap location in the pte.
++			 * See handle_pte_fault() ...
++			 */
++			VM_BUG_ON_PAGE(!PageSwapCache(page), page);
++
++			if (!PageDirty(page) && (flags & TTU_LZFREE)) {
++				/* It's a freeable page by MADV_FREE */
++				dec_mm_counter(mm, MM_ANONPAGES);
++				rp->lazyfreed++;
++				goto discard;
++			}
+ 
++			if (swap_duplicate(entry) < 0) {
++				set_pte_at(mm, address, pvmw.pte, pteval);
++				ret = SWAP_FAIL;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
++			if (list_empty(&mm->mmlist)) {
++				spin_lock(&mmlist_lock);
++				if (list_empty(&mm->mmlist))
++					list_add(&mm->mmlist, &init_mm.mmlist);
++				spin_unlock(&mmlist_lock);
++			}
++			dec_mm_counter(mm, MM_ANONPAGES);
++			inc_mm_counter(mm, MM_SWAPENTS);
++			swp_pte = swp_entry_to_pte(entry);
++			if (pte_soft_dirty(pteval))
++				swp_pte = pte_swp_mksoft_dirty(swp_pte);
++			set_pte_at(mm, address, pvmw.pte, swp_pte);
++		} else
++			dec_mm_counter(mm, mm_counter_file(page));
+ discard:
+-	page_remove_rmap(page, PageHuge(page));
+-	put_page(page);
+-
+-out_unmap:
+-	pte_unmap_unlock(pte, ptl);
+-	if (ret != SWAP_FAIL && ret != SWAP_MLOCK && !(flags & TTU_MUNLOCK))
++		page_remove_rmap(subpage, PageHuge(page));
++		put_page(page);
+ 		mmu_notifier_invalidate_page(mm, address);
+-out:
++	}
+ 	return ret;
+ }
+ 
+@@ -1632,7 +1638,7 @@ static bool invalid_migration_vma(struct
+ 
+ static int page_mapcount_is_zero(struct page *page)
+ {
+-	return !page_mapcount(page);
++	return !total_mapcount(page);
+ }
+ 
+ /**
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+
