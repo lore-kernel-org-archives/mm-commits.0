@@ -1,121 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] z3fold-make-pages_nr-atomic.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:25:35 -0800
-Message-ID: <58b48b3f.MlDnKJgFOKbGXDpg%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch removed
+ from -mm tree
+Date: Mon, 27 Feb 2017 12:26:05 -0800
+Message-ID: <58b48b5d.7uLEBw4MylE3Rsmm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34514 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751392AbdB0Ujs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:39:48 -0500
+        with ESMTP id S1751387AbdB0Ukd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:40:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: make pages_nr atomic
+     Subject: mm: fix handling PTE-mapped THPs in page_idle_clear_pte_refs()
 has been removed from the -mm tree.  Its filename was
-     z3fold-make-pages_nr-atomic.patch
+     mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: make pages_nr atomic
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix handling PTE-mapped THPs in page_idle_clear_pte_refs()
 
-Convert pages_nr per-pool counter to atomic64_t.
+For PTE-mapped THP page_check_address_transhuge() is not adequate: it
+cannot find all relevant PTEs, only the first one.i
 
-Link: http://lkml.kernel.org/r/20170131213946.b828676ab17bbea42022c213@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Reviewed-by: Dan Streetman <ddstreet@ieee.org>
+Let's switch it to page_vma_mapped_walk().
+
+I don't think it's subject for stable@: it's not fatal.
+
+Link: http://lkml.kernel.org/r/20170129173858.45174-5-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ mm/page_idle.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-make-pages_nr-atomic mm/z3fold.c
---- a/mm/z3fold.c~z3fold-make-pages_nr-atomic
-+++ a/mm/z3fold.c
-@@ -80,7 +80,7 @@ struct z3fold_pool {
- 	struct list_head unbuddied[NCHUNKS];
- 	struct list_head buddied;
- 	struct list_head lru;
--	u64 pages_nr;
-+	atomic64_t pages_nr;
- 	const struct z3fold_ops *ops;
- 	struct zpool *zpool;
- 	const struct zpool_ops *zpool_ops;
-@@ -238,7 +238,7 @@ static struct z3fold_pool *z3fold_create
- 		INIT_LIST_HEAD(&pool->unbuddied[i]);
- 	INIT_LIST_HEAD(&pool->buddied);
- 	INIT_LIST_HEAD(&pool->lru);
--	pool->pages_nr = 0;
-+	atomic64_set(&pool->pages_nr, 0);
- 	pool->ops = ops;
- 	return pool;
- }
-@@ -350,7 +350,7 @@ static int z3fold_alloc(struct z3fold_po
- 	if (!page)
- 		return -ENOMEM;
- 	spin_lock(&pool->lock);
--	pool->pages_nr++;
-+	atomic64_inc(&pool->pages_nr);
- 	zhdr = init_z3fold_page(page);
+diff -puN mm/page_idle.c~mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs mm/page_idle.c
+--- a/mm/page_idle.c~mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs
++++ a/mm/page_idle.c
+@@ -54,27 +54,27 @@ static int page_idle_clear_pte_refs_one(
+ 					struct vm_area_struct *vma,
+ 					unsigned long addr, void *arg)
+ {
+-	struct mm_struct *mm = vma->vm_mm;
+-	pmd_t *pmd;
+-	pte_t *pte;
+-	spinlock_t *ptl;
++	struct page_vma_mapped_walk pvmw = {
++		.page = page,
++		.vma = vma,
++		.address = addr,
++	};
+ 	bool referenced = false;
  
- 	if (bud == HEADLESS) {
-@@ -443,10 +443,9 @@ static void z3fold_free(struct z3fold_po
- 		return;
+-	if (!page_check_address_transhuge(page, mm, addr, &pmd, &pte, &ptl))
+-		return SWAP_AGAIN;
+-
+-	if (pte) {
+-		referenced = ptep_clear_young_notify(vma, addr, pte);
+-		pte_unmap(pte);
+-	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+-		referenced = pmdp_clear_young_notify(vma, addr, pmd);
+-	} else {
+-		/* unexpected pmd-mapped page? */
+-		WARN_ON_ONCE(1);
++	while (page_vma_mapped_walk(&pvmw)) {
++		addr = pvmw.address;
++		if (pvmw.pte) {
++			referenced = ptep_clear_young_notify(vma, addr,
++					pvmw.pte);
++		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
++			referenced = pmdp_clear_young_notify(vma, addr,
++					pvmw.pmd);
++		} else {
++			/* unexpected pmd-mapped page? */
++			WARN_ON_ONCE(1);
++		}
  	}
  
--	if (bud != HEADLESS) {
--		/* Remove from existing buddy list */
-+	/* Remove from existing buddy list */
-+	if (bud != HEADLESS)
- 		list_del(&zhdr->buddy);
--	}
- 
- 	if (bud == HEADLESS ||
- 	    (zhdr->first_chunks == 0 && zhdr->middle_chunks == 0 &&
-@@ -455,7 +454,7 @@ static void z3fold_free(struct z3fold_po
- 		list_del(&page->lru);
- 		clear_bit(PAGE_HEADLESS, &page->private);
- 		free_z3fold_page(zhdr);
--		pool->pages_nr--;
-+		atomic64_dec(&pool->pages_nr);
- 	} else {
- 		z3fold_compact_page(zhdr);
- 		/* Add to the unbuddied list */
-@@ -573,7 +572,7 @@ next:
- 			 */
- 			clear_bit(PAGE_HEADLESS, &page->private);
- 			free_z3fold_page(zhdr);
--			pool->pages_nr--;
-+			atomic64_dec(&pool->pages_nr);
- 			spin_unlock(&pool->lock);
- 			return 0;
- 		}  else if (!test_bit(PAGE_HEADLESS, &page->private)) {
-@@ -676,12 +675,11 @@ static void z3fold_unmap(struct z3fold_p
-  * z3fold_get_pool_size() - gets the z3fold pool size in pages
-  * @pool:	pool whose size is being queried
-  *
-- * Returns: size in pages of the given pool.  The pool lock need not be
-- * taken to access pages_nr.
-+ * Returns: size in pages of the given pool.
-  */
- static u64 z3fold_get_pool_size(struct z3fold_pool *pool)
- {
--	return pool->pages_nr;
-+	return atomic64_read(&pool->pages_nr);
- }
- 
- /*****************
-_
-
-Patches currently in -mm which might be from vitalywool@gmail.com are
-
-
+-	spin_unlock(ptl);
