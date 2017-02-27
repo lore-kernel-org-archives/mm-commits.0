@@ -1,95 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-validate-device_hotplug-is-held-for-memory-hotplug.patch removed from
- -mm tree
-Date: Mon, 27 Feb 2017 12:24:17 -0800
-Message-ID: <58b48af1.9+viJueF3TJ1Rhrk%akpm@linux-foundation.org>
+ mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:24:11 -0800
+Message-ID: <58b48aeb.lezZ/Pm8T5BDMZBN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60302 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751530AbdB0UYo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:24:44 -0500
+        with ESMTP id S1751559AbdB0UYm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:24:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, ben@decadent.org.uk, gregkh@linuxfoundation.org, logang@deltatee.com, m.mizuma@jp.fujitsu.com, mhocko@suse.com, toshi.kani@hpe.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: validate device_hotplug is held for memory hotplug
+     Subject: mm, oom: header nodemask is NULL when cpusets are disabled
 has been removed from the -mm tree.  Its filename was
-     mm-validate-device_hotplug-is-held-for-memory-hotplug.patch
+     mm-oom-header-nodemask-is-null-when-cpusets-are-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: validate device_hotplug is held for memory hotplug
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: header nodemask is NULL when cpusets are disabled
 
-mem_hotplug_begin() assumes that it can set mem_hotplug.active_writer and
-run the hotplug process without racing another thread.  Validate this
-assumption with a lockdep assertion.
+Commit 82e7d3abec86 ("oom: print nodemask in the oom report") implicitly
+sets the allocation nodemask to cpuset_current_mems_allowed when there is
+no effective mempolicy.  cpuset_current_mems_allowed is only effective
+when cpusets are enabled, which is also printed by dump_header(), so
+setting the nodemask to cpuset_current_mems_allowed is redundant and
+prevents debugging issues where ac->nodemask is not set properly in the
+page allocator.
 
-Link: http://lkml.kernel.org/r/148693886229.16345.1770484669403334689.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+This provides better debugging output since
+cpuset_print_current_mems_allowed() is already provided.
+
+[rientjes@google.com: newline per Hillf]
+  Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701200158300.88321@chino.kir.corp.google.com
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1701191454470.2381@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c    |    5 +++++
- include/linux/device.h |    1 +
- mm/memory_hotplug.c    |    2 ++
- 3 files changed, 8 insertions(+)
+ mm/oom_kill.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/base/core.c~mm-validate-device_hotplug-is-held-for-memory-hotplug drivers/base/core.c
---- a/drivers/base/core.c~mm-validate-device_hotplug-is-held-for-memory-hotplug
-+++ a/drivers/base/core.c
-@@ -638,6 +638,11 @@ int lock_device_hotplug_sysfs(void)
- 	return restart_syscall();
+diff -puN mm/oom_kill.c~mm-oom-header-nodemask-is-null-when-cpusets-are-disabled mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-header-nodemask-is-null-when-cpusets-are-disabled
++++ a/mm/oom_kill.c
+@@ -403,12 +403,14 @@ static void dump_tasks(struct mem_cgroup
+ 
+ static void dump_header(struct oom_control *oc, struct task_struct *p)
+ {
+-	nodemask_t *nm = (oc->nodemask) ? oc->nodemask : &cpuset_current_mems_allowed;
+-
+-	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=%*pbl, order=%d, oom_score_adj=%hd\n",
+-		current->comm, oc->gfp_mask, &oc->gfp_mask,
+-		nodemask_pr_args(nm), oc->order,
+-		current->signal->oom_score_adj);
++	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=",
++		current->comm, oc->gfp_mask, &oc->gfp_mask);
++	if (oc->nodemask)
++		pr_cont("%*pbl", nodemask_pr_args(oc->nodemask));
++	else
++		pr_cont("(null)");
++	pr_cont(",  order=%d, oom_score_adj=%hd\n",
++		oc->order, current->signal->oom_score_adj);
+ 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
+ 		pr_warn("COMPACTION is disabled!!!\n");
+ 
+@@ -417,7 +419,7 @@ static void dump_header(struct oom_contr
+ 	if (oc->memcg)
+ 		mem_cgroup_print_oom_info(oc->memcg, p);
+ 	else
+-		show_mem(SHOW_MEM_FILTER_NODES, nm);
++		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
+ 	if (sysctl_oom_dump_tasks)
+ 		dump_tasks(oc->memcg, oc->nodemask);
  }
- 
-+void assert_held_device_hotplug(void)
-+{
-+	lockdep_assert_held(&device_hotplug_lock);
-+}
-+
- #ifdef CONFIG_BLOCK
- static inline int device_is_not_partition(struct device *dev)
- {
-diff -puN include/linux/device.h~mm-validate-device_hotplug-is-held-for-memory-hotplug include/linux/device.h
---- a/include/linux/device.h~mm-validate-device_hotplug-is-held-for-memory-hotplug
-+++ a/include/linux/device.h
-@@ -1139,6 +1139,7 @@ static inline bool device_supports_offli
- extern void lock_device_hotplug(void);
- extern void unlock_device_hotplug(void);
- extern int lock_device_hotplug_sysfs(void);
-+void assert_held_device_hotplug(void);
- extern int device_offline(struct device *dev);
- extern int device_online(struct device *dev);
- extern void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode);
-diff -puN mm/memory_hotplug.c~mm-validate-device_hotplug-is-held-for-memory-hotplug mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-validate-device_hotplug-is-held-for-memory-hotplug
-+++ a/mm/memory_hotplug.c
-@@ -126,6 +126,8 @@ void put_online_mems(void)
- 
- void mem_hotplug_begin(void)
- {
-+	assert_held_device_hotplug();
-+
- 	mem_hotplug.active_writer = current;
- 
- 	memhp_lock_acquire();
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 
