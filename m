@@ -1,136 +1,165 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:26:17 -0800
-Message-ID: <58b48b69.l9xbQo3LWrGrKc/P%akpm@linux-foundation.org>
+ userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:26:41 -0800
+Message-ID: <58b48b81.4XHM3RtRv+752065%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60552 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751571AbdB0U16 (ORCPT
+        with ESMTP id S1751740AbdB0U16 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, ksm: convert write_protect_page() to use page_vma_mapped_walk()
+     Subject: userfaultfd: mcopy_atomic: return -ENOENT when no compatible VMA found
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk.patch
+     userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, ksm: convert write_protect_page() to use page_vma_mapped_walk()
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: mcopy_atomic: return -ENOENT when no compatible VMA found
 
-For consistency, it worth converting all page_check_address() to
-page_vma_mapped_walk(), so we could drop the former.
+The memory mapping of a process may change between #PF event and the call
+to mcopy_atomic that comes to resolve the page fault.  In such case, there
+will be no VMA covering the range passed to mcopy_atomic or the VMA will
+not have userfaultfd context.
 
-Link: http://lkml.kernel.org/r/20170129173858.45174-9-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+To allow uffd monitor to distinguish those case from other errors, let's
+return -ENOENT instead of -EINVAL.
+
+Note, that despite availability of UFFD_EVENT_UNMAP there still might be
+race between the processing of UFFD_EVENT_UNMAP and outstanding
+mcopy_atomic in case of non-cooperative uffd usage.
+
+[rppt@linux.vnet.ibm.com: update cases returning -ENOENT]
+  Link: http://lkml.kernel.org/r/20170207150249.GA6709@rapoport-lnx
+[aarcange@redhat.com: merge fix]
+[akpm@linux-foundation.org: fix the merge fix]
+Link: http://lkml.kernel.org/r/1485542673-24387-5-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ mm/userfaultfd.c |   58 +++++++++++++++++++++------------------------
+ 1 file changed, 28 insertions(+), 30 deletions(-)
 
-diff -puN mm/ksm.c~mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk mm/ksm.c
---- a/mm/ksm.c~mm-ksm-convert-write_protect_page-to-use-page_vma_mapped_walk
-+++ a/mm/ksm.c
-@@ -856,33 +856,35 @@ static int write_protect_page(struct vm_
- 			      pte_t *orig_pte)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	unsigned long addr;
--	pte_t *ptep;
--	spinlock_t *ptl;
-+	struct page_vma_mapped_walk pvmw = {
-+		.page = page,
-+		.vma = vma,
-+	};
- 	int swapped;
- 	int err = -EFAULT;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
- 
--	addr = page_address_in_vma(page, vma);
--	if (addr == -EFAULT)
-+	pvmw.address = page_address_in_vma(page, vma);
-+	if (pvmw.address == -EFAULT)
- 		goto out;
- 
- 	BUG_ON(PageTransCompound(page));
- 
--	mmun_start = addr;
--	mmun_end   = addr + PAGE_SIZE;
-+	mmun_start = pvmw.address;
-+	mmun_end   = pvmw.address + PAGE_SIZE;
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 
--	ptep = page_check_address(page, mm, addr, &ptl, 0);
--	if (!ptep)
-+	if (!page_vma_mapped_walk(&pvmw))
- 		goto out_mn;
-+	if (WARN_ONCE(!pvmw.pte, "Unexpected PMD mapping?"))
-+		goto out_unlock;
- 
--	if (pte_write(*ptep) || pte_dirty(*ptep)) {
-+	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte)) {
- 		pte_t entry;
- 
- 		swapped = PageSwapCache(page);
--		flush_cache_page(vma, addr, page_to_pfn(page));
-+		flush_cache_page(vma, pvmw.address, page_to_pfn(page));
- 		/*
- 		 * Ok this is tricky, when get_user_pages_fast() run it doesn't
- 		 * take any lock, therefore the check that we are going to make
-@@ -892,25 +894,25 @@ static int write_protect_page(struct vm_
- 		 * this assure us that no O_DIRECT can happen after the check
- 		 * or in the middle of the check.
- 		 */
--		entry = ptep_clear_flush_notify(vma, addr, ptep);
-+		entry = ptep_clear_flush_notify(vma, pvmw.address, pvmw.pte);
- 		/*
- 		 * Check that no O_DIRECT or similar I/O is in progress on the
- 		 * page
- 		 */
- 		if (page_mapcount(page) + 1 + swapped != page_count(page)) {
--			set_pte_at(mm, addr, ptep, entry);
-+			set_pte_at(mm, pvmw.address, pvmw.pte, entry);
+diff -puN mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found mm/userfaultfd.c
+--- a/mm/userfaultfd.c~userfaultfd-mcopy_atomic-return-enoent-when-no-compatible-vma-found
++++ a/mm/userfaultfd.c
+@@ -197,22 +197,25 @@ retry:
+ 	 * retry, dst_vma will be set to NULL and we must lookup again.
+ 	 */
+ 	if (!dst_vma) {
+-		err = -EINVAL;
++		err = -ENOENT;
+ 		dst_vma = find_vma(dst_mm, dst_start);
+ 		if (!dst_vma || !is_vm_hugetlb_page(dst_vma))
  			goto out_unlock;
- 		}
- 		if (pte_dirty(entry))
- 			set_page_dirty(page);
- 		entry = pte_mkclean(pte_wrprotect(entry));
--		set_pte_at_notify(mm, addr, ptep, entry);
-+		set_pte_at_notify(mm, pvmw.address, pvmw.pte, entry);
- 	}
--	*orig_pte = *ptep;
-+	*orig_pte = *pvmw.pte;
- 	err = 0;
+-
+-		if (vma_hpagesize != vma_kernel_pagesize(dst_vma))
+-			goto out_unlock;
+-
+ 		/*
+-		 * Make sure the remaining dst range is both valid and
+-		 * fully within a single existing vma.
++		 * Only allow __mcopy_atomic_hugetlb on userfaultfd
++		 * registered ranges.
+ 		 */
++		if (!dst_vma->vm_userfaultfd_ctx.ctx)
++			goto out_unlock;
++
+ 		if (dst_start < dst_vma->vm_start ||
+ 		    dst_start + len > dst_vma->vm_end)
+ 			goto out_unlock;
  
- out_unlock:
--	pte_unmap_unlock(ptep, ptl);
-+	page_vma_mapped_walk_done(&pvmw);
- out_mn:
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- out:
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-
++		err = -EINVAL;
++		if (vma_hpagesize != vma_kernel_pagesize(dst_vma))
++			goto out_unlock;
++
+ 		vm_shared = dst_vma->vm_flags & VM_SHARED;
+ 	}
+ 
+@@ -221,12 +224,6 @@ retry:
+ 		goto out_unlock;
+ 
+ 	/*
+-	 * Only allow __mcopy_atomic_hugetlb on userfaultfd registered ranges.
+-	 */
+-	if (!dst_vma->vm_userfaultfd_ctx.ctx)
+-		goto out_unlock;
+-
+-	/*
+ 	 * If not shared, ensure the dst_vma has a anon_vma.
+ 	 */
+ 	err = -ENOMEM;
+@@ -404,22 +401,35 @@ retry:
+ 	 * Make sure the vma is not shared, that the dst range is
+ 	 * both valid and fully within a single existing vma.
+ 	 */
+-	err = -EINVAL;
++	err = -ENOENT;
+ 	dst_vma = find_vma(dst_mm, dst_start);
+ 	if (!dst_vma)
+ 		goto out_unlock;
+ 	/*
+-	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
+-	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
++	 * Be strict and only allow __mcopy_atomic on userfaultfd
++	 * registered ranges to prevent userland errors going
++	 * unnoticed. As far as the VM consistency is concerned, it
++	 * would be perfectly safe to remove this check, but there's
++	 * no useful usage for __mcopy_atomic ouside of userfaultfd
++	 * registered ranges. This is after all why these are ioctls
++	 * belonging to the userfaultfd and not syscalls.
+ 	 */
+-	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
+-	    dst_vma->vm_flags & VM_SHARED))
++	if (!dst_vma->vm_userfaultfd_ctx.ctx)
+ 		goto out_unlock;
+ 
+ 	if (dst_start < dst_vma->vm_start ||
+ 	    dst_start + len > dst_vma->vm_end)
+ 		goto out_unlock;
+ 
++	err = -EINVAL;
++	/*
++	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
++	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
++	 */
++	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
++	    dst_vma->vm_flags & VM_SHARED))
++		goto out_unlock;
++
+ 	/*
+ 	 * If this is a HUGETLB vma, pass off to appropriate routine
+ 	 */
+@@ -427,18 +437,6 @@ retry:
+ 		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
+ 						src_start, len, zeropage);
+ 
+-	/*
+-	 * Be strict and only allow __mcopy_atomic on userfaultfd
+-	 * registered ranges to prevent userland errors going
+-	 * unnoticed. As far as the VM consistency is concerned, it
+-	 * would be perfectly safe to remove this check, but there's
+-	 * no useful usage for __mcopy_atomic ouside of userfaultfd
+-	 * registered ranges. This is after all why these are ioctls
+-	 * belonging to the userfaultfd and not syscalls.
+-	 */
+-	if (!dst_vma->vm_userfaultfd_ctx.ctx)
+-		goto out_unlock;
