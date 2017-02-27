@@ -1,97 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [patch 60/78] scripts/spelling.txt: add "applys" pattern and fix
- typo instances
-Date: Mon, 27 Feb 2017 14:29:34 -0800
-Message-ID: <58b4a84e.lAK6CPuRYREPtOAM%akpm@linux-foundation.org>
+Subject: [patch 67/78] scripts/spelling.txt: add "therfore" pattern and
+ fix typo instances
+Date: Mon, 27 Feb 2017 14:29:53 -0800
+Message-ID: <58b4a861.Jh1ukRt5twsYhmOE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45056 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751364AbdB0Wdi (ORCPT
+        with ESMTP id S1751510AbdB0Wdi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:33:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
 
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "applys" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "therfore" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  applys||applies
+  therfore||therefore
 
-The "applyes" in drivers/video/fbdev/aty/radeon_monitor.c is a
-different pattern but it was fixed in this commit.
-The "This functions" in the same line was fixed as well.
+Besides, tidy up comment blocks for 80-col wrapping.
 
-Link: http://lkml.kernel.org/r/1481573103-11329-24-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-31-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/tuner-core.c           |    4 ++--
- drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c |    2 +-
- drivers/video/fbdev/aty/radeon_monitor.c       |    2 +-
- scripts/spelling.txt                           |    1 +
- 4 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/rdmavt/mad.c                            |    6 +++---
+ drivers/scsi/aacraid/linit.c                                  |    2 +-
+ drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c |    4 ++--
+ scripts/spelling.txt                                          |    1 +
+ 4 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/v4l2-core/tuner-core.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances drivers/media/v4l2-core/tuner-core.c
---- a/drivers/media/v4l2-core/tuner-core.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
-+++ a/drivers/media/v4l2-core/tuner-core.c
-@@ -245,7 +245,7 @@ static const struct analog_demod_ops tun
-  * @tuner_callback:	an optional function to be called when switching
-  *			to analog mode
-  *
-- * This function applys the tuner config to tuner specified
-+ * This function applies the tuner config to tuner specified
-  * by tun_setup structure. It contains several per-tuner initialization "magic"
-  */
- static void set_type(struct i2c_client *c, unsigned int type,
-@@ -463,7 +463,7 @@ attach_failed:
-  * @sd:		subdev descriptor
-  * @tun_setup:	type to be associated to a given tuner i2c address
-  *
-- * This function applys the tuner config to tuner specified
-+ * This function applies the tuner config to tuner specified
-  * by tun_setup structure.
-  * If tuner I2C address is UNSET, then it will only set the device
-  * if the tuner supports the mode specified in the call.
-diff -puN drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
---- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
-@@ -1449,7 +1449,7 @@ do { \
-  *  @atr_input: input bitstream to compute the hash on
-  *  @input_mask: mask for the input bitstream
-  *
-- *  This function serves two main purposes.  First it applys the input_mask
-+ *  This function serves two main purposes.  First it applies the input_mask
-  *  to the atr_input resulting in a cleaned up atr_input data stream.
-  *  Secondly it computes the hash and stores it in the bkt_hash field at
-  *  the end of the input byte stream.  This way it will be available for
-diff -puN drivers/video/fbdev/aty/radeon_monitor.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances drivers/video/fbdev/aty/radeon_monitor.c
---- a/drivers/video/fbdev/aty/radeon_monitor.c~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
-+++ a/drivers/video/fbdev/aty/radeon_monitor.c
-@@ -646,7 +646,7 @@ void radeon_probe_screens(struct radeonf
+diff -puN drivers/infiniband/sw/rdmavt/mad.c~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances drivers/infiniband/sw/rdmavt/mad.c
+--- a/drivers/infiniband/sw/rdmavt/mad.c~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances
++++ a/drivers/infiniband/sw/rdmavt/mad.c
+@@ -74,9 +74,9 @@ int rvt_process_mad(struct ib_device *ib
+ 		    u16 *out_mad_pkey_index)
+ {
+ 	/*
+-	 * MAD processing is quite different between hfi1 and qib. Therfore this
+-	 * is expected to be provided by the driver. Other drivers in the future
+-	 * may chose to implement this but it should not be made into a
++	 * MAD processing is quite different between hfi1 and qib. Therefore
++	 * this is expected to be provided by the driver. Other drivers in the
++	 * future may choose to implement this but it should not be made into a
+ 	 * requirement.
+ 	 */
+ 	if (ibport_num_to_idx(ibdev, port_num) < 0)
+diff -puN drivers/scsi/aacraid/linit.c~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances drivers/scsi/aacraid/linit.c
+--- a/drivers/scsi/aacraid/linit.c~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances
++++ a/drivers/scsi/aacraid/linit.c
+@@ -1630,7 +1630,7 @@ static int aac_acquire_resources(struct
  
- 
- /*
-- * This functions applyes any arch/model/machine specific fixups
-+ * This function applies any arch/model/machine specific fixups
-  * to the panel info. It may eventually alter EDID block as
-  * well or whatever is specific to a given model and not probed
-  * properly by the default code
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances
+ 	if (!dev->sync_mode) {
+ 		/* After EEH recovery or suspend resume, max_msix count
+-		 * may change, therfore updating in init as well.
++		 * may change, therefore updating in init as well.
+ 		 */
+ 		dev->init->r7.no_of_msix_vectors = cpu_to_le32(dev->max_msix);
+ 		aac_adapter_start(dev);
+diff -puN drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+--- a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances
++++ a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+@@ -1875,8 +1875,8 @@ vchiq_arm_init_state(VCHIQ_STATE_T *stat
+ **
+ ** VC_RESUME_IDLE - Initialise the resume completion at the same time.  The
+ **			resume completion is in it's 'done' state whenever
+-**			videcore is running.  Therfore, the VC_RESUME_IDLE state
+-**			implies that videocore is suspended.
++**			videcore is running.  Therefore, the VC_RESUME_IDLE
++**			state implies that videocore is suspended.
+ **			Hence, any thread which needs to wait until videocore is
+ **			running can wait on this completion - it will only block
+ **			if videocore is suspended.
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -105,6 +105,7 @@ appearence||appearance
- applicaion||application
- appliction||application
- applictions||applications
-+applys||applies
- appplications||applications
- appropiate||appropriate
- appropriatly||appropriately
+@@ -1041,6 +1041,7 @@ targetting||targeting
+ teh||the
+ temorary||temporary
+ temproarily||temporarily
++therfore||therefore
+ thier||their
+ threds||threads
+ threshhold||threshold
 _
