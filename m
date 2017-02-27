@@ -1,58 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [patch 29/78] config: android-base: enable hardened usercopy and
- kernel ASLR
-Date: Mon, 27 Feb 2017 14:28:06 -0800
-Message-ID: <58b4a7f6.U5SUt2JuAGmMszGO%akpm@linux-foundation.org>
+Subject: [patch 26/78] fs/affs/namei.c: forward declarations clean-up
+Date: Mon, 27 Feb 2017 14:27:57 -0800
+Message-ID: <58b4a7ed.+V5f4EXKRgneOrxZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751568AbdB0Wgl (ORCPT
+        with ESMTP id S1751556AbdB0Wgl (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, amit.pundir@linaro.org, danielmicay@gmail.com, john.stultz@linaro.org, rob.herring@linaro.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be, viro@zeniv.linux.org.uk
 
-From: Amit Pundir <amit.pundir@linaro.org>
-Subject: config: android-base: enable hardened usercopy and kernel ASLR
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs/namei.c: forward declarations clean-up
 
-Enable CONFIG_HARDENED_USERCOPY and CONFIG_RANDOMIZE_BASE in Android
-base config fragment.
+Move dentry_operations structures and remove forward declarations.
 
-Reviewed at https://android-review.googlesource.com/#/c/283659/
-Reviewed at https://android-review.googlesource.com/#/c/278133/
-
-Link: http://lkml.kernel.org/r/1481113148-29204-2-git-send-email-amit.pundir@linaro.org
-Signed-off-by: Amit Pundir <amit.pundir@linaro.org>
-Cc: Rob Herring <rob.herring@linaro.org>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Daniel Micay <danielmicay@gmail.com>
+Link: http://lkml.kernel.org/r/20170109191208.6085-7-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs/android-base.config |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/affs/namei.c |   30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
 
-diff -puN kernel/configs/android-base.config~config-android-base-enable-hardened-usercopy-and-kernel-aslr kernel/configs/android-base.config
---- a/kernel/configs/android-base.config~config-android-base-enable-hardened-usercopy-and-kernel-aslr
-+++ a/kernel/configs/android-base.config
-@@ -21,6 +21,7 @@ CONFIG_CP15_BARRIER_EMULATION=y
- CONFIG_DEFAULT_SECURITY_SELINUX=y
- CONFIG_EMBEDDED=y
- CONFIG_FB=y
-+CONFIG_HARDENED_USERCOPY=y
- CONFIG_HIGH_RES_TIMERS=y
- CONFIG_INET6_AH=y
- CONFIG_INET6_ESP=y
-@@ -129,6 +130,7 @@ CONFIG_PPP_DEFLATE=y
- CONFIG_PPP_MPPE=y
- CONFIG_PREEMPT=y
- CONFIG_QUOTA=y
-+CONFIG_RANDOMIZE_BASE=y
- CONFIG_RTC_CLASS=y
- CONFIG_RT_GROUP_SCHED=y
- CONFIG_SECCOMP=y
-_
+diff -puN fs/affs/namei.c~fs-affs-nameic-forward-declarations-clean-up fs/affs/namei.c
+--- a/fs/affs/namei.c~fs-affs-nameic-forward-declarations-clean-up
++++ a/fs/affs/namei.c
+@@ -13,26 +13,6 @@
+ 
+ typedef int (*toupper_t)(int);
+ 
+-static int	 affs_toupper(int ch);
+-static int	 affs_hash_dentry(const struct dentry *, struct qstr *);
+-static int       affs_compare_dentry(const struct dentry *dentry,
+-		unsigned int len, const char *str, const struct qstr *name);
+-static int	 affs_intl_toupper(int ch);
+-static int	 affs_intl_hash_dentry(const struct dentry *, struct qstr *);
+-static int       affs_intl_compare_dentry(const struct dentry *dentry,
+-		unsigned int len, const char *str, const struct qstr *name);
+-
+-const struct dentry_operations affs_dentry_operations = {
+-	.d_hash		= affs_hash_dentry,
+-	.d_compare	= affs_compare_dentry,
+-};
+-
+-const struct dentry_operations affs_intl_dentry_operations = {
+-	.d_hash		= affs_intl_hash_dentry,
+-	.d_compare	= affs_intl_compare_dentry,
+-};
+-
