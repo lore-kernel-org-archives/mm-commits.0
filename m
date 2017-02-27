@@ -1,99 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch removed
+Subject: [merged] checkpatch-warn-on-logging-continuations.patch removed
  from -mm tree
-Date: Mon, 27 Feb 2017 12:26:05 -0800
-Message-ID: <58b48b5d.7uLEBw4MylE3Rsmm%akpm@linux-foundation.org>
+Date: Mon, 27 Feb 2017 12:29:23 -0800
+Message-ID: <58b48c23.AdRpyFA4Bykm+Bdl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34520 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751387AbdB0Ukd (ORCPT
+        with ESMTP id S1751550AbdB0Ukd (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:40:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix handling PTE-mapped THPs in page_idle_clear_pte_refs()
+     Subject: checkpatch: warn on logging continuations
 has been removed from the -mm tree.  Its filename was
-     mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs.patch
+     checkpatch-warn-on-logging-continuations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix handling PTE-mapped THPs in page_idle_clear_pte_refs()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on logging continuations
 
-For PTE-mapped THP page_check_address_transhuge() is not adequate: it
-cannot find all relevant PTEs, only the first one.i
+pr_cont(...) and printk(KERN_CONT ...) uses should be discouraged
+as their output can be interleaved by multiple logging processes.
 
-Let's switch it to page_vma_mapped_walk().
-
-I don't think it's subject for stable@: it's not fatal.
-
-Link: http://lkml.kernel.org/r/20170129173858.45174-5-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/7100ba00098694ec81471a299583ed068975fd05.1483465888.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/page_idle.c~mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs mm/page_idle.c
---- a/mm/page_idle.c~mm-fix-handling-pte-mapped-thps-in-page_idle_clear_pte_refs
-+++ a/mm/page_idle.c
-@@ -54,27 +54,27 @@ static int page_idle_clear_pte_refs_one(
- 					struct vm_area_struct *vma,
- 					unsigned long addr, void *arg)
- {
--	struct mm_struct *mm = vma->vm_mm;
--	pmd_t *pmd;
--	pte_t *pte;
--	spinlock_t *ptl;
-+	struct page_vma_mapped_walk pvmw = {
-+		.page = page,
-+		.vma = vma,
-+		.address = addr,
-+	};
- 	bool referenced = false;
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-logging-continuations scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-logging-continuations
++++ a/scripts/checkpatch.pl
+@@ -5287,6 +5287,12 @@ sub process {
+ 			}
+ 		}
  
--	if (!page_check_address_transhuge(page, mm, addr, &pmd, &pte, &ptl))
--		return SWAP_AGAIN;
--
--	if (pte) {
--		referenced = ptep_clear_young_notify(vma, addr, pte);
--		pte_unmap(pte);
--	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
--		referenced = pmdp_clear_young_notify(vma, addr, pmd);
--	} else {
--		/* unexpected pmd-mapped page? */
--		WARN_ON_ONCE(1);
-+	while (page_vma_mapped_walk(&pvmw)) {
-+		addr = pvmw.address;
-+		if (pvmw.pte) {
-+			referenced = ptep_clear_young_notify(vma, addr,
-+					pvmw.pte);
-+		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
-+			referenced = pmdp_clear_young_notify(vma, addr,
-+					pvmw.pmd);
-+		} else {
-+			/* unexpected pmd-mapped page? */
-+			WARN_ON_ONCE(1);
++# check for logging continuations
++		if ($line =~ /\bprintk\s*\(\s*KERN_CONT\b|\bpr_cont\s*\(/) {
++			WARN("LOGGING_CONTINUATION",
++			     "Avoid logging continuation uses where feasible\n" . $herecurr);
 +		}
- 	}
- 
--	spin_unlock(ptl);
++
+ # check for mask then right shift without a parentheses
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    $line =~ /$LvalOrFunc\s*\&\s*($LvalOrFunc)\s*>>/ &&
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatchpl-warn-against-using-%z-fix.patch
+
