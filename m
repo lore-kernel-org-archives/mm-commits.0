@@ -1,152 +1,371 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch removed
- from -mm tree
-Date: Mon, 27 Feb 2017 12:25:53 -0800
-Message-ID: <58b48b51.8pVmAZvIpkuOJfZv%akpm@linux-foundation.org>
+ mm-replace-fault_flag_size-with-parameter-to-huge_fault.patch removed from
+ -mm tree
+Date: Mon, 27 Feb 2017 12:25:29 -0800
+Message-ID: <58b48b39.icxqaMrBk7TF8anX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53442 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751639AbdB1Aky (ORCPT
+        with ESMTP id S1751630AbdB1Aky (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 19:40:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xieyisheng1@huawei.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, guohanjun@huawei.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
+To: dave.jiang@intel.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mingo@elte.hu, nilesh.choudhury@oracle.com, ross.zwisler@linux.intel.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hotplug: enable memory hotplug for non-lru movable pages
+     Subject: mm: replace FAULT_FLAG_SIZE with parameter to huge_fault
 has been removed from the -mm tree.  Its filename was
-     mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
+     mm-replace-fault_flag_size-with-parameter-to-huge_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/hotplug: enable memory hotplug for non-lru movable pages
+From: Dave Jiang <dave.jiang@intel.com>
+Subject: mm: replace FAULT_FLAG_SIZE with parameter to huge_fault
 
-We had considered all of the non-lru pages as unmovable before commit
-bda807d44454 ("mm: migrate: support non-lru movable page migration").  But
-now some of non-lru pages like zsmalloc, virtio-balloon pages also become
-movable.  So we can offline such blocks by using non-lru page migration.
+Since the introduction of FAULT_FLAG_SIZE to the vm_fault flag, it has
+been somewhat painful with getting the flags set and removed at the
+correct locations.  More than one kernel oops was introduced due to
+difficulties of getting the placement correctly.
 
-This patch straightforwardly adds non-lru migration code, which means
-adding non-lru related code to the functions which scan over pfn and
-collect pages to be migrated and isolate them before migration.
+Remove the flag values and introduce an input parameter to huge_fault that
+indicates the size of the page entry.  This makes the code easier to trace
+and should avoid the issues we see with the fault flags where removal of
+the flag was necessary in the fallback paths.
 
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/148615748258.43180.1690152053774975329.stgit@djiang5-desk3.ch.intel.com
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Tested-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   28 +++++++++++++++++-----------
- mm/page_alloc.c     |    8 ++++++--
- 2 files changed, 23 insertions(+), 13 deletions(-)
+ drivers/dax/dax.c   |   18 ++++++++++++------
+ fs/dax.c            |    9 +++++----
+ fs/ext2/file.c      |    2 +-
+ fs/ext4/file.c      |   12 +++++++++---
+ fs/xfs/xfs_file.c   |    9 +++++----
+ include/linux/dax.h |    3 ++-
+ include/linux/mm.h  |   14 ++++++++------
+ mm/memory.c         |   17 ++++-------------
+ 8 files changed, 46 insertions(+), 38 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages
-+++ a/mm/memory_hotplug.c
-@@ -1531,10 +1531,10 @@ int test_pages_in_a_zone(unsigned long s
+diff -puN drivers/dax/dax.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault drivers/dax/dax.c
+--- a/drivers/dax/dax.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/drivers/dax/dax.c
+@@ -538,7 +538,8 @@ static int __dax_dev_pud_fault(struct da
+ }
+ #endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ 
+-static int dax_dev_fault(struct vm_fault *vmf)
++static int dax_dev_huge_fault(struct vm_fault *vmf,
++		enum page_entry_size pe_size)
+ {
+ 	int rc;
+ 	struct file *filp = vmf->vma->vm_file;
+@@ -550,14 +551,14 @@ static int dax_dev_fault(struct vm_fault
+ 			vmf->vma->vm_start, vmf->vma->vm_end);
+ 
+ 	rcu_read_lock();
+-	switch (vmf->flags & FAULT_FLAG_SIZE_MASK) {
+-	case FAULT_FLAG_SIZE_PTE:
++	switch (pe_size) {
++	case PE_SIZE_PTE:
+ 		rc = __dax_dev_pte_fault(dax_dev, vmf);
+ 		break;
+-	case FAULT_FLAG_SIZE_PMD:
++	case PE_SIZE_PMD:
+ 		rc = __dax_dev_pmd_fault(dax_dev, vmf);
+ 		break;
+-	case FAULT_FLAG_SIZE_PUD:
++	case PE_SIZE_PUD:
+ 		rc = __dax_dev_pud_fault(dax_dev, vmf);
+ 		break;
+ 	default:
+@@ -568,9 +569,14 @@ static int dax_dev_fault(struct vm_fault
+ 	return rc;
  }
  
- /*
-- * Scan pfn range [start,end) to find movable/migratable pages (LRU pages
-- * and hugepages). We scan pfn because it's much easier than scanning over
-- * linked list. This function returns the pfn of the first found movable
-- * page if it's found, otherwise 0.
-+ * Scan pfn range [start,end) to find movable/migratable pages (LRU pages,
-+ * non-lru movable pages and hugepages). We scan pfn because it's much
-+ * easier than scanning over linked list. This function returns the pfn
-+ * of the first found movable page if it's found, otherwise 0.
-  */
- static unsigned long scan_movable_pages(unsigned long start, unsigned long end)
- {
-@@ -1545,6 +1545,8 @@ static unsigned long scan_movable_pages(
- 			page = pfn_to_page(pfn);
- 			if (PageLRU(page))
- 				return pfn;
-+			if (__PageMovable(page))
-+				return pfn;
- 			if (PageHuge(page)) {
- 				if (page_huge_active(page))
- 					return pfn;
-@@ -1621,21 +1623,25 @@ do_migrate_range(unsigned long start_pfn
- 		if (!get_page_unless_zero(page))
- 			continue;
- 		/*
--		 * We can skip free pages. And we can only deal with pages on
--		 * LRU.
-+		 * We can skip free pages. And we can deal with pages on
-+		 * LRU and non-lru movable pages.
- 		 */
--		ret = isolate_lru_page(page);
-+		if (PageLRU(page))
-+			ret = isolate_lru_page(page);
-+		else
-+			ret = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
- 		if (!ret) { /* Success */
- 			put_page(page);
- 			list_add_tail(&page->lru, &source);
- 			move_pages--;
--			inc_node_page_state(page, NR_ISOLATED_ANON +
--					    page_is_file_cache(page));
-+			if (!__PageMovable(page))
-+				inc_node_page_state(page, NR_ISOLATED_ANON +
-+						    page_is_file_cache(page));
- 
- 		} else {
- #ifdef CONFIG_DEBUG_VM
--			pr_alert("removing pfn %lx from LRU failed\n", pfn);
--			dump_page(page, "failed to remove from LRU");
-+			pr_alert("failed to isolate pfn %lx\n", pfn);
-+			dump_page(page, "isolation failed");
- #endif
- 			put_page(page);
- 			/* Because we don't have big zone->lock. we should
-diff -puN mm/page_alloc.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages
-+++ a/mm/page_alloc.c
-@@ -7227,8 +7227,9 @@ void *__init alloc_large_system_hash(con
-  * If @count is not zero, it is okay to include less @count unmovable pages
-  *
-  * PageLRU check without isolation or lru_lock could race so that
-- * MIGRATE_MOVABLE block might include unmovable pages. It means you can't
-- * expect this function should be exact.
-+ * MIGRATE_MOVABLE block might include unmovable pages. And __PageMovable
-+ * check without lock_page also may miss some movable non-lru pages at
-+ * race condition. So you can't expect this function should be exact.
-  */
- bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
- 			 bool skip_hwpoisoned_pages)
-@@ -7284,6 +7285,9 @@ bool has_unmovable_pages(struct zone *zo
- 		if (skip_hwpoisoned_pages && PageHWPoison(page))
- 			continue;
- 
-+		if (__PageMovable(page))
-+			continue;
++static int dax_dev_fault(struct vm_fault *vmf)
++{
++	return dax_dev_huge_fault(vmf, PE_SIZE_PTE);
++}
 +
- 		if (!PageLRU(page))
- 			found++;
- 		/*
+ static const struct vm_operations_struct dax_dev_vm_ops = {
+ 	.fault = dax_dev_fault,
+-	.huge_fault = dax_dev_fault,
++	.huge_fault = dax_dev_huge_fault,
+ };
+ 
+ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+diff -puN fs/dax.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault fs/dax.c
+--- a/fs/dax.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/fs/dax.c
+@@ -1452,12 +1452,13 @@ static int dax_iomap_pmd_fault(struct vm
+  * has done all the necessary locking for page fault to proceed
+  * successfully.
+  */
+-int dax_iomap_fault(struct vm_fault *vmf, const struct iomap_ops *ops)
++int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
++		    const struct iomap_ops *ops)
+ {
+-	switch (vmf->flags & FAULT_FLAG_SIZE_MASK) {
+-	case FAULT_FLAG_SIZE_PTE:
++	switch (pe_size) {
++	case PE_SIZE_PTE:
+ 		return dax_iomap_pte_fault(vmf, ops);
+-	case FAULT_FLAG_SIZE_PMD:
++	case PE_SIZE_PMD:
+ 		return dax_iomap_pmd_fault(vmf, ops);
+ 	default:
+ 		return VM_FAULT_FALLBACK;
+diff -puN fs/ext2/file.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault fs/ext2/file.c
+--- a/fs/ext2/file.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/fs/ext2/file.c
+@@ -99,7 +99,7 @@ static int ext2_dax_fault(struct vm_faul
+ 	}
+ 	down_read(&ei->dax_sem);
+ 
+-	ret = dax_iomap_fault(vmf, &ext2_iomap_ops);
++	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &ext2_iomap_ops);
+ 
+ 	up_read(&ei->dax_sem);
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+diff -puN fs/ext4/file.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault fs/ext4/file.c
+--- a/fs/ext4/file.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/fs/ext4/file.c
+@@ -253,7 +253,8 @@ out:
+ }
+ 
+ #ifdef CONFIG_FS_DAX
+-static int ext4_dax_fault(struct vm_fault *vmf)
++static int ext4_dax_huge_fault(struct vm_fault *vmf,
++		enum page_entry_size pe_size)
+ {
+ 	int result;
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+@@ -265,7 +266,7 @@ static int ext4_dax_fault(struct vm_faul
+ 		file_update_time(vmf->vma->vm_file);
+ 	}
+ 	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_fault(vmf, &ext4_iomap_ops);
++	result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	if (write)
+ 		sb_end_pagefault(sb);
+@@ -273,6 +274,11 @@ static int ext4_dax_fault(struct vm_faul
+ 	return result;
+ }
+ 
++static int ext4_dax_fault(struct vm_fault *vmf)
++{
++	return ext4_dax_huge_fault(vmf, PE_SIZE_PTE);
++}
++
+ /*
+  * Handle write fault for VM_MIXEDMAP mappings. Similarly to ext4_dax_fault()
+  * handler we check for races agaist truncate. Note that since we cycle through
+@@ -305,7 +311,7 @@ static int ext4_dax_pfn_mkwrite(struct v
+ 
+ static const struct vm_operations_struct ext4_dax_vm_ops = {
+ 	.fault		= ext4_dax_fault,
+-	.huge_fault	= ext4_dax_fault,
++	.huge_fault	= ext4_dax_huge_fault,
+ 	.page_mkwrite	= ext4_dax_fault,
+ 	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
+ };
+diff -puN fs/xfs/xfs_file.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/fs/xfs/xfs_file.c
+@@ -1391,7 +1391,7 @@ xfs_filemap_page_mkwrite(
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+ 	if (IS_DAX(inode)) {
+-		ret = dax_iomap_fault(vmf, &xfs_iomap_ops);
++		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
+ 	} else {
+ 		ret = iomap_page_mkwrite(vmf, &xfs_iomap_ops);
+ 		ret = block_page_mkwrite_return(ret);
+@@ -1418,7 +1418,7 @@ xfs_filemap_fault(
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 	if (IS_DAX(inode))
+-		ret = dax_iomap_fault(vmf, &xfs_iomap_ops);
++		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
+ 	else
+ 		ret = filemap_fault(vmf);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+@@ -1435,7 +1435,8 @@ xfs_filemap_fault(
+  */
+ STATIC int
+ xfs_filemap_huge_fault(
+-	struct vm_fault		*vmf)
++	struct vm_fault		*vmf,
++	enum page_entry_size	pe_size)
+ {
+ 	struct inode		*inode = file_inode(vmf->vma->vm_file);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+@@ -1452,7 +1453,7 @@ xfs_filemap_huge_fault(
+ 	}
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = dax_iomap_fault(vmf, &xfs_iomap_ops);
++	ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+diff -puN include/linux/dax.h~mm-replace-fault_flag_size-with-parameter-to-huge_fault include/linux/dax.h
+--- a/include/linux/dax.h~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/include/linux/dax.h
+@@ -38,7 +38,8 @@ static inline void *dax_radix_locked_ent
+ 
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 		const struct iomap_ops *ops);
+-int dax_iomap_fault(struct vm_fault *vmf, const struct iomap_ops *ops);
++int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
++		    const struct iomap_ops *ops);
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+diff -puN include/linux/mm.h~mm-replace-fault_flag_size-with-parameter-to-huge_fault include/linux/mm.h
+--- a/include/linux/mm.h~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/include/linux/mm.h
+@@ -285,11 +285,6 @@ extern pgprot_t protection_map[16];
+ #define FAULT_FLAG_REMOTE	0x80	/* faulting for non current tsk/mm */
+ #define FAULT_FLAG_INSTRUCTION  0x100	/* The fault was during an instruction fetch */
+ 
+-#define FAULT_FLAG_SIZE_MASK	0x7000	/* Support up to 8-level page tables */
+-#define FAULT_FLAG_SIZE_PTE	0x0000	/* First level (eg 4k) */
+-#define FAULT_FLAG_SIZE_PMD	0x1000	/* Second level (eg 2MB) */
+-#define FAULT_FLAG_SIZE_PUD	0x2000	/* Third level (eg 1GB) */
+-
+ #define FAULT_FLAG_TRACE \
+ 	{ FAULT_FLAG_WRITE,		"WRITE" }, \
+ 	{ FAULT_FLAG_MKWRITE,		"MKWRITE" }, \
+@@ -349,6 +344,13 @@ struct vm_fault {
+ 					 */
+ };
+ 
++/* page entry size for vm->huge_fault() */
++enum page_entry_size {
++	PE_SIZE_PTE = 0,
++	PE_SIZE_PMD,
++	PE_SIZE_PUD,
++};
++
+ /*
+  * These are the virtual MM functions - opening of an area, closing and
+  * unmapping it (needed to keep files on disk up-to-date etc), pointer
+@@ -359,7 +361,7 @@ struct vm_operations_struct {
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*mremap)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_fault *vmf);
+-	int (*huge_fault)(struct vm_fault *vmf);
++	int (*huge_fault)(struct vm_fault *vmf, enum page_entry_size pe_size);
+ 	void (*map_pages)(struct vm_fault *vmf,
+ 			pgoff_t start_pgoff, pgoff_t end_pgoff);
+ 
+diff -puN mm/memory.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault mm/memory.c
+--- a/mm/memory.c~mm-replace-fault_flag_size-with-parameter-to-huge_fault
++++ a/mm/memory.c
+@@ -3489,7 +3489,7 @@ static int create_huge_pmd(struct vm_fau
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_anonymous_page(vmf);
+ 	if (vmf->vma->vm_ops->huge_fault)
+-		return vmf->vma->vm_ops->huge_fault(vmf);
++		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
+@@ -3498,7 +3498,7 @@ static int wp_huge_pmd(struct vm_fault *
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return do_huge_pmd_wp_page(vmf, orig_pmd);
+ 	if (vmf->vma->vm_ops->huge_fault)
+-		return vmf->vma->vm_ops->huge_fault(vmf);
++		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
+ 
+ 	/* COW handled on pte level: split pmd */
+ 	VM_BUG_ON_VMA(vmf->vma->vm_flags & VM_SHARED, vmf->vma);
+@@ -3519,7 +3519,7 @@ static int create_huge_pud(struct vm_fau
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return VM_FAULT_FALLBACK;
+ 	if (vmf->vma->vm_ops->huge_fault)
+-		return vmf->vma->vm_ops->huge_fault(vmf);
++		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -3531,7 +3531,7 @@ static int wp_huge_pud(struct vm_fault *
+ 	if (vma_is_anonymous(vmf->vma))
+ 		return VM_FAULT_FALLBACK;
+ 	if (vmf->vma->vm_ops->huge_fault)
+-		return vmf->vma->vm_ops->huge_fault(vmf);
++		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -3659,7 +3659,6 @@ static int __handle_mm_fault(struct vm_a
+ 	if (!vmf.pud)
+ 		return VM_FAULT_OOM;
+ 	if (pud_none(*vmf.pud) && transparent_hugepage_enabled(vma)) {
+-		vmf.flags |= FAULT_FLAG_SIZE_PUD;
+ 		ret = create_huge_pud(&vmf);
+ 		if (!(ret & VM_FAULT_FALLBACK))
+ 			return ret;
+@@ -3670,8 +3669,6 @@ static int __handle_mm_fault(struct vm_a
+ 		if (pud_trans_huge(orig_pud) || pud_devmap(orig_pud)) {
+ 			unsigned int dirty = flags & FAULT_FLAG_WRITE;
+ 
+-			vmf.flags |= FAULT_FLAG_SIZE_PUD;
+-
+ 			/* NUMA case for anonymous PUDs would go here */
+ 
+ 			if (dirty && !pud_write(orig_pud)) {
+@@ -3689,18 +3686,14 @@ static int __handle_mm_fault(struct vm_a
+ 	if (!vmf.pmd)
+ 		return VM_FAULT_OOM;
+ 	if (pmd_none(*vmf.pmd) && transparent_hugepage_enabled(vma)) {
+-		vmf.flags |= FAULT_FLAG_SIZE_PMD;
+ 		ret = create_huge_pmd(&vmf);
+ 		if (!(ret & VM_FAULT_FALLBACK))
+ 			return ret;
+-		/* fall through path, remove PMD flag */
+-		vmf.flags &= ~FAULT_FLAG_SIZE_PMD;
+ 	} else {
+ 		pmd_t orig_pmd = *vmf.pmd;
+ 
+ 		barrier();
+ 		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
+-			vmf.flags |= FAULT_FLAG_SIZE_PMD;
+ 			if (pmd_protnone(orig_pmd) && vma_is_accessible(vma))
+ 				return do_huge_pmd_numa_page(&vmf, orig_pmd);
+ 
+@@ -3709,8 +3702,6 @@ static int __handle_mm_fault(struct vm_a
+ 				ret = wp_huge_pmd(&vmf, orig_pmd);
+ 				if (!(ret & VM_FAULT_FALLBACK))
+ 					return ret;
+-				/* fall through path, remove PUD flag */
+-				vmf.flags &= ~FAULT_FLAG_SIZE_PUD;
+ 			} else {
+ 				huge_pmd_set_accessed(&vmf, orig_pmd);
+ 				return 0;
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from dave.jiang@intel.com are
 
 
