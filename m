@@ -1,248 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [patch 44/78] scripts/spelling.txt: add "an union" pattern and
- fix typo instances
-Date: Mon, 27 Feb 2017 14:28:49 -0800
-Message-ID: <58b4a821.WU/D1kR/baGjJaKq%akpm@linux-foundation.org>
+Subject: [patch 50/78] scripts/spelling.txt: add "varible" pattern and fix typo instances
+Date: Mon, 27 Feb 2017 14:29:06 -0800
+Message-ID: <58b4a832.HoUD85YzLOFxwEQO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54336 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751688AbdB1Auy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 19:50:54 -0500
+        with ESMTP id S1751720AbdB1Auz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 19:50:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
 
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "an union" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "varible" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  an union||a union
+  varible||variable
 
-Link: http://lkml.kernel.org/r/1481573103-11329-5-git-send-email-yamada.masahiro@socionext.com
+While we are here, tidy up the comment blocks that fit in a single
+line for drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c and
+net/sctp/transport.c.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-11-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/media/uapi/dvb/dvb-frontend-parameters.rst  |    4 ++--
- arch/x86/include/asm/desc_defs.h                          |    2 +-
- drivers/acpi/acpica/dbconvert.c                           |    2 +-
- drivers/acpi/acpica/nspredef.c                            |    2 +-
- drivers/acpi/acpica/nsxfeval.c                            |    4 ++--
- drivers/staging/lustre/lustre/include/lustre/lustre_idl.h |    2 +-
- include/linux/dcache.h                                    |    4 ++--
- include/media/v4l2-ctrls.h                                |    4 ++--
- include/xen/interface/grant_table.h                       |    2 +-
- scripts/spelling.txt                                      |    1 +
- sound/pci/ice1712/wm8766.c                                |    2 +-
- sound/pci/ice1712/wm8776.c                                |    2 +-
- tools/perf/util/probe-finder.c                            |    4 ++--
- tools/perf/util/sort.h                                    |    2 +-
- 14 files changed, 19 insertions(+), 18 deletions(-)
+ Documentation/scsi/ChangeLog.megaraid_sas          |    2 +-
+ drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c |    4 +---
+ drivers/net/wimax/i2400m/usb-fw.c                  |    2 +-
+ kernel/torture.c                                   |    2 +-
+ net/sctp/transport.c                               |    4 +---
+ scripts/spelling.txt                               |    1 +
+ 6 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/media/uapi/dvb/dvb-frontend-parameters.rst~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances Documentation/media/uapi/dvb/dvb-frontend-parameters.rst
---- a/Documentation/media/uapi/dvb/dvb-frontend-parameters.rst~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/Documentation/media/uapi/dvb/dvb-frontend-parameters.rst
-@@ -9,7 +9,7 @@ frontend parameters
- The kind of parameters passed to the frontend device for tuning depend
- on the kind of hardware you are using.
+diff -puN Documentation/scsi/ChangeLog.megaraid_sas~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances Documentation/scsi/ChangeLog.megaraid_sas
+--- a/Documentation/scsi/ChangeLog.megaraid_sas~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
++++ a/Documentation/scsi/ChangeLog.megaraid_sas
+@@ -549,7 +549,7 @@ ii.	Reduced by 1 max cmds sent to FW fro
+ 3 Older Version   : 00.00.03.02
  
--The struct ``dvb_frontend_parameters`` uses an union with specific
-+The struct ``dvb_frontend_parameters`` uses a union with specific
- per-system parameters. However, as newer delivery systems required more
- data, the structure size weren't enough to fit, and just extending its
- size would break the existing applications. So, those parameters were
-@@ -23,7 +23,7 @@ So, newer applications should use
- instead, in order to be able to support the newer System Delivery like
- DVB-S2, DVB-T2, DVB-C2, ISDB, etc.
- 
--All kinds of parameters are combined as an union in the
-+All kinds of parameters are combined as a union in the
- FrontendParameters structure:
- 
- 
-diff -puN arch/x86/include/asm/desc_defs.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances arch/x86/include/asm/desc_defs.h
---- a/arch/x86/include/asm/desc_defs.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/arch/x86/include/asm/desc_defs.h
-@@ -15,7 +15,7 @@
-  * FIXME: Accessing the desc_struct through its fields is more elegant,
-  * and should be the one valid thing to do. However, a lot of open code
-  * still touches the a and b accessors, and doing this allow us to do it
-- * incrementally. We keep the signature as a struct, rather than an union,
-+ * incrementally. We keep the signature as a struct, rather than a union,
-  * so we can get rid of it transparently in the future -- glommer
+ i.	Send stop adapter to FW & Dump pending FW cmds before declaring adapter dead.
+-	New varible added to set dbg level.
++	New variable added to set dbg level.
+ ii.	Disable interrupt made as fn pointer as they are different for 1068 / 1078
+ iii.	Frame count optimization. Main frame can contain 2 SGE for 64 bit SGLs and
+ 	3 SGE for 32 bit SGL
+diff -puN drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c
+--- a/drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c
+@@ -847,9 +847,7 @@ static void i40e_free_vf_res(struct i40e
+ 		wr32(hw, reg_idx, reg);
+ 		i40e_flush(hw);
+ 	}
+-	/* reset some of the state varibles keeping
+-	 * track of the resources
+-	 */
++	/* reset some of the state variables keeping track of the resources */
+ 	vf->num_queue_pairs = 0;
+ 	vf->vf_states = 0;
+ 	clear_bit(I40E_VF_STAT_INIT, &vf->vf_states);
+diff -puN drivers/net/wimax/i2400m/usb-fw.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances drivers/net/wimax/i2400m/usb-fw.c
+--- a/drivers/net/wimax/i2400m/usb-fw.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
++++ a/drivers/net/wimax/i2400m/usb-fw.c
+@@ -237,7 +237,7 @@ void __i2400mu_bm_notif_cb(struct urb *u
+  *
+  * @i2400m: device descriptor
+  * @urb: urb to use
+- * @completion: completion varible to complete when done
++ * @completion: completion variable to complete when done
+  *
+  * Data is always read to i2400m->bm_ack_buf
   */
- /* 8 byte segment descriptor */
-diff -puN drivers/acpi/acpica/dbconvert.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/acpi/acpica/dbconvert.c
---- a/drivers/acpi/acpica/dbconvert.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/drivers/acpi/acpica/dbconvert.c
-@@ -242,7 +242,7 @@ acpi_status acpi_db_convert_to_package(c
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Convert a typed and tokenized string to an union acpi_object. Typing:
-+ * DESCRIPTION: Convert a typed and tokenized string to a union acpi_object. Typing:
-  *              1) String objects were surrounded by quotes.
-  *              2) Buffer objects were surrounded by parentheses.
-  *              3) Package objects were surrounded by brackets "[]".
-diff -puN drivers/acpi/acpica/nspredef.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/acpi/acpica/nspredef.c
---- a/drivers/acpi/acpica/nspredef.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/drivers/acpi/acpica/nspredef.c
-@@ -323,7 +323,7 @@ acpi_ns_check_reference(struct acpi_eval
- 
- 	/*
- 	 * Check the reference object for the correct reference type (opcode).
--	 * The only type of reference that can be converted to an union acpi_object is
-+	 * The only type of reference that can be converted to a union acpi_object is
- 	 * a reference to a named object (reference class: NAME)
- 	 */
- 	if (return_object->reference.class == ACPI_REFCLASS_NAME) {
-diff -puN drivers/acpi/acpica/nsxfeval.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/acpi/acpica/nsxfeval.c
---- a/drivers/acpi/acpica/nsxfeval.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/drivers/acpi/acpica/nsxfeval.c
-@@ -495,9 +495,9 @@ static void acpi_ns_resolve_references(s
- 	/*
- 	 * Two types of references are supported - those created by Index and
- 	 * ref_of operators. A name reference (AML_NAMEPATH_OP) can be converted
--	 * to an union acpi_object, so it is not dereferenced here. A ddb_handle
-+	 * to a union acpi_object, so it is not dereferenced here. A ddb_handle
- 	 * (AML_LOAD_OP) cannot be dereferenced, nor can it be converted to
--	 * an union acpi_object.
-+	 * a union acpi_object.
- 	 */
- 	switch (info->return_object->reference.class) {
- 	case ACPI_REFCLASS_INDEX:
-diff -puN drivers/staging/lustre/lustre/include/lustre/lustre_idl.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/staging/lustre/lustre/include/lustre/lustre_idl.h
---- a/drivers/staging/lustre/lustre/include/lustre/lustre_idl.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/drivers/staging/lustre/lustre/include/lustre/lustre_idl.h
-@@ -1704,7 +1704,7 @@ struct ost_lvb {
-  *   lquota data structures
-  */
- 
--/* The lquota_id structure is an union of all the possible identifier types that
-+/* The lquota_id structure is a union of all the possible identifier types that
-  * can be used with quota, this includes:
-  * - 64-bit user ID
-  * - 64-bit group ID
-diff -puN include/linux/dcache.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances include/linux/dcache.h
---- a/include/linux/dcache.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/include/linux/dcache.h
-@@ -562,7 +562,7 @@ static inline struct dentry *d_backing_d
-  * @inode: inode to select the dentry from multiple layers (can be NULL)
-  * @flags: open flags to control copy-up behavior
-  *
-- * If dentry is on an union/overlay, then return the underlying, real dentry.
-+ * If dentry is on a union/overlay, then return the underlying, real dentry.
-  * Otherwise return the dentry itself.
-  *
-  * See also: Documentation/filesystems/vfs.txt
-@@ -581,7 +581,7 @@ static inline struct dentry *d_real(stru
-  * d_real_inode - Return the real inode
-  * @dentry: The dentry to query
-  *
-- * If dentry is on an union/overlay, then return the underlying, real inode.
-+ * If dentry is on a union/overlay, then return the underlying, real inode.
-  * Otherwise return d_inode().
-  */
- static inline struct inode *d_real_inode(const struct dentry *dentry)
-diff -puN include/media/v4l2-ctrls.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances include/media/v4l2-ctrls.h
---- a/include/media/v4l2-ctrls.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/include/media/v4l2-ctrls.h
-@@ -174,10 +174,10 @@ typedef void (*v4l2_ctrl_notify_fnc)(str
-  *		not freed when the control is deleted. Should this be needed
-  *		then a new internal bitfield can be added to tell the framework
-  *		to free this pointer.
-- * @p_cur:	The control's current value represented via an union with
-+ * @p_cur:	The control's current value represented via a union with
-  *		provides a standard way of accessing control types
-  *		through a pointer.
-- * @p_new:	The control's new value represented via an union with provides
-+ * @p_new:	The control's new value represented via a union with provides
-  *		a standard way of accessing control types
-  *		through a pointer.
-  */
-diff -puN include/xen/interface/grant_table.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances include/xen/interface/grant_table.h
---- a/include/xen/interface/grant_table.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/include/xen/interface/grant_table.h
-@@ -181,7 +181,7 @@ struct grant_entry_header {
- };
- 
+diff -puN kernel/torture.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances kernel/torture.c
+--- a/kernel/torture.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
++++ a/kernel/torture.c
+@@ -311,7 +311,7 @@ EXPORT_SYMBOL_GPL(torture_random);
  /*
-- * Version 2 of the grant entry structure, here is an union because three
-+ * Version 2 of the grant entry structure, here is a union because three
-  * different types are suppotted: full_page, sub_page and transitive.
+  * Variables for shuffling.  The idea is to ensure that each CPU stays
+  * idle for an extended period to test interactions with dyntick idle,
+- * as well as interactions with any per-CPU varibles.
++ * as well as interactions with any per-CPU variables.
   */
- union grant_entry_v2 {
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
+ struct shuffle_task {
+ 	struct list_head st_l;
+diff -puN net/sctp/transport.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances net/sctp/transport.c
+--- a/net/sctp/transport.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
++++ a/net/sctp/transport.c
+@@ -643,9 +643,7 @@ void sctp_transport_reset(struct sctp_tr
+ 	t->srtt = 0;
+ 	t->rttvar = 0;
+ 
+-	/* Reset these additional varibles so that we have a clean
+-	 * slate.
+-	 */
++	/* Reset these additional variables so that we have a clean slate. */
+ 	t->partial_bytes_acked = 0;
+ 	t->flight_size = 0;
+ 	t->error_count = 0;
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -86,6 +86,7 @@ alue||value
- ambigious||ambiguous
- amoung||among
- amout||amount
-+an union||a union
- an user||a user
- an userspace||a userspace
- analysator||analyzer
-diff -puN sound/pci/ice1712/wm8766.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances sound/pci/ice1712/wm8766.c
---- a/sound/pci/ice1712/wm8766.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/sound/pci/ice1712/wm8766.c
-@@ -254,7 +254,7 @@ static int snd_wm8766_ctl_put(struct snd
- 	int n = kcontrol->private_value;
- 	u16 val, regval1, regval2;
- 
--	/* this also works for enum because value is an union */
-+	/* this also works for enum because value is a union */
- 	regval1 = ucontrol->value.integer.value[0];
- 	regval2 = ucontrol->value.integer.value[1];
- 	if (wm->ctl[n].flags & WM8766_FLAG_INVERT) {
-diff -puN sound/pci/ice1712/wm8776.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances sound/pci/ice1712/wm8776.c
---- a/sound/pci/ice1712/wm8776.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/sound/pci/ice1712/wm8776.c
-@@ -528,7 +528,7 @@ static int snd_wm8776_ctl_put(struct snd
- 	int n = kcontrol->private_value;
- 	u16 val, regval1, regval2;
- 
--	/* this also works for enum because value is an union */
-+	/* this also works for enum because value is a union */
- 	regval1 = ucontrol->value.integer.value[0];
- 	regval2 = ucontrol->value.integer.value[1];
- 	if (wm->ctl[n].flags & WM8776_FLAG_INVERT) {
-diff -puN tools/perf/util/probe-finder.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances tools/perf/util/probe-finder.c
---- a/tools/perf/util/probe-finder.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/tools/perf/util/probe-finder.c
-@@ -464,7 +464,7 @@ static int convert_variable_fields(Dwarf
- 		/* Verify it is a data structure  */
- 		tag = dwarf_tag(&type);
- 		if (tag != DW_TAG_structure_type && tag != DW_TAG_union_type) {
--			pr_warning("%s is not a data structure nor an union.\n",
-+			pr_warning("%s is not a data structure nor a union.\n",
- 				   varname);
- 			return -EINVAL;
- 		}
-@@ -479,7 +479,7 @@ static int convert_variable_fields(Dwarf
- 	} else {
- 		/* Verify it is a data structure  */
- 		if (tag != DW_TAG_structure_type && tag != DW_TAG_union_type) {
--			pr_warning("%s is not a data structure nor an union.\n",
-+			pr_warning("%s is not a data structure nor a union.\n",
- 				   varname);
- 			return -EINVAL;
- 		}
-diff -puN tools/perf/util/sort.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances tools/perf/util/sort.h
---- a/tools/perf/util/sort.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
-+++ a/tools/perf/util/sort.h
-@@ -108,7 +108,7 @@ struct hist_entry {
- 		/*
- 		 * Since perf diff only supports the stdio output, TUI
- 		 * fields are only accessed from perf report (or perf
--		 * top).  So make it an union to reduce memory usage.
-+		 * top).  So make it a union to reduce memory usage.
- 		 */
- 		struct hist_entry_diff	diff;
- 		struct /* for TUI */ {
+@@ -1092,6 +1092,7 @@ vaid||valid
+ vaild||valid
+ valide||valid
+ variantions||variations
++varible||variable
+ varient||variant
+ vaule||value
+ verbse||verbose
 _
