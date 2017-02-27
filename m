@@ -1,66 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-another-old-address-for-the-fsf.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 12:29:27 -0800
-Message-ID: <58b48c27.lzJkMnZDwgXAjoWf%akpm@linux-foundation.org>
+Subject: [merged] lib-add-module-support-to-atomic64-tests.patch removed
+ from -mm tree
+Date: Mon, 27 Feb 2017 12:28:57 -0800
+Message-ID: <58b48c09.ReJqpxUb6Qm1LgmC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34518 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34522 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751530AbdB0Ukd (ORCPT
+        with ESMTP id S1751588AbdB0Ukd (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:40:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, joe@perches.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, andy.shevchenko@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add another old address for the FSF
+     Subject: lib: add module support to atomic64 tests
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-another-old-address-for-the-fsf.patch
+     lib-add-module-support-to-atomic64-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: checkpatch: add another old address for the FSF
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: lib: add module support to atomic64 tests
 
-We still have a lot of old addresses for the FSF in the kernel.
+Allow to compile the atomic64 test code either to a loadable module, or
+builtin into the kernel.
 
-willy@harry:~/kernel/idr$ git grep '675 Mass' |wc -l
-1502
-willy@harry:~/kernel/idr$ git grep '59 Temple' |wc -l
-2825
-willy@harry:~/kernel/idr$ git grep '51 Franklin' |wc -l
-2020
-
-Let's discourage adding the oldest one too.
-
-Link: http://lkml.kernel.org/r/20170128173052.GA23532@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1483470276-10517-3-git-send-email-geert@linux-m68k.org
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ lib/Kconfig.debug   |    5 +++--
+ lib/atomic64_test.c |   10 ++++++++--
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-another-old-address-for-the-fsf scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-another-old-address-for-the-fsf
-+++ a/scripts/checkpatch.pl
-@@ -2703,6 +2703,7 @@ sub process {
+diff -puN lib/Kconfig.debug~lib-add-module-support-to-atomic64-tests lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-add-module-support-to-atomic64-tests
++++ a/lib/Kconfig.debug
+@@ -1790,9 +1790,10 @@ config PERCPU_TEST
+ 	  If unsure, say N.
  
- # Check for FSF mailing addresses.
- 		if ($rawline =~ /\bwrite to the Free/i ||
-+		    $rawline =~ /\b675\s+Mass\s+Ave/i ||
- 		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
- 		    $rawline =~ /\b51\s+Franklin\s+St/i) {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ config ATOMIC64_SELFTEST
+-	bool "Perform an atomic64_t self-test at boot"
++	tristate "Perform an atomic64_t self-test"
+ 	help
+-	  Enable this option to test the atomic64_t functions at boot.
++	  Enable this option to test the atomic64_t functions at boot or
++	  at module load time.
+ 
+ 	  If unsure, say N.
+ 
+diff -puN lib/atomic64_test.c~lib-add-module-support-to-atomic64-tests lib/atomic64_test.c
+--- a/lib/atomic64_test.c~lib-add-module-support-to-atomic64-tests
++++ a/lib/atomic64_test.c
+@@ -15,6 +15,7 @@
+ #include <linux/bug.h>
+ #include <linux/kernel.h>
+ #include <linux/atomic.h>
++#include <linux/module.h>
+ 
+ #ifdef CONFIG_X86
+ #include <asm/cpufeature.h>	/* for boot_cpu_has below */
+@@ -241,7 +242,7 @@ static __init void test_atomic64(void)
+ 	BUG_ON(v.counter != r);
+ }
+ 
+-static __init int test_atomics(void)
++static __init int test_atomics_init(void)
+ {
+ 	test_atomic();
+ 	test_atomic64();
+@@ -264,4 +265,9 @@ static __init int test_atomics(void)
+ 	return 0;
+ }
+ 
+-core_initcall(test_atomics);
++static __exit void test_atomics_exit(void) {}
++
++module_init(test_atomics_init);
++module_exit(test_atomics_exit);
++
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 
