@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-lz4-remove-back-compat-wrappers.patch removed from
- -mm tree
-Date: Mon, 27 Feb 2017 12:29:19 -0800
-Message-ID: <58b48c1f.O7Dz8i1f6BO3yjHU%akpm@linux-foundation.org>
+Subject: [merged]
+ crypto-change-lz4-modules-to-work-with-new-lz4-module-version.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:29:15 -0800
+Message-ID: <58b48c1b.6spBxy6hbU7qVpCv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751811AbdB0Ua5 (ORCPT
+        with ESMTP id S1751759AbdB0Ua5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:30:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,21 +18,20 @@ To: 4sschmid@informatik.uni-hamburg.de, anton@enomsg.org, bongkyu.kim@lge.com, c
 
 
 The patch titled
-     Subject: lib/lz4: remove back-compat wrappers
+     Subject: crypto: change LZ4 modules to work with new LZ4 module version
 has been removed from the -mm tree.  Its filename was
-     lib-lz4-remove-back-compat-wrappers.patch
+     crypto-change-lz4-modules-to-work-with-new-lz4-module-version.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
-Subject: lib/lz4: remove back-compat wrappers
+Subject: crypto: change LZ4 modules to work with new LZ4 module version
 
-Remove the functions introduced as wrappers for providing backwards
-compatibility to the prior LZ4 version.  They're not needed anymore since
-there's no callers left.
+Update the crypto modules using LZ4 compression as well as the test cases
+in testmgr.h to work with the new LZ4 module version.
 
-Link: http://lkml.kernel.org/r/1486321748-19085-6-git-send-email-4sschmid@informatik.uni-hamburg.de
+Link: http://lkml.kernel.org/r/1486321748-19085-4-git-send-email-4sschmid@informatik.uni-hamburg.de
 Signed-off-by: Sven Schmidt <4sschmid@informatik.uni-hamburg.de>
 Cc: Bongkyu Kim <bongkyu.kim@lge.com>
 Cc: Rui Salvaterra <rsalvaterra@gmail.com>
@@ -47,228 +46,270 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lz4.h      |   69 -------------------------------------
- lib/lz4/lz4_compress.c   |   22 -----------
- lib/lz4/lz4_decompress.c |   42 ----------------------
- lib/lz4/lz4hc_compress.c |   23 ------------
- 4 files changed, 156 deletions(-)
+ crypto/lz4.c     |   23 ++-----
+ crypto/lz4hc.c   |   23 ++-----
+ crypto/testmgr.h |  142 ++++++++++++++++++++++++++++++++-------------
+ 3 files changed, 120 insertions(+), 68 deletions(-)
 
-diff -puN include/linux/lz4.h~lib-lz4-remove-back-compat-wrappers include/linux/lz4.h
---- a/include/linux/lz4.h~lib-lz4-remove-back-compat-wrappers
-+++ a/include/linux/lz4.h
-@@ -173,18 +173,6 @@ static inline int LZ4_compressBound(size
+diff -puN crypto/lz4.c~crypto-change-lz4-modules-to-work-with-new-lz4-module-version crypto/lz4.c
+--- a/crypto/lz4.c~crypto-change-lz4-modules-to-work-with-new-lz4-module-version
++++ a/crypto/lz4.c
+@@ -66,15 +66,13 @@ static void lz4_exit(struct crypto_tfm *
+ static int __lz4_compress_crypto(const u8 *src, unsigned int slen,
+ 				 u8 *dst, unsigned int *dlen, void *ctx)
+ {
+-	size_t tmp_len = *dlen;
+-	int err;
++	int out_len = LZ4_compress_default(src, dst,
++		slen, *dlen, ctx);
+ 
+-	err = lz4_compress(src, slen, dst, &tmp_len, ctx);
+-
+-	if (err < 0)
++	if (!out_len)
+ 		return -EINVAL;
+ 
+-	*dlen = tmp_len;
++	*dlen = out_len;
+ 	return 0;
  }
  
- /**
-- * lz4_compressbound() - For backwards compatibility; see LZ4_compressBound
-- * @isize: Size of the input data
-- *
-- * Return: Max. size LZ4 may output in a "worst case" szenario
-- *	(data not compressible)
-- */
--static inline int lz4_compressbound(size_t isize)
--{
--	return LZ4_COMPRESSBOUND(isize);
--}
--
--/**
-  * LZ4_compress_default() - Compress data from source to dest
-  * @source: source address of the original data
-  * @dest: output buffer address of the compressed data
-@@ -257,20 +245,6 @@ int LZ4_compress_fast(const char *source
- int LZ4_compress_destSize(const char *source, char *dest, int *sourceSizePtr,
- 	int targetDestSize, void *wrkmem);
+@@ -96,16 +94,13 @@ static int lz4_compress_crypto(struct cr
+ static int __lz4_decompress_crypto(const u8 *src, unsigned int slen,
+ 				   u8 *dst, unsigned int *dlen, void *ctx)
+ {
+-	int err;
+-	size_t tmp_len = *dlen;
+-	size_t __slen = slen;
++	int out_len = LZ4_decompress_safe(src, dst, slen, *dlen);
  
--/*
-- * lz4_compress() - For backward compatibility, see LZ4_compress_default
-- * @src: source address of the original data
-- * @src_len: size of the original data
-- * @dst: output buffer address of the compressed data. This requires 'dst'
-- *	of size LZ4_COMPRESSBOUND
-- * @dst_len: is the output size, which is returned after compress done
-- * @workmem: address of the working memory.
-- *
-- * Return: Success if return 0, Error if return < 0
-- */
--int lz4_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
--	size_t *dst_len, void *wrkmem);
--
- /*-************************************************************************
-  *	Decompression Functions
-  **************************************************************************/
-@@ -346,34 +320,6 @@ int LZ4_decompress_safe(const char *sour
- int LZ4_decompress_safe_partial(const char *source, char *dest,
- 	int compressedSize, int targetOutputSize, int maxDecompressedSize);
+-	err = lz4_decompress_unknownoutputsize(src, __slen, dst, &tmp_len);
+-	if (err < 0)
+-		return -EINVAL;
++	if (out_len < 0)
++		return out_len;
  
--/*
-- * lz4_decompress_unknownoutputsize() - For backwards compatibility,
-- *	see LZ4_decompress_safe
-- * @src: source address of the compressed data
-- * @src_len: is the input size, therefore the compressed size
-- * @dest: output buffer address of the decompressed data
-- *	which must be already allocated
-- * @dest_len: is the max size of the destination buffer, which is
-- *	returned with actual size of decompressed data after decompress done
-- *
-- * Return: Success if return 0, Error if return (< 0)
-- */
--int lz4_decompress_unknownoutputsize(const unsigned char *src, size_t src_len,
--	unsigned char *dest, size_t *dest_len);
--
--/**
-- * lz4_decompress() - For backwards cocmpatibility, see LZ4_decompress_fast
-- * @src: source address of the compressed data
-- * @src_len: is the input size, which is returned after decompress done
-- * @dest: output buffer address of the decompressed data,
-- *	which must be already allocated
-- * @actual_dest_len: is the size of uncompressed data, supposing it's known
-- *
-- * Return: Success if return 0, Error if return (< 0)
-- */
--int lz4_decompress(const unsigned char *src, size_t *src_len,
--	unsigned char *dest, size_t actual_dest_len);
--
- /*-************************************************************************
-  *	LZ4 HC Compression
-  **************************************************************************/
-@@ -401,21 +347,6 @@ int LZ4_compress_HC(const char *src, cha
- 	int compressionLevel, void *wrkmem);
- 
- /**
-- * lz4hc_compress() - For backwards compatibility, see LZ4_compress_HC
-- * @src: source address of the original data
-- * @src_len: size of the original data
-- * @dst: output buffer address of the compressed data. This requires 'dst'
-- *	of size LZ4_COMPRESSBOUND.
-- * @dst_len: is the output size, which is returned after compress done
-- * @wrkmem: address of the working memory.
-- *	This requires 'workmem' of size LZ4HC_MEM_COMPRESS.
-- *
-- * Return	: Success if return 0, Error if return (< 0)
-- */
--int lz4hc_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
--	size_t *dst_len, void *wrkmem);
--
--/**
-  * LZ4_resetStreamHC() - Init an allocated 'LZ4_streamHC_t' structure
-  * @streamHCPtr: pointer to the 'LZ4_streamHC_t' structure
-  * @compressionLevel: Recommended values are between 4 and 9, although any
-diff -puN lib/lz4/lz4_compress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4_compress.c
---- a/lib/lz4/lz4_compress.c~lib-lz4-remove-back-compat-wrappers
-+++ a/lib/lz4/lz4_compress.c
-@@ -936,27 +936,5 @@ int LZ4_compress_fast_continue(LZ4_strea
- }
- EXPORT_SYMBOL(LZ4_compress_fast_continue);
- 
--/*-******************************
-- *	For backwards compatibility
-- ********************************/
--int lz4_compress(const unsigned char *src, size_t src_len, unsigned char *dst,
--	size_t *dst_len, void *wrkmem) {
--	*dst_len = LZ4_compress_default(src, dst, src_len,
--		*dst_len, wrkmem);
--
--	/*
--	 * Prior lz4_compress will return -1 in case of error
--	 * and 0 on success
--	 * while new LZ4_compress_fast/default
--	 * returns 0 in case of error
--	 * and the output length on success
--	 */
--	if (!*dst_len)
--		return -1;
--	else
--		return 0;
--}
--EXPORT_SYMBOL(lz4_compress);
--
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_DESCRIPTION("LZ4 compressor");
-diff -puN lib/lz4/lz4_decompress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4_decompress.c
---- a/lib/lz4/lz4_decompress.c~lib-lz4-remove-back-compat-wrappers
-+++ a/lib/lz4/lz4_decompress.c
-@@ -493,46 +493,6 @@ int LZ4_decompress_fast_usingDict(const
- 		originalSize, 0, dictStart, dictSize);
+-	*dlen = tmp_len;
+-	return err;
++	*dlen = out_len;
++	return 0;
  }
  
--/*-******************************
-- *	For backwards compatibility
-- ********************************/
--int lz4_decompress_unknownoutputsize(const unsigned char *src,
--	size_t src_len, unsigned char *dest, size_t *dest_len) {
--	*dest_len = LZ4_decompress_safe(src, dest,
--		src_len, *dest_len);
--
--	/*
--	 * Prior lz4_decompress_unknownoutputsize will return
--	 * 0 for success and a negative result for error
--	 * new LZ4_decompress_safe returns
--	 * - the length of data read on success
--	 * - and also a negative result on error
--	 * meaning when result > 0, we just return 0 here
--	 */
--	if (src_len > 0)
--		return 0;
--	else
--		return -1;
--}
--
--int lz4_decompress(const unsigned char *src, size_t *src_len,
--	unsigned char *dest, size_t actual_dest_len) {
--	*src_len = LZ4_decompress_fast(src, dest, actual_dest_len);
--
--	/*
--	 * Prior lz4_decompress will return
--	 * 0 for success and a negative result for error
--	 * new LZ4_decompress_fast returns
--	 * - the length of data read on success
--	 * - and also a negative result on error
--	 * meaning when result > 0, we just return 0 here
--	 */
--	if (*src_len > 0)
--		return 0;
--	else
--		return -1;
--}
--
- #ifndef STATIC
- EXPORT_SYMBOL(LZ4_decompress_safe);
- EXPORT_SYMBOL(LZ4_decompress_safe_partial);
-@@ -542,8 +502,6 @@ EXPORT_SYMBOL(LZ4_decompress_safe_contin
- EXPORT_SYMBOL(LZ4_decompress_fast_continue);
- EXPORT_SYMBOL(LZ4_decompress_safe_usingDict);
- EXPORT_SYMBOL(LZ4_decompress_fast_usingDict);
--EXPORT_SYMBOL(lz4_decompress_unknownoutputsize);
--EXPORT_SYMBOL(lz4_decompress);
+ static int lz4_sdecompress(struct crypto_scomp *tfm, const u8 *src,
+diff -puN crypto/lz4hc.c~crypto-change-lz4-modules-to-work-with-new-lz4-module-version crypto/lz4hc.c
+--- a/crypto/lz4hc.c~crypto-change-lz4-modules-to-work-with-new-lz4-module-version
++++ a/crypto/lz4hc.c
+@@ -65,15 +65,13 @@ static void lz4hc_exit(struct crypto_tfm
+ static int __lz4hc_compress_crypto(const u8 *src, unsigned int slen,
+ 				   u8 *dst, unsigned int *dlen, void *ctx)
+ {
+-	size_t tmp_len = *dlen;
+-	int err;
++	int out_len = LZ4_compress_HC(src, dst, slen,
++		*dlen, LZ4HC_DEFAULT_CLEVEL, ctx);
  
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_DESCRIPTION("LZ4 decompressor");
-diff -puN lib/lz4/lz4hc_compress.c~lib-lz4-remove-back-compat-wrappers lib/lz4/lz4hc_compress.c
---- a/lib/lz4/lz4hc_compress.c~lib-lz4-remove-back-compat-wrappers
-+++ a/lib/lz4/lz4hc_compress.c
-@@ -765,28 +765,5 @@ int LZ4_saveDictHC(
+-	err = lz4hc_compress(src, slen, dst, &tmp_len, ctx);
+-
+-	if (err < 0)
++	if (!out_len)
+ 		return -EINVAL;
+ 
+-	*dlen = tmp_len;
++	*dlen = out_len;
+ 	return 0;
  }
- EXPORT_SYMBOL(LZ4_saveDictHC);
  
--/*-******************************
-- *	For backwards compatibility
-- ********************************/
--int lz4hc_compress(const unsigned char *src, size_t src_len,
--	unsigned char *dst, size_t *dst_len, void *wrkmem)
--{
--	*dst_len = LZ4_compress_HC(src, dst, src_len,
--		*dst_len, LZ4HC_DEFAULT_CLEVEL, wrkmem);
--
--	/*
--	 * Prior lz4hc_compress will return -1 in case of error
--	 * and 0 on success
--	 * while new LZ4_compress_HC
--	 * returns 0 in case of error
--	 * and the output length on success
--	 */
--	if (!*dst_len)
--		return -1;
--	else
--		return 0;
--}
--EXPORT_SYMBOL(lz4hc_compress);
+@@ -97,16 +95,13 @@ static int lz4hc_compress_crypto(struct
+ static int __lz4hc_decompress_crypto(const u8 *src, unsigned int slen,
+ 				     u8 *dst, unsigned int *dlen, void *ctx)
+ {
+-	int err;
+-	size_t tmp_len = *dlen;
+-	size_t __slen = slen;
++	int out_len = LZ4_decompress_safe(src, dst, slen, *dlen);
+ 
+-	err = lz4_decompress_unknownoutputsize(src, __slen, dst, &tmp_len);
+-	if (err < 0)
+-		return -EINVAL;
++	if (out_len < 0)
++		return out_len;
+ 
+-	*dlen = tmp_len;
+-	return err;
++	*dlen = out_len;
++	return 0;
+ }
+ 
+ static int lz4hc_sdecompress(struct crypto_scomp *tfm, const u8 *src,
+diff -puN crypto/testmgr.h~crypto-change-lz4-modules-to-work-with-new-lz4-module-version crypto/testmgr.h
+--- a/crypto/testmgr.h~crypto-change-lz4-modules-to-work-with-new-lz4-module-version
++++ a/crypto/testmgr.h
+@@ -34293,61 +34293,123 @@ static struct hash_testvec bfin_crc_tv_t
+ 
+ static struct comp_testvec lz4_comp_tv_template[] = {
+ 	{
+-		.inlen	= 70,
+-		.outlen	= 45,
+-		.input	= "Join us now and share the software "
+-			  "Join us now and share the software ",
+-		.output = "\xf0\x10\x4a\x6f\x69\x6e\x20\x75"
+-			  "\x73\x20\x6e\x6f\x77\x20\x61\x6e"
+-			  "\x64\x20\x73\x68\x61\x72\x65\x20"
+-			  "\x74\x68\x65\x20\x73\x6f\x66\x74"
+-			  "\x77\x0d\x00\x0f\x23\x00\x0b\x50"
+-			  "\x77\x61\x72\x65\x20",
++		.inlen	= 255,
++		.outlen	= 218,
++		.input	= "LZ4 is lossless compression algorithm, providing"
++			 " compression speed at 400 MB/s per core, scalable "
++			 "with multi-cores CPU. It features an extremely fast "
++			 "decoder, with speed in multiple GB/s per core, "
++			 "typically reaching RAM speed limits on multi-core "
++			 "systems.",
++		.output	= "\xf9\x21\x4c\x5a\x34\x20\x69\x73\x20\x6c\x6f\x73\x73"
++			  "\x6c\x65\x73\x73\x20\x63\x6f\x6d\x70\x72\x65\x73\x73"
++			  "\x69\x6f\x6e\x20\x61\x6c\x67\x6f\x72\x69\x74\x68\x6d"
++			  "\x2c\x20\x70\x72\x6f\x76\x69\x64\x69\x6e\x67\x21\x00"
++			  "\xf0\x21\x73\x70\x65\x65\x64\x20\x61\x74\x20\x34\x30"
++			  "\x30\x20\x4d\x42\x2f\x73\x20\x70\x65\x72\x20\x63\x6f"
++			  "\x72\x65\x2c\x20\x73\x63\x61\x6c\x61\x62\x6c\x65\x20"
++			  "\x77\x69\x74\x68\x20\x6d\x75\x6c\x74\x69\x2d\x1a\x00"
++			  "\xf0\x00\x73\x20\x43\x50\x55\x2e\x20\x49\x74\x20\x66"
++			  "\x65\x61\x74\x75\x11\x00\xf2\x0b\x61\x6e\x20\x65\x78"
++			  "\x74\x72\x65\x6d\x65\x6c\x79\x20\x66\x61\x73\x74\x20"
++			  "\x64\x65\x63\x6f\x64\x65\x72\x2c\x3d\x00\x02\x67\x00"
++			  "\x22\x69\x6e\x46\x00\x5a\x70\x6c\x65\x20\x47\x6c\x00"
++			  "\xf0\x00\x74\x79\x70\x69\x63\x61\x6c\x6c\x79\x20\x72"
++			  "\x65\x61\x63\x68\xa7\x00\x33\x52\x41\x4d\x38\x00\x83"
++			  "\x6c\x69\x6d\x69\x74\x73\x20\x6f\x3f\x00\x01\x85\x00"
++			  "\x90\x20\x73\x79\x73\x74\x65\x6d\x73\x2e",
++
+ 	},
+ };
+ 
+ static struct comp_testvec lz4_decomp_tv_template[] = {
+ 	{
+-		.inlen	= 45,
+-		.outlen	= 70,
+-		.input  = "\xf0\x10\x4a\x6f\x69\x6e\x20\x75"
+-			  "\x73\x20\x6e\x6f\x77\x20\x61\x6e"
+-			  "\x64\x20\x73\x68\x61\x72\x65\x20"
+-			  "\x74\x68\x65\x20\x73\x6f\x66\x74"
+-			  "\x77\x0d\x00\x0f\x23\x00\x0b\x50"
+-			  "\x77\x61\x72\x65\x20",
+-		.output	= "Join us now and share the software "
+-			  "Join us now and share the software ",
++		.inlen	= 218,
++		.outlen	= 255,
++		.input	= "\xf9\x21\x4c\x5a\x34\x20\x69\x73\x20\x6c\x6f\x73\x73"
++			  "\x6c\x65\x73\x73\x20\x63\x6f\x6d\x70\x72\x65\x73\x73"
++			  "\x69\x6f\x6e\x20\x61\x6c\x67\x6f\x72\x69\x74\x68\x6d"
++			  "\x2c\x20\x70\x72\x6f\x76\x69\x64\x69\x6e\x67\x21\x00"
++			  "\xf0\x21\x73\x70\x65\x65\x64\x20\x61\x74\x20\x34\x30"
++			  "\x30\x20\x4d\x42\x2f\x73\x20\x70\x65\x72\x20\x63\x6f"
++			  "\x72\x65\x2c\x20\x73\x63\x61\x6c\x61\x62\x6c\x65\x20"
++			  "\x77\x69\x74\x68\x20\x6d\x75\x6c\x74\x69\x2d\x1a\x00"
++			  "\xf0\x00\x73\x20\x43\x50\x55\x2e\x20\x49\x74\x20\x66"
++			  "\x65\x61\x74\x75\x11\x00\xf2\x0b\x61\x6e\x20\x65\x78"
++			  "\x74\x72\x65\x6d\x65\x6c\x79\x20\x66\x61\x73\x74\x20"
++			  "\x64\x65\x63\x6f\x64\x65\x72\x2c\x3d\x00\x02\x67\x00"
++			  "\x22\x69\x6e\x46\x00\x5a\x70\x6c\x65\x20\x47\x6c\x00"
++			  "\xf0\x00\x74\x79\x70\x69\x63\x61\x6c\x6c\x79\x20\x72"
++			  "\x65\x61\x63\x68\xa7\x00\x33\x52\x41\x4d\x38\x00\x83"
++			  "\x6c\x69\x6d\x69\x74\x73\x20\x6f\x3f\x00\x01\x85\x00"
++			  "\x90\x20\x73\x79\x73\x74\x65\x6d\x73\x2e",
++		.output	= "LZ4 is lossless compression algorithm, providing"
++			 " compression speed at 400 MB/s per core, scalable "
++			 "with multi-cores CPU. It features an extremely fast "
++			 "decoder, with speed in multiple GB/s per core, "
++			 "typically reaching RAM speed limits on multi-core "
++			 "systems.",
+ 	},
+ };
+ 
+ static struct comp_testvec lz4hc_comp_tv_template[] = {
+ 	{
+-		.inlen	= 70,
+-		.outlen	= 45,
+-		.input	= "Join us now and share the software "
+-			  "Join us now and share the software ",
+-		.output = "\xf0\x10\x4a\x6f\x69\x6e\x20\x75"
+-			  "\x73\x20\x6e\x6f\x77\x20\x61\x6e"
+-			  "\x64\x20\x73\x68\x61\x72\x65\x20"
+-			  "\x74\x68\x65\x20\x73\x6f\x66\x74"
+-			  "\x77\x0d\x00\x0f\x23\x00\x0b\x50"
+-			  "\x77\x61\x72\x65\x20",
++		.inlen	= 255,
++		.outlen	= 216,
++		.input	= "LZ4 is lossless compression algorithm, providing"
++			 " compression speed at 400 MB/s per core, scalable "
++			 "with multi-cores CPU. It features an extremely fast "
++			 "decoder, with speed in multiple GB/s per core, "
++			 "typically reaching RAM speed limits on multi-core "
++			 "systems.",
++		.output = "\xf9\x21\x4c\x5a\x34\x20\x69\x73\x20\x6c\x6f\x73\x73"
++			  "\x6c\x65\x73\x73\x20\x63\x6f\x6d\x70\x72\x65\x73\x73"
++			  "\x69\x6f\x6e\x20\x61\x6c\x67\x6f\x72\x69\x74\x68\x6d"
++			  "\x2c\x20\x70\x72\x6f\x76\x69\x64\x69\x6e\x67\x21\x00"
++			  "\xf0\x21\x73\x70\x65\x65\x64\x20\x61\x74\x20\x34\x30"
++			  "\x30\x20\x4d\x42\x2f\x73\x20\x70\x65\x72\x20\x63\x6f"
++			  "\x72\x65\x2c\x20\x73\x63\x61\x6c\x61\x62\x6c\x65\x20"
++			  "\x77\x69\x74\x68\x20\x6d\x75\x6c\x74\x69\x2d\x1a\x00"
++			  "\xf0\x00\x73\x20\x43\x50\x55\x2e\x20\x49\x74\x20\x66"
++			  "\x65\x61\x74\x75\x11\x00\xf2\x0b\x61\x6e\x20\x65\x78"
++			  "\x74\x72\x65\x6d\x65\x6c\x79\x20\x66\x61\x73\x74\x20"
++			  "\x64\x65\x63\x6f\x64\x65\x72\x2c\x3d\x00\x02\x67\x00"
++			  "\x22\x69\x6e\x46\x00\x5a\x70\x6c\x65\x20\x47\x6c\x00"
++			  "\xf0\x00\x74\x79\x70\x69\x63\x61\x6c\x6c\x79\x20\x72"
++			  "\x65\x61\x63\x68\xa7\x00\x33\x52\x41\x4d\x38\x00\x97"
++			  "\x6c\x69\x6d\x69\x74\x73\x20\x6f\x6e\x85\x00\x90\x20"
++			  "\x73\x79\x73\x74\x65\x6d\x73\x2e",
++
+ 	},
+ };
+ 
+ static struct comp_testvec lz4hc_decomp_tv_template[] = {
+ 	{
+-		.inlen	= 45,
+-		.outlen	= 70,
+-		.input  = "\xf0\x10\x4a\x6f\x69\x6e\x20\x75"
+-			  "\x73\x20\x6e\x6f\x77\x20\x61\x6e"
+-			  "\x64\x20\x73\x68\x61\x72\x65\x20"
+-			  "\x74\x68\x65\x20\x73\x6f\x66\x74"
+-			  "\x77\x0d\x00\x0f\x23\x00\x0b\x50"
+-			  "\x77\x61\x72\x65\x20",
+-		.output	= "Join us now and share the software "
+-			  "Join us now and share the software ",
++		.inlen	= 216,
++		.outlen	= 255,
++		.input	= "\xf9\x21\x4c\x5a\x34\x20\x69\x73\x20\x6c\x6f\x73\x73"
++			  "\x6c\x65\x73\x73\x20\x63\x6f\x6d\x70\x72\x65\x73\x73"
++			  "\x69\x6f\x6e\x20\x61\x6c\x67\x6f\x72\x69\x74\x68\x6d"
++			  "\x2c\x20\x70\x72\x6f\x76\x69\x64\x69\x6e\x67\x21\x00"
++			  "\xf0\x21\x73\x70\x65\x65\x64\x20\x61\x74\x20\x34\x30"
++			  "\x30\x20\x4d\x42\x2f\x73\x20\x70\x65\x72\x20\x63\x6f"
++			  "\x72\x65\x2c\x20\x73\x63\x61\x6c\x61\x62\x6c\x65\x20"
++			  "\x77\x69\x74\x68\x20\x6d\x75\x6c\x74\x69\x2d\x1a\x00"
++			  "\xf0\x00\x73\x20\x43\x50\x55\x2e\x20\x49\x74\x20\x66"
++			  "\x65\x61\x74\x75\x11\x00\xf2\x0b\x61\x6e\x20\x65\x78"
++			  "\x74\x72\x65\x6d\x65\x6c\x79\x20\x66\x61\x73\x74\x20"
++			  "\x64\x65\x63\x6f\x64\x65\x72\x2c\x3d\x00\x02\x67\x00"
++			  "\x22\x69\x6e\x46\x00\x5a\x70\x6c\x65\x20\x47\x6c\x00"
++			  "\xf0\x00\x74\x79\x70\x69\x63\x61\x6c\x6c\x79\x20\x72"
++			  "\x65\x61\x63\x68\xa7\x00\x33\x52\x41\x4d\x38\x00\x97"
++			  "\x6c\x69\x6d\x69\x74\x73\x20\x6f\x6e\x85\x00\x90\x20"
++			  "\x73\x79\x73\x74\x65\x6d\x73\x2e",
++		.output	= "LZ4 is lossless compression algorithm, providing"
++			 " compression speed at 400 MB/s per core, scalable "
++			 "with multi-cores CPU. It features an extremely fast "
++			 "decoder, with speed in multiple GB/s per core, "
++			 "typically reaching RAM speed limits on multi-core "
++			 "systems.",
+ 	},
+ };
+ 
+_
+
+Patches currently in -mm which might be from 4sschmid@informatik.uni-hamburg.de are
+
+
