@@ -1,142 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:27:30 -0800
-Message-ID: <58b48bb2.11o7S1YKmr9nfxVJ%akpm@linux-foundation.org>
+Subject: [merged] kasan-add-memcg-kmem_cache-test.patch removed from -mm
+ tree
+Date: Mon, 27 Feb 2017 12:28:15 -0800
+Message-ID: <58b48bdf.SNPic21T5pllkHLS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60498 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751742AbdB0U2A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:00 -0500
+        with ESMTP id S1752004AbdB0U2S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, michaele@au1.ibm.com, mikey@neuling.org, paulus@samba.org, riel@surriel.com, mm-commits@vger.kernel.org
+To: gthelen@google.com, aryabinin@virtuozzo.com, cl@linux.com, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm/autonuma: switch ppc64 to its own implementation of saved write
+     Subject: kasan: add memcg kmem_cache test
 has been removed from the -mm tree.  Its filename was
-     powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write.patch
+     kasan-add-memcg-kmem_cache-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc/mm/autonuma: switch ppc64 to its own implementation of saved write
+From: Greg Thelen <gthelen@google.com>
+Subject: kasan: add memcg kmem_cache test
 
-With this our protnone becomes a present pte with READ/WRITE/EXEC bit
-cleared.  By default we also set _PAGE_PRIVILEGED on such pte.  This is
-now used to help us identify a protnone pte that as saved write bit.  For
-such pte, we will clear the _PAGE_PRIVILEGED bit.  The pte still remain
-non-accessible from both user and kernel.
+Make a kasan test which uses a SLAB_ACCOUNT slab cache.  If the test is
+run within a non default memcg, then it uncovers the bug fixed by
+"kasan: drain quarantine of memcg slab objects"[1].
 
-[aneesh.kumar@linux.vnet.ibm.com: v3]
-  Link: http://lkml.kernel.org/r/1487498625-10891-4-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Link: http://lkml.kernel.org/r/1487050314-3892-3-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Michael Neuling <mikey@neuling.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <michaele@au1.ibm.com>
+If run without fix [1] it shows "Slab cache still has objects", and the
+kmem_cache structure is leaked.
+Here's an unpatched kernel test:
+$ dmesg -c > /dev/null
+$ mkdir /sys/fs/cgroup/memory/test
+$ echo $$ > /sys/fs/cgroup/memory/test/tasks
+$ modprobe test_kasan 2> /dev/null
+$ dmesg | grep -B1 still
+[ 123.456789] kasan test: memcg_accounted_kmem_cache allocate memcg accounted object
+[ 124.456789] kmem_cache_destroy test_cache: Slab cache still has objects
+
+Kernels with fix [1] don't have the "Slab cache still has objects"
+warning or the underlying leak.
+
+The new test runs and passes in the default (root) memcg, though in the
+root memcg it won't uncover the problem fixed by [1].
+
+Link: http://lkml.kernel.org/r/1482257462-36948-2-git-send-email-gthelen@google.com
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Reviewed-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |   52 ++++++++++++++---
- 1 file changed, 45 insertions(+), 7 deletions(-)
+ lib/test_kasan.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-autonuma-switch-ppc64-to-its-own-implementeation-of-saved-write
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1,6 +1,9 @@
- #ifndef _ASM_POWERPC_BOOK3S_64_PGTABLE_H_
- #define _ASM_POWERPC_BOOK3S_64_PGTABLE_H_
+diff -puN lib/test_kasan.c~kasan-add-memcg-kmem_cache-test lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-add-memcg-kmem_cache-test
++++ a/lib/test_kasan.c
+@@ -11,6 +11,7 @@
  
-+#ifndef __ASSEMBLY__
-+#include <linux/mmdebug.h>
-+#endif
- /*
-  * Common bits between hash and Radix page table
-  */
-@@ -434,15 +437,47 @@ static inline pte_t pte_clear_soft_dirty
- #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ #define pr_fmt(fmt) "kasan test: %s " fmt, __func__
  
- #ifdef CONFIG_NUMA_BALANCING
--/*
-- * These work without NUMA balancing but the kernel does not care. See the
-- * comment in include/asm-generic/pgtable.h . On powerpc, this will only
-- * work for user pages and always return true for kernel pages.
-- */
- static inline int pte_protnone(pte_t pte)
- {
--	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED)) ==
--		cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED);
-+	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE | _PAGE_RWX)) ==
-+		cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE);
-+}
-+
-+#define pte_mk_savedwrite pte_mk_savedwrite
-+static inline pte_t pte_mk_savedwrite(pte_t pte)
-+{
-+	/*
-+	 * Used by Autonuma subsystem to preserve the write bit
-+	 * while marking the pte PROT_NONE. Only allow this
-+	 * on PROT_NONE pte
-+	 */
-+	VM_BUG_ON((pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_RWX | _PAGE_PRIVILEGED)) !=
-+		  cpu_to_be64(_PAGE_PRESENT | _PAGE_PRIVILEGED));
-+	return __pte(pte_val(pte) & ~_PAGE_PRIVILEGED);
-+}
-+
-+#define pte_clear_savedwrite pte_clear_savedwrite
-+static inline pte_t pte_clear_savedwrite(pte_t pte)
-+{
-+	/*
-+	 * Used by KSM subsystem to make a protnone pte readonly.
-+	 */
-+	VM_BUG_ON(!pte_protnone(pte));
-+	return __pte(pte_val(pte) | _PAGE_PRIVILEGED);
-+}
-+
-+#define pte_savedwrite pte_savedwrite
-+static inline bool pte_savedwrite(pte_t pte)
-+{
-+	/*
-+	 * Saved write ptes are prot none ptes that doesn't have
-+	 * privileged bit sit. We mark prot none as one which has
-+	 * present and pviliged bit set and RWX cleared. To mark
-+	 * protnone which used to have _PAGE_WRITE set we clear
-+	 * the privileged bit.
-+	 */
-+	VM_BUG_ON(!pte_protnone(pte));
-+	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
++#include <linux/delay.h>
+ #include <linux/kernel.h>
+ #include <linux/mman.h>
+ #include <linux/mm.h>
+@@ -331,6 +332,38 @@ static noinline void __init kmem_cache_o
+ 	kmem_cache_destroy(cache);
  }
- #endif /* CONFIG_NUMA_BALANCING */
  
-@@ -873,6 +908,8 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
- #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
-+#define pmd_mk_savedwrite(pmd)	pte_pmd(pte_mk_savedwrite(pmd_pte(pmd)))
-+#define pmd_clear_savedwrite(pmd)	pte_pmd(pte_clear_savedwrite(pmd_pte(pmd)))
++static noinline void __init memcg_accounted_kmem_cache(void)
++{
++	int i;
++	char *p;
++	size_t size = 200;
++	struct kmem_cache *cache;
++
++	cache = kmem_cache_create("test_cache", size, 0, SLAB_ACCOUNT, NULL);
++	if (!cache) {
++		pr_err("Cache allocation failed\n");
++		return;
++	}
++
++	pr_info("allocate memcg accounted object\n");
++	/*
++	 * Several allocations with a delay to allow for lazy per memcg kmem
++	 * cache creation.
++	 */
++	for (i = 0; i < 5; i++) {
++		p = kmem_cache_alloc(cache, GFP_KERNEL);
++		if (!p) {
++			pr_err("Allocation failed\n");
++			goto free_cache;
++		}
++		kmem_cache_free(cache, p);
++		msleep(100);
++	}
++
++free_cache:
++	kmem_cache_destroy(cache);
++}
++
+ static char global_array[10];
  
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- #define pmd_soft_dirty(pmd)    pte_soft_dirty(pmd_pte(pmd))
-@@ -889,6 +926,7 @@ static inline int pmd_protnone(pmd_t pmd
- 
- #define __HAVE_ARCH_PMD_WRITE
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
-+#define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- extern pmd_t pfn_pmd(unsigned long pfn, pgprot_t pgprot);
+ static noinline void __init kasan_global_oob(void)
+@@ -460,6 +493,7 @@ static int __init kmalloc_tests_init(voi
+ 	kmalloc_uaf_memset();
+ 	kmalloc_uaf2();
+ 	kmem_cache_oob();
++	memcg_accounted_kmem_cache();
+ 	kasan_stack_oob();
+ 	kasan_global_oob();
+ 	ksize_unpoisons_memory();
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 
