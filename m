@@ -1,55 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [patch 37/78] scatterlist: do not disable IRQs in sg_copy_buffer
-Date: Mon, 27 Feb 2017 14:28:29 -0800
-Message-ID: <58b4a80d.pMpZDngtAZqjgK/q%akpm@linux-foundation.org>
+Subject: [patch 74/78] mm: use mmget_not_zero() helper
+Date: Mon, 27 Feb 2017 14:30:13 -0800
+Message-ID: <58b4a875.XtS5oo2B+atfH0yp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45656 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45688 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751529AbdB0Wp1 (ORCPT
+        with ESMTP id S1751583AbdB0Wp1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:45:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gilad@benyossef.com, axboe@kernel.dk, ofir.drang@arm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vegard.nossum@oracle.com, mhocko@suse.com, peterz@infradead.org, rientjes@google.com
 
-From: Gilad Ben-Yossef <gilad@benyossef.com>
-Subject: scatterlist: do not disable IRQs in sg_copy_buffer
+From: Vegard Nossum <vegard.nossum@oracle.com>
+Subject: mm: use mmget_not_zero() helper
 
-Commit 50bed2e2862a ("sg: disable interrupts inside sg_copy_buffer")
-introduced disabling interrupts in sg_copy_buffer() since atomic uses of
-miter required it due to use of kmap_atomic().
+We already have the helper, we can convert the rest of the kernel
+mechanically using:
 
-However, as commit 8290e2d2dcbf ("scatterlist: atomic sg_mapping_iter() no
-longer needs disabled IRQs") acknowledges disabling interrupts is no
-longer needed for calls to kmap_atomic() and therefore unneeded for miter
-ops either, so remove it from sg_copy_buffer().
+  git grep -l 'atomic_inc_not_zero.*mm_users' | xargs sed -i 's/atomic_inc_not_zero(&\(.*\)->mm_users)/mmget_not_zero\(\1\)/'
 
-Link: http://lkml.kernel.org/r/1486040150-14109-3-git-send-email-gilad@benyossef.com
-Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <ofir.drang@arm.com>
+This is needed for a later patch that hooks into the helper, but might be
+a worthwhile cleanup on its own.
+
+Link: http://lkml.kernel.org/r/20161218123229.22952-3-vegard.nossum@oracle.com
+Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/gpu/drm/i915/i915_gem_userptr.c |    2 +-
+ drivers/iommu/intel-svm.c               |    2 +-
+ fs/proc/base.c                          |    4 ++--
+ fs/proc/task_mmu.c                      |    4 ++--
+ fs/proc/task_nommu.c                    |    2 +-
+ kernel/events/uprobes.c                 |    2 +-
+ mm/swapfile.c                           |    2 +-
+ 7 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN lib/scatterlist.c~scatterlist-do-not-disable-irqs-in-sg_copy_buffer lib/scatterlist.c
---- a/lib/scatterlist.c~scatterlist-do-not-disable-irqs-in-sg_copy_buffer
-+++ a/lib/scatterlist.c
-@@ -651,7 +651,6 @@ size_t sg_copy_buffer(struct scatterlist
- {
- 	unsigned int offset = 0;
- 	struct sg_mapping_iter miter;
--	unsigned long flags;
- 	unsigned int sg_flags = SG_MITER_ATOMIC;
+diff -puN drivers/gpu/drm/i915/i915_gem_userptr.c~mm-use-mmget_not_zero-helper drivers/gpu/drm/i915/i915_gem_userptr.c
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c~mm-use-mmget_not_zero-helper
++++ a/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -507,7 +507,7 @@ __i915_gem_userptr_get_pages_worker(stru
+ 			flags |= FOLL_WRITE;
  
- 	if (to_buffer)
-@@ -664,8 +663,6 @@ size_t sg_copy_buffer(struct scatterlist
- 	if (!sg_miter_skip(&miter, skip))
- 		return false;
+ 		ret = -EFAULT;
+-		if (atomic_inc_not_zero(&mm->mm_users)) {
++		if (mmget_not_zero(mm)) {
+ 			down_read(&mm->mmap_sem);
+ 			while (pinned < npages) {
+ 				ret = get_user_pages_remote
+diff -puN drivers/iommu/intel-svm.c~mm-use-mmget_not_zero-helper drivers/iommu/intel-svm.c
+--- a/drivers/iommu/intel-svm.c~mm-use-mmget_not_zero-helper
++++ a/drivers/iommu/intel-svm.c
+@@ -579,7 +579,7 @@ static irqreturn_t prq_event_thread(int
+ 		if (!svm->mm)
+ 			goto bad_req;
+ 		/* If the mm is already defunct, don't handle faults. */
+-		if (!atomic_inc_not_zero(&svm->mm->mm_users))
++		if (!mmget_not_zero(svm->mm))
+ 			goto bad_req;
+ 		down_read(&svm->mm->mmap_sem);
+ 		vma = find_extend_vma(svm->mm, address);
+diff -puN fs/proc/base.c~mm-use-mmget_not_zero-helper fs/proc/base.c
+--- a/fs/proc/base.c~mm-use-mmget_not_zero-helper
++++ a/fs/proc/base.c
+@@ -813,7 +813,7 @@ static ssize_t mem_rw(struct file *file,
+ 		return -ENOMEM;
  
--	local_irq_save(flags);
+ 	copied = 0;
+-	if (!atomic_inc_not_zero(&mm->mm_users))
++	if (!mmget_not_zero(mm))
+ 		goto free;
+ 
+ 	/* Maybe we should limit FOLL_FORCE to actual ptrace users? */
+@@ -921,7 +921,7 @@ static ssize_t environ_read(struct file
+ 		return -ENOMEM;
+ 
+ 	ret = 0;
+-	if (!atomic_inc_not_zero(&mm->mm_users))
++	if (!mmget_not_zero(mm))
+ 		goto free;
+ 
+ 	down_read(&mm->mmap_sem);
+diff -puN fs/proc/task_mmu.c~mm-use-mmget_not_zero-helper fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-use-mmget_not_zero-helper
++++ a/fs/proc/task_mmu.c
+@@ -167,7 +167,7 @@ static void *m_start(struct seq_file *m,
+ 		return ERR_PTR(-ESRCH);
+ 
+ 	mm = priv->mm;
+-	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
++	if (!mm || !mmget_not_zero(mm))
+ 		return NULL;
+ 
+ 	down_read(&mm->mmap_sem);
+@@ -1352,7 +1352,7 @@ static ssize_t pagemap_read(struct file
+ 	unsigned long end_vaddr;
+ 	int ret = 0, copied = 0;
+ 
+-	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
++	if (!mm || !mmget_not_zero(mm))
+ 		goto out;
+ 
+ 	ret = -EINVAL;
+diff -puN fs/proc/task_nommu.c~mm-use-mmget_not_zero-helper fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~mm-use-mmget_not_zero-helper
++++ a/fs/proc/task_nommu.c
+@@ -219,7 +219,7 @@ static void *m_start(struct seq_file *m,
+ 		return ERR_PTR(-ESRCH);
+ 
+ 	mm = priv->mm;
+-	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
++	if (!mm || !mmget_not_zero(mm))
+ 		return NULL;
+ 
+ 	down_read(&mm->mmap_sem);
+diff -puN kernel/events/uprobes.c~mm-use-mmget_not_zero-helper kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~mm-use-mmget_not_zero-helper
++++ a/kernel/events/uprobes.c
+@@ -747,7 +747,7 @@ build_map_info(struct address_space *map
+ 			continue;
+ 		}
+ 
+-		if (!atomic_inc_not_zero(&vma->vm_mm->mm_users))
++		if (!mmget_not_zero(vma->vm_mm))
+ 			continue;
+ 
+ 		info = prev;
+diff -puN mm/swapfile.c~mm-use-mmget_not_zero-helper mm/swapfile.c
+--- a/mm/swapfile.c~mm-use-mmget_not_zero-helper
++++ a/mm/swapfile.c
+@@ -1763,7 +1763,7 @@ int try_to_unuse(unsigned int type, bool
+ 			while (swap_count(*swap_map) && !retval &&
+ 					(p = p->next) != &start_mm->mmlist) {
+ 				mm = list_entry(p, struct mm_struct, mmlist);
+-				if (!atomic_inc_not_zero(&mm->mm_users))
++				if (!mmget_not_zero(mm))
+ 					continue;
+ 				spin_unlock(&mmlist_lock);
+ 				mmput(prev_mm);
+_
