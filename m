@@ -1,117 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 50/78] scripts/spelling.txt: add "varible" pattern and fix typo instances
-Date: Mon, 27 Feb 2017 14:29:06 -0800
-Message-ID: <58b4a832.HoUD85YzLOFxwEQO%akpm@linux-foundation.org>
+Subject: [merged]
+ dax-support-for-transparent-pud-pages-for-device-dax.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:25:26 -0800
+Message-ID: <58b48b36.F9pCQS0oNAQW67bR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55636 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751720AbdB1Auz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 19:50:55 -0500
+        with ESMTP id S1751561AbdB1BBJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 20:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
+To: dave.jiang@intel.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, jack@suse.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mingo@elte.hu, nilesh.choudhury@oracle.com, ross.zwisler@linux.intel.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "varible" pattern and fix typo instances
 
-Fix typos and add the following to the scripts/spelling.txt:
+The patch titled
+     Subject: dax: support for transparent PUD pages for device DAX
+has been removed from the -mm tree.  Its filename was
+     dax-support-for-transparent-pud-pages-for-device-dax.patch
 
-  varible||variable
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-While we are here, tidy up the comment blocks that fit in a single
-line for drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c and
-net/sctp/transport.c.
+------------------------------------------------------
+From: Dave Jiang <dave.jiang@intel.com>
+Subject: dax: support for transparent PUD pages for device DAX
 
-Link: http://lkml.kernel.org/r/1481573103-11329-11-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Add transparent huge PUD pages support for device DAX by adding a
+pud_fault handler.
+
+Link: http://lkml.kernel.org/r/148545060002.17912.6765687780007547551.stgit@djiang5-desk3.ch.intel.com
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/scsi/ChangeLog.megaraid_sas          |    2 +-
- drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c |    4 +---
- drivers/net/wimax/i2400m/usb-fw.c                  |    2 +-
- kernel/torture.c                                   |    2 +-
- net/sctp/transport.c                               |    4 +---
- scripts/spelling.txt                               |    1 +
- 6 files changed, 6 insertions(+), 9 deletions(-)
+ drivers/dax/dax.c |   48 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-diff -puN Documentation/scsi/ChangeLog.megaraid_sas~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances Documentation/scsi/ChangeLog.megaraid_sas
---- a/Documentation/scsi/ChangeLog.megaraid_sas~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
-+++ a/Documentation/scsi/ChangeLog.megaraid_sas
-@@ -549,7 +549,7 @@ ii.	Reduced by 1 max cmds sent to FW fro
- 3 Older Version   : 00.00.03.02
+diff -puN drivers/dax/dax.c~dax-support-for-transparent-pud-pages-for-device-dax drivers/dax/dax.c
+--- a/drivers/dax/dax.c~dax-support-for-transparent-pud-pages-for-device-dax
++++ a/drivers/dax/dax.c
+@@ -493,6 +493,51 @@ static int __dax_dev_pmd_fault(struct da
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
  
- i.	Send stop adapter to FW & Dump pending FW cmds before declaring adapter dead.
--	New varible added to set dbg level.
-+	New variable added to set dbg level.
- ii.	Disable interrupt made as fn pointer as they are different for 1068 / 1078
- iii.	Frame count optimization. Main frame can contain 2 SGE for 64 bit SGLs and
- 	3 SGE for 32 bit SGL
-diff -puN drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c
---- a/drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c
-@@ -847,9 +847,7 @@ static void i40e_free_vf_res(struct i40e
- 		wr32(hw, reg_idx, reg);
- 		i40e_flush(hw);
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
++{
++	unsigned long pud_addr = vmf->address & PUD_MASK;
++	struct device *dev = &dax_dev->dev;
++	struct dax_region *dax_region;
++	phys_addr_t phys;
++	pgoff_t pgoff;
++	pfn_t pfn;
++
++	if (check_vma(dax_dev, vmf->vma, __func__))
++		return VM_FAULT_SIGBUS;
++
++	dax_region = dax_dev->region;
++	if (dax_region->align > PUD_SIZE) {
++		dev_dbg(dev, "%s: alignment > fault size\n", __func__);
++		return VM_FAULT_SIGBUS;
++	}
++
++	/* dax pud mappings require pfn_t_devmap() */
++	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
++		dev_dbg(dev, "%s: alignment > fault size\n", __func__);
++		return VM_FAULT_SIGBUS;
++	}
++
++	pgoff = linear_page_index(vmf->vma, pud_addr);
++	phys = pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
++	if (phys == -1) {
++		dev_dbg(dev, "%s: phys_to_pgoff(%#lx) failed\n", __func__,
++				pgoff);
++		return VM_FAULT_SIGBUS;
++	}
++
++	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++
++	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, pfn,
++			vmf->flags & FAULT_FLAG_WRITE);
++}
++#else
++static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
++{
++	return VM_FAULT_FALLBACK;
++}
++#endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++
+ static int dax_dev_fault(struct vm_fault *vmf)
+ {
+ 	int rc;
+@@ -512,6 +557,9 @@ static int dax_dev_fault(struct vm_fault
+ 	case FAULT_FLAG_SIZE_PMD:
+ 		rc = __dax_dev_pmd_fault(dax_dev, vmf);
+ 		break;
++	case FAULT_FLAG_SIZE_PUD:
++		rc = __dax_dev_pud_fault(dax_dev, vmf);
++		break;
+ 	default:
+ 		return VM_FAULT_FALLBACK;
  	}
--	/* reset some of the state varibles keeping
--	 * track of the resources
--	 */
-+	/* reset some of the state variables keeping track of the resources */
- 	vf->num_queue_pairs = 0;
- 	vf->vf_states = 0;
- 	clear_bit(I40E_VF_STAT_INIT, &vf->vf_states);
-diff -puN drivers/net/wimax/i2400m/usb-fw.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances drivers/net/wimax/i2400m/usb-fw.c
---- a/drivers/net/wimax/i2400m/usb-fw.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
-+++ a/drivers/net/wimax/i2400m/usb-fw.c
-@@ -237,7 +237,7 @@ void __i2400mu_bm_notif_cb(struct urb *u
-  *
-  * @i2400m: device descriptor
-  * @urb: urb to use
-- * @completion: completion varible to complete when done
-+ * @completion: completion variable to complete when done
-  *
-  * Data is always read to i2400m->bm_ack_buf
-  */
-diff -puN kernel/torture.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances kernel/torture.c
---- a/kernel/torture.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
-+++ a/kernel/torture.c
-@@ -311,7 +311,7 @@ EXPORT_SYMBOL_GPL(torture_random);
- /*
-  * Variables for shuffling.  The idea is to ensure that each CPU stays
-  * idle for an extended period to test interactions with dyntick idle,
-- * as well as interactions with any per-CPU varibles.
-+ * as well as interactions with any per-CPU variables.
-  */
- struct shuffle_task {
- 	struct list_head st_l;
-diff -puN net/sctp/transport.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances net/sctp/transport.c
---- a/net/sctp/transport.c~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
-+++ a/net/sctp/transport.c
-@@ -643,9 +643,7 @@ void sctp_transport_reset(struct sctp_tr
- 	t->srtt = 0;
- 	t->rttvar = 0;
- 
--	/* Reset these additional varibles so that we have a clean
--	 * slate.
--	 */
-+	/* Reset these additional variables so that we have a clean slate. */
- 	t->partial_bytes_acked = 0;
- 	t->flight_size = 0;
- 	t->error_count = 0;
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -1092,6 +1092,7 @@ vaid||valid
- vaild||valid
- valide||valid
- variantions||variations
-+varible||variable
- varient||variant
- vaule||value
- verbse||verbose
 _
+
+Patches currently in -mm which might be from dave.jiang@intel.com are
+
+
