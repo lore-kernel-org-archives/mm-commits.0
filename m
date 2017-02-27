@@ -1,143 +1,137 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-migration-make-isolate_movable_page-return-int-type.patch removed from
- -mm tree
-Date: Mon, 27 Feb 2017 12:25:44 -0800
-Message-ID: <58b48b48.2B4oNhGT2c19Q/ka%akpm@linux-foundation.org>
+ mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:24:58 -0800
+Message-ID: <58b48b1a.divIVRtGrPGrQS/h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55632 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751587AbdB1BBJ (ORCPT
+        with ESMTP id S1751531AbdB1BBJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 20:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xieyisheng1@huawei.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, guohanjun@huawei.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migration: make isolate_movable_page() return int type
+     Subject: mm, page_alloc: drain per-cpu pages from workqueue context
 has been removed from the -mm tree.  Its filename was
-     mm-migration-make-isolate_movable_page-return-int-type.patch
+     mm-page_alloc-drain-per-cpu-pages-from-workqueue-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/migration: make isolate_movable_page() return int type
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: drain per-cpu pages from workqueue context
 
-Patch series "HWPOISON: soft offlining for non-lru movable page", v6.
+The per-cpu page allocator can be drained immediately via
+drain_all_pages() which sends IPIs to every CPU.  In the next patch, the
+per-cpu allocator will only be used for interrupt-safe allocations which
+prevents draining it from IPI context.  This patch uses workqueues to
+drain the per-cpu lists instead.
 
-After Minchan's commit bda807d44454 ("mm: migrate: support non-lru movable
-page migration"), some type of non-lru page like zsmalloc and
-virtio-balloon page also support migration.
+This is slower but no slowdown during intensive reclaim was measured and
+the paths that use drain_all_pages() are not that sensitive to
+performance.  This is particularly true as the path would only be
+triggered when reclaim is failing.  It also makes a some sense to avoid
+storming a machine with IPIs when it's under memory pressure.  Arguably,
+it should be further adjusted so that only one caller at a time is
+draining pages but it's beyond the scope of the current patch.
 
-Therefore, we can:
-
-1) soft offlining no-lru movable pages, which means when memory
-   corrected errors occur on a non-lru movable page, we can stop to use it
-   by migrating data onto another page and disable the original (maybe
-   half-broken) one.
-
-2) enable memory hotplug for non-lru movable pages, i.e.  we may
-   offline blocks, which include such pages, by using non-lru page
-   migration.
-
-This patchset is heavily dependent on non-lru movable page migration.
-
-
-This patch (of 4):
-
-Change the return type of isolate_movable_page() from bool to int.  It
-will return 0 when isolate movable page successfully, and return -EBUSY
-when it isolates failed.
-
-There is no functional change within this patch but prepare for later
-patch.
-
-[xieyisheng1@huawei.com: v6]
-  Link: http://lkml.kernel.org/r/1486108770-630-2-git-send-email-xieyisheng1@huawei.com
-Link: http://lkml.kernel.org/r/1485867981-16037-2-git-send-email-ysxie@foxmail.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Link: http://lkml.kernel.org/r/20170123153906.3122-4-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 +-
- mm/compaction.c         |    2 +-
- mm/migrate.c            |    6 +++---
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-migration-make-isolate_movable_page-return-int-type include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migration-make-isolate_movable_page-return-int-type
-+++ a/include/linux/migrate.h
-@@ -37,7 +37,7 @@ extern int migrate_page(struct address_s
- 			struct page *, struct page *, enum migrate_mode);
- extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
- 		unsigned long private, enum migrate_mode mode, int reason);
--extern bool isolate_movable_page(struct page *page, isolate_mode_t mode);
-+extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
- extern void putback_movable_page(struct page *page);
- 
- extern int migrate_prep(void);
-diff -puN mm/compaction.c~mm-migration-make-isolate_movable_page-return-int-type mm/compaction.c
---- a/mm/compaction.c~mm-migration-make-isolate_movable_page-return-int-type
-+++ a/mm/compaction.c
-@@ -802,7 +802,7 @@ isolate_migratepages_block(struct compac
- 					locked = false;
- 				}
- 
--				if (isolate_movable_page(page, isolate_mode))
-+				if (!isolate_movable_page(page, isolate_mode))
- 					goto isolate_success;
- 			}
- 
-diff -puN mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type mm/migrate.c
---- a/mm/migrate.c~mm-migration-make-isolate_movable_page-return-int-type
-+++ a/mm/migrate.c
-@@ -74,7 +74,7 @@ int migrate_prep_local(void)
- 	return 0;
+diff -puN mm/page_alloc.c~mm-page_alloc-drain-per-cpu-pages-from-workqueue-context mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-drain-per-cpu-pages-from-workqueue-context
++++ a/mm/page_alloc.c
+@@ -2339,19 +2339,21 @@ void drain_local_pages(struct zone *zone
+ 		drain_pages(cpu);
  }
  
--bool isolate_movable_page(struct page *page, isolate_mode_t mode)
-+int isolate_movable_page(struct page *page, isolate_mode_t mode)
++static void drain_local_pages_wq(struct work_struct *work)
++{
++	drain_local_pages(NULL);
++}
++
+ /*
+  * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
+  *
+  * When zone parameter is non-NULL, spill just the single zone's pages.
+  *
+- * Note that this code is protected against sending an IPI to an offline
+- * CPU but does not guarantee sending an IPI to newly hotplugged CPUs:
+- * on_each_cpu_mask() blocks hotplug and won't talk to offlined CPUs but
+- * nothing keeps CPUs from showing up after we populated the cpumask and
+- * before the call to on_each_cpu_mask().
++ * Note that this can be extremely slow as the draining happens in a workqueue.
+  */
+ void drain_all_pages(struct zone *zone)
  {
- 	struct address_space *mapping;
++	struct work_struct __percpu *works;
+ 	int cpu;
  
-@@ -125,14 +125,14 @@ bool isolate_movable_page(struct page *p
- 	__SetPageIsolated(page);
- 	unlock_page(page);
+ 	/*
+@@ -2360,6 +2362,17 @@ void drain_all_pages(struct zone *zone)
+ 	 */
+ 	static cpumask_t cpus_with_pcps;
  
--	return true;
-+	return 0;
- 
- out_no_isolated:
- 	unlock_page(page);
- out_putpage:
- 	put_page(page);
- out:
--	return false;
-+	return -EBUSY;
++	/* Workqueues cannot recurse */
++	if (current->flags & PF_WQ_WORKER)
++		return;
++
++	/*
++	 * As this can be called from reclaim context, do not reenter reclaim.
++	 * An allocation failure can be handled, it's simply slower
++	 */
++	get_online_cpus();
++	works = alloc_percpu_gfp(struct work_struct, GFP_ATOMIC);
++
+ 	/*
+ 	 * We don't care about racing with CPU hotplug event
+ 	 * as offline notification will cause the notified
+@@ -2390,8 +2403,25 @@ void drain_all_pages(struct zone *zone)
+ 		else
+ 			cpumask_clear_cpu(cpu, &cpus_with_pcps);
+ 	}
+-	on_each_cpu_mask(&cpus_with_pcps, (smp_call_func_t) drain_local_pages,
+-								zone, 1);
++
++	if (works) {
++		for_each_cpu(cpu, &cpus_with_pcps) {
++			struct work_struct *work = per_cpu_ptr(works, cpu);
++			INIT_WORK(work, drain_local_pages_wq);
++			schedule_work_on(cpu, work);
++		}
++		for_each_cpu(cpu, &cpus_with_pcps)
++			flush_work(per_cpu_ptr(works, cpu));
++	} else {
++		for_each_cpu(cpu, &cpus_with_pcps) {
++			struct work_struct work;
++
++			INIT_WORK(&work, drain_local_pages_wq);
++			schedule_work_on(cpu, &work);
++			flush_work(&work);
++		}
++	}
++	put_online_cpus();
  }
  
- /* It should be called on page which is PG_movable */
+ #ifdef CONFIG_HIBERNATION
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
