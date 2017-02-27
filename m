@@ -1,102 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 24/78] fs/affs: use octal for permissions
-Date: Mon, 27 Feb 2017 14:27:52 -0800
-Message-ID: <58b4a7e8.trifOPVGhyZQqWOp%akpm@linux-foundation.org>
+Subject: [patch 16/78] tools/testing/selftests/sigaltstack/sas.c: improve
+ output of sigaltstack testcase
+Date: Mon, 27 Feb 2017 14:27:28 -0800
+Message-ID: <58b4a7d0.5cq+etFuVE4Wwbr7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751914AbdB0WgF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:05 -0500
+        with ESMTP id S1751906AbdB0WgG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, stsp@list.ru, luto@kernel.org, mingo@kernel.org, oleg@redhat.com, shuah@kernel.org, stsp@users.sourceforge.net
 
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs: use octal for permissions
+From: Stas Sergeev <stsp@list.ru>
+Subject: tools/testing/selftests/sigaltstack/sas.c: improve output of sigaltstack testcase
 
-According to commit f90774e1fd27 ("checkpatch: look for symbolic
-permissions and suggest octal instead")
+Currently it uses %i for bitmasks, which makes it difficult to properly
+decode the values.  Use %x instead.
 
-Link: http://lkml.kernel.org/r/20170109191208.6085-5-fabf@skynet.be
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/b7b4c45d-2f21-de6c-d1c8-16c8386da27c@list.ru
+Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/amigaffs.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ tools/testing/selftests/sigaltstack/sas.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions fs/affs/amigaffs.c
---- a/fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions
-+++ a/fs/affs/amigaffs.c
-@@ -391,23 +391,23 @@ prot_to_mode(u32 prot)
- 	umode_t mode = 0;
+diff -puN tools/testing/selftests/sigaltstack/sas.c~tests-improve-output-of-sigaltstack-testcase tools/testing/selftests/sigaltstack/sas.c
+--- a/tools/testing/selftests/sigaltstack/sas.c~tests-improve-output-of-sigaltstack-testcase
++++ a/tools/testing/selftests/sigaltstack/sas.c
+@@ -57,7 +57,7 @@ void my_usr1(int sig, siginfo_t *si, voi
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	if (stk.ss_flags != SS_DISABLE)
+-		printf("[FAIL]\tss_flags=%i, should be SS_DISABLE\n",
++		printf("[FAIL]\tss_flags=%x, should be SS_DISABLE\n",
+ 				stk.ss_flags);
+ 	else
+ 		printf("[OK]\tsigaltstack is disabled in sighandler\n");
+@@ -122,7 +122,8 @@ int main(void)
+ 	if (stk.ss_flags == SS_DISABLE) {
+ 		printf("[OK]\tInitial sigaltstack state was SS_DISABLE\n");
+ 	} else {
+-		printf("[FAIL]\tInitial sigaltstack state was %i; should have been SS_DISABLE\n", stk.ss_flags);
++		printf("[FAIL]\tInitial sigaltstack state was %x; "
++		       "should have been SS_DISABLE\n", stk.ss_flags);
+ 		return EXIT_FAILURE;
+ 	}
  
- 	if (!(prot & FIBF_NOWRITE))
--		mode |= S_IWUSR;
-+		mode |= 0200;
- 	if (!(prot & FIBF_NOREAD))
--		mode |= S_IRUSR;
-+		mode |= 0400;
- 	if (!(prot & FIBF_NOEXECUTE))
--		mode |= S_IXUSR;
-+		mode |= 0100;
- 	if (prot & FIBF_GRP_WRITE)
--		mode |= S_IWGRP;
-+		mode |= 0020;
- 	if (prot & FIBF_GRP_READ)
--		mode |= S_IRGRP;
-+		mode |= 0040;
- 	if (prot & FIBF_GRP_EXECUTE)
--		mode |= S_IXGRP;
-+		mode |= 0010;
- 	if (prot & FIBF_OTR_WRITE)
--		mode |= S_IWOTH;
-+		mode |= 0002;
- 	if (prot & FIBF_OTR_READ)
--		mode |= S_IROTH;
-+		mode |= 0004;
- 	if (prot & FIBF_OTR_EXECUTE)
--		mode |= S_IXOTH;
-+		mode |= 0001;
- 
- 	return mode;
- }
-@@ -418,23 +418,23 @@ mode_to_prot(struct inode *inode)
- 	u32 prot = AFFS_I(inode)->i_protect;
- 	umode_t mode = inode->i_mode;
- 
--	if (!(mode & S_IXUSR))
-+	if (!(mode & 0100))
- 		prot |= FIBF_NOEXECUTE;
--	if (!(mode & S_IRUSR))
-+	if (!(mode & 0400))
- 		prot |= FIBF_NOREAD;
--	if (!(mode & S_IWUSR))
-+	if (!(mode & 0200))
- 		prot |= FIBF_NOWRITE;
--	if (mode & S_IXGRP)
-+	if (mode & 0010)
- 		prot |= FIBF_GRP_EXECUTE;
--	if (mode & S_IRGRP)
-+	if (mode & 0040)
- 		prot |= FIBF_GRP_READ;
--	if (mode & S_IWGRP)
-+	if (mode & 0020)
- 		prot |= FIBF_GRP_WRITE;
--	if (mode & S_IXOTH)
-+	if (mode & 0001)
- 		prot |= FIBF_OTR_EXECUTE;
--	if (mode & S_IROTH)
-+	if (mode & 0004)
- 		prot |= FIBF_OTR_READ;
--	if (mode & S_IWOTH)
-+	if (mode & 0002)
- 		prot |= FIBF_OTR_WRITE;
- 
- 	AFFS_I(inode)->i_protect = prot;
+@@ -165,7 +166,7 @@ int main(void)
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	if (stk.ss_flags != SS_AUTODISARM) {
+-		printf("[FAIL]\tss_flags=%i, should be SS_AUTODISARM\n",
++		printf("[FAIL]\tss_flags=%x, should be SS_AUTODISARM\n",
+ 				stk.ss_flags);
+ 		exit(EXIT_FAILURE);
+ 	}
 _
