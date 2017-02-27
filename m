@@ -1,97 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/78] autofs: update ioctl documentation regarding struct autofs_dev_ioctl
-Date: Mon, 27 Feb 2017 14:27:08 -0800
-Message-ID: <58b4a7bc.oNTmZpVzbicqHbDz%akpm@linux-foundation.org>
+Subject: [patch 63/78] scripts/spelling.txt: add "disassocation" pattern
+ and fix typo instances
+Date: Mon, 27 Feb 2017 14:29:42 -0800
+Message-ID: <58b4a856.6CMehaC05fbeo33v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44838 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751924AbdB0W3i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:29:38 -0500
+        with ESMTP id S1751454AbdB0Wdi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:33:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tkusumi@tuxera.com, raven@themaw.net
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
 
-From: Tomohiro Kusumi <tkusumi@tuxera.com>
-Subject: autofs: update ioctl documentation regarding struct autofs_dev_ioctl
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: scripts/spelling.txt: add "disassocation" pattern and fix typo instances
 
-This is the same as bf72eda5 except that it's a different file.  Sync
-documentation with changes made by 730c9eec in 2009.
+Fix typos and add the following to the scripts/spelling.txt:
 
-Link: http://lkml.kernel.org/r/148577165630.9801.6081791213151121657.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+  disassocation||disassociation
+
+Link: http://lkml.kernel.org/r/1481573103-11329-27-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/autofs4-mount-control.txt |    1 
- Documentation/filesystems/autofs4.txt               |   32 ++++++----
- 2 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/net/wireless/intel/ipw2x00/ipw2100.c |    2 +-
+ drivers/net/wireless/intel/ipw2x00/ipw2200.c |    2 +-
+ include/net/cfg80211.h                       |    2 +-
+ scripts/spelling.txt                         |    1 +
+ 4 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/filesystems/autofs4-mount-control.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl Documentation/filesystems/autofs4-mount-control.txt
---- a/Documentation/filesystems/autofs4-mount-control.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl
-+++ a/Documentation/filesystems/autofs4-mount-control.txt
-@@ -179,6 +179,7 @@ struct autofs_dev_ioctl {
- 				 * including this struct */
- 	__s32 ioctlfd;          /* automount command fd */
+diff -puN drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2100.c
+--- a/drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
++++ a/drivers/net/wireless/intel/ipw2x00/ipw2100.c
+@@ -5652,7 +5652,7 @@ static void shim__set_security(struct ne
  
-+	/* Command parameters */
- 	union {
- 		struct args_protover		protover;
- 		struct args_protosubver		protosubver;
-diff -puN Documentation/filesystems/autofs4.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl Documentation/filesystems/autofs4.txt
---- a/Documentation/filesystems/autofs4.txt~autofs-update-ioctl-documentation-regarding-struct-autofs_dev_ioctl
-+++ a/Documentation/filesystems/autofs4.txt
-@@ -425,8 +425,20 @@ Each ioctl is passed a pointer to an `au
-                                          * including this struct */
-                 __s32 ioctlfd;          /* automount command fd */
+ /* As a temporary work around to enable WPA until we figure out why
+  * wpa_supplicant toggles the security capability of the driver, which
+- * forces a disassocation with force_update...
++ * forces a disassociation with force_update...
+  *
+  *	if (force_update || !(priv->status & STATUS_ASSOCIATED))*/
+ 	if (!(priv->status & (STATUS_ASSOCIATED | STATUS_ASSOCIATING)))
+diff -puN drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2200.c
+--- a/drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
++++ a/drivers/net/wireless/intel/ipw2x00/ipw2200.c
+@@ -3974,7 +3974,7 @@ static void ipw_send_disassociate(struct
+ 		return;
+ 	}
  
--                __u32 arg1;             /* Command parameters */
--                __u32 arg2;
-+		/* Command parameters */
-+		union {
-+			struct args_protover		protover;
-+			struct args_protosubver		protosubver;
-+			struct args_openmount		openmount;
-+			struct args_ready		ready;
-+			struct args_fail		fail;
-+			struct args_setpipefd		setpipefd;
-+			struct args_timeout		timeout;
-+			struct args_requester		requester;
-+			struct args_expire		expire;
-+			struct args_askumount		askumount;
-+			struct args_ismountpoint	ismountpoint;
-+		};
- 
-                 char path[0];
-         };
-@@ -446,24 +458,22 @@ Commands are:
-     set version numbers.
- - **AUTOFS_DEV_IOCTL_OPENMOUNT_CMD**: return an open file descriptor
-     on the root of an autofs filesystem.  The filesystem is identified
--    by name and device number, which is stored in `arg1`.  Device
--    numbers for existing filesystems can be found in
-+    by name and device number, which is stored in `openmount.devid`.
-+    Device numbers for existing filesystems can be found in
-     `/proc/self/mountinfo`.
- - **AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD**: same as `close(ioctlfd)`.
- - **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the filesystem is in
-     catatonic mode, this can provide the write end of a new pipe
--    in `arg1` to re-establish communication with a daemon.  The
--    process group of the calling process is used to identify the
-+    in `setpipefd.pipefd` to re-establish communication with a daemon.
-+    The process group of the calling process is used to identify the
-     daemon.
- - **AUTOFS_DEV_IOCTL_REQUESTER_CMD**: `path` should be a
-     name within the filesystem that has been auto-mounted on.
--    On successful return, `arg1` and `arg2` will be the UID and GID
--    of the process which triggered that mount.
--
-+    On successful return, `requester.uid` and `requester.gid` will be
-+    the UID and GID of the process which triggered that mount.
- - **AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD**: Check if path is a
-     mountpoint of a particular type - see separate documentation for
-     details.
+-	IPW_DEBUG_ASSOC("Disassocation attempt from %pM "
++	IPW_DEBUG_ASSOC("Disassociation attempt from %pM "
+ 			"on channel %d.\n",
+ 			priv->assoc_request.bssid,
+ 			priv->assoc_request.channel);
+diff -puN include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances include/net/cfg80211.h
+--- a/include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
++++ a/include/net/cfg80211.h
+@@ -1948,7 +1948,7 @@ struct cfg80211_deauth_request {
+  * struct cfg80211_disassoc_request - Disassociation request data
+  *
+  * This structure provides information needed to complete IEEE 802.11
+- * disassocation.
++ * disassociation.
+  *
+  * @bss: the BSS to disassociate from
+  * @ie: Extra IEs to add to Disassociation frame or %NULL
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
++++ a/scripts/spelling.txt
+@@ -364,6 +364,7 @@ differrence||difference
+ difinition||definition
+ diplay||display
+ direectly||directly
++disassocation||disassociation
+ disapear||disappear
+ disapeared||disappeared
+ disappared||disappeared
+_
