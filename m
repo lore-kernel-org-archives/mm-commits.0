@@ -1,61 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [patch 20/78] fs,eventpoll: don't test for bitfield with stack
- value
-Date: Mon, 27 Feb 2017 14:27:40 -0800
-Message-ID: <58b4a7dc.1pCQtLEiIKkuWoHx%akpm@linux-foundation.org>
+Subject: [patch 52/78] scripts/spelling.txt: add "againt" pattern and fix
+ typo instances
+Date: Mon, 27 Feb 2017 14:29:12 -0800
+Message-ID: <58b4a838.BAKbTXvs0XTwBi18%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45660 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751341AbdB0Wgl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:41 -0500
+        with ESMTP id S1751548AbdB0Wnv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:43:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gorcunov@gmail.com, avagin@virtuozzo.com, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: fs,eventpoll: don't test for bitfield with stack value
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: scripts/spelling.txt: add "againt" pattern and fix typo instances
 
-In case if epoll_ctl is called with operation EPOLL_CTL_DEL then
-@epds.events variable allocated on stack may contain random bits which
-we test then for EPOLLEXCLUSIVE. Since currently the test look
-like
+Fix typos and add the following to the scripts/spelling.txt:
 
-	if (epds.events & EPOLLEXCLUSIVE) {
-		if (op == EPOLL_CTL_MOD)
-			goto error_tgt_fput;
-		if (op == EPOLL_CTL_ADD && (is_file_epoll(tf.file) ||
-				(epds.events & ~EPOLLEXCLUSIVE_OK_BITS)))
-			goto error_tgt_fput;
-	}
+  againt||against
 
-Nothing serious will happen even if epds.events has this bit set,
-still better to be on safe side and make sure that we're to test
-this bit at all.
+While we are here, fix the "capabilites" as well in the touched hunk
+in drivers/gpu/drm/drm_probe_helper.c.
 
-Link: http://lkml.kernel.org/r/20170214154935.GG1850@uranus.lan
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrey Vagin <avagin@virtuozzo.com>
+Link: http://lkml.kernel.org/r/1481573103-11329-13-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/drm_probe_helper.c |    4 ++--
+ fs/ecryptfs/kthread.c              |    2 +-
+ scripts/spelling.txt               |    1 +
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/eventpoll.c~fseventpoll-dont-test-for-bitfield-with-stack-value fs/eventpoll.c
---- a/fs/eventpoll.c~fseventpoll-dont-test-for-bitfield-with-stack-value
-+++ a/fs/eventpoll.c
-@@ -1895,7 +1895,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	 * so EPOLLEXCLUSIVE is not allowed for a EPOLL_CTL_MOD operation.
- 	 * Also, we do not currently supported nested exclusive wakeups.
- 	 */
--	if (epds.events & EPOLLEXCLUSIVE) {
-+	if (ep_op_has_event(op) && (epds.events & EPOLLEXCLUSIVE)) {
- 		if (op == EPOLL_CTL_MOD)
- 			goto error_tgt_fput;
- 		if (op == EPOLL_CTL_ADD && (is_file_epoll(tf.file) ||
+diff -puN drivers/gpu/drm/drm_probe_helper.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances drivers/gpu/drm/drm_probe_helper.c
+--- a/drivers/gpu/drm/drm_probe_helper.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances
++++ a/drivers/gpu/drm/drm_probe_helper.c
+@@ -220,8 +220,8 @@ drm_connector_detect(struct drm_connecto
+  *    - drm_mode_validate_basic() performs basic sanity checks
+  *    - drm_mode_validate_size() filters out modes larger than @maxX and @maxY
+  *      (if specified)
+- *    - drm_mode_validate_flag() checks the modes againt basic connector
+- *      capabilites (interlace_allowed,doublescan_allowed,stereo_allowed)
++ *    - drm_mode_validate_flag() checks the modes against basic connector
++ *      capabilities (interlace_allowed,doublescan_allowed,stereo_allowed)
+  *    - the optional &drm_connector_helper_funcs.mode_valid helper can perform
+  *      driver and/or hardware specific checks
+  *
+diff -puN fs/ecryptfs/kthread.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances fs/ecryptfs/kthread.c
+--- a/fs/ecryptfs/kthread.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances
++++ a/fs/ecryptfs/kthread.c
+@@ -123,7 +123,7 @@ void ecryptfs_destroy_kthread(void)
+  * @lower_dentry: Lower dentry for file to open
+  * @lower_mnt: Lower vfsmount for file to open
+  *
+- * This function gets a r/w file opened againt the lower dentry.
++ * This function gets a r/w file opened against the lower dentry.
+  *
+  * Returns zero on success; non-zero otherwise
+  */
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances
++++ a/scripts/spelling.txt
+@@ -62,6 +62,7 @@ adress||address
+ adresses||addresses
+ adviced||advised
+ afecting||affecting
++againt||against
+ agaist||against
+ albumns||albums
+ alegorical||allegorical
 _
