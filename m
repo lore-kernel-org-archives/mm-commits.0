@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
+ mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed.patch
  removed from -mm tree
-Date: Mon, 27 Feb 2017 12:24:42 -0800
-Message-ID: <58b48b0a.U8Q/JCRDsKqcDnku%akpm@linux-foundation.org>
+Date: Mon, 27 Feb 2017 12:24:51 -0800
+Message-ID: <58b48b13.v98wjJfiNTUBT6aH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34564 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751470AbdB0UmD (ORCPT
+        with ESMTP id S1751465AbdB0UmD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:42:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,112 +19,153 @@ To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@suse.c
 
 
 The patch titled
-     Subject: mm: vmscan: kick flushers when we encounter dirty pages on the LRU
+     Subject: mm: vmscan: move dirty pages out of the way until they're flushed
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru.patch
+     mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: kick flushers when we encounter dirty pages on the LRU
+Subject: mm: vmscan: move dirty pages out of the way until they're flushed
 
-Memory pressure can put dirty pages at the end of the LRU without anybody
-running into dirty limits.  Don't start writing individual pages from
-kswapd while the flushers might be asleep.
+We noticed a performance regression when moving hadoop workloads from 3.10
+kernels to 4.0 and 4.6.  This is accompanied by increased pageout activity
+initiated by kswapd as well as frequent bursts of allocation stalls and
+direct reclaim scans.  Even lowering the dirty ratios to the equivalent of
+less than 1% of memory would not eliminate the issue, suggesting that
+dirty pages concentrate where the scanner is looking.
 
-Unlike the old direct reclaim flusher wakeup (removed in the next patch)
-that flushes the number of pages just scanned, this patch wakes the
-flushers for all outstanding dirty pages.  That seemed to perform better
-in a synthetic test that pushes dirty pages to the end of the LRU and into
-reclaim, because we know LRU aging outstrips writeback already, and this
-way we give younger dirty pages a headstart rather than wait until reclaim
-runs into them as well.  It also means less plugging and risk of
-exhausting the struct request pool from reclaim.
+This can be traced back to recent efforts of thrash avoidance.  Where 3.10
+would not detect refaulting pages and continuously supply clean cache to
+the inactive list, a thrashing workload on 4.0+ will detect and activate
+refaulting pages right away, distilling used-once pages on the inactive
+list much more effectively.  This is by design, and it makes sense for
+clean cache.  But for the most part our workload's cache faults are
+refaults and its use-once cache is from streaming writes.  We end up with
+most of the inactive list dirty, and we don't go after the active cache as
+long as we have use-once pages around.
 
-There is a concern that this will cause temporary files that used to get
-dirtied and truncated before writeback to now get written to disk under
-memory pressure.  If this turns out to be a real problem, we'll have to
-revisit this and tame the reclaim flusher wakeups.
+But waiting for writes to avoid reclaiming clean cache that *might*
+refault is a bad trade-off.  Even if the refaults happen, reads are faster
+than writes.  Before getting bogged down on writeback, reclaim should
+first look at *all* cache in the system, even active cache.
 
-[hannes@cmpxchg.org: mention dirty expiration as a condition]
-  Link: http://lkml.kernel.org/r/20170126174739.GA30636@cmpxchg.org
-Link: http://lkml.kernel.org/r/20170123181641.23938-3-hannes@cmpxchg.org
+To accomplish this, activate pages that are dirty or under writeback
+when they reach the end of the inactive LRU.  The pages are marked for
+immediate reclaim, meaning they'll get moved back to the inactive LRU
+tail as soon as they're written back and become reclaimable.  But in
+the meantime, by reducing the inactive list to only immediately
+reclaimable pages, we allow the scanner to deactivate and refill the
+inactive list with clean cache from the active list tail to guarantee
+forward progress.
+
+[hannes@cmpxchg.org: update comment]
+  Link: http://lkml.kernel.org/r/20170202191957.22872-8-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20170123181641.23938-6-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h        |    2 +-
- include/trace/events/writeback.h |    2 +-
- mm/vmscan.c                      |   18 +++++++++++++-----
- 3 files changed, 15 insertions(+), 7 deletions(-)
+ include/linux/mm_inline.h |    7 +++++++
+ mm/swap.c                 |    9 +++++----
+ mm/vmscan.c               |   15 ++++++++++++---
+ 3 files changed, 24 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru include/linux/writeback.h
---- a/include/linux/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru
-+++ a/include/linux/writeback.h
-@@ -46,7 +46,7 @@ enum writeback_sync_modes {
+diff -puN include/linux/mm_inline.h~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed
++++ a/include/linux/mm_inline.h
+@@ -50,6 +50,13 @@ static __always_inline void add_page_to_
+ 	list_add(&page->lru, &lruvec->lists[lru]);
+ }
+ 
++static __always_inline void add_page_to_lru_list_tail(struct page *page,
++				struct lruvec *lruvec, enum lru_list lru)
++{
++	update_lru_size(lruvec, lru, page_zonenum(page), hpage_nr_pages(page));
++	list_add_tail(&page->lru, &lruvec->lists[lru]);
++}
++
+ static __always_inline void del_page_from_lru_list(struct page *page,
+ 				struct lruvec *lruvec, enum lru_list lru)
+ {
+diff -puN mm/swap.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed mm/swap.c
+--- a/mm/swap.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed
++++ a/mm/swap.c
+@@ -209,9 +209,10 @@ static void pagevec_move_tail_fn(struct
+ {
+ 	int *pgmoved = arg;
+ 
+-	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+-		enum lru_list lru = page_lru_base_type(page);
+-		list_move_tail(&page->lru, &lruvec->lists[lru]);
++	if (PageLRU(page) && !PageUnevictable(page)) {
++		del_page_from_lru_list(page, lruvec, page_lru(page));
++		ClearPageActive(page);
++		add_page_to_lru_list_tail(page, lruvec, page_lru(page));
+ 		(*pgmoved)++;
+ 	}
+ }
+@@ -235,7 +236,7 @@ static void pagevec_move_tail(struct pag
   */
- enum wb_reason {
- 	WB_REASON_BACKGROUND,
--	WB_REASON_TRY_TO_FREE_PAGES,
-+	WB_REASON_VMSCAN,
- 	WB_REASON_SYNC,
- 	WB_REASON_PERIODIC,
- 	WB_REASON_LAPTOP_TIMER,
-diff -puN include/trace/events/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru include/trace/events/writeback.h
---- a/include/trace/events/writeback.h~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru
-+++ a/include/trace/events/writeback.h
-@@ -31,7 +31,7 @@
- 
- #define WB_WORK_REASON							\
- 	EM( WB_REASON_BACKGROUND,		"background")		\
--	EM( WB_REASON_TRY_TO_FREE_PAGES,	"try_to_free_pages")	\
-+	EM( WB_REASON_VMSCAN,			"vmscan")		\
- 	EM( WB_REASON_SYNC,			"sync")			\
- 	EM( WB_REASON_PERIODIC,			"periodic")		\
- 	EM( WB_REASON_LAPTOP_TIMER,		"laptop_timer")		\
-diff -puN mm/vmscan.c~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-kick-flushers-when-we-encounter-dirty-pages-on-the-lru
+ void rotate_reclaimable_page(struct page *page)
+ {
+-	if (!PageLocked(page) && !PageDirty(page) && !PageActive(page) &&
++	if (!PageLocked(page) && !PageDirty(page) &&
+ 	    !PageUnevictable(page) && PageLRU(page)) {
+ 		struct pagevec *pvec;
+ 		unsigned long flags;
+diff -puN mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-move-dirty-pages-out-of-the-way-until-theyre-flushed
 +++ a/mm/vmscan.c
-@@ -1798,12 +1798,20 @@ shrink_inactive_list(unsigned long nr_to
- 
- 		/*
- 		 * If dirty pages are scanned that are not queued for IO, it
--		 * implies that flushers are not keeping up. In this case, flag
--		 * the pgdat PGDAT_DIRTY and kswapd will start writing pages from
--		 * reclaim context.
-+		 * implies that flushers are not doing their job. This can
-+		 * happen when memory pressure pushes dirty pages to the end of
-+		 * the LRU before the dirty limits are breached and the dirty
-+		 * data has expired. It can also happen when the proportion of
-+		 * dirty pages grows not through writes but through memory
-+		 * pressure reclaiming all the clean cache. And in some cases,
-+		 * the flushers simply cannot keep up with the allocation
-+		 * rate. Nudge the flusher threads in case they are asleep, but
-+		 * also allow kswapd to start writing pages during reclaim.
+@@ -1056,6 +1056,15 @@ static unsigned long shrink_page_list(st
+ 		 *    throttling so we could easily OOM just because too many
+ 		 *    pages are in writeback and there is nothing else to
+ 		 *    reclaim. Wait for the writeback to complete.
++		 *
++		 * In cases 1) and 2) we activate the pages to get them out of
++		 * the way while we continue scanning for clean pages on the
++		 * inactive list and refilling from the active list. The
++		 * observation here is that waiting for disk writes is more
++		 * expensive than potentially causing reloads down the line.
++		 * Since they're marked for immediate reclaim, they won't put
++		 * memory pressure on the cache working set any longer than it
++		 * takes to write them to disk.
  		 */
--		if (stat.nr_unqueued_dirty == nr_taken)
-+		if (stat.nr_unqueued_dirty == nr_taken) {
-+			wakeup_flusher_threads(0, WB_REASON_VMSCAN);
- 			set_bit(PGDAT_DIRTY, &pgdat->flags);
-+		}
+ 		if (PageWriteback(page)) {
+ 			/* Case 1 above */
+@@ -1063,7 +1072,7 @@ static unsigned long shrink_page_list(st
+ 			    PageReclaim(page) &&
+ 			    test_bit(PGDAT_WRITEBACK, &pgdat->flags)) {
+ 				nr_immediate++;
+-				goto keep_locked;
++				goto activate_locked;
  
- 		/*
- 		 * If kswapd scans pages marked marked for immediate
-@@ -2787,7 +2795,7 @@ retry:
- 		writeback_threshold = sc->nr_to_reclaim + sc->nr_to_reclaim / 2;
- 		if (total_scanned > writeback_threshold) {
- 			wakeup_flusher_threads(laptop_mode ? 0 : total_scanned,
--						WB_REASON_TRY_TO_FREE_PAGES);
-+						WB_REASON_VMSCAN);
- 			sc->may_writepage = 1;
- 		}
- 	} while (--sc->priority >= 0);
+ 			/* Case 2 above */
+ 			} else if (sane_reclaim(sc) ||
+@@ -1081,7 +1090,7 @@ static unsigned long shrink_page_list(st
+ 				 */
+ 				SetPageReclaim(page);
+ 				nr_writeback++;
+-				goto keep_locked;
++				goto activate_locked;
+ 
+ 			/* Case 3 above */
+ 			} else {
+@@ -1174,7 +1183,7 @@ static unsigned long shrink_page_list(st
+ 				inc_node_page_state(page, NR_VMSCAN_IMMEDIATE);
+ 				SetPageReclaim(page);
+ 
+-				goto keep_locked;
++				goto activate_locked;
+ 			}
+ 
+ 			if (references == PAGEREF_RECLAIM_CLEAN)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
