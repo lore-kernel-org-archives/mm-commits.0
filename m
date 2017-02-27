@@ -1,76 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [patch 52/78] scripts/spelling.txt: add "againt" pattern and fix
- typo instances
-Date: Mon, 27 Feb 2017 14:29:12 -0800
-Message-ID: <58b4a838.BAKbTXvs0XTwBi18%akpm@linux-foundation.org>
+Subject: [patch 31/78] initramfs: finish fput() before accessing any
+ binary from initramfs
+Date: Mon, 27 Feb 2017 14:28:12 -0800
+Message-ID: <58b4a7fc.zE0kFRsp6urdSLjX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45670 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751548AbdB0Wnv (ORCPT
+        with ESMTP id S1751364AbdB0Wnv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:43:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, lokeshvutla@ti.com, m-karicheri2@ti.com, nm@ti.com, nsekhar@ti.com, t-kristo@ti.com, viro@zeniv.linux.org.uk
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "againt" pattern and fix typo instances
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: initramfs: finish fput() before accessing any binary from initramfs
 
-Fix typos and add the following to the scripts/spelling.txt:
+commit 4a9d4b024a31 ("switch fput to task_work_add") implements a
+schedule_work() for completing fput(), but did not guarantee calling
+__fput() after unpacking initramfs. Because of this, there is a
+possibility that during boot a driver can see ETXTBSY when it tries
+to load a binary from initramfs as fput() is still pending on that
+binary. This patch makes sure that fput() is completed after unpacking
+initramfs and removes the call to flush_delayed_fput() in kernel_init()
+which happens very late after unpacking initramfs.
 
-  againt||against
-
-While we are here, fix the "capabilites" as well in the touched hunk
-in drivers/gpu/drm/drm_probe_helper.c.
-
-Link: http://lkml.kernel.org/r/1481573103-11329-13-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Link: http://lkml.kernel.org/r/20170201140540.22051-1-lokeshvutla@ti.com
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Reported-by: Murali Karicheri <m-karicheri2@ti.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_probe_helper.c |    4 ++--
- fs/ecryptfs/kthread.c              |    2 +-
- scripts/spelling.txt               |    1 +
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ init/initramfs.c |    2 ++
+ init/main.c      |    3 ---
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_probe_helper.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances drivers/gpu/drm/drm_probe_helper.c
---- a/drivers/gpu/drm/drm_probe_helper.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/drm_probe_helper.c
-@@ -220,8 +220,8 @@ drm_connector_detect(struct drm_connecto
-  *    - drm_mode_validate_basic() performs basic sanity checks
-  *    - drm_mode_validate_size() filters out modes larger than @maxX and @maxY
-  *      (if specified)
-- *    - drm_mode_validate_flag() checks the modes againt basic connector
-- *      capabilites (interlace_allowed,doublescan_allowed,stereo_allowed)
-+ *    - drm_mode_validate_flag() checks the modes against basic connector
-+ *      capabilities (interlace_allowed,doublescan_allowed,stereo_allowed)
-  *    - the optional &drm_connector_helper_funcs.mode_valid helper can perform
-  *      driver and/or hardware specific checks
-  *
-diff -puN fs/ecryptfs/kthread.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances fs/ecryptfs/kthread.c
---- a/fs/ecryptfs/kthread.c~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances
-+++ a/fs/ecryptfs/kthread.c
-@@ -123,7 +123,7 @@ void ecryptfs_destroy_kthread(void)
-  * @lower_dentry: Lower dentry for file to open
-  * @lower_mnt: Lower vfsmount for file to open
-  *
-- * This function gets a r/w file opened againt the lower dentry.
-+ * This function gets a r/w file opened against the lower dentry.
-  *
-  * Returns zero on success; non-zero otherwise
-  */
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -62,6 +62,7 @@ adress||address
- adresses||addresses
- adviced||advised
- afecting||affecting
-+againt||against
- agaist||against
- albumns||albums
- alegorical||allegorical
-_
+diff -puN init/initramfs.c~initramfs-finish-fput-before-accessing-any-binary-from-initramfs init/initramfs.c
+--- a/init/initramfs.c~initramfs-finish-fput-before-accessing-any-binary-from-initramfs
++++ a/init/initramfs.c
+@@ -18,6 +18,7 @@
+ #include <linux/dirent.h>
+ #include <linux/syscalls.h>
+ #include <linux/utime.h>
++#include <linux/file.h>
+ 
+ static ssize_t __init xwrite(int fd, const char *p, size_t count)
+ {
+@@ -647,6 +648,7 @@ static int __init populate_rootfs(void)
+ 			printk(KERN_EMERG "Initramfs unpacking failed: %s\n", err);
+ 		free_initrd();
+ #endif
++		flush_delayed_fput();
+ 		/*
+ 		 * Try loading default modules from initramfs.  This gives
+ 		 * us a chance to load before device_initcalls.
+diff -puN init/main.c~initramfs-finish-fput-before-accessing-any-binary-from-initramfs init/main.c
+--- a/init/main.c~initramfs-finish-fput-before-accessing-any-binary-from-initramfs
++++ a/init/main.c
+@@ -71,7 +71,6 @@
+ #include <linux/shmem_fs.h>
+ #include <linux/slab.h>
+ #include <linux/perf_event.h>
+-#include <linux/file.h>
+ #include <linux/ptrace.h>
+ #include <linux/blkdev.h>
+ #include <linux/elevator.h>
+@@ -960,8 +959,6 @@ static int __ref kernel_init(void *unuse
+ 	system_state = SYSTEM_RUNNING;
+ 	numa_default_policy();
+ 
+-	flush_delayed_fput();
