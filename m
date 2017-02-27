@@ -1,188 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-less-code-duplication-in-proc-cmdline.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:28:27 -0800
-Message-ID: <58b48beb.CXe5dk2t+CQHiaw3%akpm@linux-foundation.org>
+Subject: [merged] uapi-mqueueh-add-missing-linux-typesh-include.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:28:33 -0800
+Message-ID: <58b48bf1.Eb7iIsdvmYwyHOTS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33170 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752036AbdB0U22 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:28 -0500
+        with ESMTP id S1751976AbdB0U2e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: vapier@chromium.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: less code duplication in /proc/*/cmdline
+     Subject: uapi: mqueue.h: add missing linux/types.h include
 has been removed from the -mm tree.  Its filename was
-     proc-less-code-duplication-in-proc-cmdline.patch
+     uapi-mqueueh-add-missing-linux-typesh-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: less code duplication in /proc/*/cmdline
+From: Mike Frysinger <vapier@chromium.org>
+Subject: uapi: mqueue.h: add missing linux/types.h include
 
-After staring at this code for a while I've figured using small 2-entry array
-describing ARGV and ENVP is the way to address code duplication critique.
+Commit 63159f5dcccb385 ("uapi: Use __kernel_long_t in struct mq_attr")
+changed the types from long to __kernel_long_t, but didn't add a
+linux/types.h include.  Code that tries to include this header directly
+breaks:
 
-Link: http://lkml.kernel.org/r/20170105185724.GA12027@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+/usr/include/linux/mqueue.h:26:2: error: unknown type name '__kernel_long_t'
+  __kernel_long_t mq_flags; /* message queue flags   */
+
+This also upsets configure tests for this header:
+checking linux/mqueue.h usability... no
+checking linux/mqueue.h presence... yes
+configure: WARNING: linux/mqueue.h: present but cannot be compiled
+configure: WARNING: linux/mqueue.h:     check for missing prerequisite headers?
+configure: WARNING: linux/mqueue.h: see the Autoconf documentation
+configure: WARNING: linux/mqueue.h:     section "Present But Cannot Be Compiled"
+configure: WARNING: linux/mqueue.h: proceeding with the compiler's result
+checking for linux/mqueue.h... no
+
+Link: http://lkml.kernel.org/r/20170119194644.4403-1-vapier@gentoo.org
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |  142 ++++++++++++++++++-----------------------------
- 1 file changed, 55 insertions(+), 87 deletions(-)
+ include/uapi/linux/mqueue.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/base.c~proc-less-code-duplication-in-proc-cmdline fs/proc/base.c
---- a/fs/proc/base.c~proc-less-code-duplication-in-proc-cmdline
-+++ a/fs/proc/base.c
-@@ -292,101 +292,69 @@ static ssize_t proc_pid_cmdline_read(str
- 		}
- 	} else {
- 		/*
--		 * Command line (1 string) occupies ARGV and maybe
--		 * extends into ENVP.
--		 */
--		if (len1 + len2 <= *pos)
--			goto skip_argv_envp;
--		if (len1 <= *pos)
--			goto skip_argv;
--
--		p = arg_start + *pos;
--		len = len1 - *pos;
--		while (count > 0 && len > 0) {
--			unsigned int _count, l;
--			int nr_read;
--			bool final;
--
--			_count = min3(count, len, PAGE_SIZE);
--			nr_read = access_remote_vm(mm, p, page, _count, 0);
--			if (nr_read < 0)
--				rv = nr_read;
--			if (nr_read <= 0)
--				goto out_free_page;
--
--			/*
--			 * Command line can be shorter than whole ARGV
--			 * even if last "marker" byte says it is not.
--			 */
--			final = false;
--			l = strnlen(page, nr_read);
--			if (l < nr_read) {
--				nr_read = l;
--				final = true;
--			}
--
--			if (copy_to_user(buf, page, nr_read)) {
--				rv = -EFAULT;
--				goto out_free_page;
--			}
--
--			p	+= nr_read;
--			len	-= nr_read;
--			buf	+= nr_read;
--			count	-= nr_read;
--			rv	+= nr_read;
--
--			if (final)
--				goto out_free_page;
--		}
--skip_argv:
--		/*
- 		 * Command line (1 string) occupies ARGV and
- 		 * extends into ENVP.
- 		 */
--		if (len1 <= *pos) {
--			p = env_start + *pos - len1;
--			len = len1 + len2 - *pos;
--		} else {
--			p = env_start;
--			len = len2;
-+		struct {
-+			unsigned long p;
-+			unsigned long len;
-+		} cmdline[2] = {
-+			{ .p = arg_start, .len = len1 },
-+			{ .p = env_start, .len = len2 },
-+		};
-+		loff_t pos1 = *pos;
-+		unsigned int i;
-+
-+		i = 0;
-+		while (i < 2 && pos1 >= cmdline[i].len) {
-+			pos1 -= cmdline[i].len;
-+			i++;
- 		}
--		while (count > 0 && len > 0) {
--			unsigned int _count, l;
--			int nr_read;
--			bool final;
--
--			_count = min3(count, len, PAGE_SIZE);
--			nr_read = access_remote_vm(mm, p, page, _count, 0);
--			if (nr_read < 0)
--				rv = nr_read;
--			if (nr_read <= 0)
--				goto out_free_page;
--
--			/* Find EOS. */
--			final = false;
--			l = strnlen(page, nr_read);
--			if (l < nr_read) {
--				nr_read = l;
--				final = true;
--			}
-+		while (i < 2) {
-+			p = cmdline[i].p + pos1;
-+			len = cmdline[i].len - pos1;
-+			while (count > 0 && len > 0) {
-+				unsigned int _count, l;
-+				int nr_read;
-+				bool final;
-+
-+				_count = min3(count, len, PAGE_SIZE);
-+				nr_read = access_remote_vm(mm, p, page, _count, 0);
-+				if (nr_read < 0)
-+					rv = nr_read;
-+				if (nr_read <= 0)
-+					goto out_free_page;
-+
-+				/*
-+				 * Command line can be shorter than whole ARGV
-+				 * even if last "marker" byte says it is not.
-+				 */
-+				final = false;
-+				l = strnlen(page, nr_read);
-+				if (l < nr_read) {
-+					nr_read = l;
-+					final = true;
-+				}
-+
-+				if (copy_to_user(buf, page, nr_read)) {
-+					rv = -EFAULT;
-+					goto out_free_page;
-+				}
-+
-+				p	+= nr_read;
-+				len	-= nr_read;
-+				buf	+= nr_read;
-+				count	-= nr_read;
-+				rv	+= nr_read;
+diff -puN include/uapi/linux/mqueue.h~uapi-mqueueh-add-missing-linux-typesh-include include/uapi/linux/mqueue.h
+--- a/include/uapi/linux/mqueue.h~uapi-mqueueh-add-missing-linux-typesh-include
++++ a/include/uapi/linux/mqueue.h
+@@ -18,6 +18,8 @@
+ #ifndef _LINUX_MQUEUE_H
+ #define _LINUX_MQUEUE_H
  
--			if (copy_to_user(buf, page, nr_read)) {
--				rv = -EFAULT;
--				goto out_free_page;
-+				if (final)
-+					goto out_free_page;
- 			}
- 
--			p	+= nr_read;
--			len	-= nr_read;
--			buf	+= nr_read;
--			count	-= nr_read;
--			rv	+= nr_read;
++#include <linux/types.h>
++
+ #define MQ_PRIO_MAX 	32768
+ /* per-uid limit of kernel memory used by mqueue, in bytes */
+ #define MQ_BYTES_MAX	819200
+_
+
+Patches currently in -mm which might be from vapier@chromium.org are
+
+
