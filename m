@@ -1,77 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-sparse-use-plain-integer-as-null-pointer.patch
+Subject: [merged]
+ mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect.patch
  removed from -mm tree
-Date: Mon, 27 Feb 2017 12:27:10 -0800
-Message-ID: <58b48b9e.81udA0hMnE0ekqVa%akpm@linux-foundation.org>
+Date: Mon, 27 Feb 2017 12:27:28 -0800
+Message-ID: <58b48bb0./gj/oT/Rjq2+ZOjs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60808 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751862AbdB0U16 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:58 -0500
+        with ESMTP id S1751531AbdB0U2A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@tobin.cc, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: use NULL instead of literal 0
+     Subject: mm/ksm: handle protnone saved writes when making page write protect
 has been removed from the -mm tree.  Its filename was
-     mm-fix-sparse-use-plain-integer-as-null-pointer.patch
+     mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tobin C Harding <me@tobin.cc>
-Subject: mm/memory.c: use NULL instead of literal 0
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/ksm: handle protnone saved writes when making page write protect
 
-Patch fixes sparse warning: Using plain integer as NULL pointer. Replaces
-assignment of 0 to pointer with NULL assignment.
+Without this KSM will consider the page write protected, but a numa fault can
+later mark the page writable. This can result in memory corruption.
 
-Link: http://lkml.kernel.org/r/1485992240-10986-2-git-send-email-me@tobin.cc
-Signed-off-by: Tobin C Harding <me@tobin.cc>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/1487498625-10891-3-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/asm-generic/pgtable.h |    8 ++++++++
+ mm/ksm.c                      |    9 +++++++--
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-sparse-use-plain-integer-as-null-pointer mm/memory.c
---- a/mm/memory.c~mm-fix-sparse-use-plain-integer-as-null-pointer
-+++ a/mm/memory.c
-@@ -2920,7 +2920,7 @@ static int pte_alloc_one_map(struct vm_f
- 		atomic_long_inc(&vma->vm_mm->nr_ptes);
- 		pmd_populate(vma->vm_mm, vmf->pmd, vmf->prealloc_pte);
- 		spin_unlock(vmf->ptl);
--		vmf->prealloc_pte = 0;
-+		vmf->prealloc_pte = NULL;
- 	} else if (unlikely(pte_alloc(vma->vm_mm, vmf->pmd, vmf->address))) {
- 		return VM_FAULT_OOM;
- 	}
-@@ -2968,7 +2968,7 @@ static void deposit_prealloc_pte(struct
- 	 * count that as nr_ptes.
- 	 */
- 	atomic_long_inc(&vma->vm_mm->nr_ptes);
--	vmf->prealloc_pte = 0;
-+	vmf->prealloc_pte = NULL;
- }
+diff -puN include/asm-generic/pgtable.h~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect
++++ a/include/asm-generic/pgtable.h
+@@ -233,6 +233,10 @@ static inline void ptep_set_wrprotect(st
+ #define pte_mk_savedwrite pte_mkwrite
+ #endif
  
- static int do_set_pmd(struct vm_fault *vmf, struct page *page)
-@@ -3374,7 +3374,7 @@ static int do_fault(struct vm_fault *vmf
- 	/* preallocated pagetable is unused: free it */
- 	if (vmf->prealloc_pte) {
- 		pte_free(vma->vm_mm, vmf->prealloc_pte);
--		vmf->prealloc_pte = 0;
-+		vmf->prealloc_pte = NULL;
++#ifndef pte_clear_savedwrite
++#define pte_clear_savedwrite pte_wrprotect
++#endif
++
+ #ifndef pmd_savedwrite
+ #define pmd_savedwrite pmd_write
+ #endif
+@@ -241,6 +245,10 @@ static inline void ptep_set_wrprotect(st
+ #define pmd_mk_savedwrite pmd_mkwrite
+ #endif
+ 
++#ifndef pmd_clear_savedwrite
++#define pmd_clear_savedwrite pmd_wrprotect
++#endif
++
+ #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+diff -puN mm/ksm.c~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect mm/ksm.c
+--- a/mm/ksm.c~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect
++++ a/mm/ksm.c
+@@ -880,7 +880,8 @@ static int write_protect_page(struct vm_
+ 	if (WARN_ONCE(!pvmw.pte, "Unexpected PMD mapping?"))
+ 		goto out_unlock;
+ 
+-	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte)) {
++	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
++	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte))) {
+ 		pte_t entry;
+ 
+ 		swapped = PageSwapCache(page);
+@@ -905,7 +906,11 @@ static int write_protect_page(struct vm_
+ 		}
+ 		if (pte_dirty(entry))
+ 			set_page_dirty(page);
+-		entry = pte_mkclean(pte_wrprotect(entry));
++
++		if (pte_protnone(entry))
++			entry = pte_mkclean(pte_clear_savedwrite(entry));
++		else
++			entry = pte_mkclean(pte_wrprotect(entry));
+ 		set_pte_at_notify(mm, pvmw.address, pvmw.pte, entry);
  	}
- 	return ret;
- }
+ 	*orig_pte = *pvmw.pte;
 _
 
-Patches currently in -mm which might be from me@tobin.cc are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 
