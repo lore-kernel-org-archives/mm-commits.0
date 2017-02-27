@@ -1,100 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes.patch removed
- from -mm tree
-Date: Mon, 27 Feb 2017 12:27:23 -0800
-Message-ID: <58b48bab.d6YnwO2rzyRy8KVu%akpm@linux-foundation.org>
+ mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:27:50 -0800
+Message-ID: <58b48bc6.Z14Jl5dRjnQq1LAD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60788 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751748AbdB0U2A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:00 -0500
+        with ESMTP id S1751902AbdB0U2G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/autonuma: don't use set_pte_at when updating protnone ptes
+     Subject: mm/zsmalloc: remove redundant SetPagePrivate2 in create_page_chain
 has been removed from the -mm tree.  Its filename was
-     mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes.patch
+     mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/autonuma: don't use set_pte_at when updating protnone ptes
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/zsmalloc: remove redundant SetPagePrivate2 in create_page_chain
 
-Architectures like ppc64, use privilege access bit to mark pte non
-accessible.  This implies that kernel can do a copy_to_user to an address
-marked for numa fault.  This also implies that there can be a parallel
-hardware update for the pte.  set_pte_at cannot be used in such scenarios.
-Hence switch the pte update to use ptep_get_and_clear and set_pte_at
-combination.
+We had used page->lru to link the component pages (except the first page)
+of a zspage, and used INIT_LIST_HEAD(&page->lru) to init it.  Therefore,
+to get the last page's next page, which is NULL, we had to use page flag
+PG_Private_2 to identify it.
 
-[akpm@linux-foundation.org: remove unwanted ppc change, per Aneesh]
-Link: http://lkml.kernel.org/r/1486400776-28114-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+But now, we use page->freelist to link all of the pages in zspage and init
+the page->freelist as NULL for last page, so no need to use PG_Private_2
+anymore.
+
+This remove redundant SetPagePrivate2 in create_page_chain and
+ClearPagePrivate2 in reset_page().  Save a few cycles for migration of
+zsmalloc page :)
+
+Link: http://lkml.kernel.org/r/1487076509-49270-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/zsmalloc.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/memory.c~mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes mm/memory.c
---- a/mm/memory.c~mm-autonuma-dont-use-set_pte_at-when-updating-protnone-ptes
-+++ a/mm/memory.c
-@@ -3400,32 +3400,32 @@ static int do_numa_page(struct vm_fault
- 	int last_cpupid;
- 	int target_nid;
- 	bool migrated = false;
--	pte_t pte = vmf->orig_pte;
--	bool was_writable = pte_write(pte);
-+	pte_t pte;
-+	bool was_writable = pte_write(vmf->orig_pte);
- 	int flags = 0;
- 
- 	/*
- 	 * The "pte" at this point cannot be used safely without
- 	 * validation through pte_unmap_same(). It's of NUMA type but
- 	 * the pfn may be screwed if the read is non atomic.
--	 *
--	 * We can safely just do a "set_pte_at()", because the old
--	 * page table entry is not accessible, so there would be no
--	 * concurrent hardware modifications to the PTE.
+diff -puN mm/zsmalloc.c~mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-remove-redundant-setpageprivate2-in-create_page_chain
++++ a/mm/zsmalloc.c
+@@ -24,7 +24,6 @@
+  *
+  * Usage of struct page flags:
+  *	PG_private: identifies the first component page
+- *	PG_private2: identifies the last component page
+  *	PG_owner_priv_1: identifies the huge component page
+  *
+  */
+@@ -938,7 +937,6 @@ static void reset_page(struct page *page
+ {
+ 	__ClearPageMovable(page);
+ 	ClearPagePrivate(page);
+-	ClearPagePrivate2(page);
+ 	set_page_private(page, 0);
+ 	page_mapcount_reset(page);
+ 	ClearPageHugeObject(page);
+@@ -1085,7 +1083,7 @@ static void create_page_chain(struct siz
+ 	 * 2. each sub-page point to zspage using page->private
+ 	 *
+ 	 * we set PG_private to identify the first page (i.e. no other sub-page
+-	 * has this flag set) and PG_private_2 to identify the last page.
++	 * has this flag set).
  	 */
- 	vmf->ptl = pte_lockptr(vma->vm_mm, vmf->pmd);
- 	spin_lock(vmf->ptl);
--	if (unlikely(!pte_same(*vmf->pte, pte))) {
-+	if (unlikely(!pte_same(*vmf->pte, vmf->orig_pte))) {
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 		goto out;
+ 	for (i = 0; i < nr_pages; i++) {
+ 		page = pages[i];
+@@ -1100,8 +1098,6 @@ static void create_page_chain(struct siz
+ 		} else {
+ 			prev_page->freelist = page;
+ 		}
+-		if (i == nr_pages - 1)
+-			SetPagePrivate2(page);
+ 		prev_page = page;
  	}
- 
--	/* Make it present again */
-+	/*
-+	 * Make it present again, Depending on how arch implementes non
-+	 * accessible ptes, some can allow access by kernel mode.
-+	 */
-+	pte = ptep_modify_prot_start(vma->vm_mm, vmf->address, vmf->pte);
- 	pte = pte_modify(pte, vma->vm_page_prot);
- 	pte = pte_mkyoung(pte);
- 	if (was_writable)
- 		pte = pte_mkwrite(pte);
--	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
-+	ptep_modify_prot_commit(vma->vm_mm, vmf->address, vmf->pte, pte);
- 	update_mmu_cache(vma, vmf->address, vmf->pte);
- 
- 	page = vm_normal_page(vma, vmf->address, pte);
+ }
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
 
