@@ -1,108 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] checkpatchpl-warn-against-using-%z-fix.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 14:20:06 -0800
-Message-ID: <58b4a616.hP0hgIJ2XKEBHO6T%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-split-alloc_pages_nodemask.patch removed
+ from -mm tree
+Date: Mon, 27 Feb 2017 12:24:56 -0800
+Message-ID: <58b48b18.KaM389A7gr5eBNQQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48074 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53448 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbdB0X0R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 18:26:17 -0500
+        with ESMTP id S1751644AbdB1Aky (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 19:40:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatchpl-warn-against-using-%z-fix
+     Subject: mm, page_alloc: split alloc_pages_nodemask()
 has been removed from the -mm tree.  Its filename was
-     checkpatchpl-warn-against-using-%z-fix.patch
+     mm-page_alloc-split-alloc_pages_nodemask.patch
 
-This patch was dropped because it was folded into checkpatchpl-warn-against-using-%z.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatchpl-warn-against-using-%z-fix
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: split alloc_pages_nodemask()
 
-vsnprintf extension %Z<foo> is non-standard C.
-Suggest the use of %z instead.
+alloc_pages_nodemask does a number of preperation steps that determine
+what zones can be used for the allocation depending on a variety of
+factors. This is fine but a hypothetical caller that wanted multiple
+order-0 pages has to do the preparation steps multiple times. This patch
+structures __alloc_pages_nodemask such that it's relatively easy to build
+a bulk order-0 page allocator. There is no functional change.
 
-Miscellanea:
-
-o Correct the misuse of type string PRINTF_0xDECIMAL
-  type strings are supposed to be uppercase only.
-  Fix this and add tr/[a-z]/[A-Z] to the type check in case
-  I forget this again sometime in the future.
-o Improve the mechanism to find these defects so all
-  3 current checks are done on the format string
-
-Link: http://lkml.kernel.org/r/4e3ad74b0c9dc229b06018a2d79655308ddbbebd.1484014173.git.joe@perches.com
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20170123153906.3122-3-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+ mm/page_alloc.c |   75 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 46 insertions(+), 29 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-warn-against-using-%z-fix scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-warn-against-using-%z-fix
-+++ a/scripts/checkpatch.pl
-@@ -1848,6 +1848,8 @@ my $prefix = '';
- sub show_type {
- 	my ($type) = @_;
+diff -puN mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask
++++ a/mm/page_alloc.c
+@@ -3855,60 +3855,77 @@ got_pg:
+ 	return page;
+ }
  
-+	$type =~ tr/[a-z]/[A-Z]/;
+-/*
+- * This is the 'heart' of the zoned buddy allocator.
+- */
+-struct page *
+-__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
+-			struct zonelist *zonelist, nodemask_t *nodemask)
++static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
++		struct zonelist *zonelist, nodemask_t *nodemask,
++		struct alloc_context *ac, gfp_t *alloc_mask,
++		unsigned int *alloc_flags)
+ {
+-	struct page *page;
+-	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
+-	struct alloc_context ac = {
+-		.high_zoneidx = gfp_zone(gfp_mask),
+-		.zonelist = zonelist,
+-		.nodemask = nodemask,
+-		.migratetype = gfpflags_to_migratetype(gfp_mask),
+-	};
++	ac->high_zoneidx = gfp_zone(gfp_mask);
++	ac->zonelist = zonelist;
++	ac->nodemask = nodemask;
++	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
+ 
+ 	if (cpusets_enabled()) {
+-		alloc_mask |= __GFP_HARDWALL;
+-		alloc_flags |= ALLOC_CPUSET;
+-		if (!ac.nodemask)
+-			ac.nodemask = &cpuset_current_mems_allowed;
++		*alloc_mask |= __GFP_HARDWALL;
++		*alloc_flags |= ALLOC_CPUSET;
++		if (!ac->nodemask)
++			ac->nodemask = &cpuset_current_mems_allowed;
+ 	}
+ 
+-	gfp_mask &= gfp_allowed_mask;
+-
+ 	lockdep_trace_alloc(gfp_mask);
+ 
+ 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
+ 
+ 	if (should_fail_alloc_page(gfp_mask, order))
+-		return NULL;
++		return false;
+ 
+ 	/*
+ 	 * Check the zones suitable for the gfp_mask contain at least one
+ 	 * valid zone. It's possible to have an empty zonelist as a result
+ 	 * of __GFP_THISNODE and a memoryless node
+ 	 */
+-	if (unlikely(!zonelist->_zonerefs->zone))
+-		return NULL;
++	if (unlikely(!ac->zonelist->_zonerefs->zone))
++		return false;
 +
- 	return defined $use_type{$type} if (scalar keys %use_type > 0);
++	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
++		*alloc_flags |= ALLOC_CMA;
  
- 	return !defined $ignore_type{$type};
-@@ -5204,24 +5206,27 @@ sub process {
- 			     "Consecutive strings are generally better as a single string\n" . $herecurr);
- 		}
+-	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
+-		alloc_flags |= ALLOC_CMA;
++	return true;
++}
  
--# check for %L{u,d,i} and 0x%[udi] in strings
--		my $string;
-+# check for non-standard and hex prefixed decimal printf formats
-+		my $show_L = 1;	#don't show the same defect twice
-+		my $show_Z = 1;
- 		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
--			$string = substr($rawline, $-[1], $+[1] - $-[1]);
-+			my $string = substr($rawline, $-[1], $+[1] - $-[1]);
- 			$string =~ s/%%/__/g;
--			if ($string =~ /(?<!%)%[\*\d\.\$]*L[udi]/) {
-+			# check for %L
-+			if ($show_L && $string =~ /%[\*\d\.\$]*L([diouxX])/) {
- 				WARN("PRINTF_L",
--				     "\%Ld/%Lu are not-standard C, use %lld/%llu\n" . $herecurr);
--				last;
-+				     "\%L$1 is non-standard C, use %ll$1\n" . $herecurr);
-+				$show_L = 0;
- 			}
- 			# check for %Z
--			if ($string =~ /(?<!%)%[\*\d\.\$]*Z[diouxX]/) {
-+			if ($show_Z && $string =~ /%[\*\d\.\$]*Z([diouxX])/) {
- 				WARN("PRINTF_Z",
--				     "%Z is non-standard C, use %z\n" . $herecurr);
--				last;
-+				     "%Z$1 is non-standard C, use %z$1\n" . $herecurr);
-+				$show_Z = 0;
- 			}
--			if ($string =~ /0x%[\*\d\.\$\Llzth]*[udi]/) {
--				ERROR("PRINTF_0xDECIMAL",
-+			# check for 0x<decimal>
-+			if ($string =~ /0x%[\*\d\.\$\Llzth]*[diou]/) {
-+				ERROR("PRINTF_0XDECIMAL",
- 				      "Prefixing 0x with decimal output is defective\n" . $herecurr);
- 			}
- 		}
++/* Determine whether to spread dirty pages and what the first usable zone */
++static inline void finalise_ac(gfp_t gfp_mask,
++		unsigned int order, struct alloc_context *ac)
++{
+ 	/* Dirty zone balancing only done in the fast path */
+-	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
++	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+ 
+ 	/*
+ 	 * The preferred zone is used for statistics but crucially it is
+ 	 * also used as the starting point for the zonelist iterator. It
+ 	 * may get reset for allocations that ignore memory policies.
+ 	 */
+-	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+-					ac.high_zoneidx, ac.nodemask);
++	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
++					ac->high_zoneidx, ac->nodemask);
++}
++
++/*
++ * This is the 'heart' of the zoned buddy allocator.
++ */
++struct page *
++__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
++			struct zonelist *zonelist, nodemask_t *nodemask)
++{
++	struct page *page;
++	unsigned int alloc_flags = ALLOC_WMARK_LOW;
++	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
++	struct alloc_context ac = { };
++
++	gfp_mask &= gfp_allowed_mask;
++	if (!prepare_alloc_pages(gfp_mask, order, zonelist, nodemask, &ac, &alloc_mask, &alloc_flags))
++		return NULL;
++
++	finalise_ac(gfp_mask, order, &ac);
+ 	if (!ac.preferred_zoneref->zone) {
+ 		page = NULL;
+ 		/*
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-checkpatchpl-warn-against-using-%z.patch
 
