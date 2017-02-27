@@ -1,99 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 12:27:28 -0800
-Message-ID: <58b48bb0./gj/oT/Rjq2+ZOjs%akpm@linux-foundation.org>
+Subject: [merged] mm-zsmalloc-fix-comment-in-zsmalloc.patch removed from
+ -mm tree
+Date: Mon, 27 Feb 2017 12:27:55 -0800
+Message-ID: <58b48bcb.Gjv+7hiGOsXsyVUc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751531AbdB0U2A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:00 -0500
+        with ESMTP id S1751924AbdB0U2H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, guohanjun@huawei.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: handle protnone saved writes when making page write protect
+     Subject: mm/zsmalloc: fix comment in zsmalloc
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect.patch
+     mm-zsmalloc-fix-comment-in-zsmalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/ksm: handle protnone saved writes when making page write protect
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/zsmalloc: fix comment in zsmalloc
 
-Without this KSM will consider the page write protected, but a numa fault can
-later mark the page writable. This can result in memory corruption.
+The class index and fullness group are not encoded in (first)page->mapping
+any more, after commit 3783689a1aa8 ("zsmalloc: introduce zspage
+structure").  Instead, they are store in struct zspage.  Just delete this
+unneeded comment.
 
-Link: http://lkml.kernel.org/r/1487498625-10891-3-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1486620822-36826-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Suggested-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |    8 ++++++++
- mm/ksm.c                      |    9 +++++++--
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ mm/zsmalloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect
-+++ a/include/asm-generic/pgtable.h
-@@ -233,6 +233,10 @@ static inline void ptep_set_wrprotect(st
- #define pte_mk_savedwrite pte_mkwrite
+diff -puN mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-fix-comment-in-zsmalloc
++++ a/mm/zsmalloc.c
+@@ -267,10 +267,6 @@ struct zs_pool {
  #endif
+ };
  
-+#ifndef pte_clear_savedwrite
-+#define pte_clear_savedwrite pte_wrprotect
-+#endif
-+
- #ifndef pmd_savedwrite
- #define pmd_savedwrite pmd_write
- #endif
-@@ -241,6 +245,10 @@ static inline void ptep_set_wrprotect(st
- #define pmd_mk_savedwrite pmd_mkwrite
- #endif
- 
-+#ifndef pmd_clear_savedwrite
-+#define pmd_clear_savedwrite pmd_wrprotect
-+#endif
-+
- #ifndef __HAVE_ARCH_PMDP_SET_WRPROTECT
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-diff -puN mm/ksm.c~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect mm/ksm.c
---- a/mm/ksm.c~mm-ksm-handle-protnone-saved-writes-when-making-page-write-protect
-+++ a/mm/ksm.c
-@@ -880,7 +880,8 @@ static int write_protect_page(struct vm_
- 	if (WARN_ONCE(!pvmw.pte, "Unexpected PMD mapping?"))
- 		goto out_unlock;
- 
--	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte)) {
-+	if (pte_write(*pvmw.pte) || pte_dirty(*pvmw.pte) ||
-+	    (pte_protnone(*pvmw.pte) && pte_savedwrite(*pvmw.pte))) {
- 		pte_t entry;
- 
- 		swapped = PageSwapCache(page);
-@@ -905,7 +906,11 @@ static int write_protect_page(struct vm_
- 		}
- 		if (pte_dirty(entry))
- 			set_page_dirty(page);
--		entry = pte_mkclean(pte_wrprotect(entry));
-+
-+		if (pte_protnone(entry))
-+			entry = pte_mkclean(pte_clear_savedwrite(entry));
-+		else
-+			entry = pte_mkclean(pte_wrprotect(entry));
- 		set_pte_at_notify(mm, pvmw.address, pvmw.pte, entry);
- 	}
- 	*orig_pte = *pvmw.pte;
+-/*
+- * A zspage's class index and fullness group
+- * are encoded in its (first)page->mapping
+- */
+ #define FULLNESS_BITS	2
+ #define CLASS_BITS	8
+ #define ISOLATED_BITS	3
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
 
