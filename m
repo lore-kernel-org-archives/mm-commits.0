@@ -1,57 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 14:17:03 -0800
-Message-ID: <58b4a55f.yBRlqfwPxA2XHHG+%akpm@linux-foundation.org>
+ kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch removed
+ from -mm tree
+Date: Mon, 27 Feb 2017 14:17:00 -0800
+Message-ID: <58b4a55c.bkeIjeigDZrBda3r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44562 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751583AbdB0W0n (ORCPT
+        with ESMTP id S1751586AbdB0W0n (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:26:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: mcgrof@kernel.org, broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/kprobes: fixup for kprobes declarations moving
+     Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
 has been removed from the -mm tree.  Its filename was
-     kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2.patch
+     kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
 
 This patch was dropped because it was folded into kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: powerpc/kprobes: fixup for kprobes declarations moving
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
 
-Link: http://lkml.kernel.org/r/20170214165933.13ebd4f4@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+On Wed, Feb 8, 2017 at 9:22 AM, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, Feb 08, 2017 at 10:54:16AM +0000, Build bot for Mark Brown wrote:
+>
+> Today's -next fails to build an arm64 allmodconfig due to:
+>
+>>       arm64-allmodconfig
+>> ../arch/arm64/kernel/armv8_deprecated.c:359:31: error: expected '=',
+>> ',', ';',
+> +'asm' or '__attribute__' before 'aarch32_check_condition'
+>> ../arch/arm64/kernel/armv8_deprecated.c:386:10: error: implicit
+>> declaration of
+> +function 'aarch32_check_condition'
+> [-Werror=implicit-function-declaration]
+>
+> triggered by 1930faf201e83f6 (kprobes: move kprobe declarations to
+> asm-generic/kprobes.h) according to a bisect, though I didn't
+> immediately see how.
+
+This fixes that, will send patch.
+
+Link: http://lkml.kernel.org/r/CAB=NE6X1WMByuARS4mZ1g9+W=LuVBnMDnh_5zyN0CLADaVh=Jw@mail.gmail.com
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/lib/code-patching.c |    1 +
+ arch/arm64/kernel/armv8_deprecated.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/lib/code-patching.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2 arch/powerpc/lib/code-patching.c
---- a/arch/powerpc/lib/code-patching.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2
-+++ a/arch/powerpc/lib/code-patching.c
-@@ -14,6 +14,7 @@
- #include <asm/page.h>
- #include <asm/code-patching.h>
+diff -puN arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix arch/arm64/kernel/armv8_deprecated.c
+--- a/arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
++++ a/arch/arm64/kernel/armv8_deprecated.c
+@@ -19,6 +19,7 @@
+ #include <asm/sysreg.h>
+ #include <asm/system_misc.h>
+ #include <asm/traps.h>
++#include <asm/kprobes.h>
  #include <linux/uaccess.h>
-+#include <linux/kprobes.h>
+ #include <asm/cpufeature.h>
  
- 
- int patch_instruction(unsigned int *addr, unsigned int instr)
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
 kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
 
