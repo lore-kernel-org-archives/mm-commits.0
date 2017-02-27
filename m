@@ -1,81 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frv-pci-frv-fix-build-warning.patch removed from -mm
- tree
-Date: Mon, 27 Feb 2017 12:28:18 -0800
-Message-ID: <58b48be2.Z9uIRbckmxrqm9Gl%akpm@linux-foundation.org>
+Subject: [merged] proc-use-rb_entry.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:28:24 -0800
+Message-ID: <58b48be8.b/BOK+HIxsPhglUr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60440 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751978AbdB0U2Z (ORCPT
+        with ESMTP id S1751720AbdB0U2Z (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, dhowells@redhat.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
+To: geliangtang@gmail.com, davem@davemloft.net, dmitry.torokhov@gmail.com, jack@suse.cz, jgross@suse.com, seth.forshee@canonical.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/frv/mb93090-mb00/pci-frv.c: fix build warning
+     Subject: proc: use rb_entry()
 has been removed from the -mm tree.  Its filename was
-     frv-pci-frv-fix-build-warning.patch
+     proc-use-rb_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: arch/frv/mb93090-mb00/pci-frv.c: fix build warning
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: proc: use rb_entry()
 
-The build of frv defconfig gives warning:
+To make the code clearer, use rb_entry() instead of container_of() to
+deal with rbtree.
 
-arch/frv/mb93090-mb00/pci-frv.c:176:5: warning:
-	ignoring return value of 'pci_assign_resource',
-		declared with attribute warn_unused_result
-
-Just print an error message to silence the warning. We can not do much
-here on error.
-
-Link: http://lkml.kernel.org/r/1484256471-5379-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Cc: David Howells <dhowells@redhat.com>
+Link: http://lkml.kernel.org/r/4fd1f82818665705ce75c5156a060ae7caa8e0a9.1482160150.git.geliangtang@gmail.com
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Seth Forshee <seth.forshee@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mb93090-mb00/pci-frv.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/proc/generic.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/mb93090-mb00/pci-frv.c~frv-pci-frv-fix-build-warning arch/frv/mb93090-mb00/pci-frv.c
---- a/arch/frv/mb93090-mb00/pci-frv.c~frv-pci-frv-fix-build-warning
-+++ a/arch/frv/mb93090-mb00/pci-frv.c
-@@ -147,7 +147,7 @@ static void __init pcibios_allocate_reso
- static void __init pcibios_assign_resources(void)
- {
- 	struct pci_dev *dev = NULL;
--	int idx;
-+	int idx, err;
- 	struct resource *r;
+diff -puN fs/proc/generic.c~proc-use-rb_entry fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-use-rb_entry
++++ a/fs/proc/generic.c
+@@ -57,9 +57,9 @@ static struct proc_dir_entry *pde_subdir
+ 	struct rb_node *node = dir->subdir.rb_node;
  
- 	for_each_pci_dev(dev) {
-@@ -172,8 +172,13 @@ static void __init pcibios_assign_resour
- 			 *  the BIOS forgot to do so or because we have decided the old
- 			 *  address was unusable for some reason.
- 			 */
--			if (!r->start && r->end)
--				pci_assign_resource(dev, idx);
-+			if (!r->start && r->end) {
-+				err = pci_assign_resource(dev, idx);
-+				if (err)
-+					dev_err(&dev->dev,
-+						"Failed to assign new address to %d\n",
-+						idx);
-+			}
- 		}
- 	}
- }
+ 	while (node) {
+-		struct proc_dir_entry *de = container_of(node,
+-							 struct proc_dir_entry,
+-							 subdir_node);
++		struct proc_dir_entry *de = rb_entry(node,
++						     struct proc_dir_entry,
++						     subdir_node);
+ 		int result = proc_match(len, name, de);
+ 
+ 		if (result < 0)
+@@ -80,8 +80,9 @@ static bool pde_subdir_insert(struct pro
+ 
+ 	/* Figure out where to put new node */
+ 	while (*new) {
+-		struct proc_dir_entry *this =
+-			container_of(*new, struct proc_dir_entry, subdir_node);
++		struct proc_dir_entry *this = rb_entry(*new,
++						       struct proc_dir_entry,
++						       subdir_node);
+ 		int result = proc_match(de->namelen, de->name, this);
+ 
+ 		parent = *new;
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from geliangtang@gmail.com are
 
+fs-add-i_blocksize-fix.patch
+nilfs2-use-nilfs_btree_node_size.patch
+nilfs2-use-i_blocksize.patch
 
