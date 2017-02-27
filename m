@@ -1,162 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:25:00 -0800
-Message-ID: <58b48b1c.KBSCH7hjPhW57FlR%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:25:32 -0800
+Message-ID: <58b48b3c.ax0cMUyAcdpOofJg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34726 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34728 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751786AbdB0U5A (ORCPT
+        with ESMTP id S1751975AbdB0U5A (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:57:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, dvyukov@google.com, mgorman@techsingularity.net, tj@kernel.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave.jiang@intel.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, nilesh.choudhury@oracle.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: do not depend on cpu hotplug locks inside the allocator
+     Subject: mm: fix get_user_pages() vs device-dax pud mappings
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator.patch
+     mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, page_alloc: do not depend on cpu hotplug locks inside the allocator
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix get_user_pages() vs device-dax pud mappings
 
-Dmitry has reported the following lockdep splat
-[<ffffffff81571db1>] lock_acquire+0x2a1/0x630 kernel/locking/lockdep.c:3753
-[<ffffffff8436697e>] __mutex_lock_common kernel/locking/mutex.c:521 [inline]
-[<ffffffff8436697e>] mutex_lock_nested+0x24e/0xff0 kernel/locking/mutex.c:621
-[<ffffffff818f07ea>] pcpu_alloc+0xbda/0x1280 mm/percpu.c:896
-[<ffffffff818f0ee4>] __alloc_percpu+0x24/0x30 mm/percpu.c:1075
-[<ffffffff816543e3>] smpcfd_prepare_cpu+0x73/0xd0 kernel/smp.c:44
-[<ffffffff814240b4>] cpuhp_invoke_callback+0x254/0x1480 kernel/cpu.c:136
-[<ffffffff81425821>] cpuhp_up_callbacks+0x81/0x2a0 kernel/cpu.c:493
-[<ffffffff81427bf3>] _cpu_up+0x1e3/0x2a0 kernel/cpu.c:1057
-[<ffffffff81427d23>] do_cpu_up+0x73/0xa0 kernel/cpu.c:1087
-[<ffffffff81427d68>] cpu_up+0x18/0x20 kernel/cpu.c:1095
-[<ffffffff854ede84>] smp_init+0xe9/0xee kernel/smp.c:564
-[<ffffffff85482f81>] kernel_init_freeable+0x439/0x690 init/main.c:1010
-[<ffffffff84357083>] kernel_init+0x13/0x180 init/main.c:941
-[<ffffffff84377baa>] ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:433
+A new unit test for the device-dax 1GB enabling currently fails with this
+warning before hanging the test thread:
 
-cpu_hotplug_begin
-  cpu_hotplug.lock
-pcpu_alloc
-  pcpu_alloc_mutex
+ WARNING: CPU: 0 PID: 21 at lib/percpu-refcount.c:155 percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
+ percpu ref (dax_pmem_percpu_release [dax_pmem]) <= 0 (0) after switching to atomic
+ [..]
+ CPU: 0 PID: 21 Comm: rcuos/1 Tainted: G           O    4.10.0-rc7-next-20170207+ #944
+ [..]
+ Call Trace:
+  dump_stack+0x86/0xc3
+  __warn+0xcb/0xf0
+  warn_slowpath_fmt+0x5f/0x80
+  ? rcu_nocb_kthread+0x27a/0x510
+  ? dax_pmem_percpu_exit+0x50/0x50 [dax_pmem]
+  percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
+  ? percpu_ref_exit+0x60/0x60
+  rcu_nocb_kthread+0x339/0x510
+  ? rcu_nocb_kthread+0x27a/0x510
+  kthread+0x101/0x140
 
-[<ffffffff81423012>] get_online_cpus+0x62/0x90 kernel/cpu.c:248
-[<ffffffff8185fcf8>] drain_all_pages+0xf8/0x710 mm/page_alloc.c:2385
-[<ffffffff81865e5d>] __alloc_pages_direct_reclaim mm/page_alloc.c:3440 [inline]
-[<ffffffff81865e5d>] __alloc_pages_slowpath+0x8fd/0x2370 mm/page_alloc.c:3778
-[<ffffffff818681c5>] __alloc_pages_nodemask+0x8f5/0xc60 mm/page_alloc.c:3980
-[<ffffffff818ed0c1>] __alloc_pages include/linux/gfp.h:426 [inline]
-[<ffffffff818ed0c1>] __alloc_pages_node include/linux/gfp.h:439 [inline]
-[<ffffffff818ed0c1>] alloc_pages_node include/linux/gfp.h:453 [inline]
-[<ffffffff818ed0c1>] pcpu_alloc_pages mm/percpu-vm.c:93 [inline]
-[<ffffffff818ed0c1>] pcpu_populate_chunk+0x1e1/0x900 mm/percpu-vm.c:282
-[<ffffffff818f0a11>] pcpu_alloc+0xe01/0x1280 mm/percpu.c:998
-[<ffffffff818f0eb7>] __alloc_percpu_gfp+0x27/0x30 mm/percpu.c:1062
-[<ffffffff817d25b2>] bpf_array_alloc_percpu kernel/bpf/arraymap.c:34 [inline]
-[<ffffffff817d25b2>] array_map_alloc+0x532/0x710 kernel/bpf/arraymap.c:99
-[<ffffffff817ba034>] find_and_alloc_map kernel/bpf/syscall.c:34 [inline]
-[<ffffffff817ba034>] map_create kernel/bpf/syscall.c:188 [inline]
-[<ffffffff817ba034>] SYSC_bpf kernel/bpf/syscall.c:870 [inline]
-[<ffffffff817ba034>] SyS_bpf+0xd64/0x2500 kernel/bpf/syscall.c:827
-[<ffffffff84377941>] entry_SYSCALL_64_fastpath+0x1f/0xc2
+The get_user_pages() path needs to arrange for references to be taken
+against the dev_pagemap instance backing the pud mapping. Refactor the
+existing __gup_device_huge_pmd() to also account for the pud case.
 
-pcpu_alloc
-  pcpu_alloc_mutex
-drain_all_pages
-  get_online_cpus
-    cpu_hotplug.lock
-
-[<ffffffff81427876>] cpu_hotplug_begin+0x206/0x2e0 kernel/cpu.c:304
-[<ffffffff81427ada>] _cpu_up+0xca/0x2a0 kernel/cpu.c:1011
-[<ffffffff81427d23>] do_cpu_up+0x73/0xa0 kernel/cpu.c:1087
-[<ffffffff81427d68>] cpu_up+0x18/0x20 kernel/cpu.c:1095
-[<ffffffff854ede84>] smp_init+0xe9/0xee kernel/smp.c:564
-[<ffffffff85482f81>] kernel_init_freeable+0x439/0x690 init/main.c:1010
-[<ffffffff84357083>] kernel_init+0x13/0x180 init/main.c:941
-[<ffffffff84377baa>] ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:433
-
-cpu_hotplug_begin
-  cpu_hotplug.lock
-
-Pulling cpu hotplug locks inside the page allocator is just too
-dangerous. Let's remove the dependency by dropping get_online_cpus()
-from drain_all_pages. This is not so simple though because now we do not
-have a protection against cpu hotplug which means 2 things:
-	- the work item might be executed on a different cpu in worker
-	  from unbound pool so it doesn't run on pinned on the cpu
-	- we have to make sure that we do not race with page_alloc_cpu_dead
-	  calling drain_pages_zone
-
-Disabling preemption in drain_local_pages_wq will solve the first
-problem drain_local_pages will determine its local CPU from the WQ
-context which will be stable after that point, page_alloc_cpu_dead
-is pinned to the CPU already. The later condition is achieved
-by disabling IRQs in drain_pages_zone.
-
-Fixes: mm, page_alloc: drain per-cpu pages from workqueue context
-Link: http://lkml.kernel.org/r/20170207201950.20482-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/148653181153.38226.9605457830505509385.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/x86/mm/gup.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-do-not-depend-on-cpu-hotplug-locks-inside-the-allocator
-+++ a/mm/page_alloc.c
-@@ -2341,7 +2341,16 @@ void drain_local_pages(struct zone *zone
+diff -puN arch/x86/mm/gup.c~mm-fix-get_user_pages-vs-device-dax-pud-mappings arch/x86/mm/gup.c
+--- a/arch/x86/mm/gup.c~mm-fix-get_user_pages-vs-device-dax-pud-mappings
++++ a/arch/x86/mm/gup.c
+@@ -154,14 +154,12 @@ static inline void get_head_page_multipl
+ 	SetPageReferenced(page);
+ }
  
- static void drain_local_pages_wq(struct work_struct *work)
+-static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
++static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+ 		unsigned long end, struct page **pages, int *nr)
  {
-+	/*
-+	 * drain_all_pages doesn't use proper cpu hotplug protection so
-+	 * we can race with cpu offline when the WQ can move this from
-+	 * a cpu pinned worker to an unbound one. We can operate on a different
-+	 * cpu which is allright but we also have to make sure to not move to
-+	 * a different one.
-+	 */
-+	preempt_disable();
- 	drain_local_pages(NULL);
-+	preempt_enable();
+ 	int nr_start = *nr;
+-	unsigned long pfn = pmd_pfn(pmd);
+ 	struct dev_pagemap *pgmap = NULL;
+ 
+-	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
+ 	do {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+@@ -180,6 +178,24 @@ static int __gup_device_huge_pmd(pmd_t p
+ 	return 1;
  }
  
- /*
-@@ -2366,11 +2375,6 @@ void drain_all_pages(struct zone *zone)
- 	if (current->flags & PF_WQ_WORKER)
- 		return;
++static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
++		unsigned long end, struct page **pages, int *nr)
++{
++	unsigned long fault_pfn;
++
++	fault_pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
++}
++
++static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
++		unsigned long end, struct page **pages, int *nr)
++{
++	unsigned long fault_pfn;
++
++	fault_pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
++	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
++}
++
+ static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
+ 		unsigned long end, int write, struct page **pages, int *nr)
+ {
+@@ -251,9 +267,13 @@ static noinline int gup_huge_pud(pud_t p
  
--	/*
--	 * As this can be called from reclaim context, do not reenter reclaim.
--	 * An allocation failure can be handled, it's simply slower
--	 */
--	get_online_cpus();
- 	works = alloc_percpu_gfp(struct work_struct, GFP_ATOMIC);
+ 	if (!pte_allows_gup(pud_val(pud), write))
+ 		return 0;
++
++	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
++	if (pud_devmap(pud))
++		return __gup_device_huge_pud(pud, addr, end, pages, nr);
++
+ 	/* hugepages are never "special" */
+ 	VM_BUG_ON(pud_flags(pud) & _PAGE_SPECIAL);
+-	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
  
- 	/*
-@@ -2421,7 +2425,6 @@ void drain_all_pages(struct zone *zone)
- 			flush_work(&work);
- 		}
- 	}
--	put_online_cpus();
- }
- 
- #ifdef CONFIG_HIBERNATION
+ 	refs = 0;
+ 	head = pud_page(pud);
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 
