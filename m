@@ -1,175 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memblock-embed-memblock-type-name-within-struct-memblock_type.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:24:28 -0800
-Message-ID: <58b48afc.jxbQX4urfeGaSp53%akpm@linux-foundation.org>
+Subject: [merged] mm-vmscan-scan-dirty-pages-even-in-laptop-mode.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:24:39 -0800
+Message-ID: <58b48b07.5KO5IJ8wgFc0AfmU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60414 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751529AbdB0UYq (ORCPT
+        with ESMTP id S1751747AbdB0UYq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:24:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, phacht@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: embed memblock type name within struct memblock_type
+     Subject: mm: vmscan: scan dirty pages even in laptop mode
 has been removed from the -mm tree.  Its filename was
-     memblock-embed-memblock-type-name-within-struct-memblock_type.patch
+     mm-vmscan-scan-dirty-pages-even-in-laptop-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: memblock: embed memblock type name within struct memblock_type
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: scan dirty pages even in laptop mode
 
-Provide the name of each memblock type with struct memblock_type. This
-allows to get rid of the function memblock_type_name() and duplicating
-the type names in __memblock_dump_all().
+Patch series "mm: vmscan: fix kswapd writeback regression".
 
-The only memblock_type usage out of mm/memblock.c seems to be
-arch/s390/kernel/crash_dump.c. While at it, give it a name.
+We noticed a regression on multiple hadoop workloads when moving from 3.10
+to 4.0 and 4.6, which involves kswapd getting tangled up in page writeout,
+causing direct reclaim herds that also don't make progress.
 
-Link: http://lkml.kernel.org/r/20170120123456.46508-4-heiko.carstens@de.ibm.com
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+I tracked it down to the thrash avoidance efforts after 3.10 that make the
+kernel better at keeping use-once cache and use-many cache sorted on the
+inactive and active list, with more aggressive protection of the active
+list as long as there is inactive cache.  Unfortunately, our workload's
+use-once cache is mostly from streaming writes.  Waiting for writes to
+avoid potential reloads in the future is not a good tradeoff.
+
+These patches do the following:
+
+1. Wake the flushers when kswapd sees a lump of dirty pages. It's
+   possible to be below the dirty background limit and still have
+   cache velocity push them through the LRU. So start a-flushin'.
+
+2. Let kswapd only write pages that have been rotated twice. This
+   makes sure we really tried to get all the clean pages on the
+   inactive list before resorting to horrible LRU-order writeback.
+
+3. Move rotating dirty pages off the inactive list. Instead of
+   churning or waiting on page writeback, we'll go after clean active
+   cache. This might lead to thrashing, but in this state memory
+   demand outstrips IO speed anyway, and reads are faster than writes.
+
+Mel backported the series to 4.10-rc5 with one minor conflict and ran a
+couple of tests on it.  Mix of read/write random workload didn't show
+anything interesting.  Write-only database didn't show much difference
+in performance but there were slight reductions in IO -- probably in
+the noise.
+
+simoop did show big differences although not as big as Mel expected.
+This is Chris Mason's workload that similate the VM activity of hadoop.
+Mel won't go through the full details but over the samples measured
+during an hour it reported
+
+                                         4.10.0-rc5            4.10.0-rc5
+                                            vanilla         johannes-v1r1
+Amean    p50-Read             21346531.56 (  0.00%) 21697513.24 ( -1.64%)
+Amean    p95-Read             24700518.40 (  0.00%) 25743268.98 ( -4.22%)
+Amean    p99-Read             27959842.13 (  0.00%) 28963271.11 ( -3.59%)
+Amean    p50-Write                1138.04 (  0.00%)      989.82 ( 13.02%)
+Amean    p95-Write             1106643.48 (  0.00%)    12104.00 ( 98.91%)
+Amean    p99-Write             1569213.22 (  0.00%)    36343.38 ( 97.68%)
+Amean    p50-Allocation          85159.82 (  0.00%)    79120.70 (  7.09%)
+Amean    p95-Allocation         204222.58 (  0.00%)   129018.43 ( 36.82%)
+Amean    p99-Allocation         278070.04 (  0.00%)   183354.43 ( 34.06%)
+Amean    final-p50-Read       21266432.00 (  0.00%) 21921792.00 ( -3.08%)
+Amean    final-p95-Read       24870912.00 (  0.00%) 26116096.00 ( -5.01%)
+Amean    final-p99-Read       28147712.00 (  0.00%) 29523968.00 ( -4.89%)
+Amean    final-p50-Write          1130.00 (  0.00%)      977.00 ( 13.54%)
+Amean    final-p95-Write       1033216.00 (  0.00%)     2980.00 ( 99.71%)
+Amean    final-p99-Write       1517568.00 (  0.00%)    32672.00 ( 97.85%)
+Amean    final-p50-Allocation    86656.00 (  0.00%)    78464.00 (  9.45%)
+Amean    final-p95-Allocation   211712.00 (  0.00%)   116608.00 ( 44.92%)
+Amean    final-p99-Allocation   287232.00 (  0.00%)   168704.00 ( 41.27%)
+
+The latencies are actually completely horrific in comparison to 4.4
+(and 4.10-rc5 is worse than 4.9 according to historical data for
+reasons Mel hasn't analysed yet).
+
+Still, 95% of write latency (p95-write) is halved by the series and
+allocation latency is way down.  Direct reclaim activity is one fifth
+of what it was according to vmstats.  Kswapd activity is higher but
+this is not necessarily surprising.  Kswapd efficiency is unchanged at
+99% (99% of pages scanned were reclaimed) but direct reclaim efficiency
+went from 77% to 99%
+
+In the vanilla kernel, 627MB of data was written back from reclaim
+context.  With the series, no data was written back.  With or without
+the patch, pages are being immediately reclaimed after writeback
+completes.  However, with the patch, only 1/8th of the pages are
+reclaimed like this.
+
+This patch (of 5):
+
+We have an elaborate dirty/writeback throttling mechanism inside the
+reclaim scanner, but for that to work the pages have to go through
+shrink_page_list() and get counted for what they are.  Otherwise, we mess
+up the LRU order and don't match reclaim speed to writeback.
+
+Especially during deactivation, there is never a reason to skip dirty
+pages; nothing is even trying to write them out from there.  Don't mess up
+the LRU order for nothing, shuffle these pages along.
+
+Link: http://lkml.kernel.org/r/20170123181641.23938-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/crash_dump.c |    1 
- include/linux/memblock.h      |    1 
- mm/memblock.c                 |   35 ++++++++++----------------------
- 3 files changed, 13 insertions(+), 24 deletions(-)
+ include/linux/mmzone.h |    2 --
+ mm/vmscan.c            |   14 ++------------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN arch/s390/kernel/crash_dump.c~memblock-embed-memblock-type-name-within-struct-memblock_type arch/s390/kernel/crash_dump.c
---- a/arch/s390/kernel/crash_dump.c~memblock-embed-memblock-type-name-within-struct-memblock_type
-+++ a/arch/s390/kernel/crash_dump.c
-@@ -32,6 +32,7 @@ static struct memblock_type oldmem_type
- 	.max = 1,
- 	.total_size = 0,
- 	.regions = &oldmem_region,
-+	.name = "oldmem",
- };
+diff -puN include/linux/mmzone.h~mm-vmscan-scan-dirty-pages-even-in-laptop-mode include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-vmscan-scan-dirty-pages-even-in-laptop-mode
++++ a/include/linux/mmzone.h
+@@ -236,8 +236,6 @@ struct lruvec {
+ #define LRU_ALL_ANON (BIT(LRU_INACTIVE_ANON) | BIT(LRU_ACTIVE_ANON))
+ #define LRU_ALL	     ((1 << NR_LRU_LISTS) - 1)
  
- struct save_area {
-diff -puN include/linux/memblock.h~memblock-embed-memblock-type-name-within-struct-memblock_type include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-embed-memblock-type-name-within-struct-memblock_type
-+++ a/include/linux/memblock.h
-@@ -42,6 +42,7 @@ struct memblock_type {
- 	unsigned long max;	/* size of the allocated array */
- 	phys_addr_t total_size;	/* size of all regions */
- 	struct memblock_region *regions;
-+	char *name;
- };
+-/* Isolate clean file */
+-#define ISOLATE_CLEAN		((__force isolate_mode_t)0x1)
+ /* Isolate unmapped file */
+ #define ISOLATE_UNMAPPED	((__force isolate_mode_t)0x2)
+ /* Isolate for asynchronous migration */
+diff -puN mm/vmscan.c~mm-vmscan-scan-dirty-pages-even-in-laptop-mode mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-scan-dirty-pages-even-in-laptop-mode
++++ a/mm/vmscan.c
+@@ -87,6 +87,7 @@ struct scan_control {
+ 	/* The highest zone to isolate pages for reclaim from */
+ 	enum zone_type reclaim_idx;
  
- struct memblock {
-diff -puN mm/memblock.c~memblock-embed-memblock-type-name-within-struct-memblock_type mm/memblock.c
---- a/mm/memblock.c~memblock-embed-memblock-type-name-within-struct-memblock_type
-+++ a/mm/memblock.c
-@@ -35,15 +35,18 @@ struct memblock memblock __initdata_memb
- 	.memory.regions		= memblock_memory_init_regions,
- 	.memory.cnt		= 1,	/* empty dummy entry */
- 	.memory.max		= INIT_MEMBLOCK_REGIONS,
-+	.memory.name		= "memory",
++	/* Writepage batching in laptop mode; RECLAIM_WRITE */
+ 	unsigned int may_writepage:1;
  
- 	.reserved.regions	= memblock_reserved_init_regions,
- 	.reserved.cnt		= 1,	/* empty dummy entry */
- 	.reserved.max		= INIT_MEMBLOCK_REGIONS,
-+	.reserved.name		= "reserved",
+ 	/* Can mapped pages be reclaimed? */
+@@ -1373,13 +1374,10 @@ int __isolate_lru_page(struct page *page
+ 	 * wants to isolate pages it will be able to operate on without
+ 	 * blocking - clean pages for the most part.
+ 	 *
+-	 * ISOLATE_CLEAN means that only clean pages should be isolated. This
+-	 * is used by reclaim when it is cannot write to backing storage
+-	 *
+ 	 * ISOLATE_ASYNC_MIGRATE is used to indicate that it only wants to pages
+ 	 * that it is possible to migrate without blocking
+ 	 */
+-	if (mode & (ISOLATE_CLEAN|ISOLATE_ASYNC_MIGRATE)) {
++	if (mode & ISOLATE_ASYNC_MIGRATE) {
+ 		/* All the caller can do on PageWriteback is block */
+ 		if (PageWriteback(page))
+ 			return ret;
+@@ -1387,10 +1385,6 @@ int __isolate_lru_page(struct page *page
+ 		if (PageDirty(page)) {
+ 			struct address_space *mapping;
  
- #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
- 	.physmem.regions	= memblock_physmem_init_regions,
- 	.physmem.cnt		= 1,	/* empty dummy entry */
- 	.physmem.max		= INIT_PHYSMEM_REGIONS,
-+	.physmem.name		= "physmem",
- #endif
- 
- 	.bottom_up		= false,
-@@ -64,22 +67,6 @@ ulong __init_memblock choose_memblock_fl
- 	return system_has_some_mirror ? MEMBLOCK_MIRROR : MEMBLOCK_NONE;
- }
- 
--/* inline so we don't get a warning when pr_debug is compiled out */
--static __init_memblock const char *
--memblock_type_name(struct memblock_type *type)
--{
--	if (type == &memblock.memory)
--		return "memory";
--	else if (type == &memblock.reserved)
--		return "reserved";
--#ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
--	else if (type == &memblock.physmem)
--		return "physmem";
--#endif
--	else
--		return "unknown";
--}
+-			/* ISOLATE_CLEAN means only clean pages */
+-			if (mode & ISOLATE_CLEAN)
+-				return ret;
 -
- /* adjust *@size so that (@base + *@size) doesn't overflow, return new size */
- static inline phys_addr_t memblock_cap_size(phys_addr_t base, phys_addr_t *size)
- {
-@@ -406,12 +393,12 @@ static int __init_memblock memblock_doub
- 	}
- 	if (!addr) {
- 		pr_err("memblock: Failed to double %s array from %ld to %ld entries !\n",
--		       memblock_type_name(type), type->max, type->max * 2);
-+		       type->name, type->max, type->max * 2);
- 		return -1;
- 	}
+ 			/*
+ 			 * Only pages without mappings or that have a
+ 			 * ->migratepage callback are possible to migrate
+@@ -1731,8 +1725,6 @@ shrink_inactive_list(unsigned long nr_to
  
- 	memblock_dbg("memblock: %s is doubled to %ld at [%#010llx-%#010llx]",
--			memblock_type_name(type), type->max * 2, (u64)addr,
-+			type->name, type->max * 2, (u64)addr,
- 			(u64)addr + new_size - 1);
+ 	if (!sc->may_unmap)
+ 		isolate_mode |= ISOLATE_UNMAPPED;
+-	if (!sc->may_writepage)
+-		isolate_mode |= ISOLATE_CLEAN;
  
- 	/*
-@@ -1697,14 +1684,14 @@ phys_addr_t __init_memblock memblock_get
- 	return memblock.current_limit;
- }
+ 	spin_lock_irq(&pgdat->lru_lock);
  
--static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
-+static void __init_memblock memblock_dump(struct memblock_type *type)
- {
- 	phys_addr_t base, end, size;
- 	unsigned long flags;
- 	int idx;
- 	struct memblock_region *rgn;
+@@ -1929,8 +1921,6 @@ static void shrink_active_list(unsigned
  
--	pr_info(" %s.cnt  = 0x%lx\n", name, type->cnt);
-+	pr_info(" %s.cnt  = 0x%lx\n", type->name, type->cnt);
+ 	if (!sc->may_unmap)
+ 		isolate_mode |= ISOLATE_UNMAPPED;
+-	if (!sc->may_writepage)
+-		isolate_mode |= ISOLATE_CLEAN;
  
- 	for_each_memblock_type(type, rgn) {
- 		char nid_buf[32] = "";
-@@ -1719,7 +1706,7 @@ static void __init_memblock memblock_dum
- 				 memblock_get_region_node(rgn));
- #endif
- 		pr_info(" %s[%#x]\t[%pa-%pa], %pa bytes%s flags: %#lx\n",
--			name, idx, &base, &end, &size, nid_buf, flags);
-+			type->name, idx, &base, &end, &size, nid_buf, flags);
- 	}
- }
- 
-@@ -1730,10 +1717,10 @@ void __init_memblock __memblock_dump_all
- 		&memblock.memory.total_size,
- 		&memblock.reserved.total_size);
- 
--	memblock_dump(&memblock.memory, "memory");
--	memblock_dump(&memblock.reserved, "reserved");
-+	memblock_dump(&memblock.memory);
-+	memblock_dump(&memblock.reserved);
- #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
--	memblock_dump(&memblock.physmem, "physmem");
-+	memblock_dump(&memblock.physmem);
- #endif
- }
+ 	spin_lock_irq(&pgdat->lru_lock);
  
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
