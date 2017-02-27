@@ -1,71 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [patch 61/78] scripts/spelling.txt: add "explictely" pattern and
- fix typo instances
-Date: Mon, 27 Feb 2017 14:29:36 -0800
-Message-ID: <58b4a850.b6yKJDeKntF9OsLp%akpm@linux-foundation.org>
+Subject: [patch 64/78] scripts/spelling.txt: add "deintialize(d)" pattern
+ and fix typo instances
+Date: Mon, 27 Feb 2017 14:29:45 -0800
+Message-ID: <58b4a859.mxF5xv2ZmfR8Ux3V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45222 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45046 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751372AbdB0Wdi (ORCPT
+        with ESMTP id S1751465AbdB0Wdi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:33:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
 
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "explictely" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "deintialize(d)" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  explictely||explicitly
+  deintializing||deinitializing
+  deintialize||deinitialize
+  deintialized||deinitialized
 
-Link: http://lkml.kernel.org/r/1481573103-11329-25-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-28-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/device-mapper/dm-raid.txt |    2 +-
- drivers/char/pcmcia/cm4000_cs.c         |    2 +-
- scripts/spelling.txt                    |    1 +
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/crypto/caam/ctrl.c                        |    2 +-
+ drivers/net/wireless/rsi/rsi_91x_usb.c            |    2 +-
+ drivers/staging/wilc1000/linux_wlan.c             |    2 +-
+ drivers/staging/wilc1000/wilc_wfi_cfgoperations.c |    2 +-
+ scripts/spelling.txt                              |    3 +++
+ sound/soc/amd/acp-pcm-dma.c                       |    2 +-
+ 6 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/device-mapper/dm-raid.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances Documentation/device-mapper/dm-raid.txt
---- a/Documentation/device-mapper/dm-raid.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances
-+++ a/Documentation/device-mapper/dm-raid.txt
-@@ -319,7 +319,7 @@ Version History
- 1.5.2   'mismatch_cnt' is zero unless [last_]sync_action is "check".
- 1.6.0   Add discard support (and devices_handle_discard_safely module param).
- 1.7.0   Add support for MD RAID0 mappings.
--1.8.0   Explictely check for compatible flags in the superblock metadata
-+1.8.0   Explicitly check for compatible flags in the superblock metadata
- 	and reject to start the raid set if any are set by a newer
- 	target version, thus avoiding data corruption on a raid set
- 	with a reshape in progress.
-diff -puN drivers/char/pcmcia/cm4000_cs.c~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances
-+++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -655,7 +655,7 @@ static void terminate_monitor(struct cm4
-  * monitor the card every 50msec. as a side-effect, retrieve the
-  * atr once a card is inserted. another side-effect of retrieving the
-  * atr is that the card will be powered on, so there is no need to
-- * power on the card explictely from the application: the driver
-+ * power on the card explicitly from the application: the driver
-  * is already doing that for you.
-  */
+diff -puN drivers/crypto/caam/ctrl.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/crypto/caam/ctrl.c
+--- a/drivers/crypto/caam/ctrl.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/crypto/caam/ctrl.c
+@@ -269,7 +269,7 @@ static int deinstantiate_rng(struct devi
+ 		/*
+ 		 * If the corresponding bit is set, then it means the state
+ 		 * handle was initialized by us, and thus it needs to be
+-		 * deintialized as well
++		 * deinitialized as well
+ 		 */
+ 		if ((1 << sh_idx) & state_handle_mask) {
+ 			/*
+diff -puN drivers/net/wireless/rsi/rsi_91x_usb.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/net/wireless/rsi/rsi_91x_usb.c
+--- a/drivers/net/wireless/rsi/rsi_91x_usb.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/net/wireless/rsi/rsi_91x_usb.c
+@@ -516,7 +516,7 @@ err:
  
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances
+ /**
+  * rsi_disconnect() - This function performs the reverse of the probe function,
+- *		      it deintialize the driver structure.
++ *		      it deinitialize the driver structure.
+  * @pfunction: Pointer to the USB interface structure.
+  *
+  * Return: None.
+diff -puN drivers/staging/wilc1000/linux_wlan.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/staging/wilc1000/linux_wlan.c
+--- a/drivers/staging/wilc1000/linux_wlan.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/staging/wilc1000/linux_wlan.c
+@@ -213,7 +213,7 @@ static void deinit_irq(struct net_device
+ 	vif = netdev_priv(dev);
+ 	wilc = vif->wilc;
+ 
+-	/* Deintialize IRQ */
++	/* Deinitialize IRQ */
+ 	if (wilc->dev_irq_num) {
+ 		free_irq(wilc->dev_irq_num, wilc);
+ 		gpio_free(wilc->gpio);
+diff -puN drivers/staging/wilc1000/wilc_wfi_cfgoperations.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/staging/wilc1000/wilc_wfi_cfgoperations.c
+--- a/drivers/staging/wilc1000/wilc_wfi_cfgoperations.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/staging/wilc1000/wilc_wfi_cfgoperations.c
+@@ -2357,7 +2357,7 @@ int wilc_deinit_host_int(struct net_devi
+ 		del_timer_sync(&wilc_during_ip_timer);
+ 
+ 	if (s32Error)
+-		netdev_err(net, "Error while deintializing host interface\n");
++		netdev_err(net, "Error while deinitializing host interface\n");
+ 
+ 	return s32Error;
+ }
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -428,6 +428,7 @@ expecially||especially
- explicite||explicit
- explicitely||explicitly
- explict||explicit
-+explictely||explicitly
- explictly||explicitly
- expresion||expression
- exprimental||experimental
+@@ -322,6 +322,9 @@ defintion||definition
+ defintions||definitions
+ defualt||default
+ defult||default
++deintializing||deinitializing
++deintialize||deinitialize
++deintialized||deinitialized
+ deivce||device
+ delared||declared
+ delare||declare
+diff -puN sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances sound/soc/amd/acp-pcm-dma.c
+--- a/sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/sound/soc/amd/acp-pcm-dma.c
+@@ -506,7 +506,7 @@ static int acp_init(void __iomem *acp_mm
+ 	return 0;
+ }
+ 
+-/* Deintialize ACP */
++/* Deinitialize ACP */
+ static int acp_deinit(void __iomem *acp_mmio)
+ {
+ 	u32 val;
 _
