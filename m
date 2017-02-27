@@ -1,419 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] z3fold-use-per-page-spinlock.patch removed from -mm tree
-Date: Mon, 27 Feb 2017 12:25:40 -0800
-Message-ID: <58b48b44.5eOkmJI4dRq1BR6+%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 14:17:03 -0800
+Message-ID: <58b4a55f.yBRlqfwPxA2XHHG+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44558 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751894AbdB0WV7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:21:59 -0500
+        with ESMTP id S1751583AbdB0W0n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:26:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, mcgrof@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: use per-page spinlock
+     Subject: powerpc/kprobes: fixup for kprobes declarations moving
 has been removed from the -mm tree.  Its filename was
-     z3fold-use-per-page-spinlock.patch
+     kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: use per-page spinlock
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: powerpc/kprobes: fixup for kprobes declarations moving
 
-Most of z3fold operations are in-page, such as modifying z3fold page
-header or moving z3fold objects within a page.  Taking per-pool spinlock
-to protect per-page objects is therefore suboptimal, and the idea of
-having a per-page spinlock (or rwlock) has been around for some time.
-
-This patch implements spinlock-based per-page locking mechanism which is
-lightweight enough to normally fit ok into the z3fold header.
-
-Link: http://lkml.kernel.org/r/20170131214438.433e0a5fda908337b63206d3@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Reviewed-by: Dan Streetman <ddstreet@ieee.org>
+Link: http://lkml.kernel.org/r/20170214165933.13ebd4f4@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |  148 +++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 106 insertions(+), 42 deletions(-)
+ arch/powerpc/lib/code-patching.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/z3fold.c~z3fold-use-per-page-spinlock mm/z3fold.c
---- a/mm/z3fold.c~z3fold-use-per-page-spinlock
-+++ a/mm/z3fold.c
-@@ -51,6 +51,7 @@ enum buddy {
-  * struct z3fold_header - z3fold page metadata occupying the first chunk of each
-  *			z3fold page, except for HEADLESS pages
-  * @buddy:	links the z3fold page into the relevant list in the pool
-+ * @page_lock:		per-page lock
-  * @first_chunks:	the size of the first buddy in chunks, 0 if free
-  * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
-  * @last_chunks:	the size of the last buddy in chunks, 0 if free
-@@ -58,6 +59,7 @@ enum buddy {
-  */
- struct z3fold_header {
- 	struct list_head buddy;
-+	spinlock_t page_lock;
- 	unsigned short first_chunks;
- 	unsigned short middle_chunks;
- 	unsigned short last_chunks;
-@@ -148,6 +150,7 @@ static struct z3fold_header *init_z3fold
- 	clear_bit(PAGE_HEADLESS, &page->private);
- 	clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
+diff -puN arch/powerpc/lib/code-patching.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2 arch/powerpc/lib/code-patching.c
+--- a/arch/powerpc/lib/code-patching.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix-2
++++ a/arch/powerpc/lib/code-patching.c
+@@ -14,6 +14,7 @@
+ #include <asm/page.h>
+ #include <asm/code-patching.h>
+ #include <linux/uaccess.h>
++#include <linux/kprobes.h>
  
-+	spin_lock_init(&zhdr->page_lock);
- 	zhdr->first_chunks = 0;
- 	zhdr->middle_chunks = 0;
- 	zhdr->last_chunks = 0;
-@@ -163,6 +166,19 @@ static void free_z3fold_page(struct z3fo
- 	__free_page(virt_to_page(zhdr));
- }
  
-+/* Lock a z3fold page */
-+static inline void z3fold_page_lock(struct z3fold_header *zhdr)
-+{
-+	spin_lock(&zhdr->page_lock);
-+}
-+
-+/* Unlock a z3fold page */
-+static inline void z3fold_page_unlock(struct z3fold_header *zhdr)
-+{
-+	spin_unlock(&zhdr->page_lock);
-+}
-+
-+
- /*
-  * Encodes the handle of a particular buddy within a z3fold page
-  * Pool lock should be held as this function accesses first_num
-@@ -351,50 +367,60 @@ static int z3fold_alloc(struct z3fold_po
- 		bud = HEADLESS;
- 	else {
- 		chunks = size_to_chunks(size);
--		spin_lock(&pool->lock);
- 
- 		/* First, try to find an unbuddied z3fold page. */
- 		zhdr = NULL;
- 		for_each_unbuddied_list(i, chunks) {
--			if (!list_empty(&pool->unbuddied[i])) {
--				zhdr = list_first_entry(&pool->unbuddied[i],
-+			spin_lock(&pool->lock);
-+			zhdr = list_first_entry_or_null(&pool->unbuddied[i],
- 						struct z3fold_header, buddy);
--				page = virt_to_page(zhdr);
--				if (zhdr->first_chunks == 0) {
--					if (zhdr->middle_chunks != 0 &&
--					    chunks >= zhdr->start_middle)
--						bud = LAST;
--					else
--						bud = FIRST;
--				} else if (zhdr->last_chunks == 0)
-+			if (!zhdr) {
-+				spin_unlock(&pool->lock);
-+				continue;
-+			}
-+			list_del_init(&zhdr->buddy);
-+			spin_unlock(&pool->lock);
-+
-+			page = virt_to_page(zhdr);
-+			z3fold_page_lock(zhdr);
-+			if (zhdr->first_chunks == 0) {
-+				if (zhdr->middle_chunks != 0 &&
-+				    chunks >= zhdr->start_middle)
- 					bud = LAST;
--				else if (zhdr->middle_chunks == 0)
--					bud = MIDDLE;
--				else {
--					pr_err("No free chunks in unbuddied\n");
--					WARN_ON(1);
--					continue;
--				}
--				list_del(&zhdr->buddy);
--				goto found;
-+				else
-+					bud = FIRST;
-+			} else if (zhdr->last_chunks == 0)
-+				bud = LAST;
-+			else if (zhdr->middle_chunks == 0)
-+				bud = MIDDLE;
-+			else {
-+				spin_lock(&pool->lock);
-+				list_add(&zhdr->buddy, &pool->buddied);
-+				spin_unlock(&pool->lock);
-+				z3fold_page_unlock(zhdr);
-+				pr_err("No free chunks in unbuddied\n");
-+				WARN_ON(1);
-+				continue;
- 			}
-+			goto found;
- 		}
- 		bud = FIRST;
--		spin_unlock(&pool->lock);
- 	}
- 
- 	/* Couldn't find unbuddied z3fold page, create new one */
- 	page = alloc_page(gfp);
- 	if (!page)
- 		return -ENOMEM;
--	spin_lock(&pool->lock);
-+
- 	atomic64_inc(&pool->pages_nr);
- 	zhdr = init_z3fold_page(page);
- 
- 	if (bud == HEADLESS) {
- 		set_bit(PAGE_HEADLESS, &page->private);
-+		spin_lock(&pool->lock);
- 		goto headless;
- 	}
-+	z3fold_page_lock(zhdr);
- 
- found:
- 	if (bud == FIRST)
-@@ -406,6 +432,7 @@ found:
- 		zhdr->start_middle = zhdr->first_chunks + ZHDR_CHUNKS;
- 	}
- 
-+	spin_lock(&pool->lock);
- 	if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0 ||
- 			zhdr->middle_chunks == 0) {
- 		/* Add to unbuddied list */
-@@ -425,6 +452,8 @@ headless:
- 
- 	*handle = encode_handle(zhdr, bud);
- 	spin_unlock(&pool->lock);
-+	if (bud != HEADLESS)
-+		z3fold_page_unlock(zhdr);
- 
- 	return 0;
- }
-@@ -446,7 +475,6 @@ static void z3fold_free(struct z3fold_po
- 	struct page *page;
- 	enum buddy bud;
- 
--	spin_lock(&pool->lock);
- 	zhdr = handle_to_z3fold_header(handle);
- 	page = virt_to_page(zhdr);
- 
-@@ -454,6 +482,7 @@ static void z3fold_free(struct z3fold_po
- 		/* HEADLESS page stored */
- 		bud = HEADLESS;
- 	} else {
-+		z3fold_page_lock(zhdr);
- 		bud = handle_to_buddy(handle);
- 
- 		switch (bud) {
-@@ -470,37 +499,59 @@ static void z3fold_free(struct z3fold_po
- 		default:
- 			pr_err("%s: unknown bud %d\n", __func__, bud);
- 			WARN_ON(1);
--			spin_unlock(&pool->lock);
-+			z3fold_page_unlock(zhdr);
- 			return;
- 		}
- 	}
- 
- 	if (test_bit(UNDER_RECLAIM, &page->private)) {
- 		/* z3fold page is under reclaim, reclaim will free */
--		spin_unlock(&pool->lock);
-+		if (bud != HEADLESS)
-+			z3fold_page_unlock(zhdr);
- 		return;
- 	}
- 
- 	/* Remove from existing buddy list */
--	if (bud != HEADLESS)
--		list_del(&zhdr->buddy);
-+	if (bud != HEADLESS) {
-+		spin_lock(&pool->lock);
-+		/*
-+		 * this object may have been removed from its list by
-+		 * z3fold_alloc(). In that case we just do nothing,
-+		 * z3fold_alloc() will allocate an object and add the page
-+		 * to the relevant list.
-+		 */
-+		if (!list_empty(&zhdr->buddy)) {
-+			list_del(&zhdr->buddy);
-+		} else {
-+			spin_unlock(&pool->lock);
-+			z3fold_page_unlock(zhdr);
-+			return;
-+		}
-+		spin_unlock(&pool->lock);
-+	}
- 
- 	if (bud == HEADLESS ||
- 	    (zhdr->first_chunks == 0 && zhdr->middle_chunks == 0 &&
- 			zhdr->last_chunks == 0)) {
- 		/* z3fold page is empty, free */
-+		spin_lock(&pool->lock);
- 		list_del(&page->lru);
-+		spin_unlock(&pool->lock);
- 		clear_bit(PAGE_HEADLESS, &page->private);
-+		if (bud != HEADLESS)
-+			z3fold_page_unlock(zhdr);
- 		free_z3fold_page(zhdr);
- 		atomic64_dec(&pool->pages_nr);
- 	} else {
- 		z3fold_compact_page(zhdr);
- 		/* Add to the unbuddied list */
-+		spin_lock(&pool->lock);
- 		freechunks = num_free_chunks(zhdr);
- 		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		spin_unlock(&pool->lock);
-+		z3fold_page_unlock(zhdr);
- 	}
- 
--	spin_unlock(&pool->lock);
- }
- 
- /**
-@@ -547,12 +598,15 @@ static int z3fold_reclaim_page(struct z3
- 	unsigned long first_handle = 0, middle_handle = 0, last_handle = 0;
- 
- 	spin_lock(&pool->lock);
--	if (!pool->ops || !pool->ops->evict || list_empty(&pool->lru) ||
--			retries == 0) {
-+	if (!pool->ops || !pool->ops->evict || retries == 0) {
- 		spin_unlock(&pool->lock);
- 		return -EINVAL;
- 	}
- 	for (i = 0; i < retries; i++) {
-+		if (list_empty(&pool->lru)) {
-+			spin_unlock(&pool->lock);
-+			return -EINVAL;
-+		}
- 		page = list_last_entry(&pool->lru, struct page, lru);
- 		list_del(&page->lru);
- 
-@@ -561,6 +615,8 @@ static int z3fold_reclaim_page(struct z3
- 		zhdr = page_address(page);
- 		if (!test_bit(PAGE_HEADLESS, &page->private)) {
- 			list_del(&zhdr->buddy);
-+			spin_unlock(&pool->lock);
-+			z3fold_page_lock(zhdr);
- 			/*
- 			 * We need encode the handles before unlocking, since
- 			 * we can race with free that will set
-@@ -575,13 +631,13 @@ static int z3fold_reclaim_page(struct z3
- 				middle_handle = encode_handle(zhdr, MIDDLE);
- 			if (zhdr->last_chunks)
- 				last_handle = encode_handle(zhdr, LAST);
-+			z3fold_page_unlock(zhdr);
- 		} else {
- 			first_handle = encode_handle(zhdr, HEADLESS);
- 			last_handle = middle_handle = 0;
-+			spin_unlock(&pool->lock);
- 		}
- 
--		spin_unlock(&pool->lock);
--
- 		/* Issue the eviction callback(s) */
- 		if (middle_handle) {
- 			ret = pool->ops->evict(pool, middle_handle);
-@@ -599,7 +655,8 @@ static int z3fold_reclaim_page(struct z3
- 				goto next;
- 		}
- next:
--		spin_lock(&pool->lock);
-+		if (!test_bit(PAGE_HEADLESS, &page->private))
-+			z3fold_page_lock(zhdr);
- 		clear_bit(UNDER_RECLAIM, &page->private);
- 		if ((test_bit(PAGE_HEADLESS, &page->private) && ret == 0) ||
- 		    (zhdr->first_chunks == 0 && zhdr->last_chunks == 0 &&
-@@ -608,26 +665,34 @@ next:
- 			 * All buddies are now free, free the z3fold page and
- 			 * return success.
- 			 */
--			clear_bit(PAGE_HEADLESS, &page->private);
-+			if (!test_and_clear_bit(PAGE_HEADLESS, &page->private))
-+				z3fold_page_unlock(zhdr);
- 			free_z3fold_page(zhdr);
- 			atomic64_dec(&pool->pages_nr);
--			spin_unlock(&pool->lock);
- 			return 0;
- 		}  else if (!test_bit(PAGE_HEADLESS, &page->private)) {
- 			if (zhdr->first_chunks != 0 &&
- 			    zhdr->last_chunks != 0 &&
- 			    zhdr->middle_chunks != 0) {
- 				/* Full, add to buddied list */
-+				spin_lock(&pool->lock);
- 				list_add(&zhdr->buddy, &pool->buddied);
-+				spin_unlock(&pool->lock);
- 			} else {
- 				z3fold_compact_page(zhdr);
- 				/* add to unbuddied list */
-+				spin_lock(&pool->lock);
- 				freechunks = num_free_chunks(zhdr);
- 				list_add(&zhdr->buddy,
- 					 &pool->unbuddied[freechunks]);
-+				spin_unlock(&pool->lock);
- 			}
- 		}
- 
-+		if (!test_bit(PAGE_HEADLESS, &page->private))
-+			z3fold_page_unlock(zhdr);
-+
-+		spin_lock(&pool->lock);
- 		/* add to beginning of LRU */
- 		list_add(&page->lru, &pool->lru);
- 	}
-@@ -652,7 +717,6 @@ static void *z3fold_map(struct z3fold_po
- 	void *addr;
- 	enum buddy buddy;
- 
--	spin_lock(&pool->lock);
- 	zhdr = handle_to_z3fold_header(handle);
- 	addr = zhdr;
- 	page = virt_to_page(zhdr);
-@@ -660,6 +724,7 @@ static void *z3fold_map(struct z3fold_po
- 	if (test_bit(PAGE_HEADLESS, &page->private))
- 		goto out;
- 
-+	z3fold_page_lock(zhdr);
- 	buddy = handle_to_buddy(handle);
- 	switch (buddy) {
- 	case FIRST:
-@@ -678,8 +743,9 @@ static void *z3fold_map(struct z3fold_po
- 		addr = NULL;
- 		break;
- 	}
-+
-+	z3fold_page_unlock(zhdr);
- out:
--	spin_unlock(&pool->lock);
- 	return addr;
- }
- 
-@@ -694,19 +760,17 @@ static void z3fold_unmap(struct z3fold_p
- 	struct page *page;
- 	enum buddy buddy;
- 
--	spin_lock(&pool->lock);
- 	zhdr = handle_to_z3fold_header(handle);
- 	page = virt_to_page(zhdr);
- 
--	if (test_bit(PAGE_HEADLESS, &page->private)) {
--		spin_unlock(&pool->lock);
-+	if (test_bit(PAGE_HEADLESS, &page->private))
- 		return;
--	}
- 
-+	z3fold_page_lock(zhdr);
- 	buddy = handle_to_buddy(handle);
- 	if (buddy == MIDDLE)
- 		clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
--	spin_unlock(&pool->lock);
-+	z3fold_page_unlock(zhdr);
- }
- 
- /**
+ int patch_instruction(unsigned int *addr, unsigned int instr)
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
+kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
 
