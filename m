@@ -1,76 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch removed
- from -mm tree
-Date: Mon, 27 Feb 2017 14:17:00 -0800
-Message-ID: <58b4a55c.bkeIjeigDZrBda3r%akpm@linux-foundation.org>
+Subject: [patch 04/78] zswap: don't param_set_charp while holding spinlock
+Date: Mon, 27 Feb 2017 14:26:53 -0800
+Message-ID: <58b4a7ad.Zmjf8d2uwiUAE2aG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44626 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751586AbdB0W0n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:26:43 -0500
+        with ESMTP id S1751605AbdB0W2J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:28:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@kernel.org, broonie@kernel.org, mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ddstreet@ieee.org, dan.streetman@canonical.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky.work@gmail.com
 
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: zswap: don't param_set_charp while holding spinlock
 
-The patch titled
-     Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
-has been removed from the -mm tree.  Its filename was
-     kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix.patch
+Change the zpool/compressor param callback function to release the
+zswap_pools_lock spinlock before calling param_set_charp, since that
+function may sleep when it calls kmalloc with GFP_KERNEL.
 
-This patch was dropped because it was folded into kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
+While this problem has existed for a while, I wasn't able to trigger it
+using a tight loop changing either/both the zpool and compressor params; I
+think it's very unlikely to be an issue on the stable kernels, especially
+since most zswap users will change the compressor and/or zpool from sysfs
+only one time each boot - or zero times, if they add the params to the
+kernel boot.
 
-------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
-
-On Wed, Feb 8, 2017 at 9:22 AM, Mark Brown <broonie@kernel.org> wrote:
-> On Wed, Feb 08, 2017 at 10:54:16AM +0000, Build bot for Mark Brown wrote:
->
-> Today's -next fails to build an arm64 allmodconfig due to:
->
->>       arm64-allmodconfig
->> ../arch/arm64/kernel/armv8_deprecated.c:359:31: error: expected '=',
->> ',', ';',
-> +'asm' or '__attribute__' before 'aarch32_check_condition'
->> ../arch/arm64/kernel/armv8_deprecated.c:386:10: error: implicit
->> declaration of
-> +function 'aarch32_check_condition'
-> [-Werror=implicit-function-declaration]
->
-> triggered by 1930faf201e83f6 (kprobes: move kprobe declarations to
-> asm-generic/kprobes.h) according to a bisect, though I didn't
-> immediately see how.
-
-This fixes that, will send patch.
-
-Link: http://lkml.kernel.org/r/CAB=NE6X1WMByuARS4mZ1g9+W=LuVBnMDnh_5zyN0CLADaVh=Jw@mail.gmail.com
-Cc: Mark Brown <broonie@kernel.org>
+Fixes: c99b42c3529e ("zswap: use charp for zswap param strings")
+Link: http://lkml.kernel.org/r/20170126155821.4545-1-ddstreet@ieee.org
+Signed-off-by: Dan Streetman <dan.streetman@canonical.com>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/armv8_deprecated.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zswap.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix arch/arm64/kernel/armv8_deprecated.c
---- a/arch/arm64/kernel/armv8_deprecated.c~kprobes-move-kprobe-declarations-to-asm-generic-kprobesh-fix
-+++ a/arch/arm64/kernel/armv8_deprecated.c
-@@ -19,6 +19,7 @@
- #include <asm/sysreg.h>
- #include <asm/system_misc.h>
- #include <asm/traps.h>
-+#include <asm/kprobes.h>
- #include <linux/uaccess.h>
- #include <asm/cpufeature.h>
+diff -puN mm/zswap.c~zswap-dont-param_set_charp-while-holding-spinlock mm/zswap.c
+--- a/mm/zswap.c~zswap-dont-param_set_charp-while-holding-spinlock
++++ a/mm/zswap.c
+@@ -704,18 +704,22 @@ static int __zswap_param_set(const char
+ 	pool = zswap_pool_find_get(type, compressor);
+ 	if (pool) {
+ 		zswap_pool_debug("using existing", pool);
++		WARN_ON(pool == zswap_pool_current());
+ 		list_del_rcu(&pool->list);
+-	} else {
+-		spin_unlock(&zswap_pools_lock);
+-		pool = zswap_pool_create(type, compressor);
+-		spin_lock(&zswap_pools_lock);
+ 	}
  
-_
-
-Patches currently in -mm which might be from mcgrof@kernel.org are
-
-kprobes-move-kprobe-declarations-to-asm-generic-kprobesh.patch
-
++	spin_unlock(&zswap_pools_lock);
++
++	if (!pool)
++		pool = zswap_pool_create(type, compressor);
++
+ 	if (pool)
+ 		ret = param_set_charp(s, kp);
+ 	else
+ 		ret = -EINVAL;
+ 
++	spin_lock(&zswap_pools_lock);
++
+ 	if (!ret) {
+ 		put_pool = zswap_pool_current();
+ 		list_add_rcu(&pool->list, &zswap_pools);
+@@ -727,7 +731,11 @@ static int __zswap_param_set(const char
+ 		 */
+ 		list_add_tail_rcu(&pool->list, &zswap_pools);
+ 		put_pool = pool;
+-	} else if (!zswap_has_pool) {
++	}
++
++	spin_unlock(&zswap_pools_lock);
++
++	if (!zswap_has_pool && !pool) {
+ 		/* if initial pool creation failed, and this pool creation also
+ 		 * failed, maybe both compressor and zpool params were bad.
+ 		 * Allow changing this param, so pool creation will succeed
+@@ -738,8 +746,6 @@ static int __zswap_param_set(const char
+ 		ret = param_set_charp(s, kp);
+ 	}
+ 
+-	spin_unlock(&zswap_pools_lock);
