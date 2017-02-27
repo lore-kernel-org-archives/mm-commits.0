@@ -1,164 +1,166 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk.patch removed
+ userfaultfd-non-cooperative-add-event-for-exit-notification.patch removed
  from -mm tree
-Date: Mon, 27 Feb 2017 12:26:29 -0800
-Message-ID: <58b48b75.SQtbDfH6FJiPRNl+%akpm@linux-foundation.org>
+Date: Mon, 27 Feb 2017 12:26:38 -0800
+Message-ID: <58b48b7e.uO3UmrShQ8fDu+xo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60530 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751649AbdB0U16 (ORCPT
+        with ESMTP id S1751690AbdB0U16 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert remove_migration_pte() to use page_vma_mapped_walk()
+     Subject: userfaultfd: non-cooperative: add event for exit() notification
 has been removed from the -mm tree.  Its filename was
-     mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk.patch
+     userfaultfd-non-cooperative-add-event-for-exit-notification.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: convert remove_migration_pte() to use page_vma_mapped_walk()
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: add event for exit() notification
 
-remove_migration_pte() also can easily be converted to
-page_vma_mapped_walk().
+Allow userfaultfd monitor track termination of the processes that have
+memory backed by the uffd.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170129173858.45174-13-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+[rppt@linux.vnet.ibm.com: add comment]
+  Link: http://lkml.kernel.org/r/20170202135448.GB19804@rapoport-lnxLink: http://lkml.kernel.org/r/1485542673-24387-4-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |  108 +++++++++++++++++++------------------------------
- 1 file changed, 44 insertions(+), 64 deletions(-)
+ fs/userfaultfd.c                 |   28 ++++++++++++++++++++++++++++
+ include/linux/userfaultfd_k.h    |    7 +++++++
+ include/uapi/linux/userfaultfd.h |    5 ++++-
+ kernel/exit.c                    |    2 ++
+ 4 files changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk mm/migrate.c
---- a/mm/migrate.c~mm-convert-remove_migration_pte-to-use-page_vma_mapped_walk
-+++ a/mm/migrate.c
-@@ -193,82 +193,62 @@ void putback_movable_pages(struct list_h
- /*
-  * Restore a potential migration pte to a working pte entry
-  */
--static int remove_migration_pte(struct page *new, struct vm_area_struct *vma,
-+static int remove_migration_pte(struct page *page, struct vm_area_struct *vma,
- 				 unsigned long addr, void *old)
- {
--	struct mm_struct *mm = vma->vm_mm;
-+	struct page_vma_mapped_walk pvmw = {
-+		.page = old,
-+		.vma = vma,
-+		.address = addr,
-+		.flags = PVMW_SYNC | PVMW_MIGRATION,
-+	};
-+	struct page *new;
-+	pte_t pte;
- 	swp_entry_t entry;
-- 	pmd_t *pmd;
--	pte_t *ptep, pte;
-- 	spinlock_t *ptl;
--
--	if (unlikely(PageHuge(new))) {
--		ptep = huge_pte_offset(mm, addr);
--		if (!ptep)
--			goto out;
--		ptl = huge_pte_lockptr(hstate_vma(vma), mm, ptep);
--	} else {
--		pmd = mm_find_pmd(mm, addr);
--		if (!pmd)
--			goto out;
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-add-event-for-exit-notification fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/fs/userfaultfd.c
+@@ -774,6 +774,34 @@ void userfaultfd_unmap_complete(struct m
+ 	}
+ }
  
--		ptep = pte_offset_map(pmd, addr);
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+	while (page_vma_mapped_walk(&pvmw)) {
-+		new = page - pvmw.page->index +
-+			linear_page_index(vma, pvmw.address);
++void userfaultfd_exit(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma = mm->mmap;
 +
-+		get_page(new);
-+		pte = pte_mkold(mk_pte(new, READ_ONCE(vma->vm_page_prot)));
-+		if (pte_swp_soft_dirty(*pvmw.pte))
-+			pte = pte_mksoft_dirty(pte);
- 
- 		/*
--		 * Peek to check is_swap_pte() before taking ptlock?  No, we
--		 * can race mremap's move_ptes(), which skips anon_vma lock.
-+		 * Recheck VMA as permissions can change since migration started
- 		 */
--
--		ptl = pte_lockptr(mm, pmd);
--	}
--
-- 	spin_lock(ptl);
--	pte = *ptep;
--	if (!is_swap_pte(pte))
--		goto unlock;
--
--	entry = pte_to_swp_entry(pte);
--
--	if (!is_migration_entry(entry) ||
--	    migration_entry_to_page(entry) != old)
--		goto unlock;
--
--	get_page(new);
--	pte = pte_mkold(mk_pte(new, READ_ONCE(vma->vm_page_prot)));
--	if (pte_swp_soft_dirty(*ptep))
--		pte = pte_mksoft_dirty(pte);
--
--	/* Recheck VMA as permissions can change since migration started  */
--	if (is_write_migration_entry(entry))
--		pte = maybe_mkwrite(pte, vma);
-+		entry = pte_to_swp_entry(*pvmw.pte);
-+		if (is_write_migration_entry(entry))
-+			pte = maybe_mkwrite(pte, vma);
- 
- #ifdef CONFIG_HUGETLB_PAGE
--	if (PageHuge(new)) {
--		pte = pte_mkhuge(pte);
--		pte = arch_make_huge_pte(pte, vma, new, 0);
--	}
-+		if (PageHuge(new)) {
-+			pte = pte_mkhuge(pte);
-+			pte = arch_make_huge_pte(pte, vma, new, 0);
++	/*
++	 * We can do the vma walk without locking because the caller
++	 * (exit_mm) knows it now has exclusive access
++	 */
++	while (vma) {
++		struct userfaultfd_ctx *ctx = vma->vm_userfaultfd_ctx.ctx;
++
++		if (ctx && (ctx->features & UFFD_FEATURE_EVENT_EXIT)) {
++			struct userfaultfd_wait_queue ewq;
++
++			userfaultfd_ctx_get(ctx);
++
++			msg_init(&ewq.msg);
++			ewq.msg.event = UFFD_EVENT_EXIT;
++
++			userfaultfd_event_wait_completion(ctx, &ewq);
++
++			ctx->features &= ~UFFD_FEATURE_EVENT_EXIT;
 +		}
- #endif
--	flush_dcache_page(new);
--	set_pte_at(mm, addr, ptep, pte);
-+		flush_dcache_page(new);
-+		set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
++
++		vma = vma->vm_next;
++	}
++}
++
+ static int userfaultfd_release(struct inode *inode, struct file *file)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-event-for-exit-notification include/linux/userfaultfd_k.h
+--- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/include/linux/userfaultfd_k.h
+@@ -72,6 +72,8 @@ extern int userfaultfd_unmap_prep(struct
+ extern void userfaultfd_unmap_complete(struct mm_struct *mm,
+ 				       struct list_head *uf);
  
--	if (PageHuge(new)) {
--		if (PageAnon(new))
--			hugepage_add_anon_rmap(new, vma, addr);
-+		if (PageHuge(new)) {
-+			if (PageAnon(new))
-+				hugepage_add_anon_rmap(new, vma, pvmw.address);
-+			else
-+				page_dup_rmap(new, true);
-+		} else if (PageAnon(new))
-+			page_add_anon_rmap(new, vma, pvmw.address, false);
- 		else
--			page_dup_rmap(new, true);
--	} else if (PageAnon(new))
--		page_add_anon_rmap(new, vma, addr, false);
--	else
--		page_add_file_rmap(new, false);
--
--	if (vma->vm_flags & VM_LOCKED && !PageTransCompound(new))
--		mlock_vma_page(new);
++extern void userfaultfd_exit(struct mm_struct *mm);
++
+ #else /* CONFIG_USERFAULTFD */
+ 
+ /* mm helpers */
+@@ -136,6 +138,11 @@ static inline void userfaultfd_unmap_com
+ 					      struct list_head *uf)
+ {
+ }
++
++static inline void userfaultfd_exit(struct mm_struct *mm)
++{
++}
++
+ #endif /* CONFIG_USERFAULTFD */
+ 
+ #endif /* _LINUX_USERFAULTFD_K_H */
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-event-for-exit-notification include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/include/uapi/linux/userfaultfd.h
+@@ -18,7 +18,8 @@
+  * means the userland is reading).
+  */
+ #define UFFD_API ((__u64)0xAA)
+-#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_FORK |		\
++#define UFFD_API_FEATURES (UFFD_FEATURE_EVENT_EXIT |		\
++			   UFFD_FEATURE_EVENT_FORK |		\
+ 			   UFFD_FEATURE_EVENT_REMAP |		\
+ 			   UFFD_FEATURE_EVENT_REMOVE |	\
+ 			   UFFD_FEATURE_EVENT_UNMAP |		\
+@@ -112,6 +113,7 @@ struct uffd_msg {
+ #define UFFD_EVENT_REMAP	0x14
+ #define UFFD_EVENT_REMOVE	0x15
+ #define UFFD_EVENT_UNMAP	0x16
++#define UFFD_EVENT_EXIT		0x17
+ 
+ /* flags for UFFD_EVENT_PAGEFAULT */
+ #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
+@@ -161,6 +163,7 @@ struct uffdio_api {
+ #define UFFD_FEATURE_MISSING_HUGETLBFS		(1<<4)
+ #define UFFD_FEATURE_MISSING_SHMEM		(1<<5)
+ #define UFFD_FEATURE_EVENT_UNMAP		(1<<6)
++#define UFFD_FEATURE_EVENT_EXIT			(1<<7)
+ 	__u64 features;
+ 
+ 	__u64 ioctls;
+diff -puN kernel/exit.c~userfaultfd-non-cooperative-add-event-for-exit-notification kernel/exit.c
+--- a/kernel/exit.c~userfaultfd-non-cooperative-add-event-for-exit-notification
++++ a/kernel/exit.c
+@@ -45,6 +45,7 @@
+ #include <linux/task_io_accounting_ops.h>
+ #include <linux/tracehook.h>
+ #include <linux/fs_struct.h>
++#include <linux/userfaultfd_k.h>
+ #include <linux/init_task.h>
+ #include <linux/perf_event.h>
+ #include <trace/events/sched.h>
+@@ -547,6 +548,7 @@ static void exit_mm(void)
+ 	enter_lazy_tlb(mm, current);
+ 	task_unlock(current);
+ 	mm_update_next_owner(mm);
++	userfaultfd_exit(mm);
+ 	mmput(mm);
+ 	if (test_thread_flag(TIF_MEMDIE))
+ 		exit_oom_victim();
+_
+
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+
+
