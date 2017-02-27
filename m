@@ -1,83 +1,586 @@
 From: akpm@linux-foundation.org
-Subject: [patch 51/78] scripts/spelling.txt: add "embeded" pattern and fix typo instances
-Date: Mon, 27 Feb 2017 14:29:09 -0800
-Message-ID: <58b4a835.UJyyzNYqdGv64K2S%akpm@linux-foundation.org>
+Subject: [patch 38/78] fs: add i_blocksize()
+Date: Mon, 27 Feb 2017 14:28:32 -0800
+Message-ID: <58b4a810.dcIkBipIBdwkLCmF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54288 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751678AbdB1Auy (ORCPT
+        with ESMTP id S1751468AbdB1Auy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 19:50:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be, geliangtang@gmail.com, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "embeded" pattern and fix typo instances
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs: add i_blocksize()
 
-Fix typos and add the following to the scripts/spelling.txt:
+Replace all 1 << inode->i_blkbits and (1 << inode->i_blkbits) in fs branch
 
-  embeded||embedded
+This patch also fixes multiple checkpatch warnings: WARNING: Prefer
+'unsigned int' to bare use of 'unsigned'
 
-Link: http://lkml.kernel.org/r/1481573103-11329-12-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Thanks to Andrew Morton for suggesting more appropriate function instead
+of macro.
+
+[geliangtang@gmail.com: truncate: use i_blocksize()]
+  Link: http://lkml.kernel.org/r/9c8b2cd83c8f5653805d43debde9fa8817e02fc4.1484895804.git.geliangtang@gmail.com
+Link: http://lkml.kernel.org/r/1481319905-10126-1-git-send-email-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-throttle.c             |    2 +-
- drivers/nvme/host/rdma.c         |    2 +-
- drivers/scsi/osd/osd_initiator.c |    2 +-
- scripts/spelling.txt             |    1 +
- 4 files changed, 4 insertions(+), 3 deletions(-)
+ fs/block_dev.c               |    2 +-
+ fs/btrfs/file.c              |    2 +-
+ fs/buffer.c                  |   12 ++++++------
+ fs/ceph/addr.c               |    2 +-
+ fs/direct-io.c               |    2 +-
+ fs/ext4/inode.c              |    6 +++---
+ fs/ext4/mballoc.c            |    2 +-
+ fs/ext4/move_extent.c        |    2 +-
+ fs/iomap.c                   |   10 +++++-----
+ fs/jfs/super.c               |    4 ++--
+ fs/mpage.c                   |    2 +-
+ fs/nfsd/blocklayout.c        |    6 +++---
+ fs/nilfs2/btnode.c           |    2 +-
+ fs/nilfs2/inode.c            |    4 ++--
+ fs/nilfs2/mdt.c              |    4 ++--
+ fs/nilfs2/segment.c          |    2 +-
+ fs/ocfs2/aops.c              |    2 +-
+ fs/ocfs2/file.c              |    2 +-
+ fs/orangefs/orangefs-utils.c |    4 ++--
+ fs/reiserfs/file.c           |    2 +-
+ fs/reiserfs/inode.c          |    2 +-
+ fs/stat.c                    |    2 +-
+ fs/udf/inode.c               |    2 +-
+ fs/xfs/xfs_aops.c            |   16 ++++++++--------
+ fs/xfs/xfs_file.c            |    4 ++--
+ include/linux/fs.h           |    5 +++++
+ mm/truncate.c                |    2 +-
+ 27 files changed, 56 insertions(+), 51 deletions(-)
 
-diff -puN block/blk-throttle.c~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances block/blk-throttle.c
---- a/block/blk-throttle.c~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances
-+++ a/block/blk-throttle.c
-@@ -185,7 +185,7 @@ static struct throtl_grp *sq_to_tg(struc
-  * sq_to_td - return throtl_data the specified service queue belongs to
-  * @sq: the throtl_service_queue of interest
+diff -puN fs/block_dev.c~fs-add-i_blocksize fs/block_dev.c
+--- a/fs/block_dev.c~fs-add-i_blocksize
++++ a/fs/block_dev.c
+@@ -989,7 +989,7 @@ struct block_device *bdget(dev_t dev)
+ 		bdev->bd_super = NULL;
+ 		bdev->bd_inode = inode;
+ 		bdev->bd_bdi = &noop_backing_dev_info;
+-		bdev->bd_block_size = (1 << inode->i_blkbits);
++		bdev->bd_block_size = i_blocksize(inode);
+ 		bdev->bd_part_count = 0;
+ 		bdev->bd_invalidated = 0;
+ 		inode->i_mode = S_IFBLK;
+diff -puN fs/btrfs/file.c~fs-add-i_blocksize fs/btrfs/file.c
+--- a/fs/btrfs/file.c~fs-add-i_blocksize
++++ a/fs/btrfs/file.c
+@@ -2875,7 +2875,7 @@ static long btrfs_fallocate(struct file
+ 		if (!ret)
+ 			ret = btrfs_prealloc_file_range(inode, mode,
+ 					range->start,
+-					range->len, 1 << inode->i_blkbits,
++					range->len, i_blocksize(inode),
+ 					offset + len, &alloc_hint);
+ 		else
+ 			btrfs_free_reserved_data_space(inode, range->start,
+diff -puN fs/buffer.c~fs-add-i_blocksize fs/buffer.c
+--- a/fs/buffer.c~fs-add-i_blocksize
++++ a/fs/buffer.c
+@@ -2395,7 +2395,7 @@ static int cont_expand_zero(struct file
+ 			    loff_t pos, loff_t *bytes)
+ {
+ 	struct inode *inode = mapping->host;
+-	unsigned blocksize = 1 << inode->i_blkbits;
++	unsigned int blocksize = i_blocksize(inode);
+ 	struct page *page;
+ 	void *fsdata;
+ 	pgoff_t index, curidx;
+@@ -2475,8 +2475,8 @@ int cont_write_begin(struct file *file,
+ 			get_block_t *get_block, loff_t *bytes)
+ {
+ 	struct inode *inode = mapping->host;
+-	unsigned blocksize = 1 << inode->i_blkbits;
+-	unsigned zerofrom;
++	unsigned int blocksize = i_blocksize(inode);
++	unsigned int zerofrom;
+ 	int err;
+ 
+ 	err = cont_expand_zero(file, mapping, pos, bytes);
+@@ -2838,7 +2838,7 @@ int nobh_truncate_page(struct address_sp
+ 	struct buffer_head map_bh;
+ 	int err;
+ 
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	length = offset & (blocksize - 1);
+ 
+ 	/* Block boundary? Nothing to do */
+@@ -2916,7 +2916,7 @@ int block_truncate_page(struct address_s
+ 	struct buffer_head *bh;
+ 	int err;
+ 
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	length = offset & (blocksize - 1);
+ 
+ 	/* Block boundary? Nothing to do */
+@@ -3028,7 +3028,7 @@ sector_t generic_block_bmap(struct addre
+ 	struct inode *inode = mapping->host;
+ 	tmp.b_state = 0;
+ 	tmp.b_blocknr = 0;
+-	tmp.b_size = 1 << inode->i_blkbits;
++	tmp.b_size = i_blocksize(inode);
+ 	get_block(inode, block, &tmp, 0);
+ 	return tmp.b_blocknr;
+ }
+diff -puN fs/ceph/addr.c~fs-add-i_blocksize fs/ceph/addr.c
+--- a/fs/ceph/addr.c~fs-add-i_blocksize
++++ a/fs/ceph/addr.c
+@@ -751,7 +751,7 @@ static int ceph_writepages_start(struct
+ 	struct pagevec pvec;
+ 	int done = 0;
+ 	int rc = 0;
+-	unsigned wsize = 1 << inode->i_blkbits;
++	unsigned int wsize = i_blocksize(inode);
+ 	struct ceph_osd_request *req = NULL;
+ 	int do_sync = 0;
+ 	loff_t snap_size, i_size;
+diff -puN fs/direct-io.c~fs-add-i_blocksize fs/direct-io.c
+--- a/fs/direct-io.c~fs-add-i_blocksize
++++ a/fs/direct-io.c
+@@ -587,7 +587,7 @@ static int dio_set_defer_completion(stru
+ /*
+  * Call into the fs to map some more disk blocks.  We record the current number
+  * of available blocks at sdio->blocks_available.  These are in units of the
+- * fs blocksize, (1 << inode->i_blkbits).
++ * fs blocksize, i_blocksize(inode).
   *
-- * A service_queue can be embeded in either a throtl_grp or throtl_data.
-+ * A service_queue can be embedded in either a throtl_grp or throtl_data.
-  * Determine the associated throtl_data accordingly and return it.
-  */
- static struct throtl_data *sq_to_td(struct throtl_service_queue *sq)
-diff -puN drivers/nvme/host/rdma.c~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances drivers/nvme/host/rdma.c
---- a/drivers/nvme/host/rdma.c~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances
-+++ a/drivers/nvme/host/rdma.c
-@@ -1051,7 +1051,7 @@ static int nvme_rdma_post_send(struct nv
- 	 * sequencer is not allocated in our driver's tagset and it's
- 	 * triggered to be freed by blk_cleanup_queue(). So we need to
- 	 * always mark it as signaled to ensure that the "wr_cqe", which is
--	 * embeded in request's payload, is not freed when __ib_process_cq()
-+	 * embedded in request's payload, is not freed when __ib_process_cq()
- 	 * calls wr_cqe->done().
+  * The fs is allowed to map lots of blocks at once.  If it wants to do that,
+  * it uses the passed inode-relative block number as the file offset, as usual.
+diff -puN fs/ext4/inode.c~fs-add-i_blocksize fs/ext4/inode.c
+--- a/fs/ext4/inode.c~fs-add-i_blocksize
++++ a/fs/ext4/inode.c
+@@ -2221,7 +2221,7 @@ static int mpage_process_page_bufs(struc
+ {
+ 	struct inode *inode = mpd->inode;
+ 	int err;
+-	ext4_lblk_t blocks = (i_size_read(inode) + (1 << inode->i_blkbits) - 1)
++	ext4_lblk_t blocks = (i_size_read(inode) + i_blocksize(inode) - 1)
+ 							>> inode->i_blkbits;
+ 
+ 	do {
+@@ -3577,7 +3577,7 @@ static ssize_t ext4_direct_IO_write(stru
+ 	if (overwrite)
+ 		get_block_func = ext4_dio_get_block_overwrite;
+ 	else if (!ext4_test_inode_flag(inode, EXT4_INODE_EXTENTS) ||
+-		   round_down(offset, 1 << inode->i_blkbits) >= inode->i_size) {
++		   round_down(offset, i_blocksize(inode)) >= inode->i_size) {
+ 		get_block_func = ext4_dio_get_block;
+ 		dio_flags = DIO_LOCKING | DIO_SKIP_HOLES;
+ 	} else if (is_sync_kiocb(iocb)) {
+@@ -5179,7 +5179,7 @@ static void ext4_wait_for_tail_page_comm
+ 	 * do. We do the check mainly to optimize the common PAGE_SIZE ==
+ 	 * blocksize case
  	 */
- 	if ((++queue->sig_count % 32) == 0 || flush)
-diff -puN drivers/scsi/osd/osd_initiator.c~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances drivers/scsi/osd/osd_initiator.c
---- a/drivers/scsi/osd/osd_initiator.c~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/osd/osd_initiator.c
-@@ -1677,7 +1677,7 @@ int osd_finalize_request(struct osd_requ
+-	if (offset > PAGE_SIZE - (1 << inode->i_blkbits))
++	if (offset > PAGE_SIZE - i_blocksize(inode))
+ 		return;
+ 	while (1) {
+ 		page = find_lock_page(inode->i_mapping,
+diff -puN fs/ext4/mballoc.c~fs-add-i_blocksize fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~fs-add-i_blocksize
++++ a/fs/ext4/mballoc.c
+@@ -838,7 +838,7 @@ static int ext4_mb_init_cache(struct pag
+ 	inode = page->mapping->host;
+ 	sb = inode->i_sb;
+ 	ngroups = ext4_get_groups_count(sb);
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	blocks_per_page = PAGE_SIZE / blocksize;
+ 
+ 	groups_per_page = blocks_per_page >> 1;
+diff -puN fs/ext4/move_extent.c~fs-add-i_blocksize fs/ext4/move_extent.c
+--- a/fs/ext4/move_extent.c~fs-add-i_blocksize
++++ a/fs/ext4/move_extent.c
+@@ -187,7 +187,7 @@ mext_page_mkuptodate(struct page *page,
+ 	if (PageUptodate(page))
+ 		return 0;
+ 
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 	if (!page_has_buffers(page))
+ 		create_empty_buffers(page, blocksize, 0);
+ 
+diff -puN fs/iomap.c~fs-add-i_blocksize fs/iomap.c
+--- a/fs/iomap.c~fs-add-i_blocksize
++++ a/fs/iomap.c
+@@ -420,8 +420,8 @@ int
+ iomap_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
+ 		const struct iomap_ops *ops)
+ {
+-	unsigned blocksize = (1 << inode->i_blkbits);
+-	unsigned off = pos & (blocksize - 1);
++	unsigned int blocksize = i_blocksize(inode);
++	unsigned int off = pos & (blocksize - 1);
+ 
+ 	/* Block boundary? Nothing to do */
+ 	if (!off)
+@@ -735,9 +735,9 @@ iomap_dio_actor(struct inode *inode, lof
+ 		void *data, struct iomap *iomap)
+ {
+ 	struct iomap_dio *dio = data;
+-	unsigned blkbits = blksize_bits(bdev_logical_block_size(iomap->bdev));
+-	unsigned fs_block_size = (1 << inode->i_blkbits), pad;
+-	unsigned align = iov_iter_alignment(dio->submit.iter);
++	unsigned int blkbits = blksize_bits(bdev_logical_block_size(iomap->bdev));
++	unsigned int fs_block_size = i_blocksize(inode), pad;
++	unsigned int align = iov_iter_alignment(dio->submit.iter);
+ 	struct iov_iter iter;
+ 	struct bio *bio;
+ 	bool need_zeroout = false;
+diff -puN fs/jfs/super.c~fs-add-i_blocksize fs/jfs/super.c
+--- a/fs/jfs/super.c~fs-add-i_blocksize
++++ a/fs/jfs/super.c
+@@ -758,7 +758,7 @@ static ssize_t jfs_quota_read(struct sup
+ 				sb->s_blocksize - offset : toread;
+ 
+ 		tmp_bh.b_state = 0;
+-		tmp_bh.b_size = 1 << inode->i_blkbits;
++		tmp_bh.b_size = i_blocksize(inode);
+ 		err = jfs_get_block(inode, blk, &tmp_bh, 0);
+ 		if (err)
+ 			return err;
+@@ -798,7 +798,7 @@ static ssize_t jfs_quota_write(struct su
+ 				sb->s_blocksize - offset : towrite;
+ 
+ 		tmp_bh.b_state = 0;
+-		tmp_bh.b_size = 1 << inode->i_blkbits;
++		tmp_bh.b_size = i_blocksize(inode);
+ 		err = jfs_get_block(inode, blk, &tmp_bh, 1);
+ 		if (err)
+ 			goto out;
+diff -puN fs/mpage.c~fs-add-i_blocksize fs/mpage.c
+--- a/fs/mpage.c~fs-add-i_blocksize
++++ a/fs/mpage.c
+@@ -115,7 +115,7 @@ map_buffer_to_page(struct page *page, st
+ 			SetPageUptodate(page);    
+ 			return;
  		}
- 	} else {
- 		/* TODO: I think that for the GET_ATTR command these 2 should
--		 * be reversed to keep them in execution order (for embeded
-+		 * be reversed to keep them in execution order (for embedded
- 		 * targets with low memory footprint)
- 		 */
- 		ret = _osd_req_finalize_set_attr_list(or);
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -386,6 +386,7 @@ efficently||efficiently
- ehther||ether
- eigth||eight
- eletronic||electronic
-+embeded||embedded
- enabledi||enabled
- enchanced||enhanced
- encorporating||incorporating
+-		create_empty_buffers(page, 1 << inode->i_blkbits, 0);
++		create_empty_buffers(page, i_blocksize(inode), 0);
+ 	}
+ 	head = page_buffers(page);
+ 	page_bh = head;
+diff -puN fs/nfsd/blocklayout.c~fs-add-i_blocksize fs/nfsd/blocklayout.c
+--- a/fs/nfsd/blocklayout.c~fs-add-i_blocksize
++++ a/fs/nfsd/blocklayout.c
+@@ -24,7 +24,7 @@ nfsd4_block_proc_layoutget(struct inode
+ {
+ 	struct nfsd4_layout_seg *seg = &args->lg_seg;
+ 	struct super_block *sb = inode->i_sb;
+-	u32 block_size = (1 << inode->i_blkbits);
++	u32 block_size = i_blocksize(inode);
+ 	struct pnfs_block_extent *bex;
+ 	struct iomap iomap;
+ 	u32 device_generation = 0;
+@@ -181,7 +181,7 @@ nfsd4_block_proc_layoutcommit(struct ino
+ 	int nr_iomaps;
+ 
+ 	nr_iomaps = nfsd4_block_decode_layoutupdate(lcp->lc_up_layout,
+-			lcp->lc_up_len, &iomaps, 1 << inode->i_blkbits);
++			lcp->lc_up_len, &iomaps, i_blocksize(inode));
+ 	if (nr_iomaps < 0)
+ 		return nfserrno(nr_iomaps);
+ 
+@@ -375,7 +375,7 @@ nfsd4_scsi_proc_layoutcommit(struct inod
+ 	int nr_iomaps;
+ 
+ 	nr_iomaps = nfsd4_scsi_decode_layoutupdate(lcp->lc_up_layout,
+-			lcp->lc_up_len, &iomaps, 1 << inode->i_blkbits);
++			lcp->lc_up_len, &iomaps, i_blocksize(inode));
+ 	if (nr_iomaps < 0)
+ 		return nfserrno(nr_iomaps);
+ 
+diff -puN fs/nilfs2/btnode.c~fs-add-i_blocksize fs/nilfs2/btnode.c
+--- a/fs/nilfs2/btnode.c~fs-add-i_blocksize
++++ a/fs/nilfs2/btnode.c
+@@ -50,7 +50,7 @@ nilfs_btnode_create_block(struct address
+ 		brelse(bh);
+ 		BUG();
+ 	}
+-	memset(bh->b_data, 0, 1 << inode->i_blkbits);
++	memset(bh->b_data, 0, i_blocksize(inode));
+ 	bh->b_bdev = inode->i_sb->s_bdev;
+ 	bh->b_blocknr = blocknr;
+ 	set_buffer_mapped(bh);
+diff -puN fs/nilfs2/inode.c~fs-add-i_blocksize fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~fs-add-i_blocksize
++++ a/fs/nilfs2/inode.c
+@@ -51,7 +51,7 @@ void nilfs_inode_add_blocks(struct inode
+ {
+ 	struct nilfs_root *root = NILFS_I(inode)->i_root;
+ 
+-	inode_add_bytes(inode, (1 << inode->i_blkbits) * n);
++	inode_add_bytes(inode, i_blocksize(inode) * n);
+ 	if (root)
+ 		atomic64_add(n, &root->blocks_count);
+ }
+@@ -60,7 +60,7 @@ void nilfs_inode_sub_blocks(struct inode
+ {
+ 	struct nilfs_root *root = NILFS_I(inode)->i_root;
+ 
+-	inode_sub_bytes(inode, (1 << inode->i_blkbits) * n);
++	inode_sub_bytes(inode, i_blocksize(inode) * n);
+ 	if (root)
+ 		atomic64_sub(n, &root->blocks_count);
+ }
+diff -puN fs/nilfs2/mdt.c~fs-add-i_blocksize fs/nilfs2/mdt.c
+--- a/fs/nilfs2/mdt.c~fs-add-i_blocksize
++++ a/fs/nilfs2/mdt.c
+@@ -57,7 +57,7 @@ nilfs_mdt_insert_new_block(struct inode
+ 	set_buffer_mapped(bh);
+ 
+ 	kaddr = kmap_atomic(bh->b_page);
+-	memset(kaddr + bh_offset(bh), 0, 1 << inode->i_blkbits);
++	memset(kaddr + bh_offset(bh), 0, i_blocksize(inode));
+ 	if (init_block)
+ 		init_block(inode, bh, kaddr);
+ 	flush_dcache_page(bh->b_page);
+@@ -501,7 +501,7 @@ void nilfs_mdt_set_entry_size(struct ino
+ 	struct nilfs_mdt_info *mi = NILFS_MDT(inode);
+ 
+ 	mi->mi_entry_size = entry_size;
+-	mi->mi_entries_per_block = (1 << inode->i_blkbits) / entry_size;
++	mi->mi_entries_per_block = i_blocksize(inode) / entry_size;
+ 	mi->mi_first_entry_offset = DIV_ROUND_UP(header_size, entry_size);
+ }
+ 
+diff -puN fs/nilfs2/segment.c~fs-add-i_blocksize fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~fs-add-i_blocksize
++++ a/fs/nilfs2/segment.c
+@@ -723,7 +723,7 @@ static size_t nilfs_lookup_dirty_data_bu
+ 
+ 		lock_page(page);
+ 		if (!page_has_buffers(page))
+-			create_empty_buffers(page, 1 << inode->i_blkbits, 0);
++			create_empty_buffers(page, i_blocksize(inode), 0);
+ 		unlock_page(page);
+ 
+ 		bh = head = page_buffers(page);
+diff -puN fs/ocfs2/aops.c~fs-add-i_blocksize fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~fs-add-i_blocksize
++++ a/fs/ocfs2/aops.c
+@@ -608,7 +608,7 @@ int ocfs2_map_page_blocks(struct page *p
+ 	int ret = 0;
+ 	struct buffer_head *head, *bh, *wait[2], **wait_bh = wait;
+ 	unsigned int block_end, block_start;
+-	unsigned int bsize = 1 << inode->i_blkbits;
++	unsigned int bsize = i_blocksize(inode);
+ 
+ 	if (!page_has_buffers(page))
+ 		create_empty_buffers(page, bsize, 0);
+diff -puN fs/ocfs2/file.c~fs-add-i_blocksize fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~fs-add-i_blocksize
++++ a/fs/ocfs2/file.c
+@@ -808,7 +808,7 @@ static int ocfs2_write_zero_page(struct
+ 	/* We know that zero_from is block aligned */
+ 	for (block_start = zero_from; block_start < zero_to;
+ 	     block_start = block_end) {
+-		block_end = block_start + (1 << inode->i_blkbits);
++		block_end = block_start + i_blocksize(inode);
+ 
+ 		/*
+ 		 * block_start is block-aligned.  Bump it by one to force
+diff -puN fs/orangefs/orangefs-utils.c~fs-add-i_blocksize fs/orangefs/orangefs-utils.c
+--- a/fs/orangefs/orangefs-utils.c~fs-add-i_blocksize
++++ a/fs/orangefs/orangefs-utils.c
+@@ -306,7 +306,7 @@ int orangefs_inode_getattr(struct inode
+ 		break;
+ 	case S_IFDIR:
+ 		inode->i_size = PAGE_SIZE;
+-		orangefs_inode->blksize = (1 << inode->i_blkbits);
++		orangefs_inode->blksize = i_blocksize(inode);
+ 		spin_lock(&inode->i_lock);
+ 		inode_set_bytes(inode, inode->i_size);
+ 		spin_unlock(&inode->i_lock);
+@@ -316,7 +316,7 @@ int orangefs_inode_getattr(struct inode
+ 		if (new) {
+ 			inode->i_size = (loff_t)strlen(new_op->
+ 			    downcall.resp.getattr.link_target);
+-			orangefs_inode->blksize = (1 << inode->i_blkbits);
++			orangefs_inode->blksize = i_blocksize(inode);
+ 			ret = strscpy(orangefs_inode->link_target,
+ 			    new_op->downcall.resp.getattr.link_target,
+ 			    ORANGEFS_NAME_MAX);
+diff -puN fs/reiserfs/file.c~fs-add-i_blocksize fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~fs-add-i_blocksize
++++ a/fs/reiserfs/file.c
+@@ -189,7 +189,7 @@ int reiserfs_commit_page(struct inode *i
+ 	int ret = 0;
+ 
+ 	th.t_trans_id = 0;
+-	blocksize = 1 << inode->i_blkbits;
++	blocksize = i_blocksize(inode);
+ 
+ 	if (logit) {
+ 		reiserfs_write_lock(s);
+diff -puN fs/reiserfs/inode.c~fs-add-i_blocksize fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~fs-add-i_blocksize
++++ a/fs/reiserfs/inode.c
+@@ -525,7 +525,7 @@ static int reiserfs_get_blocks_direct_io
+ 	 * referenced in convert_tail_for_hole() that may be called from
+ 	 * reiserfs_get_block()
+ 	 */
+-	bh_result->b_size = (1 << inode->i_blkbits);
++	bh_result->b_size = i_blocksize(inode);
+ 
+ 	ret = reiserfs_get_block(inode, iblock, bh_result,
+ 				 create | GET_BLOCK_NO_DANGLE);
+diff -puN fs/stat.c~fs-add-i_blocksize fs/stat.c
+--- a/fs/stat.c~fs-add-i_blocksize
++++ a/fs/stat.c
+@@ -31,7 +31,7 @@ void generic_fillattr(struct inode *inod
+ 	stat->atime = inode->i_atime;
+ 	stat->mtime = inode->i_mtime;
+ 	stat->ctime = inode->i_ctime;
+-	stat->blksize = (1 << inode->i_blkbits);
++	stat->blksize = i_blocksize(inode);
+ 	stat->blocks = inode->i_blocks;
+ }
+ 
+diff -puN fs/udf/inode.c~fs-add-i_blocksize fs/udf/inode.c
+--- a/fs/udf/inode.c~fs-add-i_blocksize
++++ a/fs/udf/inode.c
+@@ -1193,7 +1193,7 @@ int udf_setsize(struct inode *inode, lof
+ {
+ 	int err;
+ 	struct udf_inode_info *iinfo;
+-	int bsize = 1 << inode->i_blkbits;
++	int bsize = i_blocksize(inode);
+ 
+ 	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
+ 	      S_ISLNK(inode->i_mode)))
+diff -puN fs/xfs/xfs_aops.c~fs-add-i_blocksize fs/xfs/xfs_aops.c
+--- a/fs/xfs/xfs_aops.c~fs-add-i_blocksize
++++ a/fs/xfs/xfs_aops.c
+@@ -103,9 +103,9 @@ xfs_finish_page_writeback(
+ 	unsigned int		bsize;
+ 
+ 	ASSERT(bvec->bv_offset < PAGE_SIZE);
+-	ASSERT((bvec->bv_offset & ((1 << inode->i_blkbits) - 1)) == 0);
++	ASSERT((bvec->bv_offset & (i_blocksize(inode) - 1)) == 0);
+ 	ASSERT(end < PAGE_SIZE);
+-	ASSERT((bvec->bv_len & ((1 << inode->i_blkbits) - 1)) == 0);
++	ASSERT((bvec->bv_len & (i_blocksize(inode) - 1)) == 0);
+ 
+ 	bh = head = page_buffers(bvec->bv_page);
+ 
+@@ -349,7 +349,7 @@ xfs_map_blocks(
+ {
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	struct xfs_mount	*mp = ip->i_mount;
+-	ssize_t			count = 1 << inode->i_blkbits;
++	ssize_t			count = i_blocksize(inode);
+ 	xfs_fileoff_t		offset_fsb, end_fsb;
+ 	int			error = 0;
+ 	int			bmapi_flags = XFS_BMAPI_ENTIRE;
+@@ -758,7 +758,7 @@ xfs_aops_discard_page(
+ 			break;
+ 		}
+ next_buffer:
+-		offset += 1 << inode->i_blkbits;
++		offset += i_blocksize(inode);
+ 
+ 	} while ((bh = bh->b_this_page) != head);
+ 
+@@ -846,7 +846,7 @@ xfs_writepage_map(
+ 	LIST_HEAD(submit_list);
+ 	struct xfs_ioend	*ioend, *next;
+ 	struct buffer_head	*bh, *head;
+-	ssize_t			len = 1 << inode->i_blkbits;
++	ssize_t			len = i_blocksize(inode);
+ 	int			error = 0;
+ 	int			count = 0;
+ 	int			uptodate = 1;
+@@ -1210,7 +1210,7 @@ xfs_map_trim_size(
+ 	    offset + mapping_size >= i_size_read(inode)) {
+ 		/* limit mapping to block that spans EOF */
+ 		mapping_size = roundup_64(i_size_read(inode) - offset,
+-					  1 << inode->i_blkbits);
++					  i_blocksize(inode));
+ 	}
+ 	if (mapping_size > LONG_MAX)
+ 		mapping_size = LONG_MAX;
+@@ -1241,7 +1241,7 @@ xfs_get_blocks(
+ 		return -EIO;
+ 
+ 	offset = (xfs_off_t)iblock << inode->i_blkbits;
+-	ASSERT(bh_result->b_size >= (1 << inode->i_blkbits));
++	ASSERT(bh_result->b_size >= i_blocksize(inode));
+ 	size = bh_result->b_size;
+ 
+ 	if (offset >= i_size_read(inode))
+@@ -1389,7 +1389,7 @@ xfs_vm_set_page_dirty(
+ 			if (offset < end_offset)
+ 				set_buffer_dirty(bh);
+ 			bh = bh->b_this_page;
+-			offset += 1 << inode->i_blkbits;
++			offset += i_blocksize(inode);
+ 		} while (bh != head);
+ 	}
+ 	/*
+diff -puN fs/xfs/xfs_file.c~fs-add-i_blocksize fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~fs-add-i_blocksize
++++ a/fs/xfs/xfs_file.c
+@@ -754,7 +754,7 @@ xfs_file_fallocate(
+ 		if (error)
+ 			goto out_unlock;
+ 	} else if (mode & FALLOC_FL_COLLAPSE_RANGE) {
+-		unsigned blksize_mask = (1 << inode->i_blkbits) - 1;
++		unsigned int blksize_mask = i_blocksize(inode) - 1;
+ 
+ 		if (offset & blksize_mask || len & blksize_mask) {
+ 			error = -EINVAL;
+@@ -776,7 +776,7 @@ xfs_file_fallocate(
+ 		if (error)
+ 			goto out_unlock;
+ 	} else if (mode & FALLOC_FL_INSERT_RANGE) {
+-		unsigned blksize_mask = (1 << inode->i_blkbits) - 1;
++		unsigned int blksize_mask = i_blocksize(inode) - 1;
+ 
+ 		new_size = i_size_read(inode) + len;
+ 		if (offset & blksize_mask || len & blksize_mask) {
+diff -puN include/linux/fs.h~fs-add-i_blocksize include/linux/fs.h
+--- a/include/linux/fs.h~fs-add-i_blocksize
++++ a/include/linux/fs.h
+@@ -655,6 +655,11 @@ struct inode {
+ 	void			*i_private; /* fs or device private pointer */
+ };
+ 
++static inline unsigned int i_blocksize(const struct inode *node)
++{
++	return (1 << node->i_blkbits);
++}
++
+ static inline int inode_unhashed(struct inode *inode)
+ {
+ 	return hlist_unhashed(&inode->i_hash);
+diff -puN mm/truncate.c~fs-add-i_blocksize mm/truncate.c
+--- a/mm/truncate.c~fs-add-i_blocksize
++++ a/mm/truncate.c
+@@ -786,7 +786,7 @@ EXPORT_SYMBOL(truncate_setsize);
+  */
+ void pagecache_isize_extended(struct inode *inode, loff_t from, loff_t to)
+ {
+-	int bsize = 1 << inode->i_blkbits;
++	int bsize = i_blocksize(inode);
+ 	loff_t rounded_from;
+ 	struct page *page;
+ 	pgoff_t index;
 _
