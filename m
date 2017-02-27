@@ -1,71 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-notice-unbalanced-else-braces-in-a-patch.patch removed from -mm
- tree
-Date: Mon, 27 Feb 2017 12:29:29 -0800
-Message-ID: <58b48c29.JZ2ElU3BnQOI/88I%akpm@linux-foundation.org>
+Subject: [merged] hfs-fix-fix-hfs_readdir.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:29:33 -0800
+Message-ID: <58b48c2d.7I8+9abAgkqfDma6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33718 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbdB0Ubs (ORCPT
+        with ESMTP id S1751760AbdB0Ubs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:31:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, slava@dubeyko.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: notice unbalanced else braces in a patch
+     Subject: hfs: fix fix hfs_readdir()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-notice-unbalanced-else-braces-in-a-patch.patch
+     hfs-fix-fix-hfs_readdir.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: notice unbalanced else braces in a patch
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: hfs: fix fix hfs_readdir()
 
-Patches that add or modify code like
-	} else
-		<foo>
-or
-	else {
-		<bar>
+I was looking through static analysis warnings and there is a bug here
+that goes all the way back to the start of git.  Basically we're copying
+the pointer and nearby garbage instead of the data the fd.key pointer is
+pointing to.
 
-where one branch appears to have a brace and the other branch
-does not have a brace should emit a --strict style message.
-
-Link: http://lkml.kernel.org/r/c6be32747fc725cbc235802991746700a0f54fdc.1486754390.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20170118111320.GA23725@mwanda
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/hfs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-notice-unbalanced-else-braces-in-a-patch scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-notice-unbalanced-else-braces-in-a-patch
-+++ a/scripts/checkpatch.pl
-@@ -5104,6 +5104,12 @@ sub process {
- 			}
- 		}
- 
-+# check for single line unbalanced braces
-+		if ($sline =~ /.\s*\}\s*else\s*$/ ||
-+		    $sline =~ /.\s*else\s*\{\s*$/) {
-+			CHK("BRACES", "Unbalanced braces around else statement\n" . $herecurr);
-+		}
-+
- # check for unnecessary blank lines around braces
- 		if (($line =~ /^.\s*}\s*$/ && $prevrawline =~ /^.\s*$/)) {
- 			if (CHK("BRACES",
+diff -puN fs/hfs/dir.c~hfs-fix-fix-hfs_readdir fs/hfs/dir.c
+--- a/fs/hfs/dir.c~hfs-fix-fix-hfs_readdir
++++ a/fs/hfs/dir.c
+@@ -169,7 +169,7 @@ static int hfs_readdir(struct file *file
+ 	 * Can be done after the list insertion; exclusion with
+ 	 * hfs_delete_cat() is provided by directory lock.
+ 	 */
+-	memcpy(&rd->key, &fd.key, sizeof(struct hfs_cat_key));
++	memcpy(&rd->key, &fd.key->cat, sizeof(struct hfs_cat_key));
+ out:
+ 	hfs_find_exit(&fd);
+ 	return err;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-checkpatchpl-warn-against-using-%z-fix.patch
 
