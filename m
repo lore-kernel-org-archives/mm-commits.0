@@ -1,151 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-drain-quarantine-of-memcg-slab-objects.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 12:28:12 -0800
-Message-ID: <58b48bdc.ZY/tcM9uAfJ7Lxmw%akpm@linux-foundation.org>
+Subject: [merged]
+ memory-hotplug-use-dev_online-for-memhp_auto_online.patch removed from -mm
+ tree
+Date: Mon, 27 Feb 2017 12:28:09 -0800
+Message-ID: <58b48bd9.GsxXYT6zVYDQEulZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752002AbdB0U2S (ORCPT
+        with ESMTP id S1752001AbdB0U2S (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, aryabinin@virtuozzo.com, cl@linux.com, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: nfont@linux.vnet.ibm.com, mdroth@linux.vnet.ibm.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: drain quarantine of memcg slab objects
+     Subject: memory-hotplug: use dev_online for memhp_auto_online
 has been removed from the -mm tree.  Its filename was
-     kasan-drain-quarantine-of-memcg-slab-objects.patch
+     memory-hotplug-use-dev_online-for-memhp_auto_online.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: kasan: drain quarantine of memcg slab objects
+From: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Subject: memory-hotplug: use dev_online for memhp_auto_online
 
-Per memcg slab accounting and kasan have a problem with kmem_cache
-destruction.
-- kmem_cache_create() allocates a kmem_cache, which is used for
-  allocations from processes running in root (top) memcg.
-- Processes running in non root memcg and allocating with either
-  __GFP_ACCOUNT or from a SLAB_ACCOUNT cache use a per memcg kmem_cache.
-- Kasan catches use-after-free by having kfree() and kmem_cache_free()
-  defer freeing of objects.  Objects are placed in a quarantine.
-- kmem_cache_destroy() destroys root and non root kmem_caches.  It takes
-  care to drain the quarantine of objects from the root memcg's
-  kmem_cache, but ignores objects associated with non root memcg.  This
-  causes leaks because quarantined per memcg objects refer to per memcg
-  kmem cache being destroyed.
+Commit 31bc3858e "add automatic onlining policy for the newly added
+memory" provides the capability to have added memory automatically onlined
+during add, but this appears to be slightly broken.
 
-To see the problem:
-1) create a slab cache with kmem_cache_create(,,,SLAB_ACCOUNT,)
-2) from non root memcg, allocate and free a few objects from cache
-3) dispose of the cache with kmem_cache_destroy()
-kmem_cache_destroy() will trigger a "Slab cache still has objects"
-warning indicating that the per memcg kmem_cache structure was leaked.
+The current implementation uses walk_memory_range() to call
+online_memory_block, which uses memory_block_change_state() to online the
+memory.  Instead, we should be calling device_online() for the memory
+block in online_memory_block().  This would online the memory (the memory
+bus online routine memory_subsys_online() called from device_online calls
+memory_block_change_state()) and properly update the device struct offline
+flag.
 
-Fix the leak by draining kasan quarantined objects allocated from non
-root memcg.
+As a result of the current implementation, attempting to remove a memory
+block after adding it using auto online fails.  This is because doing a
+remove, for instance 'echo offline >
+/sys/devices/system/memory/memoryXXX/state', uses device_offline() which
+checks the dev->offline flag.
 
-Racing memcg deletion is tricky, but handled.  kmem_cache_destroy() =>
-shutdown_memcg_caches() => __shutdown_memcg_cache() => shutdown_cache()
-flushes per memcg quarantined objects, even if that memcg has been
-rmdir'd and gone through memcg_deactivate_kmem_caches().
-
-This leak only affects destroyed SLAB_ACCOUNT kmem caches when kasan is
-enabled.  So I don't think it's worth patching stable kernels.
-
-Link: http://lkml.kernel.org/r/1482257462-36948-1-git-send-email-gthelen@google.com
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Reviewed-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20170222220744.8119.19687.stgit@ltcalpine2-lp14.aus.stglabs.ibm.com
+Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michael Roth <mdroth@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    4 ++--
- mm/kasan/kasan.c      |    2 +-
- mm/kasan/quarantine.c |    1 +
- mm/slab_common.c      |    4 +++-
- 4 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/base/memory.c  |    2 +-
+ include/linux/memory.h |    3 ---
+ mm/memory_hotplug.c    |    2 +-
+ 3 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kasan.h~kasan-drain-quarantine-of-memcg-slab-objects include/linux/kasan.h
---- a/include/linux/kasan.h~kasan-drain-quarantine-of-memcg-slab-objects
-+++ a/include/linux/kasan.h
-@@ -52,7 +52,7 @@ void kasan_free_pages(struct page *page,
- void kasan_cache_create(struct kmem_cache *cache, size_t *size,
- 			unsigned long *flags);
- void kasan_cache_shrink(struct kmem_cache *cache);
--void kasan_cache_destroy(struct kmem_cache *cache);
-+void kasan_cache_shutdown(struct kmem_cache *cache);
- 
- void kasan_poison_slab(struct page *page);
- void kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
-@@ -98,7 +98,7 @@ static inline void kasan_cache_create(st
- 				      size_t *size,
- 				      unsigned long *flags) {}
- static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
--static inline void kasan_cache_destroy(struct kmem_cache *cache) {}
-+static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
- 
- static inline void kasan_poison_slab(struct page *page) {}
- static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
-diff -puN mm/kasan/kasan.c~kasan-drain-quarantine-of-memcg-slab-objects mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-drain-quarantine-of-memcg-slab-objects
-+++ a/mm/kasan/kasan.c
-@@ -435,7 +435,7 @@ void kasan_cache_shrink(struct kmem_cach
- 	quarantine_remove_cache(cache);
+diff -puN drivers/base/memory.c~memory-hotplug-use-dev_online-for-memhp_auto_online drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-use-dev_online-for-memhp_auto_online
++++ a/drivers/base/memory.c
+@@ -249,7 +249,7 @@ memory_block_action(unsigned long phys_i
+ 	return ret;
  }
  
--void kasan_cache_destroy(struct kmem_cache *cache)
-+void kasan_cache_shutdown(struct kmem_cache *cache)
+-int memory_block_change_state(struct memory_block *mem,
++static int memory_block_change_state(struct memory_block *mem,
+ 		unsigned long to_state, unsigned long from_state_req)
  {
- 	quarantine_remove_cache(cache);
+ 	int ret = 0;
+diff -puN include/linux/memory.h~memory-hotplug-use-dev_online-for-memhp_auto_online include/linux/memory.h
+--- a/include/linux/memory.h~memory-hotplug-use-dev_online-for-memhp_auto_online
++++ a/include/linux/memory.h
+@@ -109,9 +109,6 @@ extern void unregister_memory_notifier(s
+ extern int register_memory_isolate_notifier(struct notifier_block *nb);
+ extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
+ extern int register_new_memory(int, struct mem_section *);
+-extern int memory_block_change_state(struct memory_block *mem,
+-				     unsigned long to_state,
+-				     unsigned long from_state_req);
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ extern int unregister_memory_section(struct mem_section *);
+ #endif
+diff -puN mm/memory_hotplug.c~memory-hotplug-use-dev_online-for-memhp_auto_online mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-use-dev_online-for-memhp_auto_online
++++ a/mm/memory_hotplug.c
+@@ -1337,7 +1337,7 @@ int zone_for_memory(int nid, u64 start,
+ 
+ static int online_memory_block(struct memory_block *mem, void *arg)
+ {
+-	return memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
++	return device_online(&mem->dev);
  }
-diff -puN mm/kasan/quarantine.c~kasan-drain-quarantine-of-memcg-slab-objects mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~kasan-drain-quarantine-of-memcg-slab-objects
-+++ a/mm/kasan/quarantine.c
-@@ -274,6 +274,7 @@ static void per_cpu_remove_cache(void *a
- 	qlist_free_all(&to_free, cache);
- }
  
-+/* Free all quarantined objects belonging to cache. */
- void quarantine_remove_cache(struct kmem_cache *cache)
- {
- 	unsigned long flags, i;
-diff -puN mm/slab_common.c~kasan-drain-quarantine-of-memcg-slab-objects mm/slab_common.c
---- a/mm/slab_common.c~kasan-drain-quarantine-of-memcg-slab-objects
-+++ a/mm/slab_common.c
-@@ -528,6 +528,9 @@ static void slab_caches_to_rcu_destroy_w
- 
- static int shutdown_cache(struct kmem_cache *s)
- {
-+	/* free asan quarantined objects */
-+	kasan_cache_shutdown(s);
-+
- 	if (__kmem_cache_shutdown(s) != 0)
- 		return -EBUSY;
- 
-@@ -816,7 +819,6 @@ void kmem_cache_destroy(struct kmem_cach
- 	get_online_cpus();
- 	get_online_mems();
- 
--	kasan_cache_destroy(s);
- 	mutex_lock(&slab_mutex);
- 
- 	s->refcount--;
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from nfont@linux.vnet.ibm.com are
 
 
