@@ -1,72 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-gup-check-for-protnone-only-if-it-is-a-pte-entry.patch removed from -mm
- tree
-Date: Mon, 27 Feb 2017 12:28:00 -0800
-Message-ID: <58b48bd0.n46XTS3YXr8KjPzP%akpm@linux-foundation.org>
+Subject: [merged] mm-thp-autonuma-use-tnf-flag-instead-of-vm-fault.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:28:03 -0800
+Message-ID: <58b48bd3.rVyYS8WDRYH9umIA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60860 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60458 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751986AbdB0U2Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:16 -0500
+        with ESMTP id S1751991AbdB0U2S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, riel@surriel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: check for protnone only if it is a PTE entry
+     Subject: mm/thp/autonuma: use TNF flag instead of vm fault
 has been removed from the -mm tree.  Its filename was
-     mm-gup-check-for-protnone-only-if-it-is-a-pte-entry.patch
+     mm-thp-autonuma-use-tnf-flag-instead-of-vm-fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/gup: check for protnone only if it is a PTE entry
+Subject: mm/thp/autonuma: use TNF flag instead of vm fault
 
-Do the prot_none/FOLL_NUMA check after we are sure this is a THP pte. 
-Archs can implement prot_none such that it can return true for regular pmd
-entries.
+We are using the wrong flag value in task_numa_falt function.  This can
+result in us doing wrong numa fault statistics update, because we update
+num_pages_migrate and numa_fault_locality etc based on the flag argument
+passed.
 
-Link: http://lkml.kernel.org/r/1487498326-8734-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Fixes: bae473a423 ("mm: introduce fault_env")
+Link: http://lkml.kernel.org/r/1487498395-9544-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/gup.c~mm-gup-check-for-protnone-only-if-it-is-a-pte-entry mm/gup.c
---- a/mm/gup.c~mm-gup-check-for-protnone-only-if-it-is-a-pte-entry
-+++ a/mm/gup.c
-@@ -272,8 +272,6 @@ struct page *follow_page_mask(struct vm_
- 			return page;
- 		return no_page_table(vma, flags);
- 	}
--	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
--		return no_page_table(vma, flags);
- 	if (pmd_devmap(*pmd)) {
- 		ptl = pmd_lock(mm, pmd);
- 		page = follow_devmap_pmd(vma, address, pmd, flags);
-@@ -284,6 +282,9 @@ struct page *follow_page_mask(struct vm_
- 	if (likely(!pmd_trans_huge(*pmd)))
- 		return follow_page_pte(vma, address, pmd, flags);
+diff -puN mm/huge_memory.c~mm-thp-autonuma-use-tnf-flag-instead-of-vm-fault mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-autonuma-use-tnf-flag-instead-of-vm-fault
++++ a/mm/huge_memory.c
+@@ -1506,7 +1506,7 @@ out:
  
-+	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
-+		return no_page_table(vma, flags);
-+
- 	ptl = pmd_lock(mm, pmd);
- 	if (unlikely(!pmd_trans_huge(*pmd))) {
- 		spin_unlock(ptl);
+ 	if (page_nid != -1)
+ 		task_numa_fault(last_cpupid, page_nid, HPAGE_PMD_NR,
+-				vmf->flags);
++				flags);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
