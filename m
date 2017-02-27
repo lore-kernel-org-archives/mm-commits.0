@@ -1,163 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-split-alloc_pages_nodemask.patch removed
+Subject: [merged]
+ mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch removed
  from -mm tree
-Date: Mon, 27 Feb 2017 12:24:56 -0800
-Message-ID: <58b48b18.KaM389A7gr5eBNQQ%akpm@linux-foundation.org>
+Date: Mon, 27 Feb 2017 12:25:53 -0800
+Message-ID: <58b48b51.8pVmAZvIpkuOJfZv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53446 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751644AbdB1Aky (ORCPT
+        with ESMTP id S1751639AbdB1Aky (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 19:40:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, hillf.zj@alibaba-inc.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, guohanjun@huawei.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: split alloc_pages_nodemask()
+     Subject: mm/hotplug: enable memory hotplug for non-lru movable pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-split-alloc_pages_nodemask.patch
+     mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: split alloc_pages_nodemask()
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/hotplug: enable memory hotplug for non-lru movable pages
 
-alloc_pages_nodemask does a number of preperation steps that determine
-what zones can be used for the allocation depending on a variety of
-factors. This is fine but a hypothetical caller that wanted multiple
-order-0 pages has to do the preparation steps multiple times. This patch
-structures __alloc_pages_nodemask such that it's relatively easy to build
-a bulk order-0 page allocator. There is no functional change.
+We had considered all of the non-lru pages as unmovable before commit
+bda807d44454 ("mm: migrate: support non-lru movable page migration").  But
+now some of non-lru pages like zsmalloc, virtio-balloon pages also become
+movable.  So we can offline such blocks by using non-lru page migration.
 
-Link: http://lkml.kernel.org/r/20170123153906.3122-3-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+This patch straightforwardly adds non-lru migration code, which means
+adding non-lru related code to the functions which scan over pfn and
+collect pages to be migrated and isolate them before migration.
+
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yisheng Xie <xieyisheng1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   75 ++++++++++++++++++++++++++++------------------
- 1 file changed, 46 insertions(+), 29 deletions(-)
+ mm/memory_hotplug.c |   28 +++++++++++++++++-----------
+ mm/page_alloc.c     |    8 ++++++--
+ 2 files changed, 23 insertions(+), 13 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-split-alloc_pages_nodemask
-+++ a/mm/page_alloc.c
-@@ -3855,60 +3855,77 @@ got_pg:
- 	return page;
+diff -puN mm/memory_hotplug.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages
++++ a/mm/memory_hotplug.c
+@@ -1531,10 +1531,10 @@ int test_pages_in_a_zone(unsigned long s
  }
  
--/*
-- * This is the 'heart' of the zoned buddy allocator.
-- */
--struct page *
--__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
--			struct zonelist *zonelist, nodemask_t *nodemask)
-+static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
-+		struct zonelist *zonelist, nodemask_t *nodemask,
-+		struct alloc_context *ac, gfp_t *alloc_mask,
-+		unsigned int *alloc_flags)
+ /*
+- * Scan pfn range [start,end) to find movable/migratable pages (LRU pages
+- * and hugepages). We scan pfn because it's much easier than scanning over
+- * linked list. This function returns the pfn of the first found movable
+- * page if it's found, otherwise 0.
++ * Scan pfn range [start,end) to find movable/migratable pages (LRU pages,
++ * non-lru movable pages and hugepages). We scan pfn because it's much
++ * easier than scanning over linked list. This function returns the pfn
++ * of the first found movable page if it's found, otherwise 0.
+  */
+ static unsigned long scan_movable_pages(unsigned long start, unsigned long end)
  {
--	struct page *page;
--	unsigned int alloc_flags = ALLOC_WMARK_LOW;
--	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
--	struct alloc_context ac = {
--		.high_zoneidx = gfp_zone(gfp_mask),
--		.zonelist = zonelist,
--		.nodemask = nodemask,
--		.migratetype = gfpflags_to_migratetype(gfp_mask),
--	};
-+	ac->high_zoneidx = gfp_zone(gfp_mask);
-+	ac->zonelist = zonelist;
-+	ac->nodemask = nodemask;
-+	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
+@@ -1545,6 +1545,8 @@ static unsigned long scan_movable_pages(
+ 			page = pfn_to_page(pfn);
+ 			if (PageLRU(page))
+ 				return pfn;
++			if (__PageMovable(page))
++				return pfn;
+ 			if (PageHuge(page)) {
+ 				if (page_huge_active(page))
+ 					return pfn;
+@@ -1621,21 +1623,25 @@ do_migrate_range(unsigned long start_pfn
+ 		if (!get_page_unless_zero(page))
+ 			continue;
+ 		/*
+-		 * We can skip free pages. And we can only deal with pages on
+-		 * LRU.
++		 * We can skip free pages. And we can deal with pages on
++		 * LRU and non-lru movable pages.
+ 		 */
+-		ret = isolate_lru_page(page);
++		if (PageLRU(page))
++			ret = isolate_lru_page(page);
++		else
++			ret = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
+ 		if (!ret) { /* Success */
+ 			put_page(page);
+ 			list_add_tail(&page->lru, &source);
+ 			move_pages--;
+-			inc_node_page_state(page, NR_ISOLATED_ANON +
+-					    page_is_file_cache(page));
++			if (!__PageMovable(page))
++				inc_node_page_state(page, NR_ISOLATED_ANON +
++						    page_is_file_cache(page));
  
- 	if (cpusets_enabled()) {
--		alloc_mask |= __GFP_HARDWALL;
--		alloc_flags |= ALLOC_CPUSET;
--		if (!ac.nodemask)
--			ac.nodemask = &cpuset_current_mems_allowed;
-+		*alloc_mask |= __GFP_HARDWALL;
-+		*alloc_flags |= ALLOC_CPUSET;
-+		if (!ac->nodemask)
-+			ac->nodemask = &cpuset_current_mems_allowed;
- 	}
+ 		} else {
+ #ifdef CONFIG_DEBUG_VM
+-			pr_alert("removing pfn %lx from LRU failed\n", pfn);
+-			dump_page(page, "failed to remove from LRU");
++			pr_alert("failed to isolate pfn %lx\n", pfn);
++			dump_page(page, "isolation failed");
+ #endif
+ 			put_page(page);
+ 			/* Because we don't have big zone->lock. we should
+diff -puN mm/page_alloc.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-hotplug-enable-memory-hotplug-for-non-lru-movable-pages
++++ a/mm/page_alloc.c
+@@ -7227,8 +7227,9 @@ void *__init alloc_large_system_hash(con
+  * If @count is not zero, it is okay to include less @count unmovable pages
+  *
+  * PageLRU check without isolation or lru_lock could race so that
+- * MIGRATE_MOVABLE block might include unmovable pages. It means you can't
+- * expect this function should be exact.
++ * MIGRATE_MOVABLE block might include unmovable pages. And __PageMovable
++ * check without lock_page also may miss some movable non-lru pages at
++ * race condition. So you can't expect this function should be exact.
+  */
+ bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
+ 			 bool skip_hwpoisoned_pages)
+@@ -7284,6 +7285,9 @@ bool has_unmovable_pages(struct zone *zo
+ 		if (skip_hwpoisoned_pages && PageHWPoison(page))
+ 			continue;
  
--	gfp_mask &= gfp_allowed_mask;
--
- 	lockdep_trace_alloc(gfp_mask);
- 
- 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
- 
- 	if (should_fail_alloc_page(gfp_mask, order))
--		return NULL;
-+		return false;
- 
- 	/*
- 	 * Check the zones suitable for the gfp_mask contain at least one
- 	 * valid zone. It's possible to have an empty zonelist as a result
- 	 * of __GFP_THISNODE and a memoryless node
- 	 */
--	if (unlikely(!zonelist->_zonerefs->zone))
--		return NULL;
-+	if (unlikely(!ac->zonelist->_zonerefs->zone))
-+		return false;
++		if (__PageMovable(page))
++			continue;
 +
-+	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
-+		*alloc_flags |= ALLOC_CMA;
- 
--	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
--		alloc_flags |= ALLOC_CMA;
-+	return true;
-+}
- 
-+/* Determine whether to spread dirty pages and what the first usable zone */
-+static inline void finalise_ac(gfp_t gfp_mask,
-+		unsigned int order, struct alloc_context *ac)
-+{
- 	/* Dirty zone balancing only done in the fast path */
--	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
-+	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
- 
- 	/*
- 	 * The preferred zone is used for statistics but crucially it is
- 	 * also used as the starting point for the zonelist iterator. It
- 	 * may get reset for allocations that ignore memory policies.
- 	 */
--	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
--					ac.high_zoneidx, ac.nodemask);
-+	ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
-+					ac->high_zoneidx, ac->nodemask);
-+}
-+
-+/*
-+ * This is the 'heart' of the zoned buddy allocator.
-+ */
-+struct page *
-+__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
-+			struct zonelist *zonelist, nodemask_t *nodemask)
-+{
-+	struct page *page;
-+	unsigned int alloc_flags = ALLOC_WMARK_LOW;
-+	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
-+	struct alloc_context ac = { };
-+
-+	gfp_mask &= gfp_allowed_mask;
-+	if (!prepare_alloc_pages(gfp_mask, order, zonelist, nodemask, &ac, &alloc_mask, &alloc_flags))
-+		return NULL;
-+
-+	finalise_ac(gfp_mask, order, &ac);
- 	if (!ac.preferred_zoneref->zone) {
- 		page = NULL;
+ 		if (!PageLRU(page))
+ 			found++;
  		/*
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
 
