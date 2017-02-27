@@ -1,131 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 12:25:32 -0800
-Message-ID: <58b48b3c.ax0cMUyAcdpOofJg%akpm@linux-foundation.org>
+Subject: [merged] z3fold-fix-header-size-related-issues.patch removed from -mm tree
+Date: Mon, 27 Feb 2017 12:25:36 -0800
+Message-ID: <58b48b40.uB5gvNONz7hkamgE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34734 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751975AbdB0U5A (ORCPT
+        with ESMTP id S1752033AbdB0U5A (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:57:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.jiang@intel.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, nilesh.choudhury@oracle.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix get_user_pages() vs device-dax pud mappings
+     Subject: z3fold: fix header size related issues
 has been removed from the -mm tree.  Its filename was
-     mm-fix-get_user_pages-vs-device-dax-pud-mappings.patch
+     z3fold-fix-header-size-related-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix get_user_pages() vs device-dax pud mappings
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold: fix header size related issues
 
-A new unit test for the device-dax 1GB enabling currently fails with this
-warning before hanging the test thread:
+Currently the whole kernel build will be stopped if the size of struct
+z3fold_header is greater than the size of one chunk, which is 64 bytes by
+default.  This patch instead defines the offset for z3fold objects as the
+size of the z3fold header in chunks.
 
- WARNING: CPU: 0 PID: 21 at lib/percpu-refcount.c:155 percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
- percpu ref (dax_pmem_percpu_release [dax_pmem]) <= 0 (0) after switching to atomic
- [..]
- CPU: 0 PID: 21 Comm: rcuos/1 Tainted: G           O    4.10.0-rc7-next-20170207+ #944
- [..]
- Call Trace:
-  dump_stack+0x86/0xc3
-  __warn+0xcb/0xf0
-  warn_slowpath_fmt+0x5f/0x80
-  ? rcu_nocb_kthread+0x27a/0x510
-  ? dax_pmem_percpu_exit+0x50/0x50 [dax_pmem]
-  percpu_ref_switch_to_atomic_rcu+0x1e3/0x1f0
-  ? percpu_ref_exit+0x60/0x60
-  rcu_nocb_kthread+0x339/0x510
-  ? rcu_nocb_kthread+0x27a/0x510
-  kthread+0x101/0x140
+Fixed also are the calculation of num_free_chunks() and the address to
+move the middle chunk to in case of in-page compaction in
+z3fold_compact_page().
 
-The get_user_pages() path needs to arrange for references to be taken
-against the dev_pagemap instance backing the pud mapping. Refactor the
-existing __gup_device_huge_pmd() to also account for the pud case.
-
-Link: http://lkml.kernel.org/r/148653181153.38226.9605457830505509385.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Nilesh Choudhury <nilesh.choudhury@oracle.com>
+Link: http://lkml.kernel.org/r/20170131214057.d98677032bc7b1c6c59a80c9@gmail.com
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Reviewed-by: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/gup.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ mm/z3fold.c |  114 ++++++++++++++++++++++++++++----------------------
+ 1 file changed, 64 insertions(+), 50 deletions(-)
 
-diff -puN arch/x86/mm/gup.c~mm-fix-get_user_pages-vs-device-dax-pud-mappings arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~mm-fix-get_user_pages-vs-device-dax-pud-mappings
-+++ a/arch/x86/mm/gup.c
-@@ -154,14 +154,12 @@ static inline void get_head_page_multipl
- 	SetPageReferenced(page);
+diff -puN mm/z3fold.c~z3fold-fix-header-size-related-issues mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-fix-header-size-related-issues
++++ a/mm/z3fold.c
+@@ -34,29 +34,58 @@
+ /*****************
+  * Structures
+ *****************/
++struct z3fold_pool;
++struct z3fold_ops {
++	int (*evict)(struct z3fold_pool *pool, unsigned long handle);
++};
++
++enum buddy {
++	HEADLESS = 0,
++	FIRST,
++	MIDDLE,
++	LAST,
++	BUDDIES_MAX
++};
++
++/*
++ * struct z3fold_header - z3fold page metadata occupying the first chunk of each
++ *			z3fold page, except for HEADLESS pages
++ * @buddy:	links the z3fold page into the relevant list in the pool
++ * @first_chunks:	the size of the first buddy in chunks, 0 if free
++ * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
++ * @last_chunks:	the size of the last buddy in chunks, 0 if free
++ * @first_num:		the starting number (for the first handle)
++ */
++struct z3fold_header {
++	struct list_head buddy;
++	unsigned short first_chunks;
++	unsigned short middle_chunks;
++	unsigned short last_chunks;
++	unsigned short start_middle;
++	unsigned short first_num:2;
++};
++
+ /*
+  * NCHUNKS_ORDER determines the internal allocation granularity, effectively
+  * adjusting internal fragmentation.  It also determines the number of
+  * freelists maintained in each pool. NCHUNKS_ORDER of 6 means that the
+- * allocation granularity will be in chunks of size PAGE_SIZE/64. As one chunk
+- * in allocated page is occupied by z3fold header, NCHUNKS will be calculated
+- * to 63 which shows the max number of free chunks in z3fold page, also there
+- * will be 63 freelists per pool.
++ * allocation granularity will be in chunks of size PAGE_SIZE/64. Some chunks
++ * in the beginning of an allocated page are occupied by z3fold header, so
++ * NCHUNKS will be calculated to 63 (or 62 in case CONFIG_DEBUG_SPINLOCK=y),
++ * which shows the max number of free chunks in z3fold page, also there will
++ * be 63, or 62, respectively, freelists per pool.
+  */
+ #define NCHUNKS_ORDER	6
+ 
+ #define CHUNK_SHIFT	(PAGE_SHIFT - NCHUNKS_ORDER)
+ #define CHUNK_SIZE	(1 << CHUNK_SHIFT)
+-#define ZHDR_SIZE_ALIGNED CHUNK_SIZE
++#define ZHDR_SIZE_ALIGNED round_up(sizeof(struct z3fold_header), CHUNK_SIZE)
++#define ZHDR_CHUNKS	(ZHDR_SIZE_ALIGNED >> CHUNK_SHIFT)
++#define TOTAL_CHUNKS	(PAGE_SIZE >> CHUNK_SHIFT)
+ #define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
+ 
+ #define BUDDY_MASK	(0x3)
+ 
+-struct z3fold_pool;
+-struct z3fold_ops {
+-	int (*evict)(struct z3fold_pool *pool, unsigned long handle);
+-};
+-
+ /**
+  * struct z3fold_pool - stores metadata for each z3fold pool
+  * @lock:	protects all pool fields and first|last_chunk fields of any
+@@ -86,32 +115,6 @@ struct z3fold_pool {
+ 	const struct zpool_ops *zpool_ops;
+ };
+ 
+-enum buddy {
+-	HEADLESS = 0,
+-	FIRST,
+-	MIDDLE,
+-	LAST,
+-	BUDDIES_MAX
+-};
+-
+-/*
+- * struct z3fold_header - z3fold page metadata occupying the first chunk of each
+- *			z3fold page, except for HEADLESS pages
+- * @buddy:	links the z3fold page into the relevant list in the pool
+- * @first_chunks:	the size of the first buddy in chunks, 0 if free
+- * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
+- * @last_chunks:	the size of the last buddy in chunks, 0 if free
+- * @first_num:		the starting number (for the first handle)
+- */
+-struct z3fold_header {
+-	struct list_head buddy;
+-	unsigned short first_chunks;
+-	unsigned short middle_chunks;
+-	unsigned short last_chunks;
+-	unsigned short start_middle;
+-	unsigned short first_num:2;
+-};
+-
+ /*
+  * Internal z3fold page flags
+  */
+@@ -121,6 +124,7 @@ enum z3fold_page_flags {
+ 	MIDDLE_CHUNK_MAPPED,
+ };
+ 
++
+ /*****************
+  * Helpers
+ *****************/
+@@ -204,9 +208,10 @@ static int num_free_chunks(struct z3fold
+ 	 */
+ 	if (zhdr->middle_chunks != 0) {
+ 		int nfree_before = zhdr->first_chunks ?
+-			0 : zhdr->start_middle - 1;
++			0 : zhdr->start_middle - ZHDR_CHUNKS;
+ 		int nfree_after = zhdr->last_chunks ?
+-			0 : NCHUNKS - zhdr->start_middle - zhdr->middle_chunks;
++			0 : TOTAL_CHUNKS -
++				(zhdr->start_middle + zhdr->middle_chunks);
+ 		nfree = max(nfree_before, nfree_after);
+ 	} else
+ 		nfree = NCHUNKS - zhdr->first_chunks - zhdr->last_chunks;
+@@ -254,26 +259,35 @@ static void z3fold_destroy_pool(struct z
+ 	kfree(pool);
  }
  
--static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-+static int __gup_device_huge(unsigned long pfn, unsigned long addr,
- 		unsigned long end, struct page **pages, int *nr)
++static inline void *mchunk_memmove(struct z3fold_header *zhdr,
++				unsigned short dst_chunk)
++{
++	void *beg = zhdr;
++	return memmove(beg + (dst_chunk << CHUNK_SHIFT),
++		       beg + (zhdr->start_middle << CHUNK_SHIFT),
++		       zhdr->middle_chunks << CHUNK_SHIFT);
++}
++
+ /* Has to be called with lock held */
+ static int z3fold_compact_page(struct z3fold_header *zhdr)
  {
- 	int nr_start = *nr;
--	unsigned long pfn = pmd_pfn(pmd);
- 	struct dev_pagemap *pgmap = NULL;
+ 	struct page *page = virt_to_page(zhdr);
+-	void *beg = zhdr;
  
--	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
- 	do {
- 		struct page *page = pfn_to_page(pfn);
++	if (test_bit(MIDDLE_CHUNK_MAPPED, &page->private))
++		return 0; /* can't move middle chunk, it's used */
  
-@@ -180,6 +178,24 @@ static int __gup_device_huge_pmd(pmd_t p
- 	return 1;
+-	if (!test_bit(MIDDLE_CHUNK_MAPPED, &page->private) &&
+-	    zhdr->middle_chunks != 0 &&
+-	    zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
+-		memmove(beg + ZHDR_SIZE_ALIGNED,
+-			beg + (zhdr->start_middle << CHUNK_SHIFT),
+-			zhdr->middle_chunks << CHUNK_SHIFT);
++	if (zhdr->middle_chunks == 0)
++		return 0; /* nothing to compact */
++
++	if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
++		/* move to the beginning */
++		mchunk_memmove(zhdr, ZHDR_CHUNKS);
+ 		zhdr->first_chunks = zhdr->middle_chunks;
+ 		zhdr->middle_chunks = 0;
+ 		zhdr->start_middle = 0;
+ 		zhdr->first_num++;
+-		return 1;
+ 	}
+-	return 0;
++	return 1;
  }
  
-+static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-+		unsigned long end, struct page **pages, int *nr)
-+{
-+	unsigned long fault_pfn;
-+
-+	fault_pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-+}
-+
-+static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
-+		unsigned long end, struct page **pages, int *nr)
-+{
-+	unsigned long fault_pfn;
-+
-+	fault_pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-+}
-+
- static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
- 		unsigned long end, int write, struct page **pages, int *nr)
+ /**
+@@ -365,7 +379,7 @@ found:
+ 		zhdr->last_chunks = chunks;
+ 	else {
+ 		zhdr->middle_chunks = chunks;
+-		zhdr->start_middle = zhdr->first_chunks + 1;
++		zhdr->start_middle = zhdr->first_chunks + ZHDR_CHUNKS;
+ 	}
+ 
+ 	if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0 ||
+@@ -778,8 +792,8 @@ MODULE_ALIAS("zpool-z3fold");
+ 
+ static int __init init_z3fold(void)
  {
-@@ -251,9 +267,13 @@ static noinline int gup_huge_pud(pud_t p
+-	/* Make sure the z3fold header will fit in one chunk */
+-	BUILD_BUG_ON(sizeof(struct z3fold_header) > ZHDR_SIZE_ALIGNED);
++	/* Make sure the z3fold header is not larger than the page size */
++	BUILD_BUG_ON(ZHDR_SIZE_ALIGNED > PAGE_SIZE);
+ 	zpool_register_driver(&z3fold_zpool_driver);
  
- 	if (!pte_allows_gup(pud_val(pud), write))
- 		return 0;
-+
-+	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
-+	if (pud_devmap(pud))
-+		return __gup_device_huge_pud(pud, addr, end, pages, nr);
-+
- 	/* hugepages are never "special" */
- 	VM_BUG_ON(pud_flags(pud) & _PAGE_SPECIAL);
--	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
- 
- 	refs = 0;
- 	head = pud_page(pud);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
 
