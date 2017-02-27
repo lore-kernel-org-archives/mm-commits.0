@@ -1,63 +1,91 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-place-not-inside-of-unlikely-statement-in-wb_domain_writeout_inc.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 12:27:33 -0800
-Message-ID: <58b48bb5.baZ1FTyyxc+a991H%akpm@linux-foundation.org>
+ iopoll-include-linux-ktimeh-instead-of-linux-hrtimerh.patch removed from
+ -mm tree
+Date: Mon, 27 Feb 2017 12:28:36 -0800
+Message-ID: <58b48bf4.hxMQT2Uuly1r38sq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33178 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751654AbdB0U2B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:01 -0500
+        with ESMTP id S1752079AbdB0U2h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:28:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback.c: place "not" inside of unlikely() statement in wb_domain_writeout_inc()
+     Subject: include/linux/iopoll.h: include <linux/ktime.h> instead of <linux/hrtimer.h>
 has been removed from the -mm tree.  Its filename was
-     mm-place-not-inside-of-unlikely-statement-in-wb_domain_writeout_inc.patch
+     iopoll-include-linux-ktimeh-instead-of-linux-hrtimerh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
-Subject: mm/page-writeback.c: place "not" inside of unlikely() statement in wb_domain_writeout_inc()
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: include/linux/iopoll.h: include <linux/ktime.h> instead of <linux/hrtimer.h>
 
-The likely/unlikely profiler noticed that the unlikely statement in
-wb_domain_writeout_inc() is constantly wrong.  This is due to the "not"
-(!) being outside the unlikely statement.  It is likely that
-dom->period_time will be set, but unlikely that it wont be.  Move the not
-into the unlikely statement.
+The timer APIs this header needs are ktime_get(), ktime_add_us(), and
+ktime_compare().  So, including <linux/ktime.h> seems enough.  This commit
+will cut unnecessary header file parsing.
 
-Link: http://lkml.kernel.org/r/20170206120035.3c2e2b91@gandalf.local.home
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/1481679225-10885-1-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
+ include/linux/iopoll.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-place-not-inside-of-unlikely-statement-in-wb_domain_writeout_inc mm/page-writeback.c
---- a/mm/page-writeback.c~mm-place-not-inside-of-unlikely-statement-in-wb_domain_writeout_inc
-+++ a/mm/page-writeback.c
-@@ -580,7 +580,7 @@ static void wb_domain_writeout_inc(struc
- 	__fprop_inc_percpu_max(&dom->completions, completions,
- 			       max_prop_frac);
- 	/* First event after period switching was turned off? */
--	if (!unlikely(dom->period_time)) {
-+	if (unlikely(!dom->period_time)) {
- 		/*
- 		 * We can race with other __bdi_writeout_inc calls here but
- 		 * it does not cause any harm since the resulting time when
+diff -puN include/linux/iopoll.h~iopoll-include-linux-ktimeh-instead-of-linux-hrtimerh include/linux/iopoll.h
+--- a/include/linux/iopoll.h~iopoll-include-linux-ktimeh-instead-of-linux-hrtimerh
++++ a/include/linux/iopoll.h
+@@ -17,7 +17,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+-#include <linux/hrtimer.h>
++#include <linux/ktime.h>
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+ #include <linux/io.h>
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
+scripts-spellingtxt-add-swith-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-an-user-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-algined-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-efective-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-varible-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-embeded-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-againt-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-unneded-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-intialization-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-initialiazation-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-applys-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-explictely-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overwritting-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-therfore-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances.patch
 
