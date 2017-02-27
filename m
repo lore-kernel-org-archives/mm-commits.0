@@ -1,135 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma_alloc-allow-to-specify-gfp-mask.patch removed
- from -mm tree
-Date: Mon, 27 Feb 2017 12:26:53 -0800
-Message-ID: <58b48b8d.IimFzeMlpwGwWKcN%akpm@linux-foundation.org>
+Subject: [merged] bug-switch-data-corruption-check-to-__must_check.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:28:43 -0800
+Message-ID: <58b48bfb.R239fFqBBkn8ciZF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60440 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751778AbdB0U16 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:27:58 -0500
+        with ESMTP id S1751902AbdB0UaM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:30:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: l.stach@pengutronix.de, agraf@suse.com, catalin.marinas@arm.com, chris@zankel.net, iamjoonsoo.kim@lge.com, mhocko@suse.com, pbonzini@redhat.com, ralf@linux-mips.org, rkrcmar@redhat.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma_alloc: allow to specify GFP mask
+     Subject: bug: switch data corruption check to __must_check
 has been removed from the -mm tree.  Its filename was
-     mm-cma_alloc-allow-to-specify-gfp-mask.patch
+     bug-switch-data-corruption-check-to-__must_check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm: cma_alloc: allow to specify GFP mask
+From: Kees Cook <keescook@chromium.org>
+Subject: bug: switch data corruption check to __must_check
 
-Most users of this interface just want to use it with the default
-GFP_KERNEL flags, but for cases where DMA memory is allocated it may be
-called from a different context.
+The CHECK_DATA_CORRUPTION() macro was designed to have callers do
+something meaningful/protective on failure.  However, using "return false"
+in the macro too strictly limits the design patterns of callers.  Instead,
+let callers handle the logic test directly, but make sure that the result
+IS checked by forcing __must_check (which appears to not be able to be
+used directly on macro expressions).
 
-No functional change yet, just passing through the flag to the underlying
-alloc_contig_range function.
-
-Link: http://lkml.kernel.org/r/20170127172328.18574-2-l.stach@pengutronix.de
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Radim Krcmar <rkrcmar@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Alexander Graf <agraf@suse.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20170206204547.GA125312@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_builtin.c |    3 ++-
- drivers/base/dma-contiguous.c        |    2 +-
- include/linux/cma.h                  |    3 ++-
- mm/cma.c                             |    5 +++--
- mm/cma_debug.c                       |    2 +-
- 5 files changed, 9 insertions(+), 6 deletions(-)
+ include/linux/bug.h |   12 ++++++-----
+ lib/list_debug.c    |   45 ++++++++++++++++++++++--------------------
+ 2 files changed, 31 insertions(+), 26 deletions(-)
 
-diff -puN arch/powerpc/kvm/book3s_hv_builtin.c~mm-cma_alloc-allow-to-specify-gfp-mask arch/powerpc/kvm/book3s_hv_builtin.c
---- a/arch/powerpc/kvm/book3s_hv_builtin.c~mm-cma_alloc-allow-to-specify-gfp-mask
-+++ a/arch/powerpc/kvm/book3s_hv_builtin.c
-@@ -56,7 +56,8 @@ struct page *kvm_alloc_hpt_cma(unsigned
- {
- 	VM_BUG_ON(order_base_2(nr_pages) < KVM_CMA_CHUNK_ORDER - PAGE_SHIFT);
+diff -puN include/linux/bug.h~bug-switch-data-corruption-check-to-__must_check include/linux/bug.h
+--- a/include/linux/bug.h~bug-switch-data-corruption-check-to-__must_check
++++ a/include/linux/bug.h
+@@ -124,18 +124,20 @@ static inline enum bug_trap_type report_
  
--	return cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES));
-+	return cma_alloc(kvm_cma, nr_pages, order_base_2(HPT_ALIGN_PAGES),
-+			 GFP_KERNEL);
- }
- EXPORT_SYMBOL_GPL(kvm_alloc_hpt_cma);
- 
-diff -puN drivers/base/dma-contiguous.c~mm-cma_alloc-allow-to-specify-gfp-mask drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~mm-cma_alloc-allow-to-specify-gfp-mask
-+++ a/drivers/base/dma-contiguous.c
-@@ -193,7 +193,7 @@ struct page *dma_alloc_from_contiguous(s
- 	if (align > CONFIG_CMA_ALIGNMENT)
- 		align = CONFIG_CMA_ALIGNMENT;
- 
--	return cma_alloc(dev_get_cma_area(dev), count, align);
-+	return cma_alloc(dev_get_cma_area(dev), count, align, GFP_KERNEL);
- }
- 
- /**
-diff -puN include/linux/cma.h~mm-cma_alloc-allow-to-specify-gfp-mask include/linux/cma.h
---- a/include/linux/cma.h~mm-cma_alloc-allow-to-specify-gfp-mask
-+++ a/include/linux/cma.h
-@@ -29,6 +29,7 @@ extern int __init cma_declare_contiguous
- extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 					unsigned int order_per_bit,
- 					struct cma **res_cma);
--extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align);
-+extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
-+			      gfp_t gfp_mask);
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
- #endif
-diff -puN mm/cma.c~mm-cma_alloc-allow-to-specify-gfp-mask mm/cma.c
---- a/mm/cma.c~mm-cma_alloc-allow-to-specify-gfp-mask
-+++ a/mm/cma.c
-@@ -357,7 +357,8 @@ err:
-  * This function allocates part of contiguous memory on specific
-  * contiguous memory area.
+ /*
+  * Since detected data corruption should stop operation on the affected
+- * structures, this returns false if the corruption condition is found.
++ * structures. Return value must be checked and sanely acted on by caller.
   */
--struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align)
-+struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
-+		       gfp_t gfp_mask)
- {
- 	unsigned long mask, offset;
- 	unsigned long pfn = -1;
-@@ -403,7 +404,7 @@ struct page *cma_alloc(struct cma *cma,
- 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
- 		mutex_lock(&cma_mutex);
- 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
--					 GFP_KERNEL);
-+					 gfp_mask);
- 		mutex_unlock(&cma_mutex);
- 		if (ret == 0) {
- 			page = pfn_to_page(pfn);
-diff -puN mm/cma_debug.c~mm-cma_alloc-allow-to-specify-gfp-mask mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma_alloc-allow-to-specify-gfp-mask
-+++ a/mm/cma_debug.c
-@@ -138,7 +138,7 @@ static int cma_alloc_mem(struct cma *cma
- 	if (!mem)
- 		return -ENOMEM;
++static inline __must_check bool check_data_corruption(bool v) { return v; }
+ #define CHECK_DATA_CORRUPTION(condition, fmt, ...)			 \
+-	do {								 \
+-		if (unlikely(condition)) {				 \
++	check_data_corruption(({					 \
++		bool corruption = unlikely(condition);			 \
++		if (corruption) {					 \
+ 			if (IS_ENABLED(CONFIG_BUG_ON_DATA_CORRUPTION)) { \
+ 				pr_err(fmt, ##__VA_ARGS__);		 \
+ 				BUG();					 \
+ 			} else						 \
+ 				WARN(1, fmt, ##__VA_ARGS__);		 \
+-			return false;					 \
+ 		}							 \
+-	} while (0)
++		corruption;						 \
++	}))
  
--	p = cma_alloc(cma, count, 0);
-+	p = cma_alloc(cma, count, 0, GFP_KERNEL);
- 	if (!p) {
- 		kfree(mem);
- 		return -ENOMEM;
+ #endif	/* _LINUX_BUG_H */
+diff -puN lib/list_debug.c~bug-switch-data-corruption-check-to-__must_check lib/list_debug.c
+--- a/lib/list_debug.c~bug-switch-data-corruption-check-to-__must_check
++++ a/lib/list_debug.c
+@@ -20,15 +20,16 @@
+ bool __list_add_valid(struct list_head *new, struct list_head *prev,
+ 		      struct list_head *next)
+ {
+-	CHECK_DATA_CORRUPTION(next->prev != prev,
+-		"list_add corruption. next->prev should be prev (%p), but was %p. (next=%p).\n",
+-		prev, next->prev, next);
+-	CHECK_DATA_CORRUPTION(prev->next != next,
+-		"list_add corruption. prev->next should be next (%p), but was %p. (prev=%p).\n",
+-		next, prev->next, prev);
+-	CHECK_DATA_CORRUPTION(new == prev || new == next,
+-		"list_add double add: new=%p, prev=%p, next=%p.\n",
+-		new, prev, next);
++	if (CHECK_DATA_CORRUPTION(next->prev != prev,
++			"list_add corruption. next->prev should be prev (%p), but was %p. (next=%p).\n",
++			prev, next->prev, next) ||
++	    CHECK_DATA_CORRUPTION(prev->next != next,
++			"list_add corruption. prev->next should be next (%p), but was %p. (prev=%p).\n",
++			next, prev->next, prev) ||
++	    CHECK_DATA_CORRUPTION(new == prev || new == next,
++			"list_add double add: new=%p, prev=%p, next=%p.\n",
++			new, prev, next))
++		return false;
+ 
+ 	return true;
+ }
+@@ -41,18 +42,20 @@ bool __list_del_entry_valid(struct list_
+ 	prev = entry->prev;
+ 	next = entry->next;
+ 
+-	CHECK_DATA_CORRUPTION(next == LIST_POISON1,
+-		"list_del corruption, %p->next is LIST_POISON1 (%p)\n",
+-		entry, LIST_POISON1);
+-	CHECK_DATA_CORRUPTION(prev == LIST_POISON2,
+-		"list_del corruption, %p->prev is LIST_POISON2 (%p)\n",
+-		entry, LIST_POISON2);
+-	CHECK_DATA_CORRUPTION(prev->next != entry,
+-		"list_del corruption. prev->next should be %p, but was %p\n",
+-		entry, prev->next);
+-	CHECK_DATA_CORRUPTION(next->prev != entry,
+-		"list_del corruption. next->prev should be %p, but was %p\n",
+-		entry, next->prev);
++	if (CHECK_DATA_CORRUPTION(next == LIST_POISON1,
++			"list_del corruption, %p->next is LIST_POISON1 (%p)\n",
++			entry, LIST_POISON1) ||
++	    CHECK_DATA_CORRUPTION(prev == LIST_POISON2,
++			"list_del corruption, %p->prev is LIST_POISON2 (%p)\n",
++			entry, LIST_POISON2) ||
++	    CHECK_DATA_CORRUPTION(prev->next != entry,
++			"list_del corruption. prev->next should be %p, but was %p\n",
++			entry, prev->next) ||
++	    CHECK_DATA_CORRUPTION(next->prev != entry,
++			"list_del corruption. next->prev should be %p, but was %p\n",
++			entry, next->prev))
++		return false;
++
+ 	return true;
+ 
+ }
 _
 
-Patches currently in -mm which might be from l.stach@pengutronix.de are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
