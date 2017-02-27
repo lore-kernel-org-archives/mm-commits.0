@@ -1,148 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: [patch 74/78] mm: use mmget_not_zero() helper
-Date: Mon, 27 Feb 2017 14:30:13 -0800
-Message-ID: <58b4a875.XtS5oo2B+atfH0yp%akpm@linux-foundation.org>
+Subject: [patch 33/78] ipc/sem: add hysteresis
+Date: Mon, 27 Feb 2017 14:28:18 -0800
+Message-ID: <58b4a802.YVscby6W6lyhCc5C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45904 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751583AbdB0Wp1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:45:27 -0500
+        with ESMTP id S1751471AbdB0Wzy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:55:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vegard.nossum@oracle.com, mhocko@suse.com, peterz@infradead.org, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, xiaolong.ye@intel.com
 
-From: Vegard Nossum <vegard.nossum@oracle.com>
-Subject: mm: use mmget_not_zero() helper
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem: add hysteresis
 
-We already have the helper, we can convert the rest of the kernel
-mechanically using:
+sysv sem has two lock modes: One with per-semaphore locks, one lock mode
+with a single global lock for the whole array.
+When switching from the per-semaphore locks to the global lock, all
+per-semaphore locks must be scanned for ongoing operations.
 
-  git grep -l 'atomic_inc_not_zero.*mm_users' | xargs sed -i 's/atomic_inc_not_zero(&\(.*\)->mm_users)/mmget_not_zero\(\1\)/'
+The patch adds a hysteresis for switching from the global lock to the
+per semaphore locks. This reduces how often the per-semaphore locks
+must be scanned.
 
-This is needed for a later patch that hooks into the helper, but might be
-a worthwhile cleanup on its own.
+Compared to the initial patch, this is a simplified solution:
+Setting USE_GLOBAL_LOCK_HYSTERESIS to 1 restores the current behavior.
 
-Link: http://lkml.kernel.org/r/20161218123229.22952-3-vegard.nossum@oracle.com
-Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: David Rientjes <rientjes@google.com>
+In theory, a workload with exactly 10 simple sops and then
+one complex op now scales a bit worse, but this is pure theory:
+If there is concurrency, the it won't be exactly 10:1:10:1:10:1:...
+If there is no concurrency, then there is no need for scalability.
+
+Link: http://lkml.kernel.org/r/1476851896-3590-3-git-send-email-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: <1vier1@web.de>
+Cc: kernel test robot <xiaolong.ye@intel.com>
+Cc: <felixh@informatik.uni-bremen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gem_userptr.c |    2 +-
- drivers/iommu/intel-svm.c               |    2 +-
- fs/proc/base.c                          |    4 ++--
- fs/proc/task_mmu.c                      |    4 ++--
- fs/proc/task_nommu.c                    |    2 +-
- kernel/events/uprobes.c                 |    2 +-
- mm/swapfile.c                           |    2 +-
- 7 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/sem.h |    2 
+ ipc/sem.c           |   86 +++++++++++++++++++++++++++++-------------
+ 2 files changed, 62 insertions(+), 26 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_gem_userptr.c~mm-use-mmget_not_zero-helper drivers/gpu/drm/i915/i915_gem_userptr.c
---- a/drivers/gpu/drm/i915/i915_gem_userptr.c~mm-use-mmget_not_zero-helper
-+++ a/drivers/gpu/drm/i915/i915_gem_userptr.c
-@@ -507,7 +507,7 @@ __i915_gem_userptr_get_pages_worker(stru
- 			flags |= FOLL_WRITE;
+diff -puN include/linux/sem.h~ipc-sem-add-hysteresis include/linux/sem.h
+--- a/include/linux/sem.h~ipc-sem-add-hysteresis
++++ a/include/linux/sem.h
+@@ -21,7 +21,7 @@ struct sem_array {
+ 	struct list_head	list_id;	/* undo requests on this array */
+ 	int			sem_nsems;	/* no. of semaphores in array */
+ 	int			complex_count;	/* pending complex operations */
+-	bool			complex_mode;	/* no parallel simple ops */
++	unsigned int		use_global_lock;/* >0: global lock required */
+ };
  
- 		ret = -EFAULT;
--		if (atomic_inc_not_zero(&mm->mm_users)) {
-+		if (mmget_not_zero(mm)) {
- 			down_read(&mm->mmap_sem);
- 			while (pinned < npages) {
- 				ret = get_user_pages_remote
-diff -puN drivers/iommu/intel-svm.c~mm-use-mmget_not_zero-helper drivers/iommu/intel-svm.c
---- a/drivers/iommu/intel-svm.c~mm-use-mmget_not_zero-helper
-+++ a/drivers/iommu/intel-svm.c
-@@ -579,7 +579,7 @@ static irqreturn_t prq_event_thread(int
- 		if (!svm->mm)
- 			goto bad_req;
- 		/* If the mm is already defunct, don't handle faults. */
--		if (!atomic_inc_not_zero(&svm->mm->mm_users))
-+		if (!mmget_not_zero(svm->mm))
- 			goto bad_req;
- 		down_read(&svm->mm->mmap_sem);
- 		vma = find_extend_vma(svm->mm, address);
-diff -puN fs/proc/base.c~mm-use-mmget_not_zero-helper fs/proc/base.c
---- a/fs/proc/base.c~mm-use-mmget_not_zero-helper
-+++ a/fs/proc/base.c
-@@ -813,7 +813,7 @@ static ssize_t mem_rw(struct file *file,
- 		return -ENOMEM;
+ #ifdef CONFIG_SYSVIPC
+diff -puN ipc/sem.c~ipc-sem-add-hysteresis ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-add-hysteresis
++++ a/ipc/sem.c
+@@ -159,22 +159,42 @@ static int sysvipc_sem_proc_show(struct
+ #define SEMOPM_FAST	64  /* ~ 372 bytes on stack */
  
- 	copied = 0;
--	if (!atomic_inc_not_zero(&mm->mm_users))
-+	if (!mmget_not_zero(mm))
- 		goto free;
+ /*
++ * Switching from the mode suitable for simple ops
++ * to the mode for complex ops is costly. Therefore:
++ * use some hysteresis
++ */
++#define USE_GLOBAL_LOCK_HYSTERESIS	10
++
++/*
+  * Locking:
+  * a) global sem_lock() for read/write
+  *	sem_undo.id_next,
+  *	sem_array.complex_count,
+- *	sem_array.complex_mode
+  *	sem_array.pending{_alter,_const},
+  *	sem_array.sem_undo
+  *
+  * b) global or semaphore sem_lock() for read/write:
+  *	sem_array.sem_base[i].pending_{const,alter}:
+- *	sem_array.complex_mode (for read)
+  *
+  * c) special:
+  *	sem_undo_list.list_proc:
+  *	* undo_list->lock for write
+  *	* rcu for read
++ *	use_global_lock:
++ *	* global sem_lock() for write
++ *	* either local or global sem_lock() for read.
++ *
++ * Memory ordering:
++ * Most ordering is enforced by using spin_lock() and spin_unlock().
++ * The special case is use_global_lock:
++ * Setting it from non-zero to 0 is a RELEASE, this is ensured by
++ * using smp_store_release().
++ * Testing if it is non-zero is an ACQUIRE, this is ensured by using
++ * smp_load_acquire().
++ * Setting it from 0 to non-zero must be ordered with regards to
++ * this smp_load_acquire(), this is guaranteed because the smp_load_acquire()
++ * is inside a spin_lock() and after a write from 0 to non-zero a
++ * spin_lock()+spin_unlock() is done.
+  */
  
- 	/* Maybe we should limit FOLL_FORCE to actual ptrace users? */
-@@ -921,7 +921,7 @@ static ssize_t environ_read(struct file
- 		return -ENOMEM;
+ #define sc_semmsl	sem_ctls[0]
+@@ -273,12 +293,16 @@ static void complexmode_enter(struct sem
+ 	int i;
+ 	struct sem *sem;
  
- 	ret = 0;
--	if (!atomic_inc_not_zero(&mm->mm_users))
-+	if (!mmget_not_zero(mm))
- 		goto free;
+-	if (sma->complex_mode)  {
+-		/* We are already in complex_mode. Nothing to do */
++	if (sma->use_global_lock > 0)  {
++		/*
++		 * We are already in global lock mode.
++		 * Nothing to do, just reset the
++		 * counter until we return to simple mode.
++		 */
++		sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
+ 		return;
+ 	}
+-
+-	sma->complex_mode = true;
++	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
  
- 	down_read(&mm->mmap_sem);
-diff -puN fs/proc/task_mmu.c~mm-use-mmget_not_zero-helper fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-use-mmget_not_zero-helper
-+++ a/fs/proc/task_mmu.c
-@@ -167,7 +167,7 @@ static void *m_start(struct seq_file *m,
- 		return ERR_PTR(-ESRCH);
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+ 		sem = sma->sem_base + i;
+@@ -299,13 +323,17 @@ static void complexmode_tryleave(struct
+ 		 */
+ 		return;
+ 	}
+-	/*
+-	 * Immediately after setting complex_mode to false,
+-	 * a simple op can start. Thus: all memory writes
+-	 * performed by the current operation must be visible
+-	 * before we set complex_mode to false.
+-	 */
+-	smp_store_release(&sma->complex_mode, false);
++	if (sma->use_global_lock == 1) {
++		/*
++		 * Immediately after setting use_global_lock to 0,
++		 * a simple op can start. Thus: all memory writes
++		 * performed by the current operation must be visible
++		 * before we set use_global_lock to 0.
++		 */
++		smp_store_release(&sma->use_global_lock, 0);
++	} else {
++		sma->use_global_lock--;
++	}
+ }
  
- 	mm = priv->mm;
--	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
-+	if (!mm || !mmget_not_zero(mm))
- 		return NULL;
+ #define SEM_GLOBAL_LOCK	(-1)
+@@ -335,22 +363,23 @@ static inline int sem_lock(struct sem_ar
+ 	 * Optimized locking is possible if no complex operation
+ 	 * is either enqueued or processed right now.
+ 	 *
+-	 * Both facts are tracked by complex_mode.
++	 * Both facts are tracked by use_global_mode.
+ 	 */
+ 	sem = sma->sem_base + sops->sem_num;
  
- 	down_read(&mm->mmap_sem);
-@@ -1352,7 +1352,7 @@ static ssize_t pagemap_read(struct file
- 	unsigned long end_vaddr;
- 	int ret = 0, copied = 0;
+ 	/*
+-	 * Initial check for complex_mode. Just an optimization,
++	 * Initial check for use_global_lock. Just an optimization,
+ 	 * no locking, no memory barrier.
+ 	 */
+-	if (!sma->complex_mode) {
++	if (!sma->use_global_lock) {
+ 		/*
+ 		 * It appears that no complex operation is around.
+ 		 * Acquire the per-semaphore lock.
+ 		 */
+ 		spin_lock(&sem->lock);
  
--	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
-+	if (!mm || !mmget_not_zero(mm))
- 		goto out;
- 
- 	ret = -EINVAL;
-diff -puN fs/proc/task_nommu.c~mm-use-mmget_not_zero-helper fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~mm-use-mmget_not_zero-helper
-+++ a/fs/proc/task_nommu.c
-@@ -219,7 +219,7 @@ static void *m_start(struct seq_file *m,
- 		return ERR_PTR(-ESRCH);
- 
- 	mm = priv->mm;
--	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
-+	if (!mm || !mmget_not_zero(mm))
- 		return NULL;
- 
- 	down_read(&mm->mmap_sem);
-diff -puN kernel/events/uprobes.c~mm-use-mmget_not_zero-helper kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~mm-use-mmget_not_zero-helper
-+++ a/kernel/events/uprobes.c
-@@ -747,7 +747,7 @@ build_map_info(struct address_space *map
- 			continue;
+-		if (!smp_load_acquire(&sma->complex_mode)) {
++		/* pairs with smp_store_release() */
++		if (!smp_load_acquire(&sma->use_global_lock)) {
+ 			/* fast path successful! */
+ 			return sops->sem_num;
  		}
+@@ -360,19 +389,26 @@ static inline int sem_lock(struct sem_ar
+ 	/* slow path: acquire the full lock */
+ 	ipc_lock_object(&sma->sem_perm);
  
--		if (!atomic_inc_not_zero(&vma->vm_mm->mm_users))
-+		if (!mmget_not_zero(vma->vm_mm))
- 			continue;
+-	if (sma->complex_count == 0) {
+-		/* False alarm:
+-		 * There is no complex operation, thus we can switch
+-		 * back to the fast path.
++	if (sma->use_global_lock == 0) {
++		/*
++		 * The use_global_lock mode ended while we waited for
++		 * sma->sem_perm.lock. Thus we must switch to locking
++		 * with sem->lock.
++		 * Unlike in the fast path, there is no need to recheck
++		 * sma->use_global_lock after we have acquired sem->lock:
++		 * We own sma->sem_perm.lock, thus use_global_lock cannot
++		 * change.
+ 		 */
+ 		spin_lock(&sem->lock);
++
+ 		ipc_unlock_object(&sma->sem_perm);
+ 		return sops->sem_num;
+ 	} else {
+-		/* Not a false alarm, thus complete the sequence for a
+-		 * full lock.
++		/*
++		 * Not a false alarm, thus continue to use the global lock
++		 * mode. No need for complexmode_enter(), this was done by
++		 * the caller that has set use_global_mode to non-zero.
+ 		 */
+-		complexmode_enter(sma);
+ 		return SEM_GLOBAL_LOCK;
+ 	}
+ }
+@@ -476,7 +512,7 @@ static int newary(struct ipc_namespace *
+ 	}
  
- 		info = prev;
-diff -puN mm/swapfile.c~mm-use-mmget_not_zero-helper mm/swapfile.c
---- a/mm/swapfile.c~mm-use-mmget_not_zero-helper
-+++ a/mm/swapfile.c
-@@ -1763,7 +1763,7 @@ int try_to_unuse(unsigned int type, bool
- 			while (swap_count(*swap_map) && !retval &&
- 					(p = p->next) != &start_mm->mmlist) {
- 				mm = list_entry(p, struct mm_struct, mmlist);
--				if (!atomic_inc_not_zero(&mm->mm_users))
-+				if (!mmget_not_zero(mm))
- 					continue;
- 				spin_unlock(&mmlist_lock);
- 				mmput(prev_mm);
+ 	sma->complex_count = 0;
+-	sma->complex_mode = true; /* dropped by sem_unlock below */
++	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
+ 	INIT_LIST_HEAD(&sma->pending_alter);
+ 	INIT_LIST_HEAD(&sma->pending_const);
+ 	INIT_LIST_HEAD(&sma->list_id);
 _
