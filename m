@@ -1,80 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-test_sort-make-it-explicitly-non-modular.patch
- removed from -mm tree
-Date: Mon, 27 Feb 2017 12:29:09 -0800
-Message-ID: <58b48c15.LeDlsRXc1omIvfzk%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch removed from -mm
+ tree
+Date: Mon, 27 Feb 2017 12:28:45 -0800
+Message-ID: <58b48bfd.ni8VthixVVToc4iF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751668AbdB0Ua5 (ORCPT
+        with ESMTP id S1751944AbdB0Ua5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:30:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.gortmaker@windriver.com, arnd@arndb.de, fkostenzer@live.at, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, aquini@redhat.com, gi-oh.kim@profitbricks.com, guohanjun@huawei.com, jasowang@redhat.com, koct9i@gmail.com, mhocko@kernel.org, minchan@kernel.org, mst@redhat.com, qiuxishi@huawei.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_sort.c: make it explicitly non-modular
+     Subject: mm balloon: umount balloon_mnt when removing vb device
 has been removed from the -mm tree.  Its filename was
-     lib-test_sort-make-it-explicitly-non-modular.patch
+     mm-balloon-umount-balloon_mnt-when-remove-vb-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: lib/test_sort.c: make it explicitly non-modular
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm balloon: umount balloon_mnt when removing vb device
 
-The Kconfig currently controlling compilation of this code is:
+With CONFIG_BALLOON_COMPACTION=y the kernel will mount balloon_mnt for
+balloon page migration when we probe a virtio_balloon device.  However we
+do not unmount it when removing the device.  Fix this.
 
-     lib/Kconfig.debug:config TEST_SORT
-     lib/Kconfig.debug:      bool "Array-based sort test"
-
-...meaning that it currently is not being built as a module by anyone.
-
-Lets remove the couple traces of modular infrastructure use, so that
-when reading the code there is no doubt it is builtin-only.
-
-Since module_init translates to device_initcall in the non-modular
-case, the init ordering becomes slightly earlier when we change it
-to use subsys_initcall as done here.  However, since it is a self
-contained test, this shouldn't be an issue and subsys_initcall
-seems like a better fit for this particular case.
-
-We also delete the MODULE_LICENSE tag since that information is now
-contained at the top of the file in the comments.
-
-Link: http://lkml.kernel.org/r/20170124225608.7319-1-paul.gortmaker@windriver.com
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Kostenzer Felix <fkostenzer@live.at>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Fixes: b1123ea6d3b3 ("mm: balloon: use general non-lru movable page feature")
+Link: http://lkml.kernel.org/r/1486531318-35189-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_sort.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/virtio/virtio_balloon.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN lib/test_sort.c~lib-test_sort-make-it-explicitly-non-modular lib/test_sort.c
---- a/lib/test_sort.c~lib-test_sort-make-it-explicitly-non-modular
-+++ a/lib/test_sort.c
-@@ -1,8 +1,11 @@
- #include <linux/sort.h>
- #include <linux/slab.h>
--#include <linux/module.h>
-+#include <linux/init.h>
+diff -puN drivers/virtio/virtio_balloon.c~mm-balloon-umount-balloon_mnt-when-remove-vb-device drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~mm-balloon-umount-balloon_mnt-when-remove-vb-device
++++ a/drivers/virtio/virtio_balloon.c
+@@ -615,8 +615,12 @@ static void virtballoon_remove(struct vi
+ 	cancel_work_sync(&vb->update_balloon_stats_work);
  
--/* a simple boot-time regression test */
-+/*
-+ * A simple boot-time regression test
-+ * License: GPL
-+ */
- 
- #define TEST_LEN 1000
- 
-@@ -38,6 +41,4 @@ exit:
- 	kfree(a);
- 	return err;
+ 	remove_common(vb);
++#ifdef CONFIG_BALLOON_COMPACTION
+ 	if (vb->vb_dev_info.inode)
+ 		iput(vb->vb_dev_info.inode);
++
++	kern_unmount(balloon_mnt);
++#endif
+ 	kfree(vb);
  }
+ 
+_
+
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
+
+
