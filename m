@@ -1,63 +1,91 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-ksysfs-add-__ro_after_init-to-bin_attribute-structure.patch removed
- from -mm tree
-Date: Mon, 27 Feb 2017 12:28:50 -0800
-Message-ID: <58b48c02.UNYtcdyWeHWX5l6z%akpm@linux-foundation.org>
+ mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice.patch
+ removed from -mm tree
+Date: Mon, 27 Feb 2017 12:24:48 -0800
+Message-ID: <58b48b10.ohwWYiZ7Oue+svOv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34572 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751571AbdB0Ukd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:40:33 -0500
+        with ESMTP id S1751435AbdB0UmD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 15:42:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhumirks@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/ksysfs.c: add __ro_after_init to bin_attribute structure
+     Subject: mm: vmscan: only write dirty pages that the scanner has seen twice
 has been removed from the -mm tree.  Its filename was
-     kernel-ksysfs-add-__ro_after_init-to-bin_attribute-structure.patch
+     mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: kernel/ksysfs.c: add __ro_after_init to bin_attribute structure
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: only write dirty pages that the scanner has seen twice
 
-The object notes_attr of type bin_attribute is not modified after getting
-initailized by ksysfs_init.  Apart from initialization in ksysfs_init it
-is also passed as an argument to the function sysfs_create_bin_file but
-this argument is of type const.  Therefore, add __ro_after_init to its
-declaration.
+Dirty pages can easily reach the end of the LRU while there are still
+clean pages to reclaim around.  Don't let kswapd write them back just
+because there are a lot of them.  It costs more CPU to find the clean
+pages, but that's almost certainly better than to disrupt writeback from
+the flushers with LRU-order single-page writes from reclaim.  And the
+flushers have been woken up by that point, so we spend IO capacity on
+flushing and CPU capacity on finding the clean cache.
 
-Link: http://lkml.kernel.org/r/1486839969-16891-1-git-send-email-bhumirks@gmail.com
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
+Only start writing dirty pages if they have cycled around the LRU twice
+now and STILL haven't been queued on the IO device.  It's possible that
+the dirty pages are so sparsely distributed across different bdis, inodes,
+memory cgroups, that the flushers take forever to get to the ones we want
+reclaimed.  Once we see them twice on the LRU, we know that's the quicker
+way to find them, so do LRU writeback.
+
+Link: http://lkml.kernel.org/r/20170123181641.23938-5-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN kernel/ksysfs.c~kernel-ksysfs-add-__ro_after_init-to-bin_attribute-structure kernel/ksysfs.c
---- a/kernel/ksysfs.c~kernel-ksysfs-add-__ro_after_init-to-bin_attribute-structure
-+++ a/kernel/ksysfs.c
-@@ -195,7 +195,7 @@ static ssize_t notes_read(struct file *f
- 	return count;
- }
+diff -puN mm/vmscan.c~mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-only-write-dirty-pages-that-the-scanner-has-seen-twice
++++ a/mm/vmscan.c
+@@ -1153,13 +1153,18 @@ static unsigned long shrink_page_list(st
  
--static struct bin_attribute notes_attr = {
-+static struct bin_attribute notes_attr __ro_after_init  = {
- 	.attr = {
- 		.name = "notes",
- 		.mode = S_IRUGO,
+ 		if (PageDirty(page)) {
+ 			/*
+-			 * Only kswapd can writeback filesystem pages to
+-			 * avoid risk of stack overflow but only writeback
+-			 * if many dirty pages have been encountered.
++			 * Only kswapd can writeback filesystem pages
++			 * to avoid risk of stack overflow. But avoid
++			 * injecting inefficient single-page IO into
++			 * flusher writeback as much as possible: only
++			 * write pages when we've encountered many
++			 * dirty pages, and when we've already scanned
++			 * the rest of the LRU for clean pages and see
++			 * the same dirty pages again (PageReclaim).
+ 			 */
+ 			if (page_is_file_cache(page) &&
+-					(!current_is_kswapd() ||
+-					 !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
++			    (!current_is_kswapd() || !PageReclaim(page) ||
++			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+ 				 * Similar in principal to deactivate_page()
 _
 
-Patches currently in -mm which might be from bhumirks@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
