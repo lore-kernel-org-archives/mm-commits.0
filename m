@@ -1,60 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [patch 18/78] rapidio: use get_user_pages_unlocked()
-Date: Mon, 27 Feb 2017 14:27:34 -0800
-Message-ID: <58b4a7d6.T1dmLP4EzI2A9Waa%akpm@linux-foundation.org>
+Subject: [patch 22/78] fs/affs: add validation block function
+Date: Mon, 27 Feb 2017 14:27:46 -0800
+Message-ID: <58b4a7e2.lF/lZgkaOj8TlvBo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45462 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751852AbdB0Wfy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:35:54 -0500
+        with ESMTP id S1751891AbdB0WgF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2017 17:36:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, lstoakes@gmail.com, alexandre.bounine@idt.com, mporter@kernel.crashing.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be, viro@zeniv.linux.org.uk
 
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: rapidio: use get_user_pages_unlocked()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs: add validation block function
 
-Moving from get_user_pages() to get_user_pages_unlocked() simplifies the code
-and takes advantage of VM_FAULT_RETRY functionality when faulting in pages.
+Avoid repeating 4 times the same calculation.
 
-Link: http://lkml.kernel.org/r/20170103205024.6704-1-lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+Link: http://lkml.kernel.org/r/20170109191208.6085-3-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/affs/affs.h |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked drivers/rapidio/devices/rio_mport_cdev.c
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -889,17 +889,16 @@ rio_dma_transfer(struct file *filp, u32
- 			goto err_req;
- 		}
+diff -puN fs/affs/affs.h~fs-affs-add-validation-block-function fs/affs/affs.h
+--- a/fs/affs/affs.h~fs-affs-add-validation-block-function
++++ a/fs/affs/affs.h
+@@ -212,6 +212,12 @@ extern const struct address_space_operat
+ extern const struct dentry_operations	 affs_dentry_operations;
+ extern const struct dentry_operations	 affs_intl_dentry_operations;
  
--		down_read(&current->mm->mmap_sem);
--		pinned = get_user_pages(
-+		pinned = get_user_pages_unlocked(
- 				(unsigned long)xfer->loc_addr & PAGE_MASK,
- 				nr_pages,
--				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0,
--				page_list, NULL);
--		up_read(&current->mm->mmap_sem);
-+				page_list,
-+				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0);
- 
- 		if (pinned != nr_pages) {
- 			if (pinned < 0) {
--				rmcd_error("get_user_pages err=%ld", pinned);
-+				rmcd_error("get_user_pages_unlocked err=%ld",
-+					   pinned);
- 				nr_pages = 0;
- 			} else
- 				rmcd_error("pinned %ld out of %ld pages",
++static inline bool affs_validblock(struct super_block *sb, int block)
++{
++	return(block >= AFFS_SB(sb)->s_reserved &&
++	       block < AFFS_SB(sb)->s_partition_size);
++}
++
+ static inline void
+ affs_set_blocksize(struct super_block *sb, int size)
+ {
+@@ -221,7 +227,7 @@ static inline struct buffer_head *
+ affs_bread(struct super_block *sb, int block)
+ {
+ 	pr_debug("%s: %d\n", __func__, block);
+-	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size)
++	if (affs_validblock(sb, block))
+ 		return sb_bread(sb, block);
+ 	return NULL;
+ }
+@@ -229,7 +235,7 @@ static inline struct buffer_head *
+ affs_getblk(struct super_block *sb, int block)
+ {
+ 	pr_debug("%s: %d\n", __func__, block);
+-	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size)
++	if (affs_validblock(sb, block))
+ 		return sb_getblk(sb, block);
+ 	return NULL;
+ }
+@@ -238,7 +244,7 @@ affs_getzeroblk(struct super_block *sb,
+ {
+ 	struct buffer_head *bh;
+ 	pr_debug("%s: %d\n", __func__, block);
+-	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size) {
++	if (affs_validblock(sb, block)) {
+ 		bh = sb_getblk(sb, block);
+ 		lock_buffer(bh);
+ 		memset(bh->b_data, 0 , sb->s_blocksize);
+@@ -253,7 +259,7 @@ affs_getemptyblk(struct super_block *sb,
+ {
+ 	struct buffer_head *bh;
+ 	pr_debug("%s: %d\n", __func__, block);
+-	if (block >= AFFS_SB(sb)->s_reserved && block < AFFS_SB(sb)->s_partition_size) {
++	if (affs_validblock(sb, block)) {
+ 		bh = sb_getblk(sb, block);
+ 		wait_on_buffer(bh);
+ 		set_buffer_uptodate(bh);
 _
