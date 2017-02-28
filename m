@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
+ scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances.patch
  removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:15 -0800
-Message-ID: <58b5e2c3.6uPYL2Ea6i1lWy7X%akpm@linux-foundation.org>
+Date: Tue, 28 Feb 2017 12:51:11 -0800
+Message-ID: <58b5e2bf.pDwsN8X2LUFfp4yZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52602 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751863AbdB1Uvg (ORCPT
+        with ESMTP id S1751852AbdB1Uvg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,174 +19,242 @@ To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "partiton" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "an union" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "partiton" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "an union" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  partiton||partition
+  an union||a union
 
-Link: http://lkml.kernel.org/r/1481573103-11329-7-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-5-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/mach/flash.h                   |    2 +-
- arch/ia64/sn/kernel/sn2/sn_hwperf.c                 |    2 +-
- arch/powerpc/boot/dts/fsl/mpc8569mds.dts            |    2 +-
- arch/powerpc/include/asm/book3s/64/mmu.h            |    2 +-
- arch/powerpc/include/asm/fsl_hcalls.h               |    2 +-
- arch/powerpc/platforms/pseries/iommu.c              |    2 +-
- arch/sparc/kernel/visemul.c                         |    2 +-
- drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c |    2 +-
- drivers/watchdog/bcm2835_wdt.c                      |    6 +++---
- include/linux/mtd/qinfo.h                           |    2 +-
- include/linux/spi/flash.h                           |    2 +-
- 11 files changed, 13 insertions(+), 13 deletions(-)
+ Documentation/media/uapi/dvb/dvb-frontend-parameters.rst  |    4 ++--
+ arch/x86/include/asm/desc_defs.h                          |    2 +-
+ drivers/acpi/acpica/dbconvert.c                           |    2 +-
+ drivers/acpi/acpica/nspredef.c                            |    2 +-
+ drivers/acpi/acpica/nsxfeval.c                            |    4 ++--
+ drivers/staging/lustre/lustre/include/lustre/lustre_idl.h |    2 +-
+ include/linux/dcache.h                                    |    4 ++--
+ include/media/v4l2-ctrls.h                                |    4 ++--
+ include/xen/interface/grant_table.h                       |    2 +-
+ scripts/spelling.txt                                      |    1 +
+ sound/pci/ice1712/wm8766.c                                |    2 +-
+ sound/pci/ice1712/wm8776.c                                |    2 +-
+ tools/perf/util/probe-finder.c                            |    4 ++--
+ tools/perf/util/sort.h                                    |    2 +-
+ 14 files changed, 19 insertions(+), 18 deletions(-)
 
-diff -puN arch/arm/include/asm/mach/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/arm/include/asm/mach/flash.h
---- a/arch/arm/include/asm/mach/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/arch/arm/include/asm/mach/flash.h
-@@ -22,7 +22,7 @@ struct mtd_info;
-  * set_vpp:	method called to enable or disable VPP
-  * mmcontrol:	method called to enable or disable Sync. Burst Read in OneNAND
-  * parts:	optional array of mtd_partitions for static partitioning
-- * nr_parts:	number of mtd_partitions for static partitoning
-+ * nr_parts:	number of mtd_partitions for static partitioning
+diff -puN Documentation/media/uapi/dvb/dvb-frontend-parameters.rst~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances Documentation/media/uapi/dvb/dvb-frontend-parameters.rst
+--- a/Documentation/media/uapi/dvb/dvb-frontend-parameters.rst~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/Documentation/media/uapi/dvb/dvb-frontend-parameters.rst
+@@ -9,7 +9,7 @@ frontend parameters
+ The kind of parameters passed to the frontend device for tuning depend
+ on the kind of hardware you are using.
+ 
+-The struct ``dvb_frontend_parameters`` uses an union with specific
++The struct ``dvb_frontend_parameters`` uses a union with specific
+ per-system parameters. However, as newer delivery systems required more
+ data, the structure size weren't enough to fit, and just extending its
+ size would break the existing applications. So, those parameters were
+@@ -23,7 +23,7 @@ So, newer applications should use
+ instead, in order to be able to support the newer System Delivery like
+ DVB-S2, DVB-T2, DVB-C2, ISDB, etc.
+ 
+-All kinds of parameters are combined as an union in the
++All kinds of parameters are combined as a union in the
+ FrontendParameters structure:
+ 
+ 
+diff -puN arch/x86/include/asm/desc_defs.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances arch/x86/include/asm/desc_defs.h
+--- a/arch/x86/include/asm/desc_defs.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/arch/x86/include/asm/desc_defs.h
+@@ -15,7 +15,7 @@
+  * FIXME: Accessing the desc_struct through its fields is more elegant,
+  * and should be the one valid thing to do. However, a lot of open code
+  * still touches the a and b accessors, and doing this allow us to do it
+- * incrementally. We keep the signature as a struct, rather than an union,
++ * incrementally. We keep the signature as a struct, rather than a union,
+  * so we can get rid of it transparently in the future -- glommer
   */
- struct flash_platform_data {
- 	const char	*map_name;
-diff -puN arch/ia64/sn/kernel/sn2/sn_hwperf.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/ia64/sn/kernel/sn2/sn_hwperf.c
---- a/arch/ia64/sn/kernel/sn2/sn_hwperf.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/arch/ia64/sn/kernel/sn2/sn_hwperf.c
-@@ -525,7 +525,7 @@ static int sn_topology_show(struct seq_f
- 				/* both ends local to this partition */
- 				seq_puts(s, " local");
- 			else if (SN_HWPERF_FOREIGN(p))
--				/* both ends of the link in foreign partiton */
-+				/* both ends of the link in foreign partition */
- 				seq_puts(s, " foreign");
- 			else
- 				/* link straddles a partition */
-diff -puN arch/powerpc/boot/dts/fsl/mpc8569mds.dts~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/boot/dts/fsl/mpc8569mds.dts
---- a/arch/powerpc/boot/dts/fsl/mpc8569mds.dts~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/arch/powerpc/boot/dts/fsl/mpc8569mds.dts
-@@ -55,7 +55,7 @@
- 				label = "kernel";
- 				reg = <0x01c00000 0x002e0000>;
- 			};
--			partiton@1ee0000 {
-+			partition@1ee0000 {
- 				label = "dtb";
- 				reg = <0x01ee0000 0x00020000>;
- 			};
-diff -puN arch/powerpc/include/asm/book3s/64/mmu.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/include/asm/book3s/64/mmu.h
---- a/arch/powerpc/include/asm/book3s/64/mmu.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/arch/powerpc/include/asm/book3s/64/mmu.h
-@@ -30,7 +30,7 @@ extern struct mmu_psize_def mmu_psize_de
- 
- #ifndef __ASSEMBLY__
- /*
-- * ISA 3.0 partiton and process table entry format
-+ * ISA 3.0 partition and process table entry format
-  */
- struct prtb_entry {
- 	__be64 prtb0;
-diff -puN arch/powerpc/include/asm/fsl_hcalls.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/include/asm/fsl_hcalls.h
---- a/arch/powerpc/include/asm/fsl_hcalls.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/arch/powerpc/include/asm/fsl_hcalls.h
-@@ -109,7 +109,7 @@ static inline unsigned int fh_send_nmi(u
- #define FH_DTPROP_MAX_PROPLEN 32768
- 
- /**
-- * fh_partiton_get_dtprop - get a property from a guest device tree.
-+ * fh_partition_get_dtprop - get a property from a guest device tree.
-  * @handle: handle of partition whose device tree is to be accessed
-  * @dtpath_addr: physical address of device tree path to access
-  * @propname_addr: physical address of name of property
-diff -puN arch/powerpc/platforms/pseries/iommu.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/platforms/pseries/iommu.c
---- a/arch/powerpc/platforms/pseries/iommu.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/arch/powerpc/platforms/pseries/iommu.c
-@@ -1020,7 +1020,7 @@ static u64 enable_ddw(struct pci_dev *de
- 	/* check largest block * page size > max memory hotplug addr */
- 	max_addr = memory_hotplug_max();
- 	if (query.largest_available_block < (max_addr >> page_shift)) {
--		dev_dbg(&dev->dev, "can't map partiton max 0x%llx with %u "
-+		dev_dbg(&dev->dev, "can't map partition max 0x%llx with %u "
- 			  "%llu-sized pages\n", max_addr,  query.largest_available_block,
- 			  1ULL << page_shift);
- 		goto out_failed;
-diff -puN arch/sparc/kernel/visemul.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/sparc/kernel/visemul.c
---- a/arch/sparc/kernel/visemul.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/arch/sparc/kernel/visemul.c
-@@ -30,7 +30,7 @@
- /* 001001011 - two 32-bit merges */
- #define FPMERGE_OPF	0x04b
- 
--/* 000110001 - 8-by-16-bit partitoned product  */
-+/* 000110001 - 8-by-16-bit partitioned product  */
- #define FMUL8x16_OPF	0x031
- 
- /* 000110011 - 8-by-16-bit upper alpha partitioned product  */
-diff -puN drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c
---- a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c
-@@ -178,7 +178,7 @@ const u32 qlcnic_83xx_reg_tbl[] = {
- 	0x3540,		/* Device state, DRV_REG1 */
- 	0x3544,		/* Driver state, DRV_REG2 */
- 	0x3548,		/* Driver scratch, DRV_REG3 */
--	0x354C,		/* Device partiton info, DRV_REG4 */
-+	0x354C,		/* Device partition info, DRV_REG4 */
- 	0x3524,		/* Driver IDC ver, DRV_REG5 */
- 	0x3550,		/* FW_VER_MAJOR */
- 	0x3554,		/* FW_VER_MINOR */
-diff -puN drivers/watchdog/bcm2835_wdt.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances drivers/watchdog/bcm2835_wdt.c
---- a/drivers/watchdog/bcm2835_wdt.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/drivers/watchdog/bcm2835_wdt.c
-@@ -36,9 +36,9 @@
- #define PM_RSTC_RESET			0x00000102
- 
- /*
-- * The Raspberry Pi firmware uses the RSTS register to know which partiton
-- * to boot from. The partiton value is spread into bits 0, 2, 4, 6, 8, 10.
-- * Partiton 63 is a special partition used by the firmware to indicate halt.
-+ * The Raspberry Pi firmware uses the RSTS register to know which partition
-+ * to boot from. The partition value is spread into bits 0, 2, 4, 6, 8, 10.
-+ * Partition 63 is a special partition used by the firmware to indicate halt.
-  */
- #define PM_RSTS_RASPBERRYPI_HALT	0x555
- 
-diff -puN include/linux/mtd/qinfo.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances include/linux/mtd/qinfo.h
---- a/include/linux/mtd/qinfo.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/include/linux/mtd/qinfo.h
-@@ -14,7 +14,7 @@
-  * @DevId - Chip Device ID
-  * @qinfo - pointer to qinfo records describing the chip
-  * @numchips - number of chips including virual RWW partitions
-- * @chipshift - Chip/partiton size 2^chipshift
-+ * @chipshift - Chip/partition size 2^chipshift
-  * @chips - per-chip data structure
-  */
- struct lpddr_private {
-diff -puN include/linux/spi/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances include/linux/spi/flash.h
---- a/include/linux/spi/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
-+++ a/include/linux/spi/flash.h
-@@ -7,7 +7,7 @@ struct mtd_partition;
-  * struct flash_platform_data: board-specific flash data
-  * @name: optional flash device name (eg, as used with mtdparts=)
-  * @parts: optional array of mtd_partitions for static partitioning
-- * @nr_parts: number of mtd_partitions for static partitoning
-+ * @nr_parts: number of mtd_partitions for static partitioning
-  * @type: optional flash device type (e.g. m25p80 vs m25p64), for use
-  *	with chips that can't be queried for JEDEC or other IDs
+ /* 8 byte segment descriptor */
+diff -puN drivers/acpi/acpica/dbconvert.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/acpi/acpica/dbconvert.c
+--- a/drivers/acpi/acpica/dbconvert.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/drivers/acpi/acpica/dbconvert.c
+@@ -242,7 +242,7 @@ acpi_status acpi_db_convert_to_package(c
   *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Convert a typed and tokenized string to an union acpi_object. Typing:
++ * DESCRIPTION: Convert a typed and tokenized string to a union acpi_object. Typing:
+  *              1) String objects were surrounded by quotes.
+  *              2) Buffer objects were surrounded by parentheses.
+  *              3) Package objects were surrounded by brackets "[]".
+diff -puN drivers/acpi/acpica/nspredef.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/acpi/acpica/nspredef.c
+--- a/drivers/acpi/acpica/nspredef.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/drivers/acpi/acpica/nspredef.c
+@@ -323,7 +323,7 @@ acpi_ns_check_reference(struct acpi_eval
+ 
+ 	/*
+ 	 * Check the reference object for the correct reference type (opcode).
+-	 * The only type of reference that can be converted to an union acpi_object is
++	 * The only type of reference that can be converted to a union acpi_object is
+ 	 * a reference to a named object (reference class: NAME)
+ 	 */
+ 	if (return_object->reference.class == ACPI_REFCLASS_NAME) {
+diff -puN drivers/acpi/acpica/nsxfeval.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/acpi/acpica/nsxfeval.c
+--- a/drivers/acpi/acpica/nsxfeval.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/drivers/acpi/acpica/nsxfeval.c
+@@ -495,9 +495,9 @@ static void acpi_ns_resolve_references(s
+ 	/*
+ 	 * Two types of references are supported - those created by Index and
+ 	 * ref_of operators. A name reference (AML_NAMEPATH_OP) can be converted
+-	 * to an union acpi_object, so it is not dereferenced here. A ddb_handle
++	 * to a union acpi_object, so it is not dereferenced here. A ddb_handle
+ 	 * (AML_LOAD_OP) cannot be dereferenced, nor can it be converted to
+-	 * an union acpi_object.
++	 * a union acpi_object.
+ 	 */
+ 	switch (info->return_object->reference.class) {
+ 	case ACPI_REFCLASS_INDEX:
+diff -puN drivers/staging/lustre/lustre/include/lustre/lustre_idl.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances drivers/staging/lustre/lustre/include/lustre/lustre_idl.h
+--- a/drivers/staging/lustre/lustre/include/lustre/lustre_idl.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/drivers/staging/lustre/lustre/include/lustre/lustre_idl.h
+@@ -1704,7 +1704,7 @@ struct ost_lvb {
+  *   lquota data structures
+  */
+ 
+-/* The lquota_id structure is an union of all the possible identifier types that
++/* The lquota_id structure is a union of all the possible identifier types that
+  * can be used with quota, this includes:
+  * - 64-bit user ID
+  * - 64-bit group ID
+diff -puN include/linux/dcache.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances include/linux/dcache.h
+--- a/include/linux/dcache.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/include/linux/dcache.h
+@@ -562,7 +562,7 @@ static inline struct dentry *d_backing_d
+  * @inode: inode to select the dentry from multiple layers (can be NULL)
+  * @flags: open flags to control copy-up behavior
+  *
+- * If dentry is on an union/overlay, then return the underlying, real dentry.
++ * If dentry is on a union/overlay, then return the underlying, real dentry.
+  * Otherwise return the dentry itself.
+  *
+  * See also: Documentation/filesystems/vfs.txt
+@@ -581,7 +581,7 @@ static inline struct dentry *d_real(stru
+  * d_real_inode - Return the real inode
+  * @dentry: The dentry to query
+  *
+- * If dentry is on an union/overlay, then return the underlying, real inode.
++ * If dentry is on a union/overlay, then return the underlying, real inode.
+  * Otherwise return d_inode().
+  */
+ static inline struct inode *d_real_inode(const struct dentry *dentry)
+diff -puN include/media/v4l2-ctrls.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances include/media/v4l2-ctrls.h
+--- a/include/media/v4l2-ctrls.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/include/media/v4l2-ctrls.h
+@@ -174,10 +174,10 @@ typedef void (*v4l2_ctrl_notify_fnc)(str
+  *		not freed when the control is deleted. Should this be needed
+  *		then a new internal bitfield can be added to tell the framework
+  *		to free this pointer.
+- * @p_cur:	The control's current value represented via an union with
++ * @p_cur:	The control's current value represented via a union with
+  *		provides a standard way of accessing control types
+  *		through a pointer.
+- * @p_new:	The control's new value represented via an union with provides
++ * @p_new:	The control's new value represented via a union with provides
+  *		a standard way of accessing control types
+  *		through a pointer.
+  */
+diff -puN include/xen/interface/grant_table.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances include/xen/interface/grant_table.h
+--- a/include/xen/interface/grant_table.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/include/xen/interface/grant_table.h
+@@ -181,7 +181,7 @@ struct grant_entry_header {
+ };
+ 
+ /*
+- * Version 2 of the grant entry structure, here is an union because three
++ * Version 2 of the grant entry structure, here is a union because three
+  * different types are suppotted: full_page, sub_page and transitive.
+  */
+ union grant_entry_v2 {
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/scripts/spelling.txt
+@@ -86,6 +86,7 @@ alue||value
+ ambigious||ambiguous
+ amoung||among
+ amout||amount
++an union||a union
+ an user||a user
+ an userspace||a userspace
+ analysator||analyzer
+diff -puN sound/pci/ice1712/wm8766.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances sound/pci/ice1712/wm8766.c
+--- a/sound/pci/ice1712/wm8766.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/sound/pci/ice1712/wm8766.c
+@@ -254,7 +254,7 @@ static int snd_wm8766_ctl_put(struct snd
+ 	int n = kcontrol->private_value;
+ 	u16 val, regval1, regval2;
+ 
+-	/* this also works for enum because value is an union */
++	/* this also works for enum because value is a union */
+ 	regval1 = ucontrol->value.integer.value[0];
+ 	regval2 = ucontrol->value.integer.value[1];
+ 	if (wm->ctl[n].flags & WM8766_FLAG_INVERT) {
+diff -puN sound/pci/ice1712/wm8776.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances sound/pci/ice1712/wm8776.c
+--- a/sound/pci/ice1712/wm8776.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/sound/pci/ice1712/wm8776.c
+@@ -528,7 +528,7 @@ static int snd_wm8776_ctl_put(struct snd
+ 	int n = kcontrol->private_value;
+ 	u16 val, regval1, regval2;
+ 
+-	/* this also works for enum because value is an union */
++	/* this also works for enum because value is a union */
+ 	regval1 = ucontrol->value.integer.value[0];
+ 	regval2 = ucontrol->value.integer.value[1];
+ 	if (wm->ctl[n].flags & WM8776_FLAG_INVERT) {
+diff -puN tools/perf/util/probe-finder.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances tools/perf/util/probe-finder.c
+--- a/tools/perf/util/probe-finder.c~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/tools/perf/util/probe-finder.c
+@@ -464,7 +464,7 @@ static int convert_variable_fields(Dwarf
+ 		/* Verify it is a data structure  */
+ 		tag = dwarf_tag(&type);
+ 		if (tag != DW_TAG_structure_type && tag != DW_TAG_union_type) {
+-			pr_warning("%s is not a data structure nor an union.\n",
++			pr_warning("%s is not a data structure nor a union.\n",
+ 				   varname);
+ 			return -EINVAL;
+ 		}
+@@ -479,7 +479,7 @@ static int convert_variable_fields(Dwarf
+ 	} else {
+ 		/* Verify it is a data structure  */
+ 		if (tag != DW_TAG_structure_type && tag != DW_TAG_union_type) {
+-			pr_warning("%s is not a data structure nor an union.\n",
++			pr_warning("%s is not a data structure nor a union.\n",
+ 				   varname);
+ 			return -EINVAL;
+ 		}
+diff -puN tools/perf/util/sort.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances tools/perf/util/sort.h
+--- a/tools/perf/util/sort.h~scripts-spellingtxt-add-an-union-pattern-and-fix-typo-instances
++++ a/tools/perf/util/sort.h
+@@ -108,7 +108,7 @@ struct hist_entry {
+ 		/*
+ 		 * Since perf diff only supports the stdio output, TUI
+ 		 * fields are only accessed from perf report (or perf
+-		 * top).  So make it an union to reduce memory usage.
++		 * top).  So make it a union to reduce memory usage.
+ 		 */
+ 		struct hist_entry_diff	diff;
+ 		struct /* for TUI */ {
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
