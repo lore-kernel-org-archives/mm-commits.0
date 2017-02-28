@@ -1,58 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-use-nilfs_btree_node_size.patch removed from -mm
- tree
-Date: Tue, 28 Feb 2017 12:51:01 -0800
-Message-ID: <58b5e2b5./HzXz3W1aa6DmEA6%akpm@linux-foundation.org>
+Subject: [merged] rapidio-use-get_user_pages_unlocked.patch removed from
+ -mm tree
+Date: Tue, 28 Feb 2017 12:50:10 -0800
+Message-ID: <58b5e282.hHirIiDzrljIA/yI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751840AbdB1Uvf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:35 -0500
+        with ESMTP id S1751767AbdB1Uvc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@gmail.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: lstoakes@gmail.com, alexandre.bounine@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: use nilfs_btree_node_size()
+     Subject: rapidio: use get_user_pages_unlocked()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-use-nilfs_btree_node_size.patch
+     rapidio-use-get_user_pages_unlocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@gmail.com>
-Subject: nilfs2: use nilfs_btree_node_size()
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: rapidio: use get_user_pages_unlocked()
 
-Use nilfs_btree_node_size() instead of open-coding.
+Moving from get_user_pages() to get_user_pages_unlocked() simplifies the code
+and takes advantage of VM_FAULT_RETRY functionality when faulting in pages.
 
-Link: http://lkml.kernel.org/r/1485184655-3895-2-git-send-email-konishi.ryusuke@lab.ntt.co.jp
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Link: http://lkml.kernel.org/r/20170103205024.6704-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/nilfs2/btree.c~nilfs2-use-nilfs_btree_node_size fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-use-nilfs_btree_node_size
-+++ a/fs/nilfs2/btree.c
-@@ -1870,7 +1870,7 @@ int nilfs_btree_convert_and_insert(struc
- 		di = &dreq;
- 		ni = NULL;
- 	} else if ((n + 1) <= NILFS_BTREE_NODE_NCHILDREN_MAX(
--			   1 << btree->b_inode->i_blkbits)) {
-+			   nilfs_btree_node_size(btree))) {
- 		di = &dreq;
- 		ni = &nreq;
- 	} else {
+diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked drivers/rapidio/devices/rio_mport_cdev.c
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -889,17 +889,16 @@ rio_dma_transfer(struct file *filp, u32
+ 			goto err_req;
+ 		}
+ 
+-		down_read(&current->mm->mmap_sem);
+-		pinned = get_user_pages(
++		pinned = get_user_pages_unlocked(
+ 				(unsigned long)xfer->loc_addr & PAGE_MASK,
+ 				nr_pages,
+-				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0,
+-				page_list, NULL);
+-		up_read(&current->mm->mmap_sem);
++				page_list,
++				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0);
+ 
+ 		if (pinned != nr_pages) {
+ 			if (pinned < 0) {
+-				rmcd_error("get_user_pages err=%ld", pinned);
++				rmcd_error("get_user_pages_unlocked err=%ld",
++					   pinned);
+ 				nr_pages = 0;
+ 			} else
+ 				rmcd_error("pinned %ld out of %ld pages",
 _
 
-Patches currently in -mm which might be from geliangtang@gmail.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
 
