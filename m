@@ -1,97 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:47 -0800
-Message-ID: <58b5e2e3.dg02XmWvGWDwc9bN%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
+ removed from -mm tree
+Date: Tue, 28 Feb 2017 12:51:51 -0800
+Message-ID: <58b5e2e7.sNH7Um1s/b6p9ZII%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52802 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751917AbdB1Uvx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:53 -0500
+        with ESMTP id S1751911AbdB1Uvw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "omited" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "deintialize(d)" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "omited" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "deintialize(d)" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  omited||omitted
-  omiting||omitting
+  deintializing||deinitializing
+  deintialize||deinitialize
+  deintialized||deinitialized
 
-Link: http://lkml.kernel.org/r/1481573103-11329-26-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-28-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c |    2 +-
- drivers/nfc/pn533/pn533.c                          |    2 +-
- drivers/scsi/fcoe/fcoe_ctlr.c                      |    2 +-
- scripts/spelling.txt                               |    2 ++
- 4 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/crypto/caam/ctrl.c                        |    2 +-
+ drivers/net/wireless/rsi/rsi_91x_usb.c            |    2 +-
+ drivers/staging/wilc1000/linux_wlan.c             |    2 +-
+ drivers/staging/wilc1000/wilc_wfi_cfgoperations.c |    2 +-
+ scripts/spelling.txt                              |    3 +++
+ sound/soc/amd/acp-pcm-dma.c                       |    2 +-
+ 6 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
-@@ -1416,7 +1416,7 @@ static unsigned int xdigit2int(unsigned
-  * <pattern data>[/<pattern mask>][@<anchor>]
+diff -puN drivers/crypto/caam/ctrl.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/crypto/caam/ctrl.c
+--- a/drivers/crypto/caam/ctrl.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/crypto/caam/ctrl.c
+@@ -269,7 +269,7 @@ static int deinstantiate_rng(struct devi
+ 		/*
+ 		 * If the corresponding bit is set, then it means the state
+ 		 * handle was initialized by us, and thus it needs to be
+-		 * deintialized as well
++		 * deinitialized as well
+ 		 */
+ 		if ((1 << sh_idx) & state_handle_mask) {
+ 			/*
+diff -puN drivers/net/wireless/rsi/rsi_91x_usb.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/net/wireless/rsi/rsi_91x_usb.c
+--- a/drivers/net/wireless/rsi/rsi_91x_usb.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/net/wireless/rsi/rsi_91x_usb.c
+@@ -516,7 +516,7 @@ err:
+ 
+ /**
+  * rsi_disconnect() - This function performs the reverse of the probe function,
+- *		      it deintialize the driver structure.
++ *		      it deinitialize the driver structure.
+  * @pfunction: Pointer to the USB interface structure.
   *
-  * Up to 2 filter patterns can be specified.  If 2 are supplied the first one
-- * must be anchored at 0.  An omited mask is taken as a mask of 1s, an omitted
-+ * must be anchored at 0.  An omitted mask is taken as a mask of 1s, an omitted
-  * anchor is taken as 0.
-  */
- static ssize_t mps_trc_write(struct file *file, const char __user *buf,
-diff -puN drivers/nfc/pn533/pn533.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/nfc/pn533/pn533.c
---- a/drivers/nfc/pn533/pn533.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/nfc/pn533/pn533.c
-@@ -487,7 +487,7 @@ static int pn533_send_cmd_async(struct p
- /*
-  * pn533_send_cmd_direct_async
-  *
-- * The function sends a piority cmd directly to the chip omiting the cmd
-+ * The function sends a piority cmd directly to the chip omitting the cmd
-  * queue. It's intended to be used by chaining mechanism of received responses
-  * where the host has to request every single chunk of data before scheduling
-  * next cmd from the queue.
-diff -puN drivers/scsi/fcoe/fcoe_ctlr.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances drivers/scsi/fcoe/fcoe_ctlr.c
---- a/drivers/scsi/fcoe/fcoe_ctlr.c~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/fcoe/fcoe_ctlr.c
-@@ -1387,7 +1387,7 @@ static void fcoe_ctlr_recv_clr_vlink(str
- 	/*
- 	 * Actually need to subtract 'sizeof(*mp) - sizeof(*wp)' from 'rlen'
- 	 * before determining max Vx_Port descriptor but a buggy FCF could have
--	 * omited either or both MAC Address and Name Identifier descriptors
-+	 * omitted either or both MAC Address and Name Identifier descriptors
- 	 */
- 	num_vlink_desc = rlen / sizeof(*vp);
- 	if (num_vlink_desc)
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-omited-pattern-and-fix-typo-instances
+  * Return: None.
+diff -puN drivers/staging/wilc1000/linux_wlan.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/staging/wilc1000/linux_wlan.c
+--- a/drivers/staging/wilc1000/linux_wlan.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/staging/wilc1000/linux_wlan.c
+@@ -213,7 +213,7 @@ static void deinit_irq(struct net_device
+ 	vif = netdev_priv(dev);
+ 	wilc = vif->wilc;
+ 
+-	/* Deintialize IRQ */
++	/* Deinitialize IRQ */
+ 	if (wilc->dev_irq_num) {
+ 		free_irq(wilc->dev_irq_num, wilc);
+ 		gpio_free(wilc->gpio);
+diff -puN drivers/staging/wilc1000/wilc_wfi_cfgoperations.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances drivers/staging/wilc1000/wilc_wfi_cfgoperations.c
+--- a/drivers/staging/wilc1000/wilc_wfi_cfgoperations.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/drivers/staging/wilc1000/wilc_wfi_cfgoperations.c
+@@ -2357,7 +2357,7 @@ int wilc_deinit_host_int(struct net_devi
+ 		del_timer_sync(&wilc_during_ip_timer);
+ 
+ 	if (s32Error)
+-		netdev_err(net, "Error while deintializing host interface\n");
++		netdev_err(net, "Error while deinitializing host interface\n");
+ 
+ 	return s32Error;
+ }
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -706,6 +706,8 @@ occure||occurred
- occured||occurred
- occuring||occurring
- offet||offset
-+omited||omitted
-+omiting||omitting
- omitt||omit
- ommiting||omitting
- ommitted||omitted
+@@ -322,6 +322,9 @@ defintion||definition
+ defintions||definitions
+ defualt||default
+ defult||default
++deintializing||deinitializing
++deintialize||deinitialize
++deintialized||deinitialized
+ deivce||device
+ delared||declared
+ delare||declare
+diff -puN sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances sound/soc/amd/acp-pcm-dma.c
+--- a/sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-deintialized-pattern-and-fix-typo-instances
++++ a/sound/soc/amd/acp-pcm-dma.c
+@@ -506,7 +506,7 @@ static int acp_init(void __iomem *acp_mm
+ 	return 0;
+ }
+ 
+-/* Deintialize ACP */
++/* Deinitialize ACP */
+ static int acp_deinit(void __iomem *acp_mmio)
+ {
+ 	u32 val;
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
