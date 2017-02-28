@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dax-add-tracepoint-to-dax_writeback_one.patch added to -mm tree
-Date: Tue, 28 Feb 2017 17:02:01 -0800
-Message-ID: <58b61d89.0p2y2SffTBn0kTz8%akpm@linux-foundation.org>
+Subject: + mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch added to -mm tree
+Date: Tue, 28 Feb 2017 15:53:34 -0800
+Message-ID: <58b60d7e.Hxqd0LPETyW2rRU9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34532 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751446AbdCAB4Q (ORCPT
+        with ESMTP id S1751450AbdCAB4Q (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 20:56:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, mawilcox@microsoft.com, mingo@redhat.com, rostedt@goodmis.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hejianet@gmail.com, mgorman@suse.de, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: add tracepoint to dax_writeback_one()
+     Subject: mm: delete NR_PAGES_SCANNED and pgdat_reclaimable()
 has been added to the -mm tree.  Its filename is
-     dax-add-tracepoint-to-dax_writeback_one.patch
+     mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-tracepoint-to-dax_writeback_one.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-tracepoint-to-dax_writeback_one.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,95 +38,207 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: add tracepoint to dax_writeback_one()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: delete NR_PAGES_SCANNED and pgdat_reclaimable()
 
-Add a tracepoint to dax_writeback_one(), following the same logging
-conventions as the rest of DAX.
+NR_PAGES_SCANNED counts number of pages scanned since the last page free
+event in the allocator.  This was used primarily to measure the
+reclaimability of zones and nodes, and determine when reclaim should give
+up on them.  In that role, it has been replaced in the preceeding patches
+by a different mechanism.
 
-Here is an example range writeback which ends up flushing one PMD and one
-PTE:
+Being implemented as an efficient vmstat counter, it was automatically
+exported to userspace as well.  It's however unlikely that anyone outside
+the kernel is using this counter in any meaningful way.
 
-test-1265  [003] ....   496.615250: dax_writeback_range: dev 259:0 ino 0x1003
-pgoff 0x0-0x7ffffffffffff
+Remove the counter and the unused pgdat_reclaimable().
 
-test-1265  [003] ....   496.616263: dax_writeback_one: dev 259:0 ino 0x1003
-pgoff 0x0 pglen 0x200
-
-test-1265  [003] ....   496.616270: dax_writeback_one: dev 259:0 ino 0x1003
-pgoff 0x305 pglen 0x1
-
-test-1265  [003] ....   496.616272: dax_writeback_range_done: dev 259:0 ino
-0x1003 pgoff 0x0-0x7ffffffffffff
-
-Link: http://lkml.kernel.org/r/20170221195116.13278-6-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/20170228214007.5621-8-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jia He <hejianet@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                      |    1 +
- include/trace/events/fs_dax.h |   24 ++++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
+ include/linux/mmzone.h |    1 -
+ mm/internal.h          |    1 -
+ mm/page_alloc.c        |   15 +++------------
+ mm/vmscan.c            |    9 ---------
+ mm/vmstat.c            |   22 +++-------------------
+ 5 files changed, 6 insertions(+), 42 deletions(-)
 
-diff -puN fs/dax.c~dax-add-tracepoint-to-dax_writeback_one fs/dax.c
---- a/fs/dax.c~dax-add-tracepoint-to-dax_writeback_one
-+++ a/fs/dax.c
-@@ -843,6 +843,7 @@ static int dax_writeback_one(struct bloc
- 	spin_lock_irq(&mapping->tree_lock);
- 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
- 	spin_unlock_irq(&mapping->tree_lock);
-+	trace_dax_writeback_one(mapping->host, index, dax.size >> PAGE_SHIFT);
-  unmap:
- 	dax_unmap_atomic(bdev, &dax);
- 	put_locked_mapping_entry(mapping, index, entry);
-diff -puN include/trace/events/fs_dax.h~dax-add-tracepoint-to-dax_writeback_one include/trace/events/fs_dax.h
---- a/include/trace/events/fs_dax.h~dax-add-tracepoint-to-dax_writeback_one
-+++ a/include/trace/events/fs_dax.h
-@@ -226,6 +226,30 @@ DEFINE_EVENT(dax_writeback_range_class,
- DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range);
- DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range_done);
+diff -puN include/linux/mmzone.h~mm-delete-nr_pages_scanned-and-pgdat_reclaimable include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-delete-nr_pages_scanned-and-pgdat_reclaimable
++++ a/include/linux/mmzone.h
+@@ -149,7 +149,6 @@ enum node_stat_item {
+ 	NR_UNEVICTABLE,		/*  "     "     "   "       "         */
+ 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
+ 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
+-	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
+ 	WORKINGSET_REFAULT,
+ 	WORKINGSET_ACTIVATE,
+ 	WORKINGSET_NODERECLAIM,
+diff -puN mm/internal.h~mm-delete-nr_pages_scanned-and-pgdat_reclaimable mm/internal.h
+--- a/mm/internal.h~mm-delete-nr_pages_scanned-and-pgdat_reclaimable
++++ a/mm/internal.h
+@@ -91,7 +91,6 @@ extern unsigned long highest_memmap_pfn;
+  */
+ extern int isolate_lru_page(struct page *page);
+ extern void putback_lru_page(struct page *page);
+-extern bool pgdat_reclaimable(struct pglist_data *pgdat);
  
-+TRACE_EVENT(dax_writeback_one,
-+	TP_PROTO(struct inode *inode, pgoff_t pgoff, pgoff_t pglen),
-+	TP_ARGS(inode, pgoff, pglen),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, ino)
-+		__field(pgoff_t, pgoff)
-+		__field(pgoff_t, pglen)
-+		__field(dev_t, dev)
-+	),
-+	TP_fast_assign(
-+		__entry->dev = inode->i_sb->s_dev;
-+		__entry->ino = inode->i_ino;
-+		__entry->pgoff = pgoff;
-+		__entry->pglen = pglen;
-+	),
-+	TP_printk("dev %d:%d ino %#lx pgoff %#lx pglen %#lx",
-+		MAJOR(__entry->dev),
-+		MINOR(__entry->dev),
-+		__entry->ino,
-+		__entry->pgoff,
-+		__entry->pglen
-+	)
-+)
+ /*
+  * in mm/rmap.c:
+diff -puN mm/page_alloc.c~mm-delete-nr_pages_scanned-and-pgdat_reclaimable mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-delete-nr_pages_scanned-and-pgdat_reclaimable
++++ a/mm/page_alloc.c
+@@ -1088,15 +1088,11 @@ static void free_pcppages_bulk(struct zo
+ {
+ 	int migratetype = 0;
+ 	int batch_free = 0;
+-	unsigned long nr_scanned, flags;
++	unsigned long flags;
+ 	bool isolated_pageblocks;
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	isolated_pageblocks = has_isolate_pageblock(zone);
+-	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
+-	if (nr_scanned)
+-		__mod_node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED, -nr_scanned);
+-
+ 	while (count) {
+ 		struct page *page;
+ 		struct list_head *list;
+@@ -1148,13 +1144,10 @@ static void free_one_page(struct zone *z
+ 				unsigned int order,
+ 				int migratetype)
+ {
+-	unsigned long nr_scanned, flags;
++	unsigned long flags;
 +
- #endif /* _TRACE_FS_DAX_H */
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	__count_vm_events(PGFREE, 1 << order);
+-	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
+-	if (nr_scanned)
+-		__mod_node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED, -nr_scanned);
+-
+ 	if (unlikely(has_isolate_pageblock(zone) ||
+ 		is_migrate_isolate(migratetype))) {
+ 		migratetype = get_pfnblock_migratetype(page, pfn);
+@@ -4497,7 +4490,6 @@ void show_free_areas(unsigned int filter
+ #endif
+ 			" writeback_tmp:%lukB"
+ 			" unstable:%lukB"
+-			" pages_scanned:%lu"
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			pgdat->node_id,
+@@ -4520,7 +4512,6 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_SHMEM)),
+ 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
+-			node_page_state(pgdat, NR_PAGES_SCANNED),
+ 			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
+ 				"yes" : "no");
+ 	}
+diff -puN mm/vmscan.c~mm-delete-nr_pages_scanned-and-pgdat_reclaimable mm/vmscan.c
+--- a/mm/vmscan.c~mm-delete-nr_pages_scanned-and-pgdat_reclaimable
++++ a/mm/vmscan.c
+@@ -229,12 +229,6 @@ unsigned long pgdat_reclaimable_pages(st
+ 	return nr;
+ }
  
- /* This part must be outside protection */
+-bool pgdat_reclaimable(struct pglist_data *pgdat)
+-{
+-	return node_page_state_snapshot(pgdat, NR_PAGES_SCANNED) <
+-		pgdat_reclaimable_pages(pgdat) * 6;
+-}
+-
+ /**
+  * lruvec_lru_size -  Returns the number of pages on the given LRU list.
+  * @lruvec: lru vector
+@@ -1749,7 +1743,6 @@ shrink_inactive_list(unsigned long nr_to
+ 	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
+ 	if (global_reclaim(sc)) {
+-		__mod_node_page_state(pgdat, NR_PAGES_SCANNED, nr_scanned);
+ 		if (current_is_kswapd())
+ 			__count_vm_events(PGSCAN_KSWAPD, nr_scanned);
+ 		else
+@@ -1952,8 +1945,6 @@ static void shrink_active_list(unsigned
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
+ 	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
+-	if (global_reclaim(sc))
+-		__mod_node_page_state(pgdat, NR_PAGES_SCANNED, nr_scanned);
+ 	__count_vm_events(PGREFILL, nr_scanned);
+ 
+ 	spin_unlock_irq(&pgdat->lru_lock);
+diff -puN mm/vmstat.c~mm-delete-nr_pages_scanned-and-pgdat_reclaimable mm/vmstat.c
+--- a/mm/vmstat.c~mm-delete-nr_pages_scanned-and-pgdat_reclaimable
++++ a/mm/vmstat.c
+@@ -954,7 +954,6 @@ const char * const vmstat_text[] = {
+ 	"nr_unevictable",
+ 	"nr_isolated_anon",
+ 	"nr_isolated_file",
+-	"nr_pages_scanned",
+ 	"workingset_refault",
+ 	"workingset_activate",
+ 	"workingset_nodereclaim",
+@@ -1375,7 +1374,6 @@ static void zoneinfo_show_print(struct s
+ 		   "\n        min      %lu"
+ 		   "\n        low      %lu"
+ 		   "\n        high     %lu"
+-		   "\n   node_scanned  %lu"
+ 		   "\n        spanned  %lu"
+ 		   "\n        present  %lu"
+ 		   "\n        managed  %lu",
+@@ -1383,7 +1381,6 @@ static void zoneinfo_show_print(struct s
+ 		   min_wmark_pages(zone),
+ 		   low_wmark_pages(zone),
+ 		   high_wmark_pages(zone),
+-		   node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED),
+ 		   zone->spanned_pages,
+ 		   zone->present_pages,
+ 		   zone->managed_pages);
+@@ -1584,22 +1581,9 @@ int vmstat_refresh(struct ctl_table *tab
+ 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
+ 		val = atomic_long_read(&vm_zone_stat[i]);
+ 		if (val < 0) {
+-			switch (i) {
+-			case NR_PAGES_SCANNED:
+-				/*
+-				 * This is often seen to go negative in
+-				 * recent kernels, but not to go permanently
+-				 * negative.  Whilst it would be nicer not to
+-				 * have exceptions, rooting them out would be
+-				 * another task, of rather low priority.
+-				 */
+-				break;
+-			default:
+-				pr_warn("%s: %s %ld\n",
+-					__func__, vmstat_text[i], val);
+-				err = -EINVAL;
+-				break;
+-			}
++			pr_warn("%s: %s %ld\n",
++				__func__, vmstat_text[i], val);
++			err = -EINVAL;
+ 		}
+ 	}
+ 	if (err)
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-dax-add-tracepoints-to-dax_iomap_pte_fault.patch
-dax-add-tracepoints-to-dax_pfn_mkwrite.patch
-dax-add-tracepoints-to-dax_load_hole.patch
-dax-add-tracepoints-to-dax_writeback_mapping_range.patch
-dax-add-tracepoint-to-dax_writeback_one.patch
-dax-add-tracepoint-to-dax_insert_mapping.patch
+mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes.patch
+mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
+mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch
+mm-remove-unnecessary-reclaimability-check-from-numa-balancing-target.patch
+mm-dont-avoid-high-priority-reclaim-on-unreclaimable-nodes.patch
+mm-dont-avoid-high-priority-reclaim-on-memcg-limit-reclaim.patch
+mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch
+revert-mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
+mm-remove-unnecessary-back-off-function-when-retrying-page-reclaim.patch
 
