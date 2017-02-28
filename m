@@ -1,71 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fonts-keep-non-sparc-fonts-listed-together.patch removed from -mm tree
-Date: Tue, 28 Feb 2017 12:50:37 -0800
-Message-ID: <58b5e29d.G76pvPbKNuJ39YCy%akpm@linux-foundation.org>
+Subject: [merged] ipc-sem-add-hysteresis.patch removed from -mm tree
+Date: Tue, 28 Feb 2017 12:50:45 -0800
+Message-ID: <58b5e2a5./K0Fqkmoq2F3bfY3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52764 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751811AbdB1Uvd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:33 -0500
+        with ESMTP id S1751835AbdB1Uve (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, xiaolong.ye@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/fonts/Kconfig: keep non-Sparc fonts listed together
+     Subject: ipc/sem: add hysteresis
 has been removed from the -mm tree.  Its filename was
-     fonts-keep-non-sparc-fonts-listed-together.patch
+     ipc-sem-add-hysteresis.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib/fonts/Kconfig: keep non-Sparc fonts listed together
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem: add hysteresis
 
-Keep fonts together and indented (in menu) as much as possible.
-This moves the Sparc font choices to the end of the menu since they
-have different dependencies.
+sysv sem has two lock modes: One with per-semaphore locks, one lock mode
+with a single global lock for the whole array.
+When switching from the per-semaphore locks to the global lock, all
+per-semaphore locks must be scanned for ongoing operations.
 
-Link: http://lkml.kernel.org/r/de6d8977-c6d6-a82d-c953-f2a2fefdb8a5@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+The patch adds a hysteresis for switching from the global lock to the
+per semaphore locks. This reduces how often the per-semaphore locks
+must be scanned.
+
+Compared to the initial patch, this is a simplified solution:
+Setting USE_GLOBAL_LOCK_HYSTERESIS to 1 restores the current behavior.
+
+In theory, a workload with exactly 10 simple sops and then
+one complex op now scales a bit worse, but this is pure theory:
+If there is concurrency, the it won't be exactly 10:1:10:1:10:1:...
+If there is no concurrency, then there is no need for scalability.
+
+Link: http://lkml.kernel.org/r/1476851896-3590-3-git-send-email-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: <1vier1@web.de>
+Cc: kernel test robot <xiaolong.ye@intel.com>
+Cc: <felixh@informatik.uni-bremen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fonts/Kconfig |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/sem.h |    2 
+ ipc/sem.c           |   86 +++++++++++++++++++++++++++++-------------
+ 2 files changed, 62 insertions(+), 26 deletions(-)
 
-diff -puN lib/fonts/Kconfig~fonts-keep-non-sparc-fonts-listed-together lib/fonts/Kconfig
---- a/lib/fonts/Kconfig~fonts-keep-non-sparc-fonts-listed-together
-+++ a/lib/fonts/Kconfig
-@@ -87,6 +87,14 @@ config FONT_6x10
- 	  embedded devices with a 320x240 screen, to get a reasonable number
- 	  of characters (53x24) that are still at a readable size.
+diff -puN include/linux/sem.h~ipc-sem-add-hysteresis include/linux/sem.h
+--- a/include/linux/sem.h~ipc-sem-add-hysteresis
++++ a/include/linux/sem.h
+@@ -21,7 +21,7 @@ struct sem_array {
+ 	struct list_head	list_id;	/* undo requests on this array */
+ 	int			sem_nsems;	/* no. of semaphores in array */
+ 	int			complex_count;	/* pending complex operations */
+-	bool			complex_mode;	/* no parallel simple ops */
++	unsigned int		use_global_lock;/* >0: global lock required */
+ };
  
-+config FONT_10x18
-+	bool "console 10x18 font (not supported by all drivers)" if FONTS
-+	depends on FRAMEBUFFER_CONSOLE
-+	help
-+	  This is a high resolution console font for machines with very
-+	  big letters. It fits between the sun 12x22 and the normal 8x16 font.
-+	  If other fonts are too big or too small for you, say Y, otherwise say N.
+ #ifdef CONFIG_SYSVIPC
+diff -puN ipc/sem.c~ipc-sem-add-hysteresis ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-add-hysteresis
++++ a/ipc/sem.c
+@@ -159,22 +159,42 @@ static int sysvipc_sem_proc_show(struct
+ #define SEMOPM_FAST	64  /* ~ 372 bytes on stack */
+ 
+ /*
++ * Switching from the mode suitable for simple ops
++ * to the mode for complex ops is costly. Therefore:
++ * use some hysteresis
++ */
++#define USE_GLOBAL_LOCK_HYSTERESIS	10
 +
- config FONT_SUN8x16
- 	bool "Sparc console 8x16 font"
- 	depends on FRAMEBUFFER_CONSOLE && (!SPARC && FONTS || SPARC)
-@@ -101,14 +109,6 @@ config FONT_SUN12x22
- 	  big letters (like the letters used in the SPARC PROM). If the
- 	  standard font is unreadable for you, say Y, otherwise say N.
++/*
+  * Locking:
+  * a) global sem_lock() for read/write
+  *	sem_undo.id_next,
+  *	sem_array.complex_count,
+- *	sem_array.complex_mode
+  *	sem_array.pending{_alter,_const},
+  *	sem_array.sem_undo
+  *
+  * b) global or semaphore sem_lock() for read/write:
+  *	sem_array.sem_base[i].pending_{const,alter}:
+- *	sem_array.complex_mode (for read)
+  *
+  * c) special:
+  *	sem_undo_list.list_proc:
+  *	* undo_list->lock for write
+  *	* rcu for read
++ *	use_global_lock:
++ *	* global sem_lock() for write
++ *	* either local or global sem_lock() for read.
++ *
++ * Memory ordering:
++ * Most ordering is enforced by using spin_lock() and spin_unlock().
++ * The special case is use_global_lock:
++ * Setting it from non-zero to 0 is a RELEASE, this is ensured by
++ * using smp_store_release().
++ * Testing if it is non-zero is an ACQUIRE, this is ensured by using
++ * smp_load_acquire().
++ * Setting it from 0 to non-zero must be ordered with regards to
++ * this smp_load_acquire(), this is guaranteed because the smp_load_acquire()
++ * is inside a spin_lock() and after a write from 0 to non-zero a
++ * spin_lock()+spin_unlock() is done.
+  */
  
--config FONT_10x18
--	bool "console 10x18 font (not supported by all drivers)" if FONTS
--	depends on FRAMEBUFFER_CONSOLE
--	help
--	  This is a high resolution console font for machines with very
--	  big letters. It fits between the sun 12x22 and the normal 8x16 font.
--	  If other fonts are too big or too small for you, say Y, otherwise say N.
+ #define sc_semmsl	sem_ctls[0]
+@@ -273,12 +293,16 @@ static void complexmode_enter(struct sem
+ 	int i;
+ 	struct sem *sem;
+ 
+-	if (sma->complex_mode)  {
+-		/* We are already in complex_mode. Nothing to do */
++	if (sma->use_global_lock > 0)  {
++		/*
++		 * We are already in global lock mode.
++		 * Nothing to do, just reset the
++		 * counter until we return to simple mode.
++		 */
++		sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
+ 		return;
+ 	}
+-
+-	sma->complex_mode = true;
++	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
+ 
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+ 		sem = sma->sem_base + i;
+@@ -299,13 +323,17 @@ static void complexmode_tryleave(struct
+ 		 */
+ 		return;
+ 	}
+-	/*
+-	 * Immediately after setting complex_mode to false,
+-	 * a simple op can start. Thus: all memory writes
+-	 * performed by the current operation must be visible
+-	 * before we set complex_mode to false.
+-	 */
+-	smp_store_release(&sma->complex_mode, false);
++	if (sma->use_global_lock == 1) {
++		/*
++		 * Immediately after setting use_global_lock to 0,
++		 * a simple op can start. Thus: all memory writes
++		 * performed by the current operation must be visible
++		 * before we set use_global_lock to 0.
++		 */
++		smp_store_release(&sma->use_global_lock, 0);
++	} else {
++		sma->use_global_lock--;
++	}
+ }
+ 
+ #define SEM_GLOBAL_LOCK	(-1)
+@@ -335,22 +363,23 @@ static inline int sem_lock(struct sem_ar
+ 	 * Optimized locking is possible if no complex operation
+ 	 * is either enqueued or processed right now.
+ 	 *
+-	 * Both facts are tracked by complex_mode.
++	 * Both facts are tracked by use_global_mode.
+ 	 */
+ 	sem = sma->sem_base + sops->sem_num;
+ 
+ 	/*
+-	 * Initial check for complex_mode. Just an optimization,
++	 * Initial check for use_global_lock. Just an optimization,
+ 	 * no locking, no memory barrier.
+ 	 */
+-	if (!sma->complex_mode) {
++	if (!sma->use_global_lock) {
+ 		/*
+ 		 * It appears that no complex operation is around.
+ 		 * Acquire the per-semaphore lock.
+ 		 */
+ 		spin_lock(&sem->lock);
+ 
+-		if (!smp_load_acquire(&sma->complex_mode)) {
++		/* pairs with smp_store_release() */
++		if (!smp_load_acquire(&sma->use_global_lock)) {
+ 			/* fast path successful! */
+ 			return sops->sem_num;
+ 		}
+@@ -360,19 +389,26 @@ static inline int sem_lock(struct sem_ar
+ 	/* slow path: acquire the full lock */
+ 	ipc_lock_object(&sma->sem_perm);
+ 
+-	if (sma->complex_count == 0) {
+-		/* False alarm:
+-		 * There is no complex operation, thus we can switch
+-		 * back to the fast path.
++	if (sma->use_global_lock == 0) {
++		/*
++		 * The use_global_lock mode ended while we waited for
++		 * sma->sem_perm.lock. Thus we must switch to locking
++		 * with sem->lock.
++		 * Unlike in the fast path, there is no need to recheck
++		 * sma->use_global_lock after we have acquired sem->lock:
++		 * We own sma->sem_perm.lock, thus use_global_lock cannot
++		 * change.
+ 		 */
+ 		spin_lock(&sem->lock);
++
+ 		ipc_unlock_object(&sma->sem_perm);
+ 		return sops->sem_num;
+ 	} else {
+-		/* Not a false alarm, thus complete the sequence for a
+-		 * full lock.
++		/*
++		 * Not a false alarm, thus continue to use the global lock
++		 * mode. No need for complexmode_enter(), this was done by
++		 * the caller that has set use_global_mode to non-zero.
+ 		 */
+-		complexmode_enter(sma);
+ 		return SEM_GLOBAL_LOCK;
+ 	}
+ }
+@@ -476,7 +512,7 @@ static int newary(struct ipc_namespace *
+ 	}
+ 
+ 	sma->complex_count = 0;
+-	sma->complex_mode = true; /* dropped by sem_unlock below */
++	sma->use_global_lock = USE_GLOBAL_LOCK_HYSTERESIS;
+ 	INIT_LIST_HEAD(&sma->pending_alter);
+ 	INIT_LIST_HEAD(&sma->pending_const);
+ 	INIT_LIST_HEAD(&sma->list_id);
+_
+
+Patches currently in -mm which might be from manfred@colorfullife.com are
+
+
