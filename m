@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-mm-handle-protnone-ptes-on-fork.patch added to -mm tree
-Date: Tue, 28 Feb 2017 14:06:15 -0800
-Message-ID: <58b5f457.6cG9XlDN4IsjqYWD%akpm@linux-foundation.org>
+Subject: +
+ power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
+ added to -mm tree
+Date: Tue, 28 Feb 2017 14:06:17 -0800
+Message-ID: <58b5f459.H2F+POajRCHzDH6r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58722 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58724 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751767AbdB1WQE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 17:16:04 -0500
+        with ESMTP id S1751786AbdB1WQF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 17:16:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, mpe@ellerman.id.au, paulus@ozlabs.org, riel@surriel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: handle protnone ptes on fork
+     Subject: power/mm: update pte_write and pte_wrprotect to handle savedwrite
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-handle-protnone-ptes-on-fork.patch
+     power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-handle-protnone-ptes-on-fork.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-handle-protnone-ptes-on-fork.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,18 +41,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc/mm: handle protnone ptes on fork
+Subject: power/mm: update pte_write and pte_wrprotect to handle savedwrite
 
-We need to mark pages of parent process read only on fork.  Numa fault pte
-needs a protnone ptes variant with saved write flag set.  On fork we need
-to make sure we remove the saved write bit.  Instead of adding the
-protnone check in the caller update ptep_set_wrprotect variants to clear
-savedwrite bit.
+We use pte_write() to check whethwer the pte entry is writable.  This is
+mostly used to later mark the pte read only if it is writable.  The other
+use of pte_write() is to check whether the pte_entry is writable so that
+hardware page table entry can be marked accordingly.  This is used in kvm
+where we look at qemu page table entry and update hardware hash page table
+for the guest with correct write enable bit.
 
-Without this we see random segfaults in application on fork.
+With the above, for the first usage we should also check the savedwrite
+bit so that we can correctly clear the savedwite bit.  For the later, we
+add a new variant __pte_write().
+
+With this we can revert write_protect_page part of 595cd8f256d2 ("mm/ksm:
+handle protnone saved writes when making page write protect").  But I left
+it as it is as an example code for savedwrite check.
 
 Fixes: c137a2757b886 ("powerpc/mm/autonuma: switch ppc64 to its own implementation of saved write")
-Link: http://lkml.kernel.org/r/1488203787-17849-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1488203787-17849-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -60,110 +69,119 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |   73 +++++++++--------
- 1 file changed, 42 insertions(+), 31 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   24 +++++++++++++----
+ arch/powerpc/kvm/book3s_64_mmu_hv.c          |    2 -
+ arch/powerpc/kvm/book3s_hv_rm_mmu.c          |    2 -
+ 3 files changed, 21 insertions(+), 7 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-handle-protnone-ptes-on-fork arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-handle-protnone-ptes-on-fork
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite
 +++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -347,23 +347,53 @@ static inline int __ptep_test_and_clear_
+@@ -347,7 +347,7 @@ static inline int __ptep_test_and_clear_
  	__r;							\
  })
  
+-static inline int pte_write(pte_t pte)
++static inline int __pte_write(pte_t pte)
+ {
+ 	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
+ }
+@@ -373,11 +373,16 @@ static inline bool pte_savedwrite(pte_t
+ }
+ #endif
+ 
 +static inline int pte_write(pte_t pte)
 +{
-+	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
++	return __pte_write(pte) || pte_savedwrite(pte);
 +}
-+
-+#ifdef CONFIG_NUMA_BALANCING
-+#define pte_savedwrite pte_savedwrite
-+static inline bool pte_savedwrite(pte_t pte)
-+{
-+	/*
-+	 * Saved write ptes are prot none ptes that doesn't have
-+	 * privileged bit sit. We mark prot none as one which has
-+	 * present and pviliged bit set and RWX cleared. To mark
-+	 * protnone which used to have _PAGE_WRITE set we clear
-+	 * the privileged bit.
-+	 */
-+	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
-+}
-+#else
-+#define pte_savedwrite pte_savedwrite
-+static inline bool pte_savedwrite(pte_t pte)
-+{
-+	return false;
-+}
-+#endif
 +
  #define __HAVE_ARCH_PTEP_SET_WRPROTECT
  static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
  				      pte_t *ptep)
  {
--	if ((pte_raw(*ptep) & cpu_to_be64(_PAGE_WRITE)) == 0)
--		return;
--
--	pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
-+	if (pte_write(*ptep))
-+		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
-+	else if (unlikely(pte_savedwrite(*ptep)))
-+		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
- }
- 
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
--	if ((pte_raw(*ptep) & cpu_to_be64(_PAGE_WRITE)) == 0)
--		return;
--
--	pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
-+	/*
-+	 * We should not find protnone for hugetlb, but this complete the
-+	 * interface.
-+	 */
-+	if (pte_write(*ptep))
-+		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
-+	else if (unlikely(pte_savedwrite(*ptep)))
-+		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 1);
- }
- 
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
-@@ -397,11 +427,6 @@ static inline void pte_clear(struct mm_s
- 	pte_update(mm, addr, ptep, ~0UL, 0, 0);
- }
- 
--static inline int pte_write(pte_t pte)
--{
--	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
--}
--
- static inline int pte_dirty(pte_t pte)
- {
- 	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_DIRTY));
-@@ -466,19 +491,6 @@ static inline pte_t pte_clear_savedwrite
+-	if (pte_write(*ptep))
++	if (__pte_write(*ptep))
+ 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
+ 	else if (unlikely(pte_savedwrite(*ptep)))
+ 		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
+@@ -390,7 +395,7 @@ static inline void huge_ptep_set_wrprote
+ 	 * We should not find protnone for hugetlb, but this complete the
+ 	 * interface.
+ 	 */
+-	if (pte_write(*ptep))
++	if (__pte_write(*ptep))
+ 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
+ 	else if (unlikely(pte_savedwrite(*ptep)))
+ 		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 1);
+@@ -490,7 +495,13 @@ static inline pte_t pte_clear_savedwrite
+ 	VM_BUG_ON(!pte_protnone(pte));
  	return __pte(pte_val(pte) | _PAGE_PRIVILEGED);
  }
- 
--#define pte_savedwrite pte_savedwrite
--static inline bool pte_savedwrite(pte_t pte)
--{
--	/*
--	 * Saved write ptes are prot none ptes that doesn't have
--	 * privileged bit sit. We mark prot none as one which has
--	 * present and pviliged bit set and RWX cleared. To mark
--	 * protnone which used to have _PAGE_WRITE set we clear
--	 * the privileged bit.
--	 */
--	VM_BUG_ON(!pte_protnone(pte));
--	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
--}
+-
++#else
++#define pte_clear_savedwrite pte_clear_savedwrite
++static inline pte_t pte_clear_savedwrite(pte_t pte)
++{
++	VM_WARN_ON(1);
++	return __pte(pte_val(pte) & ~_PAGE_WRITE);
++}
  #endif /* CONFIG_NUMA_BALANCING */
  
  static inline int pte_present(pte_t pte)
-@@ -982,11 +994,10 @@ static inline int __pmdp_test_and_clear_
+@@ -518,6 +529,8 @@ static inline unsigned long pte_pfn(pte_
+ /* Generic modifiers for PTE bits */
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
++	if (unlikely(pte_savedwrite(pte)))
++		return pte_clear_savedwrite(pte);
+ 	return __pte(pte_val(pte) & ~_PAGE_WRITE);
+ }
+ 
+@@ -938,6 +951,7 @@ static inline int pmd_protnone(pmd_t pmd
+ 
+ #define __HAVE_ARCH_PMD_WRITE
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
++#define __pmd_write(pmd)	__pte_write(pmd_pte(pmd))
+ #define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -994,7 +1008,7 @@ static inline int __pmdp_test_and_clear_
  static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
  				      pmd_t *pmdp)
  {
--
--	if ((pmd_raw(*pmdp) & cpu_to_be64(_PAGE_WRITE)) == 0)
--		return;
+-	if (pmd_write((*pmdp)))
++	if (__pmd_write((*pmdp)))
+ 		pmd_hugepage_update(mm, addr, pmdp, _PAGE_WRITE, 0);
+ 	else if (unlikely(pmd_savedwrite(*pmdp)))
+ 		pmd_hugepage_update(mm, addr, pmdp, 0, _PAGE_PRIVILEGED);
+diff -puN arch/powerpc/kvm/book3s_64_mmu_hv.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite arch/powerpc/kvm/book3s_64_mmu_hv.c
+--- a/arch/powerpc/kvm/book3s_64_mmu_hv.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite
++++ a/arch/powerpc/kvm/book3s_64_mmu_hv.c
+@@ -601,7 +601,7 @@ int kvmppc_book3s_hv_page_fault(struct k
+ 							 hva, NULL, NULL);
+ 			if (ptep) {
+ 				pte = kvmppc_read_update_linux_pte(ptep, 1);
+-				if (pte_write(pte))
++				if (__pte_write(pte))
+ 					write_ok = 1;
+ 			}
+ 			local_irq_restore(flags);
+diff -puN arch/powerpc/kvm/book3s_hv_rm_mmu.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite arch/powerpc/kvm/book3s_hv_rm_mmu.c
+--- a/arch/powerpc/kvm/book3s_hv_rm_mmu.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite
++++ a/arch/powerpc/kvm/book3s_hv_rm_mmu.c
+@@ -256,7 +256,7 @@ long kvmppc_do_h_enter(struct kvm *kvm,
+ 		}
+ 		pte = kvmppc_read_update_linux_pte(ptep, writing);
+ 		if (pte_present(pte) && !pte_protnone(pte)) {
+-			if (writing && !pte_write(pte))
++			if (writing && !__pte_write(pte))
+ 				/* make the actual HPTE be read-only */
+ 				ptel = hpte_make_readonly(ptel);
+ 			is_ci = pte_ci(pte);
+_
+
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+
+powerpc-mm-handle-protnone-ptes-on-fork.patch
+power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
+
