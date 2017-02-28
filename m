@@ -1,383 +1,435 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-arch-independent-testcases-for-rodata.patch
+Subject: [merged]
+ scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances.patch
  removed from -mm tree
-Date: Tue, 28 Feb 2017 12:52:23 -0800
-Message-ID: <58b5e307.boBJdkbfFVRMlFRe%akpm@linux-foundation.org>
+Date: Tue, 28 Feb 2017 12:51:59 -0800
+Message-ID: <58b5e2ef.IsAi9pUPtGIUvDgJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52886 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52818 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751957AbdB1UwY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:52:24 -0500
+        with ESMTP id S1751935AbdB1UwA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:52:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jinb.park7@gmail.com, arjan@linux.intel.com, hpa@zytor.com, keescook@chromium.org, labbott@redhat.com, linux@armlinux.org.uk, mingo@redhat.com, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add arch-independent testcases for RODATA
+     Subject: scripts/spelling.txt: add "followings" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     mm-add-arch-independent-testcases-for-rodata.patch
+     scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jinbum Park <jinb.park7@gmail.com>
-Subject: mm: add arch-independent testcases for RODATA
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: scripts/spelling.txt: add "followings" pattern and fix typo instances
 
-This patch makes arch-independent testcases for RODATA.  Both x86 and
-x86_64 already have testcases for RODATA, But they are arch-specific
-because using inline assembly directly.
+Fix typos and add the following to the scripts/spelling.txt:
 
-And cacheflush.h is not a suitable location for rodata-test related
-things.  Since they were in cacheflush.h, If someone change the state of
-CONFIG_DEBUG_RODATA_TEST, It cause overhead of kernel build.
+  followings||following
 
-To solve the above issues, write arch-independent testcases and move it to
-shared location.
+While we are here, add a missing colon in the boilerplate in DT
+binding documents.  The "you SoC" in allwinner,sunxi-pinctrl.txt
+was fixed as well.
 
-[jinb.park7@gmail.com: fix config dependency]
-  Link: http://lkml.kernel.org/r/20170209131625.GA16954@pjb1027-Latitude-E5410
-Link: http://lkml.kernel.org/r/20170129105436.GA9303@pjb1027-Latitude-E5410
-Signed-off-by: Jinbum Park <jinb.park7@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Valentin Rothberg <valentinrothberg@gmail.com>
+I reworded "as the followings:" to "as follows:" for
+drivers/usb/gadget/udc/renesas_usb3.c.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-32-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig.debug            |    8 --
- arch/x86/include/asm/cacheflush.h |   10 ---
- arch/x86/kernel/Makefile          |    1 
- arch/x86/kernel/test_rodata.c     |   75 ----------------------------
- arch/x86/mm/init_32.c             |    4 -
- arch/x86/mm/init_64.c             |    5 -
- include/linux/rodata_test.h       |   24 ++++++++
- init/main.c                       |    6 +-
- mm/Kconfig.debug                  |    7 ++
- mm/Makefile                       |    1 
- mm/rodata_test.c                  |   56 ++++++++++++++++++++
- 11 files changed, 92 insertions(+), 105 deletions(-)
+ Documentation/DocBook/libata.tmpl                                     |    2 +-
+ Documentation/acpi/method-tracing.txt                                 |    2 +-
+ Documentation/blockdev/mflash.txt                                     |    2 +-
+ Documentation/devicetree/bindings/net/marvell-armada-370-neta.txt     |    2 +-
+ Documentation/devicetree/bindings/pinctrl/allwinner,sunxi-pinctrl.txt |    2 +-
+ Documentation/devicetree/bindings/soc/rockchip/grf.txt                |    4 ++--
+ Documentation/devicetree/bindings/sound/rockchip-i2s.txt              |    4 ++--
+ Documentation/devicetree/bindings/sound/sun4i-codec.txt               |    2 +-
+ Documentation/devicetree/bindings/sound/sun4i-i2s.txt                 |    4 ++--
+ Documentation/memory-hotplug.txt                                      |    4 ++--
+ Documentation/sound/hd-audio/notes.rst                                |    2 +-
+ drivers/ata/libata-eh.c                                               |    2 +-
+ drivers/atm/iphase.c                                                  |    2 +-
+ drivers/atm/iphase.h                                                  |    2 +-
+ drivers/devfreq/devfreq.c                                             |    2 +-
+ drivers/hwmon/g762.c                                                  |    2 +-
+ drivers/isdn/hardware/eicon/debug.c                                   |    2 +-
+ drivers/pci/quirks.c                                                  |    2 +-
+ drivers/staging/gs_fpgaboot/gs_fpgaboot.h                             |    2 +-
+ drivers/usb/gadget/udc/renesas_usb3.c                                 |    4 ++--
+ include/linux/kconfig.h                                               |    2 +-
+ mm/percpu.c                                                           |    2 +-
+ scripts/spelling.txt                                                  |    1 +
+ sound/pci/hda/patch_ca0132.c                                          |    2 +-
+ sound/ppc/snd_ps3.c                                                   |    2 +-
+ sound/soc/fsl/fsl_asrc.c                                              |    2 +-
+ 26 files changed, 31 insertions(+), 30 deletions(-)
 
-diff -puN arch/x86/Kconfig.debug~mm-add-arch-independent-testcases-for-rodata arch/x86/Kconfig.debug
---- a/arch/x86/Kconfig.debug~mm-add-arch-independent-testcases-for-rodata
-+++ a/arch/x86/Kconfig.debug
-@@ -74,14 +74,6 @@ config EFI_PGT_DUMP
- 	  issues with the mapping of the EFI runtime regions into that
- 	  table.
+diff -puN Documentation/DocBook/libata.tmpl~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/DocBook/libata.tmpl
+--- a/Documentation/DocBook/libata.tmpl~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/DocBook/libata.tmpl
+@@ -1020,7 +1020,7 @@ and other resources, etc.
+ 	</itemizedlist>
  
--config DEBUG_RODATA_TEST
--	bool "Testcase for the marking rodata read-only"
--	default y
--	---help---
--	  This option enables a testcase for the setting rodata read-only
--	  as well as for the change_page_attr() infrastructure.
--	  If in doubt, say "N"
--
- config DEBUG_WX
- 	bool "Warn on W+X mappings at boot"
- 	select X86_PTDUMP_CORE
-diff -puN arch/x86/include/asm/cacheflush.h~mm-add-arch-independent-testcases-for-rodata arch/x86/include/asm/cacheflush.h
---- a/arch/x86/include/asm/cacheflush.h~mm-add-arch-independent-testcases-for-rodata
-+++ a/arch/x86/include/asm/cacheflush.h
-@@ -90,18 +90,8 @@ void clflush_cache_range(void *addr, uns
+ 	<para>
+-	Of errors detected as above, the followings are not ATA/ATAPI
++	Of errors detected as above, the following are not ATA/ATAPI
+ 	device errors but ATA bus errors and should be handled
+ 	according to <xref linkend="excatATAbusErr"/>.
+ 	</para>
+diff -puN Documentation/acpi/method-tracing.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/acpi/method-tracing.txt
+--- a/Documentation/acpi/method-tracing.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/acpi/method-tracing.txt
+@@ -152,7 +152,7 @@ tracing facility.
+ 	Users can enable/disable this debug tracing feature by executing
+ 	the following command:
+ 	    # echo string > /sys/module/acpi/parameters/trace_state
+-	Where "string" should be one of the followings:
++	Where "string" should be one of the following:
+ 	"disable"
+ 	    Disable the method tracing feature.
+ 	"enable"
+diff -puN Documentation/blockdev/mflash.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/blockdev/mflash.txt
+--- a/Documentation/blockdev/mflash.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/blockdev/mflash.txt
+@@ -17,7 +17,7 @@ driver and currently works well under st
+ one chip SSD. IO mode is ATA-like custom mode for the host that doesn't have
+ IDE interface.
  
- #define mmio_flush_range(addr, size) clflush_cache_range(addr, size)
+-Followings are brief descriptions about IO mode.
++Following are brief descriptions about IO mode.
+ A. IO mode based on ATA protocol and uses some custom command. (read confirm,
+ write confirm)
+ B. IO mode uses SRAM bus interface.
+diff -puN Documentation/devicetree/bindings/net/marvell-armada-370-neta.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/devicetree/bindings/net/marvell-armada-370-neta.txt
+--- a/Documentation/devicetree/bindings/net/marvell-armada-370-neta.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/devicetree/bindings/net/marvell-armada-370-neta.txt
+@@ -1,7 +1,7 @@
+ * Marvell Armada 370 / Armada XP / Armada 3700 Ethernet Controller (NETA)
  
--extern const int rodata_test_data;
- extern int kernel_set_to_readonly;
- void set_kernel_text_rw(void);
- void set_kernel_text_ro(void);
+ Required properties:
+-- compatible: could be one of the followings
++- compatible: could be one of the following:
+ 	"marvell,armada-370-neta"
+ 	"marvell,armada-xp-neta"
+ 	"marvell,armada-3700-neta"
+diff -puN Documentation/devicetree/bindings/pinctrl/allwinner,sunxi-pinctrl.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/devicetree/bindings/pinctrl/allwinner,sunxi-pinctrl.txt
+--- a/Documentation/devicetree/bindings/pinctrl/allwinner,sunxi-pinctrl.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/devicetree/bindings/pinctrl/allwinner,sunxi-pinctrl.txt
+@@ -6,7 +6,7 @@ the first two functions being GPIO in an
+ the pins includes drive strength and pull-up.
  
--#ifdef CONFIG_DEBUG_RODATA_TEST
--int rodata_test(void);
--#else
--static inline int rodata_test(void)
--{
--	return 0;
--}
--#endif
--
- #endif /* _ASM_X86_CACHEFLUSH_H */
-diff -puN arch/x86/kernel/Makefile~mm-add-arch-independent-testcases-for-rodata arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~mm-add-arch-independent-testcases-for-rodata
-+++ a/arch/x86/kernel/Makefile
-@@ -100,7 +100,6 @@ obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
- obj-$(CONFIG_APB_TIMER)		+= apb_timer.o
+ Required properties:
+-- compatible: Should be one of the followings (depending on you SoC):
++- compatible: Should be one of the following (depending on your SoC):
+   "allwinner,sun4i-a10-pinctrl"
+   "allwinner,sun5i-a10s-pinctrl"
+   "allwinner,sun5i-a13-pinctrl"
+diff -puN Documentation/devicetree/bindings/soc/rockchip/grf.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/devicetree/bindings/soc/rockchip/grf.txt
+--- a/Documentation/devicetree/bindings/soc/rockchip/grf.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/devicetree/bindings/soc/rockchip/grf.txt
+@@ -10,7 +10,7 @@ From RK3368 SoCs, the GRF is divided int
  
- obj-$(CONFIG_AMD_NB)		+= amd_nb.o
--obj-$(CONFIG_DEBUG_RODATA_TEST)	+= test_rodata.o
- obj-$(CONFIG_DEBUG_NMI_SELFTEST) += nmi_selftest.o
+ Required Properties:
  
- obj-$(CONFIG_KVM_GUEST)		+= kvm.o kvmclock.o
-diff -puN arch/x86/kernel/test_rodata.c~mm-add-arch-independent-testcases-for-rodata /dev/null
---- a/arch/x86/kernel/test_rodata.c
-+++ /dev/null
-@@ -1,75 +0,0 @@
--/*
-- * test_rodata.c: functional test for mark_rodata_ro function
-- *
-- * (C) Copyright 2008 Intel Corporation
-- * Author: Arjan van de Ven <arjan@linux.intel.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; version 2
-- * of the License.
-- */
--#include <asm/cacheflush.h>
--#include <asm/sections.h>
--#include <asm/asm.h>
--
--int rodata_test(void)
--{
--	unsigned long result;
--	unsigned long start, end;
--
--	/* test 1: read the value */
--	/* If this test fails, some previous testrun has clobbered the state */
--	if (!rodata_test_data) {
--		printk(KERN_ERR "rodata_test: test 1 fails (start data)\n");
--		return -ENODEV;
--	}
--
--	/* test 2: write to the variable; this should fault */
--	/*
--	 * If this test fails, we managed to overwrite the data
--	 *
--	 * This is written in assembly to be able to catch the
--	 * exception that is supposed to happen in the correct
--	 * case
--	 */
--
--	result = 1;
--	asm volatile(
--		"0:	mov %[zero],(%[rodata_test])\n"
--		"	mov %[zero], %[rslt]\n"
--		"1:\n"
--		".section .fixup,\"ax\"\n"
--		"2:	jmp 1b\n"
--		".previous\n"
--		_ASM_EXTABLE(0b,2b)
--		: [rslt] "=r" (result)
--		: [rodata_test] "r" (&rodata_test_data), [zero] "r" (0UL)
--	);
--
--
--	if (!result) {
--		printk(KERN_ERR "rodata_test: test data was not read only\n");
--		return -ENODEV;
--	}
--
--	/* test 3: check the value hasn't changed */
--	/* If this test fails, we managed to overwrite the data */
--	if (!rodata_test_data) {
--		printk(KERN_ERR "rodata_test: Test 3 fails (end data)\n");
--		return -ENODEV;
--	}
--	/* test 4: check if the rodata section is 4Kb aligned */
--	start = (unsigned long)__start_rodata;
--	end = (unsigned long)__end_rodata;
--	if (start & (PAGE_SIZE - 1)) {
--		printk(KERN_ERR "rodata_test: .rodata is not 4k aligned\n");
--		return -ENODEV;
--	}
--	if (end & (PAGE_SIZE - 1)) {
--		printk(KERN_ERR "rodata_test: .rodata end is not 4k aligned\n");
--		return -ENODEV;
--	}
--
--	return 0;
--}
-diff -puN arch/x86/mm/init_32.c~mm-add-arch-independent-testcases-for-rodata arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~mm-add-arch-independent-testcases-for-rodata
-+++ a/arch/x86/mm/init_32.c
-@@ -864,9 +864,6 @@ static noinline int do_test_wp_bit(void)
- 	return flag;
- }
+-- compatible: GRF should be one of the followings
++- compatible: GRF should be one of the following:
+    - "rockchip,rk3036-grf", "syscon": for rk3036
+    - "rockchip,rk3066-grf", "syscon": for rk3066
+    - "rockchip,rk3188-grf", "syscon": for rk3188
+@@ -18,7 +18,7 @@ Required Properties:
+    - "rockchip,rk3288-grf", "syscon": for rk3288
+    - "rockchip,rk3368-grf", "syscon": for rk3368
+    - "rockchip,rk3399-grf", "syscon": for rk3399
+-- compatible: PMUGRF should be one of the followings
++- compatible: PMUGRF should be one of the following:
+    - "rockchip,rk3368-pmugrf", "syscon": for rk3368
+    - "rockchip,rk3399-pmugrf", "syscon": for rk3399
+ - compatible: SGRF should be one of the following
+diff -puN Documentation/devicetree/bindings/sound/rockchip-i2s.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/devicetree/bindings/sound/rockchip-i2s.txt
+--- a/Documentation/devicetree/bindings/sound/rockchip-i2s.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/devicetree/bindings/sound/rockchip-i2s.txt
+@@ -5,7 +5,7 @@ audio data transfer between devices in t
  
--const int rodata_test_data = 0xC3;
--EXPORT_SYMBOL_GPL(rodata_test_data);
--
- int kernel_set_to_readonly __read_mostly;
+ Required properties:
  
- void set_kernel_text_rw(void)
-@@ -939,7 +936,6 @@ void mark_rodata_ro(void)
- 	set_pages_ro(virt_to_page(start), size >> PAGE_SHIFT);
- 	printk(KERN_INFO "Write protecting the kernel read-only data: %luk\n",
- 		size >> 10);
--	rodata_test();
+-- compatible: should be one of the followings
++- compatible: should be one of the following:
+    - "rockchip,rk3066-i2s": for rk3066
+    - "rockchip,rk3188-i2s", "rockchip,rk3066-i2s": for rk3188
+    - "rockchip,rk3288-i2s", "rockchip,rk3066-i2s": for rk3288
+@@ -17,7 +17,7 @@ Required properties:
+ 	Documentation/devicetree/bindings/dma/dma.txt
+ - dma-names: should include "tx" and "rx".
+ - clocks: a list of phandle + clock-specifer pairs, one for each entry in clock-names.
+-- clock-names: should contain followings:
++- clock-names: should contain the following:
+    - "i2s_hclk": clock for I2S BUS
+    - "i2s_clk" : clock for I2S controller
+ - rockchip,playback-channels: max playback channels, if not set, 8 channels default.
+diff -puN Documentation/devicetree/bindings/sound/sun4i-codec.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/devicetree/bindings/sound/sun4i-codec.txt
+--- a/Documentation/devicetree/bindings/sound/sun4i-codec.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/devicetree/bindings/sound/sun4i-codec.txt
+@@ -14,7 +14,7 @@ Required properties:
+ - dma-names: should include "tx" and "rx".
+ - clocks: a list of phandle + clock-specifer pairs, one for each entry
+   in clock-names.
+-- clock-names: should contain followings:
++- clock-names: should contain the following:
+    - "apb": the parent APB clock for this controller
+    - "codec": the parent module clock
  
- #ifdef CONFIG_CPA_DEBUG
- 	printk(KERN_INFO "Testing CPA: undo %lx-%lx\n", start, start + size);
-diff -puN arch/x86/mm/init_64.c~mm-add-arch-independent-testcases-for-rodata arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-add-arch-independent-testcases-for-rodata
-+++ a/arch/x86/mm/init_64.c
-@@ -1000,9 +1000,6 @@ void __init mem_init(void)
- 	mem_init_print_info(NULL);
- }
+diff -puN Documentation/devicetree/bindings/sound/sun4i-i2s.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/devicetree/bindings/sound/sun4i-i2s.txt
+--- a/Documentation/devicetree/bindings/sound/sun4i-i2s.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/devicetree/bindings/sound/sun4i-i2s.txt
+@@ -5,7 +5,7 @@ audio data transfer between devices in t
  
--const int rodata_test_data = 0xC3;
--EXPORT_SYMBOL_GPL(rodata_test_data);
--
- int kernel_set_to_readonly;
+ Required properties:
  
- void set_kernel_text_rw(void)
-@@ -1071,8 +1068,6 @@ void mark_rodata_ro(void)
- 	all_end = roundup((unsigned long)_brk_end, PMD_SIZE);
- 	set_memory_nx(text_end, (all_end - text_end) >> PAGE_SHIFT);
+-- compatible: should be one of the followings
++- compatible: should be one of the following:
+    - "allwinner,sun4i-a10-i2s"
+    - "allwinner,sun6i-a31-i2s"
+ - reg: physical base address of the controller and length of memory mapped
+@@ -15,7 +15,7 @@ Required properties:
+ 	Documentation/devicetree/bindings/dma/dma.txt
+ - dma-names: should include "tx" and "rx".
+ - clocks: a list of phandle + clock-specifer pairs, one for each entry in clock-names.
+-- clock-names: should contain followings:
++- clock-names: should contain the following:
+    - "apb" : clock for the I2S bus interface
+    - "mod" : module clock for the I2S controller
+ - #sound-dai-cells : Must be equal to 0
+diff -puN Documentation/memory-hotplug.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/memory-hotplug.txt
+@@ -114,11 +114,11 @@ config options.
+     Memory model -> Sparse Memory  (CONFIG_SPARSEMEM)
+     Allow for memory hot-add       (CONFIG_MEMORY_HOTPLUG)
  
--	rodata_test();
--
- #ifdef CONFIG_CPA_DEBUG
- 	printk(KERN_INFO "Testing CPA: undo %lx-%lx\n", start, end);
- 	set_memory_rw(start, (end-start) >> PAGE_SHIFT);
-diff -puN /dev/null include/linux/rodata_test.h
---- /dev/null
-+++ a/include/linux/rodata_test.h
-@@ -0,0 +1,24 @@
-+/*
-+ * rodata_test.h: functional test for mark_rodata_ro function
-+ *
-+ * (C) Copyright 2008 Intel Corporation
-+ * Author: Arjan van de Ven <arjan@linux.intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; version 2
-+ * of the License.
-+ */
-+
-+#ifndef _RODATA_TEST_H
-+#define _RODATA_TEST_H
-+
-+#ifdef CONFIG_DEBUG_RODATA_TEST
-+extern const int rodata_test_data;
-+void rodata_test(void);
-+#else
-+static inline void rodata_test(void) {}
-+#endif
-+
-+#endif /* _RODATA_TEST_H */
-+
-diff -puN init/main.c~mm-add-arch-independent-testcases-for-rodata init/main.c
---- a/init/main.c~mm-add-arch-independent-testcases-for-rodata
-+++ a/init/main.c
-@@ -82,6 +82,7 @@
- #include <linux/proc_ns.h>
- #include <linux/io.h>
- #include <linux/cache.h>
-+#include <linux/rodata_test.h>
+-- To enable memory removal, the followings are also necessary
++- To enable memory removal, the following are also necessary
+     Allow for memory hot remove    (CONFIG_MEMORY_HOTREMOVE)
+     Page Migration                 (CONFIG_MIGRATION)
  
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -935,9 +936,10 @@ __setup("rodata=", set_debug_rodata);
- #ifdef CONFIG_STRICT_KERNEL_RWX
- static void mark_readonly(void)
+-- For ACPI memory hotplug, the followings are also necessary
++- For ACPI memory hotplug, the following are also necessary
+     Memory hotplug (under ACPI Support menu) (CONFIG_ACPI_HOTPLUG_MEMORY)
+     This option can be kernel module.
+ 
+diff -puN Documentation/sound/hd-audio/notes.rst~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances Documentation/sound/hd-audio/notes.rst
+--- a/Documentation/sound/hd-audio/notes.rst~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/Documentation/sound/hd-audio/notes.rst
+@@ -697,7 +697,7 @@ If it's a regression, at best, send alsa
+ and non-working kernels.  This is really helpful because we can
+ compare the codec registers directly.
+ 
+-Send a bug report either the followings:
++Send a bug report either the following:
+ 
+ kernel-bugzilla
+     https://bugzilla.kernel.org/
+diff -puN drivers/ata/libata-eh.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/ata/libata-eh.c
+--- a/drivers/ata/libata-eh.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/ata/libata-eh.c
+@@ -2034,7 +2034,7 @@ static int speed_down_verdict_cb(struct
+  *	This is to expedite speed down decisions right after device is
+  *	initially configured.
+  *
+- *	The followings are speed down rules.  #1 and #2 deal with
++ *	The following are speed down rules.  #1 and #2 deal with
+  *	DUBIOUS errors.
+  *
+  *	1. If more than one DUBIOUS_ATA_BUS or DUBIOUS_TOUT_HSM errors
+diff -puN drivers/atm/iphase.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/atm/iphase.c
+--- a/drivers/atm/iphase.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/atm/iphase.c
+@@ -21,7 +21,7 @@
+       supports a variety of varients of Interphase ATM PCI (i)Chip adapter 
+       card family (See www.iphase.com/products/ClassSheet.cfm?ClassID=ATM) 
+       in terms of PHY type, the size of control memory and the size of 
+-      packet memory. The followings are the change log and history:
++      packet memory. The following are the change log and history:
+      
+           Bugfix the Mona's UBR driver.
+           Modify the basic memory allocation and dma logic.
+diff -puN drivers/atm/iphase.h~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/atm/iphase.h
+--- a/drivers/atm/iphase.h~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/atm/iphase.h
+@@ -21,7 +21,7 @@
+       supports a variety of varients of Interphase ATM PCI (i)Chip adapter 
+       card family (See www.iphase.com/products/ClassSheet.cfm?ClassID=ATM) 
+       in terms of PHY type, the size of control memory and the size of 
+-      packet memory. The followings are the change log and history:
++      packet memory. The following are the change log and history:
+      
+           Bugfix the Mona's UBR driver.
+           Modify the basic memory allocation and dma logic.
+diff -puN drivers/devfreq/devfreq.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/devfreq/devfreq.c
+--- a/drivers/devfreq/devfreq.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/devfreq/devfreq.c
+@@ -1228,7 +1228,7 @@ static int __init devfreq_init(void)
+ subsys_initcall(devfreq_init);
+ 
+ /*
+- * The followings are helper functions for devfreq user device drivers with
++ * The following are helper functions for devfreq user device drivers with
+  * OPP framework.
+  */
+ 
+diff -puN drivers/hwmon/g762.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/hwmon/g762.c
+--- a/drivers/hwmon/g762.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/hwmon/g762.c
+@@ -861,7 +861,7 @@ static ssize_t fan1_pulses_store(struct
+  * (i.e. closed or open-loop).
+  *
+  * Following documentation about hwmon's sysfs interface, a pwm1_enable node
+- * should accept followings:
++ * should accept the following:
+  *
+  *  0 : no fan speed control (i.e. fan at full speed)
+  *  1 : manual fan speed control enabled (use pwm[1-*]) (open-loop)
+diff -puN drivers/isdn/hardware/eicon/debug.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/isdn/hardware/eicon/debug.c
+--- a/drivers/isdn/hardware/eicon/debug.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/isdn/hardware/eicon/debug.c
+@@ -2049,7 +2049,7 @@ static int diva_dbg_cmp_key(const char *
+ /*
+   In case trace filter starts with "C" character then
+   all following characters are interpreted as command.
+-  Followings commands are available:
++  Following commands are available:
+   - single, trace single call at time, independent from CPN/CiPN
+ */
+ static int diva_mnt_cmp_nmbr(const char *nmbr) {
+diff -puN drivers/pci/quirks.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/pci/quirks.c
+@@ -3630,7 +3630,7 @@ static int __init pci_apply_final_quirks
+ fs_initcall_sync(pci_apply_final_quirks);
+ 
+ /*
+- * Followings are device-specific reset methods which can be used to
++ * Following are device-specific reset methods which can be used to
+  * reset a single function if other methods (e.g. FLR, PM D0->D3) are
+  * not available.
+  */
+diff -puN drivers/staging/gs_fpgaboot/gs_fpgaboot.h~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/staging/gs_fpgaboot/gs_fpgaboot.h
+--- a/drivers/staging/gs_fpgaboot/gs_fpgaboot.h~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/staging/gs_fpgaboot/gs_fpgaboot.h
+@@ -39,7 +39,7 @@ struct fpgaimage {
+ 	const struct	firmware	*fw_entry;
+ 
+ 	/*
+-	 * the followings can be read from bitstream,
++	 * the following can be read from bitstream,
+ 	 * but other image format should have as well
+ 	 */
+ 	char	filename[MAX_STR];
+diff -puN drivers/usb/gadget/udc/renesas_usb3.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances drivers/usb/gadget/udc/renesas_usb3.c
+--- a/drivers/usb/gadget/udc/renesas_usb3.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/drivers/usb/gadget/udc/renesas_usb3.c
+@@ -1791,7 +1791,7 @@ static int renesas_usb3_init_ep(struct r
+ 
+ 	dev_dbg(dev, "%s: num_usb3_eps = %d\n", __func__, usb3->num_usb3_eps);
+ 	/*
+-	 * This driver prepares pipes as the followings:
++	 * This driver prepares pipes as follows:
+ 	 *  - odd pipes = IN pipe
+ 	 *  - even pipes = OUT pipe (except pipe 0)
+ 	 */
+@@ -1841,7 +1841,7 @@ static void renesas_usb3_init_ram(struct
+ 	memset(basead, 0, sizeof(basead));
+ 
+ 	/*
+-	 * This driver prepares pipes as the followings:
++	 * This driver prepares pipes as follows:
+ 	 *  - all pipes = the same size as "ramsize_per_pipe"
+ 	 * Please refer to the "Method of Specifying RAM Mapping"
+ 	 */
+diff -puN include/linux/kconfig.h~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances include/linux/kconfig.h
+--- a/include/linux/kconfig.h~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/include/linux/kconfig.h
+@@ -8,7 +8,7 @@
+ 
+ /*
+  * The use of "&&" / "||" is limited in certain expressions.
+- * The followings enable to calculate "and" / "or" with macro expansion only.
++ * The following enable to calculate "and" / "or" with macro expansion only.
+  */
+ #define __and(x, y)			___and(x, y)
+ #define ___and(x, y)			____and(__ARG_PLACEHOLDER_##x, y)
+diff -puN mm/percpu.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances mm/percpu.c
+--- a/mm/percpu.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/mm/percpu.c
+@@ -43,7 +43,7 @@
+  * Chunks can be determined from the address using the index field
+  * in the page struct. The index field contains a pointer to the chunk.
+  *
+- * To use this allocator, arch code should do the followings.
++ * To use this allocator, arch code should do the following:
+  *
+  * - define __addr_to_pcpu_ptr() and __pcpu_ptr_to_addr() to translate
+  *   regular address to percpu pointer and back if they need to be
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/scripts/spelling.txt
+@@ -464,6 +464,7 @@ finsih||finish
+ flusing||flushing
+ folloing||following
+ followign||following
++followings||following
+ follwing||following
+ forseeable||foreseeable
+ forse||force
+diff -puN sound/pci/hda/patch_ca0132.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances sound/pci/hda/patch_ca0132.c
+--- a/sound/pci/hda/patch_ca0132.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/sound/pci/hda/patch_ca0132.c
+@@ -2866,7 +2866,7 @@ static unsigned int ca0132_capture_pcm_d
+ #define CA0132_CODEC_MUTE(xname, nid, dir) \
+ 	CA0132_CODEC_MUTE_MONO(xname, nid, 3, dir)
+ 
+-/* The followings are for tuning of products */
++/* The following are for tuning of products */
+ #ifdef ENABLE_TUNING_CONTROLS
+ 
+ static unsigned int voice_focus_vals_lookup[] = {
+diff -puN sound/ppc/snd_ps3.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances sound/ppc/snd_ps3.c
+--- a/sound/ppc/snd_ps3.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/sound/ppc/snd_ps3.c
+@@ -883,7 +883,7 @@ static void snd_ps3_audio_set_base_addr(
+ static void snd_ps3_audio_fixup(struct snd_ps3_card_info *card)
  {
--	if (rodata_enabled)
-+	if (rodata_enabled) {
- 		mark_rodata_ro();
--	else
-+		rodata_test();
-+	} else
- 		pr_info("Kernel memory protection disabled.\n");
- }
- #else
-diff -puN mm/Kconfig.debug~mm-add-arch-independent-testcases-for-rodata mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-add-arch-independent-testcases-for-rodata
-+++ a/mm/Kconfig.debug
-@@ -90,3 +90,10 @@ config DEBUG_PAGE_REF
- 	  careful when enabling this feature because it adds about 30 KB to the
- 	  kernel code.  However the runtime performance overhead is virtually
- 	  nil until the tracepoints are actually enabled.
-+
-+config DEBUG_RODATA_TEST
-+    bool "Testcase for the marking rodata read-only"
-+    depends on STRICT_KERNEL_RWX
-+    ---help---
-+      This option enables a testcase for the setting rodata read-only.
-+
-diff -puN mm/Makefile~mm-add-arch-independent-testcases-for-rodata mm/Makefile
---- a/mm/Makefile~mm-add-arch-independent-testcases-for-rodata
-+++ a/mm/Makefile
-@@ -85,6 +85,7 @@ obj-$(CONFIG_MEMORY_FAILURE) += memory-f
- obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
- obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
-+obj-$(CONFIG_DEBUG_RODATA_TEST) += rodata_test.o
- obj-$(CONFIG_PAGE_OWNER) += page_owner.o
- obj-$(CONFIG_CLEANCACHE) += cleancache.o
- obj-$(CONFIG_MEMORY_ISOLATION) += page_isolation.o
-diff -puN /dev/null mm/rodata_test.c
---- /dev/null
-+++ a/mm/rodata_test.c
-@@ -0,0 +1,56 @@
-+/*
-+ * rodata_test.c: functional test for mark_rodata_ro function
-+ *
-+ * (C) Copyright 2008 Intel Corporation
-+ * Author: Arjan van de Ven <arjan@linux.intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; version 2
-+ * of the License.
-+ */
-+#include <linux/uaccess.h>
-+#include <asm/sections.h>
-+
-+const int rodata_test_data = 0xC3;
-+EXPORT_SYMBOL_GPL(rodata_test_data);
-+
-+void rodata_test(void)
-+{
-+	unsigned long start, end;
-+	int zero = 0;
-+
-+	/* test 1: read the value */
-+	/* If this test fails, some previous testrun has clobbered the state */
-+	if (!rodata_test_data) {
-+		pr_err("rodata_test: test 1 fails (start data)\n");
-+		return;
-+	}
-+
-+	/* test 2: write to the variable; this should fault */
-+	if (!probe_kernel_write((void *)&rodata_test_data,
-+						(void *)&zero, sizeof(zero))) {
-+		pr_err("rodata_test: test data was not read only\n");
-+		return;
-+	}
-+
-+	/* test 3: check the value hasn't changed */
-+	if (rodata_test_data == zero) {
-+		pr_err("rodata_test: test data was changed\n");
-+		return;
-+	}
-+
-+	/* test 4: check if the rodata section is PAGE_SIZE aligned */
-+	start = (unsigned long)__start_rodata;
-+	end = (unsigned long)__end_rodata;
-+	if (start & (PAGE_SIZE - 1)) {
-+		pr_err("rodata_test: start of .rodata is not page size aligned\n");
-+		return;
-+	}
-+	if (end & (PAGE_SIZE - 1)) {
-+		pr_err("rodata_test: end of .rodata is not page size aligned\n");
-+		return;
-+	}
-+
-+	pr_info("rodata_test: all tests were successful\n");
-+}
+ 	/*
+-	 * avsetting driver seems to never change the followings
++	 * avsetting driver seems to never change the following
+ 	 * so, init them here once
+ 	 */
+ 
+diff -puN sound/soc/fsl/fsl_asrc.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances sound/soc/fsl/fsl_asrc.c
+--- a/sound/soc/fsl/fsl_asrc.c~scripts-spellingtxt-add-followings-pattern-and-fix-typo-instances
++++ a/sound/soc/fsl/fsl_asrc.c
+@@ -368,7 +368,7 @@ static int fsl_asrc_config_pair(struct f
+ 	fsl_asrc_set_watermarks(pair, ASRC_INPUTFIFO_THRESHOLD,
+ 				ASRC_INPUTFIFO_THRESHOLD);
+ 
+-	/* Configure the followings only for Ideal Ratio mode */
++	/* Configure the following only for Ideal Ratio mode */
+ 	if (!ideal)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from jinb.park7@gmail.com are
+Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
+scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
 
