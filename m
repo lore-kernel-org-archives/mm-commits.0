@@ -1,81 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tests-improve-output-of-sigaltstack-testcase.patch
- removed from -mm tree
-Date: Tue, 28 Feb 2017 12:50:04 -0800
-Message-ID: <58b5e27c.BvmTopC9dlgehPVV%akpm@linux-foundation.org>
+Subject: [merged] nilfs2-use-i_blocksize.patch removed from -mm tree
+Date: Tue, 28 Feb 2017 12:51:03 -0800
+Message-ID: <58b5e2b7.xC3Hx79lkP6b7FLD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52576 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751720AbdB1Uvc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:32 -0500
+        with ESMTP id S1751843AbdB1Uvf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stsp@list.ru, luto@kernel.org, mingo@kernel.org, oleg@redhat.com, shuah@kernel.org, stsp@users.sourceforge.net, mm-commits@vger.kernel.org
+To: geliangtang@gmail.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/testing/selftests/sigaltstack/sas.c: improve output of sigaltstack testcase
+     Subject: nilfs2: use i_blocksize()
 has been removed from the -mm tree.  Its filename was
-     tests-improve-output-of-sigaltstack-testcase.patch
+     nilfs2-use-i_blocksize.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stas Sergeev <stsp@list.ru>
-Subject: tools/testing/selftests/sigaltstack/sas.c: improve output of sigaltstack testcase
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: nilfs2: use i_blocksize()
 
-Currently it uses %i for bitmasks, which makes it difficult to properly
-decode the values.  Use %x instead.
+Since i_blocksize() helper has been defined in fs.h, use it instead
+of open-coding.
 
-Link: http://lkml.kernel.org/r/b7b4c45d-2f21-de6c-d1c8-16c8386da27c@list.ru
-Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/1485184655-3895-3-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/sigaltstack/sas.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/nilfs2/alloc.c |    2 +-
+ fs/nilfs2/btree.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN tools/testing/selftests/sigaltstack/sas.c~tests-improve-output-of-sigaltstack-testcase tools/testing/selftests/sigaltstack/sas.c
---- a/tools/testing/selftests/sigaltstack/sas.c~tests-improve-output-of-sigaltstack-testcase
-+++ a/tools/testing/selftests/sigaltstack/sas.c
-@@ -57,7 +57,7 @@ void my_usr1(int sig, siginfo_t *si, voi
- 		exit(EXIT_FAILURE);
- 	}
- 	if (stk.ss_flags != SS_DISABLE)
--		printf("[FAIL]\tss_flags=%i, should be SS_DISABLE\n",
-+		printf("[FAIL]\tss_flags=%x, should be SS_DISABLE\n",
- 				stk.ss_flags);
- 	else
- 		printf("[OK]\tsigaltstack is disabled in sighandler\n");
-@@ -122,7 +122,8 @@ int main(void)
- 	if (stk.ss_flags == SS_DISABLE) {
- 		printf("[OK]\tInitial sigaltstack state was SS_DISABLE\n");
- 	} else {
--		printf("[FAIL]\tInitial sigaltstack state was %i; should have been SS_DISABLE\n", stk.ss_flags);
-+		printf("[FAIL]\tInitial sigaltstack state was %x; "
-+		       "should have been SS_DISABLE\n", stk.ss_flags);
- 		return EXIT_FAILURE;
- 	}
+diff -puN fs/nilfs2/alloc.c~nilfs2-use-i_blocksize fs/nilfs2/alloc.c
+--- a/fs/nilfs2/alloc.c~nilfs2-use-i_blocksize
++++ a/fs/nilfs2/alloc.c
+@@ -34,7 +34,7 @@
+ static inline unsigned long
+ nilfs_palloc_groups_per_desc_block(const struct inode *inode)
+ {
+-	return (1UL << inode->i_blkbits) /
++	return i_blocksize(inode) /
+ 		sizeof(struct nilfs_palloc_group_desc);
+ }
  
-@@ -165,7 +166,7 @@ int main(void)
- 		exit(EXIT_FAILURE);
- 	}
- 	if (stk.ss_flags != SS_AUTODISARM) {
--		printf("[FAIL]\tss_flags=%i, should be SS_AUTODISARM\n",
-+		printf("[FAIL]\tss_flags=%x, should be SS_AUTODISARM\n",
- 				stk.ss_flags);
- 		exit(EXIT_FAILURE);
- 	}
+diff -puN fs/nilfs2/btree.c~nilfs2-use-i_blocksize fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~nilfs2-use-i_blocksize
++++ a/fs/nilfs2/btree.c
+@@ -119,7 +119,7 @@ nilfs_btree_node_set_nchildren(struct ni
+ 
+ static int nilfs_btree_node_size(const struct nilfs_bmap *btree)
+ {
+-	return 1 << btree->b_inode->i_blkbits;
++	return i_blocksize(btree->b_inode);
+ }
+ 
+ static int nilfs_btree_nchildren_per_block(const struct nilfs_bmap *btree)
 _
 
-Patches currently in -mm which might be from stsp@list.ru are
+Patches currently in -mm which might be from geliangtang@gmail.com are
 
 
