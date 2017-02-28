@@ -1,74 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-use-get_user_pages_unlocked.patch removed from
- -mm tree
-Date: Tue, 28 Feb 2017 12:50:10 -0800
-Message-ID: <58b5e282.hHirIiDzrljIA/yI%akpm@linux-foundation.org>
+Subject: [merged]
+ proc-kcore-update-physical-address-for-kcore-ram-and-text.patch removed
+ from -mm tree
+Date: Tue, 28 Feb 2017 12:50:07 -0800
+Message-ID: <58b5e27f.rnmbJKt+X8sUfrzQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52712 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751767AbdB1Uvc (ORCPT
+        with ESMTP id S1751726AbdB1Uvc (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lstoakes@gmail.com, alexandre.bounine@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: panand@redhat.com, anderson@redhat.com, bhe@redhat.com, dyoung@redhat.com, keescook@chromium.org, kumagai-atsushi@mxc.nes.nec.co.jp, simon.horman@netronome.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: use get_user_pages_unlocked()
+     Subject: /proc/kcore: update physical address for kcore ram and text
 has been removed from the -mm tree.  Its filename was
-     rapidio-use-get_user_pages_unlocked.patch
+     proc-kcore-update-physical-address-for-kcore-ram-and-text.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: rapidio: use get_user_pages_unlocked()
+From: Pratyush Anand <panand@redhat.com>
+Subject: /proc/kcore: update physical address for kcore ram and text
 
-Moving from get_user_pages() to get_user_pages_unlocked() simplifies the code
-and takes advantage of VM_FAULT_RETRY functionality when faulting in pages.
+Currently all the p_paddr of PT_LOAD headers are assigned to 0, which is
+not true and could be misleading, since 0 is a valid physical address.
 
-Link: http://lkml.kernel.org/r/20170103205024.6704-1-lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+User space tools like makedumpfile needs to know physical address for
+PT_LOAD segments of direct mapped regions.  Therefore this patch updates
+paddr for such regions.  It also sets an invalid paddr (-1) for other
+regions, so that user space tool can know whether a physical address
+provided in PT_LOAD is correct or not.
+
+I do not know why it was 0, which is a valid physical address.  But
+certainly, it might break some user space tools, and those need to be
+fixed.  For example, see following code from kexec-tools
+
+kexec/kexec-elf.c:build_mem_phdrs()
+
+435                 if ((phdr->p_paddr + phdr->p_memsz) < phdr->p_paddr) {
+436                         /* The memory address wraps */
+437                         if (probe_debug) {
+438                                 fprintf(stderr, "ELF address wrap 
+around\n");
+439                         }
+440                         return -1;
+441                 }
+
+We do not need to perform above check for an invalid physical address.
+
+I think, kexec-tools and makedumpfile will need fixup.  I already have
+those fixup which will be sent upstream once this patch makes through. 
+Pro with this approach is that, it will help to calculate variable like
+page_offset, phys_base from PT_LOAD even when they are randomized and
+therefore will reduce many variable and version specific values in user
+space tools.
+
+Having an ASLR offset information can help to translate an identity
+mapped virtual address to a physical address.  But that would be an
+additional field in PT_LOAD header structure and an arch dependent
+value.
+
+Moreover, sending a valid physical address like 0 does not seem right. 
+So, IMHO it is better to fix that and send valid physical address when
+available (identity mapped).
+
+Link: http://lkml.kernel.org/r/f951340d2917cdd2a329fae9837a83f2059dc3b2.1485318868.git.panand@redhat.com
+Signed-off-by: Pratyush Anand <panand@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Dave Anderson <anderson@redhat.com>
+Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: Simon Horman <simon.horman@netronome.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/proc/kcore.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked drivers/rapidio/devices/rio_mport_cdev.c
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-get_user_pages_unlocked
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -889,17 +889,16 @@ rio_dma_transfer(struct file *filp, u32
- 			goto err_req;
- 		}
- 
--		down_read(&current->mm->mmap_sem);
--		pinned = get_user_pages(
-+		pinned = get_user_pages_unlocked(
- 				(unsigned long)xfer->loc_addr & PAGE_MASK,
- 				nr_pages,
--				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0,
--				page_list, NULL);
--		up_read(&current->mm->mmap_sem);
-+				page_list,
-+				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0);
- 
- 		if (pinned != nr_pages) {
- 			if (pinned < 0) {
--				rmcd_error("get_user_pages err=%ld", pinned);
-+				rmcd_error("get_user_pages_unlocked err=%ld",
-+					   pinned);
- 				nr_pages = 0;
- 			} else
- 				rmcd_error("pinned %ld out of %ld pages",
+diff -puN fs/proc/kcore.c~proc-kcore-update-physical-address-for-kcore-ram-and-text fs/proc/kcore.c
+--- a/fs/proc/kcore.c~proc-kcore-update-physical-address-for-kcore-ram-and-text
++++ a/fs/proc/kcore.c
+@@ -373,7 +373,10 @@ static void elf_kcore_store_hdr(char *bu
+ 		phdr->p_flags	= PF_R|PF_W|PF_X;
+ 		phdr->p_offset	= kc_vaddr_to_offset(m->addr) + dataoff;
+ 		phdr->p_vaddr	= (size_t)m->addr;
+-		phdr->p_paddr	= 0;
++		if (m->type == KCORE_RAM || m->type == KCORE_TEXT)
++			phdr->p_paddr	= __pa(m->addr);
++		else
++			phdr->p_paddr	= (elf_addr_t)-1;
+ 		phdr->p_filesz	= phdr->p_memsz	= m->size;
+ 		phdr->p_align	= PAGE_SIZE;
+ 	}
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from panand@redhat.com are
 
 
