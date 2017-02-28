@@ -1,194 +1,135 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+ scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
  removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:41 -0800
-Message-ID: <58b5e2dd./vIrmnrENw+P6080%akpm@linux-foundation.org>
+Date: Tue, 28 Feb 2017 12:51:55 -0800
+Message-ID: <58b5e2eb.UedIzhQK+xUbcOfX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52810 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751906AbdB1Uvm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:42 -0500
+        with ESMTP id S1751924AbdB1Uv4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "configuartion" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "overwriten" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "configuartion" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "overwriten" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  configuartion||configuration
+  overwrien||overwritten
 
-While we are here, fix the "ouput" as well in the touched hunk in
-drivers/media/dvb-frontends/drx39xyj/drx_driver.h.
-
-Link: http://lkml.kernel.org/r/1481573103-11329-23-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-30-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb-frontends/drx39xyj/drx_driver.h |    4 +--
- drivers/media/dvb-frontends/drx39xyj/drxj.c       |   16 ++++++------
- drivers/media/dvb-frontends/drx39xyj/drxj.h       |    4 +--
- drivers/media/dvb-frontends/drxk_hard.c           |    2 -
- drivers/net/wireless/ti/wl18xx/main.c             |    2 -
- scripts/spelling.txt                              |    1 
- 6 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/qib/qib_iba6120.c  |    2 +-
+ drivers/infiniband/hw/qib/qib_iba7220.c  |    2 +-
+ drivers/infiniband/hw/qib/qib_iba7322.c  |    2 +-
+ drivers/isdn/hardware/mISDN/mISDNipac.c  |    2 +-
+ drivers/parport/parport_pc.c             |    2 +-
+ scripts/spelling.txt                     |    1 +
+ sound/pci/cs46xx/cs46xx_dsp_task_types.h |    2 +-
+ 7 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drx_driver.h
---- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
-@@ -1317,9 +1317,9 @@ struct drx_version_list {
- 		DRX_MPEG_STR_WIDTH_8
- 	};
+diff -puN drivers/infiniband/hw/qib/qib_iba6120.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/infiniband/hw/qib/qib_iba6120.c
+--- a/drivers/infiniband/hw/qib/qib_iba6120.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
++++ a/drivers/infiniband/hw/qib/qib_iba6120.c
+@@ -707,7 +707,7 @@ static void qib_6120_clear_freeze(struct
+ 	/* disable error interrupts, to avoid confusion */
+ 	qib_write_kreg(dd, kr_errmask, 0ULL);
  
--/* CTRL CFG MPEG ouput */
-+/* CTRL CFG MPEG output */
- /**
--* \struct struct drx_cfg_mpeg_output * \brief Configuartion parameters for MPEG output control.
-+* \struct struct drx_cfg_mpeg_output * \brief Configuration parameters for MPEG output control.
- *
- * Used by DRX_CFG_MPEG_OUTPUT, in combination with DRX_CTRL_SET_CFG and
- * DRX_CTRL_GET_CFG.
-diff -puN drivers/media/dvb-frontends/drx39xyj/drxj.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drxj.c
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -601,7 +601,7 @@ static struct drxj_data drxj_data_g = {
- 	0,			/* hi_cfg_wake_up_key    */
- 	0,			/* hi_cfg_ctrl         */
- 	0,			/* HICfgTimeout      */
--	/* UIO configuartion */
-+	/* UIO configuration */
- 	DRX_UIO_MODE_DISABLE,	/* uio_sma_rx_mode      */
- 	DRX_UIO_MODE_DISABLE,	/* uio_sma_tx_mode      */
- 	DRX_UIO_MODE_DISABLE,	/* uioASELMode       */
-@@ -619,7 +619,7 @@ static struct drxj_data drxj_data_g = {
- /*   false,                  * flagHDevSet       */
- /*   (u16) 0xFFF,          * rdsLastCount      */
+-	/* also disable interrupts; errormask is sometimes overwriten */
++	/* also disable interrupts; errormask is sometimes overwritten */
+ 	qib_6120_set_intr_state(dd, 0);
  
--	/* ATV configuartion */
-+	/* ATV configuration */
- 	0UL,			/* flags cfg changes */
- 	/* shadow of ATV_TOP_EQU0__A */
- 	{-5,
-@@ -3352,7 +3352,7 @@ rw_error:
- /*----------------------------------------------------------------------------*/
+ 	qib_cancel_sends(dd->pport);
+diff -puN drivers/infiniband/hw/qib/qib_iba7220.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/infiniband/hw/qib/qib_iba7220.c
+--- a/drivers/infiniband/hw/qib/qib_iba7220.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
++++ a/drivers/infiniband/hw/qib/qib_iba7220.c
+@@ -1259,7 +1259,7 @@ static void qib_7220_clear_freeze(struct
+ 	/* disable error interrupts, to avoid confusion */
+ 	qib_write_kreg(dd, kr_errmask, 0ULL);
  
- /*----------------------------------------------------------------------------*/
--/* miscellaneous configuartions - begin                           */
-+/* miscellaneous configurations - begin                           */
- /*----------------------------------------------------------------------------*/
+-	/* also disable interrupts; errormask is sometimes overwriten */
++	/* also disable interrupts; errormask is sometimes overwritten */
+ 	qib_7220_set_intr_state(dd, 0);
  
- /**
-@@ -3515,7 +3515,7 @@ rw_error:
- }
+ 	qib_cancel_sends(dd->pport);
+diff -puN drivers/infiniband/hw/qib/qib_iba7322.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/infiniband/hw/qib/qib_iba7322.c
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
++++ a/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -2053,7 +2053,7 @@ static void qib_7322_clear_freeze(struct
+ 			qib_write_kreg_port(dd->pport + pidx, krp_errmask,
+ 					    0ULL);
  
- /*----------------------------------------------------------------------------*/
--/* miscellaneous configuartions - end                             */
-+/* miscellaneous configurations - end                             */
- /*----------------------------------------------------------------------------*/
+-	/* also disable interrupts; errormask is sometimes overwriten */
++	/* also disable interrupts; errormask is sometimes overwritten */
+ 	qib_7322_set_intr_state(dd, 0);
  
- /*----------------------------------------------------------------------------*/
-@@ -10952,7 +10952,7 @@ rw_error:
- 
- static void drxj_reset_mode(struct drxj_data *ext_attr)
- {
--	/* Initialize default AFE configuartion for QAM */
-+	/* Initialize default AFE configuration for QAM */
- 	if (ext_attr->has_lna) {
- 		/* IF AGC off, PGA active */
- #ifndef DRXJ_VSB_ONLY
-@@ -10996,7 +10996,7 @@ static void drxj_reset_mode(struct drxj_
- 	ext_attr->qam_pre_saw_cfg.reference = 0x07;
- 	ext_attr->qam_pre_saw_cfg.use_pre_saw = true;
- #endif
--	/* Initialize default AFE configuartion for VSB */
-+	/* Initialize default AFE configuration for VSB */
- 	ext_attr->vsb_rf_agc_cfg.standard = DRX_STANDARD_8VSB;
- 	ext_attr->vsb_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
- 	ext_attr->vsb_rf_agc_cfg.min_output_level = 0;
-@@ -11072,9 +11072,9 @@ ctrl_power_mode(struct drx_demod_instanc
+ 	/* clear the freeze, and be sure chip saw it */
+diff -puN drivers/isdn/hardware/mISDN/mISDNipac.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/isdn/hardware/mISDN/mISDNipac.c
+--- a/drivers/isdn/hardware/mISDN/mISDNipac.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
++++ a/drivers/isdn/hardware/mISDN/mISDNipac.c
+@@ -1625,7 +1625,7 @@ mISDNipac_init(struct ipac_hw *ipac, voi
+ 		ipac->hscx[i].bch.hw = hw;
+ 		ipac->hscx[i].ip = ipac;
+ 		/* default values for IOM time slots
+-		 * can be overwriten by card */
++		 * can be overwritten by card */
+ 		ipac->hscx[i].slot = (i == 0) ? 0x2f : 0x03;
  	}
  
- 	if ((*mode == DRX_POWER_UP)) {
--		/* Restore analog & pin configuartion */
-+		/* Restore analog & pin configuration */
+diff -puN drivers/parport/parport_pc.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
++++ a/drivers/parport/parport_pc.c
+@@ -902,7 +902,7 @@ static size_t parport_pc_ecp_write_block
+  *	******************************************
+  */
  
--		/* Initialize default AFE configuartion for VSB */
-+		/* Initialize default AFE configuration for VSB */
- 		drxj_reset_mode(ext_attr);
- 	} else {
- 		/* Power down to requested mode */
-diff -puN drivers/media/dvb-frontends/drx39xyj/drxj.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drxj.h
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.h~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drxj.h
-@@ -447,7 +447,7 @@ struct drxj_cfg_atv_output {
- 		u16 hi_cfg_ctrl;	  /**< HI Configure() parameter 5                       */
- 		u16 hi_cfg_transmit;	  /**< HI Configure() parameter 6                       */
- 
--		/* UIO configuartion */
-+		/* UIO configuration */
- 		enum drxuio_mode uio_sma_rx_mode;/**< current mode of SmaRx pin                        */
- 		enum drxuio_mode uio_sma_tx_mode;/**< current mode of SmaTx pin                        */
- 		enum drxuio_mode uio_gpio_mode; /**< current mode of ASEL pin                         */
-@@ -459,7 +459,7 @@ struct drxj_cfg_atv_output {
- 		/* IQM RC frequecy shift */
- 		u32 iqm_rc_rate_ofs;	   /**< frequency shifter setting after setchannel      */
- 
--		/* ATV configuartion */
-+		/* ATV configuration */
- 		u32 atv_cfg_changed_flags; /**< flag: flags cfg changes */
- 		s16 atv_top_equ0[DRXJ_COEF_IDX_MAX];	     /**< shadow of ATV_TOP_EQU0__A */
- 		s16 atv_top_equ1[DRXJ_COEF_IDX_MAX];	     /**< shadow of ATV_TOP_EQU1__A */
-diff -puN drivers/media/dvb-frontends/drxk_hard.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drxk_hard.c
---- a/drivers/media/dvb-frontends/drxk_hard.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drxk_hard.c
-@@ -1626,7 +1626,7 @@ static int ctrl_power_mode(struct drxk_s
- 	}
- 
- 	if (*mode == DRX_POWER_UP) {
--		/* Restore analog & pin configuartion */
-+		/* Restore analog & pin configuration */
- 	} else {
- 		/* Power down to requested mode */
- 		/* Backup some register settings */
-diff -puN drivers/net/wireless/ti/wl18xx/main.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances drivers/net/wireless/ti/wl18xx/main.c
---- a/drivers/net/wireless/ti/wl18xx/main.c~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/ti/wl18xx/main.c
-@@ -178,7 +178,7 @@ static struct wlcore_conf wl18xx_conf =
- 	.sg = {
- 		.params = {
- 			[WL18XX_CONF_SG_PARAM_0] = 0,
--			/* Configuartion Parameters */
-+			/* Configuration Parameters */
- 			[WL18XX_CONF_SG_ANTENNA_CONFIGURATION] = 0,
- 			[WL18XX_CONF_SG_ZIGBEE_COEX] = 0,
- 			[WL18XX_CONF_SG_TIME_SYNC] = 0,
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-configuartion-pattern-and-fix-typo-instances
+-/* GCC is not inlining extern inline function later overwriten to non-inline,
++/* GCC is not inlining extern inline function later overwritten to non-inline,
+    so we use outlined_ variants here.  */
+ static const struct parport_operations parport_pc_ops = {
+ 	.write_data	= parport_pc_write_data,
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -268,6 +268,7 @@ comunication||communication
- conbination||combination
- conditionaly||conditionally
- conected||connected
-+configuartion||configuration
- configuratoin||configuration
- configuraton||configuration
- configuretion||configuration
+@@ -734,6 +734,7 @@ overrided||overridden
+ overriden||overridden
+ overun||overrun
+ overwritting||overwriting
++overwriten||overwritten
+ pacakge||package
+ pachage||package
+ packacge||package
+diff -puN sound/pci/cs46xx/cs46xx_dsp_task_types.h~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances sound/pci/cs46xx/cs46xx_dsp_task_types.h
+--- a/sound/pci/cs46xx/cs46xx_dsp_task_types.h~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
++++ a/sound/pci/cs46xx/cs46xx_dsp_task_types.h
+@@ -203,7 +203,7 @@ struct dsp_task_tree_context_block {
+ 
+ 	u32	  saverfe;					
+ 
+-	/* Value may be overwriten by stack save algorithm.
++	/* Value may be overwritten by stack save algorithm.
+ 	   Retain the size of the stack data saved here if used */
+ 	___DSP_DUAL_16BIT_ALLOC(
+              reserved1,	
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
