@@ -1,101 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+Subject: [merged] mm-clarify-mm_structmm_userscount-documentation.patch
  removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:49 -0800
-Message-ID: <58b5e2e5.WowxS1PV82sfwE+D%akpm@linux-foundation.org>
+Date: Tue, 28 Feb 2017 12:52:17 -0800
+Message-ID: <58b5e301.QU8u0acIVagWlgTv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52868 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751802AbdB1Uvu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:50 -0500
+        with ESMTP id S1751702AbdB1UwT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:52:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: vegard.nossum@oracle.com, mhocko@suse.com, peterz@infradead.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "disassocation" pattern and fix typo instances
+     Subject: mm: clarify mm_struct.mm_{users,count} documentation
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances.patch
+     mm-clarify-mm_structmm_userscount-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "disassocation" pattern and fix typo instances
+From: Vegard Nossum <vegard.nossum@oracle.com>
+Subject: mm: clarify mm_struct.mm_{users,count} documentation
 
-Fix typos and add the following to the scripts/spelling.txt:
+Clarify documentation relating to mm_users and mm_count, and switch to
+kernel-doc syntax.
 
-  disassocation||disassociation
-
-Link: http://lkml.kernel.org/r/1481573103-11329-27-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Link: http://lkml.kernel.org/r/20161218123229.22952-4-vegard.nossum@oracle.com
+Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/intel/ipw2x00/ipw2100.c |    2 +-
- drivers/net/wireless/intel/ipw2x00/ipw2200.c |    2 +-
- include/net/cfg80211.h                       |    2 +-
- scripts/spelling.txt                         |    1 +
- 4 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/mm_types.h |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2100.c
---- a/drivers/net/wireless/intel/ipw2x00/ipw2100.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/intel/ipw2x00/ipw2100.c
-@@ -5652,7 +5652,7 @@ static void shim__set_security(struct ne
- 
- /* As a temporary work around to enable WPA until we figure out why
-  * wpa_supplicant toggles the security capability of the driver, which
-- * forces a disassocation with force_update...
-+ * forces a disassociation with force_update...
-  *
-  *	if (force_update || !(priv->status & STATUS_ASSOCIATED))*/
- 	if (!(priv->status & (STATUS_ASSOCIATED | STATUS_ASSOCIATING)))
-diff -puN drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances drivers/net/wireless/intel/ipw2x00/ipw2200.c
---- a/drivers/net/wireless/intel/ipw2x00/ipw2200.c~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/intel/ipw2x00/ipw2200.c
-@@ -3974,7 +3974,7 @@ static void ipw_send_disassociate(struct
- 		return;
- 	}
- 
--	IPW_DEBUG_ASSOC("Disassocation attempt from %pM "
-+	IPW_DEBUG_ASSOC("Disassociation attempt from %pM "
- 			"on channel %d.\n",
- 			priv->assoc_request.bssid,
- 			priv->assoc_request.channel);
-diff -puN include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances include/net/cfg80211.h
---- a/include/net/cfg80211.h~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
-+++ a/include/net/cfg80211.h
-@@ -1948,7 +1948,7 @@ struct cfg80211_deauth_request {
-  * struct cfg80211_disassoc_request - Disassociation request data
-  *
-  * This structure provides information needed to complete IEEE 802.11
-- * disassocation.
-+ * disassociation.
-  *
-  * @bss: the BSS to disassociate from
-  * @ie: Extra IEs to add to Disassociation frame or %NULL
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-disassocation-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -364,6 +364,7 @@ differrence||difference
- difinition||definition
- diplay||display
- direectly||directly
-+disassocation||disassociation
- disapear||disappear
- disapeared||disappeared
- disappared||disappeared
+diff -puN include/linux/mm_types.h~mm-clarify-mm_structmm_userscount-documentation include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-clarify-mm_structmm_userscount-documentation
++++ a/include/linux/mm_types.h
+@@ -407,8 +407,27 @@ struct mm_struct {
+ 	unsigned long task_size;		/* size of task vm space */
+ 	unsigned long highest_vm_end;		/* highest vma end address */
+ 	pgd_t * pgd;
+-	atomic_t mm_users;			/* How many users with user space? */
+-	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
++
++	/**
++	 * @mm_users: The number of users including userspace.
++	 *
++	 * Use mmget()/mmget_not_zero()/mmput() to modify. When this drops
++	 * to 0 (i.e. when the task exits and there are no other temporary
++	 * reference holders), we also release a reference on @mm_count
++	 * (which may then free the &struct mm_struct if @mm_count also
++	 * drops to 0).
++	 */
++	atomic_t mm_users;
++
++	/**
++	 * @mm_count: The number of references to &struct mm_struct
++	 * (@mm_users count as 1).
++	 *
++	 * Use mmgrab()/mmdrop() to modify. When this drops to 0, the
++	 * &struct mm_struct is freed.
++	 */
++	atomic_t mm_count;
++
+ 	atomic_long_t nr_ptes;			/* PTE page table pages */
+ #if CONFIG_PGTABLE_LEVELS > 2
+ 	atomic_long_t nr_pmds;			/* PMD page table pages */
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from vegard.nossum@oracle.com are
 
-scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
-scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
 
