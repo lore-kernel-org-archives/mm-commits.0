@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances.patch
+ scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
  removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:17 -0800
-Message-ID: <58b5e2c5.W05pKK+MbUkat2th%akpm@linux-foundation.org>
+Date: Tue, 28 Feb 2017 12:51:15 -0800
+Message-ID: <58b5e2c3.6uPYL2Ea6i1lWy7X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52756 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751872AbdB1Uvg (ORCPT
+        with ESMTP id S1751863AbdB1Uvg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,274 +19,174 @@ To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "aligment" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "partiton" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "aligment" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "partiton" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  aligment||alignment
+  partiton||partition
 
-I did not touch the "N_BYTE_ALIGMENT" macro in
-drivers/net/wireless/realtek/rtlwifi/wifi.h to avoid unpredictable
-impact.
-
-I fixed "_aligment_handler" in arch/openrisc/kernel/entry.S because
-it is surrounded by #if 0 ... #endif.  It is surely safe and I
-confirmed "_alignment_handler" is correct.
-
-I also fixed the "controler" I found in the same hunk in
-arch/openrisc/kernel/head.S.
-
-Link: http://lkml.kernel.org/r/1481573103-11329-8-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1481573103-11329-7-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/unwind.c                            |    4 ++--
- arch/openrisc/kernel/entry.S                        |    4 ++--
- arch/openrisc/kernel/head.S                         |    6 +++---
- arch/openrisc/kernel/vmlinux.lds.S                  |    4 ++--
- drivers/gpu/drm/amd/include/atombios.h              |    6 +++---
- drivers/gpu/drm/i915/i915_gem_render_state.c        |    2 +-
- drivers/gpu/drm/radeon/atombios.h                   |    4 ++--
- drivers/media/platform/exynos4-is/fimc-core.h       |    2 +-
- drivers/net/wireless/ath/ath9k/ani.c                |    4 ++--
- drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c |    4 ++--
- drivers/scsi/bfa/bfi_ms.h                           |    2 +-
- net/netfilter/x_tables.c                            |    2 +-
- scripts/spelling.txt                                |    1 +
- 13 files changed, 23 insertions(+), 22 deletions(-)
+ arch/arm/include/asm/mach/flash.h                   |    2 +-
+ arch/ia64/sn/kernel/sn2/sn_hwperf.c                 |    2 +-
+ arch/powerpc/boot/dts/fsl/mpc8569mds.dts            |    2 +-
+ arch/powerpc/include/asm/book3s/64/mmu.h            |    2 +-
+ arch/powerpc/include/asm/fsl_hcalls.h               |    2 +-
+ arch/powerpc/platforms/pseries/iommu.c              |    2 +-
+ arch/sparc/kernel/visemul.c                         |    2 +-
+ drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c |    2 +-
+ drivers/watchdog/bcm2835_wdt.c                      |    6 +++---
+ include/linux/mtd/qinfo.h                           |    2 +-
+ include/linux/spi/flash.h                           |    2 +-
+ 11 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/arc/kernel/unwind.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/arc/kernel/unwind.c
---- a/arch/arc/kernel/unwind.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/arc/kernel/unwind.c
-@@ -1051,9 +1051,9 @@ int arc_unwind(struct unwind_frame_info
- 		++ptr;
- 	}
- 	if (cie != NULL) {
--		/* get code aligment factor */
-+		/* get code alignment factor */
- 		state.codeAlign = get_uleb128(&ptr, end);
--		/* get data aligment factor */
-+		/* get data alignment factor */
- 		state.dataAlign = get_sleb128(&ptr, end);
- 		if (state.codeAlign == 0 || state.dataAlign == 0 || ptr >= end)
- 			cie = NULL;
-diff -puN arch/openrisc/kernel/entry.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/openrisc/kernel/entry.S
---- a/arch/openrisc/kernel/entry.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/openrisc/kernel/entry.S
-@@ -319,7 +319,7 @@ EXCEPTION_ENTRY(_timer_handler)
- 	l.j    _ret_from_intr
- 	 l.nop
- 
--/* ---[ 0x600: Aligment exception ]-------------------------------------- */
-+/* ---[ 0x600: Alignment exception ]-------------------------------------- */
- 
- EXCEPTION_ENTRY(_alignment_handler)
- 	CLEAR_LWA_FLAG(r3)
-@@ -331,7 +331,7 @@ EXCEPTION_ENTRY(_alignment_handler)
- 	 l.nop
- 
- #if 0
--EXCEPTION_ENTRY(_aligment_handler)
-+EXCEPTION_ENTRY(_alignment_handler)
- //        l.mfspr r2,r0,SPR_EEAR_BASE     /* Load the efective addres */
- 	l.addi	r2,r4,0
- //        l.mfspr r5,r0,SPR_EPCR_BASE     /* Load the insn address */
-diff -puN arch/openrisc/kernel/head.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/openrisc/kernel/head.S
---- a/arch/openrisc/kernel/head.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/openrisc/kernel/head.S
-@@ -325,7 +325,7 @@ _dispatch_do_ipage_fault:
-     .org 0x500
- 	EXCEPTION_HANDLE(_timer_handler)
- 
--/* ---[ 0x600: Aligment exception ]-------------------------------------- */
-+/* ---[ 0x600: Alignment exception ]-------------------------------------- */
-     .org 0x600
- 	EXCEPTION_HANDLE(_alignment_handler)
- 
-@@ -640,8 +640,8 @@ _flush_tlb:
- 
- /* ========================================[ cache ]=== */
- 
--	/* aligment here so we don't change memory offsets with
--	 * memory controler defined
-+	/* alignment here so we don't change memory offsets with
-+	 * memory controller defined
- 	 */
- 	.align 0x2000
- 
-diff -puN arch/openrisc/kernel/vmlinux.lds.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances arch/openrisc/kernel/vmlinux.lds.S
---- a/arch/openrisc/kernel/vmlinux.lds.S~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/arch/openrisc/kernel/vmlinux.lds.S
-@@ -19,8 +19,8 @@
- 
- /* TODO
-  *		- clean up __offset & stuff
-- *		- change all 8192 aligment to PAGE !!!
-- *		- recheck if all aligments are really needed
-+ *		- change all 8192 alignment to PAGE !!!
-+ *		- recheck if all alignments are really needed
+diff -puN arch/arm/include/asm/mach/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/arm/include/asm/mach/flash.h
+--- a/arch/arm/include/asm/mach/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/arch/arm/include/asm/mach/flash.h
+@@ -22,7 +22,7 @@ struct mtd_info;
+  * set_vpp:	method called to enable or disable VPP
+  * mmcontrol:	method called to enable or disable Sync. Burst Read in OneNAND
+  * parts:	optional array of mtd_partitions for static partitioning
+- * nr_parts:	number of mtd_partitions for static partitoning
++ * nr_parts:	number of mtd_partitions for static partitioning
   */
+ struct flash_platform_data {
+ 	const char	*map_name;
+diff -puN arch/ia64/sn/kernel/sn2/sn_hwperf.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/ia64/sn/kernel/sn2/sn_hwperf.c
+--- a/arch/ia64/sn/kernel/sn2/sn_hwperf.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/arch/ia64/sn/kernel/sn2/sn_hwperf.c
+@@ -525,7 +525,7 @@ static int sn_topology_show(struct seq_f
+ 				/* both ends local to this partition */
+ 				seq_puts(s, " local");
+ 			else if (SN_HWPERF_FOREIGN(p))
+-				/* both ends of the link in foreign partiton */
++				/* both ends of the link in foreign partition */
+ 				seq_puts(s, " foreign");
+ 			else
+ 				/* link straddles a partition */
+diff -puN arch/powerpc/boot/dts/fsl/mpc8569mds.dts~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/boot/dts/fsl/mpc8569mds.dts
+--- a/arch/powerpc/boot/dts/fsl/mpc8569mds.dts~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/arch/powerpc/boot/dts/fsl/mpc8569mds.dts
+@@ -55,7 +55,7 @@
+ 				label = "kernel";
+ 				reg = <0x01c00000 0x002e0000>;
+ 			};
+-			partiton@1ee0000 {
++			partition@1ee0000 {
+ 				label = "dtb";
+ 				reg = <0x01ee0000 0x00020000>;
+ 			};
+diff -puN arch/powerpc/include/asm/book3s/64/mmu.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/include/asm/book3s/64/mmu.h
+--- a/arch/powerpc/include/asm/book3s/64/mmu.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/arch/powerpc/include/asm/book3s/64/mmu.h
+@@ -30,7 +30,7 @@ extern struct mmu_psize_def mmu_psize_de
  
- #  define LOAD_OFFSET  PAGE_OFFSET
-diff -puN drivers/gpu/drm/amd/include/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/gpu/drm/amd/include/atombios.h
---- a/drivers/gpu/drm/amd/include/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/amd/include/atombios.h
-@@ -188,7 +188,7 @@
- #define HW_ASSISTED_I2C_STATUS_FAILURE     2
- #define HW_ASSISTED_I2C_STATUS_SUCCESS     1
- 
--#pragma pack(1)                                       // BIOS data must use byte aligment
-+#pragma pack(1)                                       // BIOS data must use byte alignment
- 
- // Define offset to location of ROM header.
- #define OFFSET_TO_POINTER_TO_ATOM_ROM_HEADER         0x00000048L
-@@ -9180,7 +9180,7 @@ typedef struct  _ATOM_POWERPLAY_INFO_V3
- 
- /*********************************************************************************/
- 
--#pragma pack() // BIOS data must use byte aligment
-+#pragma pack() // BIOS data must use byte alignment
- 
- #pragma pack(1)
- 
-@@ -9211,7 +9211,7 @@ typedef struct _ATOM_SERVICE_INFO
- 
- 
- 
--#pragma pack() // BIOS data must use byte aligment
-+#pragma pack() // BIOS data must use byte alignment
- 
- //
- // AMD ACPI Table
-diff -puN drivers/gpu/drm/i915/i915_gem_render_state.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/gpu/drm/i915/i915_gem_render_state.c
---- a/drivers/gpu/drm/i915/i915_gem_render_state.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/i915/i915_gem_render_state.c
-@@ -60,7 +60,7 @@ render_state_get_rodata(const struct int
-  * this is sufficient as the null state generator makes the final batch
-  * with two passes to build command and state separately. At this point
-  * the size of both are known and it compacts them by relocating the state
-- * right after the commands taking care of aligment so we should sufficient
-+ * right after the commands taking care of alignment so we should sufficient
-  * space below them for adding new commands.
-  */
- #define OUT_BATCH(batch, i, val)				\
-diff -puN drivers/gpu/drm/radeon/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/gpu/drm/radeon/atombios.h
---- a/drivers/gpu/drm/radeon/atombios.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/radeon/atombios.h
-@@ -181,7 +181,7 @@
- #define HW_ASSISTED_I2C_STATUS_FAILURE          2
- #define HW_ASSISTED_I2C_STATUS_SUCCESS          1
- 
--#pragma pack(1)                                       /* BIOS data must use byte aligment */
-+#pragma pack(1)                                       /* BIOS data must use byte alignment */
- 
- /*  Define offset to location of ROM header. */
- 
-@@ -7909,7 +7909,7 @@ typedef struct  _ATOM_POWERPLAY_INFO_V3
- 
- /*********************************************************************************/
- 
--#pragma pack() // BIOS data must use byte aligment
-+#pragma pack() // BIOS data must use byte alignment
- 
- //
- // AMD ACPI Table
-diff -puN drivers/media/platform/exynos4-is/fimc-core.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/media/platform/exynos4-is/fimc-core.h
---- a/drivers/media/platform/exynos4-is/fimc-core.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/media/platform/exynos4-is/fimc-core.h
-@@ -358,7 +358,7 @@ struct fimc_pix_limit {
-  * @pix_limit: pixel size constraints for the scaler
-  * @min_inp_pixsize: minimum input pixel size
-  * @min_out_pixsize: minimum output pixel size
-- * @hor_offs_align: horizontal pixel offset aligment
-+ * @hor_offs_align: horizontal pixel offset alignment
-  * @min_vsize_align: minimum vertical pixel size alignment
-  */
- struct fimc_variant {
-diff -puN drivers/net/wireless/ath/ath9k/ani.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/net/wireless/ath/ath9k/ani.c
---- a/drivers/net/wireless/ath/ath9k/ani.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/ath/ath9k/ani.c
-@@ -59,13 +59,13 @@ static const struct ani_ofdm_level_entry
+ #ifndef __ASSEMBLY__
  /*
-  * MRC (Maximal Ratio Combining) has always been used with multi-antenna ofdm.
-  * With OFDM for single stream you just add up all antenna inputs, you're
-- * only interested in what you get after FFT. Signal aligment is also not
-+ * only interested in what you get after FFT. Signal alignment is also not
-  * required for OFDM because any phase difference adds up in the frequency
-  * domain.
+- * ISA 3.0 partiton and process table entry format
++ * ISA 3.0 partition and process table entry format
+  */
+ struct prtb_entry {
+ 	__be64 prtb0;
+diff -puN arch/powerpc/include/asm/fsl_hcalls.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/include/asm/fsl_hcalls.h
+--- a/arch/powerpc/include/asm/fsl_hcalls.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/arch/powerpc/include/asm/fsl_hcalls.h
+@@ -109,7 +109,7 @@ static inline unsigned int fh_send_nmi(u
+ #define FH_DTPROP_MAX_PROPLEN 32768
+ 
+ /**
+- * fh_partiton_get_dtprop - get a property from a guest device tree.
++ * fh_partition_get_dtprop - get a property from a guest device tree.
+  * @handle: handle of partition whose device tree is to be accessed
+  * @dtpath_addr: physical address of device tree path to access
+  * @propname_addr: physical address of name of property
+diff -puN arch/powerpc/platforms/pseries/iommu.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/powerpc/platforms/pseries/iommu.c
+--- a/arch/powerpc/platforms/pseries/iommu.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/arch/powerpc/platforms/pseries/iommu.c
+@@ -1020,7 +1020,7 @@ static u64 enable_ddw(struct pci_dev *de
+ 	/* check largest block * page size > max memory hotplug addr */
+ 	max_addr = memory_hotplug_max();
+ 	if (query.largest_available_block < (max_addr >> page_shift)) {
+-		dev_dbg(&dev->dev, "can't map partiton max 0x%llx with %u "
++		dev_dbg(&dev->dev, "can't map partition max 0x%llx with %u "
+ 			  "%llu-sized pages\n", max_addr,  query.largest_available_block,
+ 			  1ULL << page_shift);
+ 		goto out_failed;
+diff -puN arch/sparc/kernel/visemul.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances arch/sparc/kernel/visemul.c
+--- a/arch/sparc/kernel/visemul.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/arch/sparc/kernel/visemul.c
+@@ -30,7 +30,7 @@
+ /* 001001011 - two 32-bit merges */
+ #define FPMERGE_OPF	0x04b
+ 
+-/* 000110001 - 8-by-16-bit partitoned product  */
++/* 000110001 - 8-by-16-bit partitioned product  */
+ #define FMUL8x16_OPF	0x031
+ 
+ /* 000110011 - 8-by-16-bit upper alpha partitioned product  */
+diff -puN drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c
+--- a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c
+@@ -178,7 +178,7 @@ const u32 qlcnic_83xx_reg_tbl[] = {
+ 	0x3540,		/* Device state, DRV_REG1 */
+ 	0x3544,		/* Driver state, DRV_REG2 */
+ 	0x3548,		/* Driver scratch, DRV_REG3 */
+-	0x354C,		/* Device partiton info, DRV_REG4 */
++	0x354C,		/* Device partition info, DRV_REG4 */
+ 	0x3524,		/* Driver IDC ver, DRV_REG5 */
+ 	0x3550,		/* FW_VER_MAJOR */
+ 	0x3554,		/* FW_VER_MINOR */
+diff -puN drivers/watchdog/bcm2835_wdt.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances drivers/watchdog/bcm2835_wdt.c
+--- a/drivers/watchdog/bcm2835_wdt.c~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/drivers/watchdog/bcm2835_wdt.c
+@@ -36,9 +36,9 @@
+ #define PM_RSTC_RESET			0x00000102
+ 
+ /*
+- * The Raspberry Pi firmware uses the RSTS register to know which partiton
+- * to boot from. The partiton value is spread into bits 0, 2, 4, 6, 8, 10.
+- * Partiton 63 is a special partition used by the firmware to indicate halt.
++ * The Raspberry Pi firmware uses the RSTS register to know which partition
++ * to boot from. The partition value is spread into bits 0, 2, 4, 6, 8, 10.
++ * Partition 63 is a special partition used by the firmware to indicate halt.
+  */
+ #define PM_RSTS_RASPBERRYPI_HALT	0x555
+ 
+diff -puN include/linux/mtd/qinfo.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances include/linux/mtd/qinfo.h
+--- a/include/linux/mtd/qinfo.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/include/linux/mtd/qinfo.h
+@@ -14,7 +14,7 @@
+  * @DevId - Chip Device ID
+  * @qinfo - pointer to qinfo records describing the chip
+  * @numchips - number of chips including virual RWW partitions
+- * @chipshift - Chip/partiton size 2^chipshift
++ * @chipshift - Chip/partition size 2^chipshift
+  * @chips - per-chip data structure
+  */
+ struct lpddr_private {
+diff -puN include/linux/spi/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances include/linux/spi/flash.h
+--- a/include/linux/spi/flash.h~scripts-spellingtxt-add-partiton-pattern-and-fix-typo-instances
++++ a/include/linux/spi/flash.h
+@@ -7,7 +7,7 @@ struct mtd_partition;
+  * struct flash_platform_data: board-specific flash data
+  * @name: optional flash device name (eg, as used with mtdparts=)
+  * @parts: optional array of mtd_partitions for static partitioning
+- * @nr_parts: number of mtd_partitions for static partitoning
++ * @nr_parts: number of mtd_partitions for static partitioning
+  * @type: optional flash device type (e.g. m25p80 vs m25p64), for use
+  *	with chips that can't be queried for JEDEC or other IDs
   *
-  * MRC requires extra work for use with CCK. You need to align the antenna
-  * signals from the different antenna before you can add the signals together.
-- * You need aligment of signals as CCK is in time domain, so addition can cancel
-+ * You need alignment of signals as CCK is in time domain, so addition can cancel
-  * your signal completely if phase is 180 degrees (think of adding sine waves).
-  * You also need to remove noise before the addition and this is where ANI
-  * MRC CCK comes into play. One of the antenna inputs may be stronger but
-diff -puN drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c
---- a/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c
-@@ -455,7 +455,7 @@ static u32 _rtl92s_fill_h2c_cmd(struct s
- 	u8 i = 0;
- 
- 	do {
--		/* 8 - Byte aligment */
-+		/* 8 - Byte alignment */
- 		len = H2C_TX_CMD_HDR_LEN + N_BYTE_ALIGMENT(pcmd_len[i], 8);
- 
- 		/* Buffer length is not enough */
-@@ -504,7 +504,7 @@ static u32 _rtl92s_get_h2c_cmdlen(u32 h2
- 	u8 i = 0;
- 
- 	do {
--		/* 8 - Byte aligment */
-+		/* 8 - Byte alignment */
- 		len = H2C_TX_CMD_HDR_LEN + N_BYTE_ALIGMENT(pcmd_len[i], 8);
- 
- 		/* Buffer length is not enough */
-diff -puN drivers/scsi/bfa/bfi_ms.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances drivers/scsi/bfa/bfi_ms.h
---- a/drivers/scsi/bfa/bfi_ms.h~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/drivers/scsi/bfa/bfi_ms.h
-@@ -680,7 +680,7 @@ struct bfi_ioim_req_s {
- 
- 	/*
- 	 * SG elements array within the IO request must be double word
--	 * aligned. This aligment is required to optimize SGM setup for the IO.
-+	 * aligned. This alignment is required to optimize SGM setup for the IO.
- 	 */
- 	struct bfi_sge_s	sges[BFI_SGE_INLINE_MAX];
- 	u8	io_timeout;
-diff -puN net/netfilter/x_tables.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances net/netfilter/x_tables.c
---- a/net/netfilter/x_tables.c~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/net/netfilter/x_tables.c
-@@ -667,7 +667,7 @@ int xt_compat_check_entry_offsets(const
- 	    COMPAT_XT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
- 		return -EINVAL;
- 
--	/* compat_xt_entry match has less strict aligment requirements,
-+	/* compat_xt_entry match has less strict alignment requirements,
- 	 * otherwise they are identical.  In case of padding differences
- 	 * we need to add compat version of xt_check_entry_match.
- 	 */
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-aligment-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -71,6 +71,7 @@ algoritm||algorithm
- algoritms||algorithms
- algorrithm||algorithm
- algorritm||algorithm
-+aligment||alignment
- allign||align
- allocatrd||allocated
- allocte||allocate
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
