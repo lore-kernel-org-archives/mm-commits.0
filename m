@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-fix-gup_pte_range-vs-dax-mappings.patch added to -mm
- tree
-Date: Tue, 28 Feb 2017 14:09:26 -0800
-Message-ID: <58b5f516.lezymEJ+x1CSZqi1%akpm__48427.674212917$1488320176$gmane$org@linux-foundation.org>
+Subject: + userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
+ added to -mm tree
+Date: Tue, 28 Feb 2017 13:39:42 -0800
+Message-ID: <58b5ee1e.cI8Gwd+x/m0fSUHY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58732 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751782AbdB1WQF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 17:16:05 -0500
+        with ESMTP id S1751804AbdB1WQK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 17:16:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, mingo@redhat.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, tglx@linutronix.de, xzhou@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dvyukov@google.com, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: fix gup_pte_range() vs DAX mappings
+     Subject: userfaultfd: shmem: __do_fault requires VM_FAULT_NOPAGE
 has been added to the -mm tree.  Its filename is
-     x86-mm-fix-gup_pte_range-vs-dax-mappings.patch
+     userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-fix-gup_pte_range-vs-dax-mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-fix-gup_pte_range-vs-dax-mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: x86, mm: fix gup_pte_range() vs DAX mappings
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: shmem: __do_fault requires VM_FAULT_NOPAGE
 
-gup_pte_range() fails to check pte_allows_gup() before translating a DAX
-pte entry, pte_devmap(), to a page.  This allows writes to read-only
-mappings, and bypasses the DAX cacheline dirty tracking due to missed
-'mkwrite' faults.  The gup_huge_pmd() path and the gup_huge_pud() path
-correctly check pte_allows_gup() before checking for _devmap() entries.
+__do_fault assumes vmf->page has been initialized and is valid if
+VM_FAULT_NOPAGE is not returned by vma->vm_ops->fault(vma, vmf).
 
-Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-Link: http://lkml.kernel.org/r/148804251312.36605.12665024794196605053.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Xiong Zhou <xzhou@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+handle_userfault() in turn should return VM_FAULT_NOPAGE if it doesn't
+return VM_FAULT_SIGBUS or VM_FAULT_RETRY (the other two possibilities).
+
+This VM_FAULT_NOPAGE case is only invoked when signal are pending and it
+didn't matter for anonymous memory before.  It only started to matter
+since shmem was introduced.  hugetlbfs also takes a different path and
+doesn't exercise __do_fault.
+
+Link: http://lkml.kernel.org/r/20170228154201.GH5816@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/gup.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/gup.c~x86-mm-fix-gup_pte_range-vs-dax-mappings arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~x86-mm-fix-gup_pte_range-vs-dax-mappings
-+++ a/arch/x86/mm/gup.c
-@@ -120,6 +120,11 @@ static noinline int gup_pte_range(pmd_t
- 			return 0;
+diff -puN fs/userfaultfd.c~userfaultfd-shmem-__do_fault-requires-vm_fault_nopage fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-shmem-__do_fault-requires-vm_fault_nopage
++++ a/fs/userfaultfd.c
+@@ -489,7 +489,7 @@ int handle_userfault(struct vm_fault *vm
+ 			 * in such case.
+ 			 */
+ 			down_read(&mm->mmap_sem);
+-			ret = 0;
++			ret = VM_FAULT_NOPAGE;
  		}
+ 	}
  
-+		if (!pte_allows_gup(pte_val(pte), write)) {
-+			pte_unmap(ptep);
-+			return 0;
-+		}
-+
- 		if (pte_devmap(pte)) {
- 			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
- 			if (unlikely(!pgmap)) {
-@@ -127,8 +132,7 @@ static noinline int gup_pte_range(pmd_t
- 				pte_unmap(ptep);
- 				return 0;
- 			}
--		} else if (!pte_allows_gup(pte_val(pte), write) ||
--			   pte_special(pte)) {
-+		} else if (pte_special(pte)) {
- 			pte_unmap(ptep);
- 			return 0;
- 		}
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-x86-mm-fix-gup_pte_range-vs-dax-mappings.patch
-x86-mm-unify-exit-paths-in-gup_pte_range.patch
+userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
 
