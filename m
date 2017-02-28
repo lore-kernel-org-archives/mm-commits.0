@@ -1,87 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-affs-make-export-work-with-cold-dcache.patch removed
- from -mm tree
-Date: Tue, 28 Feb 2017 12:50:29 -0800
-Message-ID: <58b5e295.N1dDWJUVy7gUQcKs%akpm@linux-foundation.org>
+Subject: [merged]
+ sigaltstack-support-ss_autodisarm-for-config_compat.patch removed from -mm
+ tree
+Date: Tue, 28 Feb 2017 12:50:01 -0800
+Message-ID: <58b5e279.THvesYGKjA4Lg47N%akpm__7186.03951759196$1488315236$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52514 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751804AbdB1Uvd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:33 -0500
+        with ESMTP id S1751716AbdB1Uvc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, viro@zeniv.linux.org.uk, weiyongjun1@huawei.com, mm-commits@vger.kernel.org
+To: stsp@list.ru, Waiman.Long@hpe.com, arnd@arndb.de, dave.hansen@linux.intel.com, dsafonov@virtuozzo.com, luto@kernel.org, milosz@adfin.com, mingo@kernel.org, nicolas.pitre@linaro.org, oleg@redhat.com, stable@vger.kernel.org, stsp@users.sourceforge.net, tglx@linutronix.de, viro@zeniv.linux.org.uk, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs: make export work with cold dcache
+     Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
 has been removed from the -mm tree.  Its filename was
-     fs-affs-make-export-work-with-cold-dcache.patch
+     sigaltstack-support-ss_autodisarm-for-config_compat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs: make export work with cold dcache
+From: Stas Sergeev <stsp@list.ru>
+Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
 
-This adds get_parent function so that nfs client can still work after
-cache drop (Tested on NFS v4 with echo 3 > /proc/sys/vm/drop_caches)
+Currently SS_AUTODISARM is not supported in compatibility mode, but does
+not return -EINVAL either.  This makes dosemu built with -m32 on x86_64 to
+crash.  Also the kernel's sigaltstack selftest fails if compiled with
+-m32.
 
-[weiyongjun1@huawei.com: fix return value check in affs_get_parent()]
-  Link: http://lkml.kernel.org/r/20170123141018.2331-1-weiyj.lk@gmail.com
-Link: http://lkml.kernel.org/r/20170109191208.6085-8-fabf@skynet.be
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Suggested-by: Alexander Viro <viro@zeniv.linux.org.uk>
+This patch adds the needed support.
+
+Link: http://lkml.kernel.org/r/20170205101213.8163-2-stsp@list.ru
+Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
+Cc: Milosz Tanski <milosz@adfin.com>
+Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Waiman Long <Waiman.Long@hpe.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/namei.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ include/linux/compat.h |    4 +++-
+ kernel/signal.c        |   11 +++++++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache fs/affs/namei.c
---- a/fs/affs/namei.c~fs-affs-make-export-work-with-cold-dcache
-+++ a/fs/affs/namei.c
-@@ -447,6 +447,24 @@ done:
- 	return retval;
- }
+diff -puN include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat include/linux/compat.h
+--- a/include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat
++++ a/include/linux/compat.h
+@@ -711,8 +711,10 @@ int __compat_save_altstack(compat_stack_
+ 	compat_stack_t __user *__uss = uss; \
+ 	struct task_struct *t = current; \
+ 	put_user_ex(ptr_to_compat((void __user *)t->sas_ss_sp), &__uss->ss_sp); \
+-	put_user_ex(sas_ss_flags(sp), &__uss->ss_flags); \
++	put_user_ex(t->sas_ss_flags, &__uss->ss_flags); \
+ 	put_user_ex(t->sas_ss_size, &__uss->ss_size); \
++	if (t->sas_ss_flags & SS_AUTODISARM) \
++		sas_ss_reset(t); \
+ } while (0);
  
-+static struct dentry *affs_get_parent(struct dentry *child)
-+{
-+	struct inode *parent;
-+	struct buffer_head *bh;
-+
-+	bh = affs_bread(child->d_sb, d_inode(child)->i_ino);
-+	if (!bh)
-+		return ERR_PTR(-EIO);
-+
-+	parent = affs_iget(child->d_sb,
-+			   be32_to_cpu(AFFS_TAIL(child->d_sb, bh)->parent));
-+	brelse(bh);
-+	if (IS_ERR(parent))
-+		return ERR_CAST(parent);
-+
-+	return d_obtain_alias(parent);
-+}
-+
- static struct inode *affs_nfs_get_inode(struct super_block *sb, u64 ino,
- 					u32 generation)
+ asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
+diff -puN kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat kernel/signal.c
+--- a/kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat
++++ a/kernel/signal.c
+@@ -3239,10 +3239,17 @@ int compat_restore_altstack(const compat
+ 
+ int __compat_save_altstack(compat_stack_t __user *uss, unsigned long sp)
  {
-@@ -484,6 +502,7 @@ static struct dentry *affs_fh_to_parent(
- const struct export_operations affs_export_ops = {
- 	.fh_to_dentry = affs_fh_to_dentry,
- 	.fh_to_parent = affs_fh_to_parent,
-+	.get_parent = affs_get_parent,
- };
++	int err;
+ 	struct task_struct *t = current;
+-	return  __put_user(ptr_to_compat((void __user *)t->sas_ss_sp), &uss->ss_sp) |
+-		__put_user(sas_ss_flags(sp), &uss->ss_flags) |
++	err = __put_user(ptr_to_compat((void __user *)t->sas_ss_sp),
++			 &uss->ss_sp) |
++		__put_user(t->sas_ss_flags, &uss->ss_flags) |
+ 		__put_user(t->sas_ss_size, &uss->ss_size);
++	if (err)
++		return err;
++	if (t->sas_ss_flags & SS_AUTODISARM)
++		sas_ss_reset(t);
++	return 0;
+ }
+ #endif
  
- const struct dentry_operations affs_dentry_operations = {
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from stsp@list.ru are
 
 
