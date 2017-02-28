@@ -1,121 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:07 -0800
-Message-ID: <58b5e2bb.INKlCSQjqDuWf5HY%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances.patch removed from -mm tree
+Date: Tue, 28 Feb 2017 12:51:13 -0800
+Message-ID: <58b5e2c1.yjYPqt0J30VhhRp9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52710 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751845AbdB1Uvf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:35 -0500
+        with ESMTP id S1751862AbdB1Uvg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "swithc" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "an one" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "swithc" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "an one" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  swithc||switch
-  swithced||switched
-  swithcing||switching
+  an one||a one
 
-Link: http://lkml.kernel.org/r/1481573103-11329-3-git-send-email-yamada.masahiro@socionext.com
+I dropped the "an" before "one or more" in
+drivers/net/ethernet/sfc/mcdi_pcol.h.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-6-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/extcon/extcon-rt8973a.c                        |    2 +-
- drivers/media/i2c/adv7183_regs.h                       |    2 +-
- drivers/staging/rtl8192u/ieee80211/ieee80211.h         |    4 ++--
- drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c |    2 +-
- scripts/spelling.txt                                   |    3 +++
- 5 files changed, 8 insertions(+), 5 deletions(-)
+ arch/s390/kernel/vtime.c             |    2 +-
+ drivers/net/ethernet/sfc/mcdi_pcol.h |    2 +-
+ drivers/usb/core/devio.c             |    2 +-
+ scripts/spelling.txt                 |    1 +
+ tools/perf/util/dso.c                |    2 +-
+ 5 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/extcon/extcon-rt8973a.c~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances drivers/extcon/extcon-rt8973a.c
---- a/drivers/extcon/extcon-rt8973a.c~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances
-+++ a/drivers/extcon/extcon-rt8973a.c
-@@ -537,7 +537,7 @@ static void rt8973a_init_dev_type(struct
- 		regmap_update_bits(info->regmap, reg, mask, val);
- 	}
+diff -puN arch/s390/kernel/vtime.c~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances arch/s390/kernel/vtime.c
+--- a/arch/s390/kernel/vtime.c~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances
++++ a/arch/s390/kernel/vtime.c
+@@ -350,7 +350,7 @@ static void __add_vtimer(struct vtimer_l
+ }
  
--	/* Check whether RT8973A is auto swithcing mode or not */
-+	/* Check whether RT8973A is auto switching mode or not */
- 	ret = regmap_read(info->regmap, RT8973A_REG_CONTROL1, &data);
- 	if (ret) {
- 		dev_err(info->dev,
-diff -puN drivers/media/i2c/adv7183_regs.h~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances drivers/media/i2c/adv7183_regs.h
---- a/drivers/media/i2c/adv7183_regs.h~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances
-+++ a/drivers/media/i2c/adv7183_regs.h
-@@ -83,7 +83,7 @@
- #define ADV7183_LETTERBOX_3        0x9D /* Letterbox 3 */
- #define ADV7183_CRC_EN             0xB2 /* CRC enable */
- #define ADV7183_ADC_SWITCH_1       0xC3 /* ADC switch 1 */
--#define ADV7183_ADC_SWITCH_2       0xC4 /* ADC swithc 2 */
-+#define ADV7183_ADC_SWITCH_2       0xC4 /* ADC switch 2 */
- #define ADV7183_LETTERBOX_CTRL_1   0xDC /* Letterbox control 1 */
- #define ADV7183_LETTERBOX_CTRL_2   0xDD /* Letterbox control 2 */
- #define ADV7183_SD_OFFSET_CB       0xE1 /* SD offset Cb */
-diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211.h~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances drivers/staging/rtl8192u/ieee80211/ieee80211.h
---- a/drivers/staging/rtl8192u/ieee80211/ieee80211.h~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances
-+++ a/drivers/staging/rtl8192u/ieee80211/ieee80211.h
-@@ -1953,7 +1953,7 @@ struct ieee80211_device {
+ /*
+- * add_virt_timer - add an oneshot virtual CPU timer
++ * add_virt_timer - add a oneshot virtual CPU timer
+  */
+ void add_virt_timer(struct vtimer_list *timer)
+ {
+diff -puN drivers/net/ethernet/sfc/mcdi_pcol.h~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances drivers/net/ethernet/sfc/mcdi_pcol.h
+--- a/drivers/net/ethernet/sfc/mcdi_pcol.h~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/sfc/mcdi_pcol.h
+@@ -10832,7 +10832,7 @@
  
- 	/* ask to the driver to retune the radio .
- 	 * This function can sleep. the driver should ensure
--	 * the radio has been swithced before return.
-+	 * the radio has been switched before return.
+ /***********************************/
+ /* MC_CMD_GET_LICENSED_V3_FEATURE_STATES
+- * Query the state of an one or more licensed features. (Note that the actual
++ * Query the state of one or more licensed features. (Note that the actual
+  * state may be invalidated by the MC_CMD_LICENSING_V3 OP_UPDATE_LICENSE
+  * operation or a reboot of the MC.) Used for V3 licensing (Medford)
+  */
+diff -puN drivers/usb/core/devio.c~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances drivers/usb/core/devio.c
+--- a/drivers/usb/core/devio.c~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances
++++ a/drivers/usb/core/devio.c
+@@ -2335,7 +2335,7 @@ static int proc_drop_privileges(struct u
+ 	if (copy_from_user(&data, arg, sizeof(data)))
+ 		return -EFAULT;
+ 
+-	/* This is an one way operation. Once privileges are
++	/* This is a one way operation. Once privileges are
+ 	 * dropped, you cannot regain them. You may however reissue
+ 	 * this ioctl to shrink the allowed interfaces mask.
  	 */
- 	void (*set_chan)(struct net_device *dev, short ch);
- 
-@@ -1964,7 +1964,7 @@ struct ieee80211_device {
- 	 * The syncro version is similar to the start_scan but
- 	 * does not return until all channels has been scanned.
- 	 * this is called in user context and should sleep,
--	 * it is called in a work_queue when swithcing to ad-hoc mode
-+	 * it is called in a work_queue when switching to ad-hoc mode
- 	 * or in behalf of iwlist scan when the card is associated
- 	 * and root user ask for a scan.
- 	 * the function stop_scan should stop both the syncro and
-diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c
---- a/drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances
-+++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c
-@@ -2364,7 +2364,7 @@ static void ieee80211_start_ibss_wq(stru
- //	if((IS_DOT11D_ENABLE(ieee)) && (ieee->state == IEEE80211_NOLINK))
- 	if (ieee->state == IEEE80211_NOLINK)
- 		ieee->current_network.channel = 6;
--	/* if not then the state is not linked. Maybe the user swithced to
-+	/* if not then the state is not linked. Maybe the user switched to
- 	 * ad-hoc mode just after being in monitor mode, or just after
- 	 * being very few time in managed mode (so the card have had no
- 	 * time to scan all the chans..) or we have just run up the iface
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-swithc-pattern-and-fix-typo-instances
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -993,6 +993,9 @@ swaping||swapping
- switchs||switches
- swith||switch
- swithable||switchable
-+swithc||switch
-+swithced||switched
-+swithcing||switching
- swithed||switched
- swithing||switching
- symetric||symmetric
+@@ -89,6 +89,7 @@ amout||amount
+ an union||a union
+ an user||a user
+ an userspace||a userspace
++an one||a one
+ analysator||analyzer
+ ang||and
+ anniversery||anniversary
+diff -puN tools/perf/util/dso.c~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances tools/perf/util/dso.c
+--- a/tools/perf/util/dso.c~scripts-spellingtxt-add-an-one-pattern-and-fix-typo-instances
++++ a/tools/perf/util/dso.c
+@@ -951,7 +951,7 @@ static struct dso *__dso__findlink_by_lo
+ 		if (rc == 0) {
+ 			/*
+ 			 * In case the new DSO is a duplicate of an existing
+-			 * one, print an one-time warning & put the new entry
++			 * one, print a one-time warning & put the new entry
+ 			 * at the end of the list of duplicates.
+ 			 */
+ 			if (!dso || (dso == this))
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
