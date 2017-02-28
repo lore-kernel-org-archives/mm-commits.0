@@ -1,135 +1,164 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
+ scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
  removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:55 -0800
-Message-ID: <58b5e2eb.UedIzhQK+xUbcOfX%akpm@linux-foundation.org>
+Date: Tue, 28 Feb 2017 12:51:37 -0800
+Message-ID: <58b5e2d9.ikSDo4XZUNyfdQS2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751924AbdB1Uv4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:56 -0500
+        with ESMTP id S1751902AbdB1Uvi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "overwriten" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "comsume(r)" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "overwriten" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "comsume(r)" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  overwrien||overwritten
+  comsume||consume
+  comsumer||consumer
+  comsuming||consuming
 
-Link: http://lkml.kernel.org/r/1481573103-11329-30-git-send-email-yamada.masahiro@socionext.com
+I see some variable names with this pattern, but this commit is only
+touching comment blocks to avoid unexpected impact.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-19-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/qib/qib_iba6120.c  |    2 +-
- drivers/infiniband/hw/qib/qib_iba7220.c  |    2 +-
- drivers/infiniband/hw/qib/qib_iba7322.c  |    2 +-
- drivers/isdn/hardware/mISDN/mISDNipac.c  |    2 +-
- drivers/parport/parport_pc.c             |    2 +-
- scripts/spelling.txt                     |    1 +
- sound/pci/cs46xx/cs46xx_dsp_task_types.h |    2 +-
- 7 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/hid/hid-kye.c                   |    2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c |    2 +-
+ drivers/net/ethernet/sis/sis900.c       |    2 +-
+ drivers/scsi/lpfc/lpfc_sli.c            |    4 ++--
+ drivers/tty/serial/ioc4_serial.c        |    2 +-
+ fs/ext4/extents_status.c                |    2 +-
+ mm/page-writeback.c                     |    2 +-
+ scripts/spelling.txt                    |    3 +++
+ 8 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN drivers/infiniband/hw/qib/qib_iba6120.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/infiniband/hw/qib/qib_iba6120.c
---- a/drivers/infiniband/hw/qib/qib_iba6120.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
-+++ a/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -707,7 +707,7 @@ static void qib_6120_clear_freeze(struct
- 	/* disable error interrupts, to avoid confusion */
- 	qib_write_kreg(dd, kr_errmask, 0ULL);
+diff -puN drivers/hid/hid-kye.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/hid/hid-kye.c
+--- a/drivers/hid/hid-kye.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
++++ a/drivers/hid/hid-kye.c
+@@ -487,7 +487,7 @@ static __u8 *kye_consumer_control_fixup(
+ 		unsigned int *rsize, int offset, const char *device_name) {
+ 	/*
+ 	 * the fixup that need to be done:
+-	 *   - change Usage Maximum in the Comsumer Control
++	 *   - change Usage Maximum in the Consumer Control
+ 	 *     (report ID 3) to a reasonable value
+ 	 */
+ 	if (*rsize >= offset + 31 &&
+diff -puN drivers/misc/vmw_vmci/vmci_queue_pair.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/misc/vmw_vmci/vmci_queue_pair.c
+--- a/drivers/misc/vmw_vmci/vmci_queue_pair.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
++++ a/drivers/misc/vmw_vmci/vmci_queue_pair.c
+@@ -2928,7 +2928,7 @@ int vmci_qpair_get_produce_indexes(const
+ EXPORT_SYMBOL_GPL(vmci_qpair_get_produce_indexes);
  
--	/* also disable interrupts; errormask is sometimes overwriten */
-+	/* also disable interrupts; errormask is sometimes overwritten */
- 	qib_6120_set_intr_state(dd, 0);
+ /*
+- * vmci_qpair_get_consume_indexes() - Retrieves the indexes of the comsumer.
++ * vmci_qpair_get_consume_indexes() - Retrieves the indexes of the consumer.
+  * @qpair:      Pointer to the queue pair struct.
+  * @consumer_tail:      Reference used for storing consumer tail index.
+  * @producer_head:      Reference used for storing the producer head index.
+diff -puN drivers/net/ethernet/sis/sis900.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/net/ethernet/sis/sis900.c
+--- a/drivers/net/ethernet/sis/sis900.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/sis/sis900.c
+@@ -176,7 +176,7 @@ struct sis900_private {
  
- 	qib_cancel_sends(dd->pport);
-diff -puN drivers/infiniband/hw/qib/qib_iba7220.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/infiniband/hw/qib/qib_iba7220.c
---- a/drivers/infiniband/hw/qib/qib_iba7220.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
-+++ a/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -1259,7 +1259,7 @@ static void qib_7220_clear_freeze(struct
- 	/* disable error interrupts, to avoid confusion */
- 	qib_write_kreg(dd, kr_errmask, 0ULL);
+ 	u32 msg_enable;
  
--	/* also disable interrupts; errormask is sometimes overwriten */
-+	/* also disable interrupts; errormask is sometimes overwritten */
- 	qib_7220_set_intr_state(dd, 0);
+-	unsigned int cur_rx, dirty_rx; /* producer/comsumer pointers for Tx/Rx ring */
++	unsigned int cur_rx, dirty_rx; /* producer/consumer pointers for Tx/Rx ring */
+ 	unsigned int cur_tx, dirty_tx;
  
- 	qib_cancel_sends(dd->pport);
-diff -puN drivers/infiniband/hw/qib/qib_iba7322.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/infiniband/hw/qib/qib_iba7322.c
---- a/drivers/infiniband/hw/qib/qib_iba7322.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
-+++ a/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -2053,7 +2053,7 @@ static void qib_7322_clear_freeze(struct
- 			qib_write_kreg_port(dd->pport + pidx, krp_errmask,
- 					    0ULL);
+ 	/* The saved address of a sent/receive-in-place packet buffer */
+diff -puN drivers/scsi/lpfc/lpfc_sli.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/scsi/lpfc/lpfc_sli.c
+--- a/drivers/scsi/lpfc/lpfc_sli.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
++++ a/drivers/scsi/lpfc/lpfc_sli.c
+@@ -12079,7 +12079,7 @@ lpfc_sli4_sp_handle_els_wcqe(struct lpfc
+  * @phba: Pointer to HBA context object.
+  * @wcqe: Pointer to work-queue completion queue entry.
+  *
+- * This routine handles slow-path WQ entry comsumed event by invoking the
++ * This routine handles slow-path WQ entry consumed event by invoking the
+  * proper WQ release routine to the slow-path WQ.
+  **/
+ static void
+@@ -12451,7 +12451,7 @@ lpfc_sli4_fp_handle_fcp_wcqe(struct lpfc
+  * @cq: Pointer to completion queue.
+  * @wcqe: Pointer to work-queue completion queue entry.
+  *
+- * This routine handles an fast-path WQ entry comsumed event by invoking the
++ * This routine handles an fast-path WQ entry consumed event by invoking the
+  * proper WQ release routine to the slow-path WQ.
+  **/
+ static void
+diff -puN drivers/tty/serial/ioc4_serial.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances drivers/tty/serial/ioc4_serial.c
+--- a/drivers/tty/serial/ioc4_serial.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
++++ a/drivers/tty/serial/ioc4_serial.c
+@@ -210,7 +210,7 @@
+ #define IOC4_SSCR_PAUSE_STATE   0x40000000  /* Sets when PAUSE takes effect */
+ #define IOC4_SSCR_RESET	        0x80000000  /* Reset DMA channels */
  
--	/* also disable interrupts; errormask is sometimes overwriten */
-+	/* also disable interrupts; errormask is sometimes overwritten */
- 	qib_7322_set_intr_state(dd, 0);
- 
- 	/* clear the freeze, and be sure chip saw it */
-diff -puN drivers/isdn/hardware/mISDN/mISDNipac.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/isdn/hardware/mISDN/mISDNipac.c
---- a/drivers/isdn/hardware/mISDN/mISDNipac.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
-+++ a/drivers/isdn/hardware/mISDN/mISDNipac.c
-@@ -1625,7 +1625,7 @@ mISDNipac_init(struct ipac_hw *ipac, voi
- 		ipac->hscx[i].bch.hw = hw;
- 		ipac->hscx[i].ip = ipac;
- 		/* default values for IOM time slots
--		 * can be overwriten by card */
-+		 * can be overwritten by card */
- 		ipac->hscx[i].slot = (i == 0) ? 0x2f : 0x03;
- 	}
- 
-diff -puN drivers/parport/parport_pc.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
-+++ a/drivers/parport/parport_pc.c
-@@ -902,7 +902,7 @@ static size_t parport_pc_ecp_write_block
-  *	******************************************
-  */
- 
--/* GCC is not inlining extern inline function later overwriten to non-inline,
-+/* GCC is not inlining extern inline function later overwritten to non-inline,
-    so we use outlined_ variants here.  */
- static const struct parport_operations parport_pc_ops = {
- 	.write_data	= parport_pc_write_data,
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
+-/* All producer/comsumer pointers are the same bitfield */
++/* All producer/consumer pointers are the same bitfield */
+ #define IOC4_PROD_CONS_PTR_4K   0x00000ff8	/* For 4K buffers */
+ #define IOC4_PROD_CONS_PTR_1K   0x000003f8	/* For 1K buffers */
+ #define IOC4_PROD_CONS_PTR_OFF           3
+diff -puN fs/ext4/extents_status.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances fs/ext4/extents_status.c
+--- a/fs/ext4/extents_status.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
++++ a/fs/ext4/extents_status.c
+@@ -84,7 +84,7 @@
+  *   --	writeout
+  *	Writeout looks up whole page cache to see if a buffer is
+  *	mapped, If there are not very many delayed buffers, then it is
+- *	time comsuming.
++ *	time consuming.
+  *
+  * With extent status tree implementation, FIEMAP, SEEK_HOLE/DATA,
+  * bigalloc and writeout can figure out if a block or a range of
+diff -puN mm/page-writeback.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances mm/page-writeback.c
+--- a/mm/page-writeback.c~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
++++ a/mm/page-writeback.c
+@@ -1797,7 +1797,7 @@ pause:
+ 		 * pages exceeds dirty_thresh, give the other good wb's a pipe
+ 		 * to go through, so that tasks on them still remain responsive.
+ 		 *
+-		 * In theory 1 page is enough to keep the comsumer-producer
++		 * In theory 1 page is enough to keep the consumer-producer
+ 		 * pipe going: the flusher cleans 1 page => the task dirties 1
+ 		 * more page. However wb_dirty has accounting errors.  So use
+ 		 * the larger and more IO friendly wb_stat_error.
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-comsumer-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -734,6 +734,7 @@ overrided||overridden
- overriden||overridden
- overun||overrun
- overwritting||overwriting
-+overwriten||overwritten
- pacakge||package
- pachage||package
- packacge||package
-diff -puN sound/pci/cs46xx/cs46xx_dsp_task_types.h~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances sound/pci/cs46xx/cs46xx_dsp_task_types.h
---- a/sound/pci/cs46xx/cs46xx_dsp_task_types.h~scripts-spellingtxt-add-overwriten-pattern-and-fix-typo-instances
-+++ a/sound/pci/cs46xx/cs46xx_dsp_task_types.h
-@@ -203,7 +203,7 @@ struct dsp_task_tree_context_block {
- 
- 	u32	  saverfe;					
- 
--	/* Value may be overwriten by stack save algorithm.
-+	/* Value may be overwritten by stack save algorithm.
- 	   Retain the size of the stack data saved here if used */
- 	___DSP_DUAL_16BIT_ALLOC(
-              reserved1,	
+@@ -244,6 +244,9 @@ commited||committed
+ commiting||committing
+ committ||commit
+ commoditiy||commodity
++comsume||consume
++comsumer||consumer
++comsuming||consuming
+ compability||compatibility
+ compaibility||compatibility
+ compatability||compatibility
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
