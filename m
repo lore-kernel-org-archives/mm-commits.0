@@ -1,104 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- sigaltstack-support-ss_autodisarm-for-config_compat.patch removed from -mm
- tree
-Date: Tue, 28 Feb 2017 12:50:01 -0800
-Message-ID: <58b5e279.THvesYGKjA4Lg47N%akpm__7186.03951759196$1488315236$gmane$org@linux-foundation.org>
+Subject: [merged] ipc-semc-avoid-using-spin_unlock_wait.patch removed from -mm tree
+Date: Tue, 28 Feb 2017 12:50:42 -0800
+Message-ID: <58b5e2a2.FIFohVQ/gfHUCsGD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52588 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751716AbdB1Uvc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:32 -0500
+        with ESMTP id S1751824AbdB1Uve (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stsp@list.ru, Waiman.Long@hpe.com, arnd@arndb.de, dave.hansen@linux.intel.com, dsafonov@virtuozzo.com, luto@kernel.org, milosz@adfin.com, mingo@kernel.org, nicolas.pitre@linaro.org, oleg@redhat.com, stable@vger.kernel.org, stsp@users.sourceforge.net, tglx@linutronix.de, viro@zeniv.linux.org.uk, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, xiaolong.ye@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
+     Subject: ipc/sem.c: avoid using spin_unlock_wait()
 has been removed from the -mm tree.  Its filename was
-     sigaltstack-support-ss_autodisarm-for-config_compat.patch
+     ipc-semc-avoid-using-spin_unlock_wait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stas Sergeev <stsp@list.ru>
-Subject: sigaltstack: support SS_AUTODISARM for CONFIG_COMPAT
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: avoid using spin_unlock_wait()
 
-Currently SS_AUTODISARM is not supported in compatibility mode, but does
-not return -EINVAL either.  This makes dosemu built with -m32 on x86_64 to
-crash.  Also the kernel's sigaltstack selftest fails if compiled with
--m32.
+a) The ACQUIRE in spin_lock() applies to the read, not to the store, at
+   least for powerpc.  This forces to add a smp_mb() into the fast path.
 
-This patch adds the needed support.
+b) The memory barrier provided by spin_unlock_wait() is right now arch
+   dependent.
 
-Link: http://lkml.kernel.org/r/20170205101213.8163-2-stsp@list.ru
-Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
-Cc: Milosz Tanski <milosz@adfin.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Therefore: Use spin_lock()/spin_unlock() instead of spin_unlock_wait().
+
+Advantage: faster single op semop calls(), observed +8.9% on
+x86. (the other solution would be arch dependencies in ipc/sem).
+
+Disadvantage: slower complex op semop calls, if (and only if)
+there are no sleeping operations.
+
+The next patch adds hysteresis, this further reduces the
+probability that the slow path is used.
+
+Link: http://lkml.kernel.org/r/1476851896-3590-2-git-send-email-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Waiman Long <Waiman.Long@hpe.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: <1vier1@web.de>
+Cc: kernel test robot <xiaolong.ye@intel.com>
+Cc: <felixh@informatik.uni-bremen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |    4 +++-
- kernel/signal.c        |   11 +++++++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ ipc/sem.c |   25 +++----------------------
+ 1 file changed, 3 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat include/linux/compat.h
---- a/include/linux/compat.h~sigaltstack-support-ss_autodisarm-for-config_compat
-+++ a/include/linux/compat.h
-@@ -711,8 +711,10 @@ int __compat_save_altstack(compat_stack_
- 	compat_stack_t __user *__uss = uss; \
- 	struct task_struct *t = current; \
- 	put_user_ex(ptr_to_compat((void __user *)t->sas_ss_sp), &__uss->ss_sp); \
--	put_user_ex(sas_ss_flags(sp), &__uss->ss_flags); \
-+	put_user_ex(t->sas_ss_flags, &__uss->ss_flags); \
- 	put_user_ex(t->sas_ss_size, &__uss->ss_size); \
-+	if (t->sas_ss_flags & SS_AUTODISARM) \
-+		sas_ss_reset(t); \
- } while (0);
+diff -puN ipc/sem.c~ipc-semc-avoid-using-spin_unlock_wait ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-avoid-using-spin_unlock_wait
++++ a/ipc/sem.c
+@@ -278,24 +278,13 @@ static void complexmode_enter(struct sem
+ 		return;
+ 	}
  
- asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
-diff -puN kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat kernel/signal.c
---- a/kernel/signal.c~sigaltstack-support-ss_autodisarm-for-config_compat
-+++ a/kernel/signal.c
-@@ -3239,10 +3239,17 @@ int compat_restore_altstack(const compat
+-	/* We need a full barrier after seting complex_mode:
+-	 * The write to complex_mode must be visible
+-	 * before we read the first sem->lock spinlock state.
+-	 */
+-	smp_store_mb(sma->complex_mode, true);
++	sma->complex_mode = true;
  
- int __compat_save_altstack(compat_stack_t __user *uss, unsigned long sp)
- {
-+	int err;
- 	struct task_struct *t = current;
--	return  __put_user(ptr_to_compat((void __user *)t->sas_ss_sp), &uss->ss_sp) |
--		__put_user(sas_ss_flags(sp), &uss->ss_flags) |
-+	err = __put_user(ptr_to_compat((void __user *)t->sas_ss_sp),
-+			 &uss->ss_sp) |
-+		__put_user(t->sas_ss_flags, &uss->ss_flags) |
- 		__put_user(t->sas_ss_size, &uss->ss_size);
-+	if (err)
-+		return err;
-+	if (t->sas_ss_flags & SS_AUTODISARM)
-+		sas_ss_reset(t);
-+	return 0;
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+ 		sem = sma->sem_base + i;
+-		spin_unlock_wait(&sem->lock);
++		spin_lock(&sem->lock);
++		spin_unlock(&sem->lock);
+ 	}
+-	/*
+-	 * spin_unlock_wait() is not a memory barriers, it is only a
+-	 * control barrier. The code must pair with spin_unlock(&sem->lock),
+-	 * thus just the control barrier is insufficient.
+-	 *
+-	 * smp_rmb() is sufficient, as writes cannot pass the control barrier.
+-	 */
+-	smp_rmb();
  }
- #endif
  
-_
-
-Patches currently in -mm which might be from stsp@list.ru are
-
-
+ /*
+@@ -361,14 +350,6 @@ static inline int sem_lock(struct sem_ar
+ 		 */
+ 		spin_lock(&sem->lock);
+ 
+-		/*
+-		 * See 51d7d5205d33
+-		 * ("powerpc: Add smp_mb() to arch_spin_is_locked()"):
+-		 * A full barrier is required: the write of sem->lock
+-		 * must be visible before the read is executed
+-		 */
+-		smp_mb();
