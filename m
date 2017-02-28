@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch added to -mm tree
-Date: Tue, 28 Feb 2017 15:53:26 -0800
-Message-ID: <58b60d76.1uYN4sGkkiZCZclF%akpm@linux-foundation.org>
+ mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
+ added to -mm tree
+Date: Tue, 28 Feb 2017 15:53:24 -0800
+Message-ID: <58b60d74.6fMJztaLD8BQ909J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38088 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751570AbdB1XzF (ORCPT
+        with ESMTP id S1751565AbdB1XzF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 18:55:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +19,14 @@ To: hannes@cmpxchg.org, hejianet@gmail.com, mgorman@suse.de, mhocko@suse.cz, mm-
 
 
 The patch titled
-     Subject: mm: remove seemingly spurious reclaimability check from laptop_mode gating
+     Subject: mm: fix check for reclaimable pages in PF_MEMALLOC reclaim throttling
 has been added to the -mm tree.  Its filename is
-     mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch
+     mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: remove seemingly spurious reclaimability check from laptop_mode gating
+Subject: mm: fix check for reclaimable pages in PF_MEMALLOC reclaim throttling
 
-1d82de618ddd ("mm, vmscan: make kswapd reclaim in terms of nodes") allowed
-laptop_mode=1 to start writing not just when the priority drops to
-DEF_PRIORITY - 2 but also when the node is unreclaimable.  That appears to
-be a spurious change in this patch as I doubt the series was tested with
-laptop_mode, and neither is that particular change mentioned in the
-changelog.  Remove it, it's still recent.
+PF_MEMALLOC direct reclaimers get throttled on a node when the sum of all
+free pages in each zone fall below half the min watermark.  During the
+summation, we want to exclude zones that don't have reclaimables. 
+Checking the same pgdat over and over again doesn't make sense.
 
-Link: http://lkml.kernel.org/r/20170228214007.5621-4-hannes@cmpxchg.org
+Fixes: 599d0c954f91 ("mm, vmscan: move LRU lists to node")
+Link: http://lkml.kernel.org/r/20170228214007.5621-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jia He <hejianet@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -57,21 +57,25 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating
+diff -puN mm/vmscan.c~mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling mm/vmscan.c
+--- a/mm/vmscan.c~mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling
 +++ a/mm/vmscan.c
-@@ -3281,7 +3281,7 @@ static int balance_pgdat(pg_data_t *pgda
- 		 * If we're getting trouble reclaiming, start doing writepage
- 		 * even in laptop mode.
- 		 */
--		if (sc.priority < DEF_PRIORITY - 2 || !pgdat_reclaimable(pgdat))
-+		if (sc.priority < DEF_PRIORITY - 2)
- 			sc.may_writepage = 1;
+@@ -2831,8 +2831,10 @@ static bool pfmemalloc_watermark_ok(pg_d
  
- 		/* Call soft limit reclaim before calling shrink_node. */
+ 	for (i = 0; i <= ZONE_NORMAL; i++) {
+ 		zone = &pgdat->node_zones[i];
+-		if (!managed_zone(zone) ||
+-		    pgdat_reclaimable_pages(pgdat) == 0)
++		if (!managed_zone(zone))
++			continue;
++
++		if (!zone_reclaimable_pages(zone))
+ 			continue;
+ 
+ 		pfmemalloc_reserve += min_wmark_pages(zone);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
