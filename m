@@ -1,183 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
- removed from -mm tree
-Date: Tue, 28 Feb 2017 12:51:39 -0800
-Message-ID: <58b5e2db.or7pYgBqfUXrfHNj%akpm@linux-foundation.org>
+ scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances.patch removed
+ from -mm tree
+Date: Tue, 28 Feb 2017 12:51:29 -0800
+Message-ID: <58b5e2d1.8J3L4lwojxgcQvnj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52712 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751903AbdB1Uvk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:40 -0500
+        with ESMTP id S1751894AbdB1Uvg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "overrided" pattern and fix typo instances
+     Subject: scripts/spelling.txt: add "neded" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances.patch
+     scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "overrided" pattern and fix typo instances
+Subject: scripts/spelling.txt: add "neded" pattern and fix typo instances
 
 Fix typos and add the following to the scripts/spelling.txt:
 
-  overrided||overridden
+  neded||needed
 
-Link: http://lkml.kernel.org/r/1481573103-11329-22-git-send-email-yamada.masahiro@socionext.com
+While we are here, fix the "overriden", "wont", and "etc" in the
+same hunk in drivers/media/usb/tm6000/tm6000-input.c.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-14-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/acpi/method-customizing.txt           |    2 +-
- arch/powerpc/platforms/powernv/pci-ioda.c           |    2 +-
- drivers/acpi/resource.c                             |    2 +-
- drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h |    2 +-
- drivers/net/ethernet/broadcom/bcm63xx_enet.c        |    2 +-
- drivers/net/ethernet/micrel/ksz884x.c               |    8 ++++----
- drivers/pinctrl/bcm/Kconfig                         |    2 +-
- scripts/spelling.txt                                |    1 +
- tools/lib/bpf/bpf.c                                 |    2 +-
- 9 files changed, 12 insertions(+), 11 deletions(-)
+ drivers/media/usb/gspca/t613.c          |    6 +++---
+ drivers/media/usb/tm6000/tm6000-input.c |    2 +-
+ scripts/spelling.txt                    |    1 +
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/acpi/method-customizing.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances Documentation/acpi/method-customizing.txt
---- a/Documentation/acpi/method-customizing.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/Documentation/acpi/method-customizing.txt
-@@ -57,7 +57,7 @@ Note: To get the ACPI debug object outpu
- 3. undo your changes
-    The "undo" operation is not supported for a new inserted method
-    right now, i.e. we can not remove a method currently.
--   For an overrided method, in order to undo your changes, please
-+   For an overridden method, in order to undo your changes, please
-    save a copy of the method original ASL code in step c) section 1,
-    and redo step c) ~ g) to override the method with the original one.
- 
-diff -puN arch/powerpc/platforms/powernv/pci-ioda.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances arch/powerpc/platforms/powernv/pci-ioda.c
---- a/arch/powerpc/platforms/powernv/pci-ioda.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/arch/powerpc/platforms/powernv/pci-ioda.c
-@@ -3034,7 +3034,7 @@ static void pnv_ioda_setup_pe_res(struct
- /*
-  * This function is supposed to be called on basis of PE from top
-  * to bottom style. So the the I/O or MMIO segment assigned to
-- * parent PE could be overrided by its child PEs if necessary.
-+ * parent PE could be overridden by its child PEs if necessary.
-  */
- static void pnv_ioda_setup_pe_seg(struct pnv_ioda_pe *pe)
+diff -puN drivers/media/usb/gspca/t613.c~scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances drivers/media/usb/gspca/t613.c
+--- a/drivers/media/usb/gspca/t613.c~scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances
++++ a/drivers/media/usb/gspca/t613.c
+@@ -570,9 +570,9 @@ static void setfreq(struct gspca_dev *gs
+ /* this function is called at probe and resume time */
+ static int sd_init(struct gspca_dev *gspca_dev)
  {
-diff -puN drivers/acpi/resource.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/acpi/resource.c
---- a/drivers/acpi/resource.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/drivers/acpi/resource.c
-@@ -406,7 +406,7 @@ static void acpi_dev_get_irqresource(str
- 	}
+-	/* some of this registers are not really neded, because
+-	 * they are overriden by setbrigthness, setcontrast, etc,
+-	 * but wont hurt anyway, and can help someone with similar webcam
++	/* some of this registers are not really needed, because
++	 * they are overridden by setbrigthness, setcontrast, etc.,
++	 * but won't hurt anyway, and can help someone with similar webcam
+ 	 * to see the initial parameters.*/
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	const struct additional_sensor_data *sensor;
+diff -puN drivers/media/usb/tm6000/tm6000-input.c~scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances drivers/media/usb/tm6000/tm6000-input.c
+--- a/drivers/media/usb/tm6000/tm6000-input.c~scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances
++++ a/drivers/media/usb/tm6000/tm6000-input.c
+@@ -438,7 +438,7 @@ int tm6000_ir_init(struct tm6000_core *d
  
- 	/*
--	 * In IO-APIC mode, use overrided attribute. Two reasons:
-+	 * In IO-APIC mode, use overridden attribute. Two reasons:
- 	 * 1. BIOS bug in DSDT
- 	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
- 	 *
-diff -puN drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h
---- a/drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/drivers/gpu/drm/amd/powerplay/inc/hardwaremanager.h
-@@ -89,7 +89,7 @@ enum phm_platform_caps {
- 	PHM_PlatformCaps_EnableSideportControl,                 /* indicates Sideport can be controlled */
- 	PHM_PlatformCaps_VideoPlaybackEEUNotification,          /* indicates EEU notification of video start/stop is required */
- 	PHM_PlatformCaps_TurnOffPll_ASPML1,                     /* PCIE Turn Off PLL in ASPM L1 */
--	PHM_PlatformCaps_EnableHTLinkControl,                   /* indicates HT Link can be controlled by ACPI or CLMC overrided/automated mode. */
-+	PHM_PlatformCaps_EnableHTLinkControl,                   /* indicates HT Link can be controlled by ACPI or CLMC overridden/automated mode. */
- 	PHM_PlatformCaps_PerformanceStateOnly,                  /* indicates only performance power state to be used on current system. */
- 	PHM_PlatformCaps_ExclusiveModeAlwaysHigh,               /* In Exclusive (3D) mode always stay in High state. */
- 	PHM_PlatformCaps_DisableMGClockGating,                  /* to disable Medium Grain Clock Gating or not */
-diff -puN drivers/net/ethernet/broadcom/bcm63xx_enet.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/net/ethernet/broadcom/bcm63xx_enet.c
---- a/drivers/net/ethernet/broadcom/bcm63xx_enet.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/broadcom/bcm63xx_enet.c
-@@ -817,7 +817,7 @@ static void bcm_enet_adjust_phy_link(str
- 			rx_pause_en = 1;
- 			tx_pause_en = 1;
- 		} else if (!priv->pause_auto) {
--			/* pause setting overrided by user */
-+			/* pause setting overridden by user */
- 			rx_pause_en = priv->pause_rx;
- 			tx_pause_en = priv->pause_tx;
- 		} else {
-diff -puN drivers/net/ethernet/micrel/ksz884x.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/net/ethernet/micrel/ksz884x.c
---- a/drivers/net/ethernet/micrel/ksz884x.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/micrel/ksz884x.c
-@@ -1251,10 +1251,10 @@ struct ksz_port_info {
-  * @tx_size:		Transmit data size.  Used for TX optimization.
-  * 			The maximum is defined by MAX_TX_HELD_SIZE.
-  * @perm_addr:		Permanent MAC address.
-- * @override_addr:	Overrided MAC address.
-+ * @override_addr:	Overridden MAC address.
-  * @address:		Additional MAC address entries.
-  * @addr_list_size:	Additional MAC address list size.
-- * @mac_override:	Indication of MAC address overrided.
-+ * @mac_override:	Indication of MAC address overridden.
-  * @promiscuous:	Counter to keep track of promiscuous mode set.
-  * @all_multi:		Counter to keep track of all multicast mode set.
-  * @multi_list:		Multicast address entries.
-@@ -4042,7 +4042,7 @@ static int empty_addr(u8 *addr)
-  * @hw: 	The hardware instance.
-  *
-  * This routine programs the MAC address of the hardware when the address is
-- * overrided.
-+ * overridden.
-  */
- static void hw_set_addr(struct ksz_hw *hw)
- {
-@@ -7043,7 +7043,7 @@ static int pcidev_init(struct pci_dev *p
- 	if (macaddr[0] != ':')
- 		get_mac_addr(hw_priv, macaddr, MAIN_PORT);
- 
--	/* Read MAC address and initialize override address if not overrided. */
-+	/* Read MAC address and initialize override address if not overridden. */
- 	hw_read_addr(hw);
- 
- 	/* Multiple device interfaces mode requires a second MAC address. */
-diff -puN drivers/pinctrl/bcm/Kconfig~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances drivers/pinctrl/bcm/Kconfig
---- a/drivers/pinctrl/bcm/Kconfig~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/drivers/pinctrl/bcm/Kconfig
-@@ -70,7 +70,7 @@ config PINCTRL_CYGNUS_MUX
- 
- 	  The Broadcom Cygnus IOMUX driver supports group based IOMUX
- 	  configuration, with the exception that certain individual pins
--	  can be overrided to GPIO function
-+	  can be overridden to GPIO function
- 
- config PINCTRL_NSP_GPIO
- 	bool "Broadcom NSP GPIO (with PINCONF) driver"
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
+ 	/* input setup */
+ 	rc->allowed_protocols = RC_BIT_RC5 | RC_BIT_NEC;
+-	/* Neded, in order to support NEC remotes with 24 or 32 bits */
++	/* Needed, in order to support NEC remotes with 24 or 32 bits */
+ 	rc->scancode_mask = 0xffff;
+ 	rc->priv = ir;
+ 	rc->change_protocol = tm6000_ir_change_protocol;
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-neded-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -721,6 +721,7 @@ oustanding||outstanding
- overaall||overall
- overhread||overhead
- overlaping||overlapping
-+overrided||overridden
- overriden||overridden
- overun||overrun
- pacakge||package
-diff -puN tools/lib/bpf/bpf.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances tools/lib/bpf/bpf.c
---- a/tools/lib/bpf/bpf.c~scripts-spellingtxt-add-overrided-pattern-and-fix-typo-instances
-+++ a/tools/lib/bpf/bpf.c
-@@ -27,7 +27,7 @@
- #include "bpf.h"
- 
- /*
-- * When building perf, unistd.h is overrided. __NR_bpf is
-+ * When building perf, unistd.h is overridden. __NR_bpf is
-  * required to be defined explicitly.
-  */
- #ifndef __NR_bpf
+@@ -675,6 +675,7 @@ neccecary||necessary
+ neccesary||necessary
+ neccessary||necessary
+ necesary||necessary
++neded||needed
+ negaive||negative
+ negoitation||negotiation
+ negotation||negotiation
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
