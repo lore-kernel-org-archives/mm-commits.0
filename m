@@ -1,104 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-avoid-using-spin_unlock_wait.patch removed from -mm tree
-Date: Tue, 28 Feb 2017 12:50:42 -0800
-Message-ID: <58b5e2a2.FIFohVQ/gfHUCsGD%akpm@linux-foundation.org>
+Subject: [merged] fs-affs-remove-reference-to-affs_parent_ino.patch
+ removed from -mm tree
+Date: Tue, 28 Feb 2017 12:50:17 -0800
+Message-ID: <58b5e289.OdVKbQ2B1AliaRDm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52588 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52576 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751824AbdB1Uve (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:34 -0500
+        with ESMTP id S1751778AbdB1Uvc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, xiaolong.ye@intel.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem.c: avoid using spin_unlock_wait()
+     Subject: fs/affs: remove reference to affs_parent_ino()
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-avoid-using-spin_unlock_wait.patch
+     fs-affs-remove-reference-to-affs_parent_ino.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: avoid using spin_unlock_wait()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs: remove reference to affs_parent_ino()
 
-a) The ACQUIRE in spin_lock() applies to the read, not to the store, at
-   least for powerpc.  This forces to add a smp_mb() into the fast path.
+Patch series "make FS exportable plus some clean-up", v7.
 
-b) The memory barrier provided by spin_unlock_wait() is right now arch
-   dependent.
+This small patchset makes AFFS work with NFS for standard operations.
 
-Therefore: Use spin_lock()/spin_unlock() instead of spin_unlock_wait().
 
-Advantage: faster single op semop calls(), observed +8.9% on
-x86. (the other solution would be arch dependencies in ipc/sem).
+THis patch (of 7):
 
-Disadvantage: slower complex op semop calls, if (and only if)
-there are no sleeping operations.
+affs_parent_ino() was removed a long time ago.
 
-The next patch adds hysteresis, this further reduces the
-probability that the slow path is used.
-
-Link: http://lkml.kernel.org/r/1476851896-3590-2-git-send-email-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: <1vier1@web.de>
-Cc: kernel test robot <xiaolong.ye@intel.com>
-Cc: <felixh@informatik.uni-bremen.de>
+Link: http://lkml.kernel.org/r/20170109191208.6085-2-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   25 +++----------------------
- 1 file changed, 3 insertions(+), 22 deletions(-)
+ fs/affs/affs.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-semc-avoid-using-spin_unlock_wait ipc/sem.c
---- a/ipc/sem.c~ipc-semc-avoid-using-spin_unlock_wait
-+++ a/ipc/sem.c
-@@ -278,24 +278,13 @@ static void complexmode_enter(struct sem
- 		return;
- 	}
+diff -puN fs/affs/affs.h~fs-affs-remove-reference-to-affs_parent_ino fs/affs/affs.h
+--- a/fs/affs/affs.h~fs-affs-remove-reference-to-affs_parent_ino
++++ a/fs/affs/affs.h
+@@ -178,7 +178,6 @@ extern int	affs_rename(struct inode *old
  
--	/* We need a full barrier after seting complex_mode:
--	 * The write to complex_mode must be visible
--	 * before we read the first sem->lock spinlock state.
--	 */
--	smp_store_mb(sma->complex_mode, true);
-+	sma->complex_mode = true;
+ /* inode.c */
  
- 	for (i = 0; i < sma->sem_nsems; i++) {
- 		sem = sma->sem_base + i;
--		spin_unlock_wait(&sem->lock);
-+		spin_lock(&sem->lock);
-+		spin_unlock(&sem->lock);
- 	}
--	/*
--	 * spin_unlock_wait() is not a memory barriers, it is only a
--	 * control barrier. The code must pair with spin_unlock(&sem->lock),
--	 * thus just the control barrier is insufficient.
--	 *
--	 * smp_rmb() is sufficient, as writes cannot pass the control barrier.
--	 */
--	smp_rmb();
- }
- 
- /*
-@@ -361,14 +350,6 @@ static inline int sem_lock(struct sem_ar
- 		 */
- 		spin_lock(&sem->lock);
- 
--		/*
--		 * See 51d7d5205d33
--		 * ("powerpc: Add smp_mb() to arch_spin_is_locked()"):
--		 * A full barrier is required: the write of sem->lock
--		 * must be visible before the read is executed
--		 */
--		smp_mb();
+-extern unsigned long		 affs_parent_ino(struct inode *dir);
+ extern struct inode		*affs_new_inode(struct inode *dir);
+ extern int			 affs_notify_change(struct dentry *dentry, struct iattr *attr);
+ extern void			 affs_evict_inode(struct inode *inode);
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+
