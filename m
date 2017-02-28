@@ -1,8 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pid-use-for_each_thread-in-do_each_pid_thread.patch
- removed from -mm tree
-Date: Tue, 28 Feb 2017 12:50:12 -0800
-Message-ID: <58b5e284.b9oV4Vqwf+OcgnE7%akpm@linux-foundation.org>
+Subject: [merged] nilfs2-use-nilfs_btree_node_size.patch removed from -mm
+ tree
+Date: Tue, 28 Feb 2017 12:51:01 -0800
+Message-ID: <58b5e2b5./HzXz3W1aa6DmEA6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -10,57 +10,49 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:52596 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751774AbdB1Uvc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:32 -0500
+        with ESMTP id S1751840AbdB1Uvf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, oleg@redhat.com, mm-commits@vger.kernel.org
+To: geliangtang@gmail.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/pid.h: use for_each_thread() in do_each_pid_thread()
+     Subject: nilfs2: use nilfs_btree_node_size()
 has been removed from the -mm tree.  Its filename was
-     pid-use-for_each_thread-in-do_each_pid_thread.patch
+     nilfs2-use-nilfs_btree_node_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: include/linux/pid.h: use for_each_thread() in do_each_pid_thread()
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: nilfs2: use nilfs_btree_node_size()
 
-while_each_pid_thread() is using while_each_thread(), which is unsafe
-under RCU lock according to commit 0c740d0afc3bff0a ("introduce
-for_each_thread() to replace the buggy while_each_thread()").  Use
-for_each_thread() in do_each_pid_thread() which is safe under RCU lock.
+Use nilfs_btree_node_size() instead of open-coding.
 
-Link: http://lkml.kernel.org/r/201702011947.DBD56740.OMVHOLOtSJFFFQ@I-love.SAKURA.ne.jp
-Link: http://lkml.kernel.org/r/1486041779-4401-2-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/1485184655-3895-2-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nilfs2/btree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pid.h~pid-use-for_each_thread-in-do_each_pid_thread include/linux/pid.h
---- a/include/linux/pid.h~pid-use-for_each_thread-in-do_each_pid_thread
-+++ a/include/linux/pid.h
-@@ -191,10 +191,10 @@ pid_t pid_vnr(struct pid *pid);
- #define do_each_pid_thread(pid, type, task)				\
- 	do_each_pid_task(pid, type, task) {				\
- 		struct task_struct *tg___ = task;			\
--		do {
-+		for_each_thread(tg___, task) {
- 
- #define while_each_pid_thread(pid, type, task)				\
--		} while_each_thread(tg___, task);			\
-+		}							\
- 		task = tg___;						\
- 	} while_each_pid_task(pid, type, task)
- #endif /* _LINUX_PID_H */
+diff -puN fs/nilfs2/btree.c~nilfs2-use-nilfs_btree_node_size fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~nilfs2-use-nilfs_btree_node_size
++++ a/fs/nilfs2/btree.c
+@@ -1870,7 +1870,7 @@ int nilfs_btree_convert_and_insert(struc
+ 		di = &dreq;
+ 		ni = NULL;
+ 	} else if ((n + 1) <= NILFS_BTREE_NODE_NCHILDREN_MAX(
+-			   1 << btree->b_inode->i_blkbits)) {
++			   nilfs_btree_node_size(btree))) {
+ 		di = &dreq;
+ 		ni = &nreq;
+ 	} else {
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from geliangtang@gmail.com are
 
 
