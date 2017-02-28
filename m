@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
- added to -mm tree
-Date: Tue, 28 Feb 2017 13:39:42 -0800
-Message-ID: <58b5ee1e.cI8Gwd+x/m0fSUHY%akpm@linux-foundation.org>
+Subject: + fs-fix-unsigned-enum-warning-with-gcc-42.patch added to -mm
+ tree
+Date: Tue, 28 Feb 2017 15:18:10 -0800
+Message-ID: <58b60532.KUa72Mzc2TswFbWK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751804AbdB1WQK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 17:16:10 -0500
+        with ESMTP id S1751037AbdB1XSL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 18:18:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dvyukov@google.com, kirill@shutemov.name, mm-commits@vger.kernel.org
+To: arnd@arndb.de, brendan.d.gregg@gmail.com, rmk+kernel@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: shmem: __do_fault requires VM_FAULT_NOPAGE
+     Subject: include/linux/fs.h: fix unsigned enum warning with gcc-4.2
 has been added to the -mm tree.  Its filename is
-     userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
+     fs-fix-unsigned-enum-warning-with-gcc-42.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-fix-unsigned-enum-warning-with-gcc-42.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fix-unsigned-enum-warning-with-gcc-42.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: shmem: __do_fault requires VM_FAULT_NOPAGE
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: include/linux/fs.h: fix unsigned enum warning with gcc-4.2
 
-__do_fault assumes vmf->page has been initialized and is valid if
-VM_FAULT_NOPAGE is not returned by vma->vm_ops->fault(vma, vmf).
+With arm-linux-gcc-4.2, almost every file we build in the kernel ends up
+with this warning:
 
-handle_userfault() in turn should return VM_FAULT_NOPAGE if it doesn't
-return VM_FAULT_SIGBUS or VM_FAULT_RETRY (the other two possibilities).
+include/linux/fs.h:2648: warning: comparison of unsigned expression < 0 is always false
 
-This VM_FAULT_NOPAGE case is only invoked when signal are pending and it
-didn't matter for anonymous memory before.  It only started to matter
-since shmem was introduced.  hugetlbfs also takes a different path and
-doesn't exercise __do_fault.
+Later versions don't have this problem, but it's easy enough to
+work around.
 
-Link: http://lkml.kernel.org/r/20170228154201.GH5816@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Link: http://lkml.kernel.org/r/20161216105634.235457-12-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Brendan Gregg <brendan.d.gregg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    2 +-
+ include/linux/fs.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-shmem-__do_fault-requires-vm_fault_nopage fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-shmem-__do_fault-requires-vm_fault_nopage
-+++ a/fs/userfaultfd.c
-@@ -489,7 +489,7 @@ int handle_userfault(struct vm_fault *vm
- 			 * in such case.
- 			 */
- 			down_read(&mm->mmap_sem);
--			ret = 0;
-+			ret = VM_FAULT_NOPAGE;
- 		}
- 	}
+diff -puN include/linux/fs.h~fs-fix-unsigned-enum-warning-with-gcc-42 include/linux/fs.h
+--- a/include/linux/fs.h~fs-fix-unsigned-enum-warning-with-gcc-42
++++ a/include/linux/fs.h
+@@ -2652,7 +2652,7 @@ static const char * const kernel_read_fi
  
+ static inline const char *kernel_read_file_id_str(enum kernel_read_file_id id)
+ {
+-	if (id < 0 || id >= READING_MAX_ID)
++	if ((unsigned)id >= READING_MAX_ID)
+ 		return kernel_read_file_str[READING_UNKNOWN];
+ 
+ 	return kernel_read_file_str[id];
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
+fs-fix-unsigned-enum-warning-with-gcc-42.patch
 
