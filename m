@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-affs-nameic-forward-declarations-clean-up.patch
- removed from -mm tree
-Date: Tue, 28 Feb 2017 12:50:27 -0800
-Message-ID: <58b5e293.IWB+p8sEsAApePDL%akpm@linux-foundation.org>
+Subject: [merged] fs-affs-use-octal-for-permissions.patch removed from -mm tree
+Date: Tue, 28 Feb 2017 12:50:23 -0800
+Message-ID: <58b5e28f.uGkwA1gJg8jcgduV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52756 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751808AbdB1Uvd (ORCPT
+        with ESMTP id S1751805AbdB1Uvd (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 15:51:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,50 +17,99 @@ To: fabf@skynet.be, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/namei.c: forward declarations clean-up
+     Subject: fs/affs: use octal for permissions
 has been removed from the -mm tree.  Its filename was
-     fs-affs-nameic-forward-declarations-clean-up.patch
+     fs-affs-use-octal-for-permissions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/namei.c: forward declarations clean-up
+Subject: fs/affs: use octal for permissions
 
-Move dentry_operations structures and remove forward declarations.
+According to commit f90774e1fd27 ("checkpatch: look for symbolic
+permissions and suggest octal instead")
 
-Link: http://lkml.kernel.org/r/20170109191208.6085-7-fabf@skynet.be
+Link: http://lkml.kernel.org/r/20170109191208.6085-5-fabf@skynet.be
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/namei.c |   30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+ fs/affs/amigaffs.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN fs/affs/namei.c~fs-affs-nameic-forward-declarations-clean-up fs/affs/namei.c
---- a/fs/affs/namei.c~fs-affs-nameic-forward-declarations-clean-up
-+++ a/fs/affs/namei.c
-@@ -13,26 +13,6 @@
+diff -puN fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-affs-use-octal-for-permissions
++++ a/fs/affs/amigaffs.c
+@@ -391,23 +391,23 @@ prot_to_mode(u32 prot)
+ 	umode_t mode = 0;
  
- typedef int (*toupper_t)(int);
+ 	if (!(prot & FIBF_NOWRITE))
+-		mode |= S_IWUSR;
++		mode |= 0200;
+ 	if (!(prot & FIBF_NOREAD))
+-		mode |= S_IRUSR;
++		mode |= 0400;
+ 	if (!(prot & FIBF_NOEXECUTE))
+-		mode |= S_IXUSR;
++		mode |= 0100;
+ 	if (prot & FIBF_GRP_WRITE)
+-		mode |= S_IWGRP;
++		mode |= 0020;
+ 	if (prot & FIBF_GRP_READ)
+-		mode |= S_IRGRP;
++		mode |= 0040;
+ 	if (prot & FIBF_GRP_EXECUTE)
+-		mode |= S_IXGRP;
++		mode |= 0010;
+ 	if (prot & FIBF_OTR_WRITE)
+-		mode |= S_IWOTH;
++		mode |= 0002;
+ 	if (prot & FIBF_OTR_READ)
+-		mode |= S_IROTH;
++		mode |= 0004;
+ 	if (prot & FIBF_OTR_EXECUTE)
+-		mode |= S_IXOTH;
++		mode |= 0001;
  
--static int	 affs_toupper(int ch);
--static int	 affs_hash_dentry(const struct dentry *, struct qstr *);
--static int       affs_compare_dentry(const struct dentry *dentry,
--		unsigned int len, const char *str, const struct qstr *name);
--static int	 affs_intl_toupper(int ch);
--static int	 affs_intl_hash_dentry(const struct dentry *, struct qstr *);
--static int       affs_intl_compare_dentry(const struct dentry *dentry,
--		unsigned int len, const char *str, const struct qstr *name);
--
--const struct dentry_operations affs_dentry_operations = {
--	.d_hash		= affs_hash_dentry,
--	.d_compare	= affs_compare_dentry,
--};
--
--const struct dentry_operations affs_intl_dentry_operations = {
--	.d_hash		= affs_intl_hash_dentry,
--	.d_compare	= affs_intl_compare_dentry,
--};
--
+ 	return mode;
+ }
+@@ -418,23 +418,23 @@ mode_to_prot(struct inode *inode)
+ 	u32 prot = AFFS_I(inode)->i_protect;
+ 	umode_t mode = inode->i_mode;
+ 
+-	if (!(mode & S_IXUSR))
++	if (!(mode & 0100))
+ 		prot |= FIBF_NOEXECUTE;
+-	if (!(mode & S_IRUSR))
++	if (!(mode & 0400))
+ 		prot |= FIBF_NOREAD;
+-	if (!(mode & S_IWUSR))
++	if (!(mode & 0200))
+ 		prot |= FIBF_NOWRITE;
+-	if (mode & S_IXGRP)
++	if (mode & 0010)
+ 		prot |= FIBF_GRP_EXECUTE;
+-	if (mode & S_IRGRP)
++	if (mode & 0040)
+ 		prot |= FIBF_GRP_READ;
+-	if (mode & S_IWGRP)
++	if (mode & 0020)
+ 		prot |= FIBF_GRP_WRITE;
+-	if (mode & S_IXOTH)
++	if (mode & 0001)
+ 		prot |= FIBF_OTR_EXECUTE;
+-	if (mode & S_IROTH)
++	if (mode & 0004)
+ 		prot |= FIBF_OTR_READ;
+-	if (mode & S_IWOTH)
++	if (mode & 0002)
+ 		prot |= FIBF_OTR_WRITE;
+ 
+ 	AFFS_I(inode)->i_protect = prot;
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+
