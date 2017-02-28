@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
- added to -mm tree
-Date: Tue, 28 Feb 2017 14:06:17 -0800
-Message-ID: <58b5f459.H2F+POajRCHzDH6r%akpm@linux-foundation.org>
+Subject: + x86-mm-unify-exit-paths-in-gup_pte_range.patch added to -mm
+ tree
+Date: Tue, 28 Feb 2017 14:09:28 -0800
+Message-ID: <58b5f518.gD2xDmzjQOewZkhR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58710 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751786AbdB1WQF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 17:16:05 -0500
+        with ESMTP id S1751713AbdB1WQE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 17:16:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, mpe@ellerman.id.au, paulus@ozlabs.org, riel@surriel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, mingo@redhat.com, ross.zwisler@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power/mm: update pte_write and pte_wrprotect to handle savedwrite
+     Subject: x86, mm: unify exit paths in gup_pte_range()
 has been added to the -mm tree.  Its filename is
-     power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
+     x86-mm-unify-exit-paths-in-gup_pte_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-unify-exit-paths-in-gup_pte_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-unify-exit-paths-in-gup_pte_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,148 +39,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: power/mm: update pte_write and pte_wrprotect to handle savedwrite
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: x86, mm: unify exit paths in gup_pte_range()
 
-We use pte_write() to check whethwer the pte entry is writable.  This is
-mostly used to later mark the pte read only if it is writable.  The other
-use of pte_write() is to check whether the pte_entry is writable so that
-hardware page table entry can be marked accordingly.  This is used in kvm
-where we look at qemu page table entry and update hardware hash page table
-for the guest with correct write enable bit.
+All exit paths from gup_pte_range() require pte_unmap() of the original
+pte page before returning.  Refactor the code to have a single exit point
+to do the unmap.
 
-With the above, for the first usage we should also check the savedwrite
-bit so that we can correctly clear the savedwite bit.  For the later, we
-add a new variant __pte_write().
+This mirrors the flow of the generic gup_pte_range() in mm/gup.c.
 
-With this we can revert write_protect_page part of 595cd8f256d2 ("mm/ksm:
-handle protnone saved writes when making page write protect").  But I left
-it as it is as an example code for savedwrite check.
-
-Fixes: c137a2757b886 ("powerpc/mm/autonuma: switch ppc64 to its own implementation of saved write")
-Link: http://lkml.kernel.org/r/1488203787-17849-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/148804251828.36605.14910389618497006945.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |   24 +++++++++++++----
- arch/powerpc/kvm/book3s_64_mmu_hv.c          |    2 -
- arch/powerpc/kvm/book3s_hv_rm_mmu.c          |    2 -
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ arch/x86/mm/gup.c |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -347,7 +347,7 @@ static inline int __ptep_test_and_clear_
- 	__r;							\
- })
- 
--static inline int pte_write(pte_t pte)
-+static inline int __pte_write(pte_t pte)
+diff -puN arch/x86/mm/gup.c~x86-mm-unify-exit-paths-in-gup_pte_range arch/x86/mm/gup.c
+--- a/arch/x86/mm/gup.c~x86-mm-unify-exit-paths-in-gup_pte_range
++++ a/arch/x86/mm/gup.c
+@@ -106,36 +106,35 @@ static noinline int gup_pte_range(pmd_t
+ 		unsigned long end, int write, struct page **pages, int *nr)
  {
- 	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
- }
-@@ -373,11 +373,16 @@ static inline bool pte_savedwrite(pte_t
- }
- #endif
+ 	struct dev_pagemap *pgmap = NULL;
+-	int nr_start = *nr;
+-	pte_t *ptep;
++	int nr_start = *nr, ret = 0;
++	pte_t *ptep, *ptem;
  
-+static inline int pte_write(pte_t pte)
-+{
-+	return __pte_write(pte) || pte_savedwrite(pte);
-+}
-+
- #define __HAVE_ARCH_PTEP_SET_WRPROTECT
- static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pte_t *ptep)
- {
--	if (pte_write(*ptep))
-+	if (__pte_write(*ptep))
- 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
- 	else if (unlikely(pte_savedwrite(*ptep)))
- 		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
-@@ -390,7 +395,7 @@ static inline void huge_ptep_set_wrprote
- 	 * We should not find protnone for hugetlb, but this complete the
- 	 * interface.
- 	 */
--	if (pte_write(*ptep))
-+	if (__pte_write(*ptep))
- 		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
- 	else if (unlikely(pte_savedwrite(*ptep)))
- 		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 1);
-@@ -490,7 +495,13 @@ static inline pte_t pte_clear_savedwrite
- 	VM_BUG_ON(!pte_protnone(pte));
- 	return __pte(pte_val(pte) | _PAGE_PRIVILEGED);
- }
+-	ptep = pte_offset_map(&pmd, addr);
++	/*
++	 * Keep the original mapped PTE value (ptem) around since we
++	 * might increment ptep off the end of the page when finishing
++	 * our loop iteration.
++	 */
++	ptem = ptep = pte_offset_map(&pmd, addr);
+ 	do {
+ 		pte_t pte = gup_get_pte(ptep);
+ 		struct page *page;
+ 
+ 		/* Similar to the PMD case, NUMA hinting must take slow path */
+-		if (pte_protnone(pte)) {
+-			pte_unmap(ptep);
+-			return 0;
+-		}
 -
-+#else
-+#define pte_clear_savedwrite pte_clear_savedwrite
-+static inline pte_t pte_clear_savedwrite(pte_t pte)
-+{
-+	VM_WARN_ON(1);
-+	return __pte(pte_val(pte) & ~_PAGE_WRITE);
-+}
- #endif /* CONFIG_NUMA_BALANCING */
+-		if (!pte_allows_gup(pte_val(pte), write)) {
+-			pte_unmap(ptep);
+-			return 0;
+-		}
++		if (pte_protnone(pte))
++			break;
++
++		if (!pte_allows_gup(pte_val(pte), write))
++			break;
  
- static inline int pte_present(pte_t pte)
-@@ -518,6 +529,8 @@ static inline unsigned long pte_pfn(pte_
- /* Generic modifiers for PTE bits */
- static inline pte_t pte_wrprotect(pte_t pte)
- {
-+	if (unlikely(pte_savedwrite(pte)))
-+		return pte_clear_savedwrite(pte);
- 	return __pte(pte_val(pte) & ~_PAGE_WRITE);
+ 		if (pte_devmap(pte)) {
+ 			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
+ 			if (unlikely(!pgmap)) {
+ 				undo_dev_pagemap(nr, nr_start, pages);
+-				pte_unmap(ptep);
+-				return 0;
++				break;
+ 			}
+-		} else if (pte_special(pte)) {
+-			pte_unmap(ptep);
+-			return 0;
+-		}
++		} else if (pte_special(pte))
++			break;
++
+ 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+ 		page = pte_page(pte);
+ 		get_page(page);
+@@ -145,9 +144,11 @@ static noinline int gup_pte_range(pmd_t
+ 		(*nr)++;
+ 
+ 	} while (ptep++, addr += PAGE_SIZE, addr != end);
+-	pte_unmap(ptep - 1);
++	if (addr == end)
++		ret = 1;
++	pte_unmap(ptem);
+ 
+-	return 1;
++	return ret;
  }
  
-@@ -938,6 +951,7 @@ static inline int pmd_protnone(pmd_t pmd
- 
- #define __HAVE_ARCH_PMD_WRITE
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
-+#define __pmd_write(pmd)	__pte_write(pmd_pte(pmd))
- #define pmd_savedwrite(pmd)	pte_savedwrite(pmd_pte(pmd))
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -994,7 +1008,7 @@ static inline int __pmdp_test_and_clear_
- static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pmd_t *pmdp)
- {
--	if (pmd_write((*pmdp)))
-+	if (__pmd_write((*pmdp)))
- 		pmd_hugepage_update(mm, addr, pmdp, _PAGE_WRITE, 0);
- 	else if (unlikely(pmd_savedwrite(*pmdp)))
- 		pmd_hugepage_update(mm, addr, pmdp, 0, _PAGE_PRIVILEGED);
-diff -puN arch/powerpc/kvm/book3s_64_mmu_hv.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite arch/powerpc/kvm/book3s_64_mmu_hv.c
---- a/arch/powerpc/kvm/book3s_64_mmu_hv.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite
-+++ a/arch/powerpc/kvm/book3s_64_mmu_hv.c
-@@ -601,7 +601,7 @@ int kvmppc_book3s_hv_page_fault(struct k
- 							 hva, NULL, NULL);
- 			if (ptep) {
- 				pte = kvmppc_read_update_linux_pte(ptep, 1);
--				if (pte_write(pte))
-+				if (__pte_write(pte))
- 					write_ok = 1;
- 			}
- 			local_irq_restore(flags);
-diff -puN arch/powerpc/kvm/book3s_hv_rm_mmu.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite arch/powerpc/kvm/book3s_hv_rm_mmu.c
---- a/arch/powerpc/kvm/book3s_hv_rm_mmu.c~power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite
-+++ a/arch/powerpc/kvm/book3s_hv_rm_mmu.c
-@@ -256,7 +256,7 @@ long kvmppc_do_h_enter(struct kvm *kvm,
- 		}
- 		pte = kvmppc_read_update_linux_pte(ptep, writing);
- 		if (pte_present(pte) && !pte_protnone(pte)) {
--			if (writing && !pte_write(pte))
-+			if (writing && !__pte_write(pte))
- 				/* make the actual HPTE be read-only */
- 				ptel = hpte_make_readonly(ptel);
- 			is_ci = pte_ci(pte);
+ static inline void get_head_page_multiple(struct page *page, int nr)
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-powerpc-mm-handle-protnone-ptes-on-fork.patch
-power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
+x86-mm-fix-gup_pte_range-vs-dax-mappings.patch
+x86-mm-unify-exit-paths-in-gup_pte_range.patch
 
