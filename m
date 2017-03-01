@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + revert-lib-test_sortc-make-it-explicitly-non-modular.patch
- added to -mm tree
-Date: Tue, 28 Feb 2017 15:57:10 -0800
-Message-ID: <58b60e56.pbMD83e8HTGfg5ZQ%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-embedded_function_name-test.patch added to
+ -mm tree
+Date: Tue, 28 Feb 2017 16:09:29 -0800
+Message-ID: <58b61139.IFTUJxIrnHfCjl5J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38794 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751756AbdB1X6S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 18:58:18 -0500
+        with ESMTP id S1751154AbdCAAJa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 19:09:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, andriy.shevchenko@linux.intel.com, arnd@arndb.de, paul.gortmaker@windriver.com, shuah@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "lib/test_sort.c: make it explicitly non-modular"
+     Subject: checkpatch: improve EMBEDDED_FUNCTION_NAME test
 has been added to the -mm tree.  Its filename is
-     revert-lib-test_sortc-make-it-explicitly-non-modular.patch
+     checkpatch-improve-embedded_function_name-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-lib-test_sortc-make-it-explicitly-non-modular.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-embedded_function_name-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-lib-test_sortc-make-it-explicitly-non-modular.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-embedded_function_name-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Revert "lib/test_sort.c: make it explicitly non-modular"
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve EMBEDDED_FUNCTION_NAME test
 
-Patch series "lib: add module support to sort tests".
+The existing behavior relies on patch context to identify function
+declarations.  Add the ability to find function declarations when there is
+an open brace in column 1.
 
-This patch series allows to compile the array-based and linked list sort
-test code either to loadable modules, or builtin into the kernel.
+This finds function declarations only in specific single line forms where
+the function name is on a single line like:
 
-It's very valuable to have modular tests, so you can run them just by
-insmodding the test modules, instead of needing a separate kernel that
-runs them at boot.
+int foo(args...)
+{
 
+and
 
-This patch (of 3):
+int
+foo(args...)
+{
 
-This reverts commit 8893f519330bb073a49c5b4676fce4be6f1be15d.
+It does not recognize function declarations like:
 
-It's very valuable to have modular tests, so you can run them just by
-insmodding the test modules, instead of needing a separate kernel that
-runs them at boot.
+int foo(int bar,
+        int baz)
+{
 
-Link: http://lkml.kernel.org/r/1488287219-15832-2-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: http://lkml.kernel.org/r/738d74bbbe1a06b80f11ed504818107c68903095.1488155636.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_sort.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN lib/test_sort.c~revert-lib-test_sortc-make-it-explicitly-non-modular lib/test_sort.c
---- a/lib/test_sort.c~revert-lib-test_sortc-make-it-explicitly-non-modular
-+++ a/lib/test_sort.c
-@@ -1,11 +1,8 @@
- #include <linux/sort.h>
- #include <linux/slab.h>
--#include <linux/init.h>
-+#include <linux/module.h>
+diff -puN scripts/checkpatch.pl~checkpatch-improve-embedded_function_name-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-embedded_function_name-test
++++ a/scripts/checkpatch.pl
+@@ -3126,6 +3126,17 @@ sub process {
+ # check we are in a valid C source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c)$/);
  
--/*
-- * A simple boot-time regression test
-- * License: GPL
-- */
-+/* a simple boot-time regression test */
- 
- #define TEST_LEN 1000
- 
-@@ -41,4 +38,6 @@ exit:
- 	kfree(a);
- 	return err;
- }
--subsys_initcall(test_sort_init);
++# check if this appears to be the start function declaration, save the name
++		if ($sline =~ /^\+\{\s*$/ &&
++		    $prevline =~ /^\+(?:(?:(?:$Storage|$Inline)\s*)*\s*$Type\s*)?($Ident)\(/) {
++			$context_function = $1;
++		}
 +
-+module_init(test_sort_init);
-+MODULE_LICENSE("GPL");
++# check if this appears to be the end of function declaration
++		if ($sline =~ /^\+\}\s*$/) {
++			undef $context_function;
++		}
++
+ # check indentation of any line with a bare else
+ # (but not if it is a multiple line "if (foo) return bar; else return baz;")
+ # if the previous line is a break or return and is indented 1 tab more...
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-revert-lib-test_sortc-make-it-explicitly-non-modular.patch
-lib-add-module-support-to-array-based-sort-tests.patch
-lib-add-module-support-to-linked-list-sorting-tests.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
+checkpatch-improve-embedded_function_name-test.patch
 
