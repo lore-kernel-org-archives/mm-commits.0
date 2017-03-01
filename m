@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + dax-add-tracepoints-to-dax_iomap_pte_fault.patch added to -mm
- tree
-Date: Tue, 28 Feb 2017 17:01:51 -0800
-Message-ID: <58b61d7f.z4dFlm84B0QNQ9KG%akpm@linux-foundation.org>
+Subject: + dax-add-tracepoint-to-dax_writeback_one.patch added to -mm tree
+Date: Tue, 28 Feb 2017 17:02:01 -0800
+Message-ID: <58b61d89.0p2y2SffTBn0kTz8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34460 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34464 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751439AbdCAB4Q (ORCPT
+        with ESMTP id S1751446AbdCAB4Q (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 20:56:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, mawilc
 
 
 The patch titled
-     Subject: dax: add tracepoints to dax_iomap_pte_fault()
+     Subject: dax: add tracepoint to dax_writeback_one()
 has been added to the -mm tree.  Its filename is
-     dax-add-tracepoints-to-dax_iomap_pte_fault.patch
+     dax-add-tracepoint-to-dax_writeback_one.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-tracepoints-to-dax_iomap_pte_fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-tracepoint-to-dax_writeback_one.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-tracepoints-to-dax_iomap_pte_fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-tracepoint-to-dax_writeback_one.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: add tracepoints to dax_iomap_pte_fault()
+Subject: dax: add tracepoint to dax_writeback_one()
 
-Patch series "second round of tracepoints for DAX".
-
-This second round of DAX tracepoint patches adds tracing to the PTE fault
-path (dax_iomap_pte_fault(), dax_pfn_mkwrite(), dax_load_hole(),
-dax_insert_mapping()) and to the writeback path
-(dax_writeback_mapping_range(), dax_writeback_one()).
-
-The purpose of this tracing is to give us a high level view of what DAX is
-doing, whether faults are being serviced by PMDs or PTEs, and by real
-storage or by zero pages covering holes.
-
-I do have some patches nearly ready which also add tracing to
-grab_mapping_entry() and dax_insert_mapping_entry().  These are more
-targeted at logging how we are interacting with the radix tree, how we use
-empty entries for locking, whether we "downgrade" huge zero pages to 4k
-PTE sized allocations, etc.  In the end it seemed to me that this might be
-too detailed to have as constantly present tracepoints, but if anyone sees
-value in having tracepoints like this in the DAX code permanently (Jan?),
-please let me know and I'll add those last two patches.
-
-All these tracepoints were done to be consistent with the style of the XFS
-tracepoints and with the existing DAX PMD tracepoints.
-
-
-This patch (of 6):
-
-Add tracepoints to dax_iomap_pte_fault(), following the same logging
+Add a tracepoint to dax_writeback_one(), following the same logging
 conventions as the rest of DAX.
 
-Here is an example fault that initially tries to be serviced by the PMD
-fault handler but which falls back to PTEs because the VMA isn't large
-enough to hold a PMD:
+Here is an example range writeback which ends up flushing one PMD and one
+PTE:
 
-small-1086  [005] ....    71.140014: xfs_filemap_huge_fault: dev 259:0 ino
-0x1003
+test-1265  [003] ....   496.615250: dax_writeback_range: dev 259:0 ino 0x1003
+pgoff 0x0-0x7ffffffffffff
 
-small-1086  [005] ....    71.140027: dax_pmd_fault: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 vm_start
-0x10200000 vm_end 0x10500000 pgoff 0x220 max_pgoff 0x1400
+test-1265  [003] ....   496.616263: dax_writeback_one: dev 259:0 ino 0x1003
+pgoff 0x0 pglen 0x200
 
-small-1086  [005] ....    71.140028: dax_pmd_fault_done: dev 259:0 ino
-0x1003 shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 vm_start
-0x10200000 vm_end 0x10500000 pgoff 0x220 max_pgoff 0x1400 FALLBACK
+test-1265  [003] ....   496.616270: dax_writeback_one: dev 259:0 ino 0x1003
+pgoff 0x305 pglen 0x1
 
-small-1086  [005] ....    71.140035: dax_pte_fault: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff 0x220
+test-1265  [003] ....   496.616272: dax_writeback_range_done: dev 259:0 ino
+0x1003 pgoff 0x0-0x7ffffffffffff
 
-small-1086  [005] ....    71.140396: dax_pte_fault_done: dev 259:0 ino
-0x1003 shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff
-0x220 MAJOR|NOPAGE
-
-Link: http://lkml.kernel.org/r/20170221195116.13278-2-ross.zwisler@linux.intel.com
+Link: http://lkml.kernel.org/r/20170221195116.13278-6-ross.zwisler@linux.intel.com
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -104,101 +70,51 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                      |   15 ++++++++---
- include/trace/events/fs_dax.h |   41 ++++++++++++++++++++++++++++++++
- 2 files changed, 52 insertions(+), 4 deletions(-)
+ fs/dax.c                      |    1 +
+ include/trace/events/fs_dax.h |   24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-diff -puN fs/dax.c~dax-add-tracepoints-to-dax_iomap_pte_fault fs/dax.c
---- a/fs/dax.c~dax-add-tracepoints-to-dax_iomap_pte_fault
+diff -puN fs/dax.c~dax-add-tracepoint-to-dax_writeback_one fs/dax.c
+--- a/fs/dax.c~dax-add-tracepoint-to-dax_writeback_one
 +++ a/fs/dax.c
-@@ -1132,13 +1132,16 @@ static int dax_iomap_pte_fault(struct vm
- 	int vmf_ret = 0;
- 	void *entry;
- 
-+	trace_dax_pte_fault(inode, vmf, vmf_ret);
- 	/*
- 	 * Check whether offset isn't beyond end of file now. Caller is supposed
- 	 * to hold locks serializing us with truncate / punch hole so this is
- 	 * a reliable test.
- 	 */
--	if (pos >= i_size_read(inode))
--		return VM_FAULT_SIGBUS;
-+	if (pos >= i_size_read(inode)) {
-+		vmf_ret = VM_FAULT_SIGBUS;
-+		goto out;
-+	}
- 
- 	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
- 		flags |= IOMAP_WRITE;
-@@ -1149,8 +1152,10 @@ static int dax_iomap_pte_fault(struct vm
- 	 * that we never have to deal with more than a single extent here.
- 	 */
- 	error = ops->iomap_begin(inode, pos, PAGE_SIZE, flags, &iomap);
--	if (error)
--		return dax_fault_return(error);
-+	if (error) {
-+		vmf_ret = dax_fault_return(error);
-+		goto out;
-+	}
- 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
- 		vmf_ret = dax_fault_return(-EIO);	/* fs corruption? */
- 		goto finish_iomap;
-@@ -1234,6 +1239,8 @@ static int dax_iomap_pte_fault(struct vm
- 		 */
- 		ops->iomap_end(inode, pos, PAGE_SIZE, copied, flags, &iomap);
- 	}
-+out:
-+	trace_dax_pte_fault_done(inode, vmf, vmf_ret);
- 	return vmf_ret;
- }
- 
-diff -puN include/trace/events/fs_dax.h~dax-add-tracepoints-to-dax_iomap_pte_fault include/trace/events/fs_dax.h
---- a/include/trace/events/fs_dax.h~dax-add-tracepoints-to-dax_iomap_pte_fault
+@@ -843,6 +843,7 @@ static int dax_writeback_one(struct bloc
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
+ 	spin_unlock_irq(&mapping->tree_lock);
++	trace_dax_writeback_one(mapping->host, index, dax.size >> PAGE_SHIFT);
+  unmap:
+ 	dax_unmap_atomic(bdev, &dax);
+ 	put_locked_mapping_entry(mapping, index, entry);
+diff -puN include/trace/events/fs_dax.h~dax-add-tracepoint-to-dax_writeback_one include/trace/events/fs_dax.h
+--- a/include/trace/events/fs_dax.h~dax-add-tracepoint-to-dax_writeback_one
 +++ a/include/trace/events/fs_dax.h
-@@ -150,6 +150,47 @@ DEFINE_EVENT(dax_pmd_insert_mapping_clas
- DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
- DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping_fallback);
+@@ -226,6 +226,30 @@ DEFINE_EVENT(dax_writeback_range_class,
+ DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range);
+ DEFINE_WRITEBACK_RANGE_EVENT(dax_writeback_range_done);
  
-+DECLARE_EVENT_CLASS(dax_pte_fault_class,
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf, int result),
-+	TP_ARGS(inode, vmf, result),
++TRACE_EVENT(dax_writeback_one,
++	TP_PROTO(struct inode *inode, pgoff_t pgoff, pgoff_t pglen),
++	TP_ARGS(inode, pgoff, pglen),
 +	TP_STRUCT__entry(
 +		__field(unsigned long, ino)
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
 +		__field(pgoff_t, pgoff)
++		__field(pgoff_t, pglen)
 +		__field(dev_t, dev)
-+		__field(unsigned int, flags)
-+		__field(int, result)
 +	),
 +	TP_fast_assign(
 +		__entry->dev = inode->i_sb->s_dev;
 +		__entry->ino = inode->i_ino;
-+		__entry->vm_flags = vmf->vma->vm_flags;
-+		__entry->address = vmf->address;
-+		__entry->flags = vmf->flags;
-+		__entry->pgoff = vmf->pgoff;
-+		__entry->result = result;
++		__entry->pgoff = pgoff;
++		__entry->pglen = pglen;
 +	),
-+	TP_printk("dev %d:%d ino %#lx %s %s address %#lx pgoff %#lx %s",
++	TP_printk("dev %d:%d ino %#lx pgoff %#lx pglen %#lx",
 +		MAJOR(__entry->dev),
 +		MINOR(__entry->dev),
 +		__entry->ino,
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__print_flags(__entry->flags, "|", FAULT_FLAG_TRACE),
-+		__entry->address,
 +		__entry->pgoff,
-+		__print_flags(__entry->result, "|", VM_FAULT_RESULT_TRACE)
++		__entry->pglen
 +	)
 +)
-+
-+#define DEFINE_PTE_FAULT_EVENT(name) \
-+DEFINE_EVENT(dax_pte_fault_class, name, \
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf, int result), \
-+	TP_ARGS(inode, vmf, result))
-+
-+DEFINE_PTE_FAULT_EVENT(dax_pte_fault);
-+DEFINE_PTE_FAULT_EVENT(dax_pte_fault_done);
 +
  #endif /* _TRACE_FS_DAX_H */
  
