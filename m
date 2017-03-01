@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch added to -mm tree
-Date: Tue, 28 Feb 2017 16:06:33 -0800
-Message-ID: <58b61089.oPA9V3zuNabXOSMh%akpm@linux-foundation.org>
+Subject: + correct-function-definition-for-c.patch added to -mm tree
+Date: Tue, 28 Feb 2017 17:06:08 -0800
+Message-ID: <58b61e80.2A26+CH2Hg+jH+aG%akpm__13938.0364482806$1488333743$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35554 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751511AbdCACBJ (ORCPT
+        with ESMTP id S1751518AbdCACBJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 21:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, keescook@chromium.org, william.c.roberts@intel.com, mm-commits@vger.kernel.org
+To: joakim.tjernlund@infinera.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
+     Subject: include/linux/printk.h: correct function definition for C++
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+     correct-function-definition-for-c.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%25pfoo-extensions-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/correct-function-definition-for-c.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%25pfoo-extensions-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/correct-function-definition-for-c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
+From: Joakim Tjernlund <joakim.tjernlund@infinera.com>
+Subject: include/linux/printk.h: correct function definition for C++
 
-add helpful comment into lib/vsprintf.c
+C++ does does not like the extra extern before asmlinkage, remove it.
 
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: William Roberts <william.c.roberts@intel.com>
+Link: http://lkml.kernel.org/r/20170221151044.5499-1-joakim.tjernlund@infinera.com
+Signed-off-by: Joakim Tjernlund <joakim.tjernlund@infinera.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/printk.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix lib/vsprintf.c
---- a/lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
-+++ a/lib/vsprintf.c
-@@ -1477,6 +1477,9 @@ int kptr_restrict __read_mostly;
-  * by an extra set of alphanumeric characters that are extended format
-  * specifiers.
-  *
-+ * Please update scripts/checkpatch.pl when adding new conversion characters.
-+ * (search for "check for vsprintf extension").
-+ *
-  * Right now we handle:
-  *
-  * - 'F' For symbolic function descriptor pointers with offset
+diff -puN include/linux/printk.h~correct-function-definition-for-c include/linux/printk.h
+--- a/include/linux/printk.h~correct-function-definition-for-c
++++ a/include/linux/printk.h
+@@ -139,7 +139,7 @@ struct va_format {
+ })
+ 
+ #ifdef CONFIG_EARLY_PRINTK
+-extern asmlinkage __printf(1, 2)
++asmlinkage  __printf(1, 2)
+ void early_printk(const char *fmt, ...);
+ #else
+ static inline __printf(1, 2) __cold
+@@ -279,7 +279,7 @@ static inline void printk_safe_flush_on_
+ }
+ #endif
+ 
+-extern asmlinkage void dump_stack(void) __cold;
++asmlinkage void dump_stack(void) __cold;
+ 
+ #ifndef pr_fmt
+ #define pr_fmt(fmt) fmt
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joakim.tjernlund@infinera.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+correct-function-definition-for-c.patch
+compilerh-fix-c-uninitialized-const-issue.patch
 
