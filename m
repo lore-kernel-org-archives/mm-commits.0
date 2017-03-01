@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + compilerh-fix-c-uninitialized-const-issue.patch added to -mm
- tree
-Date: Tue, 28 Feb 2017 17:06:10 -0800
-Message-ID: <58b61e82.b0lNRjl0P/vsjPa3%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch added to -mm tree
+Date: Tue, 28 Feb 2017 16:06:33 -0800
+Message-ID: <58b61089.oPA9V3zuNabXOSMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35556 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751542AbdCACBJ (ORCPT
+        with ESMTP id S1751511AbdCACBJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2017 21:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joakim.tjernlund@infinera.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, keescook@chromium.org, william.c.roberts@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/compiler.h: fix C++ uninitialized const issue
+     Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
 has been added to the -mm tree.  Its filename is
-     compilerh-fix-c-uninitialized-const-issue.patch
+     checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compilerh-fix-c-uninitialized-const-issue.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%25pfoo-extensions-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compilerh-fix-c-uninitialized-const-issue.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%25pfoo-extensions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joakim Tjernlund <joakim.tjernlund@infinera.com>
-Subject: include/linux/compiler.h: fix C++ uninitialized const issue
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
 
-C++ does not like the union { typeof(x) __val; char __c[1]; } __u
-construct for const types:
- error: uninitialized const member in
- 'union atomic_read(const atomic_t*)::<anonymous>'
-Address this by creating a C++ version of READ_ONCE where this union is
-initialized: union { void _u(){}; typeof(x) __val; char __c[1]; } __u={0}
+add helpful comment into lib/vsprintf.c
 
-To please gcc 6.3.0 also add in a _u(){} as default ctor.
-
-This makes C++ happy enough to build.
-
-Link: http://lkml.kernel.org/r/20170221151044.5499-2-joakim.tjernlund@infinera.com
-Signed-off-by: Joakim Tjernlund <joakim.tjernlund@infinera.com>
-Cc: <stable@vger.kernel.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: William Roberts <william.c.roberts@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ lib/vsprintf.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/compiler.h~compilerh-fix-c-uninitialized-const-issue include/linux/compiler.h
---- a/include/linux/compiler.h~compilerh-fix-c-uninitialized-const-issue
-+++ a/include/linux/compiler.h
-@@ -311,6 +311,7 @@ static __always_inline void __write_once
-  * required ordering.
-  */
- 
-+#ifndef __cplusplus
- #define __READ_ONCE(x, check)						\
- ({									\
- 	union { typeof(x) __val; char __c[1]; } __u;			\
-@@ -320,6 +321,17 @@ static __always_inline void __write_once
- 		__read_once_size_nocheck(&(x), __u.__c, sizeof(x));	\
- 	__u.__val;							\
- })
-+#else
-+#define __READ_ONCE(x, check)						\
-+({									\
-+	union { void _u(){}; typeof(x) __val; char __c[1]; } __u={0};	\
-+	if (check)							\
-+		__read_once_size(&(x), __u.__c, sizeof(x));		\
-+	else								\
-+		__read_once_size_nocheck(&(x), __u.__c, sizeof(x));	\
-+	__u.__val;							\
-+})
-+#endif
- #define READ_ONCE(x) __READ_ONCE(x, 1)
- 
- /*
+diff -puN lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
++++ a/lib/vsprintf.c
+@@ -1477,6 +1477,9 @@ int kptr_restrict __read_mostly;
+  * by an extra set of alphanumeric characters that are extended format
+  * specifiers.
+  *
++ * Please update scripts/checkpatch.pl when adding new conversion characters.
++ * (search for "check for vsprintf extension").
++ *
+  * Right now we handle:
+  *
+  * - 'F' For symbolic function descriptor pointers with offset
 _
 
-Patches currently in -mm which might be from joakim.tjernlund@infinera.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-correct-function-definition-for-c.patch
-compilerh-fix-c-uninitialized-const-issue.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
