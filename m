@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arm-use-set_memoryh-header.patch added to -mm tree
-Date: Fri, 03 Mar 2017 15:49:58 -0800
-Message-ID: <58ba0126.kWD1jWTepnm9k/Hd%akpm@linux-foundation.org>
+Subject: + arm64-use-set_memoryh-header-fix.patch added to -mm tree
+Date: Fri, 03 Mar 2017 15:50:04 -0800
+Message-ID: <58ba012c.wvmHlxfNhMslYh2j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58970 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752262AbdCCXuA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 18:50:00 -0500
+        with ESMTP id S1752282AbdCCXuF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 18:50:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, airlied@linux.ie, alexander.shishkin@linux.intel.com, arnd@arndb.de, catalin.marinas@arm.com, daniel@iogearbox.net, davem@davemloft.net, heiko.carstens@de.ibm.com, hpa@zytor.com, jeyu@redhat.com, keescook@chromium.org, linux@armlinux.org.uk, linux@roeck-us.net, mark.rutland@arm.com, mingo@redhat.com, schwidefsky@de.ibm.com, tglx@linutronix.de, tiwai@suse.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, labbott@redhat.com, linux@armlinux.org.uk, mark.rutland@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: use set_memory.h header
+     Subject: arm64-use-set_memoryh-header-fix
 has been added to the -mm tree.  Its filename is
-     arm-use-set_memoryh-header.patch
+     arm64-use-set_memoryh-header-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-use-set_memoryh-header-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-use-set_memoryh-header-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,79 +38,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laura Abbott <labbott@redhat.com>
-Subject: arm: use set_memory.h header
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm64-use-set_memoryh-header-fix
 
-set_memory_* functions have moved to set_memory.h. Switch to this
-explicitly
+alpha-sort includes, per Mark
 
-Link: http://lkml.kernel.org/r/1488413706-9739-3-git-send-email-labbott@redhat.com
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+Cc: Laura Abbott <labbott@redhat.com>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/pageattr.c    |    1 +
- arch/arm/net/bpf_jit_32.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ arch/arm64/mm/pageattr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mm/pageattr.c~arm-use-set_memoryh-header arch/arm/mm/pageattr.c
---- a/arch/arm/mm/pageattr.c~arm-use-set_memoryh-header
-+++ a/arch/arm/mm/pageattr.c
-@@ -15,6 +15,7 @@
+diff -puN arch/arm64/mm/pageattr.c~arm64-use-set_memoryh-header-fix arch/arm64/mm/pageattr.c
+--- a/arch/arm64/mm/pageattr.c~arm64-use-set_memoryh-header-fix
++++ a/arch/arm64/mm/pageattr.c
+@@ -17,8 +17,8 @@
+ #include <linux/vmalloc.h>
  
  #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
-+#include <asm/set_memory.h>
+-#include <asm/tlbflush.h>
+ #include <asm/set_memory.h>
++#include <asm/tlbflush.h>
  
  struct page_change_data {
  	pgprot_t set_mask;
-diff -puN arch/arm/net/bpf_jit_32.c~arm-use-set_memoryh-header arch/arm/net/bpf_jit_32.c
---- a/arch/arm/net/bpf_jit_32.c~arm-use-set_memoryh-header
-+++ a/arch/arm/net/bpf_jit_32.c
-@@ -17,7 +17,7 @@
- #include <linux/slab.h>
- #include <linux/if_vlan.h>
- 
--#include <asm/cacheflush.h>
-+#include <asm/set_memory.h>
- #include <asm/hwcap.h>
- #include <asm/opcodes.h>
- 
 _
 
-Patches currently in -mm which might be from labbott@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-treewide-move-set_memory_-functions-away-from-cacheflushh.patch
-arm-use-set_memoryh-header.patch
-arm64-use-set_memoryh-header.patch
-s390-use-set_memoryh-header.patch
-x86-use-set_memoryh-header.patch
-agp-use-set_memoryh-header.patch
-drm-use-set_memoryh-header.patch
-intel_th-use-set_memoryh-header.patch
-watchdog-hpwdt-use-set_memoryh-header.patch
-bpf-use-set_memoryh-header.patch
-module-use-set_memoryh-header.patch
-pm-hibernate-use-set_memoryh-header.patch
-alsa-hda-use-set_memoryh-header.patch
-treewide-decouple-cacheflushh-and-set_memoryh.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+treewide-move-set_memory_-functions-away-from-cacheflushh-fix.patch
+arm64-use-set_memoryh-header-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
