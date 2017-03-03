@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-fix-another-corner-case-of-munlock-vs-thps.patch added to
- -mm tree
-Date: Fri, 03 Mar 2017 14:31:46 -0800
-Message-ID: <58b9eed2.W6l5wAGnR6hHJ6wA%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed.patch added to -mm tree
+Date: Fri, 03 Mar 2017 14:17:33 -0800
+Message-ID: <58b9eb7d.H7tPo2CzC7kttkX2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42124 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752087AbdCCWkz (ORCPT
+        with ESMTP id S1752004AbdCCWkz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 17:40:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix another corner case of munlock() vs. THPs
+     Subject: userfaultfd: non-cooperative: userfaultfd_remove revalidate vma in MADV_DONTNEED
 has been added to the -mm tree.  Its filename is
-     thp-fix-another-corner-case-of-munlock-vs-thps.patch
+     userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-fix-another-corner-case-of-munlock-vs-thps.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-fix-another-corner-case-of-munlock-vs-thps.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +39,174 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix another corner case of munlock() vs. THPs
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: non-cooperative: userfaultfd_remove revalidate vma in MADV_DONTNEED
 
-The following test case triggers BUG() in munlock_vma_pages_range():
+userfaultfd_remove() has to be execute before zapping the pagetables or
+UFFDIO_COPY could keep filling pages after zap_page_range returned,
+which would result in non zero data after a MADV_DONTNEED.
 
-	int main(int argc, char *argv[])
-	{
-		int fd;
+However userfaultfd_remove() may have to release the mmap_sem. This
+was handled correctly in MADV_REMOVE, but MADV_DONTNEED accessed a
+potentially stale vma (the very vma passed to zap_page_range(vma, ...)).
 
-		system("mount -t tmpfs -o huge=always none /mnt");
-		fd = open("/mnt/test", O_CREAT | O_RDWR);
-		ftruncate(fd, 4UL << 20);
-		mmap(NULL, 4UL << 20, PROT_READ | PROT_WRITE,
-				MAP_SHARED | MAP_FIXED | MAP_LOCKED, fd, 0);
-		mmap(NULL, 4096, PROT_READ | PROT_WRITE,
-				MAP_SHARED | MAP_LOCKED, fd, 0);
-		munlockall();
-		return 0;
-	}
+The fix consists in revalidating the vma in case userfaultfd_remove()
+had to release the mmap_sem.
 
-The second mmap() create PTE-mapping of the first huge page in file.  It
-makes kernel munlock the page as we never keep PTE-mapped page mlocked.
+This also optimizes away an unnecessary down_read/up_read in the
+MADV_REMOVE case if UFFD_EVENT_FORK had to be delivered.
 
-On munlockall() when we handle vma created by the first mmap(),
-munlock_vma_page() returns page_mask == 0, as the page is not mlocked
-anymore.  On next iteration follow_page_mask() return tail page, but
-page_mask is HPAGE_NR_PAGES - 1.  It makes us skip to the first tail page
-of the next huge page and step on VM_BUG_ON_PAGE(PageMlocked(page)).
+It all remains zero runtime cost in case CONFIG_USERFAULTFD=n as
+userfaultfd_remove() will be defined as "true" at build time.
 
-The fix is not use the page_mask from follow_page_mask() at all.  It has
-no use for us.
-
-Link: http://lkml.kernel.org/r/20170302150252.34120-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>    [4.5+]
+Link: http://lkml.kernel.org/r/20170302173738.18994-3-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/userfaultfd.c              |    9 ++----
+ include/linux/userfaultfd_k.h |    7 ++---
+ mm/madvise.c                  |   44 +++++++++++++++++++++++++++++---
+ 3 files changed, 47 insertions(+), 13 deletions(-)
 
-diff -puN mm/mlock.c~thp-fix-another-corner-case-of-munlock-vs-thps mm/mlock.c
---- a/mm/mlock.c~thp-fix-another-corner-case-of-munlock-vs-thps
-+++ a/mm/mlock.c
-@@ -442,7 +442,7 @@ void munlock_vma_pages_range(struct vm_a
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed
++++ a/fs/userfaultfd.c
+@@ -695,8 +695,7 @@ void mremap_userfaultfd_complete(struct
+ 	userfaultfd_event_wait_completion(ctx, &ewq);
+ }
  
- 	while (start < end) {
- 		struct page *page;
--		unsigned int page_mask;
-+		unsigned int page_mask = 0;
- 		unsigned long page_increm;
- 		struct pagevec pvec;
- 		struct zone *zone;
-@@ -456,8 +456,7 @@ void munlock_vma_pages_range(struct vm_a
- 		 * suits munlock very well (and if somehow an abnormal page
- 		 * has sneaked into the range, we won't oops here: great).
- 		 */
--		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
--				&page_mask);
-+		page = follow_page(vma, start, FOLL_GET | FOLL_DUMP);
+-void userfaultfd_remove(struct vm_area_struct *vma,
+-			struct vm_area_struct **prev,
++bool userfaultfd_remove(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -705,13 +704,11 @@ void userfaultfd_remove(struct vm_area_s
  
- 		if (page && !IS_ERR(page)) {
- 			if (PageTransTail(page)) {
-@@ -468,8 +467,8 @@ void munlock_vma_pages_range(struct vm_a
- 				/*
- 				 * Any THP page found by follow_page_mask() may
- 				 * have gotten split before reaching
--				 * munlock_vma_page(), so we need to recompute
--				 * the page_mask here.
-+				 * munlock_vma_page(), so we need to compute
-+				 * the page_mask here instead.
- 				 */
- 				page_mask = munlock_vma_page(page);
- 				unlock_page(page);
+ 	ctx = vma->vm_userfaultfd_ctx.ctx;
+ 	if (!ctx || !(ctx->features & UFFD_FEATURE_EVENT_REMOVE))
+-		return;
++		return true;
+ 
+ 	userfaultfd_ctx_get(ctx);
+ 	up_read(&mm->mmap_sem);
+ 
+-	*prev = NULL; /* We wait for ACK w/o the mmap semaphore */
+-
+ 	msg_init(&ewq.msg);
+ 
+ 	ewq.msg.event = UFFD_EVENT_REMOVE;
+@@ -720,7 +717,7 @@ void userfaultfd_remove(struct vm_area_s
+ 
+ 	userfaultfd_event_wait_completion(ctx, &ewq);
+ 
+-	down_read(&mm->mmap_sem);
++	return false;
+ }
+ 
+ static bool has_unmap_ctx(struct userfaultfd_ctx *ctx, struct list_head *unmaps,
+diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed include/linux/userfaultfd_k.h
+--- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed
++++ a/include/linux/userfaultfd_k.h
+@@ -61,8 +61,7 @@ extern void mremap_userfaultfd_complete(
+ 					unsigned long from, unsigned long to,
+ 					unsigned long len);
+ 
+-extern void userfaultfd_remove(struct vm_area_struct *vma,
+-			       struct vm_area_struct **prev,
++extern bool userfaultfd_remove(struct vm_area_struct *vma,
+ 			       unsigned long start,
+ 			       unsigned long end);
+ 
+@@ -118,11 +117,11 @@ static inline void mremap_userfaultfd_co
+ {
+ }
+ 
+-static inline void userfaultfd_remove(struct vm_area_struct *vma,
+-				      struct vm_area_struct **prev,
++static inline bool userfaultfd_remove(struct vm_area_struct *vma,
+ 				      unsigned long start,
+ 				      unsigned long end)
+ {
++	return true;
+ }
+ 
+ static inline int userfaultfd_unmap_prep(struct vm_area_struct *vma,
+diff -puN mm/madvise.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed mm/madvise.c
+--- a/mm/madvise.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed
++++ a/mm/madvise.c
+@@ -513,7 +513,43 @@ static long madvise_dontneed(struct vm_a
+ 	if (!can_madv_dontneed_vma(vma))
+ 		return -EINVAL;
+ 
+-	userfaultfd_remove(vma, prev, start, end);
++	if (!userfaultfd_remove(vma, start, end)) {
++		*prev = NULL; /* mmap_sem has been dropped, prev is stale */
++
++		down_read(&current->mm->mmap_sem);
++		vma = find_vma(current->mm, start);
++		if (!vma)
++			return -ENOMEM;
++		if (start < vma->vm_start) {
++			/*
++			 * This "vma" under revalidation is the one
++			 * with the lowest vma->vm_start where start
++			 * is also < vma->vm_end. If start <
++			 * vma->vm_start it means an hole materialized
++			 * in the user address space within the
++			 * virtual range passed to MADV_DONTNEED.
++			 */
++			return -ENOMEM;
++		}
++		if (!can_madv_dontneed_vma(vma))
++			return -EINVAL;
++		if (end > vma->vm_end) {
++			/*
++			 * Don't fail if end > vma->vm_end. If the old
++			 * vma was splitted while the mmap_sem was
++			 * released the effect of the concurrent
++			 * operation may not cause MADV_DONTNEED to
++			 * have an undefined result. There may be an
++			 * adjacent next vma that we'll walk
++			 * next. userfaultfd_remove() will generate an
++			 * UFFD_EVENT_REMOVE repetition on the
++			 * end-vma->vm_end range, but the manager can
++			 * handle a repetition fine.
++			 */
++			end = vma->vm_end;
++		}
++		VM_WARN_ON(start >= end);
++	}
+ 	zap_page_range(vma, start, end - start);
+ 	return 0;
+ }
+@@ -554,8 +590,10 @@ static long madvise_remove(struct vm_are
+ 	 * mmap_sem.
+ 	 */
+ 	get_file(f);
+-	userfaultfd_remove(vma, prev, start, end);
+-	up_read(&current->mm->mmap_sem);
++	if (userfaultfd_remove(vma, start, end)) {
++		/* mmap_sem was not released by userfaultfd_remove() */
++		up_read(&current->mm->mmap_sem);
++	}
+ 	error = vfs_fallocate(f,
+ 				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+ 				offset, end - start);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-rmap-fix-null-pointer-dereference-on-thp-munlocking.patch
-thp-fix-another-corner-case-of-munlock-vs-thps.patch
-thp-reduce-indentation-level-in-change_huge_pmd.patch
-thp-fix-madv_dontneed-vs-numa-balancing-race.patch
-thp-fix-madv_dontneed-vs-madv_free-race.patch
-thp-fix-madv_dontneed-vs-clear-soft-dirty-race.patch
+userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
+userfaultfd-non-cooperative-rollback-userfaultfd_exit.patch
+userfaultfd-non-cooperative-robustness-check.patch
+userfaultfd-non-cooperative-release-all-ctx-in-dup_userfaultfd_complete.patch
+userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed.patch
+userfaultfd-selftest-vm-allow-to-build-in-vm-directory.patch
 
