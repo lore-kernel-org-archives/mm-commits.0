@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + intel_th-use-set_memoryh-header.patch added to -mm tree
-Date: Fri, 03 Mar 2017 15:50:21 -0800
-Message-ID: <58ba013d.LHniLblH/+hNOKTG%akpm@linux-foundation.org>
+Subject: + pm-hibernate-use-set_memoryh-header.patch added to -mm tree
+Date: Fri, 03 Mar 2017 15:50:33 -0800
+Message-ID: <58ba0149.UQ9CkhQdd1pCYJvi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34630 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752398AbdCDAAy (ORCPT
+        with ESMTP id S1752400AbdCDAAy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:00:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: labbott@redhat.com, airlied@linux.ie, alexander.shishkin@linux.intel.com, ar
 
 
 The patch titled
-     Subject: intel_th: use set_memory.h header
+     Subject: kernel/power/snapshot.c: use set_memory.h header
 has been added to the -mm tree.  Its filename is
-     intel_th-use-set_memoryh-header.patch
+     pm-hibernate-use-set_memoryh-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/intel_th-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pm-hibernate-use-set_memoryh-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/intel_th-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pm-hibernate-use-set_memoryh-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: intel_th: use set_memory.h header
+Subject: kernel/power/snapshot.c: use set_memory.h header
 
 set_memory_* functions have moved to set_memory.h. Switch to this
 explicitly.
 
-Link: http://lkml.kernel.org/r/1488413706-9739-9-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488413706-9739-13-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -68,21 +68,20 @@ Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwtracing/intel_th/msu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/power/snapshot.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/hwtracing/intel_th/msu.c~intel_th-use-set_memoryh-header drivers/hwtracing/intel_th/msu.c
---- a/drivers/hwtracing/intel_th/msu.c~intel_th-use-set_memoryh-header
-+++ a/drivers/hwtracing/intel_th/msu.c
-@@ -27,7 +27,7 @@
- #include <linux/io.h>
- #include <linux/dma-mapping.h>
- 
--#include <asm/cacheflush.h>
+diff -puN kernel/power/snapshot.c~pm-hibernate-use-set_memoryh-header kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~pm-hibernate-use-set_memoryh-header
++++ a/kernel/power/snapshot.c
+@@ -36,6 +36,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <asm/io.h>
 +#include <asm/set_memory.h>
  
- #include "intel_th.h"
- #include "msu.h"
+ #include "power.h"
+ 
 _
 
 Patches currently in -mm which might be from labbott@redhat.com are
