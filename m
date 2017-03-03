@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
- added to -mm tree
-Date: Fri, 03 Mar 2017 15:06:32 -0800
-Message-ID: <58b9f6f8.9RLPWyZ/yohueG5s%akpm@linux-foundation.org>
+Subject: + mm-use-is_migrate_isolate_page-to-simplify-the-code.patch added to -mm tree
+Date: Fri, 03 Mar 2017 15:06:34 -0800
+Message-ID: <58b9f6fa.CyctbUaOgEbgVX0n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48988 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752107AbdCCXPy (ORCPT
+        with ESMTP id S1752170AbdCCXPy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 18:15:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, qiuxishi@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-use-is_migrate_highatomic-to-simplify-the-code-fix
+     Subject: mm: use is_migrate_isolate_page() to simplify the code
 has been added to the -mm tree.  Its filename is
-     mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+     mm-use-is_migrate_isolate_page-to-simplify-the-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-is_migrate_isolate_page-to-simplify-the-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-is_migrate_isolate_page-to-simplify-the-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-is_migrate_highatomic-to-simplify-the-code-fix
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm: use is_migrate_isolate_page() to simplify the code
 
-use static inlines rather than macros, per mhocko
+Use is_migrate_isolate_page() to simplify the code, no functional changes.
 
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/58B94FB1.8020802@huawei.com
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    7 +------
- mm/internal.h          |   10 ++++++++++
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ mm/page_isolation.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix
-+++ a/include/linux/mmzone.h
-@@ -35,7 +35,7 @@
-  */
- #define PAGE_ALLOC_COSTLY_ORDER 3
+diff -puN mm/page_isolation.c~mm-use-is_migrate_isolate_page-to-simplify-the-code mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-use-is_migrate_isolate_page-to-simplify-the-code
++++ a/mm/page_isolation.c
+@@ -88,7 +88,7 @@ static void unset_migratetype_isolate(st
  
--enum {
-+enum migratetype {
- 	MIGRATE_UNMOVABLE,
- 	MIGRATE_MOVABLE,
- 	MIGRATE_RECLAIMABLE,
-@@ -66,11 +66,6 @@ enum {
- /* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
- extern char * const migratetype_names[MIGRATE_TYPES];
+ 	zone = page_zone(page);
+ 	spin_lock_irqsave(&zone->lock, flags);
+-	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
++	if (!is_migrate_isolate_page(page))
+ 		goto out;
  
--#define is_migrate_highatomic(migratetype)				\
--	(migratetype == MIGRATE_HIGHATOMIC)
--#define is_migrate_highatomic_page(_page)				\
--	(get_pageblock_migratetype(_page) == MIGRATE_HIGHATOMIC)
--
- #ifdef CONFIG_CMA
- #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
- #  define is_migrate_cma_page(_page) (get_pageblock_migratetype(_page) == MIGRATE_CMA)
-diff -puN mm/internal.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix mm/internal.h
---- a/mm/internal.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix
-+++ a/mm/internal.h
-@@ -503,4 +503,14 @@ extern const struct trace_print_flags pa
- extern const struct trace_print_flags vmaflag_names[];
- extern const struct trace_print_flags gfpflag_names[];
- 
-+static inline bool is_migrate_highatomic(enum migratetype migratetype)
-+{
-+	return migratetype == MIGRATE_HIGHATOMIC;
-+}
-+
-+static inline bool is_migrate_highatomic_page(struct page *page)
-+{
-+	return get_pageblock_migratetype(page) == MIGRATE_HIGHATOMIC;
-+}
-+
- #endif	/* __MM_INTERNAL_H */
+ 	/*
+@@ -205,7 +205,7 @@ int undo_isolate_page_range(unsigned lon
+ 	     pfn < end_pfn;
+ 	     pfn += pageblock_nr_pages) {
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+-		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
++		if (!page || !is_migrate_isolate_page(page))
+ 			continue;
+ 		unset_migratetype_isolate(page, migratetype);
+ 	}
+@@ -262,7 +262,7 @@ int test_pages_isolated(unsigned long st
+ 	 */
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+-		if (page && get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
++		if (page && !is_migrate_isolate_page(page))
+ 			break;
+ 	}
+ 	page = __first_valid_page(start_pfn, end_pfn - start_pfn);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code.patch
+mm-use-is_migrate_isolate_page-to-simplify-the-code.patch
 
