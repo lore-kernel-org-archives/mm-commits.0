@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-virt-use-get_user_pages_unlocked.patch added to -mm
  tree
-Date: Fri, 03 Mar 2017 16:19:11 -0800
-Message-ID: <58ba07ff.BRvrL9KEJqRecRpa%akpm@linux-foundation.org>
+Date: Fri, 03 Mar 2017 16:22:21 -0800
+Message-ID: <58ba08bd.VT32RbHAannKe2W0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42308 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42906 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751742AbdCDATM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:19:12 -0500
+        with ESMTP id S1752004AbdCDAXR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:23:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lstoakes@gmail.com, galak@kernel.crashing.org, gregkh@linuxfoundation.org, mhocko@kernel.org, mihai.caraman@freescale.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
@@ -51,7 +51,7 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
 Cc: Kumar Gala <galak@kernel.crashing.org>
 Cc: Mihai Caraman <mihai.caraman@freescale.com>
-Cc: Greg KH <gregkh@linuxfoundation.org
+Cc: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
