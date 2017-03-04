@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-virt-use-get_user_pages_unlocked.patch added to -mm
- tree
-Date: Fri, 03 Mar 2017 16:22:21 -0800
-Message-ID: <58ba08bd.VT32RbHAannKe2W0%akpm@linux-foundation.org>
+Subject: +
+ initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch added
+ to -mm tree
+Date: Fri, 03 Mar 2017 16:25:05 -0800
+Message-ID: <58ba0961.1aoXpfhzjcb+1Fzz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752004AbdCDAXR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:23:17 -0500
+        with ESMTP id S1752105AbdCDAfz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:35:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lstoakes@gmail.com, galak@kernel.crashing.org, gregkh@linuxfoundation.org, mhocko@kernel.org, mihai.caraman@freescale.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
+To: daniel.thompson@linaro.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/virt/fsl_hypervisor.c: use get_user_pages_unlocked()
+     Subject: initramfs: provide a way to ignore image provided by bootloader
 has been added to the -mm tree.  Its filename is
-     drivers-virt-use-get_user_pages_unlocked.patch
+     initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-virt-use-get_user_pages_unlocked.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-virt-use-get_user_pages_unlocked.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +40,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: drivers/virt/fsl_hypervisor.c: use get_user_pages_unlocked()
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: initramfs: provide a way to ignore image provided by bootloader
 
-Moving from get_user_pages() to get_user_pages_unlocked() simplifies the code
-and takes advantage of VM_FAULT_RETRY functionality when faulting in pages.
+Many "embedded" architectures provide CMDLINE_FORCE to allow the kernel to
+override the command line provided by an inflexible bootloader.  However
+there is currrently no way for the kernel to override the initramfs image
+provided by the bootloader meaning there are still ways for bootloaders to
+make things difficult for us.
 
-Link: http://lkml.kernel.org/r/20161101194332.23961-1-lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Mihai Caraman <mihai.caraman@freescale.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
+Fix this by introducing INITRAMFS_FORCE which can prevent the kernel from
+loading the bootloader supplied image.
+
+We use CMDLINE_FORCE (and its friend CMDLINE_EXTEND) to imply that the
+system has an inflexible bootloader.  This allow us to avoid presenting
+this config option to users of systems where inflexible bootloaders aren't
+usually a problem.
+
+Link: http://lkml.kernel.org/r/20170217121940.30126-1-daniel.thompson@linaro.org
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virt/fsl_hypervisor.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ init/initramfs.c |    2 +-
+ usr/Kconfig      |   10 ++++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/virt/fsl_hypervisor.c~drivers-virt-use-get_user_pages_unlocked drivers/virt/fsl_hypervisor.c
---- a/drivers/virt/fsl_hypervisor.c~drivers-virt-use-get_user_pages_unlocked
-+++ a/drivers/virt/fsl_hypervisor.c
-@@ -243,11 +243,8 @@ static long ioctl_memcpy(struct fsl_hv_i
- 	sg_list = PTR_ALIGN(sg_list_unaligned, sizeof(struct fh_sg_list));
+diff -puN init/initramfs.c~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader init/initramfs.c
+--- a/init/initramfs.c~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader
++++ a/init/initramfs.c
+@@ -611,7 +611,7 @@ static int __init populate_rootfs(void)
+ 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
+ 	if (err)
+ 		panic("%s", err); /* Failed to decompress INTERNAL initramfs */
+-	if (initrd_start) {
++	if (initrd_start && !IS_ENABLED(CONFIG_INITRAMFS_FORCE)) {
+ #ifdef CONFIG_BLK_DEV_RAM
+ 		int fd;
+ 		printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
+diff -puN usr/Kconfig~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader usr/Kconfig
+--- a/usr/Kconfig~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader
++++ a/usr/Kconfig
+@@ -21,6 +21,16 @@ config INITRAMFS_SOURCE
  
- 	/* Get the physical addresses of the source buffer */
--	down_read(&current->mm->mmap_sem);
--	num_pinned = get_user_pages(param.local_vaddr - lb_offset,
--		num_pages, (param.source == -1) ? 0 : FOLL_WRITE,
--		pages, NULL);
--	up_read(&current->mm->mmap_sem);
-+	num_pinned = get_user_pages_unlocked(param.local_vaddr - lb_offset,
-+		num_pages, pages, (param.source == -1) ? 0 : FOLL_WRITE);
+ 	  If you are not sure, leave it blank.
  
- 	if (num_pinned != num_pages) {
- 		/* get_user_pages() failed */
++config INITRAMFS_FORCE
++	bool "Ignore the initramfs passed by the bootloader"
++	depends on CMDLINE_EXTEND || CMDLINE_FORCE
++	help
++	  This option causes the kernel to ignore the initramfs image
++	  (or initrd image) passed to it by the bootloader. This is
++	  analogous to CMDLINE_FORCE, which is found on some architectures,
++	  and is useful if you cannot or don't want to change the image
++	  your bootloader passes to the kernel.
++
+ config INITRAMFS_ROOT_UID
+ 	int "User ID to map to 0 (user root)"
+ 	depends on INITRAMFS_SOURCE!=""
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from daniel.thompson@linaro.org are
 
-drivers-virt-use-get_user_pages_unlocked.patch
+initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
 
