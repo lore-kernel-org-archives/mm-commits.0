@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + treewide-decouple-cacheflushh-and-set_memoryh.patch added to
- -mm tree
-Date: Fri, 03 Mar 2017 15:50:39 -0800
-Message-ID: <58ba014f.VSeR5u21dJaYGnY3%akpm@linux-foundation.org>
+Subject: + drivers-virt-use-get_user_pages_unlocked.patch added to -mm
+ tree
+Date: Fri, 03 Mar 2017 16:19:11 -0800
+Message-ID: <58ba07ff.BRvrL9KEJqRecRpa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42308 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752426AbdCDAA7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:00:59 -0500
+        with ESMTP id S1751742AbdCDATM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:19:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, airlied@linux.ie, alexander.shishkin@linux.intel.com, arnd@arndb.de, catalin.marinas@arm.com, daniel@iogearbox.net, davem@davemloft.net, heiko.carstens@de.ibm.com, hpa@zytor.com, jeyu@redhat.com, keescook@chromium.org, linux@roeck-us.net, mark.rutland@arm.com, mingo@redhat.com, rmk+kernel@armlinux.org.uk, schwidefsky@de.ibm.com, tglx@linutronix.de, tiwai@suse.com, will.deacon@arm.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: lstoakes@gmail.com, galak@kernel.crashing.org, gregkh@linuxfoundation.org, mhocko@kernel.org, mihai.caraman@freescale.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide: decouple cacheflush.h and set_memory.h
+     Subject: drivers/virt/fsl_hypervisor.c: use get_user_pages_unlocked()
 has been added to the -mm tree.  Its filename is
-     treewide-decouple-cacheflushh-and-set_memoryh.patch
+     drivers-virt-use-get_user_pages_unlocked.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-virt-use-get_user_pages_unlocked.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-virt-use-get_user_pages_unlocked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,113 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laura Abbott <labbott@redhat.com>
-Subject: treewide: decouple cacheflush.h and set_memory.h
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: drivers/virt/fsl_hypervisor.c: use get_user_pages_unlocked()
 
-Now that all call sites, completely decouple cacheflush.h and
-set_memory.h
+Moving from get_user_pages() to get_user_pages_unlocked() simplifies the code
+and takes advantage of VM_FAULT_RETRY functionality when faulting in pages.
 
-Link: http://lkml.kernel.org/r/1488413706-9739-15-git-send-email-labbott@redhat.com
-Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Takashi Iwai <tiwai@suse.com>
+Link: http://lkml.kernel.org/r/20161101194332.23961-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Mihai Caraman <mihai.caraman@freescale.com>
+Cc: Greg KH <gregkh@linuxfoundation.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/cacheflush.h   |    1 -
- arch/arm64/include/asm/cacheflush.h |    1 -
- arch/s390/include/asm/Kbuild        |    1 +
- arch/s390/include/asm/cacheflush.h  |    8 --------
- arch/x86/include/asm/cacheflush.h   |    1 -
- 5 files changed, 1 insertion(+), 11 deletions(-)
+ drivers/virt/fsl_hypervisor.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm/include/asm/cacheflush.h
---- a/arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/arm/include/asm/cacheflush.h
-@@ -16,7 +16,6 @@
- #include <asm/shmparam.h>
- #include <asm/cachetype.h>
- #include <asm/outercache.h>
--#include <asm/set_memory.h>
+diff -puN drivers/virt/fsl_hypervisor.c~drivers-virt-use-get_user_pages_unlocked drivers/virt/fsl_hypervisor.c
+--- a/drivers/virt/fsl_hypervisor.c~drivers-virt-use-get_user_pages_unlocked
++++ a/drivers/virt/fsl_hypervisor.c
+@@ -243,11 +243,8 @@ static long ioctl_memcpy(struct fsl_hv_i
+ 	sg_list = PTR_ALIGN(sg_list_unaligned, sizeof(struct fh_sg_list));
  
- #define CACHE_COLOUR(vaddr)	((vaddr & (SHMLBA - 1)) >> PAGE_SHIFT)
+ 	/* Get the physical addresses of the source buffer */
+-	down_read(&current->mm->mmap_sem);
+-	num_pinned = get_user_pages(param.local_vaddr - lb_offset,
+-		num_pages, (param.source == -1) ? 0 : FOLL_WRITE,
+-		pages, NULL);
+-	up_read(&current->mm->mmap_sem);
++	num_pinned = get_user_pages_unlocked(param.local_vaddr - lb_offset,
++		num_pages, pages, (param.source == -1) ? 0 : FOLL_WRITE);
  
-diff -puN arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm64/include/asm/cacheflush.h
---- a/arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/arm64/include/asm/cacheflush.h
-@@ -20,7 +20,6 @@
- #define __ASM_CACHEFLUSH_H
- 
- #include <linux/mm.h>
--#include <asm/set_memory.h>
- 
- /*
-  * This flag is used to indicate that the page pointed to by a pte is clean
-diff -puN arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh arch/s390/include/asm/Kbuild
---- a/arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/s390/include/asm/Kbuild
-@@ -1,4 +1,5 @@
- generic-y += asm-offsets.h
-+generic-y += cacheflush.h
- generic-y += clkdev.h
- generic-y += dma-contiguous.h
- generic-y += export.h
-diff -puN arch/s390/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh /dev/null
---- a/arch/s390/include/asm/cacheflush.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _S390_CACHEFLUSH_H
--#define _S390_CACHEFLUSH_H
--
--/* Caches aren't brain-dead on the s390. */
--#include <asm-generic/cacheflush.h>
--#include <asm/set_memory.h>
--
--#endif /* _S390_CACHEFLUSH_H */
-diff -puN arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/include/asm/cacheflush.h
---- a/arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/x86/include/asm/cacheflush.h
-@@ -4,7 +4,6 @@
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
--#include <asm/set_memory.h>
- 
- void clflush_cache_range(void *addr, unsigned int size);
- 
+ 	if (num_pinned != num_pages) {
+ 		/* get_user_pages() failed */
 _
 
-Patches currently in -mm which might be from labbott@redhat.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-treewide-move-set_memory_-functions-away-from-cacheflushh.patch
-arm-use-set_memoryh-header.patch
-arm64-use-set_memoryh-header.patch
-s390-use-set_memoryh-header.patch
-x86-use-set_memoryh-header.patch
-agp-use-set_memoryh-header.patch
-drm-use-set_memoryh-header.patch
-intel_th-use-set_memoryh-header.patch
-watchdog-hpwdt-use-set_memoryh-header.patch
-bpf-use-set_memoryh-header.patch
-module-use-set_memoryh-header.patch
-pm-hibernate-use-set_memoryh-header.patch
-alsa-hda-use-set_memoryh-header.patch
-treewide-decouple-cacheflushh-and-set_memoryh.patch
+drivers-virt-use-get_user_pages_unlocked.patch
 
