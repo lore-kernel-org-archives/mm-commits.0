@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + taskstats-add-e-u-stime-for-tgid-command-fix.patch added to -mm tree
-Date: Mon, 06 Mar 2017 14:40:38 -0800
-Message-ID: <58bde566.hQGPqBLRMKs+hZol%akpm@linux-foundation.org>
+Subject: + treewide-decouple-cacheflushh-and-set_memoryh-fix-fix.patch
+ added to -mm tree
+Date: Mon, 06 Mar 2017 15:40:25 -0800
+Message-ID: <58bdf369.iCu+vJ03UkNWYlPN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54696 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753274AbdCGAhM (ORCPT
+        with ESMTP id S1752742AbdCGAhM (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 19:37:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bsingharora@gmail.com, oleg@redhat.com, xiao.zhang@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: taskstats-add-e-u-stime-for-tgid-command-fix
+     Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix
 has been added to the -mm tree.  Its filename is
-     taskstats-add-e-u-stime-for-tgid-command-fix.patch
+     treewide-decouple-cacheflushh-and-set_memoryh-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/taskstats-add-e-u-stime-for-tgid-command-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/taskstats-add-e-u-stime-for-tgid-command-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: taskstats-add-e-u-stime-for-tgid-command-fix
+Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix
 
-run ktime_get_ns() a single time
+fix sound/x86/intel_hdmi_audio.c
 
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Zhang Xiao <xiao.zhang@windriver.com>
+Cc: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ sound/x86/intel_hdmi_audio.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix
-+++ a/kernel/taskstats.c
-@@ -211,6 +211,7 @@ static int fill_stats_for_tgid(pid_t tgi
- 	unsigned long flags;
- 	int rc = -ESRCH;
- 	u64 delta, utime, stime;
-+	u64 start_time;
- 
- 	/*
- 	 * Add additional stats from live tasks except zombie thread group
-@@ -228,6 +229,7 @@ static int fill_stats_for_tgid(pid_t tgi
- 		memset(stats, 0, sizeof(*stats));
- 
- 	tsk = first;
-+	start_time = ktime_get_ns();
- 	do {
- 		if (tsk->exit_state)
- 			continue;
-@@ -240,7 +242,7 @@ static int fill_stats_for_tgid(pid_t tgi
- 		delayacct_add_tsk(stats, tsk);
- 
- 		/* calculate task elapsed time in nsec */
--		delta = ktime_get_ns() - tsk->start_time;
-+		delta = start_time - tsk->start_time;
- 		/* Convert to micro seconds */
- 		do_div(delta, NSEC_PER_USEC);
- 		stats->ac_etime += delta;
+diff -puN sound/x86/intel_hdmi_audio.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix sound/x86/intel_hdmi_audio.c
+--- a/sound/x86/intel_hdmi_audio.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix
++++ a/sound/x86/intel_hdmi_audio.c
+@@ -30,7 +30,10 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
++
+ #include <asm/cacheflush.h>
++#include <asm/set_memory.h>
++
+ #include <sound/core.h>
+ #include <sound/asoundef.h>
+ #include <sound/pcm.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,9 +82,12 @@ jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
 checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
 checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
 taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
 linux-next-rejects.patch
 treewide-move-set_memory_-functions-away-from-cacheflushh-fix.patch
 arm64-use-set_memoryh-header-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
 
