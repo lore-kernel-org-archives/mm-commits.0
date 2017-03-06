@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch added
- to -mm tree
-Date: Mon, 06 Mar 2017 13:47:56 -0800
-Message-ID: <58bdd90c.a7QVOUY2DsVaSfyM%akpm@linux-foundation.org>
+Subject: + md-use-kvmalloc-rather-than-opencoded-variant.patch added to
+ -mm tree
+Date: Mon, 06 Mar 2017 13:48:17 -0800
+Message-ID: <58bdd921.Hz7Fr3C8/K8h1rhm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55500 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932518AbdCFWZy (ORCPT
+        with ESMTP id S932524AbdCFWZy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 17:25:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, davem@davemloft.net, mst@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, mpatocka@redhat.com, snitzer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: support __GFP_REPEAT in kvmalloc_node for >32kB
+     Subject: drivers/md/dm-ioctl.c: use kvmalloc rather than opencoded variant
 has been added to the -mm tree.  Its filename is
-     mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
+     md-use-kvmalloc-rather-than-opencoded-variant.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/md-use-kvmalloc-rather-than-opencoded-variant.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/md-use-kvmalloc-rather-than-opencoded-variant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,158 +40,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: support __GFP_REPEAT in kvmalloc_node for >32kB
+Subject: drivers/md/dm-ioctl.c: use kvmalloc rather than opencoded variant
 
-vhost code uses __GFP_REPEAT when allocating vhost_virtqueue resp. 
-vhost_vsock because it would really like to prefer kmalloc to the vmalloc
-fallback - see 23cc5a991c7a ("vhost-net: extend device allocation to
-vmalloc") for more context.  Michael Tsirkin has also noted:
+copy_params uses kmalloc with vmalloc fallback.  We already have a helper
+for that - kvmalloc.  This caller requires GFP_NOIO semantic so it hasn't
+been converted with many others by previous patches.  All we need to
+achieve this semantic is to use the scope memalloc_noio_{save,restore}
+around kvmalloc.
 
-"__GFP_REPEAT overhead is during allocation time.  Using vmalloc means all
-accesses are slowed down.  Allocation is not on data path, accesses are."
-
-The similar applies to other vhost_kvzalloc users.
-
-Let's teach kvmalloc_node to handle __GFP_REPEAT properly.  There are two
-things to be careful about.  First we should prevent from the OOM killer
-and so have to involve __GFP_NORETRY by default and secondly override
-__GFP_REPEAT for !costly order requests as the __GFP_REPEAT is ignored for
-!costly orders.
-
-Supporting __GFP_REPEAT like semantic for !costly request is possible it
-would require changes in the page allocator.  This is out of scope of this
-patch.
-
-This patch shouldn't introduce any functional change.
-
-Link: http://lkml.kernel.org/r/20170306103032.2540-3-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170306103327.2766-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Mike Snitzer <snitzer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vhost/net.c   |    9 +++------
- drivers/vhost/vhost.c |   15 +++------------
- drivers/vhost/vsock.c |    9 +++------
- mm/util.c             |   18 +++++++++++++++---
- 4 files changed, 24 insertions(+), 27 deletions(-)
+ drivers/md/dm-ioctl.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN drivers/vhost/net.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb drivers/vhost/net.c
---- a/drivers/vhost/net.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
-+++ a/drivers/vhost/net.c
-@@ -817,12 +817,9 @@ static int vhost_net_open(struct inode *
- 	struct vhost_virtqueue **vqs;
- 	int i;
+diff -puN drivers/md/dm-ioctl.c~md-use-kvmalloc-rather-than-opencoded-variant drivers/md/dm-ioctl.c
+--- a/drivers/md/dm-ioctl.c~md-use-kvmalloc-rather-than-opencoded-variant
++++ a/drivers/md/dm-ioctl.c
+@@ -1699,6 +1699,7 @@ static int copy_params(struct dm_ioctl _
+ 	struct dm_ioctl *dmi;
+ 	int secure_data;
+ 	const size_t minimum_data_size = offsetof(struct dm_ioctl, data);
++	unsigned noio_flag;
  
--	n = kmalloc(sizeof *n, GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
--	if (!n) {
--		n = vmalloc(sizeof *n);
--		if (!n)
--			return -ENOMEM;
--	}
-+	n = kvmalloc(sizeof *n, GFP_KERNEL | __GFP_REPEAT);
-+	if (!n)
-+		return -ENOMEM;
- 	vqs = kmalloc(VHOST_NET_VQ_MAX * sizeof(*vqs), GFP_KERNEL);
- 	if (!vqs) {
- 		kvfree(n);
-diff -puN drivers/vhost/vhost.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb drivers/vhost/vhost.c
---- a/drivers/vhost/vhost.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
-+++ a/drivers/vhost/vhost.c
-@@ -534,18 +534,9 @@ err_mm:
- }
- EXPORT_SYMBOL_GPL(vhost_dev_set_owner);
- 
--static void *vhost_kvzalloc(unsigned long size)
--{
--	void *n = kzalloc(size, GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
--
--	if (!n)
--		n = vzalloc(size);
--	return n;
--}
--
- struct vhost_umem *vhost_dev_reset_owner_prepare(void)
- {
--	return vhost_kvzalloc(sizeof(struct vhost_umem));
-+	return kvzalloc(sizeof(struct vhost_umem), GFP_KERNEL);
- }
- EXPORT_SYMBOL_GPL(vhost_dev_reset_owner_prepare);
- 
-@@ -1276,7 +1267,7 @@ EXPORT_SYMBOL_GPL(vhost_vq_access_ok);
- 
- static struct vhost_umem *vhost_umem_alloc(void)
- {
--	struct vhost_umem *umem = vhost_kvzalloc(sizeof(*umem));
-+	struct vhost_umem *umem = kvzalloc(sizeof(*umem), GFP_KERNEL);
- 
- 	if (!umem)
- 		return NULL;
-@@ -1302,7 +1293,7 @@ static long vhost_set_memory(struct vhos
- 		return -EOPNOTSUPP;
- 	if (mem.nregions > max_mem_regions)
- 		return -E2BIG;
--	newmem = vhost_kvzalloc(size + mem.nregions * sizeof(*m->regions));
-+	newmem = kvzalloc(size + mem.nregions * sizeof(*m->regions), GFP_KERNEL);
- 	if (!newmem)
- 		return -ENOMEM;
- 
-diff -puN drivers/vhost/vsock.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb drivers/vhost/vsock.c
---- a/drivers/vhost/vsock.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
-+++ a/drivers/vhost/vsock.c
-@@ -460,12 +460,9 @@ static int vhost_vsock_dev_open(struct i
- 	/* This struct is large and allocation could fail, fall back to vmalloc
- 	 * if there is no other way.
+ 	if (copy_from_user(param_kernel, user, minimum_data_size))
+ 		return -EFAULT;
+@@ -1721,15 +1722,9 @@ static int copy_params(struct dm_ioctl _
+ 	 * Use kmalloc() rather than vmalloc() when we can.
  	 */
--	vsock = kzalloc(sizeof(*vsock), GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
--	if (!vsock) {
--		vsock = vmalloc(sizeof(*vsock));
--		if (!vsock)
--			return -ENOMEM;
+ 	dmi = NULL;
+-	if (param_kernel->data_size <= KMALLOC_MAX_SIZE)
+-		dmi = kmalloc(param_kernel->data_size, GFP_NOIO | __GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN);
+-
+-	if (!dmi) {
+-		unsigned noio_flag;
+-		noio_flag = memalloc_noio_save();
+-		dmi = __vmalloc(param_kernel->data_size, GFP_NOIO | __GFP_HIGH | __GFP_HIGHMEM, PAGE_KERNEL);
+-		memalloc_noio_restore(noio_flag);
 -	}
-+	vsock = kvmalloc(sizeof(*vsock), GFP_KERNEL | __GFP_REPEAT);
-+	if (!vsock)
-+		return -ENOMEM;
++	noio_flag = memalloc_noio_save();
++	dmi = kvmalloc(param_kernel->data_size, GFP_KERNEL);
++	memalloc_noio_restore(noio_flag);
  
- 	vqs = kmalloc_array(ARRAY_SIZE(vsock->vqs), sizeof(*vqs), GFP_KERNEL);
- 	if (!vqs) {
-diff -puN mm/util.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb mm/util.c
---- a/mm/util.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
-+++ a/mm/util.c
-@@ -339,7 +339,9 @@ EXPORT_SYMBOL(vm_mmap);
-  * Uses kmalloc to get the memory but if the allocation fails then falls back
-  * to the vmalloc allocator. Use kvfree for freeing the memory.
-  *
-- * Reclaim modifiers - __GFP_NORETRY, __GFP_REPEAT and __GFP_NOFAIL are not supported
-+ * Reclaim modifiers - __GFP_NORETRY and __GFP_NOFAIL are not supported. __GFP_REPEAT
-+ * is supported only for large (>32kB) allocations, and it should be used only if
-+ * kmalloc is preferable to the vmalloc fallback, due to visible performance drawbacks.
-  *
-  * Any use of gfp flags outside of GFP_KERNEL should be consulted with mm people.
-  */
-@@ -358,8 +360,18 @@ void *kvmalloc_node(size_t size, gfp_t f
- 	 * Make sure that larger requests are not too disruptive - no OOM
- 	 * killer and no allocation failure warnings as we have a fallback
- 	 */
--	if (size > PAGE_SIZE)
--		kmalloc_flags |= __GFP_NORETRY | __GFP_NOWARN;
-+	if (size > PAGE_SIZE) {
-+		kmalloc_flags |= __GFP_NOWARN;
-+
-+		/*
-+		 * We have to override __GFP_REPEAT by __GFP_NORETRY for !costly
-+		 * requests because there is no other way to tell the allocator
-+		 * that we want to fail rather than retry endlessly.
-+		 */
-+		if (!(kmalloc_flags & __GFP_REPEAT) ||
-+				(size <= PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
-+			kmalloc_flags |= __GFP_NORETRY;
-+	}
- 
- 	ret = kmalloc_node(size, kmalloc_flags, node);
- 
+ 	if (!dmi) {
+ 		if (secure_data && clear_user(user, param_kernel->data_size))
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
