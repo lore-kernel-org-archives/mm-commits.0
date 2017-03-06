@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-drop-unused-pmdp_huge_get_and_clear_notify.patch added to
- -mm tree
-Date: Mon, 06 Mar 2017 13:33:59 -0800
-Message-ID: <58bdd5c7.RbKCRcOfKcHzsWmF%akpm@linux-foundation.org>
+Subject: +
+ jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+ added to -mm tree
+Date: Mon, 06 Mar 2017 13:27:23 -0800
+Message-ID: <58bdd43b.h15d0LKt2hxhG90q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751073AbdCFVey (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 16:34:54 -0500
+        with ESMTP id S932343AbdCFVfy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 16:35:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dave.hansen@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop unused pmdp_huge_get_and_clear_notify()
+     Subject: jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-drop-unused-pmdp_huge_get_and_clear_notify.patch
+     jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-unused-pmdp_huge_get_and_clear_notify.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-unused-pmdp_huge_get_and_clear_notify.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +40,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop unused pmdp_huge_get_and_clear_notify()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes
 
-Dave noticed that after fixing MADV_DONTNEED vs.  numa balancing race the
-last pmdp_huge_get_and_clear_notify() user is gone.
+WARNING: line over 80 characters
+#42: FILE: fs/jbd2/journal.c:210:
++	 * Make sure that no allocations from this kernel thread will ever recurse
 
-Let's drop the helper.
+total: 0 errors, 1 warnings, 20 lines checked
 
-Link: http://lkml.kernel.org/r/20170306112047.24809-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   13 -------------
- 1 file changed, 13 deletions(-)
+ fs/jbd2/journal.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mmu_notifier.h~mm-drop-unused-pmdp_huge_get_and_clear_notify include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mm-drop-unused-pmdp_huge_get_and_clear_notify
-+++ a/include/linux/mmu_notifier.h
-@@ -394,18 +394,6 @@ static inline void mmu_notifier_mm_destr
- 	___pud;								\
- })
+diff -puN fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes
++++ a/fs/jbd2/journal.c
+@@ -207,9 +207,10 @@ static int kjournald2(void *arg)
+ 	wake_up(&journal->j_wait_done_commit);
  
--#define pmdp_huge_get_and_clear_notify(__mm, __haddr, __pmd)		\
--({									\
--	unsigned long ___haddr = __haddr & HPAGE_PMD_MASK;		\
--	pmd_t ___pmd;							\
--									\
--	___pmd = pmdp_huge_get_and_clear(__mm, __haddr, __pmd);		\
--	mmu_notifier_invalidate_range(__mm, ___haddr,			\
--				      ___haddr + HPAGE_PMD_SIZE);	\
--									\
--	___pmd;								\
--})
+ 	/*
+-	 * Make sure that no allocations from this kernel thread will ever recurse
+-	 * to the fs layer because we are responsible for the transaction commit
+-	 * and any fs involvement might get stuck waiting for the trasn. commit.
++	 * Make sure that no allocations from this kernel thread will ever
++	 * recurse to the fs layer because we are responsible for the
++	 * transaction commit and any fs involvement might get stuck waiting for
++	 * the trasn. commit.
+ 	 */
+ 	memalloc_nofs_save();
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+linux-next-rejects.patch
+treewide-move-set_memory_-functions-away-from-cacheflushh-fix.patch
+arm64-use-set_memoryh-header-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
