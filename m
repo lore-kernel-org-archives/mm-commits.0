@@ -1,107 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: +
- initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch added
- to -mm tree
-Date: Fri, 03 Mar 2017 16:25:05 -0800
-Message-ID: <58ba0961.1aoXpfhzjcb+1Fzz%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 06 Mar 2017 11:49:07 -0800
+Message-ID: <58bdbd33.Uk0gWL/rUX8zWJqy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35064 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752105AbdCDAfz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2017 19:35:55 -0500
+        with ESMTP id S932508AbdCFTud (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 14:50:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.thompson@linaro.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: provide a way to ignore image provided by bootloader
-has been added to the -mm tree.  Its filename is
-     initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Subject: initramfs: provide a way to ignore image provided by bootloader
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Many "embedded" architectures provide CMDLINE_FORCE to allow the kernel to
-override the command line provided by an inflexible bootloader.  However
-there is currrently no way for the kernel to override the initramfs image
-provided by the bootloader meaning there are still ways for bootloaders to
-make things difficult for us.
-
-Fix this by introducing INITRAMFS_FORCE which can prevent the kernel from
-loading the bootloader supplied image.
-
-We use CMDLINE_FORCE (and its friend CMDLINE_EXTEND) to imply that the
-system has an inflexible bootloader.  This allow us to avoid presenting
-this config option to users of systems where inflexible bootloaders aren't
-usually a problem.
-
-Link: http://lkml.kernel.org/r/20170217121940.30126-1-daniel.thompson@linaro.org
-Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |    2 +-
- usr/Kconfig      |   10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/scsi/qla2xxx/qla_isr.c |   45 -------------------------------
+ fs/f2fs/f2fs.h                 |    5 ---
+ 2 files changed, 50 deletions(-)
 
-diff -puN init/initramfs.c~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader init/initramfs.c
---- a/init/initramfs.c~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader
-+++ a/init/initramfs.c
-@@ -611,7 +611,7 @@ static int __init populate_rootfs(void)
- 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
- 	if (err)
- 		panic("%s", err); /* Failed to decompress INTERNAL initramfs */
--	if (initrd_start) {
-+	if (initrd_start && !IS_ENABLED(CONFIG_INITRAMFS_FORCE)) {
- #ifdef CONFIG_BLK_DEV_RAM
- 		int fd;
- 		printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
-diff -puN usr/Kconfig~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader usr/Kconfig
---- a/usr/Kconfig~initramfs-provide-a-way-to-ignore-image-provided-by-bootloader
-+++ a/usr/Kconfig
-@@ -21,6 +21,16 @@ config INITRAMFS_SOURCE
+diff -puN drivers/scsi/qla2xxx/qla_isr.c~linux-next-git-rejects drivers/scsi/qla2xxx/qla_isr.c
+--- a/drivers/scsi/qla2xxx/qla_isr.c~linux-next-git-rejects
++++ a/drivers/scsi/qla2xxx/qla_isr.c
+@@ -572,7 +572,6 @@ qla2x00_find_fcport_by_loopid(scsi_qla_h
+ 			return f;
+ 	return NULL;
+ }
+-<<<<<<< HEAD
  
- 	  If you are not sure, leave it blank.
+ fc_port_t *
+ qla2x00_find_fcport_by_wwpn(scsi_qla_host_t *vha, u8 *wwpn, u8 incl_deleted)
+@@ -592,27 +591,6 @@ qla2x00_find_fcport_by_wwpn(scsi_qla_hos
+ }
  
-+config INITRAMFS_FORCE
-+	bool "Ignore the initramfs passed by the bootloader"
-+	depends on CMDLINE_EXTEND || CMDLINE_FORCE
-+	help
-+	  This option causes the kernel to ignore the initramfs image
-+	  (or initrd image) passed to it by the bootloader. This is
-+	  analogous to CMDLINE_FORCE, which is found on some architectures,
-+	  and is useful if you cannot or don't want to change the image
-+	  your bootloader passes to the kernel.
-+
- config INITRAMFS_ROOT_UID
- 	int "User ID to map to 0 (user root)"
- 	depends on INITRAMFS_SOURCE!=""
+ fc_port_t *
+-=======
+-
+-fc_port_t *
+-qla2x00_find_fcport_by_wwpn(scsi_qla_host_t *vha, u8 *wwpn, u8 incl_deleted)
+-{
+-	fc_port_t *f, *tf;
+-
+-	f = tf = NULL;
+-	list_for_each_entry_safe(f, tf, &vha->vp_fcports, list) {
+-		if (memcmp(f->port_name, wwpn, WWN_SIZE) == 0) {
+-			if (incl_deleted)
+-				return f;
+-			else if (f->deleted == 0)
+-				return f;
+-		}
+-	}
+-	return NULL;
+-}
+-
+-fc_port_t *
+->>>>>>> linux-next/akpm-base
+ qla2x00_find_fcport_by_nportid(scsi_qla_host_t *vha, port_id_t *id,
+ 	u8 incl_deleted)
+ {
+@@ -1437,28 +1415,6 @@ qla24xxx_nack_iocb_entry(scsi_qla_host_t
+ 
+ 	if (pkt->u.isp2x.status != cpu_to_le16(NOTIFY_ACK_SUCCESS))
+ 		res = QLA_FUNCTION_FAILED;
+-<<<<<<< HEAD
+-
+-	sp->done(sp, res);
+-}
+-
+-static void
+-qla2x00_ct_entry(scsi_qla_host_t *vha, struct req_que *req,
+-    sts_entry_t *pkt, int iocb_type)
+-{
+-	const char func[] = "CT_IOCB";
+-	const char *type;
+-	srb_t *sp;
+-	struct bsg_job *bsg_job;
+-	struct fc_bsg_reply *bsg_reply;
+-	uint16_t comp_status;
+-	int res = 0;
+-
+-	sp = qla2x00_get_sp_from_handle(vha, func, req, pkt);
+-	if (!sp)
+-		return;
+-
+-=======
+ 
+ 	sp->done(sp, res);
+ }
+@@ -1479,7 +1435,6 @@ qla2x00_ct_entry(scsi_qla_host_t *vha, s
+ 	if (!sp)
+ 		return;
+ 
+->>>>>>> linux-next/akpm-base
+ 	switch (sp->type) {
+ 	case SRB_CT_CMD:
+ 	    bsg_job = sp->u.bsg_job;
+diff -puN fs/f2fs/f2fs.h~linux-next-git-rejects fs/f2fs/f2fs.h
+--- a/fs/f2fs/f2fs.h~linux-next-git-rejects
++++ a/fs/f2fs/f2fs.h
+@@ -2040,13 +2040,8 @@ int f2fs_sync_file(struct file *file, lo
+ void truncate_data_blocks(struct dnode_of_data *dn);
+ int truncate_blocks(struct inode *inode, u64 from, bool lock);
+ int f2fs_truncate(struct inode *inode);
+-<<<<<<< HEAD
+-int f2fs_getattr(const struct path *path, struct kstat *stat,
+-			u32 request_mask, unsigned int flags);
+-=======
+ int f2fs_getattr(const struct path *path, struct kstat *stat, u32 request_mask,
+ 		 unsigned int query_flags);
+->>>>>>> linux-next/akpm-base
+ int f2fs_setattr(struct dentry *dentry, struct iattr *attr);
+ int truncate_hole(struct inode *inode, pgoff_t pg_start, pgoff_t pg_end);
+ int truncate_data_blocks_range(struct dnode_of_data *dn, int count);
 _
 
-Patches currently in -mm which might be from daniel.thompson@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+linux-next-rejects.patch
+treewide-move-set_memory_-functions-away-from-cacheflushh-fix.patch
+arm64-use-set_memoryh-header-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
