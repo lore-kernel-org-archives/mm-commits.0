@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rhashtable-simplify-a-strange-allocation-pattern.patch added to -mm tree
-Date: Mon, 06 Mar 2017 13:47:59 -0800
-Message-ID: <58bdd90f.GPZxrNfLncr42cCn%akpm@linux-foundation.org>
+Subject: + ila-simplify-a-strange-allocation-pattern.patch added to -mm
+ tree
+Date: Mon, 06 Mar 2017 13:48:01 -0800
+Message-ID: <58bdd911.ZfLC0UyvuEuPRbmh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55674 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754199AbdCFWc0 (ORCPT
+        with ESMTP id S1754282AbdCFWc0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 17:32:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, eric.dumazet@gmail.com, tom@herbertland.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, davem@davemloft.net, eric.dumazet@gmail.com, tom@herbertland.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rhashtable.c: simplify a strange allocation pattern
+     Subject: net/ipv6/ila/ila_xlat.c: simplify a strange allocation pattern
 has been added to the -mm tree.  Its filename is
-     rhashtable-simplify-a-strange-allocation-pattern.patch
+     ila-simplify-a-strange-allocation-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rhashtable-simplify-a-strange-allocation-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ila-simplify-a-strange-allocation-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rhashtable-simplify-a-strange-allocation-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ila-simplify-a-strange-allocation-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +40,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: lib/rhashtable.c: simplify a strange allocation pattern
+Subject: net/ipv6/ila/ila_xlat.c: simplify a strange allocation pattern
 
-alloc_bucket_locks allocation pattern is quite unusual.  We are preferring
-vmalloc when CONFIG_NUMA is enabled.  The rationale is that vmalloc will
-respect the memory policy of the current process and so the backing memory
-will get distributed over multiple nodes if the requester is configured
-properly.  At least that is the intention, in reality rhastable is shrunk
-and expanded from a kernel worker so no mempolicy can be assumed.
+alloc_ila_locks seemed to c&p from alloc_bucket_locks allocation pattern
+which is quite unusual.  The default allocation size is 320 *
+sizeof(spinlock_t) which is sub page unless lockdep is enabled when the
+performance benefit is really questionable and not worth the subtle code
+IMHO.  Also note that the context when we call ila_init_net (modprobe or a
+task creating a net namespace) has to be properly configured.
 
-Let's just simplify the code and use kvmalloc helper, which is a
-transparent way to use kmalloc with vmalloc fallback, if the caller is
-allowed to block and use the flag otherwise.
+Let's just simplify the code and use kvmalloc helper which is a
+transparent way to use kmalloc with vmalloc fallback.
 
-Link: http://lkml.kernel.org/r/20170306103032.2540-4-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170306103032.2540-5-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Tom Herbert <tom@herbertland.com>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rhashtable.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ net/ipv6/ila/ila_xlat.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN lib/rhashtable.c~rhashtable-simplify-a-strange-allocation-pattern lib/rhashtable.c
---- a/lib/rhashtable.c~rhashtable-simplify-a-strange-allocation-pattern
-+++ a/lib/rhashtable.c
-@@ -86,16 +86,9 @@ static int alloc_bucket_locks(struct rha
- 		size = min(size, 1U << tbl->nest);
+diff -puN net/ipv6/ila/ila_xlat.c~ila-simplify-a-strange-allocation-pattern net/ipv6/ila/ila_xlat.c
+--- a/net/ipv6/ila/ila_xlat.c~ila-simplify-a-strange-allocation-pattern
++++ a/net/ipv6/ila/ila_xlat.c
+@@ -41,13 +41,7 @@ static int alloc_ila_locks(struct ila_ne
+ 	size = roundup_pow_of_two(nr_pcpus * LOCKS_PER_CPU);
  
  	if (sizeof(spinlock_t) != 0) {
--		tbl->locks = NULL;
 -#ifdef CONFIG_NUMA
--		if (size * sizeof(spinlock_t) > PAGE_SIZE &&
--		    gfp == GFP_KERNEL)
--			tbl->locks = vmalloc(size * sizeof(spinlock_t));
+-		if (size * sizeof(spinlock_t) > PAGE_SIZE)
+-			ilan->locks = vmalloc(size * sizeof(spinlock_t));
+-		else
 -#endif
--		if (gfp != GFP_KERNEL)
--			gfp |= __GFP_NOWARN | __GFP_NORETRY;
--
--		if (!tbl->locks)
-+		if (gfpflags_allow_blocking(gfp))
-+			tbl->locks = kvmalloc(size * sizeof(spinlock_t), gfp);
-+		else
- 			tbl->locks = kmalloc_array(size, sizeof(spinlock_t),
- 						   gfp);
- 		if (!tbl->locks)
+-		ilan->locks = kmalloc_array(size, sizeof(spinlock_t),
+-					    GFP_KERNEL);
++		ilan->locks = kvmalloc(size * sizeof(spinlock_t), GFP_KERNEL);
+ 		if (!ilan->locks)
+ 			return -ENOMEM;
+ 		for (i = 0; i < size; i++)
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
