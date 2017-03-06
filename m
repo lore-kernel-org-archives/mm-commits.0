@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + md-use-kvmalloc-rather-than-opencoded-variant.patch added to
- -mm tree
-Date: Mon, 06 Mar 2017 13:48:17 -0800
-Message-ID: <58bdd921.Hz7Fr3C8/K8h1rhm%akpm@linux-foundation.org>
+Subject: + rhashtable-simplify-a-strange-allocation-pattern.patch added to -mm tree
+Date: Mon, 06 Mar 2017 13:47:59 -0800
+Message-ID: <58bdd90f.GPZxrNfLncr42cCn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55672 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932524AbdCFWZy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 17:25:54 -0500
+        with ESMTP id S1754199AbdCFWc0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 17:32:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mpatocka@redhat.com, snitzer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, eric.dumazet@gmail.com, tom@herbertland.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/md/dm-ioctl.c: use kvmalloc rather than opencoded variant
+     Subject: lib/rhashtable.c: simplify a strange allocation pattern
 has been added to the -mm tree.  Its filename is
-     md-use-kvmalloc-rather-than-opencoded-variant.patch
+     rhashtable-simplify-a-strange-allocation-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/md-use-kvmalloc-rather-than-opencoded-variant.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rhashtable-simplify-a-strange-allocation-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/md-use-kvmalloc-rather-than-opencoded-variant.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rhashtable-simplify-a-strange-allocation-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,55 +39,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: drivers/md/dm-ioctl.c: use kvmalloc rather than opencoded variant
+Subject: lib/rhashtable.c: simplify a strange allocation pattern
 
-copy_params uses kmalloc with vmalloc fallback.  We already have a helper
-for that - kvmalloc.  This caller requires GFP_NOIO semantic so it hasn't
-been converted with many others by previous patches.  All we need to
-achieve this semantic is to use the scope memalloc_noio_{save,restore}
-around kvmalloc.
+alloc_bucket_locks allocation pattern is quite unusual.  We are preferring
+vmalloc when CONFIG_NUMA is enabled.  The rationale is that vmalloc will
+respect the memory policy of the current process and so the backing memory
+will get distributed over multiple nodes if the requester is configured
+properly.  At least that is the intention, in reality rhastable is shrunk
+and expanded from a kernel worker so no mempolicy can be assumed.
 
-Link: http://lkml.kernel.org/r/20170306103327.2766-4-mhocko@kernel.org
+Let's just simplify the code and use kvmalloc helper, which is a
+transparent way to use kmalloc with vmalloc fallback, if the caller is
+allowed to block and use the flag otherwise.
+
+Link: http://lkml.kernel.org/r/20170306103032.2540-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Mike Snitzer <snitzer@redhat.com>
+Cc: Tom Herbert <tom@herbertland.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-ioctl.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ lib/rhashtable.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/md/dm-ioctl.c~md-use-kvmalloc-rather-than-opencoded-variant drivers/md/dm-ioctl.c
---- a/drivers/md/dm-ioctl.c~md-use-kvmalloc-rather-than-opencoded-variant
-+++ a/drivers/md/dm-ioctl.c
-@@ -1699,6 +1699,7 @@ static int copy_params(struct dm_ioctl _
- 	struct dm_ioctl *dmi;
- 	int secure_data;
- 	const size_t minimum_data_size = offsetof(struct dm_ioctl, data);
-+	unsigned noio_flag;
+diff -puN lib/rhashtable.c~rhashtable-simplify-a-strange-allocation-pattern lib/rhashtable.c
+--- a/lib/rhashtable.c~rhashtable-simplify-a-strange-allocation-pattern
++++ a/lib/rhashtable.c
+@@ -86,16 +86,9 @@ static int alloc_bucket_locks(struct rha
+ 		size = min(size, 1U << tbl->nest);
  
- 	if (copy_from_user(param_kernel, user, minimum_data_size))
- 		return -EFAULT;
-@@ -1721,15 +1722,9 @@ static int copy_params(struct dm_ioctl _
- 	 * Use kmalloc() rather than vmalloc() when we can.
- 	 */
- 	dmi = NULL;
--	if (param_kernel->data_size <= KMALLOC_MAX_SIZE)
--		dmi = kmalloc(param_kernel->data_size, GFP_NOIO | __GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN);
+ 	if (sizeof(spinlock_t) != 0) {
+-		tbl->locks = NULL;
+-#ifdef CONFIG_NUMA
+-		if (size * sizeof(spinlock_t) > PAGE_SIZE &&
+-		    gfp == GFP_KERNEL)
+-			tbl->locks = vmalloc(size * sizeof(spinlock_t));
+-#endif
+-		if (gfp != GFP_KERNEL)
+-			gfp |= __GFP_NOWARN | __GFP_NORETRY;
 -
--	if (!dmi) {
--		unsigned noio_flag;
--		noio_flag = memalloc_noio_save();
--		dmi = __vmalloc(param_kernel->data_size, GFP_NOIO | __GFP_HIGH | __GFP_HIGHMEM, PAGE_KERNEL);
--		memalloc_noio_restore(noio_flag);
--	}
-+	noio_flag = memalloc_noio_save();
-+	dmi = kvmalloc(param_kernel->data_size, GFP_KERNEL);
-+	memalloc_noio_restore(noio_flag);
- 
- 	if (!dmi) {
- 		if (secure_data && clear_user(user, param_kernel->data_size))
+-		if (!tbl->locks)
++		if (gfpflags_allow_blocking(gfp))
++			tbl->locks = kvmalloc(size * sizeof(spinlock_t), gfp);
++		else
+ 			tbl->locks = kmalloc_array(size, sizeof(spinlock_t),
+ 						   gfp);
+ 		if (!tbl->locks)
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
