@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tighten-up-the-fault-path-a-little.patch added to -mm tree
-Date: Mon, 06 Mar 2017 14:53:06 -0800
-Message-ID: <58bde852.FdjEghvsn1RyRwgO%akpm@linux-foundation.org>
+Subject: + treewide-decouple-cacheflushh-and-set_memoryh-fix.patch added
+ to -mm tree
+Date: Mon, 06 Mar 2017 15:11:49 -0800
+Message-ID: <58bdecb5.hrRxGDKMG5yVl3t+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60632 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753129AbdCFXBj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 18:01:39 -0500
+        with ESMTP id S1752528AbdCFXMZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 18:12:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: tighten up the fault path a little
+     Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix
 has been added to the -mm tree.  Its filename is
-     mm-tighten-up-the-fault-path-a-little.patch
+     treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-tighten-up-the-fault-path-a-little.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-tighten-up-the-fault-path-a-little.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,97 +39,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: mm: tighten up the fault path a little
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix
 
-The round_up() macro generates a couple of unnecessary instructions
-in this usage:
+fix i386 allnoconfig
 
-    48cd:       49 8b 47 50             mov    0x50(%r15),%rax
-    48d1:       48 83 e8 01             sub    $0x1,%rax
-    48d5:       48 0d ff 0f 00 00       or     $0xfff,%rax
-    48db:       48 83 c0 01             add    $0x1,%rax
-    48df:       48 c1 f8 0c             sar    $0xc,%rax
-    48e3:       48 39 c3                cmp    %rax,%rbx
-    48e6:       72 2e                   jb     4916 <filemap_fault+0x96>
-
-If we change round_up() to ((x) + __round_mask(x, y)) & ~__round_mask(x, y)
-then GCC can see through it and remove the mask (because that would be
-dead code given the subsequent shift):
-
-    48cd:       49 8b 47 50             mov    0x50(%r15),%rax
-    48d1:       48 05 ff 0f 00 00       add    $0xfff,%rax
-    48d7:       48 c1 e8 0c             shr    $0xc,%rax
-    48db:       48 39 c3                cmp    %rax,%rbx
-    48de:       72 2e                   jb     490e <filemap_fault+0x8e>
-
-But that's problematic because we'd evaluate 'y' twice.  Converting
-round_up into an inline function prevents it from being used in other
-definitions.  The easiest thing to do is just change these three usages of
-round_up to use DIV_ROUND_UP.  Also add an unlikely() because GCC's
-heuristic is wrong in this case.
-
-Link: http://lkml.kernel.org/r/20170207192812.5281-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+arch/x86/mm/init_32.c: In function 'set_kernel_text_rw':
+arch/x86/mm/init_32.c:880: error: implicit declaration of function 'set_pages_rw'
+arch/x86/mm/init_32.c: In function 'set_kernel_text_ro':
+arch/x86/mm/init_32.c:894: error: implicit declaration of function 'set_pages_ro'
+arch/x86/mm/init_32.c: In function 'mark_nxdata_nx':
+arch/x86/mm/init_32.c:911: error: implicit declaration of function 'set_pages_nx'
+Cc: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/x86/mm/init_32.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/filemap.c~mm-tighten-up-the-fault-path-a-little mm/filemap.c
---- a/mm/filemap.c~mm-tighten-up-the-fault-path-a-little
-+++ a/mm/filemap.c
-@@ -2202,12 +2202,12 @@ int filemap_fault(struct vm_fault *vmf)
- 	struct file_ra_state *ra = &file->f_ra;
- 	struct inode *inode = mapping->host;
- 	pgoff_t offset = vmf->pgoff;
-+	pgoff_t max_off;
- 	struct page *page;
--	loff_t size;
- 	int ret = 0;
- 
--	size = round_up(i_size_read(inode), PAGE_SIZE);
--	if (offset >= size >> PAGE_SHIFT)
-+	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
-+	if (unlikely(offset >= max_off))
- 		return VM_FAULT_SIGBUS;
- 
- 	/*
-@@ -2256,8 +2256,8 @@ retry_find:
- 	 * Found the page and have a reference on it.
- 	 * We must recheck i_size under page lock.
- 	 */
--	size = round_up(i_size_read(inode), PAGE_SIZE);
--	if (unlikely(offset >= size >> PAGE_SHIFT)) {
-+	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
-+	if (unlikely(offset >= max_off)) {
- 		unlock_page(page);
- 		put_page(page);
- 		return VM_FAULT_SIGBUS;
-@@ -2323,7 +2323,7 @@ void filemap_map_pages(struct vm_fault *
- 	struct file *file = vmf->vma->vm_file;
- 	struct address_space *mapping = file->f_mapping;
- 	pgoff_t last_pgoff = start_pgoff;
--	loff_t size;
-+	unsigned long max_idx;
- 	struct page *head, *page;
- 
- 	rcu_read_lock();
-@@ -2369,8 +2369,8 @@ repeat:
- 		if (page->mapping != mapping || !PageUptodate(page))
- 			goto unlock;
- 
--		size = round_up(i_size_read(mapping->host), PAGE_SIZE);
--		if (page->index >= size >> PAGE_SHIFT)
-+		max_idx = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
-+		if (page->index >= max_idx)
- 			goto unlock;
- 
- 		if (file->f_ra.mmap_miss > 0)
+diff -puN arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/arm/include/asm/cacheflush.h
+diff -puN arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/arm64/include/asm/cacheflush.h
+diff -puN arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/s390/include/asm/Kbuild
+diff -puN /dev/null /dev/null
+diff -puN arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/x86/include/asm/cacheflush.h
+diff -puN arch/x86/mm/init_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix
++++ a/arch/x86/mm/init_32.c
+@@ -46,6 +46,7 @@
+ #include <asm/olpc_ofw.h>
+ #include <asm/pgalloc.h>
+ #include <asm/sections.h>
++#include <asm/set_memory.h>
+ #include <asm/paravirt.h>
+ #include <asm/setup.h>
+ #include <asm/cacheflush.h>
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-tighten-up-the-fault-path-a-little.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+linux-next-rejects.patch
+treewide-move-set_memory_-functions-away-from-cacheflushh-fix.patch
+arm64-use-set_memoryh-header-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+a.patch
 
