@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + treewide-decouple-cacheflushh-and-set_memoryh-fix.patch added
- to -mm tree
-Date: Mon, 06 Mar 2017 15:11:49 -0800
-Message-ID: <58bdecb5.hrRxGDKMG5yVl3t+%akpm@linux-foundation.org>
+Subject: + taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch added to -mm tree
+Date: Mon, 06 Mar 2017 15:18:51 -0800
+Message-ID: <58bdee5b.Bhr07I3Qsuy6sXC7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32898 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752528AbdCFXMZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 18:12:25 -0500
+        with ESMTP id S1754122AbdCFX0U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 18:26:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, labbott@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bsingharora@gmail.com, oleg@redhat.com, xiao.zhang@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix
+     Subject: taskstats-add-e-u-stime-for-tgid-command-fix-fix
 has been added to the -mm tree.  Its filename is
-     treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
+     taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix
+Subject: taskstats-add-e-u-stime-for-tgid-command-fix-fix
 
-fix i386 allnoconfig
+include linux/sched/cputime.h for task_cputime()
 
-arch/x86/mm/init_32.c: In function 'set_kernel_text_rw':
-arch/x86/mm/init_32.c:880: error: implicit declaration of function 'set_pages_rw'
-arch/x86/mm/init_32.c: In function 'set_kernel_text_ro':
-arch/x86/mm/init_32.c:894: error: implicit declaration of function 'set_pages_ro'
-arch/x86/mm/init_32.c: In function 'mark_nxdata_nx':
-arch/x86/mm/init_32.c:911: error: implicit declaration of function 'set_pages_nx'
-Cc: Laura Abbott <labbott@redhat.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Zhang Xiao <xiao.zhang@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_32.c |    1 +
+ kernel/taskstats.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/arm/include/asm/cacheflush.h
-diff -puN arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/arm64/include/asm/cacheflush.h
-diff -puN arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/s390/include/asm/Kbuild
-diff -puN /dev/null /dev/null
-diff -puN arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/x86/include/asm/cacheflush.h
-diff -puN arch/x86/mm/init_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix
-+++ a/arch/x86/mm/init_32.c
-@@ -46,6 +46,7 @@
- #include <asm/olpc_ofw.h>
- #include <asm/pgalloc.h>
- #include <asm/sections.h>
-+#include <asm/set_memory.h>
- #include <asm/paravirt.h>
- #include <asm/setup.h>
- #include <asm/cacheflush.h>
+diff -puN kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix-fix kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix-fix
++++ a/kernel/taskstats.c
+@@ -30,6 +30,7 @@
+ #include <linux/pid_namespace.h>
+ #include <net/genetlink.h>
+ #include <linux/atomic.h>
++#include <linux/sched/cputime.h>
+ 
+ /*
+  * Maximum length of a cpumask that can be specified in
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,11 +80,11 @@ jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
 checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
 checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
 taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
 linux-next-rejects.patch
 treewide-move-set_memory_-functions-away-from-cacheflushh-fix.patch
 arm64-use-set_memoryh-header-fix.patch
 treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-a.patch
 
