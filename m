@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch added to -mm tree
-Date: Mon, 06 Mar 2017 15:18:51 -0800
-Message-ID: <58bdee5b.Bhr07I3Qsuy6sXC7%akpm@linux-foundation.org>
+Subject: + treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch added to -mm tree
+Date: Mon, 06 Mar 2017 15:42:27 -0800
+Message-ID: <58bdf3e3.vLaBL7Z5IsoUWxU4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34136 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754122AbdCFX0U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 18:26:20 -0500
+        with ESMTP id S1752685AbdCFXnT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 18:43:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bsingharora@gmail.com, oleg@redhat.com, xiao.zhang@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: taskstats-add-e-u-stime-for-tgid-command-fix-fix
+     Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+     treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: taskstats-add-e-u-stime-for-tgid-command-fix-fix
+Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix
 
-include linux/sched/cputime.h for task_cputime()
+fix arch/x86/kernel/machine_kexec_32.c
 
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Zhang Xiao <xiao.zhang@windriver.com>
+Cc: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    1 +
+ arch/x86/kernel/machine_kexec_32.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix-fix kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix-fix
-+++ a/kernel/taskstats.c
-@@ -30,6 +30,7 @@
- #include <linux/pid_namespace.h>
- #include <net/genetlink.h>
- #include <linux/atomic.h>
-+#include <linux/sched/cputime.h>
- 
- /*
-  * Maximum length of a cpumask that can be specified in
+diff -puN arch/x86/kernel/machine_kexec_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix arch/x86/kernel/machine_kexec_32.c
+--- a/arch/x86/kernel/machine_kexec_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix
++++ a/arch/x86/kernel/machine_kexec_32.c
+@@ -19,6 +19,7 @@
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ #include <asm/mmu_context.h>
++#include <asm/set_memory.h>
+ #include <asm/apic.h>
+ #include <asm/io_apic.h>
+ #include <asm/cpufeature.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +83,8 @@ linux-next-rejects.patch
 treewide-move-set_memory_-functions-away-from-cacheflushh-fix.patch
 arm64-use-set_memoryh-header-fix.patch
 treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
 
