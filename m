@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch added to -mm tree
-Date: Mon, 06 Mar 2017 13:26:30 -0800
-Message-ID: <58bdd406.7I73/vAex4/ueSFJ%akpm@linux-foundation.org>
+Subject: + lockdep-allow-to-disable-reclaim-lockup-detection.patch added
+ to -mm tree
+Date: Mon, 06 Mar 2017 13:26:10 -0800
+Message-ID: <58bdd3f2.IKJR3cakwBsQEUpx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932400AbdCFVf4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 16:35:56 -0500
+        with ESMTP id S932434AbdCFVf6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 16:35:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, nborisov@suse.com, peterz@infradead.org, tytso@mit.edu, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jbd2: make the whole kjournald2 kthread NOFS safe
+     Subject: lockdep: allow to disable reclaim lockup detection
 has been added to the -mm tree.  Its filename is
-     jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
+     lockdep-allow-to-disable-reclaim-lockup-detection.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lockdep-allow-to-disable-reclaim-lockup-detection.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lockdep-allow-to-disable-reclaim-lockup-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +40,189 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: jbd2: make the whole kjournald2 kthread NOFS safe
+Subject: lockdep: allow to disable reclaim lockup detection
 
-kjournald2 is central to the transaction commit processing.  As such any
-potential allocation from this kernel thread has to be GFP_NOFS.  Make
-sure to mark the whole kernel thread GFP_NOFS by the memalloc_nofs_save.
+The current implementation of the reclaim lockup detection can lead to
+false positives and those even happen and usually lead to tweak the
+code to silence the lockdep by using GFP_NOFS even though the context
+can use __GFP_FS just fine. See
+http://lkml.kernel.org/r/20160512080321.GA18496@dastard as an example.
 
-Link: http://lkml.kernel.org/r/20170306131408.9828-8-mhocko@kernel.org
+=================================
+[ INFO: inconsistent lock state ]
+4.5.0-rc2+ #4 Tainted: G           O
+---------------------------------
+inconsistent {RECLAIM_FS-ON-R} -> {IN-RECLAIM_FS-W} usage.
+kswapd0/543 [HC0[0]:SC0[0]:HE1:SE1] takes:
+
+(&xfs_nondir_ilock_class){++++-+}, at: [<ffffffffa00781f7>] xfs_ilock+0x177/0x200 [xfs]
+
+{RECLAIM_FS-ON-R} state was registered at:
+  [<ffffffff8110f369>] mark_held_locks+0x79/0xa0
+  [<ffffffff81113a43>] lockdep_trace_alloc+0xb3/0x100
+  [<ffffffff81224623>] kmem_cache_alloc+0x33/0x230
+  [<ffffffffa008acc1>] kmem_zone_alloc+0x81/0x120 [xfs]
+  [<ffffffffa005456e>] xfs_refcountbt_init_cursor+0x3e/0xa0 [xfs]
+  [<ffffffffa0053455>] __xfs_refcount_find_shared+0x75/0x580 [xfs]
+  [<ffffffffa00539e4>] xfs_refcount_find_shared+0x84/0xb0 [xfs]
+  [<ffffffffa005dcb8>] xfs_getbmap+0x608/0x8c0 [xfs]
+  [<ffffffffa007634b>] xfs_vn_fiemap+0xab/0xc0 [xfs]
+  [<ffffffff81244208>] do_vfs_ioctl+0x498/0x670
+  [<ffffffff81244459>] SyS_ioctl+0x79/0x90
+  [<ffffffff81847cd7>] entry_SYSCALL_64_fastpath+0x12/0x6f
+
+       CPU0
+       ----
+  lock(&xfs_nondir_ilock_class);
+  <Interrupt>
+    lock(&xfs_nondir_ilock_class);
+
+ *** DEADLOCK ***
+
+3 locks held by kswapd0/543:
+
+stack backtrace:
+CPU: 0 PID: 543 Comm: kswapd0 Tainted: G           O    4.5.0-rc2+ #4
+
+Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
+
+ ffffffff82a34f10 ffff88003aa078d0 ffffffff813a14f9 ffff88003d8551c0
+ ffff88003aa07920 ffffffff8110ec65 0000000000000000 0000000000000001
+ ffff880000000001 000000000000000b 0000000000000008 ffff88003d855aa0
+Call Trace:
+ [<ffffffff813a14f9>] dump_stack+0x4b/0x72
+ [<ffffffff8110ec65>] print_usage_bug+0x215/0x240
+ [<ffffffff8110ee85>] mark_lock+0x1f5/0x660
+ [<ffffffff8110e100>] ? print_shortest_lock_dependencies+0x1a0/0x1a0
+ [<ffffffff811102e0>] __lock_acquire+0xa80/0x1e50
+ [<ffffffff8122474e>] ? kmem_cache_alloc+0x15e/0x230
+ [<ffffffffa008acc1>] ? kmem_zone_alloc+0x81/0x120 [xfs]
+ [<ffffffff811122e8>] lock_acquire+0xd8/0x1e0
+ [<ffffffffa00781f7>] ? xfs_ilock+0x177/0x200 [xfs]
+ [<ffffffffa0083a70>] ? xfs_reflink_cancel_cow_range+0x150/0x300 [xfs]
+ [<ffffffff8110aace>] down_write_nested+0x5e/0xc0
+ [<ffffffffa00781f7>] ? xfs_ilock+0x177/0x200 [xfs]
+ [<ffffffffa00781f7>] xfs_ilock+0x177/0x200 [xfs]
+ [<ffffffffa0083a70>] xfs_reflink_cancel_cow_range+0x150/0x300 [xfs]
+ [<ffffffffa0085bdc>] xfs_fs_evict_inode+0xdc/0x1e0 [xfs]
+ [<ffffffff8124d7d5>] evict+0xc5/0x190
+ [<ffffffff8124d8d9>] dispose_list+0x39/0x60
+ [<ffffffff8124eb2b>] prune_icache_sb+0x4b/0x60
+ [<ffffffff8123317f>] super_cache_scan+0x14f/0x1a0
+ [<ffffffff811e0d19>] shrink_slab.part.63.constprop.79+0x1e9/0x4e0
+ [<ffffffff811e50ee>] shrink_zone+0x15e/0x170
+ [<ffffffff811e5ef1>] kswapd+0x4f1/0xa80
+ [<ffffffff811e5a00>] ? zone_reclaim+0x230/0x230
+ [<ffffffff810e6882>] kthread+0xf2/0x110
+ [<ffffffff810e6790>] ? kthread_create_on_node+0x220/0x220
+ [<ffffffff8184803f>] ret_from_fork+0x3f/0x70
+ [<ffffffff810e6790>] ? kthread_create_on_node+0x220/0x220
+
+To quote Dave:
+"
+Ignoring whether reflink should be doing anything or not, that's a
+"xfs_refcountbt_init_cursor() gets called both outside and inside
+transactions" lockdep false positive case. The problem here is
+lockdep has seen this allocation from within a transaction, hence a
+GFP_NOFS allocation, and now it's seeing it in a GFP_KERNEL context.
+Also note that we have an active reference to this inode.
+
+So, because the reclaim annotations overload the interrupt level
+detections and it's seen the inode ilock been taken in reclaim
+("interrupt") context, this triggers a reclaim context warning where
+it thinks it is unsafe to do this allocation in GFP_KERNEL context
+holding the inode ilock...
+"
+
+This sounds like a fundamental problem of the reclaim lock detection.
+It is really impossible to annotate such a special usecase IMHO unless
+the reclaim lockup detection is reworked completely. Until then it
+is much better to provide a way to add "I know what I am doing flag"
+and mark problematic places. This would prevent from abusing GFP_NOFS
+flag which has a runtime effect even on configurations which have
+lockdep disabled.
+
+Introduce __GFP_NOLOCKDEP flag which tells the lockdep gfp tracking to
+skip the current allocation request.
+
+While we are at it also make sure that the radix tree doesn't
+accidentaly override tags stored in the upper part of the gfp_mask.
+
+Link: http://lkml.kernel.org/r/20170306131408.9828-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Chris Mason <clm@fb.com>
 Cc: David Sterba <dsterba@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: Nikolay Borisov <nborisov@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/gfp.h      |   10 +++++++++-
+ kernel/locking/lockdep.c |    4 ++++
+ lib/radix-tree.c         |    2 ++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe
-+++ a/fs/jbd2/journal.c
-@@ -43,6 +43,7 @@
- #include <linux/backing-dev.h>
- #include <linux/bitops.h>
- #include <linux/ratelimit.h>
-+#include <linux/sched/mm.h>
+diff -puN include/linux/gfp.h~lockdep-allow-to-disable-reclaim-lockup-detection include/linux/gfp.h
+--- a/include/linux/gfp.h~lockdep-allow-to-disable-reclaim-lockup-detection
++++ a/include/linux/gfp.h
+@@ -40,6 +40,11 @@ struct vm_area_struct;
+ #define ___GFP_DIRECT_RECLAIM	0x400000u
+ #define ___GFP_WRITE		0x800000u
+ #define ___GFP_KSWAPD_RECLAIM	0x1000000u
++#ifdef CONFIG_LOCKDEP
++#define ___GFP_NOLOCKDEP	0x4000000u
++#else
++#define ___GFP_NOLOCKDEP	0
++#endif
+ /* If the above are modified, __GFP_BITS_SHIFT may need updating */
  
- #define CREATE_TRACE_POINTS
- #include <trace/events/jbd2.h>
-@@ -206,6 +207,13 @@ static int kjournald2(void *arg)
- 	wake_up(&journal->j_wait_done_commit);
+ /*
+@@ -179,8 +184,11 @@ struct vm_area_struct;
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)
+ #define __GFP_NOTRACK_FALSE_POSITIVE (__GFP_NOTRACK)
  
- 	/*
-+	 * Make sure that no allocations from this kernel thread will ever recurse
-+	 * to the fs layer because we are responsible for the transaction commit
-+	 * and any fs involvement might get stuck waiting for the trasn. commit.
-+	 */
-+	memalloc_nofs_save();
++/* Disable lockdep for GFP context tracking */
++#define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
 +
-+	/*
- 	 * And now, wait forever for commit wakeup events.
- 	 */
- 	write_lock(&journal->j_state_lock);
+ /* Room for N __GFP_FOO bits */
+-#define __GFP_BITS_SHIFT 25
++#define __GFP_BITS_SHIFT (25 + IS_ENABLED(CONFIG_LOCKDEP))
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /*
+diff -puN kernel/locking/lockdep.c~lockdep-allow-to-disable-reclaim-lockup-detection kernel/locking/lockdep.c
+--- a/kernel/locking/lockdep.c~lockdep-allow-to-disable-reclaim-lockup-detection
++++ a/kernel/locking/lockdep.c
+@@ -2884,6 +2884,10 @@ static void __lockdep_trace_alloc(gfp_t
+ 	if (DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags)))
+ 		return;
+ 
++	/* Disable lockdep if explicitly requested */
++	if (gfp_mask & __GFP_NOLOCKDEP)
++		return;
++
+ 	mark_held_locks(curr, RECLAIM_FS);
+ }
+ 
+diff -puN lib/radix-tree.c~lockdep-allow-to-disable-reclaim-lockup-detection lib/radix-tree.c
+--- a/lib/radix-tree.c~lockdep-allow-to-disable-reclaim-lockup-detection
++++ a/lib/radix-tree.c
+@@ -2284,6 +2284,8 @@ static int radix_tree_cpu_dead(unsigned
+ void __init radix_tree_init(void)
+ {
+ 	int ret;
++
++	BUILD_BUG_ON(RADIX_TREE_MAX_TAGS + __GFP_BITS_SHIFT > 32);
+ 	radix_tree_node_cachep = kmem_cache_create("radix_tree_node",
+ 			sizeof(struct radix_tree_node), 0,
+ 			SLAB_PANIC | SLAB_RECLAIM_ACCOUNT,
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
