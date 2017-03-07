@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch added to -mm tree
-Date: Tue, 07 Mar 2017 15:27:41 -0800
-Message-ID: <58bf41ed.8LcQrIg/DzUH5AId%akpm@linux-foundation.org>
+Subject: + mm-do-not-use-double-negation-for-testing-page-flags.patch
+ added to -mm tree
+Date: Tue, 07 Mar 2017 15:39:46 -0800
+Message-ID: <58bf44c2.huzjPCxokfcGlwNb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47462 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756534AbdCGX2q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2017 18:28:46 -0500
+        with ESMTP id S1755985AbdCGXlK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2017 18:41:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, rientjes@google.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: finish whole pageblock to reduce fragmentation
+     Subject: mm: do not use double negation for testing page flags
 has been added to the -mm tree.  Its filename is
-     mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
+     mm-do-not-use-double-negation-for-testing-page-flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-use-double-negation-for-testing-page-flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-use-double-negation-for-testing-page-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,126 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: finish whole pageblock to reduce fragmentation
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: do not use double negation for testing page flags
 
-The main goal of direct compaction is to form a high-order page for
-allocation, but it should also help against long-term fragmentation when
-possible.  Most lower-than-pageblock-order compactions are for non-movable
-allocations, which means that if we compact in a movable pageblock and
-terminate as soon as we create the high-order page, it's unlikely that the
-fallback heuristics will claim the whole block.  Instead there might be a
-single unmovable page in a pageblock full of movable pages, and the next
-unmovable allocation might pick another pageblock and increase long-term
-fragmentation.
+With the discussion[1], I found it seems there are every PageFlags
+functions return bool at this moment so we don't need double
+negation any more.
+Although it's not a problem to keep it, it makes future users
+confused to use dobule negation for them, too.
 
-To help against such scenarios, this patch changes the termination
-criteria for compaction so that the current pageblock is finished even
-though the high-order page already exists.  Note that it might be possible
-that the high-order page formed elsewhere in the zone due to parallel
-activity, but this patch doesn't try to detect that.
+Remove such possibility.
 
-This is only done with sync compaction, because async compaction is
-limited to pageblock of the same migratetype, where it cannot result in a
-migratetype fallback.  (Async compaction also eagerly skips order-aligned
-blocks where isolation fails, which is against the goal of migrating away
-as much of the pageblock as possible.)
+[1] https://marc.info/?l=linux-kernel&m=148881578820434
 
-As a result of this patch, long-term memory fragmentation should be
-reduced.
+Frankly sepaking, I like every PageFlags return bool instead of int.
+It will make it clear. AFAIR, Chen Gang had tried it but don't know
+why it was not merged at that time.
 
-In testing based on 4.9 kernel with stress-highalloc from mmtests
-configured for order-4 GFP_KERNEL allocations, this patch has reduced the
-number of unmovable allocations falling back to movable pageblocks by 20%.
-The number
+http://lkml.kernel.org/r/1469336184-1904-1-git-send-email-chengang@emindsoft.com.cn
 
-Link: http://lkml.kernel.org/r/20170307131545.28577-9-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1488868597-32222-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   36 ++++++++++++++++++++++++++++++++++--
- mm/internal.h   |    1 +
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-finish-whole-pageblock-to-reduce-fragmentation mm/compaction.c
---- a/mm/compaction.c~mm-compaction-finish-whole-pageblock-to-reduce-fragmentation
-+++ a/mm/compaction.c
-@@ -1318,6 +1318,17 @@ static enum compact_result __compact_fin
- 	if (is_via_compact_memory(cc->order))
- 		return COMPACT_CONTINUE;
- 
-+	if (cc->finishing_block) {
-+		/*
-+		 * We have finished the pageblock, but better check again that
-+		 * we really succeeded.
-+		 */
-+		if (IS_ALIGNED(cc->migrate_pfn, pageblock_nr_pages))
-+			cc->finishing_block = false;
-+		else
-+			return COMPACT_CONTINUE;
-+	}
-+
- 	/* Direct compactor: Is a suitable page free? */
- 	for (order = cc->order; order < MAX_ORDER; order++) {
- 		struct free_area *area = &zone->free_area[order];
-@@ -1338,8 +1349,29 @@ static enum compact_result __compact_fin
- 		 * other migratetype buddy lists.
+diff -puN mm/khugepaged.c~mm-do-not-use-double-negation-for-testing-page-flags mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-do-not-use-double-negation-for-testing-page-flags
++++ a/mm/khugepaged.c
+@@ -548,7 +548,7 @@ static int __collapse_huge_page_isolate(
+ 		 * The page must only be referenced by the scanned process
+ 		 * and page swap cache.
  		 */
- 		if (find_suitable_fallback(area, order, migratetype,
--						true, &can_steal) != -1)
--			return COMPACT_SUCCESS;
-+						true, &can_steal) != -1) {
-+
-+			/* movable pages are OK in any pageblock */
-+			if (migratetype == MIGRATE_MOVABLE)
-+				return COMPACT_SUCCESS;
-+
-+			/*
-+			 * We are stealing for a non-movable allocation. Make
-+			 * sure we finish compacting the current pageblock
-+			 * first so it is as free as possible and we won't
-+			 * have to steal another one soon. This only applies
-+			 * to sync compaction, as async compaction operates
-+			 * on pageblocks of the same migratetype.
-+			 */
-+			if (cc->mode == MIGRATE_ASYNC ||
-+					IS_ALIGNED(cc->migrate_pfn,
-+							pageblock_nr_pages)) {
-+				return COMPACT_SUCCESS;
-+			}
-+
-+			cc->finishing_block = true;
-+			return COMPACT_CONTINUE;
-+		}
- 	}
- 
- 	return COMPACT_NO_SUITABLE_PAGE;
-diff -puN mm/internal.h~mm-compaction-finish-whole-pageblock-to-reduce-fragmentation mm/internal.h
---- a/mm/internal.h~mm-compaction-finish-whole-pageblock-to-reduce-fragmentation
-+++ a/mm/internal.h
-@@ -202,6 +202,7 @@ struct compact_control {
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
- 	bool whole_zone;		/* Whole zone should/has been scanned */
- 	bool contended;			/* Signal lock or sched contention */
-+	bool finishing_block;		/* Finishing current pageblock */
- };
- 
- unsigned long
+-		if (page_count(page) != 1 + !!PageSwapCache(page)) {
++		if (page_count(page) != 1 + PageSwapCache(page)) {
+ 			unlock_page(page);
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out;
+@@ -1181,7 +1181,7 @@ static int khugepaged_scan_pmd(struct mm
+ 		 * The page must only be referenced by the scanned process
+ 		 * and page swap cache.
+ 		 */
+-		if (page_count(page) != 1 + !!PageSwapCache(page)) {
++		if (page_count(page) != 1 + PageSwapCache(page)) {
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out_unmap;
+ 		}
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-compaction-reorder-fields-in-struct-compact_control.patch
-mm-compaction-remove-redundant-watermark-check-in-compact_finished.patch
-mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
-mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
-mm-compaction-add-migratetype-to-compact_control.patch
-mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype.patch
-mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
+mm-reclaim-madv_free-pages-fix.patch
+mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
+mm-do-not-use-double-negation-for-testing-page-flags.patch
 
