@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch added to -mm tree
-Date: Tue, 07 Mar 2017 15:12:13 -0800
-Message-ID: <58bf3e4d.kM0E8GZVIdMHIK7M%akpm@linux-foundation.org>
+Subject: +
+ mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch added to
+ -mm tree
+Date: Tue, 07 Mar 2017 15:33:53 -0800
+Message-ID: <58bf4361.WVQfm7TEVdttu5AS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50018 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50228 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751155AbdCHAGm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2017 19:06:42 -0500
+        with ESMTP id S933283AbdCHAND (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2017 19:13:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: tahsin@google.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move pcp and lru-pcp drainging into single wq
+     Subject: mm: do not call mem_cgroup_free() from within mem_cgroup_alloc()
 has been added to the -mm tree.  Its filename is
-     mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
+     mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,205 +40,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: move pcp and lru-pcp drainging into single wq
+From: Tahsin Erdogan <tahsin@google.com>
+Subject: mm: do not call mem_cgroup_free() from within mem_cgroup_alloc()
 
-We currently have 2 specific WQ_RECLAIM workqueues in the mm code. 
-vmstat_wq for updating pcp stats and lru_add_drain_wq dedicated to drain
-per cpu lru caches.  This seems more than necessary because both can run
-on a single WQ.  Both do not block on locks requiring a memory allocation
-nor perform any allocations themselves.  We will save one rescuer thread
-this way.
+mem_cgroup_free() indirectly calls wb_domain_exit() which is not prepared
+to deal with a struct wb_domain object that hasn't executed
+wb_domain_init().  For instance, the following warning message is printed
+by lockdep if alloc_percpu() fails in mem_cgroup_alloc():
 
-On the other hand drain_all_pages() queues work on the system wq which
-doesn't have rescuer and so this depend on memory allocation (when all
-workers are stuck allocating and new ones cannot be created).  This is not
-critical as there should be somebody invoking the OOM killer (e.g.  the
-forking worker) and get the situation unstuck and eventually performs the
-draining.  Quite annoying though.  This worker should be using WQ_RECLAIM
-as well.  We can reuse the same one as for lru draining and vmstat.
+  INFO: trying to register non-static key.
+  the code is fine but needs lockdep annotation.
+  turning off the locking correctness validator.
+  CPU: 1 PID: 1950 Comm: mkdir Not tainted 4.10.0+ #151
+  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+  Call Trace:
+   dump_stack+0x67/0x99
+   register_lock_class+0x36d/0x540
+   __lock_acquire+0x7f/0x1a30
+   ? irq_work_queue+0x73/0x90
+   ? wake_up_klogd+0x36/0x40
+   ? console_unlock+0x45d/0x540
+   ? vprintk_emit+0x211/0x2e0
+   lock_acquire+0xcc/0x200
+   ? try_to_del_timer_sync+0x60/0x60
+   del_timer_sync+0x3c/0xc0
+   ? try_to_del_timer_sync+0x60/0x60
+   wb_domain_exit+0x14/0x20
+   mem_cgroup_free+0x14/0x40
+   mem_cgroup_css_alloc+0x3f9/0x620
+   cgroup_apply_control_enable+0x190/0x390
+   cgroup_mkdir+0x290/0x3d0
+   kernfs_iop_mkdir+0x58/0x80
+   vfs_mkdir+0x10e/0x1a0
+   SyS_mkdirat+0xa8/0xd0
+   SyS_mkdir+0x14/0x20
+   entry_SYSCALL_64_fastpath+0x18/0xad
 
-Link: http://lkml.kernel.org/r/20170307131751.24936-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
+Add __mem_cgroup_free() which skips wb_domain_exit().  This is used by
+both mem_cgroup_free() and mem_cgroup_alloc() clean up.
+
+Fixes: 0b8f73e104285 ("mm: memcontrol: clean up alloc, online, offline, free functions")
+Link: http://lkml.kernel.org/r/20170306192122.24262-1-tahsin@google.com
+Signed-off-by: Tahsin Erdogan <tahsin@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    7 +++++++
- mm/page_alloc.c |    9 ++++++++-
- mm/swap.c       |   27 ++++++++-------------------
- mm/vmstat.c     |   14 ++++++++------
- 4 files changed, 31 insertions(+), 26 deletions(-)
+ mm/memcontrol.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/internal.h~mm-move-pcp-and-lru-pcp-drainging-into-single-wq mm/internal.h
---- a/mm/internal.h~mm-move-pcp-and-lru-pcp-drainging-into-single-wq
-+++ a/mm/internal.h
-@@ -486,6 +486,13 @@ unsigned long reclaim_clean_pages_from_l
- enum ttu_flags;
- struct tlbflush_unmap_batch;
- 
-+
-+/*
-+ * only for MM internal work items which do not depend on
-+ * any allocations or locks which might depend on allocations
-+ */
-+extern struct workqueue_struct *mm_percpu_wq;
-+
- #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- void try_to_unmap_flush(void);
- void try_to_unmap_flush_dirty(void);
-diff -puN mm/page_alloc.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq mm/page_alloc.c
---- a/mm/page_alloc.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq
-+++ a/mm/page_alloc.c
-@@ -2363,6 +2363,13 @@ void drain_all_pages(struct zone *zone)
- 	 */
- 	static cpumask_t cpus_with_pcps;
- 
-+	/*
-+	 * Make sure nobody triggers this path before mm_percpu_wq is fully
-+	 * initialized.
-+	 */
-+	if (WARN_ON_ONCE(!mm_percpu_wq))
-+		return;
-+
- 	/* Workqueues cannot recurse */
- 	if (current->flags & PF_WQ_WORKER)
- 		return;
-@@ -2412,7 +2419,7 @@ void drain_all_pages(struct zone *zone)
- 	for_each_cpu(cpu, &cpus_with_pcps) {
- 		struct work_struct *work = per_cpu_ptr(&pcpu_drain, cpu);
- 		INIT_WORK(work, drain_local_pages_wq);
--		schedule_work_on(cpu, work);
-+		queue_work_on(cpu, mm_percpu_wq, work);
- 	}
- 	for_each_cpu(cpu, &cpus_with_pcps)
- 		flush_work(per_cpu_ptr(&pcpu_drain, cpu));
-diff -puN mm/swap.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq mm/swap.c
---- a/mm/swap.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq
-+++ a/mm/swap.c
-@@ -677,30 +677,19 @@ static void lru_add_drain_per_cpu(struct
- 
- static DEFINE_PER_CPU(struct work_struct, lru_add_drain_work);
- 
--/*
-- * lru_add_drain_wq is used to do lru_add_drain_all() from a WQ_MEM_RECLAIM
-- * workqueue, aiding in getting memory freed.
-- */
--static struct workqueue_struct *lru_add_drain_wq;
--
--static int __init lru_init(void)
--{
--	lru_add_drain_wq = alloc_workqueue("lru-add-drain", WQ_MEM_RECLAIM, 0);
--
--	if (WARN(!lru_add_drain_wq,
--		"Failed to create workqueue lru_add_drain_wq"))
--		return -ENOMEM;
--
--	return 0;
--}
--early_initcall(lru_init);
--
- void lru_add_drain_all(void)
- {
- 	static DEFINE_MUTEX(lock);
- 	static struct cpumask has_work;
- 	int cpu;
- 
-+	/*
-+	 * Make sure nobody triggers this path before mm_percpu_wq is fully
-+	 * initialized.
-+	 */
-+	if (WARN_ON(!mm_percpu_wq))
-+		return;
-+
- 	mutex_lock(&lock);
- 	get_online_cpus();
- 	cpumask_clear(&has_work);
-@@ -714,7 +703,7 @@ void lru_add_drain_all(void)
- 		    pagevec_count(&per_cpu(lru_lazyfree_pvecs, cpu)) ||
- 		    need_activate_page_drain(cpu)) {
- 			INIT_WORK(work, lru_add_drain_per_cpu);
--			queue_work_on(cpu, lru_add_drain_wq, work);
-+			queue_work_on(cpu, mm_percpu_wq, work);
- 			cpumask_set_cpu(cpu, &has_work);
- 		}
- 	}
-diff -puN mm/vmstat.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq mm/vmstat.c
---- a/mm/vmstat.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq
-+++ a/mm/vmstat.c
-@@ -1563,7 +1563,6 @@ static const struct file_operations proc
- #endif /* CONFIG_PROC_FS */
- 
- #ifdef CONFIG_SMP
--static struct workqueue_struct *vmstat_wq;
- static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
- int sysctl_stat_interval __read_mostly = HZ;
- 
-@@ -1621,7 +1620,7 @@ static void vmstat_update(struct work_st
- 		 * to occur in the future. Keep on running the
- 		 * update worker thread.
- 		 */
--		queue_delayed_work_on(smp_processor_id(), vmstat_wq,
-+		queue_delayed_work_on(smp_processor_id(), mm_percpu_wq,
- 				this_cpu_ptr(&vmstat_work),
- 				round_jiffies_relative(sysctl_stat_interval));
- 	}
-@@ -1700,7 +1699,7 @@ static void vmstat_shepherd(struct work_
- 		struct delayed_work *dw = &per_cpu(vmstat_work, cpu);
- 
- 		if (!delayed_work_pending(dw) && need_update(cpu))
--			queue_delayed_work_on(cpu, vmstat_wq, dw, 0);
-+			queue_delayed_work_on(cpu, mm_percpu_wq, dw, 0);
- 	}
- 	put_online_cpus();
- 
-@@ -1716,7 +1715,6 @@ static void __init start_shepherd_timer(
- 		INIT_DEFERRABLE_WORK(per_cpu_ptr(&vmstat_work, cpu),
- 			vmstat_update);
- 
--	vmstat_wq = alloc_workqueue("vmstat", WQ_FREEZABLE|WQ_MEM_RECLAIM, 0);
- 	schedule_delayed_work(&shepherd,
- 		round_jiffies_relative(sysctl_stat_interval));
+diff -puN mm/memcontrol.c~mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc
++++ a/mm/memcontrol.c
+@@ -4138,17 +4138,22 @@ static void free_mem_cgroup_per_node_inf
+ 	kfree(memcg->nodeinfo[node]);
  }
-@@ -1762,11 +1760,15 @@ static int vmstat_cpu_dead(unsigned int
  
- #endif
- 
-+struct workqueue_struct *mm_percpu_wq;
-+
- static int __init setup_vmstat(void)
+-static void mem_cgroup_free(struct mem_cgroup *memcg)
++static void __mem_cgroup_free(struct mem_cgroup *memcg)
  {
--#ifdef CONFIG_SMP
--	int ret;
-+	int ret __maybe_unused;
+ 	int node;
  
-+	mm_percpu_wq = alloc_workqueue("vmstat", WQ_FREEZABLE|WQ_MEM_RECLAIM, 0);
+-	memcg_wb_domain_exit(memcg);
+ 	for_each_node(node)
+ 		free_mem_cgroup_per_node_info(memcg, node);
+ 	free_percpu(memcg->stat);
+ 	kfree(memcg);
+ }
+ 
++static void mem_cgroup_free(struct mem_cgroup *memcg)
++{
++	memcg_wb_domain_exit(memcg);
++	__mem_cgroup_free(memcg);
++}
 +
-+#ifdef CONFIG_SMP
- 	ret = cpuhp_setup_state_nocalls(CPUHP_MM_VMSTAT_DEAD, "mm/vmstat:dead",
- 					NULL, vmstat_cpu_dead);
- 	if (ret < 0)
+ static struct mem_cgroup *mem_cgroup_alloc(void)
+ {
+ 	struct mem_cgroup *memcg;
+@@ -4199,7 +4204,7 @@ static struct mem_cgroup *mem_cgroup_all
+ fail:
+ 	if (memcg->id.id > 0)
+ 		idr_remove(&mem_cgroup_idr, memcg->id.id);
+-	mem_cgroup_free(memcg);
++	__mem_cgroup_free(memcg);
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from tahsin@google.com are
 
-lockdep-allow-to-disable-reclaim-lockup-detection.patch
-xfs-abstract-pf_fstrans-to-pf_memalloc_nofs.patch
-mm-introduce-memalloc_nofs_saverestore-api.patch
-xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
-mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
-mm-introduce-kvalloc-helpers.patch
-mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
-rhashtable-simplify-a-strange-allocation-pattern.patch
-ila-simplify-a-strange-allocation-pattern.patch
-xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
-treewide-use-kvalloc-rather-than-opencoded-variants.patch
-net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
-md-use-kvmalloc-rather-than-opencoded-variant.patch
-bcache-use-kvmalloc.patch
-mm-vmalloc-use-__gfp_highmem-implicitly.patch
+mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
 
