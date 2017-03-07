@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch added to -mm tree
-Date: Mon, 06 Mar 2017 15:42:27 -0800
-Message-ID: <58bdf3e3.vLaBL7Z5IsoUWxU4%akpm@linux-foundation.org>
+Subject: +
+ treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix.patch
+ added to -mm tree
+Date: Mon, 06 Mar 2017 16:12:32 -0800
+Message-ID: <58bdfaf0.EcVnAnqkyeEu/lMV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34136 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36188 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752685AbdCFXnT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 18:43:19 -0500
+        with ESMTP id S1753841AbdCGAM7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2017 19:12:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix
+     Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
+     treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +41,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix
+Subject: treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix
 
-fix arch/x86/kernel/machine_kexec_32.c
+fix sound/pci/intel8x0.c
 
 Cc: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_32.c |    1 +
+ sound/pci/intel8x0.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/machine_kexec_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix arch/x86/kernel/machine_kexec_32.c
---- a/arch/x86/kernel/machine_kexec_32.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix
-+++ a/arch/x86/kernel/machine_kexec_32.c
-@@ -19,6 +19,7 @@
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- #include <asm/mmu_context.h>
-+#include <asm/set_memory.h>
- #include <asm/apic.h>
- #include <asm/io_apic.h>
- #include <asm/cpufeature.h>
+diff -puN sound/pci/intel8x0.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix sound/pci/intel8x0.c
+--- a/sound/pci/intel8x0.c~treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix
++++ a/sound/pci/intel8x0.c
+@@ -40,6 +40,7 @@
+ #include <sound/initval.h>
+ /* for 440MX workaround */
+ #include <asm/pgtable.h>
++#include <asnm/set_memory.h>
+ #include <asm/cacheflush.h>
+ 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +87,8 @@ arm64-use-set_memoryh-header-fix.patch
 treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
 treewide-decouple-cacheflushh-and-set_memoryh-fix-fix.patch
 treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix-fix-fix-fix-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
 
