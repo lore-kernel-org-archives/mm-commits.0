@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch added to
- -mm tree
-Date: Tue, 07 Mar 2017 15:33:53 -0800
-Message-ID: <58bf4361.WVQfm7TEVdttu5AS%akpm@linux-foundation.org>
+ mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch added to -mm tree
+Date: Tue, 07 Mar 2017 15:27:35 -0800
+Message-ID: <58bf41e7.wDu0M25F9Jy+Wqij%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51966 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933283AbdCHAND (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2017 19:13:03 -0500
+        with ESMTP id S1756506AbdCHAVP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2017 19:21:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tahsin@google.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not call mem_cgroup_free() from within mem_cgroup_alloc()
+     Subject: mm, compaction: change migrate_async_suitable() to suitable_migration_source()
 has been added to the -mm tree.  Its filename is
-     mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
+     mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,97 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tahsin Erdogan <tahsin@google.com>
-Subject: mm: do not call mem_cgroup_free() from within mem_cgroup_alloc()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: change migrate_async_suitable() to suitable_migration_source()
 
-mem_cgroup_free() indirectly calls wb_domain_exit() which is not prepared
-to deal with a struct wb_domain object that hasn't executed
-wb_domain_init().  For instance, the following warning message is printed
-by lockdep if alloc_percpu() fails in mem_cgroup_alloc():
+Preparation for making the decisions more complex and depending on
+compact_control flags.  No functional change.
 
-  INFO: trying to register non-static key.
-  the code is fine but needs lockdep annotation.
-  turning off the locking correctness validator.
-  CPU: 1 PID: 1950 Comm: mkdir Not tainted 4.10.0+ #151
-  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-  Call Trace:
-   dump_stack+0x67/0x99
-   register_lock_class+0x36d/0x540
-   __lock_acquire+0x7f/0x1a30
-   ? irq_work_queue+0x73/0x90
-   ? wake_up_klogd+0x36/0x40
-   ? console_unlock+0x45d/0x540
-   ? vprintk_emit+0x211/0x2e0
-   lock_acquire+0xcc/0x200
-   ? try_to_del_timer_sync+0x60/0x60
-   del_timer_sync+0x3c/0xc0
-   ? try_to_del_timer_sync+0x60/0x60
-   wb_domain_exit+0x14/0x20
-   mem_cgroup_free+0x14/0x40
-   mem_cgroup_css_alloc+0x3f9/0x620
-   cgroup_apply_control_enable+0x190/0x390
-   cgroup_mkdir+0x290/0x3d0
-   kernfs_iop_mkdir+0x58/0x80
-   vfs_mkdir+0x10e/0x1a0
-   SyS_mkdirat+0xa8/0xd0
-   SyS_mkdir+0x14/0x20
-   entry_SYSCALL_64_fastpath+0x18/0xad
-
-Add __mem_cgroup_free() which skips wb_domain_exit().  This is used by
-both mem_cgroup_free() and mem_cgroup_alloc() clean up.
-
-Fixes: 0b8f73e104285 ("mm: memcontrol: clean up alloc, online, offline, free functions")
-Link: http://lkml.kernel.org/r/20170306192122.24262-1-tahsin@google.com
-Signed-off-by: Tahsin Erdogan <tahsin@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170307131545.28577-6-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    5 +++++
+ mm/compaction.c        |   19 +++++++++++--------
+ 2 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc mm/memcontrol.c
---- a/mm/memcontrol.c~mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc
-+++ a/mm/memcontrol.c
-@@ -4138,17 +4138,22 @@ static void free_mem_cgroup_per_node_inf
- 	kfree(memcg->nodeinfo[node]);
- }
+diff -puN include/linux/mmzone.h~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source
++++ a/include/linux/mmzone.h
+@@ -74,6 +74,11 @@ extern char * const migratetype_names[MI
+ #  define is_migrate_cma_page(_page) false
+ #endif
  
--static void mem_cgroup_free(struct mem_cgroup *memcg)
-+static void __mem_cgroup_free(struct mem_cgroup *memcg)
- {
- 	int node;
- 
--	memcg_wb_domain_exit(memcg);
- 	for_each_node(node)
- 		free_mem_cgroup_per_node_info(memcg, node);
- 	free_percpu(memcg->stat);
- 	kfree(memcg);
- }
- 
-+static void mem_cgroup_free(struct mem_cgroup *memcg)
++static inline bool is_migrate_movable(int mt)
 +{
-+	memcg_wb_domain_exit(memcg);
-+	__mem_cgroup_free(memcg);
++	return is_migrate_cma(mt) || mt == MIGRATE_MOVABLE;
 +}
 +
- static struct mem_cgroup *mem_cgroup_alloc(void)
- {
- 	struct mem_cgroup *memcg;
-@@ -4199,7 +4204,7 @@ static struct mem_cgroup *mem_cgroup_all
- fail:
- 	if (memcg->id.id > 0)
- 		idr_remove(&mem_cgroup_idr, memcg->id.id);
--	mem_cgroup_free(memcg);
-+	__mem_cgroup_free(memcg);
- 	return NULL;
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+ 		for (type = 0; type < MIGRATE_TYPES; type++)
+diff -puN mm/compaction.c~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source
++++ a/mm/compaction.c
+@@ -89,11 +89,6 @@ static void map_pages(struct list_head *
+ 	list_splice(&tmp_list, list);
  }
  
+-static inline bool migrate_async_suitable(int migratetype)
+-{
+-	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
+-}
+-
+ #ifdef CONFIG_COMPACTION
+ 
+ int PageMovable(struct page *page)
+@@ -988,6 +983,15 @@ isolate_migratepages_range(struct compac
+ #endif /* CONFIG_COMPACTION || CONFIG_CMA */
+ #ifdef CONFIG_COMPACTION
+ 
++static bool suitable_migration_source(struct compact_control *cc,
++							struct page *page)
++{
++	if (cc->mode != MIGRATE_ASYNC)
++		return true;
++
++	return is_migrate_movable(get_pageblock_migratetype(page));
++}
++
+ /* Returns true if the page is within a block suitable for migration to */
+ static bool suitable_migration_target(struct compact_control *cc,
+ 							struct page *page)
+@@ -1007,7 +1011,7 @@ static bool suitable_migration_target(st
+ 	}
+ 
+ 	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
+-	if (migrate_async_suitable(get_pageblock_migratetype(page)))
++	if (is_migrate_movable(get_pageblock_migratetype(page)))
+ 		return true;
+ 
+ 	/* Otherwise skip the block */
+@@ -1242,8 +1246,7 @@ static isolate_migrate_t isolate_migrate
+ 		 * Async compaction is optimistic to see if the minimum amount
+ 		 * of work satisfies the allocation.
+ 		 */
+-		if (cc->mode == MIGRATE_ASYNC &&
+-		    !migrate_async_suitable(get_pageblock_migratetype(page)))
++		if (!suitable_migration_source(cc, page))
+ 			continue;
+ 
+ 		/* Perform the isolation */
 _
 
-Patches currently in -mm which might be from tahsin@google.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
+mm-compaction-reorder-fields-in-struct-compact_control.patch
+mm-compaction-remove-redundant-watermark-check-in-compact_finished.patch
+mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
+mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
+mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
+mm-compaction-add-migratetype-to-compact_control.patch
+mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype.patch
+mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
 
