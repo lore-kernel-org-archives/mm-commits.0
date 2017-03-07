@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch added to -mm tree
-Date: Tue, 07 Mar 2017 15:27:35 -0800
-Message-ID: <58bf41e7.wDu0M25F9Jy+Wqij%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
+ added to -mm tree
+Date: Tue, 07 Mar 2017 15:27:30 -0800
+Message-ID: <58bf41e2.KFcdxBwoxx4RJdF+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51964 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756506AbdCHAVP (ORCPT
+        with ESMTP id S1756499AbdCHAVP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2017 19:21:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsing
 
 
 The patch titled
-     Subject: mm, compaction: change migrate_async_suitable() to suitable_migration_source()
+     Subject: mm, page_alloc: split smallest stolen page in fallback
 has been added to the -mm tree.  Its filename is
-     mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
+     mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: change migrate_async_suitable() to suitable_migration_source()
+Subject: mm, page_alloc: split smallest stolen page in fallback
 
-Preparation for making the decisions more complex and depending on
-compact_control flags.  No functional change.
+The __rmqueue_fallback() function is called when there's no free page of
+requested migratetype, and we need to steal from a different one.  There
+are various heuristics to make this event infrequent and reduce permanent
+fragmentation.  The main one is to try stealing from a pageblock that has
+the most free pages, and possibly steal them all at once and convert the
+whole pageblock.  Precise searching for such pageblock would be expensive,
+so instead the heuristics walks the free lists from MAX_ORDER down to
+requested order and assumes that the block with highest-order free page is
+likely to also have the most free pages in total.
 
-Link: http://lkml.kernel.org/r/20170307131545.28577-6-vbabka@suse.cz
+Chances are that together with the highest-order page, we steal also pages
+of lower orders from the same block.  But then we still split the highest
+order page.  This is wasteful and can contribute to fragmentation instead
+of avoiding it.
+
+This patch thus changes __rmqueue_fallback() to just steal the page(s) and
+put them on the freelist of the requested migratetype, and only report
+whether it was successful.  Then we pick (and eventually split) the
+smallest page with __rmqueue_smallest().  This all happens under zone
+lock, so nobody can steal it from us in the process.  This should reduce
+fragmentation due to fallbacks.  At worst we are only stealing a single
+highest-order page and waste some cycles by moving it between lists and
+then removing it, but fallback is not exactly hot path so that should not
+be a concern.  As a side benefit the patch removes some duplicate code by
+reusing __rmqueue_smallest().
+
+Link: http://lkml.kernel.org/r/20170307131545.28577-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -54,75 +77,126 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 +++++
- mm/compaction.c        |   19 +++++++++++--------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   59 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source
-+++ a/include/linux/mmzone.h
-@@ -74,6 +74,11 @@ extern char * const migratetype_names[MI
- #  define is_migrate_cma_page(_page) false
- #endif
+diff -puN mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback
++++ a/mm/page_alloc.c
+@@ -1952,23 +1952,41 @@ static bool can_steal_fallback(unsigned
+  * use it's pages as requested migratetype in the future.
+  */
+ static void steal_suitable_fallback(struct zone *zone, struct page *page,
+-							  int start_type)
++					int start_type, bool whole_block)
+ {
+ 	unsigned int current_order = page_order(page);
++	struct free_area *area;
+ 	int pages;
  
-+static inline bool is_migrate_movable(int mt)
-+{
-+	return is_migrate_cma(mt) || mt == MIGRATE_MOVABLE;
-+}
++	/*
++	 * This can happen due to races and we want to prevent broken
++	 * highatomic accounting.
++	 */
++	if (is_migrate_highatomic_page(page))
++		goto single_page;
 +
- #define for_each_migratetype_order(order, type) \
- 	for (order = 0; order < MAX_ORDER; order++) \
- 		for (type = 0; type < MIGRATE_TYPES; type++)
-diff -puN mm/compaction.c~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source mm/compaction.c
---- a/mm/compaction.c~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source
-+++ a/mm/compaction.c
-@@ -89,11 +89,6 @@ static void map_pages(struct list_head *
- 	list_splice(&tmp_list, list);
- }
- 
--static inline bool migrate_async_suitable(int migratetype)
--{
--	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
--}
--
- #ifdef CONFIG_COMPACTION
- 
- int PageMovable(struct page *page)
-@@ -988,6 +983,15 @@ isolate_migratepages_range(struct compac
- #endif /* CONFIG_COMPACTION || CONFIG_CMA */
- #ifdef CONFIG_COMPACTION
- 
-+static bool suitable_migration_source(struct compact_control *cc,
-+							struct page *page)
-+{
-+	if (cc->mode != MIGRATE_ASYNC)
-+		return true;
-+
-+	return is_migrate_movable(get_pageblock_migratetype(page));
-+}
-+
- /* Returns true if the page is within a block suitable for migration to */
- static bool suitable_migration_target(struct compact_control *cc,
- 							struct page *page)
-@@ -1007,7 +1011,7 @@ static bool suitable_migration_target(st
+ 	/* Take ownership for orders >= pageblock_order */
+ 	if (current_order >= pageblock_order) {
+ 		change_pageblock_range(page, current_order, start_type);
+-		return;
++		goto single_page;
  	}
  
- 	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
--	if (migrate_async_suitable(get_pageblock_migratetype(page)))
-+	if (is_migrate_movable(get_pageblock_migratetype(page)))
- 		return true;
++	/* We are not allowed to try stealing from the whole block */
++	if (!whole_block)
++		goto single_page;
++
+ 	pages = move_freepages_block(zone, page, start_type);
  
- 	/* Otherwise skip the block */
-@@ -1242,8 +1246,7 @@ static isolate_migrate_t isolate_migrate
- 		 * Async compaction is optimistic to see if the minimum amount
- 		 * of work satisfies the allocation.
- 		 */
--		if (cc->mode == MIGRATE_ASYNC &&
--		    !migrate_async_suitable(get_pageblock_migratetype(page)))
-+		if (!suitable_migration_source(cc, page))
- 			continue;
+ 	/* Claim the whole block if over half of it is free */
+ 	if (pages >= (1 << (pageblock_order-1)) ||
+ 			page_group_by_mobility_disabled)
+ 		set_pageblock_migratetype(page, start_type);
++
++	return;
++
++single_page:
++	area = &zone->free_area[current_order];
++	list_move(&page->lru, &area->free_list[start_type]);
+ }
  
- 		/* Perform the isolation */
+ /*
+@@ -2127,8 +2145,13 @@ static bool unreserve_highatomic_pageblo
+ 	return false;
+ }
+ 
+-/* Remove an element from the buddy allocator from the fallback list */
+-static inline struct page *
++/*
++ * Try finding a free buddy page on the fallback list and put it on the free
++ * list of requested migratetype, possibly along with other pages from the same
++ * block, depending on fragmentation avoidance heuristics. Returns true if
++ * fallback was found so that __rmqueue_smallest() can grab it.
++ */
++static inline bool
+ __rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
+ {
+ 	struct free_area *area;
+@@ -2149,32 +2172,17 @@ __rmqueue_fallback(struct zone *zone, un
+ 
+ 		page = list_first_entry(&area->free_list[fallback_mt],
+ 						struct page, lru);
+-		if (can_steal && !is_migrate_highatomic_page(page))
+-			steal_suitable_fallback(zone, page, start_migratetype);
+ 
+-		/* Remove the page from the freelists */
+-		area->nr_free--;
+-		list_del(&page->lru);
+-		rmv_page_order(page);
+-
+-		expand(zone, page, order, current_order, area,
+-					start_migratetype);
+-		/*
+-		 * The pcppage_migratetype may differ from pageblock's
+-		 * migratetype depending on the decisions in
+-		 * find_suitable_fallback(). This is OK as long as it does not
+-		 * differ for MIGRATE_CMA pageblocks. Those can be used as
+-		 * fallback only via special __rmqueue_cma_fallback() function
+-		 */
+-		set_pcppage_migratetype(page, start_migratetype);
++		steal_suitable_fallback(zone, page, start_migratetype,
++								can_steal);
+ 
+ 		trace_mm_page_alloc_extfrag(page, order, current_order,
+ 			start_migratetype, fallback_mt);
+ 
+-		return page;
++		return true;
+ 	}
+ 
+-	return NULL;
++	return false;
+ }
+ 
+ /*
+@@ -2186,13 +2194,14 @@ static struct page *__rmqueue(struct zon
+ {
+ 	struct page *page;
+ 
++retry:
+ 	page = __rmqueue_smallest(zone, order, migratetype);
+ 	if (unlikely(!page)) {
+ 		if (migratetype == MIGRATE_MOVABLE)
+ 			page = __rmqueue_cma_fallback(zone, order);
+ 
+-		if (!page)
+-			page = __rmqueue_fallback(zone, order, migratetype);
++		if (!page && __rmqueue_fallback(zone, order, migratetype))
++			goto retry;
+ 	}
+ 
+ 	trace_mm_page_alloc_zone_locked(page, order, migratetype);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
