@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + sh-cayman-ide-support-fix.patch added to -mm tree
-Date: Wed, 08 Mar 2017 15:01:25 -0800
-Message-ID: <58c08d45.5u17drsYUt+oCyJk%akpm@linux-foundation.org>
+Subject: +
+ fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch added to -mm tree
+Date: Wed, 08 Mar 2017 15:17:18 -0800
+Message-ID: <58c090fe.f8jLBeFqEBc88+1x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56722 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58040 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752094AbdCHXBl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2017 18:01:41 -0500
+        with ESMTP id S1751917AbdCHXRT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2017 18:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: b.zolnierkie@samsung.com, dalias@libc.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, moreno.bartalucci@tecnorama.it, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: cayman: IDE support fix
+     Subject: fat: fix using uninitialized fields of fat_inode/fsinfo_inode
 has been added to the -mm tree.  Its filename is
-     sh-cayman-ide-support-fix.patch
+     fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-cayman-ide-support-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-cayman-ide-support-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: sh: cayman: IDE support fix
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: fix using uninitialized fields of fat_inode/fsinfo_inode
 
-Remove incorrect CONFIG_IDE ifdef (CONFIG_IDE config option is for
-internal drivers/ide/ use) and make IDE hardware interface always
-initialized (not only when IDE subsystem is built-in).
+Recently fallocate patch was merged and it uses
+MSDOS_I(inode)->mmu_private at fat_evict_inode().  However,
+fat_inode/fsinfo_inode that was introduced in past didn't initialize
+MSDOS_I(inode) properly.
 
-This patch allows Cayman board to work with modular IDE subsystem support
-and removes the requirement of having the whole core IDE subsystem
-built-in when using libata PATA support.
+With those combinations, it became the cause of accessing random entry
+in FAT area.
 
-Link: http://lkml.kernel.org/r/1990884.yFoE6lSB9G@amdc3058
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Link: http://lkml.kernel.org/r/87pohrj4i8.fsf@mail.parknet.co.jp
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Reported-by: Moreno Bartalucci <moreno.bartalucci@tecnorama.it>
+Tested-by: Moreno Bartalucci <moreno.bartalucci@tecnorama.it>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/mach-cayman/setup.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/fat/inode.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/boards/mach-cayman/setup.c~sh-cayman-ide-support-fix arch/sh/boards/mach-cayman/setup.c
---- a/arch/sh/boards/mach-cayman/setup.c~sh-cayman-ide-support-fix
-+++ a/arch/sh/boards/mach-cayman/setup.c
-@@ -128,7 +128,6 @@ static int __init smsc_superio_setup(voi
- 	SMSC_SUPERIO_WRITE_INDEXED(1, SMSC_PRIMARY_INT_INDEX);
- 	SMSC_SUPERIO_WRITE_INDEXED(12, SMSC_SECONDARY_INT_INDEX);
+diff -puN fs/fat/inode.c~fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode
++++ a/fs/fat/inode.c
+@@ -1359,6 +1359,16 @@ out:
+ 	return 0;
+ }
  
--#ifdef CONFIG_IDE
- 	/*
- 	 * Only IDE1 exists on the Cayman
- 	 */
-@@ -158,7 +157,6 @@ static int __init smsc_superio_setup(voi
- 	SMSC_SUPERIO_WRITE_INDEXED(0x01, 0xc5); /* GP45 = IDE1_IRQ */
- 	SMSC_SUPERIO_WRITE_INDEXED(0x00, 0xc6); /* GP46 = nIOROP */
- 	SMSC_SUPERIO_WRITE_INDEXED(0x00, 0xc7); /* GP47 = nIOWOP */
--#endif
++static void fat_dummy_inode_init(struct inode *inode)
++{
++	/* Initialize this dummy inode to work as no-op. */
++	MSDOS_I(inode)->mmu_private = 0;
++	MSDOS_I(inode)->i_start = 0;
++	MSDOS_I(inode)->i_logstart = 0;
++	MSDOS_I(inode)->i_attrs = 0;
++	MSDOS_I(inode)->i_pos = 0;
++}
++
+ static int fat_read_root(struct inode *inode)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
+@@ -1803,12 +1813,13 @@ int fat_fill_super(struct super_block *s
+ 	fat_inode = new_inode(sb);
+ 	if (!fat_inode)
+ 		goto out_fail;
+-	MSDOS_I(fat_inode)->i_pos = 0;
++	fat_dummy_inode_init(fat_inode);
+ 	sbi->fat_inode = fat_inode;
  
- 	/* Exit the configuration state */
- 	outb(SMSC_EXIT_CONFIG_KEY, SMSC_CONFIG_PORT_ADDR);
+ 	fsinfo_inode = new_inode(sb);
+ 	if (!fsinfo_inode)
+ 		goto out_fail;
++	fat_dummy_inode_init(fsinfo_inode);
+ 	fsinfo_inode->i_ino = MSDOS_FSINFO_INO;
+ 	sbi->fsinfo_inode = fsinfo_inode;
+ 	insert_inode_hash(fsinfo_inode);
 _
 
-Patches currently in -mm which might be from b.zolnierkie@samsung.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-sh-cayman-ide-support-fix.patch
+fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch
 
