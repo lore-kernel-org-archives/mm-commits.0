@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + treewide-decouple-cacheflushh-and-set_memoryh.patch added to
- -mm tree
-Date: Thu, 09 Mar 2017 13:39:09 -0800
-Message-ID: <58c1cb7d.THg8UTzWlvzExRga%akpm@linux-foundation.org>
+Subject: + alsa-use-set_memoryh-header.patch added to -mm tree
+Date: Thu, 09 Mar 2017 13:39:03 -0800
+Message-ID: <58c1cb77.5P50wwvZVlrVlvM0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37218 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752760AbdCIVpy (ORCPT
+        with ESMTP id S1751405AbdCIVpy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, catalin.marinas@arm.com, mark.rutland@arm.com, mm-commits@vger.kernel.org
+To: labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide: decouple cacheflush.h and set_memory.h
+     Subject: alsa: use set_memory.h header
 has been added to the -mm tree.  Its filename is
-     treewide-decouple-cacheflushh-and-set_memoryh.patch
+     alsa-use-set_memoryh-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/treewide-decouple-cacheflushh-and-set_memoryh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/alsa-use-set_memoryh-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-decouple-cacheflushh-and-set_memoryh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/alsa-use-set_memoryh-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,79 +39,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: treewide: decouple cacheflush.h and set_memory.h
+Subject: alsa: use set_memory.h header
 
-Now that all call sites, completely decouple cacheflush.h and
-set_memory.h
+set_memory_* functions have moved to set_memory.h. Switch to this
+explicitly.
 
-Link: http://lkml.kernel.org/r/1488920133-27229-17-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488920133-27229-14-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/cacheflush.h   |    1 -
- arch/arm64/include/asm/cacheflush.h |    1 -
- arch/s390/include/asm/Kbuild        |    1 +
- arch/s390/include/asm/cacheflush.h  |    8 --------
- arch/x86/include/asm/cacheflush.h   |    1 -
- 5 files changed, 1 insertion(+), 11 deletions(-)
+ sound/pci/hda/hda_intel.c    |    2 +-
+ sound/pci/intel8x0.c         |    4 +++-
+ sound/x86/intel_hdmi_audio.c |    2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm/include/asm/cacheflush.h
---- a/arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/arm/include/asm/cacheflush.h
-@@ -16,7 +16,6 @@
- #include <asm/shmparam.h>
- #include <asm/cachetype.h>
- #include <asm/outercache.h>
--#include <asm/set_memory.h>
+diff -puN sound/pci/hda/hda_intel.c~alsa-use-set_memoryh-header sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~alsa-use-set_memoryh-header
++++ a/sound/pci/hda/hda_intel.c
+@@ -53,7 +53,7 @@
+ #ifdef CONFIG_X86
+ /* for snoop control */
+ #include <asm/pgtable.h>
+-#include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ #include <asm/cpufeature.h>
+ #endif
+ #include <sound/core.h>
+diff -puN sound/pci/intel8x0.c~alsa-use-set_memoryh-header sound/pci/intel8x0.c
+--- a/sound/pci/intel8x0.c~alsa-use-set_memoryh-header
++++ a/sound/pci/intel8x0.c
+@@ -40,7 +40,9 @@
+ #include <sound/initval.h>
+ /* for 440MX workaround */
+ #include <asm/pgtable.h>
+-#include <asm/cacheflush.h>
++#ifdef CONFIG_X86
++#include <asm/set_memory.h>
++#endif
  
- #define CACHE_COLOUR(vaddr)	((vaddr & (SHMLBA - 1)) >> PAGE_SHIFT)
- 
-diff -puN arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm64/include/asm/cacheflush.h
---- a/arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/arm64/include/asm/cacheflush.h
-@@ -20,7 +20,6 @@
- #define __ASM_CACHEFLUSH_H
- 
- #include <linux/mm.h>
--#include <asm/set_memory.h>
- 
- /*
-  * This flag is used to indicate that the page pointed to by a pte is clean
-diff -puN arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh arch/s390/include/asm/Kbuild
---- a/arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/s390/include/asm/Kbuild
-@@ -1,4 +1,5 @@
- generic-y += asm-offsets.h
-+generic-y += cacheflush.h
- generic-y += clkdev.h
- generic-y += dma-contiguous.h
- generic-y += export.h
-diff -puN arch/s390/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh /dev/null
---- a/arch/s390/include/asm/cacheflush.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _S390_CACHEFLUSH_H
--#define _S390_CACHEFLUSH_H
--
--/* Caches aren't brain-dead on the s390. */
--#include <asm-generic/cacheflush.h>
--#include <asm/set_memory.h>
--
--#endif /* _S390_CACHEFLUSH_H */
-diff -puN arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/include/asm/cacheflush.h
---- a/arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/x86/include/asm/cacheflush.h
-@@ -4,7 +4,6 @@
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
--#include <asm/set_memory.h>
- 
- void clflush_cache_range(void *addr, unsigned int size);
- 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
+ MODULE_DESCRIPTION("Intel 82801AA,82901AB,i810,i820,i830,i840,i845,MX440; SiS 7012; Ali 5455");
+diff -puN sound/x86/intel_hdmi_audio.c~alsa-use-set_memoryh-header sound/x86/intel_hdmi_audio.c
+--- a/sound/x86/intel_hdmi_audio.c~alsa-use-set_memoryh-header
++++ a/sound/x86/intel_hdmi_audio.c
+@@ -30,7 +30,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
+-#include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ #include <sound/core.h>
+ #include <sound/asoundef.h>
+ #include <sound/pcm.h>
 _
 
 Patches currently in -mm which might be from labbott@redhat.com are
