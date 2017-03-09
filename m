@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + module-use-set_memoryh-header.patch added to -mm tree
-Date: Thu, 09 Mar 2017 13:38:59 -0800
-Message-ID: <58c1cb73.sPqN9TZCXEQ2GE8d%akpm@linux-foundation.org>
+Subject: + intel_th-use-set_memoryh-header.patch added to -mm tree
+Date: Thu, 09 Mar 2017 13:38:53 -0800
+Message-ID: <58c1cb6d.wU4yypHQybXNzrs1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36956 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753432AbdCIVjA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:39:00 -0500
+        with ESMTP id S1750930AbdCIVi4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:38:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, jeyu@redhat.com, mm-commits@vger.kernel.org
+To: labbott@redhat.com, alexander.shishkin@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/module.c: use set_memory.h header
+     Subject: drivers/hwtracing/intel_th/msu.c: use set_memory.h header
 has been added to the -mm tree.  Its filename is
-     module-use-set_memoryh-header.patch
+     intel_th-use-set_memoryh-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/module-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/intel_th-use-set_memoryh-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/module-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/intel_th-use-set_memoryh-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: kernel/module.c: use set_memory.h header
+Subject: drivers/hwtracing/intel_th/msu.c: use set_memory.h header
 
 set_memory_* functions have moved to set_memory.h. Switch to this
 explicitly.
 
-Link: http://lkml.kernel.org/r/1488920133-27229-12-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488920133-27229-9-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Jessica Yu <jeyu@redhat.com>
+Acked-by: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/hwtracing/intel_th/msu.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/module.c~module-use-set_memoryh-header kernel/module.c
---- a/kernel/module.c~module-use-set_memoryh-header
-+++ a/kernel/module.c
-@@ -49,6 +49,9 @@
- #include <linux/rculist.h>
- #include <linux/uaccess.h>
- #include <asm/cacheflush.h>
-+#ifdef CONFIG_STRICT_MODULE_RWX
+diff -puN drivers/hwtracing/intel_th/msu.c~intel_th-use-set_memoryh-header drivers/hwtracing/intel_th/msu.c
+--- a/drivers/hwtracing/intel_th/msu.c~intel_th-use-set_memoryh-header
++++ a/drivers/hwtracing/intel_th/msu.c
+@@ -27,7 +27,9 @@
+ #include <linux/io.h>
+ #include <linux/dma-mapping.h>
+ 
+-#include <asm/cacheflush.h>
++#ifdef CONFIG_X86
 +#include <asm/set_memory.h>
 +#endif
- #include <asm/mmu_context.h>
- #include <linux/license.h>
- #include <asm/sections.h>
+ 
+ #include "intel_th.h"
+ #include "msu.h"
 _
 
 Patches currently in -mm which might be from labbott@redhat.com are
