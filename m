@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-use-set_memoryh-header.patch added to -mm tree
-Date: Thu, 09 Mar 2017 13:39:03 -0800
-Message-ID: <58c1cb77.5P50wwvZVlrVlvM0%akpm@linux-foundation.org>
+Subject: + mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch
+ added to -mm tree
+Date: Thu, 09 Mar 2017 13:51:47 -0800
+Message-ID: <58c1ce73.vLt6ToXCLOVBk+8+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37326 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751405AbdCIVpy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:45:54 -0500
+        with ESMTP id S1751633AbdCIVvt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:51:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, mm-commits@vger.kernel.org
+To: sgoel01@yahoo.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alsa: use set_memory.h header
+     Subject: mm, vmscan: fix zone balance check in prepare_kswapd_sleep
 has been added to the -mm tree.  Its filename is
-     alsa-use-set_memoryh-header.patch
+     mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/alsa-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/alsa-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,78 +39,172 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laura Abbott <labbott@redhat.com>
-Subject: alsa: use set_memory.h header
+From: Shantanu Goel <sgoel01@yahoo.com>
+Subject: mm, vmscan: fix zone balance check in prepare_kswapd_sleep
 
-set_memory_* functions have moved to set_memory.h. Switch to this
-explicitly.
+Patch series "Reduce amount of time kswapd sleeps prematurely", v2.
 
-Link: http://lkml.kernel.org/r/1488920133-27229-14-git-send-email-labbott@redhat.com
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+The series is unusual in that the first patch fixes one problem and
+introduces other issues that are noted in the changelog.  Patch 2 makes a
+minor modification that is worth considering on its own but leaves the
+kernel in a state where it behaves badly.  It's not until patch 3 that
+there is an improvement against baseline.
+
+This was mostly motivated by examining Chris Mason's "simoop" benchmark
+which puts the VM under similar pressure to HADOOP.  It has been reported
+that the benchmark has regressed severely during the last number of
+releases.  While I cannot reproduce all the same problems Chris
+experienced due to hardware limitations, there was a number of problems on
+a 2-socket machine with a single disk.
+
+simoop latencies
+                                         4.11.0-rc1            4.11.0-rc1
+                                            vanilla          keepawake-v2
+Amean    p50-Read             21670074.18 (  0.00%) 22668332.52 ( -4.61%)
+Amean    p95-Read             25456267.64 (  0.00%) 26738688.00 ( -5.04%)
+Amean    p99-Read             29369064.73 (  0.00%) 30991404.52 ( -5.52%)
+Amean    p50-Write                1390.30 (  0.00%)      924.91 ( 33.47%)
+Amean    p95-Write              412901.57 (  0.00%)     1362.62 ( 99.67%)
+Amean    p99-Write             6668722.09 (  0.00%)    16854.04 ( 99.75%)
+Amean    p50-Allocation          78714.31 (  0.00%)    74729.74 (  5.06%)
+Amean    p95-Allocation         175533.51 (  0.00%)   101609.74 ( 42.11%)
+Amean    p99-Allocation         247003.02 (  0.00%)   125765.57 ( 49.08%)
+
+These are latencies.  Read/write are threads reading fixed-size random
+blocks from a simulated database.  The allocation latency is mmaping and
+faulting regions of memory.  The p50, 95 and p99 reports the worst
+latencies for 50% of the samples, 95% and 99% respectively.
+
+For example, the report indicates that while the test was running 99% of
+writes completed 99.75% faster.  It's worth noting that on a UMA machine
+that no difference in performance with simoop was observed so milage will
+vary.
+
+It's noted that there is a slight impact to read latencies but it's mostly
+due to IO scheduler decisions and offset by the large reduction in other
+latencies.
+
+
+This patch (of 3):
+
+The check in prepare_kswapd_sleep needs to match the one in balance_pgdat
+since the latter will return as soon as any one of the zones in the
+classzone is above the watermark.  This is specially important for higher
+order allocations since balance_pgdat will typically reset the order to
+zero relying on compaction to create the higher order pages.  Without this
+patch, prepare_kswapd_sleep fails to wake up kcompactd since the zone
+balance check fails.
+
+It was first reported against 4.9.7 that kswapd is failing to wake up
+kcompactd due to a mismatch in the zone balance check between
+balance_pgdat() and prepare_kswapd_sleep().  balance_pgdat() returns as
+soon as a single zone satisfies the allocation but prepare_kswapd_sleep()
+requires all zones to do +the same.  This causes prepare_kswapd_sleep() to
+never succeed except in the order == 0 case and consequently,
+wakeup_kcompactd() is never called.  For the machine that originally
+motivated this patch, the state of compaction from /proc/vmstat looked
+this way after a day and a half +of uptime:
+
+compact_migrate_scanned 240496
+compact_free_scanned 76238632
+compact_isolated 123472
+compact_stall 1791
+compact_fail 29
+compact_success 1762
+compact_daemon_wake 0
+
+After applying the patch and about 10 hours of uptime the state looks
+like this:
+
+compact_migrate_scanned 59927299
+compact_free_scanned 2021075136
+compact_isolated 640926
+compact_stall 4
+compact_fail 2
+compact_success 2
+compact_daemon_wake 5160
+
+Further notes from Mel that motivated him to pick this patch up and
+resend it;
+
+It was observed for the simoop workload (pressures the VM similar to
+HADOOP) that kswapd was failing to keep ahead of direct reclaim.  The
+investigation noted that there was a need to rationalise kswapd decisions
+to reclaim with kswapd decisions to sleep.  With this patch on a 2-socket
+box, there was a 49% reduction in direct reclaim scanning.
+
+However, the impact otherwise is extremely negative.  Kswapd reclaim
+efficiency dropped from 98% to 76%.  simoop has three latency-related
+metrics for read, write and allocation (an anonymous mmap and fault).
+
+                                         4.11.0-rc1            4.11.0-rc1
+                                            vanilla           fixcheck-v2
+Amean    p50-Read             21670074.18 (  0.00%) 20464344.18 (  5.56%)
+Amean    p95-Read             25456267.64 (  0.00%) 25721423.64 ( -1.04%)
+Amean    p99-Read             29369064.73 (  0.00%) 30174230.76 ( -2.74%)
+Amean    p50-Write                1390.30 (  0.00%)     1395.28 ( -0.36%)
+Amean    p95-Write              412901.57 (  0.00%)    37737.74 ( 90.86%)
+Amean    p99-Write             6668722.09 (  0.00%)   666489.04 ( 90.01%)
+Amean    p50-Allocation          78714.31 (  0.00%)    86286.22 ( -9.62%)
+Amean    p95-Allocation         175533.51 (  0.00%)   351812.27 (-100.42%)
+Amean    p99-Allocation         247003.02 (  0.00%)  6291171.56 (-2447.00%)
+
+Of greater concern is that the patch causes swapping and page writes from
+kswapd context rose from 0 pages to 4189753 pages during the hour the
+workload ran for.  By and large, the patch has very bad behaviour but
+easily missed as the impact on a UMA machine is negligible.
+
+This patch is included with the data in case a bisection leads to this area.
+This patch is also a pre-requisite for the rest of the series.
+
+Link: http://lkml.kernel.org/r/20170309075657.25121-2-mgorman@techsingularity.net
+Signed-off-by: Shantanu Goel <sgoel01@yahoo.com>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_intel.c    |    2 +-
- sound/pci/intel8x0.c         |    4 +++-
- sound/x86/intel_hdmi_audio.c |    2 +-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN sound/pci/hda/hda_intel.c~alsa-use-set_memoryh-header sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~alsa-use-set_memoryh-header
-+++ a/sound/pci/hda/hda_intel.c
-@@ -53,7 +53,7 @@
- #ifdef CONFIG_X86
- /* for snoop control */
- #include <asm/pgtable.h>
--#include <asm/cacheflush.h>
-+#include <asm/set_memory.h>
- #include <asm/cpufeature.h>
- #endif
- #include <sound/core.h>
-diff -puN sound/pci/intel8x0.c~alsa-use-set_memoryh-header sound/pci/intel8x0.c
---- a/sound/pci/intel8x0.c~alsa-use-set_memoryh-header
-+++ a/sound/pci/intel8x0.c
-@@ -40,7 +40,9 @@
- #include <sound/initval.h>
- /* for 440MX workaround */
- #include <asm/pgtable.h>
--#include <asm/cacheflush.h>
-+#ifdef CONFIG_X86
-+#include <asm/set_memory.h>
-+#endif
+diff -puN mm/vmscan.c~mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep
++++ a/mm/vmscan.c
+@@ -3100,11 +3100,11 @@ static bool prepare_kswapd_sleep(pg_data
+ 		if (!managed_zone(zone))
+ 			continue;
  
- MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
- MODULE_DESCRIPTION("Intel 82801AA,82901AB,i810,i820,i830,i840,i845,MX440; SiS 7012; Ali 5455");
-diff -puN sound/x86/intel_hdmi_audio.c~alsa-use-set_memoryh-header sound/x86/intel_hdmi_audio.c
---- a/sound/x86/intel_hdmi_audio.c~alsa-use-set_memoryh-header
-+++ a/sound/x86/intel_hdmi_audio.c
-@@ -30,7 +30,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/dma-mapping.h>
- #include <linux/delay.h>
--#include <asm/cacheflush.h>
-+#include <asm/set_memory.h>
- #include <sound/core.h>
- #include <sound/asoundef.h>
- #include <sound/pcm.h>
+-		if (!zone_balanced(zone, order, classzone_idx))
+-			return false;
++		if (zone_balanced(zone, order, classzone_idx))
++			return true;
+ 	}
+ 
+-	return true;
++	return false;
+ }
+ 
+ /*
+@@ -3301,7 +3301,13 @@ static void kswapd_try_to_sleep(pg_data_
+ 
+ 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+ 
+-	/* Try to sleep for a short interval */
++	/*
++	 * Try to sleep for a short interval. Note that kcompactd will only be
++	 * woken if it is possible to sleep for a short interval. This is
++	 * deliberate on the assumption that if reclaim cannot keep an
++	 * eligible zone balanced that it's also unlikely that compaction will
++	 * succeed.
++	 */
+ 	if (prepare_kswapd_sleep(pgdat, reclaim_order, classzone_idx)) {
+ 		/*
+ 		 * Compaction records what page blocks it recently failed to
 _
 
-Patches currently in -mm which might be from labbott@redhat.com are
+Patches currently in -mm which might be from sgoel01@yahoo.com are
 
-treewide-move-set_memory_-functions-away-from-cacheflushh.patch
-arm-use-set_memoryh-header.patch
-arm64-use-set_memoryh-header.patch
-s390-use-set_memoryh-header.patch
-x86-use-set_memoryh-header.patch
-agp-use-set_memoryh-header.patch
-drm-use-set_memoryh-header.patch
-intel_th-use-set_memoryh-header.patch
-watchdog-hpwdt-use-set_memoryh-header.patch
-bpf-use-set_memoryh-header.patch
-module-use-set_memoryh-header.patch
-pm-hibernate-use-set_memoryh-header.patch
-alsa-use-set_memoryh-header.patch
-misc-sram-use-set_memoryh-header.patch
-video-vermilion-use-set_memoryh-header.patch
-treewide-decouple-cacheflushh-and-set_memoryh.patch
+mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch
 
