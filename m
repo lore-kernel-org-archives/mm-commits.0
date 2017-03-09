@@ -1,7 +1,7 @@
 From: akpm@linux-foundation.org
-Subject: + drm-use-set_memoryh-header.patch added to -mm tree
-Date: Thu, 09 Mar 2017 13:38:50 -0800
-Message-ID: <58c1cb6a.EmJTnBLcqlTfHzXd%akpm@linux-foundation.org>
+Subject: + bpf-use-set_memoryh-header.patch added to -mm tree
+Date: Thu, 09 Mar 2017 13:38:57 -0800
+Message-ID: <58c1cb71.jfN5+0qBIVWsC39V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -9,22 +9,22 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:36952 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752077AbdCIVi4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:38:56 -0500
+        with ESMTP id S1752139AbdCIVi6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:38:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, mm-commits@vger.kernel.org
+To: labbott@redhat.com, daniel@iogearbox.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm: use set_memory.h header
+     Subject: include/linux/filter.h: use set_memory.h header
 has been added to the -mm tree.  Its filename is
-     drm-use-set_memoryh-header.patch
+     bpf-use-set_memoryh-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bpf-use-set_memoryh-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bpf-use-set_memoryh-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,112 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: drm: use set_memory.h header
+Subject: include/linux/filter.h: use set_memory.h header
 
 set_memory_* functions have moved to set_memory.h. Switch to this
 explicitly.
 
-Link: http://lkml.kernel.org/r/1488920133-27229-8-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488920133-27229-11-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
+Acked-by: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c |    3 +++
- drivers/gpu/drm/gma500/gtt.c             |    1 +
- drivers/gpu/drm/gma500/psb_drv.c         |    1 +
- drivers/gpu/drm/radeon/radeon_gart.c     |    3 +++
- drivers/gpu/drm/ttm/ttm_page_alloc.c     |    3 +++
- drivers/gpu/drm/ttm/ttm_page_alloc_dma.c |    3 +++
- drivers/gpu/drm/ttm/ttm_tt.c             |    3 +++
- 7 files changed, 17 insertions(+)
+ include/linux/filter.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c~drm-use-set_memoryh-header drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c~drm-use-set_memoryh-header
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_gart.c
-@@ -27,6 +27,9 @@
-  */
- #include <drm/drmP.h>
- #include <drm/amdgpu_drm.h>
-+#ifdef CONFIG_X86
-+#include <asm/set_memory.h>
-+#endif
- #include "amdgpu.h"
+diff -puN include/linux/filter.h~bpf-use-set_memoryh-header include/linux/filter.h
+--- a/include/linux/filter.h~bpf-use-set_memoryh-header
++++ a/include/linux/filter.h
+@@ -18,7 +18,9 @@
  
- /*
-diff -puN drivers/gpu/drm/gma500/gtt.c~drm-use-set_memoryh-header drivers/gpu/drm/gma500/gtt.c
---- a/drivers/gpu/drm/gma500/gtt.c~drm-use-set_memoryh-header
-+++ a/drivers/gpu/drm/gma500/gtt.c
-@@ -21,6 +21,7 @@
+ #include <net/sch_generic.h>
  
- #include <drm/drmP.h>
- #include <linux/shmem_fs.h>
-+#include <asm/set_memory.h>
- #include "psb_drv.h"
- #include "blitter.h"
- 
-diff -puN drivers/gpu/drm/gma500/psb_drv.c~drm-use-set_memoryh-header drivers/gpu/drm/gma500/psb_drv.c
---- a/drivers/gpu/drm/gma500/psb_drv.c~drm-use-set_memoryh-header
-+++ a/drivers/gpu/drm/gma500/psb_drv.c
-@@ -35,6 +35,7 @@
- #include <linux/pm_runtime.h>
- #include <acpi/video.h>
- #include <linux/module.h>
-+#include <asm/set_memory.h>
- 
- static struct drm_driver driver;
- static int psb_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent);
-diff -puN drivers/gpu/drm/radeon/radeon_gart.c~drm-use-set_memoryh-header drivers/gpu/drm/radeon/radeon_gart.c
---- a/drivers/gpu/drm/radeon/radeon_gart.c~drm-use-set_memoryh-header
-+++ a/drivers/gpu/drm/radeon/radeon_gart.c
-@@ -27,6 +27,9 @@
-  */
- #include <drm/drmP.h>
- #include <drm/radeon_drm.h>
-+#ifdef CONFIG_X86
-+#include <asm/set_memory.h>
-+#endif
- #include "radeon.h"
- 
- /*
-diff -puN drivers/gpu/drm/ttm/ttm_page_alloc.c~drm-use-set_memoryh-header drivers/gpu/drm/ttm/ttm_page_alloc.c
---- a/drivers/gpu/drm/ttm/ttm_page_alloc.c~drm-use-set_memoryh-header
-+++ a/drivers/gpu/drm/ttm/ttm_page_alloc.c
-@@ -51,6 +51,9 @@
- #if IS_ENABLED(CONFIG_AGP)
- #include <asm/agp.h>
- #endif
-+#ifdef CONFIG_X86
+-#include <asm/cacheflush.h>
++#ifdef CONFIG_ARCH_HAS_SET_MEMORY
 +#include <asm/set_memory.h>
 +#endif
  
- #define NUM_PAGES_TO_ALLOC		(PAGE_SIZE/sizeof(struct page *))
- #define SMALL_ALLOCATION		16
-diff -puN drivers/gpu/drm/ttm/ttm_page_alloc_dma.c~drm-use-set_memoryh-header drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
---- a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c~drm-use-set_memoryh-header
-+++ a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
-@@ -53,6 +53,9 @@
- #if IS_ENABLED(CONFIG_AGP)
- #include <asm/agp.h>
- #endif
-+#ifdef CONFIG_X86
-+#include <asm/set_memory.h>
-+#endif
- 
- #define NUM_PAGES_TO_ALLOC		(PAGE_SIZE/sizeof(struct page *))
- #define SMALL_ALLOCATION		4
-diff -puN drivers/gpu/drm/ttm/ttm_tt.c~drm-use-set_memoryh-header drivers/gpu/drm/ttm/ttm_tt.c
---- a/drivers/gpu/drm/ttm/ttm_tt.c~drm-use-set_memoryh-header
-+++ a/drivers/gpu/drm/ttm/ttm_tt.c
-@@ -44,6 +44,9 @@
- #include <drm/ttm/ttm_bo_driver.h>
- #include <drm/ttm/ttm_placement.h>
- #include <drm/ttm/ttm_page_alloc.h>
-+#ifdef CONFIG_X86
-+#include <asm/set_memory.h>
-+#endif
- 
- /**
-  * Allocates storage for pointers to the pages that back the ttm.
+ #include <uapi/linux/filter.h>
+ #include <uapi/linux/bpf.h>
 _
 
 Patches currently in -mm which might be from labbott@redhat.com are
