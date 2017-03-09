@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
- added to -mm tree
-Date: Thu, 09 Mar 2017 15:43:10 -0800
-Message-ID: <58c1e88e.qsZfPubeid9NfCMk%akpm@linux-foundation.org>
+ drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch added to
+ -mm tree
+Date: Thu, 09 Mar 2017 15:45:13 -0800
+Message-ID: <58c1e909.vDjcBs2eBPg6C6OA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47540 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752390AbdCIXnM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 18:43:12 -0500
+        with ESMTP id S1751896AbdCIXpP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 18:45:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chris-wilson.co.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/gpu/drm/i915/selftests/i915_selftest.c: fix build with gcc-4.4.4
+     Subject: drivers/staging/media/atomisp/pci/atomisp2: use set_memory.h
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
+     drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,46 +41,82 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/gpu/drm/i915/selftests/i915_selftest.c: fix build with gcc-4.4.4
+Subject: drivers/staging/media/atomisp/pci/atomisp2: use set_memory.h
 
-gcc-4.4.4 has issues with anonymous union initializers.
-
-In file included from drivers/gpu/drm/i915/selftests/i915_selftest.c:68:
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:11: error: unknown field 'mock' specified in initializer
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:11: warning: missing braces around initializer
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:11: warning: (near initialization for 'mock_selftests[0].<anonymous>')
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:12: error: unknown field 'mock' specified in initializer
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:13: error: unknown field 'm
-...
-
-Work around this.
-
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/selftests/i915_selftest.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c            |    3 ++-
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c  |    2 +-
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c |    3 ++-
+ drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c           |    5 ++++-
+ 4 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/selftests/i915_selftest.c~drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444 drivers/gpu/drm/i915/selftests/i915_selftest.c
---- a/drivers/gpu/drm/i915/selftests/i915_selftest.c~drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444
-+++ a/drivers/gpu/drm/i915/selftests/i915_selftest.c
-@@ -63,13 +63,13 @@ struct selftest {
- 	};
- };
+diff -puN drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
++++ a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+@@ -36,12 +36,13 @@
+ #include <linux/string.h>
+ #include <linux/list.h>
+ #include <linux/errno.h>
+-#include <asm/cacheflush.h>
+ #include <linux/io.h>
+ #include <asm/current.h>
+ #include <linux/sched/signal.h>
+ #include <linux/file.h>
  
--#define selftest(n, f) [mock_##n] = { .name = #n, .mock = f },
-+#define selftest(n, f) [mock_##n] = { .name = #n, { .mock = f } },
- static struct selftest mock_selftests[] = {
- #include "i915_mock_selftests.h"
- };
- #undef selftest
++#include <asm/set_memory.h>
++
+ #include "atomisp_internal.h"
+ #include "hmm/hmm_common.h"
+ #include "hmm/hmm_pool.h"
+diff -puN drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
++++ a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
+@@ -27,7 +27,7 @@
+ #include <linux/types.h>
+ #include <linux/mm.h>
  
--#define selftest(n, f) [live_##n] = { .name = #n, .live = f },
-+#define selftest(n, f) [live_##n] = { .name = #n, { .live = f } },
- static struct selftest live_selftests[] = {
- #include "i915_live_selftests.h"
- };
+-#include "asm/cacheflush.h"
++#include <asm/set_memory.h>
+ 
+ #include "atomisp_internal.h"
+ 
+diff -puN drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
++++ a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
+@@ -27,7 +27,8 @@
+ #include <linux/types.h>
+ #include <linux/mm.h>
+ 
+-#include "asm/cacheflush.h"
++#include <asm/set_memory.h>
++
+ #include "atomisp_internal.h"
+ #include "hmm/hmm_pool.h"
+ 
+diff -puN drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c
+--- a/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
++++ a/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c
+@@ -30,13 +30,16 @@
+ #include <linux/slab.h>		/* for kmalloc */
+ #include <linux/list.h>
+ #include <linux/io.h>
+-#include <asm/cacheflush.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/string.h>
+ #include <linux/errno.h>
+ #include <linux/sizes.h>
+ 
++#ifdef CONFIG_X86
++#include <asm/set_memory.h>
++#endif
++
+ #include "atomisp_internal.h"
+ #include "mmu/isp_mmu.h"
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
