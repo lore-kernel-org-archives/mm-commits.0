@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: +
+Subject: [nacked]
  compaction-add-def_blk_aops-migrate-function-for-memory-compaction.patch
- added to -mm tree
-Date: Wed, 08 Mar 2017 15:55:08 -0800
-Message-ID: <58c099dc.qZs+2fQBHcULYdhi%akpm@linux-foundation.org>
+ removed from -mm tree
+Date: Thu, 09 Mar 2017 12:00:06 -0800
+Message-ID: <58c1b446.ySLs8yq/XXSlMAVB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57214 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751262AbdCIAWU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2017 19:22:20 -0500
+        with ESMTP id S1750862AbdCIUAI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 15:00:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zhouxianrong@huawei.com, Mi.Sophia.Wang@huawei.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, weidu.du@huawei.com, won.ho.park@huawei.com, zhangshiming5@huawei.com, zhouxiaoyan1@huawei.com, zhouxiyu@huawei.com, mm-commits@vger.kernel.org
@@ -20,24 +20,10 @@ To: zhouxianrong@huawei.com, Mi.Sophia.Wang@huawei.com, hannes@cmpxchg.org, kiri
 
 The patch titled
      Subject: compaction: add def_blk_aops migrate function for memory compaction
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      compaction-add-def_blk_aops-migrate-function-for-memory-compaction.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compaction-add-def_blk_aops-migrate-function-for-memory-compaction.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compaction-add-def_blk_aops-migrate-function-for-memory-compaction.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: zhouxianrong <zhouxianrong@huawei.com>
@@ -98,5 +84,4 @@ _
 
 Patches currently in -mm which might be from zhouxianrong@huawei.com are
 
-compaction-add-def_blk_aops-migrate-function-for-memory-compaction.patch
 
