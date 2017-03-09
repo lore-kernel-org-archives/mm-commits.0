@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch added to -mm tree
-Date: Thu, 09 Mar 2017 13:51:51 -0800
-Message-ID: <58c1ce77.+s35ys4gowOVN0FG%akpm@linux-foundation.org>
+ mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch added to -mm tree
+Date: Thu, 09 Mar 2017 13:51:49 -0800
+Message-ID: <58c1ce75.kehPPvGRu9tLtNJ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37356 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37344 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751732AbdCIVvx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:51:53 -0500
+        with ESMTP id S1751637AbdCIVvv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:51:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, sgoel01@yahoo.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: prevent kswapd sleeping prematurely due to mismatched classzone_idx
+     Subject: mm, vmscan: only clear pgdat congested/dirty/writeback state when balanced
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
+     mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,341 +40,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: prevent kswapd sleeping prematurely due to mismatched classzone_idx
+Subject: mm, vmscan: only clear pgdat congested/dirty/writeback state when balanced
 
-kswapd is woken to reclaim a node based on a failed allocation request
-from any eligible zone.  Once reclaiming in balance_pgdat(), it will
-continue reclaiming until there is an eligible zone available for the zone
-it was woken for.  kswapd tracks what zone it was recently woken for in
-pgdat->kswapd_classzone_idx.  If it has not been woken recently, this zone
-will be 0.
+A pgdat tracks if recent reclaim encountered too many dirty, writeback or
+congested pages.  The flags control whether kswapd writes pages back from
+reclaim context, tags pages for immediate reclaim when IO completes,
+whether processes block on wait_iff_congested and whether kswapd blocks
+when too many pages marked for immediate reclaim are encountered.
 
-However, the decision on whether to sleep is made on kswapd_classzone_idx
-which is 0 without a recent wakeup request and that classzone does not
-account for lowmem reserves.  This allows kswapd to sleep when a low small
-zone such as ZONE_DMA is balanced for a GFP_DMA request even if a stream
-of allocations cannot use that zone.  While kswapd may be woken again
-shortly in the near future there are two consequences -- the pgdat bits
-that control congestion are cleared prematurely and direct reclaim is more
-likely as kswapd slept prematurely.
+The state is cleared in a check function with side-effects.  With the
+patch "mm, vmscan: fix zone balance check in prepare_kswapd_sleep", the
+timing of when the bits get cleared changed.  Due to the way the check
+works, it'll clear the bits if ZONE_DMA is balanced for a GFP_DMA
+allocation because it does not account for lowmem reserves properly.
 
-This patch flips kswapd_classzone_idx to default to MAX_NR_ZONES (an
-invalid index) when there has been no recent wakeups.  If there are no
-wakeups, it'll decide whether to sleep based on the highest possible zone
-available (MAX_NR_ZONES - 1).  It then becomes critical that the "pgdat
-balanced" decisions during reclaim and when deciding to sleep are the
-same.  If there is a mismatch, kswapd can stay awake continually trying to
-balance tiny zones.
+For the simoop workload, kswapd is not stalling when it should due to the
+premature clearing, writing pages from reclaim context like crazy and
+generally being unhelpful.
 
-simoop was used to evaluate it again.  Two of the preparation patches
-regressed the workload so they are included as the second set of results. 
-Otherwise this patch looks artifically excellent
+This patch resets the pgdat bits related to page reclaim only when kswapd
+is going to sleep.  The comparison with simoop is then
 
                                          4.11.0-rc1            4.11.0-rc1            4.11.0-rc1
-                                            vanilla              clear-v2          keepawake-v2
-Amean    p50-Read             21670074.18 (  0.00%) 19786774.76 (  8.69%) 22668332.52 ( -4.61%)
-Amean    p95-Read             25456267.64 (  0.00%) 24101956.27 (  5.32%) 26738688.00 ( -5.04%)
-Amean    p99-Read             29369064.73 (  0.00%) 27691872.71 (  5.71%) 30991404.52 ( -5.52%)
-Amean    p50-Write                1390.30 (  0.00%)     1011.91 ( 27.22%)      924.91 ( 33.47%)
-Amean    p95-Write              412901.57 (  0.00%)    34874.98 ( 91.55%)     1362.62 ( 99.67%)
-Amean    p99-Write             6668722.09 (  0.00%)   575449.60 ( 91.37%)    16854.04 ( 99.75%)
-Amean    p50-Allocation          78714.31 (  0.00%)    84246.26 ( -7.03%)    74729.74 (  5.06%)
-Amean    p95-Allocation         175533.51 (  0.00%)   400058.43 (-127.91%)   101609.74 ( 42.11%)
-Amean    p99-Allocation         247003.02 (  0.00%) 10905600.00 (-4315.17%)   125765.57 ( 49.08%)
+                                            vanilla           fixcheck-v2              clear-v2
+Amean    p50-Read             21670074.18 (  0.00%) 20464344.18 (  5.56%) 19786774.76 (  8.69%)
+Amean    p95-Read             25456267.64 (  0.00%) 25721423.64 ( -1.04%) 24101956.27 (  5.32%)
+Amean    p99-Read             29369064.73 (  0.00%) 30174230.76 ( -2.74%) 27691872.71 (  5.71%)
+Amean    p50-Write                1390.30 (  0.00%)     1395.28 ( -0.36%)     1011.91 ( 27.22%)
+Amean    p95-Write              412901.57 (  0.00%)    37737.74 ( 90.86%)    34874.98 ( 91.55%)
+Amean    p99-Write             6668722.09 (  0.00%)   666489.04 ( 90.01%)   575449.60 ( 91.37%)
+Amean    p50-Allocation          78714.31 (  0.00%)    86286.22 ( -9.62%)    84246.26 ( -7.03%)
+Amean    p95-Allocation         175533.51 (  0.00%)   351812.27 (-100.42%)   400058.43 (-127.91%)
+Amean    p99-Allocation         247003.02 (  0.00%)  6291171.56 (-2447.00%) 10905600.00 (-4315.17%)
 
-With this patch on top, write and allocation latencies are massively
-improved.  The read latencies are slightly impaired but it's worth noting
-that this is mostly due to the IO scheduler and not directly related to
-reclaim.  The vmstats are a bit of a mix but the relevant ones are as
-follows;
+Read latency is improved, write latency is mostly improved but allocation
+latency is regressed.  kswapd is still reclaiming inefficiently, pages are
+being written back from writeback context and a host of other issues. 
+However, given the change, it needed to be spelled out why the side-effect
+was moved.
 
-                            4.10.0-rc7  4.10.0-rc7  4.10.0-rc7
-                          mmots-20170209 clear-v1r25keepawake-v1r25
-Swap Ins                             0           0           0
-Swap Outs                            0         608           0
-Direct pages scanned           6910672     3132699     6357298
-Kswapd pages scanned          57036946    82488665    56986286
-Kswapd pages reclaimed        55993488    63474329    55939113
-Direct pages reclaimed         6905990     2964843     6352115
-Kswapd efficiency                  98%         76%         98%
-Kswapd velocity              12494.375   17597.507   12488.065
-Direct efficiency                  99%         94%         99%
-Direct velocity               1513.835     668.306    1393.148
-Page writes by reclaim           0.000 4410243.000       0.000
-Page writes file                     0     4409635           0
-Page writes anon                     0         608           0
-Page reclaim immediate         1036792    14175203     1042571
-
-                            4.11.0-rc1  4.11.0-rc1  4.11.0-rc1
-                               vanilla  clear-v2  keepawake-v2
-Swap Ins                             0          12           0
-Swap Outs                            0         838           0
-Direct pages scanned           6579706     3237270     6256811
-Kswapd pages scanned          61853702    79961486    54837791
-Kswapd pages reclaimed        60768764    60755788    53849586
-Direct pages reclaimed         6579055     2987453     6256151
-Kswapd efficiency                  98%         75%         98%
-Page writes by reclaim           0.000 4389496.000       0.000
-Page writes file                     0     4388658           0
-Page writes anon                     0         838           0
-Page reclaim immediate         1073573    14473009      982507
-
-Swap-outs are equivalent to baseline.
-
-Direct reclaim is reduced but not eliminated.  It's worth noting that
-there are two periods of direct reclaim for this workload.  The first is
-when it switches from preparing the files for the actual test itself. 
-It's a lot of file IO followed by a lot of allocs that reclaims heavily
-for a brief window.  While direct reclaim is lower with clear-v2, it is
-due to kswapd scanning aggressively and trying to reclaim the world which
-is not the right thing to do.  With the patches applied, there is still
-direct reclaim but the phase change from "creating work files" to starting
-multiple threads that allocate a lot of anonymous memory faster than
-kswapd can reclaim.
-
-Scanning/reclaim efficiency is restored by this patch.
-
-Page writes from reclaim context are back at 0 which is ideal.
-
-Pages immediately reclaimed after IO completes is slightly improved but it
-is expected this will vary slightly.
-
-On UMA, there is almost no change so this is not expected to be a universal
-win.
-
-Link: http://lkml.kernel.org/r/20170309075657.25121-4-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/20170309075657.25121-3-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Shantanu Goel <sgoel01@yahoo.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 
- mm/vmscan.c         |  122 +++++++++++++++++++++++-------------------
- 2 files changed, 68 insertions(+), 56 deletions(-)
+ mm/vmscan.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx
-+++ a/mm/memory_hotplug.c
-@@ -1207,7 +1207,7 @@ static pg_data_t __ref *hotadd_new_pgdat
- 		/* Reset the nr_zones, order and classzone_idx before reuse */
- 		pgdat->nr_zones = 0;
- 		pgdat->kswapd_order = 0;
--		pgdat->kswapd_classzone_idx = 0;
-+		pgdat->kswapd_classzone_idx = MAX_NR_ZONES;
- 	}
- 
- 	/* we can use NODE_DATA(nid) from here */
-diff -puN mm/vmscan.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx
+diff -puN mm/vmscan.c~mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced
 +++ a/mm/vmscan.c
-@@ -3046,14 +3046,36 @@ static void age_active_anon(struct pglis
- 	} while (memcg);
+@@ -3053,17 +3053,17 @@ static bool zone_balanced(struct zone *z
+ 	if (!zone_watermark_ok_safe(zone, order, mark, classzone_idx))
+ 		return false;
+ 
+-	/*
+-	 * If any eligible zone is balanced then the node is not considered
+-	 * to be congested or dirty
+-	 */
+-	clear_bit(PGDAT_CONGESTED, &zone->zone_pgdat->flags);
+-	clear_bit(PGDAT_DIRTY, &zone->zone_pgdat->flags);
+-	clear_bit(PGDAT_WRITEBACK, &zone->zone_pgdat->flags);
+-
+ 	return true;
  }
  
--static bool zone_balanced(struct zone *zone, int order, int classzone_idx)
-+/*
-+ * Returns true if there is an eligible zone balanced for the request order
-+ * and classzone_idx
-+ */
-+static bool pgdat_balanced(pg_data_t *pgdat, int order, int classzone_idx)
- {
--	unsigned long mark = high_wmark_pages(zone);
-+	int i;
-+	unsigned long mark = -1;
-+	struct zone *zone;
++/* Clear pgdat state for congested, dirty or under writeback. */
++static void clear_pgdat_congested(pg_data_t *pgdat)
++{
++	clear_bit(PGDAT_CONGESTED, &pgdat->flags);
++	clear_bit(PGDAT_DIRTY, &pgdat->flags);
++	clear_bit(PGDAT_WRITEBACK, &pgdat->flags);
++}
 +
-+	for (i = 0; i <= classzone_idx; i++) {
-+		zone = pgdat->node_zones + i;
+ /*
+  * Prepare kswapd for sleeping. This verifies that there are no processes
+  * waiting in throttle_direct_reclaim() and that watermarks have been met.
+@@ -3100,8 +3100,10 @@ static bool prepare_kswapd_sleep(pg_data
+ 		if (!managed_zone(zone))
+ 			continue;
  
--	if (!zone_watermark_ok_safe(zone, order, mark, classzone_idx))
--		return false;
-+		if (!managed_zone(zone))
-+			continue;
-+
-+		mark = high_wmark_pages(zone);
-+		if (zone_watermark_ok_safe(zone, order, mark, classzone_idx))
-+			return true;
-+	}
- 
--	return true;
-+	/*
-+	 * If a node has no populated zone within classzone_idx, it does not
-+	 * need balancing by definition. This can happen if a zone-restricted
-+	 * allocation tries to wake a remote kswapd.
-+	 */
-+	if (mark == -1)
-+		return true;
-+
-+	return false;
- }
- 
- /* Clear pgdat state for congested, dirty or under writeback. */
-@@ -3072,8 +3094,6 @@ static void clear_pgdat_congested(pg_dat
-  */
- static bool prepare_kswapd_sleep(pg_data_t *pgdat, int order, int classzone_idx)
- {
--	int i;
--
- 	/*
- 	 * The throttled processes are normally woken up in balance_pgdat() as
- 	 * soon as pfmemalloc_watermark_ok() is true. But there is a potential
-@@ -3094,16 +3114,9 @@ static bool prepare_kswapd_sleep(pg_data
- 	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
- 		return true;
- 
--	for (i = 0; i <= classzone_idx; i++) {
--		struct zone *zone = pgdat->node_zones + i;
--
--		if (!managed_zone(zone))
--			continue;
--
--		if (zone_balanced(zone, order, classzone_idx)) {
--			clear_pgdat_congested(pgdat);
--			return true;
--		}
-+	if (pgdat_balanced(pgdat, order, classzone_idx)) {
-+		clear_pgdat_congested(pgdat);
-+		return true;
+-		if (zone_balanced(zone, order, classzone_idx))
++		if (zone_balanced(zone, order, classzone_idx)) {
++			clear_pgdat_congested(pgdat);
+ 			return true;
++		}
  	}
  
  	return false;
-@@ -3209,23 +3222,12 @@ static int balance_pgdat(pg_data_t *pgda
- 		}
- 
- 		/*
--		 * Only reclaim if there are no eligible zones. Check from
--		 * high to low zone as allocations prefer higher zones.
--		 * Scanning from low to high zone would allow congestion to be
--		 * cleared during a very small window when a small low
--		 * zone was balanced even under extreme pressure when the
--		 * overall node may be congested. Note that sc.reclaim_idx
--		 * is not used as buffer_heads_over_limit may have adjusted
--		 * it.
--		 */
--		for (i = classzone_idx; i >= 0; i--) {
--			zone = pgdat->node_zones + i;
--			if (!managed_zone(zone))
--				continue;
--
--			if (zone_balanced(zone, sc.order, classzone_idx))
--				goto out;
--		}
-+		 * Only reclaim if there are no eligible zones. Note that
-+		 * sc.reclaim_idx is not used as buffer_heads_over_limit may
-+		 * have adjusted it.
-+		 */
-+		if (pgdat_balanced(pgdat, sc.order, classzone_idx))
-+			goto out;
- 
- 		/*
- 		 * Do some background aging of the anon list, to give
-@@ -3292,6 +3294,22 @@ out:
- 	return sc.order;
- }
- 
-+/*
-+ * pgdat->kswapd_classzone_idx is the highest zone index that a recent
-+ * allocation request woke kswapd for. When kswapd has not woken recently,
-+ * the value is MAX_NR_ZONES which is not a valid index. This compares a
-+ * given classzone and returns it or the highest classzone index kswapd
-+ * was recently woke for.
-+ */
-+static enum zone_type kswapd_classzone_idx(pg_data_t *pgdat,
-+					   enum zone_type classzone_idx)
-+{
-+	if (pgdat->kswapd_classzone_idx == MAX_NR_ZONES)
-+		return classzone_idx;
-+
-+	return max(pgdat->kswapd_classzone_idx, classzone_idx);
-+}
-+
- static void kswapd_try_to_sleep(pg_data_t *pgdat, int alloc_order, int reclaim_order,
- 				unsigned int classzone_idx)
- {
-@@ -3333,7 +3351,7 @@ static void kswapd_try_to_sleep(pg_data_
- 		 * the previous request that slept prematurely.
- 		 */
- 		if (remaining) {
--			pgdat->kswapd_classzone_idx = max(pgdat->kswapd_classzone_idx, classzone_idx);
-+			pgdat->kswapd_classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
- 			pgdat->kswapd_order = max(pgdat->kswapd_order, reclaim_order);
- 		}
- 
-@@ -3387,7 +3405,8 @@ static void kswapd_try_to_sleep(pg_data_
-  */
- static int kswapd(void *p)
- {
--	unsigned int alloc_order, reclaim_order, classzone_idx;
-+	unsigned int alloc_order, reclaim_order;
-+	unsigned int classzone_idx = MAX_NR_ZONES - 1;
- 	pg_data_t *pgdat = (pg_data_t*)p;
- 	struct task_struct *tsk = current;
- 
-@@ -3417,20 +3436,23 @@ static int kswapd(void *p)
- 	tsk->flags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
- 	set_freezable();
- 
--	pgdat->kswapd_order = alloc_order = reclaim_order = 0;
--	pgdat->kswapd_classzone_idx = classzone_idx = 0;
-+	pgdat->kswapd_order = 0;
-+	pgdat->kswapd_classzone_idx = MAX_NR_ZONES;
- 	for ( ; ; ) {
- 		bool ret;
- 
-+		alloc_order = reclaim_order = pgdat->kswapd_order;
-+		classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
-+
- kswapd_try_sleep:
- 		kswapd_try_to_sleep(pgdat, alloc_order, reclaim_order,
- 					classzone_idx);
- 
- 		/* Read the new order and classzone_idx */
- 		alloc_order = reclaim_order = pgdat->kswapd_order;
--		classzone_idx = pgdat->kswapd_classzone_idx;
-+		classzone_idx = kswapd_classzone_idx(pgdat, 0);
- 		pgdat->kswapd_order = 0;
--		pgdat->kswapd_classzone_idx = 0;
-+		pgdat->kswapd_classzone_idx = MAX_NR_ZONES;
- 
- 		ret = try_to_freeze();
- 		if (kthread_should_stop())
-@@ -3456,9 +3478,6 @@ kswapd_try_sleep:
- 		reclaim_order = balance_pgdat(pgdat, alloc_order, classzone_idx);
- 		if (reclaim_order < alloc_order)
- 			goto kswapd_try_sleep;
--
--		alloc_order = reclaim_order = pgdat->kswapd_order;
--		classzone_idx = pgdat->kswapd_classzone_idx;
- 	}
- 
- 	tsk->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD);
-@@ -3474,7 +3493,6 @@ kswapd_try_sleep:
- void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx)
- {
- 	pg_data_t *pgdat;
--	int z;
- 
- 	if (!managed_zone(zone))
- 		return;
-@@ -3482,7 +3500,8 @@ void wakeup_kswapd(struct zone *zone, in
- 	if (!cpuset_zone_allowed(zone, GFP_KERNEL | __GFP_HARDWALL))
- 		return;
- 	pgdat = zone->zone_pgdat;
--	pgdat->kswapd_classzone_idx = max(pgdat->kswapd_classzone_idx, classzone_idx);
-+	pgdat->kswapd_classzone_idx = kswapd_classzone_idx(pgdat,
-+							   classzone_idx);
- 	pgdat->kswapd_order = max(pgdat->kswapd_order, order);
- 	if (!waitqueue_active(&pgdat->kswapd_wait))
- 		return;
-@@ -3491,17 +3510,10 @@ void wakeup_kswapd(struct zone *zone, in
- 	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
- 		return;
- 
--	/* Only wake kswapd if all zones are unbalanced */
--	for (z = 0; z <= classzone_idx; z++) {
--		zone = pgdat->node_zones + z;
--		if (!managed_zone(zone))
--			continue;
+_
+
+Patches currently in -mm which might be from mgorman@techsingularity.net are
+
+mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch
+mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
+
