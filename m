@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + bpf-use-set_memoryh-header.patch added to -mm tree
-Date: Thu, 09 Mar 2017 13:38:57 -0800
-Message-ID: <58c1cb71.jfN5+0qBIVWsC39V%akpm@linux-foundation.org>
+Subject: + watchdog-hpwdt-use-set_memoryh-header.patch added to -mm tree
+Date: Thu, 09 Mar 2017 13:38:55 -0800
+Message-ID: <58c1cb6f.8tejDoj0D19fOsBo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36960 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752139AbdCIVi6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:38:58 -0500
+        with ESMTP id S1751610AbdCIVi5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:38:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, daniel@iogearbox.net, mm-commits@vger.kernel.org
+To: labbott@redhat.com, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/filter.h: use set_memory.h header
+     Subject: drivers/watchdog/hpwdt.c: use set_memory.h header
 has been added to the -mm tree.  Its filename is
-     bpf-use-set_memoryh-header.patch
+     watchdog-hpwdt-use-set_memoryh-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bpf-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-hpwdt-use-set_memoryh-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bpf-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-hpwdt-use-set_memoryh-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +39,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: include/linux/filter.h: use set_memory.h header
+Subject: drivers/watchdog/hpwdt.c: use set_memory.h header
 
 set_memory_* functions have moved to set_memory.h. Switch to this
 explicitly.
 
-Link: http://lkml.kernel.org/r/1488920133-27229-11-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488920133-27229-10-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Daniel Borkmann <daniel@iogearbox.net>
+Acked-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/filter.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/watchdog/hpwdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/filter.h~bpf-use-set_memoryh-header include/linux/filter.h
---- a/include/linux/filter.h~bpf-use-set_memoryh-header
-+++ a/include/linux/filter.h
-@@ -18,7 +18,9 @@
- 
- #include <net/sch_generic.h>
- 
+diff -puN drivers/watchdog/hpwdt.c~watchdog-hpwdt-use-set_memoryh-header drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~watchdog-hpwdt-use-set_memoryh-header
++++ a/drivers/watchdog/hpwdt.c
+@@ -34,7 +34,7 @@
+ #include <linux/nmi.h>
+ #include <linux/kdebug.h>
+ #include <linux/notifier.h>
 -#include <asm/cacheflush.h>
-+#ifdef CONFIG_ARCH_HAS_SET_MEMORY
 +#include <asm/set_memory.h>
-+#endif
- 
- #include <uapi/linux/filter.h>
- #include <uapi/linux/bpf.h>
+ #endif /* CONFIG_HPWDT_NMI_DECODING */
+ #include <asm/nmi.h>
+ #include <asm/frame.h>
 _
 
 Patches currently in -mm which might be from labbott@redhat.com are
