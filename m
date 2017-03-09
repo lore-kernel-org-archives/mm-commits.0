@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + video-vermilion-use-set_memoryh-header.patch added to -mm tree
-Date: Thu, 09 Mar 2017 13:39:07 -0800
-Message-ID: <58c1cb7b.FAcmkGeHS2TgThI+%akpm@linux-foundation.org>
+Subject: + misc-sram-use-set_memoryh-header.patch added to -mm tree
+Date: Thu, 09 Mar 2017 13:39:05 -0800
+Message-ID: <58c1cb79.qbTpnBjlK6wGuNcT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752677AbdCIVpy (ORCPT
+        with ESMTP id S1752766AbdCIVpy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 16:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/fbdev/vermilion/vermilion.c: use set_memory.h header
+     Subject: drivers/misc/sram-exec.c: use set_memory.h header
 has been added to the -mm tree.  Its filename is
-     video-vermilion-use-set_memoryh-header.patch
+     misc-sram-use-set_memoryh-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/video-vermilion-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/misc-sram-use-set_memoryh-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/video-vermilion-use-set_memoryh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/misc-sram-use-set_memoryh-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: drivers/video/fbdev/vermilion/vermilion.c: use set_memory.h header
+Subject: drivers/misc/sram-exec.c: use set_memory.h header
 
 set_memory_* functions have moved to set_memory.h. Switch to this
 explicitly.
 
-Link: http://lkml.kernel.org/r/1488920133-27229-16-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488920133-27229-15-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/vermilion/vermilion.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/sram-exec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/fbdev/vermilion/vermilion.c~video-vermilion-use-set_memoryh-header drivers/video/fbdev/vermilion/vermilion.c
---- a/drivers/video/fbdev/vermilion/vermilion.c~video-vermilion-use-set_memoryh-header
-+++ a/drivers/video/fbdev/vermilion/vermilion.c
-@@ -37,7 +37,7 @@
- #include <linux/mm.h>
- #include <linux/fb.h>
- #include <linux/pci.h>
+diff -puN drivers/misc/sram-exec.c~misc-sram-use-set_memoryh-header drivers/misc/sram-exec.c
+--- a/drivers/misc/sram-exec.c~misc-sram-use-set_memoryh-header
++++ a/drivers/misc/sram-exec.c
+@@ -16,9 +16,10 @@
+ 
+ #include <linux/device.h>
+ #include <linux/genalloc.h>
++#include <linux/mm.h>
+ #include <linux/sram.h>
+ 
 -#include <asm/cacheflush.h>
 +#include <asm/set_memory.h>
- #include <asm/tlbflush.h>
- #include <linux/mmzone.h>
+ 
+ #include "sram.h"
  
 _
 
