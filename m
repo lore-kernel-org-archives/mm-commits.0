@@ -1,64 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 22/26] kasan: resched in quarantine_remove_cache()
-Date: Thu, 09 Mar 2017 16:17:28 -0800
-Message-ID: <58c1f098.XfubBOFpfzcT5Q7z%akpm@linux-foundation.org>
+Subject: [patch 24/26] sh: cayman: IDE support fix
+Date: Thu, 09 Mar 2017 16:17:34 -0800
+Message-ID: <58c1f09e.9sFCqU6T7Ph9WhQT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51454 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754515AbdCJARb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 19:17:31 -0500
+        with ESMTP id S1754515AbdCJARg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 19:17:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, aryabinin@virtuozzo.com, gthelen@google.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, b.zolnierkie@samsung.com, dalias@libc.org, ysato@users.sourceforge.jp
 
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: resched in quarantine_remove_cache()
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: sh: cayman: IDE support fix
 
-We see reported stalls/lockups in quarantine_remove_cache() on machines
-with large amounts of RAM.  quarantine_remove_cache() needs to scan whole
-quarantine in order to take out all objects belonging to the cache. 
-Quarantine is currently 1/32-th of RAM, e.g.  on a machine with 256GB of
-memory that will be 8GB.  Moreover quarantine scanning is a walk over
-uncached linked list, which is slow.
+Remove incorrect CONFIG_IDE ifdef (CONFIG_IDE config option is for
+internal drivers/ide/ use) and make IDE hardware interface always
+initialized (not only when IDE subsystem is built-in).
 
-Add cond_resched() after scanning of each non-empty batch of objects. 
-Batches are specifically kept of reasonable size for quarantine_put().  On
-a machine with 256GB of RAM we should have ~512 non-empty batches, each
-with 16MB of objects.
+This patch allows Cayman board to work with modular IDE subsystem support
+and removes the requirement of having the whole core IDE subsystem
+built-in when using libata PATA support.
 
-Link: http://lkml.kernel.org/r/20170308154239.25440-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1990884.yFoE6lSB9G@amdc3058
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/sh/boards/mach-cayman/setup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/kasan/quarantine.c~kasan-resched-in-quarantine_remove_cache mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~kasan-resched-in-quarantine_remove_cache
-+++ a/mm/kasan/quarantine.c
-@@ -283,8 +283,15 @@ void quarantine_remove_cache(struct kmem
- 	on_each_cpu(per_cpu_remove_cache, cache, 1);
+diff -puN arch/sh/boards/mach-cayman/setup.c~sh-cayman-ide-support-fix arch/sh/boards/mach-cayman/setup.c
+--- a/arch/sh/boards/mach-cayman/setup.c~sh-cayman-ide-support-fix
++++ a/arch/sh/boards/mach-cayman/setup.c
+@@ -128,7 +128,6 @@ static int __init smsc_superio_setup(voi
+ 	SMSC_SUPERIO_WRITE_INDEXED(1, SMSC_PRIMARY_INT_INDEX);
+ 	SMSC_SUPERIO_WRITE_INDEXED(12, SMSC_SECONDARY_INT_INDEX);
  
- 	spin_lock_irqsave(&quarantine_lock, flags);
--	for (i = 0; i < QUARANTINE_BATCHES; i++)
-+	for (i = 0; i < QUARANTINE_BATCHES; i++) {
-+		if (qlist_empty(&global_quarantine[i]))
-+			continue;
- 		qlist_move_cache(&global_quarantine[i], &to_free, cache);
-+		/* Scanning whole quarantine can take a while. */
-+		spin_unlock_irqrestore(&quarantine_lock, flags);
-+		cond_resched();
-+		spin_lock_irqsave(&quarantine_lock, flags);
-+	}
- 	spin_unlock_irqrestore(&quarantine_lock, flags);
+-#ifdef CONFIG_IDE
+ 	/*
+ 	 * Only IDE1 exists on the Cayman
+ 	 */
+@@ -158,7 +157,6 @@ static int __init smsc_superio_setup(voi
+ 	SMSC_SUPERIO_WRITE_INDEXED(0x01, 0xc5); /* GP45 = IDE1_IRQ */
+ 	SMSC_SUPERIO_WRITE_INDEXED(0x00, 0xc6); /* GP46 = nIOROP */
+ 	SMSC_SUPERIO_WRITE_INDEXED(0x00, 0xc7); /* GP47 = nIOWOP */
+-#endif
  
- 	qlist_free_all(&to_free, cache);
+ 	/* Exit the configuration state */
+ 	outb(SMSC_EXIT_CONFIG_KEY, SMSC_CONFIG_PORT_ADDR);
 _
