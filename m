@@ -1,118 +1,284 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- kasan-fix-races-in-quarantine_remove_cache-v2.patch removed from -mm tree
-Date: Thu, 09 Mar 2017 16:13:44 -0800
-Message-ID: <58c1efb8.fd+4JhHYl2M6HCOt%akpm@linux-foundation.org>
+Subject: [merged]
+ scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
+ removed from -mm tree
+Date: Fri, 10 Mar 2017 13:42:36 -0800
+Message-ID: <58c31dcc.Ehm6DFfBsPF2XoFv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37890 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753252AbdCJAUz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 19:20:55 -0500
+        with ESMTP id S932595AbdCJVmh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:42:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, gthelen@google.com, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-fix-races-in-quarantine_remove_cache-v2
+     Subject: scripts/spelling.txt: add "disble(d)" pattern and fix typo instances
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-races-in-quarantine_remove_cache-v2.patch
+     scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
 
-This patch was dropped because it was folded into kasan-fix-races-in-quarantine_remove_cache.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan-fix-races-in-quarantine_remove_cache-v2
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: scripts/spelling.txt: add "disble(d)" pattern and fix typo instances
 
-Changes since v1:
- - sorted includes
+Fix typos and add the following to the scripts/spelling.txt:
 
-Link: http://lkml.kernel.org/r/20170309094028.51088-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Greg Thelen <gthelen@google.com>
+  disble||disable
+  disbled||disabled
 
+I kept the TSL2563_INT_DISBLED in /drivers/iio/light/tsl2563.c
+untouched.  The macro is not referenced at all, but this commit is
+touching only comment blocks just in case.
 
-I've done some assessment of how good synchronize_srcu() works in this
-case. And on a 4 CPU VM I see that it blocks waiting for pending read
-critical sections in about 2-3% of cases. Which looks good to me.
-
-I suspect that these races are the root cause of some GPFs that
-I episodically hit. Previously I did not have any explanation for them.
-
-BUG: unable to handle kernel NULL pointer dereference at 00000000000000c8
-IP: qlist_free_all+0x2e/0xc0 mm/kasan/quarantine.c:155
-PGD 6aeea067
-PUD 60ed7067
-PMD 0
-Oops: 0000 [#1] SMP KASAN
-Dumping ftrace buffer:
-   (ftrace buffer empty)
-Modules linked in:
-CPU: 0 PID: 13667 Comm: syz-executor2 Not tainted 4.10.0+ #60
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-task: ffff88005f948040 task.stack: ffff880069818000
-RIP: 0010:qlist_free_all+0x2e/0xc0 mm/kasan/quarantine.c:155
-RSP: 0018:ffff88006981f298 EFLAGS: 00010246
-RAX: ffffea0000ffff00 RBX: 0000000000000000 RCX: ffffea0000ffff1f
-RDX: 0000000000000000 RSI: ffff88003fffc3e0 RDI: 0000000000000000
-RBP: ffff88006981f2c0 R08: ffff88002fed7bd8 R09: 00000001001f000d
-R10: 00000000001f000d R11: ffff88006981f000 R12: ffff88003fffc3e0
-R13: ffff88006981f2d0 R14: ffffffff81877fae R15: 0000000080000000
-FS:  00007fb911a2d700(0000) GS:ffff88003ec00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000000000c8 CR3: 0000000060ed6000 CR4: 00000000000006f0
-Call Trace:
- quarantine_reduce+0x10e/0x120 mm/kasan/quarantine.c:239
- kasan_kmalloc+0xca/0xe0 mm/kasan/kasan.c:590
- kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:544
- slab_post_alloc_hook mm/slab.h:456 [inline]
- slab_alloc_node mm/slub.c:2718 [inline]
- kmem_cache_alloc_node+0x1d3/0x280 mm/slub.c:2754
- __alloc_skb+0x10f/0x770 net/core/skbuff.c:219
- alloc_skb include/linux/skbuff.h:932 [inline]
- _sctp_make_chunk+0x3b/0x260 net/sctp/sm_make_chunk.c:1388
- sctp_make_data net/sctp/sm_make_chunk.c:1420 [inline]
- sctp_make_datafrag_empty+0x208/0x360 net/sctp/sm_make_chunk.c:746
- sctp_datamsg_from_user+0x7e8/0x11d0 net/sctp/chunk.c:266
- sctp_sendmsg+0x2611/0x3970 net/sctp/socket.c:1962
- inet_sendmsg+0x164/0x5b0 net/ipv4/af_inet.c:761
- sock_sendmsg_nosec net/socket.c:633 [inline]
- sock_sendmsg+0xca/0x110 net/socket.c:643
- SYSC_sendto+0x660/0x810 net/socket.c:1685
- SyS_sendto+0x40/0x50 net/socket.c:1653
----
- 1 file changed, 36 insertions(+), 6 deletions(-)
-
-index 6f1ed1630873..5c44c08f46b6 100644
+Link: http://lkml.kernel.org/r/1481573103-11329-20-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/dev-tools/kcov.rst        |    2 +-
+ arch/cris/arch-v32/drivers/cryptocop.c  |    2 +-
+ arch/x86/kernel/ftrace.c                |    2 +-
+ drivers/crypto/ux500/cryp/cryp.c        |    2 +-
+ drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c  |    2 +-
+ drivers/hv/channel.c                    |    2 +-
+ drivers/isdn/hisax/st5481_b.c           |    2 +-
+ drivers/mtd/spi-nor/spi-nor.c           |    2 +-
+ drivers/net/ethernet/qlogic/qlge/qlge.h |    2 +-
+ drivers/scsi/aic7xxx/aic79xx_core.c     |    2 +-
+ drivers/usb/gadget/legacy/inode.c       |    3 +--
+ drivers/usb/host/xhci.c                 |    4 ++--
+ include/linux/regulator/machine.h       |    2 +-
+ kernel/cgroup/cgroup.c                  |    2 +-
+ kernel/events/core.c                    |    2 +-
+ scripts/spelling.txt                    |    2 ++
+ sound/soc/amd/acp-pcm-dma.c             |    2 +-
+ 17 files changed, 19 insertions(+), 18 deletions(-)
 
-diff -puN mm/kasan/quarantine.c~kasan-fix-races-in-quarantine_remove_cache-v2 mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~kasan-fix-races-in-quarantine_remove_cache-v2
-+++ a/mm/kasan/quarantine.c
-@@ -25,9 +25,9 @@
- #include <linux/printk.h>
- #include <linux/shrinker.h>
- #include <linux/slab.h>
-+#include <linux/srcu.h>
- #include <linux/string.h>
- #include <linux/types.h>
--#include <linux/srcu.h>
+diff -puN Documentation/dev-tools/kcov.rst~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances Documentation/dev-tools/kcov.rst
+--- a/Documentation/dev-tools/kcov.rst~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/Documentation/dev-tools/kcov.rst
+@@ -10,7 +10,7 @@ Note that kcov does not aim to collect a
+ to collect more or less stable coverage that is function of syscall inputs.
+ To achieve this goal it does not collect coverage in soft/hard interrupts
+ and instrumentation of some inherently non-deterministic parts of kernel is
+-disbled (e.g. scheduler, locking).
++disabled (e.g. scheduler, locking).
  
- #include "../slab.h"
- #include "kasan.h"
+ Usage
+ -----
+diff -puN arch/cris/arch-v32/drivers/cryptocop.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances arch/cris/arch-v32/drivers/cryptocop.c
+--- a/arch/cris/arch-v32/drivers/cryptocop.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/arch/cris/arch-v32/drivers/cryptocop.c
+@@ -2086,7 +2086,7 @@ static void cryptocop_job_queue_close(vo
+ 		dma_in_cfg.en = regk_dma_no;
+ 		REG_WR(dma, IN_DMA_INST, rw_cfg, dma_in_cfg);
+ 
+-		/* Disble the cryptocop. */
++		/* Disable the cryptocop. */
+ 		rw_cfg = REG_RD(strcop, regi_strcop, rw_cfg);
+ 		rw_cfg.en = 0;
+ 		REG_WR(strcop, regi_strcop, rw_cfg, rw_cfg);
+diff -puN arch/x86/kernel/ftrace.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances arch/x86/kernel/ftrace.c
+--- a/arch/x86/kernel/ftrace.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/arch/x86/kernel/ftrace.c
+@@ -535,7 +535,7 @@ static void run_sync(void)
+ {
+ 	int enable_irqs = irqs_disabled();
+ 
+-	/* We may be called with interrupts disbled (on bootup). */
++	/* We may be called with interrupts disabled (on bootup). */
+ 	if (enable_irqs)
+ 		local_irq_enable();
+ 	on_each_cpu(do_sync_core, NULL, 1);
+diff -puN drivers/crypto/ux500/cryp/cryp.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/crypto/ux500/cryp/cryp.c
+--- a/drivers/crypto/ux500/cryp/cryp.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/crypto/ux500/cryp/cryp.c
+@@ -82,7 +82,7 @@ void cryp_activity(struct cryp_device_da
+ void cryp_flush_inoutfifo(struct cryp_device_data *device_data)
+ {
+ 	/*
+-	 * We always need to disble the hardware before trying to flush the
++	 * We always need to disable the hardware before trying to flush the
+ 	 * FIFO. This is something that isn't written in the design
+ 	 * specification, but we have been informed by the hardware designers
+ 	 * that this must be done.
+diff -puN drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+--- a/drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+@@ -788,7 +788,7 @@ static int sdma_v3_0_start(struct amdgpu
+ 		}
+ 	}
+ 
+-	/* disble sdma engine before programing it */
++	/* disable sdma engine before programing it */
+ 	sdma_v3_0_ctx_switch_enable(adev, false);
+ 	sdma_v3_0_enable(adev, false);
+ 
+diff -puN drivers/hv/channel.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/hv/channel.c
+--- a/drivers/hv/channel.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/hv/channel.c
+@@ -543,7 +543,7 @@ static int vmbus_close_internal(struct v
+ 	/*
+ 	 * In case a device driver's probe() fails (e.g.,
+ 	 * util_probe() -> vmbus_open() returns -ENOMEM) and the device is
+-	 * rescinded later (e.g., we dynamically disble an Integrated Service
++	 * rescinded later (e.g., we dynamically disable an Integrated Service
+ 	 * in Hyper-V Manager), the driver's remove() invokes vmbus_close():
+ 	 * here we should skip most of the below cleanup work.
+ 	 */
+diff -puN drivers/isdn/hisax/st5481_b.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/isdn/hisax/st5481_b.c
+--- a/drivers/isdn/hisax/st5481_b.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/isdn/hisax/st5481_b.c
+@@ -239,7 +239,7 @@ static void st5481B_mode(struct st5481_b
+ 			}
+ 		}
+ 	} else {
+-		// Disble B channel interrupts
++		// Disable B channel interrupts
+ 		st5481_usb_device_ctrl_msg(adapter, FFMSK_B1+(bcs->channel * 2), 0, NULL, NULL);
+ 
+ 		// Disable B channel FIFOs
+diff -puN drivers/mtd/spi-nor/spi-nor.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/mtd/spi-nor/spi-nor.c
+--- a/drivers/mtd/spi-nor/spi-nor.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/mtd/spi-nor/spi-nor.c
+@@ -186,7 +186,7 @@ static inline int write_enable(struct sp
+ }
+ 
+ /*
+- * Send write disble instruction to the chip.
++ * Send write disable instruction to the chip.
+  */
+ static inline int write_disable(struct spi_nor *nor)
+ {
+diff -puN drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlge/qlge.h
+--- a/drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/qlogic/qlge/qlge.h
+@@ -1163,7 +1163,7 @@ struct ib_mac_iocb_rsp {
+ 	u8 opcode;		/* 0x20 */
+ 	u8 flags1;
+ #define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
+-#define IB_MAC_IOCB_RSP_I	0x02	/* Disble Intr Generation */
++#define IB_MAC_IOCB_RSP_I	0x02	/* Disable Intr Generation */
+ #define IB_MAC_CSUM_ERR_MASK 0x1c	/* A mask to use for csum errs */
+ #define IB_MAC_IOCB_RSP_TE	0x04	/* Checksum error */
+ #define IB_MAC_IOCB_RSP_NU	0x08	/* No checksum rcvd */
+diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/scsi/aic7xxx/aic79xx_core.c
+--- a/drivers/scsi/aic7xxx/aic79xx_core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/scsi/aic7xxx/aic79xx_core.c
+@@ -6278,7 +6278,7 @@ ahd_reset(struct ahd_softc *ahd, int rei
+ 		 * does not disable its parity logic prior to
+ 		 * the start of the reset.  This may cause a
+ 		 * parity error to be detected and thus a
+-		 * spurious SERR or PERR assertion.  Disble
++		 * spurious SERR or PERR assertion.  Disable
+ 		 * PERR and SERR responses during the CHIPRST.
+ 		 */
+ 		mod_cmd = cmd & ~(PCIM_CMD_PERRESPEN|PCIM_CMD_SERRESPEN);
+diff -puN drivers/usb/gadget/legacy/inode.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/usb/gadget/legacy/inode.c
+--- a/drivers/usb/gadget/legacy/inode.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/usb/gadget/legacy/inode.c
+@@ -84,8 +84,7 @@ static int ep_open(struct inode *, struc
+ 
+ /* /dev/gadget/$CHIP represents ep0 and the whole device */
+ enum ep0_state {
+-	/* DISBLED is the initial state.
+-	 */
++	/* DISABLED is the initial state. */
+ 	STATE_DEV_DISABLED = 0,
+ 
+ 	/* Only one open() of /dev/gadget/$CHIP; only one file tracks
+diff -puN drivers/usb/host/xhci.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances drivers/usb/host/xhci.c
+--- a/drivers/usb/host/xhci.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/drivers/usb/host/xhci.c
+@@ -868,7 +868,7 @@ static void xhci_disable_port_wake_on_bi
+ 
+ 	spin_lock_irqsave(&xhci->lock, flags);
+ 
+-	/* disble usb3 ports Wake bits*/
++	/* disable usb3 ports Wake bits */
+ 	port_index = xhci->num_usb3_ports;
+ 	port_array = xhci->usb3_ports;
+ 	while (port_index--) {
+@@ -879,7 +879,7 @@ static void xhci_disable_port_wake_on_bi
+ 			writel(t2, port_array[port_index]);
+ 	}
+ 
+-	/* disble usb2 ports Wake bits*/
++	/* disable usb2 ports Wake bits */
+ 	port_index = xhci->num_usb2_ports;
+ 	port_array = xhci->usb2_ports;
+ 	while (port_index--) {
+diff -puN include/linux/regulator/machine.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances include/linux/regulator/machine.h
+--- a/include/linux/regulator/machine.h~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/include/linux/regulator/machine.h
+@@ -65,7 +65,7 @@ struct regulator_state {
+ 	int uV;	/* suspend voltage */
+ 	unsigned int mode; /* suspend regulator operating mode */
+ 	int enabled; /* is regulator enabled in this suspend state */
+-	int disabled; /* is the regulator disbled in this suspend state */
++	int disabled; /* is the regulator disabled in this suspend state */
+ };
+ 
+ /**
+diff -puN kernel/cgroup/cgroup.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances kernel/cgroup/cgroup.c
+--- a/kernel/cgroup/cgroup.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/kernel/cgroup/cgroup.c
+@@ -2669,7 +2669,7 @@ static bool css_visible(struct cgroup_su
+  *
+  * Returns 0 on success, -errno on failure.  On failure, csses which have
+  * been processed already aren't cleaned up.  The caller is responsible for
+- * cleaning up with cgroup_apply_control_disble().
++ * cleaning up with cgroup_apply_control_disable().
+  */
+ static int cgroup_apply_control_enable(struct cgroup *cgrp)
+ {
+diff -puN kernel/events/core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances kernel/events/core.c
+--- a/kernel/events/core.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/kernel/events/core.c
+@@ -998,7 +998,7 @@ list_update_cgroup_event(struct perf_eve
+  */
+ #define PERF_CPU_HRTIMER (1000 / HZ)
+ /*
+- * function must be called with interrupts disbled
++ * function must be called with interrupts disabled
+  */
+ static enum hrtimer_restart perf_mux_hrtimer_handler(struct hrtimer *hr)
+ {
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/scripts/spelling.txt
+@@ -372,6 +372,8 @@ disassocation||disassociation
+ disapear||disappear
+ disapeared||disappeared
+ disappared||disappeared
++disble||disable
++disbled||disabled
+ disconnet||disconnect
+ discontinous||discontinuous
+ dispertion||dispersion
+diff -puN sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances sound/soc/amd/acp-pcm-dma.c
+--- a/sound/soc/amd/acp-pcm-dma.c~scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances
++++ a/sound/soc/amd/acp-pcm-dma.c
+@@ -89,7 +89,7 @@ static void acp_reg_write(u32 val, void
+ 	writel(val, acp_mmio + (reg * 4));
+ }
+ 
+-/* Configure a given dma channel parameters - enable/disble,
++/* Configure a given dma channel parameters - enable/disable,
+  * number of descriptors, priority
+  */
+ static void config_acp_dma_channel(void __iomem *acp_mmio, u8 ch_num,
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
-kasan-resched-in-quarantine_remove_cache.patch
-kasan-fix-races-in-quarantine_remove_cache.patch
+scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
 
