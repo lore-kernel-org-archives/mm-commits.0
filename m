@@ -1,121 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch removed
- from -mm tree
-Date: Fri, 10 Mar 2017 13:43:28 -0800
-Message-ID: <58c31e00.GWSqmp7hJW67/3UM%akpm@linux-foundation.org>
+Subject: [merged] thp-fix-another-corner-case-of-munlock-vs-thps.patch
+ removed from -mm tree
+Date: Fri, 10 Mar 2017 13:43:25 -0800
+Message-ID: <58c31dfd.sRv2YcGlfBANL0Kb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38088 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933047AbdCJVna (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:30 -0500
+        with ESMTP id S933047AbdCJVn0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tahsin@google.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not call mem_cgroup_free() from within mem_cgroup_alloc()
+     Subject: thp: fix another corner case of munlock() vs. THPs
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
+     thp-fix-another-corner-case-of-munlock-vs-thps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tahsin Erdogan <tahsin@google.com>
-Subject: mm: do not call mem_cgroup_free() from within mem_cgroup_alloc()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: fix another corner case of munlock() vs. THPs
 
-mem_cgroup_free() indirectly calls wb_domain_exit() which is not prepared
-to deal with a struct wb_domain object that hasn't executed
-wb_domain_init().  For instance, the following warning message is printed
-by lockdep if alloc_percpu() fails in mem_cgroup_alloc():
+The following test case triggers BUG() in munlock_vma_pages_range():
 
-  INFO: trying to register non-static key.
-  the code is fine but needs lockdep annotation.
-  turning off the locking correctness validator.
-  CPU: 1 PID: 1950 Comm: mkdir Not tainted 4.10.0+ #151
-  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-  Call Trace:
-   dump_stack+0x67/0x99
-   register_lock_class+0x36d/0x540
-   __lock_acquire+0x7f/0x1a30
-   ? irq_work_queue+0x73/0x90
-   ? wake_up_klogd+0x36/0x40
-   ? console_unlock+0x45d/0x540
-   ? vprintk_emit+0x211/0x2e0
-   lock_acquire+0xcc/0x200
-   ? try_to_del_timer_sync+0x60/0x60
-   del_timer_sync+0x3c/0xc0
-   ? try_to_del_timer_sync+0x60/0x60
-   wb_domain_exit+0x14/0x20
-   mem_cgroup_free+0x14/0x40
-   mem_cgroup_css_alloc+0x3f9/0x620
-   cgroup_apply_control_enable+0x190/0x390
-   cgroup_mkdir+0x290/0x3d0
-   kernfs_iop_mkdir+0x58/0x80
-   vfs_mkdir+0x10e/0x1a0
-   SyS_mkdirat+0xa8/0xd0
-   SyS_mkdir+0x14/0x20
-   entry_SYSCALL_64_fastpath+0x18/0xad
+	int main(int argc, char *argv[])
+	{
+		int fd;
 
-Add __mem_cgroup_free() which skips wb_domain_exit().  This is used by
-both mem_cgroup_free() and mem_cgroup_alloc() clean up.
+		system("mount -t tmpfs -o huge=always none /mnt");
+		fd = open("/mnt/test", O_CREAT | O_RDWR);
+		ftruncate(fd, 4UL << 20);
+		mmap(NULL, 4UL << 20, PROT_READ | PROT_WRITE,
+				MAP_SHARED | MAP_FIXED | MAP_LOCKED, fd, 0);
+		mmap(NULL, 4096, PROT_READ | PROT_WRITE,
+				MAP_SHARED | MAP_LOCKED, fd, 0);
+		munlockall();
+		return 0;
+	}
 
-Fixes: 0b8f73e104285 ("mm: memcontrol: clean up alloc, online, offline, free functions")
-Link: http://lkml.kernel.org/r/20170306192122.24262-1-tahsin@google.com
-Signed-off-by: Tahsin Erdogan <tahsin@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+The second mmap() create PTE-mapping of the first huge page in file.  It
+makes kernel munlock the page as we never keep PTE-mapped page mlocked.
+
+On munlockall() when we handle vma created by the first mmap(),
+munlock_vma_page() returns page_mask == 0, as the page is not mlocked
+anymore.  On next iteration follow_page_mask() return tail page, but
+page_mask is HPAGE_NR_PAGES - 1.  It makes us skip to the first tail page
+of the next huge page and step on VM_BUG_ON_PAGE(PageMlocked(page)).
+
+The fix is not use the page_mask from follow_page_mask() at all.  It has
+no use for us.
+
+Link: http://lkml.kernel.org/r/20170302150252.34120-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>    [4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/mlock.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc mm/memcontrol.c
---- a/mm/memcontrol.c~mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc
-+++ a/mm/memcontrol.c
-@@ -4138,17 +4138,22 @@ static void free_mem_cgroup_per_node_inf
- 	kfree(memcg->nodeinfo[node]);
- }
+diff -puN mm/mlock.c~thp-fix-another-corner-case-of-munlock-vs-thps mm/mlock.c
+--- a/mm/mlock.c~thp-fix-another-corner-case-of-munlock-vs-thps
++++ a/mm/mlock.c
+@@ -442,7 +442,7 @@ void munlock_vma_pages_range(struct vm_a
  
--static void mem_cgroup_free(struct mem_cgroup *memcg)
-+static void __mem_cgroup_free(struct mem_cgroup *memcg)
- {
- 	int node;
+ 	while (start < end) {
+ 		struct page *page;
+-		unsigned int page_mask;
++		unsigned int page_mask = 0;
+ 		unsigned long page_increm;
+ 		struct pagevec pvec;
+ 		struct zone *zone;
+@@ -456,8 +456,7 @@ void munlock_vma_pages_range(struct vm_a
+ 		 * suits munlock very well (and if somehow an abnormal page
+ 		 * has sneaked into the range, we won't oops here: great).
+ 		 */
+-		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
+-				&page_mask);
++		page = follow_page(vma, start, FOLL_GET | FOLL_DUMP);
  
--	memcg_wb_domain_exit(memcg);
- 	for_each_node(node)
- 		free_mem_cgroup_per_node_info(memcg, node);
- 	free_percpu(memcg->stat);
- 	kfree(memcg);
- }
- 
-+static void mem_cgroup_free(struct mem_cgroup *memcg)
-+{
-+	memcg_wb_domain_exit(memcg);
-+	__mem_cgroup_free(memcg);
-+}
-+
- static struct mem_cgroup *mem_cgroup_alloc(void)
- {
- 	struct mem_cgroup *memcg;
-@@ -4199,7 +4204,7 @@ static struct mem_cgroup *mem_cgroup_all
- fail:
- 	if (memcg->id.id > 0)
- 		idr_remove(&mem_cgroup_idr, memcg->id.id);
--	mem_cgroup_free(memcg);
-+	__mem_cgroup_free(memcg);
- 	return NULL;
- }
- 
+ 		if (page && !IS_ERR(page)) {
+ 			if (PageTransTail(page)) {
+@@ -468,8 +467,8 @@ void munlock_vma_pages_range(struct vm_a
+ 				/*
+ 				 * Any THP page found by follow_page_mask() may
+ 				 * have gotten split before reaching
+-				 * munlock_vma_page(), so we need to recompute
+-				 * the page_mask here.
++				 * munlock_vma_page(), so we need to compute
++				 * the page_mask here instead.
+ 				 */
+ 				page_mask = munlock_vma_page(page);
+ 				unlock_page(page);
 _
 
-Patches currently in -mm which might be from tahsin@google.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+thp-reduce-indentation-level-in-change_huge_pmd.patch
+thp-fix-madv_dontneed-vs-numa-balancing-race.patch
+mm-drop-unused-pmdp_huge_get_and_clear_notify.patch
+thp-fix-madv_dontneed-vs-madv_free-race.patch
+thp-fix-madv_dontneed-vs-madv_free-race-fix.patch
+thp-fix-madv_dontneed-vs-clear-soft-dirty-race.patch
 
