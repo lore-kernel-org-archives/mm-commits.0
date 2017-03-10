@@ -1,110 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rmap-fix-null-pointer-dereference-on-thp-munlocking.patch removed from -mm
- tree
-Date: Fri, 10 Mar 2017 13:43:23 -0800
-Message-ID: <58c31dfb.vgxKUqlIvFMZ6c5u%akpm@linux-foundation.org>
+Subject: [merged] sh-cayman-ide-support-fix.patch removed from -mm tree
+Date: Fri, 10 Mar 2017 13:43:37 -0800
+Message-ID: <58c31e09.AOxeEzTNNAGmpUco%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38082 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38112 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933047AbdCJVnY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:24 -0500
+        with ESMTP id S932482AbdCJVni (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: b.zolnierkie@samsung.com, dalias@libc.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rmap: fix NULL-pointer dereference on THP munlocking
+     Subject: sh: cayman: IDE support fix
 has been removed from the -mm tree.  Its filename was
-     rmap-fix-null-pointer-dereference-on-thp-munlocking.patch
+     sh-cayman-ide-support-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: rmap: fix NULL-pointer dereference on THP munlocking
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: sh: cayman: IDE support fix
 
-The following test case triggers NULL-pointer derefernce in
-try_to_unmap_one():
+Remove incorrect CONFIG_IDE ifdef (CONFIG_IDE config option is for
+internal drivers/ide/ use) and make IDE hardware interface always
+initialized (not only when IDE subsystem is built-in).
 
-	#include <fcntl.h>
-	#include <stdlib.h>
-	#include <unistd.h>
-	#include <sys/mman.h>
+This patch allows Cayman board to work with modular IDE subsystem support
+and removes the requirement of having the whole core IDE subsystem
+built-in when using libata PATA support.
 
-	int main(int argc, char *argv[])
-	{
-		int fd;
-
-		system("mount -t tmpfs -o huge=always none /mnt");
-		fd = open("/mnt/test", O_CREAT | O_RDWR);
-		ftruncate(fd, 2UL << 20);
-		mmap(NULL, 2UL << 20, PROT_READ | PROT_WRITE,
-				MAP_SHARED | MAP_FIXED | MAP_LOCKED, fd, 0);
-		mmap(NULL, 2UL << 20, PROT_READ | PROT_WRITE,
-				MAP_SHARED | MAP_LOCKED, fd, 0);
-		munlockall();
-		return 0;
-	}
-
-Apparently, there's a case when we call try_to_unmap() on huge PMDs:
-it's TTU_MUNLOCK.
-
-Let's handle this case correctly.
-
-Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
-Link: http://lkml.kernel.org/r/20170302151159.30592-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/1990884.yFoE6lSB9G@amdc3058
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/sh/boards/mach-cayman/setup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/rmap.c~rmap-fix-null-pointer-dereference-on-thp-munlocking mm/rmap.c
---- a/mm/rmap.c~rmap-fix-null-pointer-dereference-on-thp-munlocking
-+++ a/mm/rmap.c
-@@ -1316,12 +1316,6 @@ static int try_to_unmap_one(struct page
- 	}
+diff -puN arch/sh/boards/mach-cayman/setup.c~sh-cayman-ide-support-fix arch/sh/boards/mach-cayman/setup.c
+--- a/arch/sh/boards/mach-cayman/setup.c~sh-cayman-ide-support-fix
++++ a/arch/sh/boards/mach-cayman/setup.c
+@@ -128,7 +128,6 @@ static int __init smsc_superio_setup(voi
+ 	SMSC_SUPERIO_WRITE_INDEXED(1, SMSC_PRIMARY_INT_INDEX);
+ 	SMSC_SUPERIO_WRITE_INDEXED(12, SMSC_SECONDARY_INT_INDEX);
  
- 	while (page_vma_mapped_walk(&pvmw)) {
--		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
--		address = pvmw.address;
--
--		/* Unexpected PMD-mapped THP? */
--		VM_BUG_ON_PAGE(!pvmw.pte, page);
--
- 		/*
- 		 * If the page is mlock()d, we cannot swap it out.
- 		 * If it's recently referenced (perhaps page_referenced
-@@ -1345,6 +1339,13 @@ static int try_to_unmap_one(struct page
- 				continue;
- 		}
+-#ifdef CONFIG_IDE
+ 	/*
+ 	 * Only IDE1 exists on the Cayman
+ 	 */
+@@ -158,7 +157,6 @@ static int __init smsc_superio_setup(voi
+ 	SMSC_SUPERIO_WRITE_INDEXED(0x01, 0xc5); /* GP45 = IDE1_IRQ */
+ 	SMSC_SUPERIO_WRITE_INDEXED(0x00, 0xc6); /* GP46 = nIOROP */
+ 	SMSC_SUPERIO_WRITE_INDEXED(0x00, 0xc7); /* GP47 = nIOWOP */
+-#endif
  
-+		/* Unexpected PMD-mapped THP? */
-+		VM_BUG_ON_PAGE(!pvmw.pte, page);
-+
-+		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
-+		address = pvmw.address;
-+
-+
- 		if (!(flags & TTU_IGNORE_ACCESS)) {
- 			if (ptep_clear_flush_young_notify(vma, address,
- 						pvmw.pte)) {
+ 	/* Exit the configuration state */
+ 	outb(SMSC_EXIT_CONFIG_KEY, SMSC_CONFIG_PORT_ADDR);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from b.zolnierkie@samsung.com are
 
-thp-reduce-indentation-level-in-change_huge_pmd.patch
-thp-fix-madv_dontneed-vs-numa-balancing-race.patch
-mm-drop-unused-pmdp_huge_get_and_clear_notify.patch
-thp-fix-madv_dontneed-vs-madv_free-race.patch
-thp-fix-madv_dontneed-vs-madv_free-race-fix.patch
-thp-fix-madv_dontneed-vs-clear-soft-dirty-race.patch
 
