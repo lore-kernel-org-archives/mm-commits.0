@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-resched-in-quarantine_remove_cache.patch removed
+Subject: [merged]
+ fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch removed
  from -mm tree
-Date: Fri, 10 Mar 2017 13:43:31 -0800
-Message-ID: <58c31e03.8hQwvFiNfgcBU8fw%akpm__7974.49024762518$1489182218$gmane$org@linux-foundation.org>
+Date: Fri, 10 Mar 2017 13:43:39 -0800
+Message-ID: <58c31e0b.V2yEK09hu9DeHzEw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38122 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932482AbdCJVnc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:32 -0500
+        with ESMTP id S932482AbdCJVnk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, gthelen@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, moreno.bartalucci@tecnorama.it, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: resched in quarantine_remove_cache()
+     Subject: fat: fix using uninitialized fields of fat_inode/fsinfo_inode
 has been removed from the -mm tree.  Its filename was
-     kasan-resched-in-quarantine_remove_cache.patch
+     fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: resched in quarantine_remove_cache()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: fix using uninitialized fields of fat_inode/fsinfo_inode
 
-We see reported stalls/lockups in quarantine_remove_cache() on machines
-with large amounts of RAM.  quarantine_remove_cache() needs to scan whole
-quarantine in order to take out all objects belonging to the cache. 
-Quarantine is currently 1/32-th of RAM, e.g.  on a machine with 256GB of
-memory that will be 8GB.  Moreover quarantine scanning is a walk over
-uncached linked list, which is slow.
+Recently fallocate patch was merged and it uses
+MSDOS_I(inode)->mmu_private at fat_evict_inode().  However,
+fat_inode/fsinfo_inode that was introduced in past didn't initialize
+MSDOS_I(inode) properly.
 
-Add cond_resched() after scanning of each non-empty batch of objects. 
-Batches are specifically kept of reasonable size for quarantine_put().  On
-a machine with 256GB of RAM we should have ~512 non-empty batches, each
-with 16MB of objects.
+With those combinations, it became the cause of accessing random entry
+in FAT area.
 
-Link: http://lkml.kernel.org/r/20170308154239.25440-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Greg Thelen <gthelen@google.com>
+Link: http://lkml.kernel.org/r/87pohrj4i8.fsf@mail.parknet.co.jp
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Reported-by: Moreno Bartalucci <moreno.bartalucci@tecnorama.it>
+Tested-by: Moreno Bartalucci <moreno.bartalucci@tecnorama.it>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/fat/inode.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN mm/kasan/quarantine.c~kasan-resched-in-quarantine_remove_cache mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~kasan-resched-in-quarantine_remove_cache
-+++ a/mm/kasan/quarantine.c
-@@ -283,8 +283,15 @@ void quarantine_remove_cache(struct kmem
- 	on_each_cpu(per_cpu_remove_cache, cache, 1);
+diff -puN fs/fat/inode.c~fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode
++++ a/fs/fat/inode.c
+@@ -1359,6 +1359,16 @@ out:
+ 	return 0;
+ }
  
- 	spin_lock_irqsave(&quarantine_lock, flags);
--	for (i = 0; i < QUARANTINE_BATCHES; i++)
-+	for (i = 0; i < QUARANTINE_BATCHES; i++) {
-+		if (qlist_empty(&global_quarantine[i]))
-+			continue;
- 		qlist_move_cache(&global_quarantine[i], &to_free, cache);
-+		/* Scanning whole quarantine can take a while. */
-+		spin_unlock_irqrestore(&quarantine_lock, flags);
-+		cond_resched();
-+		spin_lock_irqsave(&quarantine_lock, flags);
-+	}
- 	spin_unlock_irqrestore(&quarantine_lock, flags);
++static void fat_dummy_inode_init(struct inode *inode)
++{
++	/* Initialize this dummy inode to work as no-op. */
++	MSDOS_I(inode)->mmu_private = 0;
++	MSDOS_I(inode)->i_start = 0;
++	MSDOS_I(inode)->i_logstart = 0;
++	MSDOS_I(inode)->i_attrs = 0;
++	MSDOS_I(inode)->i_pos = 0;
++}
++
+ static int fat_read_root(struct inode *inode)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
+@@ -1803,12 +1813,13 @@ int fat_fill_super(struct super_block *s
+ 	fat_inode = new_inode(sb);
+ 	if (!fat_inode)
+ 		goto out_fail;
+-	MSDOS_I(fat_inode)->i_pos = 0;
++	fat_dummy_inode_init(fat_inode);
+ 	sbi->fat_inode = fat_inode;
  
- 	qlist_free_all(&to_free, cache);
+ 	fsinfo_inode = new_inode(sb);
+ 	if (!fsinfo_inode)
+ 		goto out_fail;
++	fat_dummy_inode_init(fsinfo_inode);
+ 	fsinfo_inode->i_ino = MSDOS_FSINFO_INO;
+ 	sbi->fsinfo_inode = fsinfo_inode;
+ 	insert_inode_hash(fsinfo_inode);
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 
