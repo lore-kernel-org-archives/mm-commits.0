@@ -1,89 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [patch 12/26] mm/vmstats: add thp_split_pud event for clarity
-Date: Thu, 09 Mar 2017 16:17:00 -0800
-Message-ID: <58c1f07c.ME22JNa57iDms8XM%akpm@linux-foundation.org>
+Subject: [patch 16/26] userfaultfd: non-cooperative: userfaultfd_remove
+ revalidate vma in MADV_DONTNEED
+Date: Thu, 09 Mar 2017 16:17:11 -0800
+Message-ID: <58c1f087.Fd4uyqMEX2QQyO10%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754423AbdCJARC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 19:17:02 -0500
+        with ESMTP id S1754515AbdCJARN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 19:17:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xieyisheng1@huawei.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, bigeasy@linutronix.de, cl@linux.com, ebru.akagunduz@gmail.com, guohanjun@huawei.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com
 
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/vmstats: add thp_split_pud event for clarity
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: non-cooperative: userfaultfd_remove revalidate vma in MADV_DONTNEED
 
-We added support for PUD-sized transparent hugepages, however we count the
-event "thp split pud" into thp_split_pmd event.
+userfaultfd_remove() has to be execute before zapping the pagetables or
+UFFDIO_COPY could keep filling pages after zap_page_range returned,
+which would result in non zero data after a MADV_DONTNEED.
 
-To separate the event count of thp split pud from pmd, add a new event
-named thp_split_pud.
+However userfaultfd_remove() may have to release the mmap_sem. This
+was handled correctly in MADV_REMOVE, but MADV_DONTNEED accessed a
+potentially stale vma (the very vma passed to zap_page_range(vma, ...)).
 
-Link: http://lkml.kernel.org/r/1488282380-5076-1-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
+The fix consists in revalidating the vma in case userfaultfd_remove()
+had to release the mmap_sem.
+
+This also optimizes away an unnecessary down_read/up_read in the
+MADV_REMOVE case if UFFD_EVENT_FORK had to be delivered.
+
+It all remains zero runtime cost in case CONFIG_USERFAULTFD=n as
+userfaultfd_remove() will be defined as "true" at build time.
+
+Link: http://lkml.kernel.org/r/20170302173738.18994-3-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    3 +++
- mm/huge_memory.c              |    2 +-
- mm/vmstat.c                   |    3 +++
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c              |    9 ++----
+ include/linux/userfaultfd_k.h |    7 ++---
+ mm/madvise.c                  |   44 +++++++++++++++++++++++++++++---
+ 3 files changed, 47 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-vmstats-add-thp_split_pud-event-for-clarify include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-vmstats-add-thp_split_pud-event-for-clarify
-+++ a/include/linux/vm_event_item.h
-@@ -79,6 +79,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		THP_SPLIT_PAGE_FAILED,
- 		THP_DEFERRED_SPLIT_PAGE,
- 		THP_SPLIT_PMD,
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+		THP_SPLIT_PUD,
-+#endif
- 		THP_ZERO_PAGE_ALLOC,
- 		THP_ZERO_PAGE_ALLOC_FAILED,
- #endif
-diff -puN mm/huge_memory.c~mm-vmstats-add-thp_split_pud-event-for-clarify mm/huge_memory.c
---- a/mm/huge_memory.c~mm-vmstats-add-thp_split_pud-event-for-clarify
-+++ a/mm/huge_memory.c
-@@ -1828,7 +1828,7 @@ static void __split_huge_pud_locked(stru
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PUD_SIZE, vma);
- 	VM_BUG_ON(!pud_trans_huge(*pud) && !pud_devmap(*pud));
- 
--	count_vm_event(THP_SPLIT_PMD);
-+	count_vm_event(THP_SPLIT_PUD);
- 
- 	pudp_huge_clear_flush_notify(vma, haddr, pud);
+diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed
++++ a/fs/userfaultfd.c
+@@ -695,8 +695,7 @@ void mremap_userfaultfd_complete(struct
+ 	userfaultfd_event_wait_completion(ctx, &ewq);
  }
-diff -puN mm/vmstat.c~mm-vmstats-add-thp_split_pud-event-for-clarify mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstats-add-thp_split_pud-event-for-clarify
-+++ a/mm/vmstat.c
-@@ -1065,6 +1065,9 @@ const char * const vmstat_text[] = {
- 	"thp_split_page_failed",
- 	"thp_deferred_split_page",
- 	"thp_split_pmd",
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	"thp_split_pud",
-+#endif
- 	"thp_zero_page_alloc",
- 	"thp_zero_page_alloc_failed",
- #endif
+ 
+-void userfaultfd_remove(struct vm_area_struct *vma,
+-			struct vm_area_struct **prev,
++bool userfaultfd_remove(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -705,13 +704,11 @@ void userfaultfd_remove(struct vm_area_s
+ 
+ 	ctx = vma->vm_userfaultfd_ctx.ctx;
+ 	if (!ctx || !(ctx->features & UFFD_FEATURE_EVENT_REMOVE))
+-		return;
++		return true;
+ 
+ 	userfaultfd_ctx_get(ctx);
+ 	up_read(&mm->mmap_sem);
+ 
+-	*prev = NULL; /* We wait for ACK w/o the mmap semaphore */
+-
+ 	msg_init(&ewq.msg);
+ 
+ 	ewq.msg.event = UFFD_EVENT_REMOVE;
+@@ -720,7 +717,7 @@ void userfaultfd_remove(struct vm_area_s
+ 
+ 	userfaultfd_event_wait_completion(ctx, &ewq);
+ 
+-	down_read(&mm->mmap_sem);
++	return false;
+ }
+ 
+ static bool has_unmap_ctx(struct userfaultfd_ctx *ctx, struct list_head *unmaps,
+diff -puN include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed include/linux/userfaultfd_k.h
+--- a/include/linux/userfaultfd_k.h~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed
++++ a/include/linux/userfaultfd_k.h
+@@ -61,8 +61,7 @@ extern void mremap_userfaultfd_complete(
+ 					unsigned long from, unsigned long to,
+ 					unsigned long len);
+ 
+-extern void userfaultfd_remove(struct vm_area_struct *vma,
+-			       struct vm_area_struct **prev,
++extern bool userfaultfd_remove(struct vm_area_struct *vma,
+ 			       unsigned long start,
+ 			       unsigned long end);
+ 
+@@ -118,11 +117,11 @@ static inline void mremap_userfaultfd_co
+ {
+ }
+ 
+-static inline void userfaultfd_remove(struct vm_area_struct *vma,
+-				      struct vm_area_struct **prev,
++static inline bool userfaultfd_remove(struct vm_area_struct *vma,
+ 				      unsigned long start,
+ 				      unsigned long end)
+ {
++	return true;
+ }
+ 
+ static inline int userfaultfd_unmap_prep(struct vm_area_struct *vma,
+diff -puN mm/madvise.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed mm/madvise.c
+--- a/mm/madvise.c~userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed
++++ a/mm/madvise.c
+@@ -513,7 +513,43 @@ static long madvise_dontneed(struct vm_a
+ 	if (!can_madv_dontneed_vma(vma))
+ 		return -EINVAL;
+ 
+-	userfaultfd_remove(vma, prev, start, end);
++	if (!userfaultfd_remove(vma, start, end)) {
++		*prev = NULL; /* mmap_sem has been dropped, prev is stale */
++
++		down_read(&current->mm->mmap_sem);
++		vma = find_vma(current->mm, start);
++		if (!vma)
++			return -ENOMEM;
++		if (start < vma->vm_start) {
++			/*
++			 * This "vma" under revalidation is the one
++			 * with the lowest vma->vm_start where start
++			 * is also < vma->vm_end. If start <
++			 * vma->vm_start it means an hole materialized
++			 * in the user address space within the
++			 * virtual range passed to MADV_DONTNEED.
++			 */
++			return -ENOMEM;
++		}
++		if (!can_madv_dontneed_vma(vma))
++			return -EINVAL;
++		if (end > vma->vm_end) {
++			/*
++			 * Don't fail if end > vma->vm_end. If the old
++			 * vma was splitted while the mmap_sem was
++			 * released the effect of the concurrent
++			 * operation may not cause MADV_DONTNEED to
++			 * have an undefined result. There may be an
++			 * adjacent next vma that we'll walk
++			 * next. userfaultfd_remove() will generate an
++			 * UFFD_EVENT_REMOVE repetition on the
++			 * end-vma->vm_end range, but the manager can
++			 * handle a repetition fine.
++			 */
++			end = vma->vm_end;
++		}
++		VM_WARN_ON(start >= end);
++	}
+ 	zap_page_range(vma, start, end - start);
+ 	return 0;
+ }
+@@ -554,8 +590,10 @@ static long madvise_remove(struct vm_are
+ 	 * mmap_sem.
+ 	 */
+ 	get_file(f);
+-	userfaultfd_remove(vma, prev, start, end);
+-	up_read(&current->mm->mmap_sem);
++	if (userfaultfd_remove(vma, start, end)) {
++		/* mmap_sem was not released by userfaultfd_remove() */
++		up_read(&current->mm->mmap_sem);
++	}
+ 	error = vfs_fallocate(f,
+ 				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+ 				offset, end - start);
 _
