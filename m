@@ -1,271 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2017-03-09-16-19 uploaded
-Date: Thu, 09 Mar 2017 16:20:01 -0800
-Message-ID: <58c1f131.cJywFyhPwAEQT89Z%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kasan-fix-races-in-quarantine_remove_cache-v2.patch removed from -mm tree
+Date: Thu, 09 Mar 2017 16:13:44 -0800
+Message-ID: <58c1efb8.fd+4JhHYl2M6HCOt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51572 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752459AbdCJAUD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 19:20:03 -0500
+        with ESMTP id S1753252AbdCJAUz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2017 19:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2017-03-09-16-19 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: dvyukov@google.com, aryabinin@virtuozzo.com, gthelen@google.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: kasan-fix-races-in-quarantine_remove_cache-v2
+has been removed from the -mm tree.  Its filename was
+     kasan-fix-races-in-quarantine_remove_cache-v2.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch was dropped because it was folded into kasan-fix-races-in-quarantine_remove_cache.patch
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan-fix-races-in-quarantine_remove_cache-v2
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+Changes since v1:
+ - sorted includes
 
-To rebase a branch with older patches to a new mmotm release:
-
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
-
+Link: http://lkml.kernel.org/r/20170309094028.51088-1-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Greg Thelen <gthelen@google.com>
 
 
+I've done some assessment of how good synchronize_srcu() works in this
+case. And on a 4 CPU VM I see that it blocks waiting for pending read
+critical sections in about 2-3% of cases. Which looks good to me.
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+I suspect that these races are the root cause of some GPFs that
+I episodically hit. Previously I did not have any explanation for them.
 
-A git copy of this tree is available at
+BUG: unable to handle kernel NULL pointer dereference at 00000000000000c8
+IP: qlist_free_all+0x2e/0xc0 mm/kasan/quarantine.c:155
+PGD 6aeea067
+PUD 60ed7067
+PMD 0
+Oops: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 13667 Comm: syz-executor2 Not tainted 4.10.0+ #60
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+task: ffff88005f948040 task.stack: ffff880069818000
+RIP: 0010:qlist_free_all+0x2e/0xc0 mm/kasan/quarantine.c:155
+RSP: 0018:ffff88006981f298 EFLAGS: 00010246
+RAX: ffffea0000ffff00 RBX: 0000000000000000 RCX: ffffea0000ffff1f
+RDX: 0000000000000000 RSI: ffff88003fffc3e0 RDI: 0000000000000000
+RBP: ffff88006981f2c0 R08: ffff88002fed7bd8 R09: 00000001001f000d
+R10: 00000000001f000d R11: ffff88006981f000 R12: ffff88003fffc3e0
+R13: ffff88006981f2d0 R14: ffffffff81877fae R15: 0000000080000000
+FS:  00007fb911a2d700(0000) GS:ffff88003ec00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000000000c8 CR3: 0000000060ed6000 CR4: 00000000000006f0
+Call Trace:
+ quarantine_reduce+0x10e/0x120 mm/kasan/quarantine.c:239
+ kasan_kmalloc+0xca/0xe0 mm/kasan/kasan.c:590
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:544
+ slab_post_alloc_hook mm/slab.h:456 [inline]
+ slab_alloc_node mm/slub.c:2718 [inline]
+ kmem_cache_alloc_node+0x1d3/0x280 mm/slub.c:2754
+ __alloc_skb+0x10f/0x770 net/core/skbuff.c:219
+ alloc_skb include/linux/skbuff.h:932 [inline]
+ _sctp_make_chunk+0x3b/0x260 net/sctp/sm_make_chunk.c:1388
+ sctp_make_data net/sctp/sm_make_chunk.c:1420 [inline]
+ sctp_make_datafrag_empty+0x208/0x360 net/sctp/sm_make_chunk.c:746
+ sctp_datamsg_from_user+0x7e8/0x11d0 net/sctp/chunk.c:266
+ sctp_sendmsg+0x2611/0x3970 net/sctp/socket.c:1962
+ inet_sendmsg+0x164/0x5b0 net/ipv4/af_inet.c:761
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ SYSC_sendto+0x660/0x810 net/socket.c:1685
+ SyS_sendto+0x40/0x50 net/socket.c:1653
+---
+ 1 file changed, 36 insertions(+), 6 deletions(-)
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+index 6f1ed1630873..5c44c08f46b6 100644
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+ mm/kasan/quarantine.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff -puN mm/kasan/quarantine.c~kasan-fix-races-in-quarantine_remove_cache-v2 mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~kasan-fix-races-in-quarantine_remove_cache-v2
++++ a/mm/kasan/quarantine.c
+@@ -25,9 +25,9 @@
+ #include <linux/printk.h>
+ #include <linux/shrinker.h>
+ #include <linux/slab.h>
++#include <linux/srcu.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+-#include <linux/srcu.h>
+ 
+ #include "../slab.h"
+ #include "kasan.h"
+_
 
-This mmotm tree contains the following patches against 4.11-rc1:
-(patches marked "*" will be included in linux-next)
+Patches currently in -mm which might be from dvyukov@google.com are
 
-  origin.patch
-  i-need-old-gcc.patch
-* userfaultfd-shmem-__do_fault-requires-vm_fault_nopage.patch
-* scripts-spellingtxt-add-disbled-pattern-and-fix-typo-instances.patch
-* scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
-* powerpc-mm-handle-protnone-ptes-on-fork.patch
-* power-mm-update-pte_write-and-pte_wrprotect-to-handle-savedwrite.patch
-* x86-mm-fix-gup_pte_range-vs-dax-mappings.patch
-* x86-mm-unify-exit-paths-in-gup_pte_range.patch
-* userfaultfd-non-cooperative-rollback-userfaultfd_exit.patch
-* userfaultfd-non-cooperative-robustness-check.patch
-* userfaultfd-non-cooperative-release-all-ctx-in-dup_userfaultfd_complete.patch
-* fs-fix-unsigned-enum-warning-with-gcc-42.patch
-* mm-vmstats-add-thp_split_pud-event-for-clarify.patch
-* bcache-remove-duplicate-inclusion-of-blkdevh.patch
-* mm-cgroup-avoid-panic-when-init-with-low-memory.patch
-* userfaultfd-non-cooperative-fix-fork-fctx-new-memleak.patch
-* userfaultfd-non-cooperative-userfaultfd_remove-revalidate-vma-in-madv_dontneed.patch
-* userfaultfd-selftest-vm-allow-to-build-in-vm-directory.patch
-* memblock-fix-memblock_next_valid_pfn.patch
-* rmap-fix-null-pointer-dereference-on-thp-munlocking.patch
-* thp-fix-another-corner-case-of-munlock-vs-thps.patch
-* mm-do-not-call-mem_cgroup_free-from-within-mem_cgroup_alloc.patch
-* kasan-resched-in-quarantine_remove_cache.patch
-* kasan-fix-races-in-quarantine_remove_cache.patch
-* sh-cayman-ide-support-fix.patch
-* fat-fix-using-uninitialized-fields-of-fat_inode-fsinfo_inode.patch
-* userfaultfd-remove-wrong-comment-from-userfaultfd_ctx_get.patch
-* scatterlist-dont-overflow-length-field.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* dax-add-tracepoints-to-dax_iomap_pte_fault.patch
-* dax-add-tracepoints-to-dax_pfn_mkwrite.patch
-* dax-add-tracepoints-to-dax_load_hole.patch
-* dax-add-tracepoints-to-dax_writeback_mapping_range.patch
-* dax-add-tracepoint-to-dax_writeback_one.patch
-* dax-add-tracepoint-to-dax_insert_mapping.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
-* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-  mm.patch
-* mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes.patch
-* mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix.patch
-* mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
-* mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch
-* mm-remove-unnecessary-reclaimability-check-from-numa-balancing-target.patch
-* mm-dont-avoid-high-priority-reclaim-on-unreclaimable-nodes.patch
-* mm-dont-avoid-high-priority-reclaim-on-memcg-limit-reclaim.patch
-* mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch
-* revert-mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
-* mm-remove-unnecessary-back-off-function-when-retrying-page-reclaim.patch
-* writeback-use-setup_deferrable_timer.patch
-* mm-delete-unnecessary-ttu_-flags.patch
-* mm-dont-assume-anonymous-pages-have-swapbacked-flag.patch
-* mm-move-madv_free-pages-into-lru_inactive_file-list.patch
-* mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-* mm-reclaim-madv_free-pages.patch
-* mm-reclaim-madv_free-pages-fix.patch
-* mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
-* mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch
-* mm-enable-madv_free-for-swapless-system.patch
-* proc-show-madv_free-pages-info-in-smaps.patch
-* proc-show-madv_free-pages-info-in-smaps-fix.patch
-* mm-memcontrol-provide-shmem-statistics.patch
-* thp-reduce-indentation-level-in-change_huge_pmd.patch
-* thp-fix-madv_dontneed-vs-numa-balancing-race.patch
-* mm-drop-unused-pmdp_huge_get_and_clear_notify.patch
-* thp-fix-madv_dontneed-vs-madv_free-race.patch
-* thp-fix-madv_dontneed-vs-madv_free-race-fix.patch
-* thp-fix-madv_dontneed-vs-clear-soft-dirty-race.patch
-* mm-swap-fix-a-race-in-free_swap_and_cache.patch
-* mm-use-is_migrate_highatomic-to-simplify-the-code.patch
-* mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-* mm-use-is_migrate_isolate_page-to-simplify-the-code.patch
-* mm-vmstat-print-non-populated-zones-in-zoneinfo.patch
-* mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo.patch
-* sparc64-ng4-memset-32-bits-overflow.patch
-* mm-zeroing-hash-tables-in-allocator.patch
-* mm-updated-callers-to-use-hash_zero-flag.patch
-* mm-adaptive-hash-table-scaling.patch
-* zram-reduce-load-operation-in-page_same_filled.patch
-* lockdep-teach-lockdep-about-memalloc_noio_save.patch
-* lockdep-allow-to-disable-reclaim-lockup-detection.patch
-* xfs-abstract-pf_fstrans-to-pf_memalloc_nofs.patch
-* mm-introduce-memalloc_nofs_saverestore-api.patch
-* mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-* xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch
-* jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
-* jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-* jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
-* jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-* mm-tighten-up-the-fault-path-a-little.patch
-* mm-remove-rodata_test_data-export-add-pr_fmt.patch
-* mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
-* mm-move-pcp-and-lru-pcp-drainging-into-single-wq-fix.patch
-* mm-compaction-reorder-fields-in-struct-compact_control.patch
-* mm-compaction-remove-redundant-watermark-check-in-compact_finished.patch
-* mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
-* mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
-* mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
-* mm-compaction-add-migratetype-to-compact_control.patch
-* mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype.patch
-* mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
-* mm-do-not-use-double-negation-for-testing-page-flags.patch
-* mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch
-* mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch
-* mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
-* mm-page_alloc-__gfp_nowarn-shouldnt-suppress-stall-warnings.patch
-* mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
-* mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* kasan-introduce-helper-functions-for-determining-bug-type.patch
-* kasan-unify-report-headers.patch
-* kasan-change-allocation-and-freeing-stack-traces-headers.patch
-* kasan-simplify-address-description-logic.patch
-* kasan-change-report-header.patch
-* kasan-improve-slab-object-description.patch
-* kasan-print-page-description-after-stacks.patch
-* kasan-improve-double-free-report-format.patch
-* kasan-separate-report-parts-by-empty-lines.patch
-* proc-remove-cast-from-memory-allocation.patch
-* drivers-virt-use-get_user_pages_unlocked.patch
-* revert-lib-test_sortc-make-it-explicitly-non-modular.patch
-* lib-add-module-support-to-array-based-sort-tests.patch
-* lib-add-module-support-to-linked-list-sorting-tests.patch
-* firmware-makefile-force-recompilation-if-makefile-changes.patch
-* checkpatch-remove-obsolete-config_experimental-checks.patch
-* checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
-* checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-* checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-* checkpatch-improve-embedded_function_name-test.patch
-* cpumask-make-nr_cpumask_bits-unsigned.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
-* taskstats-add-e-u-stime-for-tgid-command.patch
-* taskstats-add-e-u-stime-for-tgid-command-fix.patch
-* taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-* scripts-gdb-add-lx-fdtdump-command.patch
-* initramfs-provide-a-way-to-ignore-image-provided-by-bootloader.patch
-  linux-next.patch
-  linux-next-rejects.patch
-* drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
-* mm-introduce-kvalloc-helpers.patch
-* mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
-* rhashtable-simplify-a-strange-allocation-pattern.patch
-* ila-simplify-a-strange-allocation-pattern.patch
-* xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
-* treewide-use-kvalloc-rather-than-opencoded-variants.patch
-* net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
-* md-use-kvmalloc-rather-than-opencoded-variant.patch
-* bcache-use-kvmalloc.patch
-* mm-vmalloc-use-__gfp_highmem-implicitly.patch
-* scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
-* treewide-move-set_memory_-functions-away-from-cacheflushh.patch
-* arm-use-set_memoryh-header.patch
-* arm64-use-set_memoryh-header.patch
-* s390-use-set_memoryh-header.patch
-* x86-use-set_memoryh-header.patch
-* agp-use-set_memoryh-header.patch
-* drm-use-set_memoryh-header.patch
-* drm-use-set_memoryh-header-fix.patch
-* intel_th-use-set_memoryh-header.patch
-* watchdog-hpwdt-use-set_memoryh-header.patch
-* bpf-use-set_memoryh-header.patch
-* module-use-set_memoryh-header.patch
-* pm-hibernate-use-set_memoryh-header.patch
-* alsa-use-set_memoryh-header.patch
-* misc-sram-use-set_memoryh-header.patch
-* video-vermilion-use-set_memoryh-header.patch
-* drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-* treewide-decouple-cacheflushh-and-set_memoryh.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
+kasan-resched-in-quarantine_remove_cache.patch
+kasan-fix-races-in-quarantine_remove_cache.patch
+
