@@ -1,281 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
- removed from -mm tree
-Date: Fri, 10 Mar 2017 13:42:38 -0800
-Message-ID: <58c31dce.lLDUoV2sqB+khA6k%akpm@linux-foundation.org>
+Subject: [merged] powerpc-mm-handle-protnone-ptes-on-fork.patch removed
+ from -mm tree
+Date: Fri, 10 Mar 2017 13:42:40 -0800
+Message-ID: <58c31dd0./bFwRl7e3Y525bJo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933047AbdCJVmj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:42:39 -0500
+        with ESMTP id S933047AbdCJVmm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:42:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mgorman@techsingularity.net, mpe@ellerman.id.au, paulus@ozlabs.org, riel@surriel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add "overide" pattern and fix typo instances
+     Subject: powerpc/mm: handle protnone ptes on fork
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances.patch
+     powerpc-mm-handle-protnone-ptes-on-fork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "overide" pattern and fix typo instances
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: powerpc/mm: handle protnone ptes on fork
 
-Fix typos and add the following to the scripts/spelling.txt:
+We need to mark pages of parent process read only on fork.  Numa fault pte
+needs a protnone ptes variant with saved write flag set.  On fork we need
+to make sure we remove the saved write bit.  Instead of adding the
+protnone check in the caller update ptep_set_wrprotect variants to clear
+savedwrite bit.
 
-  overide||override
+Without this we see random segfaults in application on fork.
 
-While we are here, fix the doubled "address" in the touched line
-Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt.
-
-Also, fix the comment block style in the touched hunks in
-drivers/media/dvb-frontends/drx39xyj/drx_driver.h.
-
-Link: http://lkml.kernel.org/r/1481573103-11329-21-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Fixes: c137a2757b886 ("powerpc/mm/autonuma: switch ppc64 to its own implementation of saved write")
+Link: http://lkml.kernel.org/r/1488203787-17849-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt |    2 +-
- drivers/block/paride/pcd.c                                       |    2 +-
- drivers/block/paride/pd.c                                        |    2 +-
- drivers/block/paride/pf.c                                        |    2 +-
- drivers/block/paride/pg.c                                        |    2 +-
- drivers/block/paride/pt.c                                        |    2 +-
- drivers/media/dvb-frontends/drx39xyj/drx_driver.h                |    8 +++-----
- drivers/net/ethernet/qlogic/qlge/qlge.h                          |    2 +-
- include/dt-bindings/sound/cs42l42.h                              |    2 +-
- include/net/irda/timer.h                                         |    2 +-
- kernel/trace/trace_stack.c                                       |    2 +-
- scripts/spelling.txt                                             |    1 +
- tools/lguest/lguest.c                                            |    2 +-
- tools/lib/bpf/Makefile                                           |    2 +-
- tools/lib/traceevent/Makefile                                    |    2 +-
- tools/lib/traceevent/event-parse.h                               |    2 +-
- 16 files changed, 18 insertions(+), 19 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   73 +++++++++--------
+ 1 file changed, 42 insertions(+), 31 deletions(-)
 
-diff -puN Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt
---- a/Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/Documentation/devicetree/bindings/regulator/ti-abb-regulator.txt
-@@ -45,7 +45,7 @@ Required Properties:
- Optional Properties:
- - reg-names: In addition to the required properties, the following are optional
-   - "efuse-address"	- Contains efuse base address used to pick up ABB info.
--  - "ldo-address"	- Contains address of ABB LDO overide register address.
-+  - "ldo-address"	- Contains address of ABB LDO override register.
- 	"efuse-address" is required for this.
- - ti,ldovbb-vset-mask	- Required if ldo-address is set, mask for LDO override
- 	register to provide override vset value.
-diff -puN drivers/block/paride/pcd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pcd.c
---- a/drivers/block/paride/pcd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pcd.c
-@@ -50,7 +50,7 @@
-                         the slower the port i/o.  In some cases, setting
-                         this to zero will speed up the device. (default -1)
-                         
--            major       You may use this parameter to overide the
-+            major       You may use this parameter to override the
-                         default major number (46) that this driver
-                         will use.  Be sure to change the device
-                         name as well.
-diff -puN drivers/block/paride/pd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pd.c
---- a/drivers/block/paride/pd.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pd.c
-@@ -61,7 +61,7 @@
-                         first drive found.
- 			
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-handle-protnone-ptes-on-fork arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-handle-protnone-ptes-on-fork
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -347,23 +347,53 @@ static inline int __ptep_test_and_clear_
+ 	__r;							\
+ })
  
--            major       You may use this parameter to overide the
-+            major       You may use this parameter to override the
-                         default major number (45) that this driver
-                         will use.  Be sure to change the device
-                         name as well.
-diff -puN drivers/block/paride/pf.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pf.c
---- a/drivers/block/paride/pf.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pf.c
-@@ -59,7 +59,7 @@
-                         the slower the port i/o.  In some cases, setting
-                         this to zero will speed up the device. (default -1)
- 
--	    major	You may use this parameter to overide the
-+	    major	You may use this parameter to override the
- 			default major number (47) that this driver
- 			will use.  Be sure to change the device
- 			name as well.
-diff -puN drivers/block/paride/pg.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pg.c
---- a/drivers/block/paride/pg.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pg.c
-@@ -84,7 +84,7 @@
- 			the slower the port i/o.  In some cases, setting
- 			this to zero will speed up the device. (default -1)
- 
--	    major	You may use this parameter to overide the
-+	    major	You may use this parameter to override the
- 			default major number (97) that this driver
- 			will use.  Be sure to change the device
- 			name as well.
-diff -puN drivers/block/paride/pt.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/block/paride/pt.c
---- a/drivers/block/paride/pt.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/block/paride/pt.c
-@@ -61,7 +61,7 @@
-                         the slower the port i/o.  In some cases, setting
-                         this to zero will speed up the device. (default -1)
- 
--	    major	You may use this parameter to overide the
-+	    major	You may use this parameter to override the
- 			default major number (96) that this driver
- 			will use.  Be sure to change the device
- 			name as well.
-diff -puN drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/media/dvb-frontends/drx39xyj/drx_driver.h
---- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
-@@ -256,8 +256,7 @@ int drxbsp_tuner_default_i2c_write_read(
- *
- * The actual DAP implementation may be restricted to only one of the modes.
- * A compiler warning or error will be generated if the DAP implementation
--* overides or cannot handle the mode defined below.
--*
-+* overrides or cannot handle the mode defined below.
- */
- #ifndef DRXDAP_SINGLE_MASTER
- #define DRXDAP_SINGLE_MASTER 1
-@@ -272,7 +271,7 @@ int drxbsp_tuner_default_i2c_write_read(
- *
- * This maximum size may be restricted by the actual DAP implementation.
- * A compiler warning or error will be generated if the DAP implementation
--* overides or cannot handle the chunksize defined below.
-+* overrides or cannot handle the chunksize defined below.
- *
- * Beware that the DAP uses  DRXDAP_MAX_WCHUNKSIZE to create a temporary data
- * buffer. Do not undefine or choose too large, unless your system is able to
-@@ -292,8 +291,7 @@ int drxbsp_tuner_default_i2c_write_read(
- *
- * This maximum size may be restricted by the actual DAP implementation.
- * A compiler warning or error will be generated if the DAP implementation
--* overides or cannot handle the chunksize defined below.
--*
-+* overrides or cannot handle the chunksize defined below.
- */
- #ifndef DRXDAP_MAX_RCHUNKSIZE
- #define  DRXDAP_MAX_RCHUNKSIZE 60
-diff -puN drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances drivers/net/ethernet/qlogic/qlge/qlge.h
---- a/drivers/net/ethernet/qlogic/qlge/qlge.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/qlogic/qlge/qlge.h
-@@ -1162,7 +1162,7 @@ struct ob_mac_tso_iocb_rsp {
- struct ib_mac_iocb_rsp {
- 	u8 opcode;		/* 0x20 */
- 	u8 flags1;
--#define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
-+#define IB_MAC_IOCB_RSP_OI	0x01	/* Override intr delay */
- #define IB_MAC_IOCB_RSP_I	0x02	/* Disable Intr Generation */
- #define IB_MAC_CSUM_ERR_MASK 0x1c	/* A mask to use for csum errs */
- #define IB_MAC_IOCB_RSP_TE	0x04	/* Checksum error */
-diff -puN include/dt-bindings/sound/cs42l42.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances include/dt-bindings/sound/cs42l42.h
---- a/include/dt-bindings/sound/cs42l42.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/include/dt-bindings/sound/cs42l42.h
-@@ -20,7 +20,7 @@
- #define CS42L42_HPOUT_LOAD_1NF		0
- #define CS42L42_HPOUT_LOAD_10NF		1
- 
--/* HPOUT Clamp to GND Overide */
-+/* HPOUT Clamp to GND Override */
- #define CS42L42_HPOUT_CLAMP_EN		0
- #define CS42L42_HPOUT_CLAMP_DIS		1
- 
-diff -puN include/net/irda/timer.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances include/net/irda/timer.h
---- a/include/net/irda/timer.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/include/net/irda/timer.h
-@@ -59,7 +59,7 @@ struct lap_cb;
-  *  Slot timer must never exceed 85 ms, and must always be at least 25 ms, 
-  *  suggested to  75-85 msec by IrDA lite. This doesn't work with a lot of
-  *  devices, and other stackes uses a lot more, so it's best we do it as well
-- *  (Note : this is the default value and sysctl overides it - Jean II)
-+ *  (Note : this is the default value and sysctl overrides it - Jean II)
-  */
- #define SLOT_TIMEOUT            (90*HZ/1000)
- 
-diff -puN kernel/trace/trace_stack.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances kernel/trace/trace_stack.c
---- a/kernel/trace/trace_stack.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/kernel/trace/trace_stack.c
-@@ -65,7 +65,7 @@ void stack_trace_print(void)
++static inline int pte_write(pte_t pte)
++{
++	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
++}
++
++#ifdef CONFIG_NUMA_BALANCING
++#define pte_savedwrite pte_savedwrite
++static inline bool pte_savedwrite(pte_t pte)
++{
++	/*
++	 * Saved write ptes are prot none ptes that doesn't have
++	 * privileged bit sit. We mark prot none as one which has
++	 * present and pviliged bit set and RWX cleared. To mark
++	 * protnone which used to have _PAGE_WRITE set we clear
++	 * the privileged bit.
++	 */
++	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
++}
++#else
++#define pte_savedwrite pte_savedwrite
++static inline bool pte_savedwrite(pte_t pte)
++{
++	return false;
++}
++#endif
++
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
+ 				      pte_t *ptep)
+ {
+-	if ((pte_raw(*ptep) & cpu_to_be64(_PAGE_WRITE)) == 0)
+-		return;
+-
+-	pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
++	if (pte_write(*ptep))
++		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 0);
++	else if (unlikely(pte_savedwrite(*ptep)))
++		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
  }
  
- /*
-- * When arch-specific code overides this function, the following
-+ * When arch-specific code overrides this function, the following
-  * data should be filled up, assuming stack_trace_max_lock is held to
-  * prevent concurrent updates.
-  *     stack_trace_index[]
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -734,6 +734,7 @@ oustanding||outstanding
- overaall||overall
- overhread||overhead
- overlaping||overlapping
-+overide||override
- overrided||overridden
- overriden||overridden
- overun||overrun
-diff -puN tools/lguest/lguest.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lguest/lguest.c
---- a/tools/lguest/lguest.c~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lguest/lguest.c
-@@ -1387,7 +1387,7 @@ static bool pci_data_iowrite(u16 port, u
- 		/* Allow writing to any other BAR, or expansion ROM */
- 		iowrite(portoff, val, mask, &d->config_words[reg]);
- 		return true;
--		/* We let them overide latency timer and cacheline size */
-+		/* We let them override latency timer and cacheline size */
- 	} else if (&d->config_words[reg] == (void *)&d->config.cacheline_size) {
- 		/* Only let them change the first two fields. */
- 		if (mask == 0xFFFFFFFF)
-diff -puN tools/lib/bpf/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/bpf/Makefile
---- a/tools/lib/bpf/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lib/bpf/Makefile
-@@ -132,7 +132,7 @@ else
-   Q = @
- endif
+ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
+ 					   unsigned long addr, pte_t *ptep)
+ {
+-	if ((pte_raw(*ptep) & cpu_to_be64(_PAGE_WRITE)) == 0)
+-		return;
+-
+-	pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
++	/*
++	 * We should not find protnone for hugetlb, but this complete the
++	 * interface.
++	 */
++	if (pte_write(*ptep))
++		pte_update(mm, addr, ptep, _PAGE_WRITE, 0, 1);
++	else if (unlikely(pte_savedwrite(*ptep)))
++		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 1);
+ }
  
--# Disable command line variables (CFLAGS) overide from top
-+# Disable command line variables (CFLAGS) override from top
- # level Makefile (perf), otherwise build Makefile will get
- # the same command line setup.
- MAKEOVERRIDES=
-diff -puN tools/lib/traceevent/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/traceevent/Makefile
---- a/tools/lib/traceevent/Makefile~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lib/traceevent/Makefile
-@@ -135,7 +135,7 @@ else
-   Q = @
- endif
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+@@ -397,11 +427,6 @@ static inline void pte_clear(struct mm_s
+ 	pte_update(mm, addr, ptep, ~0UL, 0, 0);
+ }
  
--# Disable command line variables (CFLAGS) overide from top
-+# Disable command line variables (CFLAGS) override from top
- # level Makefile (perf), otherwise build Makefile will get
- # the same command line setup.
- MAKEOVERRIDES=
-diff -puN tools/lib/traceevent/event-parse.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances tools/lib/traceevent/event-parse.h
---- a/tools/lib/traceevent/event-parse.h~scripts-spellingtxt-add-overide-pattern-and-fix-typo-instances
-+++ a/tools/lib/traceevent/event-parse.h
-@@ -140,7 +140,7 @@ struct pevent_plugin_option {
-  *   struct pevent_plugin_option PEVENT_PLUGIN_OPTIONS[] = {
-  *	{
-  *		.name = "option-name",
-- *		.plugin_alias = "overide-file-name", (optional)
-+ *		.plugin_alias = "override-file-name", (optional)
-  *		.description = "description of option to show users",
-  *	},
-  *	{
-_
-
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
-
-scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
-
+-static inline int pte_write(pte_t pte)
+-{
+-	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_WRITE));
+-}
+-
+ static inline int pte_dirty(pte_t pte)
+ {
+ 	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_DIRTY));
+@@ -466,19 +491,6 @@ static inline pte_t pte_clear_savedwrite
+ 	return __pte(pte_val(pte) | _PAGE_PRIVILEGED);
+ }
+ 
+-#define pte_savedwrite pte_savedwrite
+-static inline bool pte_savedwrite(pte_t pte)
+-{
+-	/*
+-	 * Saved write ptes are prot none ptes that doesn't have
+-	 * privileged bit sit. We mark prot none as one which has
+-	 * present and pviliged bit set and RWX cleared. To mark
+-	 * protnone which used to have _PAGE_WRITE set we clear
+-	 * the privileged bit.
+-	 */
+-	VM_BUG_ON(!pte_protnone(pte));
+-	return !(pte_raw(pte) & cpu_to_be64(_PAGE_RWX | _PAGE_PRIVILEGED));
+-}
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+ static inline int pte_present(pte_t pte)
+@@ -982,11 +994,10 @@ static inline int __pmdp_test_and_clear_
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
+ 				      pmd_t *pmdp)
+ {
+-
+-	if ((pmd_raw(*pmdp) & cpu_to_be64(_PAGE_WRITE)) == 0)
+-		return;
