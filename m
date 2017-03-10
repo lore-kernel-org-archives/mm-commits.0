@@ -1,34 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-fix-another-corner-case-of-munlock-vs-thps.patch
- removed from -mm tree
-Date: Fri, 10 Mar 2017 13:43:25 -0800
-Message-ID: <58c31dfd.sRv2YcGlfBANL0Kb%akpm@linux-foundation.org>
+Subject: [merged]
+ rmap-fix-null-pointer-dereference-on-thp-munlocking.patch removed from -mm
+ tree
+Date: Fri, 10 Mar 2017 13:43:23 -0800
+Message-ID: <58c31dfb.vgxKUqlIvFMZ6c5u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38082 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933047AbdCJVn0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:26 -0500
+        with ESMTP id S933047AbdCJVnY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix another corner case of munlock() vs. THPs
+     Subject: rmap: fix NULL-pointer dereference on THP munlocking
 has been removed from the -mm tree.  Its filename was
-     thp-fix-another-corner-case-of-munlock-vs-thps.patch
+     rmap-fix-null-pointer-dereference-on-thp-munlocking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix another corner case of munlock() vs. THPs
+Subject: rmap: fix NULL-pointer dereference on THP munlocking
 
-The following test case triggers BUG() in munlock_vma_pages_range():
+The following test case triggers NULL-pointer derefernce in
+try_to_unmap_one():
+
+	#include <fcntl.h>
+	#include <stdlib.h>
+	#include <unistd.h>
+	#include <sys/mman.h>
 
 	int main(int argc, char *argv[])
 	{
@@ -36,70 +43,60 @@ The following test case triggers BUG() in munlock_vma_pages_range():
 
 		system("mount -t tmpfs -o huge=always none /mnt");
 		fd = open("/mnt/test", O_CREAT | O_RDWR);
-		ftruncate(fd, 4UL << 20);
-		mmap(NULL, 4UL << 20, PROT_READ | PROT_WRITE,
+		ftruncate(fd, 2UL << 20);
+		mmap(NULL, 2UL << 20, PROT_READ | PROT_WRITE,
 				MAP_SHARED | MAP_FIXED | MAP_LOCKED, fd, 0);
-		mmap(NULL, 4096, PROT_READ | PROT_WRITE,
+		mmap(NULL, 2UL << 20, PROT_READ | PROT_WRITE,
 				MAP_SHARED | MAP_LOCKED, fd, 0);
 		munlockall();
 		return 0;
 	}
 
-The second mmap() create PTE-mapping of the first huge page in file.  It
-makes kernel munlock the page as we never keep PTE-mapped page mlocked.
+Apparently, there's a case when we call try_to_unmap() on huge PMDs:
+it's TTU_MUNLOCK.
 
-On munlockall() when we handle vma created by the first mmap(),
-munlock_vma_page() returns page_mask == 0, as the page is not mlocked
-anymore.  On next iteration follow_page_mask() return tail page, but
-page_mask is HPAGE_NR_PAGES - 1.  It makes us skip to the first tail page
-of the next huge page and step on VM_BUG_ON_PAGE(PageMlocked(page)).
+Let's handle this case correctly.
 
-The fix is not use the page_mask from follow_page_mask() at all.  It has
-no use for us.
-
-Link: http://lkml.kernel.org/r/20170302150252.34120-1-kirill.shutemov@linux.intel.com
+Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
+Link: http://lkml.kernel.org/r/20170302151159.30592-1-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>    [4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/rmap.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/mlock.c~thp-fix-another-corner-case-of-munlock-vs-thps mm/mlock.c
---- a/mm/mlock.c~thp-fix-another-corner-case-of-munlock-vs-thps
-+++ a/mm/mlock.c
-@@ -442,7 +442,7 @@ void munlock_vma_pages_range(struct vm_a
+diff -puN mm/rmap.c~rmap-fix-null-pointer-dereference-on-thp-munlocking mm/rmap.c
+--- a/mm/rmap.c~rmap-fix-null-pointer-dereference-on-thp-munlocking
++++ a/mm/rmap.c
+@@ -1316,12 +1316,6 @@ static int try_to_unmap_one(struct page
+ 	}
  
- 	while (start < end) {
- 		struct page *page;
--		unsigned int page_mask;
-+		unsigned int page_mask = 0;
- 		unsigned long page_increm;
- 		struct pagevec pvec;
- 		struct zone *zone;
-@@ -456,8 +456,7 @@ void munlock_vma_pages_range(struct vm_a
- 		 * suits munlock very well (and if somehow an abnormal page
- 		 * has sneaked into the range, we won't oops here: great).
- 		 */
--		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
--				&page_mask);
-+		page = follow_page(vma, start, FOLL_GET | FOLL_DUMP);
+ 	while (page_vma_mapped_walk(&pvmw)) {
+-		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
+-		address = pvmw.address;
+-
+-		/* Unexpected PMD-mapped THP? */
+-		VM_BUG_ON_PAGE(!pvmw.pte, page);
+-
+ 		/*
+ 		 * If the page is mlock()d, we cannot swap it out.
+ 		 * If it's recently referenced (perhaps page_referenced
+@@ -1345,6 +1339,13 @@ static int try_to_unmap_one(struct page
+ 				continue;
+ 		}
  
- 		if (page && !IS_ERR(page)) {
- 			if (PageTransTail(page)) {
-@@ -468,8 +467,8 @@ void munlock_vma_pages_range(struct vm_a
- 				/*
- 				 * Any THP page found by follow_page_mask() may
- 				 * have gotten split before reaching
--				 * munlock_vma_page(), so we need to recompute
--				 * the page_mask here.
-+				 * munlock_vma_page(), so we need to compute
-+				 * the page_mask here instead.
- 				 */
- 				page_mask = munlock_vma_page(page);
- 				unlock_page(page);
++		/* Unexpected PMD-mapped THP? */
++		VM_BUG_ON_PAGE(!pvmw.pte, page);
++
++		subpage = page - page_to_pfn(page) + pte_pfn(*pvmw.pte);
++		address = pvmw.address;
++
++
+ 		if (!(flags & TTU_IGNORE_ACCESS)) {
+ 			if (ptep_clear_flush_young_notify(vma, address,
+ 						pvmw.pte)) {
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
