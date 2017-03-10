@@ -1,119 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-non-cooperative-release-all-ctx-in-dup_userfaultfd_complete.patch removed from -mm tree
-Date: Fri, 10 Mar 2017 13:42:58 -0800
-Message-ID: <58c31de2.p7TuPpJWcQU+uVxP%akpm@linux-foundation.org>
+Subject: [merged] fs-fix-unsigned-enum-warning-with-gcc-42.patch removed
+ from -mm tree
+Date: Fri, 10 Mar 2017 13:43:01 -0800
+Message-ID: <58c31de5.CxI+677c6pzLwTTM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37984 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933047AbdCJVnA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:00 -0500
+        with ESMTP id S933047AbdCJVnC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Mar 2017 16:43:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, rppt@linux.vnet.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, brendan.d.gregg@gmail.com, rmk+kernel@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: release all ctx in dup_userfaultfd_complete
+     Subject: include/linux/fs.h: fix unsigned enum warning with gcc-4.2
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-non-cooperative-release-all-ctx-in-dup_userfaultfd_complete.patch
+     fs-fix-unsigned-enum-warning-with-gcc-42.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: non-cooperative: release all ctx in dup_userfaultfd_complete
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: include/linux/fs.h: fix unsigned enum warning with gcc-4.2
 
-Don't stop running dup_fctx() even if userfaultfd_event_wait_completion
-fails as it has to run userfaultfd_ctx_put on all ctx to pair against the
-userfaultfd_ctx_get that was run on all fctx->orig in dup_userfaultfd.
+With arm-linux-gcc-4.2, almost every file we build in the kernel ends up
+with this warning:
 
-Link: http://lkml.kernel.org/r/20170224181957.19736-4-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+include/linux/fs.h:2648: warning: comparison of unsigned expression < 0 is always false
+
+Later versions don't have this problem, but it's easy enough to
+work around.
+
+Link: http://lkml.kernel.org/r/20161216105634.235457-12-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Brendan Gregg <brendan.d.gregg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-non-cooperative-release-all-ctx-in-dup_userfaultfd_complete fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-non-cooperative-release-all-ctx-in-dup_userfaultfd_complete
-+++ a/fs/userfaultfd.c
-@@ -527,16 +527,12 @@ out:
- 	return ret;
- }
+diff -puN include/linux/fs.h~fs-fix-unsigned-enum-warning-with-gcc-42 include/linux/fs.h
+--- a/include/linux/fs.h~fs-fix-unsigned-enum-warning-with-gcc-42
++++ a/include/linux/fs.h
+@@ -2678,7 +2678,7 @@ static const char * const kernel_read_fi
  
--static int userfaultfd_event_wait_completion(struct userfaultfd_ctx *ctx,
--					     struct userfaultfd_wait_queue *ewq)
-+static void userfaultfd_event_wait_completion(struct userfaultfd_ctx *ctx,
-+					      struct userfaultfd_wait_queue *ewq)
+ static inline const char *kernel_read_file_id_str(enum kernel_read_file_id id)
  {
--	int ret;
--
--	ret = -1;
- 	if (WARN_ON_ONCE(current->flags & PF_EXITING))
- 		goto out;
+-	if (id < 0 || id >= READING_MAX_ID)
++	if ((unsigned)id >= READING_MAX_ID)
+ 		return kernel_read_file_str[READING_UNKNOWN];
  
--	ret = 0;
- 	ewq->ctx = ctx;
- 	init_waitqueue_entry(&ewq->wq, current);
- 
-@@ -552,7 +548,6 @@ static int userfaultfd_event_wait_comple
- 			break;
- 		if (ACCESS_ONCE(ctx->released) ||
- 		    fatal_signal_pending(current)) {
--			ret = -1;
- 			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
- 			break;
- 		}
-@@ -573,7 +568,6 @@ static int userfaultfd_event_wait_comple
- 	 */
- out:
- 	userfaultfd_ctx_put(ctx);
--	return ret;
- }
- 
- static void userfaultfd_event_complete(struct userfaultfd_ctx *ctx,
-@@ -631,7 +625,7 @@ int dup_userfaultfd(struct vm_area_struc
- 	return 0;
- }
- 
--static int dup_fctx(struct userfaultfd_fork_ctx *fctx)
-+static void dup_fctx(struct userfaultfd_fork_ctx *fctx)
- {
- 	struct userfaultfd_ctx *ctx = fctx->orig;
- 	struct userfaultfd_wait_queue ewq;
-@@ -641,17 +635,15 @@ static int dup_fctx(struct userfaultfd_f
- 	ewq.msg.event = UFFD_EVENT_FORK;
- 	ewq.msg.arg.reserved.reserved1 = (unsigned long)fctx->new;
- 
--	return userfaultfd_event_wait_completion(ctx, &ewq);
-+	userfaultfd_event_wait_completion(ctx, &ewq);
- }
- 
- void dup_userfaultfd_complete(struct list_head *fcs)
- {
--	int ret = 0;
- 	struct userfaultfd_fork_ctx *fctx, *n;
- 
- 	list_for_each_entry_safe(fctx, n, fcs, list) {
--		if (!ret)
--			ret = dup_fctx(fctx);
-+		dup_fctx(fctx);
- 		list_del(&fctx->list);
- 		kfree(fctx);
- 	}
+ 	return kernel_read_file_str[id];
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 
