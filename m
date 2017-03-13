@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-add-a-prototype-of-task_struct-to-avoid-warning.patch
+Subject: + mm-dont-warn-when-vmalloc-fails-due-to-a-fatal-signal.patch
  added to -mm tree
-Date: Mon, 13 Mar 2017 12:32:57 -0700
-Message-ID: <58c6f3e9.Zu7x0V7Hi7eYboUd%akpm@linux-foundation.org>
+Date: Mon, 13 Mar 2017 12:34:09 -0700
+Message-ID: <58c6f431.HkM4dR0VPfd+QvdR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58316 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58498 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752037AbdCMTc7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2017 15:32:59 -0400
+        with ESMTP id S1753155AbdCMTeL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2017 15:34:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@kernel.org, arnd@arndb.de, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: dvyukov@google.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add a prototype of task_struct to avoid warning
+     Subject: mm: don't warn when vmalloc() fails due to a fatal signal
 has been added to the -mm tree.  Its filename is
-     kasan-add-a-prototype-of-task_struct-to-avoid-warning.patch
+     mm-dont-warn-when-vmalloc-fails-due-to-a-fatal-signal.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-add-a-prototype-of-task_struct-to-avoid-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-warn-when-vmalloc-fails-due-to-a-fatal-signal.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-a-prototype-of-task_struct-to-avoid-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-warn-when-vmalloc-fails-due-to-a-fatal-signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masami Hiramatsu <mhiramat@kernel.org>
-Subject: kasan: add a prototype of task_struct to avoid warning
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: mm: don't warn when vmalloc() fails due to a fatal signal
 
-Add a prototype of task_struct to fix below warning on arm64.
+When vmalloc() fails it prints a very lengthy message with all the details
+about memory consumption assuming that it happened due to OOM.  However,
+vmalloc() can also fail due to fatal signal pending.  In such case the
+message is quite confusing because it suggests that it is OOM but the
+numbers suggest otherwise.  The messages can also pollute console
+considerably.
 
-In file included from arch/arm64/kernel/probes/kprobes.c:19:0:
-include/linux/kasan.h:81:132: error: 'struct task_struct' declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
- static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
+Don't warn when vmalloc() fails due to fatal signal pending.
 
-As same as other types (kmem_cache, page, and vm_struct) this adds a
-prototype of task_struct data structure on top of kasan.h.
-
-[arnd] A related warning was fixed before, but now appears in a different
-line in the same file in v4.11-rc2. The patch from Masami Hiramatsu
-still seems appropriate, so let's take his version.
-
-Fixes: 71af2ed5eeea ("kasan, sched/headers: Remove <linux/sched.h> from <linux/kasan.h>")
-Link: https://patchwork.kernel.org/patch/9569839/
-Link: http://lkml.kernel.org/r/20170313141517.3397802-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
-Acked-by: Alexander Potapenko <glider@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20170313114425.72724-1-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kasan.h~kasan-add-a-prototype-of-task_struct-to-avoid-warning include/linux/kasan.h
---- a/include/linux/kasan.h~kasan-add-a-prototype-of-task_struct-to-avoid-warning
-+++ a/include/linux/kasan.h
-@@ -6,6 +6,7 @@
- struct kmem_cache;
- struct page;
- struct vm_struct;
-+struct task_struct;
+diff -puN mm/vmalloc.c~mm-dont-warn-when-vmalloc-fails-due-to-a-fatal-signal mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-dont-warn-when-vmalloc-fails-due-to-a-fatal-signal
++++ a/mm/vmalloc.c
+@@ -1683,7 +1683,7 @@ static void *__vmalloc_area_node(struct
  
- #ifdef CONFIG_KASAN
+ 		if (fatal_signal_pending(current)) {
+ 			area->nr_pages = i;
+-			goto fail;
++			goto fail_no_warn;
+ 		}
  
+ 		if (node == NUMA_NO_NODE)
+@@ -1709,6 +1709,7 @@ fail:
+ 	warn_alloc(gfp_mask, NULL,
+ 			  "vmalloc: allocation failure, allocated %ld of %ld bytes",
+ 			  (area->nr_pages*PAGE_SIZE), area->size);
++fail_no_warn:
+ 	vfree(area->addr);
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from mhiramat@kernel.org are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-kasan-add-a-prototype-of-task_struct-to-avoid-warning.patch
+mm-dont-warn-when-vmalloc-fails-due-to-a-fatal-signal.patch
 
