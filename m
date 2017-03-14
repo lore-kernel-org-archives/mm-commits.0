@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-core-remove-assert_held_device_hotplug.patch added to
- -mm tree
-Date: Tue, 14 Mar 2017 14:49:09 -0700
-Message-ID: <58c86555.52h/JeXHX4+CSr00%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-ignore-block-suitable-after-check-large-free-page.patch added to -mm tree
+Date: Tue, 14 Mar 2017 14:50:45 -0700
+Message-ID: <58c865b5.bo0xm+fUsI26Wv2o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51846 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752317AbdCNVtL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2017 17:49:11 -0400
+        with ESMTP id S1753117AbdCNVuw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2017 17:50:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, ben@decadent.org.uk, dan.j.williams@intel.com, gerald.schaefer@de.ibm.com, gregkh@linuxfoundation.org, mhocko@suse.com, rjw@rjwysocki.net, schwidefsky@de.ibm.com, sebott@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, guohanjun@huawei.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers core: remove assert_held_device_hotplug()
+     Subject: mm/compaction: ignore block suitable after check large free page
 has been added to the -mm tree.  Its filename is
-     drivers-core-remove-assert_held_device_hotplug.patch
+     mm-compaction-ignore-block-suitable-after-check-large-free-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-core-remove-assert_held_device_hotplug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-ignore-block-suitable-after-check-large-free-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-core-remove-assert_held_device_hotplug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-ignore-block-suitable-after-check-large-free-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,37 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: drivers core: remove assert_held_device_hotplug()
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mm/compaction: ignore block suitable after check large free page
 
-The last caller of assert_held_device_hotplug() is gone, so remove it again.
+By reviewing code, I find that if the migrate target is a large free page
+and we ignore suitable, it may splite large target free page into smaller
+block which is not good for defrag.  So move the ignore block suitable
+after check large free page.
 
-Link: http://lkml.kernel.org/r/20170314125226.16779-3-heiko.carstens@de.ibm.com
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
+As Vlastimil pointed out in RFC version that this patch is just based on
+logical analyses which might be better for future-proofing the function
+and it is most likely won't have any visible effect right now, for direct
+compaction shouldn't have to be called if there's a >=pageblock_order page
+already available.
+
+Link: http://lkml.kernel.org/r/1489490743-5364-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c    |    5 -----
- include/linux/device.h |    1 -
- 2 files changed, 6 deletions(-)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/core.c~drivers-core-remove-assert_held_device_hotplug drivers/base/core.c
---- a/drivers/base/core.c~drivers-core-remove-assert_held_device_hotplug
-+++ a/drivers/base/core.c
-@@ -639,11 +639,6 @@ int lock_device_hotplug_sysfs(void)
- 	return restart_syscall();
- }
- 
--void assert_held_device_hotplug(void)
--{
--	lockdep_assert_held(&device_hotplug_lock);
--}
+diff -puN mm/compaction.c~mm-compaction-ignore-block-suitable-after-check-large-free-page mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-ignore-block-suitable-after-check-large-free-page
++++ a/mm/compaction.c
+@@ -1003,9 +1003,6 @@ static bool suitable_migration_source(st
+ static bool suitable_migration_target(struct compact_control *cc,
+ 							struct page *page)
+ {
+-	if (cc->ignore_block_suitable)
+-		return true;
