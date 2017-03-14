@@ -1,75 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-cluster-use-setup_timer.patch added to -mm tree
-Date: Mon, 13 Mar 2017 13:56:20 -0700
-Message-ID: <58c70774.eg1IoXxFxh0qOwau%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ x86-mm-fix-nohighmem-x86_pae-build-config-for-native_pud_clear.patch
+ removed from -mm tree
+Date: Tue, 14 Mar 2017 13:59:52 -0700
+Message-ID: <58c859c8.AIpj7Jk9tUANkDEK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751954AbdCMU4W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2017 16:56:22 -0400
+        with ESMTP id S1751061AbdCNU7y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2017 16:59:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@gmail.com, mm-commits@vger.kernel.org
+To: dave.jiang@intel.com, arnd@arndb.de, mawilcox@microsoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ocfs2/cluster: use setup_timer
-has been added to the -mm tree.  Its filename is
-     fs-ocfs2-cluster-use-setup_timer.patch
+     Subject: x86, mm: fix NOHIGHMEM && X86_PAE build config for native_pud_clear()
+has been removed from the -mm tree.  Its filename was
+     x86-mm-fix-nohighmem-x86_pae-build-config-for-native_pud_clear.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-cluster-use-setup_timer.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-cluster-use-setup_timer.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@gmail.com>
-Subject: fs/ocfs2/cluster: use setup_timer
+From: Dave Jiang <dave.jiang@intel.com>
+Subject: x86, mm: fix NOHIGHMEM && X86_PAE build config for native_pud_clear()
 
-Use setup_timer() instead of init_timer() to simplify the code.
+Looks like a 32bit x86 build failure case where X86_PAE and NOHIMEM
+are on. This was reported by kbuild test bot.
 
-Link: http://lkml.kernel.org/r/5e75bf07beb91e092d5aa36c36769949a480456a.1489060564.git.geliangtang@gmail.com
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+   In file included from include/linux/mm.h:68:0,
+                    from include/linux/highmem.h:7,
+                    from include/linux/bio.h:21,
+                    from include/linux/writeback.h:205,
+                    from include/linux/memcontrol.h:30,
+                    from include/linux/swap.h:8,
+                    from include/linux/suspend.h:4,
+                    from arch/x86/kernel/asm-offsets.c:12:
+   arch/x86/include/asm/pgtable.h: In function 'native_local_pudp_get_and_clear':
+>> arch/x86/include/asm/pgtable.h:888:2: error: implicit declaration of function 'native_pud_clear' [-Werror=implicit-function-declaration]
+     native_pud_clear(pudp);
+     ^~~~~~~~~~~~~~~~
+
+Fixes: a00cc7d9dd93d ("mm, x86: add support for PUD-sized transparent hugepages")
+Link: http://lkml.kernel.org/r/148883869853.70777.12180810304957921737.stgit@djiang5-desk3.ch.intel.com
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/pgtable-3level.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-setup_timer fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-setup_timer
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -450,9 +450,8 @@ static struct o2net_sock_container *sc_a
- 	INIT_WORK(&sc->sc_shutdown_work, o2net_shutdown_sc);
- 	INIT_DELAYED_WORK(&sc->sc_keepalive_work, o2net_sc_send_keep_req);
+diff -puN arch/x86/include/asm/pgtable-3level.h~x86-mm-fix-nohighmem-x86_pae-build-config-for-native_pud_clear arch/x86/include/asm/pgtable-3level.h
+--- a/arch/x86/include/asm/pgtable-3level.h~x86-mm-fix-nohighmem-x86_pae-build-config-for-native_pud_clear
++++ a/arch/x86/include/asm/pgtable-3level.h
+@@ -121,8 +121,9 @@ static inline void native_pmd_clear(pmd_
+ 	*(tmp + 1) = 0;
+ }
  
--	init_timer(&sc->sc_idle_timeout);
--	sc->sc_idle_timeout.function = o2net_idle_timer;
--	sc->sc_idle_timeout.data = (unsigned long)sc;
-+	setup_timer(&sc->sc_idle_timeout, o2net_idle_timer,
-+		    (unsigned long)sc);
- 
- 	sclog(sc, "alloced\n");
- 
+-#if !defined(CONFIG_SMP) || (defined(CONFIG_HIGHMEM64G) && \
+-		defined(CONFIG_PARAVIRT))
++#if !defined(CONFIG_SMP) || \
++	(defined(CONFIG_HIGHMEM64G) && defined(CONFIG_PARAVIRT)) || \
++	(defined(CONFIG_NOHIGHMEM) && defined(CONFIG_X86_PAE))
+ static inline void native_pud_clear(pud_t *pudp)
+ {
+ }
 _
 
-Patches currently in -mm which might be from geliangtang@gmail.com are
+Patches currently in -mm which might be from dave.jiang@intel.com are
 
-fs-ocfs2-cluster-use-setup_timer.patch
-writeback-use-setup_deferrable_timer.patch
 
