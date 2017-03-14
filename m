@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix-2.patch added to -mm tree
-Date: Tue, 14 Mar 2017 14:11:45 -0700
-Message-ID: <58c85c91.RjYMd+lWEmECwpe/%akpm@linux-foundation.org>
+ mm-add-private-lock-to-serialize-memory-hotplug-operations.patch added to
+ -mm tree
+Date: Tue, 14 Mar 2017 14:49:06 -0700
+Message-ID: <58c86552.VfA0pjXNrXjUSoqV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51814 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750736AbdCNVLq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2017 17:11:46 -0400
+        with ESMTP id S1752317AbdCNVtI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2017 17:49:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shakeelb@google.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, ben@decadent.org.uk, dan.j.williams@intel.com, gerald.schaefer@de.ibm.com, gregkh@linuxfoundation.org, mhocko@suse.com, rafael.j.wysocki@intel.com, schwidefsky@de.ibm.com, sebott@linux.vnet.ibm.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix condition for throttle_direct_reclaim
+     Subject: mm: add private lock to serialize memory hotplug operations
 has been added to the -mm tree.  Its filename is
-     mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix-2.patch
+     mm-add-private-lock-to-serialize-memory-hotplug-operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-100%25-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-private-lock-to-serialize-memory-hotplug-operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-100%25-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-private-lock-to-serialize-memory-hotplug-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,101 +40,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: fix condition for throttle_direct_reclaim
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm: add private lock to serialize memory hotplug operations
 
-Since "mm: fix 100% CPU kswapd busyloop on unreclaimable nodes" kswapd has
-been modified to give up after MAX_RECLAIM_RETRIES number of unsucessful
-iterations.  Before going to sleep, kswapd thread will unconditionally
-wakeup all threads sleeping on pfmemalloc_wait.  However the awoken
-threads will recheck the watermarks and wake the kswapd thread and sleep
-again on pfmemalloc_wait.  There is a chance that the system might end up
-in livelock between unsuccessful kswapd and direct reclaimers because all
-direct reclaimer might end up in throttle_direct_reclaim and there is
-nobody to make a forward progress.  So, add kswapd_failures check on the
-throttle_direct_reclaim condition.
+Commit bfc8c90139eb ("mem-hotplug: implement get/put_online_mems")
+introduced new functions get/put_online_mems() and mem_hotplug_begin/end()
+in order to allow similar semantics for memory hotplug like for cpu
+hotplug.
 
-Link: http://lkml.kernel.org/r/20170314183228.20152-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+The corresponding functions for cpu hotplug are get/put_online_cpus() and
+cpu_hotplug_begin/done() for cpu hotplug.
+
+The commit however missed to introduce functions that would serialize
+memory hotplug operations like they are done for cpu hotplug with
+cpu_maps_update_begin/done().
+
+This basically leaves mem_hotplug.active_writer unprotected and allows
+concurrent writers to modify it, which may lead to problems as outlined by
+commit f931ab479dd2 ("mm: fix devm_memremap_pages crash, use
+mem_hotplug_{begin, done}").
+
+That commit was extended again with commit b5d24fda9c3d ("mm,
+devm_memremap_pages: hold device_hotplug lock over mem_hotplug_{begin,
+done}") which serializes memory hotplug operations for some call sites by
+using the device_hotplug lock.
+
+In addition with commit 3fc21924100b ("mm: validate device_hotplug is held
+for memory hotplug") a sanity check was added to mem_hotplug_begin() to
+verify that the device_hotplug lock is held.
+
+This in turn triggers the following warning on s390:
+
+WARNING: CPU: 6 PID: 1 at drivers/base/core.c:643 assert_held_device_hotplug+0x4a/0x58
+ Call Trace:
+  assert_held_device_hotplug+0x40/0x58)
+  mem_hotplug_begin+0x34/0xc8
+  add_memory_resource+0x7e/0x1f8
+  add_memory+0xda/0x130
+  add_memory_merged+0x15c/0x178
+  sclp_detect_standby_memory+0x2ae/0x2f8
+  do_one_initcall+0xa2/0x150
+  kernel_init_freeable+0x228/0x2d8
+  kernel_init+0x2a/0x140
+  kernel_thread_starter+0x6/0xc
+
+One possible fix would be to add more lock_device_hotplug() and
+unlock_device_hotplug() calls around each call site of
+mem_hotplug_begin/end().  But that would give the device_hotplug lock
+additional semantics it better should not have (serialize memory hotplug
+operations).
+
+Instead add a new memory_add_remove_lock which has the similar semantics
+like cpu_add_remove_lock for cpu hotplug.
+
+To keep things hopefully a bit easier the lock will be locked and unlocked
+within the mem_hotplug_begin/end() functions.
+
+Link: http://lkml.kernel.org/r/20170314125226.16779-2-heiko.carstens@de.ibm.com
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Reported-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ kernel/memremap.c   |    4 ----
+ mm/memory_hotplug.c |    6 +++++-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix-2 mm/vmscan.c
---- a/mm/vmscan.c~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix-2
-+++ a/mm/vmscan.c
-@@ -2822,7 +2822,7 @@ retry:
- 	return 0;
+diff -puN kernel/memremap.c~mm-add-private-lock-to-serialize-memory-hotplug-operations kernel/memremap.c
+--- a/kernel/memremap.c~mm-add-private-lock-to-serialize-memory-hotplug-operations
++++ a/kernel/memremap.c
+@@ -247,11 +247,9 @@ static void devm_memremap_pages_release(
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+ 
+-	lock_device_hotplug();
+ 	mem_hotplug_begin();
+ 	arch_remove_memory(align_start, align_size);
+ 	mem_hotplug_done();
+-	unlock_device_hotplug();
+ 
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+ 	pgmap_radix_release(res);
+@@ -364,11 +362,9 @@ void *devm_memremap_pages(struct device
+ 	if (error)
+ 		goto err_pfn_remap;
+ 
+-	lock_device_hotplug();
+ 	mem_hotplug_begin();
+ 	error = arch_add_memory(nid, align_start, align_size, true);
+ 	mem_hotplug_done();
+-	unlock_device_hotplug();
+ 	if (error)
+ 		goto err_add_memory;
+ 
+diff -puN mm/memory_hotplug.c~mm-add-private-lock-to-serialize-memory-hotplug-operations mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-add-private-lock-to-serialize-memory-hotplug-operations
++++ a/mm/memory_hotplug.c
+@@ -125,9 +125,12 @@ void put_online_mems(void)
+ 
  }
  
--static bool pfmemalloc_watermark_ok(pg_data_t *pgdat)
-+static bool allow_direct_reclaim(pg_data_t *pgdat)
- {
- 	struct zone *zone;
- 	unsigned long pfmemalloc_reserve = 0;
-@@ -2830,6 +2830,9 @@ static bool pfmemalloc_watermark_ok(pg_d
- 	int i;
- 	bool wmark_ok;
- 
-+	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
-+		return true;
++/* Serializes write accesses to mem_hotplug.active_writer. */
++static DEFINE_MUTEX(memory_add_remove_lock);
 +
- 	for (i = 0; i <= ZONE_NORMAL; i++) {
- 		zone = &pgdat->node_zones[i];
- 		if (!managed_zone(zone) ||
-@@ -2910,7 +2913,7 @@ static bool throttle_direct_reclaim(gfp_
+ void mem_hotplug_begin(void)
+ {
+-	assert_held_device_hotplug();
++	mutex_lock(&memory_add_remove_lock);
  
- 		/* Throttle based on the first usable node */
- 		pgdat = zone->zone_pgdat;
--		if (pfmemalloc_watermark_ok(pgdat))
-+		if (allow_direct_reclaim(pgdat))
- 			goto out;
- 		break;
- 	}
-@@ -2932,14 +2935,14 @@ static bool throttle_direct_reclaim(gfp_
- 	 */
- 	if (!(gfp_mask & __GFP_FS)) {
- 		wait_event_interruptible_timeout(pgdat->pfmemalloc_wait,
--			pfmemalloc_watermark_ok(pgdat), HZ);
-+			allow_direct_reclaim(pgdat), HZ);
+ 	mem_hotplug.active_writer = current;
  
- 		goto check_pending;
- 	}
+@@ -147,6 +150,7 @@ void mem_hotplug_done(void)
+ 	mem_hotplug.active_writer = NULL;
+ 	mutex_unlock(&mem_hotplug.lock);
+ 	memhp_lock_release();
++	mutex_unlock(&memory_add_remove_lock);
+ }
  
- 	/* Throttle until kswapd wakes the process */
- 	wait_event_killable(zone->zone_pgdat->pfmemalloc_wait,
--		pfmemalloc_watermark_ok(pgdat));
-+		allow_direct_reclaim(pgdat));
- 
- check_pending:
- 	if (fatal_signal_pending(current))
-@@ -3119,7 +3122,7 @@ static bool prepare_kswapd_sleep(pg_data
- 
- 	/*
- 	 * The throttled processes are normally woken up in balance_pgdat() as
--	 * soon as pfmemalloc_watermark_ok() is true. But there is a potential
-+	 * soon as allow_direct_reclaim() is true. But there is a potential
- 	 * race between when kswapd checks the watermarks and a process gets
- 	 * throttled. There is also a potential race if processes get
- 	 * throttled, kswapd wakes, a large process exits thereby balancing the
-@@ -3304,7 +3307,7 @@ static int balance_pgdat(pg_data_t *pgda
- 		 * able to safely make forward progress. Wake them
- 		 */
- 		if (waitqueue_active(&pgdat->pfmemalloc_wait) &&
--				pfmemalloc_watermark_ok(pgdat))
-+				allow_direct_reclaim(pgdat))
- 			wake_up_all(&pgdat->pfmemalloc_wait);
- 
- 		/* Check if kswapd should be suspending */
+ /* add this memory to iomem resource */
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix-2.patch
+mm-add-private-lock-to-serialize-memory-hotplug-operations.patch
+drivers-core-remove-assert_held_device_hotplug.patch
 
