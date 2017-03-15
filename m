@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + trace-move-trace_seq_overflowed-out-of-line.patch added to -mm
- tree
-Date: Wed, 15 Mar 2017 14:49:15 -0700
-Message-ID: <58c9b6db.w4W+vvGQTkK16O+9%akpm@linux-foundation.org>
+Subject: + remove-expensive-warn_on-in-pagefault_disabled_dec.patch added
+ to -mm tree
+Date: Wed, 15 Mar 2017 14:49:25 -0700
+Message-ID: <58c9b6e5.9JUToZhdgyxDexlL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753867AbdCOVtc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 17:49:32 -0400
+        with ESMTP id S1753777AbdCOVt1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 17:49:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/trace_seq.h: wove trace_seq_overflowed() out of line
+     Subject: include/linux/uaccess.h: remove expensive WARN_ON in pagefault_disabled_dec
 has been added to the -mm tree.  Its filename is
-     trace-move-trace_seq_overflowed-out-of-line.patch
+     remove-expensive-warn_on-in-pagefault_disabled_dec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/trace-move-trace_seq_overflowed-out-of-line.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/remove-expensive-warn_on-in-pagefault_disabled_dec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/trace-move-trace_seq_overflowed-out-of-line.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/remove-expensive-warn_on-in-pagefault_disabled_dec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,74 +40,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: include/linux/trace_seq.h: wove trace_seq_overflowed() out of line
+Subject: include/linux/uaccess.h: remove expensive WARN_ON in pagefault_disabled_dec
 
-Inlining trace_seq_overflowed takes ~17k in text size in my kernel.  The
-function doesn't seem to be time critical, so we can just out of line it.
+pagefault_disabled_dec is frequently used inline, and it has a WARN_ON for
+underflow that expands to about 6.5k of extra code.  The warning doesn't
+seem to be that useful and worth so much code so remove it.
 
-Function                                           Total          Avg   Num
-trace_seq_has_overflowed                           17134 (0.00%)  33    514
+If it was needed could make it depending on some debug kernel option.
 
-This saves around 6k here
+Saves ~6.5k in my kernel
 
    text    data     bss     dec     hex filename
-9102881 5367568 11116544        25586993        1866d31 vmlinux-orig
-9096494 5367568 11116544        25580606        186543e vmlinux-trace-seq
+9039417 5367568 11116544        25523529        1857549 vmlinux-before-pf
+9032805 5367568 11116544        25516917        1855b75 vmlinux-pf
 
-Link: http://lkml.kernel.org/r/20170315021431.13107-2-andi@firstfloor.org
+Link: http://lkml.kernel.org/r/20170315021431.13107-8-andi@firstfloor.org
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/trace_seq.h |   12 +-----------
- kernel/trace/trace_seq.c  |   15 +++++++++++++++
- 2 files changed, 16 insertions(+), 11 deletions(-)
+ include/linux/uaccess.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/trace_seq.h~trace-move-trace_seq_overflowed-out-of-line include/linux/trace_seq.h
---- a/include/linux/trace_seq.h~trace-move-trace_seq_overflowed-out-of-line
-+++ a/include/linux/trace_seq.h
-@@ -56,17 +56,7 @@ trace_seq_buffer_ptr(struct trace_seq *s
- 	return s->buffer + seq_buf_used(&s->seq);
+diff -puN include/linux/uaccess.h~remove-expensive-warn_on-in-pagefault_disabled_dec include/linux/uaccess.h
+--- a/include/linux/uaccess.h~remove-expensive-warn_on-in-pagefault_disabled_dec
++++ a/include/linux/uaccess.h
+@@ -12,7 +12,6 @@ static __always_inline void pagefault_di
+ static __always_inline void pagefault_disabled_dec(void)
+ {
+ 	current->pagefault_disabled--;
+-	WARN_ON(current->pagefault_disabled < 0);
  }
- 
--/**
-- * trace_seq_has_overflowed - return true if the trace_seq took too much
-- * @s: trace sequence descriptor
-- *
-- * Returns true if too much data was added to the trace_seq and it is
-- * now full and will not take anymore.
-- */
--static inline bool trace_seq_has_overflowed(struct trace_seq *s)
--{
--	return s->full || seq_buf_has_overflowed(&s->seq);
--}
-+bool trace_seq_has_overflowed(struct trace_seq *s);
  
  /*
-  * Currently only defined when tracing is enabled.
-diff -puN kernel/trace/trace_seq.c~trace-move-trace_seq_overflowed-out-of-line kernel/trace/trace_seq.c
---- a/kernel/trace/trace_seq.c~trace-move-trace_seq_overflowed-out-of-line
-+++ a/kernel/trace/trace_seq.c
-@@ -375,3 +375,18 @@ int trace_seq_to_user(struct trace_seq *
- 	return seq_buf_to_user(&s->seq, ubuf, cnt);
- }
- EXPORT_SYMBOL_GPL(trace_seq_to_user);
-+
-+
-+
-+/**
-+ * trace_seq_has_overflowed - return true if the trace_seq took too much
-+ * @s: trace sequence descriptor
-+ *
-+ * Returns true if too much data was added to the trace_seq and it is
-+ * now full and will not take anymore.
-+ */
-+bool trace_seq_has_overflowed(struct trace_seq *s)
-+{
-+	return s->full || seq_buf_has_overflowed(&s->seq);
-+}
-+EXPORT_SYMBOL_GPL(trace_seq_has_overflowed);
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
