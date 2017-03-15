@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-rmap_one-boolean-function.patch added to -mm tree
-Date: Wed, 15 Mar 2017 12:37:04 -0700
-Message-ID: <58c997e0.QMb9u/vJrPlr1DPy%akpm@linux-foundation.org>
+Subject: + out-of-line-dma_alloc-free_attrs.patch added to -mm tree
+Date: Wed, 15 Mar 2017 14:49:21 -0700
+Message-ID: <58c9b6e1.qUQdRMUZgBr2ABTo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753043AbdCOThG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 15:37:06 -0400
+        with ESMTP id S1753063AbdCOVtX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 17:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make rmap_one boolean function
+     Subject: include/linux/dma-mapping.h: uninline dma_alloc/free_attrs
 has been added to the -mm tree.  Its filename is
-     mm-make-rmap_one-boolean-function.patch
+     out-of-line-dma_alloc-free_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-rmap_one-boolean-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/out-of-line-dma_alloc-free_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-rmap_one-boolean-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/out-of-line-dma_alloc-free_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,249 +38,156 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: make rmap_one boolean function
+From: Andi Kleen <ak@linux.intel.com>
+Subject: include/linux/dma-mapping.h: uninline dma_alloc/free_attrs
 
-rmap_one's return value controls whether rmap_work should contine to scan
-other ptes or not so it's target for changing to boolean.  Return true if
-the scan should be continued.  Otherwise, return false to stop the
-scanning.
+These functions are very big and frequently used.  I don't see any sense
+in inlining them because they do slow operations.
 
-This patch makes rmap_one's return value to boolean.
+Out of lining them saves ~19k text in my kernel.
 
-Link: http://lkml.kernel.org/r/1489555493-14659-10-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+   text    data     bss     dec     hex filename
+9047801 5367568 11116544        25531913        1859609 vmlinux-after-dma
+9067798 5367600 11116544        25551942        185e446 vmlinux-before-dma
+
+Link: http://lkml.kernel.org/r/20170315021431.13107-6-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    6 +++++-
- mm/ksm.c             |    2 +-
- mm/migrate.c         |    4 ++--
- mm/page_idle.c       |    4 ++--
- mm/rmap.c            |   30 +++++++++++++++---------------
- 5 files changed, 25 insertions(+), 21 deletions(-)
+ include/linux/dma-mapping.h |   47 +++++-----------------------------
+ lib/Makefile                |    2 -
+ lib/dma-mapping.c           |   47 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 55 insertions(+), 41 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-make-rmap_one-boolean-function include/linux/rmap.h
---- a/include/linux/rmap.h~mm-make-rmap_one-boolean-function
-+++ a/include/linux/rmap.h
-@@ -257,7 +257,11 @@ int page_mapped_in_vma(struct page *page
-  */
- struct rmap_walk_control {
- 	void *arg;
--	int (*rmap_one)(struct page *page, struct vm_area_struct *vma,
-+	/*
-+	 * Return false if page table scanning in rmap_walk should be stopped.
-+	 * Otherwise, return true.
-+	 */
-+	bool (*rmap_one)(struct page *page, struct vm_area_struct *vma,
- 					unsigned long addr, void *arg);
- 	int (*done)(struct page *page);
- 	struct anon_vma *(*anon_lock)(struct page *page);
-diff -puN mm/ksm.c~mm-make-rmap_one-boolean-function mm/ksm.c
---- a/mm/ksm.c~mm-make-rmap_one-boolean-function
-+++ a/mm/ksm.c
-@@ -1977,7 +1977,7 @@ again:
- 			if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
- 				continue;
+diff -puN include/linux/dma-mapping.h~out-of-line-dma_alloc-free_attrs include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~out-of-line-dma_alloc-free_attrs
++++ a/include/linux/dma-mapping.h
+@@ -473,46 +473,13 @@ dma_get_sgtable_attrs(struct device *dev
+ #define arch_dma_alloc_attrs(dev, flag)	(true)
+ #endif
  
--			if (SWAP_AGAIN != rwc->rmap_one(page, vma,
-+			if (!rwc->rmap_one(page, vma,
- 					rmap_item->address, rwc->arg)) {
- 				anon_vma_unlock_read(anon_vma);
- 				return;
-diff -puN mm/migrate.c~mm-make-rmap_one-boolean-function mm/migrate.c
---- a/mm/migrate.c~mm-make-rmap_one-boolean-function
-+++ a/mm/migrate.c
-@@ -194,7 +194,7 @@ void putback_movable_pages(struct list_h
- /*
-  * Restore a potential migration pte to a working pte entry
-  */
--static int remove_migration_pte(struct page *page, struct vm_area_struct *vma,
-+static bool remove_migration_pte(struct page *page, struct vm_area_struct *vma,
- 				 unsigned long addr, void *old)
- {
- 	struct page_vma_mapped_walk pvmw = {
-@@ -250,7 +250,7 @@ static int remove_migration_pte(struct p
- 		update_mmu_cache(vma, pvmw.address, pvmw.pte);
- 	}
+-static inline void *dma_alloc_attrs(struct device *dev, size_t size,
+-				       dma_addr_t *dma_handle, gfp_t flag,
+-				       unsigned long attrs)
+-{
+-	const struct dma_map_ops *ops = get_dma_ops(dev);
+-	void *cpu_addr;
+-
+-	BUG_ON(!ops);
+-
+-	if (dma_alloc_from_coherent(dev, size, dma_handle, &cpu_addr))
+-		return cpu_addr;
+-
+-	if (!arch_dma_alloc_attrs(&dev, &flag))
+-		return NULL;
+-	if (!ops->alloc)
+-		return NULL;
+-
+-	cpu_addr = ops->alloc(dev, size, dma_handle, flag, attrs);
+-	debug_dma_alloc_coherent(dev, size, *dma_handle, cpu_addr);
+-	return cpu_addr;
+-}
+-
+-static inline void dma_free_attrs(struct device *dev, size_t size,
+-				     void *cpu_addr, dma_addr_t dma_handle,
+-				     unsigned long attrs)
+-{
+-	const struct dma_map_ops *ops = get_dma_ops(dev);
+-
+-	BUG_ON(!ops);
+-	WARN_ON(irqs_disabled());
+-
+-	if (dma_release_from_coherent(dev, get_order(size), cpu_addr))
+-		return;
+-
+-	if (!ops->free || !cpu_addr)
+-		return;
+-
+-	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
+-	ops->free(dev, size, cpu_addr, dma_handle, attrs);
+-}
++void *dma_alloc_attrs(struct device *dev, size_t size,
++		      dma_addr_t *dma_handle, gfp_t flag,
++		      unsigned long attrs);
++
++void dma_free_attrs(struct device *dev, size_t size,
++		    void *cpu_addr, dma_addr_t dma_handle,
++		    unsigned long attrs);
  
--	return SWAP_AGAIN;
-+	return true;
- }
+ static inline void *dma_alloc_coherent(struct device *dev, size_t size,
+ 		dma_addr_t *dma_handle, gfp_t flag)
+diff -puN lib/Makefile~out-of-line-dma_alloc-free_attrs lib/Makefile
+--- a/lib/Makefile~out-of-line-dma_alloc-free_attrs
++++ a/lib/Makefile
+@@ -23,7 +23,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 flex_proportions.o ratelimit.o show_mem.o \
+ 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
+ 	 earlycpio.o seq_buf.o siphash.o \
+-	 nmi_backtrace.o nodemask.o win_minmax.o
++	 nmi_backtrace.o nodemask.o win_minmax.o dma-mapping.o
  
- /*
-diff -puN mm/page_idle.c~mm-make-rmap_one-boolean-function mm/page_idle.c
---- a/mm/page_idle.c~mm-make-rmap_one-boolean-function
-+++ a/mm/page_idle.c
-@@ -50,7 +50,7 @@ static struct page *page_idle_get_page(u
- 	return page;
- }
- 
--static int page_idle_clear_pte_refs_one(struct page *page,
-+static bool page_idle_clear_pte_refs_one(struct page *page,
- 					struct vm_area_struct *vma,
- 					unsigned long addr, void *arg)
- {
-@@ -84,7 +84,7 @@ static int page_idle_clear_pte_refs_one(
- 		 */
- 		set_page_young(page);
- 	}
--	return SWAP_AGAIN;
-+	return true;
- }
- 
- static void page_idle_clear_pte_refs(struct page *page)
-diff -puN mm/rmap.c~mm-make-rmap_one-boolean-function mm/rmap.c
---- a/mm/rmap.c~mm-make-rmap_one-boolean-function
-+++ a/mm/rmap.c
-@@ -724,7 +724,7 @@ struct page_referenced_arg {
- /*
-  * arg: page_referenced_arg will be passed
-  */
--static int page_referenced_one(struct page *page, struct vm_area_struct *vma,
-+static bool page_referenced_one(struct page *page, struct vm_area_struct *vma,
- 			unsigned long address, void *arg)
- {
- 	struct page_referenced_arg *pra = arg;
-@@ -741,7 +741,7 @@ static int page_referenced_one(struct pa
- 		if (vma->vm_flags & VM_LOCKED) {
- 			page_vma_mapped_walk_done(&pvmw);
- 			pra->vm_flags |= VM_LOCKED;
--			return SWAP_FAIL; /* To break the loop */
-+			return false; /* To break the loop */
- 		}
- 
- 		if (pvmw.pte) {
-@@ -781,9 +781,9 @@ static int page_referenced_one(struct pa
- 	}
- 
- 	if (!pra->mapcount)
--		return SWAP_SUCCESS; /* To break the loop */
-+		return false; /* To break the loop */
- 
--	return SWAP_AGAIN;
-+	return true;
- }
- 
- static bool invalid_page_referenced_vma(struct vm_area_struct *vma, void *arg)
-@@ -854,7 +854,7 @@ int page_referenced(struct page *page,
- 	return pra.referenced;
- }
- 
--static int page_mkclean_one(struct page *page, struct vm_area_struct *vma,
-+static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
- 			    unsigned long address, void *arg)
- {
- 	struct page_vma_mapped_walk pvmw = {
-@@ -907,7 +907,7 @@ static int page_mkclean_one(struct page
- 		}
- 	}
- 
--	return SWAP_AGAIN;
-+	return true;
- }
- 
- static bool invalid_mkclean_vma(struct vm_area_struct *vma, void *arg)
-@@ -1290,7 +1290,7 @@ void page_remove_rmap(struct page *page,
- /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
--static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
-+static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 		     unsigned long address, void *arg)
- {
- 	struct mm_struct *mm = vma->vm_mm;
-@@ -1301,12 +1301,12 @@ static int try_to_unmap_one(struct page
- 	};
- 	pte_t pteval;
- 	struct page *subpage;
--	int ret = SWAP_AGAIN;
-+	bool ret = true;
- 	enum ttu_flags flags = (enum ttu_flags)arg;
- 
- 	/* munlock has nothing to gain from examining un-locked vmas */
- 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
--		return SWAP_AGAIN;
-+		return true;
- 
- 	if (flags & TTU_SPLIT_HUGE_PMD) {
- 		split_huge_pmd_address(vma, address,
-@@ -1329,7 +1329,7 @@ static int try_to_unmap_one(struct page
- 					 */
- 					mlock_vma_page(page);
- 				}
--				ret = SWAP_FAIL;
-+				ret = false;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
- 			}
-@@ -1347,7 +1347,7 @@ static int try_to_unmap_one(struct page
- 		if (!(flags & TTU_IGNORE_ACCESS)) {
- 			if (ptep_clear_flush_young_notify(vma, address,
- 						pvmw.pte)) {
--				ret = SWAP_FAIL;
-+				ret = false;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
- 			}
-@@ -1437,14 +1437,14 @@ static int try_to_unmap_one(struct page
- 				 */
- 				set_pte_at(mm, address, pvmw.pte, pteval);
- 				SetPageSwapBacked(page);
--				ret = SWAP_FAIL;
-+				ret = false;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
- 			}
- 
- 			if (swap_duplicate(entry) < 0) {
- 				set_pte_at(mm, address, pvmw.pte, pteval);
--				ret = SWAP_FAIL;
-+				ret = false;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
- 			}
-@@ -1637,7 +1637,7 @@ static void rmap_walk_anon(struct page *
- 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
- 			continue;
- 
--		if (SWAP_AGAIN != rwc->rmap_one(page, vma, address, rwc->arg))
-+		if (!rwc->rmap_one(page, vma, address, rwc->arg))
- 			break;
- 		if (rwc->done && rwc->done(page))
- 			break;
-@@ -1691,7 +1691,7 @@ static void rmap_walk_file(struct page *
- 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
- 			continue;
- 
--		if (SWAP_AGAIN != rwc->rmap_one(page, vma, address, rwc->arg))
-+		if (!rwc->rmap_one(page, vma, address, rwc->arg))
- 			goto done;
- 		if (rwc->done && rwc->done(page))
- 			goto done;
+ CFLAGS_radix-tree.o += -DCONFIG_SPARSE_RCU_POINTER
+ CFLAGS_idr.o += -DCONFIG_SPARSE_RCU_POINTER
+diff -puN /dev/null lib/dma-mapping.c
+--- /dev/null
++++ a/lib/dma-mapping.c
+@@ -0,0 +1,47 @@
++#include <linux/dma-mapping.h>
++#include <linux/module.h>
++
++void *dma_alloc_attrs(struct device *dev, size_t size,
++		      dma_addr_t *dma_handle, gfp_t flag,
++		      unsigned long attrs)
++{
++	const struct dma_map_ops *ops = get_dma_ops(dev);
++	void *cpu_addr;
++
++	BUG_ON(!ops);
++
++	if (dma_alloc_from_coherent(dev, size, dma_handle, &cpu_addr))
++		return cpu_addr;
++
++	if (!arch_dma_alloc_attrs(&dev, &flag))
++		return NULL;
++	if (!ops->alloc)
++		return NULL;
++
++	cpu_addr = ops->alloc(dev, size, dma_handle, flag, attrs);
++	debug_dma_alloc_coherent(dev, size, *dma_handle, cpu_addr);
++	return cpu_addr;
++}
++
++EXPORT_SYMBOL(dma_alloc_attrs);
++
++void dma_free_attrs(struct device *dev, size_t size,
++		    void *cpu_addr, dma_addr_t dma_handle,
++		    unsigned long attrs)
++{
++	const struct dma_map_ops *ops = get_dma_ops(dev);
++
++	BUG_ON(!ops);
++	WARN_ON(irqs_disabled());
++
++	if (dma_release_from_coherent(dev, get_order(size), cpu_addr))
++		return;
++
++	if (!ops->free || !cpu_addr)
++		return;
++
++	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
++	ops->free(dev, size, cpu_addr, dma_handle, attrs);
++}
++
++EXPORT_SYMBOL(dma_free_attrs);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-mm-reclaim-madv_free-pages-fix.patch
-mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
-mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch
-mm-do-not-use-double-negation-for-testing-page-flags.patch
-mm-remove-unncessary-ret-in-page_referenced.patch
-mm-remove-swap_dirty-in-ttu.patch
-mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch
-mm-make-the-try_to_munlock-void-function.patch
-mm-remove-swap_mlock-in-ttu.patch
-mm-remove-swap_again-in-ttu.patch
-mm-make-ttus-return-boolean.patch
-mm-make-rmap_walk-void-function.patch
-mm-make-rmap_one-boolean-function.patch
-mm-remove-swap_.patch
+trace-move-trace_seq_overflowed-out-of-line.patch
+sched-out-of-line-__update_load_avg.patch
+kref-remove-warn_on-for-null-release-functions.patch
+out-of-line-dma_alloc-free_attrs.patch
+megasas-remove-expensive-inline-from-megasas_return_cmd.patch
+remove-expensive-warn_on-in-pagefault_disabled_dec.patch
 
