@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-mm_percpu_wq-initialization-earlier.patch added to -mm
+Subject: + mm-remove-unncessary-ret-in-page_referenced.patch added to -mm
  tree
-Date: Wed, 15 Mar 2017 12:14:28 -0700
-Message-ID: <58c99294.+uFzyDvvwz534pZw%akpm@linux-foundation.org>
+Date: Wed, 15 Mar 2017 12:36:44 -0700
+Message-ID: <58c997cc.M0/wNbiqVQIzXJrK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49788 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750774AbdCOTX1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 15:23:27 -0400
+        with ESMTP id S1750774AbdCOTgq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 15:36:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, pku.leo@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: minchan@kernel.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move mm_percpu_wq initialization earlier
+     Subject: mm: remove unncessary ret in page_referenced
 has been added to the -mm tree.  Its filename is
-     mm-move-mm_percpu_wq-initialization-earlier.patch
+     mm-remove-unncessary-ret-in-page_referenced.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-mm_percpu_wq-initialization-earlier.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unncessary-ret-in-page_referenced.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-mm_percpu_wq-initialization-earlier.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unncessary-ret-in-page_referenced.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,118 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: move mm_percpu_wq initialization earlier
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: remove unncessary ret in page_referenced
 
-Yang Li has reported that drain_all_pages triggers a WARN_ON which means
-that this function is called earlier than the mm_percpu_wq is initialized
-on arm64 with CMA configured:
+Nobody uses ret variable. Remove it.
 
-[    0.276449] WARNING: CPU: 2 PID: 1 at mm/page_alloc.c:2423 drain_all_pages+0x244/0x25c
-[    0.276537] Modules linked in:
-[    0.276594] CPU: 2 PID: 1 Comm: swapper/0 Not tainted 4.11.0-rc1-next-20170310-00027-g64dfbc5 #127
-[    0.276693] Hardware name: Freescale Layerscape 2088A RDB Board (DT)
-[    0.276764] task: ffffffc07c4a6d00 task.stack: ffffffc07c4a8000
-[    0.276831] PC is at drain_all_pages+0x244/0x25c
-[    0.276886] LR is at start_isolate_page_range+0x14c/0x1f0
-[...]
-[    0.279000] [<ffffff80081636bc>] drain_all_pages+0x244/0x25c
-[    0.279065] [<ffffff80081c675c>] start_isolate_page_range+0x14c/0x1f0
-[    0.279137] [<ffffff8008166a48>] alloc_contig_range+0xec/0x354
-[    0.279203] [<ffffff80081c6c5c>] cma_alloc+0x100/0x1fc
-[    0.279263] [<ffffff8008481714>] dma_alloc_from_contiguous+0x3c/0x44
-[    0.279336] [<ffffff8008b25720>] atomic_pool_init+0x7c/0x208
-[    0.279399] [<ffffff8008b258f0>] arm64_dma_init+0x44/0x4c
-[    0.279461] [<ffffff8008083144>] do_one_initcall+0x38/0x128
-[    0.279525] [<ffffff8008b20d30>] kernel_init_freeable+0x1a0/0x240
-[    0.279596] [<ffffff8008807778>] kernel_init+0x10/0xfc
-[    0.279654] [<ffffff8008082b70>] ret_from_fork+0x10/0x20
-
-Fix this by moving the whole setup_vmstat which is an initcall right now
-to init_mm_internals which will be called right after the WQ subsystem is
-initialized.
-
-Link: http://lkml.kernel.org/r/20170315164021.28532-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Yang Li <pku.leo@gmail.com>
-Tested-by: Yang Li <pku.leo@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Link: http://lkml.kernel.org/r/1489555493-14659-2-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- init/main.c        |    2 ++
- mm/vmstat.c        |    4 +---
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ mm/rmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-move-mm_percpu_wq-initialization-earlier include/linux/mm.h
---- a/include/linux/mm.h~mm-move-mm_percpu_wq-initialization-earlier
-+++ a/include/linux/mm.h
-@@ -32,6 +32,8 @@ struct user_struct;
- struct writeback_control;
- struct bdi_writeback;
- 
-+void init_mm_internals(void);
-+
- #ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */
- extern unsigned long max_mapnr;
- 
-diff -puN init/main.c~mm-move-mm_percpu_wq-initialization-earlier init/main.c
---- a/init/main.c~mm-move-mm_percpu_wq-initialization-earlier
-+++ a/init/main.c
-@@ -1022,6 +1022,8 @@ static noinline void __init kernel_init_
- 
- 	workqueue_init();
- 
-+	init_mm_internals();
-+
- 	do_pre_smp_initcalls();
- 	lockup_detector_init();
- 
-diff -puN mm/vmstat.c~mm-move-mm_percpu_wq-initialization-earlier mm/vmstat.c
---- a/mm/vmstat.c~mm-move-mm_percpu_wq-initialization-earlier
-+++ a/mm/vmstat.c
-@@ -1764,7 +1764,7 @@ static int vmstat_cpu_dead(unsigned int
- 
- #endif
- 
--static int __init setup_vmstat(void)
-+void __init init_mm_internals(void)
+diff -puN mm/rmap.c~mm-remove-unncessary-ret-in-page_referenced mm/rmap.c
+--- a/mm/rmap.c~mm-remove-unncessary-ret-in-page_referenced
++++ a/mm/rmap.c
+@@ -812,7 +812,6 @@ int page_referenced(struct page *page,
+ 		    struct mem_cgroup *memcg,
+ 		    unsigned long *vm_flags)
  {
- #ifdef CONFIG_SMP
- 	int ret;
-@@ -1792,9 +1792,7 @@ static int __init setup_vmstat(void)
- 	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
- 	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
- #endif
--	return 0;
- }
--module_init(setup_vmstat)
+-	int ret;
+ 	int we_locked = 0;
+ 	struct page_referenced_arg pra = {
+ 		.mapcount = total_mapcount(page),
+@@ -846,7 +845,7 @@ int page_referenced(struct page *page,
+ 		rwc.invalid_vma = invalid_page_referenced_vma;
+ 	}
  
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)
+-	ret = rmap_walk(page, &rwc);
++	rmap_walk(page, &rwc);
+ 	*vm_flags = pra.vm_flags;
  
+ 	if (we_locked)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-move-mm_percpu_wq-initialization-earlier.patch
-lockdep-allow-to-disable-reclaim-lockup-detection.patch
-xfs-abstract-pf_fstrans-to-pf_memalloc_nofs.patch
-mm-introduce-memalloc_nofs_saverestore-api.patch
-xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
-mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
-mm-introduce-kvalloc-helpers.patch
-mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
-rhashtable-simplify-a-strange-allocation-pattern.patch
-ila-simplify-a-strange-allocation-pattern.patch
-xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
-treewide-use-kvalloc-rather-than-opencoded-variants.patch
-net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
-md-use-kvmalloc-rather-than-opencoded-variant.patch
-bcache-use-kvmalloc.patch
-mm-vmalloc-use-__gfp_highmem-implicitly.patch
+mm-reclaim-madv_free-pages-fix.patch
+mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
+mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch
+mm-do-not-use-double-negation-for-testing-page-flags.patch
+mm-remove-unncessary-ret-in-page_referenced.patch
+mm-remove-swap_dirty-in-ttu.patch
+mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch
+mm-make-the-try_to_munlock-void-function.patch
+mm-remove-swap_mlock-in-ttu.patch
+mm-remove-swap_again-in-ttu.patch
+mm-make-ttus-return-boolean.patch
+mm-make-rmap_walk-void-function.patch
+mm-make-rmap_one-boolean-function.patch
+mm-remove-swap_.patch
 
