@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-the-try_to_munlock-void-function.patch added to -mm
- tree
-Date: Wed, 15 Mar 2017 12:36:51 -0700
-Message-ID: <58c997d3.QJK/wSvEtVDRe27h%akpm@linux-foundation.org>
+Subject: + mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch added
+ to -mm tree
+Date: Wed, 15 Mar 2017 12:36:49 -0700
+Message-ID: <58c997d1.kIpBM5TSAyGTn0zU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49842 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49822 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752874AbdCOTgx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 15:36:53 -0400
+        with ESMTP id S1750774AbdCOTgv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 15:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make try_to_munlock() return void
+     Subject: mm: remove SWAP_MLOCK check for SWAP_SUCCESS in ttu
 has been added to the -mm tree.  Its filename is
-     mm-make-the-try_to_munlock-void-function.patch
+     mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-the-try_to_munlock-void-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-the-try_to_munlock-void-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,106 +40,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: make try_to_munlock() return void
+Subject: mm: remove SWAP_MLOCK check for SWAP_SUCCESS in ttu
 
-try_to_munlock returns SWAP_MLOCK if the one of VMAs mapped the page has
-VM_LOCKED flag.  In that time, VM set PG_mlocked to the page if the page
-is not pte-mapped THP which cannot be mlocked, either.
+If the page is mapped and rescue in try_to_unmap_one, page_mapcount(page)
+== 0 cannot be true so page_mapcount check in try_to_unmap is enough to
+return SWAP_SUCCESS.  IOW, SWAP_MLOCK check is redundant so remove it.
 
-With that, __munlock_isolated_page can use PageMlocked to check whether
-try_to_munlock is successful or not without relying on try_to_munlock's
-retval.  It helps to make try_to_unmap/try_to_unmap_one simple with
-upcoming patches.
-
-Link: http://lkml.kernel.org/r/1489555493-14659-5-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1489555493-14659-4-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
- mm/mlock.c           |    6 ++----
- mm/rmap.c            |   17 +++++------------
- 3 files changed, 8 insertions(+), 17 deletions(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rmap.h~mm-make-the-try_to_munlock-void-function include/linux/rmap.h
---- a/include/linux/rmap.h~mm-make-the-try_to_munlock-void-function
-+++ a/include/linux/rmap.h
-@@ -235,7 +235,7 @@ int page_mkclean(struct page *);
-  * called in munlock()/munmap() path to check for other vmas holding
-  * the page mlocked.
-  */
--int try_to_munlock(struct page *);
-+void try_to_munlock(struct page *);
- 
- void remove_migration_ptes(struct page *old, struct page *new, bool locked);
- 
-diff -puN mm/mlock.c~mm-make-the-try_to_munlock-void-function mm/mlock.c
---- a/mm/mlock.c~mm-make-the-try_to_munlock-void-function
-+++ a/mm/mlock.c
-@@ -123,17 +123,15 @@ static bool __munlock_isolate_lru_page(s
-  */
- static void __munlock_isolated_page(struct page *page)
- {
--	int ret = SWAP_AGAIN;
--
- 	/*
- 	 * Optimization: if the page was mapped just once, that's our mapping
- 	 * and we don't need to check all the other vmas.
- 	 */
- 	if (page_mapcount(page) > 1)
--		ret = try_to_munlock(page);
-+		try_to_munlock(page);
- 
- 	/* Did try_to_unlock() succeed or punt? */
--	if (ret != SWAP_MLOCK)
-+	if (!PageMlocked(page))
- 		count_vm_event(UNEVICTABLE_PGMUNLOCKED);
- 
- 	putback_lru_page(page);
-diff -puN mm/rmap.c~mm-make-the-try_to_munlock-void-function mm/rmap.c
---- a/mm/rmap.c~mm-make-the-try_to_munlock-void-function
+diff -puN mm/rmap.c~mm-remove-swap_mlock-check-for-swap_success-in-ttu mm/rmap.c
+--- a/mm/rmap.c~mm-remove-swap_mlock-check-for-swap_success-in-ttu
 +++ a/mm/rmap.c
-@@ -1552,18 +1552,10 @@ static int page_not_mapped(struct page *
-  * Called from munlock code.  Checks all of the VMAs mapping the page
-  * to make sure nobody else has this page mlocked. The page will be
-  * returned with PG_mlocked cleared if no other vmas have it mlocked.
-- *
-- * Return values are:
-- *
-- * SWAP_AGAIN	- no vma is holding page mlocked, or,
-- * SWAP_AGAIN	- page mapped in mlocked vma -- couldn't acquire mmap sem
-- * SWAP_FAIL	- page cannot be located at present
-- * SWAP_MLOCK	- page is now mlocked.
-  */
--int try_to_munlock(struct page *page)
--{
--	int ret;
+@@ -1535,7 +1535,7 @@ int try_to_unmap(struct page *page, enum
+ 	else
+ 		ret = rmap_walk(page, &rwc);
  
-+void try_to_munlock(struct page *page)
-+{
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
- 		.arg = (void *)TTU_MUNLOCK,
-@@ -1573,9 +1565,10 @@ int try_to_munlock(struct page *page)
- 	};
- 
- 	VM_BUG_ON_PAGE(!PageLocked(page) || PageLRU(page), page);
-+	VM_BUG_ON_PAGE(PageMlocked(page), page);
-+	VM_BUG_ON_PAGE(PageCompound(page) && PageDoubleMap(page), page);
- 
--	ret = rmap_walk(page, &rwc);
--	return ret;
-+	rmap_walk(page, &rwc);
+-	if (ret != SWAP_MLOCK && !page_mapcount(page))
++	if (!page_mapcount(page))
+ 		ret = SWAP_SUCCESS;
+ 	return ret;
  }
- 
- void __put_anon_vma(struct anon_vma *anon_vma)
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
