@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-swap_again-in-ttu.patch added to -mm tree
-Date: Wed, 15 Mar 2017 12:36:56 -0700
-Message-ID: <58c997d8.my3scYkZHX1uFnm6%akpm@linux-foundation.org>
+Subject: + mm-make-rmap_walk-void-function.patch added to -mm tree
+Date: Wed, 15 Mar 2017 12:37:01 -0700
+Message-ID: <58c997dd.AmiHi/3MTcl2AfKM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49914 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752904AbdCOTg6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 15:36:58 -0400
+        with ESMTP id S1753043AbdCOThD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 15:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove SWAP_AGAIN in ttu
+     Subject: mm: make rmap_walk() return void
 has been added to the -mm tree.  Its filename is
-     mm-remove-swap_again-in-ttu.patch
+     mm-make-rmap_walk-void-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-swap_again-in-ttu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-rmap_walk-void-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-swap_again-in-ttu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-rmap_walk-void-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remove SWAP_AGAIN in ttu
+Subject: mm: make rmap_walk() return void
 
-In 2002, [1] introduced SWAP_AGAIN.  At that time, try_to_unmap_one used
-spin_trylock(&mm->page_table_lock) so it's really easy to contend and fail
-to hold a lock so SWAP_AGAIN to keep LRU status makes sense.
+There is no user of the return value from rmap_walk() and friends so this
+patch makes them void-returning functions.
 
-However, now we changed it to mutex-based lock and be able to block
-without skip pte so there is few of small window to return SWAP_AGAIN so
-remove SWAP_AGAIN and just return SWAP_FAIL.
-
-[1] c48c43e, minimal rmap
-
-Link: http://lkml.kernel.org/r/1489555493-14659-7-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1489555493-14659-9-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -63,56 +56,218 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c   |   11 +++--------
- mm/vmscan.c |    2 --
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ include/linux/ksm.h  |    5 ++---
+ include/linux/rmap.h |    4 ++--
+ mm/ksm.c             |   16 ++++++----------
+ mm/rmap.c            |   32 +++++++++++++-------------------
+ 4 files changed, 23 insertions(+), 34 deletions(-)
 
-diff -puN mm/rmap.c~mm-remove-swap_again-in-ttu mm/rmap.c
---- a/mm/rmap.c~mm-remove-swap_again-in-ttu
-+++ a/mm/rmap.c
-@@ -1504,13 +1504,10 @@ static int page_mapcount_is_zero(struct
-  * Return values are:
-  *
-  * SWAP_SUCCESS	- we succeeded in removing all mappings
-- * SWAP_AGAIN	- we missed a mapping, try again later
-  * SWAP_FAIL	- the page is unswappable
-  */
- int try_to_unmap(struct page *page, enum ttu_flags flags)
- {
--	int ret;
--
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
- 		.arg = (void *)flags,
-@@ -1530,13 +1527,11 @@ int try_to_unmap(struct page *page, enum
- 		rwc.invalid_vma = invalid_migration_vma;
+diff -puN include/linux/ksm.h~mm-make-rmap_walk-void-function include/linux/ksm.h
+--- a/include/linux/ksm.h~mm-make-rmap_walk-void-function
++++ a/include/linux/ksm.h
+@@ -61,7 +61,7 @@ static inline void set_page_stable_node(
+ struct page *ksm_might_need_to_copy(struct page *page,
+ 			struct vm_area_struct *vma, unsigned long address);
  
- 	if (flags & TTU_RMAP_LOCKED)
--		ret = rmap_walk_locked(page, &rwc);
-+		rmap_walk_locked(page, &rwc);
- 	else
--		ret = rmap_walk(page, &rwc);
-+		rmap_walk(page, &rwc);
+-int rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc);
++void rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc);
+ void ksm_migrate_page(struct page *newpage, struct page *oldpage);
  
--	if (!page_mapcount(page))
--		ret = SWAP_SUCCESS;
--	return ret;
-+	return !page_mapcount(page) ? SWAP_SUCCESS : SWAP_FAIL;
+ #else  /* !CONFIG_KSM */
+@@ -94,10 +94,9 @@ static inline int page_referenced_ksm(st
+ 	return 0;
  }
  
- static int page_not_mapped(struct page *page)
-diff -puN mm/vmscan.c~mm-remove-swap_again-in-ttu mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-swap_again-in-ttu
-+++ a/mm/vmscan.c
-@@ -1148,8 +1148,6 @@ static unsigned long shrink_page_list(st
- 			case SWAP_FAIL:
- 				nr_unmap_fail++;
- 				goto activate_locked;
--			case SWAP_AGAIN:
--				goto keep_locked;
- 			case SWAP_SUCCESS:
- 				; /* try to free the page below */
+-static inline int rmap_walk_ksm(struct page *page,
++static inline void rmap_walk_ksm(struct page *page,
+ 			struct rmap_walk_control *rwc)
+ {
+-	return 0;
+ }
+ 
+ static inline void ksm_migrate_page(struct page *newpage, struct page *oldpage)
+diff -puN include/linux/rmap.h~mm-make-rmap_walk-void-function include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-make-rmap_walk-void-function
++++ a/include/linux/rmap.h
+@@ -264,8 +264,8 @@ struct rmap_walk_control {
+ 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
+ };
+ 
+-int rmap_walk(struct page *page, struct rmap_walk_control *rwc);
+-int rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc);
++void rmap_walk(struct page *page, struct rmap_walk_control *rwc);
++void rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc);
+ 
+ #else	/* !CONFIG_MMU */
+ 
+diff -puN mm/ksm.c~mm-make-rmap_walk-void-function mm/ksm.c
+--- a/mm/ksm.c~mm-make-rmap_walk-void-function
++++ a/mm/ksm.c
+@@ -1933,11 +1933,10 @@ struct page *ksm_might_need_to_copy(stru
+ 	return new_page;
+ }
+ 
+-int rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc)
++void rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc)
+ {
+ 	struct stable_node *stable_node;
+ 	struct rmap_item *rmap_item;
+-	int ret = SWAP_AGAIN;
+ 	int search_new_forks = 0;
+ 
+ 	VM_BUG_ON_PAGE(!PageKsm(page), page);
+@@ -1950,7 +1949,7 @@ int rmap_walk_ksm(struct page *page, str
+ 
+ 	stable_node = page_stable_node(page);
+ 	if (!stable_node)
+-		return ret;
++		return;
+ again:
+ 	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
+ 		struct anon_vma *anon_vma = rmap_item->anon_vma;
+@@ -1978,23 +1977,20 @@ again:
+ 			if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 				continue;
+ 
+-			ret = rwc->rmap_one(page, vma,
+-					rmap_item->address, rwc->arg);
+-			if (ret != SWAP_AGAIN) {
++			if (SWAP_AGAIN != rwc->rmap_one(page, vma,
++					rmap_item->address, rwc->arg)) {
+ 				anon_vma_unlock_read(anon_vma);
+-				goto out;
++				return;
  			}
+ 			if (rwc->done && rwc->done(page)) {
+ 				anon_vma_unlock_read(anon_vma);
+-				goto out;
++				return;
+ 			}
+ 		}
+ 		anon_vma_unlock_read(anon_vma);
+ 	}
+ 	if (!search_new_forks++)
+ 		goto again;
+-out:
+-	return ret;
+ }
+ 
+ #ifdef CONFIG_MIGRATION
+diff -puN mm/rmap.c~mm-make-rmap_walk-void-function mm/rmap.c
+--- a/mm/rmap.c~mm-make-rmap_walk-void-function
++++ a/mm/rmap.c
+@@ -1608,13 +1608,12 @@ static struct anon_vma *rmap_walk_anon_l
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
+  */
+-static int rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc,
++static void rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc,
+ 		bool locked)
+ {
+ 	struct anon_vma *anon_vma;
+ 	pgoff_t pgoff_start, pgoff_end;
+ 	struct anon_vma_chain *avc;
+-	int ret = SWAP_AGAIN;
+ 
+ 	if (locked) {
+ 		anon_vma = page_anon_vma(page);
+@@ -1624,7 +1623,7 @@ static int rmap_walk_anon(struct page *p
+ 		anon_vma = rmap_walk_anon_lock(page, rwc);
+ 	}
+ 	if (!anon_vma)
+-		return ret;
++		return;
+ 
+ 	pgoff_start = page_to_pgoff(page);
+ 	pgoff_end = pgoff_start + hpage_nr_pages(page) - 1;
+@@ -1638,8 +1637,7 @@ static int rmap_walk_anon(struct page *p
+ 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 			continue;
+ 
+-		ret = rwc->rmap_one(page, vma, address, rwc->arg);
+-		if (ret != SWAP_AGAIN)
++		if (SWAP_AGAIN != rwc->rmap_one(page, vma, address, rwc->arg))
+ 			break;
+ 		if (rwc->done && rwc->done(page))
+ 			break;
+@@ -1647,7 +1645,6 @@ static int rmap_walk_anon(struct page *p
+ 
+ 	if (!locked)
+ 		anon_vma_unlock_read(anon_vma);
+-	return ret;
+ }
+ 
+ /*
+@@ -1663,13 +1660,12 @@ static int rmap_walk_anon(struct page *p
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
+  */
+-static int rmap_walk_file(struct page *page, struct rmap_walk_control *rwc,
++static void rmap_walk_file(struct page *page, struct rmap_walk_control *rwc,
+ 		bool locked)
+ {
+ 	struct address_space *mapping = page_mapping(page);
+ 	pgoff_t pgoff_start, pgoff_end;
+ 	struct vm_area_struct *vma;
+-	int ret = SWAP_AGAIN;
+ 
+ 	/*
+ 	 * The page lock not only makes sure that page->mapping cannot
+@@ -1680,7 +1676,7 @@ static int rmap_walk_file(struct page *p
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 
+ 	if (!mapping)
+-		return ret;
++		return;
+ 
+ 	pgoff_start = page_to_pgoff(page);
+ 	pgoff_end = pgoff_start + hpage_nr_pages(page) - 1;
+@@ -1695,8 +1691,7 @@ static int rmap_walk_file(struct page *p
+ 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 			continue;
+ 
+-		ret = rwc->rmap_one(page, vma, address, rwc->arg);
+-		if (ret != SWAP_AGAIN)
++		if (SWAP_AGAIN != rwc->rmap_one(page, vma, address, rwc->arg))
+ 			goto done;
+ 		if (rwc->done && rwc->done(page))
+ 			goto done;
+@@ -1705,28 +1700,27 @@ static int rmap_walk_file(struct page *p
+ done:
+ 	if (!locked)
+ 		i_mmap_unlock_read(mapping);
+-	return ret;
+ }
+ 
+-int rmap_walk(struct page *page, struct rmap_walk_control *rwc)
++void rmap_walk(struct page *page, struct rmap_walk_control *rwc)
+ {
+ 	if (unlikely(PageKsm(page)))
+-		return rmap_walk_ksm(page, rwc);
++		rmap_walk_ksm(page, rwc);
+ 	else if (PageAnon(page))
+-		return rmap_walk_anon(page, rwc, false);
++		rmap_walk_anon(page, rwc, false);
+ 	else
+-		return rmap_walk_file(page, rwc, false);
++		rmap_walk_file(page, rwc, false);
+ }
+ 
+ /* Like rmap_walk, but caller holds relevant rmap lock */
+-int rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc)
++void rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc)
+ {
+ 	/* no ksm support for now */
+ 	VM_BUG_ON_PAGE(PageKsm(page), page);
+ 	if (PageAnon(page))
+-		return rmap_walk_anon(page, rwc, true);
++		rmap_walk_anon(page, rwc, true);
+ 	else
+-		return rmap_walk_file(page, rwc, true);
++		rmap_walk_file(page, rwc, true);
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
