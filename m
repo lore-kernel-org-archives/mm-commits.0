@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch added to -mm tree
-Date: Thu, 16 Mar 2017 13:51:31 -0700
-Message-ID: <58cafad3.MIMy5/GGSK6Vs+Ac%akpm@linux-foundation.org>
+ mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
+ added to -mm tree
+Date: Thu, 16 Mar 2017 13:51:50 -0700
+Message-ID: <58cafae6.YDiUpL9L6BzkPDAT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752253AbdCPVDs (ORCPT
+        with ESMTP id S1752249AbdCPVDs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 17:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, benh@kernel.crashing.org, cmetcalf@mellanox.com, dalias@libc.org, heiko.carstens@de.ibm.com, hpa@zytor.com, linux@armlinux.org.uk, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, schwidefsky@de.ibm.com, tglx@linutronix.de, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: jglisse@redhat.com, SCheung@nvidia.com, arbab@linux.vnet.ibm.com, ebaskakov@nvidia.com, jhubbard@nvidia.com, mhairgrove@nvidia.com, sgutti@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory/hotplug: convert device bool to int to allow for more flags
+     Subject: mm/migrate: new memory migration helper for use with device memory
 has been added to the -mm tree.  Its filename is
-     mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch
+     mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,526 +41,597 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/memory/hotplug: convert device bool to int to allow for more flags
+Subject: mm/migrate: new memory migration helper for use with device memory
 
-Patch series "HMM (Heterogeneous Memory Management)", v18.
+This patch add new memory migration helpers, which migrate memory backing
+a range of virtual address of a process to different memory (which can be
+allocated through special allocator).  It differs from numa migration by
+working on a range of virtual address and thus by doing migration in chunk
+that can be large enough to use DMA engine or special copy offloading
+engine.
 
+Expected users are any one with heterogeneous memory where different
+memory have different characteristics (latency, bandwidth, ...).  As an
+example IBM platform with CAPI bus can make use of this feature to migrate
+between regular memory and CAPI device memory.  New CPU architecture with
+a pool of high performance memory not manage as cache but presented as
+regular memory (while being faster and with lower latency than DDR) will
+also be prime user of this patch.
 
-This patch (of 16):
+Migration to private device memory will be usefull for device that have
+large pool of such like GPU, NVidia plans to use HMM for that.
 
-When hotpluging memory we want more informations on the type of memory and
-its properties.  Replace the device boolean flag by an int and define a
-set of flags.
-
-New property for device memory is an opt-in flag to allow page migration
-from and to a ZONE_DEVICE.  Existing user of ZONE_DEVICE are not expecting
-page migration to work for their pages.  New changes to page migration i
-changing that and we now need a flag to explicitly opt-in page migration.
-
-Link: http://lkml.kernel.org/r/1489680335-6594-2-git-send-email-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/1489680335-6594-8-git-send-email-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
+Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
+Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Reviewed-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Tested-by: Reza Arbab <arbab@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c            |   23 ++++++++++++++++++++---
- arch/powerpc/mm/mem.c          |   23 +++++++++++++++++++----
- arch/s390/mm/init.c            |   10 ++++++++--
- arch/sh/mm/init.c              |   22 +++++++++++++++++++---
- arch/tile/mm/init.c            |   10 ++++++++--
- arch/x86/mm/init_32.c          |   23 ++++++++++++++++++++---
- arch/x86/mm/init_64.c          |   23 ++++++++++++++++++++---
- include/linux/memory_hotplug.h |   24 ++++++++++++++++++++++--
- include/linux/memremap.h       |   13 +++++++++++++
- kernel/memremap.c              |    5 +++--
- mm/memory_hotplug.c            |    4 ++--
- 11 files changed, 154 insertions(+), 26 deletions(-)
+ include/linux/migrate.h |   73 ++++++
+ mm/migrate.c            |  460 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 533 insertions(+)
 
-diff -puN arch/ia64/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/arch/ia64/mm/init.c
-@@ -646,18 +646,27 @@ mem_init (void)
+diff -puN include/linux/migrate.h~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4 include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4
++++ a/include/linux/migrate.h
+@@ -124,4 +124,77 @@ static inline int migrate_misplaced_tran
  }
+ #endif /* CONFIG_NUMA_BALANCING && CONFIG_TRANSPARENT_HUGEPAGE*/
  
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	pg_data_t *pgdat;
- 	struct zone *zone;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
 +
- 	pgdat = NODE_DATA(nid);
- 
- 	zone = pgdat->node_zones +
--		zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
-+		zone_for_memory(nid, start, size, ZONE_NORMAL,
-+				flags & MEMORY_DEVICE);
- 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
- 
- 	if (ret)
-@@ -668,13 +677,21 @@ int arch_add_memory(int nid, u64 start,
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct zone *zone;
- 	int ret;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
++#define MIGRATE_PFN_VALID	(1UL << (BITS_PER_LONG_LONG - 1))
++#define MIGRATE_PFN_MIGRATE	(1UL << (BITS_PER_LONG_LONG - 2))
++#define MIGRATE_PFN_HUGE	(1UL << (BITS_PER_LONG_LONG - 3))
++#define MIGRATE_PFN_LOCKED	(1UL << (BITS_PER_LONG_LONG - 4))
++#define MIGRATE_PFN_WRITE	(1UL << (BITS_PER_LONG_LONG - 5))
++#define MIGRATE_PFN_MASK	((1UL << (BITS_PER_LONG_LONG - PAGE_SHIFT)) - 1)
 +
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	ret = __remove_pages(zone, start_pfn, nr_pages);
- 	if (ret)
-diff -puN arch/powerpc/mm/mem.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/arch/powerpc/mm/mem.c
-@@ -126,16 +126,23 @@ int __weak remove_section_mapping(unsign
- 	return -ENODEV;
- }
- 
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	struct pglist_data *pgdata;
- 	struct zone *zone;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int rc;
- 
--	resize_hpt_for_hotplug(memblock_phys_mem_size());
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
- 
-+	resize_hpt_for_hotplug(memblock_phys_mem_size());
- 	pgdata = NODE_DATA(nid);
- 
- 	start = (unsigned long)__va(start);
-@@ -149,19 +156,27 @@ int arch_add_memory(int nid, u64 start,
- 
- 	/* this should work for most non-highmem platforms */
- 	zone = pgdata->node_zones +
--		zone_for_memory(nid, start, size, 0, for_device);
-+		zone_for_memory(nid, start, size, 0, flags & MEMORY_DEVICE);
- 
- 	return __add_pages(nid, zone, start_pfn, nr_pages);
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct zone *zone;
- 	int ret;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
++static inline struct page *migrate_pfn_to_page(unsigned long mpfn)
++{
++	if (!(mpfn & MIGRATE_PFN_VALID))
++		return NULL;
++	return pfn_to_page(mpfn & MIGRATE_PFN_MASK);
++}
 +
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	ret = __remove_pages(zone, start_pfn, nr_pages);
- 	if (ret)
-diff -puN arch/s390/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/s390/mm/init.c
---- a/arch/s390/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/arch/s390/mm/init.c
-@@ -161,7 +161,7 @@ unsigned long memory_block_size_bytes(vo
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, int flags)
- {
- 	unsigned long zone_start_pfn, zone_end_pfn, nr_pages;
- 	unsigned long start_pfn = PFN_DOWN(start);
-@@ -170,6 +170,12 @@ int arch_add_memory(int nid, u64 start,
- 	struct zone *zone;
- 	int rc, i;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags) {
-+		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	rc = vmem_add_mapping(start, size);
- 	if (rc)
- 		return rc;
-@@ -204,7 +210,7 @@ int arch_add_memory(int nid, u64 start,
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, int flags)
- {
- 	/*
- 	 * There is no hardware or firmware interface which could trigger a
-diff -puN arch/sh/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/arch/sh/mm/init.c
-@@ -485,19 +485,27 @@ void free_initrd_mem(unsigned long start
- #endif
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	pg_data_t *pgdat;
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	pgdat = NODE_DATA(nid);
- 
- 	/* We only have ZONE_NORMAL, so this is easy.. */
- 	ret = __add_pages(nid, pgdat->node_zones +
- 			zone_for_memory(nid, start, size, ZONE_NORMAL,
--			for_device),
-+					flags & MEMORY_DEVICE),
- 			start_pfn, nr_pages);
- 	if (unlikely(ret))
- 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
-@@ -516,13 +524,21 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
- #endif
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct zone *zone;
- 	int ret;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	ret = __remove_pages(zone, start_pfn, nr_pages);
- 	if (unlikely(ret))
-diff -puN arch/tile/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/tile/mm/init.c
---- a/arch/tile/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/arch/tile/mm/init.c
-@@ -863,13 +863,19 @@ void __init mem_init(void)
-  * memory to the highmem for now.
-  */
- #ifndef CONFIG_NEED_MULTIPLE_NODES
--int arch_add_memory(u64 start, u64 size, bool for_device)
-+int arch_add_memory(u64 start, u64 size, int flags)
- {
- 	struct pglist_data *pgdata = &contig_page_data;
- 	struct zone *zone = pgdata->node_zones + MAX_NR_ZONES-1;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags) {
-+		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	return __add_pages(zone, start_pfn, nr_pages);
- }
- 
-@@ -879,7 +885,7 @@ int remove_memory(u64 start, u64 size)
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, int flags)
- {
- 	/* TODO */
- 	return -EBUSY;
-diff -puN arch/x86/mm/init_32.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/arch/x86/mm/init_32.c
-@@ -816,24 +816,41 @@ void __init mem_init(void)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	struct pglist_data *pgdata = NODE_DATA(nid);
- 	struct zone *zone = pgdata->node_zones +
--		zone_for_memory(nid, start, size, ZONE_HIGHMEM, for_device);
-+		zone_for_memory(nid, start, size, ZONE_HIGHMEM,
-+				flags & MEMORY_DEVICE);
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	return __add_pages(nid, zone, start_pfn, nr_pages);
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
-+int arch_remove_memory(u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct zone *zone;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	return __remove_pages(zone, start_pfn, nr_pages);
- }
-diff -puN arch/x86/mm/init_64.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/arch/x86/mm/init_64.c
-@@ -641,15 +641,24 @@ static void  update_end_of_memory_vars(u
-  * Memory is added always to NORMAL zone. This means you will never get
-  * additional DMA/DMA32 memory.
-  */
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	struct pglist_data *pgdat = NODE_DATA(nid);
- 	struct zone *zone = pgdat->node_zones +
--		zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
-+		zone_for_memory(nid, start, size, ZONE_NORMAL,
-+				flags & MEMORY_DEVICE);
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	init_memory_mapping(start, start + size);
- 
- 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
-@@ -946,8 +955,10 @@ kernel_physical_mapping_remove(unsigned
- 	remove_pagetable(start, end, true);
- }
- 
--int __ref arch_remove_memory(u64 start, u64 size)
-+int __ref arch_remove_memory(u64 start, u64 size, int flags)
- {
-+	const int supported_flags = MEMORY_DEVICE |
-+				    MEMORY_DEVICE_ALLOW_MIGRATE;
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct page *page = pfn_to_page(start_pfn);
-@@ -955,6 +966,12 @@ int __ref arch_remove_memory(u64 start,
- 	struct zone *zone;
- 	int ret;
- 
-+	/* Each flag need special handling so error out on un-supported flag */
-+	if (flags & (~supported_flags)) {
-+		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
-+		return -EINVAL;
-+	}
-+
- 	/* With altmap the first mapped page is offset from @start */
- 	altmap = to_vmem_altmap((unsigned long) page);
- 	if (altmap)
-diff -puN include/linux/memory_hotplug.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/include/linux/memory_hotplug.h
-@@ -104,7 +104,7 @@ extern bool memhp_auto_online;
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
- extern bool is_pageblock_removable_nolock(struct page *page);
--extern int arch_remove_memory(u64 start, u64 size);
-+extern int arch_remove_memory(u64 start, u64 size, int flags);
- extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
- 	unsigned long nr_pages);
- #endif /* CONFIG_MEMORY_HOTREMOVE */
-@@ -276,7 +276,27 @@ extern int add_memory(int nid, u64 start
- extern int add_memory_resource(int nid, struct resource *resource, bool online);
- extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
- 		bool for_device);
--extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
++static inline unsigned long migrate_pfn_size(unsigned long mpfn)
++{
++	return mpfn & MIGRATE_PFN_HUGE ? PMD_SIZE : PAGE_SIZE;
++}
 +
 +/*
-+ * When hotpluging memory with arch_add_memory() we want more informations on
-+ * the type of memory and its properties. The flags parameter allow to provide
-+ * more informations on the memory which is being addedd.
++ * struct migrate_vma_ops - migrate operation callback
 + *
-+ * Provide an opt-in flag for struct page migration. Persistent device memory
-+ * never relied on struct page migration so far and new user of might also
-+ * prefer avoiding struct page migration.
++ * @alloc_and_copy: alloc destination memoiry and copy source to it
++ * @finalize_and_map: allow caller to inspect successfull migrated page
 + *
-+ * New non device memory specific flags can be added if ever needed.
++ * migrate_vma() allow memory migration to use DMA  engine to perform copy from
++ * source to destination memory it also allow caller to use its own memory
++ * allocator for destination memory.
 + *
-+ * MEMORY_REGULAR: regular system memory
-+ * DEVICE_MEMORY: device memory create a ZONE_DEVICE zone for it
-+ * DEVICE_MEMORY_ALLOW_MIGRATE: page in that device memory ca be migrated
++ * Note that in alloc_and_copy device driver can decide not to migrate some of
++ * the entry by simply setting corresponding dst entry 0.
++ *
++ * Destination page must locked and MIGRATE_PFN_LOCKED set in the corresponding
++ * entry of dstarray. It is expected that page allocated will have an elevated
++ * refcount and that a put_page() will free the page.
++ *
++ * Device driver might want to allocate with an extra-refcount if they want to
++ * control deallocation of failed migration inside finalize_and_map() callback.
++ *
++ * The finalize_and_map() callback must use the MIGRATE_PFN_MIGRATE flag to
++ * determine which page have been successfully migrated (it is set in the src
++ * array for each entry that have been successfully migrated).
++ *
++ * For migration from device memory to system memory device driver must set any
++ * dst entry to MIGRATE_PFN_ERROR for any entry it can not migrate back due to
++ * hardware fatal failure that can not be recovered. Such failure will trigger
++ * a SIGBUS for the process trying to access such memory.
 + */
-+#define MEMORY_NORMAL 0
-+#define MEMORY_DEVICE (1 << 0)
-+#define MEMORY_DEVICE_ALLOW_MIGRATE (1 << 1)
++struct migrate_vma_ops {
++	void (*alloc_and_copy)(struct vm_area_struct *vma,
++			       const unsigned long *src,
++			       unsigned long *dst,
++			       unsigned long start,
++			       unsigned long end,
++			       void *private);
++	void (*finalize_and_map)(struct vm_area_struct *vma,
++				 const unsigned long *src,
++				 const unsigned long *dst,
++				 unsigned long start,
++				 unsigned long end,
++				 void *private);
++};
 +
-+extern int arch_add_memory(int nid, u64 start, u64 size, int flags);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
-diff -puN include/linux/memremap.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 include/linux/memremap.h
---- a/include/linux/memremap.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/include/linux/memremap.h
-@@ -41,18 +41,26 @@ static inline struct vmem_altmap *to_vme
-  * @res: physical address range covered by @ref
-  * @ref: reference count that pins the devm_memremap_pages() mapping
-  * @dev: host device of the mapping for debug
-+ * @flags: memory flags see MEMORY_* in memory_hotplug.h
-  */
- struct dev_pagemap {
- 	struct vmem_altmap *altmap;
- 	const struct resource *res;
- 	struct percpu_ref *ref;
- 	struct device *dev;
-+	int flags;
- };
++int migrate_vma(const struct migrate_vma_ops *ops,
++		struct vm_area_struct *vma,
++		unsigned long mentries,
++		unsigned long start,
++		unsigned long end,
++		unsigned long *src,
++		unsigned long *dst,
++		void *private);
++
+ #endif /* _LINUX_MIGRATE_H */
+diff -puN mm/migrate.c~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4 mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4
++++ a/mm/migrate.c
+@@ -393,6 +393,14 @@ int migrate_page_move_mapping(struct add
+ 	int expected_count = 1 + extra_count;
+ 	void **pslot;
  
- #ifdef CONFIG_ZONE_DEVICE
- void *devm_memremap_pages(struct device *dev, struct resource *res,
- 		struct percpu_ref *ref, struct vmem_altmap *altmap);
- struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
++	/*
++	 * ZONE_DEVICE pages have 1 refcount always held by their device
++	 *
++	 * Note that DAX memory will never reach that point as it does not have
++	 * the MEMORY_DEVICE_ALLOW_MIGRATE flag set (see memory_hotplug.h).
++	 */
++	expected_count += is_zone_device_page(page);
 +
-+static inline bool dev_page_allow_migrate(const struct page *page)
+ 	if (!mapping) {
+ 		/* Anonymous page without mapping */
+ 		if (page_count(page) != expected_count)
+@@ -2059,3 +2067,455 @@ out_unlock:
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+ #endif /* CONFIG_NUMA */
++
++
++struct migrate_vma {
++	struct vm_area_struct	*vma;
++	unsigned long		*dst;
++	unsigned long		*src;
++	unsigned long		cpages;
++	unsigned long		npages;
++	unsigned long		mpages;
++	unsigned long		start;
++	unsigned long		end;
++};
++
++static inline int migrate_vma_array_full(struct migrate_vma *migrate)
 +{
-+	return ((page_zonenum(page) == ZONE_DEVICE) &&
-+		(page->pgmap->flags & MEMORY_DEVICE_ALLOW_MIGRATE));
++	return migrate->npages >= migrate->mpages ? -ENOSPC : 0;
 +}
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct resource *res, struct percpu_ref *ref,
-@@ -71,6 +79,11 @@ static inline struct dev_pagemap *find_d
- {
- 	return NULL;
- }
 +
-+static inline bool dev_page_allow_migrate(const struct page *page)
++static int migrate_vma_collect_hole(unsigned long start,
++				    unsigned long end,
++				    struct mm_walk *walk)
 +{
-+	return false;
++	struct migrate_vma *migrate = walk->private;
++	unsigned long addr, next;
++
++	for (addr = start & PAGE_MASK; addr < end; addr = next) {
++		unsigned long npages, i;
++		int ret;
++
++		next = pmd_addr_end(addr, end);
++		npages = (next - addr) >> PAGE_SHIFT;
++		if (npages == (PMD_SIZE >> PAGE_SHIFT)) {
++			migrate->src[migrate->npages++] = MIGRATE_PFN_HUGE;
++			ret = migrate_vma_array_full(migrate);
++			if (ret)
++				return ret;
++		} else {
++			for (i = 0; i < npages; ++i) {
++				migrate->src[migrate->npages++] = 0;
++				ret = migrate_vma_array_full(migrate);
++				if (ret)
++					return ret;
++			}
++		}
++	}
++
++	return 0;
 +}
- #endif
- 
- /**
-diff -puN kernel/memremap.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 kernel/memremap.c
---- a/kernel/memremap.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/kernel/memremap.c
-@@ -248,7 +248,7 @@ static void devm_memremap_pages_release(
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
- 
- 	mem_hotplug_begin();
--	arch_remove_memory(align_start, align_size);
-+	arch_remove_memory(align_start, align_size, MEMORY_DEVICE);
- 	mem_hotplug_done();
- 
- 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
-@@ -326,6 +326,7 @@ void *devm_memremap_pages(struct device
- 	}
- 	pgmap->ref = ref;
- 	pgmap->res = &page_map->res;
-+	pgmap->flags = MEMORY_DEVICE;
- 
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
-@@ -363,7 +364,7 @@ void *devm_memremap_pages(struct device
- 		goto err_pfn_remap;
- 
- 	mem_hotplug_begin();
--	error = arch_add_memory(nid, align_start, align_size, true);
-+	error = arch_add_memory(nid, align_start, align_size, MEMORY_DEVICE);
- 	mem_hotplug_done();
- 	if (error)
- 		goto err_add_memory;
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
-+++ a/mm/memory_hotplug.c
-@@ -1385,7 +1385,7 @@ int __ref add_memory_resource(int nid, s
- 	}
- 
- 	/* call arch's memory hotadd */
--	ret = arch_add_memory(nid, start, size, false);
-+	ret = arch_add_memory(nid, start, size, MEMORY_NORMAL);
- 
- 	if (ret < 0)
- 		goto error;
-@@ -2189,7 +2189,7 @@ void __ref remove_memory(int nid, u64 st
- 	memblock_free(start, size);
- 	memblock_remove(start, size);
- 
--	arch_remove_memory(start, size);
-+	arch_remove_memory(start, size, MEMORY_NORMAL);
- 
- 	try_offline_node(nid);
- 
++
++static int migrate_vma_collect_pmd(pmd_t *pmdp,
++				   unsigned long start,
++				   unsigned long end,
++				   struct mm_walk *walk)
++{
++	struct migrate_vma *migrate = walk->private;
++	struct mm_struct *mm = walk->vma->vm_mm;
++	unsigned long addr = start;
++	spinlock_t *ptl;
++	pte_t *ptep;
++
++	if (pmd_none(*pmdp) || pmd_trans_unstable(pmdp)) {
++		/* FIXME support THP */
++		return migrate_vma_collect_hole(start, end, walk);
++	}
++
++	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	for (; addr < end; addr += PAGE_SIZE, ptep++) {
++		unsigned long flags, pfn;
++		struct page *page;
++		pte_t pte;
++		int ret;
++
++		pte = *ptep;
++		pfn = pte_pfn(pte);
++
++		if (!pte_present(pte)) {
++			flags = pfn = 0;
++			goto next;
++		}
++
++		/* FIXME support THP */
++		page = vm_normal_page(migrate->vma, addr, pte);
++		if (!page || !page->mapping || PageTransCompound(page)) {
++			flags = pfn = 0;
++			goto next;
++		}
++
++		/*
++		 * By getting a reference on the page we pin it and that blocks
++		 * any kind of migration. Side effect is that it "freezes" the
++		 * pte.
++		 *
++		 * We drop this reference after isolating the page from the lru
++		 * for non device page (device page are not on the lru and thus
++		 * can't be dropped from it).
++		 */
++		get_page(page);
++		migrate->cpages++;
++		flags = MIGRATE_PFN_VALID | MIGRATE_PFN_MIGRATE;
++		flags |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
++
++next:
++		migrate->src[migrate->npages++] = pfn | flags;
++		ret = migrate_vma_array_full(migrate);
++		if (ret) {
++			pte_unmap_unlock(ptep, ptl);
++			return ret;
++		}
++	}
++	pte_unmap_unlock(ptep - 1, ptl);
++
++	return 0;
++}
++
++/*
++ * migrate_vma_collect() - collect page over range of virtual addresses
++ * @migrate: migrate struct containing all migration information
++ *
++ * This will walk the CPU page table. For each virtual address backed by a
++ * valid page, it updates the src array and takes a reference on the page, in
++ * order to pin the page until we lock it and unmap it.
++ */
++static void migrate_vma_collect(struct migrate_vma *migrate)
++{
++	struct mm_walk mm_walk;
++
++	mm_walk.pmd_entry = migrate_vma_collect_pmd;
++	mm_walk.pte_entry = NULL;
++	mm_walk.pte_hole = migrate_vma_collect_hole;
++	mm_walk.hugetlb_entry = NULL;
++	mm_walk.test_walk = NULL;
++	mm_walk.vma = migrate->vma;
++	mm_walk.mm = migrate->vma->vm_mm;
++	mm_walk.private = migrate;
++
++	walk_page_range(migrate->start, migrate->end, &mm_walk);
++
++	migrate->end = migrate->start + (migrate->npages << PAGE_SHIFT);
++}
++
++/*
++ * migrate_vma_check_page() - check if page is pinned or not
++ * @page: struct page to check
++ *
++ * Pinned pages cannot be migrated. This is the same test as in
++ * migrate_page_move_mapping(), except that here we allow migration of a
++ * ZONE_DEVICE page.
++ */
++static bool migrate_vma_check_page(struct page *page)
++{
++	/*
++	 * One extra ref because caller holds an extra reference, either from
++	 * isolate_lru_page() for a regular page, or migrate_vma_collect() for
++	 * a device page.
++	 */
++	int extra = 1;
++
++	/*
++	 * FIXME support THP (transparent huge page), it is bit more complex to
++	 * check them than regular pages, because they can be mapped with a pmd
++	 * or with a pte (split pte mapping).
++	 */
++	if (PageCompound(page))
++		return false;
++
++	if ((page_count(page) - extra) > page_mapcount(page))
++		return false;
++
++	return true;
++}
++
++/*
++ * migrate_vma_prepare() - lock pages and isolate them from the lru
++ * @migrate: migrate struct containing all migration informations
++ *
++ * This locks pages that have been collected by migrate_vma_collect(). Once each
++ * page is locked it is isolated from the lru (for non-device pages). Finally,
++ * the ref taken by migrate_vma_collect() is dropped, as locked pages cannot be
++ * migrated by concurrent kernel threads.
++ */
++static void migrate_vma_prepare(struct migrate_vma *migrate)
++{
++	unsigned long addr = migrate->start, i, size;
++	const unsigned long npages = migrate->npages;
++	bool allow_drain = true;
++
++	lru_add_drain();
++
++	for (i = 0; i < npages && migrate->cpages; i++, addr += size) {
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		size = migrate_pfn_size(migrate->src[i]);
++
++		if (!page)
++			continue;
++
++		lock_page(page);
++		migrate->src[i] |= MIGRATE_PFN_LOCKED;
++
++		if (!PageLRU(page) && allow_drain) {
++			/* Drain CPU's pagevec */
++			lru_add_drain_all();
++			allow_drain = false;
++		}
++
++		if (isolate_lru_page(page)) {
++			migrate->src[i] = 0;
++			unlock_page(page);
++			migrate->cpages--;
++			put_page(page);
++			continue;
++		}
++
++		/* Drop the reference we took in collect */
++		put_page(page);
++
++		if (!migrate_vma_check_page(page)) {
++			migrate->src[i] = 0;
++			unlock_page(page);
++			migrate->cpages--;
++
++			putback_lru_page(page);
++		}
++	}
++}
++
++/*
++ * migrate_vma_unmap() - replace page mapping with special migration pte entry
++ * @migrate: migrate struct containing all migration information
++ *
++ * Replace page mapping (CPU page table pte) with special migration pte entry
++ * and check again if it has been pinned. Pinned pages are restored because we
++ * cannot migrate them.
++ *
++ * This is the last step before we call the device driver callback to allocate
++ * destination memory and copy contents of original page over to new page.
++ */
++static void migrate_vma_unmap(struct migrate_vma *migrate)
++{
++	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
++	unsigned long addr = migrate->start, i, restore = 0, size;
++	const unsigned long npages = migrate->npages;
++	const unsigned long start = migrate->start;
++
++	for (i = 0; i < npages && migrate->cpages; addr += size, i++) {
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		size = migrate_pfn_size(migrate->src[i]);
++
++		if (!page || !(migrate->src[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		try_to_unmap(page, flags);
++		if (page_mapped(page) || !migrate_vma_check_page(page)) {
++			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++			migrate->cpages--;
++			restore++;
++		}
++	}
++
++	for (addr = start, i = 0; i < npages && restore; addr += size, i++) {
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		size = migrate_pfn_size(migrate->src[i]);
++
++		if (!page || (migrate->src[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		remove_migration_ptes(page, page, false);
++
++		migrate->src[i] = 0;
++		unlock_page(page);
++		restore--;
++
++		putback_lru_page(page);
++	}
++}
++
++/*
++ * migrate_vma_pages() - migrate meta-data from src page to dst page
++ * @migrate: migrate struct containing all migration information
++ *
++ * This migrate struct page meta-data from source struct page to destination
++ * struct page. This effectively finishes the migration from source page to the
++ * destination page.
++ */
++static void migrate_vma_pages(struct migrate_vma *migrate)
++{
++	const unsigned long npages = migrate->npages;
++	unsigned long addr, i, size;
++
++	for (i = 0, addr = migrate->start; i < npages; addr += size, i++) {
++		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		struct address_space *mapping;
++		int r;
++
++		size = migrate_pfn_size(migrate->src[i]);
++
++		if (!page || !newpage)
++			continue;
++		if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		mapping = page_mapping(page);
++
++		r = migrate_page(mapping, newpage, page, MIGRATE_SYNC, false);
++		if (r != MIGRATEPAGE_SUCCESS)
++			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
++	}
++}
++
++/*
++ * migrate_vma_finalize() - restore CPU page table entry
++ * @migrate: migrate struct containing all migration information
++ *
++ * This replaces the special migration pte entry with either a mapping to the
++ * new page if migration was successful for that page, or to the original page
++ * otherwise.
++ *
++ * This also unlocks the pages and puts them back on the lru, or drops the extra
++ * refcount, for device pages.
++ */
++static void migrate_vma_finalize(struct migrate_vma *migrate)
++{
++	const unsigned long npages = migrate->npages;
++	unsigned long addr, i, size;
++
++	for (i = 0, addr = migrate->start; i < npages; addr += size, i++) {
++		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
++		struct page *page = migrate_pfn_to_page(migrate->src[i]);
++		size = migrate_pfn_size(migrate->src[i]);
++
++		if (!page)
++			continue;
++		if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE) || !newpage) {
++			if (newpage) {
++				unlock_page(newpage);
++				put_page(newpage);
++			}
++			newpage = page;
++		}
++
++		remove_migration_ptes(page, newpage, false);
++		unlock_page(page);
++		migrate->cpages--;
++
++		putback_lru_page(page);
++
++		if (newpage != page) {
++			unlock_page(newpage);
++			putback_lru_page(newpage);
++		}
++	}
++}
++
++/*
++ * migrate_vma() - migrate a range of memory inside vma using accelerated copy
++ *
++ * @ops: migration callback for allocating destination memory and copying
++ * @vma: virtual memory area containing the range to be migrated
++ * @mentries: maximum number of entry in src or dst pfns array
++ * @start: start address of the range to migrate (inclusive)
++ * @end: end address of the range to migrate (exclusive)
++ * @src: array of hmm_pfn_t containing source pfns
++ * @dst: array of hmm_pfn_t containing destination pfns
++ * @private: pointer passed back to each of the callback
++ * Returns: 0 on success, error code otherwise
++ *
++ * This will try to migrate a range of memory using callback to allocate and
++ * copy memory from source to destination. This function will first collect,
++ * lock and unmap pages in the range and then call alloc_and_copy() callback
++ * for device driver to allocate destination memory and copy from source.
++ *
++ * Then it will proceed and try to effectively migrate the page (struct page
++ * metadata), a step that can fail for various reasons. Before updating CPU page
++ * table it will call finalize_and_map() callback so that the device driver can
++ * inspect what has been successfully migrated and update its own page tables
++ * (this latter aspect is not mandatory and only make senses for some users of
++ * this API).
++ *
++ * Finally the function update CPU page table and unlock the pages before
++ * returning 0.
++ *
++ * It will return an error code only if one of the arguments is invalid.
++ */
++int migrate_vma(const struct migrate_vma_ops *ops,
++		struct vm_area_struct *vma,
++		unsigned long mentries,
++		unsigned long start,
++		unsigned long end,
++		unsigned long *src,
++		unsigned long *dst,
++		void *private)
++{
++	struct migrate_vma migrate;
++
++	/* Sanity check the arguments */
++	start &= PAGE_MASK;
++	end &= PAGE_MASK;
++	if (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL))
++		return -EINVAL;
++	if (!vma || !ops || !src || !dst || start >= end)
++		return -EINVAL;
++	if (start < vma->vm_start || start >= vma->vm_end)
++		return -EINVAL;
++	if (end <= vma->vm_start || end > vma->vm_end)
++		return -EINVAL;
++
++	memset(src, 0, sizeof(*src) * ((end - start) >> PAGE_SHIFT));
++	migrate.src = src;
++	migrate.dst = dst;
++	migrate.start = start;
++	migrate.npages = 0;
++	migrate.cpages = 0;
++	migrate.mpages = mentries;
++	migrate.end = end;
++	migrate.vma = vma;
++
++	/* Collect, and try to unmap source pages */
++	migrate_vma_collect(&migrate);
++	if (!migrate.cpages)
++		return 0;
++
++	/* Lock and isolate page */
++	migrate_vma_prepare(&migrate);
++	if (!migrate.cpages)
++		return 0;
++
++	/* Unmap pages */
++	migrate_vma_unmap(&migrate);
++	if (!migrate.cpages)
++		return 0;
++
++	/*
++	 * At this point pages are locked and unmapped, and thus they have
++	 * stable content and can safely be copied to destination memory that
++	 * is allocated by the callback.
++	 *
++	 * Note that migration can fail in migrate_vma_struct_page() for each
++	 * individual page.
++	 */
++	ops->alloc_and_copy(vma, src, dst, start, end, private);
++
++	/* This does the real migration of struct page */
++	migrate_vma_pages(&migrate);
++
++	ops->finalize_and_map(vma, src, dst, start, end, private);
++
++	/* Unlock and remap pages */
++	migrate_vma_finalize(&migrate);
++
++	return 0;
++}
++EXPORT_SYMBOL(migrate_vma);
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
