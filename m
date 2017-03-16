@@ -1,92 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: + x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch added to -mm tree
-Date: Thu, 16 Mar 2017 11:46:22 -0700
-Message-ID: <58cadd7e.Kg0Sx+i93OEqh9sw%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ trace-move-trace_seq_overflowed-out-of-line.patch removed from -mm tree
+Date: Thu, 16 Mar 2017 12:40:34 -0700
+Message-ID: <58caea32.Rfsh5IJ4h35uhaus%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36128 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752318AbdCPSqY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 14:46:24 -0400
+        with ESMTP id S1752156AbdCPTkg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 15:40:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, dvyukov@google.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-atomic-move-__atomic_add_unless-out-of-line-fix
-has been added to the -mm tree.  Its filename is
-     x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
+     Subject: include/linux/trace_seq.h: wove trace_seq_overflowed() out of line
+has been removed from the -mm tree.  Its filename was
+     trace-move-trace_seq_overflowed-out-of-line.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-atomic-move-__atomic_add_unless-out-of-line-fix
+From: Andi Kleen <ak@linux.intel.com>
+Subject: include/linux/trace_seq.h: wove trace_seq_overflowed() out of line
 
-fix rejects fix
+Inlining trace_seq_overflowed takes ~17k in text size in my kernel.  The
+function doesn't seem to be time critical, so we can just out of line it.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Function                                           Total          Avg   Num
+trace_seq_has_overflowed                           17134 (0.00%)  33    514
+
+This saves around 6k here
+
+   text    data     bss     dec     hex filename
+9102881 5367568 11116544        25586993        1866d31 vmlinux-orig
+9096494 5367568 11116544        25580606        186543e vmlinux-trace-seq
+
+Link: http://lkml.kernel.org/r/20170315021431.13107-2-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/atomic.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/trace_seq.h |   12 +-----------
+ kernel/trace/trace_seq.c  |   15 +++++++++++++++
+ 2 files changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/include/asm/atomic.h~x86-atomic-move-__atomic_add_unless-out-of-line-fix arch/x86/include/asm/atomic.h
---- a/arch/x86/include/asm/atomic.h~x86-atomic-move-__atomic_add_unless-out-of-line-fix
-+++ a/arch/x86/include/asm/atomic.h
-@@ -235,6 +235,8 @@ ATOMIC_OPS(xor, ^)
- #undef ATOMIC_FETCH_OP
- #undef ATOMIC_OP
+diff -puN include/linux/trace_seq.h~trace-move-trace_seq_overflowed-out-of-line include/linux/trace_seq.h
+--- a/include/linux/trace_seq.h~trace-move-trace_seq_overflowed-out-of-line
++++ a/include/linux/trace_seq.h
+@@ -56,17 +56,7 @@ trace_seq_buffer_ptr(struct trace_seq *s
+ 	return s->buffer + seq_buf_used(&s->seq);
+ }
  
-+int __arch_atomic_add_unless(atomic_t *v, int a, int u);
+-/**
+- * trace_seq_has_overflowed - return true if the trace_seq took too much
+- * @s: trace sequence descriptor
+- *
+- * Returns true if too much data was added to the trace_seq and it is
+- * now full and will not take anymore.
+- */
+-static inline bool trace_seq_has_overflowed(struct trace_seq *s)
+-{
+-	return s->full || seq_buf_has_overflowed(&s->seq);
+-}
++bool trace_seq_has_overflowed(struct trace_seq *s);
+ 
+ /*
+  * Currently only defined when tracing is enabled.
+diff -puN kernel/trace/trace_seq.c~trace-move-trace_seq_overflowed-out-of-line kernel/trace/trace_seq.c
+--- a/kernel/trace/trace_seq.c~trace-move-trace_seq_overflowed-out-of-line
++++ a/kernel/trace/trace_seq.c
+@@ -375,3 +375,18 @@ int trace_seq_to_user(struct trace_seq *
+ 	return seq_buf_to_user(&s->seq, ubuf, cnt);
+ }
+ EXPORT_SYMBOL_GPL(trace_seq_to_user);
 +
- /**
-  * arch_atomic_inc_short - increment of a short integer
-  * @v: pointer to type int
++
++
++/**
++ * trace_seq_has_overflowed - return true if the trace_seq took too much
++ * @s: trace sequence descriptor
++ *
++ * Returns true if too much data was added to the trace_seq and it is
++ * now full and will not take anymore.
++ */
++bool trace_seq_has_overflowed(struct trace_seq *s)
++{
++	return s->full || seq_buf_has_overflowed(&s->seq);
++}
++EXPORT_SYMBOL_GPL(trace_seq_has_overflowed);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+x86-atomic-move-__atomic_add_unless-out-of-line.patch
+sched-out-of-line-__update_load_avg.patch
+kref-remove-warn_on-for-null-release-functions.patch
+out-of-line-dma_alloc-free_attrs.patch
+megasas-remove-expensive-inline-from-megasas_return_cmd.patch
+remove-expensive-warn_on-in-pagefault_disabled_dec.patch
 
