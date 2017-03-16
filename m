@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch added to -mm tree
-Date: Thu, 16 Mar 2017 13:51:40 -0700
-Message-ID: <58cafadc.BYkJMRpSAD40IxS/%akpm@linux-foundation.org>
+Subject: + mm-hmm-mirror-device-page-fault-handler.patch added to -mm tree
+Date: Thu, 16 Mar 2017 13:52:04 -0700
+Message-ID: <58cafaf4.sM5BLh0QrOBJ0hMR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52836 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751954AbdCPVDs (ORCPT
+        with ESMTP id S1752353AbdCPVDs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 17:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, dan.j.williams@intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: jglisse@redhat.com, SCheung@nvidia.com, ebaskakov@nvidia.com, jhubbard@nvidia.com, mhairgrove@nvidia.com, sgutti@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ZONE_DEVICE/unaddressable: add support for un-addressable device memory
+     Subject: mm/hmm/mirror: device page fault handler
 has been added to the -mm tree.  Its filename is
-     mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch
+     mm-hmm-mirror-device-page-fault-handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-mirror-device-page-fault-handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-mirror-device-page-fault-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,527 +39,446 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/ZONE_DEVICE/unaddressable: add support for un-addressable device memory
+Subject: mm/hmm/mirror: device page fault handler
 
-This adds support for un-addressable device memory.  Such memory is
-hotpluged only so we can have struct page but we should never map them as
-such memory can not be accessed by CPU.  For that reason it uses a special
-swap entry for CPU page table entry.
+This handle page fault on behalf of device driver, unlike
+handle_mm_fault() it does not trigger migration back to system memory for
+device memory.
 
-This patch implements all the logic from special swap type to handling CPU
-page fault through a callback specified in the ZONE_DEVICE pgmap struct.
-
-Architecture that wish to support un-addressable device memory should make
-sure to never populate the kernel linar mapping for the physical range.
-
-This feature potentially breaks memory hotplug unless every driver using
-it magically predicts the future addresses of where memory will be
-hotplugged.
-
-Link: http://lkml.kernel.org/r/1489680335-6594-5-git-send-email-jglisse@redhat.com
+Link: http://lkml.kernel.org/r/1489680335-6594-13-git-send-email-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
+Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
+Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c             |    7 +++
- include/linux/ioport.h         |    1 
- include/linux/memory_hotplug.h |    7 +++
- include/linux/memremap.h       |   18 ++++++++
- include/linux/swap.h           |   18 ++++++--
- include/linux/swapops.h        |   67 +++++++++++++++++++++++++++++++
- kernel/memremap.c              |   22 +++++++++-
- mm/Kconfig                     |   12 +++++
- mm/memory.c                    |   66 ++++++++++++++++++++++++++++++
- mm/memory_hotplug.c            |   10 +++-
- mm/mprotect.c                  |   12 +++++
- 11 files changed, 232 insertions(+), 8 deletions(-)
+ include/linux/hmm.h |   27 ++++
+ mm/hmm.c            |  269 +++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 268 insertions(+), 28 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/fs/proc/task_mmu.c
-@@ -542,6 +542,8 @@ static void smaps_pte_entry(pte_t *pte,
- 			}
- 		} else if (is_migration_entry(swpent))
- 			page = migration_entry_to_page(swpent);
-+		else if (is_device_entry(swpent))
-+			page = device_entry_to_page(swpent);
- 	} else if (unlikely(IS_ENABLED(CONFIG_SHMEM) && mss->check_shmem_swap
- 							&& pte_none(*pte))) {
- 		page = find_get_entry(vma->vm_file->f_mapping,
-@@ -704,6 +706,8 @@ static int smaps_hugetlb_range(pte_t *pt
- 
- 		if (is_migration_entry(swpent))
- 			page = migration_entry_to_page(swpent);
-+		else if (is_device_entry(swpent))
-+			page = device_entry_to_page(swpent);
- 	}
- 	if (page) {
- 		int mapcount = page_mapcount(page);
-@@ -1196,6 +1200,9 @@ static pagemap_entry_t pte_to_pagemap_en
- 		flags |= PM_SWAP;
- 		if (is_migration_entry(entry))
- 			page = migration_entry_to_page(entry);
+diff -puN include/linux/hmm.h~mm-hmm-mirror-device-page-fault-handler include/linux/hmm.h
+--- a/include/linux/hmm.h~mm-hmm-mirror-device-page-fault-handler
++++ a/include/linux/hmm.h
+@@ -291,6 +291,33 @@ int hmm_vma_get_pfns(struct vm_area_stru
+ 		     unsigned long end,
+ 		     hmm_pfn_t *pfns);
+ bool hmm_vma_range_done(struct vm_area_struct *vma, struct hmm_range *range);
 +
-+		if (is_device_entry(entry))
-+			page = device_entry_to_page(entry);
- 	}
- 
- 	if (page && !PageAnon(page))
-diff -puN include/linux/ioport.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/ioport.h
---- a/include/linux/ioport.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/include/linux/ioport.h
-@@ -130,6 +130,7 @@ enum {
- 	IORES_DESC_ACPI_NV_STORAGE		= 3,
- 	IORES_DESC_PERSISTENT_MEMORY		= 4,
- 	IORES_DESC_PERSISTENT_MEMORY_LEGACY	= 5,
-+	IORES_DESC_UNADDRESSABLE_MEMORY		= 6,
- };
- 
- /* helpers to define resources */
-diff -puN include/linux/memory_hotplug.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/include/linux/memory_hotplug.h
-@@ -286,15 +286,22 @@ extern int zone_for_memory(int nid, u64
-  * never relied on struct page migration so far and new user of might also
-  * prefer avoiding struct page migration.
-  *
-+ * For device memory (which use ZONE_DEVICE) we want differentiate between CPU
-+ * accessible memory (persitent memory, device memory on an architecture with a
-+ * system bus that allow transparent access to device memory) and unaddressable
-+ * memory (device memory that can not be accessed by CPU directly).
-+ *
-  * New non device memory specific flags can be added if ever needed.
-  *
-  * MEMORY_REGULAR: regular system memory
-  * DEVICE_MEMORY: device memory create a ZONE_DEVICE zone for it
-  * DEVICE_MEMORY_ALLOW_MIGRATE: page in that device memory ca be migrated
-+ * MEMORY_DEVICE_UNADDRESSABLE: un-addressable memory (CPU can not access it)
-  */
- #define MEMORY_NORMAL 0
- #define MEMORY_DEVICE (1 << 0)
- #define MEMORY_DEVICE_ALLOW_MIGRATE (1 << 1)
-+#define MEMORY_DEVICE_UNADDRESSABLE (1 << 2)
- 
- extern int arch_add_memory(int nid, u64 start, u64 size, int flags);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
-diff -puN include/linux/memremap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/memremap.h
---- a/include/linux/memremap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/include/linux/memremap.h
-@@ -35,10 +35,16 @@ static inline struct vmem_altmap *to_vme
- }
- #endif
- 
-+typedef int (*dev_page_fault_t)(struct vm_area_struct *vma,
-+				unsigned long addr,
-+				struct page *page,
-+				unsigned flags,
-+				pmd_t *pmdp);
- typedef void (*dev_page_free_t)(struct page *page, void *data);
- 
- /**
-  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-+ * @page_fault: callback when CPU fault on an un-addressable device page
-  * @page_free: free page callback when page refcount reach 1
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-  * @res: physical address range covered by @ref
-@@ -48,6 +54,7 @@ typedef void (*dev_page_free_t)(struct p
-  * @flags: memory flags see MEMORY_* in memory_hotplug.h
-  */
- struct dev_pagemap {
-+	dev_page_fault_t page_fault;
- 	dev_page_free_t page_free;
- 	struct vmem_altmap *altmap;
- 	const struct resource *res;
-@@ -67,6 +74,12 @@ static inline bool dev_page_allow_migrat
- 	return ((page_zonenum(page) == ZONE_DEVICE) &&
- 		(page->pgmap->flags & MEMORY_DEVICE_ALLOW_MIGRATE));
- }
-+
-+static inline bool is_addressable_page(const struct page *page)
-+{
-+	return ((page_zonenum(page) != ZONE_DEVICE) ||
-+		!(page->pgmap->flags & MEMORY_DEVICE_UNADDRESSABLE));
-+}
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct resource *res, struct percpu_ref *ref,
-@@ -90,6 +103,11 @@ static inline bool dev_page_allow_migrat
- {
- 	return false;
- }
-+
-+static inline bool is_addressable_page(const struct page *page)
-+{
-+	return true;
-+}
- #endif
- 
- /**
-diff -puN include/linux/swap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/swap.h
---- a/include/linux/swap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/include/linux/swap.h
-@@ -51,6 +51,17 @@ static inline int current_is_kswapd(void
-  */
- 
- /*
-+ * Un-addressable device memory support
-+ */
-+#ifdef CONFIG_DEVICE_UNADDRESSABLE
-+#define SWP_DEVICE_NUM 2
-+#define SWP_DEVICE_WRITE (MAX_SWAPFILES + SWP_HWPOISON_NUM + SWP_MIGRATION_NUM)
-+#define SWP_DEVICE (MAX_SWAPFILES + SWP_HWPOISON_NUM + SWP_MIGRATION_NUM + 1)
-+#else
-+#define SWP_DEVICE_NUM 0
-+#endif
 +
 +/*
-  * NUMA node memory migration support
-  */
- #ifdef CONFIG_MIGRATION
-@@ -72,7 +83,8 @@ static inline int current_is_kswapd(void
- #endif
++ * Fault memory on behalf of device driver. Unlike handle_mm_fault(), this will
++ * not migrate any device memory back to system memory. The hmm_pfn_t array will
++ * be updated with the fault result and current snapshot of the CPU page table
++ * for the range.
++ *
++ * The mmap_sem must be taken in read mode before entering and it might be
++ * dropped by the function if block argument is false. In that case, the
++ * function returns -EAGAIN.
++ *
++ * Return value does not reflect if the fault was successful for every single
++ * address or not. Therefore, the caller must to inspect the hmm_pfn_t array to
++ * determine fault status for each address.
++ *
++ * Trying to fault inside an invalid vma will result in -EINVAL.
++ *
++ * See function description in mm/hmm.c for further documentation.
++ */
++int hmm_vma_fault(struct vm_area_struct *vma,
++		  struct hmm_range *range,
++		  unsigned long start,
++		  unsigned long end,
++		  hmm_pfn_t *pfns,
++		  bool write,
++		  bool block);
+ #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
  
- #define MAX_SWAPFILES \
--	((1 << MAX_SWAPFILES_SHIFT) - SWP_MIGRATION_NUM - SWP_HWPOISON_NUM)
-+	((1 << MAX_SWAPFILES_SHIFT) - SWP_DEVICE_NUM - \
-+	SWP_MIGRATION_NUM - SWP_HWPOISON_NUM)
  
- /*
-  * Magic header for a swap area. The first part of the union is
-@@ -435,8 +447,8 @@ static inline void show_swap_cache_info(
- {
+diff -puN mm/hmm.c~mm-hmm-mirror-device-page-fault-handler mm/hmm.c
+--- a/mm/hmm.c~mm-hmm-mirror-device-page-fault-handler
++++ a/mm/hmm.c
+@@ -288,6 +288,15 @@ void hmm_mirror_unregister(struct hmm_mi
+ }
+ EXPORT_SYMBOL(hmm_mirror_unregister);
+ 
++
++static void hmm_pfns_error(hmm_pfn_t *pfns,
++			   unsigned long addr,
++			   unsigned long end)
++{
++	for (; addr < end; addr += PAGE_SIZE, pfns++)
++		*pfns = HMM_PFN_ERROR;
++}
++
+ static void hmm_pfns_empty(hmm_pfn_t *pfns,
+ 			   unsigned long addr,
+ 			   unsigned long end)
+@@ -304,10 +313,43 @@ static void hmm_pfns_special(hmm_pfn_t *
+ 		*pfns = HMM_PFN_SPECIAL;
  }
  
--#define free_swap_and_cache(swp)	is_migration_entry(swp)
--#define swapcache_prepare(swp)		is_migration_entry(swp)
-+#define free_swap_and_cache(e) (is_migration_entry(e) || is_device_entry(e))
-+#define swapcache_prepare(e) (is_migration_entry(e) || is_device_entry(e))
- 
- static inline int add_swap_count_continuation(swp_entry_t swp, gfp_t gfp_mask)
- {
-diff -puN include/linux/swapops.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/swapops.h
---- a/include/linux/swapops.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/include/linux/swapops.h
-@@ -100,6 +100,73 @@ static inline void *swp_to_radix_entry(s
- 	return (void *)(value | RADIX_TREE_EXCEPTIONAL_ENTRY);
- }
- 
-+#if IS_ENABLED(CONFIG_DEVICE_UNADDRESSABLE)
-+static inline swp_entry_t make_device_entry(struct page *page, bool write)
+-static void hmm_vma_walk(struct vm_area_struct *vma,
+-			 unsigned long start,
+-			 unsigned long end,
+-			 hmm_pfn_t *pfns)
++static void hmm_pfns_clear(hmm_pfn_t *pfns,
++			   unsigned long addr,
++			   unsigned long end)
 +{
-+	return swp_entry(write?SWP_DEVICE_WRITE:SWP_DEVICE, page_to_pfn(page));
++	unsigned long npfns = (end - addr) >> PAGE_SHIFT;
++
++	memset(pfns, 0, sizeof(*pfns) * npfns);
 +}
 +
-+static inline bool is_device_entry(swp_entry_t entry)
++static int hmm_vma_do_fault(struct vm_area_struct *vma,
++			    const hmm_pfn_t fault,
++			    unsigned long addr,
++			    hmm_pfn_t *pfn,
++			    bool block)
 +{
-+	int type = swp_type(entry);
-+	return type == SWP_DEVICE || type == SWP_DEVICE_WRITE;
-+}
++	unsigned flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_REMOTE;
++	int r;
 +
-+static inline void make_device_entry_read(swp_entry_t *entry)
-+{
-+	*entry = swp_entry(SWP_DEVICE, swp_offset(*entry));
-+}
-+
-+static inline bool is_write_device_entry(swp_entry_t entry)
-+{
-+	return unlikely(swp_type(entry) == SWP_DEVICE_WRITE);
-+}
-+
-+static inline struct page *device_entry_to_page(swp_entry_t entry)
-+{
-+	return pfn_to_page(swp_offset(entry));
-+}
-+
-+int device_entry_fault(struct vm_area_struct *vma,
-+		       unsigned long addr,
-+		       swp_entry_t entry,
-+		       unsigned flags,
-+		       pmd_t *pmdp);
-+#else /* CONFIG_DEVICE_UNADDRESSABLE */
-+static inline swp_entry_t make_device_entry(struct page *page, bool write)
-+{
-+	return swp_entry(0, 0);
-+}
-+
-+static inline void make_device_entry_read(swp_entry_t *entry)
-+{
-+}
-+
-+static inline bool is_device_entry(swp_entry_t entry)
-+{
-+	return false;
-+}
-+
-+static inline bool is_write_device_entry(swp_entry_t entry)
-+{
-+	return false;
-+}
-+
-+static inline struct page *device_entry_to_page(swp_entry_t entry)
-+{
-+	return NULL;
-+}
-+
-+static inline int device_entry_fault(struct vm_area_struct *vma,
-+				     unsigned long addr,
-+				     swp_entry_t entry,
-+				     unsigned flags,
-+				     pmd_t *pmdp)
-+{
-+	return VM_FAULT_SIGBUS;
-+}
-+#endif /* CONFIG_DEVICE_UNADDRESSABLE */
-+
- #ifdef CONFIG_MIGRATION
- static inline swp_entry_t make_migration_entry(struct page *page, int write)
- {
-diff -puN kernel/memremap.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 kernel/memremap.c
---- a/kernel/memremap.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/kernel/memremap.c
-@@ -18,6 +18,8 @@
- #include <linux/io.h>
- #include <linux/mm.h>
- #include <linux/memory_hotplug.h>
-+#include <linux/swap.h>
-+#include <linux/swapops.h>
- 
- #ifndef ioremap_cache
- /* temporary while we convert existing ioremap_cache users to memremap */
-@@ -203,6 +205,21 @@ void put_zone_device_page(struct page *p
- }
- EXPORT_SYMBOL(put_zone_device_page);
- 
-+#if IS_ENABLED(CONFIG_DEVICE_UNADDRESSABLE)
-+int device_entry_fault(struct vm_area_struct *vma,
-+		       unsigned long addr,
-+		       swp_entry_t entry,
-+		       unsigned flags,
-+		       pmd_t *pmdp)
-+{
-+	struct page *page = device_entry_to_page(entry);
-+
-+	BUG_ON(!page->pgmap->page_fault);
-+	return page->pgmap->page_fault(vma, addr, page, flags, pmdp);
-+}
-+EXPORT_SYMBOL(device_entry_fault);
-+#endif /* CONFIG_DEVICE_UNADDRESSABLE */
-+
- static void pgmap_radix_release(struct resource *res)
- {
- 	resource_size_t key, align_start, align_size, align_end;
-@@ -257,7 +274,7 @@ static void devm_memremap_pages_release(
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
- 
- 	mem_hotplug_begin();
--	arch_remove_memory(align_start, align_size, MEMORY_DEVICE);
-+	arch_remove_memory(align_start, align_size, pgmap->flags);
- 	mem_hotplug_done();
- 
- 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
-@@ -336,6 +353,7 @@ void *devm_memremap_pages(struct device
- 	pgmap->ref = ref;
- 	pgmap->res = &page_map->res;
- 	pgmap->flags = MEMORY_DEVICE;
-+	pgmap->page_fault = NULL;
- 	pgmap->page_free = NULL;
- 	pgmap->data = NULL;
- 
-@@ -375,7 +393,7 @@ void *devm_memremap_pages(struct device
- 		goto err_pfn_remap;
- 
- 	mem_hotplug_begin();
--	error = arch_add_memory(nid, align_start, align_size, MEMORY_DEVICE);
-+	error = arch_add_memory(nid, align_start, align_size, pgmap->flags);
- 	mem_hotplug_done();
- 	if (error)
- 		goto err_add_memory;
-diff -puN mm/Kconfig~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/Kconfig
---- a/mm/Kconfig~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/mm/Kconfig
-@@ -700,6 +700,18 @@ config ZONE_DEVICE
- 
- 	  If FS_DAX is enabled, then say Y.
- 
-+config DEVICE_UNADDRESSABLE
-+	bool "Un-addressable device memory (GPU memory, ...)"
-+	depends on ZONE_DEVICE
-+
-+	help
-+	  Allow to create struct page for un-addressable device memory
-+	  ie memory that is only accessible by the device (or group of
-+	  devices).
-+
-+	  Having struct page is necessary for process memory migration
-+	  to device memory.
-+
- config FRAME_VECTOR
- 	bool
- 
-diff -puN mm/memory.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/memory.c
---- a/mm/memory.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/mm/memory.c
-@@ -49,6 +49,7 @@
- #include <linux/swap.h>
- #include <linux/highmem.h>
- #include <linux/pagemap.h>
-+#include <linux/memremap.h>
- #include <linux/ksm.h>
- #include <linux/rmap.h>
- #include <linux/export.h>
-@@ -927,6 +928,25 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 					pte = pte_swp_mksoft_dirty(pte);
- 				set_pte_at(src_mm, addr, src_pte, pte);
- 			}
-+		} else if (is_device_entry(entry)) {
-+			page = device_entry_to_page(entry);
-+
-+			/*
-+			 * Update rss count even for un-addressable page as
-+			 * they should be consider just like any other page.
-+			 */
-+			get_page(page);
-+			rss[mm_counter(page)]++;
-+			page_dup_rmap(page, false);
-+
-+			if (is_write_device_entry(entry) &&
-+			    is_cow_mapping(vm_flags)) {
-+				make_device_entry_read(&entry);
-+				pte = swp_entry_to_pte(entry);
-+				if (pte_swp_soft_dirty(*src_pte))
-+					pte = pte_swp_mksoft_dirty(pte);
-+				set_pte_at(src_mm, addr, src_pte, pte);
-+			}
- 		}
- 		goto out_set_pte;
- 	}
-@@ -1243,6 +1263,34 @@ again:
- 			}
- 			continue;
- 		}
-+
-+		/*
-+		 * Un-addressable page must always be check that are not like
-+		 * other swap entries and thus should be check no matter what
-+		 * details->check_swap_entries value is.
-+		 */
-+		entry = pte_to_swp_entry(ptent);
-+		if (non_swap_entry(entry) && is_device_entry(entry)) {
-+			struct page *page = device_entry_to_page(entry);
-+
-+			if (unlikely(details && details->check_mapping)) {
-+				/*
-+				 * unmap_shared_mapping_pages() wants to
-+				 * invalidate cache without truncating:
-+				 * unmap shared but keep private pages.
-+				 */
-+				if (details->check_mapping !=
-+				    page_rmapping(page))
-+					continue;
-+			}
-+
-+			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
-+			rss[mm_counter(page)]--;
-+			page_remove_rmap(page, false);
-+			put_page(page);
-+			continue;
-+		}
-+
- 		/* If details->check_mapping, we leave swap entries. */
- 		if (unlikely(details))
- 			continue;
-@@ -2690,6 +2738,14 @@ int do_swap_page(struct vm_fault *vmf)
- 		if (is_migration_entry(entry)) {
- 			migration_entry_wait(vma->vm_mm, vmf->pmd,
- 					     vmf->address);
-+		} else if (is_device_entry(entry)) {
-+			/*
-+			 * For un-addressable device memory we call the pgmap
-+			 * fault handler callback. The callback must migrate
-+			 * the page back to some CPU accessible page.
-+			 */
-+			ret = device_entry_fault(vma, vmf->address, entry,
-+						 vmf->flags, vmf->pmd);
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
- 		} else {
-@@ -3679,6 +3735,7 @@ static int wp_huge_pud(struct vm_fault *
- static int handle_pte_fault(struct vm_fault *vmf)
- {
- 	pte_t entry;
-+	struct page *page;
- 
- 	if (unlikely(pmd_none(*vmf->pmd))) {
- 		/*
-@@ -3729,9 +3786,16 @@ static int handle_pte_fault(struct vm_fa
- 	if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
- 		return do_numa_page(vmf);
- 
-+	/* Catch mapping of un-addressable memory this should never happen */
-+	entry = vmf->orig_pte;
-+	page = pfn_to_page(pte_pfn(entry));
-+	if (!is_addressable_page(page)) {
-+		print_bad_pte(vmf->vma, vmf->address, entry, page);
-+		return VM_FAULT_SIGBUS;
++	flags |= block ? 0 : FAULT_FLAG_ALLOW_RETRY;
++	flags |= (fault & HMM_PFN_WRITE) ? FAULT_FLAG_WRITE : 0;
++	r = handle_mm_fault(vma, addr, flags);
++	if (r & VM_FAULT_RETRY)
++		return -EAGAIN;
++	if (r & VM_FAULT_ERROR) {
++		*pfn = HMM_PFN_ERROR;
++		return -EFAULT;
 +	}
 +
- 	vmf->ptl = pte_lockptr(vmf->vma->vm_mm, vmf->pmd);
- 	spin_lock(vmf->ptl);
--	entry = vmf->orig_pte;
- 	if (unlikely(!pte_same(*vmf->pte, entry)))
- 		goto unlock;
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
-diff -puN mm/memory_hotplug.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/mm/memory_hotplug.c
-@@ -156,7 +156,7 @@ void mem_hotplug_done(void)
- /* add this memory to iomem resource */
- static struct resource *register_memory_resource(u64 start, u64 size)
++	return 0;
++}
++
++static int hmm_vma_walk(struct vm_area_struct *vma,
++			const hmm_pfn_t fault,
++			unsigned long start,
++			unsigned long end,
++			hmm_pfn_t *pfns,
++			bool block)
  {
--	struct resource *res;
-+	struct resource *res, *conflict;
- 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 	if (!res)
- 		return ERR_PTR(-ENOMEM);
-@@ -165,7 +165,13 @@ static struct resource *register_memory_
- 	res->start = start;
- 	res->end = start + size - 1;
- 	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
--	if (request_resource(&iomem_resource, res) < 0) {
-+	conflict =  request_resource_conflict(&iomem_resource, res);
-+	if (conflict) {
-+		if (conflict->desc == IORES_DESC_UNADDRESSABLE_MEMORY) {
-+			pr_debug("Device un-addressable memory block "
-+				 "memory hotplug at %#010llx !\n",
-+				 (unsigned long long)start);
-+		}
- 		pr_debug("System RAM resource %pR cannot be added\n", res);
- 		kfree(res);
- 		return ERR_PTR(-EEXIST);
-diff -puN mm/mprotect.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/mprotect.c
---- a/mm/mprotect.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
-+++ a/mm/mprotect.c
-@@ -126,6 +126,18 @@ static unsigned long change_pte_range(st
+ 	unsigned long addr, next;
+ 	hmm_pfn_t flag;
+@@ -321,6 +363,7 @@ static void hmm_vma_walk(struct vm_area_
+ 		pmd_t *pmdp;
+ 		pte_t *ptep;
+ 		pmd_t pmd;
++		int ret;
  
- 				pages++;
- 			}
-+
-+			if (is_write_device_entry(entry)) {
-+				pte_t newpte;
-+
-+				make_device_entry_read(&entry);
-+				newpte = swp_entry_to_pte(entry);
-+				if (pte_swp_soft_dirty(oldpte))
-+					newpte = pte_swp_mksoft_dirty(newpte);
-+				set_pte_at(mm, addr, pte, newpte);
-+
-+				pages++;
+ 		/*
+ 		 * We are accessing/faulting for a device from an unknown
+@@ -331,15 +374,37 @@ static void hmm_vma_walk(struct vm_area_
+ 		next = pgd_addr_end(addr, end);
+ 		pgdp = pgd_offset(vma->vm_mm, addr);
+ 		if (pgd_none(*pgdp) || pgd_bad(*pgdp)) {
+-			hmm_pfns_empty(&pfns[i], addr, next);
+-			continue;
++			if (!(vma->vm_flags & VM_READ)) {
++				hmm_pfns_empty(&pfns[i], addr, next);
++				continue;
++			}
++			if (!fault) {
++				hmm_pfns_empty(&pfns[i], addr, next);
++				continue;
++			}
++			pudp = pud_alloc(vma->vm_mm, pgdp, addr);
++			if (!pudp) {
++				hmm_pfns_error(&pfns[i], addr, next);
++				continue;
 +			}
  		}
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
+ 
+ 		next = pud_addr_end(addr, end);
+ 		pudp = pud_offset(pgdp, addr);
+ 		if (pud_none(*pudp) || pud_bad(*pudp)) {
+-			hmm_pfns_empty(&pfns[i], addr, next);
+-			continue;
++			if (!(vma->vm_flags & VM_READ)) {
++				hmm_pfns_empty(&pfns[i], addr, next);
++				continue;
++			}
++			if (!fault) {
++				hmm_pfns_empty(&pfns[i], addr, next);
++				continue;
++			}
++			pmdp = pmd_alloc(vma->vm_mm, pudp, addr);
++			if (!pmdp) {
++				hmm_pfns_error(&pfns[i], addr, next);
++				continue;
++			}
+ 		}
+ 
+ 		next = pmd_addr_end(addr, end);
+@@ -347,8 +412,24 @@ static void hmm_vma_walk(struct vm_area_
+ 		pmd = pmd_read_atomic(pmdp);
+ 		barrier();
+ 		if (pmd_none(pmd) || pmd_bad(pmd)) {
+-			hmm_pfns_empty(&pfns[i], addr, next);
+-			continue;
++			if (!(vma->vm_flags & VM_READ)) {
++				hmm_pfns_empty(&pfns[i], addr, next);
++				continue;
++			}
++			if (!fault) {
++				hmm_pfns_empty(&pfns[i], addr, next);
++				continue;
++			}
++			/*
++			 * Use pte_alloc() instead of pte_alloc_map, because we
++			 * can't run pte_offset_map on the pmd, if a huge pmd
++			 * could materialize from under us.
++			 */
++			if (unlikely(pte_alloc(vma->vm_mm, pmdp, addr))) {
++				hmm_pfns_error(&pfns[i], addr, next);
++				continue;
++			}
++			pmd = *pmdp;
+ 		}
+ 		if (pmd_trans_huge(pmd) || pmd_devmap(pmd)) {
+ 			unsigned long pfn = pmd_pfn(pmd) + pte_index(addr);
+@@ -356,10 +437,14 @@ static void hmm_vma_walk(struct vm_area_
+ 
+ 			if (pmd_protnone(pmd)) {
+ 				hmm_pfns_clear(&pfns[i], addr, next);
++				if (fault)
++					goto fault;
+ 				continue;
+ 			}
+ 			flags |= pmd_write(*pmdp) ? HMM_PFN_WRITE : 0;
+ 			flags |= pmd_devmap(pmd) ? HMM_PFN_DEVICE : 0;
++			if ((flags & fault) != fault)
++				goto fault;
+ 			for (; addr < next; addr += PAGE_SIZE, i++, pfn++)
+ 				pfns[i] = hmm_pfn_from_pfn(pfn) | flags;
+ 			continue;
+@@ -370,41 +455,63 @@ static void hmm_vma_walk(struct vm_area_
+ 			swp_entry_t entry;
+ 			pte_t pte = *ptep;
+ 
+-			pfns[i] = 0;
+-
+ 			if (pte_none(pte)) {
++				if (fault) {
++					pte_unmap(ptep);
++					goto fault;
++				}
+ 				pfns[i] = HMM_PFN_EMPTY;
+ 				continue;
+ 			}
+ 
+ 			entry = pte_to_swp_entry(pte);
+ 			if (!pte_present(pte) && !non_swap_entry(entry)) {
++				if (fault) {
++					pte_unmap(ptep);
++					goto fault;
++				}
++				pfns[i] = 0;
+ 				continue;
+ 			}
+ 
+ 			if (pte_present(pte)) {
+ 				pfns[i] = hmm_pfn_from_pfn(pte_pfn(pte))|flag;
+ 				pfns[i] |= pte_write(pte) ? HMM_PFN_WRITE : 0;
+-				continue;
+-			}
+-
+-			/*
+-			 * This is a special swap entry, ignore migration, use
+-			 * device and report anything else as error.
+-			*/
+-			if (is_device_entry(entry)) {
++			} else if (is_device_entry(entry)) {
++				/* Do not fault device entry */
+ 				pfns[i] = hmm_pfn_from_pfn(swp_offset(entry));
+ 				if (is_write_device_entry(entry))
+ 					pfns[i] |= HMM_PFN_WRITE;
+ 				pfns[i] |= HMM_PFN_DEVICE;
+ 				pfns[i] |= HMM_PFN_UNADDRESSABLE;
+ 				pfns[i] |= flag;
+-			} else if (!is_migration_entry(entry)) {
++			} else if (is_migration_entry(entry) && fault) {
++				migration_entry_wait(vma->vm_mm, pmdp, addr);
++				/* Start again for current address */
++				next = addr;
++				ptep++;
++				break;
++			} else {
++				/* Report error for everything else */
+ 				pfns[i] = HMM_PFN_ERROR;
+ 			}
++			if ((fault & pfns[i]) != fault) {
++				pte_unmap(ptep);
++				goto fault;
++			}
+ 		}
+ 		pte_unmap(ptep - 1);
++		continue;
++
++fault:
++		ret = hmm_vma_do_fault(vma, fault, addr, &pfns[i], block);
++		if (ret)
++			return ret;
++		/* Start again for current address */
++		next = addr;
+ 	}
++
++	return 0;
+ }
+ 
+ /*
+@@ -463,7 +570,7 @@ int hmm_vma_get_pfns(struct vm_area_stru
+ 	list_add_rcu(&range->list, &hmm->ranges);
+ 	spin_unlock(&hmm->lock);
+ 
+-	hmm_vma_walk(vma, start, end, pfns);
++	hmm_vma_walk(vma, 0, start, end, pfns, false);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(hmm_vma_get_pfns);
+@@ -474,14 +581,22 @@ EXPORT_SYMBOL(hmm_vma_get_pfns);
+  * @range: range being track
+  * Returns: false if range data have been invalidated, true otherwise
+  *
+- * Range struct is use to track update to CPU page table after call to
+- * hmm_vma_get_pfns(). Once device driver is done using or want to lock update
+- * to data it gots from this function it calls hmm_vma_range_done() which stop
+- * the tracking.
++ * Range struct is use to track update to CPU page table after call to either
++ * hmm_vma_get_pfns() or hmm_vma_fault(). Once device driver is done using or
++ * want to lock update to data it gots from those functions it must call the
++ * hmm_vma_range_done() function which stop tracking CPU page table update.
++ *
++ * Note that device driver must still implement general CPU page table update
++ * tracking either by using hmm_mirror (see hmm_mirror_register()) or by using
++ * mmu_notifier API directly.
++ *
++ * CPU page table update tracking done through hmm_range is only temporary and
++ * to be use while trying to duplicate CPU page table content for a range of
++ * virtual address.
+  *
+  * There is 2 way to use this :
+  * again:
+- *   hmm_vma_get_pfns(vma, range, start, end, pfns);
++ *   hmm_vma_get_pfns(vma, range, start, end, pfns); or hmm_vma_fault(...);
+  *   trans = device_build_page_table_update_transaction(pfns);
+  *   device_page_table_lock();
+  *   if (!hmm_vma_range_done(vma, range)) {
+@@ -492,7 +607,7 @@ EXPORT_SYMBOL(hmm_vma_get_pfns);
+  *   device_page_table_unlock();
+  *
+  * Or:
+- *   hmm_vma_get_pfns(vma, range, start, end, pfns);
++ *   hmm_vma_get_pfns(vma, range, start, end, pfns); or hmm_vma_fault(...);
+  *   device_page_table_lock();
+  *   hmm_vma_range_done(vma, range);
+  *   device_update_page_table(pfns);
+@@ -521,4 +636,102 @@ bool hmm_vma_range_done(struct vm_area_s
+ 	return range->valid;
+ }
+ EXPORT_SYMBOL(hmm_vma_range_done);
++
++/*
++ * hmm_vma_fault() - try to fault some address in a virtual address range
++ * @vma: virtual memory area containing the virtual address range
++ * @range: use to track pfns array content validity
++ * @start: fault range virtual start address (inclusive)
++ * @end: fault range virtual end address (exclusive)
++ * @pfns: array of hmm_pfn_t, only entry with fault flag set will be faulted
++ * @write: is it a write fault
++ * @block: allow blocking on fault (if true it sleeps and do not drop mmap_sem)
++ * Returns: 0 success, error otherwise (-EAGAIN means mmap_sem have been drop)
++ *
++ * This is similar to a regular CPU page fault except that it will not trigger
++ * any memory migration if the memory being faulted is not accessible by CPUs.
++ *
++ * On error, for one virtual address in the range, the function will set the
++ * hmm_pfn_t error flag for the corresponding pfn entry.
++ *
++ * Expected use pattern:
++ * retry:
++ *   down_read(&mm->mmap_sem);
++ *   // Find vma and address device wants to fault, initialize hmm_pfn_t
++ *   // array accordingly
++ *   ret = hmm_vma_fault(vma, start, end, pfns, allow_retry);
++ *   switch (ret) {
++ *   case -EAGAIN:
++ *     hmm_vma_range_done(vma, range);
++ *     // You might want to rate limit or yield to play nicely, you may
++ *     // also commit any valid pfn in the array assuming that you are
++ *     // getting true from hmm_vma_range_monitor_end()
++ *     goto retry;
++ *   case 0:
++ *     break;
++ *   default:
++ *     // Handle error !
++ *     up_read(&mm->mmap_sem)
++ *     return;
++ *   }
++ *   // Take device driver lock that serialize device page table update
++ *   driver_lock_device_page_table_update();
++ *   hmm_vma_range_done(vma, range);
++ *   // Commit pfns we got from hmm_vma_fault()
++ *   driver_unlock_device_page_table_update();
++ *   up_read(&mm->mmap_sem)
++ *
++ * YOU MUST CALL hmm_vma_range_done() AFTER THIS FUNCTION RETURN SUCCESS (0)
++ * BEFORE FREEING THE range struct OR YOU WILL HAVE SERIOUS MEMORY CORRUPTION !
++ *
++ * YOU HAVE BEEN WARN !
++ */
++int hmm_vma_fault(struct vm_area_struct *vma,
++		  struct hmm_range *range,
++		  unsigned long start,
++		  unsigned long end,
++		  hmm_pfn_t *pfns,
++		  bool write,
++		  bool block)
++{
++	hmm_pfn_t fault = HMM_PFN_READ | (write ? HMM_PFN_WRITE : 0);
++	struct hmm *hmm;
++	int ret;
++
++	/* Sanity check, this really should not happen ! */
++	if (start < vma->vm_start || start >= vma->vm_end)
++		return -EINVAL;
++	if (end < vma->vm_start || end > vma->vm_end)
++		return -EINVAL;
++
++	hmm = hmm_register(vma->vm_mm);
++	if (!hmm) {
++		hmm_pfns_clear(pfns, start, end);
++		return -ENOMEM;
++	}
++	/* Caller must have registered a mirror using hmm_mirror_register() */
++	if (!hmm->mmu_notifier.ops)
++		return -EINVAL;
++
++	/* Initialize range to track CPU page table update */
++	range->start = start;
++	range->pfns = pfns;
++	range->end = end;
++	spin_lock(&hmm->lock);
++	range->valid = true;
++	list_add_rcu(&range->list, &hmm->ranges);
++	spin_unlock(&hmm->lock);
++
++	/* FIXME support hugetlb fs */
++	if (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL)) {
++		hmm_pfns_special(pfns, start, end);
++		return 0;
++	}
++
++	ret = hmm_vma_walk(vma, fault, start, end, pfns, block);
++	if (ret)
++		hmm_vma_range_done(vma, range);
++	return ret;
++}
++EXPORT_SYMBOL(hmm_vma_fault);
+ #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
