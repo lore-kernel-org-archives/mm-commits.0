@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix.patch added to -mm tree
-Date: Thu, 16 Mar 2017 15:58:32 -0700
-Message-ID: <58cb1898.BJUTFLEi9gs0vSsp%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 16 Mar 2017 16:18:03 -0700
+Message-ID: <58cb1d2b.9CA7y5qCK/t3ppkR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45552 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752072AbdCPW6e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 18:58:34 -0400
+        with ESMTP id S1751871AbdCPXSE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 19:18:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jglisse@redhat.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +39,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix
+Subject: linux-next-git-rejects
 
-sync with mm-remove-swap_.patch
-
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/rxrpc/sendmsg.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN mm/rmap.c~mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix mm/rmap.c
---- a/mm/rmap.c~mm-hmm-migrate-support-un-addressable-zone_device-page-in-migration-fix
-+++ a/mm/rmap.c
-@@ -1311,7 +1311,7 @@ static bool try_to_unmap_one(struct page
- 
- 	if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION) &&
- 	    is_zone_device_page(page) && !dev_page_allow_migrate(page))
--		return SWAP_AGAIN;
-+		return true;
- 
- 	if (flags & TTU_SPLIT_HUGE_PMD) {
- 		split_huge_pmd_address(vma, address,
+diff -puN net/rxrpc/sendmsg.c~linux-next-git-rejects net/rxrpc/sendmsg.c
+--- a/net/rxrpc/sendmsg.c~linux-next-git-rejects
++++ a/net/rxrpc/sendmsg.c
+@@ -618,14 +618,8 @@ int rxrpc_kernel_send_data(struct socket
+ 		ret = rxrpc_send_data(rxrpc_sk(sock->sk), call, msg, len);
+ 		break;
+ 	case RXRPC_CALL_COMPLETE:
+-<<<<<<< HEAD
+-		read_lock_bh(&call->state_lock);
+-		ret = -call->error;
+-		read_unlock_bh(&call->state_lock);
+-=======
+ 		/* It's too late for this call */
+ 		ret = -ESHUTDOWN;
+->>>>>>> linux-next/akpm-base
+ 		break;
+ 	default:
+ 		 /* Request phase complete for this client call */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,4 +91,5 @@ drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
 x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
