@@ -1,107 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- trace-move-trace_seq_overflowed-out-of-line.patch removed from -mm tree
-Date: Thu, 16 Mar 2017 12:40:34 -0700
-Message-ID: <58caea32.Rfsh5IJ4h35uhaus%akpm@linux-foundation.org>
+Subject: + tracing-move-trace_handle_return-out-of-line.patch added to -mm tree
+Date: Thu, 16 Mar 2017 12:43:51 -0700
+Message-ID: <58caeaf7.0uh1TCK7oxMFhAxx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36216 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752156AbdCPTkg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 15:40:36 -0400
+        with ESMTP id S1752366AbdCPTnw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 15:43:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, andi@firstfloor.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/trace_seq.h: wove trace_seq_overflowed() out of line
-has been removed from the -mm tree.  Its filename was
-     trace-move-trace_seq_overflowed-out-of-line.patch
+     Subject: tracing: move trace_handle_return() out of line
+has been added to the -mm tree.  Its filename is
+     tracing-move-trace_handle_return-out-of-line.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/tracing-move-trace_handle_return-out-of-line.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-move-trace_handle_return-out-of-line.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: include/linux/trace_seq.h: wove trace_seq_overflowed() out of line
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: tracing: move trace_handle_return() out of line
 
-Inlining trace_seq_overflowed takes ~17k in text size in my kernel.  The
-function doesn't seem to be time critical, so we can just out of line it.
+Currently trace_handle_return() looks like this:
 
-Function                                           Total          Avg   Num
-trace_seq_has_overflowed                           17134 (0.00%)  33    514
+ static inline enum print_line_t trace_handle_return(struct trace_seq *s)
+ {
+        return trace_seq_has_overflowed(s) ?
+                TRACE_TYPE_PARTIAL_LINE : TRACE_TYPE_HANDLED;
+ }
 
-This saves around 6k here
+Where trace_seq_overflowed(s) is:
+
+ static inline bool trace_seq_has_overflowed(struct trace_seq *s)
+ {
+	return s->full || seq_buf_has_overflowed(&s->seq);
+ }
+
+And seq_buf_has_overflowed(&s->seq) is:
+
+ static inline bool
+ seq_buf_has_overflowed(struct seq_buf *s)
+ {
+	return s->len > s->size;
+ }
+
+Making trace_handle_return() into:
+
+ return (s->full || (s->seq->len > s->seq->size)) ?
+           TRACE_TYPE_PARTIAL_LINE :
+           TRACE_TYPE_HANDLED;
+
+One would think this is not an issue to keep as an inline.  But because
+this is used in the TRACE_EVENT() macro, it is extended for every
+tracepoint in the system.  Taking a look at a single tracepoint
+x86_irq_vector (was the first one I randomly chosen).  As
+trace_handle_return is used in the TRACE_EVENT() macro of
+trace_raw_output_##call() we disassemble trace_raw_output_x86_irq_vector
+and do a diff.  I removed identical lines that were different just due to
+different addresses.
+
+The original has 22 bytes of text more than the out of line version.  As
+this is for every TRACE_EVENT() defined in the system, this can become
+quite large.
+
+   text	   data	    bss	    dec	    hex	filename
+8690305	5450490	1298432	15439227	 eb957b	vmlinux-orig
+8681725	5450490	1298432	15430647	 eb73f7	vmlinux-handle
+
+This change has a total of 8580 bytes in savings.
+
+ $ objdump -dr /tmp/vmlinux-orig | grep '^[0-9a-f]* <trace_raw_output' | wc -l
+324
+
+That's 324 tracepoints. But this does not include modules (which contain
+many more tracepoints). For an allyesconfig build:
+
+ $ objdump -dr vmlinux-allyes-orig | grep '^[0-9a-f]* <trace_raw_output' | wc -l
+1401
+
+That's 1401 tracepoints giving us:
 
    text    data     bss     dec     hex filename
-9102881 5367568 11116544        25586993        1866d31 vmlinux-orig
-9096494 5367568 11116544        25580606        186543e vmlinux-trace-seq
+137827709       140221067       53264384        331313160       13bf7008 vmlinux-allyes-handle
+137920629       140221067       53264384        331406080       13c0db00 vmlinux-allyes-orig
+
+92920 bytes in savings!!!
 
 Link: http://lkml.kernel.org/r/20170315021431.13107-2-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/20170316113459.2366588b@gandalf.local.home
+
+Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Reported-by: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/trace_seq.h |   12 +-----------
- kernel/trace/trace_seq.c  |   15 +++++++++++++++
- 2 files changed, 16 insertions(+), 11 deletions(-)
+ include/linux/trace_events.h |   11 +----------
+ kernel/trace/trace.c         |   12 ++++++++++++
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/trace_seq.h~trace-move-trace_seq_overflowed-out-of-line include/linux/trace_seq.h
---- a/include/linux/trace_seq.h~trace-move-trace_seq_overflowed-out-of-line
-+++ a/include/linux/trace_seq.h
-@@ -56,17 +56,7 @@ trace_seq_buffer_ptr(struct trace_seq *s
- 	return s->buffer + seq_buf_used(&s->seq);
- }
+diff -puN include/linux/trace_events.h~tracing-move-trace_handle_return-out-of-line include/linux/trace_events.h
+--- a/include/linux/trace_events.h~tracing-move-trace_handle_return-out-of-line
++++ a/include/linux/trace_events.h
+@@ -138,16 +138,7 @@ enum print_line_t {
+ 	TRACE_TYPE_NO_CONSUME	= 3	/* Handled but ask to not consume */
+ };
  
--/**
-- * trace_seq_has_overflowed - return true if the trace_seq took too much
-- * @s: trace sequence descriptor
-- *
-- * Returns true if too much data was added to the trace_seq and it is
-- * now full and will not take anymore.
+-/*
+- * Several functions return TRACE_TYPE_PARTIAL_LINE if the trace_seq
+- * overflowed, and TRACE_TYPE_HANDLED otherwise. This helper function
+- * simplifies those functions and keeps them in sync.
 - */
--static inline bool trace_seq_has_overflowed(struct trace_seq *s)
+-static inline enum print_line_t trace_handle_return(struct trace_seq *s)
 -{
--	return s->full || seq_buf_has_overflowed(&s->seq);
+-	return trace_seq_has_overflowed(s) ?
+-		TRACE_TYPE_PARTIAL_LINE : TRACE_TYPE_HANDLED;
 -}
-+bool trace_seq_has_overflowed(struct trace_seq *s);
++enum print_line_t trace_handle_return(struct trace_seq *s);
  
- /*
-  * Currently only defined when tracing is enabled.
-diff -puN kernel/trace/trace_seq.c~trace-move-trace_seq_overflowed-out-of-line kernel/trace/trace_seq.c
---- a/kernel/trace/trace_seq.c~trace-move-trace_seq_overflowed-out-of-line
-+++ a/kernel/trace/trace_seq.c
-@@ -375,3 +375,18 @@ int trace_seq_to_user(struct trace_seq *
- 	return seq_buf_to_user(&s->seq, ubuf, cnt);
+ void tracing_generic_entry_update(struct trace_entry *entry,
+ 				  unsigned long flags,
+diff -puN kernel/trace/trace.c~tracing-move-trace_handle_return-out-of-line kernel/trace/trace.c
+--- a/kernel/trace/trace.c~tracing-move-trace_handle_return-out-of-line
++++ a/kernel/trace/trace.c
+@@ -1927,6 +1927,18 @@ void tracing_record_cmdline(struct task_
+ 		__this_cpu_write(trace_cmdline_save, false);
  }
- EXPORT_SYMBOL_GPL(trace_seq_to_user);
-+
-+
-+
-+/**
-+ * trace_seq_has_overflowed - return true if the trace_seq took too much
-+ * @s: trace sequence descriptor
-+ *
-+ * Returns true if too much data was added to the trace_seq and it is
-+ * now full and will not take anymore.
+ 
++/*
++ * Several functions return TRACE_TYPE_PARTIAL_LINE if the trace_seq
++ * overflowed, and TRACE_TYPE_HANDLED otherwise. This helper function
++ * simplifies those functions and keeps them in sync.
 + */
-+bool trace_seq_has_overflowed(struct trace_seq *s)
++enum print_line_t trace_handle_return(struct trace_seq *s)
 +{
-+	return s->full || seq_buf_has_overflowed(&s->seq);
++	return trace_seq_has_overflowed(s) ?
++		TRACE_TYPE_PARTIAL_LINE : TRACE_TYPE_HANDLED;
 +}
-+EXPORT_SYMBOL_GPL(trace_seq_has_overflowed);
++EXPORT_SYMBOL_GPL(trace_handle_return);
++
+ void
+ tracing_generic_entry_update(struct trace_entry *entry, unsigned long flags,
+ 			     int pc)
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-x86-atomic-move-__atomic_add_unless-out-of-line.patch
-sched-out-of-line-__update_load_avg.patch
-kref-remove-warn_on-for-null-release-functions.patch
-out-of-line-dma_alloc-free_attrs.patch
-megasas-remove-expensive-inline-from-megasas_return_cmd.patch
-remove-expensive-warn_on-in-pagefault_disabled_dec.patch
+tracing-move-trace_handle_return-out-of-line.patch
 
