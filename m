@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
- added to -mm tree
-Date: Thu, 16 Mar 2017 13:51:50 -0700
-Message-ID: <58cafae6.YDiUpL9L6BzkPDAT%akpm@linux-foundation.org>
+ mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch added to -mm tree
+Date: Thu, 16 Mar 2017 13:51:40 -0700
+Message-ID: <58cafadc.BYkJMRpSAD40IxS/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52820 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752249AbdCPVDs (ORCPT
+        with ESMTP id S1751954AbdCPVDs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 17:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, SCheung@nvidia.com, arbab@linux.vnet.ibm.com, ebaskakov@nvidia.com, jhubbard@nvidia.com, mhairgrove@nvidia.com, sgutti@nvidia.com, mm-commits@vger.kernel.org
+To: jglisse@redhat.com, dan.j.williams@intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: new memory migration helper for use with device memory
+     Subject: mm/ZONE_DEVICE/unaddressable: add support for un-addressable device memory
 has been added to the -mm tree.  Its filename is
-     mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
+     mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,597 +40,527 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/migrate: new memory migration helper for use with device memory
+Subject: mm/ZONE_DEVICE/unaddressable: add support for un-addressable device memory
 
-This patch add new memory migration helpers, which migrate memory backing
-a range of virtual address of a process to different memory (which can be
-allocated through special allocator).  It differs from numa migration by
-working on a range of virtual address and thus by doing migration in chunk
-that can be large enough to use DMA engine or special copy offloading
-engine.
+This adds support for un-addressable device memory.  Such memory is
+hotpluged only so we can have struct page but we should never map them as
+such memory can not be accessed by CPU.  For that reason it uses a special
+swap entry for CPU page table entry.
 
-Expected users are any one with heterogeneous memory where different
-memory have different characteristics (latency, bandwidth, ...).  As an
-example IBM platform with CAPI bus can make use of this feature to migrate
-between regular memory and CAPI device memory.  New CPU architecture with
-a pool of high performance memory not manage as cache but presented as
-regular memory (while being faster and with lower latency than DDR) will
-also be prime user of this patch.
+This patch implements all the logic from special swap type to handling CPU
+page fault through a callback specified in the ZONE_DEVICE pgmap struct.
 
-Migration to private device memory will be usefull for device that have
-large pool of such like GPU, NVidia plans to use HMM for that.
+Architecture that wish to support un-addressable device memory should make
+sure to never populate the kernel linar mapping for the physical range.
 
-Link: http://lkml.kernel.org/r/1489680335-6594-8-git-send-email-jglisse@redhat.com
+This feature potentially breaks memory hotplug unless every driver using
+it magically predicts the future addresses of where memory will be
+hotplugged.
+
+Link: http://lkml.kernel.org/r/1489680335-6594-5-git-send-email-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
-Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
-Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
-Reviewed-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Tested-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |   73 ++++++
- mm/migrate.c            |  460 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 533 insertions(+)
+ fs/proc/task_mmu.c             |    7 +++
+ include/linux/ioport.h         |    1 
+ include/linux/memory_hotplug.h |    7 +++
+ include/linux/memremap.h       |   18 ++++++++
+ include/linux/swap.h           |   18 ++++++--
+ include/linux/swapops.h        |   67 +++++++++++++++++++++++++++++++
+ kernel/memremap.c              |   22 +++++++++-
+ mm/Kconfig                     |   12 +++++
+ mm/memory.c                    |   66 ++++++++++++++++++++++++++++++
+ mm/memory_hotplug.c            |   10 +++-
+ mm/mprotect.c                  |   12 +++++
+ 11 files changed, 232 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4 include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4
-+++ a/include/linux/migrate.h
-@@ -124,4 +124,77 @@ static inline int migrate_misplaced_tran
+diff -puN fs/proc/task_mmu.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/fs/proc/task_mmu.c
+@@ -542,6 +542,8 @@ static void smaps_pte_entry(pte_t *pte,
+ 			}
+ 		} else if (is_migration_entry(swpent))
+ 			page = migration_entry_to_page(swpent);
++		else if (is_device_entry(swpent))
++			page = device_entry_to_page(swpent);
+ 	} else if (unlikely(IS_ENABLED(CONFIG_SHMEM) && mss->check_shmem_swap
+ 							&& pte_none(*pte))) {
+ 		page = find_get_entry(vma->vm_file->f_mapping,
+@@ -704,6 +706,8 @@ static int smaps_hugetlb_range(pte_t *pt
+ 
+ 		if (is_migration_entry(swpent))
+ 			page = migration_entry_to_page(swpent);
++		else if (is_device_entry(swpent))
++			page = device_entry_to_page(swpent);
+ 	}
+ 	if (page) {
+ 		int mapcount = page_mapcount(page);
+@@ -1196,6 +1200,9 @@ static pagemap_entry_t pte_to_pagemap_en
+ 		flags |= PM_SWAP;
+ 		if (is_migration_entry(entry))
+ 			page = migration_entry_to_page(entry);
++
++		if (is_device_entry(entry))
++			page = device_entry_to_page(entry);
+ 	}
+ 
+ 	if (page && !PageAnon(page))
+diff -puN include/linux/ioport.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/ioport.h
+--- a/include/linux/ioport.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/include/linux/ioport.h
+@@ -130,6 +130,7 @@ enum {
+ 	IORES_DESC_ACPI_NV_STORAGE		= 3,
+ 	IORES_DESC_PERSISTENT_MEMORY		= 4,
+ 	IORES_DESC_PERSISTENT_MEMORY_LEGACY	= 5,
++	IORES_DESC_UNADDRESSABLE_MEMORY		= 6,
+ };
+ 
+ /* helpers to define resources */
+diff -puN include/linux/memory_hotplug.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/include/linux/memory_hotplug.h
+@@ -286,15 +286,22 @@ extern int zone_for_memory(int nid, u64
+  * never relied on struct page migration so far and new user of might also
+  * prefer avoiding struct page migration.
+  *
++ * For device memory (which use ZONE_DEVICE) we want differentiate between CPU
++ * accessible memory (persitent memory, device memory on an architecture with a
++ * system bus that allow transparent access to device memory) and unaddressable
++ * memory (device memory that can not be accessed by CPU directly).
++ *
+  * New non device memory specific flags can be added if ever needed.
+  *
+  * MEMORY_REGULAR: regular system memory
+  * DEVICE_MEMORY: device memory create a ZONE_DEVICE zone for it
+  * DEVICE_MEMORY_ALLOW_MIGRATE: page in that device memory ca be migrated
++ * MEMORY_DEVICE_UNADDRESSABLE: un-addressable memory (CPU can not access it)
+  */
+ #define MEMORY_NORMAL 0
+ #define MEMORY_DEVICE (1 << 0)
+ #define MEMORY_DEVICE_ALLOW_MIGRATE (1 << 1)
++#define MEMORY_DEVICE_UNADDRESSABLE (1 << 2)
+ 
+ extern int arch_add_memory(int nid, u64 start, u64 size, int flags);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+diff -puN include/linux/memremap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/include/linux/memremap.h
+@@ -35,10 +35,16 @@ static inline struct vmem_altmap *to_vme
  }
- #endif /* CONFIG_NUMA_BALANCING && CONFIG_TRANSPARENT_HUGEPAGE*/
+ #endif
  
-+
-+#define MIGRATE_PFN_VALID	(1UL << (BITS_PER_LONG_LONG - 1))
-+#define MIGRATE_PFN_MIGRATE	(1UL << (BITS_PER_LONG_LONG - 2))
-+#define MIGRATE_PFN_HUGE	(1UL << (BITS_PER_LONG_LONG - 3))
-+#define MIGRATE_PFN_LOCKED	(1UL << (BITS_PER_LONG_LONG - 4))
-+#define MIGRATE_PFN_WRITE	(1UL << (BITS_PER_LONG_LONG - 5))
-+#define MIGRATE_PFN_MASK	((1UL << (BITS_PER_LONG_LONG - PAGE_SHIFT)) - 1)
-+
-+static inline struct page *migrate_pfn_to_page(unsigned long mpfn)
-+{
-+	if (!(mpfn & MIGRATE_PFN_VALID))
-+		return NULL;
-+	return pfn_to_page(mpfn & MIGRATE_PFN_MASK);
-+}
-+
-+static inline unsigned long migrate_pfn_size(unsigned long mpfn)
-+{
-+	return mpfn & MIGRATE_PFN_HUGE ? PMD_SIZE : PAGE_SIZE;
-+}
-+
-+/*
-+ * struct migrate_vma_ops - migrate operation callback
-+ *
-+ * @alloc_and_copy: alloc destination memoiry and copy source to it
-+ * @finalize_and_map: allow caller to inspect successfull migrated page
-+ *
-+ * migrate_vma() allow memory migration to use DMA  engine to perform copy from
-+ * source to destination memory it also allow caller to use its own memory
-+ * allocator for destination memory.
-+ *
-+ * Note that in alloc_and_copy device driver can decide not to migrate some of
-+ * the entry by simply setting corresponding dst entry 0.
-+ *
-+ * Destination page must locked and MIGRATE_PFN_LOCKED set in the corresponding
-+ * entry of dstarray. It is expected that page allocated will have an elevated
-+ * refcount and that a put_page() will free the page.
-+ *
-+ * Device driver might want to allocate with an extra-refcount if they want to
-+ * control deallocation of failed migration inside finalize_and_map() callback.
-+ *
-+ * The finalize_and_map() callback must use the MIGRATE_PFN_MIGRATE flag to
-+ * determine which page have been successfully migrated (it is set in the src
-+ * array for each entry that have been successfully migrated).
-+ *
-+ * For migration from device memory to system memory device driver must set any
-+ * dst entry to MIGRATE_PFN_ERROR for any entry it can not migrate back due to
-+ * hardware fatal failure that can not be recovered. Such failure will trigger
-+ * a SIGBUS for the process trying to access such memory.
-+ */
-+struct migrate_vma_ops {
-+	void (*alloc_and_copy)(struct vm_area_struct *vma,
-+			       const unsigned long *src,
-+			       unsigned long *dst,
-+			       unsigned long start,
-+			       unsigned long end,
-+			       void *private);
-+	void (*finalize_and_map)(struct vm_area_struct *vma,
-+				 const unsigned long *src,
-+				 const unsigned long *dst,
-+				 unsigned long start,
-+				 unsigned long end,
-+				 void *private);
-+};
-+
-+int migrate_vma(const struct migrate_vma_ops *ops,
-+		struct vm_area_struct *vma,
-+		unsigned long mentries,
-+		unsigned long start,
-+		unsigned long end,
-+		unsigned long *src,
-+		unsigned long *dst,
-+		void *private);
-+
- #endif /* _LINUX_MIGRATE_H */
-diff -puN mm/migrate.c~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4 mm/migrate.c
---- a/mm/migrate.c~mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4
-+++ a/mm/migrate.c
-@@ -393,6 +393,14 @@ int migrate_page_move_mapping(struct add
- 	int expected_count = 1 + extra_count;
- 	void **pslot;
++typedef int (*dev_page_fault_t)(struct vm_area_struct *vma,
++				unsigned long addr,
++				struct page *page,
++				unsigned flags,
++				pmd_t *pmdp);
+ typedef void (*dev_page_free_t)(struct page *page, void *data);
  
-+	/*
-+	 * ZONE_DEVICE pages have 1 refcount always held by their device
-+	 *
-+	 * Note that DAX memory will never reach that point as it does not have
-+	 * the MEMORY_DEVICE_ALLOW_MIGRATE flag set (see memory_hotplug.h).
-+	 */
-+	expected_count += is_zone_device_page(page);
+ /**
+  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
++ * @page_fault: callback when CPU fault on an un-addressable device page
+  * @page_free: free page callback when page refcount reach 1
+  * @altmap: pre-allocated/reserved memory for vmemmap allocations
+  * @res: physical address range covered by @ref
+@@ -48,6 +54,7 @@ typedef void (*dev_page_free_t)(struct p
+  * @flags: memory flags see MEMORY_* in memory_hotplug.h
+  */
+ struct dev_pagemap {
++	dev_page_fault_t page_fault;
+ 	dev_page_free_t page_free;
+ 	struct vmem_altmap *altmap;
+ 	const struct resource *res;
+@@ -67,6 +74,12 @@ static inline bool dev_page_allow_migrat
+ 	return ((page_zonenum(page) == ZONE_DEVICE) &&
+ 		(page->pgmap->flags & MEMORY_DEVICE_ALLOW_MIGRATE));
+ }
 +
- 	if (!mapping) {
- 		/* Anonymous page without mapping */
- 		if (page_count(page) != expected_count)
-@@ -2059,3 +2067,455 @@ out_unlock:
- #endif /* CONFIG_NUMA_BALANCING */
- 
- #endif /* CONFIG_NUMA */
-+
-+
-+struct migrate_vma {
-+	struct vm_area_struct	*vma;
-+	unsigned long		*dst;
-+	unsigned long		*src;
-+	unsigned long		cpages;
-+	unsigned long		npages;
-+	unsigned long		mpages;
-+	unsigned long		start;
-+	unsigned long		end;
-+};
-+
-+static inline int migrate_vma_array_full(struct migrate_vma *migrate)
++static inline bool is_addressable_page(const struct page *page)
 +{
-+	return migrate->npages >= migrate->mpages ? -ENOSPC : 0;
++	return ((page_zonenum(page) != ZONE_DEVICE) ||
++		!(page->pgmap->flags & MEMORY_DEVICE_UNADDRESSABLE));
 +}
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+ 		struct resource *res, struct percpu_ref *ref,
+@@ -90,6 +103,11 @@ static inline bool dev_page_allow_migrat
+ {
+ 	return false;
+ }
 +
-+static int migrate_vma_collect_hole(unsigned long start,
-+				    unsigned long end,
-+				    struct mm_walk *walk)
++static inline bool is_addressable_page(const struct page *page)
 +{
-+	struct migrate_vma *migrate = walk->private;
-+	unsigned long addr, next;
-+
-+	for (addr = start & PAGE_MASK; addr < end; addr = next) {
-+		unsigned long npages, i;
-+		int ret;
-+
-+		next = pmd_addr_end(addr, end);
-+		npages = (next - addr) >> PAGE_SHIFT;
-+		if (npages == (PMD_SIZE >> PAGE_SHIFT)) {
-+			migrate->src[migrate->npages++] = MIGRATE_PFN_HUGE;
-+			ret = migrate_vma_array_full(migrate);
-+			if (ret)
-+				return ret;
-+		} else {
-+			for (i = 0; i < npages; ++i) {
-+				migrate->src[migrate->npages++] = 0;
-+				ret = migrate_vma_array_full(migrate);
-+				if (ret)
-+					return ret;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int migrate_vma_collect_pmd(pmd_t *pmdp,
-+				   unsigned long start,
-+				   unsigned long end,
-+				   struct mm_walk *walk)
-+{
-+	struct migrate_vma *migrate = walk->private;
-+	struct mm_struct *mm = walk->vma->vm_mm;
-+	unsigned long addr = start;
-+	spinlock_t *ptl;
-+	pte_t *ptep;
-+
-+	if (pmd_none(*pmdp) || pmd_trans_unstable(pmdp)) {
-+		/* FIXME support THP */
-+		return migrate_vma_collect_hole(start, end, walk);
-+	}
-+
-+	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
-+	for (; addr < end; addr += PAGE_SIZE, ptep++) {
-+		unsigned long flags, pfn;
-+		struct page *page;
-+		pte_t pte;
-+		int ret;
-+
-+		pte = *ptep;
-+		pfn = pte_pfn(pte);
-+
-+		if (!pte_present(pte)) {
-+			flags = pfn = 0;
-+			goto next;
-+		}
-+
-+		/* FIXME support THP */
-+		page = vm_normal_page(migrate->vma, addr, pte);
-+		if (!page || !page->mapping || PageTransCompound(page)) {
-+			flags = pfn = 0;
-+			goto next;
-+		}
-+
-+		/*
-+		 * By getting a reference on the page we pin it and that blocks
-+		 * any kind of migration. Side effect is that it "freezes" the
-+		 * pte.
-+		 *
-+		 * We drop this reference after isolating the page from the lru
-+		 * for non device page (device page are not on the lru and thus
-+		 * can't be dropped from it).
-+		 */
-+		get_page(page);
-+		migrate->cpages++;
-+		flags = MIGRATE_PFN_VALID | MIGRATE_PFN_MIGRATE;
-+		flags |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
-+
-+next:
-+		migrate->src[migrate->npages++] = pfn | flags;
-+		ret = migrate_vma_array_full(migrate);
-+		if (ret) {
-+			pte_unmap_unlock(ptep, ptl);
-+			return ret;
-+		}
-+	}
-+	pte_unmap_unlock(ptep - 1, ptl);
-+
-+	return 0;
-+}
-+
-+/*
-+ * migrate_vma_collect() - collect page over range of virtual addresses
-+ * @migrate: migrate struct containing all migration information
-+ *
-+ * This will walk the CPU page table. For each virtual address backed by a
-+ * valid page, it updates the src array and takes a reference on the page, in
-+ * order to pin the page until we lock it and unmap it.
-+ */
-+static void migrate_vma_collect(struct migrate_vma *migrate)
-+{
-+	struct mm_walk mm_walk;
-+
-+	mm_walk.pmd_entry = migrate_vma_collect_pmd;
-+	mm_walk.pte_entry = NULL;
-+	mm_walk.pte_hole = migrate_vma_collect_hole;
-+	mm_walk.hugetlb_entry = NULL;
-+	mm_walk.test_walk = NULL;
-+	mm_walk.vma = migrate->vma;
-+	mm_walk.mm = migrate->vma->vm_mm;
-+	mm_walk.private = migrate;
-+
-+	walk_page_range(migrate->start, migrate->end, &mm_walk);
-+
-+	migrate->end = migrate->start + (migrate->npages << PAGE_SHIFT);
-+}
-+
-+/*
-+ * migrate_vma_check_page() - check if page is pinned or not
-+ * @page: struct page to check
-+ *
-+ * Pinned pages cannot be migrated. This is the same test as in
-+ * migrate_page_move_mapping(), except that here we allow migration of a
-+ * ZONE_DEVICE page.
-+ */
-+static bool migrate_vma_check_page(struct page *page)
-+{
-+	/*
-+	 * One extra ref because caller holds an extra reference, either from
-+	 * isolate_lru_page() for a regular page, or migrate_vma_collect() for
-+	 * a device page.
-+	 */
-+	int extra = 1;
-+
-+	/*
-+	 * FIXME support THP (transparent huge page), it is bit more complex to
-+	 * check them than regular pages, because they can be mapped with a pmd
-+	 * or with a pte (split pte mapping).
-+	 */
-+	if (PageCompound(page))
-+		return false;
-+
-+	if ((page_count(page) - extra) > page_mapcount(page))
-+		return false;
-+
 +	return true;
 +}
+ #endif
+ 
+ /**
+diff -puN include/linux/swap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/swap.h
+--- a/include/linux/swap.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/include/linux/swap.h
+@@ -51,6 +51,17 @@ static inline int current_is_kswapd(void
+  */
+ 
+ /*
++ * Un-addressable device memory support
++ */
++#ifdef CONFIG_DEVICE_UNADDRESSABLE
++#define SWP_DEVICE_NUM 2
++#define SWP_DEVICE_WRITE (MAX_SWAPFILES + SWP_HWPOISON_NUM + SWP_MIGRATION_NUM)
++#define SWP_DEVICE (MAX_SWAPFILES + SWP_HWPOISON_NUM + SWP_MIGRATION_NUM + 1)
++#else
++#define SWP_DEVICE_NUM 0
++#endif
 +
 +/*
-+ * migrate_vma_prepare() - lock pages and isolate them from the lru
-+ * @migrate: migrate struct containing all migration informations
-+ *
-+ * This locks pages that have been collected by migrate_vma_collect(). Once each
-+ * page is locked it is isolated from the lru (for non-device pages). Finally,
-+ * the ref taken by migrate_vma_collect() is dropped, as locked pages cannot be
-+ * migrated by concurrent kernel threads.
-+ */
-+static void migrate_vma_prepare(struct migrate_vma *migrate)
+  * NUMA node memory migration support
+  */
+ #ifdef CONFIG_MIGRATION
+@@ -72,7 +83,8 @@ static inline int current_is_kswapd(void
+ #endif
+ 
+ #define MAX_SWAPFILES \
+-	((1 << MAX_SWAPFILES_SHIFT) - SWP_MIGRATION_NUM - SWP_HWPOISON_NUM)
++	((1 << MAX_SWAPFILES_SHIFT) - SWP_DEVICE_NUM - \
++	SWP_MIGRATION_NUM - SWP_HWPOISON_NUM)
+ 
+ /*
+  * Magic header for a swap area. The first part of the union is
+@@ -435,8 +447,8 @@ static inline void show_swap_cache_info(
+ {
+ }
+ 
+-#define free_swap_and_cache(swp)	is_migration_entry(swp)
+-#define swapcache_prepare(swp)		is_migration_entry(swp)
++#define free_swap_and_cache(e) (is_migration_entry(e) || is_device_entry(e))
++#define swapcache_prepare(e) (is_migration_entry(e) || is_device_entry(e))
+ 
+ static inline int add_swap_count_continuation(swp_entry_t swp, gfp_t gfp_mask)
+ {
+diff -puN include/linux/swapops.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/include/linux/swapops.h
+@@ -100,6 +100,73 @@ static inline void *swp_to_radix_entry(s
+ 	return (void *)(value | RADIX_TREE_EXCEPTIONAL_ENTRY);
+ }
+ 
++#if IS_ENABLED(CONFIG_DEVICE_UNADDRESSABLE)
++static inline swp_entry_t make_device_entry(struct page *page, bool write)
 +{
-+	unsigned long addr = migrate->start, i, size;
-+	const unsigned long npages = migrate->npages;
-+	bool allow_drain = true;
++	return swp_entry(write?SWP_DEVICE_WRITE:SWP_DEVICE, page_to_pfn(page));
++}
 +
-+	lru_add_drain();
++static inline bool is_device_entry(swp_entry_t entry)
++{
++	int type = swp_type(entry);
++	return type == SWP_DEVICE || type == SWP_DEVICE_WRITE;
++}
 +
-+	for (i = 0; i < npages && migrate->cpages; i++, addr += size) {
-+		struct page *page = migrate_pfn_to_page(migrate->src[i]);
-+		size = migrate_pfn_size(migrate->src[i]);
++static inline void make_device_entry_read(swp_entry_t *entry)
++{
++	*entry = swp_entry(SWP_DEVICE, swp_offset(*entry));
++}
 +
-+		if (!page)
-+			continue;
++static inline bool is_write_device_entry(swp_entry_t entry)
++{
++	return unlikely(swp_type(entry) == SWP_DEVICE_WRITE);
++}
 +
-+		lock_page(page);
-+		migrate->src[i] |= MIGRATE_PFN_LOCKED;
++static inline struct page *device_entry_to_page(swp_entry_t entry)
++{
++	return pfn_to_page(swp_offset(entry));
++}
 +
-+		if (!PageLRU(page) && allow_drain) {
-+			/* Drain CPU's pagevec */
-+			lru_add_drain_all();
-+			allow_drain = false;
-+		}
++int device_entry_fault(struct vm_area_struct *vma,
++		       unsigned long addr,
++		       swp_entry_t entry,
++		       unsigned flags,
++		       pmd_t *pmdp);
++#else /* CONFIG_DEVICE_UNADDRESSABLE */
++static inline swp_entry_t make_device_entry(struct page *page, bool write)
++{
++	return swp_entry(0, 0);
++}
 +
-+		if (isolate_lru_page(page)) {
-+			migrate->src[i] = 0;
-+			unlock_page(page);
-+			migrate->cpages--;
++static inline void make_device_entry_read(swp_entry_t *entry)
++{
++}
++
++static inline bool is_device_entry(swp_entry_t entry)
++{
++	return false;
++}
++
++static inline bool is_write_device_entry(swp_entry_t entry)
++{
++	return false;
++}
++
++static inline struct page *device_entry_to_page(swp_entry_t entry)
++{
++	return NULL;
++}
++
++static inline int device_entry_fault(struct vm_area_struct *vma,
++				     unsigned long addr,
++				     swp_entry_t entry,
++				     unsigned flags,
++				     pmd_t *pmdp)
++{
++	return VM_FAULT_SIGBUS;
++}
++#endif /* CONFIG_DEVICE_UNADDRESSABLE */
++
+ #ifdef CONFIG_MIGRATION
+ static inline swp_entry_t make_migration_entry(struct page *page, int write)
+ {
+diff -puN kernel/memremap.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 kernel/memremap.c
+--- a/kernel/memremap.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/kernel/memremap.c
+@@ -18,6 +18,8 @@
+ #include <linux/io.h>
+ #include <linux/mm.h>
+ #include <linux/memory_hotplug.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
+ 
+ #ifndef ioremap_cache
+ /* temporary while we convert existing ioremap_cache users to memremap */
+@@ -203,6 +205,21 @@ void put_zone_device_page(struct page *p
+ }
+ EXPORT_SYMBOL(put_zone_device_page);
+ 
++#if IS_ENABLED(CONFIG_DEVICE_UNADDRESSABLE)
++int device_entry_fault(struct vm_area_struct *vma,
++		       unsigned long addr,
++		       swp_entry_t entry,
++		       unsigned flags,
++		       pmd_t *pmdp)
++{
++	struct page *page = device_entry_to_page(entry);
++
++	BUG_ON(!page->pgmap->page_fault);
++	return page->pgmap->page_fault(vma, addr, page, flags, pmdp);
++}
++EXPORT_SYMBOL(device_entry_fault);
++#endif /* CONFIG_DEVICE_UNADDRESSABLE */
++
+ static void pgmap_radix_release(struct resource *res)
+ {
+ 	resource_size_t key, align_start, align_size, align_end;
+@@ -257,7 +274,7 @@ static void devm_memremap_pages_release(
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+ 
+ 	mem_hotplug_begin();
+-	arch_remove_memory(align_start, align_size, MEMORY_DEVICE);
++	arch_remove_memory(align_start, align_size, pgmap->flags);
+ 	mem_hotplug_done();
+ 
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+@@ -336,6 +353,7 @@ void *devm_memremap_pages(struct device
+ 	pgmap->ref = ref;
+ 	pgmap->res = &page_map->res;
+ 	pgmap->flags = MEMORY_DEVICE;
++	pgmap->page_fault = NULL;
+ 	pgmap->page_free = NULL;
+ 	pgmap->data = NULL;
+ 
+@@ -375,7 +393,7 @@ void *devm_memremap_pages(struct device
+ 		goto err_pfn_remap;
+ 
+ 	mem_hotplug_begin();
+-	error = arch_add_memory(nid, align_start, align_size, MEMORY_DEVICE);
++	error = arch_add_memory(nid, align_start, align_size, pgmap->flags);
+ 	mem_hotplug_done();
+ 	if (error)
+ 		goto err_add_memory;
+diff -puN mm/Kconfig~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/Kconfig
+--- a/mm/Kconfig~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/mm/Kconfig
+@@ -700,6 +700,18 @@ config ZONE_DEVICE
+ 
+ 	  If FS_DAX is enabled, then say Y.
+ 
++config DEVICE_UNADDRESSABLE
++	bool "Un-addressable device memory (GPU memory, ...)"
++	depends on ZONE_DEVICE
++
++	help
++	  Allow to create struct page for un-addressable device memory
++	  ie memory that is only accessible by the device (or group of
++	  devices).
++
++	  Having struct page is necessary for process memory migration
++	  to device memory.
++
+ config FRAME_VECTOR
+ 	bool
+ 
+diff -puN mm/memory.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/memory.c
+--- a/mm/memory.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/mm/memory.c
+@@ -49,6 +49,7 @@
+ #include <linux/swap.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
++#include <linux/memremap.h>
+ #include <linux/ksm.h>
+ #include <linux/rmap.h>
+ #include <linux/export.h>
+@@ -927,6 +928,25 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 					pte = pte_swp_mksoft_dirty(pte);
+ 				set_pte_at(src_mm, addr, src_pte, pte);
+ 			}
++		} else if (is_device_entry(entry)) {
++			page = device_entry_to_page(entry);
++
++			/*
++			 * Update rss count even for un-addressable page as
++			 * they should be consider just like any other page.
++			 */
++			get_page(page);
++			rss[mm_counter(page)]++;
++			page_dup_rmap(page, false);
++
++			if (is_write_device_entry(entry) &&
++			    is_cow_mapping(vm_flags)) {
++				make_device_entry_read(&entry);
++				pte = swp_entry_to_pte(entry);
++				if (pte_swp_soft_dirty(*src_pte))
++					pte = pte_swp_mksoft_dirty(pte);
++				set_pte_at(src_mm, addr, src_pte, pte);
++			}
+ 		}
+ 		goto out_set_pte;
+ 	}
+@@ -1243,6 +1263,34 @@ again:
+ 			}
+ 			continue;
+ 		}
++
++		/*
++		 * Un-addressable page must always be check that are not like
++		 * other swap entries and thus should be check no matter what
++		 * details->check_swap_entries value is.
++		 */
++		entry = pte_to_swp_entry(ptent);
++		if (non_swap_entry(entry) && is_device_entry(entry)) {
++			struct page *page = device_entry_to_page(entry);
++
++			if (unlikely(details && details->check_mapping)) {
++				/*
++				 * unmap_shared_mapping_pages() wants to
++				 * invalidate cache without truncating:
++				 * unmap shared but keep private pages.
++				 */
++				if (details->check_mapping !=
++				    page_rmapping(page))
++					continue;
++			}
++
++			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			rss[mm_counter(page)]--;
++			page_remove_rmap(page, false);
 +			put_page(page);
 +			continue;
 +		}
 +
-+		/* Drop the reference we took in collect */
-+		put_page(page);
+ 		/* If details->check_mapping, we leave swap entries. */
+ 		if (unlikely(details))
+ 			continue;
+@@ -2690,6 +2738,14 @@ int do_swap_page(struct vm_fault *vmf)
+ 		if (is_migration_entry(entry)) {
+ 			migration_entry_wait(vma->vm_mm, vmf->pmd,
+ 					     vmf->address);
++		} else if (is_device_entry(entry)) {
++			/*
++			 * For un-addressable device memory we call the pgmap
++			 * fault handler callback. The callback must migrate
++			 * the page back to some CPU accessible page.
++			 */
++			ret = device_entry_fault(vma, vmf->address, entry,
++						 vmf->flags, vmf->pmd);
+ 		} else if (is_hwpoison_entry(entry)) {
+ 			ret = VM_FAULT_HWPOISON;
+ 		} else {
+@@ -3679,6 +3735,7 @@ static int wp_huge_pud(struct vm_fault *
+ static int handle_pte_fault(struct vm_fault *vmf)
+ {
+ 	pte_t entry;
++	struct page *page;
+ 
+ 	if (unlikely(pmd_none(*vmf->pmd))) {
+ 		/*
+@@ -3729,9 +3786,16 @@ static int handle_pte_fault(struct vm_fa
+ 	if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
+ 		return do_numa_page(vmf);
+ 
++	/* Catch mapping of un-addressable memory this should never happen */
++	entry = vmf->orig_pte;
++	page = pfn_to_page(pte_pfn(entry));
++	if (!is_addressable_page(page)) {
++		print_bad_pte(vmf->vma, vmf->address, entry, page);
++		return VM_FAULT_SIGBUS;
++	}
 +
-+		if (!migrate_vma_check_page(page)) {
-+			migrate->src[i] = 0;
-+			unlock_page(page);
-+			migrate->cpages--;
-+
-+			putback_lru_page(page);
+ 	vmf->ptl = pte_lockptr(vmf->vma->vm_mm, vmf->pmd);
+ 	spin_lock(vmf->ptl);
+-	entry = vmf->orig_pte;
+ 	if (unlikely(!pte_same(*vmf->pte, entry)))
+ 		goto unlock;
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+diff -puN mm/memory_hotplug.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/mm/memory_hotplug.c
+@@ -156,7 +156,7 @@ void mem_hotplug_done(void)
+ /* add this memory to iomem resource */
+ static struct resource *register_memory_resource(u64 start, u64 size)
+ {
+-	struct resource *res;
++	struct resource *res, *conflict;
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+ 	if (!res)
+ 		return ERR_PTR(-ENOMEM);
+@@ -165,7 +165,13 @@ static struct resource *register_memory_
+ 	res->start = start;
+ 	res->end = start + size - 1;
+ 	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+-	if (request_resource(&iomem_resource, res) < 0) {
++	conflict =  request_resource_conflict(&iomem_resource, res);
++	if (conflict) {
++		if (conflict->desc == IORES_DESC_UNADDRESSABLE_MEMORY) {
++			pr_debug("Device un-addressable memory block "
++				 "memory hotplug at %#010llx !\n",
++				 (unsigned long long)start);
 +		}
-+	}
-+}
+ 		pr_debug("System RAM resource %pR cannot be added\n", res);
+ 		kfree(res);
+ 		return ERR_PTR(-EEXIST);
+diff -puN mm/mprotect.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3 mm/mprotect.c
+--- a/mm/mprotect.c~mm-zone_device-unaddressable-add-support-for-un-addressable-device-memory-v3
++++ a/mm/mprotect.c
+@@ -126,6 +126,18 @@ static unsigned long change_pte_range(st
+ 
+ 				pages++;
+ 			}
 +
-+/*
-+ * migrate_vma_unmap() - replace page mapping with special migration pte entry
-+ * @migrate: migrate struct containing all migration information
-+ *
-+ * Replace page mapping (CPU page table pte) with special migration pte entry
-+ * and check again if it has been pinned. Pinned pages are restored because we
-+ * cannot migrate them.
-+ *
-+ * This is the last step before we call the device driver callback to allocate
-+ * destination memory and copy contents of original page over to new page.
-+ */
-+static void migrate_vma_unmap(struct migrate_vma *migrate)
-+{
-+	int flags = TTU_MIGRATION | TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
-+	unsigned long addr = migrate->start, i, restore = 0, size;
-+	const unsigned long npages = migrate->npages;
-+	const unsigned long start = migrate->start;
++			if (is_write_device_entry(entry)) {
++				pte_t newpte;
 +
-+	for (i = 0; i < npages && migrate->cpages; addr += size, i++) {
-+		struct page *page = migrate_pfn_to_page(migrate->src[i]);
-+		size = migrate_pfn_size(migrate->src[i]);
++				make_device_entry_read(&entry);
++				newpte = swp_entry_to_pte(entry);
++				if (pte_swp_soft_dirty(oldpte))
++					newpte = pte_swp_mksoft_dirty(newpte);
++				set_pte_at(mm, addr, pte, newpte);
 +
-+		if (!page || !(migrate->src[i] & MIGRATE_PFN_MIGRATE))
-+			continue;
-+
-+		try_to_unmap(page, flags);
-+		if (page_mapped(page) || !migrate_vma_check_page(page)) {
-+			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
-+			migrate->cpages--;
-+			restore++;
-+		}
-+	}
-+
-+	for (addr = start, i = 0; i < npages && restore; addr += size, i++) {
-+		struct page *page = migrate_pfn_to_page(migrate->src[i]);
-+		size = migrate_pfn_size(migrate->src[i]);
-+
-+		if (!page || (migrate->src[i] & MIGRATE_PFN_MIGRATE))
-+			continue;
-+
-+		remove_migration_ptes(page, page, false);
-+
-+		migrate->src[i] = 0;
-+		unlock_page(page);
-+		restore--;
-+
-+		putback_lru_page(page);
-+	}
-+}
-+
-+/*
-+ * migrate_vma_pages() - migrate meta-data from src page to dst page
-+ * @migrate: migrate struct containing all migration information
-+ *
-+ * This migrate struct page meta-data from source struct page to destination
-+ * struct page. This effectively finishes the migration from source page to the
-+ * destination page.
-+ */
-+static void migrate_vma_pages(struct migrate_vma *migrate)
-+{
-+	const unsigned long npages = migrate->npages;
-+	unsigned long addr, i, size;
-+
-+	for (i = 0, addr = migrate->start; i < npages; addr += size, i++) {
-+		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
-+		struct page *page = migrate_pfn_to_page(migrate->src[i]);
-+		struct address_space *mapping;
-+		int r;
-+
-+		size = migrate_pfn_size(migrate->src[i]);
-+
-+		if (!page || !newpage)
-+			continue;
-+		if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE))
-+			continue;
-+
-+		mapping = page_mapping(page);
-+
-+		r = migrate_page(mapping, newpage, page, MIGRATE_SYNC, false);
-+		if (r != MIGRATEPAGE_SUCCESS)
-+			migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
-+	}
-+}
-+
-+/*
-+ * migrate_vma_finalize() - restore CPU page table entry
-+ * @migrate: migrate struct containing all migration information
-+ *
-+ * This replaces the special migration pte entry with either a mapping to the
-+ * new page if migration was successful for that page, or to the original page
-+ * otherwise.
-+ *
-+ * This also unlocks the pages and puts them back on the lru, or drops the extra
-+ * refcount, for device pages.
-+ */
-+static void migrate_vma_finalize(struct migrate_vma *migrate)
-+{
-+	const unsigned long npages = migrate->npages;
-+	unsigned long addr, i, size;
-+
-+	for (i = 0, addr = migrate->start; i < npages; addr += size, i++) {
-+		struct page *newpage = migrate_pfn_to_page(migrate->dst[i]);
-+		struct page *page = migrate_pfn_to_page(migrate->src[i]);
-+		size = migrate_pfn_size(migrate->src[i]);
-+
-+		if (!page)
-+			continue;
-+		if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE) || !newpage) {
-+			if (newpage) {
-+				unlock_page(newpage);
-+				put_page(newpage);
++				pages++;
 +			}
-+			newpage = page;
-+		}
-+
-+		remove_migration_ptes(page, newpage, false);
-+		unlock_page(page);
-+		migrate->cpages--;
-+
-+		putback_lru_page(page);
-+
-+		if (newpage != page) {
-+			unlock_page(newpage);
-+			putback_lru_page(newpage);
-+		}
-+	}
-+}
-+
-+/*
-+ * migrate_vma() - migrate a range of memory inside vma using accelerated copy
-+ *
-+ * @ops: migration callback for allocating destination memory and copying
-+ * @vma: virtual memory area containing the range to be migrated
-+ * @mentries: maximum number of entry in src or dst pfns array
-+ * @start: start address of the range to migrate (inclusive)
-+ * @end: end address of the range to migrate (exclusive)
-+ * @src: array of hmm_pfn_t containing source pfns
-+ * @dst: array of hmm_pfn_t containing destination pfns
-+ * @private: pointer passed back to each of the callback
-+ * Returns: 0 on success, error code otherwise
-+ *
-+ * This will try to migrate a range of memory using callback to allocate and
-+ * copy memory from source to destination. This function will first collect,
-+ * lock and unmap pages in the range and then call alloc_and_copy() callback
-+ * for device driver to allocate destination memory and copy from source.
-+ *
-+ * Then it will proceed and try to effectively migrate the page (struct page
-+ * metadata), a step that can fail for various reasons. Before updating CPU page
-+ * table it will call finalize_and_map() callback so that the device driver can
-+ * inspect what has been successfully migrated and update its own page tables
-+ * (this latter aspect is not mandatory and only make senses for some users of
-+ * this API).
-+ *
-+ * Finally the function update CPU page table and unlock the pages before
-+ * returning 0.
-+ *
-+ * It will return an error code only if one of the arguments is invalid.
-+ */
-+int migrate_vma(const struct migrate_vma_ops *ops,
-+		struct vm_area_struct *vma,
-+		unsigned long mentries,
-+		unsigned long start,
-+		unsigned long end,
-+		unsigned long *src,
-+		unsigned long *dst,
-+		void *private)
-+{
-+	struct migrate_vma migrate;
-+
-+	/* Sanity check the arguments */
-+	start &= PAGE_MASK;
-+	end &= PAGE_MASK;
-+	if (is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_SPECIAL))
-+		return -EINVAL;
-+	if (!vma || !ops || !src || !dst || start >= end)
-+		return -EINVAL;
-+	if (start < vma->vm_start || start >= vma->vm_end)
-+		return -EINVAL;
-+	if (end <= vma->vm_start || end > vma->vm_end)
-+		return -EINVAL;
-+
-+	memset(src, 0, sizeof(*src) * ((end - start) >> PAGE_SHIFT));
-+	migrate.src = src;
-+	migrate.dst = dst;
-+	migrate.start = start;
-+	migrate.npages = 0;
-+	migrate.cpages = 0;
-+	migrate.mpages = mentries;
-+	migrate.end = end;
-+	migrate.vma = vma;
-+
-+	/* Collect, and try to unmap source pages */
-+	migrate_vma_collect(&migrate);
-+	if (!migrate.cpages)
-+		return 0;
-+
-+	/* Lock and isolate page */
-+	migrate_vma_prepare(&migrate);
-+	if (!migrate.cpages)
-+		return 0;
-+
-+	/* Unmap pages */
-+	migrate_vma_unmap(&migrate);
-+	if (!migrate.cpages)
-+		return 0;
-+
-+	/*
-+	 * At this point pages are locked and unmapped, and thus they have
-+	 * stable content and can safely be copied to destination memory that
-+	 * is allocated by the callback.
-+	 *
-+	 * Note that migration can fail in migrate_vma_struct_page() for each
-+	 * individual page.
-+	 */
-+	ops->alloc_and_copy(vma, src, dst, start, end, private);
-+
-+	/* This does the real migration of struct page */
-+	migrate_vma_pages(&migrate);
-+
-+	ops->finalize_and_map(vma, src, dst, start, end, private);
-+
-+	/* Unlock and remap pages */
-+	migrate_vma_finalize(&migrate);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(migrate_vma);
+ 		}
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ 	arch_leave_lazy_mmu_mode();
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
