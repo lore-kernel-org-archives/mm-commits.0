@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + hpet-make-cmd-parameter-of-hpet_ioctl_common-unsigned.patch
- added to -mm tree
-Date: Wed, 15 Mar 2017 15:07:18 -0700
-Message-ID: <58c9bb16.0I71FZapQHXoaMRI%akpm@linux-foundation.org>
+Subject: + x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch added to -mm tree
+Date: Thu, 16 Mar 2017 11:46:22 -0700
+Message-ID: <58cadd7e.Kg0Sx+i93OEqh9sw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58816 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753490AbdCOWHV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2017 18:07:21 -0400
+        with ESMTP id S1752318AbdCPSqY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 14:46:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mka@chromium.org, arnd@arndb.de, clemens@ladisch.de, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, dvyukov@google.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/char/hpet.c: make cmd parameter of hpet_ioctl_common() unsigned
+     Subject: x86-atomic-move-__atomic_add_unless-out-of-line-fix
 has been added to the -mm tree.  Its filename is
-     hpet-make-cmd-parameter-of-hpet_ioctl_common-unsigned.patch
+     x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hpet-make-cmd-parameter-of-hpet_ioctl_common-unsigned.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hpet-make-cmd-parameter-of-hpet_ioctl_common-unsigned.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: drivers/char/hpet.c: make cmd parameter of hpet_ioctl_common() unsigned
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-atomic-move-__atomic_add_unless-out-of-line-fix
 
-The value passed by the two callers of the function is unsigned anyway.
+fix rejects fix
 
-Making the parameter unsigned fixes the following warning when building
-with clang:
-
-drivers/char/hpet.c:588:7: error: overflow converting case value to switch condition type (2149083139 to 18446744071563667459) [-Werror,-Wswitch]
-        case HPET_INFO:
-             ^
-include/uapi/linux/hpet.h:18:19: note: expanded from macro 'HPET_INFO'
-                        ^
-include/uapi/asm-generic/ioctl.h:77:28: note: expanded from macro '_IOR'
-                                ^
-include/uapi/asm-generic/ioctl.h:66:2: note: expanded from macro '_IOC'
-        (((dir)  << _IOC_DIRSHIFT) | \
-
-Link: http://lkml.kernel.org/r/20170313185725.144873-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Acked-by: Clemens Ladisch <clemens@ladisch.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/atomic.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/hpet.c~hpet-make-cmd-parameter-of-hpet_ioctl_common-unsigned drivers/char/hpet.c
---- a/drivers/char/hpet.c~hpet-make-cmd-parameter-of-hpet_ioctl_common-unsigned
-+++ a/drivers/char/hpet.c
-@@ -575,7 +575,7 @@ static inline unsigned long hpet_time_di
- }
+diff -puN arch/x86/include/asm/atomic.h~x86-atomic-move-__atomic_add_unless-out-of-line-fix arch/x86/include/asm/atomic.h
+--- a/arch/x86/include/asm/atomic.h~x86-atomic-move-__atomic_add_unless-out-of-line-fix
++++ a/arch/x86/include/asm/atomic.h
+@@ -235,6 +235,8 @@ ATOMIC_OPS(xor, ^)
+ #undef ATOMIC_FETCH_OP
+ #undef ATOMIC_OP
  
- static int
--hpet_ioctl_common(struct hpet_dev *devp, int cmd, unsigned long arg,
-+hpet_ioctl_common(struct hpet_dev *devp, unsigned int cmd, unsigned long arg,
- 		  struct hpet_info *info)
- {
- 	struct hpet_timer __iomem *timer;
++int __arch_atomic_add_unless(atomic_t *v, int a, int u);
++
+ /**
+  * arch_atomic_inc_short - increment of a short integer
+  * @v: pointer to type int
 _
 
-Patches currently in -mm which might be from mka@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hpet-make-cmd-parameter-of-hpet_ioctl_common-unsigned.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+linux-next-rejects.patch
+drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
+drm-use-set_memoryh-header-fix.patch
+drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
+x86-atomic-move-__atomic_add_unless-out-of-line-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
