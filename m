@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2.patch
- added to -mm tree
-Date: Thu, 16 Mar 2017 13:52:15 -0700
-Message-ID: <58cafaff.eCrwjjRlqxBIz5sN%akpm@linux-foundation.org>
+Subject: +
+ mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch added to -mm tree
+Date: Thu, 16 Mar 2017 13:51:31 -0700
+Message-ID: <58cafad3.MIMy5/GGSK6Vs+Ac%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52828 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751663AbdCPVDs (ORCPT
+        with ESMTP id S1752253AbdCPVDs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2017 17:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, SCheung@nvidia.com, ebaskakov@nvidia.com, jhubbard@nvidia.com, mhairgrove@nvidia.com, sgutti@nvidia.com, mm-commits@vger.kernel.org
+To: jglisse@redhat.com, benh@kernel.crashing.org, cmetcalf@mellanox.com, dalias@libc.org, heiko.carstens@de.ibm.com, hpa@zytor.com, linux@armlinux.org.uk, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, schwidefsky@de.ibm.com, tglx@linutronix.de, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm/devmem: dummy HMM device for ZONE_DEVICE memory
+     Subject: mm/memory/hotplug: convert device bool to int to allow for more flags
 has been added to the -mm tree.  Its filename is
-     mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2.patch
+     mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,181 +40,526 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jérôme Glisse <jglisse@redhat.com>
-Subject: mm/hmm/devmem: dummy HMM device for ZONE_DEVICE memory
+Subject: mm/memory/hotplug: convert device bool to int to allow for more flags
 
-This introduces a dummy HMM device class so device driver can use it to
-create hmm_device for the sole purpose of registering device memory.  It
-is usefull to device driver that want to manage multiple physical device
-memory under same struct device umbrella.
+Patch series "HMM (Heterogeneous Memory Management)", v18.
 
-Link: http://lkml.kernel.org/r/1489680335-6594-17-git-send-email-jglisse@redhat.com
+
+This patch (of 16):
+
+When hotpluging memory we want more informations on the type of memory and
+its properties.  Replace the device boolean flag by an int and define a
+set of flags.
+
+New property for device memory is an opt-in flag to allow page migration
+from and to a ZONE_DEVICE.  Existing user of ZONE_DEVICE are not expecting
+page migration to work for their pages.  New changes to page migration i
+changing that and we now need a flag to explicitly opt-in page migration.
+
+Link: http://lkml.kernel.org/r/1489680335-6594-2-git-send-email-jglisse@redhat.com
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Signed-off-by: Evgeny Baskakov <ebaskakov@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
-Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
-Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hmm.h |   22 +++++++++
- mm/hmm.c            |   96 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 117 insertions(+), 1 deletion(-)
+ arch/ia64/mm/init.c            |   23 ++++++++++++++++++++---
+ arch/powerpc/mm/mem.c          |   23 +++++++++++++++++++----
+ arch/s390/mm/init.c            |   10 ++++++++--
+ arch/sh/mm/init.c              |   22 +++++++++++++++++++---
+ arch/tile/mm/init.c            |   10 ++++++++--
+ arch/x86/mm/init_32.c          |   23 ++++++++++++++++++++---
+ arch/x86/mm/init_64.c          |   23 ++++++++++++++++++++---
+ include/linux/memory_hotplug.h |   24 ++++++++++++++++++++++--
+ include/linux/memremap.h       |   13 +++++++++++++
+ kernel/memremap.c              |    5 +++--
+ mm/memory_hotplug.c            |    4 ++--
+ 11 files changed, 154 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/hmm.h~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2 include/linux/hmm.h
---- a/include/linux/hmm.h~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2
-+++ a/include/linux/hmm.h
-@@ -79,11 +79,11 @@
- 
- #if IS_ENABLED(CONFIG_HMM)
- 
-+#include <linux/device.h>
- #include <linux/migrate.h>
- #include <linux/memremap.h>
- #include <linux/completion.h>
- 
--
- struct hmm;
- 
- /*
-@@ -433,6 +433,26 @@ static inline unsigned long hmm_devmem_p
- 
- 	return drvdata[1];
+diff -puN arch/ia64/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/arch/ia64/mm/init.c
+@@ -646,18 +646,27 @@ mem_init (void)
  }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	pg_data_t *pgdat;
+ 	struct zone *zone;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
 +
+ 	pgdat = NODE_DATA(nid);
+ 
+ 	zone = pgdat->node_zones +
+-		zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
++		zone_for_memory(nid, start, size, ZONE_NORMAL,
++				flags & MEMORY_DEVICE);
+ 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
+ 
+ 	if (ret)
+@@ -668,13 +677,21 @@ int arch_add_memory(int nid, u64 start,
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	struct zone *zone;
+ 	int ret;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	zone = page_zone(pfn_to_page(start_pfn));
+ 	ret = __remove_pages(zone, start_pfn, nr_pages);
+ 	if (ret)
+diff -puN arch/powerpc/mm/mem.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/arch/powerpc/mm/mem.c
+@@ -126,16 +126,23 @@ int __weak remove_section_mapping(unsign
+ 	return -ENODEV;
+ }
+ 
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	struct pglist_data *pgdata;
+ 	struct zone *zone;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int rc;
+ 
+-	resize_hpt_for_hotplug(memblock_phys_mem_size());
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
+ 
++	resize_hpt_for_hotplug(memblock_phys_mem_size());
+ 	pgdata = NODE_DATA(nid);
+ 
+ 	start = (unsigned long)__va(start);
+@@ -149,19 +156,27 @@ int arch_add_memory(int nid, u64 start,
+ 
+ 	/* this should work for most non-highmem platforms */
+ 	zone = pgdata->node_zones +
+-		zone_for_memory(nid, start, size, 0, for_device);
++		zone_for_memory(nid, start, size, 0, flags & MEMORY_DEVICE);
+ 
+ 	return __add_pages(nid, zone, start_pfn, nr_pages);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	struct zone *zone;
+ 	int ret;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	zone = page_zone(pfn_to_page(start_pfn));
+ 	ret = __remove_pages(zone, start_pfn, nr_pages);
+ 	if (ret)
+diff -puN arch/s390/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/arch/s390/mm/init.c
+@@ -161,7 +161,7 @@ unsigned long memory_block_size_bytes(vo
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, int flags)
+ {
+ 	unsigned long zone_start_pfn, zone_end_pfn, nr_pages;
+ 	unsigned long start_pfn = PFN_DOWN(start);
+@@ -170,6 +170,12 @@ int arch_add_memory(int nid, u64 start,
+ 	struct zone *zone;
+ 	int rc, i;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags) {
++		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	rc = vmem_add_mapping(start, size);
+ 	if (rc)
+ 		return rc;
+@@ -204,7 +210,7 @@ int arch_add_memory(int nid, u64 start,
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, int flags)
+ {
+ 	/*
+ 	 * There is no hardware or firmware interface which could trigger a
+diff -puN arch/sh/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/arch/sh/mm/init.c
+@@ -485,19 +485,27 @@ void free_initrd_mem(unsigned long start
+ #endif
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	pg_data_t *pgdat;
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	pgdat = NODE_DATA(nid);
+ 
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
+ 	ret = __add_pages(nid, pgdat->node_zones +
+ 			zone_for_memory(nid, start, size, ZONE_NORMAL,
+-			for_device),
++					flags & MEMORY_DEVICE),
+ 			start_pfn, nr_pages);
+ 	if (unlikely(ret))
+ 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
+@@ -516,13 +524,21 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ #endif
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	struct zone *zone;
+ 	int ret;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	zone = page_zone(pfn_to_page(start_pfn));
+ 	ret = __remove_pages(zone, start_pfn, nr_pages);
+ 	if (unlikely(ret))
+diff -puN arch/tile/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/tile/mm/init.c
+--- a/arch/tile/mm/init.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/arch/tile/mm/init.c
+@@ -863,13 +863,19 @@ void __init mem_init(void)
+  * memory to the highmem for now.
+  */
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+-int arch_add_memory(u64 start, u64 size, bool for_device)
++int arch_add_memory(u64 start, u64 size, int flags)
+ {
+ 	struct pglist_data *pgdata = &contig_page_data;
+ 	struct zone *zone = pgdata->node_zones + MAX_NR_ZONES-1;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags) {
++		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	return __add_pages(zone, start_pfn, nr_pages);
+ }
+ 
+@@ -879,7 +885,7 @@ int remove_memory(u64 start, u64 size)
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, int flags)
+ {
+ 	/* TODO */
+ 	return -EBUSY;
+diff -puN arch/x86/mm/init_32.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/arch/x86/mm/init_32.c
+@@ -816,24 +816,41 @@ void __init mem_init(void)
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	struct pglist_data *pgdata = NODE_DATA(nid);
+ 	struct zone *zone = pgdata->node_zones +
+-		zone_for_memory(nid, start, size, ZONE_HIGHMEM, for_device);
++		zone_for_memory(nid, start, size, ZONE_HIGHMEM,
++				flags & MEMORY_DEVICE);
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	return __add_pages(nid, zone, start_pfn, nr_pages);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
++int arch_remove_memory(u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	struct zone *zone;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	zone = page_zone(pfn_to_page(start_pfn));
+ 	return __remove_pages(zone, start_pfn, nr_pages);
+ }
+diff -puN arch/x86/mm/init_64.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/arch/x86/mm/init_64.c
+@@ -641,15 +641,24 @@ static void  update_end_of_memory_vars(u
+  * Memory is added always to NORMAL zone. This means you will never get
+  * additional DMA/DMA32 memory.
+  */
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+ 	struct zone *zone = pgdat->node_zones +
+-		zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
++		zone_for_memory(nid, start, size, ZONE_NORMAL,
++				flags & MEMORY_DEVICE);
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotplug unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	init_memory_mapping(start, start + size);
+ 
+ 	ret = __add_pages(nid, zone, start_pfn, nr_pages);
+@@ -946,8 +955,10 @@ kernel_physical_mapping_remove(unsigned
+ 	remove_pagetable(start, end, true);
+ }
+ 
+-int __ref arch_remove_memory(u64 start, u64 size)
++int __ref arch_remove_memory(u64 start, u64 size, int flags)
+ {
++	const int supported_flags = MEMORY_DEVICE |
++				    MEMORY_DEVICE_ALLOW_MIGRATE;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	struct page *page = pfn_to_page(start_pfn);
+@@ -955,6 +966,12 @@ int __ref arch_remove_memory(u64 start,
+ 	struct zone *zone;
+ 	int ret;
+ 
++	/* Each flag need special handling so error out on un-supported flag */
++	if (flags & (~supported_flags)) {
++		pr_err("hotremove unsupported memory type 0x%08x\n", flags);
++		return -EINVAL;
++	}
++
+ 	/* With altmap the first mapped page is offset from @start */
+ 	altmap = to_vmem_altmap((unsigned long) page);
+ 	if (altmap)
+diff -puN include/linux/memory_hotplug.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/include/linux/memory_hotplug.h
+@@ -104,7 +104,7 @@ extern bool memhp_auto_online;
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ extern bool is_pageblock_removable_nolock(struct page *page);
+-extern int arch_remove_memory(u64 start, u64 size);
++extern int arch_remove_memory(u64 start, u64 size, int flags);
+ extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+@@ -276,7 +276,27 @@ extern int add_memory(int nid, u64 start
+ extern int add_memory_resource(int nid, struct resource *resource, bool online);
+ extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+ 		bool for_device);
+-extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
 +
 +/*
-+ * struct hmm_device - fake device to hang device memory onto
++ * When hotpluging memory with arch_add_memory() we want more informations on
++ * the type of memory and its properties. The flags parameter allow to provide
++ * more informations on the memory which is being addedd.
 + *
-+ * @device: device struct
-+ * @minor: device minor number
++ * Provide an opt-in flag for struct page migration. Persistent device memory
++ * never relied on struct page migration so far and new user of might also
++ * prefer avoiding struct page migration.
++ *
++ * New non device memory specific flags can be added if ever needed.
++ *
++ * MEMORY_REGULAR: regular system memory
++ * DEVICE_MEMORY: device memory create a ZONE_DEVICE zone for it
++ * DEVICE_MEMORY_ALLOW_MIGRATE: page in that device memory ca be migrated
 + */
-+struct hmm_device {
-+	struct device		device;
-+	unsigned		minor;
-+};
++#define MEMORY_NORMAL 0
++#define MEMORY_DEVICE (1 << 0)
++#define MEMORY_DEVICE_ALLOW_MIGRATE (1 << 1)
 +
-+/*
-+ * Device driver that wants to handle multiple devices memory through a single
-+ * fake device can use hmm_device to do so. This is purely a helper and it
-+ * is not needed to make use of any HMM functionality.
-+ */
-+struct hmm_device *hmm_device_new(void *drvdata);
-+void hmm_device_put(struct hmm_device *hmm_device);
- #endif /* IS_ENABLED(CONFIG_HMM_DEVMEM) */
++extern int arch_add_memory(int nid, u64 start, u64 size, int flags);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+ extern void remove_memory(int nid, u64 start, u64 size);
+diff -puN include/linux/memremap.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/include/linux/memremap.h
+@@ -41,18 +41,26 @@ static inline struct vmem_altmap *to_vme
+  * @res: physical address range covered by @ref
+  * @ref: reference count that pins the devm_memremap_pages() mapping
+  * @dev: host device of the mapping for debug
++ * @flags: memory flags see MEMORY_* in memory_hotplug.h
+  */
+ struct dev_pagemap {
+ 	struct vmem_altmap *altmap;
+ 	const struct resource *res;
+ 	struct percpu_ref *ref;
+ 	struct device *dev;
++	int flags;
+ };
  
- 
-diff -puN mm/hmm.c~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2 mm/hmm.c
---- a/mm/hmm.c~mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2
-+++ a/mm/hmm.c
-@@ -24,6 +24,7 @@
- #include <linux/slab.h>
- #include <linux/sched.h>
- #include <linux/mmzone.h>
-+#include <linux/module.h>
- #include <linux/pagemap.h>
- #include <linux/swapops.h>
- #include <linux/hugetlb.h>
-@@ -1132,4 +1133,99 @@ int hmm_devmem_fault_range(struct hmm_de
- 	return 0;
+ #ifdef CONFIG_ZONE_DEVICE
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap);
+ struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
++
++static inline bool dev_page_allow_migrate(const struct page *page)
++{
++	return ((page_zonenum(page) == ZONE_DEVICE) &&
++		(page->pgmap->flags & MEMORY_DEVICE_ALLOW_MIGRATE));
++}
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+ 		struct resource *res, struct percpu_ref *ref,
+@@ -71,6 +79,11 @@ static inline struct dev_pagemap *find_d
+ {
+ 	return NULL;
  }
- EXPORT_SYMBOL(hmm_devmem_fault_range);
 +
-+/*
-+ * A device driver that wants to handle multiple devices memory through a
-+ * single fake device can use hmm_device to do so. This is purely a helper
-+ * and it is not needed to make use of any HMM functionality.
-+ */
-+#define HMM_DEVICE_MAX 256
-+
-+static DECLARE_BITMAP(hmm_device_mask, HMM_DEVICE_MAX);
-+static DEFINE_SPINLOCK(hmm_device_lock);
-+static struct class *hmm_device_class;
-+static dev_t hmm_device_devt;
-+
-+static void hmm_device_release(struct device *device)
++static inline bool dev_page_allow_migrate(const struct page *page)
 +{
-+	struct hmm_device *hmm_device;
-+
-+	hmm_device = container_of(device, struct hmm_device, device);
-+	spin_lock(&hmm_device_lock);
-+	clear_bit(hmm_device->minor, hmm_device_mask);
-+	spin_unlock(&hmm_device_lock);
-+
-+	kfree(hmm_device);
++	return false;
 +}
-+
-+struct hmm_device *hmm_device_new(void *drvdata)
-+{
-+	struct hmm_device *hmm_device;
-+	int ret;
-+
-+	hmm_device = kzalloc(sizeof(*hmm_device), GFP_KERNEL);
-+	if (!hmm_device)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = alloc_chrdev_region(&hmm_device->device.devt,0,1,"hmm_device");
-+	if (ret < 0) {
-+		kfree(hmm_device);
-+		return NULL;
-+	}
-+
-+	spin_lock(&hmm_device_lock);
-+	hmm_device->minor=find_first_zero_bit(hmm_device_mask,HMM_DEVICE_MAX);
-+	if (hmm_device->minor >= HMM_DEVICE_MAX) {
-+		spin_unlock(&hmm_device_lock);
-+		kfree(hmm_device);
-+		return NULL;
-+	}
-+	set_bit(hmm_device->minor, hmm_device_mask);
-+	spin_unlock(&hmm_device_lock);
-+
-+	dev_set_name(&hmm_device->device, "hmm_device%d", hmm_device->minor);
-+	hmm_device->device.devt = MKDEV(MAJOR(hmm_device_devt),
-+					hmm_device->minor);
-+	hmm_device->device.release = hmm_device_release;
-+	dev_set_drvdata(&hmm_device->device, drvdata);
-+	hmm_device->device.class = hmm_device_class;
-+	device_initialize(&hmm_device->device);
-+
-+	return hmm_device;
-+}
-+EXPORT_SYMBOL(hmm_device_new);
-+
-+void hmm_device_put(struct hmm_device *hmm_device)
-+{
-+	put_device(&hmm_device->device);
-+}
-+EXPORT_SYMBOL(hmm_device_put);
-+
-+static int __init hmm_init(void)
-+{
-+	int ret;
-+
-+	ret = alloc_chrdev_region(&hmm_device_devt, 0,
-+				  HMM_DEVICE_MAX,
-+				  "hmm_device");
-+	if (ret)
-+		return ret;
-+
-+	hmm_device_class = class_create(THIS_MODULE, "hmm_device");
-+	if (IS_ERR(hmm_device_class)) {
-+		unregister_chrdev_region(hmm_device_devt, HMM_DEVICE_MAX);
-+		return PTR_ERR(hmm_device_class);
-+	}
-+	return 0;
-+}
-+
-+static void __exit hmm_exit(void)
-+{
-+	unregister_chrdev_region(hmm_device_devt, HMM_DEVICE_MAX);
-+	class_destroy(hmm_device_class);
-+}
-+
-+module_init(hmm_init);
-+module_exit(hmm_exit);
-+MODULE_LICENSE("GPL");
- #endif /* IS_ENABLED(CONFIG_HMM_DEVMEM) */
+ #endif
+ 
+ /**
+diff -puN kernel/memremap.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 kernel/memremap.c
+--- a/kernel/memremap.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/kernel/memremap.c
+@@ -248,7 +248,7 @@ static void devm_memremap_pages_release(
+ 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+ 
+ 	mem_hotplug_begin();
+-	arch_remove_memory(align_start, align_size);
++	arch_remove_memory(align_start, align_size, MEMORY_DEVICE);
+ 	mem_hotplug_done();
+ 
+ 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
+@@ -326,6 +326,7 @@ void *devm_memremap_pages(struct device
+ 	}
+ 	pgmap->ref = ref;
+ 	pgmap->res = &page_map->res;
++	pgmap->flags = MEMORY_DEVICE;
+ 
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+@@ -363,7 +364,7 @@ void *devm_memremap_pages(struct device
+ 		goto err_pfn_remap;
+ 
+ 	mem_hotplug_begin();
+-	error = arch_add_memory(nid, align_start, align_size, true);
++	error = arch_add_memory(nid, align_start, align_size, MEMORY_DEVICE);
+ 	mem_hotplug_done();
+ 	if (error)
+ 		goto err_add_memory;
+diff -puN mm/memory_hotplug.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3 mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory-hotplug-convert-device-bool-to-int-to-allow-for-more-flags-v3
++++ a/mm/memory_hotplug.c
+@@ -1385,7 +1385,7 @@ int __ref add_memory_resource(int nid, s
+ 	}
+ 
+ 	/* call arch's memory hotadd */
+-	ret = arch_add_memory(nid, start, size, false);
++	ret = arch_add_memory(nid, start, size, MEMORY_NORMAL);
+ 
+ 	if (ret < 0)
+ 		goto error;
+@@ -2189,7 +2189,7 @@ void __ref remove_memory(int nid, u64 st
+ 	memblock_free(start, size);
+ 	memblock_remove(start, size);
+ 
+-	arch_remove_memory(start, size);
++	arch_remove_memory(start, size, MEMORY_NORMAL);
+ 
+ 	try_offline_node(nid);
+ 
 _
 
 Patches currently in -mm which might be from jglisse@redhat.com are
