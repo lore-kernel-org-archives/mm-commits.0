@@ -1,179 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [failures] out-of-line-dma_alloc-free_attrs.patch removed from
+Subject: + mm-swap-fix-comment-in-__read_swap_cache_async.patch added to
  -mm tree
-Date: Fri, 17 Mar 2017 14:26:26 -0700
-Message-ID: <58cc5482.BuciZJVc5tdFQOgv%akpm@linux-foundation.org>
+Date: Fri, 17 Mar 2017 14:38:22 -0700
+Message-ID: <58cc574e.VzrhkBBbWnwp6myz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49430 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751360AbdCQV02 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2017 17:26:28 -0400
+        with ESMTP id S1751061AbdCQViY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2017 17:38:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aquini@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/dma-mapping.h: uninline dma_alloc/free_attrs
-has been removed from the -mm tree.  Its filename was
-     out-of-line-dma_alloc-free_attrs.patch
+     Subject: mm, swap: Fix comment in __read_swap_cache_async
+has been added to the -mm tree.  Its filename is
+     mm-swap-fix-comment-in-__read_swap_cache_async.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-comment-in-__read_swap_cache_async.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-comment-in-__read_swap_cache_async.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: include/linux/dma-mapping.h: uninline dma_alloc/free_attrs
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, swap: Fix comment in __read_swap_cache_async
 
-These functions are very big and frequently used.  I don't see any sense
-in inlining them because they do slow operations.
+cbab0e4eec29 ("swap: avoid read_swap_cache_async() race to deadlock while
+waiting on discard I/O completion") fixed a deadlock in
+read_swap_cache_async().  Because at that time, in swap allocation path, a
+swap entry may be set as SWAP_HAS_CACHE, then wait for discarding to
+complete before the page for the swap entry is added to the swap cache. 
+But in 815c2c543d3a ("swap: make swap discard async"), the discarding for
+swap become asynchronous, waiting for discarding to complete will be done
+before the swap entry is set as SWAP_HAS_CACHE.  So the comments in code
+is incorrect now.  This patch fixes the comments.
 
-Out of lining them saves ~19k text in my kernel.
+The cond_resched() added in the commit cbab0e4eec29 is not necessary now
+too.  But if we added some sleep in swap allocation path in the future,
+there may be some hard to debug/reproduce deadlock bug.  So it is kept.
 
-   text    data     bss     dec     hex filename
-9047801 5367568 11116544        25531913        1859609 vmlinux-after-dma
-9067798 5367600 11116544        25551942        185e446 vmlinux-before-dma
-
-Link: http://lkml.kernel.org/r/20170315021431.13107-6-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Link: http://lkml.kernel.org/r/20170317064635.12792-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |   47 +++++-----------------------------
- lib/Makefile                |    2 -
- lib/dma-mapping.c           |   47 ++++++++++++++++++++++++++++++++++
- 3 files changed, 55 insertions(+), 41 deletions(-)
+ mm/swap_state.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN include/linux/dma-mapping.h~out-of-line-dma_alloc-free_attrs include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~out-of-line-dma_alloc-free_attrs
-+++ a/include/linux/dma-mapping.h
-@@ -473,46 +473,13 @@ dma_get_sgtable_attrs(struct device *dev
- #define arch_dma_alloc_attrs(dev, flag)	(true)
- #endif
- 
--static inline void *dma_alloc_attrs(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t flag,
--				       unsigned long attrs)
--{
--	const struct dma_map_ops *ops = get_dma_ops(dev);
--	void *cpu_addr;
--
--	BUG_ON(!ops);
--
--	if (dma_alloc_from_coherent(dev, size, dma_handle, &cpu_addr))
--		return cpu_addr;
--
--	if (!arch_dma_alloc_attrs(&dev, &flag))
--		return NULL;
--	if (!ops->alloc)
--		return NULL;
--
--	cpu_addr = ops->alloc(dev, size, dma_handle, flag, attrs);
--	debug_dma_alloc_coherent(dev, size, *dma_handle, cpu_addr);
--	return cpu_addr;
--}
--
--static inline void dma_free_attrs(struct device *dev, size_t size,
--				     void *cpu_addr, dma_addr_t dma_handle,
--				     unsigned long attrs)
--{
--	const struct dma_map_ops *ops = get_dma_ops(dev);
--
--	BUG_ON(!ops);
--	WARN_ON(irqs_disabled());
--
--	if (dma_release_from_coherent(dev, get_order(size), cpu_addr))
--		return;
--
--	if (!ops->free || !cpu_addr)
--		return;
--
--	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
--	ops->free(dev, size, cpu_addr, dma_handle, attrs);
--}
-+void *dma_alloc_attrs(struct device *dev, size_t size,
-+		      dma_addr_t *dma_handle, gfp_t flag,
-+		      unsigned long attrs);
-+
-+void dma_free_attrs(struct device *dev, size_t size,
-+		    void *cpu_addr, dma_addr_t dma_handle,
-+		    unsigned long attrs);
- 
- static inline void *dma_alloc_coherent(struct device *dev, size_t size,
- 		dma_addr_t *dma_handle, gfp_t flag)
-diff -puN lib/Makefile~out-of-line-dma_alloc-free_attrs lib/Makefile
---- a/lib/Makefile~out-of-line-dma_alloc-free_attrs
-+++ a/lib/Makefile
-@@ -23,7 +23,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 flex_proportions.o ratelimit.o show_mem.o \
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
- 	 earlycpio.o seq_buf.o siphash.o \
--	 nmi_backtrace.o nodemask.o win_minmax.o
-+	 nmi_backtrace.o nodemask.o win_minmax.o dma-mapping.o
- 
- CFLAGS_radix-tree.o += -DCONFIG_SPARSE_RCU_POINTER
- CFLAGS_idr.o += -DCONFIG_SPARSE_RCU_POINTER
-diff -puN /dev/null lib/dma-mapping.c
---- /dev/null
-+++ a/lib/dma-mapping.c
-@@ -0,0 +1,47 @@
-+#include <linux/dma-mapping.h>
-+#include <linux/module.h>
-+
-+void *dma_alloc_attrs(struct device *dev, size_t size,
-+		      dma_addr_t *dma_handle, gfp_t flag,
-+		      unsigned long attrs)
-+{
-+	const struct dma_map_ops *ops = get_dma_ops(dev);
-+	void *cpu_addr;
-+
-+	BUG_ON(!ops);
-+
-+	if (dma_alloc_from_coherent(dev, size, dma_handle, &cpu_addr))
-+		return cpu_addr;
-+
-+	if (!arch_dma_alloc_attrs(&dev, &flag))
-+		return NULL;
-+	if (!ops->alloc)
-+		return NULL;
-+
-+	cpu_addr = ops->alloc(dev, size, dma_handle, flag, attrs);
-+	debug_dma_alloc_coherent(dev, size, *dma_handle, cpu_addr);
-+	return cpu_addr;
-+}
-+
-+EXPORT_SYMBOL(dma_alloc_attrs);
-+
-+void dma_free_attrs(struct device *dev, size_t size,
-+		    void *cpu_addr, dma_addr_t dma_handle,
-+		    unsigned long attrs)
-+{
-+	const struct dma_map_ops *ops = get_dma_ops(dev);
-+
-+	BUG_ON(!ops);
-+	WARN_ON(irqs_disabled());
-+
-+	if (dma_release_from_coherent(dev, get_order(size), cpu_addr))
-+		return;
-+
-+	if (!ops->free || !cpu_addr)
-+		return;
-+
-+	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
-+	ops->free(dev, size, cpu_addr, dma_handle, attrs);
-+}
-+
-+EXPORT_SYMBOL(dma_free_attrs);
+diff -puN mm/swap_state.c~mm-swap-fix-comment-in-__read_swap_cache_async mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-fix-comment-in-__read_swap_cache_async
++++ a/mm/swap_state.c
+@@ -360,17 +360,7 @@ struct page *__read_swap_cache_async(swp
+ 			/*
+ 			 * We might race against get_swap_page() and stumble
+ 			 * across a SWAP_HAS_CACHE swap_map entry whose page
+-			 * has not been brought into the swapcache yet, while
+-			 * the other end is scheduled away waiting on discard
+-			 * I/O completion at scan_swap_map().
+-			 *
+-			 * In order to avoid turning this transitory state
+-			 * into a permanent loop around this -EEXIST case
+-			 * if !CONFIG_PREEMPT and the I/O completion happens
+-			 * to be waiting on the CPU waitqueue where we are now
+-			 * busy looping, we just conditionally invoke the
+-			 * scheduler here, if there are some more important
+-			 * tasks to run.
++			 * has not been brought into the swapcache yet.
+ 			 */
+ 			cond_resched();
+ 			continue;
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-x86-atomic-move-__atomic_add_unless-out-of-line.patch
-sched-out-of-line-__update_load_avg.patch
-kref-remove-warn_on-for-null-release-functions.patch
-megasas-remove-expensive-inline-from-megasas_return_cmd.patch
-remove-expensive-warn_on-in-pagefault_disabled_dec.patch
+mm-swap-fix-a-race-in-free_swap_and_cache.patch
+mm-swap-fix-comment-in-__read_swap_cache_async.patch
+mm-swap-improve-readability-via-make-spin_lock-unlock-balanced.patch
+mm-swap-avoid-lock-swap_avail_lock-when-held-cluster-lock.patch
 
