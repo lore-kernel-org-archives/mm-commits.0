@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-add-can_split_huge_page.patch added to -mm tree
-Date: Tue, 28 Mar 2017 15:14:28 -0700
-Message-ID: <58dae044.pDrVxSwutfV6be1i%akpm@linux-foundation.org>
+Subject: + mm-thp-swap-add-get_huge_swap_page.patch added to -mm tree
+Date: Tue, 28 Mar 2017 15:14:15 -0700
+Message-ID: <58dae037.Vaqxbn8CHXr+S1sI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44162 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755865AbdC1WOp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:14:45 -0400
+        with ESMTP id S1752679AbdC1WPR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:15:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP: add can_split_huge_page()
+     Subject: mm, THP, swap: add get_huge_swap_page()
 has been added to the -mm tree.  Its filename is
-     mm-thp-add-can_split_huge_page.patch
+     mm-thp-swap-add-get_huge_swap_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-add-can_split_huge_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-add-get_huge_swap_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-add-can_split_huge_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-add-get_huge_swap_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,104 +39,159 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP: add can_split_huge_page()
+Subject: mm, THP, swap: add get_huge_swap_page()
 
-Separates checking whether we can split the huge page from
-split_huge_page_to_list() into a function.  This will help to check that
-before splitting the THP (Transparent Huge Page) really.
+A variation of get_swap_page(), get_huge_swap_page(), is added to allocate
+a swap cluster (HPAGE_PMD_NR swap slots) based on the swap cluster
+allocation function.  A fair simple algorithm is used, that is, only the
+first swap device in priority list will be tried to allocate the swap
+cluster.  The function will fail if the trying is not successful, and the
+caller will fallback to allocate a single swap slot instead.  This works
+good enough for normal cases.
 
-This will be used for delaying splitting THP during swapping out.  Where
-for a THP, we will allocate a swap cluster, add the THP into the swap
-cache, then split the THP.  To avoid the unnecessary operations for the
-un-splittable THP, we will check that firstly.
+This will be used for the THP (Transparent Huge Page) swap support.  Where
+get_huge_swap_page() will be used to allocate one swap cluster for each
+THP swapped out.
 
-There is no functionality change in this patch.
+Because of the algorithm adopted, if the difference of the number of the
+free swap clusters among multiple swap devices is significant, it is
+possible that some THPs are split earlier than necessary.  For example,
+this could be caused by big size difference among multiple swap devices.
 
-Link: http://lkml.kernel.org/r/20170328053209.25876-8-ying.huang@intel.com
+Link: http://lkml.kernel.org/r/20170328053209.25876-5-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shaohua Li <shli@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    7 +++++++
- mm/huge_memory.c        |   17 ++++++++++++++---
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ include/linux/swap.h |   19 ++++++++++++++++++-
+ mm/swap_slots.c      |    5 +++--
+ mm/swapfile.c        |   18 +++++++++++-------
+ 3 files changed, 32 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-thp-add-can_split_huge_page include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-add-can_split_huge_page
-+++ a/include/linux/huge_mm.h
-@@ -113,6 +113,7 @@ extern unsigned long thp_get_unmapped_ar
- extern void prep_transhuge_page(struct page *page);
- extern void free_transhuge_page(struct page *page);
+diff -puN include/linux/swap.h~mm-thp-swap-add-get_huge_swap_page include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-swap-add-get_huge_swap_page
++++ a/include/linux/swap.h
+@@ -388,7 +388,7 @@ static inline long get_nr_swap_pages(voi
+ extern void si_swapinfo(struct sysinfo *);
+ extern swp_entry_t get_swap_page(void);
+ extern swp_entry_t get_swap_page_of_type(int);
+-extern int get_swap_pages(int n, swp_entry_t swp_entries[]);
++extern int get_swap_pages(int n, swp_entry_t swp_entries[], bool huge);
+ extern int add_swap_count_continuation(swp_entry_t, gfp_t);
+ extern void swap_shmem_alloc(swp_entry_t);
+ extern int swap_duplicate(swp_entry_t);
+@@ -527,6 +527,23 @@ static inline swp_entry_t get_swap_page(
  
-+bool can_split_huge_page(struct page *page, int *pextra_pins);
- int split_huge_page_to_list(struct page *page, struct list_head *list);
- static inline int split_huge_page(struct page *page)
- {
-@@ -231,6 +232,12 @@ static inline void prep_transhuge_page(s
+ #endif /* CONFIG_SWAP */
  
- #define thp_get_unmapped_area	NULL
- 
-+static inline bool
-+can_split_huge_page(struct page *page, int *pextra_pins)
++#ifdef CONFIG_THP_SWAP_CLUSTER
++static inline swp_entry_t get_huge_swap_page(void)
 +{
-+	BUILD_BUG();
-+	return false;
++	swp_entry_t entry;
++
++	if (get_swap_pages(1, &entry, true))
++		return entry;
++	else
++		return (swp_entry_t) {0};
 +}
- static inline int
- split_huge_page_to_list(struct page *page, struct list_head *list)
++#else
++static inline swp_entry_t get_huge_swap_page(void)
++{
++	return (swp_entry_t) {0};
++}
++#endif
++
+ #ifdef CONFIG_MEMCG
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
  {
-diff -puN mm/huge_memory.c~mm-thp-add-can_split_huge_page mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-add-can_split_huge_page
-+++ a/mm/huge_memory.c
-@@ -2367,6 +2367,19 @@ int page_trans_huge_mapcount(struct page
- 	return ret;
+diff -puN mm/swap_slots.c~mm-thp-swap-add-get_huge_swap_page mm/swap_slots.c
+--- a/mm/swap_slots.c~mm-thp-swap-add-get_huge_swap_page
++++ a/mm/swap_slots.c
+@@ -258,7 +258,8 @@ static int refill_swap_slots_cache(struc
+ 
+ 	cache->cur = 0;
+ 	if (swap_slot_cache_active)
+-		cache->nr = get_swap_pages(SWAP_SLOTS_CACHE_SIZE, cache->slots);
++		cache->nr = get_swap_pages(SWAP_SLOTS_CACHE_SIZE, cache->slots,
++					   false);
+ 
+ 	return cache->nr;
+ }
+@@ -332,7 +333,7 @@ repeat:
+ 			return entry;
+ 	}
+ 
+-	get_swap_pages(1, &entry);
++	get_swap_pages(1, &entry, false);
+ 
+ 	return entry;
+ }
+diff -puN mm/swapfile.c~mm-thp-swap-add-get_huge_swap_page mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-add-get_huge_swap_page
++++ a/mm/swapfile.c
+@@ -904,13 +904,14 @@ static unsigned long scan_swap_map(struc
+ 
  }
  
-+/* Racy check whether the huge page can be split */
-+bool can_split_huge_page(struct page *page, int *pextra_pins)
-+{
-+	int extra_pins = 0;
-+
-+	/* Additional pins from radix tree */
-+	if (!PageAnon(page))
-+		extra_pins = HPAGE_PMD_NR;
-+	if (pextra_pins)
-+		*pextra_pins = extra_pins;
-+	return total_mapcount(page) == page_count(page) - extra_pins - 1;
-+}
-+
- /*
-  * This function splits huge page into normal pages. @page can point to any
-  * subpage of huge page to split. Split doesn't change the position of @page.
-@@ -2426,8 +2439,6 @@ int split_huge_page_to_list(struct page
- 			goto out;
- 		}
+-int get_swap_pages(int n_goal, swp_entry_t swp_entries[])
++int get_swap_pages(int n_goal, swp_entry_t swp_entries[], bool huge)
+ {
+ 	struct swap_info_struct *si, *next;
+ 	long avail_pgs;
+ 	int n_ret = 0;
++	int nr_pages = huge_cluster_nr_entries(huge);
  
--		/* Addidional pins from radix tree */
--		extra_pins = HPAGE_PMD_NR;
- 		anon_vma = NULL;
- 		i_mmap_lock_read(mapping);
- 	}
-@@ -2436,7 +2447,7 @@ int split_huge_page_to_list(struct page
- 	 * Racy check if we can split the page, before freeze_page() will
- 	 * split PMDs
- 	 */
--	if (total_mapcount(head) != page_count(head) - extra_pins - 1) {
-+	if (!can_split_huge_page(head, &extra_pins)) {
- 		ret = -EBUSY;
- 		goto out_unlock;
- 	}
+-	avail_pgs = atomic_long_read(&nr_swap_pages);
++	avail_pgs = atomic_long_read(&nr_swap_pages) / nr_pages;
+ 	if (avail_pgs <= 0)
+ 		goto noswap;
+ 
+@@ -920,7 +921,7 @@ int get_swap_pages(int n_goal, swp_entry
+ 	if (n_goal > avail_pgs)
+ 		n_goal = avail_pgs;
+ 
+-	atomic_long_sub(n_goal, &nr_swap_pages);
++	atomic_long_sub(n_goal * nr_pages, &nr_swap_pages);
+ 
+ 	spin_lock(&swap_avail_lock);
+ 
+@@ -946,10 +947,13 @@ start_over:
+ 			spin_unlock(&si->lock);
+ 			goto nextsi;
+ 		}
+-		n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
+-					    n_goal, swp_entries);
++		if (likely(!huge))
++			n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
++						    n_goal, swp_entries);
++		else
++			n_ret = swap_alloc_huge_cluster(si, swp_entries);
+ 		spin_unlock(&si->lock);
+-		if (n_ret)
++		if (n_ret || unlikely(huge))
+ 			goto check_out;
+ 		pr_debug("scan_swap_map of si %d failed to find offset\n",
+ 			si->type);
+@@ -975,7 +979,7 @@ nextsi:
+ 
+ check_out:
+ 	if (n_ret < n_goal)
+-		atomic_long_add((long) (n_goal-n_ret), &nr_swap_pages);
++		atomic_long_add((long)(n_goal-n_ret) * nr_pages, &nr_swap_pages);
+ noswap:
+ 	return n_ret;
+ }
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
