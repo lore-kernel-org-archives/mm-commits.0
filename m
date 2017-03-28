@@ -1,93 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
- removed from -mm tree
-Date: Tue, 28 Mar 2017 12:27:49 -0700
-Message-ID: <58dab935.+JpbJmdrWxegIi3F%akpm@linux-foundation.org>
+Subject: + mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats.patch
+ added to -mm tree
+Date: Tue, 28 Mar 2017 13:29:38 -0700
+Message-ID: <58dac7b2.xPQxqUf2saODb+h9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46708 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53652 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755540AbdC1T2B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 15:28:01 -0400
+        with ESMTP id S1753487AbdC1U3p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 16:29:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chris-wilson.co.uk, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, stable@vger.kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/gpu/drm/i915/selftests/i915_selftest.c: fix build with gcc-4.4.4
-has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444.patch
+     Subject: mm: rmap: fix huge file mmap accounting in the memcg stats
+has been added to the -mm tree.  Its filename is
+     mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/gpu/drm/i915/selftests/i915_selftest.c: fix build with gcc-4.4.4
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: rmap: fix huge file mmap accounting in the memcg stats
 
-gcc-4.4.4 has issues with anonymous union initializers.
+Huge pages are accounted as single units in the memcg's "file_mapped"
+counter. Account the correct number of base pages, like we do in the
+corresponding node counter.
 
-In file included from drivers/gpu/drm/i915/selftests/i915_selftest.c:68:
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:11: error: unknown field 'mock' specified in initializer
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:11: warning: missing braces around initializer
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:11: warning: (near initialization for 'mock_selftests[0].<anonymous>')
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:12: error: unknown field 'mock' specified in initializer
-drivers/gpu/drm/i915/selftests/i915_mock_selftests.h:13: error: unknown field 'm
-...
-
-Work around this.
-
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Link: http://lkml.kernel.org/r/20170322005111.3156-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.8+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/selftests/i915_selftest.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    6 ++++++
+ mm/rmap.c                  |    4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/selftests/i915_selftest.c~drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444 drivers/gpu/drm/i915/selftests/i915_selftest.c
---- a/drivers/gpu/drm/i915/selftests/i915_selftest.c~drivers-gpu-drm-i915-selftests-i915_selftestc-fix-build-with-gcc-444
-+++ a/drivers/gpu/drm/i915/selftests/i915_selftest.c
-@@ -63,13 +63,13 @@ struct selftest {
- 	};
- };
+diff -puN include/linux/memcontrol.h~mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats
++++ a/include/linux/memcontrol.h
+@@ -740,6 +740,12 @@ static inline bool mem_cgroup_oom_synchr
+ 	return false;
+ }
  
--#define selftest(n, f) [mock_##n] = { .name = #n, .mock = f },
-+#define selftest(n, f) [mock_##n] = { .name = #n, { .mock = f } },
- static struct selftest mock_selftests[] = {
- #include "i915_mock_selftests.h"
- };
- #undef selftest
++static inline void mem_cgroup_update_page_stat(struct page *page,
++					       enum mem_cgroup_stat_index idx,
++					       int nr)
++{
++}
++
+ static inline void mem_cgroup_inc_page_stat(struct page *page,
+ 					    enum mem_cgroup_stat_index idx)
+ {
+diff -puN mm/rmap.c~mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats
++++ a/mm/rmap.c
+@@ -1159,7 +1159,7 @@ void page_add_file_rmap(struct page *pag
+ 			goto out;
+ 	}
+ 	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, nr);
+-	mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
++	mem_cgroup_update_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED, nr);
+ out:
+ 	unlock_page_memcg(page);
+ }
+@@ -1199,7 +1199,7 @@ static void page_remove_file_rmap(struct
+ 	 * pte lock(a spinlock) is held, which implies preemption disabled.
+ 	 */
+ 	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, -nr);
+-	mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
++	mem_cgroup_update_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED, -nr);
  
--#define selftest(n, f) [live_##n] = { .name = #n, .live = f },
-+#define selftest(n, f) [live_##n] = { .name = #n, { .live = f } },
- static struct selftest live_selftests[] = {
- #include "i915_live_selftests.h"
- };
+ 	if (unlikely(PageMlocked(page)))
+ 		clear_page_mlock(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-linux-next-rejects.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-rmap-fix-huge-file-mmap-accounting-in-the-memcg-stats.patch
+mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes.patch
+mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix.patch
+mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
+mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch
+mm-remove-unnecessary-reclaimability-check-from-numa-balancing-target.patch
+mm-dont-avoid-high-priority-reclaim-on-unreclaimable-nodes.patch
+mm-dont-avoid-high-priority-reclaim-on-memcg-limit-reclaim.patch
+mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch
+revert-mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
+mm-remove-unnecessary-back-off-function-when-retrying-page-reclaim.patch
+mm-memcontrol-provide-shmem-statistics.patch
+mm-page_alloc-__gfp_nowarn-shouldnt-suppress-stall-warnings.patch
 
