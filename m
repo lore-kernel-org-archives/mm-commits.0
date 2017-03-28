@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page.patch added to -mm tree
-Date: Tue, 28 Mar 2017 15:14:20 -0700
-Message-ID: <58dae03c.ZXA+WdcexzLgbUbS%akpm@linux-foundation.org>
+Subject: + mm-thp-add-can_split_huge_page.patch added to -mm tree
+Date: Tue, 28 Mar 2017 15:14:28 -0700
+Message-ID: <58dae044.pDrVxSwutfV6be1i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44238 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755865AbdC1WOm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:14:42 -0400
+        with ESMTP id S1755865AbdC1WOp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:14:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP, swap: support to clear SWAP_HAS_CACHE for huge page
+     Subject: mm, THP: add can_split_huge_page()
 has been added to the -mm tree.  Its filename is
-     mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page.patch
+     mm-thp-add-can_split_huge_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-add-can_split_huge_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-add-can_split_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,138 +39,104 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP, swap: support to clear SWAP_HAS_CACHE for huge page
+Subject: mm, THP: add can_split_huge_page()
 
-__swapcache_free() is added to support to clear the SWAP_HAS_CACHE flag
-for the huge page.  This will free the specified swap cluster now. 
-Because now this function will be called only in the error path to free
-the swap cluster just allocated.  So the corresponding swap_map[i] ==
-SWAP_HAS_CACHE, that is, the swap count is 0.  This makes the
-implementation simpler than that of the ordinary swap entry.
+Separates checking whether we can split the huge page from
+split_huge_page_to_list() into a function.  This will help to check that
+before splitting the THP (Transparent Huge Page) really.
 
-This will be used for delaying splitting THP (Transparent Huge Page)
-during swapping out.  Where for one THP to swap out, we will allocate a
-swap cluster, add the THP into the swap cache, then split the THP.  If
-anything fails after allocating the swap cluster and before splitting the
-THP successfully, the swapcache_free_trans_huge() will be used to free the
-swap space allocated.
+This will be used for delaying splitting THP during swapping out.  Where
+for a THP, we will allocate a swap cluster, add the THP into the swap
+cache, then split the THP.  To avoid the unnecessary operations for the
+un-splittable THP, we will check that firstly.
 
-Link: http://lkml.kernel.org/r/20170328053209.25876-6-ying.huang@intel.com
+There is no functionality change in this patch.
+
+Link: http://lkml.kernel.org/r/20170328053209.25876-8-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    9 +++++++--
- mm/swapfile.c        |   34 ++++++++++++++++++++++++++++++++--
- 2 files changed, 39 insertions(+), 4 deletions(-)
+ include/linux/huge_mm.h |    7 +++++++
+ mm/huge_memory.c        |   17 ++++++++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/swap.h~mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page include/linux/swap.h
---- a/include/linux/swap.h~mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page
-+++ a/include/linux/swap.h
-@@ -394,7 +394,7 @@ extern void swap_shmem_alloc(swp_entry_t
- extern int swap_duplicate(swp_entry_t);
- extern int swapcache_prepare(swp_entry_t);
- extern void swap_free(swp_entry_t);
--extern void swapcache_free(swp_entry_t);
-+extern void __swapcache_free(swp_entry_t entry, bool huge);
- extern void swapcache_free_entries(swp_entry_t *entries, int n);
- extern int free_swap_and_cache(swp_entry_t);
- extern int swap_type_of(dev_t, sector_t, struct block_device **);
-@@ -456,7 +456,7 @@ static inline void swap_free(swp_entry_t
+diff -puN include/linux/huge_mm.h~mm-thp-add-can_split_huge_page include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-thp-add-can_split_huge_page
++++ a/include/linux/huge_mm.h
+@@ -113,6 +113,7 @@ extern unsigned long thp_get_unmapped_ar
+ extern void prep_transhuge_page(struct page *page);
+ extern void free_transhuge_page(struct page *page);
+ 
++bool can_split_huge_page(struct page *page, int *pextra_pins);
+ int split_huge_page_to_list(struct page *page, struct list_head *list);
+ static inline int split_huge_page(struct page *page)
  {
- }
+@@ -231,6 +232,12 @@ static inline void prep_transhuge_page(s
  
--static inline void swapcache_free(swp_entry_t swp)
-+static inline void __swapcache_free(swp_entry_t swp, bool huge)
- {
- }
+ #define thp_get_unmapped_area	NULL
  
-@@ -544,6 +544,11 @@ static inline swp_entry_t get_huge_swap_
- }
- #endif
- 
-+static inline void swapcache_free(swp_entry_t entry)
++static inline bool
++can_split_huge_page(struct page *page, int *pextra_pins)
 +{
-+	__swapcache_free(entry, false);
++	BUILD_BUG();
++	return false;
++}
+ static inline int
+ split_huge_page_to_list(struct page *page, struct list_head *list)
+ {
+diff -puN mm/huge_memory.c~mm-thp-add-can_split_huge_page mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-add-can_split_huge_page
++++ a/mm/huge_memory.c
+@@ -2367,6 +2367,19 @@ int page_trans_huge_mapcount(struct page
+ 	return ret;
+ }
+ 
++/* Racy check whether the huge page can be split */
++bool can_split_huge_page(struct page *page, int *pextra_pins)
++{
++	int extra_pins = 0;
++
++	/* Additional pins from radix tree */
++	if (!PageAnon(page))
++		extra_pins = HPAGE_PMD_NR;
++	if (pextra_pins)
++		*pextra_pins = extra_pins;
++	return total_mapcount(page) == page_count(page) - extra_pins - 1;
 +}
 +
- #ifdef CONFIG_MEMCG
- static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
- {
-diff -puN mm/swapfile.c~mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page mm/swapfile.c
---- a/mm/swapfile.c~mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page
-+++ a/mm/swapfile.c
-@@ -855,6 +855,29 @@ static void swap_free_huge_cluster(struc
- 	_swap_entry_free(si, offset, true);
- }
- 
-+static void swapcache_free_trans_huge(struct swap_info_struct *si,
-+				      swp_entry_t entry)
-+{
-+	unsigned long offset = swp_offset(entry);
-+	unsigned long idx = offset / SWAPFILE_CLUSTER;
-+	struct swap_cluster_info *ci;
-+	unsigned char *map;
-+	unsigned int i;
-+
-+	spin_lock(&si->lock);
-+	ci = lock_cluster(si, offset);
-+	map = si->swap_map + offset;
-+	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
-+		VM_BUG_ON(map[i] != SWAP_HAS_CACHE);
-+		map[i] = 0;
-+	}
-+	unlock_cluster(ci);
-+	/* Cluster size is same as huge pmd size */
-+	mem_cgroup_uncharge_swap(entry, HPAGE_PMD_NR);
-+	swap_free_huge_cluster(si, idx);
-+	spin_unlock(&si->lock);
-+}
-+
- static int swap_alloc_huge_cluster(struct swap_info_struct *si,
- 				   swp_entry_t *slot)
- {
-@@ -887,6 +910,11 @@ static inline int swap_alloc_huge_cluste
- {
- 	return 0;
- }
-+
-+static inline void swapcache_free_trans_huge(struct swap_info_struct *si,
-+					     swp_entry_t entry)
-+{
-+}
- #endif
- 
- static unsigned long scan_swap_map(struct swap_info_struct *si,
-@@ -1157,13 +1185,15 @@ void swap_free(swp_entry_t entry)
  /*
-  * Called after dropping swapcache to decrease refcnt to swap entries.
-  */
--void swapcache_free(swp_entry_t entry)
-+void __swapcache_free(swp_entry_t entry, bool huge)
- {
- 	struct swap_info_struct *p;
+  * This function splits huge page into normal pages. @page can point to any
+  * subpage of huge page to split. Split doesn't change the position of @page.
+@@ -2426,8 +2439,6 @@ int split_huge_page_to_list(struct page
+ 			goto out;
+ 		}
  
- 	p = _swap_info_get(entry);
- 	if (p) {
--		if (!__swap_entry_free(p, entry, SWAP_HAS_CACHE))
-+		if (unlikely(huge))
-+			swapcache_free_trans_huge(p, entry);
-+		else if (!__swap_entry_free(p, entry, SWAP_HAS_CACHE))
- 			free_swap_slot(entry);
+-		/* Addidional pins from radix tree */
+-		extra_pins = HPAGE_PMD_NR;
+ 		anon_vma = NULL;
+ 		i_mmap_lock_read(mapping);
  	}
- }
+@@ -2436,7 +2447,7 @@ int split_huge_page_to_list(struct page
+ 	 * Racy check if we can split the page, before freeze_page() will
+ 	 * split PMDs
+ 	 */
+-	if (total_mapcount(head) != page_count(head) - extra_pins - 1) {
++	if (!can_split_huge_page(head, &extra_pins)) {
+ 		ret = -EBUSY;
+ 		goto out_unlock;
+ 	}
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
