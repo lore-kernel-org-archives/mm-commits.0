@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fault-inject-support-systematic-fault-injection.patch added to
- -mm tree
-Date: Tue, 28 Mar 2017 14:40:59 -0700
-Message-ID: <58dad86b.jE77W4PqXVNEt1O0%akpm@linux-foundation.org>
+Subject: + mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch added to -mm tree
+Date: Tue, 28 Mar 2017 15:14:07 -0700
+Message-ID: <58dae02f.TULdmT5yMERKxLIk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44132 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752401AbdC1VlG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 17:41:06 -0400
+        with ESMTP id S1755138AbdC1WOe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fault-inject: support systematic fault injection
+     Subject: mm, memcg: support to charge/uncharge multiple swap entries
 has been added to the -mm tree.  Its filename is
-     fault-inject-support-systematic-fault-injection.patch
+     mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-support-systematic-fault-injection.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-support-systematic-fault-injection.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,278 +38,367 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: fault-inject: support systematic fault injection
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, memcg: support to charge/uncharge multiple swap entries
 
-Add /proc/self/task/<current-tid>/fail-nth file that allows failing
-0-th, 1-st, 2-nd and so on calls systematically.
-Excerpt from the added documentation:
+Make it possible to charge or uncharge a set of continuous swap entries in
+the swap cgroup.  The number of swap entries is specified via an added
+parameter.
 
-===
-Write to this file of integer N makes N-th call in the current task fail
-(N is 0-based). Read from this file returns a single char 'Y' or 'N'
-that says if the fault setup with a previous write to this file was
-injected or not, and disables the fault if it wasn't yet injected.
-Note that this file enables all types of faults (slab, futex, etc).
-This setting takes precedence over all other generic settings like
-probability, interval, times, etc. But per-capability settings
-(e.g. fail_futex/ignore-private) take precedence over it.
-This feature is intended for systematic testing of faults in a single
-system call. See an example below.
-===
+This will be used for the THP (Transparent Huge Page) swap support.  Where
+a swap cluster backing a THP may be allocated and freed as a whole.  So a
+set of (HPAGE_PMD_NR) continuous swap entries backing one THP need to be
+charged or uncharged together.  This will batch the cgroup operations for
+the THP swap too.
 
-Why adding new setting:
-1. Existing settings are global rather than per-task.
-   So parallel testing is not possible.
-2. attr->interval is close but it depends on attr->count
-   which is non reset to 0, so interval does not work as expected.
-3. Trying to model this with existing settings requires manipulations
-   of all of probability, interval, times, space, task-filter and
-   unexposed count and per-task make-it-fail files.
-4. Existing settings are per-failure-type, and the set of failure
-   types is potentially expanding.
-5. make-it-fail can't be changed by unprivileged user and aggressive
-   stress testing better be done from an unprivileged user.
-   Similarly, this would require opening the debugfs files to the
-   unprivileged user, as he would need to reopen at least times file
-   (not possible to pre-open before dropping privs).
-
-The proposed interface solves all of the above (see the example).
-
-We want to integrate this into syzkaller fuzzer.  A prototype has found 10
-bugs in kernel in first day of usage:
-https://groups.google.com/forum/#!searchin/syzkaller/%22FAULT_INJECTION%22%7Csort:relevance
-
-Link: http://lkml.kernel.org/r/20170328130128.101773-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Link: http://lkml.kernel.org/r/20170328053209.25876-3-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/fault-injection.txt |   78 ++++++++++++
- fs/proc/base.c                                    |   52 ++++++++
- include/linux/sched.h                             |    1 
- kernel/fork.c                                     |    4 
- lib/fault-inject.c                                |    7 +
- 5 files changed, 142 insertions(+)
+ include/linux/swap.h        |   12 ++++---
+ include/linux/swap_cgroup.h |    6 ++-
+ mm/memcontrol.c             |   57 +++++++++++++++++++---------------
+ mm/shmem.c                  |    2 -
+ mm/swap_cgroup.c            |   40 +++++++++++++++++------
+ mm/swap_state.c             |    2 -
+ mm/swapfile.c               |    2 -
+ 7 files changed, 77 insertions(+), 44 deletions(-)
 
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-inject-support-systematic-fault-injection Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-inject-support-systematic-fault-injection
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -134,6 +134,22 @@ use the boot option:
- 	fail_futex=
- 	mmc_core.fail_request=<interval>,<probability>,<space>,<times>
+diff -puN include/linux/swap.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries include/linux/swap.h
+--- a/include/linux/swap.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/include/linux/swap.h
+@@ -550,8 +550,10 @@ static inline int mem_cgroup_swappiness(
  
-+o proc entries
-+
-+- /proc/self/task/<current-tid>/fail-nth:
-+
-+	Write to this file of integer N makes N-th call in the current task fail
-+	(N is 0-based). Read from this file returns a single char 'Y' or 'N'
-+	that says if the fault setup with a previous write to this file was
-+	injected or not, and disables the fault if it wasn't yet injected.
-+	Note that this file enables all types of faults (slab, futex, etc).
-+	This setting takes precedence over all other generic debugfs settings
-+	like probability, interval, times, etc. But per-capability settings
-+	(e.g. fail_futex/ignore-private) take precedence over it.
-+
-+	This feature is intended for systematic testing of faults in a single
-+	system call. See an example below.
-+
- How to add new fault injection capability
- -----------------------------------------
+ #ifdef CONFIG_MEMCG_SWAP
+ extern void mem_cgroup_swapout(struct page *page, swp_entry_t entry);
+-extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
+-extern void mem_cgroup_uncharge_swap(swp_entry_t entry);
++extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry,
++				      unsigned int nr_entries);
++extern void mem_cgroup_uncharge_swap(swp_entry_t entry,
++				     unsigned int nr_entries);
+ extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
+ extern bool mem_cgroup_swap_full(struct page *page);
+ #else
+@@ -560,12 +562,14 @@ static inline void mem_cgroup_swapout(st
+ }
  
-@@ -278,3 +294,65 @@ allocation failure.
- 	# env FAILCMD_TYPE=fail_page_alloc \
- 		./tools/testing/fault-injection/failcmd.sh --times=100 \
-                 -- make -C tools/testing/selftests/ run_tests
-+
-+Systematic faults using fail-nth
-+---------------------------------
-+
-+The following code systematically faults 0-th, 1-st, 2-nd and so on
-+capabilities in the socketpair() system call.
-+
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <sys/socket.h>
-+#include <sys/syscall.h>
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <errno.h>
-+
-+int main()
-+{
-+	int i, err, res, fail_nth, fds[2];
-+	char buf[128];
-+
-+	system("echo N > /sys/kernel/debug/failslab/ignore-gfp-wait");
-+	sprintf(buf, "/proc/self/task/%ld/fail-nth", syscall(SYS_gettid));
-+	fail_nth = open(buf, O_RDWR);
-+	for (i = 0;; i++) {
-+		sprintf(buf, "%d", i);
-+		write(fail_nth, buf, strlen(buf));
-+		res = socketpair(AF_LOCAL, SOCK_STREAM, 0, fds);
-+		err = errno;
-+		read(fail_nth, buf, 1);
-+		if (res == 0) {
-+			close(fds[0]);
-+			close(fds[1]);
-+		}
-+		printf("%d-th fault %c: res=%d/%d\n", i, buf[0], res, err);
-+		if (buf[0] != 'Y')
-+			break;
-+	}
-+	return 0;
-+}
-+
-+An example output:
-+
-+0-th fault Y: res=-1/23
-+1-th fault Y: res=-1/23
-+2-th fault Y: res=-1/23
-+3-th fault Y: res=-1/12
-+4-th fault Y: res=-1/12
-+5-th fault Y: res=-1/23
-+6-th fault Y: res=-1/23
-+7-th fault Y: res=-1/23
-+8-th fault Y: res=-1/12
-+9-th fault Y: res=-1/12
-+10-th fault Y: res=-1/12
-+11-th fault Y: res=-1/12
-+12-th fault Y: res=-1/12
-+13-th fault Y: res=-1/12
-+14-th fault Y: res=-1/12
-+15-th fault Y: res=-1/12
-+16-th fault N: res=0/12
-diff -puN fs/proc/base.c~fault-inject-support-systematic-fault-injection fs/proc/base.c
---- a/fs/proc/base.c~fault-inject-support-systematic-fault-injection
-+++ a/fs/proc/base.c
-@@ -1358,6 +1358,53 @@ static const struct file_operations proc
- 	.write		= proc_fault_inject_write,
- 	.llseek		= generic_file_llseek,
- };
-+
-+static ssize_t proc_fail_nth_write(struct file *file, const char __user *buf,
-+				   size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task;
-+	int err, n;
-+
-+	task = get_proc_task(file_inode(file));
-+	if (!task)
-+		return -ESRCH;
-+	put_task_struct(task);
-+	if (task != current)
-+		return -EPERM;
-+	err = kstrtoint_from_user(buf, count, 10, &n);
-+	if (err)
-+		return err;
-+	if (n < 0 || n == INT_MAX)
-+		return -EINVAL;
-+	current->fail_nth = n + 1;
-+	return len;
-+}
-+
-+static ssize_t proc_fail_nth_read(struct file *file, char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task;
-+	int err;
-+
-+	task = get_proc_task(file_inode(file));
-+	if (!task)
-+		return -ESRCH;
-+	put_task_struct(task);
-+	if (task != current)
-+		return -EPERM;
-+	if (count < 1)
-+		return -EINVAL;
-+	err = put_user((char)(current->fail_nth ? 'N' : 'Y'), buf);
-+	if (err)
-+		return err;
-+	current->fail_nth = 0;
-+	return 1;
-+}
-+
-+static const struct file_operations proc_fail_nth_operations = {
-+	.read		= proc_fail_nth_read,
-+	.write		= proc_fail_nth_write,
-+};
- #endif
- 
- 
-@@ -3302,6 +3349,11 @@ static const struct pid_entry tid_base_s
- #endif
- #ifdef CONFIG_FAULT_INJECTION
- 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
-+	/*
-+	 * Operations on the file check that the task is current,
-+	 * so we create it with 0666 to support testing under unprivileged user.
-+	 */
-+	REG("fail-nth", 0666, proc_fail_nth_operations),
- #endif
- #ifdef CONFIG_TASK_IO_ACCOUNTING
- 	ONE("io",	S_IRUSR, proc_tid_io_accounting),
-diff -puN include/linux/sched.h~fault-inject-support-systematic-fault-injection include/linux/sched.h
---- a/include/linux/sched.h~fault-inject-support-systematic-fault-injection
-+++ a/include/linux/sched.h
-@@ -941,6 +941,7 @@ struct task_struct {
- 
- #ifdef CONFIG_FAULT_INJECTION
- 	int				make_it_fail;
-+	int fail_nth;
- #endif
- 	/*
- 	 * When (nr_dirtied >= nr_dirtied_pause), it's time to call
-diff -puN kernel/fork.c~fault-inject-support-systematic-fault-injection kernel/fork.c
---- a/kernel/fork.c~fault-inject-support-systematic-fault-injection
-+++ a/kernel/fork.c
-@@ -555,6 +555,10 @@ static struct task_struct *dup_task_stru
- 
- 	kcov_task_init(tsk);
- 
-+#ifdef CONFIG_FAULT_INJECTION
-+	tsk->fail_nth = 0;
-+#endif
-+
- 	return tsk;
- 
- free_stack:
-diff -puN lib/fault-inject.c~fault-inject-support-systematic-fault-injection lib/fault-inject.c
---- a/lib/fault-inject.c~fault-inject-support-systematic-fault-injection
-+++ a/lib/fault-inject.c
-@@ -107,6 +107,12 @@ static inline bool fail_stacktrace(struc
- 
- bool should_fail(struct fault_attr *attr, ssize_t size)
+ static inline int mem_cgroup_try_charge_swap(struct page *page,
+-					     swp_entry_t entry)
++					     swp_entry_t entry,
++					     unsigned int nr_entries)
  {
-+	if (in_task() && current->fail_nth) {
-+		if (--current->fail_nth == 0)
-+			goto fail;
-+		return false;
-+	}
+ 	return 0;
+ }
+ 
+-static inline void mem_cgroup_uncharge_swap(swp_entry_t entry)
++static inline void mem_cgroup_uncharge_swap(swp_entry_t entry,
++					    unsigned int nr_entries)
+ {
+ }
+ 
+diff -puN include/linux/swap_cgroup.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries include/linux/swap_cgroup.h
+--- a/include/linux/swap_cgroup.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/include/linux/swap_cgroup.h
+@@ -7,7 +7,8 @@
+ 
+ extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
+ 					unsigned short old, unsigned short new);
+-extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id);
++extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
++					 unsigned int nr_ents);
+ extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
+ extern int swap_cgroup_swapon(int type, unsigned long max_pages);
+ extern void swap_cgroup_swapoff(int type);
+@@ -15,7 +16,8 @@ extern void swap_cgroup_swapoff(int type
+ #else
+ 
+ static inline
+-unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
++unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
++				  unsigned int nr_ents)
+ {
+ 	return 0;
+ }
+diff -puN mm/memcontrol.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/memcontrol.c
+@@ -2393,10 +2393,9 @@ void mem_cgroup_split_huge_fixup(struct
+ 
+ #ifdef CONFIG_MEMCG_SWAP
+ static void mem_cgroup_swap_statistics(struct mem_cgroup *memcg,
+-					 bool charge)
++				       int nr_entries)
+ {
+-	int val = (charge) ? 1 : -1;
+-	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAP], val);
++	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAP], nr_entries);
+ }
+ 
+ /**
+@@ -2422,8 +2421,8 @@ static int mem_cgroup_move_swap_account(
+ 	new_id = mem_cgroup_id(to);
+ 
+ 	if (swap_cgroup_cmpxchg(entry, old_id, new_id) == old_id) {
+-		mem_cgroup_swap_statistics(from, false);
+-		mem_cgroup_swap_statistics(to, true);
++		mem_cgroup_swap_statistics(from, -1);
++		mem_cgroup_swap_statistics(to, 1);
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+@@ -5451,7 +5450,7 @@ void mem_cgroup_commit_charge(struct pag
+ 		 * let's not wait for it.  The page already received a
+ 		 * memory+swap charge, drop the swap entry duplicate.
+ 		 */
+-		mem_cgroup_uncharge_swap(entry);
++		mem_cgroup_uncharge_swap(entry, nr_pages);
+ 	}
+ }
+ 
+@@ -5879,9 +5878,9 @@ void mem_cgroup_swapout(struct page *pag
+ 	 * ancestor for the swap instead and transfer the memory+swap charge.
+ 	 */
+ 	swap_memcg = mem_cgroup_id_get_online(memcg);
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg));
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg), 1);
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(swap_memcg, true);
++	mem_cgroup_swap_statistics(swap_memcg, 1);
+ 
+ 	page->mem_cgroup = NULL;
+ 
+@@ -5908,16 +5907,19 @@ void mem_cgroup_swapout(struct page *pag
+ 		css_put(&memcg->css);
+ }
+ 
+-/*
+- * mem_cgroup_try_charge_swap - try charging a swap entry
++/**
++ * mem_cgroup_try_charge_swap - try charging a set of swap entries
+  * @page: page being added to swap
+- * @entry: swap entry to charge
++ * @entry: the first swap entry to charge
++ * @nr_entries: the number of swap entries to charge
+  *
+- * Try to charge @entry to the memcg that @page belongs to.
++ * Try to charge @nr_entries swap entries starting from @entry to the
++ * memcg that @page belongs to.
+  *
+  * Returns 0 on success, -ENOMEM on failure.
+  */
+-int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
++int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry,
++			       unsigned int nr_entries)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct page_counter *counter;
+@@ -5935,25 +5937,29 @@ int mem_cgroup_try_charge_swap(struct pa
+ 	memcg = mem_cgroup_id_get_online(memcg);
+ 
+ 	if (!mem_cgroup_is_root(memcg) &&
+-	    !page_counter_try_charge(&memcg->swap, 1, &counter)) {
++	    !page_counter_try_charge(&memcg->swap, nr_entries, &counter)) {
+ 		mem_cgroup_id_put(memcg);
+ 		return -ENOMEM;
+ 	}
+ 
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
++	if (nr_entries > 1)
++		mem_cgroup_id_get_many(memcg, nr_entries - 1);
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg), nr_entries);
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(memcg, true);
++	mem_cgroup_swap_statistics(memcg, nr_entries);
+ 
+ 	return 0;
+ }
+ 
+ /**
+- * mem_cgroup_uncharge_swap - uncharge a swap entry
+- * @entry: swap entry to uncharge
++ * mem_cgroup_uncharge_swap - uncharge a set of swap entries
++ * @entry: the first swap entry to uncharge
++ * @nr_entries: the number of swap entries to uncharge
+  *
+- * Drop the swap charge associated with @entry.
++ * Drop the swap charge associated with @nr_entries swap entries
++ * starting from @entry.
+  */
+-void mem_cgroup_uncharge_swap(swp_entry_t entry)
++void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_entries)
+ {
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
+@@ -5961,18 +5967,19 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 	if (!do_swap_account)
+ 		return;
+ 
+-	id = swap_cgroup_record(entry, 0);
++	id = swap_cgroup_record(entry, 0, nr_entries);
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+ 	if (memcg) {
+ 		if (!mem_cgroup_is_root(memcg)) {
+ 			if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-				page_counter_uncharge(&memcg->swap, 1);
++				page_counter_uncharge(&memcg->swap, nr_entries);
+ 			else
+-				page_counter_uncharge(&memcg->memsw, 1);
++				page_counter_uncharge(&memcg->memsw,
++						      nr_entries);
+ 		}
+-		mem_cgroup_swap_statistics(memcg, false);
+-		mem_cgroup_id_put(memcg);
++		mem_cgroup_swap_statistics(memcg, -nr_entries);
++		mem_cgroup_id_put_many(memcg, nr_entries);
+ 	}
+ 	rcu_read_unlock();
+ }
+diff -puN mm/shmem.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/shmem.c
+--- a/mm/shmem.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/shmem.c
+@@ -1294,7 +1294,7 @@ static int shmem_writepage(struct page *
+ 	if (!swap.val)
+ 		goto redirty;
+ 
+-	if (mem_cgroup_try_charge_swap(page, swap))
++	if (mem_cgroup_try_charge_swap(page, swap, 1))
+ 		goto free_swap;
+ 
+ 	/*
+diff -puN mm/swap_cgroup.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/swap_cgroup.c
+--- a/mm/swap_cgroup.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/swap_cgroup.c
+@@ -58,21 +58,27 @@ not_enough_page:
+ 	return -ENOMEM;
+ }
+ 
++static struct swap_cgroup *__lookup_swap_cgroup(struct swap_cgroup_ctrl *ctrl,
++						pgoff_t offset)
++{
++	struct page *mappage;
++	struct swap_cgroup *sc;
 +
- 	/* No need to check any other properties if the probability is 0 */
- 	if (attr->probability == 0)
- 		return false;
-@@ -134,6 +140,7 @@ bool should_fail(struct fault_attr *attr
- 	if (!fail_stacktrace(attr))
- 		return false;
++	mappage = ctrl->map[offset / SC_PER_PAGE];
++	sc = page_address(mappage);
++	return sc + offset % SC_PER_PAGE;
++}
++
+ static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
+ 					struct swap_cgroup_ctrl **ctrlp)
+ {
+ 	pgoff_t offset = swp_offset(ent);
+ 	struct swap_cgroup_ctrl *ctrl;
+-	struct page *mappage;
+-	struct swap_cgroup *sc;
  
-+fail:
- 	fail_dump(attr);
+ 	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
+ 	if (ctrlp)
+ 		*ctrlp = ctrl;
+-
+-	mappage = ctrl->map[offset / SC_PER_PAGE];
+-	sc = page_address(mappage);
+-	return sc + offset % SC_PER_PAGE;
++	return __lookup_swap_cgroup(ctrl, offset);
+ }
  
- 	if (atomic_read(&attr->times) != -1)
+ /**
+@@ -105,25 +111,39 @@ unsigned short swap_cgroup_cmpxchg(swp_e
+ }
+ 
+ /**
+- * swap_cgroup_record - record mem_cgroup for this swp_entry.
+- * @ent: swap entry to be recorded into
++ * swap_cgroup_record - record mem_cgroup for a set of swap entries
++ * @ent: the first swap entry to be recorded into
+  * @id: mem_cgroup to be recorded
++ * @nr_ents: number of swap entries to be recorded
+  *
+  * Returns old value at success, 0 at failure.
+  * (Of course, old value can be 0.)
+  */
+-unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
++unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
++				  unsigned int nr_ents)
+ {
+ 	struct swap_cgroup_ctrl *ctrl;
+ 	struct swap_cgroup *sc;
+ 	unsigned short old;
+ 	unsigned long flags;
++	pgoff_t offset = swp_offset(ent);
++	pgoff_t end = offset + nr_ents;
+ 
+ 	sc = lookup_swap_cgroup(ent, &ctrl);
+ 
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+ 	old = sc->id;
+-	sc->id = id;
++	for (;;) {
++		VM_BUG_ON(sc->id != old);
++		sc->id = id;
++		offset++;
++		if (offset == end)
++			break;
++		if (offset % SC_PER_PAGE)
++			sc++;
++		else
++			sc = __lookup_swap_cgroup(ctrl, offset);
++	}
+ 	spin_unlock_irqrestore(&ctrl->lock, flags);
+ 
+ 	return old;
+diff -puN mm/swap_state.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/swap_state.c
+--- a/mm/swap_state.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/swap_state.c
+@@ -182,7 +182,7 @@ int add_to_swap(struct page *page, struc
+ 	if (!entry.val)
+ 		return 0;
+ 
+-	if (mem_cgroup_try_charge_swap(page, entry)) {
++	if (mem_cgroup_try_charge_swap(page, entry, 1)) {
+ 		swapcache_free(entry);
+ 		return 0;
+ 	}
+diff -puN mm/swapfile.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/swapfile.c
+--- a/mm/swapfile.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/swapfile.c
+@@ -1012,7 +1012,7 @@ static void swap_entry_free(struct swap_
+ 	dec_cluster_info_page(p, p->cluster_info, offset);
+ 	unlock_cluster(ci);
+ 
+-	mem_cgroup_uncharge_swap(entry);
++	mem_cgroup_uncharge_swap(entry, 1);
+ 	if (offset < p->lowest_bit)
+ 		p->lowest_bit = offset;
+ 	if (offset > p->highest_bit) {
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-fault-inject-support-systematic-fault-injection.patch
-kasan-allow-kasan_check_read-write-to-accept-pointers-to-volatiles.patch
-asm-generic-x86-wrap-atomic-operations.patch
-asm-generic-add-kasan-instrumentation-to-atomic-operations.patch
-asm-generic-fix-compilation-failure-in-cmpxchg_double.patch
+mm-swap-fix-a-race-in-free_swap_and_cache.patch
+mm-swap-fix-comment-in-__read_swap_cache_async.patch
+mm-swap-improve-readability-via-make-spin_lock-unlock-balanced.patch
+mm-swap-avoid-lock-swap_avail_lock-when-held-cluster-lock.patch
+mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64.patch
+mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch
+mm-thp-swap-add-swap-cluster-allocate-free-functions.patch
+mm-thp-swap-add-get_huge_swap_page.patch
+mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page.patch
+mm-thp-swap-support-to-add-delete-thp-to-from-swap-cache.patch
+mm-thp-add-can_split_huge_page.patch
+mm-thp-swap-support-to-split-thp-in-swap-cache.patch
+mm-thp-swap-delay-splitting-thp-during-swap-out.patch
 
