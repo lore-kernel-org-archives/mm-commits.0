@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-swap-delay-splitting-thp-during-swap-out.patch added to
- -mm tree
-Date: Tue, 28 Mar 2017 15:14:35 -0700
-Message-ID: <58dae04b.y3v1xDgY4qLEXbS8%akpm@linux-foundation.org>
+Subject: + mm-thp-swap-add-swap-cluster-allocate-free-functions.patch
+ added to -mm tree
+Date: Tue, 28 Mar 2017 15:14:12 -0700
+Message-ID: <58dae034.RsWqiU19F+eeCSZF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44142 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755865AbdC1WPH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:15:07 -0400
+        with ESMTP id S1755865AbdC1WOy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:14:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP, swap: delay splitting THP during swap out
+     Subject: mm, THP, swap: add swap cluster allocate/free functions
 has been added to the -mm tree.  Its filename is
-     mm-thp-swap-delay-splitting-thp-during-swap-out.patch
+     mm-thp-swap-add-swap-cluster-allocate-free-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-delay-splitting-thp-during-swap-out.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-add-swap-cluster-allocate-free-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-delay-splitting-thp-during-swap-out.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-add-swap-cluster-allocate-free-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,190 +40,319 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP, swap: delay splitting THP during swap out
+Subject: mm, THP, swap: add swap cluster allocate/free functions
 
-In this patch, splitting huge page is delayed from almost the first step
-of swapping out to after allocating the swap space for the THP
-(Transparent Huge Page) and adding the THP into the swap cache.  This will
-reduce lock acquiring/releasing for the locks used for the swap cache
-management.
+The swap cluster allocation/free functions are added based on the existing
+swap cluster management mechanism for SSD.  These functions don't work for
+the rotating hard disks because the existing swap cluster management
+mechanism doesn't work for them.  The hard disks support may be added if
+someone really need it.  But that needn't be included in this patchset.
 
-This is the first step for the THP swap support.  The plan is to delay
-splitting the THP step by step and avoid splitting the THP finally.
+This will be used for the THP (Transparent Huge Page) swap support.  Where
+one swap cluster will hold the contents of each THP swapped out.
 
-The advantages of the THP swap support include:
-
-- Batch the swap operations for the THP to reduce lock
-  acquiring/releasing, including allocating/freeing the swap space,
-  adding/deleting to/from the swap cache, and writing/reading the swap
-  space, etc.  This will help to improve the THP swap performance.
-
-- The THP swap space read/write will be 2M sequential IO.  It is
-  particularly helpful for the swap read, which usually are 4k random
-  IO.  This will help to improve the THP swap performance too.
-
-- It will help the memory fragmentation, especially when the THP is
-  heavily used by the applications.  The 2M continuous pages will be
-  free up after the THP swapping out.
-
-- It will improve the THP utilization on the system with the swap
-  turned on.  Because the speed for khugepaged to collapse the normal
-  pages into the THP is quite slow.  After the THP is split during the
-  swapping out, it will take quite long time for the normal pages to
-  collapse back into the THP after being swapped in.  The high THP
-  utilization helps the efficiency of the page based memory management
-  too.
-
-There are some concerns regarding THP swap in, mainly because possible
-enlarged read/write IO size (for swap in/out) may put more overhead on the
-storage device.  To deal with that, the THP swap in should be turned on
-only when necessary.  For example, it can be selected via
-"always/never/madvise" logic, to be turned on globally, turned off
-globally, or turned on only for VMA with MADV_HUGEPAGE, etc.
-
-With the patchset, the swap out throughput improves 14.9% (from about
-3.77GB/s to about 4.34GB/s) in the vm-scalability swap-w-seq test case
-with 8 processes.  The test is done on a Xeon E5 v3 system.  The swap
-device used is a RAM simulated PMEM (persistent memory) device.  To test
-the sequential swapping out, the test case creates 8 processes, which
-sequentially allocate and write to the anonymous pages until the RAM and
-part of the swap device is used up.
-
-The detailed comparison result is as follow,
-
-base             base+patchset
----------------- --------------------------
-         %stddev     %change         %stddev
-             \          |                \
-   7043990 ±  0%     +21.2%    8536807 ±  0%  vm-scalability.throughput
-    109.94 ±  1%     -16.2%      92.09 ±  0%  vm-scalability.time.elapsed_time
-   3957091 ±  0%     +14.9%    4547173 ±  0%  vmstat.swap.so
-     31.46 ±  1%     -38.3%      19.42 ±  0%  perf-stat.cache-miss-rate%
-      1.04 ±  1%     +22.2%       1.27 ±  0%  perf-stat.ipc
-      9.33 ±  2%     -60.7%       3.67 ±  1%  perf-profile.calltrace.cycles-pp.add_to_swap.shrink_page_list.shrink_inactive_list.shrink_node_memcg.shrink_node
-
-Link: http://lkml.kernel.org/r/20170328053209.25876-10-ying.huang@intel.com
+Link: http://lkml.kernel.org/r/20170328053209.25876-4-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   60 +++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 57 insertions(+), 3 deletions(-)
+ mm/swapfile.c |  217 ++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 156 insertions(+), 61 deletions(-)
 
-diff -puN mm/swap_state.c~mm-thp-swap-delay-splitting-thp-during-swap-out mm/swap_state.c
---- a/mm/swap_state.c~mm-thp-swap-delay-splitting-thp-during-swap-out
-+++ a/mm/swap_state.c
-@@ -19,6 +19,7 @@
- #include <linux/migrate.h>
- #include <linux/vmalloc.h>
- #include <linux/swap_slots.h>
-+#include <linux/huge_mm.h>
+diff -puN mm/swapfile.c~mm-thp-swap-add-swap-cluster-allocate-free-functions mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-swap-add-swap-cluster-allocate-free-functions
++++ a/mm/swapfile.c
+@@ -378,6 +378,14 @@ static void swap_cluster_schedule_discar
+ 	schedule_work(&si->discard_work);
+ }
  
- #include <asm/pgtable.h>
++static void __free_cluster(struct swap_info_struct *si, unsigned long idx)
++{
++	struct swap_cluster_info *ci = si->cluster_info;
++
++	cluster_set_flag(ci + idx, CLUSTER_FLAG_FREE);
++	cluster_list_add_tail(&si->free_clusters, ci, idx);
++}
++
+ /*
+  * Doing discard actually. After a cluster discard is finished, the cluster
+  * will be added to free cluster list. caller should hold si->lock.
+@@ -398,10 +406,7 @@ static void swap_do_scheduled_discard(st
  
-@@ -183,12 +184,53 @@ void __delete_from_swap_cache(struct pag
- 	ADD_CACHE_INFO(del_total, nr);
+ 		spin_lock(&si->lock);
+ 		ci = lock_cluster(si, idx * SWAPFILE_CLUSTER);
+-		cluster_set_flag(ci, CLUSTER_FLAG_FREE);
+-		unlock_cluster(ci);
+-		cluster_list_add_tail(&si->free_clusters, info, idx);
+-		ci = lock_cluster(si, idx * SWAPFILE_CLUSTER);
++		__free_cluster(si, idx);
+ 		memset(si->swap_map + idx * SWAPFILE_CLUSTER,
+ 				0, SWAPFILE_CLUSTER);
+ 		unlock_cluster(ci);
+@@ -419,6 +424,34 @@ static void swap_discard_work(struct wor
+ 	spin_unlock(&si->lock);
+ }
+ 
++static void alloc_cluster(struct swap_info_struct *si, unsigned long idx)
++{
++	struct swap_cluster_info *ci = si->cluster_info;
++
++	VM_BUG_ON(cluster_list_first(&si->free_clusters) != idx);
++	cluster_list_del_first(&si->free_clusters, ci);
++	cluster_set_count_flag(ci + idx, 0, 0);
++}
++
++static void free_cluster(struct swap_info_struct *si, unsigned long idx)
++{
++	struct swap_cluster_info *ci = si->cluster_info + idx;
++
++	VM_BUG_ON(cluster_count(ci) != 0);
++	/*
++	 * If the swap is discardable, prepare discard the cluster
++	 * instead of free it immediately. The cluster will be freed
++	 * after discard.
++	 */
++	if ((si->flags & (SWP_WRITEOK | SWP_PAGE_DISCARD)) ==
++	    (SWP_WRITEOK | SWP_PAGE_DISCARD)) {
++		swap_cluster_schedule_discard(si, idx);
++		return;
++	}
++
++	__free_cluster(si, idx);
++}
++
+ /*
+  * The cluster corresponding to page_nr will be used. The cluster will be
+  * removed from free cluster list and its usage counter will be increased.
+@@ -430,11 +463,8 @@ static void inc_cluster_info_page(struct
+ 
+ 	if (!cluster_info)
+ 		return;
+-	if (cluster_is_free(&cluster_info[idx])) {
+-		VM_BUG_ON(cluster_list_first(&p->free_clusters) != idx);
+-		cluster_list_del_first(&p->free_clusters, cluster_info);
+-		cluster_set_count_flag(&cluster_info[idx], 0, 0);
+-	}
++	if (cluster_is_free(&cluster_info[idx]))
++		alloc_cluster(p, idx);
+ 
+ 	VM_BUG_ON(cluster_count(&cluster_info[idx]) >= SWAPFILE_CLUSTER);
+ 	cluster_set_count(&cluster_info[idx],
+@@ -458,21 +488,8 @@ static void dec_cluster_info_page(struct
+ 	cluster_set_count(&cluster_info[idx],
+ 		cluster_count(&cluster_info[idx]) - 1);
+ 
+-	if (cluster_count(&cluster_info[idx]) == 0) {
+-		/*
+-		 * If the swap is discardable, prepare discard the cluster
+-		 * instead of free it immediately. The cluster will be freed
+-		 * after discard.
+-		 */
+-		if ((p->flags & (SWP_WRITEOK | SWP_PAGE_DISCARD)) ==
+-				 (SWP_WRITEOK | SWP_PAGE_DISCARD)) {
+-			swap_cluster_schedule_discard(p, idx);
+-			return;
+-		}
+-
+-		cluster_set_flag(&cluster_info[idx], CLUSTER_FLAG_FREE);
+-		cluster_list_add_tail(&p->free_clusters, cluster_info, idx);
+-	}
++	if (cluster_count(&cluster_info[idx]) == 0)
++		free_cluster(p, idx);
+ }
+ 
+ /*
+@@ -562,6 +579,71 @@ new_cluster:
+ 	return found_free;
  }
  
 +#ifdef CONFIG_THP_SWAP_CLUSTER
-+int add_to_swap_trans_huge(struct page *page, struct list_head *list)
++static inline unsigned int huge_cluster_nr_entries(bool huge)
 +{
-+	swp_entry_t entry;
-+	int ret = 0;
++	return huge ? SWAPFILE_CLUSTER : 1;
++}
++#else
++#define huge_cluster_nr_entries(huge)	1
++#endif
 +
-+	/* cannot split, which may be needed during swap in, skip it */
-+	if (!can_split_huge_page(page, NULL))
-+		return -EBUSY;
-+	/* fallback to split huge page firstly if no PMD map */
-+	if (!compound_mapcount(page))
-+		return 0;
-+	entry = get_huge_swap_page();
-+	if (!entry.val)
-+		return 0;
-+	if (mem_cgroup_try_charge_swap(page, entry, HPAGE_PMD_NR)) {
-+		__swapcache_free(entry, true);
-+		return -EOVERFLOW;
++static void _swap_entry_alloc(struct swap_info_struct *si,
++			      unsigned long offset, bool huge)
++{
++	unsigned int nr_entries = huge_cluster_nr_entries(huge);
++	unsigned int end = offset + nr_entries - 1;
++
++	if (offset == si->lowest_bit)
++		si->lowest_bit += nr_entries;
++	if (end == si->highest_bit)
++		si->highest_bit -= nr_entries;
++	si->inuse_pages += nr_entries;
++	if (si->inuse_pages == si->pages) {
++		si->lowest_bit = si->max;
++		si->highest_bit = 0;
++		spin_lock(&swap_avail_lock);
++		plist_del(&si->avail_list, &swap_avail_head);
++		spin_unlock(&swap_avail_lock);
 +	}
-+	ret = add_to_swap_cache(page, entry,
-+				__GFP_HIGH | __GFP_NOMEMALLOC|__GFP_NOWARN);
-+	/* -ENOMEM radix-tree allocation failure */
-+	if (ret) {
-+		__swapcache_free(entry, true);
++}
++
++static void _swap_entry_free(struct swap_info_struct *si, unsigned long offset,
++			     bool huge)
++{
++	unsigned int nr_entries = huge_cluster_nr_entries(huge);
++	unsigned long end = offset + nr_entries - 1;
++	void (*swap_slot_free_notify)(struct block_device *, unsigned long);
++
++	if (offset < si->lowest_bit)
++		si->lowest_bit = offset;
++	if (end > si->highest_bit) {
++		bool was_full = !si->highest_bit;
++
++		si->highest_bit = end;
++		if (was_full && (si->flags & SWP_WRITEOK)) {
++			spin_lock(&swap_avail_lock);
++			WARN_ON(!plist_node_empty(&si->avail_list));
++			if (plist_node_empty(&si->avail_list))
++				plist_add(&si->avail_list, &swap_avail_head);
++			spin_unlock(&swap_avail_lock);
++		}
++	}
++	atomic_long_add(nr_entries, &nr_swap_pages);
++	si->inuse_pages -= nr_entries;
++	if (si->flags & SWP_BLKDEV)
++		swap_slot_free_notify =
++			si->bdev->bd_disk->fops->swap_slot_free_notify;
++	else
++		swap_slot_free_notify = NULL;
++	while (offset <= end) {
++		frontswap_invalidate_page(si->type, offset);
++		if (swap_slot_free_notify)
++			swap_slot_free_notify(si->bdev, offset);
++		offset++;
++	}
++}
++
+ static int scan_swap_map_slots(struct swap_info_struct *si,
+ 			       unsigned char usage, int nr,
+ 			       swp_entry_t slots[])
+@@ -680,18 +762,7 @@ checks:
+ 	inc_cluster_info_page(si, si->cluster_info, offset);
+ 	unlock_cluster(ci);
+ 
+-	if (offset == si->lowest_bit)
+-		si->lowest_bit++;
+-	if (offset == si->highest_bit)
+-		si->highest_bit--;
+-	si->inuse_pages++;
+-	if (si->inuse_pages == si->pages) {
+-		si->lowest_bit = si->max;
+-		si->highest_bit = 0;
+-		spin_lock(&swap_avail_lock);
+-		plist_del(&si->avail_list, &swap_avail_head);
+-		spin_unlock(&swap_avail_lock);
+-	}
++	_swap_entry_alloc(si, offset, false);
+ 	si->cluster_next = offset + 1;
+ 	slots[n_ret++] = swp_entry(si->type, offset);
+ 
+@@ -770,6 +841,54 @@ no_page:
+ 	return n_ret;
+ }
+ 
++#ifdef CONFIG_THP_SWAP_CLUSTER
++static void swap_free_huge_cluster(struct swap_info_struct *si,
++				   unsigned long idx)
++{
++	struct swap_cluster_info *ci;
++	unsigned long offset = idx * SWAPFILE_CLUSTER;
++
++	ci = lock_cluster(si, offset);
++	cluster_set_count_flag(ci, 0, 0);
++	free_cluster(si, idx);
++	unlock_cluster(ci);
++	_swap_entry_free(si, offset, true);
++}
++
++static int swap_alloc_huge_cluster(struct swap_info_struct *si,
++				   swp_entry_t *slot)
++{
++	unsigned long idx;
++	struct swap_cluster_info *ci;
++	unsigned long offset, i;
++	unsigned char *map;
++
++	if (cluster_list_empty(&si->free_clusters))
 +		return 0;
-+	}
-+	ret = split_huge_page_to_list(page, list);
-+	if (ret) {
-+		delete_from_swap_cache(page);
-+		return -EBUSY;
-+	}
++
++	idx = cluster_list_first(&si->free_clusters);
++	offset = idx * SWAPFILE_CLUSTER;
++	ci = lock_cluster(si, offset);
++	alloc_cluster(si, idx);
++	cluster_set_count_flag(ci, SWAPFILE_CLUSTER, 0);
++
++	map = si->swap_map + offset;
++	for (i = 0; i < SWAPFILE_CLUSTER; i++)
++		map[i] = SWAP_HAS_CACHE;
++	unlock_cluster(ci);
++	_swap_entry_alloc(si, offset, true);
++	*slot = swp_entry(si->type, offset);
++
 +	return 1;
 +}
 +#else
-+static inline int add_to_swap_trans_huge(struct page *page,
-+					 struct list_head *list)
++static inline int swap_alloc_huge_cluster(struct swap_info_struct *si,
++					  swp_entry_t *slot)
 +{
 +	return 0;
 +}
 +#endif
 +
- /**
-  * add_to_swap - allocate swap space for a page
-  * @page: page we want to move to swap
-  *
-  * Allocate swap space for the page and add the page to the
-- * swap cache.  Caller needs to hold the page lock. 
-+ * swap cache.  Caller needs to hold the page lock.
-  */
- int add_to_swap(struct page *page, struct list_head *list)
+ static unsigned long scan_swap_map(struct swap_info_struct *si,
+ 				   unsigned char usage)
  {
-@@ -198,6 +240,18 @@ int add_to_swap(struct page *page, struc
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(!PageUptodate(page), page);
+@@ -1013,31 +1132,7 @@ static void swap_entry_free(struct swap_
+ 	unlock_cluster(ci);
  
-+	if (unlikely(PageTransHuge(page))) {
-+		err = add_to_swap_trans_huge(page, list);
-+		switch (err) {
-+		case 1:
-+			return 1;
-+		case 0:
-+			/* fallback to split firstly if return 0 */
-+			break;
-+		default:
-+			return 0;
-+		}
-+	}
- 	entry = get_swap_page();
- 	if (!entry.val)
- 		return 0;
-@@ -315,7 +369,7 @@ struct page * lookup_swap_cache(swp_entr
+ 	mem_cgroup_uncharge_swap(entry, 1);
+-	if (offset < p->lowest_bit)
+-		p->lowest_bit = offset;
+-	if (offset > p->highest_bit) {
+-		bool was_full = !p->highest_bit;
+-
+-		p->highest_bit = offset;
+-		if (was_full && (p->flags & SWP_WRITEOK)) {
+-			spin_lock(&swap_avail_lock);
+-			WARN_ON(!plist_node_empty(&p->avail_list));
+-			if (plist_node_empty(&p->avail_list))
+-				plist_add(&p->avail_list,
+-					  &swap_avail_head);
+-			spin_unlock(&swap_avail_lock);
+-		}
+-	}
+-	atomic_long_inc(&nr_swap_pages);
+-	p->inuse_pages--;
+-	frontswap_invalidate_page(p->type, offset);
+-	if (p->flags & SWP_BLKDEV) {
+-		struct gendisk *disk = p->bdev->bd_disk;
+-
+-		if (disk->fops->swap_slot_free_notify)
+-			disk->fops->swap_slot_free_notify(p->bdev,
+-							  offset);
+-	}
++	_swap_entry_free(p, offset, false);
+ }
  
- 	page = find_get_page(swap_address_space(entry), swp_offset(entry));
- 
--	if (page) {
-+	if (page && likely(!PageTransCompound(page))) {
- 		INC_CACHE_INFO(find_success);
- 		if (TestClearPageReadahead(page))
- 			atomic_inc(&swapin_readahead_hits);
-@@ -526,7 +580,7 @@ struct page *swapin_readahead(swp_entry_
- 						gfp_mask, vma, addr);
- 		if (!page)
- 			continue;
--		if (offset != entry_offset)
-+		if (offset != entry_offset && likely(!PageTransCompound(page)))
- 			SetPageReadahead(page);
- 		put_page(page);
- 	}
+ /*
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
