@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd.patch
+Subject: + mm-page_alloc-split-smallest-stolen-page-in-fallback-fix.patch
  added to -mm tree
-Date: Tue, 28 Mar 2017 13:35:25 -0700
-Message-ID: <58dac90d.ZaqK038pbu/k+DE5%akpm@linux-foundation.org>
+Date: Tue, 28 Mar 2017 13:39:15 -0700
+Message-ID: <58dac9f3.yhjQA9HWmPzUPUw1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55676 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753468AbdC1Uf3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 16:35:29 -0400
+        with ESMTP id S1751882AbdC1Uj1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 16:39:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, borntraeger@de.ibm.com, gerald.schaefer@de.ibm.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mike.kravetz@oracle.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, rientjes@google.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: use pte_present() instead of pmd_present() in follow_huge_pmd()
+     Subject: mm-page_alloc-split-smallest-stolen-page-in-fallback-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd.patch
+     mm-page_alloc-split-smallest-stolen-page-in-fallback-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-split-smallest-stolen-page-in-fallback-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-split-smallest-stolen-page-in-fallback-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,110 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm, hugetlb: use pte_present() instead of pmd_present() in follow_huge_pmd()
 
-I found the race condition which triggers the following bug when
-move_pages() and soft offline are called on a single hugetlb page
-concurrently.
+Author: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-page_alloc-split-smallest-stolen-page-in-fallback-fix
 
-    [61163.578957] Soft offlining page 0x119400 at 0x700000000000
-    [61163.580062] BUG: unable to handle kernel paging request at ffffea0011943820
-    [61163.580791] IP: follow_huge_pmd+0x143/0x190
-    [61163.581203] PGD 7ffd2067
-    [61163.581204] PUD 7ffd1067
-    [61163.581471] PMD 0
-    [61163.581723]
-    [61163.582052] Oops: 0000 [#1] SMP
-    [61163.582349] Modules linked in: binfmt_misc ppdev virtio_balloon parport_pc pcspkr i2c_piix4 parport i2c_core acpi_cpufreq ip_tables xfs libcrc32c ata_generic pata_acpi virtio_blk 8139too crc32c_intel ata_piix serio_raw libata virtio_pci 8139cp virtio_ring virtio mii floppy dm_mirror dm_region_hash dm_log dm_mod [last unloaded: cap_check]
-    [61163.585130] CPU: 0 PID: 22573 Comm: iterate_numa_mo Tainted: P           OE   4.11.0-rc2-mm1+ #2
-    [61163.586055] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
-    [61163.586627] task: ffff88007c951680 task.stack: ffffc90004bd8000
-    [61163.587181] RIP: 0010:follow_huge_pmd+0x143/0x190
-    [61163.587622] RSP: 0018:ffffc90004bdbcd0 EFLAGS: 00010202
-    [61163.588096] RAX: 0000000465003e80 RBX: ffffea0004e34d30 RCX: 00003ffffffff000
-    [61163.588818] RDX: 0000000011943800 RSI: 0000000000080001 RDI: 0000000465003e80
-    [61163.589486] RBP: ffffc90004bdbd18 R08: 0000000000000000 R09: ffff880138d34000
-    [61163.590097] R10: ffffea0004650000 R11: 0000000000c363b0 R12: ffffea0011943800
-    [61163.590751] R13: ffff8801b8d34000 R14: ffffea0000000000 R15: 000077ff80000000
-    [61163.591375] FS:  00007fc977710740(0000) GS:ffff88007dc00000(0000) knlGS:0000000000000000
-    [61163.592068] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    [61163.592627] CR2: ffffea0011943820 CR3: 000000007a746000 CR4: 00000000001406f0
-    [61163.593330] Call Trace:
-    [61163.593556]  follow_page_mask+0x270/0x550
-    [61163.593908]  SYSC_move_pages+0x4ea/0x8f0
-    [61163.594253]  ? lru_cache_add_active_or_unevictable+0x4b/0xd0
-    [61163.594798]  SyS_move_pages+0xe/0x10
-    [61163.595113]  do_syscall_64+0x67/0x180
-    [61163.595434]  entry_SYSCALL64_slow_path+0x25/0x25
-    [61163.595837] RIP: 0033:0x7fc976e03949
-    [61163.596148] RSP: 002b:00007ffe72221d88 EFLAGS: 00000246 ORIG_RAX: 0000000000000117
-    [61163.596940] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fc976e03949
-    [61163.597567] RDX: 0000000000c22390 RSI: 0000000000001400 RDI: 0000000000005827
-    [61163.598177] RBP: 00007ffe72221e00 R08: 0000000000c2c3a0 R09: 0000000000000004
-    [61163.598842] R10: 0000000000c363b0 R11: 0000000000000246 R12: 0000000000400650
-    [61163.599456] R13: 00007ffe72221ee0 R14: 0000000000000000 R15: 0000000000000000
-    [61163.600067] Code: 81 e4 ff ff 1f 00 48 21 c2 49 c1 ec 0c 48 c1 ea 0c 4c 01 e2 49 bc 00 00 00 00 00 ea ff ff 48 c1 e2 06 49 01 d4 f6 45 bc 04 74 90 <49> 8b 7c 24 20 40 f6 c7 01 75 2b 4c 89 e7 8b 47 1c 85 c0 7e 2a
-    [61163.601845] RIP: follow_huge_pmd+0x143/0x190 RSP: ffffc90004bdbcd0
-    [61163.602376] CR2: ffffea0011943820
-    [61163.602767] ---[ end trace e4f81353a2d23232 ]---
-    [61163.603236] Kernel panic - not syncing: Fatal exception
-    [61163.603706] Kernel Offset: disabled
+The lkp-robot reported a test case stuck on boot due to the patch [1]
+which was due to endless loop in the modified __rmqueue().  It blindly
+expected that move_freepages_block() will succeed, but that can fail due
+to last pageblock pfn not belonging to the same zone as the fallback
+candidate page.
 
-This bug is triggered when pmd_present() returns true for non-present
-hugetlb, so fixing the present check in follow_huge_pmd() prevents it.
-Using pmd_present() to determine present/non-present for hugetlb is
-not correct, because pmd_present() checks multiple bits (not only
-_PAGE_PRESENT) for historical reason and it can misjudge hugetlb state.
+This fix checks the result of move_freepages_block() and steals the single
+candidate page if it fails, which was also effectively done before [1].
 
-Fixes: e66f17ff7177 ("mm/hugetlb: take page table lock in follow_huge_pmd()")
-Link: http://lkml.kernel.org/r/1490149898-20231-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: <stable@vger.kernel.org>        [4.0+]
+[1] mmotm: mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
+
+Link: http://lkml.kernel.org/r/59d71b35-d556-4fc9-ee2e-1574259282fd@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd
-+++ a/mm/hugetlb.c
-@@ -4651,6 +4651,7 @@ follow_huge_pmd(struct mm_struct *mm, un
- {
- 	struct page *page = NULL;
- 	spinlock_t *ptl;
-+	pte_t pte;
- retry:
- 	ptl = pmd_lockptr(mm, pmd);
- 	spin_lock(ptl);
-@@ -4660,12 +4661,13 @@ retry:
- 	 */
- 	if (!pmd_huge(*pmd))
- 		goto out;
--	if (pmd_present(*pmd)) {
-+	pte = huge_ptep_get((pte_t *)pmd);
-+	if (pte_present(pte)) {
- 		page = pmd_page(*pmd) + ((address & ~PMD_MASK) >> PAGE_SHIFT);
- 		if (flags & FOLL_GET)
- 			get_page(page);
- 	} else {
--		if (is_hugetlb_entry_migration(huge_ptep_get((pte_t *)pmd))) {
-+		if (is_hugetlb_entry_migration(pte)) {
- 			spin_unlock(ptl);
- 			__migration_entry_wait(mm, (pte_t *)pmd, ptl);
- 			goto retry;
+diff -puN mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback-fix
++++ a/mm/page_alloc.c
+@@ -1977,6 +1977,9 @@ static void steal_suitable_fallback(stru
+ 		goto single_page;
+ 
+ 	pages = move_freepages_block(zone, page, start_type);
++	/* moving whole block can fail due to zone boundary conditions */
++	if (!pages)
++		goto single_page;
+ 
+ 	/* Claim the whole block if over half of it is free */
+ 	if (pages >= (1 << (pageblock_order-1)) ||
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-migrate-fix-remove_migration_pte-for-ksm-pages.patch
-mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd.patch
+mm-compaction-reorder-fields-in-struct-compact_control.patch
+mm-compaction-remove-redundant-watermark-check-in-compact_finished.patch
+mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
+mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
+mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
+mm-compaction-add-migratetype-to-compact_control.patch
+mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype.patch
+mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
 
