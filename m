@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation.patch added
- to -mm tree
-Date: Tue, 28 Mar 2017 15:48:40 -0700
-Message-ID: <58dae848.KpmzF+iXRO0vPxI+%akpm@linux-foundation.org>
+Subject: + mm-enable-page-poisoning-early-at-boot.patch added to -mm tree
+Date: Tue, 28 Mar 2017 16:03:59 -0700
+Message-ID: <58daebdf.9wx5/cJPQKBjeaLP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50952 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751685AbdC1Wso (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 18:48:44 -0400
+        with ESMTP id S1752735AbdC1XEC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 19:04:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dvyukov@google.com, hillf.zj@alibaba-inc.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
+To: vinmenon@codeaurora.org, akinobu.mita@gmail.com, iamjoonsoo.kim@lge.com, labbott@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: initialize shared policy as part of inode allocation
+     Subject: mm: enable page poisoning early at boot
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation.patch
+     mm-enable-page-poisoning-early-at-boot.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-enable-page-poisoning-early-at-boot.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-enable-page-poisoning-early-at-boot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,133 +38,188 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: initialize shared policy as part of inode allocation
+From: Vinayak Menon <vinmenon@codeaurora.org>
+Subject: mm: enable page poisoning early at boot
 
-Any time after inode allocation, destroy_inode can be called.  The
-hugetlbfs inode contains a shared_policy structure, and
-mpol_free_shared_policy is unconditionally called as part of
-hugetlbfs_destroy_inode.  Initialize the policy as part of inode
-allocation so that any quick (error path) calls to destroy_inode will be
-handed an initialized policy.
+On SPARSEMEM systems page poisoning is enabled after buddy is up, because
+of the dependency on page extension init.  This causes the pages released
+by free_all_bootmem not to be poisoned.  This either delays or misses the
+identification of some issues because the pages have to undergo another
+cycle of alloc-free-alloc for any corruption to be detected.  Enable page
+poisoning early by getting rid of the PAGE_EXT_DEBUG_POISON flag.  Since
+all the free pages will now be poisoned, the flag need not be verified
+before checking the poison during an alloc.
 
-syzkaller fuzzer found this bug, that resulted in the following:
-
-BUG: KASAN: user-memory-access in atomic_inc
-include/asm-generic/atomic-instrumented.h:87 [inline] at addr
-000000131730bd7a
-BUG: KASAN: user-memory-access in __lock_acquire+0x21a/0x3a80
-kernel/locking/lockdep.c:3239 at addr 000000131730bd7a
-Write of size 4 by task syz-executor6/14086
-CPU: 3 PID: 14086 Comm: syz-executor6 Not tainted 4.11.0-rc3+ #364
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:16 [inline]
- dump_stack+0x1b8/0x28d lib/dump_stack.c:52
- kasan_report_error mm/kasan/report.c:291 [inline]
- kasan_report.part.2+0x34a/0x480 mm/kasan/report.c:316
- kasan_report+0x21/0x30 mm/kasan/report.c:303
- check_memory_region_inline mm/kasan/kasan.c:326 [inline]
- check_memory_region+0x137/0x190 mm/kasan/kasan.c:333
- kasan_check_write+0x14/0x20 mm/kasan/kasan.c:344
- atomic_inc include/asm-generic/atomic-instrumented.h:87 [inline]
- __lock_acquire+0x21a/0x3a80 kernel/locking/lockdep.c:3239
- lock_acquire+0x1ee/0x590 kernel/locking/lockdep.c:3762
- __raw_write_lock include/linux/rwlock_api_smp.h:210 [inline]
- _raw_write_lock+0x33/0x50 kernel/locking/spinlock.c:295
- mpol_free_shared_policy+0x43/0xb0 mm/mempolicy.c:2536
- hugetlbfs_destroy_inode+0xca/0x120 fs/hugetlbfs/inode.c:952
- alloc_inode+0x10d/0x180 fs/inode.c:216
- new_inode_pseudo+0x69/0x190 fs/inode.c:889
- new_inode+0x1c/0x40 fs/inode.c:918
- hugetlbfs_get_inode+0x40/0x420 fs/hugetlbfs/inode.c:734
- hugetlb_file_setup+0x329/0x9f0 fs/hugetlbfs/inode.c:1282
- newseg+0x422/0xd30 ipc/shm.c:575
- ipcget_new ipc/util.c:285 [inline]
- ipcget+0x21e/0x580 ipc/util.c:639
- SYSC_shmget ipc/shm.c:673 [inline]
- SyS_shmget+0x158/0x230 ipc/shm.c:657
- entry_SYSCALL_64_fastpath+0x1f/0xc2
-
-Analysis provided by Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-
-Link: http://lkml.kernel.org/r/1490477850-7944-1-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Link: http://lkml.kernel.org/r/1490358246-11001-1-git-send-email-vinmenon@codeaurora.org
+Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Laura Abbott <labbott@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ include/linux/mm.h |    1 
+ mm/page_alloc.c    |   13 +------
+ mm/page_ext.c      |    3 -
+ mm/page_poison.c   |   77 ++++++-------------------------------------
+ 4 files changed, 15 insertions(+), 79 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation
-+++ a/fs/hugetlbfs/inode.c
-@@ -695,14 +695,11 @@ static struct inode *hugetlbfs_get_root(
+diff -puN include/linux/mm.h~mm-enable-page-poisoning-early-at-boot include/linux/mm.h
+--- a/include/linux/mm.h~mm-enable-page-poisoning-early-at-boot
++++ a/include/linux/mm.h
+@@ -2497,7 +2497,6 @@ extern long copy_huge_page_from_user(str
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
  
- 	inode = new_inode(sb);
- 	if (inode) {
--		struct hugetlbfs_inode_info *info;
- 		inode->i_ino = get_next_ino();
- 		inode->i_mode = S_IFDIR | config->mode;
- 		inode->i_uid = config->uid;
- 		inode->i_gid = config->gid;
- 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
--		info = HUGETLBFS_I(inode);
--		mpol_shared_policy_init(&info->policy, NULL);
- 		inode->i_op = &hugetlbfs_dir_inode_operations;
- 		inode->i_fop = &simple_dir_operations;
- 		/* directory inodes start off with i_nlink == 2 (for "." entry) */
-@@ -733,7 +730,6 @@ static struct inode *hugetlbfs_get_inode
+ extern struct page_ext_operations debug_guardpage_ops;
+-extern struct page_ext_operations page_poisoning_ops;
  
- 	inode = new_inode(sb);
- 	if (inode) {
--		struct hugetlbfs_inode_info *info;
- 		inode->i_ino = get_next_ino();
- 		inode_init_owner(inode, dir, mode);
- 		lockdep_set_class(&inode->i_mapping->i_mmap_rwsem,
-@@ -741,15 +737,6 @@ static struct inode *hugetlbfs_get_inode
- 		inode->i_mapping->a_ops = &hugetlbfs_aops;
- 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
- 		inode->i_mapping->private_data = resv_map;
--		info = HUGETLBFS_I(inode);
--		/*
--		 * The policy is initialized here even if we are creating a
--		 * private inode because initialization simply creates an
--		 * an empty rb tree and calls rwlock_init(), later when we
--		 * call mpol_free_shared_policy() it will just return because
--		 * the rb tree will still be empty.
--		 */
--		mpol_shared_policy_init(&info->policy, NULL);
- 		switch (mode & S_IFMT) {
- 		default:
- 			init_special_inode(inode, mode, dev);
-@@ -937,6 +924,18 @@ static struct inode *hugetlbfs_alloc_ino
- 		hugetlbfs_inc_free_inodes(sbinfo);
- 		return NULL;
- 	}
-+
-+	/*
-+	 * Any time after allocation, hugetlbfs_destroy_inode can be called
-+	 * for the inode.  mpol_free_shared_policy is unconditionally called
-+	 * as part of hugetlbfs_destroy_inode.  So, initialize policy here
-+	 * in case of a quick call to destroy.
-+	 *
-+	 * Note that the policy is initialized even if we are creating a
-+	 * private inode.  This simplifies hugetlbfs_destroy_inode.
-+	 */
-+	mpol_shared_policy_init(&p->policy, NULL);
-+
- 	return &p->vfs_inode;
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ extern unsigned int _debug_guardpage_minorder;
+diff -puN mm/page_alloc.c~mm-enable-page-poisoning-early-at-boot mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-enable-page-poisoning-early-at-boot
++++ a/mm/page_alloc.c
+@@ -1688,10 +1688,10 @@ static inline int check_new_page(struct
+ 	return 1;
  }
  
-_
-
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
-
-hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation.patch
-
+-static inline bool free_pages_prezeroed(bool poisoned)
++static inline bool free_pages_prezeroed(void)
+ {
+ 	return IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) &&
+-		page_poisoning_enabled() && poisoned;
++		page_poisoning_enabled();
+ }
+ 
+ #ifdef CONFIG_DEBUG_VM
+@@ -1745,17 +1745,10 @@ static void prep_new_page(struct page *p
+ 							unsigned int alloc_flags)
+ {
+ 	int i;
+-	bool poisoned = true;
+-
+-	for (i = 0; i < (1 << order); i++) {
+-		struct page *p = page + i;
+-		if (poisoned)
+-			poisoned &= page_is_poisoned(p);
+-	}
+ 
+ 	post_alloc_hook(page, order, gfp_flags);
+ 
+-	if (!free_pages_prezeroed(poisoned) && (gfp_flags & __GFP_ZERO))
++	if (!free_pages_prezeroed() && (gfp_flags & __GFP_ZERO))
+ 		for (i = 0; i < (1 << order); i++)
+ 			clear_highpage(page + i);
+ 
+diff -puN mm/page_ext.c~mm-enable-page-poisoning-early-at-boot mm/page_ext.c
+--- a/mm/page_ext.c~mm-enable-page-poisoning-early-at-boot
++++ a/mm/page_ext.c
+@@ -59,9 +59,6 @@
+ 
+ static struct page_ext_operations *page_ext_ops[] = {
+ 	&debug_guardpage_ops,
+-#ifdef CONFIG_PAGE_POISONING
+-	&page_poisoning_ops,
+-#endif
+ #ifdef CONFIG_PAGE_OWNER
+ 	&page_owner_ops,
+ #endif
+diff -puN mm/page_poison.c~mm-enable-page-poisoning-early-at-boot mm/page_poison.c
+--- a/mm/page_poison.c~mm-enable-page-poisoning-early-at-boot
++++ a/mm/page_poison.c
+@@ -6,7 +6,6 @@
+ #include <linux/poison.h>
+ #include <linux/ratelimit.h>
+ 
+-static bool __page_poisoning_enabled __read_mostly;
+ static bool want_page_poisoning __read_mostly;
+ 
+ static int early_page_poison_param(char *buf)
+@@ -19,74 +18,21 @@ early_param("page_poison", early_page_po
+ 
+ bool page_poisoning_enabled(void)
+ {
+-	return __page_poisoning_enabled;
+-}
+-
+-static bool need_page_poisoning(void)
+-{
+-	return want_page_poisoning;
+-}
+-
+-static void init_page_poisoning(void)
+-{
+ 	/*
+-	 * page poisoning is debug page alloc for some arches. If either
+-	 * of those options are enabled, enable poisoning
++	 * Assumes that debug_pagealloc_enabled is set before
++	 * free_all_bootmem.
++	 * Page poisoning is debug page alloc for some arches. If
++	 * either of those options are enabled, enable poisoning.
+ 	 */
+-	if (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC)) {
+-		if (!want_page_poisoning && !debug_pagealloc_enabled())
+-			return;
+-	} else {
+-		if (!want_page_poisoning)
+-			return;
+-	}
+-
+-	__page_poisoning_enabled = true;
+-}
+-
+-struct page_ext_operations page_poisoning_ops = {
+-	.need = need_page_poisoning,
+-	.init = init_page_poisoning,
+-};
+-
+-static inline void set_page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	if (unlikely(!page_ext))
+-		return;
+-
+-	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-static inline void clear_page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	if (unlikely(!page_ext))
+-		return;
+-
+-	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-bool page_is_poisoned(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	if (unlikely(!page_ext))
+-		return false;
+-
+-	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
++	return (want_page_poisoning ||
++		(!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC) &&
++		debug_pagealloc_enabled()));
+ }
+ 
+ static void poison_page(struct page *page)
+ {
+ 	void *addr = kmap_atomic(page);
+ 
+-	set_page_poison(page);
+ 	memset(addr, PAGE_POISON, PAGE_SIZE);
+ 	kunmap_atomic(addr);
+ }
+@@ -140,12 +86,13 @@ static void unpoison_page(struct page *p
+ {
+ 	void *addr;
+ 
+-	if (!page_is_poisoned(page))
+-		return;
