@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
- added to -mm tree
-Date: Wed, 29 Mar 2017 16:07:21 -0700
-Message-ID: <58dc3e29.zoxX70tDjpW3z5L/%akpm@linux-foundation.org>
+Subject: + fault-inject-use-correct-check-for-interrupts.patch added to
+ -mm tree
+Date: Wed, 29 Mar 2017 16:08:46 -0700
+Message-ID: <58dc3e7e.lQkxf80EcBGKDD1U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40410 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932911AbdC2XHX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:07:23 -0400
+        with ESMTP id S1753290AbdC2XIs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:08:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fgao@ikuai8.com, acme@redhat.com, adobriyan@gmail.com, edumazet@google.com, jpoimboe@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org
+To: dvyukov@google.com, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/sysctl: fix the int overflow for jiffies conversion
+     Subject: lib/fault-inject.c: use correct check for interrupts
 has been added to the -mm tree.  Its filename is
-     proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
+     fault-inject-use-correct-check-for-interrupts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-use-correct-check-for-interrupts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-use-correct-check-for-interrupts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gao Feng <fgao@ikuai8.com>
-Subject: proc/sysctl: fix the int overflow for jiffies conversion
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: lib/fault-inject.c: use correct check for interrupts
 
-do_proc_dointvec_jiffies_conv() uses LONG_MAX/HZ as the max value to avoid
-overflow.  But actually the *valp is int type, so it still causes
-overflow.
+in_interrupt() also returns true when bh is disabled in task context. 
+That's not what fail_task() wants to check.  Use the new in_task()
+predicate that does the right thing.
 
-For example,
-echo 2147483647 > ./sys/net/ipv4/tcp_keepalive_time
-Then,
-cat ./sys/net/ipv4/tcp_keepalive_time
-The output is "-1", it is not expected.
-
-Now use INT_MAX/HZ as the max value instead LONG_MAX/HZ to fix it.
-
-Link: http://lkml.kernel.org/r/1490109532-9228-1-git-send-email-fgao@ikuai8.com
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
-Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: http://lkml.kernel.org/r/20170321091805.140676-1-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
+ lib/fault-inject.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~proc-sysctl-fix-the-int-overflow-for-jiffies-conversion kernel/sysctl.c
---- a/kernel/sysctl.c~proc-sysctl-fix-the-int-overflow-for-jiffies-conversion
-+++ a/kernel/sysctl.c
-@@ -2571,7 +2571,7 @@ static int do_proc_dointvec_jiffies_conv
- 					 int write, void *data)
+diff -puN lib/fault-inject.c~fault-inject-use-correct-check-for-interrupts lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-inject-use-correct-check-for-interrupts
++++ a/lib/fault-inject.c
+@@ -56,7 +56,7 @@ static void fail_dump(struct fault_attr
+ 
+ static bool fail_task(struct fault_attr *attr, struct task_struct *task)
  {
- 	if (write) {
--		if (*lvalp > LONG_MAX / HZ)
-+		if (*lvalp > INT_MAX / HZ)
- 			return 1;
- 		*valp = *negp ? -(*lvalp*HZ) : (*lvalp*HZ);
- 	} else {
+-	return !in_interrupt() && task->make_it_fail;
++	return in_task() && task->make_it_fail;
+ }
+ 
+ #define MAX_STACK_TRACE_DEPTH 32
 _
 
-Patches currently in -mm which might be from fgao@ikuai8.com are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
+fault-inject-use-correct-check-for-interrupts.patch
+fault-inject-support-systematic-fault-injection.patch
+kasan-allow-kasan_check_read-write-to-accept-pointers-to-volatiles.patch
+asm-generic-x86-wrap-atomic-operations.patch
+asm-generic-x86-wrap-atomic-operations-fix.patch
+asm-generic-add-kasan-instrumentation-to-atomic-operations.patch
+asm-generic-fix-compilation-failure-in-cmpxchg_double.patch
+x86-remove-unused-atomic_inc_short.patch
+x86-asm-generic-add-kasan-instrumentation-to-bitops.patch
 
