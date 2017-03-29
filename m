@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-tsi721-make-module-parameter-variable-name-unique.patch added to -mm tree
-Date: Wed, 29 Mar 2017 16:13:10 -0700
-Message-ID: <58dc3f86.cpguHQ7NIxPOsxo2%akpm@linux-foundation.org>
+Subject: + kernel-reboot-add-devm_register_reboot_notifier-fix.patch added to -mm tree
+Date: Wed, 29 Mar 2017 16:19:03 -0700
+Message-ID: <58dc40e7.8zGYuNVlGMeM9JKa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932963AbdC2XNM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:13:12 -0400
+        with ESMTP id S1753411AbdC2XTF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:19:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, alexandre.bounine@idt.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, jeremy.lefaure@lse.epita.fr, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrew.smirnov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
+     Subject: kernel-reboot-add-devm_register_reboot_notifier-fix
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721-make-module-parameter-variable-name-unique.patch
+     kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-make-module-parameter-variable-name-unique.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-make-module-parameter-variable-name-unique.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,68 +38,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-reboot-add-devm_register_reboot_notifier-fix
 
-kbuild test robot reported a non-static variable name collision between a
-staging driver and a RapidIO driver, with a generic variable name of
-'dbg_level'.
+move `struct device' forward declaration to top-of-file
 
-Both drivers should be changed so that they don't use this generic public
-variable name.  This patch fixes the RapidIO driver but does not change
-the user interface (name) for the module parameter.
-
-drivers/staging/built-in.o:(.bss+0x109d0): multiple definition of `dbg_level'
-drivers/rapidio/built-in.o:(.bss+0x16c): first defined here
-
-Link: http://lkml.kernel.org/r/ab527fc5-aa3c-4b07-5d48-eef5de703192@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    4 ++--
- drivers/rapidio/devices/tsi721.h |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/reboot.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -37,8 +37,8 @@
- #include "tsi721.h"
+diff -puN include/linux/reboot.h~kernel-reboot-add-devm_register_reboot_notifier-fix include/linux/reboot.h
+--- a/include/linux/reboot.h~kernel-reboot-add-devm_register_reboot_notifier-fix
++++ a/include/linux/reboot.h
+@@ -5,6 +5,8 @@
+ #include <linux/notifier.h>
+ #include <uapi/linux/reboot.h>
  
- #ifdef DEBUG
--u32 dbg_level;
--module_param(dbg_level, uint, S_IWUSR | S_IRUGO);
-+u32 tsi_dbg_level;
-+module_param_named(dbg_level, tsi_dbg_level, uint, S_IWUSR | S_IRUGO);
- MODULE_PARM_DESC(dbg_level, "Debugging output level (default 0 = none)");
- #endif
++struct device;
++
+ #define SYS_DOWN	0x0001	/* Notify of system down */
+ #define SYS_RESTART	SYS_DOWN
+ #define SYS_HALT	0x0002	/* Notify of system halt */
+@@ -38,7 +40,6 @@ extern int reboot_force;
+ extern int register_reboot_notifier(struct notifier_block *);
+ extern int unregister_reboot_notifier(struct notifier_block *);
  
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -40,11 +40,11 @@ enum {
- };
+-struct device;
+ extern int devm_register_reboot_notifier(struct device *, struct notifier_block *);
  
- #ifdef DEBUG
--extern u32 dbg_level;
-+extern u32 tsi_dbg_level;
- 
- #define tsi_debug(level, dev, fmt, arg...)				\
- 	do {								\
--		if (DBG_##level & dbg_level)				\
-+		if (DBG_##level & tsi_dbg_level)				\
- 			dev_dbg(dev, "%s: " fmt "\n", __func__, ##arg);	\
- 	} while (0)
- #else
+ extern int register_restart_handler(struct notifier_block *);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rapidio-tsi721-make-module-parameter-variable-name-unique.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+drm-use-set_memoryh-header-fix.patch
+drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
