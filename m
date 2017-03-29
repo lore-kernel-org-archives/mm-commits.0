@@ -1,213 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-report-only-the-first-error-by-default.patch added to -mm tree
-Date: Tue, 28 Mar 2017 17:01:30 -0700
-Message-ID: <58daf95a.Hcr9ZQn8zRmSt5q6%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-thp-swap-support-to-split-thp-in-swap-cache.patch removed from -mm tree
+Date: Wed, 29 Mar 2017 13:59:40 -0700
+Message-ID: <58dc203c.md2Xbj+jUTLBCaGE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56526 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932088AbdC2ABm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2017 20:01:42 -0400
+        with ESMTP id S932738AbdC2U7m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 16:59:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.rutland@arm.com, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, vdavydov@tarantool.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: report only the first error by default
-has been added to the -mm tree.  Its filename is
-     kasan-report-only-the-first-error-by-default.patch
+     Subject: mm, THP, swap: support to split THP in swap cache
+has been removed from the -mm tree.  Its filename was
+     mm-thp-swap-support-to-split-thp-in-swap-cache.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-report-only-the-first-error-by-default.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-report-only-the-first-error-by-default.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: kasan: report only the first error by default
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, THP, swap: support to split THP in swap cache
 
-Disable kasan after the first report. There are several reasons for this:
+This patch enhances split_huge_page_to_list() to work properly for the THP
+(Transparent Huge Page) in the swap cache during swapping out.
 
-- Single bug quite often has multiple invalid memory accesses causing
-  storm in the dmesg.
+This is used for delaying splitting the THP during swapping out.  Where
+for a THP to be swapped out, we will allocate a swap cluster, add the THP
+into the swap cache, then split the THP.  The page lock will be held
+during this process.  So in the code path other than swapping out, if the
+THP need to be split, the PageSwapCache(THP) will be always false.
 
-- Write OOB access might corrupt metadata so the next report will print
-  bogus alloc/free stacktraces.
-
-- Reports after the first easily could be not bugs by itself but just
-  side effects of the first one.
-
-Given that multiple reports usually only do harm, it makes sense to
-disable kasan after the first one.  If user wants to see all the reports,
-the boot-time parameter kasan_multi_shot must be used.
-
-[aryabinin@virtuozzo.com: wrote changelog and doc, added missing include]
-Link: http://lkml.kernel.org/r/20170323154416.30257-1-aryabinin@virtuozzo.com
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20170328053209.25876-9-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov@tarantool.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    6 ++
- include/linux/kasan.h                           |    3 +
- lib/test_kasan.c                                |   10 +++
- mm/kasan/kasan.h                                |    5 -
- mm/kasan/report.c                               |   36 ++++++++++++++
- 5 files changed, 55 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/admin-guide/kernel-parameters.txt~kasan-report-only-the-first-error-by-default Documentation/admin-guide/kernel-parameters.txt
---- a/Documentation/admin-guide/kernel-parameters.txt~kasan-report-only-the-first-error-by-default
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1725,6 +1725,12 @@
- 			kernel and module base offset ASLR (Address Space
- 			Layout Randomization).
- 
-+	kasan_multi_shot
-+			[KNL] Enforce KASAN (Kernel Address Sanitizer) to print
-+			report on every invalid memory access. Without this
-+			parameter KASAN will print report only for the first
-+			invalid access.
-+
- 	keepinitrd	[HW,ARM]
- 
- 	kernelcore=	[KNL,X86,IA-64,PPC]
-diff -puN include/linux/kasan.h~kasan-report-only-the-first-error-by-default include/linux/kasan.h
---- a/include/linux/kasan.h~kasan-report-only-the-first-error-by-default
-+++ a/include/linux/kasan.h
-@@ -76,6 +76,9 @@ size_t ksize(const void *);
- static inline void kasan_unpoison_slab(const void *ptr) { ksize(ptr); }
- size_t kasan_metadata_size(struct kmem_cache *cache);
- 
-+bool kasan_save_enable_multi_shot(void);
-+void kasan_restore_multi_shot(bool enabled);
-+
- #else /* CONFIG_KASAN */
- 
- static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
-diff -puN lib/test_kasan.c~kasan-report-only-the-first-error-by-default lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-report-only-the-first-error-by-default
-+++ a/lib/test_kasan.c
-@@ -20,6 +20,7 @@
- #include <linux/string.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-+#include <linux/kasan.h>
- 
- /*
-  * Note: test functions are marked noinline so that their names appear in
-@@ -474,6 +475,12 @@ static noinline void __init use_after_sc
- 
- static int __init kmalloc_tests_init(void)
+diff -puN mm/huge_memory.c~mm-thp-swap-support-to-split-thp-in-swap-cache mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-swap-support-to-split-thp-in-swap-cache
++++ a/mm/huge_memory.c
+@@ -2185,7 +2185,7 @@ static void __split_huge_page_tail(struc
+ 	 * atomic_set() here would be safe on all archs (and not only on x86),
+ 	 * it's safer to use atomic_inc()/atomic_add().
+ 	 */
+-	if (PageAnon(head)) {
++	if (PageAnon(head) && !PageSwapCache(head)) {
+ 		page_ref_inc(page_tail);
+ 	} else {
+ 		/* Additional pin to radix tree */
+@@ -2196,6 +2196,7 @@ static void __split_huge_page_tail(struc
+ 	page_tail->flags |= (head->flags &
+ 			((1L << PG_referenced) |
+ 			 (1L << PG_swapbacked) |
++			 (1L << PG_swapcache) |
+ 			 (1L << PG_mlocked) |
+ 			 (1L << PG_uptodate) |
+ 			 (1L << PG_active) |
+@@ -2258,7 +2259,11 @@ static void __split_huge_page(struct pag
+ 	ClearPageCompound(head);
+ 	/* See comment in __split_huge_page_tail() */
+ 	if (PageAnon(head)) {
+-		page_ref_inc(head);
++		/* Additional pin to radix tree of swap cache */
++		if (PageSwapCache(head))
++			page_ref_add(head, 2);
++		else
++			page_ref_inc(head);
+ 	} else {
+ 		/* Additional pin to radix tree */
+ 		page_ref_add(head, 2);
+@@ -2370,10 +2375,12 @@ int page_trans_huge_mapcount(struct page
+ /* Racy check whether the huge page can be split */
+ bool can_split_huge_page(struct page *page, int *pextra_pins)
  {
-+	/*
-+	 * Temporarily enable multi-shot mode. Otherwise, we'd only get a
-+	 * report for the first case.
-+	 */
-+	bool multishot = kasan_save_enable_multi_shot();
-+
- 	kmalloc_oob_right();
- 	kmalloc_oob_left();
- 	kmalloc_node_oob_right();
-@@ -499,6 +506,9 @@ static int __init kmalloc_tests_init(voi
- 	ksize_unpoisons_memory();
- 	copy_user_test();
- 	use_after_scope_test();
-+
-+	kasan_restore_multi_shot(multishot);
-+
- 	return -EAGAIN;
- }
+-	int extra_pins = 0;
++	int extra_pins;
  
-diff -puN mm/kasan/kasan.h~kasan-report-only-the-first-error-by-default mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-report-only-the-first-error-by-default
-+++ a/mm/kasan/kasan.h
-@@ -96,11 +96,6 @@ static inline const void *kasan_shadow_t
- 		<< KASAN_SHADOW_SCALE_SHIFT);
- }
- 
--static inline bool kasan_report_enabled(void)
--{
--	return !current->kasan_depth;
--}
--
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
- void kasan_report_double_free(struct kmem_cache *cache, void *object,
-diff -puN mm/kasan/report.c~kasan-report-only-the-first-error-by-default mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-report-only-the-first-error-by-default
-+++ a/mm/kasan/report.c
-@@ -13,7 +13,9 @@
-  *
-  */
- 
-+#include <linux/bitops.h>
- #include <linux/ftrace.h>
-+#include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/printk.h>
-@@ -293,6 +295,40 @@ static void kasan_report_error(struct ka
- 	kasan_end_report(&flags);
- }
- 
-+static unsigned long kasan_flags;
-+
-+#define KASAN_BIT_REPORTED	0
-+#define KASAN_BIT_MULTI_SHOT	1
-+
-+bool kasan_save_enable_multi_shot(void)
-+{
-+	return test_and_set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+}
-+EXPORT_SYMBOL_GPL(kasan_save_enable_multi_shot);
-+
-+void kasan_restore_multi_shot(bool enabled)
-+{
-+	if (!enabled)
-+		clear_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+}
-+EXPORT_SYMBOL_GPL(kasan_restore_multi_shot);
-+
-+static int __init kasan_set_multi_shot(char *str)
-+{
-+	set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+	return 1;
-+}
-+__setup("kasan_multi_shot", kasan_set_multi_shot);
-+
-+static inline bool kasan_report_enabled(void)
-+{
-+	if (current->kasan_depth)
-+		return false;
-+	if (test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
-+		return true;
-+	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
-+}
-+
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip)
- {
+ 	/* Additional pins from radix tree */
+-	if (!PageAnon(page))
++	if (PageAnon(page))
++		extra_pins = PageSwapCache(page) ? HPAGE_PMD_NR : 0;
++	else
+ 		extra_pins = HPAGE_PMD_NR;
+ 	if (pextra_pins)
+ 		*pextra_pins = extra_pins;
+@@ -2427,7 +2434,6 @@ int split_huge_page_to_list(struct page
+ 			ret = -EBUSY;
+ 			goto out;
+ 		}
+-		extra_pins = 0;
+ 		mapping = NULL;
+ 		anon_vma_lock_write(anon_vma);
+ 	} else {
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-kasan-report-only-the-first-error-by-default.patch
+mm-swap-fix-a-race-in-free_swap_and_cache.patch
+mm-swap-fix-comment-in-__read_swap_cache_async.patch
+mm-swap-improve-readability-via-make-spin_lock-unlock-balanced.patch
+mm-swap-avoid-lock-swap_avail_lock-when-held-cluster-lock.patch
+mm-thp-swap-delay-splitting-thp-during-swap-out.patch
 
