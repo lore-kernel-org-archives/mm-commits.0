@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-factor-out-partial-io-routine.patch added to -mm tree
-Date: Wed, 29 Mar 2017 15:25:32 -0700
-Message-ID: <58dc345c.2sIFgn31CiZhgKKP%akpm@linux-foundation.org>
+Subject: + x86-asm-generic-add-kasan-instrumentation-to-bitops.patch added to -mm tree
+Date: Wed, 29 Mar 2017 15:28:02 -0700
+Message-ID: <58dc34f2.23Yvg9iS2kukbiht%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36624 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752944AbdC2WZe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 18:25:34 -0400
+        with ESMTP id S1752944AbdC2W2E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 18:28:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mark.rutland@arm.com, mingo@redhat.com, peterz@infradead.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: factor out partial IO routine
+     Subject: x86, asm-generic: add KASAN instrumentation to bitops
 has been added to the -mm tree.  Its filename is
-     zram-factor-out-partial-io-routine.patch
+     x86-asm-generic-add-kasan-instrumentation-to-bitops.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-factor-out-partial-io-routine.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-asm-generic-add-kasan-instrumentation-to-bitops.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-factor-out-partial-io-routine.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-asm-generic-add-kasan-instrumentation-to-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,441 +38,386 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: factor out partial IO routine
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: x86, asm-generic: add KASAN instrumentation to bitops
 
-For architecture(PAGE_SIZE > 4K), zram have supported partial IO. 
-However, the mixed code for handling normal/partial IO is too messy,
-error-prone to modify IO handler functions with upcoming feature so this
-patch aims for cleaning up via factoring out partial IO routines to
-zram_bvec_partial_[read|write] which will be disabled for most 4K page
-architecures.
+Instrument bitops similarly to atomicops.
+See the following patches for details:
+asm-generic, x86: wrap atomic operations
+asm-generic: add KASAN instrumentation to atomic operations
 
-x86(4K architecure)
-add/remove: 0/1 grow/shrink: 0/1 up/down: 0/-664 (-664)
-function                                     old     new   delta
-zram_bvec_rw                                2301    2039    -262
-zram_decompress_page.isra                    402       -    -402
-
-So, we will save 662 bytes.
-
-However, as side effect, it will increase binary size in non-4K
-architecure but it's not major for zram so I believe benefit(maintainance,
-binary size for most architecture) is bigger.
-
-Link: http://lkml.kernel.org/r/1490773683-10701-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20170322150915.138175-1-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  259 ++++++++++++++++++++++----------
- 1 file changed, 186 insertions(+), 73 deletions(-)
+ arch/x86/include/asm/bitops.h             |   95 ++++++++++----------
+ include/asm-generic/bitops-instrumented.h |   53 +++++++++++
+ 2 files changed, 103 insertions(+), 45 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-factor-out-partial-io-routine drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-factor-out-partial-io-routine
-+++ a/drivers/block/zram/zram_drv.c
-@@ -98,10 +98,17 @@ static void zram_set_obj_size(struct zra
- 	meta->table[index].value = (flags << ZRAM_FLAG_SHIFT) | size;
+diff -puN arch/x86/include/asm/bitops.h~x86-asm-generic-add-kasan-instrumentation-to-bitops arch/x86/include/asm/bitops.h
+--- a/arch/x86/include/asm/bitops.h~x86-asm-generic-add-kasan-instrumentation-to-bitops
++++ a/arch/x86/include/asm/bitops.h
+@@ -54,11 +54,11 @@
+ #define CONST_MASK(nr)			(1 << ((nr) & 7))
+ 
+ /**
+- * set_bit - Atomically set a bit in memory
++ * arch_set_bit - Atomically set a bit in memory
+  * @nr: the bit to set
+  * @addr: the address to start counting from
+  *
+- * This function is atomic and may not be reordered.  See __set_bit()
++ * This function is atomic and may not be reordered.  See arch___set_bit()
+  * if you do not require the atomic guarantees.
+  *
+  * Note: there are no guarantees that this function will not be reordered
+@@ -69,7 +69,7 @@
+  * restricted to acting on a single-word quantity.
+  */
+ static __always_inline void
+-set_bit(long nr, volatile unsigned long *addr)
++arch_set_bit(long nr, volatile unsigned long *addr)
+ {
+ 	if (IS_IMMEDIATE(nr)) {
+ 		asm volatile(LOCK_PREFIX "orb %1,%0"
+@@ -83,31 +83,32 @@ set_bit(long nr, volatile unsigned long
  }
  
-+#if PAGE_SIZE != 4096
- static inline bool is_partial_io(struct bio_vec *bvec)
+ /**
+- * __set_bit - Set a bit in memory
++ * arch___set_bit - Set a bit in memory
+  * @nr: the bit to set
+  * @addr: the address to start counting from
+  *
+- * Unlike set_bit(), this function is non-atomic and may be reordered.
++ * Unlike arch_set_bit(), this function is non-atomic and may be reordered.
+  * If it's called on the same region of memory simultaneously, the effect
+  * may be that only one operation succeeds.
+  */
+-static __always_inline void __set_bit(long nr, volatile unsigned long *addr)
++static __always_inline void
++arch___set_bit(long nr, volatile unsigned long *addr)
  {
- 	return bvec->bv_len != PAGE_SIZE;
- }
-+#else
-+static inline bool is_partial_io(struct bio_vec *bvec)
-+{
-+	return false;
-+}
-+#endif
- 
- static void zram_revalidate_disk(struct zram *zram)
- {
-@@ -544,8 +551,8 @@ static int zram_decompress_page(struct z
- 	return 0;
- }
- 
--static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
--			  u32 index, int offset)
-+static int zram_bvec_partial_read(struct zram *zram, struct bio_vec *bvec,
-+				u32 index, int offset)
- {
- 	int ret;
- 	struct page *page;
-@@ -562,81 +569,87 @@ static int zram_bvec_read(struct zram *z
- 	}
- 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
- 
--	if (is_partial_io(bvec))
--		/* Use  a temporary buffer to decompress the page */
--		uncmem = kmalloc(PAGE_SIZE, GFP_NOIO);
--
--	user_mem = kmap_atomic(page);
--	if (!is_partial_io(bvec))
--		uncmem = user_mem;
--
-+	/* Use  a temporary buffer to decompress the page */
-+	uncmem = kmalloc(PAGE_SIZE, GFP_NOIO);
- 	if (!uncmem) {
- 		pr_err("Unable to allocate temp memory\n");
--		ret = -ENOMEM;
--		goto out_cleanup;
-+		return -ENOMEM;
- 	}
- 
-+	user_mem = kmap_atomic(page);
- 	ret = zram_decompress_page(zram, uncmem, index);
--	/* Should NEVER happen. Return bio error if it does. */
- 	if (unlikely(ret))
- 		goto out_cleanup;
- 
--	if (is_partial_io(bvec))
--		memcpy(user_mem + bvec->bv_offset, uncmem + offset,
-+	memcpy(user_mem + bvec->bv_offset, uncmem + offset,
- 				bvec->bv_len);
--
- 	flush_dcache_page(page);
- 	ret = 0;
- out_cleanup:
- 	kunmap_atomic(user_mem);
--	if (is_partial_io(bvec))
--		kfree(uncmem);
-+	kfree(uncmem);
- 	return ret;
+ 	asm volatile("bts %1,%0" : ADDR : "Ir" (nr) : "memory");
  }
  
--static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
--			   int offset)
-+static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
-+			  u32 index, int offset)
+ /**
+- * clear_bit - Clears a bit in memory
++ * arch_clear_bit - Clears a bit in memory
+  * @nr: Bit to clear
+  * @addr: Address to start counting from
+  *
+- * clear_bit() is atomic and may not be reordered.  However, it does
++ * arch_clear_bit() is atomic and may not be reordered.  However, it does
+  * not contain a memory barrier, so if it is used for locking purposes,
+  * you should call smp_mb__before_atomic() and/or smp_mb__after_atomic()
+  * in order to ensure changes are visible on other processors.
+  */
+ static __always_inline void
+-clear_bit(long nr, volatile unsigned long *addr)
++arch_clear_bit(long nr, volatile unsigned long *addr)
  {
--	int ret = 0;
-+	int ret;
-+	struct page *page;
-+	unsigned char *user_mem;
-+	struct zram_meta *meta = zram->meta;
-+	page = bvec->bv_page;
-+
-+	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
-+	if (unlikely(!meta->table[index].handle) ||
-+			zram_test_flag(meta, index, ZRAM_SAME)) {
-+		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
-+		handle_same_page(bvec, meta->table[index].element);
-+		return 0;
-+	}
-+	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
-+
-+	user_mem = kmap_atomic(page);
-+	ret = zram_decompress_page(zram, user_mem, index);
-+	kunmap_atomic(user_mem);
-+
-+	flush_dcache_page(page);
-+	return ret;
-+}
-+
-+static int zram_bvec_partial_write(struct zram *zram, struct bio_vec *bvec,
-+				u32 index, int offset)
-+{
-+	int ret = -ENOMEM;
- 	unsigned int clen;
- 	unsigned long handle = 0;
- 	struct page *page;
- 	unsigned char *user_mem, *cmem, *src, *uncmem = NULL;
- 	struct zram_meta *meta = zram->meta;
--	struct zcomp_strm *zstrm = NULL;
-+	struct zcomp_strm *zstrm;
- 	unsigned long alloced_pages;
- 	unsigned long element;
- 
- 	page = bvec->bv_page;
--	if (is_partial_io(bvec)) {
--		/*
--		 * This is a partial IO. We need to read the full page
--		 * before to write the changes.
--		 */
--		uncmem = kmalloc(PAGE_SIZE, GFP_NOIO);
--		if (!uncmem) {
--			ret = -ENOMEM;
--			goto out;
--		}
--		ret = zram_decompress_page(zram, uncmem, index);
--		if (ret)
--			goto out;
--	}
-+	/*
-+	 * This is a partial IO. We need to read the full page
-+	 * before to write the changes.
-+	 */
-+	uncmem = kmalloc(PAGE_SIZE, GFP_NOIO);
-+	if (!uncmem)
-+		return ret;
-+
-+	ret = zram_decompress_page(zram, uncmem, index);
-+	if (ret)
-+		goto out;
- 
- compress_again:
- 	user_mem = kmap_atomic(page);
--	if (is_partial_io(bvec)) {
--		memcpy(uncmem + offset, user_mem + bvec->bv_offset,
--		       bvec->bv_len);
--		kunmap_atomic(user_mem);
--		user_mem = NULL;
--	} else {
--		uncmem = user_mem;
--	}
-+	memcpy(uncmem + offset, user_mem + bvec->bv_offset,
-+	       bvec->bv_len);
-+	kunmap_atomic(user_mem);
- 
- 	if (page_same_filled(uncmem, &element)) {
--		if (user_mem)
--			kunmap_atomic(user_mem);
- 		/* Free memory associated with this sector now. */
- 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
- 		zram_free_page(zram, index);
-@@ -651,13 +664,8 @@ compress_again:
- 
- 	zstrm = zcomp_stream_get(zram->comp);
- 	ret = zcomp_compress(zstrm, uncmem, &clen);
--	if (!is_partial_io(bvec)) {
--		kunmap_atomic(user_mem);
--		user_mem = NULL;
--		uncmem = NULL;
--	}
--
- 	if (unlikely(ret)) {
-+		zcomp_stream_put(zram->comp);
- 		pr_err("Compression failed! err=%d\n", ret);
- 		goto out;
- 	}
-@@ -665,8 +673,7 @@ compress_again:
- 	src = zstrm->buffer;
- 	if (unlikely(clen > max_zpage_size)) {
- 		clen = PAGE_SIZE;
--		if (is_partial_io(bvec))
--			src = uncmem;
-+		src = uncmem;
- 	}
- 
- 	/*
-@@ -690,8 +697,6 @@ compress_again:
- 				__GFP_MOVABLE);
- 	if (!handle) {
- 		zcomp_stream_put(zram->comp);
--		zstrm = NULL;
--
- 		atomic64_inc(&zram->stats.writestall);
- 
- 		handle = zs_malloc(meta->mem_pool, clen,
-@@ -702,7 +707,6 @@ compress_again:
- 
- 		pr_err("Error allocating memory for compressed page: %u, size=%u\n",
- 			index, clen);
--		ret = -ENOMEM;
- 		goto out;
- 	}
- 
-@@ -711,22 +715,131 @@ compress_again:
- 
- 	if (zram->limit_pages && alloced_pages > zram->limit_pages) {
- 		zs_free(meta->mem_pool, handle);
--		ret = -ENOMEM;
-+		zcomp_stream_put(zram->comp);
- 		goto out;
- 	}
- 
- 	cmem = zs_map_object(meta->mem_pool, handle, ZS_MM_WO);
- 
--	if ((clen == PAGE_SIZE) && !is_partial_io(bvec)) {
--		src = kmap_atomic(page);
--		copy_page(cmem, src);
--		kunmap_atomic(src);
-+	memcpy(cmem, src, clen);
-+	zcomp_stream_put(zram->comp);
-+	zs_unmap_object(meta->mem_pool, handle);
-+
-+	/*
-+	 * Free memory associated with this sector
-+	 * before overwriting unused sectors.
-+	 */
-+	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
-+	zram_free_page(zram, index);
-+	meta->table[index].handle = handle;
-+	zram_set_obj_size(meta, index, clen);
-+	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
-+
-+	/* Update stats */
-+	atomic64_add(clen, &zram->stats.compr_data_size);
-+	atomic64_inc(&zram->stats.pages_stored);
-+	ret = 0;
-+out:
-+	kfree(uncmem);
-+	return ret;
-+}
-+
-+static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
-+			   int offset)
-+{
-+	int ret;
-+	unsigned int clen;
-+	unsigned long handle = 0;
-+	struct page *page;
-+	void *user_mem, *cmem;
-+	struct zram_meta *meta = zram->meta;
-+	struct zcomp_strm *zstrm;
-+	unsigned long alloced_pages;
-+	unsigned long element;
-+
-+	page = bvec->bv_page;
-+compress_again:
-+	user_mem = kmap_atomic(page);
-+	if (page_same_filled(user_mem, &element)) {
-+		kunmap_atomic(user_mem);
-+
-+		/* Free memory associated with this sector now. */
-+		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
-+		zram_free_page(zram, index);
-+		zram_set_flag(meta, index, ZRAM_SAME);
-+		zram_set_element(meta, index, element);
-+		bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
-+
-+		atomic64_inc(&zram->stats.same_pages);
-+		return 0;
-+	}
-+
-+	zstrm = zcomp_stream_get(zram->comp);
-+	ret = zcomp_compress(zstrm, user_mem, &clen);
-+	kunmap_atomic(user_mem);
-+
-+	if (unlikely(ret)) {
-+		pr_err("Compression failed! err=%d\n", ret);
-+		zcomp_stream_put(zram->comp);
-+		return ret;
-+	}
-+
-+	if (unlikely(clen > max_zpage_size))
-+		clen = PAGE_SIZE;
-+
-+	/*
-+	 * handle allocation has 2 paths:
-+	 * a) fast path is executed with preemption disabled (for
-+	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
-+	 *  since we can't sleep;
-+	 * b) slow path enables preemption and attempts to allocate
-+	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
-+	 *  put per-cpu compression stream and, thus, to re-do
-+	 *  the compression once handle is allocated.
-+	 *
-+	 * if we have a 'non-null' handle here then we are coming
-+	 * from the slow path and handle has already been allocated.
-+	 */
-+	if (!handle)
-+		handle = zs_malloc(meta->mem_pool, clen,
-+				__GFP_KSWAPD_RECLAIM |
-+				__GFP_NOWARN |
-+				__GFP_HIGHMEM |
-+				__GFP_MOVABLE);
-+	if (!handle) {
-+		zcomp_stream_put(zram->comp);
-+		atomic64_inc(&zram->stats.writestall);
-+		handle = zs_malloc(meta->mem_pool, clen,
-+				GFP_NOIO | __GFP_HIGHMEM |
-+				__GFP_MOVABLE);
-+		if (handle)
-+			goto compress_again;
-+
-+		pr_err("Error allocating memory for compressed page: %u, size=%u\n",
-+			index, clen);
-+		return -ENOMEM;
-+	}
-+
-+	alloced_pages = zs_get_total_pages(meta->mem_pool);
-+	update_used_max(zram, alloced_pages);
-+
-+	if (zram->limit_pages && alloced_pages > zram->limit_pages) {
-+		zs_free(meta->mem_pool, handle);
-+		zcomp_stream_put(zram->comp);
-+		return -ENOMEM;
-+	}
-+
-+	cmem = zs_map_object(meta->mem_pool, handle, ZS_MM_WO);
-+
-+	if (clen == PAGE_SIZE) {
-+		user_mem = kmap_atomic(page);
-+		copy_page(cmem, user_mem);
-+		kunmap_atomic(user_mem);
- 	} else {
--		memcpy(cmem, src, clen);
-+		memcpy(cmem, zstrm->buffer, clen);
- 	}
- 
- 	zcomp_stream_put(zram->comp);
--	zstrm = NULL;
- 	zs_unmap_object(meta->mem_pool, handle);
- 
- 	/*
-@@ -735,7 +848,6 @@ compress_again:
- 	 */
- 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
- 	zram_free_page(zram, index);
--
- 	meta->table[index].handle = handle;
- 	zram_set_obj_size(meta, index, clen);
- 	bit_spin_unlock(ZRAM_ACCESS, &meta->table[index].value);
-@@ -743,12 +855,7 @@ compress_again:
- 	/* Update stats */
- 	atomic64_add(clen, &zram->stats.compr_data_size);
- 	atomic64_inc(&zram->stats.pages_stored);
--out:
--	if (zstrm)
--		zcomp_stream_put(zram->comp);
--	if (is_partial_io(bvec))
--		kfree(uncmem);
--	return ret;
-+	return 0;
+ 	if (IS_IMMEDIATE(nr)) {
+ 		asm volatile(LOCK_PREFIX "andb %1,%0"
+@@ -121,25 +122,25 @@ clear_bit(long nr, volatile unsigned lon
  }
  
  /*
-@@ -802,10 +909,16 @@ static int zram_bvec_rw(struct zram *zra
+- * clear_bit_unlock - Clears a bit in memory
++ * arch_clear_bit_unlock - Clears a bit in memory
+  * @nr: Bit to clear
+  * @addr: Address to start counting from
+  *
+- * clear_bit() is atomic and implies release semantics before the memory
+- * operation. It can be used for an unlock.
++ * arch_clear_bit_unlock() is atomic and implies release semantics before the
++ * memory operation. It can be used for an unlock.
+  */
+-static __always_inline void clear_bit_unlock(long nr, volatile unsigned long *addr)
++static __always_inline void arch_clear_bit_unlock(long nr, volatile unsigned long *addr)
+ {
+ 	barrier();
+-	clear_bit(nr, addr);
++	arch_clear_bit(nr, addr);
+ }
  
- 	if (!is_write) {
- 		atomic64_inc(&zram->stats.num_reads);
--		ret = zram_bvec_read(zram, bvec, index, offset);
-+		if (!is_partial_io(bvec))
-+			ret = zram_bvec_read(zram, bvec, index, offset);
-+		else
-+			ret = zram_bvec_partial_read(zram, bvec, index, offset);
- 	} else {
- 		atomic64_inc(&zram->stats.num_writes);
--		ret = zram_bvec_write(zram, bvec, index, offset);
-+		if (!is_partial_io(bvec))
-+			ret = zram_bvec_write(zram, bvec, index, offset);
-+		else
-+			ret = zram_bvec_partial_write(zram, bvec, index, offset);
- 	}
+-static __always_inline void __clear_bit(long nr, volatile unsigned long *addr)
++static __always_inline void arch___clear_bit(long nr, volatile unsigned long *addr)
+ {
+ 	asm volatile("btr %1,%0" : ADDR : "Ir" (nr));
+ }
  
- 	generic_end_io_acct(rw_acct, &zram->disk->part0, start_time);
+-static __always_inline bool clear_bit_unlock_is_negative_byte(long nr, volatile unsigned long *addr)
++static __always_inline bool arch_clear_bit_unlock_is_negative_byte(long nr, volatile unsigned long *addr)
+ {
+ 	bool negative;
+ 	asm volatile(LOCK_PREFIX "andb %2,%1\n\t"
+@@ -153,47 +154,49 @@ static __always_inline bool clear_bit_un
+ #define clear_bit_unlock_is_negative_byte clear_bit_unlock_is_negative_byte
+ 
+ /*
+- * __clear_bit_unlock - Clears a bit in memory
++ * arch___clear_bit_unlock - Clears a bit in memory
+  * @nr: Bit to clear
+  * @addr: Address to start counting from
+  *
+- * __clear_bit() is non-atomic and implies release semantics before the memory
+- * operation. It can be used for an unlock if no other CPUs can concurrently
+- * modify other bits in the word.
++ * arch___clear_bit_unlock() is non-atomic and implies release semantics before
++ * the memory operation. It can be used for an unlock if no other CPUs can
++ * concurrently modify other bits in the word.
+  *
+  * No memory barrier is required here, because x86 cannot reorder stores past
+  * older loads. Same principle as spin_unlock.
+  */
+-static __always_inline void __clear_bit_unlock(long nr, volatile unsigned long *addr)
++static __always_inline void arch___clear_bit_unlock(long nr, volatile unsigned long *addr)
+ {
+ 	barrier();
+-	__clear_bit(nr, addr);
++	arch___clear_bit(nr, addr);
+ }
+ 
+ /**
+- * __change_bit - Toggle a bit in memory
++ * arch___change_bit - Toggle a bit in memory
+  * @nr: the bit to change
+  * @addr: the address to start counting from
+  *
+- * Unlike change_bit(), this function is non-atomic and may be reordered.
++ * Unlike arch_change_bit(), this function is non-atomic and may be reordered.
+  * If it's called on the same region of memory simultaneously, the effect
+  * may be that only one operation succeeds.
+  */
+-static __always_inline void __change_bit(long nr, volatile unsigned long *addr)
++static __always_inline void
++arch___change_bit(long nr, volatile unsigned long *addr)
+ {
+ 	asm volatile("btc %1,%0" : ADDR : "Ir" (nr));
+ }
+ 
+ /**
+- * change_bit - Toggle a bit in memory
++ * arch_change_bit - Toggle a bit in memory
+  * @nr: Bit to change
+  * @addr: Address to start counting from
+  *
+- * change_bit() is atomic and may not be reordered.
++ * arch_change_bit() is atomic and may not be reordered.
+  * Note that @nr may be almost arbitrarily large; this function is not
+  * restricted to acting on a single-word quantity.
+  */
+-static __always_inline void change_bit(long nr, volatile unsigned long *addr)
++static __always_inline void
++arch_change_bit(long nr, volatile unsigned long *addr)
+ {
+ 	if (IS_IMMEDIATE(nr)) {
+ 		asm volatile(LOCK_PREFIX "xorb %1,%0"
+@@ -207,33 +210,33 @@ static __always_inline void change_bit(l
+ }
+ 
+ /**
+- * test_and_set_bit - Set a bit and return its old value
++ * arch_test_and_set_bit - Set a bit and return its old value
+  * @nr: Bit to set
+  * @addr: Address to count from
+  *
+  * This operation is atomic and cannot be reordered.
+  * It also implies a memory barrier.
+  */
+-static __always_inline bool test_and_set_bit(long nr, volatile unsigned long *addr)
++static __always_inline bool arch_test_and_set_bit(long nr, volatile unsigned long *addr)
+ {
+ 	GEN_BINARY_RMWcc(LOCK_PREFIX "bts", *addr, "Ir", nr, "%0", c);
+ }
+ 
+ /**
+- * test_and_set_bit_lock - Set a bit and return its old value for lock
++ * arch_test_and_set_bit_lock - Set a bit and return its old value for lock
+  * @nr: Bit to set
+  * @addr: Address to count from
+  *
+- * This is the same as test_and_set_bit on x86.
++ * This is the same as arch_test_and_set_bit on x86.
+  */
+ static __always_inline bool
+-test_and_set_bit_lock(long nr, volatile unsigned long *addr)
++arch_test_and_set_bit_lock(long nr, volatile unsigned long *addr)
+ {
+-	return test_and_set_bit(nr, addr);
++	return arch_test_and_set_bit(nr, addr);
+ }
+ 
+ /**
+- * __test_and_set_bit - Set a bit and return its old value
++ * arch___test_and_set_bit - Set a bit and return its old value
+  * @nr: Bit to set
+  * @addr: Address to count from
+  *
+@@ -241,7 +244,7 @@ test_and_set_bit_lock(long nr, volatile
+  * If two examples of this operation race, one can appear to succeed
+  * but actually fail.  You must protect multiple accesses with a lock.
+  */
+-static __always_inline bool __test_and_set_bit(long nr, volatile unsigned long *addr)
++static __always_inline bool arch___test_and_set_bit(long nr, volatile unsigned long *addr)
+ {
+ 	bool oldbit;
+ 
+@@ -253,20 +256,20 @@ static __always_inline bool __test_and_s
+ }
+ 
+ /**
+- * test_and_clear_bit - Clear a bit and return its old value
++ * arch_test_and_clear_bit - Clear a bit and return its old value
+  * @nr: Bit to clear
+  * @addr: Address to count from
+  *
+  * This operation is atomic and cannot be reordered.
+  * It also implies a memory barrier.
+  */
+-static __always_inline bool test_and_clear_bit(long nr, volatile unsigned long *addr)
++static __always_inline bool arch_test_and_clear_bit(long nr, volatile unsigned long *addr)
+ {
+ 	GEN_BINARY_RMWcc(LOCK_PREFIX "btr", *addr, "Ir", nr, "%0", c);
+ }
+ 
+ /**
+- * __test_and_clear_bit - Clear a bit and return its old value
++ * arch___test_and_clear_bit - Clear a bit and return its old value
+  * @nr: Bit to clear
+  * @addr: Address to count from
+  *
+@@ -281,7 +284,7 @@ static __always_inline bool test_and_cle
+  * accessed from a hypervisor on the same CPU if running in a VM: don't change
+  * this without also updating arch/x86/kernel/kvm.c
+  */
+-static __always_inline bool __test_and_clear_bit(long nr, volatile unsigned long *addr)
++static __always_inline bool arch___test_and_clear_bit(long nr, volatile unsigned long *addr)
+ {
+ 	bool oldbit;
+ 
+@@ -293,7 +296,7 @@ static __always_inline bool __test_and_c
+ }
+ 
+ /* WARNING: non atomic and it can be reordered! */
+-static __always_inline bool __test_and_change_bit(long nr, volatile unsigned long *addr)
++static __always_inline bool arch___test_and_change_bit(long nr, volatile unsigned long *addr)
+ {
+ 	bool oldbit;
+ 
+@@ -306,14 +309,14 @@ static __always_inline bool __test_and_c
+ }
+ 
+ /**
+- * test_and_change_bit - Change a bit and return its old value
++ * arch_test_and_change_bit - Change a bit and return its old value
+  * @nr: Bit to change
+  * @addr: Address to count from
+  *
+  * This operation is atomic and cannot be reordered.
+  * It also implies a memory barrier.
+  */
+-static __always_inline bool test_and_change_bit(long nr, volatile unsigned long *addr)
++static __always_inline bool arch_test_and_change_bit(long nr, volatile unsigned long *addr)
+ {
+ 	GEN_BINARY_RMWcc(LOCK_PREFIX "btc", *addr, "Ir", nr, "%0", c);
+ }
+@@ -342,10 +345,10 @@ static __always_inline bool variable_tes
+  * @nr: bit number to test
+  * @addr: Address to start counting from
+  */
+-static bool test_bit(int nr, const volatile unsigned long *addr);
++static bool arch_test_bit(int nr, const volatile unsigned long *addr);
+ #endif
+ 
+-#define test_bit(nr, addr)			\
++#define arch_test_bit(nr, addr)			\
+ 	(__builtin_constant_p((nr))		\
+ 	 ? constant_test_bit((nr), (addr))	\
+ 	 : variable_test_bit((nr), (addr)))
+@@ -506,6 +509,8 @@ static __always_inline int fls64(__u64 x
+ #include <asm-generic/bitops/fls64.h>
+ #endif
+ 
++#include <asm-generic/bitops-instrumented.h>
++
+ #include <asm-generic/bitops/find.h>
+ 
+ #include <asm-generic/bitops/sched.h>
+diff -puN /dev/null include/asm-generic/bitops-instrumented.h
+--- /dev/null
++++ a/include/asm-generic/bitops-instrumented.h
+@@ -0,0 +1,53 @@
++/* See atomic-instrumented.h for explanation. */
++#ifndef _LINUX_BITOPS_INSTRUMENTED_H
++#define _LINUX_BITOPS_INSTRUMENTED_H
++
++#include <linux/kasan-checks.h>
++
++#define ADDR(nr, addr) ((void *)(addr) + ((nr) >> 3))
++
++#define INSTR_VOID(func)						\
++static __always_inline void func(long nr, volatile unsigned long *addr)	\
++{									\
++	kasan_check_write(ADDR(nr, addr), 1);				\
++	arch_##func(nr, addr);						\
++}
++
++#define INSTR_BOOL(func)						\
++static __always_inline bool func(long nr, volatile unsigned long *addr)	\
++{									\
++	kasan_check_write(ADDR(nr, addr), 1);				\
++	return arch_##func(nr, addr);					\
++}
++
++INSTR_VOID(set_bit);
++INSTR_VOID(__set_bit);
++INSTR_VOID(clear_bit);
++INSTR_VOID(__clear_bit);
++INSTR_VOID(clear_bit_unlock);
++INSTR_VOID(__clear_bit_unlock);
++INSTR_VOID(change_bit);
++INSTR_VOID(__change_bit);
++
++INSTR_BOOL(test_and_set_bit);
++INSTR_BOOL(test_and_set_bit_lock);
++INSTR_BOOL(__test_and_set_bit);
++INSTR_BOOL(test_and_clear_bit);
++INSTR_BOOL(__test_and_clear_bit);
++INSTR_BOOL(test_and_change_bit);
++INSTR_BOOL(__test_and_change_bit);
++#ifdef clear_bit_unlock_is_negative_byte
++INSTR_BOOL(clear_bit_unlock_is_negative_byte);
++#endif
++
++static bool test_bit(int nr, const volatile unsigned long *addr)
++{
++	kasan_check_read(ADDR(nr, addr), 1);
++	return arch_test_bit(nr, addr);
++}
++
++#undef ADDR
++#undef INSTR_VOID
++#undef INSTR_BOOL
++
++#endif /* _LINUX_BITOPS_INSTRUMENTED_H */
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-mm-reclaim-madv_free-pages-fix.patch
-mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
-mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch
-mm-do-not-use-double-negation-for-testing-page-flags.patch
-mm-remove-unncessary-ret-in-page_referenced.patch
-mm-remove-swap_dirty-in-ttu.patch
-mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch
-mm-make-the-try_to_munlock-void-function.patch
-mm-remove-swap_mlock-in-ttu.patch
-mm-remove-swap_again-in-ttu.patch
-mm-make-ttus-return-boolean.patch
-mm-make-rmap_walk-void-function.patch
-mm-make-rmap_one-boolean-function.patch
-mm-remove-swap_.patch
-mm-remove-swap_-fix.patch
-zram-factor-out-partial-io-routine.patch
+fault-inject-support-systematic-fault-injection.patch
+kasan-allow-kasan_check_read-write-to-accept-pointers-to-volatiles.patch
+asm-generic-x86-wrap-atomic-operations.patch
+asm-generic-add-kasan-instrumentation-to-atomic-operations.patch
+asm-generic-fix-compilation-failure-in-cmpxchg_double.patch
+x86-remove-unused-atomic_inc_short.patch
+x86-asm-generic-add-kasan-instrumentation-to-bitops.patch
 
