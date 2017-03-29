@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vmci-fix-a-couple-integer-overflow-tests.patch added to -mm
- tree
-Date: Wed, 29 Mar 2017 15:49:11 -0700
-Message-ID: <58dc39e7.Aq0jF5vfknkdhevw%akpm@linux-foundation.org>
+Subject: + proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
+ added to -mm tree
+Date: Wed, 29 Mar 2017 16:07:21 -0700
+Message-ID: <58dc3e29.zoxX70tDjpW3z5L/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40266 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932607AbdC2WtN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 18:49:13 -0400
+        with ESMTP id S932911AbdC2XHX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:07:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, acking@vmware.com, gregkh@linuxfoundation.org, jhansen@vmware.com, mhocko@suse.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: fgao@ikuai8.com, acme@redhat.com, adobriyan@gmail.com, edumazet@google.com, jpoimboe@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/misc/vmw_vmci/vmci_queue_pair.c: fix a couple integer overflow tests
+     Subject: proc/sysctl: fix the int overflow for jiffies conversion
 has been added to the -mm tree.  Its filename is
-     vmci-fix-a-couple-integer-overflow-tests.patch
+     proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmci-fix-a-couple-integer-overflow-tests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmci-fix-a-couple-integer-overflow-tests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: drivers/misc/vmw_vmci/vmci_queue_pair.c: fix a couple integer overflow tests
+From: Gao Feng <fgao@ikuai8.com>
+Subject: proc/sysctl: fix the int overflow for jiffies conversion
 
-The "DIV_ROUND_UP(size, PAGE_SIZE)" operation can overflow if "size" is
-more than ULLONG_MAX - PAGE_SIZE.
+do_proc_dointvec_jiffies_conv() uses LONG_MAX/HZ as the max value to avoid
+overflow.  But actually the *valp is int type, so it still causes
+overflow.
 
-Link: http://lkml.kernel.org/r/20170322111950.GA11279@mwanda
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jorgen Hansen <jhansen@vmware.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Andy King <acking@vmware.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+For example,
+echo 2147483647 > ./sys/net/ipv4/tcp_keepalive_time
+Then,
+cat ./sys/net/ipv4/tcp_keepalive_time
+The output is "-1", it is not expected.
+
+Now use INT_MAX/HZ as the max value instead LONG_MAX/HZ to fix it.
+
+Link: http://lkml.kernel.org/r/1490109532-9228-1-git-send-email-fgao@ikuai8.com
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/vmw_vmci/vmci_queue_pair.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ kernel/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/vmw_vmci/vmci_queue_pair.c~vmci-fix-a-couple-integer-overflow-tests drivers/misc/vmw_vmci/vmci_queue_pair.c
---- a/drivers/misc/vmw_vmci/vmci_queue_pair.c~vmci-fix-a-couple-integer-overflow-tests
-+++ a/drivers/misc/vmw_vmci/vmci_queue_pair.c
-@@ -298,8 +298,11 @@ static void *qp_alloc_queue(u64 size, u3
- 	size_t pas_size;
- 	size_t vas_size;
- 	size_t queue_size = sizeof(*queue) + sizeof(*queue->kernel_if);
--	const u64 num_pages = DIV_ROUND_UP(size, PAGE_SIZE) + 1;
-+	u64 num_pages;
- 
-+	if (size > SIZE_MAX - PAGE_SIZE)
-+		return NULL;
-+	num_pages = DIV_ROUND_UP(size, PAGE_SIZE) + 1;
- 	if (num_pages >
- 		 (SIZE_MAX - queue_size) /
- 		 (sizeof(*queue->kernel_if->u.g.pas) +
-@@ -624,9 +627,12 @@ static struct vmci_queue *qp_host_alloc_
+diff -puN kernel/sysctl.c~proc-sysctl-fix-the-int-overflow-for-jiffies-conversion kernel/sysctl.c
+--- a/kernel/sysctl.c~proc-sysctl-fix-the-int-overflow-for-jiffies-conversion
++++ a/kernel/sysctl.c
+@@ -2571,7 +2571,7 @@ static int do_proc_dointvec_jiffies_conv
+ 					 int write, void *data)
  {
- 	struct vmci_queue *queue;
- 	size_t queue_page_size;
--	const u64 num_pages = DIV_ROUND_UP(size, PAGE_SIZE) + 1;
-+	u64 num_pages;
- 	const size_t queue_size = sizeof(*queue) + sizeof(*(queue->kernel_if));
- 
-+	if (size > SIZE_MAX - PAGE_SIZE)
-+		return NULL;
-+	num_pages = DIV_ROUND_UP(size, PAGE_SIZE) + 1;
- 	if (num_pages > (SIZE_MAX - queue_size) /
- 		 sizeof(*queue->kernel_if->u.h.page))
- 		return NULL;
+ 	if (write) {
+-		if (*lvalp > LONG_MAX / HZ)
++		if (*lvalp > INT_MAX / HZ)
+ 			return 1;
+ 		*valp = *negp ? -(*lvalp*HZ) : (*lvalp*HZ);
+ 	} else {
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from fgao@ikuai8.com are
 
-vmci-fix-a-couple-integer-overflow-tests.patch
+proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
 
