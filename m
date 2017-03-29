@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kcov-simplify-interrupt-check.patch added to -mm tree
-Date: Wed, 29 Mar 2017 16:10:07 -0700
-Message-ID: <58dc3ecf.WClYWop/zJs31p2O%akpm@linux-foundation.org>
+Subject: + rapidio-tsi721-make-module-parameter-variable-name-unique.patch added to -mm tree
+Date: Wed, 29 Mar 2017 16:13:10 -0700
+Message-ID: <58dc3f86.cpguHQ7NIxPOsxo2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40444 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754333AbdC2XKJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:10:09 -0400
+        with ESMTP id S932963AbdC2XNM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:13:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, alex.popov@linux.com, andreyknvl@google.com, hillf.zj@alibaba-inc.com, james.morse@arm.com, wangkefeng.wang@huawei.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, alexandre.bounine@idt.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, jeremy.lefaure@lse.epita.fr, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: simplify interrupt check
+     Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
 has been added to the -mm tree.  Its filename is
-     kcov-simplify-interrupt-check.patch
+     rapidio-tsi721-make-module-parameter-variable-name-unique.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kcov-simplify-interrupt-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-make-module-parameter-variable-name-unique.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-simplify-interrupt-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-make-module-parameter-variable-name-unique.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,61 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kcov: simplify interrupt check
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
 
-in_interrupt() semantics are confusing and wrong for most users as it also
-returns true when bh is disabled.  Thus we open coded a proper check for
-interrupts in __sanitizer_cov_trace_pc() with a lengthy explanatory
-comment.
+kbuild test robot reported a non-static variable name collision between a
+staging driver and a RapidIO driver, with a generic variable name of
+'dbg_level'.
 
-Use the new in_task() predicate instead.
+Both drivers should be changed so that they don't use this generic public
+variable name.  This patch fixes the RapidIO driver but does not change
+the user interface (name) for the module parameter.
 
-Link: http://lkml.kernel.org/r/20170321091026.139655-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: Alexander Popov <alex.popov@linux.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+drivers/staging/built-in.o:(.bss+0x109d0): multiple definition of `dbg_level'
+drivers/rapidio/built-in.o:(.bss+0x16c): first defined here
+
+Link: http://lkml.kernel.org/r/ab527fc5-aa3c-4b07-5d48-eef5de703192@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ drivers/rapidio/devices/tsi721.c |    4 ++--
+ drivers/rapidio/devices/tsi721.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/kcov.c~kcov-simplify-interrupt-check kernel/kcov.c
---- a/kernel/kcov.c~kcov-simplify-interrupt-check
-+++ a/kernel/kcov.c
-@@ -60,15 +60,8 @@ void notrace __sanitizer_cov_trace_pc(vo
- 	/*
- 	 * We are interested in code coverage as a function of a syscall inputs,
- 	 * so we ignore code executed in interrupts.
--	 * The checks for whether we are in an interrupt are open-coded, because
--	 * 1. We can't use in_interrupt() here, since it also returns true
--	 *    when we are inside local_bh_disable() section.
--	 * 2. We don't want to use (in_irq() | in_serving_softirq() | in_nmi()),
--	 *    since that leads to slower generated code (three separate tests,
--	 *    one for each of the flags).
- 	 */
--	if (!t || (preempt_count() & (HARDIRQ_MASK | SOFTIRQ_OFFSET
--							| NMI_MASK)))
-+	if (!t || !in_task())
- 		return;
- 	mode = READ_ONCE(t->kcov_mode);
- 	if (mode == KCOV_MODE_TRACE) {
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -37,8 +37,8 @@
+ #include "tsi721.h"
+ 
+ #ifdef DEBUG
+-u32 dbg_level;
+-module_param(dbg_level, uint, S_IWUSR | S_IRUGO);
++u32 tsi_dbg_level;
++module_param_named(dbg_level, tsi_dbg_level, uint, S_IWUSR | S_IRUGO);
+ MODULE_PARM_DESC(dbg_level, "Debugging output level (default 0 = none)");
+ #endif
+ 
+diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.h
+--- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique
++++ a/drivers/rapidio/devices/tsi721.h
+@@ -40,11 +40,11 @@ enum {
+ };
+ 
+ #ifdef DEBUG
+-extern u32 dbg_level;
++extern u32 tsi_dbg_level;
+ 
+ #define tsi_debug(level, dev, fmt, arg...)				\
+ 	do {								\
+-		if (DBG_##level & dbg_level)				\
++		if (DBG_##level & tsi_dbg_level)				\
+ 			dev_dbg(dev, "%s: " fmt "\n", __func__, ##arg);	\
+ 	} while (0)
+ #else
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-kcov-simplify-interrupt-check.patch
-fault-inject-use-correct-check-for-interrupts.patch
-fault-inject-support-systematic-fault-injection.patch
-kasan-allow-kasan_check_read-write-to-accept-pointers-to-volatiles.patch
-asm-generic-x86-wrap-atomic-operations.patch
-asm-generic-x86-wrap-atomic-operations-fix.patch
-asm-generic-add-kasan-instrumentation-to-atomic-operations.patch
-asm-generic-fix-compilation-failure-in-cmpxchg_double.patch
-x86-remove-unused-atomic_inc_short.patch
-x86-asm-generic-add-kasan-instrumentation-to-bitops.patch
+rapidio-tsi721-make-module-parameter-variable-name-unique.patch
 
