@@ -1,200 +1,377 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64.patch removed
+ mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch removed
  from -mm tree
-Date: Wed, 29 Mar 2017 13:59:19 -0700
-Message-ID: <58dc2027.HX3H/OpspfDqxVzV%akpm@linux-foundation.org>
+Date: Wed, 29 Mar 2017 13:59:22 -0700
+Message-ID: <58dc202a.z+toeivI71X5DY+Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56414 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752832AbdC2U7V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 16:59:21 -0400
+        with ESMTP id S932727AbdC2U7Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 16:59:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, akpm@linux-foundation.org, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, vdavydov@tarantool.org, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, vdavydov@tarantool.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, swap: make swap cluster size same of THP size on x86_64
+     Subject: mm, memcg: support to charge/uncharge multiple swap entries
 has been removed from the -mm tree.  Its filename was
-     mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64.patch
+     mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: make swap cluster size same of THP size on x86_64
+Subject: mm, memcg: support to charge/uncharge multiple swap entries
 
-Patch series "THP swap: Delay splitting THP during swapping out", v7.
+Make it possible to charge or uncharge a set of continuous swap entries in
+the swap cgroup.  The number of swap entries is specified via an added
+parameter.
 
-Recently, the performance of the storage devices improved so fast that
-we cannot saturate the disk bandwidth with single logical CPU when do
-page swap out even on a high-end server machine.  Because the
-performance of the storage device improved faster than that of single
-logical CPU.  And it seems that the trend will not change in the near
-future.  On the other hand, the THP becomes more and more popular
-because of increased memory size.  So it becomes necessary to optimize
-THP swap performance.
+This will be used for the THP (Transparent Huge Page) swap support.  Where
+a swap cluster backing a THP may be allocated and freed as a whole.  So a
+set of (HPAGE_PMD_NR) continuous swap entries backing one THP need to be
+charged or uncharged together.  This will batch the cgroup operations for
+the THP swap too.
 
-The advantages of the THP swap support include:
-
-- Batch the swap operations for the THP to reduce lock
-  acquiring/releasing, including allocating/freeing the swap space,
-  adding/deleting to/from the swap cache, and writing/reading the swap
-  space, etc.  This will help improve the performance of the THP swap.
-
-- The THP swap space read/write will be 2M sequential IO.  It is
-  particularly helpful for the swap read, which are usually 4k random
-  IO.  This will improve the performance of the THP swap too.
-
-- It will help the memory fragmentation, especially when the THP is
-  heavily used by the applications.  The 2M continuous pages will be
-  free up after THP swapping out.
-
-- It will improve the THP utilization on the system with the swap
-  turned on.  Because the speed for khugepaged to collapse the normal
-  pages into the THP is quite slow.  After the THP is split during the
-  swapping out, it will take quite long time for the normal pages to
-  collapse back into the THP after being swapped in.  The high THP
-  utilization helps the efficiency of the page based memory management
-  too.
-
-There are some concerns regarding THP swap in, mainly because possible
-enlarged read/write IO size (for swap in/out) may put more overhead on
-the storage device.  To deal with that, the THP swap in should be
-turned on only when necessary.  For example, it can be selected via
-"always/never/madvise" logic, to be turned on globally, turned off
-globally, or turned on only for VMA with MADV_HUGEPAGE, etc.
-
-This patchset is based on 03/17 head of mmotm/master.
-
-This patchset is the first step for the THP swap support.  The plan is
-to delay splitting THP step by step, finally avoid splitting THP
-during the THP swapping out and swap out/in the THP as a whole.
-
-As the first step, in this patchset, the splitting huge page is
-delayed from almost the first step of swapping out to after allocating
-the swap space for the THP and adding the THP into the swap cache.
-This will reduce lock acquiring/releasing for the locks used for the
-swap cache management.
-
-With the patchset, the swap out throughput improves 14.9% (from about
-3.77GB/s to about 4.34GB/s) in the vm-scalability swap-w-seq test case
-with 8 processes.  The test is done on a Xeon E5 v3 system.  The swap
-device used is a RAM simulated PMEM (persistent memory) device.  To
-test the sequential swapping out, the test case creates 8 processes,
-which sequentially allocate and write to the anonymous pages until the
-RAM and part of the swap device is used up.
-
-The detailed comparison result is as follow,
-
-base             base+patchset
----------------- -------------------------- 
-         %stddev     %change         %stddev
-             \          |                \  
-   7043990 ±  0%     +21.2%    8536807 ±  0%  vm-scalability.throughput
-    109.94 ±  1%     -16.2%      92.09 ±  0%  vm-scalability.time.elapsed_time
-   3957091 ±  0%     +14.9%    4547173 ±  0%  vmstat.swap.so
-     31.46 ±  1%     -38.3%      19.42 ±  0%  perf-stat.cache-miss-rate%
-      1.04 ±  1%     +22.2%       1.27 ±  0%  perf-stat.ipc
-      9.33 ±  2%     -60.7%       3.67 ±  1%  perf-profile.calltrace.cycles-pp.add_to_swap.shrink_page_list.shrink_inactive_list.shrink_node_memcg.shrink_node
-
-
-
-This patch (of 9):
-
-In this patch, the size of the swap cluster is changed to that of the THP
-(Transparent Huge Page) on x86_64 architecture (512).  This is for the THP
-swap support on x86_64.  Where one swap cluster will be used to hold the
-contents of each THP swapped out.  And some information of the swapped out
-THP (such as compound map count) will be recorded in the swap_cluster_info
-data structure.
-
-For other architectures which want THP swap support,
-ARCH_USES_THP_SWAP_CLUSTER need to be selected in the Kconfig file for the
-architecture.
-
-In effect, this will enlarge swap cluster size by 2 times on x86_64. 
-Which may make it harder to find a free cluster when the swap space
-becomes fragmented.  So that, this may reduce the continuous swap space
-allocation and sequential write in theory.  The performance test in 0day
-shows no regressions caused by this.
-
-Link: http://lkml.kernel.org/r/20170328053209.25876-2-ying.huang@intel.com
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20170328053209.25876-3-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vladimir Davydov <vdavydov@tarantool.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov@tarantool.org>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- mm/Kconfig       |   13 +++++++++++++
- mm/swapfile.c    |    4 ++++
- 3 files changed, 18 insertions(+)
+ include/linux/swap.h        |   12 ++++---
+ include/linux/swap_cgroup.h |    6 ++-
+ mm/memcontrol.c             |   57 +++++++++++++++++++---------------
+ mm/shmem.c                  |    2 -
+ mm/swap_cgroup.c            |   40 +++++++++++++++++------
+ mm/swap_state.c             |    2 -
+ mm/swapfile.c               |    2 -
+ 7 files changed, 77 insertions(+), 44 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64 arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64
-+++ a/arch/x86/Kconfig
-@@ -175,6 +175,7 @@ config X86
- 	select USER_STACKTRACE_SUPPORT
- 	select VIRT_TO_BUS
- 	select X86_FEATURE_NAMES		if PROC_FS
-+	select ARCH_USES_THP_SWAP_CLUSTER	if X86_64
+diff -puN include/linux/swap.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries include/linux/swap.h
+--- a/include/linux/swap.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/include/linux/swap.h
+@@ -550,8 +550,10 @@ static inline int mem_cgroup_swappiness(
  
- config INSTRUCTION_DECODER
- 	def_bool y
-diff -puN mm/Kconfig~mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64 mm/Kconfig
---- a/mm/Kconfig~mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64
-+++ a/mm/Kconfig
-@@ -499,6 +499,19 @@ config FRONTSWAP
+ #ifdef CONFIG_MEMCG_SWAP
+ extern void mem_cgroup_swapout(struct page *page, swp_entry_t entry);
+-extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
+-extern void mem_cgroup_uncharge_swap(swp_entry_t entry);
++extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry,
++				      unsigned int nr_entries);
++extern void mem_cgroup_uncharge_swap(swp_entry_t entry,
++				     unsigned int nr_entries);
+ extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
+ extern bool mem_cgroup_swap_full(struct page *page);
+ #else
+@@ -560,12 +562,14 @@ static inline void mem_cgroup_swapout(st
+ }
  
- 	  If unsure, say Y to enable frontswap.
+ static inline int mem_cgroup_try_charge_swap(struct page *page,
+-					     swp_entry_t entry)
++					     swp_entry_t entry,
++					     unsigned int nr_entries)
+ {
+ 	return 0;
+ }
  
-+config ARCH_USES_THP_SWAP_CLUSTER
-+	bool
-+	default n
-+
-+config THP_SWAP_CLUSTER
-+	bool
-+	depends on SWAP && TRANSPARENT_HUGEPAGE && ARCH_USES_THP_SWAP_CLUSTER
-+	default y
-+	help
-+	  Use one swap cluster to hold the contents of the THP
-+	  (Transparent Huge Page) swapped out.  The size of the swap
-+	  cluster will be same as that of THP.
-+
- config CMA
- 	bool "Contiguous Memory Allocator"
- 	depends on HAVE_MEMBLOCK && MMU
-diff -puN mm/swapfile.c~mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64 mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-make-swap-cluster-size-same-of-thp-size-on-x86_64
-+++ a/mm/swapfile.c
-@@ -199,7 +199,11 @@ static void discard_swap_cluster(struct
+-static inline void mem_cgroup_uncharge_swap(swp_entry_t entry)
++static inline void mem_cgroup_uncharge_swap(swp_entry_t entry,
++					    unsigned int nr_entries)
+ {
+ }
+ 
+diff -puN include/linux/swap_cgroup.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries include/linux/swap_cgroup.h
+--- a/include/linux/swap_cgroup.h~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/include/linux/swap_cgroup.h
+@@ -7,7 +7,8 @@
+ 
+ extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
+ 					unsigned short old, unsigned short new);
+-extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id);
++extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
++					 unsigned int nr_ents);
+ extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
+ extern int swap_cgroup_swapon(int type, unsigned long max_pages);
+ extern void swap_cgroup_swapoff(int type);
+@@ -15,7 +16,8 @@ extern void swap_cgroup_swapoff(int type
+ #else
+ 
+ static inline
+-unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
++unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
++				  unsigned int nr_ents)
+ {
+ 	return 0;
+ }
+diff -puN mm/memcontrol.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/memcontrol.c
+@@ -2393,10 +2393,9 @@ void mem_cgroup_split_huge_fixup(struct
+ 
+ #ifdef CONFIG_MEMCG_SWAP
+ static void mem_cgroup_swap_statistics(struct mem_cgroup *memcg,
+-					 bool charge)
++				       int nr_entries)
+ {
+-	int val = (charge) ? 1 : -1;
+-	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAP], val);
++	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAP], nr_entries);
+ }
+ 
+ /**
+@@ -2422,8 +2421,8 @@ static int mem_cgroup_move_swap_account(
+ 	new_id = mem_cgroup_id(to);
+ 
+ 	if (swap_cgroup_cmpxchg(entry, old_id, new_id) == old_id) {
+-		mem_cgroup_swap_statistics(from, false);
+-		mem_cgroup_swap_statistics(to, true);
++		mem_cgroup_swap_statistics(from, -1);
++		mem_cgroup_swap_statistics(to, 1);
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+@@ -5451,7 +5450,7 @@ void mem_cgroup_commit_charge(struct pag
+ 		 * let's not wait for it.  The page already received a
+ 		 * memory+swap charge, drop the swap entry duplicate.
+ 		 */
+-		mem_cgroup_uncharge_swap(entry);
++		mem_cgroup_uncharge_swap(entry, nr_pages);
  	}
  }
  
-+#ifdef CONFIG_THP_SWAP_CLUSTER
-+#define SWAPFILE_CLUSTER	HPAGE_PMD_NR
-+#else
- #define SWAPFILE_CLUSTER	256
-+#endif
- #define LATENCY_LIMIT		256
+@@ -5879,9 +5878,9 @@ void mem_cgroup_swapout(struct page *pag
+ 	 * ancestor for the swap instead and transfer the memory+swap charge.
+ 	 */
+ 	swap_memcg = mem_cgroup_id_get_online(memcg);
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg));
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg), 1);
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(swap_memcg, true);
++	mem_cgroup_swap_statistics(swap_memcg, 1);
  
- static inline void cluster_set_flag(struct swap_cluster_info *info,
+ 	page->mem_cgroup = NULL;
+ 
+@@ -5908,16 +5907,19 @@ void mem_cgroup_swapout(struct page *pag
+ 		css_put(&memcg->css);
+ }
+ 
+-/*
+- * mem_cgroup_try_charge_swap - try charging a swap entry
++/**
++ * mem_cgroup_try_charge_swap - try charging a set of swap entries
+  * @page: page being added to swap
+- * @entry: swap entry to charge
++ * @entry: the first swap entry to charge
++ * @nr_entries: the number of swap entries to charge
+  *
+- * Try to charge @entry to the memcg that @page belongs to.
++ * Try to charge @nr_entries swap entries starting from @entry to the
++ * memcg that @page belongs to.
+  *
+  * Returns 0 on success, -ENOMEM on failure.
+  */
+-int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
++int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry,
++			       unsigned int nr_entries)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct page_counter *counter;
+@@ -5935,25 +5937,29 @@ int mem_cgroup_try_charge_swap(struct pa
+ 	memcg = mem_cgroup_id_get_online(memcg);
+ 
+ 	if (!mem_cgroup_is_root(memcg) &&
+-	    !page_counter_try_charge(&memcg->swap, 1, &counter)) {
++	    !page_counter_try_charge(&memcg->swap, nr_entries, &counter)) {
+ 		mem_cgroup_id_put(memcg);
+ 		return -ENOMEM;
+ 	}
+ 
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
++	if (nr_entries > 1)
++		mem_cgroup_id_get_many(memcg, nr_entries - 1);
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg), nr_entries);
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(memcg, true);
++	mem_cgroup_swap_statistics(memcg, nr_entries);
+ 
+ 	return 0;
+ }
+ 
+ /**
+- * mem_cgroup_uncharge_swap - uncharge a swap entry
+- * @entry: swap entry to uncharge
++ * mem_cgroup_uncharge_swap - uncharge a set of swap entries
++ * @entry: the first swap entry to uncharge
++ * @nr_entries: the number of swap entries to uncharge
+  *
+- * Drop the swap charge associated with @entry.
++ * Drop the swap charge associated with @nr_entries swap entries
++ * starting from @entry.
+  */
+-void mem_cgroup_uncharge_swap(swp_entry_t entry)
++void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_entries)
+ {
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
+@@ -5961,18 +5967,19 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 	if (!do_swap_account)
+ 		return;
+ 
+-	id = swap_cgroup_record(entry, 0);
++	id = swap_cgroup_record(entry, 0, nr_entries);
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+ 	if (memcg) {
+ 		if (!mem_cgroup_is_root(memcg)) {
+ 			if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-				page_counter_uncharge(&memcg->swap, 1);
++				page_counter_uncharge(&memcg->swap, nr_entries);
+ 			else
+-				page_counter_uncharge(&memcg->memsw, 1);
++				page_counter_uncharge(&memcg->memsw,
++						      nr_entries);
+ 		}
+-		mem_cgroup_swap_statistics(memcg, false);
+-		mem_cgroup_id_put(memcg);
++		mem_cgroup_swap_statistics(memcg, -nr_entries);
++		mem_cgroup_id_put_many(memcg, nr_entries);
+ 	}
+ 	rcu_read_unlock();
+ }
+diff -puN mm/shmem.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/shmem.c
+--- a/mm/shmem.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/shmem.c
+@@ -1294,7 +1294,7 @@ static int shmem_writepage(struct page *
+ 	if (!swap.val)
+ 		goto redirty;
+ 
+-	if (mem_cgroup_try_charge_swap(page, swap))
++	if (mem_cgroup_try_charge_swap(page, swap, 1))
+ 		goto free_swap;
+ 
+ 	/*
+diff -puN mm/swap_cgroup.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/swap_cgroup.c
+--- a/mm/swap_cgroup.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/swap_cgroup.c
+@@ -58,21 +58,27 @@ not_enough_page:
+ 	return -ENOMEM;
+ }
+ 
++static struct swap_cgroup *__lookup_swap_cgroup(struct swap_cgroup_ctrl *ctrl,
++						pgoff_t offset)
++{
++	struct page *mappage;
++	struct swap_cgroup *sc;
++
++	mappage = ctrl->map[offset / SC_PER_PAGE];
++	sc = page_address(mappage);
++	return sc + offset % SC_PER_PAGE;
++}
++
+ static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
+ 					struct swap_cgroup_ctrl **ctrlp)
+ {
+ 	pgoff_t offset = swp_offset(ent);
+ 	struct swap_cgroup_ctrl *ctrl;
+-	struct page *mappage;
+-	struct swap_cgroup *sc;
+ 
+ 	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
+ 	if (ctrlp)
+ 		*ctrlp = ctrl;
+-
+-	mappage = ctrl->map[offset / SC_PER_PAGE];
+-	sc = page_address(mappage);
+-	return sc + offset % SC_PER_PAGE;
++	return __lookup_swap_cgroup(ctrl, offset);
+ }
+ 
+ /**
+@@ -105,25 +111,39 @@ unsigned short swap_cgroup_cmpxchg(swp_e
+ }
+ 
+ /**
+- * swap_cgroup_record - record mem_cgroup for this swp_entry.
+- * @ent: swap entry to be recorded into
++ * swap_cgroup_record - record mem_cgroup for a set of swap entries
++ * @ent: the first swap entry to be recorded into
+  * @id: mem_cgroup to be recorded
++ * @nr_ents: number of swap entries to be recorded
+  *
+  * Returns old value at success, 0 at failure.
+  * (Of course, old value can be 0.)
+  */
+-unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
++unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
++				  unsigned int nr_ents)
+ {
+ 	struct swap_cgroup_ctrl *ctrl;
+ 	struct swap_cgroup *sc;
+ 	unsigned short old;
+ 	unsigned long flags;
++	pgoff_t offset = swp_offset(ent);
++	pgoff_t end = offset + nr_ents;
+ 
+ 	sc = lookup_swap_cgroup(ent, &ctrl);
+ 
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+ 	old = sc->id;
+-	sc->id = id;
++	for (;;) {
++		VM_BUG_ON(sc->id != old);
++		sc->id = id;
++		offset++;
++		if (offset == end)
++			break;
++		if (offset % SC_PER_PAGE)
++			sc++;
++		else
++			sc = __lookup_swap_cgroup(ctrl, offset);
++	}
+ 	spin_unlock_irqrestore(&ctrl->lock, flags);
+ 
+ 	return old;
+diff -puN mm/swap_state.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/swap_state.c
+--- a/mm/swap_state.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/swap_state.c
+@@ -182,7 +182,7 @@ int add_to_swap(struct page *page, struc
+ 	if (!entry.val)
+ 		return 0;
+ 
+-	if (mem_cgroup_try_charge_swap(page, entry)) {
++	if (mem_cgroup_try_charge_swap(page, entry, 1)) {
+ 		swapcache_free(entry);
+ 		return 0;
+ 	}
+diff -puN mm/swapfile.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries mm/swapfile.c
+--- a/mm/swapfile.c~mm-memcg-support-to-charge-uncharge-multiple-swap-entries
++++ a/mm/swapfile.c
+@@ -1012,7 +1012,7 @@ static void swap_entry_free(struct swap_
+ 	dec_cluster_info_page(p, p->cluster_info, offset);
+ 	unlock_cluster(ci);
+ 
+-	mem_cgroup_uncharge_swap(entry);
++	mem_cgroup_uncharge_swap(entry, 1);
+ 	if (offset < p->lowest_bit)
+ 		p->lowest_bit = offset;
+ 	if (offset > p->highest_bit) {
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
@@ -203,7 +380,6 @@ mm-swap-fix-a-race-in-free_swap_and_cache.patch
 mm-swap-fix-comment-in-__read_swap_cache_async.patch
 mm-swap-improve-readability-via-make-spin_lock-unlock-balanced.patch
 mm-swap-avoid-lock-swap_avail_lock-when-held-cluster-lock.patch
-mm-memcg-support-to-charge-uncharge-multiple-swap-entries.patch
 mm-thp-swap-add-swap-cluster-allocate-free-functions.patch
 mm-thp-swap-add-get_huge_swap_page.patch
 mm-thp-swap-support-to-clear-swap_has_cache-for-huge-page.patch
