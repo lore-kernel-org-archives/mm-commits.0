@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-enable-page-poisoning-early-at-boot-v2.patch added to -mm
- tree
-Date: Thu, 30 Mar 2017 14:26:41 -0700
-Message-ID: <58dd7811.olw1LTk5eEb6HRCA%akpm@linux-foundation.org>
+Subject: + mm-tile-drop-arch_addremove_memory.patch added to -mm tree
+Date: Thu, 30 Mar 2017 14:42:13 -0700
+Message-ID: <58dd7bb5.5Al28zhLTmlY+5ar%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60842 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933357AbdC3V0n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 17:26:43 -0400
+        with ESMTP id S933875AbdC3VmP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 17:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vinmenon@codeaurora.org, akinobu.mita@gmail.com, iamjoonsoo.kim@lge.com, labbott@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, benh@kernel.crashing.org, cmetcalf@mellanox.com, dan.j.williams@gmail.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, hpa@zytor.com, imammedo@redhat.com, js1304@gmail.com, laijs@cn.fujitsu.com, mgorman@suse.de, mingo@elte.hu, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, slaoub@gmail.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tony.luck@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-enable-page-poisoning-early-at-boot-v2
+     Subject: mm, tile: drop arch_{add,remove}_memory
 has been added to the -mm tree.  Its filename is
-     mm-enable-page-poisoning-early-at-boot-v2.patch
+     mm-tile-drop-arch_addremove_memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-enable-page-poisoning-early-at-boot-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-tile-drop-arch_addremove_memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-enable-page-poisoning-early-at-boot-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-tile-drop-arch_addremove_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,78 +38,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vinayak Menon <vinmenon@codeaurora.org>
-Subject: mm-enable-page-poisoning-early-at-boot-v2
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, tile: drop arch_{add,remove}_memory
 
- (1) Removed "select PAGE_EXTENSION" on CONFIG_PAGE_POISONING
- (2) Removed CONFIG_PAGE_POISONING checks in page_ext.c
+These functions are unreachable because tile doesn't support memory
+hotplug becasuse it doesn't select ARCH_ENABLE_MEMORY_HOTPLUG nor it
+supports SPARSEMEM.
 
-Link: http://lkml.kernel.org/r/1490878002-14423-1-git-send-email-vinmenon@codeaurora.org
-Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+This code hasn't been compiled for a while obviously because nobody has
+noticed that __add_pages has a different signature since 2009.
+
+Link: http://lkml.kernel.org/r/20170330115454.32154-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: <slaoub@gmail.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Dan Williams <dan.j.williams@gmail.com>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Kani Toshimitsu <toshi.kani@hpe.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug |    1 -
- mm/page_ext.c    |   10 ++--------
- 2 files changed, 2 insertions(+), 9 deletions(-)
+ arch/tile/mm/init.c |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
-diff -puN mm/Kconfig.debug~mm-enable-page-poisoning-early-at-boot-v2 mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-enable-page-poisoning-early-at-boot-v2
-+++ a/mm/Kconfig.debug
-@@ -42,7 +42,6 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
+diff -puN arch/tile/mm/init.c~mm-tile-drop-arch_addremove_memory arch/tile/mm/init.c
+--- a/arch/tile/mm/init.c~mm-tile-drop-arch_addremove_memory
++++ a/arch/tile/mm/init.c
+@@ -857,36 +857,6 @@ void __init mem_init(void)
+ #endif
+ }
  
- config PAGE_POISONING
- 	bool "Poison pages after freeing"
--	select PAGE_EXTENSION
- 	select PAGE_POISONING_NO_SANITY if HIBERNATION
- 	---help---
- 	  Fill the pages with poison patterns after free_pages() and verify
-diff -puN mm/page_ext.c~mm-enable-page-poisoning-early-at-boot-v2 mm/page_ext.c
---- a/mm/page_ext.c~mm-enable-page-poisoning-early-at-boot-v2
-+++ a/mm/page_ext.c
-@@ -124,15 +124,12 @@ struct page_ext *lookup_page_ext(struct
- 	struct page_ext *base;
+-/*
+- * this is for the non-NUMA, single node SMP system case.
+- * Specifically, in the case of x86, we will always add
+- * memory to the highmem for now.
+- */
+-#ifndef CONFIG_NEED_MULTIPLE_NODES
+-int arch_add_memory(u64 start, u64 size, bool for_device)
+-{
+-	struct pglist_data *pgdata = &contig_page_data;
+-	struct zone *zone = pgdata->node_zones + MAX_NR_ZONES-1;
+-	unsigned long start_pfn = start >> PAGE_SHIFT;
+-	unsigned long nr_pages = size >> PAGE_SHIFT;
+-
+-	return __add_pages(zone, start_pfn, nr_pages);
+-}
+-
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+-int arch_remove_memory(u64 start, u64 size)
+-{
+-	/* TODO */
+-	return -EBUSY;
+-}
+-#endif
+-#endif
+-
+ struct kmem_cache *pgd_cache;
  
- 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
--#if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
-+#if defined(CONFIG_DEBUG_VM)
- 	/*
- 	 * The sanity checks the page allocator does upon freeing a
- 	 * page can reach here before the page_ext arrays are
- 	 * allocated when feeding a range of pages to the allocator
- 	 * for the first time during bootup or memory hotplug.
--	 *
--	 * This check is also necessary for ensuring page poisoning
--	 * works as expected when enabled
- 	 */
- 	if (unlikely(!base))
- 		return NULL;
-@@ -201,15 +198,12 @@ struct page_ext *lookup_page_ext(struct
- {
- 	unsigned long pfn = page_to_pfn(page);
- 	struct mem_section *section = __pfn_to_section(pfn);
--#if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
-+#if defined(CONFIG_DEBUG_VM)
- 	/*
- 	 * The sanity checks the page allocator does upon freeing a
- 	 * page can reach here before the page_ext arrays are
- 	 * allocated when feeding a range of pages to the allocator
- 	 * for the first time during bootup or memory hotplug.
--	 *
--	 * This check is also necessary for ensuring page poisoning
--	 * works as expected when enabled
- 	 */
- 	if (!section->page_ext)
- 		return NULL;
+ void __init pgtable_cache_init(void)
 _
 
-Patches currently in -mm which might be from vinmenon@codeaurora.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-enable-page-poisoning-early-at-boot.patch
-mm-enable-page-poisoning-early-at-boot-v2.patch
-mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
+mm-move-mm_percpu_wq-initialization-earlier.patch
+lockdep-allow-to-disable-reclaim-lockup-detection.patch
+xfs-abstract-pf_fstrans-to-pf_memalloc_nofs.patch
+mm-introduce-memalloc_nofs_saverestore-api.patch
+xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
+mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
+mm-get-rid-of-zone_is_initialized.patch
+mm-tile-drop-arch_addremove_memory.patch
+mm-remove-return-value-from-init_currently_empty_zone.patch
+mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
+mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
+mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
+mm-introduce-kvalloc-helpers.patch
+mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
+rhashtable-simplify-a-strange-allocation-pattern.patch
+ila-simplify-a-strange-allocation-pattern.patch
+xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
+treewide-use-kvalloc-rather-than-opencoded-variants.patch
+net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
+md-use-kvmalloc-rather-than-opencoded-variant.patch
+bcache-use-kvmalloc.patch
+mm-vmalloc-use-__gfp_highmem-implicitly.patch
 
