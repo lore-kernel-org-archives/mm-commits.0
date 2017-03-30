@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
- added to -mm tree
-Date: Thu, 30 Mar 2017 15:40:56 -0700
-Message-ID: <58dd8978.pQE4ijh7FXHMS8hG%akpm@linux-foundation.org>
+Subject: + fault-inject-support-systematic-fault-injection-fix.patch added to -mm tree
+Date: Thu, 30 Mar 2017 16:04:22 -0700
+Message-ID: <58dd8ef6.k897o+upYsTnj7jV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42148 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932201AbdC3Wk6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 18:40:58 -0400
+        with ESMTP id S932648AbdC3XEY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 19:04:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akinobu.mita@gmail.com, dvyukov@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
+     Subject: fault-inject-support-systematic-fault-injection-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+     fault-inject-support-systematic-fault-injection-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-support-systematic-fault-injection-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-support-systematic-fault-injection-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
+Subject: fault-inject-support-systematic-fault-injection-fix
 
-merge fix
+fix build
 
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ fs/proc/base.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
-+++ a/mm/page_alloc.c
-@@ -2018,7 +2018,7 @@ static void steal_suitable_fallback(stru
- 	}
+diff -puN fs/proc/base.c~fault-inject-support-systematic-fault-injection-fix fs/proc/base.c
+--- a/fs/proc/base.c~fault-inject-support-systematic-fault-injection-fix
++++ a/fs/proc/base.c
+@@ -1377,7 +1377,7 @@ static ssize_t proc_fail_nth_write(struc
+ 	if (n < 0 || n == INT_MAX)
+ 		return -EINVAL;
+ 	current->fail_nth = n + 1;
+-	return len;
++	return count;
+ }
  
- 	/* moving whole block can fail due to zone boundary conditions */
--	if (!pages)
-+	if (!free_pages)
- 		goto single_page;
- 
- 	/*
+ static ssize_t proc_fail_nth_read(struct file *file, char __user *buf,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,4 +90,5 @@ drm-use-set_memoryh-header-fix.patch
 drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+fault-inject-support-systematic-fault-injection-fix.patch
 
