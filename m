@@ -1,104 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] asm-generic-x86-wrap-atomic-operations-fix.patch
- removed from -mm tree
-Date: Thu, 30 Mar 2017 15:28:12 -0700
-Message-ID: <58dd867c.hl8d1AI0GIXCPC8S%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ asm-generic-add-kasan-instrumentation-to-atomic-operations.patch removed
+ from -mm tree
+Date: Thu, 30 Mar 2017 15:28:15 -0700
+Message-ID: <58dd867f.HglemBN7oEtS5s1q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40110 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932201AbdC3W2O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 18:28:14 -0400
+        with ESMTP id S932201AbdC3W2R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 18:28:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, arnd@arndb.de, aryabinin@virtuozzo.com, mark.rutland@arm.com, peterz@infradead.org, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: dvyukov@google.com, aryabinin@virtuozzo.com, mark.rutland@arm.com, mingo@redhat.com, peterz@infradead.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: s/READ_ONCE_NOCHECK/READ_ONCE/ in arch_atomic[64]_read()
+     Subject: asm-generic: add KASAN instrumentation to atomic operations
 has been removed from the -mm tree.  Its filename was
-     asm-generic-x86-wrap-atomic-operations-fix.patch
+     asm-generic-add-kasan-instrumentation-to-atomic-operations.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Dmitry Vyukov <dvyukov@google.com>
-Subject: x86: s/READ_ONCE_NOCHECK/READ_ONCE/ in arch_atomic[64]_read()
+Subject: asm-generic: add KASAN instrumentation to atomic operations
 
-Two problems was reported with READ_ONCE_NOCHECK in arch_atomic_read:
-1. Andrey Ryabinin reported significant binary size increase
-(+400K of text). READ_ONCE_NOCHECK is intentionally compiled to
-non-inlined function call, and I counted 640 copies of it in my vmlinux.
-2. Arnd Bergmann reported a new splat of too large frame sizes.
+KASAN uses compiler instrumentation to intercept all memory accesses.  But
+it does not see memory accesses done in assembly code.  One notable user
+of assembly code is atomic operations.  Frequently, for example, an atomic
+reference decrement is the last access to an object and a good candidate
+for a racy use-after-free.
 
-A single inlined KASAN check is very cheap, a non-inlined function
-call with KASAN/KCOV instrumentation can easily be more expensive.
+Add manual KASAN checks to atomic operations.
 
-Switch to READ_ONCE() in arch_atomic[64]_read().
-
-Link: http://lkml.kernel.org/r/20170322125740.85337-1-dvyukov@google.com
+Link: http://lkml.kernel.org/r/7e450175a324bf93c602909c711bc34715d8e8f2.1489519233.git.dvyukov@google.com
 Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Will Deacon <will.deacon@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/atomic.h      |   15 ++++++---------
- arch/x86/include/asm/atomic64_64.h |    2 +-
- 2 files changed, 7 insertions(+), 10 deletions(-)
+ include/asm-generic/atomic-instrumented.h |   40 +++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/atomic.h~asm-generic-x86-wrap-atomic-operations-fix arch/x86/include/asm/atomic.h
---- a/arch/x86/include/asm/atomic.h~asm-generic-x86-wrap-atomic-operations-fix
-+++ a/arch/x86/include/asm/atomic.h
-@@ -24,10 +24,13 @@
- static __always_inline int arch_atomic_read(const atomic_t *v)
+diff -puN include/asm-generic/atomic-instrumented.h~asm-generic-add-kasan-instrumentation-to-atomic-operations include/asm-generic/atomic-instrumented.h
+--- a/include/asm-generic/atomic-instrumented.h~asm-generic-add-kasan-instrumentation-to-atomic-operations
++++ a/include/asm-generic/atomic-instrumented.h
+@@ -1,79 +1,104 @@
++/*
++ * This file provides wrappers with KASAN instrumentation for atomic operations.
++ * To use this functionality an arch's atomic.h file needs to define all
++ * atomic operations with arch_ prefix (e.g. arch_atomic_read()) and include
++ * this file at the end. This file provides atomic_read() that forwards to
++ * arch_atomic_read() for actual atomic operation.
++ * Note: if an arch atomic operation is implemented by means of other atomic
++ * operations (e.g. atomic_read()/atomic_cmpxchg() loop), then it needs to use
++ * arch_ variants (i.e. arch_atomic_read()/arch_atomic_cmpxchg()) to avoid
++ * double instrumentation.
++ */
+ #ifndef _LINUX_ATOMIC_INSTRUMENTED_H
+ #define _LINUX_ATOMIC_INSTRUMENTED_H
+ 
++#include <linux/kasan-checks.h>
++
+ static __always_inline int atomic_read(const atomic_t *v)
  {
- 	/*
--	 * We use READ_ONCE_NOCHECK() because atomic_read() contains KASAN
--	 * instrumentation. Double instrumentation is unnecessary.
-+	 * Note: READ_ONCE() here leads to double instrumentation as
-+	 * both READ_ONCE() and atomic_read() contain instrumentation.
-+	 * This is deliberate choice. READ_ONCE_NOCHECK() is compiled to a
-+	 * non-inlined function call that considerably increases binary size
-+	 * and stack usage under KASAN.
- 	 */
--	return READ_ONCE_NOCHECK((v)->counter);
-+	return READ_ONCE((v)->counter);
++	kasan_check_read(v, sizeof(*v));
+ 	return arch_atomic_read(v);
  }
  
- /**
-@@ -39,12 +42,6 @@ static __always_inline int arch_atomic_r
-  */
- static __always_inline void arch_atomic_set(atomic_t *v, int i)
+ static __always_inline long long atomic64_read(const atomic64_t *v)
  {
--	/*
--	 * We could use WRITE_ONCE_NOCHECK() if it exists, similar to
--	 * READ_ONCE_NOCHECK() in arch_atomic_read(). But there is no such
--	 * thing at the moment, and introducing it for this case does not
--	 * worth it.
--	 */
- 	WRITE_ONCE(v->counter, i);
++	kasan_check_read(v, sizeof(*v));
+ 	return arch_atomic64_read(v);
  }
  
-diff -puN arch/x86/include/asm/atomic64_64.h~asm-generic-x86-wrap-atomic-operations-fix arch/x86/include/asm/atomic64_64.h
---- a/arch/x86/include/asm/atomic64_64.h~asm-generic-x86-wrap-atomic-operations-fix
-+++ a/arch/x86/include/asm/atomic64_64.h
-@@ -18,7 +18,7 @@
-  */
- static inline long arch_atomic64_read(const atomic64_t *v)
+-
+ static __always_inline void atomic_set(atomic_t *v, int i)
  {
--	return READ_ONCE_NOCHECK((v)->counter);
-+	return READ_ONCE((v)->counter);
++	kasan_check_write(v, sizeof(*v));
+ 	arch_atomic_set(v, i);
  }
  
- /**
+ static __always_inline void atomic64_set(atomic64_t *v, long long i)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	arch_atomic64_set(v, i);
+ }
+ 
+ static __always_inline int atomic_xchg(atomic_t *v, int i)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic_xchg(v, i);
+ }
+ 
+ static __always_inline long long atomic64_xchg(atomic64_t *v, long long i)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic64_xchg(v, i);
+ }
+ 
+ static __always_inline int atomic_cmpxchg(atomic_t *v, int old, int new)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic_cmpxchg(v, old, new);
+ }
+ 
+ static __always_inline int atomic_try_cmpxchg(atomic_t *v, int old, int new)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic_try_cmpxchg(v, old, new);
+ }
+ 
+ static __always_inline long long atomic64_cmpxchg(atomic64_t *v, long long old,
+ 						  long long new)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic64_cmpxchg(v, old, new);
+ }
+ 
+ static __always_inline long long atomic64_try_cmpxchg(atomic64_t *v,
+ 						long long old, long long new)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic64_try_cmpxchg(v, old, new);
+ }
+ 
+ static __always_inline int __atomic_add_unless(atomic_t *v, int a, int u)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return __arch_atomic_add_unless(v, a, u);
+ }
+ 
+-
+ static __always_inline bool atomic64_add_unless(atomic64_t *v, long long a,
+ 						long long u)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic64_add_unless(v, a, u);
+ }
+ 
+ static __always_inline short int atomic_inc_short(short int *v)
+ {
++	kasan_check_write(v, sizeof(*v));
+ 	return arch_atomic_inc_short(v);
+ }
+ 
+ #define __INSTR_VOID1(op, sz)						\
+ static __always_inline void atomic##sz##_##op(atomic##sz##_t *v)	\
+ {									\
++	kasan_check_write(v, sizeof(*v));				\
+ 	arch_atomic##sz##_##op(v);					\
+ }
+ 
+@@ -90,6 +115,7 @@ INSTR_VOID1(dec);
+ #define __INSTR_VOID2(op, sz, type)					\
+ static __always_inline void atomic##sz##_##op(type i, atomic##sz##_t *v)\
+ {									\
++	kasan_check_write(v, sizeof(*v));				\
+ 	arch_atomic##sz##_##op(i, v);					\
+ }
+ 
+@@ -109,6 +135,7 @@ INSTR_VOID2(xor);
+ #define __INSTR_RET1(op, sz, type, rtype)				\
+ static __always_inline rtype atomic##sz##_##op(atomic##sz##_t *v)	\
+ {									\
++	kasan_check_write(v, sizeof(*v));				\
+ 	return arch_atomic##sz##_##op(v);				\
+ }
+ 
+@@ -135,6 +162,7 @@ INSTR_RET_BOOL1(inc_and_test);
+ #define __INSTR_RET2(op, sz, type, rtype)				\
+ static __always_inline rtype atomic##sz##_##op(type i, atomic##sz##_t *v) \
+ {									\
++	kasan_check_write(v, sizeof(*v));				\
+ 	return arch_atomic##sz##_##op(i, v);				\
+ }
+ 
+@@ -173,48 +201,56 @@ INSTR_RET_BOOL2(add_negative);
+ #define xchg(ptr, v)					\
+ ({							\
+ 	__typeof__(ptr) ____ptr = (ptr);		\
++	kasan_check_write(____ptr, sizeof(*____ptr));	\
+ 	arch_xchg(____ptr, (v));			\
+ })
+ 
+ #define cmpxchg(ptr, old, new)				\
+ ({							\
+ 	__typeof__(ptr) ___ptr = (ptr);			\
++	kasan_check_write(___ptr, sizeof(*___ptr));	\
+ 	arch_cmpxchg(___ptr, (old), (new));		\
+ })
+ 
+ #define sync_cmpxchg(ptr, old, new)			\
+ ({							\
+ 	__typeof__(ptr) ___ptr = (ptr);			\
++	kasan_check_write(___ptr, sizeof(*___ptr));	\
+ 	arch_sync_cmpxchg(___ptr, (old), (new));	\
+ })
+ 
+ #define cmpxchg_local(ptr, old, new)			\
+ ({							\
+ 	__typeof__(ptr) ____ptr = (ptr);		\
++	kasan_check_write(____ptr, sizeof(*____ptr));	\
+ 	arch_cmpxchg_local(____ptr, (old), (new));	\
+ })
+ 
+ #define cmpxchg64(ptr, old, new)			\
+ ({							\
+ 	__typeof__(ptr) ____ptr = (ptr);		\
++	kasan_check_write(____ptr, sizeof(*____ptr));	\
+ 	arch_cmpxchg64(____ptr, (old), (new));		\
+ })
+ 
+ #define cmpxchg64_local(ptr, old, new)			\
+ ({							\
+ 	__typeof__(ptr) ____ptr = (ptr);		\
++	kasan_check_write(____ptr, sizeof(*____ptr));	\
+ 	arch_cmpxchg64_local(____ptr, (old), (new));	\
+ })
+ 
+ #define cmpxchg_double(p1, p2, o1, o2, n1, n2)				\
+ ({									\
+ 	__typeof__(p1) ____p1 = (p1);					\
++	kasan_check_write(____p1, 2 * sizeof(*____p1));			\
+ 	arch_cmpxchg_double(____p1, (p2), (o1), (o2), (n1), (n2));	\
+ })
+ 
+ #define cmpxchg_double_local(p1, p2, o1, o2, n1, n2)			\
+ ({									\
+ 	__typeof__(p1) ____p1 = (p1);					\
++	kasan_check_write(____p1, 2 * sizeof(*____p1));			\
+ 	arch_cmpxchg_double_local(____p1, (p2), (o1), (o2), (n1), (n2));\
+ })
+ 
 _
 
 Patches currently in -mm which might be from dvyukov@google.com are
@@ -106,7 +248,6 @@ Patches currently in -mm which might be from dvyukov@google.com are
 kcov-simplify-interrupt-check.patch
 fault-inject-use-correct-check-for-interrupts.patch
 fault-inject-support-systematic-fault-injection.patch
-asm-generic-add-kasan-instrumentation-to-atomic-operations.patch
 asm-generic-fix-compilation-failure-in-cmpxchg_double.patch
 x86-remove-unused-atomic_inc_short.patch
 x86-asm-generic-add-kasan-instrumentation-to-bitops.patch
