@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-get-rid-of-zone_is_initialized.patch added to -mm tree
-Date: Thu, 30 Mar 2017 14:42:08 -0700
-Message-ID: <58dd7bb0.yhB47Si8N8As5Y0r%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-selftest-combine-all-cases-into-the-single-executable.patch
+ added to -mm tree
+Date: Thu, 30 Mar 2017 14:44:14 -0700
+Message-ID: <58dd7c2e.36xlhWBfpvol0p94%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33016 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934076AbdC3VmL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 17:42:11 -0400
+        with ESMTP id S1754625AbdC3VoQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 17:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, benh@kernel.crashing.org, cmetcalf@mellanox.com, dan.j.williams@gmail.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, hpa@zytor.com, imammedo@redhat.com, js1304@gmail.com, laijs@cn.fujitsu.com, mgorman@suse.de, mingo@elte.hu, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, slaoub@gmail.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tony.luck@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: rppt@linux.vnet.ibm.com, aarcange@redhat.com, mike.kravetz@oracle.com, shuah@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: get rid of zone_is_initialized
+     Subject: userfaultfd: selftest: combine all cases into a single executable
 has been added to the -mm tree.  Its filename is
-     mm-get-rid-of-zone_is_initialized.patch
+     userfaultfd-selftest-combine-all-cases-into-the-single-executable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-get-rid-of-zone_is_initialized.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-combine-all-cases-into-the-single-executable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-get-rid-of-zone_is_initialized.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-combine-all-cases-into-the-single-executable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,348 +40,487 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: get rid of zone_is_initialized
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: selftest: combine all cases into a single executable
 
-Motivation: Movable onlining is a real hack with many downsides - mainly
-reintroduction of lowmem/highmem issues we used to have on 32b systems -
-but it is the only way to make the memory hotremove more reliable which is
-something that people are asking for.
+Currently, selftest for userfaultfd is compiled three times: for
+anonymous, shared and hugetlb memory.  Let's combine all the cases into a
+single executable which will have a command line option for selection of
+the test type.
 
-The current semantic of memory movable onlinening is really cumbersome,
-however.  The main reason for this is that the udev driven approach is
-basically unusable because udev races with the memory probing while only
-the last memory block or the one adjacent to the existing zone_movable are
-allowed to be onlined movable.  In short the criterion for the successful
-online_movable changes under udev's feet.  A reliable udev approach would
-require a 2 phase approach where the first successful movable online would
-have to check all the previous blocks and online them in descending order.
-This is hard to be considered sane.
-
-This patchset aims at making the onlining semantic more usable.  First of
-all it allows to online memory movable as long as it doesn't clash with
-the existing ZONE_NORMAL.  That means that ZONE_NORMAL and ZONE_MOVABLE
-cannot overlap.  Currently I preserve the original ordering semantic so
-the zone always precedes the movable zone but I have plans to remove this
-restriction in future because it is not really necessary.
-
-The series consists of 4 cleanup patches which should be ready to be
-merged right away (unless I have missed something subtle of course).
-
-Patch 5 is the core of the change.  In order to make it easier to review I
-have tried it to be as minimalistic as possible and the large code removal
-is moved to patch 6.
-
-I have tested the patches in kvm:
-# qemu-system-x86_64 -enable-kvm -monitor pty -m 2G,slots=4,maxmem=4G -numa node,mem=1G -numa node,mem=1G ...
-
-and then probed the additional memory by
-(qemu) object_add memory-backend-ram,id=mem1,size=1G
-(qemu) device_add pc-dimm,id=dimm1,memdev=mem1
-
-Then I have used this simple script to probe the memory block by hand
-# cat probe_memblock.sh
-#!/bin/sh
-
-BLOCK_NR=$1
-
-echo $((0x100000000+$BLOCK_NR*(128<<20))) > /sys/devices/system/memory/probe
-
-# for i in $(seq 10); do sh probe_memblock.sh $i; done
-# grep . /sys/devices/system/memory/memory3?/valid_zones 2>/dev/null 
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory34/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory35/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory36/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory37/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory38/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory39/valid_zones:Normal Movable
-
-The main difference to the original implementation is that all new
-memblocks can be both online_kernel and online_movable initially
-because there is no clash obviously. For the comparison the original
-implementation would have
-
-/sys/devices/system/memory/memory33/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory34/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory35/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory36/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory37/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory38/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory39/valid_zones:Normal Movable
-
-Now
-# echo online_movable > /sys/devices/system/memory/memory34/state                                                                                                                                      
-# grep . /sys/devices/system/memory/memory3?/valid_zones 2>/dev/null                                                                                                                                   
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory34/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory35/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory36/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory37/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory38/valid_zones:Movable
-/sys/devices/system/memory/memory39/valid_zones:Movable
-
-Block 33 can still be online both kernel and movable while all
-the remaining can be only movable.
-/proc/zonelist says
-Node 0, zone   Normal
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  0
-        present  0
---
-Node 0, zone  Movable
-  pages free     32753
-        min      85
-        low      117
-        high     149
-        spanned  32768
-        present  32768
-
-A new memblock at a lower address will result in a new memblock (32) which
-will still allow both Normal and Movable.
-
-# sh probe_memblock.sh 0
-# grep . /sys/devices/system/memory/memory3[2-5]/valid_zones 2>/dev/null
-/sys/devices/system/memory/memory32/valid_zones:Normal Movable
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable
-/sys/devices/system/memory/memory34/valid_zones:Movable
-/sys/devices/system/memory/memory35/valid_zones:Movable
-
-and online_kernel will convert it to the zone normal properly
-while 33 can be still onlined both ways.
-# echo online_kernel > /sys/devices/system/memory/memory32/state
-# grep . /sys/devices/system/memory/memory3[2-5]/valid_zones 2>/dev/null
-/sys/devices/system/memory/memory32/valid_zones:Normal
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable
-/sys/devices/system/memory/memory34/valid_zones:Movable
-/sys/devices/system/memory/memory35/valid_zones:Movable
-
-/proc/zoneinfo will now tell
-Node 0, zone   Normal
-  pages free     65441
-        min      165
-        low      230
-        high     295
-        spanned  65536
-        present  65536
---
-Node 0, zone  Movable
-  pages free     32740
-        min      82
-        low      114
-        high     146
-        spanned  32768
-        present  32768
-
-so both zones have one memblock spanned and present.
-
-Onlining 39 should associate this block to the movable zone
-# echo online > /sys/devices/system/memory/memory39/state
-
-/proc/zoneinfo will now tell
-Node 0, zone   Normal
-  pages free     32765
-        min      80
-        low      112
-        high     144
-        spanned  32768
-        present  32768
---
-Node 0, zone  Movable
-  pages free     65501
-        min      160
-        low      225
-        high     290
-        spanned  196608
-        present  65536
-
-so we will have a movable zone which spans 6 memblocks, 2 present and 4
-representing a hole.
-
-Offlining both movable blocks will lead to the zone with no present pages
-which is the expected behavior I believe.
-
-# echo offline > /sys/devices/system/memory/memory39/state
-# echo offline > /sys/devices/system/memory/memory34/state
-# grep -A6 "Movable\|Normal" /proc/zoneinfo 
-Node 0, zone   Normal
-  pages free     32735
-        min      90
-        low      122
-        high     154
-        spanned  32768
-        present  32768
---
-Node 0, zone  Movable
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  196608
-        present  0
-
-As a bonus we will get a nice cleanup in the memory hotplug codebase
-
-
-
-This patch (of 5):
-
-There shouldn't be any reason to add initialized when we can tell the same
-thing from checking whether there are any pages spanned to the zone. 
-Remove zone_is_initialized() and replace it by zone_is_empty which can be
-used for the same set of tests.
-
-This shouldn't have any visible effect.
-
-Link: http://lkml.kernel.org/r/20170330115454.32154-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <slaoub@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Link: http://lkml.kernel.org/r/1490869741-5913-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
-Cc: Dan Williams <dan.j.williams@gmail.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Kani Toshimitsu <toshi.kani@hpe.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   11 +++++------
- mm/memory_hotplug.c    |    6 +++---
- mm/page_alloc.c        |    5 +----
- 3 files changed, 9 insertions(+), 13 deletions(-)
+ tools/testing/selftests/vm/Makefile      |   11 -
+ tools/testing/selftests/vm/run_vmtests   |    6 
+ tools/testing/selftests/vm/userfaultfd.c |  205 +++++++++++----------
+ 3 files changed, 115 insertions(+), 107 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-get-rid-of-zone_is_initialized include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-get-rid-of-zone_is_initialized
-+++ a/include/linux/mmzone.h
-@@ -442,8 +442,6 @@ struct zone {
- 	seqlock_t		span_seqlock;
- #endif
+diff -puN tools/testing/selftests/vm/Makefile~userfaultfd-selftest-combine-all-cases-into-the-single-executable tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~userfaultfd-selftest-combine-all-cases-into-the-single-executable
++++ a/tools/testing/selftests/vm/Makefile
+@@ -15,21 +15,14 @@ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
+-TEST_GEN_FILES += userfaultfd_hugetlb
+-TEST_GEN_FILES += userfaultfd_shmem
+ TEST_GEN_FILES += mlock-random-test
  
--	int initialized;
+ TEST_PROGS := run_vmtests
+ 
+ include ../lib.mk
+ 
+-$(OUTPUT)/userfaultfd: LDLIBS += -lpthread ../../../../usr/include/linux/kernel.h
 -
- 	/* Write-intensive fields used from the page allocator */
- 	ZONE_PADDING(_pad1_)
+-$(OUTPUT)/userfaultfd_hugetlb: userfaultfd.c ../../../../usr/include/linux/kernel.h
+-	$(CC) $(CFLAGS) -DHUGETLB_TEST -O2 -o $@ $< -lpthread
+-
+-$(OUTPUT)/userfaultfd_shmem: userfaultfd.c  ../../../../usr/include/linux/kernel.h
+-	$(CC) $(CFLAGS) -DSHMEM_TEST -O2 -o $@ $< -lpthread
++$(OUTPUT)/userfaultfd: ../../../../usr/include/linux/kernel.h
++$(OUTPUT)/userfaultfd: LDLIBS += -lpthread
  
-@@ -520,14 +518,15 @@ static inline bool zone_spans_pfn(const
- 	return zone->zone_start_pfn <= pfn && pfn < zone_end_pfn(zone);
+ $(OUTPUT)/mlock-random-test: LDLIBS += -lcap
+ 
+diff -puN tools/testing/selftests/vm/run_vmtests~userfaultfd-selftest-combine-all-cases-into-the-single-executable tools/testing/selftests/vm/run_vmtests
+--- a/tools/testing/selftests/vm/run_vmtests~userfaultfd-selftest-combine-all-cases-into-the-single-executable
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -95,7 +95,7 @@ echo "      hugetlb regression testing."
+ echo "--------------------"
+ echo "running userfaultfd"
+ echo "--------------------"
+-./userfaultfd 128 32
++./userfaultfd anon 128 32
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+@@ -107,7 +107,7 @@ echo "----------------------------"
+ echo "running userfaultfd_hugetlb"
+ echo "----------------------------"
+ # 258MB total huge pages == 128MB src and 128MB dst
+-./userfaultfd_hugetlb 128 32 $mnt/ufd_test_file
++./userfaultfd hugetlb 128 32 $mnt/ufd_test_file
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+@@ -119,7 +119,7 @@ rm -f $mnt/ufd_test_file
+ echo "----------------------------"
+ echo "running userfaultfd_shmem"
+ echo "----------------------------"
+-./userfaultfd_shmem 128 32
++./userfaultfd shmem 128 32
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-combine-all-cases-into-the-single-executable tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-combine-all-cases-into-the-single-executable
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -77,10 +77,13 @@ static unsigned long nr_cpus, nr_pages,
+ #define BOUNCE_POLL		(1<<3)
+ static int bounces;
+ 
+-#ifdef HUGETLB_TEST
++#define TEST_ANON	1
++#define TEST_HUGETLB	2
++#define TEST_SHMEM	3
++static int test_type;
++
+ static int huge_fd;
+ static char *huge_fd_off0;
+-#endif
+ static unsigned long long *count_verify;
+ static int uffd, uffd_flags, finished, *pipefd;
+ static char *area_src, *area_dst;
+@@ -102,14 +105,7 @@ pthread_attr_t attr;
+ 				 ~(unsigned long)(sizeof(unsigned long long) \
+ 						  -  1)))
+ 
+-#if !defined(HUGETLB_TEST) && !defined(SHMEM_TEST)
+-
+-/* Anonymous memory */
+-#define EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
+-				 (1 << _UFFDIO_COPY) | \
+-				 (1 << _UFFDIO_ZEROPAGE))
+-
+-static int release_pages(char *rel_area)
++static int anon_release_pages(char *rel_area)
+ {
+ 	int ret = 0;
+ 
+@@ -121,7 +117,7 @@ static int release_pages(char *rel_area)
+ 	return ret;
  }
  
--static inline bool zone_is_initialized(struct zone *zone)
-+static inline bool zone_is_empty(struct zone *zone)
+-static void allocate_area(void **alloc_area)
++static void anon_allocate_area(void **alloc_area)
  {
--	return zone->initialized;
-+	return zone->spanned_pages == 0;
+ 	if (posix_memalign(alloc_area, page_size, nr_pages * page_size)) {
+ 		fprintf(stderr, "out of memory\n");
+@@ -129,14 +125,9 @@ static void allocate_area(void **alloc_a
+ 	}
  }
  
--static inline bool zone_is_empty(struct zone *zone)
-+static inline bool zone_spans_range(const struct zone *zone, unsigned long start_pfn,
-+		unsigned long nr_pages)
+-#else /* HUGETLB_TEST or SHMEM_TEST */
+-
+-#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_BASIC
+-
+-#ifdef HUGETLB_TEST
+ 
+ /* HugeTLB memory */
+-static int release_pages(char *rel_area)
++static int hugetlb_release_pages(char *rel_area)
  {
--	return zone->spanned_pages == 0;
-+	return zone->zone_start_pfn <= start_pfn && start_pfn + nr_pages < zone_end_pfn(zone);
+ 	int ret = 0;
+ 
+@@ -152,7 +143,7 @@ static int release_pages(char *rel_area)
  }
  
- /*
-diff -puN mm/memory_hotplug.c~mm-get-rid-of-zone_is_initialized mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-get-rid-of-zone_is_initialized
-+++ a/mm/memory_hotplug.c
-@@ -353,7 +353,7 @@ static void fix_zone_id(struct zone *zon
- static int __ref ensure_zone_is_initialized(struct zone *zone,
- 			unsigned long start_pfn, unsigned long num_pages)
- {
--	if (!zone_is_initialized(zone))
-+	if (zone_is_empty(zone))
- 		return init_currently_empty_zone(zone, start_pfn, num_pages);
  
+-static void allocate_area(void **alloc_area)
++static void hugetlb_allocate_area(void **alloc_area)
+ {
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+ 				MAP_PRIVATE | MAP_HUGETLB, huge_fd,
+@@ -167,10 +158,8 @@ static void allocate_area(void **alloc_a
+ 		huge_fd_off0 = *alloc_area;
+ }
+ 
+-#elif defined(SHMEM_TEST)
+-
+ /* Shared memory */
+-static int release_pages(char *rel_area)
++static int shmem_release_pages(char *rel_area)
+ {
+ 	int ret = 0;
+ 
+@@ -182,7 +171,7 @@ static int release_pages(char *rel_area)
+ 	return ret;
+ }
+ 
+-static void allocate_area(void **alloc_area)
++static void shmem_allocate_area(void **alloc_area)
+ {
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+ 			   MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+@@ -192,11 +181,35 @@ static void allocate_area(void **alloc_a
+ 	}
+ }
+ 
+-#else /* SHMEM_TEST */
+-#error "Undefined test type"
+-#endif /* HUGETLB_TEST */
++struct uffd_test_ops {
++	unsigned long expected_ioctls;
++	void (*allocate_area)(void **alloc_area);
++	int (*release_pages)(char *rel_area);
++};
++
++#define ANON_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
++					 (1 << _UFFDIO_COPY) | \
++					 (1 << _UFFDIO_ZEROPAGE))
++
++static struct uffd_test_ops anon_uffd_test_ops = {
++	.expected_ioctls = ANON_EXPECTED_IOCTLS,
++	.allocate_area	= anon_allocate_area,
++	.release_pages	= anon_release_pages,
++};
++
++static struct uffd_test_ops shmem_uffd_test_ops = {
++	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC,
++	.allocate_area	= shmem_allocate_area,
++	.release_pages	= shmem_release_pages,
++};
++
++static struct uffd_test_ops hugetlb_uffd_test_ops = {
++	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC,
++	.allocate_area	= hugetlb_allocate_area,
++	.release_pages	= hugetlb_release_pages,
++};
+ 
+-#endif /* !defined(HUGETLB_TEST) && !defined(SHMEM_TEST) */
++static struct uffd_test_ops *uffd_test_ops;
+ 
+ static int my_bcmp(char *str1, char *str2, size_t n)
+ {
+@@ -505,7 +518,7 @@ static int stress(unsigned long *userfau
+ 	 * UFFDIO_COPY without writing zero pages into area_dst
+ 	 * because the background threads already completed).
+ 	 */
+-	if (release_pages(area_src))
++	if (uffd_test_ops->release_pages(area_src))
+ 		return 1;
+ 
+ 	for (cpu = 0; cpu < nr_cpus; cpu++) {
+@@ -577,12 +590,12 @@ static int faulting_process(void)
+ {
+ 	unsigned long nr;
+ 	unsigned long long count;
++	unsigned long split_nr_pages;
+ 
+-#ifndef HUGETLB_TEST
+-	unsigned long split_nr_pages = (nr_pages + 1) / 2;
+-#else
+-	unsigned long split_nr_pages = nr_pages;
+-#endif
++	if (test_type != TEST_HUGETLB)
++		split_nr_pages = (nr_pages + 1) / 2;
++	else
++		split_nr_pages = nr_pages;
+ 
+ 	for (nr = 0; nr < split_nr_pages; nr++) {
+ 		count = *area_count(area_dst, nr);
+@@ -594,7 +607,9 @@ static int faulting_process(void)
+ 		}
+ 	}
+ 
+-#ifndef HUGETLB_TEST
++	if (test_type == TEST_HUGETLB)
++		return 0;
++
+ 	area_dst = mremap(area_dst, nr_pages * page_size,  nr_pages * page_size,
+ 			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
+ 	if (area_dst == MAP_FAILED)
+@@ -610,7 +625,7 @@ static int faulting_process(void)
+ 		}
+ 	}
+ 
+-	if (release_pages(area_dst))
++	if (uffd_test_ops->release_pages(area_dst))
+ 		return 1;
+ 
+ 	for (nr = 0; nr < nr_pages; nr++) {
+@@ -618,8 +633,6 @@ static int faulting_process(void)
+ 			fprintf(stderr, "nr %lu is not zero\n", nr), exit(1);
+ 	}
+ 
+-#endif /* HUGETLB_TEST */
+-
  	return 0;
-@@ -1056,7 +1056,7 @@ bool zone_can_shift(unsigned long pfn, u
- 
- 		/* no zones in use between current zone and target */
- 		for (i = idx + 1; i < target; i++)
--			if (zone_is_initialized(zone - idx + i))
-+			if (!zone_is_empty(zone - idx + i))
- 				return false;
- 	}
- 
-@@ -1067,7 +1067,7 @@ bool zone_can_shift(unsigned long pfn, u
- 
- 		/* no zones in use between current zone and target */
- 		for (i = target + 1; i < idx; i++)
--			if (zone_is_initialized(zone - idx + i))
-+			if (!zone_is_empty(zone - idx + i))
- 				return false;
- 	}
- 
-diff -puN mm/page_alloc.c~mm-get-rid-of-zone_is_initialized mm/page_alloc.c
---- a/mm/page_alloc.c~mm-get-rid-of-zone_is_initialized
-+++ a/mm/page_alloc.c
-@@ -796,7 +796,7 @@ static inline void __free_one_page(struc
- 
- 	max_order = min_t(unsigned int, MAX_ORDER, pageblock_order + 1);
- 
--	VM_BUG_ON(!zone_is_initialized(zone));
-+	VM_BUG_ON(zone_is_empty(zone));
- 	VM_BUG_ON_PAGE(page->flags & PAGE_FLAGS_CHECK_AT_PREP, page);
- 
- 	VM_BUG_ON(migratetype == -1);
-@@ -5534,9 +5534,6 @@ int __meminit init_currently_empty_zone(
- 			zone_start_pfn, (zone_start_pfn + size));
- 
- 	zone_init_free_lists(zone);
--	zone->initialized = 1;
--
--	return 0;
  }
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+@@ -627,7 +640,9 @@ static int uffdio_zeropage(int ufd, unsi
+ {
+ 	struct uffdio_zeropage uffdio_zeropage;
+ 	int ret;
+-	unsigned long has_zeropage = EXPECTED_IOCTLS & (1 << _UFFDIO_ZEROPAGE);
++	unsigned long has_zeropage;
++
++	has_zeropage = uffd_test_ops->expected_ioctls & (1 << _UFFDIO_ZEROPAGE);
+ 
+ 	if (offset >= nr_pages * page_size)
+ 		fprintf(stderr, "unexpected offset %lu\n",
+@@ -675,7 +690,7 @@ static int userfaultfd_zeropage_test(voi
+ 	printf("testing UFFDIO_ZEROPAGE: ");
+ 	fflush(stdout);
+ 
+-	if (release_pages(area_dst))
++	if (uffd_test_ops->release_pages(area_dst))
+ 		return 1;
+ 
+ 	if (userfaultfd_open(0) < 0)
+@@ -686,7 +701,7 @@ static int userfaultfd_zeropage_test(voi
+ 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
+ 		fprintf(stderr, "register failure\n"), exit(1);
+ 
+-	expected_ioctls = EXPECTED_IOCTLS;
++	expected_ioctls = uffd_test_ops->expected_ioctls;
+ 	if ((uffdio_register.ioctls & expected_ioctls) !=
+ 	    expected_ioctls)
+ 		fprintf(stderr,
+@@ -716,7 +731,7 @@ static int userfaultfd_events_test(void)
+ 	printf("testing events (fork, remap, remove): ");
+ 	fflush(stdout);
+ 
+-	if (release_pages(area_dst))
++	if (uffd_test_ops->release_pages(area_dst))
+ 		return 1;
+ 
+ 	features = UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_EVENT_REMAP |
+@@ -731,7 +746,7 @@ static int userfaultfd_events_test(void)
+ 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
+ 		fprintf(stderr, "register failure\n"), exit(1);
+ 
+-	expected_ioctls = EXPECTED_IOCTLS;
++	expected_ioctls = uffd_test_ops->expected_ioctls;
+ 	if ((uffdio_register.ioctls & expected_ioctls) !=
+ 	    expected_ioctls)
+ 		fprintf(stderr,
+@@ -773,10 +788,10 @@ static int userfaultfd_stress(void)
+ 	int err;
+ 	unsigned long userfaults[nr_cpus];
+ 
+-	allocate_area((void **)&area_src);
++	uffd_test_ops->allocate_area((void **)&area_src);
+ 	if (!area_src)
+ 		return 1;
+-	allocate_area((void **)&area_dst);
++	uffd_test_ops->allocate_area((void **)&area_dst);
+ 	if (!area_dst)
+ 		return 1;
+ 
+@@ -856,7 +871,7 @@ static int userfaultfd_stress(void)
+ 			fprintf(stderr, "register failure\n");
+ 			return 1;
+ 		}
+-		expected_ioctls = EXPECTED_IOCTLS;
++		expected_ioctls = uffd_test_ops->expected_ioctls;
+ 		if ((uffdio_register.ioctls & expected_ioctls) !=
+ 		    expected_ioctls) {
+ 			fprintf(stderr,
+@@ -888,7 +903,7 @@ static int userfaultfd_stress(void)
+ 		 * MADV_DONTNEED only after the UFFDIO_REGISTER, so it's
+ 		 * required to MADV_DONTNEED here.
+ 		 */
+-		if (release_pages(area_dst))
++		if (uffd_test_ops->release_pages(area_dst))
+ 			return 1;
+ 
+ 		/* bounce pass */
+@@ -934,36 +949,6 @@ static int userfaultfd_stress(void)
+ 	return userfaultfd_zeropage_test() || userfaultfd_events_test();
+ }
+ 
+-#ifndef HUGETLB_TEST
+-
+-int main(int argc, char **argv)
+-{
+-	if (argc < 3)
+-		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+-	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+-	page_size = sysconf(_SC_PAGE_SIZE);
+-	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
+-	    > page_size)
+-		fprintf(stderr, "Impossible to run this test\n"), exit(2);
+-	nr_pages_per_cpu = atol(argv[1]) * 1024*1024 / page_size /
+-		nr_cpus;
+-	if (!nr_pages_per_cpu) {
+-		fprintf(stderr, "invalid MiB\n");
+-		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+-	}
+-	bounces = atoi(argv[2]);
+-	if (bounces <= 0) {
+-		fprintf(stderr, "invalid bounces\n");
+-		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+-	}
+-	nr_pages = nr_pages_per_cpu * nr_cpus;
+-	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
+-	       nr_pages, nr_pages_per_cpu);
+-	return userfaultfd_stress();
+-}
+-
+-#else /* HUGETLB_TEST */
+-
+ /*
+  * Copied from mlock2-tests.c
+  */
+@@ -988,48 +973,78 @@ unsigned long default_huge_page_size(voi
+ 	return hps;
+ }
+ 
+-int main(int argc, char **argv)
++static void set_test_type(const char *type)
+ {
+-	if (argc < 4)
+-		fprintf(stderr, "Usage: <MiB> <bounces> <hugetlbfs_file>\n"),
+-				exit(1);
+-	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+-	page_size = default_huge_page_size();
++	if (!strcmp(type, "anon")) {
++		test_type = TEST_ANON;
++		uffd_test_ops = &anon_uffd_test_ops;
++	} else if (!strcmp(type, "hugetlb")) {
++		test_type = TEST_HUGETLB;
++		uffd_test_ops = &hugetlb_uffd_test_ops;
++	} else if (!strcmp(type, "shmem")) {
++		test_type = TEST_SHMEM;
++		uffd_test_ops = &shmem_uffd_test_ops;
++	} else {
++		fprintf(stderr, "Unknown test type: %s\n", type), exit(1);
++	}
++
++	if (test_type == TEST_HUGETLB)
++		page_size = default_huge_page_size();
++	else
++		page_size = sysconf(_SC_PAGE_SIZE);
++
+ 	if (!page_size)
+-		fprintf(stderr, "Unable to determine huge page size\n"),
++		fprintf(stderr, "Unable to determine page size\n"),
+ 				exit(2);
+ 	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
+ 	    > page_size)
+ 		fprintf(stderr, "Impossible to run this test\n"), exit(2);
+-	nr_pages_per_cpu = atol(argv[1]) * 1024*1024 / page_size /
++}
++
++int main(int argc, char **argv)
++{
++	if (argc < 4)
++		fprintf(stderr, "Usage: <test type> <MiB> <bounces> [hugetlbfs_file]\n"),
++				exit(1);
++
++	set_test_type(argv[1]);
++
++	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
++	nr_pages_per_cpu = atol(argv[2]) * 1024*1024 / page_size /
+ 		nr_cpus;
+ 	if (!nr_pages_per_cpu) {
+ 		fprintf(stderr, "invalid MiB\n");
+ 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+ 	}
+-	bounces = atoi(argv[2]);
++
++	bounces = atoi(argv[3]);
+ 	if (bounces <= 0) {
+ 		fprintf(stderr, "invalid bounces\n");
+ 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+ 	}
+ 	nr_pages = nr_pages_per_cpu * nr_cpus;
+-	huge_fd = open(argv[3], O_CREAT | O_RDWR, 0755);
+-	if (huge_fd < 0) {
+-		fprintf(stderr, "Open of %s failed", argv[3]);
+-		perror("open");
+-		exit(1);
+-	}
+-	if (ftruncate(huge_fd, 0)) {
+-		fprintf(stderr, "ftruncate %s to size 0 failed", argv[3]);
+-		perror("ftruncate");
+-		exit(1);
++
++	if (test_type == TEST_HUGETLB) {
++		if (argc < 5)
++			fprintf(stderr, "Usage: hugetlb <MiB> <bounces> <hugetlbfs_file>\n"),
++				exit(1);
++		huge_fd = open(argv[4], O_CREAT | O_RDWR, 0755);
++		if (huge_fd < 0) {
++			fprintf(stderr, "Open of %s failed", argv[3]);
++			perror("open");
++			exit(1);
++		}
++		if (ftruncate(huge_fd, 0)) {
++			fprintf(stderr, "ftruncate %s to size 0 failed", argv[3]);
++			perror("ftruncate");
++			exit(1);
++		}
+ 	}
+ 	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
+ 	       nr_pages, nr_pages_per_cpu);
+ 	return userfaultfd_stress();
+ }
+ 
+-#endif
+ #else /* __NR_userfaultfd */
+ 
+ #warning "missing __NR_userfaultfd definition"
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
 
-mm-move-mm_percpu_wq-initialization-earlier.patch
-lockdep-allow-to-disable-reclaim-lockup-detection.patch
-xfs-abstract-pf_fstrans-to-pf_memalloc_nofs.patch
-mm-introduce-memalloc_nofs_saverestore-api.patch
-xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
-mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
-mm-get-rid-of-zone_is_initialized.patch
-mm-tile-drop-arch_addremove_memory.patch
-mm-remove-return-value-from-init_currently_empty_zone.patch
-mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
-mm-introduce-kvalloc-helpers.patch
-mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
-rhashtable-simplify-a-strange-allocation-pattern.patch
-ila-simplify-a-strange-allocation-pattern.patch
-xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
-treewide-use-kvalloc-rather-than-opencoded-variants.patch
-net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
-md-use-kvmalloc-rather-than-opencoded-variant.patch
-bcache-use-kvmalloc.patch
-mm-vmalloc-use-__gfp_highmem-implicitly.patch
+userfaultfd-selftest-combine-all-cases-into-the-single-executable.patch
 
