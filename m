@@ -1,96 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] x86-remove-unused-atomic_inc_short.patch removed
- from -mm tree
-Date: Thu, 30 Mar 2017 15:28:20 -0700
-Message-ID: <58dd8684.tH2ySRyQJ/wjD6lP%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+ added to -mm tree
+Date: Thu, 30 Mar 2017 15:40:56 -0700
+Message-ID: <58dd8978.pQE4ijh7FXHMS8hG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40978 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932201AbdC3W2W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 18:28:22 -0400
+        with ESMTP id S932201AbdC3Wk6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 18:40:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, hpa@zytor.com, mark.rutland@arm.com, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: remove unused atomic_inc_short()
-has been removed from the -mm tree.  Its filename was
-     x86-remove-unused-atomic_inc_short.patch
+     Subject: mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: x86: remove unused atomic_inc_short()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
 
-It is completely unused and implemented only on x86.  Remove it.
+merge fix
 
-Link: http://lkml.kernel.org/r/20170322174551.128143-1-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Suggested-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/lib/atomic_asm_32.S             |    3 +--
- arch/x86/include/asm/atomic.h             |   13 -------------
- include/asm-generic/atomic-instrumented.h |    6 ------
- 3 files changed, 1 insertion(+), 21 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/tile/lib/atomic_asm_32.S~x86-remove-unused-atomic_inc_short arch/tile/lib/atomic_asm_32.S
---- a/arch/tile/lib/atomic_asm_32.S~x86-remove-unused-atomic_inc_short
-+++ a/arch/tile/lib/atomic_asm_32.S
-@@ -24,8 +24,7 @@
-  * has an opportunity to return -EFAULT to the user if needed.
-  * The 64-bit routines just return a "long long" with the value,
-  * since they are only used from kernel space and don't expect to fault.
-- * Support for 16-bit ops is included in the framework but we don't provide
-- * any (x86_64 has an atomic_inc_short(), so we might want to some day).
-+ * Support for 16-bit ops is included in the framework but we don't provide any.
-  *
-  * Note that the caller is advised to issue a suitable L1 or L2
-  * prefetch on the address being manipulated to avoid extra stalls.
-diff -puN arch/x86/include/asm/atomic.h~x86-remove-unused-atomic_inc_short arch/x86/include/asm/atomic.h
---- a/arch/x86/include/asm/atomic.h~x86-remove-unused-atomic_inc_short
-+++ a/arch/x86/include/asm/atomic.h
-@@ -254,19 +254,6 @@ static __always_inline int __arch_atomic
- 	return c;
- }
+diff -puN mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
++++ a/mm/page_alloc.c
+@@ -2018,7 +2018,7 @@ static void steal_suitable_fallback(stru
+ 	}
  
--/**
-- * arch_atomic_inc_short - increment of a short integer
-- * @v: pointer to type int
-- *
-- * Atomically adds 1 to @v
-- * Returns the new value of @u
-- */
--static __always_inline short int arch_atomic_inc_short(short int *v)
--{
--	asm(LOCK_PREFIX "addw $1, %0" : "+m" (*v));
--	return *v;
--}
--
- #ifdef CONFIG_X86_32
- # include <asm/atomic64_32.h>
- #else
-diff -puN include/asm-generic/atomic-instrumented.h~x86-remove-unused-atomic_inc_short include/asm-generic/atomic-instrumented.h
---- a/include/asm-generic/atomic-instrumented.h~x86-remove-unused-atomic_inc_short
-+++ a/include/asm-generic/atomic-instrumented.h
-@@ -89,12 +89,6 @@ static __always_inline bool atomic64_add
- 	return arch_atomic64_add_unless(v, a, u);
- }
+ 	/* moving whole block can fail due to zone boundary conditions */
+-	if (!pages)
++	if (!free_pages)
+ 		goto single_page;
  
--static __always_inline short int atomic_inc_short(short int *v)
--{
--	kasan_check_write(v, sizeof(*v));
--	return arch_atomic_inc_short(v);
--}
+ 	/*
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drm-use-set_memoryh-header-fix.patch
+drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
