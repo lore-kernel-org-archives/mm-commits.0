@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-do-not-sanitize-kexec-purgatory.patch added to -mm tree
-Date: Wed, 29 Mar 2017 16:25:27 -0700
-Message-ID: <58dc4267.KiuPz69LRZv1DIS8%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 30 Mar 2017 13:34:25 -0700
+Message-ID: <58dd6bd1.+gSkT5xPnl19X80l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53518 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753411AbdC2XZ3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2017 19:25:29 -0400
+        with ESMTP id S1751284AbdC3Ue1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 16:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: efault@gmx.de, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: do not sanitize kexec purgatory
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     kasan-do-not-sanitize-kexec-purgatory.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-do-not-sanitize-kexec-purgatory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-do-not-sanitize-kexec-purgatory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,37 +38,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Galbraith <efault@gmx.de>
-Subject: kasan: do not sanitize kexec purgatory
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-[   24.121074] kexec: Undefined symbol: __asan_load8_noabort
-[   24.121999] kexec-bzImage64: Loading purgatory failed
-
-Link: http://lkml.kernel.org/r/1489672155.4458.7.camel@gmx.de
-Signed-off-by: Mike Galbraith <efault@gmx.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/purgatory/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/thermal/devfreq_cooling.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-diff -puN arch/x86/purgatory/Makefile~kasan-do-not-sanitize-kexec-purgatory arch/x86/purgatory/Makefile
---- a/arch/x86/purgatory/Makefile~kasan-do-not-sanitize-kexec-purgatory
-+++ a/arch/x86/purgatory/Makefile
-@@ -8,6 +8,7 @@ PURGATORY_OBJS = $(addprefix $(obj)/,$(p
- LDFLAGS_purgatory.ro := -e purgatory_start -r --no-undefined -nostdlib -z nodefaultlib
- targets += purgatory.ro
+diff -puN drivers/thermal/devfreq_cooling.c~linux-next-git-rejects drivers/thermal/devfreq_cooling.c
+--- a/drivers/thermal/devfreq_cooling.c~linux-next-git-rejects
++++ a/drivers/thermal/devfreq_cooling.c
+@@ -214,29 +214,9 @@ get_static_power(struct devfreq_cooling_
+ 	if (!dfc->power_ops->get_static_power)
+ 		return 0;
  
-+KASAN_SANITIZE	:= n
- KCOV_INSTRUMENT := n
+-<<<<<<< HEAD
+-	opp = dev_pm_opp_find_freq_exact(dev, freq, true);
+-	if (PTR_ERR(opp) == -ERANGE)
+-		opp = dev_pm_opp_find_freq_exact(dev, freq, false);
+-
+-	if (IS_ERR(opp)) {
+-		dev_err_ratelimited(dev, "Failed to find OPP for frequency %lu: %ld\n",
+-				    freq, PTR_ERR(opp));
+-		return 0;
+-	}
+-
+-	voltage = dev_pm_opp_get_voltage(opp) / 1000; /* mV */
+-	dev_pm_opp_put(opp);
+-
+-	if (voltage == 0) {
+-		dev_err_ratelimited(dev,
+-				    "Failed to get voltage for frequency %lu\n",
+-				    freq);
+-=======
+ 	voltage = get_voltage(df, freq);
  
- # Default KBUILD_CFLAGS can have -pg option set when FTRACE is enabled. That
+ 	if (voltage == 0)
+->>>>>>> linux-next/akpm-base
+ 		return 0;
+ 
+ 	return dfc->power_ops->get_static_power(df, voltage);
 _
 
-Patches currently in -mm which might be from efault@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-do-not-sanitize-kexec-purgatory.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+linux-next-rejects.patch
+drm-use-set_memoryh-header-fix.patch
+drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
