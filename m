@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-free-affs_sb_info-in-put_super.patch added to -mm tree
-Date: Thu, 30 Mar 2017 14:19:51 -0700
-Message-ID: <58dd7677.hhR+DYSa7yJcnC/D%akpm@linux-foundation.org>
+Subject: + mm-enable-page-poisoning-early-at-boot-v2.patch added to -mm
+ tree
+Date: Thu, 30 Mar 2017 14:26:41 -0700
+Message-ID: <58dd7811.olw1LTk5eEb6HRCA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59520 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754625AbdC3VTx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 17:19:53 -0400
+        with ESMTP id S933357AbdC3V0n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2017 17:26:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vinmenon@codeaurora.org, akinobu.mita@gmail.com, iamjoonsoo.kim@lge.com, labbott@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs: free affs_sb_info in put_super()
+     Subject: mm-enable-page-poisoning-early-at-boot-v2
 has been added to the -mm tree.  Its filename is
-     fs-affs-free-affs_sb_info-in-put_super.patch
+     mm-enable-page-poisoning-early-at-boot-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-free-affs_sb_info-in-put_super.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-enable-page-poisoning-early-at-boot-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-free-affs_sb_info-in-put_super.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-enable-page-poisoning-early-at-boot-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,59 +39,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs: free affs_sb_info in put_super()
+From: Vinayak Menon <vinmenon@codeaurora.org>
+Subject: mm-enable-page-poisoning-early-at-boot-v2
 
-kill_block_super() calls generic_shutdown_super() calling FS
-->put_super() where we generally free superblock specific information.
+ (1) Removed "select PAGE_EXTENSION" on CONFIG_PAGE_POISONING
+ (2) Removed CONFIG_PAGE_POISONING checks in page_ext.c
 
-This removes unneeded affs_kill_sb()
-
-sbi is automatically reserved in fill_super() so there is no
-need to test it.
-
-Link: http://lkml.kernel.org/r/20170330194215.26379-1-fabf@skynet.be
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1490878002-14423-1-git-send-email-vinmenon@codeaurora.org
+Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Laura Abbott <labbott@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/super.c |   22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ mm/Kconfig.debug |    1 -
+ mm/page_ext.c    |   10 ++--------
+ 2 files changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN fs/affs/super.c~fs-affs-free-affs_sb_info-in-put_super fs/affs/super.c
---- a/fs/affs/super.c~fs-affs-free-affs_sb_info-in-put_super
-+++ a/fs/affs/super.c
-@@ -46,9 +46,14 @@ static void
- affs_put_super(struct super_block *sb)
+diff -puN mm/Kconfig.debug~mm-enable-page-poisoning-early-at-boot-v2 mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-enable-page-poisoning-early-at-boot-v2
++++ a/mm/Kconfig.debug
+@@ -42,7 +42,6 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
+ 
+ config PAGE_POISONING
+ 	bool "Poison pages after freeing"
+-	select PAGE_EXTENSION
+ 	select PAGE_POISONING_NO_SANITY if HIBERNATION
+ 	---help---
+ 	  Fill the pages with poison patterns after free_pages() and verify
+diff -puN mm/page_ext.c~mm-enable-page-poisoning-early-at-boot-v2 mm/page_ext.c
+--- a/mm/page_ext.c~mm-enable-page-poisoning-early-at-boot-v2
++++ a/mm/page_ext.c
+@@ -124,15 +124,12 @@ struct page_ext *lookup_page_ext(struct
+ 	struct page_ext *base;
+ 
+ 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
+-#if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
++#if defined(CONFIG_DEBUG_VM)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+ 	 * allocated when feeding a range of pages to the allocator
+ 	 * for the first time during bootup or memory hotplug.
+-	 *
+-	 * This check is also necessary for ensuring page poisoning
+-	 * works as expected when enabled
+ 	 */
+ 	if (unlikely(!base))
+ 		return NULL;
+@@ -201,15 +198,12 @@ struct page_ext *lookup_page_ext(struct
  {
- 	struct affs_sb_info *sbi = AFFS_SB(sb);
--	pr_debug("%s()\n", __func__);
- 
-+	pr_debug("%s()\n", __func__);
- 	cancel_delayed_work_sync(&sbi->sb_work);
-+	affs_free_bitmap(sb);
-+	affs_brelse(sbi->s_root_bh);
-+	kfree(sbi->s_prefix);
-+	mutex_destroy(&sbi->s_bmlock);
-+	kfree(sbi);
- }
- 
- static int
-@@ -604,24 +609,11 @@ static struct dentry *affs_mount(struct
- 	return mount_bdev(fs_type, flags, dev_name, data, affs_fill_super);
- }
- 
--static void affs_kill_sb(struct super_block *sb)
--{
--	struct affs_sb_info *sbi = AFFS_SB(sb);
--	kill_block_super(sb);
--	if (sbi) {
--		affs_free_bitmap(sb);
--		affs_brelse(sbi->s_root_bh);
--		kfree(sbi->s_prefix);
--		mutex_destroy(&sbi->s_bmlock);
--		kfree(sbi);
--	}
--}
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct mem_section *section = __pfn_to_section(pfn);
+-#if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
++#if defined(CONFIG_DEBUG_VM)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+ 	 * allocated when feeding a range of pages to the allocator
+ 	 * for the first time during bootup or memory hotplug.
+-	 *
+-	 * This check is also necessary for ensuring page poisoning
+-	 * works as expected when enabled
+ 	 */
+ 	if (!section->page_ext)
+ 		return NULL;
+_
+
+Patches currently in -mm which might be from vinmenon@codeaurora.org are
+
+mm-enable-page-poisoning-early-at-boot.patch
+mm-enable-page-poisoning-early-at-boot-v2.patch
+mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
+
