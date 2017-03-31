@@ -1,119 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [patch 05/11] mm, hugetlb: use pte_present() instead of
- pmd_present() in follow_huge_pmd()
-Date: Fri, 31 Mar 2017 15:11:55 -0700
-Message-ID: <58ded42b.1BcS4TbCFTt+z1Md%akpm__3225.84705795652$1490998330$gmane$org@linux-foundation.org>
+Subject: [patch 10/11] drivers/rapidio/devices/tsi721.c: make module
+ parameter variable name unique
+Date: Fri, 31 Mar 2017 15:12:10 -0700
+Message-ID: <58ded43a.75sCtzHxVQh8F6Bz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41752 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933149AbdCaWL5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:11:57 -0400
+        with ESMTP id S933315AbdCaWML (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, borntraeger@de.ibm.com, gerald.schaefer@de.ibm.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mike.kravetz@oracle.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rdunlap@infradead.org, alexandre.bounine@idt.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, jeremy.lefaure@lse.epita.fr, mporter@kernel.crashing.org
 
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm, hugetlb: use pte_present() instead of pmd_present() in follow_huge_pmd()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
 
-I found the race condition which triggers the following bug when
-move_pages() and soft offline are called on a single hugetlb page
-concurrently.
+kbuild test robot reported a non-static variable name collision between a
+staging driver and a RapidIO driver, with a generic variable name of
+'dbg_level'.
 
-    [61163.578957] Soft offlining page 0x119400 at 0x700000000000
-    [61163.580062] BUG: unable to handle kernel paging request at ffffea0011943820
-    [61163.580791] IP: follow_huge_pmd+0x143/0x190
-    [61163.581203] PGD 7ffd2067
-    [61163.581204] PUD 7ffd1067
-    [61163.581471] PMD 0
-    [61163.581723]
-    [61163.582052] Oops: 0000 [#1] SMP
-    [61163.582349] Modules linked in: binfmt_misc ppdev virtio_balloon parport_pc pcspkr i2c_piix4 parport i2c_core acpi_cpufreq ip_tables xfs libcrc32c ata_generic pata_acpi virtio_blk 8139too crc32c_intel ata_piix serio_raw libata virtio_pci 8139cp virtio_ring virtio mii floppy dm_mirror dm_region_hash dm_log dm_mod [last unloaded: cap_check]
-    [61163.585130] CPU: 0 PID: 22573 Comm: iterate_numa_mo Tainted: P           OE   4.11.0-rc2-mm1+ #2
-    [61163.586055] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
-    [61163.586627] task: ffff88007c951680 task.stack: ffffc90004bd8000
-    [61163.587181] RIP: 0010:follow_huge_pmd+0x143/0x190
-    [61163.587622] RSP: 0018:ffffc90004bdbcd0 EFLAGS: 00010202
-    [61163.588096] RAX: 0000000465003e80 RBX: ffffea0004e34d30 RCX: 00003ffffffff000
-    [61163.588818] RDX: 0000000011943800 RSI: 0000000000080001 RDI: 0000000465003e80
-    [61163.589486] RBP: ffffc90004bdbd18 R08: 0000000000000000 R09: ffff880138d34000
-    [61163.590097] R10: ffffea0004650000 R11: 0000000000c363b0 R12: ffffea0011943800
-    [61163.590751] R13: ffff8801b8d34000 R14: ffffea0000000000 R15: 000077ff80000000
-    [61163.591375] FS:  00007fc977710740(0000) GS:ffff88007dc00000(0000) knlGS:0000000000000000
-    [61163.592068] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    [61163.592627] CR2: ffffea0011943820 CR3: 000000007a746000 CR4: 00000000001406f0
-    [61163.593330] Call Trace:
-    [61163.593556]  follow_page_mask+0x270/0x550
-    [61163.593908]  SYSC_move_pages+0x4ea/0x8f0
-    [61163.594253]  ? lru_cache_add_active_or_unevictable+0x4b/0xd0
-    [61163.594798]  SyS_move_pages+0xe/0x10
-    [61163.595113]  do_syscall_64+0x67/0x180
-    [61163.595434]  entry_SYSCALL64_slow_path+0x25/0x25
-    [61163.595837] RIP: 0033:0x7fc976e03949
-    [61163.596148] RSP: 002b:00007ffe72221d88 EFLAGS: 00000246 ORIG_RAX: 0000000000000117
-    [61163.596940] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fc976e03949
-    [61163.597567] RDX: 0000000000c22390 RSI: 0000000000001400 RDI: 0000000000005827
-    [61163.598177] RBP: 00007ffe72221e00 R08: 0000000000c2c3a0 R09: 0000000000000004
-    [61163.598842] R10: 0000000000c363b0 R11: 0000000000000246 R12: 0000000000400650
-    [61163.599456] R13: 00007ffe72221ee0 R14: 0000000000000000 R15: 0000000000000000
-    [61163.600067] Code: 81 e4 ff ff 1f 00 48 21 c2 49 c1 ec 0c 48 c1 ea 0c 4c 01 e2 49 bc 00 00 00 00 00 ea ff ff 48 c1 e2 06 49 01 d4 f6 45 bc 04 74 90 <49> 8b 7c 24 20 40 f6 c7 01 75 2b 4c 89 e7 8b 47 1c 85 c0 7e 2a
-    [61163.601845] RIP: follow_huge_pmd+0x143/0x190 RSP: ffffc90004bdbcd0
-    [61163.602376] CR2: ffffea0011943820
-    [61163.602767] ---[ end trace e4f81353a2d23232 ]---
-    [61163.603236] Kernel panic - not syncing: Fatal exception
-    [61163.603706] Kernel Offset: disabled
+Both drivers should be changed so that they don't use this generic public
+variable name.  This patch fixes the RapidIO driver but does not change
+the user interface (name) for the module parameter.
 
-This bug is triggered when pmd_present() returns true for non-present
-hugetlb, so fixing the present check in follow_huge_pmd() prevents it.
-Using pmd_present() to determine present/non-present for hugetlb is
-not correct, because pmd_present() checks multiple bits (not only
-_PAGE_PRESENT) for historical reason and it can misjudge hugetlb state.
+drivers/staging/built-in.o:(.bss+0x109d0): multiple definition of `dbg_level'
+drivers/rapidio/built-in.o:(.bss+0x16c): first defined here
 
-Fixes: e66f17ff7177 ("mm/hugetlb: take page table lock in follow_huge_pmd()")
-Link: http://lkml.kernel.org/r/1490149898-20231-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: <stable@vger.kernel.org>        [4.0+]
+Link: http://lkml.kernel.org/r/ab527fc5-aa3c-4b07-5d48-eef5de703192@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/rapidio/devices/tsi721.c |    4 ++--
+ drivers/rapidio/devices/tsi721.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd
-+++ a/mm/hugetlb.c
-@@ -4651,6 +4651,7 @@ follow_huge_pmd(struct mm_struct *mm, un
- {
- 	struct page *page = NULL;
- 	spinlock_t *ptl;
-+	pte_t pte;
- retry:
- 	ptl = pmd_lockptr(mm, pmd);
- 	spin_lock(ptl);
-@@ -4660,12 +4661,13 @@ retry:
- 	 */
- 	if (!pmd_huge(*pmd))
- 		goto out;
--	if (pmd_present(*pmd)) {
-+	pte = huge_ptep_get((pte_t *)pmd);
-+	if (pte_present(pte)) {
- 		page = pmd_page(*pmd) + ((address & ~PMD_MASK) >> PAGE_SHIFT);
- 		if (flags & FOLL_GET)
- 			get_page(page);
- 	} else {
--		if (is_hugetlb_entry_migration(huge_ptep_get((pte_t *)pmd))) {
-+		if (is_hugetlb_entry_migration(pte)) {
- 			spin_unlock(ptl);
- 			__migration_entry_wait(mm, (pte_t *)pmd, ptl);
- 			goto retry;
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -37,8 +37,8 @@
+ #include "tsi721.h"
+ 
+ #ifdef DEBUG
+-u32 dbg_level;
+-module_param(dbg_level, uint, S_IWUSR | S_IRUGO);
++u32 tsi_dbg_level;
++module_param_named(dbg_level, tsi_dbg_level, uint, S_IWUSR | S_IRUGO);
+ MODULE_PARM_DESC(dbg_level, "Debugging output level (default 0 = none)");
+ #endif
+ 
+diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.h
+--- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique
++++ a/drivers/rapidio/devices/tsi721.h
+@@ -40,11 +40,11 @@ enum {
+ };
+ 
+ #ifdef DEBUG
+-extern u32 dbg_level;
++extern u32 tsi_dbg_level;
+ 
+ #define tsi_debug(level, dev, fmt, arg...)				\
+ 	do {								\
+-		if (DBG_##level & dbg_level)				\
++		if (DBG_##level & tsi_dbg_level)				\
+ 			dev_dbg(dev, "%s: " fmt "\n", __func__, ##arg);	\
+ 	} while (0)
+ #else
 _
