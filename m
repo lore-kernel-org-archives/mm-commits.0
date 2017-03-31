@@ -1,185 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/11] kasan: report only the first error by default
-Date: Fri, 31 Mar 2017 15:12:04 -0700
-Message-ID: <58ded434.erWQ7/J27QlX/Lfd%akpm@linux-foundation.org>
+Subject: [patch 05/11] mm, hugetlb: use pte_present() instead of
+ pmd_present() in follow_huge_pmd()
+Date: Fri, 31 Mar 2017 15:11:55 -0700
+Message-ID: <58ded42b.1BcS4TbCFTt+z1Md%akpm__3225.84705795652$1490998330$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41612 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933149AbdCaWMF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:05 -0400
+        with ESMTP id S933149AbdCaWL5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:11:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mark.rutland@arm.com, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, borntraeger@de.ibm.com, gerald.schaefer@de.ibm.com, hillf.zj@alibaba-inc.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mike.kravetz@oracle.com, stable@vger.kernel.org
 
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: kasan: report only the first error by default
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm, hugetlb: use pte_present() instead of pmd_present() in follow_huge_pmd()
 
-Disable kasan after the first report. There are several reasons for this:
+I found the race condition which triggers the following bug when
+move_pages() and soft offline are called on a single hugetlb page
+concurrently.
 
-- Single bug quite often has multiple invalid memory accesses causing
-  storm in the dmesg.
+    [61163.578957] Soft offlining page 0x119400 at 0x700000000000
+    [61163.580062] BUG: unable to handle kernel paging request at ffffea0011943820
+    [61163.580791] IP: follow_huge_pmd+0x143/0x190
+    [61163.581203] PGD 7ffd2067
+    [61163.581204] PUD 7ffd1067
+    [61163.581471] PMD 0
+    [61163.581723]
+    [61163.582052] Oops: 0000 [#1] SMP
+    [61163.582349] Modules linked in: binfmt_misc ppdev virtio_balloon parport_pc pcspkr i2c_piix4 parport i2c_core acpi_cpufreq ip_tables xfs libcrc32c ata_generic pata_acpi virtio_blk 8139too crc32c_intel ata_piix serio_raw libata virtio_pci 8139cp virtio_ring virtio mii floppy dm_mirror dm_region_hash dm_log dm_mod [last unloaded: cap_check]
+    [61163.585130] CPU: 0 PID: 22573 Comm: iterate_numa_mo Tainted: P           OE   4.11.0-rc2-mm1+ #2
+    [61163.586055] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+    [61163.586627] task: ffff88007c951680 task.stack: ffffc90004bd8000
+    [61163.587181] RIP: 0010:follow_huge_pmd+0x143/0x190
+    [61163.587622] RSP: 0018:ffffc90004bdbcd0 EFLAGS: 00010202
+    [61163.588096] RAX: 0000000465003e80 RBX: ffffea0004e34d30 RCX: 00003ffffffff000
+    [61163.588818] RDX: 0000000011943800 RSI: 0000000000080001 RDI: 0000000465003e80
+    [61163.589486] RBP: ffffc90004bdbd18 R08: 0000000000000000 R09: ffff880138d34000
+    [61163.590097] R10: ffffea0004650000 R11: 0000000000c363b0 R12: ffffea0011943800
+    [61163.590751] R13: ffff8801b8d34000 R14: ffffea0000000000 R15: 000077ff80000000
+    [61163.591375] FS:  00007fc977710740(0000) GS:ffff88007dc00000(0000) knlGS:0000000000000000
+    [61163.592068] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+    [61163.592627] CR2: ffffea0011943820 CR3: 000000007a746000 CR4: 00000000001406f0
+    [61163.593330] Call Trace:
+    [61163.593556]  follow_page_mask+0x270/0x550
+    [61163.593908]  SYSC_move_pages+0x4ea/0x8f0
+    [61163.594253]  ? lru_cache_add_active_or_unevictable+0x4b/0xd0
+    [61163.594798]  SyS_move_pages+0xe/0x10
+    [61163.595113]  do_syscall_64+0x67/0x180
+    [61163.595434]  entry_SYSCALL64_slow_path+0x25/0x25
+    [61163.595837] RIP: 0033:0x7fc976e03949
+    [61163.596148] RSP: 002b:00007ffe72221d88 EFLAGS: 00000246 ORIG_RAX: 0000000000000117
+    [61163.596940] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fc976e03949
+    [61163.597567] RDX: 0000000000c22390 RSI: 0000000000001400 RDI: 0000000000005827
+    [61163.598177] RBP: 00007ffe72221e00 R08: 0000000000c2c3a0 R09: 0000000000000004
+    [61163.598842] R10: 0000000000c363b0 R11: 0000000000000246 R12: 0000000000400650
+    [61163.599456] R13: 00007ffe72221ee0 R14: 0000000000000000 R15: 0000000000000000
+    [61163.600067] Code: 81 e4 ff ff 1f 00 48 21 c2 49 c1 ec 0c 48 c1 ea 0c 4c 01 e2 49 bc 00 00 00 00 00 ea ff ff 48 c1 e2 06 49 01 d4 f6 45 bc 04 74 90 <49> 8b 7c 24 20 40 f6 c7 01 75 2b 4c 89 e7 8b 47 1c 85 c0 7e 2a
+    [61163.601845] RIP: follow_huge_pmd+0x143/0x190 RSP: ffffc90004bdbcd0
+    [61163.602376] CR2: ffffea0011943820
+    [61163.602767] ---[ end trace e4f81353a2d23232 ]---
+    [61163.603236] Kernel panic - not syncing: Fatal exception
+    [61163.603706] Kernel Offset: disabled
 
-- Write OOB access might corrupt metadata so the next report will print
-  bogus alloc/free stacktraces.
+This bug is triggered when pmd_present() returns true for non-present
+hugetlb, so fixing the present check in follow_huge_pmd() prevents it.
+Using pmd_present() to determine present/non-present for hugetlb is
+not correct, because pmd_present() checks multiple bits (not only
+_PAGE_PRESENT) for historical reason and it can misjudge hugetlb state.
 
-- Reports after the first easily could be not bugs by itself but just
-  side effects of the first one.
-
-Given that multiple reports usually only do harm, it makes sense to
-disable kasan after the first one.  If user wants to see all the reports,
-the boot-time parameter kasan_multi_shot must be used.
-
-[aryabinin@virtuozzo.com: wrote changelog and doc, added missing include]
-Link: http://lkml.kernel.org/r/20170323154416.30257-1-aryabinin@virtuozzo.com
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Fixes: e66f17ff7177 ("mm/hugetlb: take page table lock in follow_huge_pmd()")
+Link: http://lkml.kernel.org/r/1490149898-20231-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: <stable@vger.kernel.org>        [4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    6 ++
- include/linux/kasan.h                           |    3 +
- lib/test_kasan.c                                |   10 +++
- mm/kasan/kasan.h                                |    5 -
- mm/kasan/report.c                               |   36 ++++++++++++++
- 5 files changed, 55 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/admin-guide/kernel-parameters.txt~kasan-report-only-the-first-error-by-default Documentation/admin-guide/kernel-parameters.txt
---- a/Documentation/admin-guide/kernel-parameters.txt~kasan-report-only-the-first-error-by-default
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1725,6 +1725,12 @@
- 			kernel and module base offset ASLR (Address Space
- 			Layout Randomization).
- 
-+	kasan_multi_shot
-+			[KNL] Enforce KASAN (Kernel Address Sanitizer) to print
-+			report on every invalid memory access. Without this
-+			parameter KASAN will print report only for the first
-+			invalid access.
-+
- 	keepinitrd	[HW,ARM]
- 
- 	kernelcore=	[KNL,X86,IA-64,PPC]
-diff -puN include/linux/kasan.h~kasan-report-only-the-first-error-by-default include/linux/kasan.h
---- a/include/linux/kasan.h~kasan-report-only-the-first-error-by-default
-+++ a/include/linux/kasan.h
-@@ -76,6 +76,9 @@ size_t ksize(const void *);
- static inline void kasan_unpoison_slab(const void *ptr) { ksize(ptr); }
- size_t kasan_metadata_size(struct kmem_cache *cache);
- 
-+bool kasan_save_enable_multi_shot(void);
-+void kasan_restore_multi_shot(bool enabled);
-+
- #else /* CONFIG_KASAN */
- 
- static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
-diff -puN lib/test_kasan.c~kasan-report-only-the-first-error-by-default lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-report-only-the-first-error-by-default
-+++ a/lib/test_kasan.c
-@@ -20,6 +20,7 @@
- #include <linux/string.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
-+#include <linux/kasan.h>
- 
- /*
-  * Note: test functions are marked noinline so that their names appear in
-@@ -474,6 +475,12 @@ static noinline void __init use_after_sc
- 
- static int __init kmalloc_tests_init(void)
+diff -puN mm/hugetlb.c~mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-use-pte_present-instead-of-pmd_present-in-follow_huge_pmd
++++ a/mm/hugetlb.c
+@@ -4651,6 +4651,7 @@ follow_huge_pmd(struct mm_struct *mm, un
  {
-+	/*
-+	 * Temporarily enable multi-shot mode. Otherwise, we'd only get a
-+	 * report for the first case.
-+	 */
-+	bool multishot = kasan_save_enable_multi_shot();
-+
- 	kmalloc_oob_right();
- 	kmalloc_oob_left();
- 	kmalloc_node_oob_right();
-@@ -499,6 +506,9 @@ static int __init kmalloc_tests_init(voi
- 	ksize_unpoisons_memory();
- 	copy_user_test();
- 	use_after_scope_test();
-+
-+	kasan_restore_multi_shot(multishot);
-+
- 	return -EAGAIN;
- }
- 
-diff -puN mm/kasan/kasan.h~kasan-report-only-the-first-error-by-default mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-report-only-the-first-error-by-default
-+++ a/mm/kasan/kasan.h
-@@ -96,11 +96,6 @@ static inline const void *kasan_shadow_t
- 		<< KASAN_SHADOW_SCALE_SHIFT);
- }
- 
--static inline bool kasan_report_enabled(void)
--{
--	return !current->kasan_depth;
--}
--
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
- void kasan_report_double_free(struct kmem_cache *cache, void *object,
-diff -puN mm/kasan/report.c~kasan-report-only-the-first-error-by-default mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-report-only-the-first-error-by-default
-+++ a/mm/kasan/report.c
-@@ -13,7 +13,9 @@
-  *
-  */
- 
-+#include <linux/bitops.h>
- #include <linux/ftrace.h>
-+#include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/printk.h>
-@@ -293,6 +295,40 @@ static void kasan_report_error(struct ka
- 	kasan_end_report(&flags);
- }
- 
-+static unsigned long kasan_flags;
-+
-+#define KASAN_BIT_REPORTED	0
-+#define KASAN_BIT_MULTI_SHOT	1
-+
-+bool kasan_save_enable_multi_shot(void)
-+{
-+	return test_and_set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+}
-+EXPORT_SYMBOL_GPL(kasan_save_enable_multi_shot);
-+
-+void kasan_restore_multi_shot(bool enabled)
-+{
-+	if (!enabled)
-+		clear_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+}
-+EXPORT_SYMBOL_GPL(kasan_restore_multi_shot);
-+
-+static int __init kasan_set_multi_shot(char *str)
-+{
-+	set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+	return 1;
-+}
-+__setup("kasan_multi_shot", kasan_set_multi_shot);
-+
-+static inline bool kasan_report_enabled(void)
-+{
-+	if (current->kasan_depth)
-+		return false;
-+	if (test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
-+		return true;
-+	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
-+}
-+
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip)
- {
+ 	struct page *page = NULL;
+ 	spinlock_t *ptl;
++	pte_t pte;
+ retry:
+ 	ptl = pmd_lockptr(mm, pmd);
+ 	spin_lock(ptl);
+@@ -4660,12 +4661,13 @@ retry:
+ 	 */
+ 	if (!pmd_huge(*pmd))
+ 		goto out;
+-	if (pmd_present(*pmd)) {
++	pte = huge_ptep_get((pte_t *)pmd);
++	if (pte_present(pte)) {
+ 		page = pmd_page(*pmd) + ((address & ~PMD_MASK) >> PAGE_SHIFT);
+ 		if (flags & FOLL_GET)
+ 			get_page(page);
+ 	} else {
+-		if (is_hugetlb_entry_migration(huge_ptep_get((pte_t *)pmd))) {
++		if (is_hugetlb_entry_migration(pte)) {
+ 			spin_unlock(ptl);
+ 			__migration_entry_wait(mm, (pte_t *)pmd, ptl);
+ 			goto retry;
 _
