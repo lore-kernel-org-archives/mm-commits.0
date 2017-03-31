@@ -1,57 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/11] mm: workingset: fix premature shadow node shrinking with cgroups
-Date: Fri, 31 Mar 2017 15:11:52 -0700
-Message-ID: <58ded428./SEfwFBSQwa3cvFH%akpm@linux-foundation.org>
+Subject: [patch 06/11] mm: fix section name for .data..ro_after_init
+Date: Fri, 31 Mar 2017 15:11:58 -0700
+Message-ID: <58ded42e.z/io/oU8H8zI372u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41640 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933149AbdCaWLy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:11:54 -0400
+        with ESMTP id S933149AbdCaWMA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, vdavydov@tarantool.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, ewk@edkovsky.org, heiko.carstens@de.ibm.com, jakub.kicinski@netronome.com
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: workingset: fix premature shadow node shrinking with cgroups
+From: Kees Cook <keescook@chromium.org>
+Subject: mm: fix section name for .data..ro_after_init
 
-0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
-enabled cgroup-awareness in the shadow node shrinker, but forgot to also
-enable cgroup-awareness in the list_lru the shadow nodes sit on.
+A section name for .data..ro_after_init was added by both:
 
-Consequently, all shadow nodes are sitting on a global (per-NUMA node)
-list, while the shrinker applies the limits according to the amount of
-cache in the cgroup its shrinking.  The result is excessive pressure on
-the shadow nodes from cgroups that have very little cache.
+    commit d07a980c1b8d ("s390: add proper __ro_after_init support")
 
-Enable memcg-mode on the shadow node LRUs, such that per-cgroup limits are
-applied to per-cgroup lists.
+and
 
-Fixes: 0a6b76dd23fa ("mm: workingset: make shadow node shrinker memcg aware")
-Link: http://lkml.kernel.org/r/20170322005320.8165-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vladimir Davydov <vdavydov@tarantool.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>	[4.6+]
+    commit d7c19b066dcf ("mm: kmemleak: scan .data.ro_after_init")
+
+The latter adds incorrect wrapping around the existing s390 section, and
+came later.  I'd prefer the s390 naming, so this moves the s390-specific
+name up to the asm-generic/sections.h and renames the section as used by
+kmemleak (and in the future, kernel/extable.c).
+
+Link: http://lkml.kernel.org/r/20170327192213.GA129375@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>	[s390 parts]
+Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc: Eddie Kovsky <ewk@edkovsky.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/s390/include/asm/sections.h  |    1 -
+ arch/s390/kernel/vmlinux.lds.S    |    2 --
+ include/asm-generic/sections.h    |    6 +++---
+ include/asm-generic/vmlinux.lds.h |    4 ++--
+ mm/kmemleak.c                     |    2 +-
+ 5 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/workingset.c~mm-workingset-fix-premature-shadow-node-shrinking-with-cgroups mm/workingset.c
---- a/mm/workingset.c~mm-workingset-fix-premature-shadow-node-shrinking-with-cgroups
-+++ a/mm/workingset.c
-@@ -532,7 +532,7 @@ static int __init workingset_init(void)
- 	pr_info("workingset: timestamp_bits=%d max_order=%d bucket_order=%u\n",
- 	       timestamp_bits, max_order, bucket_order);
+diff -puN arch/s390/include/asm/sections.h~mm-fix-section-name-for-dataro_after_init arch/s390/include/asm/sections.h
+--- a/arch/s390/include/asm/sections.h~mm-fix-section-name-for-dataro_after_init
++++ a/arch/s390/include/asm/sections.h
+@@ -4,6 +4,5 @@
+ #include <asm-generic/sections.h>
  
--	ret = list_lru_init_key(&shadow_nodes, &shadow_nodes_key);
-+	ret = __list_lru_init(&shadow_nodes, true, &shadow_nodes_key);
- 	if (ret)
- 		goto err;
- 	ret = register_shrinker(&workingset_shadow_shrinker);
+ extern char _eshared[], _ehead[];
+-extern char __start_ro_after_init[], __end_ro_after_init[];
+ 
+ #endif
+diff -puN arch/s390/kernel/vmlinux.lds.S~mm-fix-section-name-for-dataro_after_init arch/s390/kernel/vmlinux.lds.S
+--- a/arch/s390/kernel/vmlinux.lds.S~mm-fix-section-name-for-dataro_after_init
++++ a/arch/s390/kernel/vmlinux.lds.S
+@@ -63,11 +63,9 @@ SECTIONS
+ 
+ 	. = ALIGN(PAGE_SIZE);
+ 	__start_ro_after_init = .;
+-	__start_data_ro_after_init = .;
+ 	.data..ro_after_init : {
+ 		 *(.data..ro_after_init)
+ 	}
+-	__end_data_ro_after_init = .;
+ 	EXCEPTION_TABLE(16)
+ 	. = ALIGN(PAGE_SIZE);
+ 	__end_ro_after_init = .;
+diff -puN include/asm-generic/sections.h~mm-fix-section-name-for-dataro_after_init include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~mm-fix-section-name-for-dataro_after_init
++++ a/include/asm-generic/sections.h
+@@ -14,8 +14,8 @@
+  * [_sdata, _edata]: contains .data.* sections, may also contain .rodata.*
+  *                   and/or .init.* sections.
+  * [__start_rodata, __end_rodata]: contains .rodata.* sections
+- * [__start_data_ro_after_init, __end_data_ro_after_init]:
+- *		     contains data.ro_after_init section
++ * [__start_ro_after_init, __end_ro_after_init]:
++ *		     contains .data..ro_after_init section
+  * [__init_begin, __init_end]: contains .init.* sections, but .init.text.*
+  *                   may be out of this range on some architectures.
+  * [_sinittext, _einittext]: contains .init.text.* sections
+@@ -33,7 +33,7 @@ extern char _data[], _sdata[], _edata[];
+ extern char __bss_start[], __bss_stop[];
+ extern char __init_begin[], __init_end[];
+ extern char _sinittext[], _einittext[];
+-extern char __start_data_ro_after_init[], __end_data_ro_after_init[];
++extern char __start_ro_after_init[], __end_ro_after_init[];
+ extern char _end[];
+ extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
+ extern char __kprobes_text_start[], __kprobes_text_end[];
+diff -puN include/asm-generic/vmlinux.lds.h~mm-fix-section-name-for-dataro_after_init include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~mm-fix-section-name-for-dataro_after_init
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -260,9 +260,9 @@
+  */
+ #ifndef RO_AFTER_INIT_DATA
+ #define RO_AFTER_INIT_DATA						\
+-	__start_data_ro_after_init = .;					\
++	__start_ro_after_init = .;					\
+ 	*(.data..ro_after_init)						\
+-	__end_data_ro_after_init = .;
++	__end_ro_after_init = .;
+ #endif
+ 
+ /*
+diff -puN mm/kmemleak.c~mm-fix-section-name-for-dataro_after_init mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-fix-section-name-for-dataro_after_init
++++ a/mm/kmemleak.c
+@@ -1416,7 +1416,7 @@ static void kmemleak_scan(void)
+ 	/* data/bss scanning */
+ 	scan_large_block(_sdata, _edata);
+ 	scan_large_block(__bss_start, __bss_stop);
+-	scan_large_block(__start_data_ro_after_init, __end_data_ro_after_init);
++	scan_large_block(__start_ro_after_init, __end_ro_after_init);
+ 
+ #ifdef CONFIG_SMP
+ 	/* per-cpu sections scanning */
 _
