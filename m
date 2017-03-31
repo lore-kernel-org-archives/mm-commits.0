@@ -1,73 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/11] mm/hugetlb.c: don't call region_abort if region_chg fails
-Date: Fri, 31 Mar 2017 15:12:07 -0700
-Message-ID: <58ded437.FgUFmle+0XdCMuAK%akpm@linux-foundation.org>
+Subject: [patch 11/11] kasan: do not sanitize kexec purgatory
+Date: Fri, 31 Mar 2017 15:12:12 -0700
+Message-ID: <58ded43c.N6PWIhvajdV6ZJeT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41768 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933149AbdCaWMI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:08 -0400
+        with ESMTP id S933315AbdCaWMN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, dvyukov@google.com, hillf.zj@alibaba-inc.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, efault@gmx.de, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb.c: don't call region_abort if region_chg fails
+From: Mike Galbraith <efault@gmx.de>
+Subject: kasan: do not sanitize kexec purgatory
 
-Changes to hugetlbfs reservation maps is a two step process.  The first
-step is a call to region_chg to determine what needs to be changed, and
-prepare that change.  This should be followed by a call to call to
-region_add to commit the change, or region_abort to abort the change.
+[   24.121074] kexec: Undefined symbol: __asan_load8_noabort
+[   24.121999] kexec-bzImage64: Loading purgatory failed
 
-The error path in hugetlb_reserve_pages called region_abort after a
-failed call to region_chg.  As a result, the adds_in_progress counter
-in the reservation map is off by 1.  This is caught by a VM_BUG_ON
-in resv_map_release when the reservation map is freed.
-
-syzkaller fuzzer (when using an injected kmalloc failure) found this bug,
-that resulted in the following:
-
- kernel BUG at mm/hugetlb.c:742!
- Call Trace:
-  hugetlbfs_evict_inode+0x7b/0xa0 fs/hugetlbfs/inode.c:493
-  evict+0x481/0x920 fs/inode.c:553
-  iput_final fs/inode.c:1515 [inline]
-  iput+0x62b/0xa20 fs/inode.c:1542
-  hugetlb_file_setup+0x593/0x9f0 fs/hugetlbfs/inode.c:1306
-  newseg+0x422/0xd30 ipc/shm.c:575
-  ipcget_new ipc/util.c:285 [inline]
-  ipcget+0x21e/0x580 ipc/util.c:639
-  SYSC_shmget ipc/shm.c:673 [inline]
-  SyS_shmget+0x158/0x230 ipc/shm.c:657
-  entry_SYSCALL_64_fastpath+0x1f/0xc2
- RIP: resv_map_release+0x265/0x330 mm/hugetlb.c:742
-
-Link: http://lkml.kernel.org/r/1490821682-23228-1-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Link: http://lkml.kernel.org/r/1489672155.4458.7.camel@gmx.de
+Signed-off-by: Mike Galbraith <efault@gmx.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/purgatory/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-dont-call-region_abort-if-region_chg-fails mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-dont-call-region_abort-if-region_chg-fails
-+++ a/mm/hugetlb.c
-@@ -4403,7 +4403,9 @@ int hugetlb_reserve_pages(struct inode *
- 	return 0;
- out_err:
- 	if (!vma || vma->vm_flags & VM_MAYSHARE)
--		region_abort(resv_map, from, to);
-+		/* Don't call region_abort if region_chg failed */
-+		if (chg >= 0)
-+			region_abort(resv_map, from, to);
- 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		kref_put(&resv_map->refs, resv_map_release);
- 	return ret;
+diff -puN arch/x86/purgatory/Makefile~kasan-do-not-sanitize-kexec-purgatory arch/x86/purgatory/Makefile
+--- a/arch/x86/purgatory/Makefile~kasan-do-not-sanitize-kexec-purgatory
++++ a/arch/x86/purgatory/Makefile
+@@ -8,6 +8,7 @@ PURGATORY_OBJS = $(addprefix $(obj)/,$(p
+ LDFLAGS_purgatory.ro := -e purgatory_start -r --no-undefined -nostdlib -z nodefaultlib
+ targets += purgatory.ro
+ 
++KASAN_SANITIZE	:= n
+ KCOV_INSTRUMENT := n
+ 
+ # Default KBUILD_CFLAGS can have -pg option set when FTRACE is enabled. That
 _
