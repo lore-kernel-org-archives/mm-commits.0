@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch added to
- -mm tree
-Date: Fri, 31 Mar 2017 14:51:44 -0700
-Message-ID: <58decf70.QlosDu7aAck+S4RK%akpm@linux-foundation.org>
+Subject: + treewide-correct-diffrent-and-banlance-typos.patch added to -mm tree
+Date: Fri, 31 Mar 2017 15:03:41 -0700
+Message-ID: <58ded23d.Z3o5VBQO58vrrwB/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39026 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40358 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755414AbdCaVvp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 17:51:45 -0400
+        with ESMTP id S1751282AbdCaWDm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:03:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, hch@lst.de, jlayton@redhat.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, mchehab@s-opensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: semove set but not checked AOP_FLAG_UNINTERRUPTIBLE flag
+     Subject: treewide: spelling: correct diffrent[iate] and banlance typos
 has been added to the -mm tree.  Its filename is
-     fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch
+     treewide-correct-diffrent-and-banlance-typos.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/treewide-correct-diffrent-and-banlance-typos.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-correct-diffrent-and-banlance-typos.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,207 +38,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: fs: semove set but not checked AOP_FLAG_UNINTERRUPTIBLE flag
+From: Joe Perches <joe@perches.com>
+Subject: treewide: spelling: correct diffrent[iate] and banlance typos
 
-afddba49d18f346e ("fs: introduce write_begin, write_end, and perform_write
-aops") introduced AOP_FLAG_UNINTERRUPTIBLE flag which was checked in
-pagecache_write_begin(), but that check was removed by 4e02ed4b4a2fae34
-("fs: remove prepare_write/commit_write").
+Add these misspellings to scripts/spelling.txt too
 
-Between these two commits, d9414774dc0c7b39 ("cifs: Convert cifs to new
-aops.") added a check in cifs_write_begin(), but that check was soon
-removed by a98ee8c1c707fe32 ("[CIFS] fix regression in
-cifs_write_begin/cifs_write_end").
-
-Therefore, AOP_FLAG_UNINTERRUPTIBLE flag is checked nowhere.  Let's remove
-this flag.  This patch has no functionality changes.
-
-Link: http://lkml.kernel.org/r/1489294781-53494-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reviewed-by: Jeff Layton <jlayton@redhat.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/962aace119675e5fe87be2a88ddac1a5486f8e60.1490931810.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfs.txt |    3 +--
- fs/buffer.c                       |   13 +++++--------
- fs/exofs/dir.c                    |    3 +--
- fs/hfs/extent.c                   |    4 ++--
- fs/hfsplus/extents.c              |    5 ++---
- fs/iomap.c                        |   13 +++----------
- fs/namei.c                        |    2 +-
- include/linux/fs.h                |    5 ++---
- mm/filemap.c                      |    6 ------
- 9 files changed, 17 insertions(+), 37 deletions(-)
+ drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h |    2 +-
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c      |    2 +-
+ drivers/net/ethernet/hisilicon/hns/hns_enet.c       |    2 +-
+ drivers/net/ethernet/qlogic/qed/qed_int.c           |    2 +-
+ drivers/net/ethernet/qlogic/qed/qed_main.c          |    2 +-
+ drivers/net/ethernet/qlogic/qed/qed_sriov.c         |    2 +-
+ include/linux/mlx4/device.h                         |    2 +-
+ scripts/spelling.txt                                |    3 +++
+ 8 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/filesystems/vfs.txt~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/Documentation/filesystems/vfs.txt
-@@ -695,8 +695,7 @@ struct address_space_operations {
+diff -puN drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h~treewide-correct-diffrent-and-banlance-typos drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h~treewide-correct-diffrent-and-banlance-typos
++++ a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
+@@ -70,7 +70,7 @@
+ * (3) both long and short but short preferred and long only when necesarry
+ *
+ * These modes must be selected compile time via compile switches.
+-* Compile switch settings for the diffrent modes:
++* Compile switch settings for the different modes:
+ * (1) DRXDAPFASI_LONG_ADDR_ALLOWED=0, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
+ * (2) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=0
+ * (3) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
+diff -puN drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
+--- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c~treewide-correct-diffrent-and-banlance-typos
++++ a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
+@@ -1591,7 +1591,7 @@ static int __bnx2x_vlan_mac_execute_step
+ 	if (rc != 0) {
+ 		__bnx2x_vlan_mac_h_pend(bp, o, *ramrod_flags);
  
-   write_end: After a successful write_begin, and data copy, write_end must
-         be called. len is the original len passed to write_begin, and copied
--        is the amount that was able to be copied (copied == len is always true
--	if write_begin was called with the AOP_FLAG_UNINTERRUPTIBLE flag).
-+        is the amount that was able to be copied.
+-		/* Calling function should not diffrentiate between this case
++		/* Calling function should not differentiate between this case
+ 		 * and the case in which there is already a pending ramrod
+ 		 */
+ 		rc = 1;
+diff -puN drivers/net/ethernet/hisilicon/hns/hns_enet.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/hisilicon/hns/hns_enet.c
+--- a/drivers/net/ethernet/hisilicon/hns/hns_enet.c~treewide-correct-diffrent-and-banlance-typos
++++ a/drivers/net/ethernet/hisilicon/hns/hns_enet.c
+@@ -1207,7 +1207,7 @@ static void hns_set_irq_affinity(struct
+ 	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
+ 		return;
  
-         The filesystem must take care of unlocking the page and releasing it
-         refcount, and updating i_size.
-diff -puN fs/buffer.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/buffer.c
---- a/fs/buffer.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/fs/buffer.c
-@@ -2379,8 +2379,7 @@ int generic_cont_expand_simple(struct in
- 		goto out;
+-	/*diffrent irq banlance for 16core and 32core*/
++	/* different irq balance for 16core and 32core */
+ 	if (h->q_num == num_possible_cpus()) {
+ 		for (i = 0; i < h->q_num * 2; i++) {
+ 			rd = &priv->ring_data[i];
+diff -puN drivers/net/ethernet/qlogic/qed/qed_int.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/qlogic/qed/qed_int.c
+--- a/drivers/net/ethernet/qlogic/qed/qed_int.c~treewide-correct-diffrent-and-banlance-typos
++++ a/drivers/net/ethernet/qlogic/qed/qed_int.c
+@@ -3057,7 +3057,7 @@ int qed_int_igu_read_cam(struct qed_hwfn
  
- 	err = pagecache_write_begin(NULL, mapping, size, 0,
--				AOP_FLAG_UNINTERRUPTIBLE|AOP_FLAG_CONT_EXPAND,
--				&page, &fsdata);
-+				    AOP_FLAG_CONT_EXPAND, &page, &fsdata);
- 	if (err)
- 		goto out;
+ 	/* There's a possibility the igu_sb_cnt_iov doesn't properly reflect
+ 	 * the number of VF SBs [especially for first VF on engine, as we can't
+-	 * diffrentiate between empty entries and its entries].
++	 * differentiate between empty entries and its entries].
+ 	 * Since we don't really support more SBs than VFs today, prevent any
+ 	 * such configuration by sanitizing the number of SBs to equal the
+ 	 * number of VFs.
+diff -puN drivers/net/ethernet/qlogic/qed/qed_main.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/qlogic/qed/qed_main.c
+--- a/drivers/net/ethernet/qlogic/qed/qed_main.c~treewide-correct-diffrent-and-banlance-typos
++++ a/drivers/net/ethernet/qlogic/qed/qed_main.c
+@@ -951,7 +951,7 @@ static int qed_slowpath_start(struct qed
+ 		if (rc)
+ 			goto err2;
  
-@@ -2415,9 +2414,8 @@ static int cont_expand_zero(struct file
- 		}
- 		len = PAGE_SIZE - zerofrom;
+-		/* First Dword used to diffrentiate between various sources */
++		/* First Dword used to differentiate between various sources */
+ 		data = cdev->firmware->data + sizeof(u32);
  
--		err = pagecache_write_begin(file, mapping, curpos, len,
--						AOP_FLAG_UNINTERRUPTIBLE,
--						&page, &fsdata);
-+		err = pagecache_write_begin(file, mapping, curpos, len, 0,
-+					    &page, &fsdata);
- 		if (err)
- 			goto out;
- 		zero_user(page, zerofrom, len);
-@@ -2449,9 +2447,8 @@ static int cont_expand_zero(struct file
- 		}
- 		len = offset - zerofrom;
+ 		qed_dbg_pf_init(cdev);
+diff -puN drivers/net/ethernet/qlogic/qed/qed_sriov.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/qlogic/qed/qed_sriov.c
+--- a/drivers/net/ethernet/qlogic/qed/qed_sriov.c~treewide-correct-diffrent-and-banlance-typos
++++ a/drivers/net/ethernet/qlogic/qed/qed_sriov.c
+@@ -625,7 +625,7 @@ int qed_iov_hw_info(struct qed_hwfn *p_h
+ 	 *  - If !ARI, VFs would start on next device.
+ 	 *    so offset - (256 - pf_id) would provide the number.
+ 	 * Utilize the fact that (256 - pf_id) is achieved only by later
+-	 * to diffrentiate between the two.
++	 * to differentiate between the two.
+ 	 */
  
--		err = pagecache_write_begin(file, mapping, curpos, len,
--						AOP_FLAG_UNINTERRUPTIBLE,
--						&page, &fsdata);
-+		err = pagecache_write_begin(file, mapping, curpos, len, 0,
-+					    &page, &fsdata);
- 		if (err)
- 			goto out;
- 		zero_user(page, zerofrom, len);
-diff -puN fs/exofs/dir.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/exofs/dir.c
---- a/fs/exofs/dir.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/fs/exofs/dir.c
-@@ -405,8 +405,7 @@ int exofs_set_link(struct inode *dir, st
- 	int err;
- 
- 	lock_page(page);
--	err = exofs_write_begin(NULL, page->mapping, pos, len,
--				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
-+	err = exofs_write_begin(NULL, page->mapping, pos, len, 0, &page, NULL);
- 	if (err)
- 		EXOFS_ERR("exofs_set_link: exofs_write_begin FAILED => %d\n",
- 			  err);
-diff -puN fs/hfs/extent.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/hfs/extent.c
---- a/fs/hfs/extent.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/fs/hfs/extent.c
-@@ -485,8 +485,8 @@ void hfs_file_truncate(struct inode *ino
- 
- 		/* XXX: Can use generic_cont_expand? */
- 		size = inode->i_size - 1;
--		res = pagecache_write_begin(NULL, mapping, size+1, 0,
--				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
-+		res = pagecache_write_begin(NULL, mapping, size+1, 0, 0,
-+					    &page, &fsdata);
- 		if (!res) {
- 			res = pagecache_write_end(NULL, mapping, size+1, 0, 0,
- 					page, fsdata);
-diff -puN fs/hfsplus/extents.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/hfsplus/extents.c
---- a/fs/hfsplus/extents.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/fs/hfsplus/extents.c
-@@ -545,9 +545,8 @@ void hfsplus_file_truncate(struct inode
- 		void *fsdata;
- 		loff_t size = inode->i_size;
- 
--		res = pagecache_write_begin(NULL, mapping, size, 0,
--						AOP_FLAG_UNINTERRUPTIBLE,
--						&page, &fsdata);
-+		res = pagecache_write_begin(NULL, mapping, size, 0, 0,
-+					    &page, &fsdata);
- 		if (res)
- 			return;
- 		res = pagecache_write_end(NULL, mapping, size,
-diff -puN fs/iomap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/iomap.c
---- a/fs/iomap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/fs/iomap.c
-@@ -158,12 +158,6 @@ iomap_write_actor(struct inode *inode, l
- 	ssize_t written = 0;
- 	unsigned int flags = AOP_FLAG_NOFS;
- 
--	/*
--	 * Copies from kernel address space cannot fail (NFSD is a big user).
--	 */
--	if (!iter_is_iovec(i))
--		flags |= AOP_FLAG_UNINTERRUPTIBLE;
--
- 	do {
- 		struct page *page;
- 		unsigned long offset;	/* Offset into pagecache page */
-@@ -291,8 +285,7 @@ iomap_dirty_actor(struct inode *inode, l
- 			return PTR_ERR(rpage);
- 
- 		status = iomap_write_begin(inode, pos, bytes,
--				AOP_FLAG_NOFS | AOP_FLAG_UNINTERRUPTIBLE,
--				&page, iomap);
-+					   AOP_FLAG_NOFS, &page, iomap);
- 		put_page(rpage);
- 		if (unlikely(status))
- 			return status;
-@@ -343,8 +336,8 @@ static int iomap_zero(struct inode *inod
- 	struct page *page;
- 	int status;
- 
--	status = iomap_write_begin(inode, pos, bytes,
--			AOP_FLAG_UNINTERRUPTIBLE | AOP_FLAG_NOFS, &page, iomap);
-+	status = iomap_write_begin(inode, pos, bytes, AOP_FLAG_NOFS, &page,
-+				   iomap);
- 	if (status)
- 		return status;
- 
-diff -puN fs/namei.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/namei.c
---- a/fs/namei.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/fs/namei.c
-@@ -4763,7 +4763,7 @@ int __page_symlink(struct inode *inode,
- 	struct page *page;
- 	void *fsdata;
- 	int err;
--	unsigned int flags = AOP_FLAG_UNINTERRUPTIBLE;
-+	unsigned int flags = 0;
- 	if (nofs)
- 		flags |= AOP_FLAG_NOFS;
- 
-diff -puN include/linux/fs.h~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag include/linux/fs.h
---- a/include/linux/fs.h~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/include/linux/fs.h
-@@ -250,9 +250,8 @@ enum positive_aop_returns {
- 	AOP_TRUNCATED_PAGE	= 0x80001,
+ 	if (p_hwfn->cdev->p_iov_info->offset < (256 - p_hwfn->abs_pf_id)) {
+diff -puN include/linux/mlx4/device.h~treewide-correct-diffrent-and-banlance-typos include/linux/mlx4/device.h
+--- a/include/linux/mlx4/device.h~treewide-correct-diffrent-and-banlance-typos
++++ a/include/linux/mlx4/device.h
+@@ -108,7 +108,7 @@ enum {
+ 	MLX4_MFUNC_EQE_MASK     = (MLX4_MFUNC_MAX_EQES - 1)
  };
  
--#define AOP_FLAG_UNINTERRUPTIBLE	0x0001 /* will not do a short write */
--#define AOP_FLAG_CONT_EXPAND		0x0002 /* called from cont_expand */
--#define AOP_FLAG_NOFS			0x0004 /* used by filesystem to direct
-+#define AOP_FLAG_CONT_EXPAND		0x0001 /* called from cont_expand */
-+#define AOP_FLAG_NOFS			0x0002 /* used by filesystem to direct
- 						* helper code (eg buffer layer)
- 						* to clear GFP_FS from alloc */
- 
-diff -puN mm/filemap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag mm/filemap.c
---- a/mm/filemap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
-+++ a/mm/filemap.c
-@@ -2794,12 +2794,6 @@ ssize_t generic_perform_write(struct fil
- 	ssize_t written = 0;
- 	unsigned int flags = 0;
- 
--	/*
--	 * Copies from kernel address space cannot fail (NFSD is a big user).
--	 */
--	if (!iter_is_iovec(i))
--		flags |= AOP_FLAG_UNINTERRUPTIBLE;
+-/* Driver supports 3 diffrent device methods to manage traffic steering:
++/* Driver supports 3 different device methods to manage traffic steering:
+  *	-device managed - High level API for ib and eth flow steering. FW is
+  *			  managing flow steering tables.
+  *	- B0 steering mode - Common low level API for ib and (if supported) eth.
+diff -puN scripts/spelling.txt~treewide-correct-diffrent-and-banlance-typos scripts/spelling.txt
+--- a/scripts/spelling.txt~treewide-correct-diffrent-and-banlance-typos
++++ a/scripts/spelling.txt
+@@ -174,6 +174,7 @@ bakup||backup
+ baloon||balloon
+ baloons||balloons
+ bandwith||bandwidth
++banlance||balance
+ batery||battery
+ beacuse||because
+ becasue||because
+@@ -365,6 +366,8 @@ dictionnary||dictionary
+ didnt||didn't
+ diferent||different
+ differrence||difference
++diffrent||different
++diffrentiate||differentiate
+ difinition||definition
+ diplay||display
+ direectly||directly
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
+checkpatch-improve-embedded_function_name-test.patch
+checkpatch-allow-space-leading-blank-lines-in-email-headers.patch
+treewide-correct-diffrent-and-banlance-typos.patch
+
