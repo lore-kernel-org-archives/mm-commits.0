@@ -1,136 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-tile-drop-arch_addremove_memory.patch removed from
+Subject: +
+ fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch added to
  -mm tree
-Date: Fri, 31 Mar 2017 13:06:59 -0700
-Message-ID: <58deb6e3.L6OMEMyMXxr2Qrp8%akpm@linux-foundation.org>
+Date: Fri, 31 Mar 2017 14:51:44 -0700
+Message-ID: <58decf70.QlosDu7aAck+S4RK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39026 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754594AbdCaUHC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 16:07:02 -0400
+        with ESMTP id S1755414AbdCaVvp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 17:51:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, benh@kernel.crashing.org, cmetcalf@mellanox.com, dan.j.williams@gmail.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, hpa@zytor.com, imammedo@redhat.com, js1304@gmail.com, mgorman@suse.de, mingo@elte.hu, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, slaoub@gmail.com, tglx@linutronix.de, tony.luck@intel.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, hch@lst.de, jlayton@redhat.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, tile: drop arch_{add,remove}_memory
-has been removed from the -mm tree.  Its filename was
-     mm-tile-drop-arch_addremove_memory.patch
+     Subject: fs: semove set but not checked AOP_FLAG_UNINTERRUPTIBLE flag
+has been added to the -mm tree.  Its filename is
+     fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, tile: drop arch_{add,remove}_memory
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: fs: semove set but not checked AOP_FLAG_UNINTERRUPTIBLE flag
 
-These functions are unreachable because tile doesn't support memory
-hotplug becasuse it doesn't select ARCH_ENABLE_MEMORY_HOTPLUG nor it
-supports SPARSEMEM.
+afddba49d18f346e ("fs: introduce write_begin, write_end, and perform_write
+aops") introduced AOP_FLAG_UNINTERRUPTIBLE flag which was checked in
+pagecache_write_begin(), but that check was removed by 4e02ed4b4a2fae34
+("fs: remove prepare_write/commit_write").
 
-This code hasn't been compiled for a while obviously because nobody has
-noticed that __add_pages has a different signature since 2009.
+Between these two commits, d9414774dc0c7b39 ("cifs: Convert cifs to new
+aops.") added a check in cifs_write_begin(), but that check was soon
+removed by a98ee8c1c707fe32 ("[CIFS] fix regression in
+cifs_write_begin/cifs_write_end").
 
-Link: http://lkml.kernel.org/r/20170330115454.32154-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <slaoub@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
-Cc: Dan Williams <dan.j.williams@gmail.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Kani Toshimitsu <toshi.kani@hpe.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Therefore, AOP_FLAG_UNINTERRUPTIBLE flag is checked nowhere.  Let's remove
+this flag.  This patch has no functionality changes.
+
+Link: http://lkml.kernel.org/r/1489294781-53494-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reviewed-by: Jeff Layton <jlayton@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/init.c |   30 ------------------------------
- 1 file changed, 30 deletions(-)
+ Documentation/filesystems/vfs.txt |    3 +--
+ fs/buffer.c                       |   13 +++++--------
+ fs/exofs/dir.c                    |    3 +--
+ fs/hfs/extent.c                   |    4 ++--
+ fs/hfsplus/extents.c              |    5 ++---
+ fs/iomap.c                        |   13 +++----------
+ fs/namei.c                        |    2 +-
+ include/linux/fs.h                |    5 ++---
+ mm/filemap.c                      |    6 ------
+ 9 files changed, 17 insertions(+), 37 deletions(-)
 
-diff -puN arch/tile/mm/init.c~mm-tile-drop-arch_addremove_memory arch/tile/mm/init.c
---- a/arch/tile/mm/init.c~mm-tile-drop-arch_addremove_memory
-+++ a/arch/tile/mm/init.c
-@@ -857,36 +857,6 @@ void __init mem_init(void)
- #endif
- }
+diff -puN Documentation/filesystems/vfs.txt~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/Documentation/filesystems/vfs.txt
+@@ -695,8 +695,7 @@ struct address_space_operations {
  
--/*
-- * this is for the non-NUMA, single node SMP system case.
-- * Specifically, in the case of x86, we will always add
-- * memory to the highmem for now.
-- */
--#ifndef CONFIG_NEED_MULTIPLE_NODES
--int arch_add_memory(u64 start, u64 size, bool for_device)
--{
--	struct pglist_data *pgdata = &contig_page_data;
--	struct zone *zone = pgdata->node_zones + MAX_NR_ZONES-1;
--	unsigned long start_pfn = start >> PAGE_SHIFT;
--	unsigned long nr_pages = size >> PAGE_SHIFT;
--
--	return __add_pages(zone, start_pfn, nr_pages);
--}
--
--int remove_memory(u64 start, u64 size)
--{
--	return -EINVAL;
--}
--
--#ifdef CONFIG_MEMORY_HOTREMOVE
--int arch_remove_memory(u64 start, u64 size)
--{
--	/* TODO */
--	return -EBUSY;
--}
--#endif
--#endif
--
- struct kmem_cache *pgd_cache;
+   write_end: After a successful write_begin, and data copy, write_end must
+         be called. len is the original len passed to write_begin, and copied
+-        is the amount that was able to be copied (copied == len is always true
+-	if write_begin was called with the AOP_FLAG_UNINTERRUPTIBLE flag).
++        is the amount that was able to be copied.
  
- void __init pgtable_cache_init(void)
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-mm-move-mm_percpu_wq-initialization-earlier.patch
-lockdep-allow-to-disable-reclaim-lockup-detection.patch
-xfs-abstract-pf_fstrans-to-pf_memalloc_nofs.patch
-mm-introduce-memalloc_nofs_saverestore-api.patch
-xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
-mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
-mm-get-rid-of-zone_is_initialized.patch
-mm-remove-return-value-from-init_currently_empty_zone.patch
-mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
-mm-introduce-kvalloc-helpers.patch
-mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
-rhashtable-simplify-a-strange-allocation-pattern.patch
-ila-simplify-a-strange-allocation-pattern.patch
-xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
-treewide-use-kvalloc-rather-than-opencoded-variants.patch
-net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
-md-use-kvmalloc-rather-than-opencoded-variant.patch
-bcache-use-kvmalloc.patch
-mm-vmalloc-use-__gfp_highmem-implicitly.patch
-
+         The filesystem must take care of unlocking the page and releasing it
+         refcount, and updating i_size.
+diff -puN fs/buffer.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/buffer.c
+--- a/fs/buffer.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/fs/buffer.c
+@@ -2379,8 +2379,7 @@ int generic_cont_expand_simple(struct in
+ 		goto out;
+ 
+ 	err = pagecache_write_begin(NULL, mapping, size, 0,
+-				AOP_FLAG_UNINTERRUPTIBLE|AOP_FLAG_CONT_EXPAND,
+-				&page, &fsdata);
++				    AOP_FLAG_CONT_EXPAND, &page, &fsdata);
+ 	if (err)
+ 		goto out;
+ 
+@@ -2415,9 +2414,8 @@ static int cont_expand_zero(struct file
+ 		}
+ 		len = PAGE_SIZE - zerofrom;
+ 
+-		err = pagecache_write_begin(file, mapping, curpos, len,
+-						AOP_FLAG_UNINTERRUPTIBLE,
+-						&page, &fsdata);
++		err = pagecache_write_begin(file, mapping, curpos, len, 0,
++					    &page, &fsdata);
+ 		if (err)
+ 			goto out;
+ 		zero_user(page, zerofrom, len);
+@@ -2449,9 +2447,8 @@ static int cont_expand_zero(struct file
+ 		}
+ 		len = offset - zerofrom;
+ 
+-		err = pagecache_write_begin(file, mapping, curpos, len,
+-						AOP_FLAG_UNINTERRUPTIBLE,
+-						&page, &fsdata);
++		err = pagecache_write_begin(file, mapping, curpos, len, 0,
++					    &page, &fsdata);
+ 		if (err)
+ 			goto out;
+ 		zero_user(page, zerofrom, len);
+diff -puN fs/exofs/dir.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/exofs/dir.c
+--- a/fs/exofs/dir.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/fs/exofs/dir.c
+@@ -405,8 +405,7 @@ int exofs_set_link(struct inode *dir, st
+ 	int err;
+ 
+ 	lock_page(page);
+-	err = exofs_write_begin(NULL, page->mapping, pos, len,
+-				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
++	err = exofs_write_begin(NULL, page->mapping, pos, len, 0, &page, NULL);
+ 	if (err)
+ 		EXOFS_ERR("exofs_set_link: exofs_write_begin FAILED => %d\n",
+ 			  err);
+diff -puN fs/hfs/extent.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/hfs/extent.c
+--- a/fs/hfs/extent.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/fs/hfs/extent.c
+@@ -485,8 +485,8 @@ void hfs_file_truncate(struct inode *ino
+ 
+ 		/* XXX: Can use generic_cont_expand? */
+ 		size = inode->i_size - 1;
+-		res = pagecache_write_begin(NULL, mapping, size+1, 0,
+-				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
++		res = pagecache_write_begin(NULL, mapping, size+1, 0, 0,
++					    &page, &fsdata);
+ 		if (!res) {
+ 			res = pagecache_write_end(NULL, mapping, size+1, 0, 0,
+ 					page, fsdata);
+diff -puN fs/hfsplus/extents.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/hfsplus/extents.c
+--- a/fs/hfsplus/extents.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/fs/hfsplus/extents.c
+@@ -545,9 +545,8 @@ void hfsplus_file_truncate(struct inode
+ 		void *fsdata;
+ 		loff_t size = inode->i_size;
+ 
+-		res = pagecache_write_begin(NULL, mapping, size, 0,
+-						AOP_FLAG_UNINTERRUPTIBLE,
+-						&page, &fsdata);
++		res = pagecache_write_begin(NULL, mapping, size, 0, 0,
++					    &page, &fsdata);
+ 		if (res)
+ 			return;
+ 		res = pagecache_write_end(NULL, mapping, size,
+diff -puN fs/iomap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/iomap.c
+--- a/fs/iomap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/fs/iomap.c
+@@ -158,12 +158,6 @@ iomap_write_actor(struct inode *inode, l
+ 	ssize_t written = 0;
+ 	unsigned int flags = AOP_FLAG_NOFS;
+ 
+-	/*
+-	 * Copies from kernel address space cannot fail (NFSD is a big user).
+-	 */
+-	if (!iter_is_iovec(i))
+-		flags |= AOP_FLAG_UNINTERRUPTIBLE;
+-
+ 	do {
+ 		struct page *page;
+ 		unsigned long offset;	/* Offset into pagecache page */
+@@ -291,8 +285,7 @@ iomap_dirty_actor(struct inode *inode, l
+ 			return PTR_ERR(rpage);
+ 
+ 		status = iomap_write_begin(inode, pos, bytes,
+-				AOP_FLAG_NOFS | AOP_FLAG_UNINTERRUPTIBLE,
+-				&page, iomap);
++					   AOP_FLAG_NOFS, &page, iomap);
+ 		put_page(rpage);
+ 		if (unlikely(status))
+ 			return status;
+@@ -343,8 +336,8 @@ static int iomap_zero(struct inode *inod
+ 	struct page *page;
+ 	int status;
+ 
+-	status = iomap_write_begin(inode, pos, bytes,
+-			AOP_FLAG_UNINTERRUPTIBLE | AOP_FLAG_NOFS, &page, iomap);
++	status = iomap_write_begin(inode, pos, bytes, AOP_FLAG_NOFS, &page,
++				   iomap);
+ 	if (status)
+ 		return status;
+ 
+diff -puN fs/namei.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag fs/namei.c
+--- a/fs/namei.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/fs/namei.c
+@@ -4763,7 +4763,7 @@ int __page_symlink(struct inode *inode,
+ 	struct page *page;
+ 	void *fsdata;
+ 	int err;
+-	unsigned int flags = AOP_FLAG_UNINTERRUPTIBLE;
++	unsigned int flags = 0;
+ 	if (nofs)
+ 		flags |= AOP_FLAG_NOFS;
+ 
+diff -puN include/linux/fs.h~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag include/linux/fs.h
+--- a/include/linux/fs.h~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/include/linux/fs.h
+@@ -250,9 +250,8 @@ enum positive_aop_returns {
+ 	AOP_TRUNCATED_PAGE	= 0x80001,
+ };
+ 
+-#define AOP_FLAG_UNINTERRUPTIBLE	0x0001 /* will not do a short write */
+-#define AOP_FLAG_CONT_EXPAND		0x0002 /* called from cont_expand */
+-#define AOP_FLAG_NOFS			0x0004 /* used by filesystem to direct
++#define AOP_FLAG_CONT_EXPAND		0x0001 /* called from cont_expand */
++#define AOP_FLAG_NOFS			0x0002 /* used by filesystem to direct
+ 						* helper code (eg buffer layer)
+ 						* to clear GFP_FS from alloc */
+ 
+diff -puN mm/filemap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag mm/filemap.c
+--- a/mm/filemap.c~fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag
++++ a/mm/filemap.c
+@@ -2794,12 +2794,6 @@ ssize_t generic_perform_write(struct fil
+ 	ssize_t written = 0;
+ 	unsigned int flags = 0;
+ 
+-	/*
+-	 * Copies from kernel address space cannot fail (NFSD is a big user).
+-	 */
+-	if (!iter_is_iovec(i))
+-		flags |= AOP_FLAG_UNINTERRUPTIBLE;
