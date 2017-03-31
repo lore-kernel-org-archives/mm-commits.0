@@ -1,78 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/11] drivers/rapidio/devices/tsi721.c: make module
- parameter variable name unique
-Date: Fri, 31 Mar 2017 15:12:10 -0700
-Message-ID: <58ded43a.75sCtzHxVQh8F6Bz%akpm@linux-foundation.org>
+Subject: [patch 09/11] mm/hugetlb.c: don't call region_abort if region_chg fails
+Date: Fri, 31 Mar 2017 15:12:07 -0700
+Message-ID: <58ded437.FgUFmle+0XdCMuAK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41742 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933315AbdCaWML (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:11 -0400
+        with ESMTP id S933149AbdCaWMI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rdunlap@infradead.org, alexandre.bounine@idt.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, jeremy.lefaure@lse.epita.fr, mporter@kernel.crashing.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, dvyukov@google.com, hillf.zj@alibaba-inc.com
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb.c: don't call region_abort if region_chg fails
 
-kbuild test robot reported a non-static variable name collision between a
-staging driver and a RapidIO driver, with a generic variable name of
-'dbg_level'.
+Changes to hugetlbfs reservation maps is a two step process.  The first
+step is a call to region_chg to determine what needs to be changed, and
+prepare that change.  This should be followed by a call to call to
+region_add to commit the change, or region_abort to abort the change.
 
-Both drivers should be changed so that they don't use this generic public
-variable name.  This patch fixes the RapidIO driver but does not change
-the user interface (name) for the module parameter.
+The error path in hugetlb_reserve_pages called region_abort after a
+failed call to region_chg.  As a result, the adds_in_progress counter
+in the reservation map is off by 1.  This is caught by a VM_BUG_ON
+in resv_map_release when the reservation map is freed.
 
-drivers/staging/built-in.o:(.bss+0x109d0): multiple definition of `dbg_level'
-drivers/rapidio/built-in.o:(.bss+0x16c): first defined here
+syzkaller fuzzer (when using an injected kmalloc failure) found this bug,
+that resulted in the following:
 
-Link: http://lkml.kernel.org/r/ab527fc5-aa3c-4b07-5d48-eef5de703192@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+ kernel BUG at mm/hugetlb.c:742!
+ Call Trace:
+  hugetlbfs_evict_inode+0x7b/0xa0 fs/hugetlbfs/inode.c:493
+  evict+0x481/0x920 fs/inode.c:553
+  iput_final fs/inode.c:1515 [inline]
+  iput+0x62b/0xa20 fs/inode.c:1542
+  hugetlb_file_setup+0x593/0x9f0 fs/hugetlbfs/inode.c:1306
+  newseg+0x422/0xd30 ipc/shm.c:575
+  ipcget_new ipc/util.c:285 [inline]
+  ipcget+0x21e/0x580 ipc/util.c:639
+  SYSC_shmget ipc/shm.c:673 [inline]
+  SyS_shmget+0x158/0x230 ipc/shm.c:657
+  entry_SYSCALL_64_fastpath+0x1f/0xc2
+ RIP: resv_map_release+0x265/0x330 mm/hugetlb.c:742
+
+Link: http://lkml.kernel.org/r/1490821682-23228-1-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    4 ++--
- drivers/rapidio/devices/tsi721.h |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -37,8 +37,8 @@
- #include "tsi721.h"
- 
- #ifdef DEBUG
--u32 dbg_level;
--module_param(dbg_level, uint, S_IWUSR | S_IRUGO);
-+u32 tsi_dbg_level;
-+module_param_named(dbg_level, tsi_dbg_level, uint, S_IWUSR | S_IRUGO);
- MODULE_PARM_DESC(dbg_level, "Debugging output level (default 0 = none)");
- #endif
- 
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -40,11 +40,11 @@ enum {
- };
- 
- #ifdef DEBUG
--extern u32 dbg_level;
-+extern u32 tsi_dbg_level;
- 
- #define tsi_debug(level, dev, fmt, arg...)				\
- 	do {								\
--		if (DBG_##level & dbg_level)				\
-+		if (DBG_##level & tsi_dbg_level)				\
- 			dev_dbg(dev, "%s: " fmt "\n", __func__, ##arg);	\
- 	} while (0)
- #else
+diff -puN mm/hugetlb.c~mm-hugetlb-dont-call-region_abort-if-region_chg-fails mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-dont-call-region_abort-if-region_chg-fails
++++ a/mm/hugetlb.c
+@@ -4403,7 +4403,9 @@ int hugetlb_reserve_pages(struct inode *
+ 	return 0;
+ out_err:
+ 	if (!vma || vma->vm_flags & VM_MAYSHARE)
+-		region_abort(resv_map, from, to);
++		/* Don't call region_abort if region_chg failed */
++		if (chg >= 0)
++			region_abort(resv_map, from, to);
+ 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+ 		kref_put(&resv_map->refs, resv_map_release);
+ 	return ret;
 _
