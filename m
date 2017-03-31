@@ -1,124 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/11] mm: fix section name for .data..ro_after_init
-Date: Fri, 31 Mar 2017 15:11:58 -0700
-Message-ID: <58ded42e.z/io/oU8H8zI372u%akpm@linux-foundation.org>
+Subject: [patch 07/11] hugetlbfs: initialize shared policy as part of
+ inode allocation
+Date: Fri, 31 Mar 2017 15:12:01 -0700
+Message-ID: <58ded431.yYMsVpa+7iLknNFN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41664 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933149AbdCaWMA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:00 -0400
+        with ESMTP id S933149AbdCaWMC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2017 18:12:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, ewk@edkovsky.org, heiko.carstens@de.ibm.com, jakub.kicinski@netronome.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dvyukov@google.com, hillf.zj@alibaba-inc.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp
 
-From: Kees Cook <keescook@chromium.org>
-Subject: mm: fix section name for .data..ro_after_init
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlbfs: initialize shared policy as part of inode allocation
 
-A section name for .data..ro_after_init was added by both:
+Any time after inode allocation, destroy_inode can be called.  The
+hugetlbfs inode contains a shared_policy structure, and
+mpol_free_shared_policy is unconditionally called as part of
+hugetlbfs_destroy_inode.  Initialize the policy as part of inode
+allocation so that any quick (error path) calls to destroy_inode will be
+handed an initialized policy.
 
-    commit d07a980c1b8d ("s390: add proper __ro_after_init support")
+syzkaller fuzzer found this bug, that resulted in the following:
 
-and
+BUG: KASAN: user-memory-access in atomic_inc
+include/asm-generic/atomic-instrumented.h:87 [inline] at addr
+000000131730bd7a
+BUG: KASAN: user-memory-access in __lock_acquire+0x21a/0x3a80
+kernel/locking/lockdep.c:3239 at addr 000000131730bd7a
+Write of size 4 by task syz-executor6/14086
+CPU: 3 PID: 14086 Comm: syz-executor6 Not tainted 4.11.0-rc3+ #364
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x1b8/0x28d lib/dump_stack.c:52
+ kasan_report_error mm/kasan/report.c:291 [inline]
+ kasan_report.part.2+0x34a/0x480 mm/kasan/report.c:316
+ kasan_report+0x21/0x30 mm/kasan/report.c:303
+ check_memory_region_inline mm/kasan/kasan.c:326 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:333
+ kasan_check_write+0x14/0x20 mm/kasan/kasan.c:344
+ atomic_inc include/asm-generic/atomic-instrumented.h:87 [inline]
+ __lock_acquire+0x21a/0x3a80 kernel/locking/lockdep.c:3239
+ lock_acquire+0x1ee/0x590 kernel/locking/lockdep.c:3762
+ __raw_write_lock include/linux/rwlock_api_smp.h:210 [inline]
+ _raw_write_lock+0x33/0x50 kernel/locking/spinlock.c:295
+ mpol_free_shared_policy+0x43/0xb0 mm/mempolicy.c:2536
+ hugetlbfs_destroy_inode+0xca/0x120 fs/hugetlbfs/inode.c:952
+ alloc_inode+0x10d/0x180 fs/inode.c:216
+ new_inode_pseudo+0x69/0x190 fs/inode.c:889
+ new_inode+0x1c/0x40 fs/inode.c:918
+ hugetlbfs_get_inode+0x40/0x420 fs/hugetlbfs/inode.c:734
+ hugetlb_file_setup+0x329/0x9f0 fs/hugetlbfs/inode.c:1282
+ newseg+0x422/0xd30 ipc/shm.c:575
+ ipcget_new ipc/util.c:285 [inline]
+ ipcget+0x21e/0x580 ipc/util.c:639
+ SYSC_shmget ipc/shm.c:673 [inline]
+ SyS_shmget+0x158/0x230 ipc/shm.c:657
+ entry_SYSCALL_64_fastpath+0x1f/0xc2
 
-    commit d7c19b066dcf ("mm: kmemleak: scan .data.ro_after_init")
+Analysis provided by Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 
-The latter adds incorrect wrapping around the existing s390 section, and
-came later.  I'd prefer the s390 naming, so this moves the s390-specific
-name up to the asm-generic/sections.h and renames the section as used by
-kmemleak (and in the future, kernel/extable.c).
-
-Link: http://lkml.kernel.org/r/20170327192213.GA129375@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>	[s390 parts]
-Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc: Eddie Kovsky <ewk@edkovsky.org>
+Link: http://lkml.kernel.org/r/1490477850-7944-1-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/sections.h  |    1 -
- arch/s390/kernel/vmlinux.lds.S    |    2 --
- include/asm-generic/sections.h    |    6 +++---
- include/asm-generic/vmlinux.lds.h |    4 ++--
- mm/kmemleak.c                     |    2 +-
- 5 files changed, 6 insertions(+), 9 deletions(-)
+ fs/hugetlbfs/inode.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN arch/s390/include/asm/sections.h~mm-fix-section-name-for-dataro_after_init arch/s390/include/asm/sections.h
---- a/arch/s390/include/asm/sections.h~mm-fix-section-name-for-dataro_after_init
-+++ a/arch/s390/include/asm/sections.h
-@@ -4,6 +4,5 @@
- #include <asm-generic/sections.h>
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-initialize-shared-policy-as-part-of-inode-allocation
++++ a/fs/hugetlbfs/inode.c
+@@ -695,14 +695,11 @@ static struct inode *hugetlbfs_get_root(
  
- extern char _eshared[], _ehead[];
--extern char __start_ro_after_init[], __end_ro_after_init[];
+ 	inode = new_inode(sb);
+ 	if (inode) {
+-		struct hugetlbfs_inode_info *info;
+ 		inode->i_ino = get_next_ino();
+ 		inode->i_mode = S_IFDIR | config->mode;
+ 		inode->i_uid = config->uid;
+ 		inode->i_gid = config->gid;
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+-		info = HUGETLBFS_I(inode);
+-		mpol_shared_policy_init(&info->policy, NULL);
+ 		inode->i_op = &hugetlbfs_dir_inode_operations;
+ 		inode->i_fop = &simple_dir_operations;
+ 		/* directory inodes start off with i_nlink == 2 (for "." entry) */
+@@ -733,7 +730,6 @@ static struct inode *hugetlbfs_get_inode
  
- #endif
-diff -puN arch/s390/kernel/vmlinux.lds.S~mm-fix-section-name-for-dataro_after_init arch/s390/kernel/vmlinux.lds.S
---- a/arch/s390/kernel/vmlinux.lds.S~mm-fix-section-name-for-dataro_after_init
-+++ a/arch/s390/kernel/vmlinux.lds.S
-@@ -63,11 +63,9 @@ SECTIONS
- 
- 	. = ALIGN(PAGE_SIZE);
- 	__start_ro_after_init = .;
--	__start_data_ro_after_init = .;
- 	.data..ro_after_init : {
- 		 *(.data..ro_after_init)
+ 	inode = new_inode(sb);
+ 	if (inode) {
+-		struct hugetlbfs_inode_info *info;
+ 		inode->i_ino = get_next_ino();
+ 		inode_init_owner(inode, dir, mode);
+ 		lockdep_set_class(&inode->i_mapping->i_mmap_rwsem,
+@@ -741,15 +737,6 @@ static struct inode *hugetlbfs_get_inode
+ 		inode->i_mapping->a_ops = &hugetlbfs_aops;
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+ 		inode->i_mapping->private_data = resv_map;
+-		info = HUGETLBFS_I(inode);
+-		/*
+-		 * The policy is initialized here even if we are creating a
+-		 * private inode because initialization simply creates an
+-		 * an empty rb tree and calls rwlock_init(), later when we
+-		 * call mpol_free_shared_policy() it will just return because
+-		 * the rb tree will still be empty.
+-		 */
+-		mpol_shared_policy_init(&info->policy, NULL);
+ 		switch (mode & S_IFMT) {
+ 		default:
+ 			init_special_inode(inode, mode, dev);
+@@ -937,6 +924,18 @@ static struct inode *hugetlbfs_alloc_ino
+ 		hugetlbfs_inc_free_inodes(sbinfo);
+ 		return NULL;
  	}
--	__end_data_ro_after_init = .;
- 	EXCEPTION_TABLE(16)
- 	. = ALIGN(PAGE_SIZE);
- 	__end_ro_after_init = .;
-diff -puN include/asm-generic/sections.h~mm-fix-section-name-for-dataro_after_init include/asm-generic/sections.h
---- a/include/asm-generic/sections.h~mm-fix-section-name-for-dataro_after_init
-+++ a/include/asm-generic/sections.h
-@@ -14,8 +14,8 @@
-  * [_sdata, _edata]: contains .data.* sections, may also contain .rodata.*
-  *                   and/or .init.* sections.
-  * [__start_rodata, __end_rodata]: contains .rodata.* sections
-- * [__start_data_ro_after_init, __end_data_ro_after_init]:
-- *		     contains data.ro_after_init section
-+ * [__start_ro_after_init, __end_ro_after_init]:
-+ *		     contains .data..ro_after_init section
-  * [__init_begin, __init_end]: contains .init.* sections, but .init.text.*
-  *                   may be out of this range on some architectures.
-  * [_sinittext, _einittext]: contains .init.text.* sections
-@@ -33,7 +33,7 @@ extern char _data[], _sdata[], _edata[];
- extern char __bss_start[], __bss_stop[];
- extern char __init_begin[], __init_end[];
- extern char _sinittext[], _einittext[];
--extern char __start_data_ro_after_init[], __end_data_ro_after_init[];
-+extern char __start_ro_after_init[], __end_ro_after_init[];
- extern char _end[];
- extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
- extern char __kprobes_text_start[], __kprobes_text_end[];
-diff -puN include/asm-generic/vmlinux.lds.h~mm-fix-section-name-for-dataro_after_init include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~mm-fix-section-name-for-dataro_after_init
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -260,9 +260,9 @@
-  */
- #ifndef RO_AFTER_INIT_DATA
- #define RO_AFTER_INIT_DATA						\
--	__start_data_ro_after_init = .;					\
-+	__start_ro_after_init = .;					\
- 	*(.data..ro_after_init)						\
--	__end_data_ro_after_init = .;
-+	__end_ro_after_init = .;
- #endif
++
++	/*
++	 * Any time after allocation, hugetlbfs_destroy_inode can be called
++	 * for the inode.  mpol_free_shared_policy is unconditionally called
++	 * as part of hugetlbfs_destroy_inode.  So, initialize policy here
++	 * in case of a quick call to destroy.
++	 *
++	 * Note that the policy is initialized even if we are creating a
++	 * private inode.  This simplifies hugetlbfs_destroy_inode.
++	 */
++	mpol_shared_policy_init(&p->policy, NULL);
++
+ 	return &p->vfs_inode;
+ }
  
- /*
-diff -puN mm/kmemleak.c~mm-fix-section-name-for-dataro_after_init mm/kmemleak.c
---- a/mm/kmemleak.c~mm-fix-section-name-for-dataro_after_init
-+++ a/mm/kmemleak.c
-@@ -1416,7 +1416,7 @@ static void kmemleak_scan(void)
- 	/* data/bss scanning */
- 	scan_large_block(_sdata, _edata);
- 	scan_large_block(__bss_start, __bss_stop);
--	scan_large_block(__start_data_ro_after_init, __end_data_ro_after_init);
-+	scan_large_block(__start_ro_after_init, __end_ro_after_init);
- 
- #ifdef CONFIG_SMP
- 	/* per-cpu sections scanning */
 _
