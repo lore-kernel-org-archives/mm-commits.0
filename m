@@ -1,92 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rapidio-tsi721-make-module-parameter-variable-name-unique.patch removed
- from -mm tree
-Date: Mon, 03 Apr 2017 12:07:53 -0700
-Message-ID: <58e29d89.Wxj1tufmW4Va6YAJ%akpm@linux-foundation.org>
+Subject: + mm-fix-page_vma_mapped_walk-for-ksm-pages.patch added to -mm
+ tree
+Date: Mon, 03 Apr 2017 15:00:33 -0700
+Message-ID: <58e2c601.9NM+q1JWplbvzcVG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52488 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751457AbdDCTHy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 15:07:54 -0400
+        with ESMTP id S1751479AbdDCWAe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 18:00:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, alexandre.bounine@idt.com, fengguang.wu@intel.com, gregkh@linuxfoundation.org, jeremy.lefaure@lse.epita.fr, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: hughd@google.com, dsmythies@telus.net, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
-has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-make-module-parameter-variable-name-unique.patch
+     Subject: mm: fix page_vma_mapped_walk() for ksm pages
+has been added to the -mm tree.  Its filename is
+     mm-fix-page_vma_mapped_walk-for-ksm-pages.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-page_vma_mapped_walk-for-ksm-pages.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-page_vma_mapped_walk-for-ksm-pages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: drivers/rapidio/devices/tsi721.c: make module parameter variable name unique
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix page_vma_mapped_walk() for ksm pages
 
-kbuild test robot reported a non-static variable name collision between a
-staging driver and a RapidIO driver, with a generic variable name of
-'dbg_level'.
+Doug Smythies reports oops with KSM in this backtrace, I've been seeing
+the same:
 
-Both drivers should be changed so that they don't use this generic public
-variable name.  This patch fixes the RapidIO driver but does not change
-the user interface (name) for the module parameter.
+page_vma_mapped_walk+0xe6/0x5b0
+page_referenced_one+0x91/0x1a0
+rmap_walk_ksm+0x100/0x190
+rmap_walk+0x4f/0x60
+page_referenced+0x149/0x170
+shrink_active_list+0x1c2/0x430
+shrink_node_memcg+0x67a/0x7a0
+shrink_node+0xe1/0x320
+kswapd+0x34b/0x720
 
-drivers/staging/built-in.o:(.bss+0x109d0): multiple definition of `dbg_level'
-drivers/rapidio/built-in.o:(.bss+0x16c): first defined here
+Just as 4b0ece6fa016 ("mm: migrate: fix remove_migration_pte() for ksm
+pages") observed, you cannot use page->index calculations on ksm pages. 
+page_vma_mapped_walk() is relying on __vma_address(), where a ksm page can
+lead it off the end of the page table, and into whatever nonsense is in
+the next page, ending as an oops inside check_pte()'s pte_page().
 
-Link: http://lkml.kernel.org/r/ab527fc5-aa3c-4b07-5d48-eef5de703192@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+KSM tells page_vma_mapped_walk() exactly where to look for the page, it
+does not need any page->index calculation: and that's so also for all the
+normal and file and anon pages - just not for THPs and their subpages. 
+Get out early in most cases: instead of a PageKsm test, move down the
+earlier not-THP-page test, as suggested by Kirill.
+
+I'm also slightly worried that this loop can stray into other vmas, so
+added a vm_end test to prevent surprises; though I have not imagined
+anything worse than a very contrived case, in which a page mlocked in the
+next vma might be reclaimed because it is not mlocked in this vma.
+
+Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1704031104400.1118@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Doug Smythies <dsmythies@telus.net>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    4 ++--
- drivers/rapidio/devices/tsi721.h |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/page_vma_mapped.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-make-module-parameter-variable-name-unique
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -37,8 +37,8 @@
- #include "tsi721.h"
+diff -puN mm/page_vma_mapped.c~mm-fix-page_vma_mapped_walk-for-ksm-pages mm/page_vma_mapped.c
+--- a/mm/page_vma_mapped.c~mm-fix-page_vma_mapped_walk-for-ksm-pages
++++ a/mm/page_vma_mapped.c
+@@ -111,12 +111,8 @@ bool page_vma_mapped_walk(struct page_vm
+ 	if (pvmw->pmd && !pvmw->pte)
+ 		return not_found(pvmw);
  
- #ifdef DEBUG
--u32 dbg_level;
--module_param(dbg_level, uint, S_IWUSR | S_IRUGO);
-+u32 tsi_dbg_level;
-+module_param_named(dbg_level, tsi_dbg_level, uint, S_IWUSR | S_IRUGO);
- MODULE_PARM_DESC(dbg_level, "Debugging output level (default 0 = none)");
- #endif
+-	/* Only for THP, seek to next pte entry makes sense */
+-	if (pvmw->pte) {
+-		if (!PageTransHuge(pvmw->page) || PageHuge(pvmw->page))
+-			return not_found(pvmw);
++	if (pvmw->pte)
+ 		goto next_pte;
+-	}
  
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-make-module-parameter-variable-name-unique
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -40,11 +40,11 @@ enum {
- };
- 
- #ifdef DEBUG
--extern u32 dbg_level;
-+extern u32 tsi_dbg_level;
- 
- #define tsi_debug(level, dev, fmt, arg...)				\
- 	do {								\
--		if (DBG_##level & dbg_level)				\
-+		if (DBG_##level & tsi_dbg_level)				\
- 			dev_dbg(dev, "%s: " fmt "\n", __func__, ##arg);	\
- 	} while (0)
- #else
+ 	if (unlikely(PageHuge(pvmw->page))) {
+ 		/* when pud is not present, pte will be NULL */
+@@ -165,9 +161,14 @@ restart:
+ 	while (1) {
+ 		if (check_pte(pvmw))
+ 			return true;
+-next_pte:	do {
++next_pte:
++		/* Seek to next pte only makes sense for THP */
++		if (!PageTransHuge(pvmw->page) || PageHuge(pvmw->page))
++			return not_found(pvmw);
++		do {
+ 			pvmw->address += PAGE_SIZE;
+-			if (pvmw->address >=
++			if (pvmw->address >= pvmw->vma->vm_end ||
++			    pvmw->address >=
+ 					__vma_address(pvmw->page, pvmw->vma) +
+ 					hpage_nr_pages(pvmw->page) * PAGE_SIZE)
+ 				return not_found(pvmw);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-fix-page_vma_mapped_walk-for-ksm-pages.patch
 
