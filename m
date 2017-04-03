@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fix-print-order-in-show_free_areas.patch added to -mm tree
-Date: Mon, 03 Apr 2017 15:11:17 -0700
-Message-ID: <58e2c885.fYYyNuCxKh7sHx78%akpm@linux-foundation.org>
+Subject: +
+ kbuild-consolidate-header-generation-from-asm-offset-information.patch
+ added to -mm tree
+Date: Mon, 03 Apr 2017 15:21:44 -0700
+Message-ID: <58e2caf8.yP1CoiOiL8ffnYSJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53572 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751883AbdDCWLS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 18:11:18 -0400
+        with ESMTP id S1751515AbdDCWVq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 18:21:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apolyakov@beget.ru, apolyakov@beget.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mka@chromium.org, fenghua.yu@intel.com, ghackmann@google.com, grundler@chromium.org, jan.kiszka@siemens.com, kieran.bingham@linaro.org, md@google.com, mmarek@suse.com, tony.luck@intel.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmpage_alloc.c: fix print order in show_free_areas()
+     Subject: kbuild: consolidate header generation from ASM offset information
 has been added to the -mm tree.  Its filename is
-     fix-print-order-in-show_free_areas.patch
+     kbuild-consolidate-header-generation-from-asm-offset-information.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-print-order-in-show_free_areas.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-consolidate-header-generation-from-asm-offset-information.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-print-order-in-show_free_areas.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-consolidate-header-generation-from-asm-offset-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +40,163 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Polakov <apolyakov@beget.ru>
-Subject: mmpage_alloc.c: fix print order in show_free_areas()
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: kbuild: consolidate header generation from ASM offset information
 
-Fixes: 11fb998986a72a ("mm: move most file-based accounting to the node")
-Link: http://lkml.kernel.org/r/1490377730.30219.2.camel@beget.ru
-Signed-off-by: Alexander Polyakov <apolyakov@beget.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
+Largely redundant code is used in different places to generate C headers
+from offset information extracted from assembly language output. 
+Consolidate the code in a Makefile include and use this instead.
+
+Link: http://lkml.kernel.org/r/20170403193739.84905-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kieran.bingham@linaro.org>
+Cc: Grant Grundler <grundler@chromium.org>
+Cc: Michael Davidson <md@google.com>
+Cc: Greg Hackmann <ghackmann@google.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Kbuild                       |   21 ++-------------------
+ arch/ia64/kernel/Makefile    |   19 +++----------------
+ scripts/Makefile.asm-offsets |   22 ++++++++++++++++++++++
+ scripts/mod/Makefile         |   21 ++-------------------
+ 4 files changed, 29 insertions(+), 54 deletions(-)
 
-diff -puN mm/page_alloc.c~fix-print-order-in-show_free_areas mm/page_alloc.c
---- a/mm/page_alloc.c~fix-print-order-in-show_free_areas
-+++ a/mm/page_alloc.c
-@@ -4519,13 +4519,13 @@ void show_free_areas(unsigned int filter
- 			K(node_page_state(pgdat, NR_FILE_MAPPED)),
- 			K(node_page_state(pgdat, NR_FILE_DIRTY)),
- 			K(node_page_state(pgdat, NR_WRITEBACK)),
-+			K(node_page_state(pgdat, NR_SHMEM)),
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			K(node_page_state(pgdat, NR_SHMEM_THPS) * HPAGE_PMD_NR),
- 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
- 					* HPAGE_PMD_NR),
- 			K(node_page_state(pgdat, NR_ANON_THPS) * HPAGE_PMD_NR),
- #endif
--			K(node_page_state(pgdat, NR_SHMEM)),
- 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
- 			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
- 			node_page_state(pgdat, NR_PAGES_SCANNED),
+diff -puN Kbuild~kbuild-consolidate-header-generation-from-asm-offset-information Kbuild
+--- a/Kbuild~kbuild-consolidate-header-generation-from-asm-offset-information
++++ a/Kbuild
+@@ -7,29 +7,12 @@
+ # 4) Check for missing system calls
+ # 5) Generate constants.py (may need bounds.h)
+ 
+-# Default sed regexp - multiline due to syntax constraints
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
++include scripts/Makefile.asm-offsets
+ 
+ # Use filechk to avoid rebuilds when a header changes, but the resulting file
+ # does not
+ define filechk_offsets
+-	(set -e; \
+-	 echo "#ifndef $2"; \
+-	 echo "#define $2"; \
+-	 echo "/*"; \
+-	 echo " * DO NOT MODIFY."; \
+-	 echo " *"; \
+-	 echo " * This file was generated by Kbuild"; \
+-	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y); \
+-	 echo ""; \
+-	 echo "#endif" )
++	$(call gen_header_from_asm_offsets,$2)
+ endef
+ 
+ #####
+diff -puN arch/ia64/kernel/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information arch/ia64/kernel/Makefile
+--- a/arch/ia64/kernel/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information
++++ a/arch/ia64/kernel/Makefile
+@@ -50,25 +50,12 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f
+ # The gate DSO image is built using a special linker script.
+ include $(src)/Makefile.gate
+ 
++include $(srctree)/scripts/Makefile.asm-offsets
++
+ # Calculate NR_IRQ = max(IA64_NATIVE_NR_IRQS, XEN_NR_IRQS, ...) based on config
+-define sed-y
+-	"/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"
+-endef
+ quiet_cmd_nr_irqs = GEN     $@
+ define cmd_nr_irqs
+-	(set -e; \
+-	 echo "#ifndef __ASM_NR_IRQS_H__"; \
+-	 echo "#define __ASM_NR_IRQS_H__"; \
+-	 echo "/*"; \
+-	 echo " * DO NOT MODIFY."; \
+-	 echo " *"; \
+-	 echo " * This file was generated by Kbuild"; \
+-	 echo " *"; \
+-	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y) $<; \
+-	 echo ""; \
+-	 echo "#endif" ) > $@
++	$(call gen_header_from_asm_offsets,__ASM_NR_IRQS_H__) < $< > $@
+ endef
+ 
+ # We use internal kbuild rules to avoid the "is up to date" message from make
+diff -puN /dev/null scripts/Makefile.asm-offsets
+--- /dev/null
++++ a/scripts/Makefile.asm-offsets
+@@ -0,0 +1,22 @@
++# Default sed regexp - multiline due to syntax constraints
++define sed-asm-offsets-to-c
++	"/^->/{s:->#\(.*\):/* \1 */:; \
++	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
++	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
++	s:->::; p;}"
++endef
++
++define gen_header_from_asm_offsets
++	(set -e; \
++	 echo "#ifndef $1"; \
++	 echo "#define $1"; \
++	 echo "/*"; \
++	 echo " * DO NOT MODIFY."; \
++	 echo " *"; \
++	 echo " * This file was generated by Kbuild"; \
++	 echo " */"; \
++	 echo ""; \
++	 sed -ne $(sed-asm-offsets-to-c); \
++	 echo ""; \
++	 echo "#endif" )
++endef
+diff -puN scripts/mod/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information scripts/mod/Makefile
+--- a/scripts/mod/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information
++++ a/scripts/mod/Makefile
+@@ -7,28 +7,11 @@ modpost-objs	:= modpost.o file2alias.o s
+ 
+ devicetable-offsets-file := devicetable-offsets.h
+ 
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
++include $(srctree)/scripts/Makefile.asm-offsets
+ 
+ quiet_cmd_offsets = GEN     $@
+ define cmd_offsets
+-	(set -e; \
+-	 echo "#ifndef __DEVICETABLE_OFFSETS_H__"; \
+-	 echo "#define __DEVICETABLE_OFFSETS_H__"; \
+-	 echo "/*"; \
+-	 echo " * DO NOT MODIFY."; \
+-	 echo " *"; \
+-	 echo " * This file was generated by Kbuild"; \
+-	 echo " *"; \
+-	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y) $<; \
+-	 echo ""; \
+-	 echo "#endif" ) > $@
++	$(call gen_header_from_asm_offsets,__DEVICETABLE_OFFSETS_H__) < $< > $@
+ endef
+ 
+ $(obj)/$(devicetable-offsets-file): $(obj)/devicetable-offsets.s
 _
 
-Patches currently in -mm which might be from apolyakov@beget.ru are
+Patches currently in -mm which might be from mka@chromium.org are
 
-fix-print-order-in-show_free_areas.patch
+kbuild-consolidate-header-generation-from-asm-offset-information.patch
 
