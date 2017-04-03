@@ -1,88 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlb-dont-call-region_abort-if-region_chg-fails.patch removed from
- -mm tree
-Date: Mon, 03 Apr 2017 12:07:50 -0700
-Message-ID: <58e29d86.PVIIA5ZDiIFCty5V%akpm@linux-foundation.org>
+Subject: [merged] kasan-report-only-the-first-error-by-default.patch
+ removed from -mm tree
+Date: Mon, 03 Apr 2017 12:07:47 -0700
+Message-ID: <58e29d83.SCw8+VEgQ+U2AHHH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40692 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751668AbdDCTHv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 15:07:51 -0400
+        with ESMTP id S1751668AbdDCTHs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 15:07:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dvyukov@google.com, hillf.zj@alibaba-inc.com, mm-commits@vger.kernel.org
+To: mark.rutland@arm.com, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: don't call region_abort if region_chg fails
+     Subject: kasan: report only the first error by default
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-dont-call-region_abort-if-region_chg-fails.patch
+     kasan-report-only-the-first-error-by-default.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb.c: don't call region_abort if region_chg fails
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: kasan: report only the first error by default
 
-Changes to hugetlbfs reservation maps is a two step process.  The first
-step is a call to region_chg to determine what needs to be changed, and
-prepare that change.  This should be followed by a call to call to
-region_add to commit the change, or region_abort to abort the change.
+Disable kasan after the first report. There are several reasons for this:
 
-The error path in hugetlb_reserve_pages called region_abort after a
-failed call to region_chg.  As a result, the adds_in_progress counter
-in the reservation map is off by 1.  This is caught by a VM_BUG_ON
-in resv_map_release when the reservation map is freed.
+- Single bug quite often has multiple invalid memory accesses causing
+  storm in the dmesg.
 
-syzkaller fuzzer (when using an injected kmalloc failure) found this bug,
-that resulted in the following:
+- Write OOB access might corrupt metadata so the next report will print
+  bogus alloc/free stacktraces.
 
- kernel BUG at mm/hugetlb.c:742!
- Call Trace:
-  hugetlbfs_evict_inode+0x7b/0xa0 fs/hugetlbfs/inode.c:493
-  evict+0x481/0x920 fs/inode.c:553
-  iput_final fs/inode.c:1515 [inline]
-  iput+0x62b/0xa20 fs/inode.c:1542
-  hugetlb_file_setup+0x593/0x9f0 fs/hugetlbfs/inode.c:1306
-  newseg+0x422/0xd30 ipc/shm.c:575
-  ipcget_new ipc/util.c:285 [inline]
-  ipcget+0x21e/0x580 ipc/util.c:639
-  SYSC_shmget ipc/shm.c:673 [inline]
-  SyS_shmget+0x158/0x230 ipc/shm.c:657
-  entry_SYSCALL_64_fastpath+0x1f/0xc2
- RIP: resv_map_release+0x265/0x330 mm/hugetlb.c:742
+- Reports after the first easily could be not bugs by itself but just
+  side effects of the first one.
 
-Link: http://lkml.kernel.org/r/1490821682-23228-1-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Given that multiple reports usually only do harm, it makes sense to
+disable kasan after the first one.  If user wants to see all the reports,
+the boot-time parameter kasan_multi_shot must be used.
+
+[aryabinin@virtuozzo.com: wrote changelog and doc, added missing include]
+Link: http://lkml.kernel.org/r/20170323154416.30257-1-aryabinin@virtuozzo.com
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 ++
+ include/linux/kasan.h                           |    3 +
+ lib/test_kasan.c                                |   10 +++
+ mm/kasan/kasan.h                                |    5 -
+ mm/kasan/report.c                               |   36 ++++++++++++++
+ 5 files changed, 55 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-dont-call-region_abort-if-region_chg-fails mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-dont-call-region_abort-if-region_chg-fails
-+++ a/mm/hugetlb.c
-@@ -4403,7 +4403,9 @@ int hugetlb_reserve_pages(struct inode *
- 	return 0;
- out_err:
- 	if (!vma || vma->vm_flags & VM_MAYSHARE)
--		region_abort(resv_map, from, to);
-+		/* Don't call region_abort if region_chg failed */
-+		if (chg >= 0)
-+			region_abort(resv_map, from, to);
- 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		kref_put(&resv_map->refs, resv_map_release);
- 	return ret;
+diff -puN Documentation/admin-guide/kernel-parameters.txt~kasan-report-only-the-first-error-by-default Documentation/admin-guide/kernel-parameters.txt
+--- a/Documentation/admin-guide/kernel-parameters.txt~kasan-report-only-the-first-error-by-default
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1725,6 +1725,12 @@
+ 			kernel and module base offset ASLR (Address Space
+ 			Layout Randomization).
+ 
++	kasan_multi_shot
++			[KNL] Enforce KASAN (Kernel Address Sanitizer) to print
++			report on every invalid memory access. Without this
++			parameter KASAN will print report only for the first
++			invalid access.
++
+ 	keepinitrd	[HW,ARM]
+ 
+ 	kernelcore=	[KNL,X86,IA-64,PPC]
+diff -puN include/linux/kasan.h~kasan-report-only-the-first-error-by-default include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-report-only-the-first-error-by-default
++++ a/include/linux/kasan.h
+@@ -76,6 +76,9 @@ size_t ksize(const void *);
+ static inline void kasan_unpoison_slab(const void *ptr) { ksize(ptr); }
+ size_t kasan_metadata_size(struct kmem_cache *cache);
+ 
++bool kasan_save_enable_multi_shot(void);
++void kasan_restore_multi_shot(bool enabled);
++
+ #else /* CONFIG_KASAN */
+ 
+ static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
+diff -puN lib/test_kasan.c~kasan-report-only-the-first-error-by-default lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-report-only-the-first-error-by-default
++++ a/lib/test_kasan.c
+@@ -20,6 +20,7 @@
+ #include <linux/string.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
++#include <linux/kasan.h>
+ 
+ /*
+  * Note: test functions are marked noinline so that their names appear in
+@@ -474,6 +475,12 @@ static noinline void __init use_after_sc
+ 
+ static int __init kmalloc_tests_init(void)
+ {
++	/*
++	 * Temporarily enable multi-shot mode. Otherwise, we'd only get a
++	 * report for the first case.
++	 */
++	bool multishot = kasan_save_enable_multi_shot();
++
+ 	kmalloc_oob_right();
+ 	kmalloc_oob_left();
+ 	kmalloc_node_oob_right();
+@@ -499,6 +506,9 @@ static int __init kmalloc_tests_init(voi
+ 	ksize_unpoisons_memory();
+ 	copy_user_test();
+ 	use_after_scope_test();
++
++	kasan_restore_multi_shot(multishot);
++
+ 	return -EAGAIN;
+ }
+ 
+diff -puN mm/kasan/kasan.h~kasan-report-only-the-first-error-by-default mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-report-only-the-first-error-by-default
++++ a/mm/kasan/kasan.h
+@@ -96,11 +96,6 @@ static inline const void *kasan_shadow_t
+ 		<< KASAN_SHADOW_SCALE_SHIFT);
+ }
+ 
+-static inline bool kasan_report_enabled(void)
+-{
+-	return !current->kasan_depth;
+-}
+-
+ void kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+ void kasan_report_double_free(struct kmem_cache *cache, void *object,
+diff -puN mm/kasan/report.c~kasan-report-only-the-first-error-by-default mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-report-only-the-first-error-by-default
++++ a/mm/kasan/report.c
+@@ -13,7 +13,9 @@
+  *
+  */
+ 
++#include <linux/bitops.h>
+ #include <linux/ftrace.h>
++#include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/printk.h>
+@@ -293,6 +295,40 @@ static void kasan_report_error(struct ka
+ 	kasan_end_report(&flags);
+ }
+ 
++static unsigned long kasan_flags;
++
++#define KASAN_BIT_REPORTED	0
++#define KASAN_BIT_MULTI_SHOT	1
++
++bool kasan_save_enable_multi_shot(void)
++{
++	return test_and_set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
++}
++EXPORT_SYMBOL_GPL(kasan_save_enable_multi_shot);
++
++void kasan_restore_multi_shot(bool enabled)
++{
++	if (!enabled)
++		clear_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
++}
++EXPORT_SYMBOL_GPL(kasan_restore_multi_shot);
++
++static int __init kasan_set_multi_shot(char *str)
++{
++	set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
++	return 1;
++}
++__setup("kasan_multi_shot", kasan_set_multi_shot);
++
++static inline bool kasan_report_enabled(void)
++{
++	if (current->kasan_depth)
++		return false;
++	if (test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
++		return true;
++	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
++}
++
+ void kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip)
+ {
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
 
