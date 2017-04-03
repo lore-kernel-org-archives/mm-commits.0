@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- kbuild-consolidate-header-generation-from-asm-offset-information.patch
- added to -mm tree
-Date: Mon, 03 Apr 2017 15:21:44 -0700
-Message-ID: <58e2caf8.yP1CoiOiL8ffnYSJ%akpm@linux-foundation.org>
+ jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp.patch added to -mm tree
+Date: Mon, 03 Apr 2017 15:30:21 -0700
+Message-ID: <58e2ccfd.hhskK1KtoRrUtNQa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53776 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751515AbdDCWVq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 18:21:46 -0400
+        with ESMTP id S1751635AbdDCWaW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2017 18:30:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mka@chromium.org, fenghua.yu@intel.com, ghackmann@google.com, grundler@chromium.org, jan.kiszka@siemens.com, kieran.bingham@linaro.org, md@google.com, mmarek@suse.com, tony.luck@intel.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: mka@chromium.org, Jason@zx2c4.com, ghackmann@google.com, grundler@chromium.org, md@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: consolidate header generation from ASM offset information
+     Subject: jiffies.h: declare jiffies and jiffies_64 with ____cacheline_aligned_in_smp
 has been added to the -mm tree.  Its filename is
-     kbuild-consolidate-header-generation-from-asm-offset-information.patch
+     jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-consolidate-header-generation-from-asm-offset-information.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-consolidate-header-generation-from-asm-offset-information.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,162 +40,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthias Kaehlcke <mka@chromium.org>
-Subject: kbuild: consolidate header generation from ASM offset information
+Subject: jiffies.h: declare jiffies and jiffies_64 with ____cacheline_aligned_in_smp
 
-Largely redundant code is used in different places to generate C headers
-from offset information extracted from assembly language output. 
-Consolidate the code in a Makefile include and use this instead.
+jiffies_64 is defined in kernel/time/timer.c with
+____cacheline_aligned_in_smp, however this macro is not part of the
+declaration of jiffies and jiffies_64 in jiffies.h.
 
-Link: http://lkml.kernel.org/r/20170403193739.84905-1-mka@chromium.org
+As a result clang generates the following warning:
+
+kernel/time/timer.c:57:26: error: section does not match previous declaration [-Werror,-Wsection]
+__visible u64 jiffies_64 __cacheline_aligned_in_smp = INITIAL_JIFFIES;
+                         ^
+include/linux/cache.h:39:36: note: expanded from macro '__cacheline_aligned_in_smp'
+                                   ^
+include/linux/cache.h:34:4: note: expanded from macro '__cacheline_aligned'
+                 __section__(".data..cacheline_aligned")))
+                 ^
+include/linux/jiffies.h:77:12: note: previous attribute is here
+extern u64 __jiffy_data jiffies_64;
+           ^
+include/linux/jiffies.h:70:38: note: expanded from macro '__jiffy_data'
+
+Link: http://lkml.kernel.org/r/20170403190200.70273-1-mka@chromium.org
 Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kieran.bingham@linaro.org>
+Cc: "Jason A . Donenfeld" <Jason@zx2c4.com>
 Cc: Grant Grundler <grundler@chromium.org>
 Cc: Michael Davidson <md@google.com>
 Cc: Greg Hackmann <ghackmann@google.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Kbuild                       |   21 ++-------------------
- arch/ia64/kernel/Makefile    |   19 +++----------------
- scripts/Makefile.asm-offsets |   22 ++++++++++++++++++++++
- scripts/mod/Makefile         |   21 ++-------------------
- 4 files changed, 29 insertions(+), 54 deletions(-)
+ include/linux/jiffies.h |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN Kbuild~kbuild-consolidate-header-generation-from-asm-offset-information Kbuild
---- a/Kbuild~kbuild-consolidate-header-generation-from-asm-offset-information
-+++ a/Kbuild
-@@ -7,29 +7,12 @@
- # 4) Check for missing system calls
- # 5) Generate constants.py (may need bounds.h)
+diff -puN include/linux/jiffies.h~jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp include/linux/jiffies.h
+--- a/include/linux/jiffies.h~jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp
++++ a/include/linux/jiffies.h
+@@ -1,6 +1,7 @@
+ #ifndef _LINUX_JIFFIES_H
+ #define _LINUX_JIFFIES_H
  
--# Default sed regexp - multiline due to syntax constraints
--define sed-y
--	"/^->/{s:->#\(.*\):/* \1 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:->::; p;}"
--endef
-+include scripts/Makefile.asm-offsets
++#include <linux/cache.h>
+ #include <linux/math64.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+@@ -63,19 +64,13 @@ extern int register_refined_jiffies(long
+ /* TICK_USEC is the time between ticks in usec assuming fake USER_HZ */
+ #define TICK_USEC ((1000000UL + USER_HZ/2) / USER_HZ)
  
- # Use filechk to avoid rebuilds when a header changes, but the resulting file
- # does not
- define filechk_offsets
--	(set -e; \
--	 echo "#ifndef $2"; \
--	 echo "#define $2"; \
--	 echo "/*"; \
--	 echo " * DO NOT MODIFY."; \
--	 echo " *"; \
--	 echo " * This file was generated by Kbuild"; \
--	 echo " */"; \
--	 echo ""; \
--	 sed -ne $(sed-y); \
--	 echo ""; \
--	 echo "#endif" )
-+	$(call gen_header_from_asm_offsets,$2)
- endef
- 
- #####
-diff -puN arch/ia64/kernel/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information arch/ia64/kernel/Makefile
---- a/arch/ia64/kernel/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information
-+++ a/arch/ia64/kernel/Makefile
-@@ -50,25 +50,12 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f
- # The gate DSO image is built using a special linker script.
- include $(src)/Makefile.gate
- 
-+include $(srctree)/scripts/Makefile.asm-offsets
-+
- # Calculate NR_IRQ = max(IA64_NATIVE_NR_IRQS, XEN_NR_IRQS, ...) based on config
--define sed-y
--	"/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"
--endef
- quiet_cmd_nr_irqs = GEN     $@
- define cmd_nr_irqs
--	(set -e; \
--	 echo "#ifndef __ASM_NR_IRQS_H__"; \
--	 echo "#define __ASM_NR_IRQS_H__"; \
--	 echo "/*"; \
--	 echo " * DO NOT MODIFY."; \
--	 echo " *"; \
--	 echo " * This file was generated by Kbuild"; \
--	 echo " *"; \
--	 echo " */"; \
--	 echo ""; \
--	 sed -ne $(sed-y) $<; \
--	 echo ""; \
--	 echo "#endif" ) > $@
-+	$(call gen_header_from_asm_offsets,__ASM_NR_IRQS_H__) < $< > $@
- endef
- 
- # We use internal kbuild rules to avoid the "is up to date" message from make
-diff -puN /dev/null scripts/Makefile.asm-offsets
---- /dev/null
-+++ a/scripts/Makefile.asm-offsets
-@@ -0,0 +1,22 @@
-+# Default sed regexp - multiline due to syntax constraints
-+define sed-asm-offsets-to-c
-+	"/^->/{s:->#\(.*\):/* \1 */:; \
-+	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
-+	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
-+	s:->::; p;}"
-+endef
-+
-+define gen_header_from_asm_offsets
-+	(set -e; \
-+	 echo "#ifndef $1"; \
-+	 echo "#define $1"; \
-+	 echo "/*"; \
-+	 echo " * DO NOT MODIFY."; \
-+	 echo " *"; \
-+	 echo " * This file was generated by Kbuild"; \
-+	 echo " */"; \
-+	 echo ""; \
-+	 sed -ne $(sed-asm-offsets-to-c); \
-+	 echo ""; \
-+	 echo "#endif" )
-+endef
-diff -puN scripts/mod/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information scripts/mod/Makefile
---- a/scripts/mod/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information
-+++ a/scripts/mod/Makefile
-@@ -7,28 +7,11 @@ modpost-objs	:= modpost.o file2alias.o s
- 
- devicetable-offsets-file := devicetable-offsets.h
- 
--define sed-y
--	"/^->/{s:->#\(.*\):/* \1 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
--	s:->::; p;}"
--endef
-+include $(srctree)/scripts/Makefile.asm-offsets
- 
- quiet_cmd_offsets = GEN     $@
- define cmd_offsets
--	(set -e; \
--	 echo "#ifndef __DEVICETABLE_OFFSETS_H__"; \
--	 echo "#define __DEVICETABLE_OFFSETS_H__"; \
--	 echo "/*"; \
--	 echo " * DO NOT MODIFY."; \
--	 echo " *"; \
--	 echo " * This file was generated by Kbuild"; \
--	 echo " *"; \
--	 echo " */"; \
--	 echo ""; \
--	 sed -ne $(sed-y) $<; \
--	 echo ""; \
--	 echo "#endif" ) > $@
-+	$(call gen_header_from_asm_offsets,__DEVICETABLE_OFFSETS_H__) < $< > $@
- endef
- 
- $(obj)/$(devicetable-offsets-file): $(obj)/devicetable-offsets.s
-_
-
-Patches currently in -mm which might be from mka@chromium.org are
-
-kbuild-consolidate-header-generation-from-asm-offset-information.patch
-
+-/* some arch's have a small-data section that can be accessed register-relative
+- * but that can only take up to, say, 4-byte variables. jiffies being part of
+- * an 8-byte variable may not be correctly accessed unless we force the issue
+- */
+-#define __jiffy_data  __attribute__((section(".data")))
