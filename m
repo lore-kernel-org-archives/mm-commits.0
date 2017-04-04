@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff.patch
- added to -mm tree
-Date: Tue, 04 Apr 2017 13:33:13 -0700
-Message-ID: <58e40309./PKC4zCm1jTW/YP6%akpm@linux-foundation.org>
+Subject: + ipc-shm-some-shmat-cleanups.patch added to -mm tree
+Date: Tue, 04 Apr 2017 13:40:59 -0700
+Message-ID: <58e404db.+PK/eHNdTs5CerNv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54202 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752231AbdDDUdO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2017 16:33:14 -0400
+        with ESMTP id S1753363AbdDDUlA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2017 16:41:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, bsingharora@gmail.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: replace SHM_HUGE_MASK with MAP_HUGE_MASK inside mmap_pgoff
+     Subject: ipc/shm: some shmat cleanups
 has been added to the -mm tree.  Its filename is
-     mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff.patch
+     ipc-shm-some-shmat-cleanups.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-some-shmat-cleanups.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-some-shmat-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/mmap: replace SHM_HUGE_MASK with MAP_HUGE_MASK inside mmap_pgoff
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc/shm: some shmat cleanups
 
-091d0d55b286 ("shm: fix null pointer deref when userspace specifies
-invalid hugepage size") had replaced MAP_HUGE_MASK with SHM_HUGE_MASK. 
-Though both of them contain the same numeric value of 0x3f, MAP_HUGE_MASK
-flag sounds more appropriate than the other one in the context.  Hence
-change it back.
+Clean up early flag and address some minutia.
 
-Link: http://lkml.kernel.org/r/20170404045635.616-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1486673582-6979-3-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/shm.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff mm/mmap.c
---- a/mm/mmap.c~mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff
-+++ a/mm/mmap.c
-@@ -1479,7 +1479,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 		struct user_struct *user = NULL;
- 		struct hstate *hs;
+diff -puN ipc/shm.c~ipc-shm-some-shmat-cleanups ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-some-shmat-cleanups
++++ a/ipc/shm.c
+@@ -1095,11 +1095,11 @@ long do_shmat(int shmid, char __user *sh
+ 	      ulong *raddr, unsigned long shmlba)
+ {
+ 	struct shmid_kernel *shp;
+-	unsigned long addr;
++	unsigned long addr = (unsigned long)shmaddr;
+ 	unsigned long size;
+ 	struct file *file;
+ 	int    err;
+-	unsigned long flags;
++	unsigned long flags = MAP_SHARED;
+ 	unsigned long prot;
+ 	int acc_mode;
+ 	struct ipc_namespace *ns;
+@@ -1111,7 +1111,8 @@ long do_shmat(int shmid, char __user *sh
+ 	err = -EINVAL;
+ 	if (shmid < 0)
+ 		goto out;
+-	else if ((addr = (ulong)shmaddr)) {
++
++	if (addr) {
+ 		if (addr & (shmlba - 1)) {
+ 			/*
+ 			 * Round down to the nearest multiple of shmlba.
+@@ -1126,13 +1127,10 @@ long do_shmat(int shmid, char __user *sh
+ #endif
+ 					goto out;
+ 		}
+-		flags = MAP_SHARED | MAP_FIXED;
+-	} else {
+-		if ((shmflg & SHM_REMAP))
+-			goto out;
  
--		hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) & SHM_HUGE_MASK);
-+		hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
- 		if (!hs)
- 			return -EINVAL;
+-		flags = MAP_SHARED;
+-	}
++		flags |= MAP_FIXED;
++	} else if ((shmflg & SHM_REMAP))
++		goto out;
  
+ 	if (shmflg & SHM_RDONLY) {
+ 		prot = PROT_READ;
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff.patch
+ipc-shm-some-shmat-cleanups.patch
+sysvipc-cacheline-align-kern_ipc_perm.patch
 
