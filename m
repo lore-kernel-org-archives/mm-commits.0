@@ -1,696 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-re-use-node-vm-page-state-enum.patch added to -mm tree
-Date: Tue, 04 Apr 2017 15:12:25 -0700
-Message-ID: <58e41a49.F3zidT9sc8a2o0pd%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 05 Apr 2017 12:58:53 -0700
+Message-ID: <58e54c7d.NLyW5w2BuAAH8M4G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43248 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932277AbdDDWM0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2017 18:12:26 -0400
+        with ESMTP id S933371AbdDET6z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2017 15:58:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: re-use node VM page state enum
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-re-use-node-vm-page-state-enum.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-re-use-node-vm-page-state-enum.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-re-use-node-vm-page-state-enum.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: re-use node VM page state enum
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The current duplication is a high-maintenance mess, and it's painful to
-add new items or query memcg state from the rest of the VM.
-
-This increases the size of the stat array marginally, but we should aim to
-track all these stats on a per-cgroup level anyway.
-
-Link: http://lkml.kernel.org/r/20170404220148.28338-3-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |  100 +++++++++++--------------
- mm/memcontrol.c            |  135 +++++++++++++++++------------------
- mm/page-writeback.c        |   10 +-
- mm/rmap.c                  |    4 -
- mm/vmscan.c                |    5 -
- mm/workingset.c            |    7 -
- 6 files changed, 123 insertions(+), 138 deletions(-)
+ drivers/gpu/drm/msm/adreno/adreno_gpu.c |    4 ----
+ drivers/gpu/drm/vmwgfx/vmwgfx_fence.c   |   12 ------------
+ 2 files changed, 16 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-re-use-node-vm-page-state-enum include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-re-use-node-vm-page-state-enum
-+++ a/include/linux/memcontrol.h
-@@ -35,40 +35,45 @@ struct page;
- struct mm_struct;
- struct kmem_cache;
- 
--/*
-- * The corresponding mem_cgroup_stat_names is defined in mm/memcontrol.c,
-- * These two lists should keep in accord with each other.
-- */
--enum mem_cgroup_stat_index {
--	/*
--	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
--	 */
--	MEM_CGROUP_STAT_CACHE,		/* # of pages charged as cache */
--	MEM_CGROUP_STAT_RSS,		/* # of pages charged as anon rss */
--	MEM_CGROUP_STAT_RSS_HUGE,	/* # of pages charged as anon huge */
--	MEM_CGROUP_STAT_SHMEM,		/* # of pages charged as shmem */
--	MEM_CGROUP_STAT_FILE_MAPPED,	/* # of pages charged as file rss */
--	MEM_CGROUP_STAT_DIRTY,          /* # of dirty pages in page cache */
--	MEM_CGROUP_STAT_WRITEBACK,	/* # of pages under writeback */
--	MEM_CGROUP_STAT_SWAP,		/* # of pages, swapped out */
--	MEM_CGROUP_STAT_NSTATS,
--	/* default hierarchy stats */
--	MEMCG_KERNEL_STACK_KB = MEM_CGROUP_STAT_NSTATS,
-+/* Cgroup-specific page state, on top of universal node page state */
-+enum memcg_stat_item {
-+	MEMCG_CACHE = NR_VM_NODE_STAT_ITEMS,
-+	MEMCG_RSS,
-+	MEMCG_RSS_HUGE,
-+	MEMCG_SWAP,
-+	MEMCG_SOCK,
-+	/* XXX: why are these zone and not node counters? */
-+	MEMCG_KERNEL_STACK_KB,
- 	MEMCG_SLAB_RECLAIMABLE,
- 	MEMCG_SLAB_UNRECLAIMABLE,
--	MEMCG_SOCK,
--	MEMCG_WORKINGSET_REFAULT,
--	MEMCG_WORKINGSET_ACTIVATE,
--	MEMCG_WORKINGSET_NODERECLAIM,
- 	MEMCG_NR_STAT,
- };
- 
-+/* Cgroup-specific events, on top of universal VM events */
-+enum memcg_event_item {
-+	MEMCG_LOW = NR_VM_EVENT_ITEMS,
-+	MEMCG_HIGH,
-+	MEMCG_MAX,
-+	MEMCG_OOM,
-+	MEMCG_NR_EVENTS,
-+};
-+
- struct mem_cgroup_reclaim_cookie {
- 	pg_data_t *pgdat;
- 	int priority;
- 	unsigned int generation;
- };
- 
-+#ifdef CONFIG_MEMCG
-+
-+#define MEM_CGROUP_ID_SHIFT	16
-+#define MEM_CGROUP_ID_MAX	USHRT_MAX
-+
-+struct mem_cgroup_id {
-+	int id;
-+	atomic_t ref;
-+};
-+
- /*
-  * Per memcg event counter is incremented at every pagein/pageout. With THP,
-  * it will be incremated by the number of pages. This counter is used for
-@@ -82,25 +87,6 @@ enum mem_cgroup_events_target {
- 	MEM_CGROUP_NTARGETS,
- };
- 
--#ifdef CONFIG_MEMCG
--
--#define MEM_CGROUP_ID_SHIFT	16
--#define MEM_CGROUP_ID_MAX	USHRT_MAX
--
--struct mem_cgroup_id {
--	int id;
--	atomic_t ref;
--};
--
--/* Cgroup-specific events, on top of universal VM events */
--enum memcg_event_item {
--	MEMCG_LOW = NR_VM_EVENT_ITEMS,
--	MEMCG_HIGH,
--	MEMCG_MAX,
--	MEMCG_OOM,
--	MEMCG_NR_EVENTS,
--};
--
- struct mem_cgroup_stat_cpu {
- 	long count[MEMCG_NR_STAT];
- 	unsigned long events[MEMCG_NR_EVENTS];
-@@ -487,7 +473,7 @@ void lock_page_memcg(struct page *page);
- void unlock_page_memcg(struct page *page);
- 
- static inline unsigned long mem_cgroup_read_stat(struct mem_cgroup *memcg,
--						 enum mem_cgroup_stat_index idx)
-+						 enum memcg_stat_item idx)
- {
- 	long val = 0;
- 	int cpu;
-@@ -502,20 +488,20 @@ static inline unsigned long mem_cgroup_r
+diff -puN drivers/gpu/drm/msm/adreno/adreno_gpu.c~linux-next-git-rejects drivers/gpu/drm/msm/adreno/adreno_gpu.c
+--- a/drivers/gpu/drm/msm/adreno/adreno_gpu.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/msm/adreno/adreno_gpu.c
+@@ -440,10 +440,6 @@ void adreno_gpu_cleanup(struct adreno_gp
+ 	if (gpu->aspace) {
+ 		gpu->aspace->mmu->funcs->detach(gpu->aspace->mmu,
+ 			iommu_ports, ARRAY_SIZE(iommu_ports));
+-<<<<<<< HEAD
+-		msm_gem_address_space_destroy(gpu->aspace);
+-=======
+ 		msm_gem_address_space_put(gpu->aspace);
+->>>>>>> linux-next/akpm-base
+ 	}
  }
- 
- static inline void mem_cgroup_update_stat(struct mem_cgroup *memcg,
--				   enum mem_cgroup_stat_index idx, int val)
-+					  enum memcg_stat_item idx, int val)
- {
- 	if (!mem_cgroup_disabled())
- 		this_cpu_add(memcg->stat->count[idx], val);
- }
- 
- static inline void mem_cgroup_inc_stat(struct mem_cgroup *memcg,
--				   enum mem_cgroup_stat_index idx)
-+				       enum memcg_stat_item idx)
- {
- 	mem_cgroup_update_stat(memcg, idx, 1);
- }
- 
- static inline void mem_cgroup_dec_stat(struct mem_cgroup *memcg,
--				   enum mem_cgroup_stat_index idx)
-+				       enum memcg_stat_item idx)
- {
- 	mem_cgroup_update_stat(memcg, idx, -1);
- }
-@@ -538,20 +524,20 @@ static inline void mem_cgroup_dec_stat(s
-  * Kernel pages are an exception to this, since they'll never move.
-  */
- static inline void mem_cgroup_update_page_stat(struct page *page,
--				 enum mem_cgroup_stat_index idx, int val)
-+				 enum memcg_stat_item idx, int val)
- {
- 	if (page->mem_cgroup)
- 		mem_cgroup_update_stat(page->mem_cgroup, idx, val);
- }
- 
- static inline void mem_cgroup_inc_page_stat(struct page *page,
--					    enum mem_cgroup_stat_index idx)
-+					    enum memcg_stat_item idx)
- {
- 	mem_cgroup_update_page_stat(page, idx, 1);
- }
- 
- static inline void mem_cgroup_dec_page_stat(struct page *page,
--					    enum mem_cgroup_stat_index idx)
-+					    enum memcg_stat_item idx)
- {
- 	mem_cgroup_update_page_stat(page, idx, -1);
- }
-@@ -760,33 +746,33 @@ static inline unsigned long mem_cgroup_r
- }
- 
- static inline void mem_cgroup_update_stat(struct mem_cgroup *memcg,
--				   enum mem_cgroup_stat_index idx, int val)
-+					  enum memcg_stat_item idx, int val)
- {
- }
- 
- static inline void mem_cgroup_inc_stat(struct mem_cgroup *memcg,
--				   enum mem_cgroup_stat_index idx)
-+				       enum memcg_stat_item idx)
- {
- }
- 
- static inline void mem_cgroup_dec_stat(struct mem_cgroup *memcg,
--				   enum mem_cgroup_stat_index idx)
-+				       enum memcg_stat_item idx)
- {
- }
- 
- static inline void mem_cgroup_update_page_stat(struct page *page,
--					       enum mem_cgroup_stat_index idx,
-+					       enum memcg_stat_item idx,
- 					       int nr)
- {
- }
- 
- static inline void mem_cgroup_inc_page_stat(struct page *page,
--					    enum mem_cgroup_stat_index idx)
-+					    enum memcg_stat_item idx)
- {
- }
- 
- static inline void mem_cgroup_dec_page_stat(struct page *page,
--					    enum mem_cgroup_stat_index idx)
-+					    enum memcg_stat_item idx)
- {
- }
- 
-@@ -906,7 +892,7 @@ static inline int memcg_cache_id(struct
-  * @val: number of pages (positive or negative)
-  */
- static inline void memcg_kmem_update_page_stat(struct page *page,
--				enum mem_cgroup_stat_index idx, int val)
-+				enum memcg_stat_item idx, int val)
- {
- 	if (memcg_kmem_enabled() && page->mem_cgroup)
- 		this_cpu_add(page->mem_cgroup->stat->count[idx], val);
-@@ -935,7 +921,7 @@ static inline void memcg_put_cache_ids(v
- }
- 
- static inline void memcg_kmem_update_page_stat(struct page *page,
--				enum mem_cgroup_stat_index idx, int val)
-+				enum memcg_stat_item idx, int val)
- {
- }
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
-diff -puN mm/memcontrol.c~mm-memcontrol-re-use-node-vm-page-state-enum mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-re-use-node-vm-page-state-enum
-+++ a/mm/memcontrol.c
-@@ -100,18 +100,7 @@ static bool do_memsw_account(void)
- 	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && do_swap_account;
- }
- 
--static const char * const mem_cgroup_stat_names[] = {
--	"cache",
--	"rss",
--	"rss_huge",
--	"shmem",
--	"mapped_file",
--	"dirty",
--	"writeback",
--	"swap",
--};
--
--static const char * const mem_cgroup_lru_names[] = {
-+static const char *const mem_cgroup_lru_names[] = {
- 	"inactive_anon",
- 	"active_anon",
- 	"inactive_file",
-@@ -583,20 +572,16 @@ static void mem_cgroup_charge_statistics
- 	 * counted as CACHE even if it's on ANON LRU.
- 	 */
- 	if (PageAnon(page))
--		__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_RSS],
--				nr_pages);
-+		__this_cpu_add(memcg->stat->count[MEMCG_RSS], nr_pages);
- 	else {
--		__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_CACHE],
--				nr_pages);
-+		__this_cpu_add(memcg->stat->count[MEMCG_CACHE], nr_pages);
- 		if (PageSwapBacked(page))
--			__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SHMEM],
--				       nr_pages);
-+			__this_cpu_add(memcg->stat->count[NR_SHMEM], nr_pages);
+diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~linux-next-git-rejects drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+@@ -761,18 +761,12 @@ int vmw_fence_obj_wait_ioctl(struct drm_
+ 		arg->kernel_cookie = jiffies + wait_timeout;
  	}
  
- 	if (compound) {
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
--		__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_RSS_HUGE],
--				nr_pages);
-+		__this_cpu_add(memcg->stat->count[MEMCG_RSS_HUGE], nr_pages);
+-<<<<<<< HEAD
+-	base = vmw_fence_obj_lookup(tfile, arg->handle);
+-	if (IS_ERR(base))
+-		return PTR_ERR(base);
+-=======
+ 	base = ttm_base_object_lookup(tfile, arg->handle);
+ 	if (unlikely(base == NULL)) {
+ 		pr_err("Wait invalid fence object handle 0x%08lx\n",
+ 		       (unsigned long)arg->handle);
+ 		return -EINVAL;
  	}
+->>>>>>> linux-next/akpm-base
  
- 	/* pagein of a big page is an event. So, ignore page size */
-@@ -1125,6 +1110,28 @@ static bool mem_cgroup_wait_acct_move(st
- 	return false;
- }
+ 	fence = &(container_of(base, struct vmw_user_fence, base)->fence);
  
-+unsigned int memcg1_stats[] = {
-+	MEMCG_CACHE,
-+	MEMCG_RSS,
-+	MEMCG_RSS_HUGE,
-+	NR_SHMEM,
-+	NR_FILE_MAPPED,
-+	NR_FILE_DIRTY,
-+	NR_WRITEBACK,
-+	MEMCG_SWAP,
-+};
-+
-+static const char *const memcg1_stat_names[] = {
-+	"cache",
-+	"rss",
-+	"rss_huge",
-+	"shmem",
-+	"mapped_file",
-+	"dirty",
-+	"writeback",
-+	"swap",
-+};
-+
- #define K(x) ((x) << (PAGE_SHIFT-10))
- /**
-  * mem_cgroup_print_oom_info: Print OOM information relevant to memory controller.
-@@ -1169,11 +1176,11 @@ void mem_cgroup_print_oom_info(struct me
- 		pr_cont_cgroup_path(iter->css.cgroup);
- 		pr_cont(":");
+@@ -811,18 +805,12 @@ int vmw_fence_obj_signaled_ioctl(struct
+ 	struct ttm_object_file *tfile = vmw_fpriv(file_priv)->tfile;
+ 	struct vmw_private *dev_priv = vmw_priv(dev);
  
--		for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
--			if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
-+		for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
-+			if (memcg1_stats[i] == MEMCG_SWAP && !do_swap_account)
- 				continue;
--			pr_cont(" %s:%luKB", mem_cgroup_stat_names[i],
--				K(mem_cgroup_read_stat(iter, i)));
-+			pr_cont(" %s:%luKB", memcg1_stat_names[i],
-+				K(mem_cgroup_read_stat(iter, memcg1_stats[i])));
- 		}
- 
- 		for (i = 0; i < NR_LRU_LISTS; i++)
-@@ -2362,7 +2369,7 @@ void mem_cgroup_split_huge_fixup(struct
- 	for (i = 1; i < HPAGE_PMD_NR; i++)
- 		head[i].mem_cgroup = head->mem_cgroup;
- 
--	__this_cpu_sub(head->mem_cgroup->stat->count[MEM_CGROUP_STAT_RSS_HUGE],
-+	__this_cpu_sub(head->mem_cgroup->stat->count[MEMCG_RSS_HUGE],
- 		       HPAGE_PMD_NR);
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-@@ -2372,7 +2379,7 @@ static void mem_cgroup_swap_statistics(s
- 					 bool charge)
- {
- 	int val = (charge) ? 1 : -1;
--	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAP], val);
-+	this_cpu_add(memcg->stat->count[MEMCG_SWAP], val);
- }
- 
- /**
-@@ -2731,13 +2738,10 @@ static unsigned long mem_cgroup_usage(st
- 		struct mem_cgroup *iter;
- 
- 		for_each_mem_cgroup_tree(iter, memcg) {
--			val += mem_cgroup_read_stat(iter,
--					MEM_CGROUP_STAT_CACHE);
--			val += mem_cgroup_read_stat(iter,
--					MEM_CGROUP_STAT_RSS);
-+			val += mem_cgroup_read_stat(iter, MEMCG_CACHE);
-+			val += mem_cgroup_read_stat(iter, MEMCG_RSS);
- 			if (swap)
--				val += mem_cgroup_read_stat(iter,
--						MEM_CGROUP_STAT_SWAP);
-+				val += mem_cgroup_read_stat(iter, MEMCG_SWAP);
- 		}
- 	} else {
- 		if (!swap)
-@@ -3134,15 +3138,15 @@ static int memcg_stat_show(struct seq_fi
- 	struct mem_cgroup *mi;
- 	unsigned int i;
- 
--	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_stat_names) !=
--		     MEM_CGROUP_STAT_NSTATS);
-+	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
- 	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_lru_names) != NR_LRU_LISTS);
- 
--	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
--		if (i == MEM_CGROUP_STAT_SWAP && !do_memsw_account())
-+	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
-+		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
--		seq_printf(m, "%s %lu\n", mem_cgroup_stat_names[i],
--			   mem_cgroup_read_stat(memcg, i) * PAGE_SIZE);
-+		seq_printf(m, "%s %lu\n", memcg1_stat_names[i],
-+			   mem_cgroup_read_stat(memcg, memcg1_stats[i]) *
-+			   PAGE_SIZE);
+-<<<<<<< HEAD
+-	base = vmw_fence_obj_lookup(tfile, arg->handle);
+-	if (IS_ERR(base))
+-		return PTR_ERR(base);
+-=======
+ 	base = ttm_base_object_lookup(tfile, arg->handle);
+ 	if (unlikely(base == NULL)) {
+ 		pr_err("Fence signaled invalid fence object handle 0x%08lx\n",
+ 		       (unsigned long)arg->handle);
+ 		return -EINVAL;
  	}
+->>>>>>> linux-next/akpm-base
  
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
-@@ -3165,14 +3169,15 @@ static int memcg_stat_show(struct seq_fi
- 		seq_printf(m, "hierarchical_memsw_limit %llu\n",
- 			   (u64)memsw * PAGE_SIZE);
- 
--	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
-+	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long long val = 0;
- 
--		if (i == MEM_CGROUP_STAT_SWAP && !do_memsw_account())
-+		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		for_each_mem_cgroup_tree(mi, memcg)
--			val += mem_cgroup_read_stat(mi, i) * PAGE_SIZE;
--		seq_printf(m, "total_%s %llu\n", mem_cgroup_stat_names[i], val);
-+			val += mem_cgroup_read_stat(mi, memcg1_stats[i]) *
-+			PAGE_SIZE;
-+		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i], val);
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++) {
-@@ -3645,10 +3650,10 @@ void mem_cgroup_wb_stats(struct bdi_writ
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
- 	struct mem_cgroup *parent;
- 
--	*pdirty = mem_cgroup_read_stat(memcg, MEM_CGROUP_STAT_DIRTY);
-+	*pdirty = mem_cgroup_read_stat(memcg, NR_FILE_DIRTY);
- 
- 	/* this should eventually include NR_UNSTABLE_NFS */
--	*pwriteback = mem_cgroup_read_stat(memcg, MEM_CGROUP_STAT_WRITEBACK);
-+	*pwriteback = mem_cgroup_read_stat(memcg, NR_WRITEBACK);
- 	*pfilepages = mem_cgroup_nr_lru_pages(memcg, (1 << LRU_INACTIVE_FILE) |
- 						     (1 << LRU_ACTIVE_FILE));
- 	*pheadroom = PAGE_COUNTER_MAX;
-@@ -4504,10 +4509,8 @@ static int mem_cgroup_move_account(struc
- 	spin_lock_irqsave(&from->move_lock, flags);
- 
- 	if (!anon && page_mapped(page)) {
--		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
--			       nr_pages);
--		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
--			       nr_pages);
-+		__this_cpu_sub(from->stat->count[NR_FILE_MAPPED], nr_pages);
-+		__this_cpu_add(to->stat->count[NR_FILE_MAPPED], nr_pages);
- 	}
- 
- 	/*
-@@ -4519,18 +4522,16 @@ static int mem_cgroup_move_account(struc
- 		struct address_space *mapping = page_mapping(page);
- 
- 		if (mapping_cap_account_dirty(mapping)) {
--			__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_DIRTY],
-+			__this_cpu_sub(from->stat->count[NR_FILE_DIRTY],
- 				       nr_pages);
--			__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_DIRTY],
-+			__this_cpu_add(to->stat->count[NR_FILE_DIRTY],
- 				       nr_pages);
- 		}
- 	}
- 
- 	if (PageWriteback(page)) {
--		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_WRITEBACK],
--			       nr_pages);
--		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_WRITEBACK],
--			       nr_pages);
-+		__this_cpu_sub(from->stat->count[NR_WRITEBACK], nr_pages);
-+		__this_cpu_add(to->stat->count[NR_WRITEBACK], nr_pages);
- 	}
- 
- 	/*
-@@ -5190,9 +5191,9 @@ static int memory_stat_show(struct seq_f
- 	tree_events(memcg, events);
- 
- 	seq_printf(m, "anon %llu\n",
--		   (u64)stat[MEM_CGROUP_STAT_RSS] * PAGE_SIZE);
-+		   (u64)stat[MEMCG_RSS] * PAGE_SIZE);
- 	seq_printf(m, "file %llu\n",
--		   (u64)stat[MEM_CGROUP_STAT_CACHE] * PAGE_SIZE);
-+		   (u64)stat[MEMCG_CACHE] * PAGE_SIZE);
- 	seq_printf(m, "kernel_stack %llu\n",
- 		   (u64)stat[MEMCG_KERNEL_STACK_KB] * 1024);
- 	seq_printf(m, "slab %llu\n",
-@@ -5202,13 +5203,13 @@ static int memory_stat_show(struct seq_f
- 		   (u64)stat[MEMCG_SOCK] * PAGE_SIZE);
- 
- 	seq_printf(m, "shmem %llu\n",
--		   (u64)stat[MEM_CGROUP_STAT_SHMEM] * PAGE_SIZE);
-+		   (u64)stat[NR_SHMEM] * PAGE_SIZE);
- 	seq_printf(m, "file_mapped %llu\n",
--		   (u64)stat[MEM_CGROUP_STAT_FILE_MAPPED] * PAGE_SIZE);
-+		   (u64)stat[NR_FILE_MAPPED] * PAGE_SIZE);
- 	seq_printf(m, "file_dirty %llu\n",
--		   (u64)stat[MEM_CGROUP_STAT_DIRTY] * PAGE_SIZE);
-+		   (u64)stat[NR_FILE_DIRTY] * PAGE_SIZE);
- 	seq_printf(m, "file_writeback %llu\n",
--		   (u64)stat[MEM_CGROUP_STAT_WRITEBACK] * PAGE_SIZE);
-+		   (u64)stat[NR_WRITEBACK] * PAGE_SIZE);
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++) {
- 		struct mem_cgroup *mi;
-@@ -5231,11 +5232,11 @@ static int memory_stat_show(struct seq_f
- 	seq_printf(m, "pgmajfault %lu\n", events[PGMAJFAULT]);
- 
- 	seq_printf(m, "workingset_refault %lu\n",
--		   stat[MEMCG_WORKINGSET_REFAULT]);
-+		   stat[WORKINGSET_REFAULT]);
- 	seq_printf(m, "workingset_activate %lu\n",
--		   stat[MEMCG_WORKINGSET_ACTIVATE]);
-+		   stat[WORKINGSET_ACTIVATE]);
- 	seq_printf(m, "workingset_nodereclaim %lu\n",
--		   stat[MEMCG_WORKINGSET_NODERECLAIM]);
-+		   stat[WORKINGSET_NODERECLAIM]);
- 
- 	return 0;
- }
-@@ -5492,10 +5493,10 @@ static void uncharge_batch(struct mem_cg
- 	}
- 
- 	local_irq_save(flags);
--	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_RSS], nr_anon);
--	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_CACHE], nr_file);
--	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_RSS_HUGE], nr_huge);
--	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_SHMEM], nr_shmem);
-+	__this_cpu_sub(memcg->stat->count[MEMCG_RSS], nr_anon);
-+	__this_cpu_sub(memcg->stat->count[MEMCG_CACHE], nr_file);
-+	__this_cpu_sub(memcg->stat->count[MEMCG_RSS_HUGE], nr_huge);
-+	__this_cpu_sub(memcg->stat->count[NR_SHMEM], nr_shmem);
- 	__this_cpu_add(memcg->stat->events[PGPGOUT], pgpgout);
- 	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
- 	memcg_check_events(memcg, dummy_page);
-diff -puN mm/page-writeback.c~mm-memcontrol-re-use-node-vm-page-state-enum mm/page-writeback.c
---- a/mm/page-writeback.c~mm-memcontrol-re-use-node-vm-page-state-enum
-+++ a/mm/page-writeback.c
-@@ -2427,7 +2427,7 @@ void account_page_dirtied(struct page *p
- 		inode_attach_wb(inode, page);
- 		wb = inode_to_wb(inode);
- 
--		mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_DIRTY);
-+		mem_cgroup_inc_page_stat(page, NR_FILE_DIRTY);
- 		__inc_node_page_state(page, NR_FILE_DIRTY);
- 		__inc_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		__inc_node_page_state(page, NR_DIRTIED);
-@@ -2449,7 +2449,7 @@ void account_page_cleaned(struct page *p
- 			  struct bdi_writeback *wb)
- {
- 	if (mapping_cap_account_dirty(mapping)) {
--		mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_DIRTY);
-+		mem_cgroup_dec_page_stat(page, NR_FILE_DIRTY);
- 		dec_node_page_state(page, NR_FILE_DIRTY);
- 		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		dec_wb_stat(wb, WB_RECLAIMABLE);
-@@ -2706,7 +2706,7 @@ int clear_page_dirty_for_io(struct page
- 		 */
- 		wb = unlocked_inode_to_wb_begin(inode, &locked);
- 		if (TestClearPageDirty(page)) {
--			mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_DIRTY);
-+			mem_cgroup_dec_page_stat(page, NR_FILE_DIRTY);
- 			dec_node_page_state(page, NR_FILE_DIRTY);
- 			dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 			dec_wb_stat(wb, WB_RECLAIMABLE);
-@@ -2753,7 +2753,7 @@ int test_clear_page_writeback(struct pag
- 		ret = TestClearPageWriteback(page);
- 	}
- 	if (ret) {
--		mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_WRITEBACK);
-+		mem_cgroup_dec_page_stat(page, NR_WRITEBACK);
- 		dec_node_page_state(page, NR_WRITEBACK);
- 		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		inc_node_page_state(page, NR_WRITTEN);
-@@ -2808,7 +2808,7 @@ int __test_set_page_writeback(struct pag
- 		ret = TestSetPageWriteback(page);
- 	}
- 	if (!ret) {
--		mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_WRITEBACK);
-+		mem_cgroup_inc_page_stat(page, NR_WRITEBACK);
- 		inc_node_page_state(page, NR_WRITEBACK);
- 		inc_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 	}
-diff -puN mm/rmap.c~mm-memcontrol-re-use-node-vm-page-state-enum mm/rmap.c
---- a/mm/rmap.c~mm-memcontrol-re-use-node-vm-page-state-enum
-+++ a/mm/rmap.c
-@@ -1158,7 +1158,7 @@ void page_add_file_rmap(struct page *pag
- 			goto out;
- 	}
- 	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, nr);
--	mem_cgroup_update_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED, nr);
-+	mem_cgroup_update_page_stat(page, NR_FILE_MAPPED, nr);
- out:
- 	unlock_page_memcg(page);
- }
-@@ -1198,7 +1198,7 @@ static void page_remove_file_rmap(struct
- 	 * pte lock(a spinlock) is held, which implies preemption disabled.
- 	 */
- 	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, -nr);
--	mem_cgroup_update_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED, -nr);
-+	mem_cgroup_update_page_stat(page, NR_FILE_MAPPED, -nr);
- 
- 	if (unlikely(PageMlocked(page)))
- 		clear_page_mlock(page);
-diff -puN mm/vmscan.c~mm-memcontrol-re-use-node-vm-page-state-enum mm/vmscan.c
---- a/mm/vmscan.c~mm-memcontrol-re-use-node-vm-page-state-enum
-+++ a/mm/vmscan.c
-@@ -2046,8 +2046,7 @@ static bool inactive_list_is_low(struct
- 	active = lruvec_lru_size(lruvec, active_lru, sc->reclaim_idx);
- 
- 	if (memcg)
--		refaults = mem_cgroup_read_stat(memcg,
--						MEMCG_WORKINGSET_ACTIVATE);
-+		refaults = mem_cgroup_read_stat(memcg, WORKINGSET_ACTIVATE);
- 	else
- 		refaults = node_page_state(pgdat, WORKINGSET_ACTIVATE);
- 
-@@ -2735,7 +2734,7 @@ static void snapshot_refaults(struct mem
- 
- 		if (memcg)
- 			refaults = mem_cgroup_read_stat(memcg,
--						MEMCG_WORKINGSET_ACTIVATE);
-+							WORKINGSET_ACTIVATE);
- 		else
- 			refaults = node_page_state(pgdat, WORKINGSET_ACTIVATE);
- 
-diff -puN mm/workingset.c~mm-memcontrol-re-use-node-vm-page-state-enum mm/workingset.c
---- a/mm/workingset.c~mm-memcontrol-re-use-node-vm-page-state-enum
-+++ a/mm/workingset.c
-@@ -289,11 +289,11 @@ bool workingset_refault(void *shadow)
- 	refault_distance = (refault - eviction) & EVICTION_MASK;
- 
- 	inc_node_state(pgdat, WORKINGSET_REFAULT);
--	mem_cgroup_inc_stat(memcg, MEMCG_WORKINGSET_REFAULT);
-+	mem_cgroup_inc_stat(memcg, WORKINGSET_REFAULT);
- 
- 	if (refault_distance <= active_file) {
- 		inc_node_state(pgdat, WORKINGSET_ACTIVATE);
--		mem_cgroup_inc_stat(memcg, MEMCG_WORKINGSET_ACTIVATE);
-+		mem_cgroup_inc_stat(memcg, WORKINGSET_ACTIVATE);
- 		rcu_read_unlock();
- 		return true;
- 	}
-@@ -475,8 +475,7 @@ static enum lru_status shadow_lru_isolat
- 	if (WARN_ON_ONCE(node->exceptional))
- 		goto out_invalid;
- 	inc_node_state(page_pgdat(virt_to_page(node)), WORKINGSET_NODERECLAIM);
--	mem_cgroup_inc_page_stat(virt_to_page(node),
--				 MEMCG_WORKINGSET_NODERECLAIM);
-+	mem_cgroup_inc_page_stat(virt_to_page(node), WORKINGSET_NODERECLAIM);
- 	__radix_tree_delete_node(&mapping->page_tree, node,
- 				 workingset_update_node, mapping);
- 
+ 	fence = &(container_of(base, struct vmw_user_fence, base)->fence);
+ 	fman = fman_from_fence(fence);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes.patch
-mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes-fix.patch
-mm-fix-check-for-reclaimable-pages-in-pf_memalloc-reclaim-throttling.patch
-mm-remove-seemingly-spurious-reclaimability-check-from-laptop_mode-gating.patch
-mm-remove-unnecessary-reclaimability-check-from-numa-balancing-target.patch
-mm-dont-avoid-high-priority-reclaim-on-unreclaimable-nodes.patch
-mm-dont-avoid-high-priority-reclaim-on-memcg-limit-reclaim.patch
-mm-delete-nr_pages_scanned-and-pgdat_reclaimable.patch
-revert-mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
-mm-remove-unnecessary-back-off-function-when-retrying-page-reclaim.patch
-mm-memcontrol-provide-shmem-statistics.patch
-mm-page_alloc-__gfp_nowarn-shouldnt-suppress-stall-warnings.patch
-mm-vmscan-fix-io-refault-regression-in-cache-workingset-transition.patch
-mm-memcontrol-clean-up-memoryevents-counting-function.patch
-mm-memcontrol-re-use-global-vm-event-enum.patch
-mm-memcontrol-re-use-node-vm-page-state-enum.patch
-mm-memcontrol-use-node-page-state-naming-scheme-for-memcg.patch
+i-need-old-gcc.patch
+ptrace-fix-ptrace_listen-race-corrupting-task-state-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+linux-next-rejects.patch
+drm-use-set_memoryh-header-fix.patch
+drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
