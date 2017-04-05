@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + format-security-move-static-strings-to-const.patch added to -mm tree
-Date: Wed, 05 Apr 2017 15:05:10 -0700
-Message-ID: <58e56a16.ENH6FMnAgDDs32VT%akpm@linux-foundation.org>
+Subject: + hmm-heterogeneous-memory-management-documentation.patch added
+ to -mm tree
+Date: Wed, 05 Apr 2017 16:45:11 -0700
+Message-ID: <58e58187.GnHSRg7grvIcB978%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932280AbdDEWFO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2017 18:05:14 -0400
+        with ESMTP id S1753730AbdDEXpN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2017 19:45:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, a@unstable.cc, airlied@linux.ie, andrey.shvetsov@k2l.de, arnd@arndb.de, christian.gromm@microchip.com, colin.king@canonical.com, daniel.vetter@intel.com, davem@davemloft.net, dmitry.torokhov@gmail.com, edumazet@google.com, felipe.balbi@linux.intel.com, fw@strlen.de, gregkh@linuxfoundation.org, huangdaode@hisilicon.com, james.hogan@imgtec.com, jani.nikula@linux.intel.com, jarod@redhat.com, jes@trained-monkey.org, jlitzingerdev@gmail.com, jslaby@suse.com, linux@armlinux.org.uk, linux@rasmusvillemoes.dk, macro@linux-mips.org, matt.redfearn@imgtec.com, mingo@kernel.org, mugunthanvnm@ti.com, patrice.chotard@st.com, paul.burton@imgtec.com, pbonzini@redhat.com, ralf@linux-mips.org, rjw@rjwysocki.net, salil.mehta@huawei.com, seanpaul@chromium.org, tony@atomid
+To: jglisse@redhat.com, SCheung@nvidia.com, benh@kernel.crashing.org, cmetcalf@mellanox.com, dalias@libc.org, dan.j.williams@intel.com, dnellans@nvidia.com, ebaskakov@nvidia.com, heiko.carstens@de.ibm.com, hpa@zytor.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, linux@armlinux.org.uk, mhairgrove@nvidia.com, mingo@redhat.com, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com, paulus@samba.org, ross.zwisler@linux.intel.com, schwidefsky@de.ibm.com, sgutti@nvidia.com, tglx@linutronix.de, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: format-security: move static strings to const
+     Subject: hmm: heterogeneous memory management documentation
 has been added to the -mm tree.  Its filename is
-     format-security-move-static-strings-to-const.patch
+     hmm-heterogeneous-memory-management-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/format-security-move-static-strings-to-const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hmm-heterogeneous-memory-management-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/format-security-move-static-strings-to-const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hmm-heterogeneous-memory-management-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,362 +39,427 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: format-security: move static strings to const
+From: Jérôme Glisse <jglisse@redhat.com>
+Subject: hmm: heterogeneous memory management documentation
 
-While examining output from trial builds with -Wformat-security enabled,
-many strings were found that should be defined as "const", or as a char
-array instead of char pointer.  This makes some static analysis easier, by
-producing fewer false positives.
+This add documentation for HMM (Heterogeneous Memory Management).  It
+presents the motivation behind it, the features necessary for it to be
+useful and and gives an overview of how this is implemented.
 
-As these are all trivial changes, it seemed best to put them all in a
-single patch rather than chopping them up per maintainer.
-
-Link: http://lkml.kernel.org/r/20170405214711.GA5711@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Tony Lindgren <tony@atomide.com>
+Link: http://lkml.kernel.org/r/20170405204026.3940-17-jglisse@redhat.com
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Nellans <dnellans@nvidia.com>
+Cc: Evgeny Baskakov <ebaskakov@nvidia.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mark Hairgrove <mhairgrove@nvidia.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Sean Paul <seanpaul@chromium.org>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Yisen Zhuang <yisen.zhuang@huawei.com>
-Cc: Salil Mehta <salil.mehta@huawei.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Jes Sorensen <jes@trained-monkey.org>
-Cc: Jiri Slaby <jslaby@suse.com>
-Cc: Patrice Chotard <patrice.chotard@st.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Paul Burton <paul.burton@imgtec.com>
-Cc: Matt Redfearn <matt.redfearn@imgtec.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Antonio Quartulli <a@unstable.cc>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Kejian Yan <yankejian@huawei.com>
-Cc: Daode Huang <huangdaode@hisilicon.com>
-Cc: Qianqian Xie <xieqianqian@huawei.com>
-Cc: Philippe Reynes <tremyfr@gmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Christian Gromm <christian.gromm@microchip.com>
-Cc: Andrey Shvetsov <andrey.shvetsov@k2l.de>
-Cc: Jason Litzinger <jlitzingerdev@gmail.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Sherry Cheung <SCheung@nvidia.com>
+Cc: Subhash Gutti <sgutti@nvidia.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/board-n8x0.c                  |    2 +-
- arch/mips/dec/prom/init.c                         |    6 +++---
- arch/mips/kernel/traps.c                          |    4 ++--
- drivers/char/dsp56k.c                             |    2 +-
- drivers/cpufreq/powernow-k8.c                     |    3 ++-
- drivers/gpu/drm/drm_fb_helper.c                   |    2 +-
- drivers/net/ethernet/amd/atarilance.c             |    4 ++--
- drivers/net/ethernet/amd/declance.c               |    2 +-
- drivers/net/ethernet/amd/sun3lance.c              |    3 ++-
- drivers/net/ethernet/cirrus/mac89x0.c             |    2 +-
- drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.h |    2 +-
- drivers/net/ethernet/natsemi/sonic.h              |    2 +-
- drivers/net/ethernet/toshiba/tc35815.c            |    2 +-
- drivers/net/fddi/defxx.c                          |    2 +-
- drivers/net/hippi/rrunner.c                       |    3 ++-
- drivers/staging/most/mostcore/core.c              |    2 +-
- drivers/tty/n_hdlc.c                              |   10 +++++-----
- drivers/tty/serial/st-asc.c                       |    2 +-
- net/decnet/af_decnet.c                            |    3 ++-
- 19 files changed, 31 insertions(+), 27 deletions(-)
+ Documentation/vm/hmm.txt |  362 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 362 insertions(+)
 
-diff -puN arch/arm/mach-omap2/board-n8x0.c~format-security-move-static-strings-to-const arch/arm/mach-omap2/board-n8x0.c
---- a/arch/arm/mach-omap2/board-n8x0.c~format-security-move-static-strings-to-const
-+++ a/arch/arm/mach-omap2/board-n8x0.c
-@@ -117,7 +117,7 @@ static struct musb_hdrc_platform_data tu
- static void __init n8x0_usb_init(void)
- {
- 	int ret = 0;
--	static char	announce[] __initdata = KERN_INFO "TUSB 6010\n";
-+	static const char announce[] __initconst = KERN_INFO "TUSB 6010\n";
- 
- 	/* PM companion chip power control pin */
- 	ret = gpio_request_one(TUSB6010_GPIO_ENABLE, GPIOF_OUT_INIT_LOW,
-diff -puN arch/mips/dec/prom/init.c~format-security-move-static-strings-to-const arch/mips/dec/prom/init.c
---- a/arch/mips/dec/prom/init.c~format-security-move-static-strings-to-const
-+++ a/arch/mips/dec/prom/init.c
-@@ -88,7 +88,7 @@ void __init which_prom(s32 magic, s32 *p
- void __init prom_init(void)
- {
- 	extern void dec_machine_halt(void);
--	static char cpu_msg[] __initdata =
-+	static const char cpu_msg[] __initconst =
- 		"Sorry, this kernel is compiled for a wrong CPU type!\n";
- 	s32 argc = fw_arg0;
- 	s32 *argv = (void *)fw_arg1;
-@@ -111,7 +111,7 @@ void __init prom_init(void)
- #if defined(CONFIG_CPU_R3000)
- 	if ((current_cpu_type() == CPU_R4000SC) ||
- 	    (current_cpu_type() == CPU_R4400SC)) {
--		static char r4k_msg[] __initdata =
-+		static const char r4k_msg[] __initconst =
- 			"Please recompile with \"CONFIG_CPU_R4x00 = y\".\n";
- 		printk(cpu_msg);
- 		printk(r4k_msg);
-@@ -122,7 +122,7 @@ void __init prom_init(void)
- #if defined(CONFIG_CPU_R4X00)
- 	if ((current_cpu_type() == CPU_R3000) ||
- 	    (current_cpu_type() == CPU_R3000A)) {
--		static char r3k_msg[] __initdata =
-+		static const char r3k_msg[] __initconst =
- 			"Please recompile with \"CONFIG_CPU_R3000 = y\".\n";
- 		printk(cpu_msg);
- 		printk(r3k_msg);
-diff -puN arch/mips/kernel/traps.c~format-security-move-static-strings-to-const arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~format-security-move-static-strings-to-const
-+++ a/arch/mips/kernel/traps.c
-@@ -2256,8 +2256,8 @@ void set_handler(unsigned long offset, v
- 	local_flush_icache_range(ebase + offset, ebase + offset + size);
- }
- 
--static char panic_null_cerr[] =
--	"Trying to set NULL cache error exception handler";
-+static const char panic_null_cerr[] =
-+	"Trying to set NULL cache error exception handler\n";
- 
- /*
-  * Install uncached CPU exception handler.
-diff -puN drivers/char/dsp56k.c~format-security-move-static-strings-to-const drivers/char/dsp56k.c
---- a/drivers/char/dsp56k.c~format-security-move-static-strings-to-const
-+++ a/drivers/char/dsp56k.c
-@@ -489,7 +489,7 @@ static const struct file_operations dsp5
- 
- /****** Init and module functions ******/
- 
--static char banner[] __initdata = KERN_INFO "DSP56k driver installed\n";
-+static const char banner[] __initconst = KERN_INFO "DSP56k driver installed\n";
- 
- static int __init dsp56k_init_driver(void)
- {
-diff -puN drivers/cpufreq/powernow-k8.c~format-security-move-static-strings-to-const drivers/cpufreq/powernow-k8.c
---- a/drivers/cpufreq/powernow-k8.c~format-security-move-static-strings-to-const
-+++ a/drivers/cpufreq/powernow-k8.c
-@@ -1171,7 +1171,8 @@ static struct cpufreq_driver cpufreq_amd
- 
- static void __request_acpi_cpufreq(void)
- {
--	const char *cur_drv, *drv = "acpi-cpufreq";
-+	const char drv[] = "acpi-cpufreq";
-+	const char *cur_drv;
- 
- 	cur_drv = cpufreq_get_current_driver();
- 	if (!cur_drv)
-diff -puN drivers/gpu/drm/drm_fb_helper.c~format-security-move-static-strings-to-const drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~format-security-move-static-strings-to-const
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -2423,7 +2423,7 @@ EXPORT_SYMBOL(drm_fb_helper_hotplug_even
- int __init drm_fb_helper_modinit(void)
- {
- #if defined(CONFIG_FRAMEBUFFER_CONSOLE_MODULE) && !defined(CONFIG_EXPERT)
--	const char *name = "fbcon";
-+	const char name[] = "fbcon";
- 	struct module *fbcon;
- 
- 	mutex_lock(&module_mutex);
-diff -puN drivers/net/ethernet/amd/atarilance.c~format-security-move-static-strings-to-const drivers/net/ethernet/amd/atarilance.c
---- a/drivers/net/ethernet/amd/atarilance.c~format-security-move-static-strings-to-const
-+++ a/drivers/net/ethernet/amd/atarilance.c
-@@ -42,8 +42,8 @@
- 
- */
- 
--static char version[] = "atarilance.c: v1.3 04/04/96 "
--					   "Roman.Hodek@informatik.uni-erlangen.de\n";
-+static const char version[] = "atarilance.c: v1.3 04/04/96 "
-+			      "Roman.Hodek@informatik.uni-erlangen.de\n";
- 
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
-diff -puN drivers/net/ethernet/amd/declance.c~format-security-move-static-strings-to-const drivers/net/ethernet/amd/declance.c
---- a/drivers/net/ethernet/amd/declance.c~format-security-move-static-strings-to-const
-+++ a/drivers/net/ethernet/amd/declance.c
-@@ -72,7 +72,7 @@
- #include <asm/dec/machtype.h>
- #include <asm/dec/system.h>
- 
--static char version[] =
-+static const char version[] =
- "declance.c: v0.011 by Linux MIPS DECstation task force\n";
- 
- MODULE_AUTHOR("Linux MIPS DECstation task force");
-diff -puN drivers/net/ethernet/amd/sun3lance.c~format-security-move-static-strings-to-const drivers/net/ethernet/amd/sun3lance.c
---- a/drivers/net/ethernet/amd/sun3lance.c~format-security-move-static-strings-to-const
-+++ a/drivers/net/ethernet/amd/sun3lance.c
-@@ -21,7 +21,8 @@
- 
- */
- 
--static char *version = "sun3lance.c: v1.2 1/12/2001  Sam Creasey (sammy@sammy.net)\n";
-+static const char version[] =
-+"sun3lance.c: v1.2 1/12/2001  Sam Creasey (sammy@sammy.net)\n";
- 
- #include <linux/module.h>
- #include <linux/stddef.h>
-diff -puN drivers/net/ethernet/cirrus/mac89x0.c~format-security-move-static-strings-to-const drivers/net/ethernet/cirrus/mac89x0.c
---- a/drivers/net/ethernet/cirrus/mac89x0.c~format-security-move-static-strings-to-const
-+++ a/drivers/net/ethernet/cirrus/mac89x0.c
-@@ -56,7 +56,7 @@
-   local_irq_{dis,en}able()
- */
- 
--static char *version =
-+static const char version[] =
- "cs89x0.c:v1.02 11/26/96 Russell Nelson <nelson@crynwr.com>\n";
- 
- /* ======================= configure the driver here ======================= */
-diff -puN drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.h~format-security-move-static-strings-to-const drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.h
---- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.h~format-security-move-static-strings-to-const
-+++ a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.h
-@@ -405,7 +405,7 @@ struct mac_driver {
- };
- 
- struct mac_stats_string {
--	char desc[ETH_GSTRING_LEN];
-+	const char desc[ETH_GSTRING_LEN];
- 	unsigned long offset;
- };
- 
-diff -puN drivers/net/ethernet/natsemi/sonic.h~format-security-move-static-strings-to-const drivers/net/ethernet/natsemi/sonic.h
---- a/drivers/net/ethernet/natsemi/sonic.h~format-security-move-static-strings-to-const
-+++ a/drivers/net/ethernet/natsemi/sonic.h
-@@ -444,7 +444,7 @@ static inline __u16 sonic_rra_get(struct
- 			     (entry * SIZEOF_SONIC_RR) + offset);
- }
- 
--static const char *version =
-+static const char version[] =
-     "sonic.c:v0.92 20.9.98 tsbogend@alpha.franken.de\n";
- 
- #endif /* SONIC_H */
-diff -puN drivers/net/ethernet/toshiba/tc35815.c~format-security-move-static-strings-to-const drivers/net/ethernet/toshiba/tc35815.c
---- a/drivers/net/ethernet/toshiba/tc35815.c~format-security-move-static-strings-to-const
-+++ a/drivers/net/ethernet/toshiba/tc35815.c
-@@ -23,7 +23,7 @@
-  */
- 
- #define DRV_VERSION	"1.39"
--static const char *version = "tc35815.c:v" DRV_VERSION "\n";
-+static const char version[] = "tc35815.c:v" DRV_VERSION "\n";
- #define MODNAME			"tc35815"
- 
- #include <linux/module.h>
-diff -puN drivers/net/fddi/defxx.c~format-security-move-static-strings-to-const drivers/net/fddi/defxx.c
---- a/drivers/net/fddi/defxx.c~format-security-move-static-strings-to-const
-+++ a/drivers/net/fddi/defxx.c
-@@ -228,7 +228,7 @@
- #define DRV_VERSION "v1.11"
- #define DRV_RELDATE "2014/07/01"
- 
--static char version[] =
-+static const char version[] =
- 	DRV_NAME ": " DRV_VERSION " " DRV_RELDATE
- 	"  Lawrence V. Stefani and others\n";
- 
-diff -puN drivers/net/hippi/rrunner.c~format-security-move-static-strings-to-const drivers/net/hippi/rrunner.c
---- a/drivers/net/hippi/rrunner.c~format-security-move-static-strings-to-const
-+++ a/drivers/net/hippi/rrunner.c
-@@ -60,7 +60,8 @@ MODULE_AUTHOR("Jes Sorensen <jes@wildope
- MODULE_DESCRIPTION("Essential RoadRunner HIPPI driver");
- MODULE_LICENSE("GPL");
- 
--static char version[] = "rrunner.c: v0.50 11/11/2002  Jes Sorensen (jes@wildopensource.com)\n";
-+static const char version[] =
-+"rrunner.c: v0.50 11/11/2002  Jes Sorensen (jes@wildopensource.com)\n";
- 
- 
- static const struct net_device_ops rr_netdev_ops = {
-diff -puN drivers/staging/most/mostcore/core.c~format-security-move-static-strings-to-const drivers/staging/most/mostcore/core.c
---- a/drivers/staging/most/mostcore/core.c~format-security-move-static-strings-to-const
-+++ a/drivers/staging/most/mostcore/core.c
-@@ -82,7 +82,7 @@ struct most_inst_obj {
- 
- static const struct {
- 	int most_ch_data_type;
--	char *name;
-+	const char *name;
- } ch_data_type[] = {
- 	{ MOST_CH_CONTROL, "control\n" },
- 	{ MOST_CH_ASYNC, "async\n" },
-diff -puN drivers/tty/n_hdlc.c~format-security-move-static-strings-to-const drivers/tty/n_hdlc.c
---- a/drivers/tty/n_hdlc.c~format-security-move-static-strings-to-const
-+++ a/drivers/tty/n_hdlc.c
-@@ -939,11 +939,11 @@ static struct n_hdlc_buf *n_hdlc_buf_get
- 	return buf;
- }	/* end of n_hdlc_buf_get() */
- 
--static char hdlc_banner[] __initdata =
-+static const char hdlc_banner[] __initconst =
- 	KERN_INFO "HDLC line discipline maxframe=%u\n";
--static char hdlc_register_ok[] __initdata =
-+static const char hdlc_register_ok[] __initconst =
- 	KERN_INFO "N_HDLC line discipline registered.\n";
--static char hdlc_register_fail[] __initdata =
-+static const char hdlc_register_fail[] __initconst =
- 	KERN_ERR "error registering line discipline: %d\n";
- 
- static int __init n_hdlc_init(void)
-@@ -968,9 +968,9 @@ static int __init n_hdlc_init(void)
- 	
- }	/* end of init_module() */
- 
--static char hdlc_unregister_ok[] __exitdata =
-+static const char hdlc_unregister_ok[] __exitdata =
- 	KERN_INFO "N_HDLC: line discipline unregistered\n";
--static char hdlc_unregister_fail[] __exitdata =
-+static const char hdlc_unregister_fail[] __exitdata =
- 	KERN_ERR "N_HDLC: can't unregister line discipline (err = %d)\n";
- 
- static void __exit n_hdlc_exit(void)
-diff -puN drivers/tty/serial/st-asc.c~format-security-move-static-strings-to-const drivers/tty/serial/st-asc.c
---- a/drivers/tty/serial/st-asc.c~format-security-move-static-strings-to-const
-+++ a/drivers/tty/serial/st-asc.c
-@@ -984,7 +984,7 @@ static struct platform_driver asc_serial
- static int __init asc_init(void)
- {
- 	int ret;
--	static char banner[] __initdata =
-+	static const char banner[] __initconst =
- 		KERN_INFO "STMicroelectronics ASC driver initialized\n";
- 
- 	printk(banner);
-diff -puN net/decnet/af_decnet.c~format-security-move-static-strings-to-const net/decnet/af_decnet.c
---- a/net/decnet/af_decnet.c~format-security-move-static-strings-to-const
-+++ a/net/decnet/af_decnet.c
-@@ -2361,7 +2361,8 @@ MODULE_AUTHOR("Linux DECnet Project Team
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_NETPROTO(PF_DECnet);
- 
--static char banner[] __initdata = KERN_INFO "NET4: DECnet for Linux: V.2.5.68s (C) 1995-2003 Linux DECnet Project Team\n";
-+static const char banner[] __initconst = KERN_INFO
-+"NET4: DECnet for Linux: V.2.5.68s (C) 1995-2003 Linux DECnet Project Team\n";
- 
- static int __init decnet_init(void)
- {
+diff -puN /dev/null Documentation/vm/hmm.txt
+--- /dev/null
++++ a/Documentation/vm/hmm.txt
+@@ -0,0 +1,362 @@
++Heterogeneous Memory Management (HMM)
++
++Transparently allow any component of a program to use any memory region of said
++program with a device without using device specific memory allocator. This is
++becoming a requirement to simplify the use of advance heterogeneous computing
++where GPU, DSP or FPGA are use to perform various computations.
++
++This document is divided as follow, in the first section i expose the problems
++related to the use of a device specific allocator. The second section i expose
++the hardware limitations that are inherent to many platforms. The third section
++gives an overview of HMM designs. The fourth section explains how CPU page-
++table mirroring works and what is HMM purpose in this context. Fifth section
++deals with how device memory is represented inside the kernel. Finaly the last
++section present the new migration helper that allow to leverage the device DMA
++engine.
++
++
++-------------------------------------------------------------------------------
++
++1) Problems of using device specific memory allocator:
++
++Device with large amount of on board memory (several giga bytes) like GPU have
++historically manage their memory through dedicated driver specific API. This
++creates a disconnect between memory allocated and managed by device driver and
++regular application memory (private anonymous, share memory or regular file
++back memory). From here on i will refer to this aspect as split address space.
++I use share address space to refer to the opposite situation ie one in which
++any memory region can be use by device transparently.
++
++Split address space because device can only access memory allocated through the
++device specific API. This imply that all memory object in a program are not
++equal from device point of view which complicate large program that rely on a
++wide set of libraries.
++
++Concretly this means that code that wants to leverage device like GPU need to
++copy object between genericly allocated memory (malloc, mmap private/share/)
++and memory allocated through the device driver API (this still end up with an
++mmap but of the device file).
++
++For flat dataset (array, grid, image, ...) this isn't too hard to achieve but
++complex data-set (list, tree, ...) are hard to get right. Duplicating a complex
++data-set need to re-map all the pointer relations between each of its elements.
++This is error prone and program gets harder to debug because of the duplicate
++data-set.
++
++Split address space also means that library can not transparently use data they
++are getting from core program or other library and thus each library might have
++to duplicate its input data-set using specific memory allocator. Large project
++suffer from this and waste resources because of the various memory copy.
++
++Duplicating each library API to accept as input or output memory allocted by
++each device specific allocator is not a viable option. It would lead to a
++combinatorial explosions in the library entry points.
++
++Finaly with the advance of high level language constructs (in C++ but in other
++language too) it is now possible for compiler to leverage GPU or other devices
++without even the programmer knowledge. Some of compiler identified patterns are
++only do-able with a share address. It is as well more reasonable to use a share
++address space for all the other patterns.
++
++
++-------------------------------------------------------------------------------
++
++2) System bus, device memory characteristics
++
++System bus cripple share address due to few limitations. Most system bus only
++allow basic memory access from device to main memory, even cache coherency is
++often optional. Access to device memory from CPU is even more limited, most
++often than not it is not cache coherent.
++
++If we only consider the PCIE bus than device can access main memory (often
++through an IOMMU) and be cache coherent with the CPUs. However it only allows
++a limited set of atomic operation from device on main memory. This is worse
++in the other direction the CPUs can only access a limited range of the device
++memory and can not perform atomic operations on it. Thus device memory can not
++be consider like regular memory from kernel point of view.
++
++Another crippling factor is the limited bandwidth (~32GBytes/s with PCIE 4.0
++and 16 lanes). This is 33 times less that fastest GPU memory (1 TBytes/s).
++The final limitation is latency, access to main memory from the device has an
++order of magnitude higher latency than when the device access its own memory.
++
++Some platform are developing new system bus or additions/modifications to PCIE
++to address some of those limitations (OpenCAPI, CCIX). They mainly allow two
++way cache coherency between CPU and device and allow all atomic operations the
++architecture supports. Saddly not all platform are following this trends and
++some major architecture are left without hardware solutions to those problems.
++
++So for share address space to make sense not only we must allow device to
++access any memory memory but we must also permit any memory to be migrated to
++device memory while device is using it (blocking CPU access while it happens).
++
++
++-------------------------------------------------------------------------------
++
++3) Share address space and migration
++
++HMM intends to provide two main features. First one is to share the address
++space by duplication the CPU page table into the device page table so same
++address point to same memory and this for any valid main memory address in
++the process address space.
++
++To achieve this, HMM offer a set of helpers to populate the device page table
++while keeping track of CPU page table updates. Device page table updates are
++not as easy as CPU page table updates. To update the device page table you must
++allow a buffer (or use a pool of pre-allocated buffer) and write GPU specifics
++commands in it to perform the update (unmap, cache invalidations and flush,
++...). This can not be done through common code for all device. Hence why HMM
++provides helpers to factor out everything that can be while leaving the gory
++details to the device driver.
++
++The second mechanism HMM provide is a new kind of ZONE_DEVICE memory that does
++allow to allocate a struct page for each page of the device memory. Those page
++are special because the CPU can not map them. They however allow to migrate
++main memory to device memory using exhisting migration mechanism and everything
++looks like if page was swap out to disk from CPU point of view. Using a struct
++page gives the easiest and cleanest integration with existing mm mechanisms.
++Again here HMM only provide helpers, first to hotplug new ZONE_DEVICE memory
++for the device memory and second to perform migration. Policy decision of what
++and when to migrate things is left to the device driver.
++
++Note that any CPU access to a device page trigger a page fault and a migration
++back to main memory ie when a page backing an given address A is migrated from
++a main memory page to a device page then any CPU access to address A trigger a
++page fault and initiate a migration back to main memory.
++
++
++With this two features, HMM not only allow a device to mirror a process address
++space and keeps both CPU and device page table synchronize, but also allow to
++leverage device memory by migrating part of data-set that is actively use by a
++device.
++
++
++-------------------------------------------------------------------------------
++
++4) Address space mirroring implementation and API
++
++Address space mirroring main objective is to allow to duplicate range of CPU
++page table into a device page table and HMM helps keeping both synchronize. A
++device driver that want to mirror a process address space must start with the
++registration of an hmm_mirror struct:
++
++ int hmm_mirror_register(struct hmm_mirror *mirror,
++                         struct mm_struct *mm);
++ int hmm_mirror_register_locked(struct hmm_mirror *mirror,
++                                struct mm_struct *mm);
++
++The locked variant is to be use when the driver is already holding the mmap_sem
++of the mm in write mode. The mirror struct has a set of callback that are use
++to propagate CPU page table:
++
++ struct hmm_mirror_ops {
++     /* sync_cpu_device_pagetables() - synchronize page tables
++      *
++      * @mirror: pointer to struct hmm_mirror
++      * @update_type: type of update that occurred to the CPU page table
++      * @start: virtual start address of the range to update
++      * @end: virtual end address of the range to update
++      *
++      * This callback ultimately originates from mmu_notifiers when the CPU
++      * page table is updated. The device driver must update its page table
++      * in response to this callback. The update argument tells what action
++      * to perform.
++      *
++      * The device driver must not return from this callback until the device
++      * page tables are completely updated (TLBs flushed, etc); this is a
++      * synchronous call.
++      */
++      void (*update)(struct hmm_mirror *mirror,
++                     enum hmm_update action,
++                     unsigned long start,
++                     unsigned long end);
++ };
++
++Device driver must perform update to the range following action (turn range
++read only, or fully unmap, ...). Once driver callback returns the device must
++be done with the update.
++
++
++When device driver wants to populate a range of virtual address it can use
++either:
++ int hmm_vma_get_pfns(struct vm_area_struct *vma,
++                      struct hmm_range *range,
++                      unsigned long start,
++                      unsigned long end,
++                      hmm_pfn_t *pfns);
++ int hmm_vma_fault(struct vm_area_struct *vma,
++                   struct hmm_range *range,
++                   unsigned long start,
++                   unsigned long end,
++                   hmm_pfn_t *pfns,
++                   bool write,
++                   bool block);
++
++First one (hmm_vma_get_pfns()) will only fetch present CPU page table entry and
++will not trigger a page fault on missing or non present entry. The second one
++do trigger page fault on missing or read only entry if write parameter is true.
++Page fault use the generic mm page fault code path just like a CPU page fault.
++
++Both function copy CPU page table into their pfns array argument. Each entry in
++that array correspond to an address in the virtual range. HMM provide a set of
++flags to help driver identify special CPU page table entries.
++
++Locking with the update() callback is the most important aspect the driver must
++respect in order to keep things properly synchronize. The usage pattern is :
++
++ int driver_populate_range(...)
++ {
++      struct hmm_range range;
++      ...
++ again:
++      ret = hmm_vma_get_pfns(vma, &range, start, end, pfns);
++      if (ret)
++          return ret;
++      take_lock(driver->update);
++      if (!hmm_vma_range_done(vma, &range)) {
++          release_lock(driver->update);
++          goto again;
++      }
++
++      // Use pfns array content to update device page table
++
++      release_lock(driver->update);
++      return 0;
++ }
++
++The driver->update lock is the same lock that driver takes inside its update()
++callback. That lock must be call before hmm_vma_range_done() to avoid any race
++with a concurrent CPU page table update.
++
++HMM implements all this on top of the mmu_notifier API because we wanted to a
++simpler API and also to be able to perform optimization latter own like doing
++concurrent device update in multi-devices scenario.
++
++HMM also serve as an impedence missmatch between how CPU page table update are
++done (by CPU write to the page table and TLB flushes) from how device update
++their own page table. Device update is a multi-step process, first appropriate
++commands are write to a buffer, then this buffer is schedule for execution on
++the device. It is only once the device has executed commands in the buffer that
++the update is done. Creating and scheduling update command buffer can happen
++concurrently for multiple devices. Waiting for each device to report commands
++as executed is serialize (there is no point in doing this concurrently).
++
++
++-------------------------------------------------------------------------------
++
++5) Represent and manage device memory from core kernel point of view
++
++Several differents design were try to support device memory. First one use
++device specific data structure to keep information about migrated memory and
++HMM hooked itself in various place of mm code to handle any access to address
++that were back by device memory. It turns out that this ended up replicating
++most of the fields of struct page and also needed many kernel code path to be
++updated to understand this new kind of memory.
++
++Thing is most kernel code path never try to access the memory behind a page
++but only care about struct page contents. Because of this HMM switchted to
++directly using struct page for device memory which left most kernel code path
++un-aware of the difference. We only need to make sure that no one ever try to
++map those page from the CPU side.
++
++HMM provide a set of helpers to register and hotplug device memory as a new
++region needing struct page. This is offer through a very simple API:
++
++ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
++                                   struct device *device,
++                                   unsigned long size);
++ void hmm_devmem_remove(struct hmm_devmem *devmem);
++
++The hmm_devmem_ops is where most of the important things are:
++
++ struct hmm_devmem_ops {
++     void (*free)(struct hmm_devmem *devmem, struct page *page);
++     int (*fault)(struct hmm_devmem *devmem,
++                  struct vm_area_struct *vma,
++                  unsigned long addr,
++                  struct page *page,
++                  unsigned flags,
++                  pmd_t *pmdp);
++ };
++
++The first callback (free()) happens when the last reference on a device page is
++drop. This means the device page is now free and no longer use by anyone. The
++second callback happens whenever CPU try to access a device page which it can
++not do. This second callback must trigger a migration back to system memory,
++HMM provides an helper to do just that:
++
++ int hmm_devmem_fault_range(struct hmm_devmem *devmem,
++                            struct vm_area_struct *vma,
++                            const struct migrate_vma_ops *ops,
++                            unsigned long mentry,
++                            unsigned long *src,
++                            unsigned long *dst,
++                            unsigned long start,
++                            unsigned long addr,
++                            unsigned long end,
++                            void *private);
++
++It relies on new migrate_vma() helper which is a generic page migration helper
++that work on range of virtual address instead of working on individual pages,
++it also allow to leverage device DMA engine to perform the copy from device to
++main memory (or in the other direction). The next section goes over this new
++helper.
++
++
++-------------------------------------------------------------------------------
++
++6) Migrate to and from device memory
++
++Because CPU can not access device memory, migration must use device DMA engine
++to perform copy from and to device memory. For this we need a new migration
++helper:
++
++ int migrate_vma(const struct migrate_vma_ops *ops,
++                 struct vm_area_struct *vma,
++                 unsigned long mentries,
++                 unsigned long start,
++                 unsigned long end,
++                 unsigned long *src,
++                 unsigned long *dst,
++                 void *private);
++
++Unlike other migration function it works on a range of virtual address, there
++is two reasons for that. First device DMA copy has a high setup overhead cost
++and thus batching multiple pages is needed as otherwise the migration overhead
++make the whole excersie pointless. The second reason is because driver trigger
++such migration base on range of address the device is actively accessing.
++
++The migrate_vma_ops struct define two callbacks. First one (alloc_and_copy())
++control destination memory allocation and copy operation. Second one is there
++to allow device driver to perform cleanup operation after migration.
++
++ struct migrate_vma_ops {
++     void (*alloc_and_copy)(struct vm_area_struct *vma,
++                            const unsigned long *src,
++                            unsigned long *dst,
++                            unsigned long start,
++                            unsigned long end,
++                            void *private);
++     void (*finalize_and_map)(struct vm_area_struct *vma,
++                              const unsigned long *src,
++                              const unsigned long *dst,
++                              unsigned long start,
++                              unsigned long end,
++                              void *private);
++ };
++
++It is important to stress that this migration helpers allow for hole in the
++virtual address range. Some pages in the range might not be migrated for all
++the usual reasons (page is pin, page is lock, ...). This helper does not fail
++but just skip over those pages.
++
++The alloc_and_copy() might as well decide to not migrate all pages in the
++range (for reasons under the callback control). For those the callback just
++have to leave the corresponding dst entry empty.
++
++Finaly the migration of the struct page might fails (for file back page) for
++various reasons (failure to freeze reference, or update page cache, ...). If
++that happens then the finalize_and_map() can catch any pages that was not
++migrated. Note those page were still copied to new page and thus we wasted
++bandwidth but this is considered as a rare event and a price that we are
++willing to pay to keep all the code simpler.
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from jglisse@redhat.com are
 
-mm-remove-rodata_test_data-export-add-pr_fmt.patch
-mm-add-additional-consistency-check.patch
-reiserfs-use-designated-initializers.patch
-format-security-move-static-strings-to-const.patch
+mm-memory-hotplug-add-memory-type-parameter-to-arch_add-remove_memory.patch
+mm-put_page-move-zone_device-page-reference-decrement-v2.patch
+mm-unaddressable-memory-new-type-of-zone_device-for-unaddressable-memory.patch
+mm-zone_device-x86-add-support-for-un-addressable-device-memory.patch
+mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
+mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
+mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
+mm-hmm-heterogeneous-memory-management-hmm-for-short.patch
+mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers.patch
+mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v2.patch
+mm-hmm-mirror-device-page-fault-handler.patch
+mm-migrate-support-un-addressable-zone_device-page-in-migration.patch
+mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry.patch
+mm-hmm-devmem-device-memory-hotplug-using-zone_device.patch
+mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2.patch
+hmm-heterogeneous-memory-management-documentation.patch
 
