@@ -1,120 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 05 Apr 2017 12:58:53 -0700
-Message-ID: <58e54c7d.NLyW5w2BuAAH8M4G%akpm@linux-foundation.org>
+Subject: + docs-vm-transhuge-fix-few-trivial-typos.patch added to -mm tree
+Date: Wed, 05 Apr 2017 14:08:51 -0700
+Message-ID: <58e55ce3.UL9f+wulEYbB5P3h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45948 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933371AbdDET6z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2017 15:58:55 -0400
+        with ESMTP id S1751673AbdDEVIw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2017 17:08:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: sj38.park@gmail.com, corbet@lwn.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: Documentation/vm/transhuge.txt: fix trivial typos
+has been added to the -mm tree.  Its filename is
+     docs-vm-transhuge-fix-few-trivial-typos.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/docs-vm-transhuge-fix-few-trivial-typos.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/docs-vm-transhuge-fix-few-trivial-typos.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: SeongJae Park <sj38.park@gmail.com>
+Subject: Documentation/vm/transhuge.txt: fix trivial typos
 
+Link: http://lkml.kernel.org/r/20170405210259.2067-1-sj38.park@gmail.com
+Signed-off-by: SeongJae Park <sj38.park@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/msm/adreno/adreno_gpu.c |    4 ----
- drivers/gpu/drm/vmwgfx/vmwgfx_fence.c   |   12 ------------
- 2 files changed, 16 deletions(-)
+ Documentation/vm/transhuge.txt |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/msm/adreno/adreno_gpu.c~linux-next-git-rejects drivers/gpu/drm/msm/adreno/adreno_gpu.c
---- a/drivers/gpu/drm/msm/adreno/adreno_gpu.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/msm/adreno/adreno_gpu.c
-@@ -440,10 +440,6 @@ void adreno_gpu_cleanup(struct adreno_gp
- 	if (gpu->aspace) {
- 		gpu->aspace->mmu->funcs->detach(gpu->aspace->mmu,
- 			iommu_ports, ARRAY_SIZE(iommu_ports));
--<<<<<<< HEAD
--		msm_gem_address_space_destroy(gpu->aspace);
--=======
- 		msm_gem_address_space_put(gpu->aspace);
-->>>>>>> linux-next/akpm-base
- 	}
- }
-diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~linux-next-git-rejects drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
-@@ -761,18 +761,12 @@ int vmw_fence_obj_wait_ioctl(struct drm_
- 		arg->kernel_cookie = jiffies + wait_timeout;
- 	}
+diff -puN Documentation/vm/transhuge.txt~docs-vm-transhuge-fix-few-trivial-typos Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~docs-vm-transhuge-fix-few-trivial-typos
++++ a/Documentation/vm/transhuge.txt
+@@ -266,7 +266,7 @@ for each mapping.
  
--<<<<<<< HEAD
--	base = vmw_fence_obj_lookup(tfile, arg->handle);
--	if (IS_ERR(base))
--		return PTR_ERR(base);
--=======
- 	base = ttm_base_object_lookup(tfile, arg->handle);
- 	if (unlikely(base == NULL)) {
- 		pr_err("Wait invalid fence object handle 0x%08lx\n",
- 		       (unsigned long)arg->handle);
- 		return -EINVAL;
- 	}
-->>>>>>> linux-next/akpm-base
+ The number of file transparent huge pages mapped to userspace is available
+ by reading ShmemPmdMapped and ShmemHugePages fields in /proc/meminfo.
+-To identify what applications are mapping file  transparent huge pages, it
++To identify what applications are mapping file transparent huge pages, it
+ is necessary to read /proc/PID/smaps and count the FileHugeMapped fields
+ for each mapping.
  
- 	fence = &(container_of(base, struct vmw_user_fence, base)->fence);
+@@ -292,7 +292,7 @@ thp_collapse_alloc_failed is incremented
+ 	the allocation.
  
-@@ -811,18 +805,12 @@ int vmw_fence_obj_signaled_ioctl(struct
- 	struct ttm_object_file *tfile = vmw_fpriv(file_priv)->tfile;
- 	struct vmw_private *dev_priv = vmw_priv(dev);
+ thp_file_alloc is incremented every time a file huge page is successfully
+-i	allocated.
++	allocated.
  
--<<<<<<< HEAD
--	base = vmw_fence_obj_lookup(tfile, arg->handle);
--	if (IS_ERR(base))
--		return PTR_ERR(base);
--=======
- 	base = ttm_base_object_lookup(tfile, arg->handle);
- 	if (unlikely(base == NULL)) {
- 		pr_err("Fence signaled invalid fence object handle 0x%08lx\n",
- 		       (unsigned long)arg->handle);
- 		return -EINVAL;
- 	}
-->>>>>>> linux-next/akpm-base
+ thp_file_mapped is incremented every time a file huge page is mapped into
+ 	user address space.
+@@ -501,7 +501,7 @@ scanner can get reference to a page is g
  
- 	fence = &(container_of(base, struct vmw_user_fence, base)->fence);
- 	fman = fman_from_fence(fence);
+ All tail pages have zero ->_refcount until atomic_add(). This prevents the
+ scanner from getting a reference to the tail page up to that point. After the
+-atomic_add() we don't care about the ->_refcount value.  We already known how
++atomic_add() we don't care about the ->_refcount value. We already known how
+ many references should be uncharged from the head page.
+ 
+ For head page get_page_unless_zero() will succeed and we don't mind. It's
+@@ -519,8 +519,8 @@ comes. Splitting will free up unused sub
+ 
+ Splitting the page right away is not an option due to locking context in
+ the place where we can detect partial unmap. It's also might be
+-counterproductive since in many cases partial unmap unmap happens during
+-exit(2) if an THP crosses VMA boundary.
++counterproductive since in many cases partial unmap happens during exit(2) if
++an THP crosses VMA boundary.
+ 
+ Function deferred_split_huge_page() is used to queue page for splitting.
+ The splitting itself will happen when we get memory pressure via shrinker
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj38.park@gmail.com are
 
-i-need-old-gcc.patch
-ptrace-fix-ptrace_listen-race-corrupting-task-state-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
-swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+docs-vm-transhuge-fix-few-trivial-typos.patch
 
