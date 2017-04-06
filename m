@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fault-inject-make-fail-nth-read-write-interface-symmetric.patch added to -mm tree
-Date: Thu, 06 Apr 2017 15:56:42 -0700
-Message-ID: <58e6c7aa.N8+Im8gcaEGtlnLO%akpm@linux-foundation.org>
+Subject: +
+ fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch added to -mm tree
+Date: Thu, 06 Apr 2017 15:56:40 -0700
+Message-ID: <58e6c7a8.2eG9HxOVGRB4SRyA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49202 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752117AbdDFW4n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2017 18:56:43 -0400
+        with ESMTP id S1752117AbdDFW4l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2017 18:56:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akinobu.mita@gmail.com, dvyukov@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fault-inject: make fail-nth read/write interface symmetric
+     Subject: fault-inject: parse as natural 1-based value for fail-nth write interface
 has been added to the -mm tree.  Its filename is
-     fault-inject-make-fail-nth-read-write-interface-symmetric.patch
+     fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-make-fail-nth-read-write-interface-symmetric.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-make-fail-nth-read-write-interface-symmetric.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +40,96 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: fault-inject: make fail-nth read/write interface symmetric
+Subject: fault-inject: parse as natural 1-based value for fail-nth write interface
 
-The read interface for fail-nth looks a bit odd.  Read from this file
-returns "NYYYY..." or "YYYYY..." (this makes me surprise when cat this
-file).  Because there is no EOF condition.  The first character indicates
-current->fail_nth is zero or not, and then current->fail_nth is reset to
-zero.
+The value written to fail-nth file is parsed as 0-based.  Parsing as
+one-based is more natural to understand and it enables to cancel the
+previous setup by simply writing '0'.
 
-Just returning task->fail_nth value is more natural to understand.
+This change also converts task->fail_nth from signed to unsigned int.
 
-Link: http://lkml.kernel.org/r/1491490561-10485-4-git-send-email-akinobu.mita@gmail.com
+Link: http://lkml.kernel.org/r/1491490561-10485-3-git-send-email-akinobu.mita@gmail.com
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/fault-injection.txt |   13 ++++++-----
- fs/proc/base.c                                    |   14 +++++-------
- 2 files changed, 13 insertions(+), 14 deletions(-)
+ Documentation/fault-injection/fault-injection.txt |    7 +++----
+ fs/proc/base.c                                    |    9 ++++-----
+ include/linux/sched.h                             |    2 +-
+ 3 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-inject-make-fail-nth-read-write-interface-symmetric Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-inject-make-fail-nth-read-write-interface-symmetric
+diff -puN Documentation/fault-injection/fault-injection.txt~fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface Documentation/fault-injection/fault-injection.txt
+--- a/Documentation/fault-injection/fault-injection.txt~fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface
 +++ a/Documentation/fault-injection/fault-injection.txt
-@@ -139,9 +139,9 @@ o proc entries
+@@ -138,8 +138,8 @@ o proc entries
+ 
  - /proc/self/task/<current-tid>/fail-nth:
  
- 	Write to this file of integer N makes N-th call in the task fail.
--	Read from this file returns a single char 'Y' or 'N'
--	that says if the fault setup with a previous write to this file was
--	injected or not, and disables the fault if it wasn't yet injected.
-+	Read from this file returns a integer value. A value of '0' indicates
-+	that the fault setup with a previous write to this file was injected.
-+	A positive integer N indicates that the fault wasn't yet injected.
+-	Write to this file of integer N makes N-th call in the current task fail
+-	(N is 0-based). Read from this file returns a single char 'Y' or 'N'
++	Write to this file of integer N makes N-th call in the task fail.
++	Read from this file returns a single char 'Y' or 'N'
+ 	that says if the fault setup with a previous write to this file was
+ 	injected or not, and disables the fault if it wasn't yet injected.
  	Note that this file enables all types of faults (slab, futex, etc).
- 	This setting takes precedence over all other generic debugfs settings
- 	like probability, interval, times, etc. But per-capability settings
-@@ -325,13 +325,14 @@ int main()
+@@ -320,7 +320,7 @@ int main()
+ 	system("echo N > /sys/kernel/debug/failslab/ignore-gfp-wait");
+ 	sprintf(buf, "/proc/self/task/%ld/fail-nth", syscall(SYS_gettid));
+ 	fail_nth = open(buf, O_RDWR);
+-	for (i = 0;; i++) {
++	for (i = 1;; i++) {
+ 		sprintf(buf, "%d", i);
  		write(fail_nth, buf, strlen(buf));
  		res = socketpair(AF_LOCAL, SOCK_STREAM, 0, fds);
- 		err = errno;
--		read(fail_nth, buf, 1);
-+		pread(fail_nth, buf, sizeof(buf), 0);
- 		if (res == 0) {
- 			close(fds[0]);
- 			close(fds[1]);
- 		}
--		printf("%d-th fault %c: res=%d/%d\n", i, buf[0], res, err);
--		if (buf[0] != 'Y')
-+		printf("%d-th fault %c: res=%d/%d\n", i, atoi(buf) ? 'N' : 'Y',
-+			res, err);
-+		if (atoi(buf))
- 			break;
- 	}
- 	return 0;
-diff -puN fs/proc/base.c~fault-inject-make-fail-nth-read-write-interface-symmetric fs/proc/base.c
---- a/fs/proc/base.c~fault-inject-make-fail-nth-read-write-interface-symmetric
+@@ -339,7 +339,6 @@ int main()
+ 
+ An example output:
+ 
+-0-th fault Y: res=-1/23
+ 1-th fault Y: res=-1/23
+ 2-th fault Y: res=-1/23
+ 3-th fault Y: res=-1/12
+diff -puN fs/proc/base.c~fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface fs/proc/base.c
+--- a/fs/proc/base.c~fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface
 +++ a/fs/proc/base.c
-@@ -1383,7 +1383,8 @@ static ssize_t proc_fail_nth_read(struct
- 				  size_t count, loff_t *ppos)
+@@ -1363,7 +1363,8 @@ static ssize_t proc_fail_nth_write(struc
+ 				   size_t count, loff_t *ppos)
  {
  	struct task_struct *task;
--	int err;
-+	char numbuf[PROC_NUMBUF];
-+	ssize_t len;
+-	int err, n;
++	int err;
++	unsigned int n;
  
  	task = get_proc_task(file_inode(file));
  	if (!task)
-@@ -1391,13 +1392,10 @@ static ssize_t proc_fail_nth_read(struct
+@@ -1371,12 +1372,10 @@ static ssize_t proc_fail_nth_write(struc
  	put_task_struct(task);
  	if (task != current)
  		return -EPERM;
--	if (count < 1)
+-	err = kstrtoint_from_user(buf, count, 0, &n);
++	err = kstrtouint_from_user(buf, count, 0, &n);
+ 	if (err)
+ 		return err;
+-	if (n < 0 || n == INT_MAX)
 -		return -EINVAL;
--	err = put_user((char)(current->fail_nth ? 'N' : 'Y'), buf);
--	if (err)
--		return err;
--	current->fail_nth = 0;
--	return 1;
-+	len = snprintf(numbuf, sizeof(numbuf), "%u\n", task->fail_nth);
-+	len = simple_read_from_buffer(buf, count, ppos, numbuf, len);
-+
-+	return len;
+-	current->fail_nth = n + 1;
++	current->fail_nth = n;
+ 	return count;
  }
  
- static const struct file_operations proc_fail_nth_operations = {
+diff -puN include/linux/sched.h~fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface include/linux/sched.h
+--- a/include/linux/sched.h~fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface
++++ a/include/linux/sched.h
+@@ -941,7 +941,7 @@ struct task_struct {
+ 
+ #ifdef CONFIG_FAULT_INJECTION
+ 	int				make_it_fail;
+-	int fail_nth;
++	unsigned int			fail_nth;
+ #endif
+ 	/*
+ 	 * When (nr_dirtied >= nr_dirtied_pause), it's time to call
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
