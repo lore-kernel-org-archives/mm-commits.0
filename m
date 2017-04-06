@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch added to -mm tree
-Date: Thu, 06 Apr 2017 14:31:51 -0700
-Message-ID: <58e6b3c7.LHz7FBHOo4g7WT6c%akpm@linux-foundation.org>
+Subject: + dax-fix-radix-tree-insertion-race.patch added to -mm tree
+Date: Thu, 06 Apr 2017 15:05:58 -0700
+Message-ID: <58e6bbc6.+wiPC9fz6QW7MQd2%akpm__38118.2066201747$1491516372$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40626 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43714 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752117AbdDFVbw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2017 17:31:52 -0400
+        with ESMTP id S1753391AbdDFWGA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2017 18:06:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, darrick.wong@oracle.com, hch@lst.de, jack@suse.cz, mawilcox@microsoft.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix
+     Subject: dax: fix radix tree insertion race
 has been added to the -mm tree.  Its filename is
-     mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
+     dax-fix-radix-tree-insertion-race.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-radix-tree-insertion-race.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-radix-tree-insertion-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +38,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: fix radix tree insertion race
 
-So during rebase on lastest mmotm one if branch logic got inversed.
-Attached is a fixup patch.
+While running generic/340 in my test setup I hit the following race.  It
+can happen with kernels that support FS DAX PMDs, so v4.10 thru v4.11-rc5.
 
+Thread 1				Thread 2
+--------				--------
+dax_iomap_pmd_fault()
+  grab_mapping_entry()
+    spin_lock_irq()
+    get_unlocked_mapping_entry()
+    'entry' is NULL, can't call lock_slot()
+    spin_unlock_irq()
+    radix_tree_preload()
+					dax_iomap_pmd_fault()
+					  grab_mapping_entry()
+					    spin_lock_irq()
+					    get_unlocked_mapping_entry()
+					    ...
+					    lock_slot()
+					    spin_unlock_irq()
+					  dax_pmd_insert_mapping()
+					    <inserts a PMD mapping>
+    spin_lock_irq()
+    __radix_tree_insert() fails with -EEXIST
+    <fall back to 4k fault, and die horribly
+     when inserting a 4k entry where a PMD exists>
+
+The issue is that we have to drop mapping->tree_lock while calling
+radix_tree_preload(), but since we didn't have a radix tree entry to lock
+(unlike in the pmd_downgrade case) we have no protection against Thread 2
+coming along and inserting a PMD at the same index.  For 4k entries we
+handled this with a special-case response to -EEXIST coming from the
+__radix_tree_insert(), but this doesn't save us for PMDs because the
+-EEXIST case can also mean that we collided with a 4k entry in the radix
+tree at a different index, but one that is covered by our PMD range.
+
+So, correctly handle both the 4k and 2M collision cases by explicitly
+re-checking the radix tree for an entry at our index once we reacquire
+mapping->tree_lock.
+
+This patch has made it through a clean xfstests run with the current
+v4.11-rc5 based linux/master, and it also ran generic/340 500 times in a
+loop.  It used to fail within the first 10 iterations.
+
+Link: http://lkml.kernel.org/r/20170406212944.2866-1-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: <stable@vger.kernel.org>    [4.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dax.c |   35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN mm/hmm.c~mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix mm/hmm.c
---- a/mm/hmm.c~mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix
-+++ a/mm/hmm.c
-@@ -897,7 +897,7 @@ static int hmm_devmem_pages_create(struc
- 	ret = arch_add_memory(nid, align_start, align_size,
- 			      devmem->pagemap.type);
- 	mem_hotplug_done();
--	if (!ret)
-+	if (ret)
- 		goto error_add_memory;
+diff -puN fs/dax.c~dax-fix-radix-tree-insertion-race fs/dax.c
+--- a/fs/dax.c~dax-fix-radix-tree-insertion-race
++++ a/fs/dax.c
+@@ -373,6 +373,22 @@ restart:
+ 		}
+ 		spin_lock_irq(&mapping->tree_lock);
  
- 	for (pfn = devmem->pfn_first; pfn < devmem->pfn_last; pfn++) {
++		if (!entry) {
++			/*
++			 * We needed to drop the page_tree lock while calling
++			 * radix_tree_preload() and we didn't have an entry to
++			 * lock.  See if another thread inserted an entry at
++			 * our index during this time.
++			 */
++			entry = __radix_tree_lookup(&mapping->page_tree, index,
++					NULL, &slot);
++			if (entry) {
++				radix_tree_preload_end();
++				spin_unlock_irq(&mapping->tree_lock);
++				goto restart;
++			}
++		}
++
+ 		if (pmd_downgrade) {
+ 			radix_tree_delete(&mapping->page_tree, index);
+ 			mapping->nrexceptional--;
+@@ -388,19 +404,12 @@ restart:
+ 		if (err) {
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 			/*
+-			 * Someone already created the entry?  This is a
+-			 * normal failure when inserting PMDs in a range
+-			 * that already contains PTEs.  In that case we want
+-			 * to return -EEXIST immediately.
+-			 */
+-			if (err == -EEXIST && !(size_flag & RADIX_DAX_PMD))
+-				goto restart;
+-			/*
+-			 * Our insertion of a DAX PMD entry failed, most
+-			 * likely because it collided with a PTE sized entry
+-			 * at a different index in the PMD range.  We haven't
+-			 * inserted anything into the radix tree and have no
+-			 * waiters to wake.
++			 * Our insertion of a DAX entry failed, most likely
++			 * because we were inserting a PMD entry and it
++			 * collided with a PTE sized entry at a different
++			 * index in the PMD range.  We haven't inserted
++			 * anything into the radix tree and have no waiters to
++			 * wake.
+ 			 */
+ 			return ERR_PTR(err);
+ 		}
 _
 
-Patches currently in -mm which might be from jglisse@redhat.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-mm-memory-hotplug-add-memory-type-parameter-to-arch_add-remove_memory.patch
-mm-put_page-move-zone_device-page-reference-decrement-v2.patch
-mm-unaddressable-memory-new-type-of-zone_device-for-unaddressable-memory.patch
-mm-zone_device-x86-add-support-for-un-addressable-device-memory.patch
-mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
-mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
-mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
-mm-hmm-heterogeneous-memory-management-hmm-for-short.patch
-mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers.patch
-mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v2.patch
-mm-hmm-mirror-device-page-fault-handler.patch
-mm-migrate-support-un-addressable-zone_device-page-in-migration.patch
-mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry.patch
-mm-hmm-devmem-device-memory-hotplug-using-zone_device.patch
-mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
-mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2.patch
-hmm-heterogeneous-memory-management-documentation.patch
+dax-fix-radix-tree-insertion-race.patch
+dax-add-tracepoints-to-dax_iomap_pte_fault.patch
+dax-add-tracepoints-to-dax_pfn_mkwrite.patch
+dax-add-tracepoints-to-dax_load_hole.patch
+dax-add-tracepoints-to-dax_writeback_mapping_range.patch
+dax-add-tracepoints-to-dax_writeback_mapping_range-fix.patch
+dax-add-tracepoint-to-dax_writeback_one.patch
+dax-add-tracepoint-to-dax_insert_mapping.patch
 
