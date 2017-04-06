@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + docs-vm-transhuge-fix-few-trivial-typos-fix.patch added to -mm
- tree
-Date: Thu, 06 Apr 2017 14:16:21 -0700
-Message-ID: <58e6b025.0z+dpsHnOKHDC5pl%akpm@linux-foundation.org>
+Subject: + mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch added to -mm tree
+Date: Thu, 06 Apr 2017 14:31:51 -0700
+Message-ID: <58e6b3c7.LHz7FBHOo4g7WT6c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40234 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40626 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751922AbdDFVQW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2017 17:16:22 -0400
+        with ESMTP id S1752117AbdDFVbw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2017 17:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, rdunlap@infradead.org, sj38.park@gmail.com, mm-commits@vger.kernel.org
+To: jglisse@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs-vm-transhuge-fix-few-trivial-typos-fix
+     Subject: mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix
 has been added to the -mm tree.  Its filename is
-     docs-vm-transhuge-fix-few-trivial-typos-fix.patch
+     mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/docs-vm-transhuge-fix-few-trivial-typos-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/docs-vm-transhuge-fix-few-trivial-typos-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-vm-transhuge-fix-few-trivial-typos-fix
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix
 
-fixes per Randy
+So during rebase on lastest mmotm one if branch logic got inversed.
+Attached is a fixup patch.
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: SeongJae Park <sj38.park@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    2 +-
+ mm/hmm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/transhuge.txt~docs-vm-transhuge-fix-few-trivial-typos-fix Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~docs-vm-transhuge-fix-few-trivial-typos-fix
-+++ a/Documentation/vm/transhuge.txt
-@@ -520,7 +520,7 @@ comes. Splitting will free up unused sub
- Splitting the page right away is not an option due to locking context in
- the place where we can detect partial unmap. It's also might be
- counterproductive since in many cases partial unmap happens during exit(2) if
--an THP crosses VMA boundary.
-+a THP crosses a VMA boundary.
+diff -puN mm/hmm.c~mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix mm/hmm.c
+--- a/mm/hmm.c~mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix
++++ a/mm/hmm.c
+@@ -897,7 +897,7 @@ static int hmm_devmem_pages_create(struc
+ 	ret = arch_add_memory(nid, align_start, align_size,
+ 			      devmem->pagemap.type);
+ 	mem_hotplug_done();
+-	if (!ret)
++	if (ret)
+ 		goto error_add_memory;
  
- Function deferred_split_huge_page() is used to queue page for splitting.
- The splitting itself will happen when we get memory pressure via shrinker
+ 	for (pfn = devmem->pfn_first; pfn < devmem->pfn_last; pfn++) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jglisse@redhat.com are
 
-i-need-old-gcc.patch
-ptrace-fix-ptrace_listen-race-corrupting-task-state-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
-swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-docs-vm-transhuge-fix-few-trivial-typos-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-memory-hotplug-add-memory-type-parameter-to-arch_add-remove_memory.patch
+mm-put_page-move-zone_device-page-reference-decrement-v2.patch
+mm-unaddressable-memory-new-type-of-zone_device-for-unaddressable-memory.patch
+mm-zone_device-x86-add-support-for-un-addressable-device-memory.patch
+mm-migrate-new-migrate-mode-migrate_sync_no_copy.patch
+mm-migrate-new-memory-migration-helper-for-use-with-device-memory-v4.patch
+mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages.patch
+mm-hmm-heterogeneous-memory-management-hmm-for-short.patch
+mm-hmm-mirror-mirror-process-address-space-on-device-with-hmm-helpers.patch
+mm-hmm-mirror-helper-to-snapshot-cpu-page-table-v2.patch
+mm-hmm-mirror-device-page-fault-handler.patch
+mm-migrate-support-un-addressable-zone_device-page-in-migration.patch
+mm-migrate-allow-migrate_vma-to-alloc-new-page-on-empty-entry.patch
+mm-hmm-devmem-device-memory-hotplug-using-zone_device.patch
+mm-hmm-devmem-device-memory-hotplug-using-zone_device-fix.patch
+mm-hmm-devmem-dummy-hmm-device-for-zone_device-memory-v2.patch
+hmm-heterogeneous-memory-management-documentation.patch
 
