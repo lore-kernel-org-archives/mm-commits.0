@@ -1,71 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/10] mm, thp: fix setting of defer+madvise thp defrag
- mode
-Date: Fri, 07 Apr 2017 16:04:54 -0700
-Message-ID: <58e81b16.0akq0xhtnqW0w3XQ%akpm@linux-foundation.org>
+Subject: [patch 08/10] mm, swap_cgroup: reschedule when neeed in
+ swap_cgroup_swapoff()
+Date: Fri, 07 Apr 2017 16:05:00 -0700
+Message-ID: <58e81b1c.pnJdkmY0bxUk8yqr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755135AbdDGXEz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2017 19:04:55 -0400
+        with ESMTP id S1755135AbdDGXFB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2017 19:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.com, vdavydov.dev@gmail.com
 
 From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: fix setting of defer+madvise thp defrag mode
+Subject: mm, swap_cgroup: reschedule when neeed in swap_cgroup_swapoff()
 
-Setting thp defrag mode of "defer+madvise" actually sets "defer" in the
-kernel due to the name similarity and the out-of-order way the string is
-checked in defrag_store().
+We got need_resched() warnings in swap_cgroup_swapoff() because
+swap_cgroup_ctrl[type].length is particularly large.
 
-Check the string in the correct order so that
-TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG is set appropriately for
-"defer+madvise".
+Reschedule when needed.
 
-Fixes: 21440d7eb904 ("mm, thp: add new defer+madvise defrag option")
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1704051814420.137626@chino.kir.corp.google.com
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1704061315270.80559@chino.kir.corp.google.com
 Signed-off-by: David Rientjes <rientjes@google.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/swap_cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-thp-fix-setting-of-defermadvise-thp-defrag-mode mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-fix-setting-of-defermadvise-thp-defrag-mode
-+++ a/mm/huge_memory.c
-@@ -240,18 +240,18 @@ static ssize_t defrag_store(struct kobje
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
--	} else if (!memcmp("defer", buf,
--		    min(sizeof("defer")-1, count))) {
--		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
--		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
--		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
--		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
- 	} else if (!memcmp("defer+madvise", buf,
- 		    min(sizeof("defer+madvise")-1, count))) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
-+	} else if (!memcmp("defer", buf,
-+		    min(sizeof("defer")-1, count))) {
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
-+		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
-+		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
- 	} else if (!memcmp("madvise", buf,
- 			   min(sizeof("madvise")-1, count))) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+diff -puN mm/swap_cgroup.c~mm-swap_cgroup-reschedule-when-neeed-in-swap_cgroup_swapoff mm/swap_cgroup.c
+--- a/mm/swap_cgroup.c~mm-swap_cgroup-reschedule-when-neeed-in-swap_cgroup_swapoff
++++ a/mm/swap_cgroup.c
+@@ -201,6 +201,8 @@ void swap_cgroup_swapoff(int type)
+ 			struct page *page = map[i];
+ 			if (page)
+ 				__free_page(page);
++			if (!(i % SWAP_CLUSTER_MAX))
++				cond_resched();
+ 		}
+ 		vfree(map);
+ 	}
 _
