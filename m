@@ -1,51 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-move-pcp-and-lru-pcp-drainging-into-single-wq-fix.patch removed from -mm tree
-Date: Fri, 07 Apr 2017 16:02:47 -0700
-Message-ID: <58e81a97.bG8/EdYBz0E8nWa0%akpm@linux-foundation.org>
+Subject: [patch 01/10] mm: fix page_vma_mapped_walk() for ksm pages
+Date: Fri, 07 Apr 2017 16:04:39 -0700
+Message-ID: <58e81b07./MS8FshGL+PHs7kD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37094 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37200 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752766AbdDGXCs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2017 19:02:48 -0400
+        with ESMTP id S1752766AbdDGXEl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2017 19:04:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@kernel.org, mgorman@suse.de, mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, dsmythies@telus.net, kirill.shutemov@linux.intel.com
 
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix page_vma_mapped_walk() for ksm pages
 
-The patch titled
-     Subject: mm-move-pcp-and-lru-pcp-drainging-into-single-wq-fix
-has been removed from the -mm tree.  Its filename was
-     mm-move-pcp-and-lru-pcp-drainging-into-single-wq-fix.patch
+Doug Smythies reports oops with KSM in this backtrace, I've been seeing
+the same:
 
-This patch was dropped because it was folded into mm-move-pcp-and-lru-pcp-drainging-into-single-wq.patch
+page_vma_mapped_walk+0xe6/0x5b0
+page_referenced_one+0x91/0x1a0
+rmap_walk_ksm+0x100/0x190
+rmap_walk+0x4f/0x60
+page_referenced+0x149/0x170
+shrink_active_list+0x1c2/0x430
+shrink_node_memcg+0x67a/0x7a0
+shrink_node+0xe1/0x320
+kswapd+0x34b/0x720
 
-------------------------------------------------------
-From: Michal Hocko <mhocko@kernel.org>
-Subject: mm-move-pcp-and-lru-pcp-drainging-into-single-wq-fix
+Just as 4b0ece6fa016 ("mm: migrate: fix remove_migration_pte() for ksm
+pages") observed, you cannot use page->index calculations on ksm pages. 
+page_vma_mapped_walk() is relying on __vma_address(), where a ksm page can
+lead it off the end of the page table, and into whatever nonsense is in
+the next page, ending as an oops inside check_pte()'s pte_page().
 
-> Should the workqueue also have been renamed to mm_percpu_wq?
+KSM tells page_vma_mapped_walk() exactly where to look for the page, it
+does not need any page->index calculation: and that's so also for all the
+normal and file and anon pages - just not for THPs and their subpages. 
+Get out early in most cases: instead of a PageKsm test, move down the
+earlier not-THP-page test, as suggested by Kirill.
 
-Cc: Mel Gorman <mgorman@suse.de>
+I'm also slightly worried that this loop can stray into other vmas, so
+added a vm_end test to prevent surprises; though I have not imagined
+anything worse than a very contrived case, in which a page mlocked in the
+next vma might be reclaimed because it is not mlocked in this vma.
+
+Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1704031104400.1118@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Doug Smythies <dsmythies@telus.net>
+Tested-by: Doug Smythies <dsmythies@telus.net>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_vma_mapped.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN mm/vmstat.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-move-pcp-and-lru-pcp-drainging-into-single-wq-fix
-+++ a/mm/vmstat.c
-@@ -1766,11 +1766,10 @@ void __init init_mm_internals(void)
- {
- 	int ret __maybe_unused;
+diff -puN mm/page_vma_mapped.c~mm-fix-page_vma_mapped_walk-for-ksm-pages mm/page_vma_mapped.c
+--- a/mm/page_vma_mapped.c~mm-fix-page_vma_mapped_walk-for-ksm-pages
++++ a/mm/page_vma_mapped.c
+@@ -111,12 +111,8 @@ bool page_vma_mapped_walk(struct page_vm
+ 	if (pvmw->pmd && !pvmw->pte)
+ 		return not_found(pvmw);
  
--	mm_percpu_wq = alloc_workqueue("vmstat",
-+	mm_percpu_wq = alloc_workqueue("mm_percpu_wq",
- 				       WQ_FREEZABLE|WQ_MEM_RECLAIM, 0);
+-	/* Only for THP, seek to next pte entry makes sense */
+-	if (pvmw->pte) {
+-		if (!PageTransHuge(pvmw->page) || PageHuge(pvmw->page))
+-			return not_found(pvmw);
++	if (pvmw->pte)
+ 		goto next_pte;
+-	}
  
- #ifdef CONFIG_SMP
+ 	if (unlikely(PageHuge(pvmw->page))) {
+ 		/* when pud is not present, pte will be NULL */
+@@ -165,9 +161,14 @@ restart:
+ 	while (1) {
+ 		if (check_pte(pvmw))
+ 			return true;
+-next_pte:	do {
++next_pte:
++		/* Seek to next pte only makes sense for THP */
++		if (!PageTransHuge(pvmw->page) || PageHuge(pvmw->page))
++			return not_found(pvmw);
++		do {
+ 			pvmw->address += PAGE_SIZE;
+-			if (pvmw->address >=
++			if (pvmw->address >= pvmw->vma->vm_end ||
++			    pvmw->address >=
+ 					__vma_address(pvmw->page, pvmw->vma) +
+ 					hpage_nr_pages(pvmw->page) * PAGE_SIZE)
+ 				return not_found(pvmw);
+_
