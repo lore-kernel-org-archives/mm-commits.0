@@ -1,53 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/10] mm/page_alloc.c: fix print order in
- show_free_areas()
-Date: Fri, 07 Apr 2017 16:04:45 -0700
-Message-ID: <58e81b0d.lHGG47/rQWjQagzr%akpm__6436.96338306672$1491606293$gmane$org@linux-foundation.org>
+Subject: [patch 05/10] ptrace: fix PTRACE_LISTEN race corrupting
+ task->state
+Date: Fri, 07 Apr 2017 16:04:51 -0700
+Message-ID: <58e81b13.LKvI8vJZ1etgHK/t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37244 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755242AbdDGXEq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2017 19:04:46 -0400
+        with ESMTP id S1755242AbdDGXEw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2017 19:04:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, apolyakov@beget.ru, apolyakov@beget.com, mgorman@techsingularity.net, mhocko@suse.com, stable@vger.kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bsegall@google.com, oleg@redhat.com, stable@vger.kernel.org
 
-From: Alexander Polakov <apolyakov@beget.ru>
-Subject: mm/page_alloc.c: fix print order in show_free_areas()
+From: bsegall@google.com
+Subject: ptrace: fix PTRACE_LISTEN race corrupting task->state
 
-Fixes: 11fb998986a72a ("mm: move most file-based accounting to the node")
-Link: http://lkml.kernel.org/r/1490377730.30219.2.camel@beget.ru
-Signed-off-by: Alexander Polyakov <apolyakov@beget.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[4.8+]
+In PT_SEIZED + LISTEN mode STOP/CONT signals cause a wakeup against
+__TASK_TRACED. If this races with the ptrace_unfreeze_traced at the end
+of a PTRACE_LISTEN, this can wake the task /after/ the check against
+__TASK_TRACED, but before the reset of state to TASK_TRACED. This causes
+it to instead clobber TASK_WAKING, allowing a subsequent wakeup against
+TRACED while the task is still on the rq wake_list, corrupting it.
+
+Oleg said:
+
+The kernel can crash or this can lead to other hard-to-debug problems.  In
+short, "task->state = TASK_TRACED" in ptrace_unfreeze_traced() assumes
+that nobody else can wake it up, but PTRACE_LISTEN breaks the contract. 
+Obviusly it is veru wrong to manipulate task->state if this task is
+already running, or WAKING, or it sleeps again.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Fixes: 9899d11f ("ptrace: ensure arch_ptrace/ptrace_request can never race with SIGKILL")
+Link: http://lkml.kernel.org/r/xm26y3vfhmkp.fsf_-_@bsegall-linux.mtv.corp.google.com
+Signed-off-by: Ben Segall <bsegall@google.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/ptrace.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~fix-print-order-in-show_free_areas mm/page_alloc.c
---- a/mm/page_alloc.c~fix-print-order-in-show_free_areas
-+++ a/mm/page_alloc.c
-@@ -4519,13 +4519,13 @@ void show_free_areas(unsigned int filter
- 			K(node_page_state(pgdat, NR_FILE_MAPPED)),
- 			K(node_page_state(pgdat, NR_FILE_DIRTY)),
- 			K(node_page_state(pgdat, NR_WRITEBACK)),
-+			K(node_page_state(pgdat, NR_SHMEM)),
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			K(node_page_state(pgdat, NR_SHMEM_THPS) * HPAGE_PMD_NR),
- 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
- 					* HPAGE_PMD_NR),
- 			K(node_page_state(pgdat, NR_ANON_THPS) * HPAGE_PMD_NR),
- #endif
--			K(node_page_state(pgdat, NR_SHMEM)),
- 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
- 			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
- 			node_page_state(pgdat, NR_PAGES_SCANNED),
+diff -puN kernel/ptrace.c~ptrace-fix-ptrace_listen-race-corrupting-task-state kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-fix-ptrace_listen-race-corrupting-task-state
++++ a/kernel/ptrace.c
+@@ -184,11 +184,17 @@ static void ptrace_unfreeze_traced(struc
+ 
+ 	WARN_ON(!task->ptrace || task->parent != current);
+ 
++	/*
++	 * PTRACE_LISTEN can allow ptrace_trap_notify to wake us up remotely.
++	 * Recheck state under the lock to close this race.
++	 */
+ 	spin_lock_irq(&task->sighand->siglock);
+-	if (__fatal_signal_pending(task))
+-		wake_up_state(task, __TASK_TRACED);
+-	else
+-		task->state = TASK_TRACED;
++	if (task->state == __TASK_TRACED) {
++		if (__fatal_signal_pending(task))
++			wake_up_state(task, __TASK_TRACED);
++		else
++			task->state = TASK_TRACED;
++	}
+ 	spin_unlock_irq(&task->sighand->siglock);
+ }
+ 
 _
