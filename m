@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + apparmorfs-replace-current_time-with-current_time.patch added
- to -mm tree
-Date: Mon, 10 Apr 2017 15:34:35 -0700
-Message-ID: <58ec087b.NUSytNSsTTENY+Hr%akpm@linux-foundation.org>
+Subject: + time-delete-current_time_sec-and-current_time.patch added to
+ -mm tree
+Date: Mon, 10 Apr 2017 15:34:37 -0700
+Message-ID: <58ec087d.U5GdBoM8CAWbeHNM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60554 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752369AbdDJWeg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 18:34:36 -0400
+        with ESMTP id S1752369AbdDJWei (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 18:34:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deepa.kernel@gmail.com, john.johansen@canonical.com, mm-commits@vger.kernel.org
+To: deepa.kernel@gmail.com, arnd@arndb.de, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: apparmorfs: replace CURRENT_TIME with current_time()
+     Subject: time: delete CURRENT_TIME_SEC and CURRENT_TIME
 has been added to the -mm tree.  Its filename is
-     apparmorfs-replace-current_time-with-current_time.patch
+     time-delete-current_time_sec-and-current_time.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/apparmorfs-replace-current_time-with-current_time.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/time-delete-current_time_sec-and-current_time.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/apparmorfs-replace-current_time-with-current_time.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/time-delete-current_time_sec-and-current_time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: apparmorfs: replace CURRENT_TIME with current_time()
+Subject: time: delete CURRENT_TIME_SEC and CURRENT_TIME
 
-CURRENT_TIME macro is not y2038 safe on 32 bit systems.
+All uses of CURRENT_TIME_SEC and CURRENT_TIME macros have been replaced by
+other time functions.  These macros are also not y2038 safe.  And, all
+their use cases can be fulfilled by y2038 safe ktime_get_* variants.
 
-The patch replaces all the uses of CURRENT_TIME by current_time().
-
-This is also in preparation for the patch that transitions vfs timestamps
-to use 64 bit time and hence make them y2038 safe.  current_time() is also
-planned to be transitioned to y2038 safe behavior along with this change.
-
-CURRENT_TIME macro will be deleted before merging the aforementioned
-change.
-
-Link: http://lkml.kernel.org/r/1491613030-11599-11-git-send-email-deepa.kernel@gmail.com
+Link: http://lkml.kernel.org/r/1491613030-11599-12-git-send-email-deepa.kernel@gmail.com
 Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: John Johansen <john.johansen@canonical.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/apparmor/apparmorfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/time.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN security/apparmor/apparmorfs.c~apparmorfs-replace-current_time-with-current_time security/apparmor/apparmorfs.c
---- a/security/apparmor/apparmorfs.c~apparmorfs-replace-current_time-with-current_time
-+++ a/security/apparmor/apparmorfs.c
-@@ -1357,7 +1357,7 @@ static int aa_mk_null_file(struct dentry
+diff -puN include/linux/time.h~time-delete-current_time_sec-and-current_time include/linux/time.h
+--- a/include/linux/time.h~time-delete-current_time_sec-and-current_time
++++ a/include/linux/time.h
+@@ -151,9 +151,6 @@ static inline bool timespec_inject_offse
+ 	return true;
+ }
  
- 	inode->i_ino = get_next_ino();
- 	inode->i_mode = S_IFCHR | S_IRUGO | S_IWUGO;
--	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-+	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
- 	init_special_inode(inode, S_IFCHR | S_IRUGO | S_IWUGO,
- 			   MKDEV(MEM_MAJOR, 3));
- 	d_instantiate(dentry, inode);
-_
-
-Patches currently in -mm which might be from deepa.kernel@gmail.com are
-
-fs-f2fs-use-ktime_get_real_seconds-for-sit_info-times.patch
-trace-make-trace_hwlat-timestamp-y2038-safe.patch
-fs-cifs-replace-current_time-by-other-appropriate-apis.patch
-fs-ceph-current_time-with-ktime_get_real_ts.patch
-fs-ufs-use-ktime_get_real_ts64-for-birthtime.patch
-audit-use-timespec64-to-represent-audit-timestamps.patch
-fs-btrfs-use-ktime_get_real_ts-for-root-ctime.patch
-fs-ubifs-replace-current_time_sec-with-current_time.patch
-lustre-replace-current_time-macro.patch
-apparmorfs-replace-current_time-with-current_time.patch
-time-delete-current_time_sec-and-current_time.patch
-time-delete-current_fs_time-function.patch
-
+-#define CURRENT_TIME		(current_kernel_time())
+-#define CURRENT_TIME_SEC	((struct timespec) { get_seconds(), 0 })
