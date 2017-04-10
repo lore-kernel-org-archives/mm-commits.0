@@ -1,88 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ptrace-fix-ptrace_listen-race-corrupting-task-state.patch removed from -mm
- tree
-Date: Mon, 10 Apr 2017 11:50:56 -0700
-Message-ID: <58ebd410.ydMMSARutkv2zHxs%akpm@linux-foundation.org>
+Subject: [merged] mm-thp-fix-setting-of-defermadvise-thp-defrag-mode.patch removed from -mm tree
+Date: Mon, 10 Apr 2017 11:50:58 -0700
+Message-ID: <58ebd412.az+sRDopLHoZ9onK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46942 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752114AbdDJSu5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 14:50:57 -0400
+        with ESMTP id S1752114AbdDJSu7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 14:50:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bsegall@google.com, oleg@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace: fix PTRACE_LISTEN race corrupting task->state
+     Subject: mm, thp: fix setting of defer+madvise thp defrag mode
 has been removed from the -mm tree.  Its filename was
-     ptrace-fix-ptrace_listen-race-corrupting-task-state.patch
+     mm-thp-fix-setting-of-defermadvise-thp-defrag-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: bsegall@google.com
-Subject: ptrace: fix PTRACE_LISTEN race corrupting task->state
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: fix setting of defer+madvise thp defrag mode
 
-In PT_SEIZED + LISTEN mode STOP/CONT signals cause a wakeup against
-__TASK_TRACED. If this races with the ptrace_unfreeze_traced at the end
-of a PTRACE_LISTEN, this can wake the task /after/ the check against
-__TASK_TRACED, but before the reset of state to TASK_TRACED. This causes
-it to instead clobber TASK_WAKING, allowing a subsequent wakeup against
-TRACED while the task is still on the rq wake_list, corrupting it.
+Setting thp defrag mode of "defer+madvise" actually sets "defer" in the
+kernel due to the name similarity and the out-of-order way the string is
+checked in defrag_store().
 
-Oleg said:
+Check the string in the correct order so that
+TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG is set appropriately for
+"defer+madvise".
 
-The kernel can crash or this can lead to other hard-to-debug problems.  In
-short, "task->state = TASK_TRACED" in ptrace_unfreeze_traced() assumes
-that nobody else can wake it up, but PTRACE_LISTEN breaks the contract. 
-Obviusly it is veru wrong to manipulate task->state if this task is
-already running, or WAKING, or it sleeps again.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Fixes: 9899d11f ("ptrace: ensure arch_ptrace/ptrace_request can never race with SIGKILL")
-Link: http://lkml.kernel.org/r/xm26y3vfhmkp.fsf_-_@bsegall-linux.mtv.corp.google.com
-Signed-off-by: Ben Segall <bsegall@google.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 21440d7eb904 ("mm, thp: add new defer+madvise defrag option")
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1704051814420.137626@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-fix-ptrace_listen-race-corrupting-task-state kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-fix-ptrace_listen-race-corrupting-task-state
-+++ a/kernel/ptrace.c
-@@ -184,11 +184,17 @@ static void ptrace_unfreeze_traced(struc
- 
- 	WARN_ON(!task->ptrace || task->parent != current);
- 
-+	/*
-+	 * PTRACE_LISTEN can allow ptrace_trap_notify to wake us up remotely.
-+	 * Recheck state under the lock to close this race.
-+	 */
- 	spin_lock_irq(&task->sighand->siglock);
--	if (__fatal_signal_pending(task))
--		wake_up_state(task, __TASK_TRACED);
--	else
--		task->state = TASK_TRACED;
-+	if (task->state == __TASK_TRACED) {
-+		if (__fatal_signal_pending(task))
-+			wake_up_state(task, __TASK_TRACED);
-+		else
-+			task->state = TASK_TRACED;
-+	}
- 	spin_unlock_irq(&task->sighand->siglock);
- }
- 
+diff -puN mm/huge_memory.c~mm-thp-fix-setting-of-defermadvise-thp-defrag-mode mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-fix-setting-of-defermadvise-thp-defrag-mode
++++ a/mm/huge_memory.c
+@@ -240,18 +240,18 @@ static ssize_t defrag_store(struct kobje
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-	} else if (!memcmp("defer", buf,
+-		    min(sizeof("defer")-1, count))) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+ 	} else if (!memcmp("defer+madvise", buf,
+ 		    min(sizeof("defer+madvise")-1, count))) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+ 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
++	} else if (!memcmp("defer", buf,
++		    min(sizeof("defer")-1, count))) {
++		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
++		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
++		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
++		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+ 	} else if (!memcmp("madvise", buf,
+ 			   min(sizeof("madvise")-1, count))) {
+ 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
 _
 
-Patches currently in -mm which might be from bsegall@google.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+mm-vmstat-print-non-populated-zones-in-zoneinfo.patch
+mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo.patch
 
