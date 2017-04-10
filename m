@@ -1,109 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [failures] extable-verify-address-is-read-only.patch removed from -mm tree
-Date: Mon, 10 Apr 2017 14:09:25 -0700
-Message-ID: <58ebf485.qioQdj4BDVkxaPwn%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-avoid-suggesting-struct-definitions-should-be-const.patch added
+ to -mm tree
+Date: Mon, 10 Apr 2017 14:15:53 -0700
+Message-ID: <58ebf609.eVyZR1Vltsm9ZPTg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56596 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751434AbdDJVJ0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 17:09:26 -0400
+        with ESMTP id S1751237AbdDJVPy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 17:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ewk@edkovsky.org, jeyu@redhat.com, keescook@chromium.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: joe@perches.com, ybalrid@ybalrid.info, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: extable: verify address is read-only
-has been removed from the -mm tree.  Its filename was
-     extable-verify-address-is-read-only.patch
+     Subject: checkpatch: avoid suggesting struct definitions should be const
+has been added to the -mm tree.  Its filename is
+     checkpatch-avoid-suggesting-struct-definitions-should-be-const.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-avoid-suggesting-struct-definitions-should-be-const.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-avoid-suggesting-struct-definitions-should-be-const.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Eddie Kovsky <ewk@edkovsky.org>
-Subject: extable: verify address is read-only
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: avoid suggesting struct definitions should be const
 
-Provide a mechanism to check if the address of a variable is const or
-ro_after_init.  It mimics the existing functions that test if an address
-is inside the kernel's text section.
+Many structs are generally used const and there is a known list of these
+structs.
 
-The idea is to prevent structures that are not read-only from being passed
-to functions.  Other functions inside the kernel could then use this
-capability to verify that their arguments are read-only.
+struct definitions should not be generally be declared const.
 
-This implements the first half of a suggestion made by Kees Cook for the
-Kernel Self Protection Project:
+Add a test for the lack of an open brace immediately after the struct to
+avoid definitions.
 
-	- provide mechanism to check for ro_after_init memory areas, and
-	reject structures not marked ro_after_init in vmbus_register()
+This avoids the false positive "struct foo should normally be const"
+message only when the open brace is on the same line as the definition.
 
-Link: http://lkml.kernel.org/r/20170406033550.32525-3-ewk@edkovsky.org
-Signed-off-by: Eddie Kovsky <ewk@edkovsky.org>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Link: http://lkml.kernel.org/r/0dce709150d712e66f1b90b03827634b53b28085.1491845946.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Arthur Brainville <ybalrid@ybalrid.info>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 ++
- kernel/extable.c       |   29 +++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kernel.h~extable-verify-address-is-read-only include/linux/kernel.h
---- a/include/linux/kernel.h~extable-verify-address-is-read-only
-+++ a/include/linux/kernel.h
-@@ -444,6 +444,8 @@ extern int core_kernel_data(unsigned lon
- extern int __kernel_text_address(unsigned long addr);
- extern int kernel_text_address(unsigned long addr);
- extern int func_ptr_is_kernel_text(void *ptr);
-+extern int core_kernel_rodata(unsigned long addr);
-+extern int kernel_ro_address(unsigned long addr);
+diff -puN scripts/checkpatch.pl~checkpatch-avoid-suggesting-struct-definitions-should-be-const scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-avoid-suggesting-struct-definitions-should-be-const
++++ a/scripts/checkpatch.pl
+@@ -6090,11 +6090,11 @@ sub process {
+ 		}
  
- unsigned long int_sqrt(unsigned long);
+ # check for various structs that are normally const (ops, kgdb, device_tree)
++# and avoid what seem like struct definitions 'struct foo {'
+ 		if ($line !~ /\bconst\b/ &&
+-		    $line =~ /\bstruct\s+($const_structs)\b/) {
++		    $line =~ /\bstruct\s+($const_structs)\b(?!\s*\{)/) {
+ 			WARN("CONST_STRUCT",
+-			     "struct $1 should normally be const\n" .
+-				$herecurr);
++			     "struct $1 should normally be const\n" . $herecurr);
+ 		}
  
-diff -puN kernel/extable.c~extable-verify-address-is-read-only kernel/extable.c
---- a/kernel/extable.c~extable-verify-address-is-read-only
-+++ a/kernel/extable.c
-@@ -154,3 +154,32 @@ int func_ptr_is_kernel_text(void *ptr)
- 		return 1;
- 	return is_module_text_address(addr);
- }
-+
-+/**
-+ * core_kernel_rodata - Verify address points to read-only section
-+ * @addr: address to test
-+ *
-+ */
-+int core_kernel_rodata(unsigned long addr)
-+{
-+	if (addr >= (unsigned long)__start_rodata &&
-+	    addr < (unsigned long)__end_rodata)
-+		return 1;
-+
-+	if (addr >= (unsigned long)__start_ro_after_init &&
-+	    addr < (unsigned long)__end_ro_after_init)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+/* Verify that address is const or ro_after_init. */
-+int kernel_ro_address(unsigned long addr)
-+{
-+	if (core_kernel_rodata(addr))
-+		return 1;
-+	if (is_module_rodata_address(addr))
-+		return 1;
-+
-+	return 0;
-+}
+ # use of NR_CPUS is usually wrong
 _
 
-Patches currently in -mm which might be from ewk@edkovsky.org are
+Patches currently in -mm which might be from joe@perches.com are
 
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
+checkpatch-improve-embedded_function_name-test.patch
+checkpatch-allow-space-leading-blank-lines-in-email-headers.patch
+checkpatch-avoid-suggesting-struct-definitions-should-be-const.patch
+treewide-correct-diffrent-and-banlance-typos.patch
 
