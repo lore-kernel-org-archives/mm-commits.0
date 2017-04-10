@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 10 Apr 2017 14:28:19 -0700
-Message-ID: <58ebf8f3.Dnoukr5dOBUXqnR0%akpm@linux-foundation.org>
+Subject: + z3fold-fix-page-locking-in-z3fold_alloc.patch added to -mm tree
+Date: Mon, 10 Apr 2017 14:31:17 -0700
+Message-ID: <58ebf9a5.okWAorE5klzJ6Zfh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57116 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751514AbdDJV2U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 17:28:20 -0400
+        with ESMTP id S1751514AbdDJVbS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 17:31:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, brouer@redhat.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, Oleksiy.Avramchenko@sony.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes
+     Subject: z3fold: fix page locking in z3fold_alloc()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes.patch
+     z3fold-fix-page-locking-in-z3fold_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-fix-page-locking-in-z3fold_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-fix-page-locking-in-z3fold_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +38,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold: fix page locking in z3fold_alloc()
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#19: 
-patch, the result wiill be to revert 374ad05ab64d and try again at a later
+Stress testing of the current z3fold implementation on a 8-core system
+revealed it was possible that a z3fold page deleted from its unbuddied
+list in z3fold_alloc() would be put on another unbuddied list by
+z3fold_free() while z3fold_alloc() is still processing it.  This has been
+introduced with commit 5a27aa822 ("z3fold: add kref refcounting") due to
+the removal of special handling of a z3fold page not on any list in
+z3fold_free().
 
-ERROR: space prohibited before that close parenthesis ')'
-#120: FILE: mm/page_alloc.c:2722:
-+	if (likely(order == 0) && !(in_irq() || irqs_disabled()) ) {
+To fix this, the z3fold page lock should be taken in z3fold_alloc() before
+the pool lock is released.  To avoid deadlocking, we just try to lock the
+page as soon as we get a hold of it, and if trylock fails, we drop this
+page and take the next one.
 
-total: 2 errors, 0 warnings, 75 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: <Oleksiy.Avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/z3fold.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -2719,7 +2719,7 @@ struct page *rmqueue(struct zone *prefer
- 	 * Exclude (hard) IRQ and NMI context from using the pcplists.
- 	 * But allow softirq context, via disabling BH.
- 	 */
--	if (likely(order == 0) && !(in_irq() || irqs_disabled()) ) {
-+	if (likely(order == 0) && !(in_irq() || irqs_disabled())) {
- 		page = rmqueue_pcplist(preferred_zone, zone, order,
- 				gfp_flags, migratetype);
- 		goto out;
+diff -puN mm/z3fold.c~z3fold-fix-page-locking-in-z3fold_alloc mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-fix-page-locking-in-z3fold_alloc
++++ a/mm/z3fold.c
+@@ -185,6 +185,12 @@ static inline void z3fold_page_lock(stru
+ 	spin_lock(&zhdr->page_lock);
+ }
+ 
++/* Try to lock a z3fold page */
++static inline int z3fold_page_trylock(struct z3fold_header *zhdr)
++{
++	return spin_trylock(&zhdr->page_lock);
++}
++
+ /* Unlock a z3fold page */
+ static inline void z3fold_page_unlock(struct z3fold_header *zhdr)
+ {
+@@ -385,7 +391,7 @@ static int z3fold_alloc(struct z3fold_po
+ 			spin_lock(&pool->lock);
+ 			zhdr = list_first_entry_or_null(&pool->unbuddied[i],
+ 						struct z3fold_header, buddy);
+-			if (!zhdr) {
++			if (!zhdr || !z3fold_page_trylock(zhdr)) {
+ 				spin_unlock(&pool->lock);
+ 				continue;
+ 			}
+@@ -394,7 +400,6 @@ static int z3fold_alloc(struct z3fold_po
+ 			spin_unlock(&pool->lock);
+ 
+ 			page = virt_to_page(zhdr);
+-			z3fold_page_lock(zhdr);
+ 			if (zhdr->first_chunks == 0) {
+ 				if (zhdr->middle_chunks != 0 &&
+ 				    chunks >= zhdr->start_middle)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-i-need-old-gcc.patch
-mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
-swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-docs-vm-transhuge-fix-few-trivial-typos-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+z3fold-fix-page-locking-in-z3fold_alloc.patch
 
