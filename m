@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-huge_memory-deposit-a-pgtable-for-dax-pmd-faults-when-required.patch
+ mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc.patch
  added to -mm tree
-Date: Tue, 11 Apr 2017 14:21:49 -0700
-Message-ID: <58ed48ed.j+3dzinDfIQ22mIv%akpm@linux-foundation.org>
+Date: Tue, 11 Apr 2017 14:29:59 -0700
+Message-ID: <58ed4ad7.uhr8TY40N1Ry8aOX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753524AbdDKVVu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 17:21:50 -0400
+        with ESMTP id S1753741AbdDKVaF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 17:30:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oohall@gmail.com, aneesh.kumar@linux.vnet.ibm.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, aarcange@redhat.com, cl@linux-foundation.org, mgorman@suse.de, mhocko@kernel.org, penberg@cs.helsinki.fi, rjw@sisk.pl, sgruszka@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: deposit a pgtable for DAX PMD faults when required
+     Subject: mm, page_alloc: remove debug_guardpage_minorder() test in warn_alloc()
 has been added to the -mm tree.  Its filename is
-     mm-huge_memory-deposit-a-pgtable-for-dax-pmd-faults-when-required.patch
+     mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-deposit-a-pgtable-for-dax-pmd-faults-when-required.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-deposit-a-pgtable-for-dax-pmd-faults-when-required.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,95 +40,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Oliver O'Halloran" <oohall@gmail.com>
-Subject: mm/huge_memory.c: deposit a pgtable for DAX PMD faults when required
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm, page_alloc: remove debug_guardpage_minorder() test in warn_alloc()
 
-Although all architectures use a deposited page table for THP on anonymous VMAs
-some architectures (s390 and powerpc) require the deposited storage even for
-file backed VMAs due to quirks of their MMUs. This patch adds support for
-depositing a table in DAX PMD fault handling path for archs that require it.
-Other architectures should see no functional changes.
+We are using warn_alloc() for reporting both allocation failures and
+allocation stalls.  If we add debug_guardpage_minorder=1 parameter, all
+allocation failure and allocation stall reports become pointless like
+below.  (Below output would be an OOM livelock where all __GFP_FS
+allocations got stuck at too_many_isolated() in shrink_inactive_list()
+waiting for kswapd, kswapd is waiting for !__GFP_FS allocations, and all
+!__GFP_FS allocations did not get stuck at too_many_isolated() in
+shrink_inactive_list() but are unable to invoke the OOM killer.)
 
-Link: http://lkml.kernel.org/r/20170411174233.21902-3-oohall@gmail.com
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: linux-nvdimm@ml01.01.org
-Cc: Oliver O'Halloran <oohall@gmail.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+===
+[    0.000000] Linux version 4.11.0-rc6-next-20170410 (root@ccsecurity) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-11) (GCC) ) #578 SMP Mon Apr 10 23:08:53 JST 2017
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-4.11.0-rc6-next-20170410 (...snipped...) debug_guardpage_minorder=1
+(...snipped...)
+[    0.000000] Setting debug_guardpage_minorder to 1
+(...snipped...)
+[   99.064207] Out of memory: Kill process 3097 (a.out) score 999 or sacrifice child
+[   99.066488] Killed process 3097 (a.out) total-vm:14408kB, anon-rss:84kB, file-rss:36kB, shmem-rss:0kB
+[   99.180378] oom_reaper: reaped process 3097 (a.out), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+[  128.310487] warn_alloc: 266 callbacks suppressed
+[  133.445395] warn_alloc: 74 callbacks suppressed
+[  138.517471] warn_alloc: 300 callbacks suppressed
+[  143.537630] warn_alloc: 34 callbacks suppressed
+[  148.610773] warn_alloc: 277 callbacks suppressed
+[  153.630652] warn_alloc: 70 callbacks suppressed
+[  158.639891] warn_alloc: 217 callbacks suppressed
+[  163.687727] warn_alloc: 120 callbacks suppressed
+[  168.709610] warn_alloc: 252 callbacks suppressed
+[  173.714659] warn_alloc: 103 callbacks suppressed
+[  178.730858] warn_alloc: 248 callbacks suppressed
+[  183.797587] warn_alloc: 82 callbacks suppressed
+[  188.825250] warn_alloc: 238 callbacks suppressed
+[  193.832834] warn_alloc: 102 callbacks suppressed
+[  198.876409] warn_alloc: 259 callbacks suppressed
+[  203.940073] warn_alloc: 102 callbacks suppressed
+[  207.620979] sysrq: SysRq : Resetting
+===
+
+c0a32fc5a2e470d0 ("mm: more intensive memory corruption debugging")
+changed to check debug_guardpage_minorder() > 0 when reporting allocation
+failures.  But the patch description seems to lack why we want to check
+it.  Let's remove that check so that administrators can get some clue by
+allowing warn_alloc() to report e.g.  GFP_NOFS | __GFP_NOWARN allocations
+are stalling.
+
+Link: http://lkml.kernel.org/r/1491910035-4231-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memory-deposit-a-pgtable-for-dax-pmd-faults-when-required mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memory-deposit-a-pgtable-for-dax-pmd-faults-when-required
-+++ a/mm/huge_memory.c
-@@ -715,7 +715,8 @@ int do_huge_pmd_anonymous_page(struct vm
- }
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc
++++ a/mm/page_alloc.c
+@@ -3161,8 +3161,7 @@ void warn_alloc(gfp_t gfp_mask, nodemask
+ 	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 				      DEFAULT_RATELIMIT_BURST);
  
- static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
--		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
-+		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write,
-+		pgtable_t pgtable)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t entry;
-@@ -729,6 +730,12 @@ static void insert_pfn_pmd(struct vm_are
- 		entry = pmd_mkyoung(pmd_mkdirty(entry));
- 		entry = maybe_pmd_mkwrite(entry, vma);
- 	}
-+
-+	if (pgtable) {
-+		pgtable_trans_huge_deposit(mm, pmd, pgtable);
-+		atomic_long_inc(&mm->nr_ptes);
-+	}
-+
- 	set_pmd_at(mm, addr, pmd, entry);
- 	update_mmu_cache_pmd(vma, addr, pmd);
- 	spin_unlock(ptl);
-@@ -738,6 +745,7 @@ int vmf_insert_pfn_pmd(struct vm_area_st
- 			pmd_t *pmd, pfn_t pfn, bool write)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
-+	pgtable_t pgtable = NULL;
- 	/*
- 	 * If we had pmd_special, we could avoid all these restrictions,
- 	 * but we need to be consistent with PTEs and architectures that
-@@ -752,9 +760,15 @@ int vmf_insert_pfn_pmd(struct vm_area_st
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
+-	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
+-	    debug_guardpage_minorder() > 0)
++	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
+ 		return;
  
-+	if (arch_needs_pgtable_deposit()) {
-+		pgtable = pte_alloc_one(vma->vm_mm, addr);
-+		if (!pgtable)
-+			return VM_FAULT_OOM;
-+	}
-+
- 	track_pfn_insert(vma, &pgprot, pfn);
- 
--	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
-+	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write, pgtable);
- 	return VM_FAULT_NOPAGE;
- }
- EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd);
-@@ -1611,6 +1625,8 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 			tlb->fullmm);
- 	tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
- 	if (vma_is_dax(vma)) {
-+		if (arch_needs_pgtable_deposit())
-+			zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
- 		if (is_huge_zero_pmd(orig_pmd))
- 			tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
+ 	pr_warn("%s: ", current->comm);
 _
 
-Patches currently in -mm which might be from oohall@gmail.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-mm-huge_memory-use-zap_deposited_table-more.patch
-mm-huge_memory-deposit-a-pgtable-for-dax-pmd-faults-when-required.patch
+mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc.patch
+locking-hung_task-defer-showing-held-locks.patch
+fs-remove-set-but-not-checked-aop_flag_uninterruptible-flag.patch
 
