@@ -1,120 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 11 Apr 2017 12:18:33 -0700
-Message-ID: <58ed2c09.J3/sA2BsIAJeN+bv%akpm@linux-foundation.org>
+Subject: [merged] remove-cpuset_update_active_cpuss-parameter.patch
+ removed from -mm tree
+Date: Tue, 11 Apr 2017 12:19:29 -0700
+Message-ID: <58ed2c41.kWIlxzPslnszhRww%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60126 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752612AbdDKTSe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 15:18:34 -0400
+        with ESMTP id S1752291AbdDKTTa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 15:19:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: rakib.mullick@gmail.com, lizefan@huawei.com, mingo@redhat.com, peterz@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject:  cpusets: remove cpuset_update_active_cpus()'s parameter
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     remove-cpuset_update_active_cpuss-parameter.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject:  cpusets: remove cpuset_update_active_cpus()'s parameter
 
+In cpuset_update_active_cpus(), cpu_online isn't used anymore.  Remove it.
+
+Link: http://lkml.kernel.org/r/20170409013614.7138-1-rakib.mullick@gmail.com
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+Acked-by: Zefan Li <lizefan@huawei.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/caam/ctrl.c   |    6 ------
- drivers/crypto/caam/intern.h |    3 ---
- 2 files changed, 9 deletions(-)
+ include/linux/cpuset.h |    4 ++--
+ kernel/cgroup/cpuset.c |    2 +-
+ kernel/sched/core.c    |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/metag/include/asm/uaccess.h~linux-next-git-rejects arch/metag/include/asm/uaccess.h
-diff -puN arch/metag/lib/usercopy.c~linux-next-git-rejects arch/metag/lib/usercopy.c
-diff -puN drivers/crypto/caam/ctrl.c~linux-next-git-rejects drivers/crypto/caam/ctrl.c
---- a/drivers/crypto/caam/ctrl.c~linux-next-git-rejects
-+++ a/drivers/crypto/caam/ctrl.c
-@@ -313,14 +313,11 @@ static int caam_remove(struct platform_d
+diff -puN include/linux/cpuset.h~remove-cpuset_update_active_cpuss-parameter include/linux/cpuset.h
+--- a/include/linux/cpuset.h~remove-cpuset_update_active_cpuss-parameter
++++ a/include/linux/cpuset.h
+@@ -42,7 +42,7 @@ static inline void cpuset_dec(void)
  
- 	/* Remove platform devices under the crypto node */
- 	of_platform_depopulate(ctrldev);
--<<<<<<< HEAD
--=======
+ extern int cpuset_init(void);
+ extern void cpuset_init_smp(void);
+-extern void cpuset_update_active_cpus(bool cpu_online);
++extern void cpuset_update_active_cpus(void);
+ extern void cpuset_cpus_allowed(struct task_struct *p, struct cpumask *mask);
+ extern void cpuset_cpus_allowed_fallback(struct task_struct *p);
+ extern nodemask_t cpuset_mems_allowed(struct task_struct *p);
+@@ -155,7 +155,7 @@ static inline bool cpusets_enabled(void)
+ static inline int cpuset_init(void) { return 0; }
+ static inline void cpuset_init_smp(void) {}
  
- #ifdef CONFIG_CAAM_QI
- 	if (ctrlpriv->qidev)
- 		caam_qi_shutdown(ctrlpriv->qidev);
- #endif
-->>>>>>> linux-next/akpm-base
+-static inline void cpuset_update_active_cpus(bool cpu_online)
++static inline void cpuset_update_active_cpus(void)
+ {
+ 	partition_sched_domains(1, NULL, NULL);
+ }
+diff -puN kernel/cgroup/cpuset.c~remove-cpuset_update_active_cpuss-parameter kernel/cgroup/cpuset.c
+--- a/kernel/cgroup/cpuset.c~remove-cpuset_update_active_cpuss-parameter
++++ a/kernel/cgroup/cpuset.c
+@@ -2354,7 +2354,7 @@ static void cpuset_hotplug_workfn(struct
+ 		rebuild_sched_domains();
+ }
  
- 	/* De-initialize RNG state handles initialized by this driver. */
- 	if (ctrlpriv->rng4_sh_init)
-@@ -618,8 +615,6 @@ static int caam_probe(struct platform_de
- 		dev_err(dev, "JR platform devices creation error\n");
- 		goto iounmap_ctrl;
- 	}
--<<<<<<< HEAD
--=======
- 
- #ifdef CONFIG_DEBUG_FS
+-void cpuset_update_active_cpus(bool cpu_online)
++void cpuset_update_active_cpus(void)
+ {
  	/*
-@@ -632,7 +627,6 @@ static int caam_probe(struct platform_de
- 	ctrlpriv->dfs_root = debugfs_create_dir(dev_name(dev), NULL);
- 	ctrlpriv->ctl = debugfs_create_dir("ctl", ctrlpriv->dfs_root);
- #endif
-->>>>>>> linux-next/akpm-base
+ 	 * We're inside cpu hotplug critical region which usually nests
+diff -puN kernel/sched/core.c~remove-cpuset_update_active_cpuss-parameter kernel/sched/core.c
+--- a/kernel/sched/core.c~remove-cpuset_update_active_cpuss-parameter
++++ a/kernel/sched/core.c
+@@ -5732,7 +5732,7 @@ static void cpuset_cpu_active(void)
+ 		 * cpuset configurations.
+ 		 */
+ 	}
+-	cpuset_update_active_cpus(true);
++	cpuset_update_active_cpus();
+ }
  
- 	ring = 0;
- 	for_each_available_child_of_node(nprop, np)
-diff -puN drivers/crypto/caam/intern.h~linux-next-git-rejects drivers/crypto/caam/intern.h
---- a/drivers/crypto/caam/intern.h~linux-next-git-rejects
-+++ a/drivers/crypto/caam/intern.h
-@@ -66,12 +66,9 @@ struct caam_drv_private_jr {
- struct caam_drv_private {
+ static int cpuset_cpu_inactive(unsigned int cpu)
+@@ -5755,7 +5755,7 @@ static int cpuset_cpu_inactive(unsigned
  
- 	struct device *dev;
--<<<<<<< HEAD
--=======
- #ifdef CONFIG_CAAM_QI
- 	struct device *qidev;
- #endif
-->>>>>>> linux-next/akpm-base
- 	struct platform_device *pdev;
- 
- 	/* Physical-presence section */
+ 		if (overflow)
+ 			return -EBUSY;
+-		cpuset_update_active_cpus(false);
++		cpuset_update_active_cpus();
+ 	} else {
+ 		num_cpus_frozen++;
+ 		partition_sched_domains(1, NULL, NULL);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
-i-need-old-gcc.patch
-mm-page_alloc-re-enable-softirq-use-of-per-cpu-page-allocator-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
-swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-docs-vm-transhuge-fix-few-trivial-typos-fix.patch
-mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
