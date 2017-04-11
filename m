@@ -1,69 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix.patch added to -mm tree
-Date: Mon, 10 Apr 2017 15:51:04 -0700
-Message-ID: <58ec0c58.EzO9q3Hzp5ZErjqF%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 11 Apr 2017 12:18:33 -0700
+Message-ID: <58ed2c09.J3/sA2BsIAJeN+bv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60070 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751978AbdDJWvF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Apr 2017 18:51:05 -0400
+        with ESMTP id S1752612AbdDKTSe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 15:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, jglisse@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix
-has been added to the -mm tree.  Its filename is
-     mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix
+Subject: linux-next-git-rejects
 
-remove unused local `next', per Fengguang
-
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/crypto/caam/ctrl.c   |    6 ------
+ drivers/crypto/caam/intern.h |    3 ---
+ 2 files changed, 9 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix mm/migrate.c
---- a/mm/migrate.c~mm-migrate-migrate_vma-unmap-page-from-vma-while-collecting-pages-fix
-+++ a/mm/migrate.c
-@@ -2101,7 +2101,7 @@ static int migrate_vma_collect_hole(unsi
- 				    struct mm_walk *walk)
- {
- 	struct migrate_vma *migrate = walk->private;
--	unsigned long addr, next;
-+	unsigned long addr;
+diff -puN arch/metag/include/asm/uaccess.h~linux-next-git-rejects arch/metag/include/asm/uaccess.h
+diff -puN arch/metag/lib/usercopy.c~linux-next-git-rejects arch/metag/lib/usercopy.c
+diff -puN drivers/crypto/caam/ctrl.c~linux-next-git-rejects drivers/crypto/caam/ctrl.c
+--- a/drivers/crypto/caam/ctrl.c~linux-next-git-rejects
++++ a/drivers/crypto/caam/ctrl.c
+@@ -313,14 +313,11 @@ static int caam_remove(struct platform_d
  
- 	for (addr = start & PAGE_MASK; addr < end; addr += PAGE_SIZE) {
- 		migrate->dst[migrate->npages] = 0;
+ 	/* Remove platform devices under the crypto node */
+ 	of_platform_depopulate(ctrldev);
+-<<<<<<< HEAD
+-=======
+ 
+ #ifdef CONFIG_CAAM_QI
+ 	if (ctrlpriv->qidev)
+ 		caam_qi_shutdown(ctrlpriv->qidev);
+ #endif
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* De-initialize RNG state handles initialized by this driver. */
+ 	if (ctrlpriv->rng4_sh_init)
+@@ -618,8 +615,6 @@ static int caam_probe(struct platform_de
+ 		dev_err(dev, "JR platform devices creation error\n");
+ 		goto iounmap_ctrl;
+ 	}
+-<<<<<<< HEAD
+-=======
+ 
+ #ifdef CONFIG_DEBUG_FS
+ 	/*
+@@ -632,7 +627,6 @@ static int caam_probe(struct platform_de
+ 	ctrlpriv->dfs_root = debugfs_create_dir(dev_name(dev), NULL);
+ 	ctrlpriv->ctl = debugfs_create_dir("ctl", ctrlpriv->dfs_root);
+ #endif
+->>>>>>> linux-next/akpm-base
+ 
+ 	ring = 0;
+ 	for_each_available_child_of_node(nprop, np)
+diff -puN drivers/crypto/caam/intern.h~linux-next-git-rejects drivers/crypto/caam/intern.h
+--- a/drivers/crypto/caam/intern.h~linux-next-git-rejects
++++ a/drivers/crypto/caam/intern.h
+@@ -66,12 +66,9 @@ struct caam_drv_private_jr {
+ struct caam_drv_private {
+ 
+ 	struct device *dev;
+-<<<<<<< HEAD
+-=======
+ #ifdef CONFIG_CAAM_QI
+ 	struct device *qidev;
+ #endif
+->>>>>>> linux-next/akpm-base
+ 	struct platform_device *pdev;
+ 
+ 	/* Physical-presence section */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +111,6 @@ taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
 kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 fault-inject-support-systematic-fault-injection-fix.patch
 linux-next-rejects.patch
-linux-next-git-rejects.patch
 drm-use-set_memoryh-header-fix.patch
 drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
 docs-vm-transhuge-fix-few-trivial-typos-fix.patch
