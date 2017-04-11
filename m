@@ -1,105 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] remove-cpuset_update_active_cpuss-parameter.patch
- removed from -mm tree
-Date: Tue, 11 Apr 2017 12:19:29 -0700
-Message-ID: <58ed2c41.kWIlxzPslnszhRww%akpm@linux-foundation.org>
+Subject: + fork-free-vmapped-stacks-in-cache-when-cpus-are-offline.patch
+ added to -mm tree
+Date: Tue, 11 Apr 2017 13:53:25 -0700
+Message-ID: <58ed4245.FwyZcRV98gEpe7kZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36200 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752291AbdDKTTa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 15:19:30 -0400
+        with ESMTP id S1753609AbdDKUx0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 16:53:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rakib.mullick@gmail.com, lizefan@huawei.com, mingo@redhat.com, peterz@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: hoeun.ryu@gmail.com, ebiederm@xmission.com, keescook@chromium.org, luto@kernel.org, mguzik@redhat.com, mhocko@suse.com, mingo@kernel.org, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject:  cpusets: remove cpuset_update_active_cpus()'s parameter
-has been removed from the -mm tree.  Its filename was
-     remove-cpuset_update_active_cpuss-parameter.patch
+     Subject: fork: free vmapped stacks in cache when cpus are offline
+has been added to the -mm tree.  Its filename is
+     fork-free-vmapped-stacks-in-cache-when-cpus-are-offline.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fork-free-vmapped-stacks-in-cache-when-cpus-are-offline.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fork-free-vmapped-stacks-in-cache-when-cpus-are-offline.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rakib Mullick <rakib.mullick@gmail.com>
-Subject:  cpusets: remove cpuset_update_active_cpus()'s parameter
+From: Hoeun Ryu <hoeun.ryu@gmail.com>
+Subject: fork: free vmapped stacks in cache when cpus are offline
 
-In cpuset_update_active_cpus(), cpu_online isn't used anymore.  Remove it.
+Using virtually mapped stack, kernel stacks are allocated via vmalloc.  In
+the current implementation, two stacks per cpu can be cached when tasks
+are freed and the cached stacks are used again in task duplications.  but
+the cached stacks may remain unfreed even when cpu are offline.  By adding
+a cpu hotplug callback to free the cached stacks when a cpu goes offline,
+the pages of the cached stacks are not wasted.
 
-Link: http://lkml.kernel.org/r/20170409013614.7138-1-rakib.mullick@gmail.com
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Acked-by: Zefan Li <lizefan@huawei.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: http://lkml.kernel.org/r/1487076043-17802-1-git-send-email-hoeun.ryu@gmail.com
+Signed-off-by: Hoeun Ryu <hoeun.ryu@gmail.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Mateusz Guzik <mguzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |    4 ++--
- kernel/cgroup/cpuset.c |    2 +-
- kernel/sched/core.c    |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ kernel/fork.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN include/linux/cpuset.h~remove-cpuset_update_active_cpuss-parameter include/linux/cpuset.h
---- a/include/linux/cpuset.h~remove-cpuset_update_active_cpuss-parameter
-+++ a/include/linux/cpuset.h
-@@ -42,7 +42,7 @@ static inline void cpuset_dec(void)
+diff -puN kernel/fork.c~fork-free-vmapped-stacks-in-cache-when-cpus-are-offline kernel/fork.c
+--- a/kernel/fork.c~fork-free-vmapped-stacks-in-cache-when-cpus-are-offline
++++ a/kernel/fork.c
+@@ -178,6 +178,24 @@ void __weak arch_release_thread_stack(un
+  */
+ #define NR_CACHED_STACKS 2
+ static DEFINE_PER_CPU(struct vm_struct *, cached_stacks[NR_CACHED_STACKS]);
++
++static int free_vm_stack_cache(unsigned int cpu)
++{
++	struct vm_struct **cached_vm_stacks = per_cpu_ptr(cached_stacks, cpu);
++	int i;
++
++	for (i = 0; i < NR_CACHED_STACKS; i++) {
++		struct vm_struct *vm_stack = cached_vm_stacks[i];
++
++		if (!vm_stack)
++			continue;
++
++		vfree(vm_stack->addr);
++		cached_vm_stacks[i] = NULL;
++	}
++
++	return 0;
++}
+ #endif
  
- extern int cpuset_init(void);
- extern void cpuset_init_smp(void);
--extern void cpuset_update_active_cpus(bool cpu_online);
-+extern void cpuset_update_active_cpus(void);
- extern void cpuset_cpus_allowed(struct task_struct *p, struct cpumask *mask);
- extern void cpuset_cpus_allowed_fallback(struct task_struct *p);
- extern nodemask_t cpuset_mems_allowed(struct task_struct *p);
-@@ -155,7 +155,7 @@ static inline bool cpusets_enabled(void)
- static inline int cpuset_init(void) { return 0; }
- static inline void cpuset_init_smp(void) {}
- 
--static inline void cpuset_update_active_cpus(bool cpu_online)
-+static inline void cpuset_update_active_cpus(void)
- {
- 	partition_sched_domains(1, NULL, NULL);
- }
-diff -puN kernel/cgroup/cpuset.c~remove-cpuset_update_active_cpuss-parameter kernel/cgroup/cpuset.c
---- a/kernel/cgroup/cpuset.c~remove-cpuset_update_active_cpuss-parameter
-+++ a/kernel/cgroup/cpuset.c
-@@ -2354,7 +2354,7 @@ static void cpuset_hotplug_workfn(struct
- 		rebuild_sched_domains();
- }
- 
--void cpuset_update_active_cpus(bool cpu_online)
-+void cpuset_update_active_cpus(void)
- {
- 	/*
- 	 * We're inside cpu hotplug critical region which usually nests
-diff -puN kernel/sched/core.c~remove-cpuset_update_active_cpuss-parameter kernel/sched/core.c
---- a/kernel/sched/core.c~remove-cpuset_update_active_cpuss-parameter
-+++ a/kernel/sched/core.c
-@@ -5732,7 +5732,7 @@ static void cpuset_cpu_active(void)
- 		 * cpuset configurations.
- 		 */
+ static unsigned long *alloc_thread_stack_node(struct task_struct *tsk, int node)
+@@ -466,6 +484,11 @@ void __init fork_init(void)
+ 	for (i = 0; i < UCOUNT_COUNTS; i++) {
+ 		init_user_ns.ucount_max[i] = max_threads/2;
  	}
--	cpuset_update_active_cpus(true);
-+	cpuset_update_active_cpus();
++
++#ifdef CONFIG_VMAP_STACK
++	cpuhp_setup_state(CPUHP_BP_PREPARE_DYN, "fork:vm_stack_cache",
++			  NULL, free_vm_stack_cache);
++#endif
  }
  
- static int cpuset_cpu_inactive(unsigned int cpu)
-@@ -5755,7 +5755,7 @@ static int cpuset_cpu_inactive(unsigned
- 
- 		if (overflow)
- 			return -EBUSY;
--		cpuset_update_active_cpus(false);
-+		cpuset_update_active_cpus();
- 	} else {
- 		num_cpus_frozen++;
- 		partition_sched_domains(1, NULL, NULL);
+ int __weak arch_dup_task_struct(struct task_struct *dst,
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from hoeun.ryu@gmail.com are
 
+fork-free-vmapped-stacks-in-cache-when-cpus-are-offline.patch
 
