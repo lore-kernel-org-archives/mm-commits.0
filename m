@@ -1,118 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-fix-offset-overflow-in-huegtlbfs-mmap.patch added to
- -mm tree
-Date: Tue, 11 Apr 2017 15:57:41 -0700
-Message-ID: <58ed5f65.q5jG4qeJw5aPy15/%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ kbuild-consolidate-header-generation-from-asm-offset-information.patch
+ removed from -mm tree
+Date: Tue, 11 Apr 2017 18:52:58 -0700
+Message-ID: <58ed887a.jTv8DMyaa3CdzLsI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752489AbdDKW5m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 18:57:42 -0400
+        with ESMTP id S1751967AbdDLBxA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2017 21:53:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aryabinin@virtuozzo.com, dvyukov@google.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
+To: mka@chromium.org, fenghua.yu@intel.com, ghackmann@google.com, grundler@chromium.org, jan.kiszka@siemens.com, kieran.bingham@linaro.org, md@google.com, mmarek@suse.com, tony.luck@intel.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: fix offset overflow in huegtlbfs mmap
-has been added to the -mm tree.  Its filename is
-     hugetlbfs-fix-offset-overflow-in-huegtlbfs-mmap.patch
+     Subject: kbuild: consolidate header generation from ASM offset information
+has been removed from the -mm tree.  Its filename was
+     kbuild-consolidate-header-generation-from-asm-offset-information.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-fix-offset-overflow-in-huegtlbfs-mmap.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-fix-offset-overflow-in-huegtlbfs-mmap.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: fix offset overflow in huegtlbfs mmap
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: kbuild: consolidate header generation from ASM offset information
 
-If mmap() maps a file, it can be passed an offset into the file at
-which the mapping is to start.  Offset could be a negative value when
-represented as a loff_t.  The offset plus length will be used to
-update the file size (i_size) which is also a loff_t.  Validate the
-value of offset and offset + length to make sure they do not overflow
-and appear as negative.
+Largely redundant code is used in different places to generate C headers
+from offset information extracted from assembly language output. 
+Consolidate the code in a Makefile include and use this instead.
 
-Found by syzcaller with commit ff8c0c53c475 ("mm/hugetlb.c: don't call
-region_abort if region_chg fails") applied.  Prior to this commit, the
-overflow would still occur but we would luckily return ENOMEM.
-To reproduce:
-mmap(0, 0x2000, 0, 0x40021, 0xffffffffffffffffULL, 0x8000000000000000ULL);
-
-Resulted in,
-kernel BUG at mm/hugetlb.c:742!
-Call Trace:
- hugetlbfs_evict_inode+0x80/0xa0
- ? hugetlbfs_setattr+0x3c0/0x3c0
- evict+0x24a/0x620
- iput+0x48f/0x8c0
- dentry_unlink_inode+0x31f/0x4d0
- __dentry_kill+0x292/0x5e0
- dput+0x730/0x830
- __fput+0x438/0x720
- ____fput+0x1a/0x20
- task_work_run+0xfe/0x180
- exit_to_usermode_loop+0x133/0x150
- syscall_return_slowpath+0x184/0x1c0
- entry_SYSCALL_64_fastpath+0xab/0xad
-
-Fixes: ff8c0c53c475 ("mm/hugetlb.c: don't call region_abort if region_chg fails")
-Link: http://lkml.kernel.org/r/1491951118-30678-1-git-send-email-mike.kravetz@oracle.com
-Reported-by: Vegard Nossum <vegard.nossum@gmail.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20170403193739.84905-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kieran.bingham@linaro.org>
+Cc: Grant Grundler <grundler@chromium.org>
+Cc: Michael Davidson <md@google.com>
+Cc: Greg Hackmann <ghackmann@google.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ Kbuild                       |   21 ++-------------------
+ arch/ia64/kernel/Makefile    |   19 +++----------------
+ scripts/Makefile.asm-offsets |   22 ++++++++++++++++++++++
+ scripts/mod/Makefile         |   21 ++-------------------
+ 4 files changed, 29 insertions(+), 54 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-fix-offset-overflow-in-huegtlbfs-mmap fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-offset-overflow-in-huegtlbfs-mmap
-+++ a/fs/hugetlbfs/inode.c
-@@ -136,17 +136,26 @@ static int hugetlbfs_file_mmap(struct fi
- 	vma->vm_flags |= VM_HUGETLB | VM_DONTEXPAND;
- 	vma->vm_ops = &hugetlb_vm_ops;
+diff -puN Kbuild~kbuild-consolidate-header-generation-from-asm-offset-information Kbuild
+--- a/Kbuild~kbuild-consolidate-header-generation-from-asm-offset-information
++++ a/Kbuild
+@@ -7,29 +7,12 @@
+ # 4) Check for missing system calls
+ # 5) Generate constants.py (may need bounds.h)
  
-+	/*
-+	 * Offset passed to mmap (before page shift) could have been
-+	 * negative when represented as a (l)off_t.
-+	 */
-+	if (((loff_t)vma->vm_pgoff << PAGE_SHIFT) < 0)
-+		return -EINVAL;
+-# Default sed regexp - multiline due to syntax constraints
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
++include scripts/Makefile.asm-offsets
+ 
+ # Use filechk to avoid rebuilds when a header changes, but the resulting file
+ # does not
+ define filechk_offsets
+-	(set -e; \
+-	 echo "#ifndef $2"; \
+-	 echo "#define $2"; \
+-	 echo "/*"; \
+-	 echo " * DO NOT MODIFY."; \
+-	 echo " *"; \
+-	 echo " * This file was generated by Kbuild"; \
+-	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y); \
+-	 echo ""; \
+-	 echo "#endif" )
++	$(call gen_header_from_asm_offsets,$2)
+ endef
+ 
+ #####
+diff -puN arch/ia64/kernel/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information arch/ia64/kernel/Makefile
+--- a/arch/ia64/kernel/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information
++++ a/arch/ia64/kernel/Makefile
+@@ -50,25 +50,12 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f
+ # The gate DSO image is built using a special linker script.
+ include $(src)/Makefile.gate
+ 
++include $(srctree)/scripts/Makefile.asm-offsets
 +
- 	if (vma->vm_pgoff & (~huge_page_mask(h) >> PAGE_SHIFT))
- 		return -EINVAL;
+ # Calculate NR_IRQ = max(IA64_NATIVE_NR_IRQS, XEN_NR_IRQS, ...) based on config
+-define sed-y
+-	"/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"
+-endef
+ quiet_cmd_nr_irqs = GEN     $@
+ define cmd_nr_irqs
+-	(set -e; \
+-	 echo "#ifndef __ASM_NR_IRQS_H__"; \
+-	 echo "#define __ASM_NR_IRQS_H__"; \
+-	 echo "/*"; \
+-	 echo " * DO NOT MODIFY."; \
+-	 echo " *"; \
+-	 echo " * This file was generated by Kbuild"; \
+-	 echo " *"; \
+-	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y) $<; \
+-	 echo ""; \
+-	 echo "#endif" ) > $@
++	$(call gen_header_from_asm_offsets,__ASM_NR_IRQS_H__) < $< > $@
+ endef
  
- 	vma_len = (loff_t)(vma->vm_end - vma->vm_start);
-+	len = vma_len + ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
-+	/* check for overflow */
-+	if (len < vma_len)
-+		return -EINVAL;
+ # We use internal kbuild rules to avoid the "is up to date" message from make
+diff -puN /dev/null scripts/Makefile.asm-offsets
+--- /dev/null
++++ a/scripts/Makefile.asm-offsets
+@@ -0,0 +1,22 @@
++# Default sed regexp - multiline due to syntax constraints
++define sed-asm-offsets-to-c
++	"/^->/{s:->#\(.*\):/* \1 */:; \
++	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
++	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
++	s:->::; p;}"
++endef
++
++define gen_header_from_asm_offsets
++	(set -e; \
++	 echo "#ifndef $1"; \
++	 echo "#define $1"; \
++	 echo "/*"; \
++	 echo " * DO NOT MODIFY."; \
++	 echo " *"; \
++	 echo " * This file was generated by Kbuild"; \
++	 echo " */"; \
++	 echo ""; \
++	 sed -ne $(sed-asm-offsets-to-c); \
++	 echo ""; \
++	 echo "#endif" )
++endef
+diff -puN scripts/mod/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information scripts/mod/Makefile
+--- a/scripts/mod/Makefile~kbuild-consolidate-header-generation-from-asm-offset-information
++++ a/scripts/mod/Makefile
+@@ -7,28 +7,11 @@ modpost-objs	:= modpost.o file2alias.o s
  
- 	inode_lock(inode);
- 	file_accessed(file);
+ devicetable-offsets-file := devicetable-offsets.h
  
- 	ret = -ENOMEM;
--	len = vma_len + ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
++include $(srctree)/scripts/Makefile.asm-offsets
+ 
+ quiet_cmd_offsets = GEN     $@
+ define cmd_offsets
+-	(set -e; \
+-	 echo "#ifndef __DEVICETABLE_OFFSETS_H__"; \
+-	 echo "#define __DEVICETABLE_OFFSETS_H__"; \
+-	 echo "/*"; \
+-	 echo " * DO NOT MODIFY."; \
+-	 echo " *"; \
+-	 echo " * This file was generated by Kbuild"; \
+-	 echo " *"; \
+-	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y) $<; \
+-	 echo ""; \
+-	 echo "#endif" ) > $@
++	$(call gen_header_from_asm_offsets,__DEVICETABLE_OFFSETS_H__) < $< > $@
+ endef
+ 
+ $(obj)/$(devicetable-offsets-file): $(obj)/devicetable-offsets.s
+_
+
+Patches currently in -mm which might be from mka@chromium.org are
+
+jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp.patch
+
