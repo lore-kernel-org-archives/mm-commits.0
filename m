@@ -1,33 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ns-allow-ns_entries-to-have-custom-symlink-content.patch removed from -mm
- tree
-Date: Wed, 12 Apr 2017 12:46:30 -0700
-Message-ID: <58ee8416.ugjcNccHCBSS89wk%akpm@linux-foundation.org>
+Subject: + ns-allow-ns_entries-to-have-custom-symlink-content.patch added
+ to -mm tree
+Date: Wed, 12 Apr 2017 12:48:05 -0700
+Message-ID: <58ee8475.kV5KWT5hLr2KiM3I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52060 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754116AbdDLTqc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2017 15:46:32 -0400
+        with ESMTP id S1754767AbdDLTsG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2017 15:48:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ktkhai@virtuozzo.com, agruenba@redhat.com, avagin@virtuozzo.com, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mtk.manpages@googlemail.com, oleg@redhat.com, paul@paul-moore.com, serge@hallyn.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/nsfs.c: allow ns_entries to have custom symlink content
-has been removed from the -mm tree.  Its filename was
+     Subject: ns: allow ns_entries to have custom symlink content
+has been added to the -mm tree.  Its filename is
      ns-allow-ns_entries-to-have-custom-symlink-content.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ns-allow-ns_entries-to-have-custom-symlink-content.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ns-allow-ns_entries-to-have-custom-symlink-content.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: fs/nsfs.c: allow ns_entries to have custom symlink content
+Subject: ns: allow ns_entries to have custom symlink content
 
 Patch series "Expose task pid_ns_for_children to userspace".
 
@@ -47,19 +60,17 @@ directory in standard way with the name "pid_for_children":
 lrwxrwxrwx 1 root root 0 Jan 14 16:38 pid -> pid:[4026531836]
 lrwxrwxrwx 1 root root 0 Jan 14 16:38 pid_for_children -> pid:[4026532286]
 
-
 This patch (of 2):
 
-Make it possible to have link content prefix yyy different from the link
-name xxx:
+Make possible to have link content prefix yyy
+different from the link name xxx:
 
 $ readlink /proc/[pid]/ns/xxx
 yyy:[4026531838]
 
-This will be used in the patch "pidns: expose task pid_ns_for_children to
-userspace".
+This will be used in next patch.
 
-Link: http://lkml.kernel.org/r/149086966919.4388.10564546347286785860.stgit@localhost.localdomain
+Link: http://lkml.kernel.org/r/149201120318.6007.7362655181033883000.stgit@localhost.localdomain
 Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
 Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Acked-by: Andrei Vagin <avagin@virtuozzo.com>
@@ -111,4 +122,6 @@ _
 
 Patches currently in -mm which might be from ktkhai@virtuozzo.com are
 
+ns-allow-ns_entries-to-have-custom-symlink-content.patch
+pidns-expose-task-pid_ns_for_children-to-userspace.patch
 
