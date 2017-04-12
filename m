@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ns-allow-ns_entries-to-have-custom-symlink-content.patch added
+Subject: + pidns-expose-task-pid_ns_for_children-to-userspace.patch added
  to -mm tree
-Date: Wed, 12 Apr 2017 12:48:05 -0700
-Message-ID: <58ee8475.kV5KWT5hLr2KiM3I%akpm@linux-foundation.org>
+Date: Wed, 12 Apr 2017 12:48:08 -0700
+Message-ID: <58ee8478.a83jNym6esfdBaue%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52084 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754767AbdDLTsG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2017 15:48:06 -0400
+        with ESMTP id S1755145AbdDLTsK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2017 15:48:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ktkhai@virtuozzo.com, agruenba@redhat.com, avagin@virtuozzo.com, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mtk.manpages@googlemail.com, oleg@redhat.com, paul@paul-moore.com, serge@hallyn.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ktkhai@virtuozzo.com, agruenba@redhat.com, avagin@virtuozzo.com, ebiederm@xmission.com, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, mtk.manpages@googlemail.com, oleg@redhat.com, paul@paul-moore.com, serge@hallyn.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ns: allow ns_entries to have custom symlink content
+     Subject: pidns: expose task pid_ns_for_children to userspace
 has been added to the -mm tree.  Its filename is
-     ns-allow-ns_entries-to-have-custom-symlink-content.patch
+     pidns-expose-task-pid_ns_for_children-to-userspace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ns-allow-ns_entries-to-have-custom-symlink-content.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pidns-expose-task-pid_ns_for_children-to-userspace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ns-allow-ns_entries-to-have-custom-symlink-content.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pidns-expose-task-pid_ns_for_children-to-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +40,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: ns: allow ns_entries to have custom symlink content
-
-Patch series "Expose task pid_ns_for_children to userspace".
+Subject: pidns: expose task pid_ns_for_children to userspace
 
 pid_ns_for_children set by a task is known only to the task itself, and
 it's impossible to identify it from outside.
 
 It's a big problem for checkpoint/restore software like CRIU, because it
 can't correctly handle tasks, that do setns(CLONE_NEWPID) in proccess of
-their work.  If they have a custom pid_ns_for_children before dump, they
-must have the same ns after restore.  Otherwise, restored task bumped into
-enviroment it does not expect.
+their work.
 
-This patchset solves the problem.  It exposes pid_ns_for_children to ns
+This patch solves the problem, and it exposes pid_ns_for_children to ns
 directory in standard way with the name "pid_for_children":
 
 ~# ls /proc/5531/ns -l | grep pid
 lrwxrwxrwx 1 root root 0 Jan 14 16:38 pid -> pid:[4026531836]
 lrwxrwxrwx 1 root root 0 Jan 14 16:38 pid_for_children -> pid:[4026532286]
 
-This patch (of 2):
-
-Make possible to have link content prefix yyy
-different from the link name xxx:
-
-$ readlink /proc/[pid]/ns/xxx
-yyy:[4026531838]
-
-This will be used in next patch.
-
-Link: http://lkml.kernel.org/r/149201120318.6007.7362655181033883000.stgit@localhost.localdomain
+Link: http://lkml.kernel.org/r/149201123914.6007.2187327078064239572.stgit@localhost.localdomain
 Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Andrei Vagin <avagin@virtuozzo.com>
+Cc: Andrei Vagin <avagin@virtuozzo.com>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
@@ -87,37 +72,84 @@ Cc: Serge Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nsfs.c               |    4 +++-
+ fs/proc/namespaces.c    |    1 +
  include/linux/proc_ns.h |    1 +
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ kernel/pid_namespace.c  |   34 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 36 insertions(+)
 
-diff -puN fs/nsfs.c~ns-allow-ns_entries-to-have-custom-symlink-content fs/nsfs.c
---- a/fs/nsfs.c~ns-allow-ns_entries-to-have-custom-symlink-content
-+++ a/fs/nsfs.c
-@@ -195,9 +195,11 @@ int ns_get_name(char *buf, size_t size,
- {
- 	struct ns_common *ns;
- 	int res = -ENOENT;
-+	const char *name;
- 	ns = ns_ops->get(task);
- 	if (ns) {
--		res = snprintf(buf, size, "%s:[%u]", ns_ops->name, ns->inum);
-+		name = ns_ops->real_ns_name ? : ns_ops->name;
-+		res = snprintf(buf, size, "%s:[%u]", name, ns->inum);
- 		ns_ops->put(ns);
- 	}
- 	return res;
-diff -puN include/linux/proc_ns.h~ns-allow-ns_entries-to-have-custom-symlink-content include/linux/proc_ns.h
---- a/include/linux/proc_ns.h~ns-allow-ns_entries-to-have-custom-symlink-content
+diff -puN fs/proc/namespaces.c~pidns-expose-task-pid_ns_for_children-to-userspace fs/proc/namespaces.c
+--- a/fs/proc/namespaces.c~pidns-expose-task-pid_ns_for_children-to-userspace
++++ a/fs/proc/namespaces.c
+@@ -23,6 +23,7 @@ static const struct proc_ns_operations *
+ #endif
+ #ifdef CONFIG_PID_NS
+ 	&pidns_operations,
++	&pidns_for_children_operations,
+ #endif
+ #ifdef CONFIG_USER_NS
+ 	&userns_operations,
+diff -puN include/linux/proc_ns.h~pidns-expose-task-pid_ns_for_children-to-userspace include/linux/proc_ns.h
+--- a/include/linux/proc_ns.h~pidns-expose-task-pid_ns_for_children-to-userspace
 +++ a/include/linux/proc_ns.h
-@@ -14,6 +14,7 @@ struct inode;
+@@ -27,6 +27,7 @@ extern const struct proc_ns_operations n
+ extern const struct proc_ns_operations utsns_operations;
+ extern const struct proc_ns_operations ipcns_operations;
+ extern const struct proc_ns_operations pidns_operations;
++extern const struct proc_ns_operations pidns_for_children_operations;
+ extern const struct proc_ns_operations userns_operations;
+ extern const struct proc_ns_operations mntns_operations;
+ extern const struct proc_ns_operations cgroupns_operations;
+diff -puN kernel/pid_namespace.c~pidns-expose-task-pid_ns_for_children-to-userspace kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-expose-task-pid_ns_for_children-to-userspace
++++ a/kernel/pid_namespace.c
+@@ -374,6 +374,29 @@ static struct ns_common *pidns_get(struc
+ 	return ns ? &ns->ns : NULL;
+ }
  
- struct proc_ns_operations {
- 	const char *name;
-+	const char *real_ns_name;
- 	int type;
- 	struct ns_common *(*get)(struct task_struct *task);
- 	void (*put)(struct ns_common *ns);
++static struct ns_common *pidns_for_children_get(struct task_struct *task)
++{
++	struct pid_namespace *ns = NULL;
++
++	task_lock(task);
++	if (task->nsproxy) {
++		ns = task->nsproxy->pid_ns_for_children;
++		get_pid_ns(ns);
++	}
++	task_unlock(task);
++
++	if (ns) {
++		read_lock(&tasklist_lock);
++		if (!ns->child_reaper) {
++			put_pid_ns(ns);
++			ns = NULL;
++		}
++		read_unlock(&tasklist_lock);
++	}
++
++	return ns ? &ns->ns : NULL;
++}
++
+ static void pidns_put(struct ns_common *ns)
+ {
+ 	put_pid_ns(to_pid_ns(ns));
+@@ -440,6 +463,17 @@ const struct proc_ns_operations pidns_op
+ 	.put		= pidns_put,
+ 	.install	= pidns_install,
+ 	.owner		= pidns_owner,
++	.get_parent	= pidns_get_parent,
++};
++
++const struct proc_ns_operations pidns_for_children_operations = {
++	.name		= "pid_for_children",
++	.real_ns_name	= "pid",
++	.type		= CLONE_NEWPID,
++	.get		= pidns_for_children_get,
++	.put		= pidns_put,
++	.install	= pidns_install,
++	.owner		= pidns_owner,
+ 	.get_parent	= pidns_get_parent,
+ };
+ 
 _
 
 Patches currently in -mm which might be from ktkhai@virtuozzo.com are
