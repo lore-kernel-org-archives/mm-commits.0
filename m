@@ -1,53 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/11] mm: drop unused pmdp_huge_get_and_clear_notify()
-Date: Thu, 13 Apr 2017 14:56:23 -0700
-Message-ID: <58eff407.r3M4biZJBFFEloN/%akpm@linux-foundation.org>
+Subject: [patch 05/11] thp: fix MADV_DONTNEED vs. MADV_FREE race
+Date: Thu, 13 Apr 2017 14:56:26 -0700
+Message-ID: <58eff40a.yb4Rxcllz8di/6UA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53632 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752196AbdDMV4Y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 17:56:24 -0400
+        with ESMTP id S1752336AbdDMV41 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 17:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, dave.hansen@intel.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, minchan@kernel.org, stable@vger.kernel.org
 
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop unused pmdp_huge_get_and_clear_notify()
+Subject: thp: fix MADV_DONTNEED vs. MADV_FREE race
 
-Dave noticed that after fixing MADV_DONTNEED vs.  numa balancing race the
-last pmdp_huge_get_and_clear_notify() user is gone.
+Both MADV_DONTNEED and MADV_FREE handled with down_read(mmap_sem).  It's
+critical to not clear pmd intermittently while handling MADV_FREE to avoid
+race with MADV_DONTNEED:
 
-Let's drop the helper.
+	CPU0:				CPU1:
+				madvise_free_huge_pmd()
+				 pmdp_huge_get_and_clear_full()
+madvise_dontneed()
+ zap_pmd_range()
+  pmd_trans_huge(*pmd) == 0 (without ptl)
+  // skip the pmd
+				 set_pmd_at();
+				 // pmd is re-established
 
-Link: http://lkml.kernel.org/r/20170306112047.24809-1-kirill.shutemov@linux.intel.com
+It results in MADV_DONTNEED skipping the pmd, leaving it not cleared.  It
+violates MADV_DONTNEED interface and can result is userspace misbehaviour.
+
+Basically it's the same race as with numa balancing in change_huge_pmd(),
+but a bit simpler to mitigate: we don't need to preserve dirty/young flags
+here due to MADV_FREE functionality.
+
+[kirill.shutemov@linux.intel.com: Urgh... Power is special again]
+  Link: http://lkml.kernel.org/r/20170303102636.bhd2zhtpds4mt62a@black.fi.intel.com
+Link: http://lkml.kernel.org/r/20170302151034.27829-4-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   13 -------------
- 1 file changed, 13 deletions(-)
+ mm/huge_memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/mmu_notifier.h~mm-drop-unused-pmdp_huge_get_and_clear_notify include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mm-drop-unused-pmdp_huge_get_and_clear_notify
-+++ a/include/linux/mmu_notifier.h
-@@ -394,18 +394,6 @@ static inline void mmu_notifier_mm_destr
- 	___pud;								\
- })
+diff -puN mm/huge_memory.c~thp-fix-madv_dontneed-vs-madv_free-race mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-madv_dontneed-vs-madv_free-race
++++ a/mm/huge_memory.c
+@@ -1568,8 +1568,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
+ 		deactivate_page(page);
  
--#define pmdp_huge_get_and_clear_notify(__mm, __haddr, __pmd)		\
--({									\
--	unsigned long ___haddr = __haddr & HPAGE_PMD_MASK;		\
--	pmd_t ___pmd;							\
--									\
--	___pmd = pmdp_huge_get_and_clear(__mm, __haddr, __pmd);		\
--	mmu_notifier_invalidate_range(__mm, ___haddr,			\
--				      ___haddr + HPAGE_PMD_SIZE);	\
--									\
--	___pmd;								\
--})
+ 	if (pmd_young(orig_pmd) || pmd_dirty(orig_pmd)) {
+-		orig_pmd = pmdp_huge_get_and_clear_full(tlb->mm, addr, pmd,
+-			tlb->fullmm);
++		pmdp_invalidate(vma, addr, pmd);
+ 		orig_pmd = pmd_mkold(orig_pmd);
+ 		orig_pmd = pmd_mkclean(orig_pmd);
+ 
+_
