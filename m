@@ -1,64 +1,37 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged] thp-fix-madv_dontneed-vs-madv_free-race-fix.patch removed from -mm tree
-Date: Thu, 13 Apr 2017 14:52:24 -0700
-Message-ID: <58eff318.f+Sul/d/uKLuqGYs%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 13 Apr 2017 14:56:07 -0700
+Message-ID: <20170413145607.696cf05b7e63bf44d5229035@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751528AbdDMVw0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 17:52:26 -0400
+        with ESMTP id S1751139AbdDMV4I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 17:56:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, minchan@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
 
+11 fixes, based on 2760078203a6b46b96307f4b06030ab0b801c97e:
 
-The patch titled
-     Subject: thp-fix-madv_dontneed-vs-madv_free-race-fix
-has been removed from the -mm tree.  Its filename was
-     thp-fix-madv_dontneed-vs-madv_free-race-fix.patch
+Subject: z3fold: fix page locking in z3fold_alloc()
+Subject: thp: reduce indentation level in change_huge_pmd()
+Subject: thp: fix MADV_DONTNEED vs. numa balancing race
+Subject: mm: drop unused pmdp_huge_get_and_clear_notify()
+Subject: thp: fix MADV_DONTNEED vs. MADV_FREE race
+Subject: thp: fix MADV_DONTNEED vs clear soft dirty race
+Subject: hugetlbfs: fix offset overflow in hugetlbfs mmap
+Subject: zram: fix operator precedence to get offset
+Subject: zram: do not use copy_page with non-page aligned address
+Subject: zsmalloc: expand class bit
+Subject: mailmap: add Martin Kepplinger's email
 
-This patch was dropped because it was folded into thp-fix-madv_dontneed-vs-madv_free-race.patch
-
-------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-fix-madv_dontneed-vs-madv_free-race-fix
-
-Urgh... Power is special again.
-
-Link: http://lkml.kernel.org/r/20170303102636.bhd2zhtpds4mt62a@black.fi.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/huge_memory.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff -puN mm/huge_memory.c~thp-fix-madv_dontneed-vs-madv_free-race-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-madv_dontneed-vs-madv_free-race-fix
-+++ a/mm/huge_memory.c
-@@ -1568,6 +1568,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		deactivate_page(page);
- 
- 	if (pmd_young(orig_pmd) || pmd_dirty(orig_pmd)) {
-+		pmdp_invalidate(vma, addr, pmd);
- 		orig_pmd = pmd_mkold(orig_pmd);
- 		orig_pmd = pmd_mkclean(orig_pmd);
- 
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-thp-reduce-indentation-level-in-change_huge_pmd.patch
-thp-fix-madv_dontneed-vs-numa-balancing-race.patch
-mm-drop-unused-pmdp_huge_get_and_clear_notify.patch
-thp-fix-madv_dontneed-vs-madv_free-race.patch
-thp-fix-madv_dontneed-vs-clear-soft-dirty-race.patch
+The presence of "thp: reduce indentation level in change_huge_pmd()" is
+unfortunate.  But the patchset had been decently reviewed and tested
+before we decided it was needed in -stable and I felt it best not to
+churn things at the last minute.
 
