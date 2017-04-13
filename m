@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-use-zram_free_page-instead-of-open-coded.patch added to
- -mm tree
-Date: Thu, 13 Apr 2017 13:33:51 -0700
-Message-ID: <58efe0af.D+hV5LmDlPNQvhzp%akpm@linux-foundation.org>
+Subject: + imx7-fix-kconfig-warning-and-build-errors.patch added to -mm
+ tree
+Date: Thu, 13 Apr 2017 13:45:33 -0700
+Message-ID: <58efe36d.odrddoPBs6NeYqoq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41162 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752743AbdDMUdw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 16:33:52 -0400
+        with ESMTP id S1752148AbdDMUpe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 16:45:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hare@suse.com, jthumshirn@suse.de, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, fabio.estevam@nxp.com, kernel@pengutronix.de, shawnguo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use zram_free_page instead of open-coded
+     Subject: imx7: fix Kconfig warning and build errors
 has been added to the -mm tree.  Its filename is
-     zram-use-zram_free_page-instead-of-open-coded.patch
+     imx7-fix-kconfig-warning-and-build-errors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-zram_free_page-instead-of-open-coded.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/imx7-fix-kconfig-warning-and-build-errors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-zram_free_page-instead-of-open-coded.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/imx7-fix-kconfig-warning-and-build-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: use zram_free_page instead of open-coded
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: imx7: fix Kconfig warning and build errors
 
-The zram_free_page already handles NULL handle case and same page so use
-it to reduce error probability.  (Acutaully, I made a mistake when I
-handled same page feature)
+Fix Kconfig warning in drivers/soc/imx/Kconfig and subsequent build errors
+elsewhere when CONFIG_PM is not enabled.
 
-Link: http://lkml.kernel.org/r/1492052365-16169-7-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Hannes Reinecke <hare@suse.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+warning: (IMX7_PM_DOMAINS) selects PM_GENERIC_DOMAINS which has unmet direct dependencies (PM)
+
+This warning causes multiple build errors in drivers/base/power/domain.c:
+
+../drivers/base/power/domain.c: In function 'genpd_queue_power_off_work':
+../drivers/base/power/domain.c:279:13: error: 'pm_wq' undeclared (first use in this function)
+  queue_work(pm_wq, &genpd->power_off_work);
+../drivers/base/power/domain.c: In function 'genpd_dev_pm_qos_notifier':
+../drivers/base/power/domain.c:462:25: error: 'struct dev_pm_info' has no member named 'ignore_children'
+   if (!dev || dev->power.ignore_children)
+../drivers/base/power/domain.c: In function 'rtpm_status_str':
+../drivers/base/power/domain.c:2207:16: error: 'struct dev_pm_info' has no member named 'runtime_error'
+  if (dev->power.runtime_error)
+../drivers/base/power/domain.c:2209:21: error: 'struct dev_pm_info' has no member named 'disable_depth'
+  else if (dev->power.disable_depth)
+../drivers/base/power/domain.c:2211:21: error: 'struct dev_pm_info' has no member named 'runtime_status'
+  else if (dev->power.runtime_status < ARRAY_SIZE(status_lookup))
+   p = status_lookup[dev->power.runtime_status];
+
+Link: http://lkml.kernel.org/r/47fc2167-bf0a-866a-e075-8247a10aa6e0@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Fabio Estevam <fabio.estevam@nxp.com>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Cc: Sascha Hauer <kernel@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/soc/imx/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-zram_free_page-instead-of-open-coded drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-zram_free_page-instead-of-open-coded
-+++ a/drivers/block/zram/zram_drv.c
-@@ -480,17 +480,8 @@ static void zram_meta_free(struct zram *
- 	size_t index;
+diff -puN drivers/soc/imx/Kconfig~imx7-fix-kconfig-warning-and-build-errors drivers/soc/imx/Kconfig
+--- a/drivers/soc/imx/Kconfig~imx7-fix-kconfig-warning-and-build-errors
++++ a/drivers/soc/imx/Kconfig
+@@ -2,6 +2,7 @@ menu "i.MX SoC drivers"
  
- 	/* Free all pages that are still in this zram device */
--	for (index = 0; index < num_pages; index++) {
--		unsigned long handle = zram_get_handle(zram, index);
--		/*
--		 * No memory is allocated for same element filled pages.
--		 * Simply clear same page flag.
--		 */
--		if (!handle || zram_test_flag(zram, index, ZRAM_SAME))
--			continue;
--
--		zs_free(zram->mem_pool, handle);
--	}
-+	for (index = 0; index < num_pages; index++)
-+		zram_free_page(zram, index);
- 
- 	zs_destroy_pool(zram->mem_pool);
- 	vfree(zram->table);
-@@ -974,9 +965,6 @@ static void zram_reset_device(struct zra
- 
- 	comp = zram->comp;
- 	disksize = zram->disksize;
--
--	/* Reset stats */
--	memset(&zram->stats, 0, sizeof(zram->stats));
- 	zram->disksize = 0;
- 
- 	set_capacity(zram->disk, 0);
-@@ -985,6 +973,7 @@ static void zram_reset_device(struct zra
- 	up_write(&zram->init_lock);
- 	/* I/O operation under all of CPU are done so let's free */
- 	zram_meta_free(zram, disksize);
-+	memset(&zram->stats, 0, sizeof(zram->stats));
- 	zcomp_destroy(comp);
- }
- 
+ config IMX7_PM_DOMAINS
+ 	bool "i.MX7 PM domains"
++	depends on PM
+ 	select PM_GENERIC_DOMAINS
+ 	depends on SOC_IMX7D || (COMPILE_TEST && OF)
+ 	default y if SOC_IMX7D
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-zram-fix-operator-precedence-to-get-offset.patch
-zram-do-not-use-copy_page-with-non-page-alinged-address.patch
-zsmalloc-expand-class-bit.patch
-mm-reclaim-madv_free-pages-fix.patch
-mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
-mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch
-mm-do-not-use-double-negation-for-testing-page-flags.patch
-mm-remove-unncessary-ret-in-page_referenced.patch
-mm-remove-swap_dirty-in-ttu.patch
-mm-remove-swap_mlock-check-for-swap_success-in-ttu.patch
-mm-make-the-try_to_munlock-void-function.patch
-mm-make-the-try_to_munlock-void-function-fix.patch
-mm-remove-swap_mlock-in-ttu.patch
-mm-remove-swap_again-in-ttu.patch
-mm-make-ttus-return-boolean.patch
-mm-make-rmap_walk-void-function.patch
-mm-make-rmap_one-boolean-function.patch
-mm-remove-swap_.patch
-mm-remove-swap_-fix.patch
-zram-handle-multiple-pages-attached-bios-bvec.patch
-zram-partial-io-refactoring.patch
-zram-use-zram_slot_lock-instead-of-raw-bit_spin_lock-op.patch
-zram-remove-zram_meta-structure.patch
-zram-introduce-zram-data-accessor.patch
-zram-use-zram_free_page-instead-of-open-coded.patch
+imx7-fix-kconfig-warning-and-build-errors.patch
 
