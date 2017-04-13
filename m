@@ -1,70 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [patch 05/11] thp: fix MADV_DONTNEED vs. MADV_FREE race
-Date: Thu, 13 Apr 2017 14:56:26 -0700
-Message-ID: <58eff40a.yb4Rxcllz8di/6UA%akpm@linux-foundation.org>
+Subject: [patch 06/11] thp: fix MADV_DONTNEED vs clear soft dirty race
+Date: Thu, 13 Apr 2017 14:56:28 -0700
+Message-ID: <58eff40c.igr9Xr+W4OtV3cfZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53642 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752336AbdDMV41 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 17:56:27 -0400
+        with ESMTP id S1752336AbdDMV4a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 17:56:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, minchan@kernel.org, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, aarcange@redhat.com, hillf.zj@alibaba-inc.com, stable@vger.kernel.org
 
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix MADV_DONTNEED vs. MADV_FREE race
+Subject: thp: fix MADV_DONTNEED vs clear soft dirty race
 
-Both MADV_DONTNEED and MADV_FREE handled with down_read(mmap_sem).  It's
-critical to not clear pmd intermittently while handling MADV_FREE to avoid
-race with MADV_DONTNEED:
+Yet another instance of the same race.
 
-	CPU0:				CPU1:
-				madvise_free_huge_pmd()
-				 pmdp_huge_get_and_clear_full()
-madvise_dontneed()
- zap_pmd_range()
-  pmd_trans_huge(*pmd) == 0 (without ptl)
-  // skip the pmd
-				 set_pmd_at();
-				 // pmd is re-established
+Fix is identical to change_huge_pmd().
 
-It results in MADV_DONTNEED skipping the pmd, leaving it not cleared.  It
-violates MADV_DONTNEED interface and can result is userspace misbehaviour.
+See "thp: fix MADV_DONTNEED vs. numa balancing race" for more details.
 
-Basically it's the same race as with numa balancing in change_huge_pmd(),
-but a bit simpler to mitigate: we don't need to preserve dirty/young flags
-here due to MADV_FREE functionality.
-
-[kirill.shutemov@linux.intel.com: Urgh... Power is special again]
-  Link: http://lkml.kernel.org/r/20170303102636.bhd2zhtpds4mt62a@black.fi.intel.com
-Link: http://lkml.kernel.org/r/20170302151034.27829-4-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/20170302151034.27829-5-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/proc/task_mmu.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-fix-madv_dontneed-vs-madv_free-race mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-madv_dontneed-vs-madv_free-race
-+++ a/mm/huge_memory.c
-@@ -1568,8 +1568,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		deactivate_page(page);
+diff -puN fs/proc/task_mmu.c~thp-fix-madv_dontneed-vs-clear-soft-dirty-race fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~thp-fix-madv_dontneed-vs-clear-soft-dirty-race
++++ a/fs/proc/task_mmu.c
+@@ -900,7 +900,14 @@ static inline void clear_soft_dirty(stru
+ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmdp)
+ {
+-	pmd_t pmd = pmdp_huge_get_and_clear(vma->vm_mm, addr, pmdp);
++	pmd_t pmd = *pmdp;
++
++	/* See comment in change_huge_pmd() */
++	pmdp_invalidate(vma, addr, pmdp);
++	if (pmd_dirty(*pmdp))
++		pmd = pmd_mkdirty(pmd);
++	if (pmd_young(*pmdp))
++		pmd = pmd_mkyoung(pmd);
  
- 	if (pmd_young(orig_pmd) || pmd_dirty(orig_pmd)) {
--		orig_pmd = pmdp_huge_get_and_clear_full(tlb->mm, addr, pmd,
--			tlb->fullmm);
-+		pmdp_invalidate(vma, addr, pmd);
- 		orig_pmd = pmd_mkold(orig_pmd);
- 		orig_pmd = pmd_mkclean(orig_pmd);
- 
+ 	pmd = pmd_wrprotect(pmd);
+ 	pmd = pmd_clear_soft_dirty(pmd);
 _
