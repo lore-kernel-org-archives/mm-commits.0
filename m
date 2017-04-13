@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + c2port-checking-for-null-instead-of-is_err.patch added to -mm
- tree
-Date: Thu, 13 Apr 2017 13:51:51 -0700
-Message-ID: <58efe4e7.ms+di43+TdFsbkc4%akpm@linux-foundation.org>
+Subject: + mailmap-add-martin-kepplingers-email.patch added to -mm tree
+Date: Thu, 13 Apr 2017 13:52:29 -0700
+Message-ID: <58efe50d.EZ0FJmrDHnqkqNKd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932108AbdDMUv5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 16:51:57 -0400
+        with ESMTP id S1756210AbdDMUwa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2017 16:52:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, giometti@linux.it, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: martin.kepplinger@ginzinger.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/misc/c2port/c2port-duramar2150.c: checking for NULL instead of IS_ERR()
+     Subject: mailmap: add Martin Kepplinger's email
 has been added to the -mm tree.  Its filename is
-     c2port-checking-for-null-instead-of-is_err.patch
+     mailmap-add-martin-kepplingers-email.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/c2port-checking-for-null-instead-of-is_err.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-martin-kepplingers-email.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/c2port-checking-for-null-instead-of-is_err.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-martin-kepplingers-email.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +38,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: drivers/misc/c2port/c2port-duramar2150.c: checking for NULL instead of IS_ERR()
+From: Martin Kepplinger <martin.kepplinger@ginzinger.com>
+Subject: mailmap: add Martin Kepplinger's email
 
-c2port_device_register() never returns NULL, it uses error pointers.
+Set the partly deprecated companies' email addresses as alias for the
+personal one.
 
-Link: http://lkml.kernel.org/r/20170412083321.GC3250@mwanda
-Fixes: 65131cd52b9e ("c2port: add c2port support for Eurotech Duramar 2150")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Rodolfo Giometti <giometti@linux.it>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: http://lkml.kernel.org/r/1491984622-17321-1-git-send-email-martin.kepplinger@ginzinger.com
+Signed-off-by: Martin Kepplinger <martin.kepplinger@ginzinger.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/c2port/c2port-duramar2150.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/misc/c2port/c2port-duramar2150.c~c2port-checking-for-null-instead-of-is_err drivers/misc/c2port/c2port-duramar2150.c
---- a/drivers/misc/c2port/c2port-duramar2150.c~c2port-checking-for-null-instead-of-is_err
-+++ a/drivers/misc/c2port/c2port-duramar2150.c
-@@ -129,8 +129,8 @@ static int __init duramar2150_c2port_ini
- 
- 	duramar2150_c2port_dev = c2port_device_register("uc",
- 					&duramar2150_c2port_ops, NULL);
--	if (!duramar2150_c2port_dev) {
--		ret = -ENODEV;
-+	if (IS_ERR(duramar2150_c2port_dev)) {
-+		ret = PTR_ERR(duramar2150_c2port_dev);
- 		goto free_region;
- 	}
- 
+diff -puN .mailmap~mailmap-add-martin-kepplingers-email .mailmap
+--- a/.mailmap~mailmap-add-martin-kepplingers-email
++++ a/.mailmap
+@@ -99,6 +99,8 @@ Linas Vepstas <linas@austin.ibm.com>
+ Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@web.de>
+ Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
+ Mark Brown <broonie@sirena.org.uk>
++Martin Kepplinger <martink@posteo.de> <martin.kepplinger@theobroma-systems.com>
++Martin Kepplinger <martink@posteo.de> <martin.kepplinger@ginzinger.com>
+ Matthieu CASTET <castet.matthieu@free.fr>
+ Mauro Carvalho Chehab <mchehab@kernel.org> <mchehab@brturbo.com.br>
+ Mauro Carvalho Chehab <mchehab@kernel.org> <maurochehab@gmail.com>
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from martin.kepplinger@ginzinger.com are
 
-vmci-fix-a-couple-integer-overflow-tests.patch
-c2port-checking-for-null-instead-of-is_err.patch
+mailmap-add-martin-kepplingers-email.patch
 
