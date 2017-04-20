@@ -1,65 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-irq-use-cpumask_available-for-check-of-cpumask-variable.patch
- removed from -mm tree
-Date: Wed, 19 Apr 2017 13:41:39 -0700
-Message-ID: <20170419204139.dMncA3bi_%akpm@linux-foundation.org>
+Subject: + gfs2-replace-current_time-with-current_time.patch added to -mm
+ tree
+Date: Thu, 20 Apr 2017 12:55:42 -0700
+Message-ID: <58f9123e.F58XeJ0JbEbEmRxS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33692 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1765605AbdDSUlk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Apr 2017 16:41:40 -0400
+        with ESMTP id S945077AbdDTTzn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Apr 2017 15:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghackmann@google.com, grundler@chromium.org, md@google.com, mka@chromium.org, mm-commits@vger.kernel.org, rusty@rustcorp.com.au, tglx@linutronix.de
+To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/irq/manage.c: use cpumask_available() for check of cpumask variable
-has been removed from the -mm tree.  Its filename was
-     kernel-irq-use-cpumask_available-for-check-of-cpumask-variable.patch
+     Subject: gfs2: replace CURRENT_TIME with current_time
+has been added to the -mm tree.  Its filename is
+     gfs2-replace-current_time-with-current_time.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/gfs2-replace-current_time-with-current_time.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/gfs2-replace-current_time-with-current_time.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: kernel/irq/manage.c: use cpumask_available() for check of cpumask variable
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: gfs2: replace CURRENT_TIME with current_time
 
-This fixes the following clang warning when CONFIG_CPUMASK_OFFSTACK=y:
-
-kernel/irq/manage.c:839:28: error: address of array
-'desc->irq_common_data.affinity' will always evaluate to 'true'
-[-Werror,-Wpointer-bool-conversion]
-
-Link: http://lkml.kernel.org/r/20170412182030.83657-2-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Grant Grundler <grundler@chromium.org>
-Cc: Greg Hackmann <ghackmann@google.com>
-Cc: Michael Davidson <md@google.com>
+Link: http://lkml.kernel.org/r/20170420161852.0492bc3f@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/gfs2/bmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/irq/manage.c~kernel-irq-use-cpumask_available-for-check-of-cpumask-variable kernel/irq/manage.c
---- a/kernel/irq/manage.c~kernel-irq-use-cpumask_available-for-check-of-cpumask-variable
-+++ a/kernel/irq/manage.c
-@@ -852,7 +852,7 @@ irq_thread_check_affinity(struct irq_des
- 	 * This code is triggered unconditionally. Check the affinity
- 	 * mask pointer. For CPU_MASK_OFFSTACK=n this is optimized out.
- 	 */
--	if (desc->irq_common_data.affinity)
-+	if (cpumask_available(desc->irq_common_data.affinity))
- 		cpumask_copy(mask, desc->irq_common_data.affinity);
- 	else
- 		valid = false;
+diff -puN fs/gfs2/bmap.c~gfs2-replace-current_time-with-current_time fs/gfs2/bmap.c
+--- a/fs/gfs2/bmap.c~gfs2-replace-current_time-with-current_time
++++ a/fs/gfs2/bmap.c
+@@ -1072,7 +1072,7 @@ out_unlock:
+ 			/* Every transaction boundary, we rewrite the dinode
+ 			   to keep its di_blocks current in case of failure. */
+ 			ip->i_inode.i_mtime = ip->i_inode.i_ctime =
+-				CURRENT_TIME;
++				current_time(&ip->i_inode);
+ 			gfs2_trans_add_meta(ip->i_gl, dibh);
+ 			gfs2_dinode_out(ip, dibh->b_data);
+ 			up_write(&ip->i_rw_mutex);
+@@ -1293,7 +1293,7 @@ static int trunc_dealloc(struct gfs2_ino
+ 		gfs2_statfs_change(sdp, 0, +btotal, 0);
+ 		gfs2_quota_change(ip, -(s64)btotal, ip->i_inode.i_uid,
+ 				  ip->i_inode.i_gid);
+-		ip->i_inode.i_mtime = ip->i_inode.i_ctime = CURRENT_TIME;
++		ip->i_inode.i_mtime = ip->i_inode.i_ctime = current_time(&ip->i_inode);
+ 		gfs2_trans_add_meta(ip->i_gl, dibh);
+ 		gfs2_dinode_out(ip, dibh->b_data);
+ 		up_write(&ip->i_rw_mutex);
 _
 
-Patches currently in -mm which might be from mka@chromium.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp.patch
+mm-introduce-kvalloc-helpers-fix.patch
+treewide-decouple-cacheflushh-and-set_memoryh-fix.patch
+gfs2-replace-current_time-with-current_time.patch
 
