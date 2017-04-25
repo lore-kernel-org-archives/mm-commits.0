@@ -1,90 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Mon, 24 Apr 2017 15:40:54 -0700
-Message-ID: <20170424224054.3HzU10xJ0%akpm@linux-foundation.org>
+Subject: [merged]
+ revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+ removed from -mm tree
+Date: Tue, 25 Apr 2017 12:54:46 -0700
+Message-ID: <20170425195446.cMVzYpaPt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53676 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46302 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966825AbdDXWk4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Apr 2017 18:40:56 -0400
+        with ESMTP id S1433165AbdDYTys (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 15:54:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: brouer@redhat.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, ttoukan.linux@gmail.com
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: Revert "mm, page_alloc: only use per-cpu allocator for irq-safe requests"
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: Revert "mm, page_alloc: only use per-cpu allocator for irq-safe requests"
 
+This reverts 374ad05ab64.  While the patch worked great for userspace
+allocations, the fact that softirq loses the per-cpu allocator caused
+problems.  It needs to be redone taking into account that a separate list
+is needed for hard/soft IRQs or alternatively find a cheap way of
+detecting reentry due to an interrupt.  Both are possible but sufficiently
+tricky that it shouldn't be rushed.  Jesper had one method for allowing
+softirqs but reported that the cost was high enough that it performed
+similarly to a plain revert.  His figures for netperf TCP_STREAM were as
+follows
+
+Baseline v4.10.0  : 60316 Mbit/s
+Current 4.11.0-rc6: 47491 Mbit/s
+Jesper's patch    : 60662 Mbit/s
+This patch        : 60106 Mbit/s
+
+As this is a regression, I wish to revert to noirq allocator for now and
+go back to the drawing board.
+
+Link: http://lkml.kernel.org/r/20170415145350.ixy7vtrzdzve57mh@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Tariq Toukan <ttoukan.linux@gmail.com>
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/page_alloc.c |   43 ++++++++++++++++++++-----------------------
+ 1 file changed, 20 insertions(+), 23 deletions(-)
 
-diff -puN fs/buffer.c~linux-next-rejects fs/buffer.c
-diff -puN fs/dax.c~linux-next-rejects fs/dax.c
---- a/fs/dax.c~linux-next-rejects
-+++ a/fs/dax.c
-@@ -824,8 +824,8 @@ static int dax_writeback_one(struct bloc
- 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_DIRTY);
- 	spin_unlock_irq(&mapping->tree_lock);
- 	trace_dax_writeback_one(mapping->host, index, dax.size >> PAGE_SHIFT);
-- unmap:
--	dax_unmap_atomic(bdev, &dax);
-+ dax_unlock:
-+	dax_read_unlock(id);
- 	put_locked_mapping_entry(mapping, index, entry);
- 	return ret;
+diff -puN mm/page_alloc.c~revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests mm/page_alloc.c
+--- a/mm/page_alloc.c~revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests
++++ a/mm/page_alloc.c
+@@ -1090,10 +1090,10 @@ static void free_pcppages_bulk(struct zo
+ {
+ 	int migratetype = 0;
+ 	int batch_free = 0;
+-	unsigned long nr_scanned, flags;
++	unsigned long nr_scanned;
+ 	bool isolated_pageblocks;
  
-@@ -883,9 +883,10 @@ int dax_writeback_mapping_range(struct a
- 				break;
- 			}
- 
--			ret = dax_writeback_one(bdev, mapping, indices[i],
--					pvec.pages[i]);
--			if (ret < 0)
-+			ret = dax_writeback_one(bdev, dax_dev, mapping,
-+					indices[i], pvec.pages[i]);
-+			if (ret < 0) {
-+				put_dax(dax_dev);
- 				goto out;
- 		}
+-	spin_lock_irqsave(&zone->lock, flags);
++	spin_lock(&zone->lock);
+ 	isolated_pageblocks = has_isolate_pageblock(zone);
+ 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
+ 	if (nr_scanned)
+@@ -1142,7 +1142,7 @@ static void free_pcppages_bulk(struct zo
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
+ 		} while (--count && --batch_free && !list_empty(list));
  	}
-diff -puN fs/internal.h~linux-next-rejects fs/internal.h
-diff -puN fs/iomap.c~linux-next-rejects fs/iomap.c
-diff -puN tools/testing/selftests/vm/run_vmtests~linux-next-rejects tools/testing/selftests/vm/run_vmtests
+-	spin_unlock_irqrestore(&zone->lock, flags);
++	spin_unlock(&zone->lock);
+ }
+ 
+ static void free_one_page(struct zone *zone,
+@@ -1150,9 +1150,8 @@ static void free_one_page(struct zone *z
+ 				unsigned int order,
+ 				int migratetype)
+ {
+-	unsigned long nr_scanned, flags;
+-	spin_lock_irqsave(&zone->lock, flags);
+-	__count_vm_events(PGFREE, 1 << order);
++	unsigned long nr_scanned;
++	spin_lock(&zone->lock);
+ 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
+ 	if (nr_scanned)
+ 		__mod_node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED, -nr_scanned);
+@@ -1162,7 +1161,7 @@ static void free_one_page(struct zone *z
+ 		migratetype = get_pfnblock_migratetype(page, pfn);
+ 	}
+ 	__free_one_page(page, pfn, zone, order, migratetype);
+-	spin_unlock_irqrestore(&zone->lock, flags);
++	spin_unlock(&zone->lock);
+ }
+ 
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+@@ -1240,6 +1239,7 @@ void __meminit reserve_bootmem_region(ph
+ 
+ static void __free_pages_ok(struct page *page, unsigned int order)
+ {
++	unsigned long flags;
+ 	int migratetype;
+ 	unsigned long pfn = page_to_pfn(page);
+ 
+@@ -1247,7 +1247,10 @@ static void __free_pages_ok(struct page
+ 		return;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
++	local_irq_save(flags);
++	__count_vm_events(PGFREE, 1 << order);
+ 	free_one_page(page_zone(page), page, pfn, order, migratetype);
++	local_irq_restore(flags);
+ }
+ 
+ static void __init __free_pages_boot_core(struct page *page, unsigned int order)
+@@ -2219,9 +2222,8 @@ static int rmqueue_bulk(struct zone *zon
+ 			int migratetype, bool cold)
+ {
+ 	int i, alloced = 0;
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&zone->lock, flags);
++	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+ 		struct page *page = __rmqueue(zone, order, migratetype);
+ 		if (unlikely(page == NULL))
+@@ -2257,7 +2259,7 @@ static int rmqueue_bulk(struct zone *zon
+ 	 * pages added to the pcp list.
+ 	 */
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+-	spin_unlock_irqrestore(&zone->lock, flags);
++	spin_unlock(&zone->lock);
+ 	return alloced;
+ }
+ 
+@@ -2485,20 +2487,17 @@ void free_hot_cold_page(struct page *pag
+ {
+ 	struct zone *zone = page_zone(page);
+ 	struct per_cpu_pages *pcp;
++	unsigned long flags;
+ 	unsigned long pfn = page_to_pfn(page);
+ 	int migratetype;
+ 
+-	if (in_interrupt()) {
+-		__free_pages_ok(page, 0);
+-		return;
+-	}
+-
+ 	if (!free_pcp_prepare(page))
+ 		return;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+ 	set_pcppage_migratetype(page, migratetype);
+-	preempt_disable();
++	local_irq_save(flags);
++	__count_vm_event(PGFREE);
+ 
+ 	/*
+ 	 * We only track unmovable, reclaimable and movable on pcp lists.
+@@ -2515,7 +2514,6 @@ void free_hot_cold_page(struct page *pag
+ 		migratetype = MIGRATE_MOVABLE;
+ 	}
+ 
+-	__count_vm_event(PGFREE);
+ 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+ 	if (!cold)
+ 		list_add(&page->lru, &pcp->lists[migratetype]);
+@@ -2529,7 +2527,7 @@ void free_hot_cold_page(struct page *pag
+ 	}
+ 
+ out:
+-	preempt_enable();
++	local_irq_restore(flags);
+ }
+ 
+ /*
+@@ -2654,8 +2652,6 @@ static struct page *__rmqueue_pcplist(st
+ {
+ 	struct page *page;
+ 
+-	VM_BUG_ON(in_interrupt());
+-
+ 	do {
+ 		if (list_empty(list)) {
+ 			pcp->count += rmqueue_bulk(zone, 0,
+@@ -2686,8 +2682,9 @@ static struct page *rmqueue_pcplist(stru
+ 	struct list_head *list;
+ 	bool cold = ((gfp_flags & __GFP_COLD) != 0);
+ 	struct page *page;
++	unsigned long flags;
+ 
+-	preempt_disable();
++	local_irq_save(flags);
+ 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+ 	list = &pcp->lists[migratetype];
+ 	page = __rmqueue_pcplist(zone,  migratetype, cold, pcp, list);
+@@ -2695,7 +2692,7 @@ static struct page *rmqueue_pcplist(stru
+ 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+ 		zone_statistics(preferred_zone, zone);
+ 	}
+-	preempt_enable();
++	local_irq_restore(flags);
+ 	return page;
+ }
+ 
+@@ -2711,7 +2708,7 @@ struct page *rmqueue(struct zone *prefer
+ 	unsigned long flags;
+ 	struct page *page;
+ 
+-	if (likely(order == 0) && !in_interrupt()) {
++	if (likely(order == 0)) {
+ 		page = rmqueue_pcplist(preferred_zone, zone, order,
+ 				gfp_flags, migratetype);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
-swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-docs-vm-transhuge-fix-few-trivial-typos-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch
+mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
 
