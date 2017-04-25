@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dma-debug-use-offset_in_page-macro.patch added to -mm tree
-Date: Tue, 25 Apr 2017 14:30:59 -0700
-Message-ID: <58ffc013.s1OJDoyLTT8j6ZdW%akpm@linux-foundation.org>
+Subject: + mm-gup-fix-access_ok-argument-type.patch added to -mm tree
+Date: Tue, 25 Apr 2017 14:32:12 -0700
+Message-ID: <58ffc05c.Dpnj/ObkDRgBKhnH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54610 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2993738AbdDYVbA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 17:31:00 -0400
+        with ESMTP id S2993737AbdDYVcO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 17:32:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@gmail.com, dan.j.williams@intel.com, vinod.koul@intel.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, kirill.shutemov@linux.intel.com, lstoakes@gmail.com, mhocko@suse.com, mingo@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/dma-debug.c: use offset_in_page() macro
+     Subject: mm/gup.c: fix access_ok() argument type
 has been added to the -mm tree.  Its filename is
-     dma-debug-use-offset_in_page-macro.patch
+     mm-gup-fix-access_ok-argument-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-use-offset_in_page-macro.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-fix-access_ok-argument-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-use-offset_in_page-macro.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-fix-access_ok-argument-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,50 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@gmail.com>
-Subject: lib/dma-debug.c: use offset_in_page() macro
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/gup.c: fix access_ok() argument type
 
-Use offset_in_page() macro instead of open-coding.
+MIPS just got changed to only accept a pointer argument for access_ok(),
+causing one warning in drivers/scsi/pmcraid.c.  I tried changing x86 the
+same way and found the same warning in __get_user_pages_fast() and nowhere
+else in the kernel during randconfig testing:
 
-Link: http://lkml.kernel.org/r/a23e2178bef0fea63f24995b5086a0d4ed82061e.1492757182.git.geliangtang@gmail.com
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vinod Koul <vinod.koul@intel.com>
+mm/gup.c: In function '__get_user_pages_fast':
+mm/gup.c:1578:6: error: passing argument 1 of '__chk_range_not_ok' makes pointer from integer without a cast [-Werror=int-conversion]
+
+It would probably be a good idea to enforce type-safety in general, so
+let's change this file to not cause a warning if we do that.
+
+I don't know why the warning did not appear on MIPS.
+
+Fixes: 2667f50e8b81 ("mm: introduce a general RCU get_user_pages_fast()")
+Link: http://lkml.kernel.org/r/20170421162659.3314521-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/dma-debug.c~dma-debug-use-offset_in_page-macro lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-use-offset_in_page-macro
-+++ a/lib/dma-debug.c
-@@ -1498,7 +1498,7 @@ void debug_dma_alloc_coherent(struct dev
- 	entry->type      = dma_debug_coherent;
- 	entry->dev       = dev;
- 	entry->pfn	 = page_to_pfn(virt_to_page(virt));
--	entry->offset	 = (size_t) virt & ~PAGE_MASK;
-+	entry->offset	 = offset_in_page(virt);
- 	entry->size      = size;
- 	entry->dev_addr  = dma_addr;
- 	entry->direction = DMA_BIDIRECTIONAL;
-@@ -1514,7 +1514,7 @@ void debug_dma_free_coherent(struct devi
- 		.type           = dma_debug_coherent,
- 		.dev            = dev,
- 		.pfn		= page_to_pfn(virt_to_page(virt)),
--		.offset		= (size_t) virt & ~PAGE_MASK,
-+		.offset		= offset_in_page(virt),
- 		.dev_addr       = addr,
- 		.size           = size,
- 		.direction      = DMA_BIDIRECTIONAL,
+diff -puN mm/gup.c~mm-gup-fix-access_ok-argument-type mm/gup.c
+--- a/mm/gup.c~mm-gup-fix-access_ok-argument-type
++++ a/mm/gup.c
+@@ -1481,7 +1481,7 @@ int __get_user_pages_fast(unsigned long
+ 	end = start + len;
+ 
+ 	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
+-					start, len)))
++					(void __user *)start, len)))
+ 		return 0;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from geliangtang@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-fs-ocfs2-cluster-use-setup_timer.patch
-fs-ocfs2-cluster-use-offset_in_page-macro.patch
-writeback-use-setup_deferrable_timer.patch
-dmaengine-dmatest-use-offset_in_page-macro.patch
-dmaengine-mv_xor-use-offset_in_page-macro.patch
-dma-debug-use-offset_in_page-macro.patch
+mm-gup-fix-access_ok-argument-type.patch
+initramfs-use-vfs_stat-lstat-directly.patch
 
