@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch added
- to -mm tree
-Date: Tue, 25 Apr 2017 13:57:08 -0700
-Message-ID: <58ffb824.VOdfkoWWgUWomqas%akpm@linux-foundation.org>
+Subject: + fs-ocfs2-cluster-use-offset_in_page-macro.patch added to -mm
+ tree
+Date: Tue, 25 Apr 2017 14:27:33 -0700
+Message-ID: <58ffbf45.o2CxZMQlruAGm1CM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1954577AbdDYU5K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 16:57:10 -0400
+        with ESMTP id S1954878AbdDYV1e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 17:27:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: geliangtang@gmail.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/truncate: avoid pointless cleancache_invalidate_inode() calls.
+     Subject: fs/ocfs2/cluster: use offset_in_page() macro
 has been added to the -mm tree.  Its filename is
-     mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
+     fs-ocfs2-cluster-use-offset_in_page-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-cluster-use-offset_in_page-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-cluster-use-offset_in_page-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,90 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/truncate: avoid pointless cleancache_invalidate_inode() calls.
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: fs/ocfs2/cluster: use offset_in_page() macro
 
-cleancache_invalidate_inode() called truncate_inode_pages_range()
-and invalidate_inode_pages2_range() twice - on entry and on exit.
-It's stupid and waste of time. It's enough to call it once at
-exit.
+Use offset_in_page() macro instead of open-coding.
 
-Link: http://lkml.kernel.org/r/20170424164135.22350-5-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nikolay Borisov <n.borisov.lkml@gmail.com
+Link: http://lkml.kernel.org/r/4dbc77ccaaed98b183cf4dba58a4fa325fd65048.1492758503.git.geliangtang@gmail.com
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ fs/ocfs2/cluster/tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls mm/truncate.c
---- a/mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls
-+++ a/mm/truncate.c
-@@ -266,9 +266,8 @@ void truncate_inode_pages_range(struct a
- 	pgoff_t		index;
- 	int		i;
- 
--	cleancache_invalidate_inode(mapping);
- 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
--		return;
-+		goto out;
- 
- 	/* Offsets within partial pages */
- 	partial_start = lstart & (PAGE_SIZE - 1);
-@@ -363,7 +362,7 @@ void truncate_inode_pages_range(struct a
- 	 * will be released, just zeroed, so we can bail out now.
- 	 */
- 	if (start >= end)
--		return;
-+		goto out;
- 
- 	index = start;
- 	for ( ; ; ) {
-@@ -410,6 +409,8 @@ void truncate_inode_pages_range(struct a
- 		pagevec_release(&pvec);
- 		index++;
- 	}
-+
-+out:
- 	cleancache_invalidate_inode(mapping);
- }
- EXPORT_SYMBOL(truncate_inode_pages_range);
-@@ -623,9 +624,8 @@ int invalidate_inode_pages2_range(struct
- 	int ret2 = 0;
- 	int did_range_unmap = 0;
- 
--	cleancache_invalidate_inode(mapping);
- 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
--		return 0;
-+		goto out;
- 
- 	pagevec_init(&pvec, 0);
- 	index = start;
-@@ -689,6 +689,8 @@ int invalidate_inode_pages2_range(struct
- 		cond_resched();
- 		index++;
- 	}
-+
-+out:
- 	cleancache_invalidate_inode(mapping);
- 	return ret;
- }
+diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-offset_in_page-macro fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-offset_in_page-macro
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -955,7 +955,7 @@ static void o2net_sendpage(struct o2net_
+ 		mutex_lock(&sc->sc_send_lock);
+ 		ret = sc->sc_sock->ops->sendpage(sc->sc_sock,
+ 						 virt_to_page(kmalloced_virt),
+-						 (long)kmalloced_virt & ~PAGE_MASK,
++						 offset_in_page(kmalloced_virt),
+ 						 size, MSG_DONTWAIT);
+ 		mutex_unlock(&sc->sc_send_lock);
+ 		if (ret == size)
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from geliangtang@gmail.com are
 
-fs-fix-data-invalidation-in-the-cleancache-during-direct-io.patch
-fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
-mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch
-mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
+fs-ocfs2-cluster-use-setup_timer.patch
+fs-ocfs2-cluster-use-offset_in_page-macro.patch
+writeback-use-setup_deferrable_timer.patch
 
