@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-fix-data-invalidation-in-the-cleancache-during-direct-io.patch added to
- -mm tree
-Date: Tue, 25 Apr 2017 13:56:56 -0700
-Message-ID: <58ffb818.MRqeNJTAidleV+l8%akpm@linux-foundation.org>
+ fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch added to -mm tree
+Date: Tue, 25 Apr 2017 13:56:58 -0700
+Message-ID: <58ffb81a.NfaTsxcXBI8VN027%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51800 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1954551AbdDYU47 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 16:56:59 -0400
+        with ESMTP id S1954553AbdDYU5B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 16:57:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: fix data invalidation in the cleancache during direct IO
+     Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
 has been added to the -mm tree.  Its filename is
-     fs-fix-data-invalidation-in-the-cleancache-during-direct-io.patch
+     fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-fix-data-invalidation-in-the-cleancache-during-direct-io.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fix-data-invalidation-in-the-cleancache-during-direct-io.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,50 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: fs: fix data invalidation in the cleancache during direct IO
+Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
 
-Patch series "Properly invalidate data in the cleancache", v2.
-
-We've noticed that after direct IO write, buffered read sometimes gets
-stale data which is coming from the cleancache.  The reason for this is
-that some direct write hooks call call invalidate_inode_pages2[_range]()
-conditionally iff mapping->nrpages is not zero, so we may not invalidate
-data in the cleancache.
-
-Another odd thing is that we check only for ->nrpages and don't check for
-->nrexceptional, but invalidate_inode_pages2[_range] also invalidates
-exceptional entries as well.  So we invalidate exceptional entries only if
-->nrpages != 0?  This doesn't feel right.
-
- - Patch 1 fixes direct IO writes by removing ->nrpages check.
- - Patch 2 fixes similar case in invalidate_bdev(). 
-     Note: I only fixed conditional cleancache_invalidate_inode() here.
-       Do we also need to add ->nrexceptional check in into invalidate_bdev()?
-     
- - Patches 3-4: some optimizations.
-
-
-This patch (of 4):
-
-Some direct IO write fs hooks call invalidate_inode_pages2[_range]()
-conditionally iff mapping->nrpages is not zero.  This can't be right,
-because invalidate_inode_pages2[_range]() also invalidate data in the
-cleancache via cleancache_invalidate_inode() call.  So if page cache is
-empty but there is some data in the cleancache, buffered read after direct
-IO write would get stale data from the cleancache.
-
-Also it doesn't feel right to check only for ->nrpages because
-invalidate_inode_pages2[_range] invalidates exceptional entries as well.
-
-Fix this by calling invalidate_inode_pages2[_range]() regardless of nrpages
-state.
-
-Note: nfs,cifs,9p doesn't need similar fix because the never call
-cleancache_get_page() (nor directly, nor via mpage_readpage[s]()), so they
-are not affected by this bug.
+invalidate_bdev() calls cleancache_invalidate_inode() iff ->nrpages != 0
+which doen't make any sense.
+Make sure that invalidate_bdev() always calls cleancache_invalidate_inode()
+regardless of mapping->nrpages value.
 
 Fixes: c515e1fd361c ("mm/fs: add hooks to support cleancache")
-Link: http://lkml.kernel.org/r/20170424164135.22350-2-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/20170424164135.22350-3-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
@@ -100,97 +64,15 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap.c   |   20 +++++++++-----------
- mm/filemap.c |   26 +++++++++++---------------
- 2 files changed, 20 insertions(+), 26 deletions(-)
+ fs/block_dev.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/iomap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io fs/iomap.c
---- a/fs/iomap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io
-+++ a/fs/iomap.c
-@@ -887,16 +887,14 @@ iomap_dio_rw(struct kiocb *iocb, struct
- 		flags |= IOMAP_WRITE;
- 	}
+diff -puN fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev
++++ a/fs/block_dev.c
+@@ -103,12 +103,11 @@ void invalidate_bdev(struct block_device
+ {
+ 	struct address_space *mapping = bdev->bd_inode->i_mapping;
  
--	if (mapping->nrpages) {
--		ret = filemap_write_and_wait_range(mapping, start, end);
--		if (ret)
--			goto out_free_dio;
--
--		ret = invalidate_inode_pages2_range(mapping,
--				start >> PAGE_SHIFT, end >> PAGE_SHIFT);
--		WARN_ON_ONCE(ret);
--		ret = 0;
--	}
-+	ret = filemap_write_and_wait_range(mapping, start, end);
-+	if (ret)
-+		goto out_free_dio;
-+
-+	ret = invalidate_inode_pages2_range(mapping,
-+			start >> PAGE_SHIFT, end >> PAGE_SHIFT);
-+	WARN_ON_ONCE(ret);
-+	ret = 0;
- 
- 	inode_dio_begin(inode);
- 
-@@ -951,7 +949,7 @@ iomap_dio_rw(struct kiocb *iocb, struct
- 	 * one is a pretty crazy thing to do, so we don't support it 100%.  If
- 	 * this invalidation fails, tough, the write still worked...
- 	 */
--	if (iov_iter_rw(iter) == WRITE && mapping->nrpages) {
-+	if (iov_iter_rw(iter) == WRITE) {
- 		int err = invalidate_inode_pages2_range(mapping,
- 				start >> PAGE_SHIFT, end >> PAGE_SHIFT);
- 		WARN_ON_ONCE(err);
-diff -puN mm/filemap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io mm/filemap.c
---- a/mm/filemap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io
-+++ a/mm/filemap.c
-@@ -2719,18 +2719,16 @@ generic_file_direct_write(struct kiocb *
- 	 * about to write.  We do this *before* the write so that we can return
- 	 * without clobbering -EIOCBQUEUED from ->direct_IO().
- 	 */
--	if (mapping->nrpages) {
--		written = invalidate_inode_pages2_range(mapping,
-+	written = invalidate_inode_pages2_range(mapping,
- 					pos >> PAGE_SHIFT, end);
--		/*
--		 * If a page can not be invalidated, return 0 to fall back
--		 * to buffered write.
--		 */
--		if (written) {
--			if (written == -EBUSY)
--				return 0;
--			goto out;
--		}
-+	/*
-+	 * If a page can not be invalidated, return 0 to fall back
-+	 * to buffered write.
-+	 */
-+	if (written) {
-+		if (written == -EBUSY)
-+			return 0;
-+		goto out;
- 	}
- 
- 	data = *from;
-@@ -2744,10 +2742,8 @@ generic_file_direct_write(struct kiocb *
- 	 * so we don't support it 100%.  If this invalidation
- 	 * fails, tough, the write still worked...
- 	 */
--	if (mapping->nrpages) {
--		invalidate_inode_pages2_range(mapping,
--					      pos >> PAGE_SHIFT, end);
--	}
-+	invalidate_inode_pages2_range(mapping,
-+				pos >> PAGE_SHIFT, end);
- 
- 	if (written > 0) {
- 		pos += written;
-_
-
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
-
-fs-fix-data-invalidation-in-the-cleancache-during-direct-io.patch
-fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
-mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch
-mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
-
+-	if (mapping->nrpages == 0)
+-		return;
