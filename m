@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch added to -mm tree
-Date: Tue, 25 Apr 2017 13:56:58 -0700
-Message-ID: <58ffb81a.NfaTsxcXBI8VN027%akpm@linux-foundation.org>
+ mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch added to -mm tree
+Date: Tue, 25 Apr 2017 13:57:01 -0700
+Message-ID: <58ffb81d.yrflC1udRcg6T1fX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51826 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1954553AbdDYU5B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 16:57:01 -0400
+        with ESMTP id S1954553AbdDYU5I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 16:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
+     Subject: mm/truncate: bail out early from invalidate_inode_pages2_range() if mapping is empty
 has been added to the -mm tree.  Its filename is
-     fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
+     mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
+Subject: mm/truncate: bail out early from invalidate_inode_pages2_range() if mapping is empty
 
-invalidate_bdev() calls cleancache_invalidate_inode() iff ->nrpages != 0
-which doen't make any sense.
-Make sure that invalidate_bdev() always calls cleancache_invalidate_inode()
-regardless of mapping->nrpages value.
+If mapping is empty (both ->nrpages and ->nrexceptional is zero) we can
+avoid pointless lookups in empty radix tree and bail out immediately after
+cleancache invalidation.
 
-Fixes: c515e1fd361c ("mm/fs: add hooks to support cleancache")
-Link: http://lkml.kernel.org/r/20170424164135.22350-3-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/20170424164135.22350-4-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
@@ -60,19 +58,31 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Nikolay Borisov <n.borisov.lkml@gmail.com
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/truncate.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev fs/block_dev.c
---- a/fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev
-+++ a/fs/block_dev.c
-@@ -103,12 +103,11 @@ void invalidate_bdev(struct block_device
- {
- 	struct address_space *mapping = bdev->bd_inode->i_mapping;
+diff -puN mm/truncate.c~mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty mm/truncate.c
+--- a/mm/truncate.c~mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty
++++ a/mm/truncate.c
+@@ -624,6 +624,9 @@ int invalidate_inode_pages2_range(struct
+ 	int did_range_unmap = 0;
  
--	if (mapping->nrpages == 0)
--		return;
+ 	cleancache_invalidate_inode(mapping);
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
++		return 0;
++
+ 	pagevec_init(&pvec, 0);
+ 	index = start;
+ 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+_
+
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+
+fs-fix-data-invalidation-in-the-cleancache-during-direct-io.patch
+fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
+mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch
+mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
+
