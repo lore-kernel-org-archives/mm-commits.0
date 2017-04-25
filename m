@@ -1,227 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
- removed from -mm tree
-Date: Tue, 25 Apr 2017 12:54:46 -0700
-Message-ID: <20170425195446.cMVzYpaPt%akpm@linux-foundation.org>
+ mm-prevent-nr_isolate_-stats-from-going-negative.patch removed from -mm
+ tree
+Date: Tue, 25 Apr 2017 12:54:49 -0700
+Message-ID: <20170425195449.9SbDu5_lv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1433165AbdDYTys (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 15:54:48 -0400
+        with ESMTP id S1433165AbdDYTyv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Apr 2017 15:54:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, ttoukan.linux@gmail.com
+To: mhocko@suse.com, minchan@kernel.org, ming.ling@spreadtrum.com, mm-commits@vger.kernel.org, rabinv@axis.com, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: Revert "mm, page_alloc: only use per-cpu allocator for irq-safe requests"
+     Subject: mm: prevent NR_ISOLATE_* stats from going negative
 has been removed from the -mm tree.  Its filename was
-     revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests.patch
+     mm-prevent-nr_isolate_-stats-from-going-negative.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: Revert "mm, page_alloc: only use per-cpu allocator for irq-safe requests"
+From: Rabin Vincent <rabinv@axis.com>
+Subject: mm: prevent NR_ISOLATE_* stats from going negative
 
-This reverts 374ad05ab64.  While the patch worked great for userspace
-allocations, the fact that softirq loses the per-cpu allocator caused
-problems.  It needs to be redone taking into account that a separate list
-is needed for hard/soft IRQs or alternatively find a cheap way of
-detecting reentry due to an interrupt.  Both are possible but sufficiently
-tricky that it shouldn't be rushed.  Jesper had one method for allowing
-softirqs but reported that the cost was high enough that it performed
-similarly to a plain revert.  His figures for netperf TCP_STREAM were as
-follows
+Commit 6afcf8ef0ca0 ("mm, compaction: fix NR_ISOLATED_* stats for pfn
+based migration") moved the dec_node_page_state() call (along with the
+page_is_file_cache() call) to after putback_lru_page().  But
+page_is_file_cache() can change after putback_lru_page() is called, so it
+should be called before putback_lru_page(), as it was before that patch,
+to prevent NR_ISOLATE_* stats from going negative.
 
-Baseline v4.10.0  : 60316 Mbit/s
-Current 4.11.0-rc6: 47491 Mbit/s
-Jesper's patch    : 60662 Mbit/s
-This patch        : 60106 Mbit/s
+Without this fix, non-CONFIG_SMP kernels end up hanging in the
+while(too_many_isolated()) { congestion_wait() } loop in
+shrink_active_list() due to the negative stats.
 
-As this is a regression, I wish to revert to noirq allocator for now and
-go back to the drawing board.
+ Mem-Info:
+  active_anon:32567 inactive_anon:121 isolated_anon:1
+  active_file:6066 inactive_file:6639 isolated_file:4294967295
+                                                    ^^^^^^^^^^
+  unevictable:0 dirty:115 writeback:0 unstable:0
+  slab_reclaimable:2086 slab_unreclaimable:3167
+  mapped:3398 shmem:18366 pagetables:1145 bounce:0
+  free:1798 free_pcp:13 free_cma:0
 
-Link: http://lkml.kernel.org/r/20170415145350.ixy7vtrzdzve57mh@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Tariq Toukan <ttoukan.linux@gmail.com>
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Fixes: 6afcf8ef0ca0 ("mm, compaction: fix NR_ISOLATED_* stats for pfn based migration")
+Link: http://lkml.kernel.org/r/1492683865-27549-1-git-send-email-rabin.vincent@axis.com
+Signed-off-by: Rabin Vincent <rabinv@axis.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Ming Ling <ming.ling@spreadtrum.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   43 ++++++++++++++++++++-----------------------
- 1 file changed, 20 insertions(+), 23 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests mm/page_alloc.c
---- a/mm/page_alloc.c~revert-mm-page_alloc-only-use-per-cpu-allocator-for-irq-safe-requests
-+++ a/mm/page_alloc.c
-@@ -1090,10 +1090,10 @@ static void free_pcppages_bulk(struct zo
- {
- 	int migratetype = 0;
- 	int batch_free = 0;
--	unsigned long nr_scanned, flags;
-+	unsigned long nr_scanned;
- 	bool isolated_pageblocks;
- 
--	spin_lock_irqsave(&zone->lock, flags);
-+	spin_lock(&zone->lock);
- 	isolated_pageblocks = has_isolate_pageblock(zone);
- 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
- 	if (nr_scanned)
-@@ -1142,7 +1142,7 @@ static void free_pcppages_bulk(struct zo
- 			trace_mm_page_pcpu_drain(page, 0, mt);
- 		} while (--count && --batch_free && !list_empty(list));
+diff -puN mm/migrate.c~mm-prevent-nr_isolate_-stats-from-going-negative mm/migrate.c
+--- a/mm/migrate.c~mm-prevent-nr_isolate_-stats-from-going-negative
++++ a/mm/migrate.c
+@@ -184,9 +184,9 @@ void putback_movable_pages(struct list_h
+ 			unlock_page(page);
+ 			put_page(page);
+ 		} else {
+-			putback_lru_page(page);
+ 			dec_node_page_state(page, NR_ISOLATED_ANON +
+ 					page_is_file_cache(page));
++			putback_lru_page(page);
+ 		}
  	}
--	spin_unlock_irqrestore(&zone->lock, flags);
-+	spin_unlock(&zone->lock);
  }
- 
- static void free_one_page(struct zone *zone,
-@@ -1150,9 +1150,8 @@ static void free_one_page(struct zone *z
- 				unsigned int order,
- 				int migratetype)
- {
--	unsigned long nr_scanned, flags;
--	spin_lock_irqsave(&zone->lock, flags);
--	__count_vm_events(PGFREE, 1 << order);
-+	unsigned long nr_scanned;
-+	spin_lock(&zone->lock);
- 	nr_scanned = node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED);
- 	if (nr_scanned)
- 		__mod_node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED, -nr_scanned);
-@@ -1162,7 +1161,7 @@ static void free_one_page(struct zone *z
- 		migratetype = get_pfnblock_migratetype(page, pfn);
- 	}
- 	__free_one_page(page, pfn, zone, order, migratetype);
--	spin_unlock_irqrestore(&zone->lock, flags);
-+	spin_unlock(&zone->lock);
- }
- 
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
-@@ -1240,6 +1239,7 @@ void __meminit reserve_bootmem_region(ph
- 
- static void __free_pages_ok(struct page *page, unsigned int order)
- {
-+	unsigned long flags;
- 	int migratetype;
- 	unsigned long pfn = page_to_pfn(page);
- 
-@@ -1247,7 +1247,10 @@ static void __free_pages_ok(struct page
- 		return;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
-+	local_irq_save(flags);
-+	__count_vm_events(PGFREE, 1 << order);
- 	free_one_page(page_zone(page), page, pfn, order, migratetype);
-+	local_irq_restore(flags);
- }
- 
- static void __init __free_pages_boot_core(struct page *page, unsigned int order)
-@@ -2219,9 +2222,8 @@ static int rmqueue_bulk(struct zone *zon
- 			int migratetype, bool cold)
- {
- 	int i, alloced = 0;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&zone->lock, flags);
-+	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype);
- 		if (unlikely(page == NULL))
-@@ -2257,7 +2259,7 @@ static int rmqueue_bulk(struct zone *zon
- 	 * pages added to the pcp list.
- 	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
--	spin_unlock_irqrestore(&zone->lock, flags);
-+	spin_unlock(&zone->lock);
- 	return alloced;
- }
- 
-@@ -2485,20 +2487,17 @@ void free_hot_cold_page(struct page *pag
- {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
-+	unsigned long flags;
- 	unsigned long pfn = page_to_pfn(page);
- 	int migratetype;
- 
--	if (in_interrupt()) {
--		__free_pages_ok(page, 0);
--		return;
--	}
--
- 	if (!free_pcp_prepare(page))
- 		return;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
- 	set_pcppage_migratetype(page, migratetype);
--	preempt_disable();
-+	local_irq_save(flags);
-+	__count_vm_event(PGFREE);
- 
- 	/*
- 	 * We only track unmovable, reclaimable and movable on pcp lists.
-@@ -2515,7 +2514,6 @@ void free_hot_cold_page(struct page *pag
- 		migratetype = MIGRATE_MOVABLE;
- 	}
- 
--	__count_vm_event(PGFREE);
- 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
- 	if (!cold)
- 		list_add(&page->lru, &pcp->lists[migratetype]);
-@@ -2529,7 +2527,7 @@ void free_hot_cold_page(struct page *pag
- 	}
- 
- out:
--	preempt_enable();
-+	local_irq_restore(flags);
- }
- 
- /*
-@@ -2654,8 +2652,6 @@ static struct page *__rmqueue_pcplist(st
- {
- 	struct page *page;
- 
--	VM_BUG_ON(in_interrupt());
--
- 	do {
- 		if (list_empty(list)) {
- 			pcp->count += rmqueue_bulk(zone, 0,
-@@ -2686,8 +2682,9 @@ static struct page *rmqueue_pcplist(stru
- 	struct list_head *list;
- 	bool cold = ((gfp_flags & __GFP_COLD) != 0);
- 	struct page *page;
-+	unsigned long flags;
- 
--	preempt_disable();
-+	local_irq_save(flags);
- 	pcp = &this_cpu_ptr(zone->pageset)->pcp;
- 	list = &pcp->lists[migratetype];
- 	page = __rmqueue_pcplist(zone,  migratetype, cold, pcp, list);
-@@ -2695,7 +2692,7 @@ static struct page *rmqueue_pcplist(stru
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
- 		zone_statistics(preferred_zone, zone);
- 	}
--	preempt_enable();
-+	local_irq_restore(flags);
- 	return page;
- }
- 
-@@ -2711,7 +2708,7 @@ struct page *rmqueue(struct zone *prefer
- 	unsigned long flags;
- 	struct page *page;
- 
--	if (likely(order == 0) && !in_interrupt()) {
-+	if (likely(order == 0)) {
- 		page = rmqueue_pcplist(preferred_zone, zone, order,
- 				gfp_flags, migratetype);
- 		goto out;
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from rabinv@axis.com are
 
-mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced.patch
-mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
 
