@@ -1,138 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 26 Apr 2017 14:44:28 -0700
-Message-ID: <20170426214428.9l9HqHhB8%akpm@linux-foundation.org>
+Subject: [merged] dmaengine-dmatest-use-offset_in_page-macro.patch
+ removed from -mm tree
+Date: Wed, 26 Apr 2017 14:45:04 -0700
+Message-ID: <20170426214504.c1-ZGbv04%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56690 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754485AbdDZVoa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Apr 2017 17:44:30 -0400
+        with ESMTP id S1031020AbdDZVpG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Apr 2017 17:45:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, geliangtang@gmail.com, mm-commits@vger.kernel.org, vinod.koul@intel.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: drivers/dma/dmatest.c: use offset_in_page() macro
+has been removed from the -mm tree.  Its filename was
+     dmaengine-dmatest-use-offset_in_page-macro.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: drivers/dma/dmatest.c: use offset_in_page() macro
 
+Use offset_in_page() macro instead of open-coding.
+
+Link: http://lkml.kernel.org/r/5b8a96f45462de15e1713b8022b0e72d4f2231f6.1492757182.git.geliangtang@gmail.com
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/dma/dmatest.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/firewire/lib.h~linux-next-git-rejects sound/firewire/lib.h
---- a/sound/firewire/lib.h~linux-next-git-rejects
-+++ a/sound/firewire/lib.h
-@@ -25,61 +25,4 @@ static inline bool rcode_is_permanent_er
- void snd_fw_schedule_registration(struct fw_unit *unit,
- 				  struct delayed_work *dwork);
+diff -puN drivers/dma/dmatest.c~dmaengine-dmatest-use-offset_in_page-macro drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmaengine-dmatest-use-offset_in_page-macro
++++ a/drivers/dma/dmatest.c
+@@ -585,7 +585,7 @@ static int dmatest_func(void *data)
+ 		for (i = 0; i < src_cnt; i++) {
+ 			void *buf = thread->srcs[i];
+ 			struct page *pg = virt_to_page(buf);
+-			unsigned pg_off = (unsigned long) buf & ~PAGE_MASK;
++			unsigned long pg_off = offset_in_page(buf);
  
--<<<<<<< HEAD
--struct snd_fw_async_midi_port;
--typedef int (*snd_fw_async_midi_port_fill)(
--				struct snd_rawmidi_substream *substream,
--				u8 *buf);
--
--struct snd_fw_async_midi_port {
--	struct fw_device *parent;
--	struct work_struct work;
--	bool idling;
--	ktime_t next_ktime;
--	bool error;
--
--	u64 addr;
--	struct fw_transaction transaction;
--
--	u8 *buf;
--	unsigned int len;
--
--	struct snd_rawmidi_substream *substream;
--	snd_fw_async_midi_port_fill fill;
--	int consume_bytes;
--};
--
--int snd_fw_async_midi_port_init(struct snd_fw_async_midi_port *port,
--		struct fw_unit *unit, u64 addr, unsigned int len,
--		snd_fw_async_midi_port_fill fill);
--void snd_fw_async_midi_port_destroy(struct snd_fw_async_midi_port *port);
--
--/**
-- * snd_fw_async_midi_port_run - run transactions for the async MIDI port
-- * @port: the asynchronous MIDI port
-- * @substream: the MIDI substream
-- */
--static inline void
--snd_fw_async_midi_port_run(struct snd_fw_async_midi_port *port,
--			   struct snd_rawmidi_substream *substream)
--{
--	if (!port->error) {
--		port->substream = substream;
--		schedule_work(&port->work);
--	}
--}
--
--/**
-- * snd_fw_async_midi_port_finish - finish the asynchronous MIDI port
-- * @port: the asynchronous MIDI port
-- */
--static inline void
--snd_fw_async_midi_port_finish(struct snd_fw_async_midi_port *port)
--{
--	port->substream = NULL;
--	port->error = false;
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- #endif
+ 			um->addr[i] = dma_map_page(dev->dev, pg, pg_off,
+ 						   um->len, DMA_TO_DEVICE);
+@@ -605,7 +605,7 @@ static int dmatest_func(void *data)
+ 		for (i = 0; i < dst_cnt; i++) {
+ 			void *buf = thread->dsts[i];
+ 			struct page *pg = virt_to_page(buf);
+-			unsigned pg_off = (unsigned long) buf & ~PAGE_MASK;
++			unsigned long pg_off = offset_in_page(buf);
+ 
+ 			dsts[i] = dma_map_page(dev->dev, pg, pg_off, um->len,
+ 					       DMA_BIDIRECTIONAL);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from geliangtang@gmail.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-move-madv_free-pages-into-lru_inactive_file-list-checkpatch-fixes.patch
-mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
-mm-introduce-memalloc_nofs_saverestore-api-fix.patch
-jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
-jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
-swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
-taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-drm-use-set_memoryh-header-fix.patch
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-docs-vm-transhuge-fix-few-trivial-typos-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+fs-ocfs2-cluster-use-setup_timer.patch
+fs-ocfs2-cluster-use-offset_in_page-macro.patch
+writeback-use-setup_deferrable_timer.patch
 
