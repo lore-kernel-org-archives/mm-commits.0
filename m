@@ -1,122 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-swap-sort-swap-entries-before-free.patch
- removed from -mm tree
-Date: Wed, 26 Apr 2017 15:22:47 -0700
-Message-ID: <59011db7.fheovz0qh0p1d2uf%akpm@linux-foundation.org>
+Subject: +
+ mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page.patch added to -mm tree
+Date: Wed, 26 Apr 2017 15:30:52 -0700
+Message-ID: <59011f9c.GKRHLNjwlwaIvtnZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59102 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59278 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031365AbdDZWWu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Apr 2017 18:22:50 -0400
+        with ESMTP id S1031659AbdDZWay (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Apr 2017 18:30:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, dave.hansen@intel.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, gong.chen@linux.intel.com, lkp@intel.com, xiaolong.ye@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, swap: sort swap entries before free
-has been removed from the -mm tree.  Its filename was
-     mm-swap-sort-swap-entries-before-free.patch
+     Subject: mm: hwpoison: call shake_page() after try_to_unmap() for mlocked page
+has been added to the -mm tree.  Its filename is
+     mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: sort swap entries before free
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: call shake_page() after try_to_unmap() for mlocked page
 
-To reduce the lock contention of swap_info_struct->lock when freeing swap
-entry.  The freed swap entries will be collected in a per-CPU buffer
-firstly, and be really freed later in batch.  During the batch freeing, if
-the consecutive swap entries in the per-CPU buffer belongs to same swap
-device, the swap_info_struct->lock needs to be acquired/released only
-once, so that the lock contention could be reduced greatly.  But if there
-are multiple swap devices, it is possible that the lock may be
-unnecessarily released/acquired because the swap entries belong to the
-same swap device are non-consecutive in the per-CPU buffer.
+Memory error handler calls try_to_unmap() for error pages in various
+states. If the error page is a mlocked page, error handling could fail
+with "still referenced by 1 users" message. This is because the page
+is linked to and stays in lru cache after the following call chain.
 
-To solve the issue, the per-CPU buffer is sorted according to the swap
-device before freeing the swap entries.  Test shows that the time spent by
-swapcache_free_entries() could be reduced after the patch.
+  try_to_unmap_one
+    page_remove_rmap
+      clear_page_mlock
+        putback_lru_page
+          lru_cache_add
 
-The patch was tested by measuring the run time of
-swap_cache_free_entries() during the exit phase of an application which
-uses much swap space.  The results show that the average run time of
-swap_cache_free_entries() was reduced about 20% after applying the patch.
+memory_failure() calls shake_page() to hanlde the similar issue, but
+current code doesn't cover because shake_page() is called only before
+try_to_unmap(). So this patches adds shake_page().
 
-The average run time of swap_cache_free_entries() is reduced from about
-~137us to ~111us.  The total samples of swap_cache_free_entries() is
-about 200000, run on 16 CPUs, so the wall time is about 1.7s.  I will
-revise the tests to get the total run time reduction.
-
-I added memory freeing timing capability to vm-scalability test suite. 
-The result shows the memory freeing time reduced from 2.64s to 2.31s
-(about -12.5%).  The memory space to free is 96G (including swap).  The
-machine has 144 CPU, 32G RAM, and 96G swap.  The process number is 16.
-
-Link: http://lkml.kernel.org/r/20170407064901.25398-1-ying.huang@intel.com
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Tim Chen <tim.c.chen@intel.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
+Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
+Link: http://lkml.kernel.org/r/1493197841-23986-3-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Xiaolong Ye <xiaolong.ye@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/memory-failure.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/swapfile.c~mm-swap-sort-swap-entries-before-free mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-sort-swap-entries-before-free
-+++ a/mm/swapfile.c
-@@ -37,6 +37,7 @@
- #include <linux/swapfile.h>
- #include <linux/export.h>
- #include <linux/swap_slots.h>
-+#include <linux/sort.h>
+diff -puN mm/memory-failure.c~mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page
++++ a/mm/memory-failure.c
+@@ -919,6 +919,7 @@ static bool hwpoison_user_mappings(struc
+ 	bool unmap_success;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
++	bool mlocked = PageMlocked(hpage);
  
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
-@@ -1065,6 +1066,13 @@ void swapcache_free(swp_entry_t entry)
- 	}
- }
+ 	/*
+ 	 * Here we are interested only in user-mapped pages, so skip any
+@@ -983,6 +984,13 @@ static bool hwpoison_user_mappings(struc
+ 		       pfn, page_mapcount(hpage));
  
-+static int swp_entry_cmp(const void *ent1, const void *ent2)
-+{
-+	const swp_entry_t *e1 = ent1, *e2 = ent2;
+ 	/*
++	 * try_to_unmap() might put mlocked page in lru cache, so call
++	 * shake_page() again to ensure that it's flushed.
++	 */
++	if (mlocked)
++		shake_page(hpage, 0);
 +
-+	return (long)(swp_type(*e1) - swp_type(*e2));
-+}
-+
- void swapcache_free_entries(swp_entry_t *entries, int n)
- {
- 	struct swap_info_struct *p, *prev;
-@@ -1075,6 +1083,10 @@ void swapcache_free_entries(swp_entry_t
- 
- 	prev = NULL;
- 	p = NULL;
-+
-+	/* Sort swap entries by swap device, so each lock is only taken once. */
-+	if (nr_swapfiles > 1)
-+		sort(entries, n, sizeof(entries[0]), swp_entry_cmp, NULL);
- 	for (i = 0; i < n; ++i) {
- 		p = swap_info_get_cont(entries[i], prev);
- 		if (p)
++	/*
+ 	 * Now that the dirty bit has been propagated to the
+ 	 * struct page and all unmaps done we can decide if
+ 	 * killing is needed or not.  Only kill when the page
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-swap-fix-a-race-in-free_swap_and_cache.patch
-mm-swap-fix-comment-in-__read_swap_cache_async.patch
-mm-swap-improve-readability-via-make-spin_lock-unlock-balanced.patch
-mm-swap-avoid-lock-swap_avail_lock-when-held-cluster-lock.patch
-mm-swap-remove-unused-function-prototype.patch
-mm-swap-fix-swap-space-leak-in-error-path-of-swap_free_entries.patch
-mm-swap-use-kvzalloc-to-allocate-some-swap-data-structure.patch
+mm-hwpoison-call-shake_page-unconditionally.patch
+mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page.patch
 
