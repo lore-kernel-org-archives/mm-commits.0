@@ -1,77 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 102/102] kasan: separate report parts by empty
- lines
-Date: Wed, 03 May 2017 14:56:50 -0700
-Message-ID: <20170503215650.n-5xD_TUy%akpm@linux-foundation.org>
+Subject: [patch 091/102] mm/swapfile.c: fix swap space leak in
+ error path of swap_free_entries()
+Date: Wed, 03 May 2017 14:56:16 -0700
+Message-ID: <20170503215616.NxqP4S5KR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751821AbdECV56 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:57:58 -0400
+        with ESMTP id S1752226AbdECV6B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:58:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hughd@google.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: separate report parts by empty lines
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/swapfile.c: fix swap space leak in error path of swap_free_entries()
 
-Makes the report easier to read.
+In swapcache_free_entries(), if swap_info_get_cont() returns NULL,
+something wrong occurs for the swap entry.  But we should still continue
+to free the following swap entries in the array instead of skip them to
+avoid swap space leak.  This is just problem in error path, where system
+may be in an inconsistent state, but it is still good to fix it.
 
-Link: http://lkml.kernel.org/r/20170302134851.101218-10-andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/20170421124739.24534-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/swapfile.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-separate-report-parts-by-empty-lines mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-separate-report-parts-by-empty-lines
-+++ a/mm/kasan/report.c
-@@ -237,7 +237,9 @@ static void describe_object(struct kmem_
- 
- 	if (cache->flags & SLAB_KASAN) {
- 		print_track(&alloc_info->alloc_track, "Allocated");
-+		pr_err("\n");
- 		print_track(&alloc_info->free_track, "Freed");
-+		pr_err("\n");
+diff -puN mm/swapfile.c~mm-swap-fix-swap-space-leak-in-error-path-of-swap_free_entries mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-fix-swap-space-leak-in-error-path-of-swap_free_entries
++++ a/mm/swapfile.c
+@@ -1079,8 +1079,6 @@ void swapcache_free_entries(swp_entry_t
+ 		p = swap_info_get_cont(entries[i], prev);
+ 		if (p)
+ 			swap_entry_free(p, entries[i]);
+-		else
+-			break;
+ 		prev = p;
  	}
- 
- 	describe_object_addr(cache, object, addr);
-@@ -248,6 +250,7 @@ static void print_address_description(vo
- 	struct page *page = addr_to_page(addr);
- 
- 	dump_stack();
-+	pr_err("\n");
- 
- 	if (page && PageSlab(page)) {
- 		struct kmem_cache *cache = page->slab_cache;
-@@ -326,7 +329,9 @@ void kasan_report_double_free(struct kme
- 
- 	kasan_start_report(&flags);
- 	pr_err("BUG: KASAN: double-free or invalid-free in %pS\n", ip);
-+	pr_err("\n");
- 	print_address_description(object);
-+	pr_err("\n");
- 	print_shadow_for_address(object);
- 	kasan_end_report(&flags);
- }
-@@ -338,11 +343,13 @@ static void kasan_report_error(struct ka
- 	kasan_start_report(&flags);
- 
- 	print_error_description(info);
-+	pr_err("\n");
- 
- 	if (!addr_has_shadow(info)) {
- 		dump_stack();
- 	} else {
- 		print_address_description((void *)info->access_addr);
-+		pr_err("\n");
- 		print_shadow_for_address(info->first_bad_addr);
- 	}
- 
+ 	if (p)
 _
