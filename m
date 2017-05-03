@@ -1,75 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 078/102] mm, page_alloc: remove
- debug_guardpage_minorder() test in warn_alloc()
-Date: Wed, 03 May 2017 14:55:34 -0700
-Message-ID: <20170503215534.h-xSiB28X%akpm@linux-foundation.org>
+Subject: [patch 098/102] kasan: change report header
+Date: Wed, 03 May 2017 14:56:38 -0700
+Message-ID: <20170503215638.woBxqP9Ui%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53178 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751821AbdECV5j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:57:39 -0400
+        with ESMTP id S1751821AbdECV5p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:57:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, cl@linux-foundation.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, penberg@cs.helsinki.fi, penguin-kernel@I-love.SAKURA.ne.jp, rafael.j.wysocki@intel.com, sgruszka@redhat.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm, page_alloc: remove debug_guardpage_minorder() test in warn_alloc()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: change report header
 
-Commit c0a32fc5a2e470d0 ("mm: more intensive memory corruption debugging")
-changed to check debug_guardpage_minorder() > 0 when reporting allocation
-failures.  The reasoning was
+Change report header format from:
 
-  When we use guard page to debug memory corruption, it shrinks available
-  pages to 1/2, 1/4, 1/8 and so on, depending on parameter value.
-  In such case memory allocation failures can be common and printing
-  errors can flood dmesg. If somebody debug corruption, allocation
-  failures are not the things he/she is interested about.
+BUG: KASAN: use-after-free in unwind_get_return_address+0x28a/0x2c0 at addr ffff880069437950
+Read of size 8 by task insmod/3925
 
-but is misguided.
+to:
 
-Allocation requests with __GFP_NOWARN flag by definition do not cause
-flooding of allocation failure messages.  Allocation requests with
-__GFP_NORETRY flag likely also have __GFP_NOWARN flag.  Costly allocation
-requests likely also have __GFP_NOWARN flag.
+BUG: KASAN: use-after-free in unwind_get_return_address+0x28a/0x2c0
+Read of size 8 at addr ffff880069437950 by task insmod/3925
 
-Allocation requests without __GFP_DIRECT_RECLAIM flag likely also have
-__GFP_NOWARN flag or __GFP_HIGH flag.  Non-costly allocation requests with
-__GFP_DIRECT_RECLAIM flag basically retry forever due to the "too small to
-fail" memory-allocation rule.
+The exact access address is not usually important, so move it to the
+second line. This also makes the header look visually balanced.
 
-Therefore, as a whole, shrinking available pages by
-debug_guardpage_minorder= kernel boot parameter might cause flooding of
-OOM killer messages but unlikely causes flooding of allocation failure
-messages.  Let's remove debug_guardpage_minorder() > 0 check which would
-likely be pointless.
-
-Link: http://lkml.kernel.org/r/1491910035-4231-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Link: http://lkml.kernel.org/r/20170302134851.101218-6-andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/kasan/report.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-debug_guardpage_minorder-test-in-warn_alloc
-+++ a/mm/page_alloc.c
-@@ -3092,8 +3092,7 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	static DEFINE_RATELIMIT_STATE(nopage_rs, DEFAULT_RATELIMIT_INTERVAL,
- 				      DEFAULT_RATELIMIT_BURST);
+diff -puN mm/kasan/report.c~kasan-change-report-header mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-change-report-header
++++ a/mm/kasan/report.c
+@@ -132,11 +132,11 @@ static void print_error_description(stru
+ {
+ 	const char *bug_type = get_bug_type(info);
  
--	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
--	    debug_guardpage_minorder() > 0)
-+	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
- 		return;
+-	pr_err("BUG: KASAN: %s in %pS at addr %p\n",
+-		bug_type, (void *)info->ip, info->access_addr);
+-	pr_err("%s of size %zu by task %s/%d\n",
++	pr_err("BUG: KASAN: %s in %pS\n",
++		bug_type, (void *)info->ip);
++	pr_err("%s of size %zu at addr %p by task %s/%d\n",
+ 		info->is_write ? "Write" : "Read", info->access_size,
+-		current->comm, task_pid_nr(current));
++		info->access_addr, current->comm, task_pid_nr(current));
+ }
  
- 	pr_warn("%s: ", current->comm);
+ static inline bool kernel_or_module_addr(const void *addr)
 _
