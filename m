@@ -1,61 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 098/102] kasan: change report header
-Date: Wed, 03 May 2017 14:56:38 -0700
-Message-ID: <20170503215638.woBxqP9Ui%akpm@linux-foundation.org>
+Subject: [patch 093/102] mm: hwpoison: call shake_page() after
+ try_to_unmap() for mlocked page
+Date: Wed, 03 May 2017 14:56:22 -0700
+Message-ID: <20170503215622.TYgz6a6uA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53280 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751821AbdECV5p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:57:45 -0400
+        with ESMTP id S1751821AbdECV5t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:57:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, gong.chen@linux.intel.com, lkp@intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, xiaolong.ye@intel.com
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: change report header
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: call shake_page() after try_to_unmap() for mlocked page
 
-Change report header format from:
+Memory error handler calls try_to_unmap() for error pages in various
+states. If the error page is a mlocked page, error handling could fail
+with "still referenced by 1 users" message. This is because the page
+is linked to and stays in lru cache after the following call chain.
 
-BUG: KASAN: use-after-free in unwind_get_return_address+0x28a/0x2c0 at addr ffff880069437950
-Read of size 8 by task insmod/3925
+  try_to_unmap_one
+    page_remove_rmap
+      clear_page_mlock
+        putback_lru_page
+          lru_cache_add
 
-to:
+memory_failure() calls shake_page() to hanlde the similar issue, but
+current code doesn't cover because shake_page() is called only before
+try_to_unmap(). So this patches adds shake_page().
 
-BUG: KASAN: use-after-free in unwind_get_return_address+0x28a/0x2c0
-Read of size 8 at addr ffff880069437950 by task insmod/3925
-
-The exact access address is not usually important, so move it to the
-second line. This also makes the header look visually balanced.
-
-Link: http://lkml.kernel.org/r/20170302134851.101218-6-andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
+Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
+Link: http://lkml.kernel.org/r/1493197841-23986-3-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Xiaolong Ye <xiaolong.ye@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/kasan/report.c~kasan-change-report-header mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-change-report-header
-+++ a/mm/kasan/report.c
-@@ -132,11 +132,11 @@ static void print_error_description(stru
- {
- 	const char *bug_type = get_bug_type(info);
+diff -puN mm/memory-failure.c~mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page
++++ a/mm/memory-failure.c
+@@ -916,6 +916,7 @@ static bool hwpoison_user_mappings(struc
+ 	bool unmap_success;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
++	bool mlocked = PageMlocked(hpage);
  
--	pr_err("BUG: KASAN: %s in %pS at addr %p\n",
--		bug_type, (void *)info->ip, info->access_addr);
--	pr_err("%s of size %zu by task %s/%d\n",
-+	pr_err("BUG: KASAN: %s in %pS\n",
-+		bug_type, (void *)info->ip);
-+	pr_err("%s of size %zu at addr %p by task %s/%d\n",
- 		info->is_write ? "Write" : "Read", info->access_size,
--		current->comm, task_pid_nr(current));
-+		info->access_addr, current->comm, task_pid_nr(current));
- }
+ 	/*
+ 	 * Here we are interested only in user-mapped pages, so skip any
+@@ -980,6 +981,13 @@ static bool hwpoison_user_mappings(struc
+ 		       pfn, page_mapcount(hpage));
  
- static inline bool kernel_or_module_addr(const void *addr)
+ 	/*
++	 * try_to_unmap() might put mlocked page in lru cache, so call
++	 * shake_page() again to ensure that it's flushed.
++	 */
++	if (mlocked)
++		shake_page(hpage, 0);
++
++	/*
+ 	 * Now that the dirty bit has been propagated to the
+ 	 * struct page and all unmaps done we can decide if
+ 	 * killing is needed or not.  Only kill when the page
 _
