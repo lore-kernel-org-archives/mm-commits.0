@@ -1,105 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [patch 039/102] mm: remove rodata_test_data export, add
- pr_fmt
-Date: Wed, 03 May 2017 14:53:32 -0700
-Message-ID: <20170503215332.tD-bDRWmZ%akpm@linux-foundation.org>
+Subject: [patch 036/102] jbd2: mark the transaction context with
+ the scope GFP_NOFS context
+Date: Wed, 03 May 2017 14:53:22 -0700
+Message-ID: <20170503215322.98sMlAxeR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48318 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48402 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdECVxp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:45 -0400
+        with ESMTP id S1751198AbdECVxt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, jinb.park7@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, torvalds@linux-foundation.org, tytso@mit.edu, vbabka@suse.cz
 
-From: Kees Cook <keescook@chromium.org>
-Subject: mm: remove rodata_test_data export, add pr_fmt
+From: Michal Hocko <mhocko@suse.com>
+Subject: jbd2: mark the transaction context with the scope GFP_NOFS context
 
-Since commit 3ad38ceb2769 ("x86/mm: Remove CONFIG_DEBUG_NX_TEST"), nothing
-is using the exported rodata_test_data variable, so drop the export. 
-Additionally updates the pr_fmt to avoid redundant strings and adjusts
-some whitespace.
+now that we have memalloc_nofs_{save,restore} api we can mark the whole
+transaction context as implicitly GFP_NOFS.  All allocations will
+automatically inherit GFP_NOFS this way.  This means that we do not have
+to mark any of those requests with GFP_NOFS and moreover all the
+ext4_kv[mz]alloc(GFP_NOFS) are also safe now because even the hardcoded
+GFP_KERNEL allocations deep inside the vmalloc will be NOFS now.
 
-Link: http://lkml.kernel.org/r/20170307005313.GA85809@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Jinbum Park <jinb.park7@gmail.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+[akpm@linux-foundation.org: tweak comments]
+Link: http://lkml.kernel.org/r/20170306131408.9828-7-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Nikolay Borisov <nborisov@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rodata_test.h |    1 -
- mm/rodata_test.c            |   17 +++++++++--------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ fs/jbd2/transaction.c |   12 ++++++++++++
+ include/linux/jbd2.h  |    2 ++
+ 2 files changed, 14 insertions(+)
 
-diff -puN include/linux/rodata_test.h~mm-remove-rodata_test_data-export-add-pr_fmt include/linux/rodata_test.h
---- a/include/linux/rodata_test.h~mm-remove-rodata_test_data-export-add-pr_fmt
-+++ a/include/linux/rodata_test.h
-@@ -14,7 +14,6 @@
- #define _RODATA_TEST_H
+diff -puN fs/jbd2/transaction.c~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context fs/jbd2/transaction.c
+--- a/fs/jbd2/transaction.c~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context
++++ a/fs/jbd2/transaction.c
+@@ -29,6 +29,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/bug.h>
+ #include <linux/module.h>
++#include <linux/sched/mm.h>
  
- #ifdef CONFIG_DEBUG_RODATA_TEST
--extern const int rodata_test_data;
- void rodata_test(void);
- #else
- static inline void rodata_test(void) {}
-diff -puN mm/rodata_test.c~mm-remove-rodata_test_data-export-add-pr_fmt mm/rodata_test.c
---- a/mm/rodata_test.c~mm-remove-rodata_test_data-export-add-pr_fmt
-+++ a/mm/rodata_test.c
-@@ -9,11 +9,12 @@
-  * as published by the Free Software Foundation; version 2
-  * of the License.
-  */
-+#define pr_fmt(fmt) "rodata_test: " fmt
-+
- #include <linux/uaccess.h>
- #include <asm/sections.h>
+ #include <trace/events/jbd2.h>
  
- const int rodata_test_data = 0xC3;
--EXPORT_SYMBOL_GPL(rodata_test_data);
+@@ -388,6 +389,11 @@ repeat:
  
- void rodata_test(void)
- {
-@@ -23,20 +24,20 @@ void rodata_test(void)
- 	/* test 1: read the value */
- 	/* If this test fails, some previous testrun has clobbered the state */
- 	if (!rodata_test_data) {
--		pr_err("rodata_test: test 1 fails (start data)\n");
-+		pr_err("test 1 fails (start data)\n");
- 		return;
- 	}
- 
- 	/* test 2: write to the variable; this should fault */
- 	if (!probe_kernel_write((void *)&rodata_test_data,
--						(void *)&zero, sizeof(zero))) {
--		pr_err("rodata_test: test data was not read only\n");
-+				(void *)&zero, sizeof(zero))) {
-+		pr_err("test data was not read only\n");
- 		return;
- 	}
- 
- 	/* test 3: check the value hasn't changed */
- 	if (rodata_test_data == zero) {
--		pr_err("rodata_test: test data was changed\n");
-+		pr_err("test data was changed\n");
- 		return;
- 	}
- 
-@@ -44,13 +45,13 @@ void rodata_test(void)
- 	start = (unsigned long)__start_rodata;
- 	end = (unsigned long)__end_rodata;
- 	if (start & (PAGE_SIZE - 1)) {
--		pr_err("rodata_test: start of .rodata is not page size aligned\n");
-+		pr_err("start of .rodata is not page size aligned\n");
- 		return;
- 	}
- 	if (end & (PAGE_SIZE - 1)) {
--		pr_err("rodata_test: end of .rodata is not page size aligned\n");
-+		pr_err("end of .rodata is not page size aligned\n");
- 		return;
- 	}
- 
--	pr_info("rodata_test: all tests were successful\n");
-+	pr_info("all tests were successful\n");
+ 	rwsem_acquire_read(&journal->j_trans_commit_map, 0, 0, _THIS_IP_);
+ 	jbd2_journal_free_transaction(new_transaction);
++	/*
++	 * Ensure that no allocations done while the transaction is open are
++	 * going to recurse back to the fs layer.
++	 */
++	handle->saved_alloc_context = memalloc_nofs_save();
+ 	return 0;
  }
+ 
+@@ -466,6 +472,7 @@ handle_t *jbd2__journal_start(journal_t
+ 	trace_jbd2_handle_start(journal->j_fs_dev->bd_dev,
+ 				handle->h_transaction->t_tid, type,
+ 				line_no, nblocks);
++
+ 	return handle;
+ }
+ EXPORT_SYMBOL(jbd2__journal_start);
+@@ -1760,6 +1767,11 @@ int jbd2_journal_stop(handle_t *handle)
+ 	if (handle->h_rsv_handle)
+ 		jbd2_journal_free_reserved(handle->h_rsv_handle);
+ free_and_exit:
++	/*
++	 * Scope of the GFP_NOFS context is over here and so we can restore the
++	 * original alloc context.
++	 */
++	memalloc_nofs_restore(handle->saved_alloc_context);
+ 	jbd2_free_handle(handle);
+ 	return err;
+ }
+diff -puN include/linux/jbd2.h~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context include/linux/jbd2.h
+--- a/include/linux/jbd2.h~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context
++++ a/include/linux/jbd2.h
+@@ -491,6 +491,8 @@ struct jbd2_journal_handle
+ 
+ 	unsigned long		h_start_jiffies;
+ 	unsigned int		h_requested_credits;
++
++	unsigned int		saved_alloc_context;
+ };
+ 
+ 
 _
