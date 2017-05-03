@@ -1,26 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: [patch 088/102] mm/truncate: bail out early from
- invalidate_inode_pages2_range() if mapping is empty
-Date: Wed, 03 May 2017 14:56:06 -0700
-Message-ID: <20170503215606.rGIF-yVnZ%akpm@linux-foundation.org>
+Subject: [patch 089/102] mm/truncate: avoid pointless
+ cleancache_invalidate_inode() calls.
+Date: Wed, 03 May 2017 14:56:09 -0700
+Message-ID: <20170503215609.kGwaRw7S3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:53960 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751851AbdECV6U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:58:20 -0400
+        with ESMTP id S1751851AbdECV6V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/truncate: bail out early from invalidate_inode_pages2_range() if mapping is empty
+Subject: mm/truncate: avoid pointless cleancache_invalidate_inode() calls.
 
-If mapping is empty (both ->nrpages and ->nrexceptional is zero) we can
-avoid pointless lookups in empty radix tree and bail out immediately after
-cleancache invalidation.
+cleancache_invalidate_inode() called truncate_inode_pages_range()
+and invalidate_inode_pages2_range() twice - on entry and on exit.
+It's stupid and waste of time. It's enough to call it once at
+exit.
 
-Link: http://lkml.kernel.org/r/20170424164135.22350-4-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/20170424164135.22350-5-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
@@ -34,20 +35,59 @@ Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/truncate.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/truncate.c~mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty mm/truncate.c
---- a/mm/truncate.c~mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty
+diff -puN mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls mm/truncate.c
+--- a/mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls
 +++ a/mm/truncate.c
-@@ -624,6 +624,9 @@ int invalidate_inode_pages2_range(struct
+@@ -266,9 +266,8 @@ void truncate_inode_pages_range(struct a
+ 	pgoff_t		index;
+ 	int		i;
+ 
+-	cleancache_invalidate_inode(mapping);
+ 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+-		return;
++		goto out;
+ 
+ 	/* Offsets within partial pages */
+ 	partial_start = lstart & (PAGE_SIZE - 1);
+@@ -363,7 +362,7 @@ void truncate_inode_pages_range(struct a
+ 	 * will be released, just zeroed, so we can bail out now.
+ 	 */
+ 	if (start >= end)
+-		return;
++		goto out;
+ 
+ 	index = start;
+ 	for ( ; ; ) {
+@@ -410,6 +409,8 @@ void truncate_inode_pages_range(struct a
+ 		pagevec_release(&pvec);
+ 		index++;
+ 	}
++
++out:
+ 	cleancache_invalidate_inode(mapping);
+ }
+ EXPORT_SYMBOL(truncate_inode_pages_range);
+@@ -623,9 +624,8 @@ int invalidate_inode_pages2_range(struct
+ 	int ret2 = 0;
  	int did_range_unmap = 0;
  
- 	cleancache_invalidate_inode(mapping);
-+	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+		return 0;
-+
+-	cleancache_invalidate_inode(mapping);
+ 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+-		return 0;
++		goto out;
+ 
  	pagevec_init(&pvec, 0);
  	index = start;
- 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+@@ -689,6 +689,8 @@ int invalidate_inode_pages2_range(struct
+ 		cond_resched();
+ 		index++;
+ 	}
++
++out:
+ 	cleancache_invalidate_inode(mapping);
+ 	return ret;
+ }
 _
