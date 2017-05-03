@@ -1,28 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [patch 015/102] Revert "mm, vmscan: account for skipped
- pages as a partial scan"
-Date: Wed, 03 May 2017 14:52:13 -0700
-Message-ID: <20170503215213.RtmNQ-IUU%akpm@linux-foundation.org>
+Subject: [patch 016/102] mm: remove unnecessary back-off function
+ when retrying page reclaim
+Date: Wed, 03 May 2017 14:52:16 -0700
+Message-ID: <20170503215216.pLOon05Vm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47334 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752203AbdECVwO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:52:14 -0400
+        with ESMTP id S1751198AbdECVwS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:52:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hannes@cmpxchg.org, hejianet@gmail.com, hillf.zj@alibaba-inc.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Revert "mm, vmscan: account for skipped pages as a partial scan"
+Subject: mm: remove unnecessary back-off function when retrying page reclaim
 
-This reverts commit d7f05528eedb047efe2288cff777676b028747b6.
+The backoff mechanism is not needed.  If we have MAX_RECLAIM_RETRIES loops
+without progress, we'll OOM anyway; backing off might cut one or two
+iterations off that in the rare OOM case.  If we have intermittent success
+reclaiming a few pages, the backoff function gets reset also, and so is of
+little help in these scenarios.
 
-Now that reclaimability of a node is no longer based on the ratio between
-pages scanned and theoretically reclaimable pages, we can remove
-accounting tricks for pages skipped due to zone constraints.
+We might want a backoff function for when there IS progress, but not
+enough to be satisfactory.  But this isn't that.  Remove it.
 
-Link: http://lkml.kernel.org/r/20170228214007.5621-9-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20170228214007.5621-10-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -31,56 +34,42 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ mm/page_alloc.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmscan.c~revert-mm-vmscan-account-for-skipped-pages-as-a-partial-scan mm/vmscan.c
---- a/mm/vmscan.c~revert-mm-vmscan-account-for-skipped-pages-as-a-partial-scan
-+++ a/mm/vmscan.c
-@@ -1472,12 +1472,12 @@ static unsigned long isolate_lru_pages(u
- 	unsigned long nr_taken = 0;
- 	unsigned long nr_zone_taken[MAX_NR_ZONES] = { 0 };
- 	unsigned long nr_skipped[MAX_NR_ZONES] = { 0, };
--	unsigned long skipped = 0, total_skipped = 0;
-+	unsigned long skipped = 0;
- 	unsigned long scan, nr_pages;
- 	LIST_HEAD(pages_skipped);
+diff -puN mm/page_alloc.c~mm-remove-unnecessary-back-off-function-when-retrying-page-reclaim mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-unnecessary-back-off-function-when-retrying-page-reclaim
++++ a/mm/page_alloc.c
+@@ -3515,11 +3515,10 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
+ /*
+  * Checks whether it makes sense to retry the reclaim to make a forward progress
+  * for the given allocation request.
+- * The reclaim feedback represented by did_some_progress (any progress during
+- * the last reclaim round) and no_progress_loops (number of reclaim rounds without
+- * any progress in a row) is considered as well as the reclaimable pages on the
+- * applicable zone list (with a backoff mechanism which is a function of
+- * no_progress_loops).
++ *
++ * We give up when we either have tried MAX_RECLAIM_RETRIES in a row
++ * without success, or when we couldn't even meet the watermark if we
++ * reclaimed all remaining pages on the LRU lists.
+  *
+  * Returns true if a retry is viable or false to enter the oom path.
+  */
+@@ -3564,13 +3563,11 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+ 		bool wmark;
  
- 	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
--					!list_empty(src);) {
-+					!list_empty(src); scan++) {
- 		struct page *page;
+ 		available = reclaimable = zone_reclaimable_pages(zone);
+-		available -= DIV_ROUND_UP((*no_progress_loops) * available,
+-					  MAX_RECLAIM_RETRIES);
+ 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
  
- 		page = lru_to_page(src);
-@@ -1491,12 +1491,6 @@ static unsigned long isolate_lru_pages(u
- 			continue;
- 		}
- 
--		/*
--		 * Account for scanned and skipped separetly to avoid the pgdat
--		 * being prematurely marked unreclaimable by pgdat_reclaimable.
--		 */
--		scan++;
--
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			nr_pages = hpage_nr_pages(page);
-@@ -1525,6 +1519,7 @@ static unsigned long isolate_lru_pages(u
- 	if (!list_empty(&pages_skipped)) {
- 		int zid;
- 
-+		list_splice(&pages_skipped, src);
- 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 			if (!nr_skipped[zid])
- 				continue;
-@@ -1532,17 +1527,8 @@ static unsigned long isolate_lru_pages(u
- 			__count_zid_vm_events(PGSCAN_SKIP, zid, nr_skipped[zid]);
- 			skipped += nr_skipped[zid];
- 		}
--
--		/*
--		 * Account skipped pages as a partial scan as the pgdat may be
--		 * close to unreclaimable. If the LRU list is empty, account
--		 * skipped pages as a full scan.
--		 */
--		total_skipped = list_empty(src) ? skipped : skipped >> 2;
+ 		/*
+-		 * Would the allocation succeed if we reclaimed the whole
+-		 * available?
++		 * Would the allocation succeed if we reclaimed all
++		 * reclaimable pages?
+ 		 */
+ 		wmark = __zone_watermark_ok(zone, order, min_wmark,
+ 				ac_classzone_idx(ac), alloc_flags, available);
+_
