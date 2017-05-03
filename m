@@ -1,223 +1,494 @@
 From: akpm@linux-foundation.org
-Subject: [patch 054/102] mm: make ttu's return boolean
-Date: Wed, 03 May 2017 14:54:20 -0700
-Message-ID: <20170503215420.UFyEVqhcB%akpm@linux-foundation.org>
+Subject: [patch 065/102] userfaultfd: selftest: combine all cases
+ into a single executable
+Date: Wed, 03 May 2017 14:54:54 -0700
+Message-ID: <20170503215454.nJuhKaGbR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50492 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751415AbdECVzg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:55:36 -0400
+        with ESMTP id S1751415AbdECVzk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:55:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: aarcange@redhat.com, akpm@linux-foundation.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, shuah@kernel.org, torvalds@linux-foundation.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: make ttu's return boolean
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: selftest: combine all cases into a single executable
 
-try_to_unmap() returns SWAP_SUCCESS or SWAP_FAIL so it's suitable for
-boolean return.  This patch changes it.
+Currently, selftest for userfaultfd is compiled three times: for
+anonymous, shared and hugetlb memory.  Let's combine all the cases into a
+single executable which will have a command line option for selection of
+the test type.
 
-Link: http://lkml.kernel.org/r/1489555493-14659-8-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/1490869741-5913-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    4 ++--
- mm/huge_memory.c     |    6 +++---
- mm/memory-failure.c  |   26 ++++++++++++--------------
- mm/rmap.c            |    8 +++-----
- mm/vmscan.c          |    7 +------
- 5 files changed, 21 insertions(+), 30 deletions(-)
+ tools/testing/selftests/vm/Makefile      |   11 -
+ tools/testing/selftests/vm/run_vmtests   |    6 
+ tools/testing/selftests/vm/userfaultfd.c |  205 +++++++++++----------
+ 3 files changed, 115 insertions(+), 107 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-make-ttus-return-boolean include/linux/rmap.h
---- a/include/linux/rmap.h~mm-make-ttus-return-boolean
-+++ a/include/linux/rmap.h
-@@ -191,7 +191,7 @@ static inline void page_dup_rmap(struct
- int page_referenced(struct page *, int is_locked,
- 			struct mem_cgroup *memcg, unsigned long *vm_flags);
+diff -puN tools/testing/selftests/vm/Makefile~userfaultfd-selftest-combine-all-cases-into-the-single-executable tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~userfaultfd-selftest-combine-all-cases-into-the-single-executable
++++ a/tools/testing/selftests/vm/Makefile
+@@ -15,21 +15,14 @@ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
+-TEST_GEN_FILES += userfaultfd_hugetlb
+-TEST_GEN_FILES += userfaultfd_shmem
+ TEST_GEN_FILES += mlock-random-test
  
--int try_to_unmap(struct page *, enum ttu_flags flags);
-+bool try_to_unmap(struct page *, enum ttu_flags flags);
+ TEST_PROGS := run_vmtests
  
- /* Avoid racy checks */
- #define PVMW_SYNC		(1 << 0)
-@@ -281,7 +281,7 @@ static inline int page_referenced(struct
+ include ../lib.mk
+ 
+-$(OUTPUT)/userfaultfd: LDLIBS += -lpthread ../../../../usr/include/linux/kernel.h
+-
+-$(OUTPUT)/userfaultfd_hugetlb: userfaultfd.c ../../../../usr/include/linux/kernel.h
+-	$(CC) $(CFLAGS) -DHUGETLB_TEST -O2 -o $@ $< -lpthread
+-
+-$(OUTPUT)/userfaultfd_shmem: userfaultfd.c  ../../../../usr/include/linux/kernel.h
+-	$(CC) $(CFLAGS) -DSHMEM_TEST -O2 -o $@ $< -lpthread
++$(OUTPUT)/userfaultfd: ../../../../usr/include/linux/kernel.h
++$(OUTPUT)/userfaultfd: LDLIBS += -lpthread
+ 
+ $(OUTPUT)/mlock-random-test: LDLIBS += -lcap
+ 
+diff -puN tools/testing/selftests/vm/run_vmtests~userfaultfd-selftest-combine-all-cases-into-the-single-executable tools/testing/selftests/vm/run_vmtests
+--- a/tools/testing/selftests/vm/run_vmtests~userfaultfd-selftest-combine-all-cases-into-the-single-executable
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -95,7 +95,7 @@ echo "      hugetlb regression testing."
+ echo "--------------------"
+ echo "running userfaultfd"
+ echo "--------------------"
+-./userfaultfd 128 32
++./userfaultfd anon 128 32
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+@@ -107,7 +107,7 @@ echo "----------------------------"
+ echo "running userfaultfd_hugetlb"
+ echo "----------------------------"
+ # 258MB total huge pages == 128MB src and 128MB dst
+-./userfaultfd_hugetlb 128 32 $mnt/ufd_test_file
++./userfaultfd hugetlb 128 32 $mnt/ufd_test_file
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+@@ -119,7 +119,7 @@ rm -f $mnt/ufd_test_file
+ echo "----------------------------"
+ echo "running userfaultfd_shmem"
+ echo "----------------------------"
+-./userfaultfd_shmem 128 32
++./userfaultfd shmem 128 32
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-combine-all-cases-into-the-single-executable tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-combine-all-cases-into-the-single-executable
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -77,10 +77,13 @@ static unsigned long nr_cpus, nr_pages,
+ #define BOUNCE_POLL		(1<<3)
+ static int bounces;
+ 
+-#ifdef HUGETLB_TEST
++#define TEST_ANON	1
++#define TEST_HUGETLB	2
++#define TEST_SHMEM	3
++static int test_type;
++
+ static int huge_fd;
+ static char *huge_fd_off0;
+-#endif
+ static unsigned long long *count_verify;
+ static int uffd, uffd_flags, finished, *pipefd;
+ static char *area_src, *area_dst;
+@@ -102,14 +105,7 @@ pthread_attr_t attr;
+ 				 ~(unsigned long)(sizeof(unsigned long long) \
+ 						  -  1)))
+ 
+-#if !defined(HUGETLB_TEST) && !defined(SHMEM_TEST)
+-
+-/* Anonymous memory */
+-#define EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
+-				 (1 << _UFFDIO_COPY) | \
+-				 (1 << _UFFDIO_ZEROPAGE))
+-
+-static int release_pages(char *rel_area)
++static int anon_release_pages(char *rel_area)
+ {
+ 	int ret = 0;
+ 
+@@ -121,7 +117,7 @@ static int release_pages(char *rel_area)
+ 	return ret;
+ }
+ 
+-static void allocate_area(void **alloc_area)
++static void anon_allocate_area(void **alloc_area)
+ {
+ 	if (posix_memalign(alloc_area, page_size, nr_pages * page_size)) {
+ 		fprintf(stderr, "out of memory\n");
+@@ -129,14 +125,9 @@ static void allocate_area(void **alloc_a
+ 	}
+ }
+ 
+-#else /* HUGETLB_TEST or SHMEM_TEST */
+-
+-#define EXPECTED_IOCTLS		UFFD_API_RANGE_IOCTLS_BASIC
+-
+-#ifdef HUGETLB_TEST
+ 
+ /* HugeTLB memory */
+-static int release_pages(char *rel_area)
++static int hugetlb_release_pages(char *rel_area)
+ {
+ 	int ret = 0;
+ 
+@@ -152,7 +143,7 @@ static int release_pages(char *rel_area)
+ }
+ 
+ 
+-static void allocate_area(void **alloc_area)
++static void hugetlb_allocate_area(void **alloc_area)
+ {
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+ 				MAP_PRIVATE | MAP_HUGETLB, huge_fd,
+@@ -167,10 +158,8 @@ static void allocate_area(void **alloc_a
+ 		huge_fd_off0 = *alloc_area;
+ }
+ 
+-#elif defined(SHMEM_TEST)
+-
+ /* Shared memory */
+-static int release_pages(char *rel_area)
++static int shmem_release_pages(char *rel_area)
+ {
+ 	int ret = 0;
+ 
+@@ -182,7 +171,7 @@ static int release_pages(char *rel_area)
+ 	return ret;
+ }
+ 
+-static void allocate_area(void **alloc_area)
++static void shmem_allocate_area(void **alloc_area)
+ {
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+ 			   MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+@@ -192,11 +181,35 @@ static void allocate_area(void **alloc_a
+ 	}
+ }
+ 
+-#else /* SHMEM_TEST */
+-#error "Undefined test type"
+-#endif /* HUGETLB_TEST */
++struct uffd_test_ops {
++	unsigned long expected_ioctls;
++	void (*allocate_area)(void **alloc_area);
++	int (*release_pages)(char *rel_area);
++};
++
++#define ANON_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
++					 (1 << _UFFDIO_COPY) | \
++					 (1 << _UFFDIO_ZEROPAGE))
++
++static struct uffd_test_ops anon_uffd_test_ops = {
++	.expected_ioctls = ANON_EXPECTED_IOCTLS,
++	.allocate_area	= anon_allocate_area,
++	.release_pages	= anon_release_pages,
++};
++
++static struct uffd_test_ops shmem_uffd_test_ops = {
++	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC,
++	.allocate_area	= shmem_allocate_area,
++	.release_pages	= shmem_release_pages,
++};
++
++static struct uffd_test_ops hugetlb_uffd_test_ops = {
++	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC,
++	.allocate_area	= hugetlb_allocate_area,
++	.release_pages	= hugetlb_release_pages,
++};
+ 
+-#endif /* !defined(HUGETLB_TEST) && !defined(SHMEM_TEST) */
++static struct uffd_test_ops *uffd_test_ops;
+ 
+ static int my_bcmp(char *str1, char *str2, size_t n)
+ {
+@@ -505,7 +518,7 @@ static int stress(unsigned long *userfau
+ 	 * UFFDIO_COPY without writing zero pages into area_dst
+ 	 * because the background threads already completed).
+ 	 */
+-	if (release_pages(area_src))
++	if (uffd_test_ops->release_pages(area_src))
+ 		return 1;
+ 
+ 	for (cpu = 0; cpu < nr_cpus; cpu++) {
+@@ -577,12 +590,12 @@ static int faulting_process(void)
+ {
+ 	unsigned long nr;
+ 	unsigned long long count;
++	unsigned long split_nr_pages;
+ 
+-#ifndef HUGETLB_TEST
+-	unsigned long split_nr_pages = (nr_pages + 1) / 2;
+-#else
+-	unsigned long split_nr_pages = nr_pages;
+-#endif
++	if (test_type != TEST_HUGETLB)
++		split_nr_pages = (nr_pages + 1) / 2;
++	else
++		split_nr_pages = nr_pages;
+ 
+ 	for (nr = 0; nr < split_nr_pages; nr++) {
+ 		count = *area_count(area_dst, nr);
+@@ -594,7 +607,9 @@ static int faulting_process(void)
+ 		}
+ 	}
+ 
+-#ifndef HUGETLB_TEST
++	if (test_type == TEST_HUGETLB)
++		return 0;
++
+ 	area_dst = mremap(area_dst, nr_pages * page_size,  nr_pages * page_size,
+ 			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
+ 	if (area_dst == MAP_FAILED)
+@@ -610,7 +625,7 @@ static int faulting_process(void)
+ 		}
+ 	}
+ 
+-	if (release_pages(area_dst))
++	if (uffd_test_ops->release_pages(area_dst))
+ 		return 1;
+ 
+ 	for (nr = 0; nr < nr_pages; nr++) {
+@@ -618,8 +633,6 @@ static int faulting_process(void)
+ 			fprintf(stderr, "nr %lu is not zero\n", nr), exit(1);
+ 	}
+ 
+-#endif /* HUGETLB_TEST */
+-
  	return 0;
  }
  
--#define try_to_unmap(page, refs) SWAP_FAIL
-+#define try_to_unmap(page, refs) false
- 
- static inline int page_mkclean(struct page *page)
+@@ -627,7 +640,9 @@ static int uffdio_zeropage(int ufd, unsi
  {
-diff -puN mm/huge_memory.c~mm-make-ttus-return-boolean mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-ttus-return-boolean
-+++ a/mm/huge_memory.c
-@@ -2144,15 +2144,15 @@ static void freeze_page(struct page *pag
- {
- 	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS |
- 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
--	int ret;
-+	bool unmap_success;
+ 	struct uffdio_zeropage uffdio_zeropage;
+ 	int ret;
+-	unsigned long has_zeropage = EXPECTED_IOCTLS & (1 << _UFFDIO_ZEROPAGE);
++	unsigned long has_zeropage;
++
++	has_zeropage = uffd_test_ops->expected_ioctls & (1 << _UFFDIO_ZEROPAGE);
  
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
+ 	if (offset >= nr_pages * page_size)
+ 		fprintf(stderr, "unexpected offset %lu\n",
+@@ -675,7 +690,7 @@ static int userfaultfd_zeropage_test(voi
+ 	printf("testing UFFDIO_ZEROPAGE: ");
+ 	fflush(stdout);
  
- 	if (PageAnon(page))
- 		ttu_flags |= TTU_MIGRATION;
+-	if (release_pages(area_dst))
++	if (uffd_test_ops->release_pages(area_dst))
+ 		return 1;
  
--	ret = try_to_unmap(page, ttu_flags);
--	VM_BUG_ON_PAGE(ret, page);
-+	unmap_success = try_to_unmap(page, ttu_flags);
-+	VM_BUG_ON_PAGE(!unmap_success, page);
- }
+ 	if (userfaultfd_open(0) < 0)
+@@ -686,7 +701,7 @@ static int userfaultfd_zeropage_test(voi
+ 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
+ 		fprintf(stderr, "register failure\n"), exit(1);
  
- static void unfreeze_page(struct page *page)
-diff -puN mm/memory-failure.c~mm-make-ttus-return-boolean mm/memory-failure.c
---- a/mm/memory-failure.c~mm-make-ttus-return-boolean
-+++ a/mm/memory-failure.c
-@@ -322,7 +322,7 @@ static void add_to_kill(struct task_stru
-  * wrong earlier.
-  */
- static void kill_procs(struct list_head *to_kill, int forcekill, int trapno,
--			  int fail, struct page *page, unsigned long pfn,
-+			  bool fail, struct page *page, unsigned long pfn,
- 			  int flags)
- {
- 	struct to_kill *tk, *next;
-@@ -904,13 +904,13 @@ EXPORT_SYMBOL_GPL(get_hwpoison_page);
-  * Do all that is necessary to remove user space mappings. Unmap
-  * the pages and send SIGBUS to the processes if the data was dirty.
-  */
--static int hwpoison_user_mappings(struct page *p, unsigned long pfn,
-+static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
- 				  int trapno, int flags, struct page **hpagep)
- {
- 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
--	int ret;
-+	bool unmap_success;
- 	int kill = 1, forcekill;
- 	struct page *hpage = *hpagep;
+-	expected_ioctls = EXPECTED_IOCTLS;
++	expected_ioctls = uffd_test_ops->expected_ioctls;
+ 	if ((uffdio_register.ioctls & expected_ioctls) !=
+ 	    expected_ioctls)
+ 		fprintf(stderr,
+@@ -716,7 +731,7 @@ static int userfaultfd_events_test(void)
+ 	printf("testing events (fork, remap, remove): ");
+ 	fflush(stdout);
  
-@@ -919,20 +919,20 @@ static int hwpoison_user_mappings(struct
- 	 * other types of pages.
- 	 */
- 	if (PageReserved(p) || PageSlab(p))
--		return SWAP_SUCCESS;
-+		return true;
- 	if (!(PageLRU(hpage) || PageHuge(p)))
--		return SWAP_SUCCESS;
-+		return true;
+-	if (release_pages(area_dst))
++	if (uffd_test_ops->release_pages(area_dst))
+ 		return 1;
  
- 	/*
- 	 * This check implies we don't kill processes if their pages
- 	 * are in the swap cache early. Those are always late kills.
- 	 */
- 	if (!page_mapped(hpage))
--		return SWAP_SUCCESS;
-+		return true;
+ 	features = UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_EVENT_REMAP |
+@@ -731,7 +746,7 @@ static int userfaultfd_events_test(void)
+ 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
+ 		fprintf(stderr, "register failure\n"), exit(1);
  
- 	if (PageKsm(p)) {
- 		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
--		return SWAP_FAIL;
-+		return false;
- 	}
+-	expected_ioctls = EXPECTED_IOCTLS;
++	expected_ioctls = uffd_test_ops->expected_ioctls;
+ 	if ((uffdio_register.ioctls & expected_ioctls) !=
+ 	    expected_ioctls)
+ 		fprintf(stderr,
+@@ -773,10 +788,10 @@ static int userfaultfd_stress(void)
+ 	int err;
+ 	unsigned long userfaults[nr_cpus];
  
- 	if (PageSwapCache(p)) {
-@@ -971,8 +971,8 @@ static int hwpoison_user_mappings(struct
- 	if (kill)
- 		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
+-	allocate_area((void **)&area_src);
++	uffd_test_ops->allocate_area((void **)&area_src);
+ 	if (!area_src)
+ 		return 1;
+-	allocate_area((void **)&area_dst);
++	uffd_test_ops->allocate_area((void **)&area_dst);
+ 	if (!area_dst)
+ 		return 1;
  
--	ret = try_to_unmap(hpage, ttu);
--	if (ret != SWAP_SUCCESS)
-+	unmap_success = try_to_unmap(hpage, ttu);
-+	if (!unmap_success)
- 		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
- 		       pfn, page_mapcount(hpage));
- 
-@@ -987,10 +987,9 @@ static int hwpoison_user_mappings(struct
- 	 * any accesses to the poisoned memory.
- 	 */
- 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
--	kill_procs(&tokill, forcekill, trapno,
--		      ret != SWAP_SUCCESS, p, pfn, flags);
-+	kill_procs(&tokill, forcekill, trapno, !unmap_success, p, pfn, flags);
- 
--	return ret;
-+	return unmap_success;
- }
- 
- static void set_page_hwpoison_huge_page(struct page *hpage)
-@@ -1230,8 +1229,7 @@ int memory_failure(unsigned long pfn, in
- 	 * When the raw error page is thp tail page, hpage points to the raw
- 	 * page after thp split.
- 	 */
--	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
--	    != SWAP_SUCCESS) {
-+	if (!hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
-diff -puN mm/rmap.c~mm-make-ttus-return-boolean mm/rmap.c
---- a/mm/rmap.c~mm-make-ttus-return-boolean
-+++ a/mm/rmap.c
-@@ -1501,12 +1501,10 @@ static int page_mapcount_is_zero(struct
-  *
-  * Tries to remove all the page table entries which are mapping this
-  * page, used in the pageout path.  Caller must hold the page lock.
-- * Return values are:
-  *
-- * SWAP_SUCCESS	- we succeeded in removing all mappings
-- * SWAP_FAIL	- the page is unswappable
-+ * If unmap is successful, return true. Otherwise, false.
-  */
--int try_to_unmap(struct page *page, enum ttu_flags flags)
-+bool try_to_unmap(struct page *page, enum ttu_flags flags)
- {
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
-@@ -1531,7 +1529,7 @@ int try_to_unmap(struct page *page, enum
- 	else
- 		rmap_walk(page, &rwc);
- 
--	return !page_mapcount(page) ? SWAP_SUCCESS : SWAP_FAIL;
-+	return !page_mapcount(page) ? true : false;
- }
- 
- static int page_not_mapped(struct page *page)
-diff -puN mm/vmscan.c~mm-make-ttus-return-boolean mm/vmscan.c
---- a/mm/vmscan.c~mm-make-ttus-return-boolean
-+++ a/mm/vmscan.c
-@@ -972,7 +972,6 @@ static unsigned long shrink_page_list(st
- 		int may_enter_fs;
- 		enum page_references references = PAGEREF_RECLAIM_CLEAN;
- 		bool dirty, writeback;
--		int ret = SWAP_SUCCESS;
- 
- 		cond_resched();
- 
-@@ -1145,13 +1144,9 @@ static unsigned long shrink_page_list(st
- 		 * processes. Try to unmap it here.
- 		 */
- 		if (page_mapped(page)) {
--			switch (ret = try_to_unmap(page,
--				ttu_flags | TTU_BATCH_FLUSH)) {
--			case SWAP_FAIL:
-+			if (!try_to_unmap(page, ttu_flags | TTU_BATCH_FLUSH)) {
- 				nr_unmap_fail++;
- 				goto activate_locked;
--			case SWAP_SUCCESS:
--				; /* try to free the page below */
- 			}
+@@ -856,7 +871,7 @@ static int userfaultfd_stress(void)
+ 			fprintf(stderr, "register failure\n");
+ 			return 1;
  		}
+-		expected_ioctls = EXPECTED_IOCTLS;
++		expected_ioctls = uffd_test_ops->expected_ioctls;
+ 		if ((uffdio_register.ioctls & expected_ioctls) !=
+ 		    expected_ioctls) {
+ 			fprintf(stderr,
+@@ -888,7 +903,7 @@ static int userfaultfd_stress(void)
+ 		 * MADV_DONTNEED only after the UFFDIO_REGISTER, so it's
+ 		 * required to MADV_DONTNEED here.
+ 		 */
+-		if (release_pages(area_dst))
++		if (uffd_test_ops->release_pages(area_dst))
+ 			return 1;
  
+ 		/* bounce pass */
+@@ -934,36 +949,6 @@ static int userfaultfd_stress(void)
+ 	return userfaultfd_zeropage_test() || userfaultfd_events_test();
+ }
+ 
+-#ifndef HUGETLB_TEST
+-
+-int main(int argc, char **argv)
+-{
+-	if (argc < 3)
+-		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+-	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+-	page_size = sysconf(_SC_PAGE_SIZE);
+-	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
+-	    > page_size)
+-		fprintf(stderr, "Impossible to run this test\n"), exit(2);
+-	nr_pages_per_cpu = atol(argv[1]) * 1024*1024 / page_size /
+-		nr_cpus;
+-	if (!nr_pages_per_cpu) {
+-		fprintf(stderr, "invalid MiB\n");
+-		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+-	}
+-	bounces = atoi(argv[2]);
+-	if (bounces <= 0) {
+-		fprintf(stderr, "invalid bounces\n");
+-		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+-	}
+-	nr_pages = nr_pages_per_cpu * nr_cpus;
+-	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
+-	       nr_pages, nr_pages_per_cpu);
+-	return userfaultfd_stress();
+-}
+-
+-#else /* HUGETLB_TEST */
+-
+ /*
+  * Copied from mlock2-tests.c
+  */
+@@ -988,48 +973,78 @@ unsigned long default_huge_page_size(voi
+ 	return hps;
+ }
+ 
+-int main(int argc, char **argv)
++static void set_test_type(const char *type)
+ {
+-	if (argc < 4)
+-		fprintf(stderr, "Usage: <MiB> <bounces> <hugetlbfs_file>\n"),
+-				exit(1);
+-	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+-	page_size = default_huge_page_size();
++	if (!strcmp(type, "anon")) {
++		test_type = TEST_ANON;
++		uffd_test_ops = &anon_uffd_test_ops;
++	} else if (!strcmp(type, "hugetlb")) {
++		test_type = TEST_HUGETLB;
++		uffd_test_ops = &hugetlb_uffd_test_ops;
++	} else if (!strcmp(type, "shmem")) {
++		test_type = TEST_SHMEM;
++		uffd_test_ops = &shmem_uffd_test_ops;
++	} else {
++		fprintf(stderr, "Unknown test type: %s\n", type), exit(1);
++	}
++
++	if (test_type == TEST_HUGETLB)
++		page_size = default_huge_page_size();
++	else
++		page_size = sysconf(_SC_PAGE_SIZE);
++
+ 	if (!page_size)
+-		fprintf(stderr, "Unable to determine huge page size\n"),
++		fprintf(stderr, "Unable to determine page size\n"),
+ 				exit(2);
+ 	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
+ 	    > page_size)
+ 		fprintf(stderr, "Impossible to run this test\n"), exit(2);
+-	nr_pages_per_cpu = atol(argv[1]) * 1024*1024 / page_size /
++}
++
++int main(int argc, char **argv)
++{
++	if (argc < 4)
++		fprintf(stderr, "Usage: <test type> <MiB> <bounces> [hugetlbfs_file]\n"),
++				exit(1);
++
++	set_test_type(argv[1]);
++
++	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
++	nr_pages_per_cpu = atol(argv[2]) * 1024*1024 / page_size /
+ 		nr_cpus;
+ 	if (!nr_pages_per_cpu) {
+ 		fprintf(stderr, "invalid MiB\n");
+ 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+ 	}
+-	bounces = atoi(argv[2]);
++
++	bounces = atoi(argv[3]);
+ 	if (bounces <= 0) {
+ 		fprintf(stderr, "invalid bounces\n");
+ 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+ 	}
+ 	nr_pages = nr_pages_per_cpu * nr_cpus;
+-	huge_fd = open(argv[3], O_CREAT | O_RDWR, 0755);
+-	if (huge_fd < 0) {
+-		fprintf(stderr, "Open of %s failed", argv[3]);
+-		perror("open");
+-		exit(1);
+-	}
+-	if (ftruncate(huge_fd, 0)) {
+-		fprintf(stderr, "ftruncate %s to size 0 failed", argv[3]);
+-		perror("ftruncate");
+-		exit(1);
++
++	if (test_type == TEST_HUGETLB) {
++		if (argc < 5)
++			fprintf(stderr, "Usage: hugetlb <MiB> <bounces> <hugetlbfs_file>\n"),
++				exit(1);
++		huge_fd = open(argv[4], O_CREAT | O_RDWR, 0755);
++		if (huge_fd < 0) {
++			fprintf(stderr, "Open of %s failed", argv[3]);
++			perror("open");
++			exit(1);
++		}
++		if (ftruncate(huge_fd, 0)) {
++			fprintf(stderr, "ftruncate %s to size 0 failed", argv[3]);
++			perror("ftruncate");
++			exit(1);
++		}
+ 	}
+ 	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
+ 	       nr_pages, nr_pages_per_cpu);
+ 	return userfaultfd_stress();
+ }
+ 
+-#endif
+ #else /* __NR_userfaultfd */
+ 
+ #warning "missing __NR_userfaultfd definition"
 _
