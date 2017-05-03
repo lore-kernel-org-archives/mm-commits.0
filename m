@@ -1,104 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [patch 024/102] proc: show MADV_FREE pages info in smaps
-Date: Wed, 03 May 2017 14:52:42 -0700
-Message-ID: <20170503215242.ttfL4DHtp%akpm@linux-foundation.org>
+Subject: [patch 025/102] mm: memcontrol: provide shmem statistics
+Date: Wed, 03 May 2017 14:52:45 -0700
+Message-ID: <20170503215245.VmG8MgQ7s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751535AbdECVwo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:52:44 -0400
+        with ESMTP id S1751535AbdECVwr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:52:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@fb.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cdown@fb.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
 
-From: Shaohua Li <shli@fb.com>
-Subject: proc: show MADV_FREE pages info in smaps
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: provide shmem statistics
 
-Show MADV_FREE pages info of each vma in smaps.  The interface is for
-diganose or monitoring purpose, userspace could use it to understand what
-happens in the application.  Since userspace could dirty MADV_FREE pages
-without notice from kernel, this interface is the only place we can get
-accurate accounting info about MADV_FREE pages.
+Cgroups currently don't report how much shmem they use, which can be
+useful data to have, in particular since shmem is included in the
+cache/file item while being reclaimed like anonymous memory.
 
-[mhocko@kernel.org: update Documentation/filesystems/proc.txt]
-Link: http://lkml.kernel.org/r/89efde633559de1ec07444f2ef0f4963a97a2ce8.1487965799.git.shli@fb.com
-Signed-off-by: Shaohua Li <shli@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Add a counter to track shmem pages during charging and uncharging.
+
+Link: http://lkml.kernel.org/r/20170221164343.32252-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Chris Down <cdown@fb.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    6 ++++++
- fs/proc/task_mmu.c                 |    8 +++++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ Documentation/cgroup-v2.txt |    5 +++++
+ include/linux/memcontrol.h  |    1 +
+ mm/memcontrol.c             |   28 ++++++++++++++++++++--------
+ 3 files changed, 26 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-show-madv_free-pages-info-in-smaps Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-show-madv_free-pages-info-in-smaps
-+++ a/Documentation/filesystems/proc.txt
-@@ -413,6 +413,7 @@ Private_Clean:         0 kB
- Private_Dirty:         0 kB
- Referenced:          892 kB
- Anonymous:             0 kB
-+LazyFree:              0 kB
- AnonHugePages:         0 kB
- ShmemPmdMapped:        0 kB
- Shared_Hugetlb:        0 kB
-@@ -442,6 +443,11 @@ accessed.
- "Anonymous" shows the amount of memory that does not belong to any file.  Even
- a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
- and a page is modified, the file page is replaced by a private anonymous copy.
-+"LazyFree" shows the amount of memory which is marked by madvise(MADV_FREE).
-+The memory isn't freed immediately with madvise(). It's freed in memory
-+pressure if the memory is clean. Please note that the printed value might
-+be lower than the real value due to optimizations used in the current
-+implementation. If this is not desirable please file a bug report.
- "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
- "ShmemPmdMapped" shows the ammount of shared (shmem/tmpfs) memory backed by
- huge pages.
-diff -puN fs/proc/task_mmu.c~proc-show-madv_free-pages-info-in-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-show-madv_free-pages-info-in-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -441,6 +441,7 @@ struct mem_size_stats {
- 	unsigned long private_dirty;
- 	unsigned long referenced;
- 	unsigned long anonymous;
-+	unsigned long lazyfree;
- 	unsigned long anonymous_thp;
- 	unsigned long shmem_thp;
- 	unsigned long swap;
-@@ -457,8 +458,11 @@ static void smaps_account(struct mem_siz
- 	int i, nr = compound ? 1 << compound_order(page) : 1;
- 	unsigned long size = nr * PAGE_SIZE;
+diff -puN Documentation/cgroup-v2.txt~mm-memcontrol-provide-shmem-statistics Documentation/cgroup-v2.txt
+--- a/Documentation/cgroup-v2.txt~mm-memcontrol-provide-shmem-statistics
++++ a/Documentation/cgroup-v2.txt
+@@ -871,6 +871,11 @@ PAGE_SIZE multiple when read back.
  
--	if (PageAnon(page))
-+	if (PageAnon(page)) {
- 		mss->anonymous += size;
-+		if (!PageSwapBacked(page) && !dirty && !PageDirty(page))
-+			mss->lazyfree += size;
+ 		Amount of memory used in network transmission buffers
+ 
++	  shmem
++
++		Amount of cached filesystem data that is swap-backed,
++		such as tmpfs, shm segments, shared anonymous mmap()s
++
+ 	  file_mapped
+ 
+ 		Amount of cached filesystem data mapped with mmap()
+diff -puN include/linux/memcontrol.h~mm-memcontrol-provide-shmem-statistics include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-provide-shmem-statistics
++++ a/include/linux/memcontrol.h
+@@ -46,6 +46,7 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_CACHE,		/* # of pages charged as cache */
+ 	MEM_CGROUP_STAT_RSS,		/* # of pages charged as anon rss */
+ 	MEM_CGROUP_STAT_RSS_HUGE,	/* # of pages charged as anon huge */
++	MEM_CGROUP_STAT_SHMEM,		/* # of pages charged as shmem */
+ 	MEM_CGROUP_STAT_FILE_MAPPED,	/* # of pages charged as file rss */
+ 	MEM_CGROUP_STAT_DIRTY,          /* # of dirty pages in page cache */
+ 	MEM_CGROUP_STAT_WRITEBACK,	/* # of pages under writeback */
+diff -puN mm/memcontrol.c~mm-memcontrol-provide-shmem-statistics mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-provide-shmem-statistics
++++ a/mm/memcontrol.c
+@@ -104,6 +104,7 @@ static const char * const mem_cgroup_sta
+ 	"cache",
+ 	"rss",
+ 	"rss_huge",
++	"shmem",
+ 	"mapped_file",
+ 	"dirty",
+ 	"writeback",
+@@ -608,9 +609,13 @@ static void mem_cgroup_charge_statistics
+ 	if (PageAnon(page))
+ 		__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_RSS],
+ 				nr_pages);
+-	else
++	else {
+ 		__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_CACHE],
+ 				nr_pages);
++		if (PageSwapBacked(page))
++			__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SHMEM],
++				       nr_pages);
 +	}
  
- 	mss->resident += size;
- 	/* Accumulate the size in pages that have been accessed. */
-@@ -771,6 +775,7 @@ static int show_smap(struct seq_file *m,
- 		   "Private_Dirty:  %8lu kB\n"
- 		   "Referenced:     %8lu kB\n"
- 		   "Anonymous:      %8lu kB\n"
-+		   "LazyFree:       %8lu kB\n"
- 		   "AnonHugePages:  %8lu kB\n"
- 		   "ShmemPmdMapped: %8lu kB\n"
- 		   "Shared_Hugetlb: %8lu kB\n"
-@@ -789,6 +794,7 @@ static int show_smap(struct seq_file *m,
- 		   mss.private_dirty >> 10,
- 		   mss.referenced >> 10,
- 		   mss.anonymous >> 10,
-+		   mss.lazyfree >> 10,
- 		   mss.anonymous_thp >> 10,
- 		   mss.shmem_thp >> 10,
- 		   mss.shared_hugetlb >> 10,
+ 	if (compound) {
+ 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+@@ -5208,6 +5213,8 @@ static int memory_stat_show(struct seq_f
+ 	seq_printf(m, "sock %llu\n",
+ 		   (u64)stat[MEMCG_SOCK] * PAGE_SIZE);
+ 
++	seq_printf(m, "shmem %llu\n",
++		   (u64)stat[MEM_CGROUP_STAT_SHMEM] * PAGE_SIZE);
+ 	seq_printf(m, "file_mapped %llu\n",
+ 		   (u64)stat[MEM_CGROUP_STAT_FILE_MAPPED] * PAGE_SIZE);
+ 	seq_printf(m, "file_dirty %llu\n",
+@@ -5476,8 +5483,8 @@ void mem_cgroup_cancel_charge(struct pag
+ 
+ static void uncharge_batch(struct mem_cgroup *memcg, unsigned long pgpgout,
+ 			   unsigned long nr_anon, unsigned long nr_file,
+-			   unsigned long nr_huge, unsigned long nr_kmem,
+-			   struct page *dummy_page)
++			   unsigned long nr_kmem, unsigned long nr_huge,
++			   unsigned long nr_shmem, struct page *dummy_page)
+ {
+ 	unsigned long nr_pages = nr_anon + nr_file + nr_kmem;
+ 	unsigned long flags;
+@@ -5495,6 +5502,7 @@ static void uncharge_batch(struct mem_cg
+ 	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_RSS], nr_anon);
+ 	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_CACHE], nr_file);
+ 	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_RSS_HUGE], nr_huge);
++	__this_cpu_sub(memcg->stat->count[MEM_CGROUP_STAT_SHMEM], nr_shmem);
+ 	__this_cpu_add(memcg->stat->events[MEM_CGROUP_EVENTS_PGPGOUT], pgpgout);
+ 	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
+ 	memcg_check_events(memcg, dummy_page);
+@@ -5507,6 +5515,7 @@ static void uncharge_batch(struct mem_cg
+ static void uncharge_list(struct list_head *page_list)
+ {
+ 	struct mem_cgroup *memcg = NULL;
++	unsigned long nr_shmem = 0;
+ 	unsigned long nr_anon = 0;
+ 	unsigned long nr_file = 0;
+ 	unsigned long nr_huge = 0;
+@@ -5539,9 +5548,9 @@ static void uncharge_list(struct list_he
+ 		if (memcg != page->mem_cgroup) {
+ 			if (memcg) {
+ 				uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
+-					       nr_huge, nr_kmem, page);
+-				pgpgout = nr_anon = nr_file =
+-					nr_huge = nr_kmem = 0;
++					       nr_kmem, nr_huge, nr_shmem, page);
++				pgpgout = nr_anon = nr_file = nr_kmem = 0;
++				nr_huge = nr_shmem = 0;
+ 			}
+ 			memcg = page->mem_cgroup;
+ 		}
+@@ -5555,8 +5564,11 @@ static void uncharge_list(struct list_he
+ 			}
+ 			if (PageAnon(page))
+ 				nr_anon += nr_pages;
+-			else
++			else {
+ 				nr_file += nr_pages;
++				if (PageSwapBacked(page))
++					nr_shmem += nr_pages;
++			}
+ 			pgpgout++;
+ 		} else {
+ 			nr_kmem += 1 << compound_order(page);
+@@ -5568,7 +5580,7 @@ static void uncharge_list(struct list_he
+ 
+ 	if (memcg)
+ 		uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
+-			       nr_huge, nr_kmem, page);
++			       nr_kmem, nr_huge, nr_shmem, page);
+ }
+ 
+ /**
 _
