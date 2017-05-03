@@ -1,69 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [patch 037/102] jbd2: make the whole kjournald2 kthread
- NOFS safe
-Date: Wed, 03 May 2017 14:53:26 -0700
-Message-ID: <20170503215326.9USrxplAB%akpm@linux-foundation.org>
+Subject: [patch 041/102] mm, vmscan: fix zone balance check in
+ prepare_kswapd_sleep
+Date: Wed, 03 May 2017 14:53:38 -0700
+Message-ID: <20170503215338.a9trpTdwT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751535AbdECVx5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:57 -0400
+        with ESMTP id S1751402AbdECVyD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, torvalds@linux-foundation.org, tytso@mit.edu, vbabka@suse.cz
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, sgoel01@yahoo.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: jbd2: make the whole kjournald2 kthread NOFS safe
+From: Shantanu Goel <sgoel01@yahoo.com>
+Subject: mm, vmscan: fix zone balance check in prepare_kswapd_sleep
 
-kjournald2 is central to the transaction commit processing.  As such any
-potential allocation from this kernel thread has to be GFP_NOFS.  Make
-sure to mark the whole kernel thread GFP_NOFS by the memalloc_nofs_save.
+Patch series "Reduce amount of time kswapd sleeps prematurely", v2.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170306131408.9828-8-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.cz>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Nikolay Borisov <nborisov@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The series is unusual in that the first patch fixes one problem and
+introduces other issues that are noted in the changelog.  Patch 2 makes a
+minor modification that is worth considering on its own but leaves the
+kernel in a state where it behaves badly.  It's not until patch 3 that
+there is an improvement against baseline.
+
+This was mostly motivated by examining Chris Mason's "simoop" benchmark
+which puts the VM under similar pressure to HADOOP.  It has been reported
+that the benchmark has regressed severely during the last number of
+releases.  While I cannot reproduce all the same problems Chris
+experienced due to hardware limitations, there was a number of problems on
+a 2-socket machine with a single disk.
+
+simoop latencies
+                                         4.11.0-rc1            4.11.0-rc1
+                                            vanilla          keepawake-v2
+Amean    p50-Read             21670074.18 (  0.00%) 22668332.52 ( -4.61%)
+Amean    p95-Read             25456267.64 (  0.00%) 26738688.00 ( -5.04%)
+Amean    p99-Read             29369064.73 (  0.00%) 30991404.52 ( -5.52%)
+Amean    p50-Write                1390.30 (  0.00%)      924.91 ( 33.47%)
+Amean    p95-Write              412901.57 (  0.00%)     1362.62 ( 99.67%)
+Amean    p99-Write             6668722.09 (  0.00%)    16854.04 ( 99.75%)
+Amean    p50-Allocation          78714.31 (  0.00%)    74729.74 (  5.06%)
+Amean    p95-Allocation         175533.51 (  0.00%)   101609.74 ( 42.11%)
+Amean    p99-Allocation         247003.02 (  0.00%)   125765.57 ( 49.08%)
+
+These are latencies.  Read/write are threads reading fixed-size random
+blocks from a simulated database.  The allocation latency is mmaping and
+faulting regions of memory.  The p50, 95 and p99 reports the worst
+latencies for 50% of the samples, 95% and 99% respectively.
+
+For example, the report indicates that while the test was running 99% of
+writes completed 99.75% faster.  It's worth noting that on a UMA machine
+that no difference in performance with simoop was observed so milage will
+vary.
+
+It's noted that there is a slight impact to read latencies but it's mostly
+due to IO scheduler decisions and offset by the large reduction in other
+latencies.
+
+
+This patch (of 3):
+
+The check in prepare_kswapd_sleep needs to match the one in balance_pgdat
+since the latter will return as soon as any one of the zones in the
+classzone is above the watermark.  This is specially important for higher
+order allocations since balance_pgdat will typically reset the order to
+zero relying on compaction to create the higher order pages.  Without this
+patch, prepare_kswapd_sleep fails to wake up kcompactd since the zone
+balance check fails.
+
+It was first reported against 4.9.7 that kswapd is failing to wake up
+kcompactd due to a mismatch in the zone balance check between
+balance_pgdat() and prepare_kswapd_sleep().  balance_pgdat() returns as
+soon as a single zone satisfies the allocation but prepare_kswapd_sleep()
+requires all zones to do +the same.  This causes prepare_kswapd_sleep() to
+never succeed except in the order == 0 case and consequently,
+wakeup_kcompactd() is never called.  For the machine that originally
+motivated this patch, the state of compaction from /proc/vmstat looked
+this way after a day and a half +of uptime:
+
+compact_migrate_scanned 240496
+compact_free_scanned 76238632
+compact_isolated 123472
+compact_stall 1791
+compact_fail 29
+compact_success 1762
+compact_daemon_wake 0
+
+After applying the patch and about 10 hours of uptime the state looks
+like this:
+
+compact_migrate_scanned 59927299
+compact_free_scanned 2021075136
+compact_isolated 640926
+compact_stall 4
+compact_fail 2
+compact_success 2
+compact_daemon_wake 5160
+
+Further notes from Mel that motivated him to pick this patch up and
+resend it;
+
+It was observed for the simoop workload (pressures the VM similar to
+HADOOP) that kswapd was failing to keep ahead of direct reclaim.  The
+investigation noted that there was a need to rationalise kswapd decisions
+to reclaim with kswapd decisions to sleep.  With this patch on a 2-socket
+box, there was a 49% reduction in direct reclaim scanning.
+
+However, the impact otherwise is extremely negative.  Kswapd reclaim
+efficiency dropped from 98% to 76%.  simoop has three latency-related
+metrics for read, write and allocation (an anonymous mmap and fault).
+
+                                         4.11.0-rc1            4.11.0-rc1
+                                            vanilla           fixcheck-v2
+Amean    p50-Read             21670074.18 (  0.00%) 20464344.18 (  5.56%)
+Amean    p95-Read             25456267.64 (  0.00%) 25721423.64 ( -1.04%)
+Amean    p99-Read             29369064.73 (  0.00%) 30174230.76 ( -2.74%)
+Amean    p50-Write                1390.30 (  0.00%)     1395.28 ( -0.36%)
+Amean    p95-Write              412901.57 (  0.00%)    37737.74 ( 90.86%)
+Amean    p99-Write             6668722.09 (  0.00%)   666489.04 ( 90.01%)
+Amean    p50-Allocation          78714.31 (  0.00%)    86286.22 ( -9.62%)
+Amean    p95-Allocation         175533.51 (  0.00%)   351812.27 (-100.42%)
+Amean    p99-Allocation         247003.02 (  0.00%)  6291171.56 (-2447.00%)
+
+Of greater concern is that the patch causes swapping and page writes from
+kswapd context rose from 0 pages to 4189753 pages during the hour the
+workload ran for.  By and large, the patch has very bad behaviour but
+easily missed as the impact on a UMA machine is negligible.
+
+This patch is included with the data in case a bisection leads to this area.
+This patch is also a pre-requisite for the rest of the series.
+
+Link: http://lkml.kernel.org/r/20170309075657.25121-2-mgorman@techsingularity.net
+Signed-off-by: Shantanu Goel <sgoel01@yahoo.com>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/vmscan.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe
-+++ a/fs/jbd2/journal.c
-@@ -43,6 +43,7 @@
- #include <linux/backing-dev.h>
- #include <linux/bitops.h>
- #include <linux/ratelimit.h>
-+#include <linux/sched/mm.h>
+diff -puN mm/vmscan.c~mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep
++++ a/mm/vmscan.c
+@@ -3103,11 +3103,11 @@ static bool prepare_kswapd_sleep(pg_data
+ 		if (!managed_zone(zone))
+ 			continue;
  
- #define CREATE_TRACE_POINTS
- #include <trace/events/jbd2.h>
-@@ -206,6 +207,14 @@ static int kjournald2(void *arg)
- 	wake_up(&journal->j_wait_done_commit);
+-		if (!zone_balanced(zone, order, classzone_idx))
+-			return false;
++		if (zone_balanced(zone, order, classzone_idx))
++			return true;
+ 	}
  
- 	/*
-+	 * Make sure that no allocations from this kernel thread will ever
-+	 * recurse to the fs layer because we are responsible for the
-+	 * transaction commit and any fs involvement might get stuck waiting for
-+	 * the trasn. commit.
-+	 */
-+	memalloc_nofs_save();
-+
+-	return true;
++	return false;
+ }
+ 
+ /*
+@@ -3304,7 +3304,13 @@ static void kswapd_try_to_sleep(pg_data_
+ 
+ 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+ 
+-	/* Try to sleep for a short interval */
 +	/*
- 	 * And now, wait forever for commit wakeup events.
- 	 */
- 	write_lock(&journal->j_state_lock);
++	 * Try to sleep for a short interval. Note that kcompactd will only be
++	 * woken if it is possible to sleep for a short interval. This is
++	 * deliberate on the assumption that if reclaim cannot keep an
++	 * eligible zone balanced that it's also unlikely that compaction will
++	 * succeed.
++	 */
+ 	if (prepare_kswapd_sleep(pgdat, reclaim_order, classzone_idx)) {
+ 		/*
+ 		 * Compaction records what page blocks it recently failed to
 _
