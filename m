@@ -1,48 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [patch 067/102] mm/mmap: replace SHM_HUGE_MASK with
- MAP_HUGE_MASK inside mmap_pgoff
-Date: Wed, 03 May 2017 14:55:00 -0700
-Message-ID: <20170503215500.q3rV6arpa%akpm@linux-foundation.org>
+Subject: [patch 075/102] mm/madvise.c: clean up MADV_SOFT_OFFLINE
+ and MADV_HWPOISON
+Date: Wed, 03 May 2017 14:55:25 -0700
+Message-ID: <20170503215525.F71uSw-y2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51056 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbdECV4B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:56:01 -0400
+        with ESMTP id S1751198AbdECV4H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:56:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bsingharora@gmail.com, khandual@linux.vnet.ibm.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
 
 From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/mmap: replace SHM_HUGE_MASK with MAP_HUGE_MASK inside mmap_pgoff
+Subject: mm/madvise.c: clean up MADV_SOFT_OFFLINE and MADV_HWPOISON
 
-091d0d55b286 ("shm: fix null pointer deref when userspace specifies
-invalid hugepage size") had replaced MAP_HUGE_MASK with SHM_HUGE_MASK. 
-Though both of them contain the same numeric value of 0x3f, MAP_HUGE_MASK
-flag sounds more appropriate than the other one in the context.  Hence
-change it back.
+This cleans up handling MADV_SOFT_OFFLINE and MADV_HWPOISON called
+through madvise() system call.
 
-Link: http://lkml.kernel.org/r/20170404045635.616-1-khandual@linux.vnet.ibm.com
+* madvise_memory_failure() was misleading to accommodate handling of
+  both memory_failure() as well as soft_offline_page() functions.
+  Basically it handles memory error injection from user space which
+  can go either way as memory failure or soft offline. Renamed as
+  madvise_inject_error() instead.
+
+* Renamed struct page pointer 'p' to 'page'.
+
+* pr_info() was essentially printing PFN value but it said 'page'
+  which was misleading. Made the process virtual address explicit.
+
+Before the patch:
+
+Soft offlining page 0x15e3e at 0x3fff8c230000
+Soft offlining page 0x1f3 at 0x3fffa0da0000
+Soft offlining page 0x744 at 0x3fff7d200000
+Soft offlining page 0x1634d at 0x3fff95e20000
+Soft offlining page 0x16349 at 0x3fff95e30000
+Soft offlining page 0x1d6 at 0x3fff9e8b0000
+Soft offlining page 0x5f3 at 0x3fff91bd0000
+
+Injecting memory failure for page 0x15c8b at 0x3fff83280000
+Injecting memory failure for page 0x16190 at 0x3fff83290000
+Injecting memory failure for page 0x740 at 0x3fff9a2e0000
+Injecting memory failure for page 0x741 at 0x3fff9a2f0000
+
+After the patch:
+
+Soft offlining pfn 0x1484e at process virtual address 0x3fff883c0000
+Soft offlining pfn 0x1484f at process virtual address 0x3fff883d0000
+Soft offlining pfn 0x14850 at process virtual address 0x3fff883e0000
+Soft offlining pfn 0x14851 at process virtual address 0x3fff883f0000
+Soft offlining pfn 0x14852 at process virtual address 0x3fff88400000
+Soft offlining pfn 0x14853 at process virtual address 0x3fff88410000
+Soft offlining pfn 0x14854 at process virtual address 0x3fff88420000
+Soft offlining pfn 0x1521c at process virtual address 0x3fff6bc70000
+
+Injecting memory failure for pfn 0x10fcf at process virtual address 0x3fff86310000
+Injecting memory failure for pfn 0x10fd0 at process virtual address 0x3fff86320000
+Injecting memory failure for pfn 0x10fd1 at process virtual address 0x3fff86330000
+Injecting memory failure for pfn 0x10fd2 at process virtual address 0x3fff86340000
+Injecting memory failure for pfn 0x10fd3 at process virtual address 0x3fff86350000
+Injecting memory failure for pfn 0x10fd4 at process virtual address 0x3fff86360000
+Injecting memory failure for pfn 0x10fd5 at process virtual address 0x3fff86370000
+
+Link: http://lkml.kernel.org/r/20170410084701.11248-1-khandual@linux.vnet.ibm.com
 Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c |   34 ++++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff mm/mmap.c
---- a/mm/mmap.c~mm-mmap-replace-shm_huge_mask-with-map_huge_mask-inside-mmap_pgoff
-+++ a/mm/mmap.c
-@@ -1479,7 +1479,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 		struct user_struct *user = NULL;
- 		struct hstate *hs;
+diff -puN mm/madvise.c~mm-madvise-clean-up-madv_soft_offline-and-madv_hwpoison mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-clean-up-madv_soft_offline-and-madv_hwpoison
++++ a/mm/madvise.c
+@@ -605,34 +605,40 @@ static long madvise_remove(struct vm_are
+ /*
+  * Error injection support for memory error handling.
+  */
+-static int madvise_hwpoison(int bhv, unsigned long start, unsigned long end)
++static int madvise_inject_error(int behavior,
++		unsigned long start, unsigned long end)
+ {
+-	struct page *p;
++	struct page *page;
++
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
++
+ 	for (; start < end; start += PAGE_SIZE <<
+-				compound_order(compound_head(p))) {
++				compound_order(compound_head(page))) {
+ 		int ret;
  
--		hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) & SHM_HUGE_MASK);
-+		hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
- 		if (!hs)
- 			return -EINVAL;
+-		ret = get_user_pages_fast(start, 1, 0, &p);
++		ret = get_user_pages_fast(start, 1, 0, &page);
+ 		if (ret != 1)
+ 			return ret;
  
+-		if (PageHWPoison(p)) {
+-			put_page(p);
++		if (PageHWPoison(page)) {
++			put_page(page);
+ 			continue;
+ 		}
+-		if (bhv == MADV_SOFT_OFFLINE) {
+-			pr_info("Soft offlining page %#lx at %#lx\n",
+-				page_to_pfn(p), start);
+-			ret = soft_offline_page(p, MF_COUNT_INCREASED);
++
++		if (behavior == MADV_SOFT_OFFLINE) {
++			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
++						page_to_pfn(page), start);
++
++			ret = soft_offline_page(page, MF_COUNT_INCREASED);
+ 			if (ret)
+ 				return ret;
+ 			continue;
+ 		}
+-		pr_info("Injecting memory failure for page %#lx at %#lx\n",
+-		       page_to_pfn(p), start);
+-		ret = memory_failure(page_to_pfn(p), 0, MF_COUNT_INCREASED);
++		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
++						page_to_pfn(page), start);
++
++		ret = memory_failure(page_to_pfn(page), 0, MF_COUNT_INCREASED);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -756,7 +762,7 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE)
+-		return madvise_hwpoison(behavior, start, start+len_in);
++		return madvise_inject_error(behavior, start, start + len_in);
+ #endif
+ 	if (!madvise_behavior_valid(behavior))
+ 		return error;
 _
