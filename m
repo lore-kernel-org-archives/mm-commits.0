@@ -1,50 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 003/102] blackfin: bf609: let clk_disable() return
- immediately if clk is NULL
-Date: Wed, 03 May 2017 14:51:35 -0700
-Message-ID: <20170503215135.pJcTdoTJ9%akpm@linux-foundation.org>
+Subject: [patch 005/102] ocfs2: o2hb: revert hb threshold to keep
+ compatible
+Date: Wed, 03 May 2017 14:51:41 -0700
+Message-ID: <20170503215141.pW0WTydXP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47156 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdECVvg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:36 -0400
+        with ESMTP id S1751198AbdECVvm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, mturquette@baylibre.com, ralf@linux-mips.org, realmz6@gmail.com, sboyd@codeaurora.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: blackfin: bf609: let clk_disable() return immediately if clk is NULL
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: o2hb: revert hb threshold to keep compatible
 
-In many of clk_disable() implementations, it is a no-op for a NULL
-pointer input, but this is one of the exceptions.
+Configfs is the interface for ocfs2-tools to set configure to kernel
+and $configfs_dir/cluster/$clustername/heartbeat/dead_threshold is the
+one used to configure heartbeat dead threshold.  Kernel has a default
+value of it but user can set O2CB_HEARTBEAT_THRESHOLD in
+/etc/sysconfig/o2cb to override it.
 
-Making it treewide consistent will allow clock consumers to call
-clk_disable() without NULL pointer check.
+Commit 45b997737a80 ("ocfs2/cluster: use per-attribute show and store
+methods") changed heartbeat dead threshold name while ocfs2-tools did
+not, so ocfs2-tools won't set this configurable and the default value
+is always used.  So revert it.
 
-Link: http://lkml.kernel.org/r/1490692624-11931-4-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Michael Turquette <mturquette@baylibre.com>
-Cc: Steven Miao <realmz6@gmail.com>
+Fixes: 45b997737a80 ("ocfs2/cluster: use per-attribute show and store methods")
+Link: http://lkml.kernel.org/r/1490665245-15374-1-git-send-email-junxiao.bi@oracle.com
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Acked-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/mach-bf609/clock.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/cluster/heartbeat.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/blackfin/mach-bf609/clock.c~blackfin-bf609-let-clk_disable-return-immediately-if-clk-is-null arch/blackfin/mach-bf609/clock.c
---- a/arch/blackfin/mach-bf609/clock.c~blackfin-bf609-let-clk_disable-return-immediately-if-clk-is-null
-+++ a/arch/blackfin/mach-bf609/clock.c
-@@ -97,6 +97,9 @@ EXPORT_SYMBOL(clk_enable);
- 
- void clk_disable(struct clk *clk)
- {
-+	if (!clk)
-+		return;
-+
- 	if (clk->ops && clk->ops->disable)
- 		clk->ops->disable(clk);
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-revert-hb-threshold-to-keep-compatible fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-revert-hb-threshold-to-keep-compatible
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -2242,13 +2242,13 @@ unlock:
+ 	spin_unlock(&o2hb_live_lock);
  }
+ 
+-static ssize_t o2hb_heartbeat_group_threshold_show(struct config_item *item,
++static ssize_t o2hb_heartbeat_group_dead_threshold_show(struct config_item *item,
+ 		char *page)
+ {
+ 	return sprintf(page, "%u\n", o2hb_dead_threshold);
+ }
+ 
+-static ssize_t o2hb_heartbeat_group_threshold_store(struct config_item *item,
++static ssize_t o2hb_heartbeat_group_dead_threshold_store(struct config_item *item,
+ 		const char *page, size_t count)
+ {
+ 	unsigned long tmp;
+@@ -2297,11 +2297,11 @@ static ssize_t o2hb_heartbeat_group_mode
+ 
+ }
+ 
+-CONFIGFS_ATTR(o2hb_heartbeat_group_, threshold);
++CONFIGFS_ATTR(o2hb_heartbeat_group_, dead_threshold);
+ CONFIGFS_ATTR(o2hb_heartbeat_group_, mode);
+ 
+ static struct configfs_attribute *o2hb_heartbeat_group_attrs[] = {
+-	&o2hb_heartbeat_group_attr_threshold,
++	&o2hb_heartbeat_group_attr_dead_threshold,
+ 	&o2hb_heartbeat_group_attr_mode,
+ 	NULL,
+ };
 _
