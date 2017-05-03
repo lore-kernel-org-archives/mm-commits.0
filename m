@@ -1,75 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [patch 030/102] mm, vmstat: suppress pcp stats for
- unpopulated zones in zoneinfo
-Date: Wed, 03 May 2017 14:53:02 -0700
-Message-ID: <20170503215302.lt_6be8P5%akpm@linux-foundation.org>
+Subject: [patch 031/102] lockdep: teach lockdep about
+ memalloc_noio_save
+Date: Wed, 03 May 2017 14:53:05 -0700
+Message-ID: <20170503215305.CoVzohao8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47716 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751491AbdECVxD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:03 -0400
+        with ESMTP id S1751670AbdECVxI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, torvalds@linux-foundation.org, tytso@mit.edu, vbabka@suse.cz
 
-From: David Rientjes <rientjes@google.com>
-Subject: mm, vmstat: suppress pcp stats for unpopulated zones in zoneinfo
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: lockdep: teach lockdep about memalloc_noio_save
 
-After "mm, vmstat: print non-populated zones in zoneinfo", /proc/zoneinfo
-will show unpopulated zones.
+Patch series "scope GFP_NOFS api", v5.
 
-The per-cpu pageset statistics are not relevant for unpopulated zones and
-can be potentially lengthy, so supress them when they are not interesting.
+This patch (of 7):
 
-Also moves lowmem reserve protection information above pcp stats since it
-is relevant for all zones per vm.lowmem_reserve_ratio.
+Commit 21caf2fc1931 ("mm: teach mm by current context info to not do I/O
+during memory allocation") added the memalloc_noio_(save|restore)
+functions to enable people to modify the MM behavior by disabling I/O
+during memory allocation.  This was further extended in Fixes:
+934f3072c17c ("mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set"). 
+memalloc_noio_* functions prevent allocation paths recursing back into the
+filesystem without explicitly changing the flags for every allocation
+site.  However, lockdep hasn't been keeping up with the changes and it
+entirely misses handling the memalloc_noio adjustments.  Instead, it is
+left to the callers of __lockdep_trace_alloc to call the function after
+they have shaven the respective GFP flags which can lead to false
+positives:
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1703061400500.46428@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+[  644.173373] =================================
+[  644.174012] [ INFO: inconsistent lock state ]
+[  644.174012] 4.10.0-nbor #134 Not tainted
+[  644.174012] ---------------------------------
+[  644.174012] inconsistent {IN-RECLAIM_FS-W} -> {RECLAIM_FS-ON-W} usage.
+[  644.174012] fsstress/3365 [HC0[0]:SC0[0]:HE1:SE1] takes:
+[  644.174012]  (&xfs_nondir_ilock_class){++++?.}, at: [<ffffffff8136f231>] xfs_ilock+0x141/0x230
+[  644.174012] {IN-RECLAIM_FS-W} state was registered at:
+[  644.174012]   __lock_acquire+0x62a/0x17c0
+[  644.174012]   lock_acquire+0xc5/0x220
+[  644.174012]   down_write_nested+0x4f/0x90
+[  644.174012]   xfs_ilock+0x141/0x230
+[  644.174012]   xfs_reclaim_inode+0x12a/0x320
+[  644.174012]   xfs_reclaim_inodes_ag+0x2c8/0x4e0
+[  644.174012]   xfs_reclaim_inodes_nr+0x33/0x40
+[  644.174012]   xfs_fs_free_cached_objects+0x19/0x20
+[  644.174012]   super_cache_scan+0x191/0x1a0
+[  644.174012]   shrink_slab+0x26f/0x5f0
+[  644.174012]   shrink_node+0xf9/0x2f0
+[  644.174012]   kswapd+0x356/0x920
+[  644.174012]   kthread+0x10c/0x140
+[  644.174012]   ret_from_fork+0x31/0x40
+[  644.174012] irq event stamp: 173777
+[  644.174012] hardirqs last  enabled at (173777): [<ffffffff8105b440>] __local_bh_enable_ip+0x70/0xc0
+[  644.174012] hardirqs last disabled at (173775): [<ffffffff8105b407>] __local_bh_enable_ip+0x37/0xc0
+[  644.174012] softirqs last  enabled at (173776): [<ffffffff81357e2a>] _xfs_buf_find+0x67a/0xb70
+[  644.174012] softirqs last disabled at (173774): [<ffffffff81357d8b>] _xfs_buf_find+0x5db/0xb70
+[  644.174012]
+[  644.174012] other info that might help us debug this:
+[  644.174012]  Possible unsafe locking scenario:
+[  644.174012]
+[  644.174012]        CPU0
+[  644.174012]        ----
+[  644.174012]   lock(&xfs_nondir_ilock_class);
+[  644.174012]   <Interrupt>
+[  644.174012]     lock(&xfs_nondir_ilock_class);
+[  644.174012]
+[  644.174012]  *** DEADLOCK ***
+[  644.174012]
+[  644.174012] 4 locks held by fsstress/3365:
+[  644.174012]  #0:  (sb_writers#10){++++++}, at: [<ffffffff81208d04>] mnt_want_write+0x24/0x50
+[  644.174012]  #1:  (&sb->s_type->i_mutex_key#12){++++++}, at: [<ffffffff8120ea2f>] vfs_setxattr+0x6f/0xb0
+[  644.174012]  #2:  (sb_internal#2){++++++}, at: [<ffffffff8138185c>] xfs_trans_alloc+0xfc/0x140
+[  644.174012]  #3:  (&xfs_nondir_ilock_class){++++?.}, at: [<ffffffff8136f231>] xfs_ilock+0x141/0x230
+[  644.174012]
+[  644.174012] stack backtrace:
+[  644.174012] CPU: 0 PID: 3365 Comm: fsstress Not tainted 4.10.0-nbor #134
+[  644.174012] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[  644.174012] Call Trace:
+[  644.174012]  dump_stack+0x85/0xc9
+[  644.174012]  print_usage_bug.part.37+0x284/0x293
+[  644.174012]  ? print_shortest_lock_dependencies+0x1b0/0x1b0
+[  644.174012]  mark_lock+0x27e/0x660
+[  644.174012]  mark_held_locks+0x66/0x90
+[  644.174012]  lockdep_trace_alloc+0x6f/0xd0
+[  644.174012]  kmem_cache_alloc_node_trace+0x3a/0x2c0
+[  644.174012]  ? vm_map_ram+0x2a1/0x510
+[  644.174012]  vm_map_ram+0x2a1/0x510
+[  644.174012]  ? vm_map_ram+0x46/0x510
+[  644.174012]  _xfs_buf_map_pages+0x77/0x140
+[  644.174012]  xfs_buf_get_map+0x185/0x2a0
+[  644.174012]  xfs_attr_rmtval_set+0x233/0x430
+[  644.174012]  xfs_attr_leaf_addname+0x2d2/0x500
+[  644.174012]  xfs_attr_set+0x214/0x420
+[  644.174012]  xfs_xattr_set+0x59/0xb0
+[  644.174012]  __vfs_setxattr+0x76/0xa0
+[  644.174012]  __vfs_setxattr_noperm+0x5e/0xf0
+[  644.174012]  vfs_setxattr+0xae/0xb0
+[  644.174012]  ? __might_fault+0x43/0xa0
+[  644.174012]  setxattr+0x15e/0x1a0
+[  644.174012]  ? __lock_is_held+0x53/0x90
+[  644.174012]  ? rcu_read_lock_sched_held+0x93/0xa0
+[  644.174012]  ? rcu_sync_lockdep_assert+0x2f/0x60
+[  644.174012]  ? __sb_start_write+0x130/0x1d0
+[  644.174012]  ? mnt_want_write+0x24/0x50
+[  644.174012]  path_setxattr+0x8f/0xc0
+[  644.174012]  SyS_lsetxattr+0x11/0x20
+[  644.174012]  entry_SYSCALL_64_fastpath+0x23/0xc6
+
+Let's fix this by making lockdep explicitly do the shaving of respective
+GFP flags.
+
+Fixes: 934f3072c17c ("mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set")
+Link: http://lkml.kernel.org/r/20170306131408.9828-2-mhocko@kernel.org
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ kernel/locking/lockdep.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo
-+++ a/mm/vmstat.c
-@@ -1393,18 +1393,24 @@ static void zoneinfo_show_print(struct s
- 		   zone->present_pages,
- 		   zone->managed_pages);
+diff -puN kernel/locking/lockdep.c~lockdep-teach-lockdep-about-memalloc_noio_save kernel/locking/lockdep.c
+--- a/kernel/locking/lockdep.c~lockdep-teach-lockdep-about-memalloc_noio_save
++++ a/kernel/locking/lockdep.c
+@@ -30,6 +30,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/clock.h>
+ #include <linux/sched/task.h>
++#include <linux/sched/mm.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/proc_fs.h>
+@@ -2876,6 +2877,8 @@ static void __lockdep_trace_alloc(gfp_t
+ 	if (unlikely(!debug_locks))
+ 		return;
  
--	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
--		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
--				zone_page_state(zone, i));
--
- 	seq_printf(m,
- 		   "\n        protection: (%ld",
- 		   zone->lowmem_reserve[0]);
- 	for (i = 1; i < ARRAY_SIZE(zone->lowmem_reserve); i++)
- 		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
--	seq_printf(m,
--		   ")"
--		   "\n  pagesets");
-+	seq_putc(m, ')');
++	gfp_mask = memalloc_noio_flags(gfp_mask);
 +
-+	/* If unpopulated, no other information is useful */
-+	if (!populated_zone(zone)) {
-+		seq_putc(m, '\n');
-+		return;
-+	}
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
-+				zone_page_state(zone, i));
-+
-+	seq_printf(m, "\n  pagesets");
- 	for_each_online_cpu(i) {
- 		struct per_cpu_pageset *pageset;
+ 	/* no reclaim without waiting on it */
+ 	if (!(gfp_mask & __GFP_DIRECT_RECLAIM))
+ 		return;
+@@ -3947,7 +3950,7 @@ EXPORT_SYMBOL_GPL(lock_unpin_lock);
  
+ void lockdep_set_current_reclaim_state(gfp_t gfp_mask)
+ {
+-	current->lockdep_reclaim_gfp = gfp_mask;
++	current->lockdep_reclaim_gfp = memalloc_noio_flags(gfp_mask);
+ }
+ 
+ void lockdep_clear_current_reclaim_state(void)
 _
