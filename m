@@ -1,75 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 005/102] ocfs2: o2hb: revert hb threshold to keep
- compatible
-Date: Wed, 03 May 2017 14:51:41 -0700
-Message-ID: <20170503215141.pW0WTydXP%akpm@linux-foundation.org>
+Subject: [patch 006/102] fs/ocfs2/cluster: use offset_in_page()
+ macro
+Date: Wed, 03 May 2017 14:51:44 -0700
+Message-ID: <20170503215144.JgMFIdsDz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47170 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdECVvm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:42 -0400
+        with ESMTP id S1751670AbdECVvq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, geliangtang@gmail.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: o2hb: revert hb threshold to keep compatible
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: fs/ocfs2/cluster: use offset_in_page() macro
 
-Configfs is the interface for ocfs2-tools to set configure to kernel
-and $configfs_dir/cluster/$clustername/heartbeat/dead_threshold is the
-one used to configure heartbeat dead threshold.  Kernel has a default
-value of it but user can set O2CB_HEARTBEAT_THRESHOLD in
-/etc/sysconfig/o2cb to override it.
+Use offset_in_page() macro instead of open-coding.
 
-Commit 45b997737a80 ("ocfs2/cluster: use per-attribute show and store
-methods") changed heartbeat dead threshold name while ocfs2-tools did
-not, so ocfs2-tools won't set this configurable and the default value
-is always used.  So revert it.
-
-Fixes: 45b997737a80 ("ocfs2/cluster: use per-attribute show and store methods")
-Link: http://lkml.kernel.org/r/1490665245-15374-1-git-send-email-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Acked-by: Joseph Qi <jiangqi903@gmail.com>
+Link: http://lkml.kernel.org/r/4dbc77ccaaed98b183cf4dba58a4fa325fd65048.1492758503.git.geliangtang@gmail.com
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ocfs2/cluster/tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-revert-hb-threshold-to-keep-compatible fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-revert-hb-threshold-to-keep-compatible
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -2242,13 +2242,13 @@ unlock:
- 	spin_unlock(&o2hb_live_lock);
- }
- 
--static ssize_t o2hb_heartbeat_group_threshold_show(struct config_item *item,
-+static ssize_t o2hb_heartbeat_group_dead_threshold_show(struct config_item *item,
- 		char *page)
- {
- 	return sprintf(page, "%u\n", o2hb_dead_threshold);
- }
- 
--static ssize_t o2hb_heartbeat_group_threshold_store(struct config_item *item,
-+static ssize_t o2hb_heartbeat_group_dead_threshold_store(struct config_item *item,
- 		const char *page, size_t count)
- {
- 	unsigned long tmp;
-@@ -2297,11 +2297,11 @@ static ssize_t o2hb_heartbeat_group_mode
- 
- }
- 
--CONFIGFS_ATTR(o2hb_heartbeat_group_, threshold);
-+CONFIGFS_ATTR(o2hb_heartbeat_group_, dead_threshold);
- CONFIGFS_ATTR(o2hb_heartbeat_group_, mode);
- 
- static struct configfs_attribute *o2hb_heartbeat_group_attrs[] = {
--	&o2hb_heartbeat_group_attr_threshold,
-+	&o2hb_heartbeat_group_attr_dead_threshold,
- 	&o2hb_heartbeat_group_attr_mode,
- 	NULL,
- };
+diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-offset_in_page-macro fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-offset_in_page-macro
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -955,7 +955,7 @@ static void o2net_sendpage(struct o2net_
+ 		mutex_lock(&sc->sc_send_lock);
+ 		ret = sc->sc_sock->ops->sendpage(sc->sc_sock,
+ 						 virt_to_page(kmalloced_virt),
+-						 (long)kmalloced_virt & ~PAGE_MASK,
++						 offset_in_page(kmalloced_virt),
+ 						 size, MSG_DONTWAIT);
+ 		mutex_unlock(&sc->sc_send_lock);
+ 		if (ret == size)
 _
