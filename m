@@ -1,57 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [patch 090/102] mm/gup.c: fix access_ok() argument type
-Date: Wed, 03 May 2017 14:56:12 -0700
-Message-ID: <20170503215612.jRwkb7rDj%akpm@linux-foundation.org>
+Subject: [patch 086/102] fs: fix data invalidation in the
+ cleancache during direct IO
+Date: Wed, 03 May 2017 14:55:59 -0700
+Message-ID: <20170503215559.Opxq1OJlj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53938 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752290AbdECV6E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:58:04 -0400
+        with ESMTP id S1751198AbdECV6S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, kirill.shutemov@linux.intel.com, lstoakes@gmail.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/gup.c: fix access_ok() argument type
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: fs: fix data invalidation in the cleancache during direct IO
 
-MIPS just got changed to only accept a pointer argument for access_ok(),
-causing one warning in drivers/scsi/pmcraid.c.  I tried changing x86 the
-same way and found the same warning in __get_user_pages_fast() and nowhere
-else in the kernel during randconfig testing:
+Patch series "Properly invalidate data in the cleancache", v2.
 
-mm/gup.c: In function '__get_user_pages_fast':
-mm/gup.c:1578:6: error: passing argument 1 of '__chk_range_not_ok' makes pointer from integer without a cast [-Werror=int-conversion]
+We've noticed that after direct IO write, buffered read sometimes gets
+stale data which is coming from the cleancache.  The reason for this is
+that some direct write hooks call call invalidate_inode_pages2[_range]()
+conditionally iff mapping->nrpages is not zero, so we may not invalidate
+data in the cleancache.
 
-It would probably be a good idea to enforce type-safety in general, so
-let's change this file to not cause a warning if we do that.
+Another odd thing is that we check only for ->nrpages and don't check for
+->nrexceptional, but invalidate_inode_pages2[_range] also invalidates
+exceptional entries as well.  So we invalidate exceptional entries only if
+->nrpages != 0?  This doesn't feel right.
 
-I don't know why the warning did not appear on MIPS.
+ - Patch 1 fixes direct IO writes by removing ->nrpages check.
+ - Patch 2 fixes similar case in invalidate_bdev(). 
+     Note: I only fixed conditional cleancache_invalidate_inode() here.
+       Do we also need to add ->nrexceptional check in into invalidate_bdev()?
+     
+ - Patches 3-4: some optimizations.
 
-Fixes: 2667f50e8b81 ("mm: introduce a general RCU get_user_pages_fast()")
-Link: http://lkml.kernel.org/r/20170421162659.3314521-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+This patch (of 4):
+
+Some direct IO write fs hooks call invalidate_inode_pages2[_range]()
+conditionally iff mapping->nrpages is not zero.  This can't be right,
+because invalidate_inode_pages2[_range]() also invalidate data in the
+cleancache via cleancache_invalidate_inode() call.  So if page cache is
+empty but there is some data in the cleancache, buffered read after direct
+IO write would get stale data from the cleancache.
+
+Also it doesn't feel right to check only for ->nrpages because
+invalidate_inode_pages2[_range] invalidates exceptional entries as well.
+
+Fix this by calling invalidate_inode_pages2[_range]() regardless of nrpages
+state.
+
+Note: nfs,cifs,9p doesn't need similar fix because the never call
+cleancache_get_page() (nor directly, nor via mpage_readpage[s]()), so they
+are not affected by this bug.
+
+Fixes: c515e1fd361c ("mm/fs: add hooks to support cleancache")
+Link: http://lkml.kernel.org/r/20170424164135.22350-2-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/iomap.c   |   20 +++++++++-----------
+ mm/filemap.c |   26 +++++++++++---------------
+ 2 files changed, 20 insertions(+), 26 deletions(-)
 
-diff -puN mm/gup.c~mm-gup-fix-access_ok-argument-type mm/gup.c
---- a/mm/gup.c~mm-gup-fix-access_ok-argument-type
-+++ a/mm/gup.c
-@@ -1575,7 +1575,7 @@ int __get_user_pages_fast(unsigned long
- 	end = start + len;
+diff -puN fs/iomap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io fs/iomap.c
+--- a/fs/iomap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io
++++ a/fs/iomap.c
+@@ -887,16 +887,14 @@ iomap_dio_rw(struct kiocb *iocb, struct
+ 		flags |= IOMAP_WRITE;
+ 	}
  
- 	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
--					start, len)))
-+					(void __user *)start, len)))
- 		return 0;
+-	if (mapping->nrpages) {
+-		ret = filemap_write_and_wait_range(mapping, start, end);
+-		if (ret)
+-			goto out_free_dio;
+-
+-		ret = invalidate_inode_pages2_range(mapping,
+-				start >> PAGE_SHIFT, end >> PAGE_SHIFT);
+-		WARN_ON_ONCE(ret);
+-		ret = 0;
+-	}
++	ret = filemap_write_and_wait_range(mapping, start, end);
++	if (ret)
++		goto out_free_dio;
++
++	ret = invalidate_inode_pages2_range(mapping,
++			start >> PAGE_SHIFT, end >> PAGE_SHIFT);
++	WARN_ON_ONCE(ret);
++	ret = 0;
  
- 	/*
+ 	inode_dio_begin(inode);
+ 
+@@ -951,7 +949,7 @@ iomap_dio_rw(struct kiocb *iocb, struct
+ 	 * one is a pretty crazy thing to do, so we don't support it 100%.  If
+ 	 * this invalidation fails, tough, the write still worked...
+ 	 */
+-	if (iov_iter_rw(iter) == WRITE && mapping->nrpages) {
++	if (iov_iter_rw(iter) == WRITE) {
+ 		int err = invalidate_inode_pages2_range(mapping,
+ 				start >> PAGE_SHIFT, end >> PAGE_SHIFT);
+ 		WARN_ON_ONCE(err);
+diff -puN mm/filemap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io mm/filemap.c
+--- a/mm/filemap.c~fs-fix-data-invalidation-in-the-cleancache-during-direct-io
++++ a/mm/filemap.c
+@@ -2720,18 +2720,16 @@ generic_file_direct_write(struct kiocb *
+ 	 * about to write.  We do this *before* the write so that we can return
+ 	 * without clobbering -EIOCBQUEUED from ->direct_IO().
+ 	 */
+-	if (mapping->nrpages) {
+-		written = invalidate_inode_pages2_range(mapping,
++	written = invalidate_inode_pages2_range(mapping,
+ 					pos >> PAGE_SHIFT, end);
+-		/*
+-		 * If a page can not be invalidated, return 0 to fall back
+-		 * to buffered write.
+-		 */
+-		if (written) {
+-			if (written == -EBUSY)
+-				return 0;
+-			goto out;
+-		}
++	/*
++	 * If a page can not be invalidated, return 0 to fall back
++	 * to buffered write.
++	 */
++	if (written) {
++		if (written == -EBUSY)
++			return 0;
++		goto out;
+ 	}
+ 
+ 	written = mapping->a_ops->direct_IO(iocb, from);
+@@ -2744,10 +2742,8 @@ generic_file_direct_write(struct kiocb *
+ 	 * so we don't support it 100%.  If this invalidation
+ 	 * fails, tough, the write still worked...
+ 	 */
+-	if (mapping->nrpages) {
+-		invalidate_inode_pages2_range(mapping,
+-					      pos >> PAGE_SHIFT, end);
+-	}
++	invalidate_inode_pages2_range(mapping,
++				pos >> PAGE_SHIFT, end);
+ 
+ 	if (written > 0) {
+ 		pos += written;
 _
