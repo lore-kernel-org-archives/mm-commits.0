@@ -1,65 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 058/102] mm, swap: fix comment in
- __read_swap_cache_async
-Date: Wed, 03 May 2017 14:54:33 -0700
-Message-ID: <20170503215433.5lPuEBsTd%akpm@linux-foundation.org>
+Subject: [patch 049/102] mm: remove SWAP_DIRTY in ttu
+Date: Wed, 03 May 2017 14:54:04 -0700
+Message-ID: <20170503215404.Ic1muLi7e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49356 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751491AbdECVyf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:35 -0400
+        with ESMTP id S1751821AbdECVyn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, mm-commits@vger.kernel.org, shli@kernel.org, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: fix comment in __read_swap_cache_async
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: remove SWAP_DIRTY in ttu
 
-cbab0e4eec29 ("swap: avoid read_swap_cache_async() race to deadlock while
-waiting on discard I/O completion") fixed a deadlock in
-read_swap_cache_async().  Because at that time, in swap allocation path, a
-swap entry may be set as SWAP_HAS_CACHE, then wait for discarding to
-complete before the page for the swap entry is added to the swap cache. 
-But in 815c2c543d3a ("swap: make swap discard async"), the discarding for
-swap become asynchronous, waiting for discarding to complete will be done
-before the swap entry is set as SWAP_HAS_CACHE.  So the comments in code
-is incorrect now.  This patch fixes the comments.
+If we found lazyfree page is dirty, try_to_unmap_one can just
+SetPageSwapBakced in there like PG_mlocked page and just return with
+SWAP_FAIL which is very natural because the page is not swappable right
+now so that vmscan can activate it.  There is no point to introduce new
+return value SWAP_DIRTY in try_to_unmap at the moment.
 
-The cond_resched() added in the commit cbab0e4eec29 is not necessary now
-too.  But if we added some sleep in swap allocation path in the future,
-there may be some hard to debug/reproduce deadlock bug.  So it is kept.
-
-Link: http://lkml.kernel.org/r/20170317064635.12792-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
+Link: http://lkml.kernel.org/r/1489555493-14659-3-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ include/linux/rmap.h |    1 -
+ mm/rmap.c            |    4 ++--
+ mm/vmscan.c          |    3 ---
+ 3 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN mm/swap_state.c~mm-swap-fix-comment-in-__read_swap_cache_async mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-fix-comment-in-__read_swap_cache_async
-+++ a/mm/swap_state.c
-@@ -360,17 +360,7 @@ struct page *__read_swap_cache_async(swp
- 			/*
- 			 * We might race against get_swap_page() and stumble
- 			 * across a SWAP_HAS_CACHE swap_map entry whose page
--			 * has not been brought into the swapcache yet, while
--			 * the other end is scheduled away waiting on discard
--			 * I/O completion at scan_swap_map().
--			 *
--			 * In order to avoid turning this transitory state
--			 * into a permanent loop around this -EEXIST case
--			 * if !CONFIG_PREEMPT and the I/O completion happens
--			 * to be waiting on the CPU waitqueue where we are now
--			 * busy looping, we just conditionally invoke the
--			 * scheduler here, if there are some more important
--			 * tasks to run.
-+			 * has not been brought into the swapcache yet.
- 			 */
- 			cond_resched();
- 			continue;
+diff -puN include/linux/rmap.h~mm-remove-swap_dirty-in-ttu include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-remove-swap_dirty-in-ttu
++++ a/include/linux/rmap.h
+@@ -298,6 +298,5 @@ static inline int page_mkclean(struct pa
+ #define SWAP_AGAIN	1
+ #define SWAP_FAIL	2
+ #define SWAP_MLOCK	3
+-#define SWAP_DIRTY	4
+ 
+ #endif	/* _LINUX_RMAP_H */
+diff -puN mm/rmap.c~mm-remove-swap_dirty-in-ttu mm/rmap.c
+--- a/mm/rmap.c~mm-remove-swap_dirty-in-ttu
++++ a/mm/rmap.c
+@@ -1436,7 +1436,8 @@ static int try_to_unmap_one(struct page
+ 				 * discarded. Remap the page to page table.
+ 				 */
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+-				ret = SWAP_DIRTY;
++				SetPageSwapBacked(page);
++				ret = SWAP_FAIL;
+ 				page_vma_mapped_walk_done(&pvmw);
+ 				break;
+ 			}
+@@ -1506,7 +1507,6 @@ static int page_mapcount_is_zero(struct
+  * SWAP_AGAIN	- we missed a mapping, try again later
+  * SWAP_FAIL	- the page is unswappable
+  * SWAP_MLOCK	- page is mlocked.
+- * SWAP_DIRTY	- page is dirty MADV_FREE page
+  */
+ int try_to_unmap(struct page *page, enum ttu_flags flags)
+ {
+diff -puN mm/vmscan.c~mm-remove-swap_dirty-in-ttu mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-swap_dirty-in-ttu
++++ a/mm/vmscan.c
+@@ -1147,9 +1147,6 @@ static unsigned long shrink_page_list(st
+ 		if (page_mapped(page)) {
+ 			switch (ret = try_to_unmap(page,
+ 				ttu_flags | TTU_BATCH_FLUSH)) {
+-			case SWAP_DIRTY:
+-				SetPageSwapBacked(page);
+-				/* fall through */
+ 			case SWAP_FAIL:
+ 				nr_unmap_fail++;
+ 				goto activate_locked;
 _
