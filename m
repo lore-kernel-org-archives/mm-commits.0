@@ -1,151 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/102] mm, vmstat: print non-populated zones in
- zoneinfo
-Date: Wed, 03 May 2017 14:52:59 -0700
-Message-ID: <20170503215259.QfT8PAQ9r%akpm@linux-foundation.org>
+Subject: [patch 030/102] mm, vmstat: suppress pcp stats for
+ unpopulated zones in zoneinfo
+Date: Wed, 03 May 2017 14:53:02 -0700
+Message-ID: <20170503215302.lt_6be8P5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47706 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751402AbdECVxA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:00 -0400
+        with ESMTP id S1751491AbdECVxD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: David Rientjes <rientjes@google.com>
-Subject: mm, vmstat: print non-populated zones in zoneinfo
+Subject: mm, vmstat: suppress pcp stats for unpopulated zones in zoneinfo
 
-Initscripts can use the information (protection levels) from
-/proc/zoneinfo to configure vm.lowmem_reserve_ratio at boot.
+After "mm, vmstat: print non-populated zones in zoneinfo", /proc/zoneinfo
+will show unpopulated zones.
 
-vm.lowmem_reserve_ratio is an array of ratios for each configured zone on
-the system.  If a zone is not populated on an arch, /proc/zoneinfo
-suppresses its output.
+The per-cpu pageset statistics are not relevant for unpopulated zones and
+can be potentially lengthy, so supress them when they are not interesting.
 
-This results in there not being a 1:1 mapping between the set of zones
-emitted by /proc/zoneinfo and the zones configured by
-vm.lowmem_reserve_ratio.
+Also moves lowmem reserve protection information above pcp stats since it
+is relevant for all zones per vm.lowmem_reserve_ratio.
 
-This patch shows statistics for non-populated zones in /proc/zoneinfo. 
-The zones exist and hold a spot in the vm.lowmem_reserve_ratio array. 
-Without this patch, it is not possible to determine which index in the
-array controls which zone if one or more zones on the system are not
-populated.
-
-Remaining users of walk_zones_in_node() are unchanged.  Files such as
-/proc/pagetypeinfo require certain zone data to be initialized properly
-for display, which is not done for unpopulated zones.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1703031451310.98023@chino.kir.corp.google.com
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1703061400500.46428@chino.kir.corp.google.com
 Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ mm/vmstat.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-print-non-populated-zones-in-zoneinfo mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-print-non-populated-zones-in-zoneinfo
+diff -puN mm/vmstat.c~mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo
 +++ a/mm/vmstat.c
-@@ -1124,8 +1124,12 @@ static void frag_stop(struct seq_file *m
- {
- }
+@@ -1393,18 +1393,24 @@ static void zoneinfo_show_print(struct s
+ 		   zone->present_pages,
+ 		   zone->managed_pages);
  
--/* Walk all the zones in a node and print using a callback */
-+/*
-+ * Walk zones in a node and print using a callback.
-+ * If @assert_populated is true, only use callback for zones that are populated.
-+ */
- static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
-+		bool assert_populated,
- 		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
- {
- 	struct zone *zone;
-@@ -1133,7 +1137,7 @@ static void walk_zones_in_node(struct se
- 	unsigned long flags;
+-	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+-		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
+-				zone_page_state(zone, i));
+-
+ 	seq_printf(m,
+ 		   "\n        protection: (%ld",
+ 		   zone->lowmem_reserve[0]);
+ 	for (i = 1; i < ARRAY_SIZE(zone->lowmem_reserve); i++)
+ 		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
+-	seq_printf(m,
+-		   ")"
+-		   "\n  pagesets");
++	seq_putc(m, ')');
++
++	/* If unpopulated, no other information is useful */
++	if (!populated_zone(zone)) {
++		seq_putc(m, '\n');
++		return;
++	}
++
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
++				zone_page_state(zone, i));
++
++	seq_printf(m, "\n  pagesets");
+ 	for_each_online_cpu(i) {
+ 		struct per_cpu_pageset *pageset;
  
- 	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
--		if (!populated_zone(zone))
-+		if (assert_populated && !populated_zone(zone))
- 			continue;
- 
- 		spin_lock_irqsave(&zone->lock, flags);
-@@ -1161,7 +1165,7 @@ static void frag_show_print(struct seq_f
- static int frag_show(struct seq_file *m, void *arg)
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
--	walk_zones_in_node(m, pgdat, frag_show_print);
-+	walk_zones_in_node(m, pgdat, true, frag_show_print);
- 	return 0;
- }
- 
-@@ -1202,7 +1206,7 @@ static int pagetypeinfo_showfree(struct
- 		seq_printf(m, "%6d ", order);
- 	seq_putc(m, '\n');
- 
--	walk_zones_in_node(m, pgdat, pagetypeinfo_showfree_print);
-+	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showfree_print);
- 
- 	return 0;
- }
-@@ -1254,7 +1258,7 @@ static int pagetypeinfo_showblockcount(s
- 	for (mtype = 0; mtype < MIGRATE_TYPES; mtype++)
- 		seq_printf(m, "%12s ", migratetype_names[mtype]);
- 	seq_putc(m, '\n');
--	walk_zones_in_node(m, pgdat, pagetypeinfo_showblockcount_print);
-+	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showblockcount_print);
- 
- 	return 0;
- }
-@@ -1280,7 +1284,7 @@ static void pagetypeinfo_showmixedcount(
- 		seq_printf(m, "%12s ", migratetype_names[mtype]);
- 	seq_putc(m, '\n');
- 
--	walk_zones_in_node(m, pgdat, pagetypeinfo_showmixedcount_print);
-+	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showmixedcount_print);
- #endif /* CONFIG_PAGE_OWNER */
- }
- 
-@@ -1430,12 +1434,15 @@ static void zoneinfo_show_print(struct s
- }
- 
- /*
-- * Output information about zones in @pgdat.
-+ * Output information about zones in @pgdat.  All zones are printed regardless
-+ * of whether they are populated or not: lowmem_reserve_ratio operates on the
-+ * set of all zones and userspace would not be aware of such zones if they are
-+ * suppressed here (zoneinfo displays the effect of lowmem_reserve_ratio).
-  */
- static int zoneinfo_show(struct seq_file *m, void *arg)
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
--	walk_zones_in_node(m, pgdat, zoneinfo_show_print);
-+	walk_zones_in_node(m, pgdat, false, zoneinfo_show_print);
- 	return 0;
- }
- 
-@@ -1841,7 +1848,7 @@ static int unusable_show(struct seq_file
- 	if (!node_state(pgdat->node_id, N_MEMORY))
- 		return 0;
- 
--	walk_zones_in_node(m, pgdat, unusable_show_print);
-+	walk_zones_in_node(m, pgdat, true, unusable_show_print);
- 
- 	return 0;
- }
-@@ -1893,7 +1900,7 @@ static int extfrag_show(struct seq_file
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
- 
--	walk_zones_in_node(m, pgdat, extfrag_show_print);
-+	walk_zones_in_node(m, pgdat, true, extfrag_show_print);
- 
- 	return 0;
- }
 _
