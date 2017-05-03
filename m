@@ -1,114 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [patch 035/102] xfs: use memalloc_nofs_{save,restore}
- instead of memalloc_noio*
-Date: Wed, 03 May 2017 14:53:19 -0700
-Message-ID: <20170503215319.ctTXUQE17%akpm@linux-foundation.org>
+Subject: [patch 039/102] mm: remove rodata_test_data export, add
+ pr_fmt
+Date: Wed, 03 May 2017 14:53:32 -0700
+Message-ID: <20170503215332.tD-bDRWmZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdECVxj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:39 -0400
+        with ESMTP id S1751198AbdECVxp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:53:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, torvalds@linux-foundation.org, tytso@mit.edu, vbabka@suse.cz
+To: akpm@linux-foundation.org, arjan@linux.intel.com, jinb.park7@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: xfs: use memalloc_nofs_{save,restore} instead of memalloc_noio*
+From: Kees Cook <keescook@chromium.org>
+Subject: mm: remove rodata_test_data export, add pr_fmt
 
-kmem_zalloc_large and _xfs_buf_map_pages use memalloc_noio_{save,restore}
-API to prevent from reclaim recursion into the fs because vmalloc can
-invoke unconditional GFP_KERNEL allocations and these functions might be
-called from the NOFS contexts.  The memalloc_noio_save will enforce
-GFP_NOIO context which is even weaker than GFP_NOFS and that seems to be
-unnecessary.  Let's use memalloc_nofs_{save,restore} instead as it should
-provide exactly what we need here - implicit GFP_NOFS context.
+Since commit 3ad38ceb2769 ("x86/mm: Remove CONFIG_DEBUG_NX_TEST"), nothing
+is using the exported rodata_test_data variable, so drop the export. 
+Additionally updates the pr_fmt to avoid redundant strings and adjusts
+some whitespace.
 
-Link: http://lkml.kernel.org/r/20170306131408.9828-6-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Brian Foster <bfoster@redhat.com>
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Nikolay Borisov <nborisov@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: http://lkml.kernel.org/r/20170307005313.GA85809@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Jinbum Park <jinb.park7@gmail.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/kmem.c    |   12 ++++++------
- fs/xfs/xfs_buf.c |    8 ++++----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ include/linux/rodata_test.h |    1 -
+ mm/rodata_test.c            |   17 +++++++++--------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/xfs/kmem.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio fs/xfs/kmem.c
---- a/fs/xfs/kmem.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio
-+++ a/fs/xfs/kmem.c
-@@ -48,7 +48,7 @@ kmem_alloc(size_t size, xfs_km_flags_t f
- void *
- kmem_zalloc_large(size_t size, xfs_km_flags_t flags)
+diff -puN include/linux/rodata_test.h~mm-remove-rodata_test_data-export-add-pr_fmt include/linux/rodata_test.h
+--- a/include/linux/rodata_test.h~mm-remove-rodata_test_data-export-add-pr_fmt
++++ a/include/linux/rodata_test.h
+@@ -14,7 +14,6 @@
+ #define _RODATA_TEST_H
+ 
+ #ifdef CONFIG_DEBUG_RODATA_TEST
+-extern const int rodata_test_data;
+ void rodata_test(void);
+ #else
+ static inline void rodata_test(void) {}
+diff -puN mm/rodata_test.c~mm-remove-rodata_test_data-export-add-pr_fmt mm/rodata_test.c
+--- a/mm/rodata_test.c~mm-remove-rodata_test_data-export-add-pr_fmt
++++ a/mm/rodata_test.c
+@@ -9,11 +9,12 @@
+  * as published by the Free Software Foundation; version 2
+  * of the License.
+  */
++#define pr_fmt(fmt) "rodata_test: " fmt
++
+ #include <linux/uaccess.h>
+ #include <asm/sections.h>
+ 
+ const int rodata_test_data = 0xC3;
+-EXPORT_SYMBOL_GPL(rodata_test_data);
+ 
+ void rodata_test(void)
  {
--	unsigned noio_flag = 0;
-+	unsigned nofs_flag = 0;
- 	void	*ptr;
- 	gfp_t	lflags;
+@@ -23,20 +24,20 @@ void rodata_test(void)
+ 	/* test 1: read the value */
+ 	/* If this test fails, some previous testrun has clobbered the state */
+ 	if (!rodata_test_data) {
+-		pr_err("rodata_test: test 1 fails (start data)\n");
++		pr_err("test 1 fails (start data)\n");
+ 		return;
+ 	}
  
-@@ -60,17 +60,17 @@ kmem_zalloc_large(size_t size, xfs_km_fl
- 	 * __vmalloc() will allocate data pages and auxillary structures (e.g.
- 	 * pagetables) with GFP_KERNEL, yet we may be under GFP_NOFS context
- 	 * here. Hence we need to tell memory reclaim that we are in such a
--	 * context via PF_MEMALLOC_NOIO to prevent memory reclaim re-entering
-+	 * context via PF_MEMALLOC_NOFS to prevent memory reclaim re-entering
- 	 * the filesystem here and potentially deadlocking.
- 	 */
--	if ((current->flags & PF_MEMALLOC_NOFS) || (flags & KM_NOFS))
--		noio_flag = memalloc_noio_save();
-+	if (flags & KM_NOFS)
-+		nofs_flag = memalloc_nofs_save();
+ 	/* test 2: write to the variable; this should fault */
+ 	if (!probe_kernel_write((void *)&rodata_test_data,
+-						(void *)&zero, sizeof(zero))) {
+-		pr_err("rodata_test: test data was not read only\n");
++				(void *)&zero, sizeof(zero))) {
++		pr_err("test data was not read only\n");
+ 		return;
+ 	}
  
- 	lflags = kmem_flags_convert(flags);
- 	ptr = __vmalloc(size, lflags | __GFP_HIGHMEM | __GFP_ZERO, PAGE_KERNEL);
+ 	/* test 3: check the value hasn't changed */
+ 	if (rodata_test_data == zero) {
+-		pr_err("rodata_test: test data was changed\n");
++		pr_err("test data was changed\n");
+ 		return;
+ 	}
  
--	if ((current->flags & PF_MEMALLOC_NOFS) || (flags & KM_NOFS))
--		memalloc_noio_restore(noio_flag);
-+	if (flags & KM_NOFS)
-+		memalloc_nofs_restore(nofs_flag);
+@@ -44,13 +45,13 @@ void rodata_test(void)
+ 	start = (unsigned long)__start_rodata;
+ 	end = (unsigned long)__end_rodata;
+ 	if (start & (PAGE_SIZE - 1)) {
+-		pr_err("rodata_test: start of .rodata is not page size aligned\n");
++		pr_err("start of .rodata is not page size aligned\n");
+ 		return;
+ 	}
+ 	if (end & (PAGE_SIZE - 1)) {
+-		pr_err("rodata_test: end of .rodata is not page size aligned\n");
++		pr_err("end of .rodata is not page size aligned\n");
+ 		return;
+ 	}
  
- 	return ptr;
+-	pr_info("rodata_test: all tests were successful\n");
++	pr_info("all tests were successful\n");
  }
-diff -puN fs/xfs/xfs_buf.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio fs/xfs/xfs_buf.c
---- a/fs/xfs/xfs_buf.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio
-+++ a/fs/xfs/xfs_buf.c
-@@ -443,17 +443,17 @@ _xfs_buf_map_pages(
- 		bp->b_addr = NULL;
- 	} else {
- 		int retried = 0;
--		unsigned noio_flag;
-+		unsigned nofs_flag;
- 
- 		/*
- 		 * vm_map_ram() will allocate auxillary structures (e.g.
- 		 * pagetables) with GFP_KERNEL, yet we are likely to be under
- 		 * GFP_NOFS context here. Hence we need to tell memory reclaim
--		 * that we are in such a context via PF_MEMALLOC_NOIO to prevent
-+		 * that we are in such a context via PF_MEMALLOC_NOFS to prevent
- 		 * memory reclaim re-entering the filesystem here and
- 		 * potentially deadlocking.
- 		 */
--		noio_flag = memalloc_noio_save();
-+		nofs_flag = memalloc_nofs_save();
- 		do {
- 			bp->b_addr = vm_map_ram(bp->b_pages, bp->b_page_count,
- 						-1, PAGE_KERNEL);
-@@ -461,7 +461,7 @@ _xfs_buf_map_pages(
- 				break;
- 			vm_unmap_aliases();
- 		} while (retried++ <= 1);
--		memalloc_noio_restore(noio_flag);
-+		memalloc_nofs_restore(nofs_flag);
- 
- 		if (!bp->b_addr)
- 			return -ENOMEM;
 _
