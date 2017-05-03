@@ -1,90 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-reclaim-madv_free-pages-fix.patch removed from -mm tree
-Date: Wed, 03 May 2017 14:34:54 -0700
-Message-ID: <590a4cfe.FznT5rYIM4S8F3cX%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch removed from -mm tree
+Date: Wed, 03 May 2017 14:35:27 -0700
+Message-ID: <590a4d1f.3h1QV2qzOKMXPnnn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750912AbdECVe4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:34:56 -0400
+        with ESMTP id S1750912AbdECVf2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:35:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, shli@fb.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mhocko@suse.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: clean up lazyfree page handling
+     Subject: mm: do not use VM_WARN_ON_ONCE as if condition
 has been removed from the -mm tree.  Its filename was
-     mm-reclaim-madv_free-pages-fix.patch
+     mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch
 
-This patch was dropped because it was folded into mm-reclaim-madv_free-pages.patch
+This patch was dropped because it was folded into mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: clean up lazyfree page handling
+Subject: mm: do not use VM_WARN_ON_ONCE as if condition
 
-We can make it simple to understand without need to be aware of
-clean-swapin page.
-This patch just clean up lazyfree page handling in try_to_unmap_one.
+Sergey reported VM_WARN_ON_ONCE returns void with !CONFIG_DEBUG_VM
+so we cannot use it as if's condition unlike WARN_ON.
 
-Link: http://lkml.kernel.org/r/20170303025237.GB3503@bbox
+This patch fixes it.
+
+Link: http://lkml.kernel.org/r/20170309060226.GB854@bbox
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Shaohua Li <shli@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/rmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/rmap.c~mm-reclaim-madv_free-pages-fix mm/rmap.c
---- a/mm/rmap.c~mm-reclaim-madv_free-pages-fix
+diff -puN mm/rmap.c~mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix mm/rmap.c
+--- a/mm/rmap.c~mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix
 +++ a/mm/rmap.c
-@@ -1421,17 +1421,17 @@ static int try_to_unmap_one(struct page
- 			VM_BUG_ON_PAGE(!PageSwapCache(page) && PageSwapBacked(page),
- 				page);
- 
--			/*
--			 * swapin page could be clean, it has data stored in
--			 * swap. We can't silently discard it without setting
--			 * swap entry in the page table.
--			 */
--			if (!PageDirty(page) && !PageSwapCache(page)) {
--				/* It's a freeable page by MADV_FREE */
--				dec_mm_counter(mm, MM_ANONPAGES);
--				goto discard;
--			} else if (!PageSwapBacked(page)) {
--				/* dirty MADV_FREE page */
-+			/* MADV_FREE page check */
-+			if (!PageSwapBacked(page)) {
-+				if (!PageDirty(page)) {
-+					dec_mm_counter(mm, MM_ANONPAGES);
-+					goto discard;
-+				}
-+
-+				/*
-+				 * If the page was redirtied, it cannot be
-+				 * discarded. Remap the page to page table.
-+				 */
- 				set_pte_at(mm, address, pvmw.pte, pteval);
- 				ret = SWAP_DIRTY;
+@@ -1418,12 +1418,11 @@ static int try_to_unmap_one(struct page
+ 			 * Store the swap location in the pte.
+ 			 * See handle_pte_fault() ...
+ 			 */
+-			if (VM_WARN_ON_ONCE(PageSwapBacked(page) !=
+-						PageSwapCache(page))) {
++			if (unlikely(PageSwapBacked(page) != PageSwapCache(page))) {
++				WARN_ON_ONCE(1);
+ 				ret = SWAP_FAIL;
  				page_vma_mapped_walk_done(&pvmw);
+ 				break;
+-
+ 			}
+ 
+ 			/* MADV_FREE page check */
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-reclaim-madv_free-pages.patch
 mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
-mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one-fix.patch
 mm-do-not-use-double-negation-for-testing-page-flags.patch
 mm-remove-unncessary-ret-in-page_referenced.patch
 mm-remove-swap_dirty-in-ttu.patch
