@@ -1,45 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 006/102] fs/ocfs2/cluster: use offset_in_page()
- macro
-Date: Wed, 03 May 2017 14:51:44 -0700
-Message-ID: <20170503215144.JgMFIdsDz%akpm@linux-foundation.org>
+Subject: [patch 007/102] slab: avoid IPIs when creating kmem caches
+Date: Wed, 03 May 2017 14:51:47 -0700
+Message-ID: <20170503215147.6Vx3bpwV9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47184 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbdECVvq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:46 -0400
+        with ESMTP id S1751670AbdECVvt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geliangtang@gmail.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cl@linux.com, gthelen@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
 
-From: Geliang Tang <geliangtang@gmail.com>
-Subject: fs/ocfs2/cluster: use offset_in_page() macro
+From: Greg Thelen <gthelen@google.com>
+Subject: slab: avoid IPIs when creating kmem caches
 
-Use offset_in_page() macro instead of open-coding.
+Each slab kmem cache has per cpu array caches.  The array caches are
+created when the kmem_cache is created, either via kmem_cache_create()
+or lazily when the first object is allocated in context of a kmem
+enabled memcg.  Array caches are replaced by writing to /proc/slabinfo.
 
-Link: http://lkml.kernel.org/r/4dbc77ccaaed98b183cf4dba58a4fa325fd65048.1492758503.git.geliangtang@gmail.com
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+Array caches are protected by holding slab_mutex or disabling
+interrupts.  Array cache allocation and replacement is done by
+__do_tune_cpucache() which holds slab_mutex and calls
+kick_all_cpus_sync() to interrupt all remote processors which confirms
+there are no references to the old array caches.
+
+IPIs are needed when replacing array caches.  But when creating a new
+array cache, there's no need to send IPIs because there cannot be any
+references to the new cache.  Outside of memcg kmem accounting these
+IPIs occur at boot time, so they're not a problem.  But with memcg kmem
+accounting each container can create kmem caches, so the IPIs are
+wasteful.
+
+Avoid unnecessary IPIs when creating array caches.
+
+Test which reports the IPI count of allocating slab in 10000 memcg:
+	import os
+
+	def ipi_count():
+		with open("/proc/interrupts") as f:
+			for l in f:
+				if 'Function call interrupts' in l:
+					return int(l.split()[1])
+
+	def echo(val, path):
+		with open(path, "w") as f:
+			f.write(val)
+
+	n = 10000
+	os.chdir("/mnt/cgroup/memory")
+	pid = str(os.getpid())
+	a = ipi_count()
+	for i in range(n):
+		os.mkdir(str(i))
+		echo("1G\n", "%d/memory.limit_in_bytes" % i)
+		echo("1G\n", "%d/memory.kmem.limit_in_bytes" % i)
+		echo(pid, "%d/cgroup.procs" % i)
+		open("/tmp/x", "w").close()
+		os.unlink("/tmp/x")
+	b = ipi_count()
+	print "%d loops: %d => %d (+%d ipis)" % (n, a, b, b-a)
+	echo(pid, "cgroup.procs")
+	for i in range(n):
+		os.rmdir(str(i))
+
+patched:   10000 loops: 1069 => 1170 (+101 ipis)
+unpatched: 10000 loops: 1192 => 48933 (+47741 ipis)
+
+Link: http://lkml.kernel.org/r/20170416214544.109476-1-gthelen@google.com
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-offset_in_page-macro fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-offset_in_page-macro
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -955,7 +955,7 @@ static void o2net_sendpage(struct o2net_
- 		mutex_lock(&sc->sc_send_lock);
- 		ret = sc->sc_sock->ops->sendpage(sc->sc_sock,
- 						 virt_to_page(kmalloced_virt),
--						 (long)kmalloced_virt & ~PAGE_MASK,
-+						 offset_in_page(kmalloced_virt),
- 						 size, MSG_DONTWAIT);
- 		mutex_unlock(&sc->sc_send_lock);
- 		if (ret == size)
+diff -puN mm/slab.c~slab-avoid-ipis-when-creating-kmem-caches mm/slab.c
+--- a/mm/slab.c~slab-avoid-ipis-when-creating-kmem-caches
++++ a/mm/slab.c
+@@ -3879,7 +3879,12 @@ static int __do_tune_cpucache(struct kme
+ 
+ 	prev = cachep->cpu_cache;
+ 	cachep->cpu_cache = cpu_cache;
+-	kick_all_cpus_sync();
++	/*
++	 * Without a previous cpu_cache there's no need to synchronize remote
++	 * cpus, so skip the IPIs.
++	 */
++	if (prev)
++		kick_all_cpus_sync();
+ 
+ 	check_irq_on();
+ 	cachep->batchcount = batchcount;
 _
