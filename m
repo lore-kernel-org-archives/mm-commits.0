@@ -1,99 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 047/102] mm/vmscan: more restrictive condition for
- retry in do_try_to_free_pages
-Date: Wed, 03 May 2017 14:53:57 -0700
-Message-ID: <20170503215357.oe5wuLU4U%akpm@linux-foundation.org>
+Subject: [patch 048/102] mm: remove unncessary ret in
+ page_referenced
+Date: Wed, 03 May 2017 14:54:00 -0700
+Message-ID: <20170503215400.fBrSRB-ma%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49166 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751561AbdECVyW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:22 -0400
+        with ESMTP id S1751535AbdECVya (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, riel@redhat.com, shakeelb@google.com, torvalds@linux-foundation.org, vbabka@suse.cz, xieyisheng1@huawei.com
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/vmscan: more restrictive condition for retry in do_try_to_free_pages
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: remove unncessary ret in page_referenced
 
-By reviewing code, I find that when enter do_try_to_free_pages, the
-may_thrash is always clear, and it will retry shrink zones to tap cgroup's
-reserves memory by setting may_thrash when the former shrink_zones reclaim
-nothing.
+Nobody uses ret variable. Remove it.
 
-However, when memcg is disabled or on legacy hierarchy, or there do not
-have any memcg protected by low limit, it should not do this useless retry
-at all, for we do not have any cgroup's reserves memory to tap, and we
-have already done hard work but made no progress, which as Michal pointed
-out in former version, we are trying hard to control the retry logical of
-page alloctor, and the current additional round of reclaim is just lame.
-
-Therefore, to avoid this unneeded retrying and make code more readable, we
-remove the may_thrash field in scan_control, instead, introduce
-memcg_low_reclaim and memcg_low_skipped, and only retry when
-memcg_low_skipped, by setting memcg_low_reclaim.
-
-[xieyisheng1@huawei.com: remove may_thrash field, introduce mem_cgroup_reclaim]
-  Link: http://lkml.kernel.org/r/1490191893-5923-1-git-send-email-ysxie@foxmail.com
-Link: http://lkml.kernel.org/r/1490191893-5923-1-git-send-email-ysxie@foxmail.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Suggested-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Link: http://lkml.kernel.org/r/1489555493-14659-2-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ mm/rmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-more-restrictive-condition-for-retry-in-do_try_to_free_pages mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-more-restrictive-condition-for-retry-in-do_try_to_free_pages
-+++ a/mm/vmscan.c
-@@ -97,8 +97,13 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	unsigned int may_swap:1;
- 
--	/* Can cgroups be reclaimed below their normal consumption range? */
--	unsigned int may_thrash:1;
-+	/*
-+	 * Cgroups are not reclaimed below their configured memory.low,
-+	 * unless we threaten to OOM. If any cgroups are skipped due to
-+	 * memory.low and nothing was reclaimed, go back for memory.low.
-+	 */
-+	unsigned int memcg_low_reclaim:1;
-+	unsigned int memcg_low_skipped:1;
- 
- 	unsigned int hibernation_mode:1;
- 
-@@ -2512,8 +2517,10 @@ static bool shrink_node(pg_data_t *pgdat
- 			unsigned long scanned;
- 
- 			if (mem_cgroup_low(root, memcg)) {
--				if (!sc->may_thrash)
-+				if (!sc->memcg_low_reclaim) {
-+					sc->memcg_low_skipped = 1;
- 					continue;
-+				}
- 				mem_cgroup_events(memcg, MEMCG_LOW, 1);
- 			}
- 
-@@ -2768,9 +2775,10 @@ retry:
- 		return 1;
- 
- 	/* Untapped cgroup reserves?  Don't OOM, retry. */
--	if (!sc->may_thrash) {
-+	if (sc->memcg_low_skipped) {
- 		sc->priority = initial_priority;
--		sc->may_thrash = 1;
-+		sc->memcg_low_reclaim = 1;
-+		sc->memcg_low_skipped = 0;
- 		goto retry;
+diff -puN mm/rmap.c~mm-remove-unncessary-ret-in-page_referenced mm/rmap.c
+--- a/mm/rmap.c~mm-remove-unncessary-ret-in-page_referenced
++++ a/mm/rmap.c
+@@ -812,7 +812,6 @@ int page_referenced(struct page *page,
+ 		    struct mem_cgroup *memcg,
+ 		    unsigned long *vm_flags)
+ {
+-	int ret;
+ 	int we_locked = 0;
+ 	struct page_referenced_arg pra = {
+ 		.mapcount = total_mapcount(page),
+@@ -846,7 +845,7 @@ int page_referenced(struct page *page,
+ 		rwc.invalid_vma = invalid_page_referenced_vma;
  	}
  
+-	ret = rmap_walk(page, &rwc);
++	rmap_walk(page, &rwc);
+ 	*vm_flags = pra.vm_flags;
+ 
+ 	if (we_locked)
 _
