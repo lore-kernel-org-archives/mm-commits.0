@@ -1,90 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/102] mm: remove SWAP_AGAIN in ttu
-Date: Wed, 03 May 2017 14:54:17 -0700
-Message-ID: <20170503215417.qdNyqB82z%akpm@linux-foundation.org>
+Subject: [patch 054/102] mm: make ttu's return boolean
+Date: Wed, 03 May 2017 14:54:20 -0700
+Message-ID: <20170503215420.UFyEVqhcB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50394 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbdECVza (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:55:30 -0400
+        with ESMTP id S1751415AbdECVzg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remove SWAP_AGAIN in ttu
+Subject: mm: make ttu's return boolean
 
-In 2002, [1] introduced SWAP_AGAIN.  At that time, try_to_unmap_one used
-spin_trylock(&mm->page_table_lock) so it's really easy to contend and fail
-to hold a lock so SWAP_AGAIN to keep LRU status makes sense.
+try_to_unmap() returns SWAP_SUCCESS or SWAP_FAIL so it's suitable for
+boolean return.  This patch changes it.
 
-However, now we changed it to mutex-based lock and be able to block
-without skip pte so there is few of small window to return SWAP_AGAIN so
-remove SWAP_AGAIN and just return SWAP_FAIL.
-
-[1] c48c43e, minimal rmap
-
-Link: http://lkml.kernel.org/r/1489555493-14659-7-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1489555493-14659-8-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c   |   11 +++--------
- mm/vmscan.c |    2 --
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ include/linux/rmap.h |    4 ++--
+ mm/huge_memory.c     |    6 +++---
+ mm/memory-failure.c  |   26 ++++++++++++--------------
+ mm/rmap.c            |    8 +++-----
+ mm/vmscan.c          |    7 +------
+ 5 files changed, 21 insertions(+), 30 deletions(-)
 
-diff -puN mm/rmap.c~mm-remove-swap_again-in-ttu mm/rmap.c
---- a/mm/rmap.c~mm-remove-swap_again-in-ttu
-+++ a/mm/rmap.c
-@@ -1504,13 +1504,10 @@ static int page_mapcount_is_zero(struct
-  * Return values are:
-  *
-  * SWAP_SUCCESS	- we succeeded in removing all mappings
-- * SWAP_AGAIN	- we missed a mapping, try again later
-  * SWAP_FAIL	- the page is unswappable
-  */
- int try_to_unmap(struct page *page, enum ttu_flags flags)
+diff -puN include/linux/rmap.h~mm-make-ttus-return-boolean include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-make-ttus-return-boolean
++++ a/include/linux/rmap.h
+@@ -191,7 +191,7 @@ static inline void page_dup_rmap(struct
+ int page_referenced(struct page *, int is_locked,
+ 			struct mem_cgroup *memcg, unsigned long *vm_flags);
+ 
+-int try_to_unmap(struct page *, enum ttu_flags flags);
++bool try_to_unmap(struct page *, enum ttu_flags flags);
+ 
+ /* Avoid racy checks */
+ #define PVMW_SYNC		(1 << 0)
+@@ -281,7 +281,7 @@ static inline int page_referenced(struct
+ 	return 0;
+ }
+ 
+-#define try_to_unmap(page, refs) SWAP_FAIL
++#define try_to_unmap(page, refs) false
+ 
+ static inline int page_mkclean(struct page *page)
  {
+diff -puN mm/huge_memory.c~mm-make-ttus-return-boolean mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-ttus-return-boolean
++++ a/mm/huge_memory.c
+@@ -2144,15 +2144,15 @@ static void freeze_page(struct page *pag
+ {
+ 	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS |
+ 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
 -	int ret;
--
++	bool unmap_success;
+ 
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
+ 
+ 	if (PageAnon(page))
+ 		ttu_flags |= TTU_MIGRATION;
+ 
+-	ret = try_to_unmap(page, ttu_flags);
+-	VM_BUG_ON_PAGE(ret, page);
++	unmap_success = try_to_unmap(page, ttu_flags);
++	VM_BUG_ON_PAGE(!unmap_success, page);
+ }
+ 
+ static void unfreeze_page(struct page *page)
+diff -puN mm/memory-failure.c~mm-make-ttus-return-boolean mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-make-ttus-return-boolean
++++ a/mm/memory-failure.c
+@@ -322,7 +322,7 @@ static void add_to_kill(struct task_stru
+  * wrong earlier.
+  */
+ static void kill_procs(struct list_head *to_kill, int forcekill, int trapno,
+-			  int fail, struct page *page, unsigned long pfn,
++			  bool fail, struct page *page, unsigned long pfn,
+ 			  int flags)
+ {
+ 	struct to_kill *tk, *next;
+@@ -904,13 +904,13 @@ EXPORT_SYMBOL_GPL(get_hwpoison_page);
+  * Do all that is necessary to remove user space mappings. Unmap
+  * the pages and send SIGBUS to the processes if the data was dirty.
+  */
+-static int hwpoison_user_mappings(struct page *p, unsigned long pfn,
++static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+ 				  int trapno, int flags, struct page **hpagep)
+ {
+ 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+-	int ret;
++	bool unmap_success;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
+ 
+@@ -919,20 +919,20 @@ static int hwpoison_user_mappings(struct
+ 	 * other types of pages.
+ 	 */
+ 	if (PageReserved(p) || PageSlab(p))
+-		return SWAP_SUCCESS;
++		return true;
+ 	if (!(PageLRU(hpage) || PageHuge(p)))
+-		return SWAP_SUCCESS;
++		return true;
+ 
+ 	/*
+ 	 * This check implies we don't kill processes if their pages
+ 	 * are in the swap cache early. Those are always late kills.
+ 	 */
+ 	if (!page_mapped(hpage))
+-		return SWAP_SUCCESS;
++		return true;
+ 
+ 	if (PageKsm(p)) {
+ 		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
+-		return SWAP_FAIL;
++		return false;
+ 	}
+ 
+ 	if (PageSwapCache(p)) {
+@@ -971,8 +971,8 @@ static int hwpoison_user_mappings(struct
+ 	if (kill)
+ 		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
+ 
+-	ret = try_to_unmap(hpage, ttu);
+-	if (ret != SWAP_SUCCESS)
++	unmap_success = try_to_unmap(hpage, ttu);
++	if (!unmap_success)
+ 		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
+ 		       pfn, page_mapcount(hpage));
+ 
+@@ -987,10 +987,9 @@ static int hwpoison_user_mappings(struct
+ 	 * any accesses to the poisoned memory.
+ 	 */
+ 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
+-	kill_procs(&tokill, forcekill, trapno,
+-		      ret != SWAP_SUCCESS, p, pfn, flags);
++	kill_procs(&tokill, forcekill, trapno, !unmap_success, p, pfn, flags);
+ 
+-	return ret;
++	return unmap_success;
+ }
+ 
+ static void set_page_hwpoison_huge_page(struct page *hpage)
+@@ -1230,8 +1229,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * When the raw error page is thp tail page, hpage points to the raw
+ 	 * page after thp split.
+ 	 */
+-	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
+-	    != SWAP_SUCCESS) {
++	if (!hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)) {
+ 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+diff -puN mm/rmap.c~mm-make-ttus-return-boolean mm/rmap.c
+--- a/mm/rmap.c~mm-make-ttus-return-boolean
++++ a/mm/rmap.c
+@@ -1501,12 +1501,10 @@ static int page_mapcount_is_zero(struct
+  *
+  * Tries to remove all the page table entries which are mapping this
+  * page, used in the pageout path.  Caller must hold the page lock.
+- * Return values are:
+  *
+- * SWAP_SUCCESS	- we succeeded in removing all mappings
+- * SWAP_FAIL	- the page is unswappable
++ * If unmap is successful, return true. Otherwise, false.
+  */
+-int try_to_unmap(struct page *page, enum ttu_flags flags)
++bool try_to_unmap(struct page *page, enum ttu_flags flags)
+ {
  	struct rmap_walk_control rwc = {
  		.rmap_one = try_to_unmap_one,
- 		.arg = (void *)flags,
-@@ -1530,13 +1527,11 @@ int try_to_unmap(struct page *page, enum
- 		rwc.invalid_vma = invalid_migration_vma;
- 
- 	if (flags & TTU_RMAP_LOCKED)
--		ret = rmap_walk_locked(page, &rwc);
-+		rmap_walk_locked(page, &rwc);
+@@ -1531,7 +1529,7 @@ int try_to_unmap(struct page *page, enum
  	else
--		ret = rmap_walk(page, &rwc);
-+		rmap_walk(page, &rwc);
+ 		rmap_walk(page, &rwc);
  
--	if (!page_mapcount(page))
--		ret = SWAP_SUCCESS;
--	return ret;
-+	return !page_mapcount(page) ? SWAP_SUCCESS : SWAP_FAIL;
+-	return !page_mapcount(page) ? SWAP_SUCCESS : SWAP_FAIL;
++	return !page_mapcount(page) ? true : false;
  }
  
  static int page_not_mapped(struct page *page)
-diff -puN mm/vmscan.c~mm-remove-swap_again-in-ttu mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-swap_again-in-ttu
+diff -puN mm/vmscan.c~mm-make-ttus-return-boolean mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-ttus-return-boolean
 +++ a/mm/vmscan.c
-@@ -1150,8 +1150,6 @@ static unsigned long shrink_page_list(st
- 			case SWAP_FAIL:
+@@ -972,7 +972,6 @@ static unsigned long shrink_page_list(st
+ 		int may_enter_fs;
+ 		enum page_references references = PAGEREF_RECLAIM_CLEAN;
+ 		bool dirty, writeback;
+-		int ret = SWAP_SUCCESS;
+ 
+ 		cond_resched();
+ 
+@@ -1145,13 +1144,9 @@ static unsigned long shrink_page_list(st
+ 		 * processes. Try to unmap it here.
+ 		 */
+ 		if (page_mapped(page)) {
+-			switch (ret = try_to_unmap(page,
+-				ttu_flags | TTU_BATCH_FLUSH)) {
+-			case SWAP_FAIL:
++			if (!try_to_unmap(page, ttu_flags | TTU_BATCH_FLUSH)) {
  				nr_unmap_fail++;
  				goto activate_locked;
--			case SWAP_AGAIN:
--				goto keep_locked;
- 			case SWAP_SUCCESS:
- 				; /* try to free the page below */
+-			case SWAP_SUCCESS:
+-				; /* try to free the page below */
  			}
+ 		}
+ 
 _
