@@ -1,102 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [patch 026/102] mm, swap: Fix a race in
- free_swap_and_cache()
-Date: Wed, 03 May 2017 14:52:49 -0700
-Message-ID: <20170503215249.TUB5pYKRr%akpm@linux-foundation.org>
+Subject: [patch 027/102] mm: use is_migrate_highatomic() to
+ simplify the code
+Date: Wed, 03 May 2017 14:52:52 -0700
+Message-ID: <20170503215252.Neq1ZmARH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47632 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751535AbdECVwu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:52:50 -0400
+        with ESMTP id S1751535AbdECVwy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:52:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, qiuxishi@huawei.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: Fix a race in free_swap_and_cache()
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm: use is_migrate_highatomic() to simplify the code
 
-Before using cluster lock in free_swap_and_cache(), the
-swap_info_struct->lock will be held during freeing the swap entry and
-acquiring page lock, so the page swap count will not change when testing
-page information later.  But after using cluster lock, the cluster lock
-(or swap_info_struct->lock) will be held only during freeing the swap
-entry.  So before acquiring the page lock, the page swap count may be
-changed in another thread.  If the page swap count is not 0, we should not
-delete the page from the swap cache.  This is fixed via checking page swap
-count again after acquiring the page lock.
+Introduce two helpers, is_migrate_highatomic() and is_migrate_highatomic_page().
+Simplify the code, no functional changes.
 
-I found the race when I review the code, so I didn't trigger the race
-via a test program.  If the race occurs for an anonymous page shared by
-multiple processes via fork, multiple pages will be allocated and
-swapped in from the swap device for the previously shared one page. 
-That is, the user-visible runtime effect is more memory will be used
-and the access latency for the page will be higher, that is, the
-performance regression.
-
-Link: http://lkml.kernel.org/r/20170301143905.12846-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
+[akpm@linux-foundation.org: use static inlines rather than macros, per mhocko]
+Link: http://lkml.kernel.org/r/58B94F15.6060606@huawei.com
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ mm/internal.h          |   10 ++++++++++
+ mm/page_alloc.c        |   14 ++++++--------
+ 3 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-fix-a-race-in-free_swap_and_cache mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-fix-a-race-in-free_swap_and_cache
-+++ a/mm/swapfile.c
-@@ -1111,6 +1111,18 @@ int page_swapcount(struct page *page)
- 	return count;
- }
+diff -puN include/linux/mmzone.h~mm-use-is_migrate_highatomic-to-simplify-the-code include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-use-is_migrate_highatomic-to-simplify-the-code
++++ a/include/linux/mmzone.h
+@@ -35,7 +35,7 @@
+  */
+ #define PAGE_ALLOC_COSTLY_ORDER 3
  
-+static int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
+-enum {
++enum migratetype {
+ 	MIGRATE_UNMOVABLE,
+ 	MIGRATE_MOVABLE,
+ 	MIGRATE_RECLAIMABLE,
+diff -puN mm/internal.h~mm-use-is_migrate_highatomic-to-simplify-the-code mm/internal.h
+--- a/mm/internal.h~mm-use-is_migrate_highatomic-to-simplify-the-code
++++ a/mm/internal.h
+@@ -510,4 +510,14 @@ extern const struct trace_print_flags pa
+ extern const struct trace_print_flags vmaflag_names[];
+ extern const struct trace_print_flags gfpflag_names[];
+ 
++static inline bool is_migrate_highatomic(enum migratetype migratetype)
 +{
-+	int count = 0;
-+	pgoff_t offset = swp_offset(entry);
-+	struct swap_cluster_info *ci;
-+
-+	ci = lock_cluster_or_swap_info(si, offset);
-+	count = swap_count(si->swap_map[offset]);
-+	unlock_cluster_or_swap_info(si, ci);
-+	return count;
++	return migratetype == MIGRATE_HIGHATOMIC;
 +}
 +
- /*
-  * How many references to @entry are currently swapped out?
-  * This does not give an exact answer when swap count is continued,
-@@ -1119,17 +1131,11 @@ int page_swapcount(struct page *page)
- int __swp_swapcount(swp_entry_t entry)
- {
- 	int count = 0;
--	pgoff_t offset;
- 	struct swap_info_struct *si;
--	struct swap_cluster_info *ci;
++static inline bool is_migrate_highatomic_page(struct page *page)
++{
++	return get_pageblock_migratetype(page) == MIGRATE_HIGHATOMIC;
++}
++
+ #endif	/* __MM_INTERNAL_H */
+diff -puN mm/page_alloc.c~mm-use-is_migrate_highatomic-to-simplify-the-code mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-is_migrate_highatomic-to-simplify-the-code
++++ a/mm/page_alloc.c
+@@ -2036,8 +2036,8 @@ static void reserve_highatomic_pageblock
  
- 	si = __swap_info_get(entry);
--	if (si) {
--		offset = swp_offset(entry);
--		ci = lock_cluster_or_swap_info(si, offset);
--		count = swap_count(si->swap_map[offset]);
--		unlock_cluster_or_swap_info(si, ci);
--	}
-+	if (si)
-+		count = swap_swapcount(si, entry);
- 	return count;
- }
+ 	/* Yoink! */
+ 	mt = get_pageblock_migratetype(page);
+-	if (mt != MIGRATE_HIGHATOMIC &&
+-			!is_migrate_isolate(mt) && !is_migrate_cma(mt)) {
++	if (!is_migrate_highatomic(mt) && !is_migrate_isolate(mt)
++	    && !is_migrate_cma(mt)) {
+ 		zone->nr_reserved_highatomic += pageblock_nr_pages;
+ 		set_pageblock_migratetype(page, MIGRATE_HIGHATOMIC);
+ 		move_freepages_block(zone, page, MIGRATE_HIGHATOMIC);
+@@ -2094,8 +2094,7 @@ static bool unreserve_highatomic_pageblo
+ 			 * from highatomic to ac->migratetype. So we should
+ 			 * adjust the count once.
+ 			 */
+-			if (get_pageblock_migratetype(page) ==
+-							MIGRATE_HIGHATOMIC) {
++			if (is_migrate_highatomic_page(page)) {
+ 				/*
+ 				 * It should never happen but changes to
+ 				 * locking could inadvertently allow a per-cpu
+@@ -2152,8 +2151,7 @@ __rmqueue_fallback(struct zone *zone, un
  
-@@ -1291,7 +1297,8 @@ int free_swap_and_cache(swp_entry_t entr
- 		 * Also recheck PageSwapCache now page is locked (above).
- 		 */
- 		if (PageSwapCache(page) && !PageWriteback(page) &&
--		    (!page_mapped(page) || mem_cgroup_swap_full(page))) {
-+		    (!page_mapped(page) || mem_cgroup_swap_full(page)) &&
-+		    !swap_swapcount(p, entry)) {
- 			delete_from_swap_cache(page);
- 			SetPageDirty(page);
+ 		page = list_first_entry(&area->free_list[fallback_mt],
+ 						struct page, lru);
+-		if (can_steal &&
+-			get_pageblock_migratetype(page) != MIGRATE_HIGHATOMIC)
++		if (can_steal && !is_migrate_highatomic_page(page))
+ 			steal_suitable_fallback(zone, page, start_migratetype);
+ 
+ 		/* Remove the page from the freelists */
+@@ -2493,7 +2491,7 @@ void free_hot_cold_page(struct page *pag
+ 	/*
+ 	 * We only track unmovable, reclaimable and movable on pcp lists.
+ 	 * Free ISOLATE pages back to the allocator because they are being
+-	 * offlined but treat RESERVE as movable pages so we can get those
++	 * offlined but treat HIGHATOMIC as movable pages so we can get those
+ 	 * areas back if necessary. Otherwise, we may have to free
+ 	 * excessively into the page allocator
+ 	 */
+@@ -2603,7 +2601,7 @@ int __isolate_free_page(struct page *pag
+ 		for (; page < endpage; page += pageblock_nr_pages) {
+ 			int mt = get_pageblock_migratetype(page);
+ 			if (!is_migrate_isolate(mt) && !is_migrate_cma(mt)
+-				&& mt != MIGRATE_HIGHATOMIC)
++			    && !is_migrate_highatomic(mt))
+ 				set_pageblock_migratetype(page,
+ 							  MIGRATE_MOVABLE);
  		}
 _
