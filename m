@@ -1,109 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 042/102] mm, vmscan: only clear pgdat
- congested/dirty/writeback state when balanced
-Date: Wed, 03 May 2017 14:53:41 -0700
-Message-ID: <20170503215341.YQxvJtuiV%akpm@linux-foundation.org>
+Subject: [patch 040/102] mm: do not use double negation for testing
+ page flags
+Date: Wed, 03 May 2017 14:53:35 -0700
+Message-ID: <20170503215335.SrQimNCb-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48952 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751074AbdECVyU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:20 -0400
+        with ESMTP id S1751074AbdECVyT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, sgoel01@yahoo.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: only clear pgdat congested/dirty/writeback state when balanced
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: do not use double negation for testing page flags
 
-A pgdat tracks if recent reclaim encountered too many dirty, writeback or
-congested pages.  The flags control whether kswapd writes pages back from
-reclaim context, tags pages for immediate reclaim when IO completes,
-whether processes block on wait_iff_congested and whether kswapd blocks
-when too many pages marked for immediate reclaim are encountered.
+With the discussion[1], I found it seems there are every PageFlags
+functions return bool at this moment so we don't need double negation
+any more.  Although it's not a problem to keep it, it makes future
+users confused to use double negation for them, too.
 
-The state is cleared in a check function with side-effects.  With the
-patch "mm, vmscan: fix zone balance check in prepare_kswapd_sleep", the
-timing of when the bits get cleared changed.  Due to the way the check
-works, it'll clear the bits if ZONE_DMA is balanced for a GFP_DMA
-allocation because it does not account for lowmem reserves properly.
+Remove such possibility.
 
-For the simoop workload, kswapd is not stalling when it should due to the
-premature clearing, writing pages from reclaim context like crazy and
-generally being unhelpful.
+[1] https://marc.info/?l=linux-kernel&m=148881578820434
 
-This patch resets the pgdat bits related to page reclaim only when kswapd
-is going to sleep.  The comparison with simoop is then
+Frankly sepaking, I like every PageFlags to return bool instead of int.
+It will make it clear.  AFAIR, Chen Gang had tried it but don't know
+why it was not merged at that time.
 
-                                         4.11.0-rc1            4.11.0-rc1            4.11.0-rc1
-                                            vanilla           fixcheck-v2              clear-v2
-Amean    p50-Read             21670074.18 (  0.00%) 20464344.18 (  5.56%) 19786774.76 (  8.69%)
-Amean    p95-Read             25456267.64 (  0.00%) 25721423.64 ( -1.04%) 24101956.27 (  5.32%)
-Amean    p99-Read             29369064.73 (  0.00%) 30174230.76 ( -2.74%) 27691872.71 (  5.71%)
-Amean    p50-Write                1390.30 (  0.00%)     1395.28 ( -0.36%)     1011.91 ( 27.22%)
-Amean    p95-Write              412901.57 (  0.00%)    37737.74 ( 90.86%)    34874.98 ( 91.55%)
-Amean    p99-Write             6668722.09 (  0.00%)   666489.04 ( 90.01%)   575449.60 ( 91.37%)
-Amean    p50-Allocation          78714.31 (  0.00%)    86286.22 ( -9.62%)    84246.26 ( -7.03%)
-Amean    p95-Allocation         175533.51 (  0.00%)   351812.27 (-100.42%)   400058.43 (-127.91%)
-Amean    p99-Allocation         247003.02 (  0.00%)  6291171.56 (-2447.00%) 10905600.00 (-4315.17%)
+http://lkml.kernel.org/r/1469336184-1904-1-git-send-email-chengang@emindsoft.com.cn
 
-Read latency is improved, write latency is mostly improved but allocation
-latency is regressed.  kswapd is still reclaiming inefficiently, pages are
-being written back from writeback context and a host of other issues. 
-However, given the change, it needed to be spelled out why the side-effect
-was moved.
-
-Link: http://lkml.kernel.org/r/20170309075657.25121-3-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1488868597-32222-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shantanu Goel <sgoel01@yahoo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ mm/khugepaged.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-only-clear-pgdat-congested-dirty-writeback-state-when-balanced
-+++ a/mm/vmscan.c
-@@ -3056,17 +3056,17 @@ static bool zone_balanced(struct zone *z
- 	if (!zone_watermark_ok_safe(zone, order, mark, classzone_idx))
- 		return false;
- 
--	/*
--	 * If any eligible zone is balanced then the node is not considered
--	 * to be congested or dirty
--	 */
--	clear_bit(PGDAT_CONGESTED, &zone->zone_pgdat->flags);
--	clear_bit(PGDAT_DIRTY, &zone->zone_pgdat->flags);
--	clear_bit(PGDAT_WRITEBACK, &zone->zone_pgdat->flags);
--
- 	return true;
- }
- 
-+/* Clear pgdat state for congested, dirty or under writeback. */
-+static void clear_pgdat_congested(pg_data_t *pgdat)
-+{
-+	clear_bit(PGDAT_CONGESTED, &pgdat->flags);
-+	clear_bit(PGDAT_DIRTY, &pgdat->flags);
-+	clear_bit(PGDAT_WRITEBACK, &pgdat->flags);
-+}
-+
- /*
-  * Prepare kswapd for sleeping. This verifies that there are no processes
-  * waiting in throttle_direct_reclaim() and that watermarks have been met.
-@@ -3103,8 +3103,10 @@ static bool prepare_kswapd_sleep(pg_data
- 		if (!managed_zone(zone))
- 			continue;
- 
--		if (zone_balanced(zone, order, classzone_idx))
-+		if (zone_balanced(zone, order, classzone_idx)) {
-+			clear_pgdat_congested(pgdat);
- 			return true;
-+		}
- 	}
- 
- 	return false;
+diff -puN mm/khugepaged.c~mm-do-not-use-double-negation-for-testing-page-flags mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-do-not-use-double-negation-for-testing-page-flags
++++ a/mm/khugepaged.c
+@@ -548,7 +548,7 @@ static int __collapse_huge_page_isolate(
+ 		 * The page must only be referenced by the scanned process
+ 		 * and page swap cache.
+ 		 */
+-		if (page_count(page) != 1 + !!PageSwapCache(page)) {
++		if (page_count(page) != 1 + PageSwapCache(page)) {
+ 			unlock_page(page);
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out;
+@@ -1181,7 +1181,7 @@ static int khugepaged_scan_pmd(struct mm
+ 		 * The page must only be referenced by the scanned process
+ 		 * and page swap cache.
+ 		 */
+-		if (page_count(page) != 1 + !!PageSwapCache(page)) {
++		if (page_count(page) != 1 + PageSwapCache(page)) {
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out_unmap;
+ 		}
 _
