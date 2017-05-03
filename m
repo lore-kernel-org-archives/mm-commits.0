@@ -1,60 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [patch 060/102] mm, swap: avoid lock swap_avail_lock when
- held cluster lock
-Date: Wed, 03 May 2017 14:54:39 -0700
-Message-ID: <20170503215439.tcLUDapgj%akpm@linux-foundation.org>
+Subject: [patch 062/102] include/linux/migrate.h: add arg names to
+ prototype
+Date: Wed, 03 May 2017 14:54:45 -0700
+Message-ID: <20170503215445.CONFo1EiX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:49630 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751074AbdECVy6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:54:58 -0400
+        with ESMTP id S1751402AbdECVzA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:55:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, tim.c.chen@intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, pushkar.iit@gmail.com, torvalds@linux-foundation.org
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, swap: avoid lock swap_avail_lock when held cluster lock
+From: Pushkar Jambhlekar <pushkar.iit@gmail.com>
+Subject: include/linux/migrate.h: add arg names to prototype
 
-Cluster lock is used to protect the swap_cluster_info and corresponding
-elements in swap_info_struct->swap_map[].  But it is found that now in
-scan_swap_map_slots(), swap_avail_lock may be acquired when cluster lock
-is held.  This does no good except making the locking more complex and
-improving the potential locking contention, because the
-swap_info_struct->lock is used to protect the data structure operated in
-the code already.  Fix this via moving the corresponding operations in
-scan_swap_map_slots() out of cluster lock.
+It is preferred, and the rest of migrate.h gets it right.
 
-Link: http://lkml.kernel.org/r/20170317064635.12792-3-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Tim Chen <tim.c.chen@intel.com>
+Link: http://lkml.kernel.org/r/1490336009-8024-1-git-send-email-pushkar.iit@gmail.com
+Signed-off-by: Pushkar Jambhlekar <pushkar.iit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/migrate.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-avoid-lock-swap_avail_lock-when-held-cluster-lock mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-avoid-lock-swap_avail_lock-when-held-cluster-lock
-+++ a/mm/swapfile.c
-@@ -672,6 +672,9 @@ checks:
- 		else
- 			goto done;
- 	}
-+	si->swap_map[offset] = usage;
-+	inc_cluster_info_page(si, si->cluster_info, offset);
-+	unlock_cluster(ci);
+diff -puN include/linux/migrate.h~mm-include-linux-migrateh-fixing-checkpatch-warning-regarding-function-definition include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-include-linux-migrateh-fixing-checkpatch-warning-regarding-function-definition
++++ a/include/linux/migrate.h
+@@ -33,8 +33,9 @@ extern char *migrate_reason_names[MR_TYP
+ #ifdef CONFIG_MIGRATION
  
- 	if (offset == si->lowest_bit)
- 		si->lowest_bit++;
-@@ -685,9 +688,6 @@ checks:
- 		plist_del(&si->avail_list, &swap_avail_head);
- 		spin_unlock(&swap_avail_lock);
- 	}
--	si->swap_map[offset] = usage;
--	inc_cluster_info_page(si, si->cluster_info, offset);
--	unlock_cluster(ci);
- 	si->cluster_next = offset + 1;
- 	slots[n_ret++] = swp_entry(si->type, offset);
- 
+ extern void putback_movable_pages(struct list_head *l);
+-extern int migrate_page(struct address_space *,
+-			struct page *, struct page *, enum migrate_mode);
++extern int migrate_page(struct address_space *mapping,
++			struct page *newpage, struct page *page,
++			enum migrate_mode mode);
+ extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
+ 		unsigned long private, enum migrate_mode mode, int reason);
+ extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
 _
