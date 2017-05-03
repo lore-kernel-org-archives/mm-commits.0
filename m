@@ -1,58 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] proc-show-madv_free-pages-info-in-smaps-fix.patch removed from -mm tree
-Date: Wed, 03 May 2017 14:36:05 -0700
-Message-ID: <590a4d45.5vjaFr9KXU4xaCtU%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch removed from
+ -mm tree
+Date: Wed, 03 May 2017 14:36:39 -0700
+Message-ID: <590a4d67.n3AgSIZ2jrfA+s9+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45702 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750912AbdECVgG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:36:06 -0400
+        with ESMTP id S1752340AbdECVgk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:36:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@kernel.org, shli@fb.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, qiuxishi@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-show-madv_free-pages-info-in-smaps-fix
+     Subject: mm-use-is_migrate_highatomic-to-simplify-the-code-fix
 has been removed from the -mm tree.  Its filename was
-     proc-show-madv_free-pages-info-in-smaps-fix.patch
+     mm-use-is_migrate_highatomic-to-simplify-the-code-fix.patch
 
-This patch was dropped because it was folded into proc-show-madv_free-pages-info-in-smaps.patch
+This patch was dropped because it was folded into mm-use-is_migrate_highatomic-to-simplify-the-code.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@kernel.org>
-Subject: proc-show-madv_free-pages-info-in-smaps-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-use-is_migrate_highatomic-to-simplify-the-code-fix
 
-update Documentation/filesystems/proc.txt
+use static inlines rather than macros, per mhocko
 
-Cc: Shaohua Li <shli@fb.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    7 +------
+ mm/internal.h          |   10 ++++++++++
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-show-madv_free-pages-info-in-smaps-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-show-madv_free-pages-info-in-smaps-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -444,7 +444,9 @@ a mapping associated with a file may con
- and a page is modified, the file page is replaced by a private anonymous copy.
- "LazyFree" shows the amount of memory which is marked by madvise(MADV_FREE).
- The memory isn't freed immediately with madvise(). It's freed in memory
--pressure if the memory is clean.
-+pressure if the memory is clean. Please note that the printed value might
-+be lower than the real value due to optimizations used in the current
-+implementation. If this is not desirable please file a bug report.
- "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
- "ShmemPmdMapped" shows the ammount of shared (shmem/tmpfs) memory backed by
- huge pages.
+diff -puN include/linux/mmzone.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix
++++ a/include/linux/mmzone.h
+@@ -35,7 +35,7 @@
+  */
+ #define PAGE_ALLOC_COSTLY_ORDER 3
+ 
+-enum {
++enum migratetype {
+ 	MIGRATE_UNMOVABLE,
+ 	MIGRATE_MOVABLE,
+ 	MIGRATE_RECLAIMABLE,
+@@ -66,11 +66,6 @@ enum {
+ /* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
+ extern char * const migratetype_names[MIGRATE_TYPES];
+ 
+-#define is_migrate_highatomic(migratetype)				\
+-	(migratetype == MIGRATE_HIGHATOMIC)
+-#define is_migrate_highatomic_page(_page)				\
+-	(get_pageblock_migratetype(_page) == MIGRATE_HIGHATOMIC)
+-
+ #ifdef CONFIG_CMA
+ #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
+ #  define is_migrate_cma_page(_page) (get_pageblock_migratetype(_page) == MIGRATE_CMA)
+diff -puN mm/internal.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix mm/internal.h
+--- a/mm/internal.h~mm-use-is_migrate_highatomic-to-simplify-the-code-fix
++++ a/mm/internal.h
+@@ -510,4 +510,14 @@ extern const struct trace_print_flags pa
+ extern const struct trace_print_flags vmaflag_names[];
+ extern const struct trace_print_flags gfpflag_names[];
+ 
++static inline bool is_migrate_highatomic(enum migratetype migratetype)
++{
++	return migratetype == MIGRATE_HIGHATOMIC;
++}
++
++static inline bool is_migrate_highatomic_page(struct page *page)
++{
++	return get_pageblock_migratetype(page) == MIGRATE_HIGHATOMIC;
++}
++
+ #endif	/* __MM_INTERNAL_H */
 _
 
-Patches currently in -mm which might be from mhocko@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-proc-show-madv_free-pages-info-in-smaps.patch
+mm-use-is_migrate_highatomic-to-simplify-the-code.patch
+mm-introduce-memalloc_nofs_saverestore-api-fix.patch
+jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context-fix.patch
+jbd2-make-the-whole-kjournald2-kthread-nofs-safe-checkpatch-fixes.patch
+swap-add-warning-if-swap-slots-cache-failed-to-initialize-fix.patch
 
