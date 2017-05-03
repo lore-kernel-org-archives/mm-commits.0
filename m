@@ -1,100 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [patch 052/102] mm: remove SWAP_MLOCK in ttu
-Date: Wed, 03 May 2017 14:54:13 -0700
-Message-ID: <20170503215413.SbfNtkhEr%akpm@linux-foundation.org>
+Subject: [patch 066/102] oom: improve oom disable handling
+Date: Wed, 03 May 2017 14:54:57 -0700
+Message-ID: <20170503215457.EmTSKxs3F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751198AbdECVzP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:55:15 -0400
+        with ESMTP id S1751216AbdECVzT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, torvalds@linux-foundation.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remove SWAP_MLOCK in ttu
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom: improve oom disable handling
 
-ttu doesn't need to return SWAP_MLOCK.  Instead, just return SWAP_FAIL
-because it means the page is not-swappable so it should move to another
-LRU list(active or unevictable).  putback friends will move it to right
-list depending on the page's LRU flag.
+Tetsuo has reported that sysrq triggered OOM killer will print a
+misleading information when no tasks are selected:
 
-Link: http://lkml.kernel.org/r/1489555493-14659-6-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[  713.805315] sysrq: SysRq : Manual OOM execution
+[  713.808920] Out of memory: Kill process 4468 ((agetty)) score 0 or sacrifice child
+[  713.814913] Killed process 4468 ((agetty)) total-vm:43704kB, anon-rss:1760kB, file-rss:0kB, shmem-rss:0kB
+[  714.004805] sysrq: SysRq : Manual OOM execution
+[  714.005936] Out of memory: Kill process 4469 (systemd-cgroups) score 0 or sacrifice child
+[  714.008117] Killed process 4469 (systemd-cgroups) total-vm:10704kB, anon-rss:120kB, file-rss:0kB, shmem-rss:0kB
+[  714.189310] sysrq: SysRq : Manual OOM execution
+[  714.193425] sysrq: OOM request ignored because killer is disabled
+[  714.381313] sysrq: SysRq : Manual OOM execution
+[  714.385158] sysrq: OOM request ignored because killer is disabled
+[  714.573320] sysrq: SysRq : Manual OOM execution
+[  714.576988] sysrq: OOM request ignored because killer is disabled
+
+The real reason is that there are no eligible tasks for the OOM killer to
+select but since 7c5f64f84483bd13 ("mm: oom: deduplicate victim selection
+code for memcg and global oom") the semantic of out_of_memory has changed
+without updating moom_callback.
+
+This patch updates moom_callback to tell that no task was eligible which
+is the case for both oom killer disabled and no eligible tasks.  In order
+to help distinguish first case from the second add printk to both
+oom_killer_{enable,disable}.  This information is useful on its own
+because it might help debugging potential memory allocation failures.
+
+Fixes: 7c5f64f84483bd13 ("mm: oom: deduplicate victim selection code for memcg and global oom")
+Link: http://lkml.kernel.org/r/20170404134705.6361-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 -
- mm/rmap.c            |    3 +--
- mm/vmscan.c          |   20 +++++++-------------
- 3 files changed, 8 insertions(+), 16 deletions(-)
+ drivers/tty/sysrq.c |    2 +-
+ mm/oom_kill.c       |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/rmap.h~mm-remove-swap_mlock-in-ttu include/linux/rmap.h
---- a/include/linux/rmap.h~mm-remove-swap_mlock-in-ttu
-+++ a/include/linux/rmap.h
-@@ -297,6 +297,5 @@ static inline int page_mkclean(struct pa
- #define SWAP_SUCCESS	0
- #define SWAP_AGAIN	1
- #define SWAP_FAIL	2
--#define SWAP_MLOCK	3
+diff -puN drivers/tty/sysrq.c~oom-improve-oom-disable-handling drivers/tty/sysrq.c
+--- a/drivers/tty/sysrq.c~oom-improve-oom-disable-handling
++++ a/drivers/tty/sysrq.c
+@@ -372,7 +372,7 @@ static void moom_callback(struct work_st
  
- #endif	/* _LINUX_RMAP_H */
-diff -puN mm/rmap.c~mm-remove-swap_mlock-in-ttu mm/rmap.c
---- a/mm/rmap.c~mm-remove-swap_mlock-in-ttu
-+++ a/mm/rmap.c
-@@ -1329,7 +1329,7 @@ static int try_to_unmap_one(struct page
- 					 */
- 					mlock_vma_page(page);
- 				}
--				ret = SWAP_MLOCK;
-+				ret = SWAP_FAIL;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
- 			}
-@@ -1506,7 +1506,6 @@ static int page_mapcount_is_zero(struct
-  * SWAP_SUCCESS	- we succeeded in removing all mappings
-  * SWAP_AGAIN	- we missed a mapping, try again later
-  * SWAP_FAIL	- the page is unswappable
-- * SWAP_MLOCK	- page is mlocked.
-  */
- int try_to_unmap(struct page *page, enum ttu_flags flags)
+ 	mutex_lock(&oom_lock);
+ 	if (!out_of_memory(&oc))
+-		pr_info("OOM request ignored because killer is disabled\n");
++		pr_info("OOM request ignored. No task eligible\n");
+ 	mutex_unlock(&oom_lock);
+ }
+ 
+diff -puN mm/oom_kill.c~oom-improve-oom-disable-handling mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-improve-oom-disable-handling
++++ a/mm/oom_kill.c
+@@ -685,6 +685,7 @@ void exit_oom_victim(void)
+ void oom_killer_enable(void)
  {
-diff -puN mm/vmscan.c~mm-remove-swap_mlock-in-ttu mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-swap_mlock-in-ttu
-+++ a/mm/vmscan.c
-@@ -987,7 +987,7 @@ static unsigned long shrink_page_list(st
- 		sc->nr_scanned++;
+ 	oom_killer_disabled = false;
++	pr_info("OOM killer enabled.\n");
+ }
  
- 		if (unlikely(!page_evictable(page)))
--			goto cull_mlocked;
-+			goto activate_locked;
+ /**
+@@ -721,6 +722,7 @@ bool oom_killer_disable(signed long time
+ 		oom_killer_enable();
+ 		return false;
+ 	}
++	pr_info("OOM killer disabled.\n");
  
- 		if (!sc->may_unmap && page_mapped(page))
- 			goto keep_locked;
-@@ -1152,8 +1152,6 @@ static unsigned long shrink_page_list(st
- 				goto activate_locked;
- 			case SWAP_AGAIN:
- 				goto keep_locked;
--			case SWAP_MLOCK:
--				goto cull_mlocked;
- 			case SWAP_SUCCESS:
- 				; /* try to free the page below */
- 			}
-@@ -1295,20 +1293,16 @@ free_it:
- 		list_add(&page->lru, &free_pages);
- 		continue;
- 
--cull_mlocked:
--		if (PageSwapCache(page))
--			try_to_free_swap(page);
--		unlock_page(page);
--		list_add(&page->lru, &ret_pages);
--		continue;
+ 	return true;
+ }
+_
