@@ -1,100 +1,309 @@
 From: akpm@linux-foundation.org
-Subject: [patch 007/102] slab: avoid IPIs when creating kmem caches
-Date: Wed, 03 May 2017 14:51:47 -0700
-Message-ID: <20170503215147.6Vx3bpwV9%akpm@linux-foundation.org>
+Subject: [patch 008/102] mm: fix 100% CPU kswapd busyloop on
+ unreclaimable nodes
+Date: Wed, 03 May 2017 14:51:51 -0700
+Message-ID: <20170503215151.k44MPFM0_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47194 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbdECVvt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:49 -0400
+        with ESMTP id S1751700AbdECVvw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2017 17:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, gthelen@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hejianet@gmail.com, hillf.zj@alibaba-inc.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
 
-From: Greg Thelen <gthelen@google.com>
-Subject: slab: avoid IPIs when creating kmem caches
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: fix 100% CPU kswapd busyloop on unreclaimable nodes
 
-Each slab kmem cache has per cpu array caches.  The array caches are
-created when the kmem_cache is created, either via kmem_cache_create()
-or lazily when the first object is allocated in context of a kmem
-enabled memcg.  Array caches are replaced by writing to /proc/slabinfo.
+Patch series "mm: kswapd spinning on unreclaimable nodes - fixes and cleanups".
 
-Array caches are protected by holding slab_mutex or disabling
-interrupts.  Array cache allocation and replacement is done by
-__do_tune_cpucache() which holds slab_mutex and calls
-kick_all_cpus_sync() to interrupt all remote processors which confirms
-there are no references to the old array caches.
+Jia reported a scenario in which the kswapd of a node indefinitely spins
+at 100% CPU usage.  We have seen similar cases at Facebook.
 
-IPIs are needed when replacing array caches.  But when creating a new
-array cache, there's no need to send IPIs because there cannot be any
-references to the new cache.  Outside of memcg kmem accounting these
-IPIs occur at boot time, so they're not a problem.  But with memcg kmem
-accounting each container can create kmem caches, so the IPIs are
-wasteful.
+The kernel's current method of judging its ability to reclaim a node (or
+whether to back off and sleep) is based on the amount of scanned pages in
+proportion to the amount of reclaimable pages.  In Jia's and our
+scenarios, there are no reclaimable pages in the node, however, and the
+condition for backing off is never met.  Kswapd busyloops in an attempt to
+restore the watermarks while having nothing to work with.
 
-Avoid unnecessary IPIs when creating array caches.
+This series reworks the definition of an unreclaimable node based not on
+scanning but on whether kswapd is able to actually reclaim pages in
+MAX_RECLAIM_RETRIES (16) consecutive runs.  This is the same criteria the
+page allocator uses for giving up on direct reclaim and invoking the OOM
+killer.  If it cannot free any pages, kswapd will go to sleep and leave
+further attempts to direct reclaim invocations, which will either make
+progress and re-enable kswapd, or invoke the OOM killer.
 
-Test which reports the IPI count of allocating slab in 10000 memcg:
-	import os
+Patch #1 fixes the immediate problem Jia reported, the remainder are
+smaller fixlets, cleanups, and overall phasing out of the old method.
 
-	def ipi_count():
-		with open("/proc/interrupts") as f:
-			for l in f:
-				if 'Function call interrupts' in l:
-					return int(l.split()[1])
+Patch #6 is the odd one out.  It's a nice cleanup to get_scan_count(), and
+directly related to #5, but in itself not relevant to the series.
 
-	def echo(val, path):
-		with open(path, "w") as f:
-			f.write(val)
+If the whole series is too ambitious for 4.11, I would consider the first
+three patches fixes, the rest cleanups.
 
-	n = 10000
-	os.chdir("/mnt/cgroup/memory")
-	pid = str(os.getpid())
-	a = ipi_count()
-	for i in range(n):
-		os.mkdir(str(i))
-		echo("1G\n", "%d/memory.limit_in_bytes" % i)
-		echo("1G\n", "%d/memory.kmem.limit_in_bytes" % i)
-		echo(pid, "%d/cgroup.procs" % i)
-		open("/tmp/x", "w").close()
-		os.unlink("/tmp/x")
-	b = ipi_count()
-	print "%d loops: %d => %d (+%d ipis)" % (n, a, b, b-a)
-	echo(pid, "cgroup.procs")
-	for i in range(n):
-		os.rmdir(str(i))
 
-patched:   10000 loops: 1069 => 1170 (+101 ipis)
-unpatched: 10000 loops: 1192 => 48933 (+47741 ipis)
+This patch (of 9):
 
-Link: http://lkml.kernel.org/r/20170416214544.109476-1-gthelen@google.com
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Jia He reports a problem with kswapd spinning at 100% CPU when requesting
+more hugepages than memory available in the system:
+
+$ echo 4000 >/proc/sys/vm/nr_hugepages
+
+top - 13:42:59 up  3:37,  1 user,  load average: 1.09, 1.03, 1.01
+Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us, 12.5 sy,  0.0 ni, 85.5 id,  2.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem:  31371520 total, 30915136 used,   456384 free,      320 buffers
+KiB Swap:  6284224 total,   115712 used,  6168512 free.    48192 cached Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+   76 root      20   0       0      0      0 R 100.0 0.000 217:17.29 kswapd3
+
+At that time, there are no reclaimable pages left in the node, but as
+kswapd fails to restore the high watermarks it refuses to go to sleep.
+
+Kswapd needs to back away from nodes that fail to balance.  Up until
+1d82de618ddd ("mm, vmscan: make kswapd reclaim in terms of nodes") kswapd
+had such a mechanism.  It considered zones whose theoretically reclaimable
+pages it had reclaimed six times over as unreclaimable and backed away
+from them.  This guard was erroneously removed as the patch changed the
+definition of a balanced node.
+
+However, simply restoring this code wouldn't help in the case reported
+here: there *are* no reclaimable pages that could be scanned until the
+threshold is met.  Kswapd would stay awake anyway.
+
+Introduce a new and much simpler way of backing off.  If kswapd runs
+through MAX_RECLAIM_RETRIES (16) cycles without reclaiming a single page,
+make it back off from the node.  This is the same number of shots direct
+reclaim takes before declaring OOM.  Kswapd will go to sleep on that node
+until a direct reclaimer manages to reclaim some pages, thus proving the
+node reclaimable again.
+
+[hannes@cmpxchg.org: check kswapd failure against the cumulative nr_reclaimed count]
+  Link: http://lkml.kernel.org/r/20170306162410.GB2090@cmpxchg.org
+[shakeelb@google.com: fix condition for throttle_direct_reclaim]
+  Link: http://lkml.kernel.org/r/20170314183228.20152-1-shakeelb@google.com
+Link: http://lkml.kernel.org/r/20170228214007.5621-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reported-by: Jia He <hejianet@gmail.com>
+Tested-by: Jia He <hejianet@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    2 +
+ mm/internal.h          |    6 ++++
+ mm/page_alloc.c        |    9 +------
+ mm/vmscan.c            |   47 ++++++++++++++++++++++++++-------------
+ mm/vmstat.c            |    2 -
+ 5 files changed, 43 insertions(+), 23 deletions(-)
 
-diff -puN mm/slab.c~slab-avoid-ipis-when-creating-kmem-caches mm/slab.c
---- a/mm/slab.c~slab-avoid-ipis-when-creating-kmem-caches
-+++ a/mm/slab.c
-@@ -3879,7 +3879,12 @@ static int __do_tune_cpucache(struct kme
+diff -puN include/linux/mmzone.h~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes
++++ a/include/linux/mmzone.h
+@@ -630,6 +630,8 @@ typedef struct pglist_data {
+ 	int kswapd_order;
+ 	enum zone_type kswapd_classzone_idx;
  
- 	prev = cachep->cpu_cache;
- 	cachep->cpu_cache = cpu_cache;
--	kick_all_cpus_sync();
++	int kswapd_failures;		/* Number of 'reclaimed == 0' runs */
++
+ #ifdef CONFIG_COMPACTION
+ 	int kcompactd_max_order;
+ 	enum zone_type kcompactd_classzone_idx;
+diff -puN mm/internal.h~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes mm/internal.h
+--- a/mm/internal.h~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes
++++ a/mm/internal.h
+@@ -81,6 +81,12 @@ static inline void set_page_refcounted(s
+ extern unsigned long highest_memmap_pfn;
+ 
+ /*
++ * Maximum number of reclaim retries without progress before the OOM
++ * killer is consider the only way forward.
++ */
++#define MAX_RECLAIM_RETRIES 16
++
++/*
+  * in mm/vmscan.c:
+  */
+ extern int isolate_lru_page(struct page *page);
+diff -puN mm/page_alloc.c~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes
++++ a/mm/page_alloc.c
+@@ -3522,12 +3522,6 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
+ }
+ 
+ /*
+- * Maximum number of reclaim retries without any progress before OOM killer
+- * is consider as the only way to move forward.
+- */
+-#define MAX_RECLAIM_RETRIES 16
+-
+-/*
+  * Checks whether it makes sense to retry the reclaim to make a forward progress
+  * for the given allocation request.
+  * The reclaim feedback represented by did_some_progress (any progress during
+@@ -4534,7 +4528,8 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
+ 			node_page_state(pgdat, NR_PAGES_SCANNED),
+-			!pgdat_reclaimable(pgdat) ? "yes" : "no");
++			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
++				"yes" : "no");
+ 	}
+ 
+ 	for_each_populated_zone(zone) {
+diff -puN mm/vmscan.c~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes mm/vmscan.c
+--- a/mm/vmscan.c~mm-fix-100%-cpu-kswapd-busyloop-on-unreclaimable-nodes
++++ a/mm/vmscan.c
+@@ -2620,6 +2620,15 @@ static bool shrink_node(pg_data_t *pgdat
+ 	} while (should_continue_reclaim(pgdat, sc->nr_reclaimed - nr_reclaimed,
+ 					 sc->nr_scanned - nr_scanned, sc));
+ 
 +	/*
-+	 * Without a previous cpu_cache there's no need to synchronize remote
-+	 * cpus, so skip the IPIs.
++	 * Kswapd gives up on balancing particular nodes after too
++	 * many failures to reclaim anything from them and goes to
++	 * sleep. On reclaim progress, reset the failure counter. A
++	 * successful direct reclaim run will revive a dormant kswapd.
 +	 */
-+	if (prev)
-+		kick_all_cpus_sync();
++	if (reclaimable)
++		pgdat->kswapd_failures = 0;
++
+ 	return reclaimable;
+ }
  
- 	check_irq_on();
- 	cachep->batchcount = batchcount;
-_
+@@ -2694,10 +2703,6 @@ static void shrink_zones(struct zonelist
+ 						 GFP_KERNEL | __GFP_HARDWALL))
+ 				continue;
+ 
+-			if (sc->priority != DEF_PRIORITY &&
+-			    !pgdat_reclaimable(zone->zone_pgdat))
+-				continue;	/* Let kswapd poll it */
+-
+ 			/*
+ 			 * If we already have plenty of memory free for
+ 			 * compaction in this zone, don't free any more.
+@@ -2817,7 +2822,7 @@ retry:
+ 	return 0;
+ }
+ 
+-static bool pfmemalloc_watermark_ok(pg_data_t *pgdat)
++static bool allow_direct_reclaim(pg_data_t *pgdat)
+ {
+ 	struct zone *zone;
+ 	unsigned long pfmemalloc_reserve = 0;
+@@ -2825,6 +2830,9 @@ static bool pfmemalloc_watermark_ok(pg_d
+ 	int i;
+ 	bool wmark_ok;
+ 
++	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
++		return true;
++
+ 	for (i = 0; i <= ZONE_NORMAL; i++) {
+ 		zone = &pgdat->node_zones[i];
+ 		if (!managed_zone(zone) ||
+@@ -2905,7 +2913,7 @@ static bool throttle_direct_reclaim(gfp_
+ 
+ 		/* Throttle based on the first usable node */
+ 		pgdat = zone->zone_pgdat;
+-		if (pfmemalloc_watermark_ok(pgdat))
++		if (allow_direct_reclaim(pgdat))
+ 			goto out;
+ 		break;
+ 	}
+@@ -2927,14 +2935,14 @@ static bool throttle_direct_reclaim(gfp_
+ 	 */
+ 	if (!(gfp_mask & __GFP_FS)) {
+ 		wait_event_interruptible_timeout(pgdat->pfmemalloc_wait,
+-			pfmemalloc_watermark_ok(pgdat), HZ);
++			allow_direct_reclaim(pgdat), HZ);
+ 
+ 		goto check_pending;
+ 	}
+ 
+ 	/* Throttle until kswapd wakes the process */
+ 	wait_event_killable(zone->zone_pgdat->pfmemalloc_wait,
+-		pfmemalloc_watermark_ok(pgdat));
++		allow_direct_reclaim(pgdat));
+ 
+ check_pending:
+ 	if (fatal_signal_pending(current))
+@@ -3114,7 +3122,7 @@ static bool prepare_kswapd_sleep(pg_data
+ 
+ 	/*
+ 	 * The throttled processes are normally woken up in balance_pgdat() as
+-	 * soon as pfmemalloc_watermark_ok() is true. But there is a potential
++	 * soon as allow_direct_reclaim() is true. But there is a potential
+ 	 * race between when kswapd checks the watermarks and a process gets
+ 	 * throttled. There is also a potential race if processes get
+ 	 * throttled, kswapd wakes, a large process exits thereby balancing the
+@@ -3128,6 +3136,10 @@ static bool prepare_kswapd_sleep(pg_data
+ 	if (waitqueue_active(&pgdat->pfmemalloc_wait))
+ 		wake_up_all(&pgdat->pfmemalloc_wait);
+ 
++	/* Hopeless node, leave it to direct reclaim */
++	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
++		return true;
++
+ 	for (i = 0; i <= classzone_idx; i++) {
+ 		struct zone *zone = pgdat->node_zones + i;
+ 
+@@ -3214,9 +3226,9 @@ static int balance_pgdat(pg_data_t *pgda
+ 	count_vm_event(PAGEOUTRUN);
+ 
+ 	do {
++		unsigned long nr_reclaimed = sc.nr_reclaimed;
+ 		bool raise_priority = true;
+ 
+-		sc.nr_reclaimed = 0;
+ 		sc.reclaim_idx = classzone_idx;
+ 
+ 		/*
+@@ -3295,7 +3307,7 @@ static int balance_pgdat(pg_data_t *pgda
+ 		 * able to safely make forward progress. Wake them
+ 		 */
+ 		if (waitqueue_active(&pgdat->pfmemalloc_wait) &&
+-				pfmemalloc_watermark_ok(pgdat))
++				allow_direct_reclaim(pgdat))
+ 			wake_up_all(&pgdat->pfmemalloc_wait);
+ 
+ 		/* Check if kswapd should be suspending */
+@@ -3306,10 +3318,14 @@ static int balance_pgdat(pg_data_t *pgda
+ 		 * Raise priority if scanning rate is too low or there was no
+ 		 * progress in reclaiming pages
+ 		 */
+-		if (raise_priority || !sc.nr_reclaimed)
++		nr_reclaimed = sc.nr_reclaimed - nr_reclaimed;
++		if (raise_priority || !nr_reclaimed)
+ 			sc.priority--;
+ 	} while (sc.priority >= 1);
+ 
++	if (!sc.nr_reclaimed)
++		pgdat->kswapd_failures++;
++
+ out:
+ 	/*
+ 	 * Return the order kswapd stopped reclaiming at as
+@@ -3509,6 +3525,10 @@ void wakeup_kswapd(struct zone *zone, in
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
+ 
++	/* Hopeless node, leave it to direct reclaim */
++	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
++		return;
++
+ 	/* Only wake kswapd if all zones are unbalanced */
+ 	for (z = 0; z <= classzone_idx; z++) {
+ 		zone = pgdat->node_zones + z;
+@@ -3779,9 +3799,6 @@ int node_reclaim(struct pglist_data *pgd
+ 	    sum_zone_node_page_state(pgdat->node_id, NR_SLAB_RECLAIMABLE) <= pgdat->min_slab_pages)
+ 		return NODE_RECLAIM_FULL;
+ 
+-	if (!pgdat_reclaimable(pgdat))
+-		return NODE_RECLAIM_FULL;
