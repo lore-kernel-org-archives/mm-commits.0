@@ -1,83 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-do-not-use-double-negation-for-testing-page-flags.patch removed from -mm
+ jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch removed from -mm
  tree
-Date: Thu, 04 May 2017 12:10:50 -0700
-Message-ID: <20170504191050.EpBX33Rfy%akpm@linux-foundation.org>
+Date: Thu, 04 May 2017 12:10:40 -0700
+Message-ID: <20170504191040._m1uhMNE9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51226 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752637AbdEDTKw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:52 -0400
+        with ESMTP id S1752637AbdEDTKl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, kirill@shutemov.name, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tytso@mit.edu, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: do not use double negation for testing page flags
+     Subject: jbd2: make the whole kjournald2 kthread NOFS safe
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-use-double-negation-for-testing-page-flags.patch
+     jbd2-make-the-whole-kjournald2-kthread-nofs-safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: do not use double negation for testing page flags
+From: Michal Hocko <mhocko@suse.com>
+Subject: jbd2: make the whole kjournald2 kthread NOFS safe
 
-With the discussion[1], I found it seems there are every PageFlags
-functions return bool at this moment so we don't need double negation
-any more.  Although it's not a problem to keep it, it makes future
-users confused to use double negation for them, too.
+kjournald2 is central to the transaction commit processing.  As such any
+potential allocation from this kernel thread has to be GFP_NOFS.  Make
+sure to mark the whole kernel thread GFP_NOFS by the memalloc_nofs_save.
 
-Remove such possibility.
-
-[1] https://marc.info/?l=linux-kernel&m=148881578820434
-
-Frankly sepaking, I like every PageFlags to return bool instead of int.
-It will make it clear.  AFAIR, Chen Gang had tried it but don't know
-why it was not merged at that time.
-
-http://lkml.kernel.org/r/1469336184-1904-1-git-send-email-chengang@emindsoft.com.cn
-
-Link: http://lkml.kernel.org/r/1488868597-32222-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20170306131408.9828-8-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Nikolay Borisov <nborisov@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/jbd2/journal.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/khugepaged.c~mm-do-not-use-double-negation-for-testing-page-flags mm/khugepaged.c
---- a/mm/khugepaged.c~mm-do-not-use-double-negation-for-testing-page-flags
-+++ a/mm/khugepaged.c
-@@ -548,7 +548,7 @@ static int __collapse_huge_page_isolate(
- 		 * The page must only be referenced by the scanned process
- 		 * and page swap cache.
- 		 */
--		if (page_count(page) != 1 + !!PageSwapCache(page)) {
-+		if (page_count(page) != 1 + PageSwapCache(page)) {
- 			unlock_page(page);
- 			result = SCAN_PAGE_COUNT;
- 			goto out;
-@@ -1181,7 +1181,7 @@ static int khugepaged_scan_pmd(struct mm
- 		 * The page must only be referenced by the scanned process
- 		 * and page swap cache.
- 		 */
--		if (page_count(page) != 1 + !!PageSwapCache(page)) {
-+		if (page_count(page) != 1 + PageSwapCache(page)) {
- 			result = SCAN_PAGE_COUNT;
- 			goto out_unmap;
- 		}
+diff -puN fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd2-make-the-whole-kjournald2-kthread-nofs-safe
++++ a/fs/jbd2/journal.c
+@@ -43,6 +43,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/bitops.h>
+ #include <linux/ratelimit.h>
++#include <linux/sched/mm.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/jbd2.h>
+@@ -206,6 +207,14 @@ static int kjournald2(void *arg)
+ 	wake_up(&journal->j_wait_done_commit);
+ 
+ 	/*
++	 * Make sure that no allocations from this kernel thread will ever
++	 * recurse to the fs layer because we are responsible for the
++	 * transaction commit and any fs involvement might get stuck waiting for
++	 * the trasn. commit.
++	 */
++	memalloc_nofs_save();
++
++	/*
+ 	 * And now, wait forever for commit wakeup events.
+ 	 */
+ 	write_lock(&journal->j_state_lock);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-introduce-kvalloc-helpers.patch
+mm-vmalloc-properly-track-vmalloc-users.patch
+mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
+rhashtable-simplify-a-strange-allocation-pattern.patch
+ila-simplify-a-strange-allocation-pattern.patch
+xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
+treewide-use-kvalloc-rather-than-opencoded-variants.patch
+net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
+md-use-kvmalloc-rather-than-opencoded-variant.patch
+bcache-use-kvmalloc.patch
+mm-vmalloc-use-__gfp_highmem-implicitly.patch
 
