@@ -1,75 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- zram-reduce-load-operation-in-page_same_filled.patch removed from -mm tree
-Date: Thu, 04 May 2017 12:13:23 -0700
-Message-ID: <20170504191323.pNwogjoaw%akpm@linux-foundation.org>
+Subject: [merged] mm-gup-fix-access_ok-argument-type.patch removed
+ from -mm tree
+Date: Thu, 04 May 2017 12:13:40 -0700
+Message-ID: <20170504191340.nPZQNxA0L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52022 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755861AbdEDTNZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:25 -0400
+        with ESMTP id S1756243AbdEDTNm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, mm-commits@vger.kernel.org, sangwoo2.park@lge.com, sergey.senozhatsky@gmail.com
+To: arnd@arndb.de, kirill.shutemov@linux.intel.com, lstoakes@gmail.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: zram: reduce load operation in page_same_filled
+     Subject: mm/gup.c: fix access_ok() argument type
 has been removed from the -mm tree.  Its filename was
-     zram-reduce-load-operation-in-page_same_filled.patch
+     mm-gup-fix-access_ok-argument-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sangwoo Park <sangwoo2.park@lge.com>
-Subject: zram: reduce load operation in page_same_filled
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/gup.c: fix access_ok() argument type
 
-In page_same_filled function, all elements in the page is compared with
-next index value.  The current comparison routine compares the (i)th and
-(i+1)th values of the page.
+MIPS just got changed to only accept a pointer argument for access_ok(),
+causing one warning in drivers/scsi/pmcraid.c.  I tried changing x86 the
+same way and found the same warning in __get_user_pages_fast() and nowhere
+else in the kernel during randconfig testing:
 
-In this case, two load operaions occur for each comparison.  But if we
-store first value of the page stores at 'val' variable and using it to
-compare with others, the load opearation is reduced.  It reduce load
-operation per page by up to 64times.
+mm/gup.c: In function '__get_user_pages_fast':
+mm/gup.c:1578:6: error: passing argument 1 of '__chk_range_not_ok' makes pointer from integer without a cast [-Werror=int-conversion]
 
-Link: http://lkml.kernel.org/r/1488428104-7257-1-git-send-email-sangwoo2.park@lge.com
-Signed-off-by: Sangwoo Park <sangwoo2.park@lge.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+It would probably be a good idea to enforce type-safety in general, so
+let's change this file to not cause a warning if we do that.
+
+I don't know why the warning did not appear on MIPS.
+
+Fixes: 2667f50e8b81 ("mm: introduce a general RCU get_user_pages_fast()")
+Link: http://lkml.kernel.org/r/20170421162659.3314521-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-reduce-load-operation-in-page_same_filled drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-reduce-load-operation-in-page_same_filled
-+++ a/drivers/block/zram/zram_drv.c
-@@ -195,15 +195,17 @@ static bool page_same_filled(void *ptr,
- {
- 	unsigned int pos;
- 	unsigned long *page;
-+	unsigned long val;
+diff -puN mm/gup.c~mm-gup-fix-access_ok-argument-type mm/gup.c
+--- a/mm/gup.c~mm-gup-fix-access_ok-argument-type
++++ a/mm/gup.c
+@@ -1575,7 +1575,7 @@ int __get_user_pages_fast(unsigned long
+ 	end = start + len;
  
- 	page = (unsigned long *)ptr;
-+	val = page[0];
+ 	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
+-					start, len)))
++					(void __user *)start, len)))
+ 		return 0;
  
--	for (pos = 0; pos < PAGE_SIZE / sizeof(*page) - 1; pos++) {
--		if (page[pos] != page[pos + 1])
-+	for (pos = 1; pos < PAGE_SIZE / sizeof(*page); pos++) {
-+		if (val != page[pos])
- 			return false;
- 	}
- 
--	*element = page[pos];
-+	*element = val;
- 
- 	return true;
- }
+ 	/*
 _
 
-Patches currently in -mm which might be from sangwoo2.park@lge.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+initramfs-use-vfs_stat-lstat-directly.patch
 
