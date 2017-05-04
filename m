@@ -1,61 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch removed
+Subject: [merged] zram-introduce-zram-data-accessor.patch removed
  from -mm tree
-Date: Thu, 04 May 2017 12:13:30 -0700
-Message-ID: <20170504191330.ays74PotV%akpm@linux-foundation.org>
+Date: Thu, 04 May 2017 12:13:17 -0700
+Message-ID: <20170504191317.JYjkgWkFP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51912 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756234AbdEDTNc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:32 -0400
+        with ESMTP id S1755434AbdEDTNX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: hare@suse.com, jthumshirn@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
+     Subject: zram: introduce zram data accessor
 has been removed from the -mm tree.  Its filename was
-     fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
+     zram-introduce-zram-data-accessor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: introduce zram data accessor
 
-invalidate_bdev() calls cleancache_invalidate_inode() iff ->nrpages != 0
-which doen't make any sense.
-Make sure that invalidate_bdev() always calls cleancache_invalidate_inode()
-regardless of mapping->nrpages value.
+With element, sometime I got confused handle and element access.  It might
+be my bad but I think it's time to introduce accessor to prevent future
+idiot like me.  This patch is just clean-up patch so it shouldn't change
+any behavior.
 
-Fixes: c515e1fd361c ("mm/fs: add hooks to support cleancache")
-Link: http://lkml.kernel.org/r/20170424164135.22350-3-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1492052365-16169-6-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Hannes Reinecke <hare@suse.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   33 +++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
-diff -puN fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev fs/block_dev.c
---- a/fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev
-+++ a/fs/block_dev.c
-@@ -103,12 +103,11 @@ void invalidate_bdev(struct block_device
- {
- 	struct address_space *mapping = bdev->bd_inode->i_mapping;
+diff -puN drivers/block/zram/zram_drv.c~zram-introduce-zram-data-accessor drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-zram-data-accessor
++++ a/drivers/block/zram/zram_drv.c
+@@ -57,6 +57,16 @@ static inline struct zram *dev_to_zram(s
+ 	return (struct zram *)dev_to_disk(dev)->private_data;
+ }
  
--	if (mapping->nrpages == 0)
--		return;
++static unsigned long zram_get_handle(struct zram *zram, u32 index)
++{
++	return zram->table[index].handle;
++}
++
++static void zram_set_handle(struct zram *zram, u32 index, unsigned long handle)
++{
++	zram->table[index].handle = handle;
++}
++
+ /* flag operations require table entry bit_spin_lock() being held */
+ static int zram_test_flag(struct zram *zram, u32 index,
+ 			enum zram_pageflags flag)
+@@ -82,9 +92,9 @@ static inline void zram_set_element(stru
+ 	zram->table[index].element = element;
+ }
+ 
+-static inline void zram_clear_element(struct zram *zram, u32 index)
++static unsigned long zram_get_element(struct zram *zram, u32 index)
+ {
+-	zram->table[index].element = 0;
++	return zram->table[index].element;
+ }
+ 
+ static size_t zram_get_obj_size(struct zram *zram, u32 index)
+@@ -425,13 +435,14 @@ static bool zram_same_page_read(struct z
+ 				unsigned int offset, unsigned int len)
+ {
+ 	zram_slot_lock(zram, index);
+-	if (unlikely(!zram->table[index].handle) ||
+-			zram_test_flag(zram, index, ZRAM_SAME)) {
++	if (unlikely(!zram_get_handle(zram, index) ||
++			zram_test_flag(zram, index, ZRAM_SAME))) {
+ 		void *mem;
+ 
+ 		zram_slot_unlock(zram, index);
+ 		mem = kmap_atomic(page);
+-		zram_fill_page(mem + offset, len, zram->table[index].element);
++		zram_fill_page(mem + offset, len,
++					zram_get_element(zram, index));
+ 		kunmap_atomic(mem);
+ 		return true;
+ 	}
+@@ -470,7 +481,7 @@ static void zram_meta_free(struct zram *
+ 
+ 	/* Free all pages that are still in this zram device */
+ 	for (index = 0; index < num_pages; index++) {
+-		unsigned long handle = zram->table[index].handle;
++		unsigned long handle = zram_get_handle(zram, index);
+ 		/*
+ 		 * No memory is allocated for same element filled pages.
+ 		 * Simply clear same page flag.
+@@ -510,7 +521,7 @@ static bool zram_meta_alloc(struct zram
+  */
+ static void zram_free_page(struct zram *zram, size_t index)
+ {
+-	unsigned long handle = zram->table[index].handle;
++	unsigned long handle = zram_get_handle(zram, index);
+ 
+ 	/*
+ 	 * No memory is allocated for same element filled pages.
+@@ -518,7 +529,7 @@ static void zram_free_page(struct zram *
+ 	 */
+ 	if (zram_test_flag(zram, index, ZRAM_SAME)) {
+ 		zram_clear_flag(zram, index, ZRAM_SAME);
+-		zram_clear_element(zram, index);
++		zram_set_element(zram, index, 0);
+ 		atomic64_dec(&zram->stats.same_pages);
+ 		return;
+ 	}
+@@ -532,7 +543,7 @@ static void zram_free_page(struct zram *
+ 			&zram->stats.compr_data_size);
+ 	atomic64_dec(&zram->stats.pages_stored);
+ 
+-	zram->table[index].handle = 0;
++	zram_set_handle(zram, index, 0);
+ 	zram_set_obj_size(zram, index, 0);
+ }
+ 
+@@ -547,7 +558,7 @@ static int zram_decompress_page(struct z
+ 		return 0;
+ 
+ 	zram_slot_lock(zram, index);
+-	handle = zram->table[index].handle;
++	handle = zram_get_handle(zram, index);
+ 	size = zram_get_obj_size(zram, index);
+ 
+ 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
+@@ -713,7 +724,7 @@ static int __zram_bvec_write(struct zram
+ 	 */
+ 	zram_slot_lock(zram, index);
+ 	zram_free_page(zram, index);
+-	zram->table[index].handle = handle;
++	zram_set_handle(zram, index, handle);
+ 	zram_set_obj_size(zram, index, comp_len);
+ 	zram_slot_unlock(zram, index);
+ 
+_
+
+Patches currently in -mm which might be from minchan@kernel.org are
+
+
