@@ -1,65 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-swap-fix-swap-space-leak-in-error-path-of-swap_free_entries.patch
+Subject: [merged] mm-hwpoison-call-shake_page-unconditionally.patch
  removed from -mm tree
-Date: Thu, 04 May 2017 12:13:44 -0700
-Message-ID: <20170504191344.7VGWwUumU%akpm@linux-foundation.org>
+Date: Thu, 04 May 2017 12:13:48 -0700
+Message-ID: <20170504191348.UL8bJyX-t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756335AbdEDTNq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:46 -0400
+        with ESMTP id S1756339AbdEDTNt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
+To: gong.chen@linux.intel.com, lkp@intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, xiaolong.ye@intel.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: fix swap space leak in error path of swap_free_entries()
+     Subject: mm: hwpoison: call shake_page() unconditionally
 has been removed from the -mm tree.  Its filename was
-     mm-swap-fix-swap-space-leak-in-error-path-of-swap_free_entries.patch
+     mm-hwpoison-call-shake_page-unconditionally.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/swapfile.c: fix swap space leak in error path of swap_free_entries()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: call shake_page() unconditionally
 
-In swapcache_free_entries(), if swap_info_get_cont() returns NULL,
-something wrong occurs for the swap entry.  But we should still continue
-to free the following swap entries in the array instead of skip them to
-avoid swap space leak.  This is just problem in error path, where system
-may be in an inconsistent state, but it is still good to fix it.
+shake_page() is called before going into core error handling code in order
+to ensure that the error page is flushed from lru_cache lists where pages
+stay during transferring among LRU lists.
 
-Link: http://lkml.kernel.org/r/20170421124739.24534-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
+But currently it's not fully functional because when the page is linked to
+lru_cache by calling activate_page(), its PageLRU flag is set and
+shake_page() is skipped.  The result is to fail error handling with "still
+referenced by 1 users" message.
+
+When the page is linked to lru_cache by isolate_lru_page(), its PageLRU is
+clear, so that's fine.
+
+This patch makes shake_page() unconditionally called to avoild the failure.
+
+Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
+Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
+Link: http://lkml.kernel.org/r/1493197841-23986-2-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Xiaolong Ye <xiaolong.ye@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/hwpoison-inject.c |    3 +--
+ mm/memory-failure.c  |   27 +++++++++++----------------
+ 2 files changed, 12 insertions(+), 18 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-fix-swap-space-leak-in-error-path-of-swap_free_entries mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-fix-swap-space-leak-in-error-path-of-swap_free_entries
-+++ a/mm/swapfile.c
-@@ -1079,8 +1079,6 @@ void swapcache_free_entries(swp_entry_t
- 		p = swap_info_get_cont(entries[i], prev);
- 		if (p)
- 			swap_entry_free(p, entries[i]);
--		else
--			break;
- 		prev = p;
+diff -puN mm/hwpoison-inject.c~mm-hwpoison-call-shake_page-unconditionally mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~mm-hwpoison-call-shake_page-unconditionally
++++ a/mm/hwpoison-inject.c
+@@ -34,8 +34,7 @@ static int hwpoison_inject(void *data, u
+ 	if (!hwpoison_filter_enable)
+ 		goto inject;
+ 
+-	if (!PageLRU(hpage) && !PageHuge(p))
+-		shake_page(hpage, 0);
++	shake_page(hpage, 0);
+ 	/*
+ 	 * This implies unable to support non-LRU pages.
+ 	 */
+diff -puN mm/memory-failure.c~mm-hwpoison-call-shake_page-unconditionally mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-call-shake_page-unconditionally
++++ a/mm/memory-failure.c
+@@ -220,6 +220,9 @@ static int kill_proc(struct task_struct
+  */
+ void shake_page(struct page *p, int access)
+ {
++	if (PageHuge(p))
++		return;
++
+ 	if (!PageSlab(p)) {
+ 		lru_add_drain_all();
+ 		if (PageLRU(p))
+@@ -1137,22 +1140,14 @@ int memory_failure(unsigned long pfn, in
+ 	 * The check (unnecessarily) ignores LRU pages being isolated and
+ 	 * walked by the page reclaim code, however that's not a big loss.
+ 	 */
+-	if (!PageHuge(p)) {
+-		if (!PageLRU(p))
+-			shake_page(p, 0);
+-		if (!PageLRU(p)) {
+-			/*
+-			 * shake_page could have turned it free.
+-			 */
+-			if (is_free_buddy_page(p)) {
+-				if (flags & MF_COUNT_INCREASED)
+-					action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+-				else
+-					action_result(pfn, MF_MSG_BUDDY_2ND,
+-						      MF_DELAYED);
+-				return 0;
+-			}
+-		}
++	shake_page(p, 0);
++	/* shake_page could have turned it free. */
++	if (!PageLRU(p) && is_free_buddy_page(p)) {
++		if (flags & MF_COUNT_INCREASED)
++			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
++		else
++			action_result(pfn, MF_MSG_BUDDY_2ND, MF_DELAYED);
++		return 0;
  	}
- 	if (p)
+ 
+ 	lock_page(hpage);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-swap-use-kvzalloc-to-allocate-some-swap-data-structure.patch
 
