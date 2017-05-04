@@ -1,126 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
+Subject: [merged] mm-tighten-up-the-fault-path-a-little.patch
  removed from -mm tree
-Date: Thu, 04 May 2017 12:10:37 -0700
-Message-ID: <20170504191037.IvwrgJQpD%akpm@linux-foundation.org>
+Date: Thu, 04 May 2017 12:10:43 -0700
+Message-ID: <20170504191043.NgV4sgZ4v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51228 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752637AbdEDTKj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:39 -0400
+        with ESMTP id S1752637AbdEDTKp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tytso@mit.edu, vbabka@suse.cz
+To: mawilcox@microsoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jbd2: mark the transaction context with the scope GFP_NOFS context
+     Subject: mm: tighten up the fault path a little
 has been removed from the -mm tree.  Its filename was
-     jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context.patch
+     mm-tighten-up-the-fault-path-a-little.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: jbd2: mark the transaction context with the scope GFP_NOFS context
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: mm: tighten up the fault path a little
 
-now that we have memalloc_nofs_{save,restore} api we can mark the whole
-transaction context as implicitly GFP_NOFS.  All allocations will
-automatically inherit GFP_NOFS this way.  This means that we do not have
-to mark any of those requests with GFP_NOFS and moreover all the
-ext4_kv[mz]alloc(GFP_NOFS) are also safe now because even the hardcoded
-GFP_KERNEL allocations deep inside the vmalloc will be NOFS now.
+The round_up() macro generates a couple of unnecessary instructions
+in this usage:
 
-[akpm@linux-foundation.org: tweak comments]
-Link: http://lkml.kernel.org/r/20170306131408.9828-7-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.cz>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Nikolay Borisov <nborisov@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+    48cd:       49 8b 47 50             mov    0x50(%r15),%rax
+    48d1:       48 83 e8 01             sub    $0x1,%rax
+    48d5:       48 0d ff 0f 00 00       or     $0xfff,%rax
+    48db:       48 83 c0 01             add    $0x1,%rax
+    48df:       48 c1 f8 0c             sar    $0xc,%rax
+    48e3:       48 39 c3                cmp    %rax,%rbx
+    48e6:       72 2e                   jb     4916 <filemap_fault+0x96>
+
+If we change round_up() to ((x) + __round_mask(x, y)) & ~__round_mask(x, y)
+then GCC can see through it and remove the mask (because that would be
+dead code given the subsequent shift):
+
+    48cd:       49 8b 47 50             mov    0x50(%r15),%rax
+    48d1:       48 05 ff 0f 00 00       add    $0xfff,%rax
+    48d7:       48 c1 e8 0c             shr    $0xc,%rax
+    48db:       48 39 c3                cmp    %rax,%rbx
+    48de:       72 2e                   jb     490e <filemap_fault+0x8e>
+
+But that's problematic because we'd evaluate 'y' twice.  Converting
+round_up into an inline function prevents it from being used in other
+definitions.  The easiest thing to do is just change these three usages of
+round_up to use DIV_ROUND_UP.  Also add an unlikely() because GCC's
+heuristic is wrong in this case.
+
+Link: http://lkml.kernel.org/r/20170207192812.5281-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/transaction.c |   12 ++++++++++++
- include/linux/jbd2.h  |    2 ++
- 2 files changed, 14 insertions(+)
+ mm/filemap.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/jbd2/transaction.c~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context
-+++ a/fs/jbd2/transaction.c
-@@ -29,6 +29,7 @@
- #include <linux/backing-dev.h>
- #include <linux/bug.h>
- #include <linux/module.h>
-+#include <linux/sched/mm.h>
+diff -puN mm/filemap.c~mm-tighten-up-the-fault-path-a-little mm/filemap.c
+--- a/mm/filemap.c~mm-tighten-up-the-fault-path-a-little
++++ a/mm/filemap.c
+@@ -2204,12 +2204,12 @@ int filemap_fault(struct vm_fault *vmf)
+ 	struct file_ra_state *ra = &file->f_ra;
+ 	struct inode *inode = mapping->host;
+ 	pgoff_t offset = vmf->pgoff;
++	pgoff_t max_off;
+ 	struct page *page;
+-	loff_t size;
+ 	int ret = 0;
  
- #include <trace/events/jbd2.h>
+-	size = round_up(i_size_read(inode), PAGE_SIZE);
+-	if (offset >= size >> PAGE_SHIFT)
++	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
++	if (unlikely(offset >= max_off))
+ 		return VM_FAULT_SIGBUS;
  
-@@ -388,6 +389,11 @@ repeat:
+ 	/*
+@@ -2258,8 +2258,8 @@ retry_find:
+ 	 * Found the page and have a reference on it.
+ 	 * We must recheck i_size under page lock.
+ 	 */
+-	size = round_up(i_size_read(inode), PAGE_SIZE);
+-	if (unlikely(offset >= size >> PAGE_SHIFT)) {
++	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
++	if (unlikely(offset >= max_off)) {
+ 		unlock_page(page);
+ 		put_page(page);
+ 		return VM_FAULT_SIGBUS;
+@@ -2325,7 +2325,7 @@ void filemap_map_pages(struct vm_fault *
+ 	struct file *file = vmf->vma->vm_file;
+ 	struct address_space *mapping = file->f_mapping;
+ 	pgoff_t last_pgoff = start_pgoff;
+-	loff_t size;
++	unsigned long max_idx;
+ 	struct page *head, *page;
  
- 	rwsem_acquire_read(&journal->j_trans_commit_map, 0, 0, _THIS_IP_);
- 	jbd2_journal_free_transaction(new_transaction);
-+	/*
-+	 * Ensure that no allocations done while the transaction is open are
-+	 * going to recurse back to the fs layer.
-+	 */
-+	handle->saved_alloc_context = memalloc_nofs_save();
- 	return 0;
- }
+ 	rcu_read_lock();
+@@ -2371,8 +2371,8 @@ repeat:
+ 		if (page->mapping != mapping || !PageUptodate(page))
+ 			goto unlock;
  
-@@ -466,6 +472,7 @@ handle_t *jbd2__journal_start(journal_t
- 	trace_jbd2_handle_start(journal->j_fs_dev->bd_dev,
- 				handle->h_transaction->t_tid, type,
- 				line_no, nblocks);
-+
- 	return handle;
- }
- EXPORT_SYMBOL(jbd2__journal_start);
-@@ -1760,6 +1767,11 @@ int jbd2_journal_stop(handle_t *handle)
- 	if (handle->h_rsv_handle)
- 		jbd2_journal_free_reserved(handle->h_rsv_handle);
- free_and_exit:
-+	/*
-+	 * Scope of the GFP_NOFS context is over here and so we can restore the
-+	 * original alloc context.
-+	 */
-+	memalloc_nofs_restore(handle->saved_alloc_context);
- 	jbd2_free_handle(handle);
- 	return err;
- }
-diff -puN include/linux/jbd2.h~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context include/linux/jbd2.h
---- a/include/linux/jbd2.h~jbd2-mark-the-transaction-context-with-the-scope-gfp_nofs-context
-+++ a/include/linux/jbd2.h
-@@ -491,6 +491,8 @@ struct jbd2_journal_handle
+-		size = round_up(i_size_read(mapping->host), PAGE_SIZE);
+-		if (page->index >= size >> PAGE_SHIFT)
++		max_idx = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
++		if (page->index >= max_idx)
+ 			goto unlock;
  
- 	unsigned long		h_start_jiffies;
- 	unsigned int		h_requested_credits;
-+
-+	unsigned int		saved_alloc_context;
- };
- 
- 
+ 		if (file->f_ra.mmap_miss > 0)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from mawilcox@microsoft.com are
 
-mm-introduce-kvalloc-helpers.patch
-mm-vmalloc-properly-track-vmalloc-users.patch
-mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
-rhashtable-simplify-a-strange-allocation-pattern.patch
-ila-simplify-a-strange-allocation-pattern.patch
-xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
-treewide-use-kvalloc-rather-than-opencoded-variants.patch
-net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
-md-use-kvmalloc-rather-than-opencoded-variant.patch
-bcache-use-kvmalloc.patch
-mm-vmalloc-use-__gfp_highmem-implicitly.patch
 
