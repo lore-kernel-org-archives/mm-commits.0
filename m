@@ -1,115 +1,139 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-vmscan-more-restrictive-condition-for-retry-in-do=5Ftry?=
- =?US-ASCII?Q?=5Fto=5Ffree=5Fpages.patch?= removed from -mm tree
-Date: Thu, 04 May 2017 12:11:17 -0700
-Message-ID: <20170504191117.F306QiAzO%akpm@linux-foundation.org>
+ xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch removed
+ from -mm tree
+Date: Thu, 04 May 2017 12:10:33 -0700
+Message-ID: <20170504191033.y9J2P2sjF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51192 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752152AbdEDTLT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:11:19 -0400
+        with ESMTP id S1752637AbdEDTKf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, riel@redhat.com, shakeelb@google.com, vbabka@suse.cz, xieyisheng1@huawei.com
+To: bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tytso@mit.edu, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm/vmscan: more restrictive condition for retry in do_try_to_free_pages
+     Subject: xfs: use memalloc_nofs_{save,restore} instead of memalloc_noio*
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-more-restrictive-condition-for-retry-in-do_try_to_free_pages.patch
+     xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/vmscan: more restrictive condition for retry in do_try_to_free_pages
+From: Michal Hocko <mhocko@suse.com>
+Subject: xfs: use memalloc_nofs_{save,restore} instead of memalloc_noio*
 
-By reviewing code, I find that when enter do_try_to_free_pages, the
-may_thrash is always clear, and it will retry shrink zones to tap cgroup's
-reserves memory by setting may_thrash when the former shrink_zones reclaim
-nothing.
+kmem_zalloc_large and _xfs_buf_map_pages use memalloc_noio_{save,restore}
+API to prevent from reclaim recursion into the fs because vmalloc can
+invoke unconditional GFP_KERNEL allocations and these functions might be
+called from the NOFS contexts.  The memalloc_noio_save will enforce
+GFP_NOIO context which is even weaker than GFP_NOFS and that seems to be
+unnecessary.  Let's use memalloc_nofs_{save,restore} instead as it should
+provide exactly what we need here - implicit GFP_NOFS context.
 
-However, when memcg is disabled or on legacy hierarchy, or there do not
-have any memcg protected by low limit, it should not do this useless retry
-at all, for we do not have any cgroup's reserves memory to tap, and we
-have already done hard work but made no progress, which as Michal pointed
-out in former version, we are trying hard to control the retry logical of
-page alloctor, and the current additional round of reclaim is just lame.
-
-Therefore, to avoid this unneeded retrying and make code more readable, we
-remove the may_thrash field in scan_control, instead, introduce
-memcg_low_reclaim and memcg_low_skipped, and only retry when
-memcg_low_skipped, by setting memcg_low_reclaim.
-
-[xieyisheng1@huawei.com: remove may_thrash field, introduce mem_cgroup_reclaim]
-  Link: http://lkml.kernel.org/r/1490191893-5923-1-git-send-email-ysxie@foxmail.com
-Link: http://lkml.kernel.org/r/1490191893-5923-1-git-send-email-ysxie@foxmail.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Suggested-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
+Link: http://lkml.kernel.org/r/20170306131408.9828-6-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Brian Foster <bfoster@redhat.com>
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Nikolay Borisov <nborisov@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ fs/xfs/kmem.c    |   12 ++++++------
+ fs/xfs/xfs_buf.c |    8 ++++----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-more-restrictive-condition-for-retry-in-do_try_to_free_pages mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-more-restrictive-condition-for-retry-in-do_try_to_free_pages
-+++ a/mm/vmscan.c
-@@ -97,8 +97,13 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	unsigned int may_swap:1;
+diff -puN fs/xfs/kmem.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio fs/xfs/kmem.c
+--- a/fs/xfs/kmem.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio
++++ a/fs/xfs/kmem.c
+@@ -48,7 +48,7 @@ kmem_alloc(size_t size, xfs_km_flags_t f
+ void *
+ kmem_zalloc_large(size_t size, xfs_km_flags_t flags)
+ {
+-	unsigned noio_flag = 0;
++	unsigned nofs_flag = 0;
+ 	void	*ptr;
+ 	gfp_t	lflags;
  
--	/* Can cgroups be reclaimed below their normal consumption range? */
--	unsigned int may_thrash:1;
-+	/*
-+	 * Cgroups are not reclaimed below their configured memory.low,
-+	 * unless we threaten to OOM. If any cgroups are skipped due to
-+	 * memory.low and nothing was reclaimed, go back for memory.low.
-+	 */
-+	unsigned int memcg_low_reclaim:1;
-+	unsigned int memcg_low_skipped:1;
+@@ -60,17 +60,17 @@ kmem_zalloc_large(size_t size, xfs_km_fl
+ 	 * __vmalloc() will allocate data pages and auxillary structures (e.g.
+ 	 * pagetables) with GFP_KERNEL, yet we may be under GFP_NOFS context
+ 	 * here. Hence we need to tell memory reclaim that we are in such a
+-	 * context via PF_MEMALLOC_NOIO to prevent memory reclaim re-entering
++	 * context via PF_MEMALLOC_NOFS to prevent memory reclaim re-entering
+ 	 * the filesystem here and potentially deadlocking.
+ 	 */
+-	if ((current->flags & PF_MEMALLOC_NOFS) || (flags & KM_NOFS))
+-		noio_flag = memalloc_noio_save();
++	if (flags & KM_NOFS)
++		nofs_flag = memalloc_nofs_save();
  
- 	unsigned int hibernation_mode:1;
+ 	lflags = kmem_flags_convert(flags);
+ 	ptr = __vmalloc(size, lflags | __GFP_HIGHMEM | __GFP_ZERO, PAGE_KERNEL);
  
-@@ -2512,8 +2517,10 @@ static bool shrink_node(pg_data_t *pgdat
- 			unsigned long scanned;
+-	if ((current->flags & PF_MEMALLOC_NOFS) || (flags & KM_NOFS))
+-		memalloc_noio_restore(noio_flag);
++	if (flags & KM_NOFS)
++		memalloc_nofs_restore(nofs_flag);
  
- 			if (mem_cgroup_low(root, memcg)) {
--				if (!sc->may_thrash)
-+				if (!sc->memcg_low_reclaim) {
-+					sc->memcg_low_skipped = 1;
- 					continue;
-+				}
- 				mem_cgroup_events(memcg, MEMCG_LOW, 1);
- 			}
+ 	return ptr;
+ }
+diff -puN fs/xfs/xfs_buf.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio fs/xfs/xfs_buf.c
+--- a/fs/xfs/xfs_buf.c~xfs-use-memalloc_nofs_saverestore-instead-of-memalloc_noio
++++ a/fs/xfs/xfs_buf.c
+@@ -443,17 +443,17 @@ _xfs_buf_map_pages(
+ 		bp->b_addr = NULL;
+ 	} else {
+ 		int retried = 0;
+-		unsigned noio_flag;
++		unsigned nofs_flag;
  
-@@ -2768,9 +2775,10 @@ retry:
- 		return 1;
+ 		/*
+ 		 * vm_map_ram() will allocate auxillary structures (e.g.
+ 		 * pagetables) with GFP_KERNEL, yet we are likely to be under
+ 		 * GFP_NOFS context here. Hence we need to tell memory reclaim
+-		 * that we are in such a context via PF_MEMALLOC_NOIO to prevent
++		 * that we are in such a context via PF_MEMALLOC_NOFS to prevent
+ 		 * memory reclaim re-entering the filesystem here and
+ 		 * potentially deadlocking.
+ 		 */
+-		noio_flag = memalloc_noio_save();
++		nofs_flag = memalloc_nofs_save();
+ 		do {
+ 			bp->b_addr = vm_map_ram(bp->b_pages, bp->b_page_count,
+ 						-1, PAGE_KERNEL);
+@@ -461,7 +461,7 @@ _xfs_buf_map_pages(
+ 				break;
+ 			vm_unmap_aliases();
+ 		} while (retried++ <= 1);
+-		memalloc_noio_restore(noio_flag);
++		memalloc_nofs_restore(nofs_flag);
  
- 	/* Untapped cgroup reserves?  Don't OOM, retry. */
--	if (!sc->may_thrash) {
-+	if (sc->memcg_low_skipped) {
- 		sc->priority = initial_priority;
--		sc->may_thrash = 1;
-+		sc->memcg_low_reclaim = 1;
-+		sc->memcg_low_skipped = 0;
- 		goto retry;
- 	}
- 
+ 		if (!bp->b_addr)
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-introduce-kvalloc-helpers.patch
+mm-vmalloc-properly-track-vmalloc-users.patch
+mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
+rhashtable-simplify-a-strange-allocation-pattern.patch
+ila-simplify-a-strange-allocation-pattern.patch
+xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
+treewide-use-kvalloc-rather-than-opencoded-variants.patch
+net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
+md-use-kvmalloc-rather-than-opencoded-variant.patch
+bcache-use-kvmalloc.patch
+mm-vmalloc-use-__gfp_highmem-implicitly.patch
 
