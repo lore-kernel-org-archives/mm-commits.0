@@ -1,235 +1,257 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-make-ttus-return-boolean.patch removed from
- -mm tree
-Date: Thu, 04 May 2017 12:11:43 -0700
-Message-ID: <20170504191143.Xo7GEFalr%akpm@linux-foundation.org>
+Subject: [merged] mm-make-rmap_walk-void-function.patch removed
+ from -mm tree
+Date: Thu, 04 May 2017 12:11:46 -0700
+Message-ID: <20170504191146.vUynG-ghH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755434AbdEDTLo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:11:44 -0400
+        with ESMTP id S1755434AbdEDTLs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:11:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: make ttu's return boolean
+     Subject: mm: make rmap_walk() return void
 has been removed from the -mm tree.  Its filename was
-     mm-make-ttus-return-boolean.patch
+     mm-make-rmap_walk-void-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: make ttu's return boolean
+Subject: mm: make rmap_walk() return void
 
-try_to_unmap() returns SWAP_SUCCESS or SWAP_FAIL so it's suitable for
-boolean return.  This patch changes it.
+There is no user of the return value from rmap_walk() and friends so this
+patch makes them void-returning functions.
 
-Link: http://lkml.kernel.org/r/1489555493-14659-8-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1489555493-14659-9-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/ksm.h  |    5 ++---
  include/linux/rmap.h |    4 ++--
- mm/huge_memory.c     |    6 +++---
- mm/memory-failure.c  |   26 ++++++++++++--------------
- mm/rmap.c            |    8 +++-----
- mm/vmscan.c          |    7 +------
- 5 files changed, 21 insertions(+), 30 deletions(-)
+ mm/ksm.c             |   16 ++++++----------
+ mm/rmap.c            |   32 +++++++++++++-------------------
+ 4 files changed, 23 insertions(+), 34 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-make-ttus-return-boolean include/linux/rmap.h
---- a/include/linux/rmap.h~mm-make-ttus-return-boolean
-+++ a/include/linux/rmap.h
-@@ -191,7 +191,7 @@ static inline void page_dup_rmap(struct
- int page_referenced(struct page *, int is_locked,
- 			struct mem_cgroup *memcg, unsigned long *vm_flags);
+diff -puN include/linux/ksm.h~mm-make-rmap_walk-void-function include/linux/ksm.h
+--- a/include/linux/ksm.h~mm-make-rmap_walk-void-function
++++ a/include/linux/ksm.h
+@@ -61,7 +61,7 @@ static inline void set_page_stable_node(
+ struct page *ksm_might_need_to_copy(struct page *page,
+ 			struct vm_area_struct *vma, unsigned long address);
  
--int try_to_unmap(struct page *, enum ttu_flags flags);
-+bool try_to_unmap(struct page *, enum ttu_flags flags);
+-int rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc);
++void rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc);
+ void ksm_migrate_page(struct page *newpage, struct page *oldpage);
  
- /* Avoid racy checks */
- #define PVMW_SYNC		(1 << 0)
-@@ -281,7 +281,7 @@ static inline int page_referenced(struct
+ #else  /* !CONFIG_KSM */
+@@ -94,10 +94,9 @@ static inline int page_referenced_ksm(st
  	return 0;
  }
  
--#define try_to_unmap(page, refs) SWAP_FAIL
-+#define try_to_unmap(page, refs) false
- 
- static inline int page_mkclean(struct page *page)
+-static inline int rmap_walk_ksm(struct page *page,
++static inline void rmap_walk_ksm(struct page *page,
+ 			struct rmap_walk_control *rwc)
  {
-diff -puN mm/huge_memory.c~mm-make-ttus-return-boolean mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-ttus-return-boolean
-+++ a/mm/huge_memory.c
-@@ -2144,15 +2144,15 @@ static void freeze_page(struct page *pag
- {
- 	enum ttu_flags ttu_flags = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS |
- 		TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD;
--	int ret;
-+	bool unmap_success;
- 
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 
- 	if (PageAnon(page))
- 		ttu_flags |= TTU_MIGRATION;
- 
--	ret = try_to_unmap(page, ttu_flags);
--	VM_BUG_ON_PAGE(ret, page);
-+	unmap_success = try_to_unmap(page, ttu_flags);
-+	VM_BUG_ON_PAGE(!unmap_success, page);
+-	return 0;
  }
  
- static void unfreeze_page(struct page *page)
-diff -puN mm/memory-failure.c~mm-make-ttus-return-boolean mm/memory-failure.c
---- a/mm/memory-failure.c~mm-make-ttus-return-boolean
-+++ a/mm/memory-failure.c
-@@ -322,7 +322,7 @@ static void add_to_kill(struct task_stru
-  * wrong earlier.
-  */
- static void kill_procs(struct list_head *to_kill, int forcekill, int trapno,
--			  int fail, struct page *page, unsigned long pfn,
-+			  bool fail, struct page *page, unsigned long pfn,
- 			  int flags)
- {
- 	struct to_kill *tk, *next;
-@@ -904,13 +904,13 @@ EXPORT_SYMBOL_GPL(get_hwpoison_page);
-  * Do all that is necessary to remove user space mappings. Unmap
-  * the pages and send SIGBUS to the processes if the data was dirty.
-  */
--static int hwpoison_user_mappings(struct page *p, unsigned long pfn,
-+static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
- 				  int trapno, int flags, struct page **hpagep)
- {
- 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
--	int ret;
-+	bool unmap_success;
- 	int kill = 1, forcekill;
- 	struct page *hpage = *hpagep;
+ static inline void ksm_migrate_page(struct page *newpage, struct page *oldpage)
+diff -puN include/linux/rmap.h~mm-make-rmap_walk-void-function include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-make-rmap_walk-void-function
++++ a/include/linux/rmap.h
+@@ -264,8 +264,8 @@ struct rmap_walk_control {
+ 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
+ };
  
-@@ -919,20 +919,20 @@ static int hwpoison_user_mappings(struct
- 	 * other types of pages.
- 	 */
- 	if (PageReserved(p) || PageSlab(p))
--		return SWAP_SUCCESS;
-+		return true;
- 	if (!(PageLRU(hpage) || PageHuge(p)))
--		return SWAP_SUCCESS;
-+		return true;
+-int rmap_walk(struct page *page, struct rmap_walk_control *rwc);
+-int rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc);
++void rmap_walk(struct page *page, struct rmap_walk_control *rwc);
++void rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc);
  
- 	/*
- 	 * This check implies we don't kill processes if their pages
- 	 * are in the swap cache early. Those are always late kills.
- 	 */
- 	if (!page_mapped(hpage))
--		return SWAP_SUCCESS;
-+		return true;
+ #else	/* !CONFIG_MMU */
  
- 	if (PageKsm(p)) {
- 		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
--		return SWAP_FAIL;
-+		return false;
- 	}
- 
- 	if (PageSwapCache(p)) {
-@@ -971,8 +971,8 @@ static int hwpoison_user_mappings(struct
- 	if (kill)
- 		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
- 
--	ret = try_to_unmap(hpage, ttu);
--	if (ret != SWAP_SUCCESS)
-+	unmap_success = try_to_unmap(hpage, ttu);
-+	if (!unmap_success)
- 		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
- 		       pfn, page_mapcount(hpage));
- 
-@@ -987,10 +987,9 @@ static int hwpoison_user_mappings(struct
- 	 * any accesses to the poisoned memory.
- 	 */
- 	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
--	kill_procs(&tokill, forcekill, trapno,
--		      ret != SWAP_SUCCESS, p, pfn, flags);
-+	kill_procs(&tokill, forcekill, trapno, !unmap_success, p, pfn, flags);
- 
--	return ret;
-+	return unmap_success;
+diff -puN mm/ksm.c~mm-make-rmap_walk-void-function mm/ksm.c
+--- a/mm/ksm.c~mm-make-rmap_walk-void-function
++++ a/mm/ksm.c
+@@ -1933,11 +1933,10 @@ struct page *ksm_might_need_to_copy(stru
+ 	return new_page;
  }
  
- static void set_page_hwpoison_huge_page(struct page *hpage)
-@@ -1230,8 +1229,7 @@ int memory_failure(unsigned long pfn, in
- 	 * When the raw error page is thp tail page, hpage points to the raw
- 	 * page after thp split.
- 	 */
--	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
--	    != SWAP_SUCCESS) {
-+	if (!hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
-diff -puN mm/rmap.c~mm-make-ttus-return-boolean mm/rmap.c
---- a/mm/rmap.c~mm-make-ttus-return-boolean
-+++ a/mm/rmap.c
-@@ -1501,12 +1501,10 @@ static int page_mapcount_is_zero(struct
-  *
-  * Tries to remove all the page table entries which are mapping this
-  * page, used in the pageout path.  Caller must hold the page lock.
-- * Return values are:
-  *
-- * SWAP_SUCCESS	- we succeeded in removing all mappings
-- * SWAP_FAIL	- the page is unswappable
-+ * If unmap is successful, return true. Otherwise, false.
-  */
--int try_to_unmap(struct page *page, enum ttu_flags flags)
-+bool try_to_unmap(struct page *page, enum ttu_flags flags)
+-int rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc)
++void rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc)
  {
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
-@@ -1531,7 +1529,7 @@ int try_to_unmap(struct page *page, enum
- 	else
- 		rmap_walk(page, &rwc);
+ 	struct stable_node *stable_node;
+ 	struct rmap_item *rmap_item;
+-	int ret = SWAP_AGAIN;
+ 	int search_new_forks = 0;
  
--	return !page_mapcount(page) ? SWAP_SUCCESS : SWAP_FAIL;
-+	return !page_mapcount(page) ? true : false;
- }
+ 	VM_BUG_ON_PAGE(!PageKsm(page), page);
+@@ -1950,7 +1949,7 @@ int rmap_walk_ksm(struct page *page, str
  
- static int page_not_mapped(struct page *page)
-diff -puN mm/vmscan.c~mm-make-ttus-return-boolean mm/vmscan.c
---- a/mm/vmscan.c~mm-make-ttus-return-boolean
-+++ a/mm/vmscan.c
-@@ -972,7 +972,6 @@ static unsigned long shrink_page_list(st
- 		int may_enter_fs;
- 		enum page_references references = PAGEREF_RECLAIM_CLEAN;
- 		bool dirty, writeback;
--		int ret = SWAP_SUCCESS;
+ 	stable_node = page_stable_node(page);
+ 	if (!stable_node)
+-		return ret;
++		return;
+ again:
+ 	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
+ 		struct anon_vma *anon_vma = rmap_item->anon_vma;
+@@ -1978,23 +1977,20 @@ again:
+ 			if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 				continue;
  
- 		cond_resched();
- 
-@@ -1145,13 +1144,9 @@ static unsigned long shrink_page_list(st
- 		 * processes. Try to unmap it here.
- 		 */
- 		if (page_mapped(page)) {
--			switch (ret = try_to_unmap(page,
--				ttu_flags | TTU_BATCH_FLUSH)) {
--			case SWAP_FAIL:
-+			if (!try_to_unmap(page, ttu_flags | TTU_BATCH_FLUSH)) {
- 				nr_unmap_fail++;
- 				goto activate_locked;
--			case SWAP_SUCCESS:
--				; /* try to free the page below */
+-			ret = rwc->rmap_one(page, vma,
+-					rmap_item->address, rwc->arg);
+-			if (ret != SWAP_AGAIN) {
++			if (SWAP_AGAIN != rwc->rmap_one(page, vma,
++					rmap_item->address, rwc->arg)) {
+ 				anon_vma_unlock_read(anon_vma);
+-				goto out;
++				return;
+ 			}
+ 			if (rwc->done && rwc->done(page)) {
+ 				anon_vma_unlock_read(anon_vma);
+-				goto out;
++				return;
  			}
  		}
+ 		anon_vma_unlock_read(anon_vma);
+ 	}
+ 	if (!search_new_forks++)
+ 		goto again;
+-out:
+-	return ret;
+ }
  
+ #ifdef CONFIG_MIGRATION
+diff -puN mm/rmap.c~mm-make-rmap_walk-void-function mm/rmap.c
+--- a/mm/rmap.c~mm-make-rmap_walk-void-function
++++ a/mm/rmap.c
+@@ -1607,13 +1607,12 @@ static struct anon_vma *rmap_walk_anon_l
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
+  */
+-static int rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc,
++static void rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc,
+ 		bool locked)
+ {
+ 	struct anon_vma *anon_vma;
+ 	pgoff_t pgoff_start, pgoff_end;
+ 	struct anon_vma_chain *avc;
+-	int ret = SWAP_AGAIN;
+ 
+ 	if (locked) {
+ 		anon_vma = page_anon_vma(page);
+@@ -1623,7 +1622,7 @@ static int rmap_walk_anon(struct page *p
+ 		anon_vma = rmap_walk_anon_lock(page, rwc);
+ 	}
+ 	if (!anon_vma)
+-		return ret;
++		return;
+ 
+ 	pgoff_start = page_to_pgoff(page);
+ 	pgoff_end = pgoff_start + hpage_nr_pages(page) - 1;
+@@ -1637,8 +1636,7 @@ static int rmap_walk_anon(struct page *p
+ 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 			continue;
+ 
+-		ret = rwc->rmap_one(page, vma, address, rwc->arg);
+-		if (ret != SWAP_AGAIN)
++		if (SWAP_AGAIN != rwc->rmap_one(page, vma, address, rwc->arg))
+ 			break;
+ 		if (rwc->done && rwc->done(page))
+ 			break;
+@@ -1646,7 +1644,6 @@ static int rmap_walk_anon(struct page *p
+ 
+ 	if (!locked)
+ 		anon_vma_unlock_read(anon_vma);
+-	return ret;
+ }
+ 
+ /*
+@@ -1662,13 +1659,12 @@ static int rmap_walk_anon(struct page *p
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
+  */
+-static int rmap_walk_file(struct page *page, struct rmap_walk_control *rwc,
++static void rmap_walk_file(struct page *page, struct rmap_walk_control *rwc,
+ 		bool locked)
+ {
+ 	struct address_space *mapping = page_mapping(page);
+ 	pgoff_t pgoff_start, pgoff_end;
+ 	struct vm_area_struct *vma;
+-	int ret = SWAP_AGAIN;
+ 
+ 	/*
+ 	 * The page lock not only makes sure that page->mapping cannot
+@@ -1679,7 +1675,7 @@ static int rmap_walk_file(struct page *p
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 
+ 	if (!mapping)
+-		return ret;
++		return;
+ 
+ 	pgoff_start = page_to_pgoff(page);
+ 	pgoff_end = pgoff_start + hpage_nr_pages(page) - 1;
+@@ -1694,8 +1690,7 @@ static int rmap_walk_file(struct page *p
+ 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 			continue;
+ 
+-		ret = rwc->rmap_one(page, vma, address, rwc->arg);
+-		if (ret != SWAP_AGAIN)
++		if (SWAP_AGAIN != rwc->rmap_one(page, vma, address, rwc->arg))
+ 			goto done;
+ 		if (rwc->done && rwc->done(page))
+ 			goto done;
+@@ -1704,28 +1699,27 @@ static int rmap_walk_file(struct page *p
+ done:
+ 	if (!locked)
+ 		i_mmap_unlock_read(mapping);
+-	return ret;
+ }
+ 
+-int rmap_walk(struct page *page, struct rmap_walk_control *rwc)
++void rmap_walk(struct page *page, struct rmap_walk_control *rwc)
+ {
+ 	if (unlikely(PageKsm(page)))
+-		return rmap_walk_ksm(page, rwc);
++		rmap_walk_ksm(page, rwc);
+ 	else if (PageAnon(page))
+-		return rmap_walk_anon(page, rwc, false);
++		rmap_walk_anon(page, rwc, false);
+ 	else
+-		return rmap_walk_file(page, rwc, false);
++		rmap_walk_file(page, rwc, false);
+ }
+ 
+ /* Like rmap_walk, but caller holds relevant rmap lock */
+-int rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc)
++void rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc)
+ {
+ 	/* no ksm support for now */
+ 	VM_BUG_ON_PAGE(PageKsm(page), page);
+ 	if (PageAnon(page))
+-		return rmap_walk_anon(page, rwc, true);
++		rmap_walk_anon(page, rwc, true);
+ 	else
+-		return rmap_walk_file(page, rwc, true);
++		rmap_walk_file(page, rwc, true);
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
