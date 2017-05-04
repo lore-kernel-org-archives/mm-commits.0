@@ -1,69 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-truncate-bail-out-early-from-invalidate=5Finode=5Fpages2?=
- =?US-ASCII?Q?=5Frange-if-mapping-is-empty.patch?= removed from -mm tree
-Date: Thu, 04 May 2017 12:13:33 -0700
-Message-ID: <20170504191333.4NLMkwvqD%akpm@linux-foundation.org>
+ zram-reduce-load-operation-in-page_same_filled.patch removed from -mm tree
+Date: Thu, 04 May 2017 12:13:23 -0700
+Message-ID: <20170504191323.pNwogjoaw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51934 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756243AbdEDTNf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:35 -0400
+        with ESMTP id S1755861AbdEDTNZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk
+To: minchan@kernel.org, mm-commits@vger.kernel.org, sangwoo2.park@lge.com, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: mm/truncate: bail out early from invalidate_inode_pages2_range() if mapping is empty
+     Subject: zram: reduce load operation in page_same_filled
 has been removed from the -mm tree.  Its filename was
-     mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty.patch
+     zram-reduce-load-operation-in-page_same_filled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/truncate: bail out early from invalidate_inode_pages2_range() if mapping is empty
+From: Sangwoo Park <sangwoo2.park@lge.com>
+Subject: zram: reduce load operation in page_same_filled
 
-If mapping is empty (both ->nrpages and ->nrexceptional is zero) we can
-avoid pointless lookups in empty radix tree and bail out immediately after
-cleancache invalidation.
+In page_same_filled function, all elements in the page is compared with
+next index value.  The current comparison routine compares the (i)th and
+(i+1)th values of the page.
 
-Link: http://lkml.kernel.org/r/20170424164135.22350-4-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
+In this case, two load operaions occur for each comparison.  But if we
+store first value of the page stores at 'val' variable and using it to
+compare with others, the load opearation is reduced.  It reduce load
+operation per page by up to 64times.
+
+Link: http://lkml.kernel.org/r/1488428104-7257-1-git-send-email-sangwoo2.park@lge.com
+Signed-off-by: Sangwoo Park <sangwoo2.park@lge.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/zram/zram_drv.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/truncate.c~mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty mm/truncate.c
---- a/mm/truncate.c~mm-truncate-bail-out-early-from-invalidate_inode_pages2_range-if-mapping-is-empty
-+++ a/mm/truncate.c
-@@ -624,6 +624,9 @@ int invalidate_inode_pages2_range(struct
- 	int did_range_unmap = 0;
+diff -puN drivers/block/zram/zram_drv.c~zram-reduce-load-operation-in-page_same_filled drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-reduce-load-operation-in-page_same_filled
++++ a/drivers/block/zram/zram_drv.c
+@@ -195,15 +195,17 @@ static bool page_same_filled(void *ptr,
+ {
+ 	unsigned int pos;
+ 	unsigned long *page;
++	unsigned long val;
  
- 	cleancache_invalidate_inode(mapping);
-+	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+		return 0;
-+
- 	pagevec_init(&pvec, 0);
- 	index = start;
- 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+ 	page = (unsigned long *)ptr;
++	val = page[0];
+ 
+-	for (pos = 0; pos < PAGE_SIZE / sizeof(*page) - 1; pos++) {
+-		if (page[pos] != page[pos + 1])
++	for (pos = 1; pos < PAGE_SIZE / sizeof(*page); pos++) {
++		if (val != page[pos])
+ 			return false;
+ 	}
+ 
+-	*element = page[pos];
++	*element = val;
+ 
+ 	return true;
+ }
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from sangwoo2.park@lge.com are
 
 
