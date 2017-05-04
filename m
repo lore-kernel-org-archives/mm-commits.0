@@ -1,36 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-simplify-address-description-logic.patch
- removed from -mm tree
-Date: Thu, 04 May 2017 12:14:05 -0700
-Message-ID: <20170504191405.01mDO909c%akpm@linux-foundation.org>
+Subject: [merged] kasan-change-report-header.patch removed from -mm
+ tree
+Date: Thu, 04 May 2017 12:14:09 -0700
+Message-ID: <20170504191409.Q97n6bEbL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52230 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752337AbdEDTOH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:14:07 -0400
+        with ESMTP id S1752337AbdEDTOL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:14:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: simplify address description logic
+     Subject: kasan: change report header
 has been removed from the -mm tree.  Its filename was
-     kasan-simplify-address-description-logic.patch
+     kasan-change-report-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: simplify address description logic
+Subject: kasan: change report header
 
-Simplify logic for describing a memory address.
-Add addr_to_page() helper function.
+Change report header format from:
 
-Makes the code easier to follow.
+BUG: KASAN: use-after-free in unwind_get_return_address+0x28a/0x2c0 at addr ffff880069437950
+Read of size 8 by task insmod/3925
 
-Link: http://lkml.kernel.org/r/20170302134851.101218-5-andreyknvl@google.com
+to:
+
+BUG: KASAN: use-after-free in unwind_get_return_address+0x28a/0x2c0
+Read of size 8 at addr ffff880069437950 by task insmod/3925
+
+The exact access address is not usually important, so move it to the
+second line. This also makes the header look visually balanced.
+
+Link: http://lkml.kernel.org/r/20170302134851.101218-6-andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Acked-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -38,80 +46,28 @@ Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   37 +++++++++++++++++++++----------------
- 1 file changed, 21 insertions(+), 16 deletions(-)
+ mm/kasan/report.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-simplify-address-description-logic mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-simplify-address-description-logic
+diff -puN mm/kasan/report.c~kasan-change-report-header mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-change-report-header
 +++ a/mm/kasan/report.c
-@@ -190,11 +190,18 @@ static void print_track(struct kasan_tra
- 	}
- }
- 
--static void kasan_object_err(struct kmem_cache *cache, void *object)
-+static struct page *addr_to_page(const void *addr)
-+{
-+	if ((addr >= (void *)PAGE_OFFSET) &&
-+			(addr < high_memory))
-+		return virt_to_head_page(addr);
-+	return NULL;
-+}
-+
-+static void describe_object(struct kmem_cache *cache, void *object)
+@@ -132,11 +132,11 @@ static void print_error_description(stru
  {
- 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
+ 	const char *bug_type = get_bug_type(info);
  
--	dump_stack();
- 	pr_err("Object at %p, in cache %s size: %d\n", object, cache->name,
- 		cache->object_size);
- 
-@@ -213,34 +220,32 @@ void kasan_report_double_free(struct kme
- 	kasan_start_report(&flags);
- 	pr_err("BUG: Double free or freeing an invalid pointer\n");
- 	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
--	kasan_object_err(cache, object);
-+	dump_stack();
-+	describe_object(cache, object);
- 	kasan_end_report(&flags);
+-	pr_err("BUG: KASAN: %s in %pS at addr %p\n",
+-		bug_type, (void *)info->ip, info->access_addr);
+-	pr_err("%s of size %zu by task %s/%d\n",
++	pr_err("BUG: KASAN: %s in %pS\n",
++		bug_type, (void *)info->ip);
++	pr_err("%s of size %zu at addr %p by task %s/%d\n",
+ 		info->is_write ? "Write" : "Read", info->access_size,
+-		current->comm, task_pid_nr(current));
++		info->access_addr, current->comm, task_pid_nr(current));
  }
  
- static void print_address_description(struct kasan_access_info *info)
- {
- 	const void *addr = info->access_addr;
-+	struct page *page = addr_to_page(addr);
- 
--	if ((addr >= (void *)PAGE_OFFSET) &&
--		(addr < high_memory)) {
--		struct page *page = virt_to_head_page(addr);
--
--		if (PageSlab(page)) {
--			void *object;
--			struct kmem_cache *cache = page->slab_cache;
--			object = nearest_obj(cache, page,
--						(void *)info->access_addr);
--			kasan_object_err(cache, object);
--			return;
--		}
-+	if (page)
- 		dump_page(page, "kasan: bad access detected");
-+
-+	dump_stack();
-+
-+	if (page && PageSlab(page)) {
-+		struct kmem_cache *cache = page->slab_cache;
-+		void *object = nearest_obj(cache, page,	(void *)addr);
-+
-+		describe_object(cache, object);
- 	}
- 
- 	if (kernel_or_module_addr(addr)) {
- 		if (!init_task_stack_addr(addr))
- 			pr_err("Address belongs to variable %pS\n", addr);
- 	}
--	dump_stack();
- }
- 
- static bool row_is_guilty(const void *row, const void *guilty)
+ static inline bool kernel_or_module_addr(const void *addr)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
