@@ -1,164 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmstat-print-non-populated-zones-in-zoneinfo.patch removed from -mm tree
-Date: Thu, 04 May 2017 12:10:11 -0700
-Message-ID: <20170504191011.vl1RqBhph%akpm@linux-foundation.org>
+ mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch removed from -mm
+ tree
+Date: Thu, 04 May 2017 12:09:47 -0700
+Message-ID: <20170504190947.7dqVEp69p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50982 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752785AbdEDTKM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:12 -0400
+        with ESMTP id S1756108AbdEDTJx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@fb.com
 
 
 The patch titled
-     Subject: mm, vmstat: print non-populated zones in zoneinfo
+     Subject: mm: fix lazyfree BUG_ON check in try_to_unmap_one()
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-print-non-populated-zones-in-zoneinfo.patch
+     mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, vmstat: print non-populated zones in zoneinfo
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: fix lazyfree BUG_ON check in try_to_unmap_one()
 
-Initscripts can use the information (protection levels) from
-/proc/zoneinfo to configure vm.lowmem_reserve_ratio at boot.
+If a page is swapbacked, it means it should be in swapcache in
+try_to_unmap_one's path.
 
-vm.lowmem_reserve_ratio is an array of ratios for each configured zone on
-the system.  If a zone is not populated on an arch, /proc/zoneinfo
-suppresses its output.
+If a page is !swapbacked, it mean it shouldn't be in swapcache in
+try_to_unmap_one's path.
 
-This results in there not being a 1:1 mapping between the set of zones
-emitted by /proc/zoneinfo and the zones configured by
-vm.lowmem_reserve_ratio.
+Check both two cases all at once and if it fails, warn and return
+SWAP_FAIL.  Such bug never mean we should shut down the kernel.
 
-This patch shows statistics for non-populated zones in /proc/zoneinfo. 
-The zones exist and hold a spot in the vm.lowmem_reserve_ratio array. 
-Without this patch, it is not possible to determine which index in the
-array controls which zone if one or more zones on the system are not
-populated.
-
-Remaining users of walk_zones_in_node() are unchanged.  Files such as
-/proc/pagetypeinfo require certain zone data to be initialized properly
-for display, which is not done for unpopulated zones.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1703031451310.98023@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[minchan@kernel.org: do not use VM_WARN_ON_ONCE as if condition[
+  Link: http://lkml.kernel.org/r/20170309060226.GB854@bbox
+Link: http://lkml.kernel.org/r/20170307055551.GC29458@bbox
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ mm/rmap.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-print-non-populated-zones-in-zoneinfo mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-print-non-populated-zones-in-zoneinfo
-+++ a/mm/vmstat.c
-@@ -1124,8 +1124,12 @@ static void frag_stop(struct seq_file *m
- {
- }
+diff -puN mm/rmap.c~mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one mm/rmap.c
+--- a/mm/rmap.c~mm-fix-lazyfree-bug-on-check-in-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -1418,8 +1418,12 @@ static int try_to_unmap_one(struct page
+ 			 * Store the swap location in the pte.
+ 			 * See handle_pte_fault() ...
+ 			 */
+-			VM_BUG_ON_PAGE(!PageSwapCache(page) && PageSwapBacked(page),
+-				page);
++			if (unlikely(PageSwapBacked(page) != PageSwapCache(page))) {
++				WARN_ON_ONCE(1);
++				ret = SWAP_FAIL;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
  
--/* Walk all the zones in a node and print using a callback */
-+/*
-+ * Walk zones in a node and print using a callback.
-+ * If @assert_populated is true, only use callback for zones that are populated.
-+ */
- static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
-+		bool assert_populated,
- 		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
- {
- 	struct zone *zone;
-@@ -1133,7 +1137,7 @@ static void walk_zones_in_node(struct se
- 	unsigned long flags;
- 
- 	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
--		if (!populated_zone(zone))
-+		if (assert_populated && !populated_zone(zone))
- 			continue;
- 
- 		spin_lock_irqsave(&zone->lock, flags);
-@@ -1161,7 +1165,7 @@ static void frag_show_print(struct seq_f
- static int frag_show(struct seq_file *m, void *arg)
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
--	walk_zones_in_node(m, pgdat, frag_show_print);
-+	walk_zones_in_node(m, pgdat, true, frag_show_print);
- 	return 0;
- }
- 
-@@ -1202,7 +1206,7 @@ static int pagetypeinfo_showfree(struct
- 		seq_printf(m, "%6d ", order);
- 	seq_putc(m, '\n');
- 
--	walk_zones_in_node(m, pgdat, pagetypeinfo_showfree_print);
-+	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showfree_print);
- 
- 	return 0;
- }
-@@ -1254,7 +1258,7 @@ static int pagetypeinfo_showblockcount(s
- 	for (mtype = 0; mtype < MIGRATE_TYPES; mtype++)
- 		seq_printf(m, "%12s ", migratetype_names[mtype]);
- 	seq_putc(m, '\n');
--	walk_zones_in_node(m, pgdat, pagetypeinfo_showblockcount_print);
-+	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showblockcount_print);
- 
- 	return 0;
- }
-@@ -1280,7 +1284,7 @@ static void pagetypeinfo_showmixedcount(
- 		seq_printf(m, "%12s ", migratetype_names[mtype]);
- 	seq_putc(m, '\n');
- 
--	walk_zones_in_node(m, pgdat, pagetypeinfo_showmixedcount_print);
-+	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showmixedcount_print);
- #endif /* CONFIG_PAGE_OWNER */
- }
- 
-@@ -1430,12 +1434,15 @@ static void zoneinfo_show_print(struct s
- }
- 
- /*
-- * Output information about zones in @pgdat.
-+ * Output information about zones in @pgdat.  All zones are printed regardless
-+ * of whether they are populated or not: lowmem_reserve_ratio operates on the
-+ * set of all zones and userspace would not be aware of such zones if they are
-+ * suppressed here (zoneinfo displays the effect of lowmem_reserve_ratio).
-  */
- static int zoneinfo_show(struct seq_file *m, void *arg)
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
--	walk_zones_in_node(m, pgdat, zoneinfo_show_print);
-+	walk_zones_in_node(m, pgdat, false, zoneinfo_show_print);
- 	return 0;
- }
- 
-@@ -1841,7 +1848,7 @@ static int unusable_show(struct seq_file
- 	if (!node_state(pgdat->node_id, N_MEMORY))
- 		return 0;
- 
--	walk_zones_in_node(m, pgdat, unusable_show_print);
-+	walk_zones_in_node(m, pgdat, true, unusable_show_print);
- 
- 	return 0;
- }
-@@ -1893,7 +1900,7 @@ static int extfrag_show(struct seq_file
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
- 
--	walk_zones_in_node(m, pgdat, extfrag_show_print);
-+	walk_zones_in_node(m, pgdat, true, extfrag_show_print);
- 
- 	return 0;
- }
+ 			/* MADV_FREE page check */
+ 			if (!PageSwapBacked(page)) {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 
