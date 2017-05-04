@@ -1,179 +1,120 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lockdep-teach-lockdep-about-memalloc_noio_save.patch removed from -mm tree
-Date: Thu, 04 May 2017 12:10:18 -0700
-Message-ID: <20170504191018.eoWvAZkAz%akpm@linux-foundation.org>
+ mm-remove-rodata_test_data-export-add-pr_fmt.patch removed from -mm tree
+Date: Thu, 04 May 2017 12:10:47 -0700
+Message-ID: <20170504191047.zY0PcXrul%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756507AbdEDTKV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:21 -0400
+        with ESMTP id S1752637AbdEDTKs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tytso@mit.edu, vbabka@suse.cz
+To: arjan@linux.intel.com, jinb.park7@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lockdep: teach lockdep about memalloc_noio_save
+     Subject: mm: remove rodata_test_data export, add pr_fmt
 has been removed from the -mm tree.  Its filename was
-     lockdep-teach-lockdep-about-memalloc_noio_save.patch
+     mm-remove-rodata_test_data-export-add-pr_fmt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nikolay Borisov <nborisov@suse.com>
-Subject: lockdep: teach lockdep about memalloc_noio_save
+From: Kees Cook <keescook@chromium.org>
+Subject: mm: remove rodata_test_data export, add pr_fmt
 
-Patch series "scope GFP_NOFS api", v5.
+Since commit 3ad38ceb2769 ("x86/mm: Remove CONFIG_DEBUG_NX_TEST"), nothing
+is using the exported rodata_test_data variable, so drop the export. 
+Additionally updates the pr_fmt to avoid redundant strings and adjusts
+some whitespace.
 
-This patch (of 7):
-
-Commit 21caf2fc1931 ("mm: teach mm by current context info to not do I/O
-during memory allocation") added the memalloc_noio_(save|restore)
-functions to enable people to modify the MM behavior by disabling I/O
-during memory allocation.  This was further extended in Fixes:
-934f3072c17c ("mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set"). 
-memalloc_noio_* functions prevent allocation paths recursing back into the
-filesystem without explicitly changing the flags for every allocation
-site.  However, lockdep hasn't been keeping up with the changes and it
-entirely misses handling the memalloc_noio adjustments.  Instead, it is
-left to the callers of __lockdep_trace_alloc to call the function after
-they have shaven the respective GFP flags which can lead to false
-positives:
-
-[  644.173373] =================================
-[  644.174012] [ INFO: inconsistent lock state ]
-[  644.174012] 4.10.0-nbor #134 Not tainted
-[  644.174012] ---------------------------------
-[  644.174012] inconsistent {IN-RECLAIM_FS-W} -> {RECLAIM_FS-ON-W} usage.
-[  644.174012] fsstress/3365 [HC0[0]:SC0[0]:HE1:SE1] takes:
-[  644.174012]  (&xfs_nondir_ilock_class){++++?.}, at: [<ffffffff8136f231>] xfs_ilock+0x141/0x230
-[  644.174012] {IN-RECLAIM_FS-W} state was registered at:
-[  644.174012]   __lock_acquire+0x62a/0x17c0
-[  644.174012]   lock_acquire+0xc5/0x220
-[  644.174012]   down_write_nested+0x4f/0x90
-[  644.174012]   xfs_ilock+0x141/0x230
-[  644.174012]   xfs_reclaim_inode+0x12a/0x320
-[  644.174012]   xfs_reclaim_inodes_ag+0x2c8/0x4e0
-[  644.174012]   xfs_reclaim_inodes_nr+0x33/0x40
-[  644.174012]   xfs_fs_free_cached_objects+0x19/0x20
-[  644.174012]   super_cache_scan+0x191/0x1a0
-[  644.174012]   shrink_slab+0x26f/0x5f0
-[  644.174012]   shrink_node+0xf9/0x2f0
-[  644.174012]   kswapd+0x356/0x920
-[  644.174012]   kthread+0x10c/0x140
-[  644.174012]   ret_from_fork+0x31/0x40
-[  644.174012] irq event stamp: 173777
-[  644.174012] hardirqs last  enabled at (173777): [<ffffffff8105b440>] __local_bh_enable_ip+0x70/0xc0
-[  644.174012] hardirqs last disabled at (173775): [<ffffffff8105b407>] __local_bh_enable_ip+0x37/0xc0
-[  644.174012] softirqs last  enabled at (173776): [<ffffffff81357e2a>] _xfs_buf_find+0x67a/0xb70
-[  644.174012] softirqs last disabled at (173774): [<ffffffff81357d8b>] _xfs_buf_find+0x5db/0xb70
-[  644.174012]
-[  644.174012] other info that might help us debug this:
-[  644.174012]  Possible unsafe locking scenario:
-[  644.174012]
-[  644.174012]        CPU0
-[  644.174012]        ----
-[  644.174012]   lock(&xfs_nondir_ilock_class);
-[  644.174012]   <Interrupt>
-[  644.174012]     lock(&xfs_nondir_ilock_class);
-[  644.174012]
-[  644.174012]  *** DEADLOCK ***
-[  644.174012]
-[  644.174012] 4 locks held by fsstress/3365:
-[  644.174012]  #0:  (sb_writers#10){++++++}, at: [<ffffffff81208d04>] mnt_want_write+0x24/0x50
-[  644.174012]  #1:  (&sb->s_type->i_mutex_key#12){++++++}, at: [<ffffffff8120ea2f>] vfs_setxattr+0x6f/0xb0
-[  644.174012]  #2:  (sb_internal#2){++++++}, at: [<ffffffff8138185c>] xfs_trans_alloc+0xfc/0x140
-[  644.174012]  #3:  (&xfs_nondir_ilock_class){++++?.}, at: [<ffffffff8136f231>] xfs_ilock+0x141/0x230
-[  644.174012]
-[  644.174012] stack backtrace:
-[  644.174012] CPU: 0 PID: 3365 Comm: fsstress Not tainted 4.10.0-nbor #134
-[  644.174012] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-[  644.174012] Call Trace:
-[  644.174012]  dump_stack+0x85/0xc9
-[  644.174012]  print_usage_bug.part.37+0x284/0x293
-[  644.174012]  ? print_shortest_lock_dependencies+0x1b0/0x1b0
-[  644.174012]  mark_lock+0x27e/0x660
-[  644.174012]  mark_held_locks+0x66/0x90
-[  644.174012]  lockdep_trace_alloc+0x6f/0xd0
-[  644.174012]  kmem_cache_alloc_node_trace+0x3a/0x2c0
-[  644.174012]  ? vm_map_ram+0x2a1/0x510
-[  644.174012]  vm_map_ram+0x2a1/0x510
-[  644.174012]  ? vm_map_ram+0x46/0x510
-[  644.174012]  _xfs_buf_map_pages+0x77/0x140
-[  644.174012]  xfs_buf_get_map+0x185/0x2a0
-[  644.174012]  xfs_attr_rmtval_set+0x233/0x430
-[  644.174012]  xfs_attr_leaf_addname+0x2d2/0x500
-[  644.174012]  xfs_attr_set+0x214/0x420
-[  644.174012]  xfs_xattr_set+0x59/0xb0
-[  644.174012]  __vfs_setxattr+0x76/0xa0
-[  644.174012]  __vfs_setxattr_noperm+0x5e/0xf0
-[  644.174012]  vfs_setxattr+0xae/0xb0
-[  644.174012]  ? __might_fault+0x43/0xa0
-[  644.174012]  setxattr+0x15e/0x1a0
-[  644.174012]  ? __lock_is_held+0x53/0x90
-[  644.174012]  ? rcu_read_lock_sched_held+0x93/0xa0
-[  644.174012]  ? rcu_sync_lockdep_assert+0x2f/0x60
-[  644.174012]  ? __sb_start_write+0x130/0x1d0
-[  644.174012]  ? mnt_want_write+0x24/0x50
-[  644.174012]  path_setxattr+0x8f/0xc0
-[  644.174012]  SyS_lsetxattr+0x11/0x20
-[  644.174012]  entry_SYSCALL_64_fastpath+0x23/0xc6
-
-Let's fix this by making lockdep explicitly do the shaving of respective
-GFP flags.
-
-Fixes: 934f3072c17c ("mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set")
-Link: http://lkml.kernel.org/r/20170306131408.9828-2-mhocko@kernel.org
-Signed-off-by: Nikolay Borisov <nborisov@suse.com>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20170307005313.GA85809@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Jinbum Park <jinb.park7@gmail.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/locking/lockdep.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/rodata_test.h |    1 -
+ mm/rodata_test.c            |   17 +++++++++--------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN kernel/locking/lockdep.c~lockdep-teach-lockdep-about-memalloc_noio_save kernel/locking/lockdep.c
---- a/kernel/locking/lockdep.c~lockdep-teach-lockdep-about-memalloc_noio_save
-+++ a/kernel/locking/lockdep.c
-@@ -30,6 +30,7 @@
- #include <linux/sched.h>
- #include <linux/sched/clock.h>
- #include <linux/sched/task.h>
-+#include <linux/sched/mm.h>
- #include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/proc_fs.h>
-@@ -2876,6 +2877,8 @@ static void __lockdep_trace_alloc(gfp_t
- 	if (unlikely(!debug_locks))
- 		return;
+diff -puN include/linux/rodata_test.h~mm-remove-rodata_test_data-export-add-pr_fmt include/linux/rodata_test.h
+--- a/include/linux/rodata_test.h~mm-remove-rodata_test_data-export-add-pr_fmt
++++ a/include/linux/rodata_test.h
+@@ -14,7 +14,6 @@
+ #define _RODATA_TEST_H
  
-+	gfp_mask = memalloc_noio_flags(gfp_mask);
+ #ifdef CONFIG_DEBUG_RODATA_TEST
+-extern const int rodata_test_data;
+ void rodata_test(void);
+ #else
+ static inline void rodata_test(void) {}
+diff -puN mm/rodata_test.c~mm-remove-rodata_test_data-export-add-pr_fmt mm/rodata_test.c
+--- a/mm/rodata_test.c~mm-remove-rodata_test_data-export-add-pr_fmt
++++ a/mm/rodata_test.c
+@@ -9,11 +9,12 @@
+  * as published by the Free Software Foundation; version 2
+  * of the License.
+  */
++#define pr_fmt(fmt) "rodata_test: " fmt
 +
- 	/* no reclaim without waiting on it */
- 	if (!(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		return;
-@@ -3947,7 +3950,7 @@ EXPORT_SYMBOL_GPL(lock_unpin_lock);
+ #include <linux/uaccess.h>
+ #include <asm/sections.h>
  
- void lockdep_set_current_reclaim_state(gfp_t gfp_mask)
+ const int rodata_test_data = 0xC3;
+-EXPORT_SYMBOL_GPL(rodata_test_data);
+ 
+ void rodata_test(void)
  {
--	current->lockdep_reclaim_gfp = gfp_mask;
-+	current->lockdep_reclaim_gfp = memalloc_noio_flags(gfp_mask);
- }
+@@ -23,20 +24,20 @@ void rodata_test(void)
+ 	/* test 1: read the value */
+ 	/* If this test fails, some previous testrun has clobbered the state */
+ 	if (!rodata_test_data) {
+-		pr_err("rodata_test: test 1 fails (start data)\n");
++		pr_err("test 1 fails (start data)\n");
+ 		return;
+ 	}
  
- void lockdep_clear_current_reclaim_state(void)
+ 	/* test 2: write to the variable; this should fault */
+ 	if (!probe_kernel_write((void *)&rodata_test_data,
+-						(void *)&zero, sizeof(zero))) {
+-		pr_err("rodata_test: test data was not read only\n");
++				(void *)&zero, sizeof(zero))) {
++		pr_err("test data was not read only\n");
+ 		return;
+ 	}
+ 
+ 	/* test 3: check the value hasn't changed */
+ 	if (rodata_test_data == zero) {
+-		pr_err("rodata_test: test data was changed\n");
++		pr_err("test data was changed\n");
+ 		return;
+ 	}
+ 
+@@ -44,13 +45,13 @@ void rodata_test(void)
+ 	start = (unsigned long)__start_rodata;
+ 	end = (unsigned long)__end_rodata;
+ 	if (start & (PAGE_SIZE - 1)) {
+-		pr_err("rodata_test: start of .rodata is not page size aligned\n");
++		pr_err("start of .rodata is not page size aligned\n");
+ 		return;
+ 	}
+ 	if (end & (PAGE_SIZE - 1)) {
+-		pr_err("rodata_test: end of .rodata is not page size aligned\n");
++		pr_err("end of .rodata is not page size aligned\n");
+ 		return;
+ 	}
+ 
+-	pr_info("rodata_test: all tests were successful\n");
++	pr_info("all tests were successful\n");
+ }
 _
 
-Patches currently in -mm which might be from nborisov@suse.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+reiserfs-use-designated-initializers.patch
+format-security-move-static-strings-to-const.patch
 
