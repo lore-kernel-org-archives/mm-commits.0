@@ -1,107 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch removed
- from -mm tree
-Date: Thu, 04 May 2017 12:13:37 -0700
-Message-ID: <20170504191337.1zMaIi1lm%akpm@linux-foundation.org>
+ mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page.patch
+ removed from -mm tree
+Date: Thu, 04 May 2017 12:13:51 -0700
+Message-ID: <20170504191351.PS3tNgN75%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756334AbdEDTNo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:44 -0400
+        with ESMTP id S1756344AbdEDTNx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk
+To: gong.chen@linux.intel.com, lkp@intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, xiaolong.ye@intel.com
 
 
 The patch titled
-     Subject: mm/truncate: avoid pointless cleancache_invalidate_inode() calls.
+     Subject: mm: hwpoison: call shake_page() after try_to_unmap() for mlocked page
 has been removed from the -mm tree.  Its filename was
-     mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
+     mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/truncate: avoid pointless cleancache_invalidate_inode() calls.
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: call shake_page() after try_to_unmap() for mlocked page
 
-cleancache_invalidate_inode() called truncate_inode_pages_range()
-and invalidate_inode_pages2_range() twice - on entry and on exit.
-It's stupid and waste of time. It's enough to call it once at
-exit.
+Memory error handler calls try_to_unmap() for error pages in various
+states. If the error page is a mlocked page, error handling could fail
+with "still referenced by 1 users" message. This is because the page
+is linked to and stays in lru cache after the following call chain.
 
-Link: http://lkml.kernel.org/r/20170424164135.22350-5-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
+  try_to_unmap_one
+    page_remove_rmap
+      clear_page_mlock
+        putback_lru_page
+          lru_cache_add
+
+memory_failure() calls shake_page() to hanlde the similar issue, but
+current code doesn't cover because shake_page() is called only before
+try_to_unmap(). So this patches adds shake_page().
+
+Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
+Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
+Link: http://lkml.kernel.org/r/1493197841-23986-3-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Xiaolong Ye <xiaolong.ye@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/memory-failure.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls mm/truncate.c
---- a/mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls
-+++ a/mm/truncate.c
-@@ -266,9 +266,8 @@ void truncate_inode_pages_range(struct a
- 	pgoff_t		index;
- 	int		i;
+diff -puN mm/memory-failure.c~mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-call-shake_page-after-try_to_unmap-for-mlocked-page
++++ a/mm/memory-failure.c
+@@ -916,6 +916,7 @@ static bool hwpoison_user_mappings(struc
+ 	bool unmap_success;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
++	bool mlocked = PageMlocked(hpage);
  
--	cleancache_invalidate_inode(mapping);
- 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
--		return;
-+		goto out;
+ 	/*
+ 	 * Here we are interested only in user-mapped pages, so skip any
+@@ -980,6 +981,13 @@ static bool hwpoison_user_mappings(struc
+ 		       pfn, page_mapcount(hpage));
  
- 	/* Offsets within partial pages */
- 	partial_start = lstart & (PAGE_SIZE - 1);
-@@ -363,7 +362,7 @@ void truncate_inode_pages_range(struct a
- 	 * will be released, just zeroed, so we can bail out now.
- 	 */
- 	if (start >= end)
--		return;
-+		goto out;
- 
- 	index = start;
- 	for ( ; ; ) {
-@@ -410,6 +409,8 @@ void truncate_inode_pages_range(struct a
- 		pagevec_release(&pvec);
- 		index++;
- 	}
+ 	/*
++	 * try_to_unmap() might put mlocked page in lru cache, so call
++	 * shake_page() again to ensure that it's flushed.
++	 */
++	if (mlocked)
++		shake_page(hpage, 0);
 +
-+out:
- 	cleancache_invalidate_inode(mapping);
- }
- EXPORT_SYMBOL(truncate_inode_pages_range);
-@@ -623,9 +624,8 @@ int invalidate_inode_pages2_range(struct
- 	int ret2 = 0;
- 	int did_range_unmap = 0;
- 
--	cleancache_invalidate_inode(mapping);
- 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
--		return 0;
-+		goto out;
- 
- 	pagevec_init(&pvec, 0);
- 	index = start;
-@@ -689,6 +689,8 @@ int invalidate_inode_pages2_range(struct
- 		cond_resched();
- 		index++;
- 	}
-+
-+out:
- 	cleancache_invalidate_inode(mapping);
- 	return ret;
- }
++	/*
+ 	 * Now that the dirty bit has been propagated to the
+ 	 * struct page and all unmaps done we can decide if
+ 	 * killing is needed or not.  Only kill when the page
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 
