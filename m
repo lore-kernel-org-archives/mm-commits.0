@@ -1,65 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- blackfin-bf609-let-clk_disable-return-immediately-if-clk-is-null.patch
- removed from -mm tree
-Date: Thu, 04 May 2017 12:08:39 -0700
-Message-ID: <20170504190839.4MBOOLEcN%akpm@linux-foundation.org>
+Subject: [merged] fs-ocfs2-cluster-use-setup_timer.patch removed
+ from -mm tree
+Date: Thu, 04 May 2017 12:08:42 -0700
+Message-ID: <20170504190842.vqxNtBHBn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50748 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50752 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756108AbdEDTIk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:08:40 -0400
+        with ESMTP id S1756220AbdEDTIo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:08:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mturquette@baylibre.com, ralf@linux-mips.org, realmz6@gmail.com, sboyd@codeaurora.org, yamada.masahiro@socionext.com
+To: geliangtang@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: blackfin: bf609: let clk_disable() return immediately if clk is NULL
+     Subject: fs/ocfs2/cluster: use setup_timer
 has been removed from the -mm tree.  Its filename was
-     blackfin-bf609-let-clk_disable-return-immediately-if-clk-is-null.patch
+     fs-ocfs2-cluster-use-setup_timer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: blackfin: bf609: let clk_disable() return immediately if clk is NULL
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: fs/ocfs2/cluster: use setup_timer
 
-In many of clk_disable() implementations, it is a no-op for a NULL
-pointer input, but this is one of the exceptions.
+Use setup_timer() instead of init_timer() to simplify the code.
 
-Making it treewide consistent will allow clock consumers to call
-clk_disable() without NULL pointer check.
-
-Link: http://lkml.kernel.org/r/1490692624-11931-4-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Michael Turquette <mturquette@baylibre.com>
-Cc: Steven Miao <realmz6@gmail.com>
+Link: http://lkml.kernel.org/r/5e75bf07beb91e092d5aa36c36769949a480456a.1489060564.git.geliangtang@gmail.com
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/mach-bf609/clock.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/cluster/tcp.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/blackfin/mach-bf609/clock.c~blackfin-bf609-let-clk_disable-return-immediately-if-clk-is-null arch/blackfin/mach-bf609/clock.c
---- a/arch/blackfin/mach-bf609/clock.c~blackfin-bf609-let-clk_disable-return-immediately-if-clk-is-null
-+++ a/arch/blackfin/mach-bf609/clock.c
-@@ -97,6 +97,9 @@ EXPORT_SYMBOL(clk_enable);
+diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-setup_timer fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-use-setup_timer
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -450,9 +450,8 @@ static struct o2net_sock_container *sc_a
+ 	INIT_WORK(&sc->sc_shutdown_work, o2net_shutdown_sc);
+ 	INIT_DELAYED_WORK(&sc->sc_keepalive_work, o2net_sc_send_keep_req);
  
- void clk_disable(struct clk *clk)
- {
-+	if (!clk)
-+		return;
-+
- 	if (clk->ops && clk->ops->disable)
- 		clk->ops->disable(clk);
- }
+-	init_timer(&sc->sc_idle_timeout);
+-	sc->sc_idle_timeout.function = o2net_idle_timer;
+-	sc->sc_idle_timeout.data = (unsigned long)sc;
++	setup_timer(&sc->sc_idle_timeout, o2net_idle_timer,
++		    (unsigned long)sc);
+ 
+ 	sclog(sc, "alloced\n");
+ 
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from geliangtang@gmail.com are
 
-scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances.patch
 
