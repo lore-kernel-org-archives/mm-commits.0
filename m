@@ -1,36 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-swap_mlock-in-ttu.patch removed from
+Subject: [merged] mm-remove-swap_again-in-ttu.patch removed from
  -mm tree
-Date: Thu, 04 May 2017 12:11:36 -0700
-Message-ID: <20170504191136.a13qdTxmS%akpm@linux-foundation.org>
+Date: Thu, 04 May 2017 12:11:40 -0700
+Message-ID: <20170504191140.sc3wK28mr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51482 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755434AbdEDTLi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:11:38 -0400
+        with ESMTP id S1755434AbdEDTLl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:11:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: remove SWAP_MLOCK in ttu
+     Subject: mm: remove SWAP_AGAIN in ttu
 has been removed from the -mm tree.  Its filename was
-     mm-remove-swap_mlock-in-ttu.patch
+     mm-remove-swap_again-in-ttu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remove SWAP_MLOCK in ttu
+Subject: mm: remove SWAP_AGAIN in ttu
 
-ttu doesn't need to return SWAP_MLOCK.  Instead, just return SWAP_FAIL
-because it means the page is not-swappable so it should move to another
-LRU list(active or unevictable).  putback friends will move it to right
-list depending on the page's LRU flag.
+In 2002, [1] introduced SWAP_AGAIN.  At that time, try_to_unmap_one used
+spin_trylock(&mm->page_table_lock) so it's really easy to contend and fail
+to hold a lock so SWAP_AGAIN to keep LRU status makes sense.
 
-Link: http://lkml.kernel.org/r/1489555493-14659-6-git-send-email-minchan@kernel.org
+However, now we changed it to mutex-based lock and be able to block
+without skip pte so there is few of small window to return SWAP_AGAIN so
+remove SWAP_AGAIN and just return SWAP_FAIL.
+
+[1] c48c43e, minimal rmap
+
+Link: http://lkml.kernel.org/r/1489555493-14659-7-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -42,69 +47,58 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 -
- mm/rmap.c            |    3 +--
- mm/vmscan.c          |   20 +++++++-------------
- 3 files changed, 8 insertions(+), 16 deletions(-)
+ mm/rmap.c   |   11 +++--------
+ mm/vmscan.c |    2 --
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-remove-swap_mlock-in-ttu include/linux/rmap.h
---- a/include/linux/rmap.h~mm-remove-swap_mlock-in-ttu
-+++ a/include/linux/rmap.h
-@@ -297,6 +297,5 @@ static inline int page_mkclean(struct pa
- #define SWAP_SUCCESS	0
- #define SWAP_AGAIN	1
- #define SWAP_FAIL	2
--#define SWAP_MLOCK	3
- 
- #endif	/* _LINUX_RMAP_H */
-diff -puN mm/rmap.c~mm-remove-swap_mlock-in-ttu mm/rmap.c
---- a/mm/rmap.c~mm-remove-swap_mlock-in-ttu
+diff -puN mm/rmap.c~mm-remove-swap_again-in-ttu mm/rmap.c
+--- a/mm/rmap.c~mm-remove-swap_again-in-ttu
 +++ a/mm/rmap.c
-@@ -1329,7 +1329,7 @@ static int try_to_unmap_one(struct page
- 					 */
- 					mlock_vma_page(page);
- 				}
--				ret = SWAP_MLOCK;
-+				ret = SWAP_FAIL;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
- 			}
-@@ -1506,7 +1506,6 @@ static int page_mapcount_is_zero(struct
+@@ -1504,13 +1504,10 @@ static int page_mapcount_is_zero(struct
+  * Return values are:
+  *
   * SWAP_SUCCESS	- we succeeded in removing all mappings
-  * SWAP_AGAIN	- we missed a mapping, try again later
+- * SWAP_AGAIN	- we missed a mapping, try again later
   * SWAP_FAIL	- the page is unswappable
-- * SWAP_MLOCK	- page is mlocked.
   */
  int try_to_unmap(struct page *page, enum ttu_flags flags)
  {
-diff -puN mm/vmscan.c~mm-remove-swap_mlock-in-ttu mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-swap_mlock-in-ttu
+-	int ret;
+-
+ 	struct rmap_walk_control rwc = {
+ 		.rmap_one = try_to_unmap_one,
+ 		.arg = (void *)flags,
+@@ -1530,13 +1527,11 @@ int try_to_unmap(struct page *page, enum
+ 		rwc.invalid_vma = invalid_migration_vma;
+ 
+ 	if (flags & TTU_RMAP_LOCKED)
+-		ret = rmap_walk_locked(page, &rwc);
++		rmap_walk_locked(page, &rwc);
+ 	else
+-		ret = rmap_walk(page, &rwc);
++		rmap_walk(page, &rwc);
+ 
+-	if (!page_mapcount(page))
+-		ret = SWAP_SUCCESS;
+-	return ret;
++	return !page_mapcount(page) ? SWAP_SUCCESS : SWAP_FAIL;
+ }
+ 
+ static int page_not_mapped(struct page *page)
+diff -puN mm/vmscan.c~mm-remove-swap_again-in-ttu mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-swap_again-in-ttu
 +++ a/mm/vmscan.c
-@@ -987,7 +987,7 @@ static unsigned long shrink_page_list(st
- 		sc->nr_scanned++;
- 
- 		if (unlikely(!page_evictable(page)))
--			goto cull_mlocked;
-+			goto activate_locked;
- 
- 		if (!sc->may_unmap && page_mapped(page))
- 			goto keep_locked;
-@@ -1152,8 +1152,6 @@ static unsigned long shrink_page_list(st
+@@ -1150,8 +1150,6 @@ static unsigned long shrink_page_list(st
+ 			case SWAP_FAIL:
+ 				nr_unmap_fail++;
  				goto activate_locked;
- 			case SWAP_AGAIN:
- 				goto keep_locked;
--			case SWAP_MLOCK:
--				goto cull_mlocked;
+-			case SWAP_AGAIN:
+-				goto keep_locked;
  			case SWAP_SUCCESS:
  				; /* try to free the page below */
  			}
-@@ -1295,20 +1293,16 @@ free_it:
- 		list_add(&page->lru, &free_pages);
- 		continue;
- 
--cull_mlocked:
--		if (PageSwapCache(page))
--			try_to_free_swap(page);
--		unlock_page(page);
--		list_add(&page->lru, &ret_pages);
--		continue;
+_
+
+Patches currently in -mm which might be from minchan@kernel.org are
+
+
