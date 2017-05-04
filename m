@@ -1,89 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-o2hb-revert-hb-threshold-to-keep-compatible.patch removed from -mm
- tree
-Date: Thu, 04 May 2017 12:08:46 -0700
-Message-ID: <20170504190846.3vU7aq6Sb%akpm@linux-foundation.org>
+Subject: [merged] slab-avoid-ipis-when-creating-kmem-caches.patch
+ removed from -mm tree
+Date: Thu, 04 May 2017 12:08:52 -0700
+Message-ID: <20170504190852.MJyhvIjgO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50780 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756183AbdEDTIs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:08:48 -0400
+        with ESMTP id S1756241AbdEDTIy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:08:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: cl@linux.com, gthelen@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: ocfs2: o2hb: revert hb threshold to keep compatible
+     Subject: slab: avoid IPIs when creating kmem caches
 has been removed from the -mm tree.  Its filename was
-     ocfs2-o2hb-revert-hb-threshold-to-keep-compatible.patch
+     slab-avoid-ipis-when-creating-kmem-caches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: o2hb: revert hb threshold to keep compatible
+From: Greg Thelen <gthelen@google.com>
+Subject: slab: avoid IPIs when creating kmem caches
 
-Configfs is the interface for ocfs2-tools to set configure to kernel
-and $configfs_dir/cluster/$clustername/heartbeat/dead_threshold is the
-one used to configure heartbeat dead threshold.  Kernel has a default
-value of it but user can set O2CB_HEARTBEAT_THRESHOLD in
-/etc/sysconfig/o2cb to override it.
+Each slab kmem cache has per cpu array caches.  The array caches are
+created when the kmem_cache is created, either via kmem_cache_create()
+or lazily when the first object is allocated in context of a kmem
+enabled memcg.  Array caches are replaced by writing to /proc/slabinfo.
 
-Commit 45b997737a80 ("ocfs2/cluster: use per-attribute show and store
-methods") changed heartbeat dead threshold name while ocfs2-tools did
-not, so ocfs2-tools won't set this configurable and the default value
-is always used.  So revert it.
+Array caches are protected by holding slab_mutex or disabling
+interrupts.  Array cache allocation and replacement is done by
+__do_tune_cpucache() which holds slab_mutex and calls
+kick_all_cpus_sync() to interrupt all remote processors which confirms
+there are no references to the old array caches.
 
-Fixes: 45b997737a80 ("ocfs2/cluster: use per-attribute show and store methods")
-Link: http://lkml.kernel.org/r/1490665245-15374-1-git-send-email-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Acked-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+IPIs are needed when replacing array caches.  But when creating a new
+array cache, there's no need to send IPIs because there cannot be any
+references to the new cache.  Outside of memcg kmem accounting these
+IPIs occur at boot time, so they're not a problem.  But with memcg kmem
+accounting each container can create kmem caches, so the IPIs are
+wasteful.
+
+Avoid unnecessary IPIs when creating array caches.
+
+Test which reports the IPI count of allocating slab in 10000 memcg:
+	import os
+
+	def ipi_count():
+		with open("/proc/interrupts") as f:
+			for l in f:
+				if 'Function call interrupts' in l:
+					return int(l.split()[1])
+
+	def echo(val, path):
+		with open(path, "w") as f:
+			f.write(val)
+
+	n = 10000
+	os.chdir("/mnt/cgroup/memory")
+	pid = str(os.getpid())
+	a = ipi_count()
+	for i in range(n):
+		os.mkdir(str(i))
+		echo("1G\n", "%d/memory.limit_in_bytes" % i)
+		echo("1G\n", "%d/memory.kmem.limit_in_bytes" % i)
+		echo(pid, "%d/cgroup.procs" % i)
+		open("/tmp/x", "w").close()
+		os.unlink("/tmp/x")
+	b = ipi_count()
+	print "%d loops: %d => %d (+%d ipis)" % (n, a, b, b-a)
+	echo(pid, "cgroup.procs")
+	for i in range(n):
+		os.rmdir(str(i))
+
+patched:   10000 loops: 1069 => 1170 (+101 ipis)
+unpatched: 10000 loops: 1192 => 48933 (+47741 ipis)
+
+Link: http://lkml.kernel.org/r/20170416214544.109476-1-gthelen@google.com
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/slab.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-revert-hb-threshold-to-keep-compatible fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-revert-hb-threshold-to-keep-compatible
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -2242,13 +2242,13 @@ unlock:
- 	spin_unlock(&o2hb_live_lock);
- }
+diff -puN mm/slab.c~slab-avoid-ipis-when-creating-kmem-caches mm/slab.c
+--- a/mm/slab.c~slab-avoid-ipis-when-creating-kmem-caches
++++ a/mm/slab.c
+@@ -3879,7 +3879,12 @@ static int __do_tune_cpucache(struct kme
  
--static ssize_t o2hb_heartbeat_group_threshold_show(struct config_item *item,
-+static ssize_t o2hb_heartbeat_group_dead_threshold_show(struct config_item *item,
- 		char *page)
- {
- 	return sprintf(page, "%u\n", o2hb_dead_threshold);
- }
+ 	prev = cachep->cpu_cache;
+ 	cachep->cpu_cache = cpu_cache;
+-	kick_all_cpus_sync();
++	/*
++	 * Without a previous cpu_cache there's no need to synchronize remote
++	 * cpus, so skip the IPIs.
++	 */
++	if (prev)
++		kick_all_cpus_sync();
  
--static ssize_t o2hb_heartbeat_group_threshold_store(struct config_item *item,
-+static ssize_t o2hb_heartbeat_group_dead_threshold_store(struct config_item *item,
- 		const char *page, size_t count)
- {
- 	unsigned long tmp;
-@@ -2297,11 +2297,11 @@ static ssize_t o2hb_heartbeat_group_mode
- 
- }
- 
--CONFIGFS_ATTR(o2hb_heartbeat_group_, threshold);
-+CONFIGFS_ATTR(o2hb_heartbeat_group_, dead_threshold);
- CONFIGFS_ATTR(o2hb_heartbeat_group_, mode);
- 
- static struct configfs_attribute *o2hb_heartbeat_group_attrs[] = {
--	&o2hb_heartbeat_group_attr_threshold,
-+	&o2hb_heartbeat_group_attr_dead_threshold,
- 	&o2hb_heartbeat_group_attr_mode,
- 	NULL,
- };
+ 	check_irq_on();
+ 	cachep->batchcount = batchcount;
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 
