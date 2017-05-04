@@ -1,117 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-tighten-up-the-fault-path-a-little.patch
+Subject: [merged]
+ mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo.patch
  removed from -mm tree
-Date: Thu, 04 May 2017 12:10:43 -0700
-Message-ID: <20170504191043.NgV4sgZ4v%akpm@linux-foundation.org>
+Date: Thu, 04 May 2017 12:10:14 -0700
+Message-ID: <20170504191014.SyQ_zTc_f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51092 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752637AbdEDTKp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:45 -0400
+        with ESMTP id S1756354AbdEDTKR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: tighten up the fault path a little
+     Subject: mm, vmstat: suppress pcp stats for unpopulated zones in zoneinfo
 has been removed from the -mm tree.  Its filename was
-     mm-tighten-up-the-fault-path-a-little.patch
+     mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: mm: tighten up the fault path a little
+From: David Rientjes <rientjes@google.com>
+Subject: mm, vmstat: suppress pcp stats for unpopulated zones in zoneinfo
 
-The round_up() macro generates a couple of unnecessary instructions
-in this usage:
+After "mm, vmstat: print non-populated zones in zoneinfo", /proc/zoneinfo
+will show unpopulated zones.
 
-    48cd:       49 8b 47 50             mov    0x50(%r15),%rax
-    48d1:       48 83 e8 01             sub    $0x1,%rax
-    48d5:       48 0d ff 0f 00 00       or     $0xfff,%rax
-    48db:       48 83 c0 01             add    $0x1,%rax
-    48df:       48 c1 f8 0c             sar    $0xc,%rax
-    48e3:       48 39 c3                cmp    %rax,%rbx
-    48e6:       72 2e                   jb     4916 <filemap_fault+0x96>
+The per-cpu pageset statistics are not relevant for unpopulated zones and
+can be potentially lengthy, so supress them when they are not interesting.
 
-If we change round_up() to ((x) + __round_mask(x, y)) & ~__round_mask(x, y)
-then GCC can see through it and remove the mask (because that would be
-dead code given the subsequent shift):
+Also moves lowmem reserve protection information above pcp stats since it
+is relevant for all zones per vm.lowmem_reserve_ratio.
 
-    48cd:       49 8b 47 50             mov    0x50(%r15),%rax
-    48d1:       48 05 ff 0f 00 00       add    $0xfff,%rax
-    48d7:       48 c1 e8 0c             shr    $0xc,%rax
-    48db:       48 39 c3                cmp    %rax,%rbx
-    48de:       72 2e                   jb     490e <filemap_fault+0x8e>
-
-But that's problematic because we'd evaluate 'y' twice.  Converting
-round_up into an inline function prevents it from being used in other
-definitions.  The easiest thing to do is just change these three usages of
-round_up to use DIV_ROUND_UP.  Also add an unlikely() because GCC's
-heuristic is wrong in this case.
-
-Link: http://lkml.kernel.org/r/20170207192812.5281-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1703061400500.46428@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/vmstat.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN mm/filemap.c~mm-tighten-up-the-fault-path-a-little mm/filemap.c
---- a/mm/filemap.c~mm-tighten-up-the-fault-path-a-little
-+++ a/mm/filemap.c
-@@ -2204,12 +2204,12 @@ int filemap_fault(struct vm_fault *vmf)
- 	struct file_ra_state *ra = &file->f_ra;
- 	struct inode *inode = mapping->host;
- 	pgoff_t offset = vmf->pgoff;
-+	pgoff_t max_off;
- 	struct page *page;
--	loff_t size;
- 	int ret = 0;
+diff -puN mm/vmstat.c~mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-suppress-pcp-stats-for-unpopulated-zones-in-zoneinfo
++++ a/mm/vmstat.c
+@@ -1393,18 +1393,24 @@ static void zoneinfo_show_print(struct s
+ 		   zone->present_pages,
+ 		   zone->managed_pages);
  
--	size = round_up(i_size_read(inode), PAGE_SIZE);
--	if (offset >= size >> PAGE_SHIFT)
-+	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
-+	if (unlikely(offset >= max_off))
- 		return VM_FAULT_SIGBUS;
+-	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+-		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
+-				zone_page_state(zone, i));
+-
+ 	seq_printf(m,
+ 		   "\n        protection: (%ld",
+ 		   zone->lowmem_reserve[0]);
+ 	for (i = 1; i < ARRAY_SIZE(zone->lowmem_reserve); i++)
+ 		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
+-	seq_printf(m,
+-		   ")"
+-		   "\n  pagesets");
++	seq_putc(m, ')');
++
++	/* If unpopulated, no other information is useful */
++	if (!populated_zone(zone)) {
++		seq_putc(m, '\n');
++		return;
++	}
++
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		seq_printf(m, "\n      %-12s %lu", vmstat_text[i],
++				zone_page_state(zone, i));
++
++	seq_printf(m, "\n  pagesets");
+ 	for_each_online_cpu(i) {
+ 		struct per_cpu_pageset *pageset;
  
- 	/*
-@@ -2258,8 +2258,8 @@ retry_find:
- 	 * Found the page and have a reference on it.
- 	 * We must recheck i_size under page lock.
- 	 */
--	size = round_up(i_size_read(inode), PAGE_SIZE);
--	if (unlikely(offset >= size >> PAGE_SHIFT)) {
-+	max_off = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
-+	if (unlikely(offset >= max_off)) {
- 		unlock_page(page);
- 		put_page(page);
- 		return VM_FAULT_SIGBUS;
-@@ -2325,7 +2325,7 @@ void filemap_map_pages(struct vm_fault *
- 	struct file *file = vmf->vma->vm_file;
- 	struct address_space *mapping = file->f_mapping;
- 	pgoff_t last_pgoff = start_pgoff;
--	loff_t size;
-+	unsigned long max_idx;
- 	struct page *head, *page;
- 
- 	rcu_read_lock();
-@@ -2371,8 +2371,8 @@ repeat:
- 		if (page->mapping != mapping || !PageUptodate(page))
- 			goto unlock;
- 
--		size = round_up(i_size_read(mapping->host), PAGE_SIZE);
--		if (page->index >= size >> PAGE_SHIFT)
-+		max_idx = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
-+		if (page->index >= max_idx)
- 			goto unlock;
- 
- 		if (file->f_ra.mmap_miss > 0)
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 
