@@ -1,117 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hwpoison-call-shake_page-unconditionally.patch
- removed from -mm tree
-Date: Thu, 04 May 2017 12:13:48 -0700
-Message-ID: <20170504191348.UL8bJyX-t%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch removed
+ from -mm tree
+Date: Thu, 04 May 2017 12:13:37 -0700
+Message-ID: <20170504191337.1zMaIi1lm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52002 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756339AbdEDTNt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:49 -0400
+        with ESMTP id S1756334AbdEDTNo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gong.chen@linux.intel.com, lkp@intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, xiaolong.ye@intel.com
+To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm: hwpoison: call shake_page() unconditionally
+     Subject: mm/truncate: avoid pointless cleancache_invalidate_inode() calls.
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-call-shake_page-unconditionally.patch
+     mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: call shake_page() unconditionally
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm/truncate: avoid pointless cleancache_invalidate_inode() calls.
 
-shake_page() is called before going into core error handling code in order
-to ensure that the error page is flushed from lru_cache lists where pages
-stay during transferring among LRU lists.
+cleancache_invalidate_inode() called truncate_inode_pages_range()
+and invalidate_inode_pages2_range() twice - on entry and on exit.
+It's stupid and waste of time. It's enough to call it once at
+exit.
 
-But currently it's not fully functional because when the page is linked to
-lru_cache by calling activate_page(), its PageLRU flag is set and
-shake_page() is skipped.  The result is to fail error handling with "still
-referenced by 1 users" message.
-
-When the page is linked to lru_cache by isolate_lru_page(), its PageLRU is
-clear, so that's fine.
-
-This patch makes shake_page() unconditionally called to avoild the failure.
-
-Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
-Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
-Link: http://lkml.kernel.org/r/1493197841-23986-2-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Xiaolong Ye <xiaolong.ye@intel.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>
+Link: http://lkml.kernel.org/r/20170424164135.22350-5-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hwpoison-inject.c |    3 +--
- mm/memory-failure.c  |   27 +++++++++++----------------
- 2 files changed, 12 insertions(+), 18 deletions(-)
+ mm/truncate.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/hwpoison-inject.c~mm-hwpoison-call-shake_page-unconditionally mm/hwpoison-inject.c
---- a/mm/hwpoison-inject.c~mm-hwpoison-call-shake_page-unconditionally
-+++ a/mm/hwpoison-inject.c
-@@ -34,8 +34,7 @@ static int hwpoison_inject(void *data, u
- 	if (!hwpoison_filter_enable)
- 		goto inject;
+diff -puN mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls mm/truncate.c
+--- a/mm/truncate.c~mm-truncate-avoid-pointless-cleancache_invalidate_inode-calls
++++ a/mm/truncate.c
+@@ -266,9 +266,8 @@ void truncate_inode_pages_range(struct a
+ 	pgoff_t		index;
+ 	int		i;
  
--	if (!PageLRU(hpage) && !PageHuge(p))
--		shake_page(hpage, 0);
-+	shake_page(hpage, 0);
- 	/*
- 	 * This implies unable to support non-LRU pages.
+-	cleancache_invalidate_inode(mapping);
+ 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+-		return;
++		goto out;
+ 
+ 	/* Offsets within partial pages */
+ 	partial_start = lstart & (PAGE_SIZE - 1);
+@@ -363,7 +362,7 @@ void truncate_inode_pages_range(struct a
+ 	 * will be released, just zeroed, so we can bail out now.
  	 */
-diff -puN mm/memory-failure.c~mm-hwpoison-call-shake_page-unconditionally mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-call-shake_page-unconditionally
-+++ a/mm/memory-failure.c
-@@ -220,6 +220,9 @@ static int kill_proc(struct task_struct
-  */
- void shake_page(struct page *p, int access)
- {
-+	if (PageHuge(p))
-+		return;
-+
- 	if (!PageSlab(p)) {
- 		lru_add_drain_all();
- 		if (PageLRU(p))
-@@ -1137,22 +1140,14 @@ int memory_failure(unsigned long pfn, in
- 	 * The check (unnecessarily) ignores LRU pages being isolated and
- 	 * walked by the page reclaim code, however that's not a big loss.
- 	 */
--	if (!PageHuge(p)) {
--		if (!PageLRU(p))
--			shake_page(p, 0);
--		if (!PageLRU(p)) {
--			/*
--			 * shake_page could have turned it free.
--			 */
--			if (is_free_buddy_page(p)) {
--				if (flags & MF_COUNT_INCREASED)
--					action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
--				else
--					action_result(pfn, MF_MSG_BUDDY_2ND,
--						      MF_DELAYED);
--				return 0;
--			}
--		}
-+	shake_page(p, 0);
-+	/* shake_page could have turned it free. */
-+	if (!PageLRU(p) && is_free_buddy_page(p)) {
-+		if (flags & MF_COUNT_INCREASED)
-+			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
-+		else
-+			action_result(pfn, MF_MSG_BUDDY_2ND, MF_DELAYED);
-+		return 0;
+ 	if (start >= end)
+-		return;
++		goto out;
+ 
+ 	index = start;
+ 	for ( ; ; ) {
+@@ -410,6 +409,8 @@ void truncate_inode_pages_range(struct a
+ 		pagevec_release(&pvec);
+ 		index++;
  	}
++
++out:
+ 	cleancache_invalidate_inode(mapping);
+ }
+ EXPORT_SYMBOL(truncate_inode_pages_range);
+@@ -623,9 +624,8 @@ int invalidate_inode_pages2_range(struct
+ 	int ret2 = 0;
+ 	int did_range_unmap = 0;
  
- 	lock_page(hpage);
+-	cleancache_invalidate_inode(mapping);
+ 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+-		return 0;
++		goto out;
+ 
+ 	pagevec_init(&pvec, 0);
+ 	index = start;
+@@ -689,6 +689,8 @@ int invalidate_inode_pages2_range(struct
+ 		cond_resched();
+ 		index++;
+ 	}
++
++out:
+ 	cleancache_invalidate_inode(mapping);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
 
