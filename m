@@ -1,225 +1,373 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lockdep-allow-to-disable-reclaim-lockup-detection.patch removed from -mm
- tree
-Date: Thu, 04 May 2017 12:10:22 -0700
-Message-ID: <20170504191022.tIL28-HK4%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismat?=
+ =?US-ASCII?Q?ched-classzone=5Fidx.patch?= removed from -mm tree
+Date: Thu, 04 May 2017 12:11:02 -0700
+Message-ID: <20170504191102.jrgJrZQnR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51320 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756354AbdEDTKX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:23 -0400
+        with ESMTP id S1755950AbdEDTLE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:11:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tytso@mit.edu, vbabka@suse.cz
+To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, sgoel01@yahoo.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: lockdep: allow to disable reclaim lockup detection
+     Subject: mm, vmscan: prevent kswapd sleeping prematurely due to mismatched classzone_idx
 has been removed from the -mm tree.  Its filename was
-     lockdep-allow-to-disable-reclaim-lockup-detection.patch
+     mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: lockdep: allow to disable reclaim lockup detection
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, vmscan: prevent kswapd sleeping prematurely due to mismatched classzone_idx
 
-The current implementation of the reclaim lockup detection can lead to
-false positives and those even happen and usually lead to tweak the
-code to silence the lockdep by using GFP_NOFS even though the context
-can use __GFP_FS just fine. See
-http://lkml.kernel.org/r/20160512080321.GA18496@dastard as an example.
+kswapd is woken to reclaim a node based on a failed allocation request
+from any eligible zone.  Once reclaiming in balance_pgdat(), it will
+continue reclaiming until there is an eligible zone available for the zone
+it was woken for.  kswapd tracks what zone it was recently woken for in
+pgdat->kswapd_classzone_idx.  If it has not been woken recently, this zone
+will be 0.
 
-=================================
-[ INFO: inconsistent lock state ]
-4.5.0-rc2+ #4 Tainted: G           O
----------------------------------
-inconsistent {RECLAIM_FS-ON-R} -> {IN-RECLAIM_FS-W} usage.
-kswapd0/543 [HC0[0]:SC0[0]:HE1:SE1] takes:
+However, the decision on whether to sleep is made on kswapd_classzone_idx
+which is 0 without a recent wakeup request and that classzone does not
+account for lowmem reserves.  This allows kswapd to sleep when a low small
+zone such as ZONE_DMA is balanced for a GFP_DMA request even if a stream
+of allocations cannot use that zone.  While kswapd may be woken again
+shortly in the near future there are two consequences -- the pgdat bits
+that control congestion are cleared prematurely and direct reclaim is more
+likely as kswapd slept prematurely.
 
-(&xfs_nondir_ilock_class){++++-+}, at: [<ffffffffa00781f7>] xfs_ilock+0x177/0x200 [xfs]
+This patch flips kswapd_classzone_idx to default to MAX_NR_ZONES (an
+invalid index) when there has been no recent wakeups.  If there are no
+wakeups, it'll decide whether to sleep based on the highest possible zone
+available (MAX_NR_ZONES - 1).  It then becomes critical that the "pgdat
+balanced" decisions during reclaim and when deciding to sleep are the
+same.  If there is a mismatch, kswapd can stay awake continually trying to
+balance tiny zones.
 
-{RECLAIM_FS-ON-R} state was registered at:
-  [<ffffffff8110f369>] mark_held_locks+0x79/0xa0
-  [<ffffffff81113a43>] lockdep_trace_alloc+0xb3/0x100
-  [<ffffffff81224623>] kmem_cache_alloc+0x33/0x230
-  [<ffffffffa008acc1>] kmem_zone_alloc+0x81/0x120 [xfs]
-  [<ffffffffa005456e>] xfs_refcountbt_init_cursor+0x3e/0xa0 [xfs]
-  [<ffffffffa0053455>] __xfs_refcount_find_shared+0x75/0x580 [xfs]
-  [<ffffffffa00539e4>] xfs_refcount_find_shared+0x84/0xb0 [xfs]
-  [<ffffffffa005dcb8>] xfs_getbmap+0x608/0x8c0 [xfs]
-  [<ffffffffa007634b>] xfs_vn_fiemap+0xab/0xc0 [xfs]
-  [<ffffffff81244208>] do_vfs_ioctl+0x498/0x670
-  [<ffffffff81244459>] SyS_ioctl+0x79/0x90
-  [<ffffffff81847cd7>] entry_SYSCALL_64_fastpath+0x12/0x6f
+simoop was used to evaluate it again.  Two of the preparation patches
+regressed the workload so they are included as the second set of results. 
+Otherwise this patch looks artifically excellent
 
-       CPU0
-       ----
-  lock(&xfs_nondir_ilock_class);
-  <Interrupt>
-    lock(&xfs_nondir_ilock_class);
+                                         4.11.0-rc1            4.11.0-rc1            4.11.0-rc1
+                                            vanilla              clear-v2          keepawake-v2
+Amean    p50-Read             21670074.18 (  0.00%) 19786774.76 (  8.69%) 22668332.52 ( -4.61%)
+Amean    p95-Read             25456267.64 (  0.00%) 24101956.27 (  5.32%) 26738688.00 ( -5.04%)
+Amean    p99-Read             29369064.73 (  0.00%) 27691872.71 (  5.71%) 30991404.52 ( -5.52%)
+Amean    p50-Write                1390.30 (  0.00%)     1011.91 ( 27.22%)      924.91 ( 33.47%)
+Amean    p95-Write              412901.57 (  0.00%)    34874.98 ( 91.55%)     1362.62 ( 99.67%)
+Amean    p99-Write             6668722.09 (  0.00%)   575449.60 ( 91.37%)    16854.04 ( 99.75%)
+Amean    p50-Allocation          78714.31 (  0.00%)    84246.26 ( -7.03%)    74729.74 (  5.06%)
+Amean    p95-Allocation         175533.51 (  0.00%)   400058.43 (-127.91%)   101609.74 ( 42.11%)
+Amean    p99-Allocation         247003.02 (  0.00%) 10905600.00 (-4315.17%)   125765.57 ( 49.08%)
 
- *** DEADLOCK ***
+With this patch on top, write and allocation latencies are massively
+improved.  The read latencies are slightly impaired but it's worth noting
+that this is mostly due to the IO scheduler and not directly related to
+reclaim.  The vmstats are a bit of a mix but the relevant ones are as
+follows;
 
-3 locks held by kswapd0/543:
+                            4.10.0-rc7  4.10.0-rc7  4.10.0-rc7
+                          mmots-20170209 clear-v1r25keepawake-v1r25
+Swap Ins                             0           0           0
+Swap Outs                            0         608           0
+Direct pages scanned           6910672     3132699     6357298
+Kswapd pages scanned          57036946    82488665    56986286
+Kswapd pages reclaimed        55993488    63474329    55939113
+Direct pages reclaimed         6905990     2964843     6352115
+Kswapd efficiency                  98%         76%         98%
+Kswapd velocity              12494.375   17597.507   12488.065
+Direct efficiency                  99%         94%         99%
+Direct velocity               1513.835     668.306    1393.148
+Page writes by reclaim           0.000 4410243.000       0.000
+Page writes file                     0     4409635           0
+Page writes anon                     0         608           0
+Page reclaim immediate         1036792    14175203     1042571
 
-stack backtrace:
-CPU: 0 PID: 543 Comm: kswapd0 Tainted: G           O    4.5.0-rc2+ #4
+                            4.11.0-rc1  4.11.0-rc1  4.11.0-rc1
+                               vanilla  clear-v2  keepawake-v2
+Swap Ins                             0          12           0
+Swap Outs                            0         838           0
+Direct pages scanned           6579706     3237270     6256811
+Kswapd pages scanned          61853702    79961486    54837791
+Kswapd pages reclaimed        60768764    60755788    53849586
+Direct pages reclaimed         6579055     2987453     6256151
+Kswapd efficiency                  98%         75%         98%
+Page writes by reclaim           0.000 4389496.000       0.000
+Page writes file                     0     4388658           0
+Page writes anon                     0         838           0
+Page reclaim immediate         1073573    14473009      982507
 
-Hardware name: innotek GmbH VirtualBox/VirtualBox, BIOS VirtualBox 12/01/2006
+Swap-outs are equivalent to baseline.
 
- ffffffff82a34f10 ffff88003aa078d0 ffffffff813a14f9 ffff88003d8551c0
- ffff88003aa07920 ffffffff8110ec65 0000000000000000 0000000000000001
- ffff880000000001 000000000000000b 0000000000000008 ffff88003d855aa0
-Call Trace:
- [<ffffffff813a14f9>] dump_stack+0x4b/0x72
- [<ffffffff8110ec65>] print_usage_bug+0x215/0x240
- [<ffffffff8110ee85>] mark_lock+0x1f5/0x660
- [<ffffffff8110e100>] ? print_shortest_lock_dependencies+0x1a0/0x1a0
- [<ffffffff811102e0>] __lock_acquire+0xa80/0x1e50
- [<ffffffff8122474e>] ? kmem_cache_alloc+0x15e/0x230
- [<ffffffffa008acc1>] ? kmem_zone_alloc+0x81/0x120 [xfs]
- [<ffffffff811122e8>] lock_acquire+0xd8/0x1e0
- [<ffffffffa00781f7>] ? xfs_ilock+0x177/0x200 [xfs]
- [<ffffffffa0083a70>] ? xfs_reflink_cancel_cow_range+0x150/0x300 [xfs]
- [<ffffffff8110aace>] down_write_nested+0x5e/0xc0
- [<ffffffffa00781f7>] ? xfs_ilock+0x177/0x200 [xfs]
- [<ffffffffa00781f7>] xfs_ilock+0x177/0x200 [xfs]
- [<ffffffffa0083a70>] xfs_reflink_cancel_cow_range+0x150/0x300 [xfs]
- [<ffffffffa0085bdc>] xfs_fs_evict_inode+0xdc/0x1e0 [xfs]
- [<ffffffff8124d7d5>] evict+0xc5/0x190
- [<ffffffff8124d8d9>] dispose_list+0x39/0x60
- [<ffffffff8124eb2b>] prune_icache_sb+0x4b/0x60
- [<ffffffff8123317f>] super_cache_scan+0x14f/0x1a0
- [<ffffffff811e0d19>] shrink_slab.part.63.constprop.79+0x1e9/0x4e0
- [<ffffffff811e50ee>] shrink_zone+0x15e/0x170
- [<ffffffff811e5ef1>] kswapd+0x4f1/0xa80
- [<ffffffff811e5a00>] ? zone_reclaim+0x230/0x230
- [<ffffffff810e6882>] kthread+0xf2/0x110
- [<ffffffff810e6790>] ? kthread_create_on_node+0x220/0x220
- [<ffffffff8184803f>] ret_from_fork+0x3f/0x70
- [<ffffffff810e6790>] ? kthread_create_on_node+0x220/0x220
+Direct reclaim is reduced but not eliminated.  It's worth noting that
+there are two periods of direct reclaim for this workload.  The first is
+when it switches from preparing the files for the actual test itself. 
+It's a lot of file IO followed by a lot of allocs that reclaims heavily
+for a brief window.  While direct reclaim is lower with clear-v2, it is
+due to kswapd scanning aggressively and trying to reclaim the world which
+is not the right thing to do.  With the patches applied, there is still
+direct reclaim but the phase change from "creating work files" to starting
+multiple threads that allocate a lot of anonymous memory faster than
+kswapd can reclaim.
 
-To quote Dave:
-"
-Ignoring whether reflink should be doing anything or not, that's a
-"xfs_refcountbt_init_cursor() gets called both outside and inside
-transactions" lockdep false positive case. The problem here is
-lockdep has seen this allocation from within a transaction, hence a
-GFP_NOFS allocation, and now it's seeing it in a GFP_KERNEL context.
-Also note that we have an active reference to this inode.
+Scanning/reclaim efficiency is restored by this patch.
 
-So, because the reclaim annotations overload the interrupt level
-detections and it's seen the inode ilock been taken in reclaim
-("interrupt") context, this triggers a reclaim context warning where
-it thinks it is unsafe to do this allocation in GFP_KERNEL context
-holding the inode ilock...
-"
+Page writes from reclaim context are back at 0 which is ideal.
 
-This sounds like a fundamental problem of the reclaim lock detection.
-It is really impossible to annotate such a special usecase IMHO unless
-the reclaim lockup detection is reworked completely. Until then it
-is much better to provide a way to add "I know what I am doing flag"
-and mark problematic places. This would prevent from abusing GFP_NOFS
-flag which has a runtime effect even on configurations which have
-lockdep disabled.
+Pages immediately reclaimed after IO completes is slightly improved but it
+is expected this will vary slightly.
 
-Introduce __GFP_NOLOCKDEP flag which tells the lockdep gfp tracking to
-skip the current allocation request.
+On UMA, there is almost no change so this is not expected to be a universal
+win.
 
-While we are at it also make sure that the radix tree doesn't
-accidentaly override tags stored in the upper part of the gfp_mask.
-
-Link: http://lkml.kernel.org/r/20170306131408.9828-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+[mgorman@suse.de: fix ->kswapd_classzone_idx initialization]
+  Link: http://lkml.kernel.org/r/20170406174538.5msrznj6nt6qpbx5@suse.de
+Link: http://lkml.kernel.org/r/20170309075657.25121-4-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Nikolay Borisov <nborisov@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shantanu Goel <sgoel01@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h      |   10 +++++++++-
- kernel/locking/lockdep.c |    4 ++++
- lib/radix-tree.c         |    2 ++
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |    6 +-
+ mm/vmscan.c         |  122 +++++++++++++++++++++++-------------------
+ 2 files changed, 72 insertions(+), 56 deletions(-)
 
-diff -puN include/linux/gfp.h~lockdep-allow-to-disable-reclaim-lockup-detection include/linux/gfp.h
---- a/include/linux/gfp.h~lockdep-allow-to-disable-reclaim-lockup-detection
-+++ a/include/linux/gfp.h
-@@ -40,6 +40,11 @@ struct vm_area_struct;
- #define ___GFP_DIRECT_RECLAIM	0x400000u
- #define ___GFP_WRITE		0x800000u
- #define ___GFP_KSWAPD_RECLAIM	0x1000000u
-+#ifdef CONFIG_LOCKDEP
-+#define ___GFP_NOLOCKDEP	0x4000000u
-+#else
-+#define ___GFP_NOLOCKDEP	0
-+#endif
- /* If the above are modified, __GFP_BITS_SHIFT may need updating */
+diff -puN mm/memory_hotplug.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx
++++ a/mm/memory_hotplug.c
+@@ -1208,7 +1208,11 @@ static pg_data_t __ref *hotadd_new_pgdat
  
- /*
-@@ -179,8 +184,11 @@ struct vm_area_struct;
- #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)
- #define __GFP_NOTRACK_FALSE_POSITIVE (__GFP_NOTRACK)
- 
-+/* Disable lockdep for GFP context tracking */
-+#define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
-+
- /* Room for N __GFP_FOO bits */
--#define __GFP_BITS_SHIFT 25
-+#define __GFP_BITS_SHIFT (25 + IS_ENABLED(CONFIG_LOCKDEP))
- #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
- 
- /*
-diff -puN kernel/locking/lockdep.c~lockdep-allow-to-disable-reclaim-lockup-detection kernel/locking/lockdep.c
---- a/kernel/locking/lockdep.c~lockdep-allow-to-disable-reclaim-lockup-detection
-+++ a/kernel/locking/lockdep.c
-@@ -2897,6 +2897,10 @@ static void __lockdep_trace_alloc(gfp_t
- 	if (DEBUG_LOCKS_WARN_ON(irqs_disabled_flags(flags)))
- 		return;
- 
-+	/* Disable lockdep if explicitly requested */
-+	if (gfp_mask & __GFP_NOLOCKDEP)
-+		return;
-+
- 	mark_held_locks(curr, RECLAIM_FS);
+ 		arch_refresh_nodedata(nid, pgdat);
+ 	} else {
+-		/* Reset the nr_zones, order and classzone_idx before reuse */
++		/*
++		 * Reset the nr_zones, order and classzone_idx before reuse.
++		 * Note that kswapd will init kswapd_classzone_idx properly
++		 * when it starts in the near future.
++		 */
+ 		pgdat->nr_zones = 0;
+ 		pgdat->kswapd_order = 0;
+ 		pgdat->kswapd_classzone_idx = 0;
+diff -puN mm/vmscan.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-prevent-kswapd-sleeping-prematurely-due-to-mismatched-classzone_idx
++++ a/mm/vmscan.c
+@@ -3049,14 +3049,36 @@ static void age_active_anon(struct pglis
+ 	} while (memcg);
  }
  
-diff -puN lib/radix-tree.c~lockdep-allow-to-disable-reclaim-lockup-detection lib/radix-tree.c
---- a/lib/radix-tree.c~lockdep-allow-to-disable-reclaim-lockup-detection
-+++ a/lib/radix-tree.c
-@@ -2284,6 +2284,8 @@ static int radix_tree_cpu_dead(unsigned
- void __init radix_tree_init(void)
+-static bool zone_balanced(struct zone *zone, int order, int classzone_idx)
++/*
++ * Returns true if there is an eligible zone balanced for the request order
++ * and classzone_idx
++ */
++static bool pgdat_balanced(pg_data_t *pgdat, int order, int classzone_idx)
  {
- 	int ret;
+-	unsigned long mark = high_wmark_pages(zone);
++	int i;
++	unsigned long mark = -1;
++	struct zone *zone;
 +
-+	BUILD_BUG_ON(RADIX_TREE_MAX_TAGS + __GFP_BITS_SHIFT > 32);
- 	radix_tree_node_cachep = kmem_cache_create("radix_tree_node",
- 			sizeof(struct radix_tree_node), 0,
- 			SLAB_PANIC | SLAB_RECLAIM_ACCOUNT,
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-mm-introduce-kvalloc-helpers.patch
-mm-vmalloc-properly-track-vmalloc-users.patch
-mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
-rhashtable-simplify-a-strange-allocation-pattern.patch
-ila-simplify-a-strange-allocation-pattern.patch
-xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
-treewide-use-kvalloc-rather-than-opencoded-variants.patch
-net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant.patch
-md-use-kvmalloc-rather-than-opencoded-variant.patch
-bcache-use-kvmalloc.patch
-mm-vmalloc-use-__gfp_highmem-implicitly.patch
-
++	for (i = 0; i <= classzone_idx; i++) {
++		zone = pgdat->node_zones + i;
+ 
+-	if (!zone_watermark_ok_safe(zone, order, mark, classzone_idx))
+-		return false;
++		if (!managed_zone(zone))
++			continue;
++
++		mark = high_wmark_pages(zone);
++		if (zone_watermark_ok_safe(zone, order, mark, classzone_idx))
++			return true;
++	}
+ 
+-	return true;
++	/*
++	 * If a node has no populated zone within classzone_idx, it does not
++	 * need balancing by definition. This can happen if a zone-restricted
++	 * allocation tries to wake a remote kswapd.
++	 */
++	if (mark == -1)
++		return true;
++
++	return false;
+ }
+ 
+ /* Clear pgdat state for congested, dirty or under writeback. */
+@@ -3075,8 +3097,6 @@ static void clear_pgdat_congested(pg_dat
+  */
+ static bool prepare_kswapd_sleep(pg_data_t *pgdat, int order, int classzone_idx)
+ {
+-	int i;
+-
+ 	/*
+ 	 * The throttled processes are normally woken up in balance_pgdat() as
+ 	 * soon as allow_direct_reclaim() is true. But there is a potential
+@@ -3097,16 +3117,9 @@ static bool prepare_kswapd_sleep(pg_data
+ 	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
+ 		return true;
+ 
+-	for (i = 0; i <= classzone_idx; i++) {
+-		struct zone *zone = pgdat->node_zones + i;
+-
+-		if (!managed_zone(zone))
+-			continue;
+-
+-		if (zone_balanced(zone, order, classzone_idx)) {
+-			clear_pgdat_congested(pgdat);
+-			return true;
+-		}
++	if (pgdat_balanced(pgdat, order, classzone_idx)) {
++		clear_pgdat_congested(pgdat);
++		return true;
+ 	}
+ 
+ 	return false;
+@@ -3212,23 +3225,12 @@ static int balance_pgdat(pg_data_t *pgda
+ 		}
+ 
+ 		/*
+-		 * Only reclaim if there are no eligible zones. Check from
+-		 * high to low zone as allocations prefer higher zones.
+-		 * Scanning from low to high zone would allow congestion to be
+-		 * cleared during a very small window when a small low
+-		 * zone was balanced even under extreme pressure when the
+-		 * overall node may be congested. Note that sc.reclaim_idx
+-		 * is not used as buffer_heads_over_limit may have adjusted
+-		 * it.
+-		 */
+-		for (i = classzone_idx; i >= 0; i--) {
+-			zone = pgdat->node_zones + i;
+-			if (!managed_zone(zone))
+-				continue;
+-
+-			if (zone_balanced(zone, sc.order, classzone_idx))
+-				goto out;
+-		}
++		 * Only reclaim if there are no eligible zones. Note that
++		 * sc.reclaim_idx is not used as buffer_heads_over_limit may
++		 * have adjusted it.
++		 */
++		if (pgdat_balanced(pgdat, sc.order, classzone_idx))
++			goto out;
+ 
+ 		/*
+ 		 * Do some background aging of the anon list, to give
+@@ -3295,6 +3297,22 @@ out:
+ 	return sc.order;
+ }
+ 
++/*
++ * pgdat->kswapd_classzone_idx is the highest zone index that a recent
++ * allocation request woke kswapd for. When kswapd has not woken recently,
++ * the value is MAX_NR_ZONES which is not a valid index. This compares a
++ * given classzone and returns it or the highest classzone index kswapd
++ * was recently woke for.
++ */
++static enum zone_type kswapd_classzone_idx(pg_data_t *pgdat,
++					   enum zone_type classzone_idx)
++{
++	if (pgdat->kswapd_classzone_idx == MAX_NR_ZONES)
++		return classzone_idx;
++
++	return max(pgdat->kswapd_classzone_idx, classzone_idx);
++}
++
+ static void kswapd_try_to_sleep(pg_data_t *pgdat, int alloc_order, int reclaim_order,
+ 				unsigned int classzone_idx)
+ {
+@@ -3336,7 +3354,7 @@ static void kswapd_try_to_sleep(pg_data_
+ 		 * the previous request that slept prematurely.
+ 		 */
+ 		if (remaining) {
+-			pgdat->kswapd_classzone_idx = max(pgdat->kswapd_classzone_idx, classzone_idx);
++			pgdat->kswapd_classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
+ 			pgdat->kswapd_order = max(pgdat->kswapd_order, reclaim_order);
+ 		}
+ 
+@@ -3390,7 +3408,8 @@ static void kswapd_try_to_sleep(pg_data_
+  */
+ static int kswapd(void *p)
+ {
+-	unsigned int alloc_order, reclaim_order, classzone_idx;
++	unsigned int alloc_order, reclaim_order;
++	unsigned int classzone_idx = MAX_NR_ZONES - 1;
+ 	pg_data_t *pgdat = (pg_data_t*)p;
+ 	struct task_struct *tsk = current;
+ 
+@@ -3420,20 +3439,23 @@ static int kswapd(void *p)
+ 	tsk->flags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
+ 	set_freezable();
+ 
+-	pgdat->kswapd_order = alloc_order = reclaim_order = 0;
+-	pgdat->kswapd_classzone_idx = classzone_idx = 0;
++	pgdat->kswapd_order = 0;
++	pgdat->kswapd_classzone_idx = MAX_NR_ZONES;
+ 	for ( ; ; ) {
+ 		bool ret;
+ 
++		alloc_order = reclaim_order = pgdat->kswapd_order;
++		classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
++
+ kswapd_try_sleep:
+ 		kswapd_try_to_sleep(pgdat, alloc_order, reclaim_order,
+ 					classzone_idx);
+ 
+ 		/* Read the new order and classzone_idx */
+ 		alloc_order = reclaim_order = pgdat->kswapd_order;
+-		classzone_idx = pgdat->kswapd_classzone_idx;
++		classzone_idx = kswapd_classzone_idx(pgdat, 0);
+ 		pgdat->kswapd_order = 0;
+-		pgdat->kswapd_classzone_idx = 0;
++		pgdat->kswapd_classzone_idx = MAX_NR_ZONES;
+ 
+ 		ret = try_to_freeze();
+ 		if (kthread_should_stop())
+@@ -3459,9 +3481,6 @@ kswapd_try_sleep:
+ 		reclaim_order = balance_pgdat(pgdat, alloc_order, classzone_idx);
+ 		if (reclaim_order < alloc_order)
+ 			goto kswapd_try_sleep;
+-
+-		alloc_order = reclaim_order = pgdat->kswapd_order;
+-		classzone_idx = pgdat->kswapd_classzone_idx;
+ 	}
+ 
+ 	tsk->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD);
+@@ -3477,7 +3496,6 @@ kswapd_try_sleep:
+ void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx)
+ {
+ 	pg_data_t *pgdat;
+-	int z;
+ 
+ 	if (!managed_zone(zone))
+ 		return;
+@@ -3485,7 +3503,8 @@ void wakeup_kswapd(struct zone *zone, in
+ 	if (!cpuset_zone_allowed(zone, GFP_KERNEL | __GFP_HARDWALL))
+ 		return;
+ 	pgdat = zone->zone_pgdat;
+-	pgdat->kswapd_classzone_idx = max(pgdat->kswapd_classzone_idx, classzone_idx);
++	pgdat->kswapd_classzone_idx = kswapd_classzone_idx(pgdat,
++							   classzone_idx);
+ 	pgdat->kswapd_order = max(pgdat->kswapd_order, order);
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
+@@ -3494,17 +3513,10 @@ void wakeup_kswapd(struct zone *zone, in
+ 	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
+ 		return;
+ 
+-	/* Only wake kswapd if all zones are unbalanced */
+-	for (z = 0; z <= classzone_idx; z++) {
+-		zone = pgdat->node_zones + z;
+-		if (!managed_zone(zone))
+-			continue;
