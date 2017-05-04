@@ -1,193 +1,179 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch removed from
- -mm tree
-Date: Thu, 04 May 2017 12:10:54 -0700
-Message-ID: <20170504191054.sTVcdfNEs%akpm@linux-foundation.org>
+ lockdep-teach-lockdep-about-memalloc_noio_save.patch removed from -mm tree
+Date: Thu, 04 May 2017 12:10:18 -0700
+Message-ID: <20170504191018.eoWvAZkAz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51104 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755564AbdEDTK4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:56 -0400
+        with ESMTP id S1756507AbdEDTKV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:10:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, sgoel01@yahoo.com, vbabka@suse.cz
+To: bfoster@redhat.com, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.cz, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tytso@mit.edu, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, vmscan: fix zone balance check in prepare_kswapd_sleep
+     Subject: lockdep: teach lockdep about memalloc_noio_save
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep.patch
+     lockdep-teach-lockdep-about-memalloc_noio_save.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shantanu Goel <sgoel01@yahoo.com>
-Subject: mm, vmscan: fix zone balance check in prepare_kswapd_sleep
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: lockdep: teach lockdep about memalloc_noio_save
 
-Patch series "Reduce amount of time kswapd sleeps prematurely", v2.
+Patch series "scope GFP_NOFS api", v5.
 
-The series is unusual in that the first patch fixes one problem and
-introduces other issues that are noted in the changelog.  Patch 2 makes a
-minor modification that is worth considering on its own but leaves the
-kernel in a state where it behaves badly.  It's not until patch 3 that
-there is an improvement against baseline.
+This patch (of 7):
 
-This was mostly motivated by examining Chris Mason's "simoop" benchmark
-which puts the VM under similar pressure to HADOOP.  It has been reported
-that the benchmark has regressed severely during the last number of
-releases.  While I cannot reproduce all the same problems Chris
-experienced due to hardware limitations, there was a number of problems on
-a 2-socket machine with a single disk.
+Commit 21caf2fc1931 ("mm: teach mm by current context info to not do I/O
+during memory allocation") added the memalloc_noio_(save|restore)
+functions to enable people to modify the MM behavior by disabling I/O
+during memory allocation.  This was further extended in Fixes:
+934f3072c17c ("mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set"). 
+memalloc_noio_* functions prevent allocation paths recursing back into the
+filesystem without explicitly changing the flags for every allocation
+site.  However, lockdep hasn't been keeping up with the changes and it
+entirely misses handling the memalloc_noio adjustments.  Instead, it is
+left to the callers of __lockdep_trace_alloc to call the function after
+they have shaven the respective GFP flags which can lead to false
+positives:
 
-simoop latencies
-                                         4.11.0-rc1            4.11.0-rc1
-                                            vanilla          keepawake-v2
-Amean    p50-Read             21670074.18 (  0.00%) 22668332.52 ( -4.61%)
-Amean    p95-Read             25456267.64 (  0.00%) 26738688.00 ( -5.04%)
-Amean    p99-Read             29369064.73 (  0.00%) 30991404.52 ( -5.52%)
-Amean    p50-Write                1390.30 (  0.00%)      924.91 ( 33.47%)
-Amean    p95-Write              412901.57 (  0.00%)     1362.62 ( 99.67%)
-Amean    p99-Write             6668722.09 (  0.00%)    16854.04 ( 99.75%)
-Amean    p50-Allocation          78714.31 (  0.00%)    74729.74 (  5.06%)
-Amean    p95-Allocation         175533.51 (  0.00%)   101609.74 ( 42.11%)
-Amean    p99-Allocation         247003.02 (  0.00%)   125765.57 ( 49.08%)
+[  644.173373] =================================
+[  644.174012] [ INFO: inconsistent lock state ]
+[  644.174012] 4.10.0-nbor #134 Not tainted
+[  644.174012] ---------------------------------
+[  644.174012] inconsistent {IN-RECLAIM_FS-W} -> {RECLAIM_FS-ON-W} usage.
+[  644.174012] fsstress/3365 [HC0[0]:SC0[0]:HE1:SE1] takes:
+[  644.174012]  (&xfs_nondir_ilock_class){++++?.}, at: [<ffffffff8136f231>] xfs_ilock+0x141/0x230
+[  644.174012] {IN-RECLAIM_FS-W} state was registered at:
+[  644.174012]   __lock_acquire+0x62a/0x17c0
+[  644.174012]   lock_acquire+0xc5/0x220
+[  644.174012]   down_write_nested+0x4f/0x90
+[  644.174012]   xfs_ilock+0x141/0x230
+[  644.174012]   xfs_reclaim_inode+0x12a/0x320
+[  644.174012]   xfs_reclaim_inodes_ag+0x2c8/0x4e0
+[  644.174012]   xfs_reclaim_inodes_nr+0x33/0x40
+[  644.174012]   xfs_fs_free_cached_objects+0x19/0x20
+[  644.174012]   super_cache_scan+0x191/0x1a0
+[  644.174012]   shrink_slab+0x26f/0x5f0
+[  644.174012]   shrink_node+0xf9/0x2f0
+[  644.174012]   kswapd+0x356/0x920
+[  644.174012]   kthread+0x10c/0x140
+[  644.174012]   ret_from_fork+0x31/0x40
+[  644.174012] irq event stamp: 173777
+[  644.174012] hardirqs last  enabled at (173777): [<ffffffff8105b440>] __local_bh_enable_ip+0x70/0xc0
+[  644.174012] hardirqs last disabled at (173775): [<ffffffff8105b407>] __local_bh_enable_ip+0x37/0xc0
+[  644.174012] softirqs last  enabled at (173776): [<ffffffff81357e2a>] _xfs_buf_find+0x67a/0xb70
+[  644.174012] softirqs last disabled at (173774): [<ffffffff81357d8b>] _xfs_buf_find+0x5db/0xb70
+[  644.174012]
+[  644.174012] other info that might help us debug this:
+[  644.174012]  Possible unsafe locking scenario:
+[  644.174012]
+[  644.174012]        CPU0
+[  644.174012]        ----
+[  644.174012]   lock(&xfs_nondir_ilock_class);
+[  644.174012]   <Interrupt>
+[  644.174012]     lock(&xfs_nondir_ilock_class);
+[  644.174012]
+[  644.174012]  *** DEADLOCK ***
+[  644.174012]
+[  644.174012] 4 locks held by fsstress/3365:
+[  644.174012]  #0:  (sb_writers#10){++++++}, at: [<ffffffff81208d04>] mnt_want_write+0x24/0x50
+[  644.174012]  #1:  (&sb->s_type->i_mutex_key#12){++++++}, at: [<ffffffff8120ea2f>] vfs_setxattr+0x6f/0xb0
+[  644.174012]  #2:  (sb_internal#2){++++++}, at: [<ffffffff8138185c>] xfs_trans_alloc+0xfc/0x140
+[  644.174012]  #3:  (&xfs_nondir_ilock_class){++++?.}, at: [<ffffffff8136f231>] xfs_ilock+0x141/0x230
+[  644.174012]
+[  644.174012] stack backtrace:
+[  644.174012] CPU: 0 PID: 3365 Comm: fsstress Not tainted 4.10.0-nbor #134
+[  644.174012] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[  644.174012] Call Trace:
+[  644.174012]  dump_stack+0x85/0xc9
+[  644.174012]  print_usage_bug.part.37+0x284/0x293
+[  644.174012]  ? print_shortest_lock_dependencies+0x1b0/0x1b0
+[  644.174012]  mark_lock+0x27e/0x660
+[  644.174012]  mark_held_locks+0x66/0x90
+[  644.174012]  lockdep_trace_alloc+0x6f/0xd0
+[  644.174012]  kmem_cache_alloc_node_trace+0x3a/0x2c0
+[  644.174012]  ? vm_map_ram+0x2a1/0x510
+[  644.174012]  vm_map_ram+0x2a1/0x510
+[  644.174012]  ? vm_map_ram+0x46/0x510
+[  644.174012]  _xfs_buf_map_pages+0x77/0x140
+[  644.174012]  xfs_buf_get_map+0x185/0x2a0
+[  644.174012]  xfs_attr_rmtval_set+0x233/0x430
+[  644.174012]  xfs_attr_leaf_addname+0x2d2/0x500
+[  644.174012]  xfs_attr_set+0x214/0x420
+[  644.174012]  xfs_xattr_set+0x59/0xb0
+[  644.174012]  __vfs_setxattr+0x76/0xa0
+[  644.174012]  __vfs_setxattr_noperm+0x5e/0xf0
+[  644.174012]  vfs_setxattr+0xae/0xb0
+[  644.174012]  ? __might_fault+0x43/0xa0
+[  644.174012]  setxattr+0x15e/0x1a0
+[  644.174012]  ? __lock_is_held+0x53/0x90
+[  644.174012]  ? rcu_read_lock_sched_held+0x93/0xa0
+[  644.174012]  ? rcu_sync_lockdep_assert+0x2f/0x60
+[  644.174012]  ? __sb_start_write+0x130/0x1d0
+[  644.174012]  ? mnt_want_write+0x24/0x50
+[  644.174012]  path_setxattr+0x8f/0xc0
+[  644.174012]  SyS_lsetxattr+0x11/0x20
+[  644.174012]  entry_SYSCALL_64_fastpath+0x23/0xc6
 
-These are latencies.  Read/write are threads reading fixed-size random
-blocks from a simulated database.  The allocation latency is mmaping and
-faulting regions of memory.  The p50, 95 and p99 reports the worst
-latencies for 50% of the samples, 95% and 99% respectively.
+Let's fix this by making lockdep explicitly do the shaving of respective
+GFP flags.
 
-For example, the report indicates that while the test was running 99% of
-writes completed 99.75% faster.  It's worth noting that on a UMA machine
-that no difference in performance with simoop was observed so milage will
-vary.
-
-It's noted that there is a slight impact to read latencies but it's mostly
-due to IO scheduler decisions and offset by the large reduction in other
-latencies.
-
-
-This patch (of 3):
-
-The check in prepare_kswapd_sleep needs to match the one in balance_pgdat
-since the latter will return as soon as any one of the zones in the
-classzone is above the watermark.  This is specially important for higher
-order allocations since balance_pgdat will typically reset the order to
-zero relying on compaction to create the higher order pages.  Without this
-patch, prepare_kswapd_sleep fails to wake up kcompactd since the zone
-balance check fails.
-
-It was first reported against 4.9.7 that kswapd is failing to wake up
-kcompactd due to a mismatch in the zone balance check between
-balance_pgdat() and prepare_kswapd_sleep().  balance_pgdat() returns as
-soon as a single zone satisfies the allocation but prepare_kswapd_sleep()
-requires all zones to do +the same.  This causes prepare_kswapd_sleep() to
-never succeed except in the order == 0 case and consequently,
-wakeup_kcompactd() is never called.  For the machine that originally
-motivated this patch, the state of compaction from /proc/vmstat looked
-this way after a day and a half +of uptime:
-
-compact_migrate_scanned 240496
-compact_free_scanned 76238632
-compact_isolated 123472
-compact_stall 1791
-compact_fail 29
-compact_success 1762
-compact_daemon_wake 0
-
-After applying the patch and about 10 hours of uptime the state looks
-like this:
-
-compact_migrate_scanned 59927299
-compact_free_scanned 2021075136
-compact_isolated 640926
-compact_stall 4
-compact_fail 2
-compact_success 2
-compact_daemon_wake 5160
-
-Further notes from Mel that motivated him to pick this patch up and
-resend it;
-
-It was observed for the simoop workload (pressures the VM similar to
-HADOOP) that kswapd was failing to keep ahead of direct reclaim.  The
-investigation noted that there was a need to rationalise kswapd decisions
-to reclaim with kswapd decisions to sleep.  With this patch on a 2-socket
-box, there was a 49% reduction in direct reclaim scanning.
-
-However, the impact otherwise is extremely negative.  Kswapd reclaim
-efficiency dropped from 98% to 76%.  simoop has three latency-related
-metrics for read, write and allocation (an anonymous mmap and fault).
-
-                                         4.11.0-rc1            4.11.0-rc1
-                                            vanilla           fixcheck-v2
-Amean    p50-Read             21670074.18 (  0.00%) 20464344.18 (  5.56%)
-Amean    p95-Read             25456267.64 (  0.00%) 25721423.64 ( -1.04%)
-Amean    p99-Read             29369064.73 (  0.00%) 30174230.76 ( -2.74%)
-Amean    p50-Write                1390.30 (  0.00%)     1395.28 ( -0.36%)
-Amean    p95-Write              412901.57 (  0.00%)    37737.74 ( 90.86%)
-Amean    p99-Write             6668722.09 (  0.00%)   666489.04 ( 90.01%)
-Amean    p50-Allocation          78714.31 (  0.00%)    86286.22 ( -9.62%)
-Amean    p95-Allocation         175533.51 (  0.00%)   351812.27 (-100.42%)
-Amean    p99-Allocation         247003.02 (  0.00%)  6291171.56 (-2447.00%)
-
-Of greater concern is that the patch causes swapping and page writes from
-kswapd context rose from 0 pages to 4189753 pages during the hour the
-workload ran for.  By and large, the patch has very bad behaviour but
-easily missed as the impact on a UMA machine is negligible.
-
-This patch is included with the data in case a bisection leads to this area.
-This patch is also a pre-requisite for the rest of the series.
-
-Link: http://lkml.kernel.org/r/20170309075657.25121-2-mgorman@techsingularity.net
-Signed-off-by: Shantanu Goel <sgoel01@yahoo.com>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Fixes: 934f3072c17c ("mm: clear __GFP_FS when PF_MEMALLOC_NOIO is set")
+Link: http://lkml.kernel.org/r/20170306131408.9828-2-mhocko@kernel.org
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Sterba <dsterba@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ kernel/locking/lockdep.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-zone-balance-check-in-prepare_kswapd_sleep
-+++ a/mm/vmscan.c
-@@ -3103,11 +3103,11 @@ static bool prepare_kswapd_sleep(pg_data
- 		if (!managed_zone(zone))
- 			continue;
+diff -puN kernel/locking/lockdep.c~lockdep-teach-lockdep-about-memalloc_noio_save kernel/locking/lockdep.c
+--- a/kernel/locking/lockdep.c~lockdep-teach-lockdep-about-memalloc_noio_save
++++ a/kernel/locking/lockdep.c
+@@ -30,6 +30,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/clock.h>
+ #include <linux/sched/task.h>
++#include <linux/sched/mm.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/proc_fs.h>
+@@ -2876,6 +2877,8 @@ static void __lockdep_trace_alloc(gfp_t
+ 	if (unlikely(!debug_locks))
+ 		return;
  
--		if (!zone_balanced(zone, order, classzone_idx))
--			return false;
-+		if (zone_balanced(zone, order, classzone_idx))
-+			return true;
- 	}
++	gfp_mask = memalloc_noio_flags(gfp_mask);
++
+ 	/* no reclaim without waiting on it */
+ 	if (!(gfp_mask & __GFP_DIRECT_RECLAIM))
+ 		return;
+@@ -3947,7 +3950,7 @@ EXPORT_SYMBOL_GPL(lock_unpin_lock);
  
--	return true;
-+	return false;
+ void lockdep_set_current_reclaim_state(gfp_t gfp_mask)
+ {
+-	current->lockdep_reclaim_gfp = gfp_mask;
++	current->lockdep_reclaim_gfp = memalloc_noio_flags(gfp_mask);
  }
  
- /*
-@@ -3304,7 +3304,13 @@ static void kswapd_try_to_sleep(pg_data_
- 
- 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
- 
--	/* Try to sleep for a short interval */
-+	/*
-+	 * Try to sleep for a short interval. Note that kcompactd will only be
-+	 * woken if it is possible to sleep for a short interval. This is
-+	 * deliberate on the assumption that if reclaim cannot keep an
-+	 * eligible zone balanced that it's also unlikely that compaction will
-+	 * succeed.
-+	 */
- 	if (prepare_kswapd_sleep(pgdat, reclaim_order, classzone_idx)) {
- 		/*
- 		 * Compaction records what page blocks it recently failed to
+ void lockdep_clear_current_reclaim_state(void)
 _
 
-Patches currently in -mm which might be from sgoel01@yahoo.com are
+Patches currently in -mm which might be from nborisov@suse.com are
 
 
