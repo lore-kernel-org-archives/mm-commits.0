@@ -1,69 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- zram-use-zram_free_page-instead-of-open-coded.patch removed from -mm tree
-Date: Thu, 04 May 2017 12:13:19 -0700
-Message-ID: <20170504191319.efQjDWREi%akpm@linux-foundation.org>
+ fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch removed
+ from -mm tree
+Date: Thu, 04 May 2017 12:13:30 -0700
+Message-ID: <20170504191330.ays74PotV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51962 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753298AbdEDTNW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:22 -0400
+        with ESMTP id S1756234AbdEDTNc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:13:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hare@suse.com, jthumshirn@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
+To: aryabinin@virtuozzo.com, axboe@kernel.dk, hannes@cmpxchg.org, hch@lst.de, jack@suse.cz, konrad.wilk@oracle.com, kuznet@virtuozzo.com, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: zram: use zram_free_page instead of open-coded
+     Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
 has been removed from the -mm tree.  Its filename was
-     zram-use-zram_free_page-instead-of-open-coded.patch
+     fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: use zram_free_page instead of open-coded
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: fs/block_dev: always invalidate cleancache in invalidate_bdev()
 
-The zram_free_page already handles NULL handle case and same page so use
-it to reduce error probability.  (Acutaully, I made a mistake when I
-handled same page feature)
+invalidate_bdev() calls cleancache_invalidate_inode() iff ->nrpages != 0
+which doen't make any sense.
+Make sure that invalidate_bdev() always calls cleancache_invalidate_inode()
+regardless of mapping->nrpages value.
 
-Link: http://lkml.kernel.org/r/1492052365-16169-7-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Hannes Reinecke <hare@suse.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Fixes: c515e1fd361c ("mm/fs: add hooks to support cleancache")
+Link: http://lkml.kernel.org/r/20170424164135.22350-3-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alexey Kuznetsov <kuznet@virtuozzo.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ fs/block_dev.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-zram_free_page-instead-of-open-coded drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-zram_free_page-instead-of-open-coded
-+++ a/drivers/block/zram/zram_drv.c
-@@ -480,17 +480,8 @@ static void zram_meta_free(struct zram *
- 	size_t index;
+diff -puN fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_dev-always-invalidate-cleancache-in-invalidate_bdev
++++ a/fs/block_dev.c
+@@ -103,12 +103,11 @@ void invalidate_bdev(struct block_device
+ {
+ 	struct address_space *mapping = bdev->bd_inode->i_mapping;
  
- 	/* Free all pages that are still in this zram device */
--	for (index = 0; index < num_pages; index++) {
--		unsigned long handle = zram_get_handle(zram, index);
--		/*
--		 * No memory is allocated for same element filled pages.
--		 * Simply clear same page flag.
--		 */
--		if (!handle || zram_test_flag(zram, index, ZRAM_SAME))
--			continue;
--
--		zs_free(zram->mem_pool, handle);
--	}
-+	for (index = 0; index < num_pages; index++)
-+		zram_free_page(zram, index);
- 
- 	zs_destroy_pool(zram->mem_pool);
- 	vfree(zram->table);
-@@ -978,9 +969,6 @@ static void zram_reset_device(struct zra
- 
- 	comp = zram->comp;
- 	disksize = zram->disksize;
+-	if (mapping->nrpages == 0)
+-		return;
