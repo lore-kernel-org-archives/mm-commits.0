@@ -1,43 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kasan-change-allocation-and-freeing-stack-traces-headers.patch removed from
- -mm tree
-Date: Thu, 04 May 2017 12:14:01 -0700
-Message-ID: <20170504191401.U-e10IUy7%akpm@linux-foundation.org>
+Subject: [merged] kasan-simplify-address-description-logic.patch
+ removed from -mm tree
+Date: Thu, 04 May 2017 12:14:05 -0700
+Message-ID: <20170504191405.01mDO909c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52072 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52220 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752487AbdEDTOD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:14:03 -0400
+        with ESMTP id S1752337AbdEDTOH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 15:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: change allocation and freeing stack traces headers
+     Subject: kasan: simplify address description logic
 has been removed from the -mm tree.  Its filename was
-     kasan-change-allocation-and-freeing-stack-traces-headers.patch
+     kasan-simplify-address-description-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: change allocation and freeing stack traces headers
+Subject: kasan: simplify address description logic
 
-Change stack traces headers from:
+Simplify logic for describing a memory address.
+Add addr_to_page() helper function.
 
-Allocated:
-PID = 42
+Makes the code easier to follow.
 
-to:
-
-Allocated by task 42:
-
-Makes the report one line shorter and look better.
-
-Link: http://lkml.kernel.org/r/20170302134851.101218-4-andreyknvl@google.com
+Link: http://lkml.kernel.org/r/20170302134851.101218-5-andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Acked-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
@@ -45,37 +38,80 @@ Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/kasan/report.c |   37 +++++++++++++++++++++----------------
+ 1 file changed, 21 insertions(+), 16 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-change-allocation-and-freeing-stack-traces-headers mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-change-allocation-and-freeing-stack-traces-headers
+diff -puN mm/kasan/report.c~kasan-simplify-address-description-logic mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-simplify-address-description-logic
 +++ a/mm/kasan/report.c
-@@ -177,9 +177,9 @@ static void kasan_end_report(unsigned lo
- 	kasan_enable_current();
+@@ -190,11 +190,18 @@ static void print_track(struct kasan_tra
+ 	}
  }
  
--static void print_track(struct kasan_track *track)
-+static void print_track(struct kasan_track *track, const char *prefix)
+-static void kasan_object_err(struct kmem_cache *cache, void *object)
++static struct page *addr_to_page(const void *addr)
++{
++	if ((addr >= (void *)PAGE_OFFSET) &&
++			(addr < high_memory))
++		return virt_to_head_page(addr);
++	return NULL;
++}
++
++static void describe_object(struct kmem_cache *cache, void *object)
  {
--	pr_err("PID = %u\n", track->pid);
-+	pr_err("%s by task %u:\n", prefix, track->pid);
- 	if (track->stack) {
- 		struct stack_trace trace;
+ 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
  
-@@ -201,10 +201,8 @@ static void kasan_object_err(struct kmem
- 	if (!(cache->flags & SLAB_KASAN))
- 		return;
+-	dump_stack();
+ 	pr_err("Object at %p, in cache %s size: %d\n", object, cache->name,
+ 		cache->object_size);
  
--	pr_err("Allocated:\n");
--	print_track(&alloc_info->alloc_track);
--	pr_err("Freed:\n");
--	print_track(&alloc_info->free_track);
-+	print_track(&alloc_info->alloc_track, "Allocated");
-+	print_track(&alloc_info->free_track, "Freed");
+@@ -213,34 +220,32 @@ void kasan_report_double_free(struct kme
+ 	kasan_start_report(&flags);
+ 	pr_err("BUG: Double free or freeing an invalid pointer\n");
+ 	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
+-	kasan_object_err(cache, object);
++	dump_stack();
++	describe_object(cache, object);
+ 	kasan_end_report(&flags);
  }
  
- void kasan_report_double_free(struct kmem_cache *cache, void *object,
+ static void print_address_description(struct kasan_access_info *info)
+ {
+ 	const void *addr = info->access_addr;
++	struct page *page = addr_to_page(addr);
+ 
+-	if ((addr >= (void *)PAGE_OFFSET) &&
+-		(addr < high_memory)) {
+-		struct page *page = virt_to_head_page(addr);
+-
+-		if (PageSlab(page)) {
+-			void *object;
+-			struct kmem_cache *cache = page->slab_cache;
+-			object = nearest_obj(cache, page,
+-						(void *)info->access_addr);
+-			kasan_object_err(cache, object);
+-			return;
+-		}
++	if (page)
+ 		dump_page(page, "kasan: bad access detected");
++
++	dump_stack();
++
++	if (page && PageSlab(page)) {
++		struct kmem_cache *cache = page->slab_cache;
++		void *object = nearest_obj(cache, page,	(void *)addr);
++
++		describe_object(cache, object);
+ 	}
+ 
+ 	if (kernel_or_module_addr(addr)) {
+ 		if (!init_task_stack_addr(addr))
+ 			pr_err("Address belongs to variable %pS\n", addr);
+ 	}
+-	dump_stack();
+ }
+ 
+ static bool row_is_guilty(const void *row, const void *guilty)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
