@@ -1,90 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
- added to -mm tree
-Date: Thu, 04 May 2017 14:13:57 -0700
-Message-ID: <590b9995.31zhEqWuqm+oZif1%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Mon, 08 May 2017 12:14:17 -0700
+Message-ID: <20170508191417.8EpInvbJf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51606 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751158AbdEDVN7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 4 May 2017 17:13:59 -0400
+        with ESMTP id S1754324AbdEHTOT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 15:14:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arbab@linux.vnet.ibm.com, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmstat: Remove spurious WARN() during zoneinfo print
-has been added to the -mm tree.  Its filename is
-     mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: mm, vmstat: Remove spurious WARN() during zoneinfo print
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-After e2ecc8a79ed49f7838 ("mm, vmstat: print non-populated zones in
-zoneinfo"), /proc/zoneinfo will show unpopulated zones.
-
-A memoryless node, having no populated zones at all, was previously
-ignored, but will now trigger the WARN() in is_zone_first_populated().
-
-Remove this warning, as its only purpose was to warn of a situation that
-has since been enabled.
-
-Aside: The "per-node stats" are still printed under the first populated
-zone, but that's not necessarily the first stanza any more. I'm not sure
-which criteria is more important with regard to not breaking parsers, but
-it looks a little weird to the eye.
-
-Fixes:  e2ecc8a79ed49f7838: "mm, vmstat: print node-based stats in zoneinfo file")
-Link: http://lkml.kernel.org/r/1493854905-10918-1-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/media/v4l-drivers/philips.rst     |    5 -----
+ drivers/char/tpm/tpm-chip.c                     |   12 ------------
+ drivers/firmware/google/memconsole-x86-legacy.c |    3 ---
+ drivers/misc/Kconfig                            |    3 ---
+ drivers/misc/Makefile                           |    3 ---
+ drivers/scsi/osd/osd_uld.c                      |    5 -----
+ drivers/staging/Makefile                        |    4 ----
+ 7 files changed, 35 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print
-+++ a/mm/vmstat.c
-@@ -1359,8 +1359,6 @@ static bool is_zone_first_populated(pg_d
- 			return zone == compare;
+diff -puN Documentation/media/v4l-drivers/philips.rst~linux-next-git-rejects Documentation/media/v4l-drivers/philips.rst
+--- a/Documentation/media/v4l-drivers/philips.rst~linux-next-git-rejects
++++ a/Documentation/media/v4l-drivers/philips.rst
+@@ -145,13 +145,8 @@ dev_hint
+ 
+    A camera is specified by its type (the number from the camera model,
+    like PCA645, PCVC750VC, etc) and optionally the serial number (visible
+-<<<<<<< HEAD
+-   in /sys/kernel/debug/usb/devices). A hint consists of a string with the
+-   following format::
+-=======
+    in /sys/kernel/debug/usb/devices). A hint consists of a string with the following
+    format::
+->>>>>>> linux-next/akpm-base
+ 
+       [type[.serialnumber]:]node
+ 
+diff -puN drivers/char/tpm/tpm-chip.c~linux-next-git-rejects drivers/char/tpm/tpm-chip.c
+--- a/drivers/char/tpm/tpm-chip.c~linux-next-git-rejects
++++ a/drivers/char/tpm/tpm-chip.c
+@@ -282,17 +282,6 @@ static int tpm_add_char_device(struct tp
+ 		return rc;
  	}
  
--	/* The zone must be somewhere! */
--	WARN_ON_ONCE(1);
- 	return false;
- }
+-<<<<<<< HEAD
+-	if (chip->flags & TPM_CHIP_FLAG_TPM2) {
+-		rc = cdev_device_add(&chip->cdevs, &chip->devs);
+-		if (rc) {
+-			dev_err(&chip->devs,
+-				"unable to cdev_device_add() %s, major %d, minor %d, err=%d\n",
+-				dev_name(&chip->devs), MAJOR(chip->devs.devt),
+-				MINOR(chip->devs.devt), rc);
+-			return rc;
+-		}
+-=======
+ 	if (chip->flags & TPM_CHIP_FLAG_TPM2)
+ 		rc = cdev_device_add(&chip->cdevs, &chip->devs);
+ 	if (rc) {
+@@ -301,7 +290,6 @@ static int tpm_add_char_device(struct tp
+ 			dev_name(&chip->devs), MAJOR(chip->devs.devt),
+ 			MINOR(chip->devs.devt), rc);
+ 		return rc;
+->>>>>>> linux-next/akpm-base
+ 	}
  
+ 	/* Make the chip available. */
+diff -puN drivers/firmware/google/memconsole-x86-legacy.c~linux-next-git-rejects drivers/firmware/google/memconsole-x86-legacy.c
+--- a/drivers/firmware/google/memconsole-x86-legacy.c~linux-next-git-rejects
++++ a/drivers/firmware/google/memconsole-x86-legacy.c
+@@ -20,10 +20,7 @@
+ #include <linux/dmi.h>
+ #include <linux/mm.h>
+ #include <asm/bios_ebda.h>
+-<<<<<<< HEAD
+-=======
+ #include <asm/e820/api.h>
+->>>>>>> linux-next/akpm-base
+ #include <linux/acpi.h>
+ 
+ #include "memconsole.h"
+diff -puN drivers/misc/Kconfig~linux-next-git-rejects drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~linux-next-git-rejects
++++ a/drivers/misc/Kconfig
+@@ -489,8 +489,6 @@ config ASPEED_LPC_CTRL
+ 	  Control Aspeed ast2400/2500 HOST LPC to BMC mappings through
+ 	  ioctl()s, the driver also provides a read/write interface to a BMC ram
+ 	  region where the host LPC read/write region can be buffered.
+-<<<<<<< HEAD
+-=======
+ 
+ config PCI_ENDPOINT_TEST
+ 	depends on PCI
+@@ -498,7 +496,6 @@ config PCI_ENDPOINT_TEST
+ 	---help---
+            Enable this configuration option to enable the host side test driver
+            for PCI Endpoint.
+->>>>>>> linux-next/akpm-base
+ 
+ source "drivers/misc/c2port/Kconfig"
+ source "drivers/misc/eeprom/Kconfig"
+diff -puN drivers/misc/Makefile~linux-next-git-rejects drivers/misc/Makefile
+--- a/drivers/misc/Makefile~linux-next-git-rejects
++++ a/drivers/misc/Makefile
+@@ -53,10 +53,7 @@ obj-$(CONFIG_ECHO)		+= echo/
+ obj-$(CONFIG_VEXPRESS_SYSCFG)	+= vexpress-syscfg.o
+ obj-$(CONFIG_CXL_BASE)		+= cxl/
+ obj-$(CONFIG_ASPEED_LPC_CTRL)	+= aspeed-lpc-ctrl.o
+-<<<<<<< HEAD
+-=======
+ obj-$(CONFIG_PCI_ENDPOINT_TEST)	+= pci_endpoint_test.o
+->>>>>>> linux-next/akpm-base
+ 
+ lkdtm-$(CONFIG_LKDTM)		+= lkdtm_core.o
+ lkdtm-$(CONFIG_LKDTM)		+= lkdtm_bugs.o
+diff -puN drivers/scsi/osd/osd_uld.c~linux-next-git-rejects drivers/scsi/osd/osd_uld.c
+--- a/drivers/scsi/osd/osd_uld.c~linux-next-git-rejects
++++ a/drivers/scsi/osd/osd_uld.c
+@@ -454,12 +454,7 @@ static int osd_probe(struct device *dev)
+ 	/* hold one more reference to the scsi_device that will get released
+ 	 * in __release, in case a logout is happening while fs is mounted
+ 	 */
+-<<<<<<< HEAD
+-	if (scsi_device_get(scsi_device))
+-		goto err_retract_minor;
+-=======
+ 	scsi_device_get(scsi_device);
+->>>>>>> linux-next/akpm-base
+ 	osd_dev_init(&oud->od, scsi_device);
+ 
+ 	/* allocate a disk and set it up */
+diff -puN drivers/staging/Makefile~linux-next-git-rejects drivers/staging/Makefile
+--- a/drivers/staging/Makefile~linux-next-git-rejects
++++ a/drivers/staging/Makefile
+@@ -43,8 +43,4 @@ obj-$(CONFIG_MOST)		+= most/
+ obj-$(CONFIG_KS7010)		+= ks7010/
+ obj-$(CONFIG_GREYBUS)		+= greybus/
+ obj-$(CONFIG_BCM2835_VCHIQ)	+= vc04_services/
+-<<<<<<< HEAD
+-obj-$(CONFIG_SND_BCM2835)	+= bcm2835-audio/
+-=======
+ obj-$(CONFIG_CRYPTO_DEV_CCREE)	+= ccree/
+->>>>>>> linux-next/akpm-base
 _
 
-Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+drm-use-set_memoryh-header-fix.patch
+drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
+docs-vm-transhuge-fix-few-trivial-typos-fix.patch
+dax-add-tracepoint-to-dax_writeback_one-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
