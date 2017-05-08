@@ -1,101 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [patch 112/114] dax: add tracepoint to
- dax_insert_mapping()
-Date: Mon, 08 May 2017 16:00:16 -0700
-Message-ID: <20170508230016.0-PTGphfC%akpm@linux-foundation.org>
+Subject: [patch 113/114] selftests/vm: add a test for virtual
+ address range mapping
+Date: Mon, 08 May 2017 16:00:19 -0700
+Message-ID: <20170508230019.qbBzmHi22%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47782 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752016AbdEHXAS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 19:00:18 -0400
+        with ESMTP id S1751845AbdEHXAV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 19:00:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, jack@suse.cz, mawilcox@microsoft.com, mingo@redhat.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, rostedt@goodmis.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, msuchanek@suse.de, shuahkh@osg.samsung.com, torvalds@linux-foundation.org
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: add tracepoint to dax_insert_mapping()
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: selftests/vm: add a test for virtual address range mapping
 
-Add a tracepoint to dax_insert_mapping(), following the same logging
-conventions as the rest of DAX.  This tracepoint, along with the one in
-dax_load_hole(), lets us know how a DAX PTE fault was serviced.
+This verifies virtual address mapping below and above the 128TB range and
+makes sure that address returned are within the expected range depending
+upon the hint passed from the user space.
 
-Here is an example DAX fault that inserts a PTE mapping:
-
-small-1126  [007] ....   145.451604: dax_pte_fault: dev 259:0 ino 0x1003
-shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff 0x220
-
-small-1126  [007] ....   145.452317: dax_insert_mapping: dev 259:0 ino
-0x1003 shared write address 0x10420000 radix_entry 0x100006
-
-small-1126  [007] ....   145.452399: dax_pte_fault_done: dev 259:0 ino
-0x1003 shared WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 pgoff
-0x220 MAJOR|NOPAGE
-
-Link: http://lkml.kernel.org/r/20170221195116.13278-7-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/20170418095252.20533-1-khandual@linux.vnet.ibm.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Michal Suchanek <msuchanek@suse.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                      |    1 +
- include/trace/events/fs_dax.h |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ tools/testing/selftests/vm/Makefile                |    1 
+ tools/testing/selftests/vm/run_vmtests             |   11 
+ tools/testing/selftests/vm/virtual_address_range.c |  122 +++++++++++
+ 3 files changed, 134 insertions(+)
 
-diff -puN fs/dax.c~dax-add-tracepoint-to-dax_insert_mapping fs/dax.c
---- a/fs/dax.c~dax-add-tracepoint-to-dax_insert_mapping
-+++ a/fs/dax.c
-@@ -925,6 +925,7 @@ static int dax_insert_mapping(struct add
- 		return PTR_ERR(ret);
- 	*entryp = ret;
+diff -puN tools/testing/selftests/vm/Makefile~selftests-vm-add-a-test-for-virtual-address-range-mapping tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-a-test-for-virtual-address-range-mapping
++++ a/tools/testing/selftests/vm/Makefile
+@@ -16,6 +16,7 @@ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
+ TEST_GEN_FILES += mlock-random-test
++TEST_GEN_FILES += virtual_address_range
  
-+	trace_dax_insert_mapping(mapping->host, vmf, ret);
- 	return vm_insert_mixed(vma, vaddr, pfn);
- }
+ TEST_PROGS := run_vmtests
  
-diff -puN include/trace/events/fs_dax.h~dax-add-tracepoint-to-dax_insert_mapping include/trace/events/fs_dax.h
---- a/include/trace/events/fs_dax.h~dax-add-tracepoint-to-dax_insert_mapping
-+++ a/include/trace/events/fs_dax.h
-@@ -194,6 +194,36 @@ DEFINE_PTE_FAULT_EVENT(dax_pfn_mkwrite_n
- DEFINE_PTE_FAULT_EVENT(dax_pfn_mkwrite);
- DEFINE_PTE_FAULT_EVENT(dax_load_hole);
+diff -puN tools/testing/selftests/vm/run_vmtests~selftests-vm-add-a-test-for-virtual-address-range-mapping tools/testing/selftests/vm/run_vmtests
+--- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-add-a-test-for-virtual-address-range-mapping
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -165,4 +165,15 @@ else
+ 	echo "[PASS]"
+ fi
  
-+TRACE_EVENT(dax_insert_mapping,
-+	TP_PROTO(struct inode *inode, struct vm_fault *vmf, void *radix_entry),
-+	TP_ARGS(inode, vmf, radix_entry),
-+	TP_STRUCT__entry(
-+		__field(unsigned long, ino)
-+		__field(unsigned long, vm_flags)
-+		__field(unsigned long, address)
-+		__field(void *, radix_entry)
-+		__field(dev_t, dev)
-+		__field(int, write)
-+	),
-+	TP_fast_assign(
-+		__entry->dev = inode->i_sb->s_dev;
-+		__entry->ino = inode->i_ino;
-+		__entry->vm_flags = vmf->vma->vm_flags;
-+		__entry->address = vmf->address;
-+		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
-+		__entry->radix_entry = radix_entry;
-+	),
-+	TP_printk("dev %d:%d ino %#lx %s %s address %#lx radix_entry %#lx",
-+		MAJOR(__entry->dev),
-+		MINOR(__entry->dev),
-+		__entry->ino,
-+		__entry->vm_flags & VM_SHARED ? "shared" : "private",
-+		__entry->write ? "write" : "read",
-+		__entry->address,
-+		(unsigned long)__entry->radix_entry
-+	)
-+)
++echo "-----------------------------"
++echo "running virtual_address_range"
++echo "-----------------------------"
++./virtual_address_range
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
 +
- DECLARE_EVENT_CLASS(dax_writeback_range_class,
- 	TP_PROTO(struct inode *inode, pgoff_t start_index, pgoff_t end_index),
- 	TP_ARGS(inode, start_index, end_index),
+ exit $exitcode
+diff -puN /dev/null tools/testing/selftests/vm/virtual_address_range.c
+--- /dev/null
++++ a/tools/testing/selftests/vm/virtual_address_range.c
+@@ -0,0 +1,122 @@
++/*
++ * Copyright 2017, Anshuman Khandual, IBM Corp.
++ * Licensed under GPLv2.
++ *
++ * Works on architectures which support 128TB virtual
++ * address range and beyond.
++ */
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <errno.h>
++#include <numaif.h>
++#include <sys/mman.h>
++#include <sys/time.h>
++
++/*
++ * Maximum address range mapped with a single mmap()
++ * call is little bit more than 16GB. Hence 16GB is
++ * chosen as the single chunk size for address space
++ * mapping.
++ */
++#define MAP_CHUNK_SIZE   17179869184UL /* 16GB */
++
++/*
++ * Address space till 128TB is mapped without any hint
++ * and is enabled by default. Address space beyond 128TB
++ * till 512TB is obtained by passing hint address as the
++ * first argument into mmap() system call.
++ *
++ * The process heap address space is divided into two
++ * different areas one below 128TB and one above 128TB
++ * till it reaches 512TB. One with size 128TB and the
++ * other being 384TB.
++ */
++#define NR_CHUNKS_128TB   8192UL /* Number of 16GB chunks for 128TB */
++#define NR_CHUNKS_384TB  24576UL /* Number of 16GB chunks for 384TB */
++
++#define ADDR_MARK_128TB  (1UL << 47) /* First address beyond 128TB */
++
++static char *hind_addr(void)
++{
++	int bits = 48 + rand() % 15;
++
++	return (char *) (1UL << bits);
++}
++
++static int validate_addr(char *ptr, int high_addr)
++{
++	unsigned long addr = (unsigned long) ptr;
++
++	if (high_addr) {
++		if (addr < ADDR_MARK_128TB) {
++			printf("Bad address %lx\n", addr);
++			return 1;
++		}
++		return 0;
++	}
++
++	if (addr > ADDR_MARK_128TB) {
++		printf("Bad address %lx\n", addr);
++		return 1;
++	}
++	return 0;
++}
++
++static int validate_lower_address_hint(void)
++{
++	char *ptr;
++
++	ptr = mmap((void *) (1UL << 45), MAP_CHUNK_SIZE, PROT_READ |
++			PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++
++	if (ptr == MAP_FAILED)
++		return 0;
++
++	return 1;
++}
++
++int main(int argc, char *argv[])
++{
++	char *ptr[NR_CHUNKS_128TB];
++	char *hptr[NR_CHUNKS_384TB];
++	char *hint;
++	unsigned long i, lchunks, hchunks;
++
++	for (i = 0; i < NR_CHUNKS_128TB; i++) {
++		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
++					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++
++		if (ptr[i] == MAP_FAILED) {
++			if (validate_lower_address_hint())
++				return 1;
++			break;
++		}
++
++		if (validate_addr(ptr[i], 0))
++			return 1;
++	}
++	lchunks = i;
++
++	for (i = 0; i < NR_CHUNKS_384TB; i++) {
++		hint = hind_addr();
++		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
++					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++
++		if (hptr[i] == MAP_FAILED)
++			break;
++
++		if (validate_addr(hptr[i], 1))
++			return 1;
++	}
++	hchunks = i;
++
++	for (i = 0; i < lchunks; i++)
++		munmap(ptr[i], MAP_CHUNK_SIZE);
++
++	for (i = 0; i < hchunks; i++)
++		munmap(hptr[i], MAP_CHUNK_SIZE);
++
++	return 0;
++}
 _
