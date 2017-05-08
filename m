@@ -1,99 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [patch 006/114] mm, compaction: add migratetype to
- compact_control
-Date: Mon, 08 May 2017 15:54:46 -0700
-Message-ID: <20170508225446.VDzD0aLph%akpm@linux-foundation.org>
+Subject: [patch 007/114] mm, compaction: restrict async compaction
+ to pageblocks of same migratetype
+Date: Mon, 08 May 2017 15:54:49 -0700
+Message-ID: <20170508225449.5xQCG4ZY_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45742 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751676AbdEHWys (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:54:48 -0400
+        with ESMTP id S1751676AbdEHWyw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:54:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: add migratetype to compact_control
+Subject: mm, compaction: restrict async compaction to pageblocks of same migratetype
 
-Preparation patch.  We are going to need migratetype at lower layers than
-compact_zone() and compact_finished().
+The migrate scanner in async compaction is currently limited to
+MIGRATE_MOVABLE pageblocks.  This is a heuristic intended to reduce
+latency, based on the assumption that non-MOVABLE pageblocks are unlikely
+to contain movable pages.
 
-Link: http://lkml.kernel.org/r/20170307131545.28577-7-vbabka@suse.cz
+However, with the exception of THP's, most high-order allocations are not
+movable.  Should the async compaction succeed, this increases the chance
+that the non-MOVABLE allocations will fallback to a MOVABLE pageblock,
+making the long-term fragmentation worse.
+
+This patch attempts to help the situation by changing async direct
+compaction so that the migrate scanner only scans the pageblocks of the
+requested migratetype.  If it's a non-MOVABLE type and there are such
+pageblocks that do contain movable pages, chances are that the allocation
+can succeed within one of such pageblocks, removing the need for a
+fallback.  If that fails, the subsequent sync attempt will ignore this
+restriction.
+
+In testing based on 4.9 kernel with stress-highalloc from mmtests
+configured for order-4 GFP_KERNEL allocations, this patch has reduced the
+number of unmovable allocations falling back to movable pageblocks by 30%.
+The number of movable allocations falling back is reduced by 12%.
+
+Link: http://lkml.kernel.org/r/20170307131545.28577-8-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   15 +++++++--------
- mm/internal.h   |    1 +
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ mm/compaction.c |   11 +++++++++--
+ mm/page_alloc.c |   22 ++++++++++++++--------
+ 2 files changed, 23 insertions(+), 10 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-add-migratetype-to-compact_control mm/compaction.c
---- a/mm/compaction.c~mm-compaction-add-migratetype-to-compact_control
+diff -puN mm/compaction.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype
 +++ a/mm/compaction.c
-@@ -1279,10 +1279,11 @@ static inline bool is_via_compact_memory
- 	return order == -1;
+@@ -986,10 +986,17 @@ isolate_migratepages_range(struct compac
+ static bool suitable_migration_source(struct compact_control *cc,
+ 							struct page *page)
+ {
+-	if (cc->mode != MIGRATE_ASYNC)
++	int block_mt;
++
++	if ((cc->mode != MIGRATE_ASYNC) || !cc->direct_compaction)
+ 		return true;
+ 
+-	return is_migrate_movable(get_pageblock_migratetype(page));
++	block_mt = get_pageblock_migratetype(page);
++
++	if (cc->migratetype == MIGRATE_MOVABLE)
++		return is_migrate_movable(block_mt);
++	else
++		return block_mt == cc->migratetype;
  }
  
--static enum compact_result __compact_finished(struct zone *zone, struct compact_control *cc,
--			    const int migratetype)
-+static enum compact_result __compact_finished(struct zone *zone,
-+						struct compact_control *cc)
+ /* Returns true if the page is within a block suitable for migration to */
+diff -puN mm/page_alloc.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype
++++ a/mm/page_alloc.c
+@@ -3665,6 +3665,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 						struct alloc_context *ac)
  {
- 	unsigned int order;
-+	const int migratetype = cc->migratetype;
+ 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
++	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
+ 	struct page *page = NULL;
+ 	unsigned int alloc_flags;
+ 	unsigned long did_some_progress;
+@@ -3732,12 +3733,17 @@ retry_cpuset:
  
- 	if (cc->contended || fatal_signal_pending(current))
- 		return COMPACT_CONTENDED;
-@@ -1338,12 +1339,11 @@ static enum compact_result __compact_fin
- }
+ 	/*
+ 	 * For costly allocations, try direct compaction first, as it's likely
+-	 * that we have enough base pages and don't need to reclaim. Don't try
+-	 * that for allocations that are allowed to ignore watermarks, as the
+-	 * ALLOC_NO_WATERMARKS attempt didn't yet happen.
+-	 */
+-	if (can_direct_reclaim && order > PAGE_ALLOC_COSTLY_ORDER &&
+-		!gfp_pfmemalloc_allowed(gfp_mask)) {
++	 * that we have enough base pages and don't need to reclaim. For non-
++	 * movable high-order allocations, do that as well, as compaction will
++	 * try prevent permanent fragmentation by migrating from blocks of the
++	 * same migratetype.
++	 * Don't try this for allocations that are allowed to ignore
++	 * watermarks, as the ALLOC_NO_WATERMARKS attempt didn't yet happen.
++	 */
++	if (can_direct_reclaim &&
++			(costly_order ||
++			   (order > 0 && ac->migratetype != MIGRATE_MOVABLE))
++			&& !gfp_pfmemalloc_allowed(gfp_mask)) {
+ 		page = __alloc_pages_direct_compact(gfp_mask, order,
+ 						alloc_flags, ac,
+ 						INIT_COMPACT_PRIORITY,
+@@ -3749,7 +3755,7 @@ retry_cpuset:
+ 		 * Checks for costly allocations with __GFP_NORETRY, which
+ 		 * includes THP page fault allocations
+ 		 */
+-		if (gfp_mask & __GFP_NORETRY) {
++		if (costly_order && (gfp_mask & __GFP_NORETRY)) {
+ 			/*
+ 			 * If compaction is deferred for high-order allocations,
+ 			 * it is because sync compaction recently failed. If
+@@ -3830,7 +3836,7 @@ retry:
+ 	 * Do not retry costly high order allocations unless they are
+ 	 * __GFP_REPEAT
+ 	 */
+-	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_REPEAT))
++	if (costly_order && !(gfp_mask & __GFP_REPEAT))
+ 		goto nopage;
  
- static enum compact_result compact_finished(struct zone *zone,
--			struct compact_control *cc,
--			const int migratetype)
-+			struct compact_control *cc)
- {
- 	int ret;
- 
--	ret = __compact_finished(zone, cc, migratetype);
-+	ret = __compact_finished(zone, cc);
- 	trace_mm_compaction_finished(zone, cc->order, ret);
- 	if (ret == COMPACT_NO_SUITABLE_PAGE)
- 		ret = COMPACT_CONTINUE;
-@@ -1476,9 +1476,9 @@ static enum compact_result compact_zone(
- 	enum compact_result ret;
- 	unsigned long start_pfn = zone->zone_start_pfn;
- 	unsigned long end_pfn = zone_end_pfn(zone);
--	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
- 	const bool sync = cc->mode != MIGRATE_ASYNC;
- 
-+	cc->migratetype = gfpflags_to_migratetype(cc->gfp_mask);
- 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
- 							cc->classzone_idx);
- 	/* Compaction is likely to fail */
-@@ -1528,8 +1528,7 @@ static enum compact_result compact_zone(
- 
- 	migrate_prep_local();
- 
--	while ((ret = compact_finished(zone, cc, migratetype)) ==
--						COMPACT_CONTINUE) {
-+	while ((ret = compact_finished(zone, cc)) == COMPACT_CONTINUE) {
- 		int err;
- 
- 		switch (isolate_migratepages(zone, cc)) {
-diff -puN mm/internal.h~mm-compaction-add-migratetype-to-compact_control mm/internal.h
---- a/mm/internal.h~mm-compaction-add-migratetype-to-compact_control
-+++ a/mm/internal.h
-@@ -193,6 +193,7 @@ struct compact_control {
- 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
- 	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
- 	int order;			/* order a direct compactor needs */
-+	int migratetype;		/* migratetype of direct compactor */
- 	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
- 	const int classzone_idx;	/* zone index of a direct compactor */
- 	enum migrate_mode mode;		/* Async or sync migration mode */
+ 	if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
 _
