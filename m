@@ -1,94 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [patch 064/114] scripts/spelling.txt: add "memory" pattern
- and fix typos
-Date: Mon, 08 May 2017 15:57:47 -0700
-Message-ID: <20170508225747.10q0FYKCS%akpm@linux-foundation.org>
+Subject: [patch 071/114] s390: use set_memory.h header
+Date: Mon, 08 May 2017 15:58:08 -0700
+Message-ID: <20170508225808.qflhJruO3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47218 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750835AbdEHW5s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:57:48 -0400
+        with ESMTP id S1751068AbdEHW6J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:58:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, sboyd@codeaurora.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, labbott@redhat.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: scripts/spelling.txt: add "memory" pattern and fix typos
+From: Laura Abbott <labbott@redhat.com>
+Subject: s390: use set_memory.h header
 
-Fix typos and add the following to the scripts/spelling.txt:
+set_memory_* functions have moved to set_memory.h. Switch to this
+explicitly
 
-      momery||memory
-
-Link: http://lkml.kernel.org/r/20170317011131.6881-1-sboyd@codeaurora.org
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Link: http://lkml.kernel.org/r/1488920133-27229-5-git-send-email-labbott@redhat.com
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |    2 +-
- drivers/leds/leds-lp5521.c                 |    2 +-
- drivers/leds/leds-lp5523.c                 |    2 +-
- drivers/leds/leds-lp5562.c                 |    2 +-
- scripts/spelling.txt                       |    1 +
- 5 files changed, 5 insertions(+), 4 deletions(-)
+ arch/s390/kernel/ftrace.c        |    1 +
+ arch/s390/kernel/kprobes.c       |    2 +-
+ arch/s390/kernel/machine_kexec.c |    1 +
+ arch/s390/mm/init.c              |    1 +
+ arch/s390/mm/pageattr.c          |    1 +
+ arch/s390/mm/vmem.c              |    1 +
+ arch/s390/net/bpf_jit_comp.c     |    1 +
+ 7 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/hns/hns_roce_hw_v1.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos drivers/infiniband/hw/hns/hns_roce_hw_v1.c
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos
-+++ a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1721,7 +1721,7 @@ int hns_roce_v1_write_mtpt(void *mb_buf,
- 	roce_set_field(mpt_entry->mpt_byte_64, MPT_BYTE_64_L_KEY_IDX_H_M,
- 		       MPT_BYTE_64_L_KEY_IDX_H_S, mtpt_idx >> MTPT_IDX_SHIFT);
+diff -puN arch/s390/kernel/ftrace.c~s390-use-set_memoryh-header arch/s390/kernel/ftrace.c
+--- a/arch/s390/kernel/ftrace.c~s390-use-set_memoryh-header
++++ a/arch/s390/kernel/ftrace.c
+@@ -17,6 +17,7 @@
+ #include <trace/syscall.h>
+ #include <asm/asm-offsets.h>
+ #include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ #include "entry.h"
  
--	/* DMA momery regsiter */
-+	/* DMA memory regsiter */
- 	if (mr->type == MR_TYPE_DMA)
- 		return 0;
+ /*
+diff -puN arch/s390/kernel/kprobes.c~s390-use-set_memoryh-header arch/s390/kernel/kprobes.c
+--- a/arch/s390/kernel/kprobes.c~s390-use-set_memoryh-header
++++ a/arch/s390/kernel/kprobes.c
+@@ -31,7 +31,7 @@
+ #include <linux/slab.h>
+ #include <linux/hardirq.h>
+ #include <linux/ftrace.h>
+-#include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ #include <asm/sections.h>
+ #include <linux/uaccess.h>
+ #include <asm/dis.h>
+diff -puN arch/s390/kernel/machine_kexec.c~s390-use-set_memoryh-header arch/s390/kernel/machine_kexec.c
+--- a/arch/s390/kernel/machine_kexec.c~s390-use-set_memoryh-header
++++ a/arch/s390/kernel/machine_kexec.c
+@@ -26,6 +26,7 @@
+ #include <asm/asm-offsets.h>
+ #include <asm/cacheflush.h>
+ #include <asm/os_info.h>
++#include <asm/set_memory.h>
+ #include <asm/switch_to.h>
+ #include <asm/nmi.h>
  
-diff -puN drivers/leds/leds-lp5521.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos
-+++ a/drivers/leds/leds-lp5521.c
-@@ -281,7 +281,7 @@ static void lp5521_firmware_loaded(struc
- 	}
+diff -puN arch/s390/mm/init.c~s390-use-set_memoryh-header arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~s390-use-set_memoryh-header
++++ a/arch/s390/mm/init.c
+@@ -39,6 +39,7 @@
+ #include <asm/sections.h>
+ #include <asm/ctl_reg.h>
+ #include <asm/sclp.h>
++#include <asm/set_memory.h>
  
- 	/*
--	 * Program momery sequence
-+	 * Program memory sequence
- 	 *  1) set engine mode to "LOAD"
- 	 *  2) write firmware data into program memory
- 	 */
-diff -puN drivers/leds/leds-lp5523.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos drivers/leds/leds-lp5523.c
---- a/drivers/leds/leds-lp5523.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos
-+++ a/drivers/leds/leds-lp5523.c
-@@ -387,7 +387,7 @@ static void lp5523_firmware_loaded(struc
- 	}
+ pgd_t swapper_pg_dir[PTRS_PER_PGD] __section(.bss..swapper_pg_dir);
  
- 	/*
--	 * Program momery sequence
-+	 * Program memory sequence
- 	 *  1) set engine mode to "LOAD"
- 	 *  2) write firmware data into program memory
- 	 */
-diff -puN drivers/leds/leds-lp5562.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos drivers/leds/leds-lp5562.c
---- a/drivers/leds/leds-lp5562.c~scripts-spellingtxt-add-memory-pattern-and-fix-typos
-+++ a/drivers/leds/leds-lp5562.c
-@@ -270,7 +270,7 @@ static void lp5562_firmware_loaded(struc
- 	}
+diff -puN arch/s390/mm/pageattr.c~s390-use-set_memoryh-header arch/s390/mm/pageattr.c
+--- a/arch/s390/mm/pageattr.c~s390-use-set_memoryh-header
++++ a/arch/s390/mm/pageattr.c
+@@ -8,6 +8,7 @@
+ #include <asm/facility.h>
+ #include <asm/pgtable.h>
+ #include <asm/page.h>
++#include <asm/set_memory.h>
  
- 	/*
--	 * Program momery sequence
-+	 * Program memory sequence
- 	 *  1) set engine mode to "LOAD"
- 	 *  2) write firmware data into program memory
- 	 */
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-memory-pattern-and-fix-typos scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-memory-pattern-and-fix-typos
-+++ a/scripts/spelling.txt
-@@ -691,6 +691,7 @@ miximum||maximum
- mmnemonic||mnemonic
- mnay||many
- modulues||modules
-+momery||memory
- monochorome||monochrome
- monochromo||monochrome
- monocrome||monochrome
+ static inline unsigned long sske_frame(unsigned long addr, unsigned char skey)
+ {
+diff -puN arch/s390/mm/vmem.c~s390-use-set_memoryh-header arch/s390/mm/vmem.c
+--- a/arch/s390/mm/vmem.c~s390-use-set_memoryh-header
++++ a/arch/s390/mm/vmem.c
+@@ -17,6 +17,7 @@
+ #include <asm/setup.h>
+ #include <asm/tlbflush.h>
+ #include <asm/sections.h>
++#include <asm/set_memory.h>
+ 
+ static DEFINE_MUTEX(vmem_mutex);
+ 
+diff -puN arch/s390/net/bpf_jit_comp.c~s390-use-set_memoryh-header arch/s390/net/bpf_jit_comp.c
+--- a/arch/s390/net/bpf_jit_comp.c~s390-use-set_memoryh-header
++++ a/arch/s390/net/bpf_jit_comp.c
+@@ -24,6 +24,7 @@
+ #include <linux/bpf.h>
+ #include <asm/cacheflush.h>
+ #include <asm/dis.h>
++#include <asm/set_memory.h>
+ #include "bpf_jit.h"
+ 
+ int bpf_jit_enable __read_mostly;
 _
