@@ -1,81 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [patch 040/114] powerpc/fadump: update documentation about
- crashkernel parameter reuse
-Date: Mon, 08 May 2017 15:56:31 -0700
-Message-ID: <20170508225631.b6BfoOCIb%akpm@linux-foundation.org>
+Subject: [patch 041/114] pidns: disable pid allocation if
+ pid_ns_prepare_proc() is failed in alloc_pid()
+Date: Mon, 08 May 2017 15:56:34 -0700
+Message-ID: <20170508225634.ZtfH6ViAa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46168 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751317AbdEHW4c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:56:32 -0400
+        with ESMTP id S1751531AbdEHW4g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:56:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dyoung@redhat.com, ebiederm@xmission.com, fenghua.yu@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, tony.luck@intel.com, torvalds@linux-foundation.org, vgoyal@redhat.com
+To: agruenba@redhat.com, akpm@linux-foundation.org, avagin@virtuozzo.com, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, ktkhai@virtuozzo.com, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, mtk.manpages@googlemail.com, oleg@redhat.com, paul@paul-moore.com, serge@hallyn.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Subject: powerpc/fadump: update documentation about crashkernel parameter reuse
+From: Kirill Tkhai <ktkhai@virtuozzo.com>
+Subject: pidns: disable pid allocation if pid_ns_prepare_proc() is failed in alloc_pid()
 
-As we are reusing crashkernel parameter instead of fadump_reserve_mem
-parameter to specify the memory to reserve for fadump's crash kernel,
-update the documentation accordingly.
+alloc_pidmap() advances pid_namespace::last_pid.  When first pid
+allocation fails, then next created process will have pid 2 and
+pid_ns_prepare_proc() won't be called.  So, pid_namespace::proc_mnt will
+never be initialized (not to mention that there won't be a child reaper).
 
-Link: http://lkml.kernel.org/r/149035347559.6881.14224829694291758581.stgit@hbathini.in.ibm.com
-Signed-off-by: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Dave Young <dyoung@redhat.com>
+I saw crash stack of such case on kernel 3.10:
+
+    BUG: unable to handle kernel NULL pointer dereference at (null)
+    IP: [<ffffffff8126b18f>] proc_flush_task+0x8f/0x1b0
+    Call Trace:
+        [<ffffffff810807ff>] release_task+0x3f/0x490
+        [<ffffffff810c0570>] ? thread_group_cputime_adjusted+0x50/0x70
+        [<ffffffff8108144f>] wait_consider_task.part.10+0x7ff/0xb00
+        [<ffffffff8108186f>] do_wait+0x11f/0x280
+        [<ffffffff81082b2d>] SyS_wait4+0x7d/0x110
+
+We may fix this by restore of last_pid in 0 or by prohibiting of futher
+allocations.  Since there was a similar issue in Oleg Nesterov's
+314a8ad0f18a ("pidns: fix free_pid() to handle the first fork failure"). 
+and it was fixed via prohibiting allocation, let's follow this way, and do
+the same.
+
+Link: http://lkml.kernel.org/r/149201021004.4863.6762095011554287922.stgit@localhost.localdomain
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Andrei Vagin <avagin@virtuozzo.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Paul Moore <paul@paul-moore.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Serge Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/powerpc/firmware-assisted-dump.txt |   23 ++++++++-----
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ kernel/pid.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/powerpc/firmware-assisted-dump.txt~powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse Documentation/powerpc/firmware-assisted-dump.txt
---- a/Documentation/powerpc/firmware-assisted-dump.txt~powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse
-+++ a/Documentation/powerpc/firmware-assisted-dump.txt
-@@ -55,10 +55,14 @@ as follows:
-          booted with restricted memory. By default, the boot memory
-          size will be the larger of 5% of system RAM or 256MB.
-          Alternatively, user can also specify boot memory size
--         through boot parameter 'fadump_reserve_mem=' which will
--         override the default calculated size. Use this option
--         if default boot memory size is not sufficient for second
--         kernel to boot successfully.
-+         through boot parameter 'crashkernel=' which will override
-+         the default calculated size. Use this option if default
-+         boot memory size is not sufficient for second kernel to
-+         boot successfully. For syntax of crashkernel= parameter,
-+         refer to Documentation/kdump/kdump.txt. If any offset is
-+         provided in crashkernel= parameter, it will be ignored
-+         as fadump reserves memory at end of RAM for boot memory
-+         dump preservation in case of a crash.
+diff -puN kernel/pid.c~pidns-disable-pid-allocation-if-pid_ns_prepare_proc-is-failed-in-alloc_pid kernel/pid.c
+--- a/kernel/pid.c~pidns-disable-pid-allocation-if-pid_ns_prepare_proc-is-failed-in-alloc_pid
++++ a/kernel/pid.c
+@@ -321,8 +321,10 @@ struct pid *alloc_pid(struct pid_namespa
+ 	}
  
- -- After the low memory (boot memory) area has been saved, the
-    firmware will reset PCI and other hardware state.  It will
-@@ -158,13 +162,16 @@ How to enable firmware-assisted dump (fa
+ 	if (unlikely(is_child_reaper(pid))) {
+-		if (pid_ns_prepare_proc(ns))
++		if (pid_ns_prepare_proc(ns)) {
++			disable_pid_allocation(ns);
+ 			goto out_free;
++		}
+ 	}
  
- 1. Set config option CONFIG_FA_DUMP=y and build kernel.
- 2. Boot into linux kernel with 'fadump=on' kernel cmdline option.
--3. Optionally, user can also set 'fadump_reserve_mem=' kernel cmdline
-+3. Optionally, user can also set 'crashkernel=' kernel cmdline
-    to specify size of the memory to reserve for boot memory dump
-    preservation.
- 
--NOTE: If firmware-assisted dump fails to reserve memory then it will
--   fallback to existing kdump mechanism if 'crashkernel=' option
--   is set at kernel cmdline.
-+NOTE: 1. 'fadump_reserve_mem=' parameter has been deprecated. Instead
-+         use 'crashkernel=' to specify size of the memory to reserve
-+         for boot memory dump preservation.
-+      2. If firmware-assisted dump fails to reserve memory then it
-+         will fallback to existing kdump mechanism if 'crashkernel='
-+         option is set at kernel cmdline.
- 
- Sysfs/debugfs files:
- ------------
+ 	get_pid_ns(ns);
 _
