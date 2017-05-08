@@ -1,257 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 096/114] fs: ubifs: replace CURRENT_TIME_SEC with
- current_time
-Date: Mon, 08 May 2017 15:59:25 -0700
-Message-ID: <20170508225925.dOloLDSy3%akpm@linux-foundation.org>
+Subject: [patch 097/114] lustre: replace CURRENT_TIME macro
+Date: Mon, 08 May 2017 15:59:28 -0700
+Message-ID: <20170508225928.uTwc02GbB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47498 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751895AbdEHW70 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:59:26 -0400
+        with ESMTP id S1751895AbdEHW73 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian.hunter@intel.com, akpm@linux-foundation.org, arnd@arndb.de, dedekind1@gmail.com, deepa.kernel@gmail.com, mm-commits@vger.kernel.org, richard@nod.at, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, andreas.dilger@intel.com, deepa.kernel@gmail.com, jsimmons@infradead.org, mm-commits@vger.kernel.org, oleg.drokin@intel.com, torvalds@linux-foundation.org
 
 From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: fs: ubifs: replace CURRENT_TIME_SEC with current_time
+Subject: lustre: replace CURRENT_TIME macro
 
-CURRENT_TIME_SEC is not y2038 safe.  current_time() will be transitioned
-to use 64 bit time along with vfs in a separate patch.  There is no plan
-to transition CURRENT_TIME_SEC to use y2038 safe time interfaces.
+CURRENT_TIME macro is not y2038 safe on 32 bit systems.
 
-current_time() returns timestamps according to the granularities set in
-the inode's super_block.  The granularity check to call current_fs_time()
-or CURRENT_TIME_SEC is not required.
+The patch replaces all the uses of CURRENT_TIME by current_time() for
+filesystem times, and ktime_get_* functions for others.
 
-Use current_time() directly to update inode timestamp.  Use timespec_trunc
-during file system creation, before the first inode is created.
+struct timespec is also not y2038 safe.  Retain timespec for timestamp
+representation here as lustre uses it internally everywhere.  These
+references will be changed to use struct timespec64 in a separate patch.
 
-Link: http://lkml.kernel.org/r/1491613030-11599-9-git-send-email-deepa.kernel@gmail.com
+This is also in preparation for the patch that transitions vfs timestamps
+to use 64 bit time and hence make them y2038 safe.  current_time() is also
+planned to be transitioned to y2038 safe behavior along with this change.
+
+CURRENT_TIME macro will be deleted before merging the
+aforementioned change.
+
+Link: http://lkml.kernel.org/r/1491613030-11599-10-git-send-email-deepa.kernel@gmail.com
 Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Oleg Drokin <oleg.drokin@intel.com>
+Cc: Andreas Dilger <andreas.dilger@intel.com>
+Cc: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/dir.c   |   12 ++++++------
- fs/ubifs/file.c  |   12 ++++++------
- fs/ubifs/ioctl.c |    2 +-
- fs/ubifs/misc.h  |   10 ----------
- fs/ubifs/sb.c    |   14 ++++++++++----
- fs/ubifs/xattr.c |    6 +++---
- 6 files changed, 26 insertions(+), 30 deletions(-)
+ drivers/staging/lustre/lustre/llite/llite_lib.c |    6 +++---
+ drivers/staging/lustre/lustre/osc/osc_io.c      |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ubifs/dir.c~fs-ubifs-replace-current_time_sec-with-current_time fs/ubifs/dir.c
---- a/fs/ubifs/dir.c~fs-ubifs-replace-current_time_sec-with-current_time
-+++ a/fs/ubifs/dir.c
-@@ -121,7 +121,7 @@ struct inode *ubifs_new_inode(struct ubi
+diff -puN drivers/staging/lustre/lustre/llite/llite_lib.c~lustre-replace-current_time-macro drivers/staging/lustre/lustre/llite/llite_lib.c
+--- a/drivers/staging/lustre/lustre/llite/llite_lib.c~lustre-replace-current_time-macro
++++ a/drivers/staging/lustre/lustre/llite/llite_lib.c
+@@ -1454,17 +1454,17 @@ int ll_setattr_raw(struct dentry *dentry
  
- 	inode_init_owner(inode, dir, mode);
- 	inode->i_mtime = inode->i_atime = inode->i_ctime =
--			 ubifs_current_time(inode);
-+			 current_time(inode);
- 	inode->i_mapping->nrpages = 0;
- 
- 	switch (mode & S_IFMT) {
-@@ -755,7 +755,7 @@ static int ubifs_link(struct dentry *old
- 
- 	inc_nlink(inode);
- 	ihold(inode);
--	inode->i_ctime = ubifs_current_time(inode);
-+	inode->i_ctime = current_time(inode);
- 	dir->i_size += sz_change;
- 	dir_ui->ui_size = dir->i_size;
- 	dir->i_mtime = dir->i_ctime = inode->i_ctime;
-@@ -830,7 +830,7 @@ static int ubifs_unlink(struct inode *di
+ 	/* We mark all of the fields "set" so MDS/OST does not re-set them */
+ 	if (attr->ia_valid & ATTR_CTIME) {
+-		attr->ia_ctime = CURRENT_TIME;
++		attr->ia_ctime = current_time(inode);
+ 		attr->ia_valid |= ATTR_CTIME_SET;
+ 	}
+ 	if (!(attr->ia_valid & ATTR_ATIME_SET) &&
+ 	    (attr->ia_valid & ATTR_ATIME)) {
+-		attr->ia_atime = CURRENT_TIME;
++		attr->ia_atime = current_time(inode);
+ 		attr->ia_valid |= ATTR_ATIME_SET;
+ 	}
+ 	if (!(attr->ia_valid & ATTR_MTIME_SET) &&
+ 	    (attr->ia_valid & ATTR_MTIME)) {
+-		attr->ia_mtime = CURRENT_TIME;
++		attr->ia_mtime = current_time(inode);
+ 		attr->ia_valid |= ATTR_MTIME_SET;
  	}
  
- 	lock_2_inodes(dir, inode);
--	inode->i_ctime = ubifs_current_time(dir);
-+	inode->i_ctime = current_time(dir);
- 	drop_nlink(inode);
- 	dir->i_size -= sz_change;
- 	dir_ui->ui_size = dir->i_size;
-@@ -934,7 +934,7 @@ static int ubifs_rmdir(struct inode *dir
- 	}
+diff -puN drivers/staging/lustre/lustre/osc/osc_io.c~lustre-replace-current_time-macro drivers/staging/lustre/lustre/osc/osc_io.c
+--- a/drivers/staging/lustre/lustre/osc/osc_io.c~lustre-replace-current_time-macro
++++ a/drivers/staging/lustre/lustre/osc/osc_io.c
+@@ -216,7 +216,7 @@ static int osc_io_submit(const struct lu
+ 		struct cl_object *obj = ios->cis_obj;
  
- 	lock_2_inodes(dir, inode);
--	inode->i_ctime = ubifs_current_time(dir);
-+	inode->i_ctime = current_time(dir);
- 	clear_nlink(inode);
- 	drop_nlink(dir);
- 	dir->i_size -= sz_change;
-@@ -1411,7 +1411,7 @@ static int do_rename(struct inode *old_d
- 	 * Like most other Unix systems, set the @i_ctime for inodes on a
- 	 * rename.
- 	 */
--	time = ubifs_current_time(old_dir);
-+	time = current_time(old_dir);
- 	old_inode->i_ctime = time;
+ 		cl_object_attr_lock(obj);
+-		attr->cat_mtime = LTIME_S(CURRENT_TIME);
++		attr->cat_mtime = ktime_get_real_seconds();
+ 		attr->cat_ctime = attr->cat_mtime;
+ 		cl_object_attr_update(env, obj, attr, CAT_MTIME | CAT_CTIME);
+ 		cl_object_attr_unlock(obj);
+@@ -256,7 +256,7 @@ static void osc_page_touch_at(const stru
+ 	       kms > loi->loi_kms ? "" : "not ", loi->loi_kms, kms,
+ 	       loi->loi_lvb.lvb_size);
  
- 	/* We must adjust parent link count when renaming directories */
-@@ -1584,7 +1584,7 @@ static int ubifs_xrename(struct inode *o
- 
- 	lock_4_inodes(old_dir, new_dir, NULL, NULL);
- 
--	time = ubifs_current_time(old_dir);
-+	time = current_time(old_dir);
- 	fst_inode->i_ctime = time;
- 	snd_inode->i_ctime = time;
- 	old_dir->i_mtime = old_dir->i_ctime = time;
-diff -puN fs/ubifs/file.c~fs-ubifs-replace-current_time_sec-with-current_time fs/ubifs/file.c
---- a/fs/ubifs/file.c~fs-ubifs-replace-current_time_sec-with-current_time
-+++ a/fs/ubifs/file.c
-@@ -1196,7 +1196,7 @@ static int do_truncation(struct ubifs_in
- 	mutex_lock(&ui->ui_mutex);
- 	ui->ui_size = inode->i_size;
- 	/* Truncation changes inode [mc]time */
--	inode->i_mtime = inode->i_ctime = ubifs_current_time(inode);
-+	inode->i_mtime = inode->i_ctime = current_time(inode);
- 	/* Other attributes may be changed at the same time as well */
- 	do_attr_changes(inode, attr);
- 	err = ubifs_jnl_truncate(c, inode, old_size, new_size);
-@@ -1243,7 +1243,7 @@ static int do_setattr(struct ubifs_info
- 	mutex_lock(&ui->ui_mutex);
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		/* Truncation changes inode [mc]time */
--		inode->i_mtime = inode->i_ctime = ubifs_current_time(inode);
-+		inode->i_mtime = inode->i_ctime = current_time(inode);
- 		/* 'truncate_setsize()' changed @i_size, update @ui_size */
- 		ui->ui_size = inode->i_size;
- 	}
-@@ -1420,7 +1420,7 @@ int ubifs_update_time(struct inode *inod
-  */
- static int update_mctime(struct inode *inode)
- {
--	struct timespec now = ubifs_current_time(inode);
-+	struct timespec now = current_time(inode);
- 	struct ubifs_inode *ui = ubifs_inode(inode);
- 	struct ubifs_info *c = inode->i_sb->s_fs_info;
- 
-@@ -1434,7 +1434,7 @@ static int update_mctime(struct inode *i
- 			return err;
- 
- 		mutex_lock(&ui->ui_mutex);
--		inode->i_mtime = inode->i_ctime = ubifs_current_time(inode);
-+		inode->i_mtime = inode->i_ctime = current_time(inode);
- 		release = ui->dirty;
- 		mark_inode_dirty_sync(inode);
- 		mutex_unlock(&ui->ui_mutex);
-@@ -1511,7 +1511,7 @@ static int ubifs_vm_page_mkwrite(struct
- 	struct page *page = vmf->page;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	struct ubifs_info *c = inode->i_sb->s_fs_info;
--	struct timespec now = ubifs_current_time(inode);
-+	struct timespec now = current_time(inode);
- 	struct ubifs_budget_req req = { .new_page = 1 };
- 	int err, update_time;
- 
-@@ -1579,7 +1579,7 @@ static int ubifs_vm_page_mkwrite(struct
- 		struct ubifs_inode *ui = ubifs_inode(inode);
- 
- 		mutex_lock(&ui->ui_mutex);
--		inode->i_mtime = inode->i_ctime = ubifs_current_time(inode);
-+		inode->i_mtime = inode->i_ctime = current_time(inode);
- 		release = ui->dirty;
- 		mark_inode_dirty_sync(inode);
- 		mutex_unlock(&ui->ui_mutex);
-diff -puN fs/ubifs/ioctl.c~fs-ubifs-replace-current_time_sec-with-current_time fs/ubifs/ioctl.c
---- a/fs/ubifs/ioctl.c~fs-ubifs-replace-current_time_sec-with-current_time
-+++ a/fs/ubifs/ioctl.c
-@@ -126,7 +126,7 @@ static int setflags(struct inode *inode,
- 
- 	ui->flags = ioctl2ubifs(flags);
- 	ubifs_set_inode_flags(inode);
--	inode->i_ctime = ubifs_current_time(inode);
-+	inode->i_ctime = current_time(inode);
- 	release = ui->dirty;
- 	mark_inode_dirty_sync(inode);
- 	mutex_unlock(&ui->ui_mutex);
-diff -puN fs/ubifs/misc.h~fs-ubifs-replace-current_time_sec-with-current_time fs/ubifs/misc.h
---- a/fs/ubifs/misc.h~fs-ubifs-replace-current_time_sec-with-current_time
-+++ a/fs/ubifs/misc.h
-@@ -225,16 +225,6 @@ static inline void *ubifs_idx_key(const
- }
- 
- /**
-- * ubifs_current_time - round current time to time granularity.
-- * @inode: inode
-- */
--static inline struct timespec ubifs_current_time(struct inode *inode)
--{
--	return (inode->i_sb->s_time_gran < NSEC_PER_SEC) ?
--		current_fs_time(inode->i_sb) : CURRENT_TIME_SEC;
--}
--
--/**
-  * ubifs_tnc_lookup - look up a file-system node.
-  * @c: UBIFS file-system description object
-  * @key: node key to lookup
-diff -puN fs/ubifs/sb.c~fs-ubifs-replace-current_time_sec-with-current_time fs/ubifs/sb.c
---- a/fs/ubifs/sb.c~fs-ubifs-replace-current_time_sec-with-current_time
-+++ a/fs/ubifs/sb.c
-@@ -84,6 +84,8 @@ static int create_default_filesystem(str
- 	int min_leb_cnt = UBIFS_MIN_LEB_CNT;
- 	long long tmp64, main_bytes;
- 	__le64 tmp_le64;
-+	__le32 tmp_le32;
-+	struct timespec ts;
- 
- 	/* Some functions called from here depend on the @c->key_len filed */
- 	c->key_len = UBIFS_SK_LEN;
-@@ -298,13 +300,17 @@ static int create_default_filesystem(str
- 	ino->ch.node_type = UBIFS_INO_NODE;
- 	ino->creat_sqnum = cpu_to_le64(++c->max_sqnum);
- 	ino->nlink = cpu_to_le32(2);
--	tmp_le64 = cpu_to_le64(CURRENT_TIME_SEC.tv_sec);
-+
-+	ktime_get_real_ts(&ts);
-+	ts = timespec_trunc(ts, DEFAULT_TIME_GRAN);
-+	tmp_le64 = cpu_to_le64(ts.tv_sec);
- 	ino->atime_sec   = tmp_le64;
- 	ino->ctime_sec   = tmp_le64;
- 	ino->mtime_sec   = tmp_le64;
--	ino->atime_nsec  = 0;
--	ino->ctime_nsec  = 0;
--	ino->mtime_nsec  = 0;
-+	tmp_le32 = cpu_to_le32(ts.tv_nsec);
-+	ino->atime_nsec  = tmp_le32;
-+	ino->ctime_nsec  = tmp_le32;
-+	ino->mtime_nsec  = tmp_le32;
- 	ino->mode = cpu_to_le32(S_IFDIR | S_IRUGO | S_IWUSR | S_IXUGO);
- 	ino->size = cpu_to_le64(UBIFS_INO_NODE_SZ);
- 
-diff -puN fs/ubifs/xattr.c~fs-ubifs-replace-current_time_sec-with-current_time fs/ubifs/xattr.c
---- a/fs/ubifs/xattr.c~fs-ubifs-replace-current_time_sec-with-current_time
-+++ a/fs/ubifs/xattr.c
-@@ -152,7 +152,7 @@ static int create_xattr(struct ubifs_inf
- 	ui->data_len = size;
- 
- 	mutex_lock(&host_ui->ui_mutex);
--	host->i_ctime = ubifs_current_time(host);
-+	host->i_ctime = current_time(host);
- 	host_ui->xattr_cnt += 1;
- 	host_ui->xattr_size += CALC_DENT_SIZE(fname_len(nm));
- 	host_ui->xattr_size += CALC_XATTR_BYTES(size);
-@@ -234,7 +234,7 @@ static int change_xattr(struct ubifs_inf
- 	mutex_unlock(&ui->ui_mutex);
- 
- 	mutex_lock(&host_ui->ui_mutex);
--	host->i_ctime = ubifs_current_time(host);
-+	host->i_ctime = current_time(host);
- 	host_ui->xattr_size -= CALC_XATTR_BYTES(old_size);
- 	host_ui->xattr_size += CALC_XATTR_BYTES(size);
- 
-@@ -488,7 +488,7 @@ static int remove_xattr(struct ubifs_inf
- 		return err;
- 
- 	mutex_lock(&host_ui->ui_mutex);
--	host->i_ctime = ubifs_current_time(host);
-+	host->i_ctime = current_time(host);
- 	host_ui->xattr_cnt -= 1;
- 	host_ui->xattr_size -= CALC_DENT_SIZE(fname_len(nm));
- 	host_ui->xattr_size -= CALC_XATTR_BYTES(ui->data_len);
+-	attr->cat_ctime = LTIME_S(CURRENT_TIME);
++	attr->cat_ctime = ktime_get_real_seconds();
+ 	attr->cat_mtime = attr->cat_ctime;
+ 	valid = CAT_MTIME | CAT_CTIME;
+ 	if (kms > loi->loi_kms) {
 _
