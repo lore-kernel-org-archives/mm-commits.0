@@ -1,128 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [patch 067/114] treewide: spelling: correct diffrent[iate]
- and banlance typos
-Date: Mon, 08 May 2017 15:57:56 -0700
-Message-ID: <20170508225756.6KvaceaHS%akpm@linux-foundation.org>
+Subject: [patch 066/114] scripts/spelling.txt: add "intialise(d)"
+ pattern and fix typo instances
+Date: Mon, 08 May 2017 15:57:53 -0700
+Message-ID: <20170508225753.kpJSdl9C9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47180 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47174 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751205AbdEHW56 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:57:58 -0400
+        with ESMTP id S1752367AbdEHW5y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:57:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mchehab@s-opensource.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
 
-From: Joe Perches <joe@perches.com>
-Subject: treewide: spelling: correct diffrent[iate] and banlance typos
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: scripts/spelling.txt: add "intialise(d)" pattern and fix typo instances
 
-Add these misspellings to scripts/spelling.txt too
+Fix typos and add the following to the scripts/spelling.txt:
 
-Link: http://lkml.kernel.org/r/962aace119675e5fe87be2a88ddac1a5486f8e60.1490931810.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+  intialisation||initialisation
+  intialised||initialised
+  intialise||initialise
+
+This commit does not intend to change the British spelling itself.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-18-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h |    2 +-
- drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c      |    2 +-
- drivers/net/ethernet/qlogic/qed/qed_int.c           |    2 +-
- drivers/net/ethernet/qlogic/qed/qed_main.c          |    2 +-
- drivers/net/ethernet/qlogic/qed/qed_sriov.c         |    2 +-
- include/linux/mlx4/device.h                         |    2 +-
- scripts/spelling.txt                                |    3 +++
- 7 files changed, 9 insertions(+), 6 deletions(-)
+ certs/blacklist.c                               |    2 +-
+ drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c |    8 ++++----
+ drivers/video/fbdev/intelfb/intelfbdrv.c        |    2 +-
+ fs/inode.c                                      |    2 +-
+ fs/xfs/xfs_log_recover.c                        |    2 +-
+ scripts/spelling.txt                            |    3 +++
+ 6 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h~treewide-correct-diffrent-and-banlance-typos drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
---- a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h~treewide-correct-diffrent-and-banlance-typos
-+++ a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
-@@ -70,7 +70,7 @@
- * (3) both long and short but short preferred and long only when necesarry
- *
- * These modes must be selected compile time via compile switches.
--* Compile switch settings for the diffrent modes:
-+* Compile switch settings for the different modes:
- * (1) DRXDAPFASI_LONG_ADDR_ALLOWED=0, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
- * (2) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=0
- * (3) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
-diff -puN drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
---- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c~treewide-correct-diffrent-and-banlance-typos
-+++ a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
-@@ -1591,7 +1591,7 @@ static int __bnx2x_vlan_mac_execute_step
- 	if (rc != 0) {
- 		__bnx2x_vlan_mac_h_pend(bp, o, *ramrod_flags);
+diff -puN certs/blacklist.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances certs/blacklist.c
+--- a/certs/blacklist.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
++++ a/certs/blacklist.c
+@@ -140,7 +140,7 @@ int is_hash_blacklisted(const u8 *hash,
+ EXPORT_SYMBOL_GPL(is_hash_blacklisted);
  
--		/* Calling function should not diffrentiate between this case
-+		/* Calling function should not differentiate between this case
- 		 * and the case in which there is already a pending ramrod
- 		 */
- 		rc = 1;
-diff -puN drivers/net/ethernet/qlogic/qed/qed_int.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/qlogic/qed/qed_int.c
---- a/drivers/net/ethernet/qlogic/qed/qed_int.c~treewide-correct-diffrent-and-banlance-typos
-+++ a/drivers/net/ethernet/qlogic/qed/qed_int.c
-@@ -3058,7 +3058,7 @@ int qed_int_igu_read_cam(struct qed_hwfn
+ /*
+- * Intialise the blacklist
++ * Initialise the blacklist
+  */
+ static int __init blacklist_init(void)
+ {
+diff -puN drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
+--- a/drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
++++ a/drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
+@@ -387,7 +387,7 @@ static void sxgbe_free_rx_buffers(struct
+ /**
+  * init_tx_ring - init the TX descriptor ring
+  * @dev: net device structure
+- * @tx_ring: ring to be intialised
++ * @tx_ring: ring to be initialised
+  * @tx_rsize: ring size
+  * Description:  this function initializes the DMA TX descriptor
+  */
+@@ -437,7 +437,7 @@ dmamem_err:
+ /**
+  * free_rx_ring - free the RX descriptor ring
+  * @dev: net device structure
+- * @rx_ring: ring to be intialised
++ * @rx_ring: ring to be initialised
+  * @rx_rsize: ring size
+  * Description:  this function initializes the DMA RX descriptor
+  */
+@@ -453,7 +453,7 @@ static void free_rx_ring(struct device *
+ /**
+  * init_rx_ring - init the RX descriptor ring
+  * @dev: net device structure
+- * @rx_ring: ring to be intialised
++ * @rx_ring: ring to be initialised
+  * @rx_rsize: ring size
+  * Description:  this function initializes the DMA RX descriptor
+  */
+@@ -539,7 +539,7 @@ err_free_dma_rx:
+ /**
+  * free_tx_ring - free the TX descriptor ring
+  * @dev: net device structure
+- * @tx_ring: ring to be intialised
++ * @tx_ring: ring to be initialised
+  * @tx_rsize: ring size
+  * Description:  this function initializes the DMA TX descriptor
+  */
+diff -puN drivers/video/fbdev/intelfb/intelfbdrv.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances drivers/video/fbdev/intelfb/intelfbdrv.c
+--- a/drivers/video/fbdev/intelfb/intelfbdrv.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
++++ a/drivers/video/fbdev/intelfb/intelfbdrv.c
+@@ -934,7 +934,7 @@ static __inline__ int var_to_refresh(con
+ }
  
- 	/* There's a possibility the igu_sb_cnt_iov doesn't properly reflect
- 	 * the number of VF SBs [especially for first VF on engine, as we can't
--	 * diffrentiate between empty entries and its entries].
-+	 * differentiate between empty entries and its entries].
- 	 * Since we don't really support more SBs than VFs today, prevent any
- 	 * such configuration by sanitizing the number of SBs to equal the
- 	 * number of VFs.
-diff -puN drivers/net/ethernet/qlogic/qed/qed_main.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/qlogic/qed/qed_main.c
---- a/drivers/net/ethernet/qlogic/qed/qed_main.c~treewide-correct-diffrent-and-banlance-typos
-+++ a/drivers/net/ethernet/qlogic/qed/qed_main.c
-@@ -978,7 +978,7 @@ static int qed_slowpath_start(struct qed
- 		if (rc)
- 			goto err2;
+ /***************************************************************
+- *                Various intialisation functions              *
++ *                Various initialisation functions             *
+  ***************************************************************/
  
--		/* First Dword used to diffrentiate between various sources */
-+		/* First Dword used to differentiate between various sources */
- 		data = cdev->firmware->data + sizeof(u32);
+ static void get_initial_mode(struct intelfb_info *dinfo)
+diff -puN fs/inode.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances fs/inode.c
+--- a/fs/inode.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
++++ a/fs/inode.c
+@@ -119,7 +119,7 @@ static int no_open(struct inode *inode,
+ }
  
- 		qed_dbg_pf_init(cdev);
-diff -puN drivers/net/ethernet/qlogic/qed/qed_sriov.c~treewide-correct-diffrent-and-banlance-typos drivers/net/ethernet/qlogic/qed/qed_sriov.c
---- a/drivers/net/ethernet/qlogic/qed/qed_sriov.c~treewide-correct-diffrent-and-banlance-typos
-+++ a/drivers/net/ethernet/qlogic/qed/qed_sriov.c
-@@ -625,7 +625,7 @@ int qed_iov_hw_info(struct qed_hwfn *p_h
- 	 *  - If !ARI, VFs would start on next device.
- 	 *    so offset - (256 - pf_id) would provide the number.
- 	 * Utilize the fact that (256 - pf_id) is achieved only by later
--	 * to diffrentiate between the two.
-+	 * to differentiate between the two.
- 	 */
- 
- 	if (p_hwfn->cdev->p_iov_info->offset < (256 - p_hwfn->abs_pf_id)) {
-diff -puN include/linux/mlx4/device.h~treewide-correct-diffrent-and-banlance-typos include/linux/mlx4/device.h
---- a/include/linux/mlx4/device.h~treewide-correct-diffrent-and-banlance-typos
-+++ a/include/linux/mlx4/device.h
-@@ -108,7 +108,7 @@ enum {
- 	MLX4_MFUNC_EQE_MASK     = (MLX4_MFUNC_MAX_EQES - 1)
- };
- 
--/* Driver supports 3 diffrent device methods to manage traffic steering:
-+/* Driver supports 3 different device methods to manage traffic steering:
-  *	-device managed - High level API for ib and eth flow steering. FW is
-  *			  managing flow steering tables.
-  *	- B0 steering mode - Common low level API for ib and (if supported) eth.
-diff -puN scripts/spelling.txt~treewide-correct-diffrent-and-banlance-typos scripts/spelling.txt
---- a/scripts/spelling.txt~treewide-correct-diffrent-and-banlance-typos
+ /**
+- * inode_init_always - perform inode structure intialisation
++ * inode_init_always - perform inode structure initialisation
+  * @sb: superblock inode belongs to
+  * @inode: inode to initialise
+  *
+diff -puN fs/xfs/xfs_log_recover.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances fs/xfs/xfs_log_recover.c
+--- a/fs/xfs/xfs_log_recover.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
++++ a/fs/xfs/xfs_log_recover.c
+@@ -3796,7 +3796,7 @@ xlog_recover_bud_pass2(
+  * This routine is called when an inode create format structure is found in a
+  * committed transaction in the log.  It's purpose is to initialise the inodes
+  * being allocated on disk. This requires us to get inode cluster buffers that
+- * match the range to be intialised, stamped with inode templates and written
++ * match the range to be initialised, stamped with inode templates and written
+  * by delayed write so that subsequent modifications will hit the cached buffer
+  * and only need writing out at the end of recovery.
+  */
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
 +++ a/scripts/spelling.txt
-@@ -179,6 +179,7 @@ bakup||backup
- baloon||balloon
- baloons||balloons
- bandwith||bandwidth
-+banlance||balance
- batery||battery
- beacuse||because
- becasue||because
-@@ -375,6 +376,8 @@ dictionnary||dictionary
- didnt||didn't
- diferent||different
- differrence||difference
-+diffrent||different
-+diffrentiate||differentiate
- difinition||definition
- diplay||display
- direectly||directly
+@@ -605,6 +605,9 @@ interruptted||interrupted
+ interupted||interrupted
+ interupt||interrupt
+ intial||initial
++intialisation||initialisation
++intialised||initialised
++intialise||initialise
+ intialization||initialization
+ intialized||initialized
+ intialize||initialize
 _
