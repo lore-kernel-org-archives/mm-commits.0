@@ -1,61 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
- removed from -mm tree
-Date: Mon, 08 May 2017 15:38:00 -0700
-Message-ID: <5910f348.DP8HcqECPzON13CH%akpm@linux-foundation.org>
+ checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch removed from -mm tree
+Date: Mon, 08 May 2017 15:38:29 -0700
+Message-ID: <5910f365.cq9dF0vAkP5jzTaz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751094AbdEHWiB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:38:01 -0400
+        with ESMTP id S1751147AbdEHWia (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:38:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, keescook@chromium.org, william.c.roberts@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
+     Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+     checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
+This patch was dropped because it was folded into checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
+Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
 
-merge fix
+add helpful comment into lib/vsprintf.c
 
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: William Roberts <william.c.roberts@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/vsprintf.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix
-+++ a/mm/page_alloc.c
-@@ -2013,7 +2013,7 @@ static void steal_suitable_fallback(stru
- 	}
- 
- 	/* moving whole block can fail due to zone boundary conditions */
--	if (!pages)
-+	if (!free_pages)
- 		goto single_page;
- 
- 	/*
+diff -puN lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix
++++ a/lib/vsprintf.c
+@@ -1477,6 +1477,9 @@ int kptr_restrict __read_mostly;
+  * by an extra set of alphanumeric characters that are extended format
+  * specifiers.
+  *
++ * Please update scripts/checkpatch.pl when adding new conversion characters.
++ * (search for "check for vsprintf extension").
++ *
+  * Right now we handle:
+  *
+  * - 'F' For symbolic function descriptor pointers with offset
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
 checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
 taskstats-add-e-u-stime-for-tgid-command-fix.patch
 taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
