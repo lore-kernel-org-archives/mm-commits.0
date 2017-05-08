@@ -1,47 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 041/114] pidns: disable pid allocation if
- pid_ns_prepare_proc() is failed in alloc_pid()
-Date: Mon, 08 May 2017 15:56:34 -0700
-Message-ID: <20170508225634.ZtfH6ViAa%akpm@linux-foundation.org>
+Subject: [patch 042/114] ns: allow ns_entries to have custom
+ symlink content
+Date: Mon, 08 May 2017 15:56:38 -0700
+Message-ID: <20170508225638.3R4XPIRiV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751531AbdEHW4g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:56:36 -0400
+        with ESMTP id S1752221AbdEHW4j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:56:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: agruenba@redhat.com, akpm@linux-foundation.org, avagin@virtuozzo.com, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, ktkhai@virtuozzo.com, luto@amacapital.net, mingo@kernel.org, mm-commits@vger.kernel.org, mtk.manpages@googlemail.com, oleg@redhat.com, paul@paul-moore.com, serge@hallyn.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: pidns: disable pid allocation if pid_ns_prepare_proc() is failed in alloc_pid()
+Subject: ns: allow ns_entries to have custom symlink content
 
-alloc_pidmap() advances pid_namespace::last_pid.  When first pid
-allocation fails, then next created process will have pid 2 and
-pid_ns_prepare_proc() won't be called.  So, pid_namespace::proc_mnt will
-never be initialized (not to mention that there won't be a child reaper).
+Patch series "Expose task pid_ns_for_children to userspace".
 
-I saw crash stack of such case on kernel 3.10:
+pid_ns_for_children set by a task is known only to the task itself, and
+it's impossible to identify it from outside.
 
-    BUG: unable to handle kernel NULL pointer dereference at (null)
-    IP: [<ffffffff8126b18f>] proc_flush_task+0x8f/0x1b0
-    Call Trace:
-        [<ffffffff810807ff>] release_task+0x3f/0x490
-        [<ffffffff810c0570>] ? thread_group_cputime_adjusted+0x50/0x70
-        [<ffffffff8108144f>] wait_consider_task.part.10+0x7ff/0xb00
-        [<ffffffff8108186f>] do_wait+0x11f/0x280
-        [<ffffffff81082b2d>] SyS_wait4+0x7d/0x110
+It's a big problem for checkpoint/restore software like CRIU, because it
+can't correctly handle tasks, that do setns(CLONE_NEWPID) in proccess of
+their work.  If they have a custom pid_ns_for_children before dump, they
+must have the same ns after restore.  Otherwise, restored task bumped into
+enviroment it does not expect.
 
-We may fix this by restore of last_pid in 0 or by prohibiting of futher
-allocations.  Since there was a similar issue in Oleg Nesterov's
-314a8ad0f18a ("pidns: fix free_pid() to handle the first fork failure"). 
-and it was fixed via prohibiting allocation, let's follow this way, and do
-the same.
+This patchset solves the problem.  It exposes pid_ns_for_children to ns
+directory in standard way with the name "pid_for_children":
 
-Link: http://lkml.kernel.org/r/149201021004.4863.6762095011554287922.stgit@localhost.localdomain
+~# ls /proc/5531/ns -l | grep pid
+lrwxrwxrwx 1 root root 0 Jan 14 16:38 pid -> pid:[4026531836]
+lrwxrwxrwx 1 root root 0 Jan 14 16:38 pid_for_children -> pid:[4026532286]
+
+This patch (of 2):
+
+Make possible to have link content prefix yyy
+different from the link name xxx:
+
+$ readlink /proc/[pid]/ns/xxx
+yyy:[4026531838]
+
+This will be used in next patch.
+
+Link: http://lkml.kernel.org/r/149201120318.6007.7362655181033883000.stgit@localhost.localdomain
 Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Andrei Vagin <avagin@virtuozzo.com>
+Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Andrei Vagin <avagin@virtuozzo.com>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
@@ -55,22 +61,35 @@ Cc: Serge Hallyn <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/nsfs.c               |    4 +++-
+ include/linux/proc_ns.h |    1 +
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/pid.c~pidns-disable-pid-allocation-if-pid_ns_prepare_proc-is-failed-in-alloc_pid kernel/pid.c
---- a/kernel/pid.c~pidns-disable-pid-allocation-if-pid_ns_prepare_proc-is-failed-in-alloc_pid
-+++ a/kernel/pid.c
-@@ -321,8 +321,10 @@ struct pid *alloc_pid(struct pid_namespa
+diff -puN fs/nsfs.c~ns-allow-ns_entries-to-have-custom-symlink-content fs/nsfs.c
+--- a/fs/nsfs.c~ns-allow-ns_entries-to-have-custom-symlink-content
++++ a/fs/nsfs.c
+@@ -196,9 +196,11 @@ int ns_get_name(char *buf, size_t size,
+ {
+ 	struct ns_common *ns;
+ 	int res = -ENOENT;
++	const char *name;
+ 	ns = ns_ops->get(task);
+ 	if (ns) {
+-		res = snprintf(buf, size, "%s:[%u]", ns_ops->name, ns->inum);
++		name = ns_ops->real_ns_name ? : ns_ops->name;
++		res = snprintf(buf, size, "%s:[%u]", name, ns->inum);
+ 		ns_ops->put(ns);
  	}
+ 	return res;
+diff -puN include/linux/proc_ns.h~ns-allow-ns_entries-to-have-custom-symlink-content include/linux/proc_ns.h
+--- a/include/linux/proc_ns.h~ns-allow-ns_entries-to-have-custom-symlink-content
++++ a/include/linux/proc_ns.h
+@@ -14,6 +14,7 @@ struct inode;
  
- 	if (unlikely(is_child_reaper(pid))) {
--		if (pid_ns_prepare_proc(ns))
-+		if (pid_ns_prepare_proc(ns)) {
-+			disable_pid_allocation(ns);
- 			goto out_free;
-+		}
- 	}
- 
- 	get_pid_ns(ns);
+ struct proc_ns_operations {
+ 	const char *name;
++	const char *real_ns_name;
+ 	int type;
+ 	struct ns_common *(*get)(struct task_struct *task);
+ 	void (*put)(struct ns_common *ns);
 _
