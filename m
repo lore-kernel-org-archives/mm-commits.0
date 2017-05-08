@@ -1,70 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 012/114] jiffies.h: declare jiffies and jiffies_64
- with ____cacheline_aligned_in_smp
-Date: Mon, 08 May 2017 15:55:05 -0700
-Message-ID: <20170508225505.HrzshEuLi%akpm@linux-foundation.org>
+Subject: [patch 011/114] drivers/virt/fsl_hypervisor.c: use
+ get_user_pages_unlocked()
+Date: Mon, 08 May 2017 15:55:02 -0700
+Message-ID: <20170508225502.75fld7gK2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45784 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751354AbdEHWzG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:06 -0400
+        with ESMTP id S1751828AbdEHWzD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ghackmann@google.com, grundler@chromium.org, Jason@zx2c4.com, md@google.com, mka@chromium.org, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, galak@kernel.crashing.org, gregkh@linuxfoundation.org, lstoakes@gmail.com, mhocko@kernel.org, mihai.caraman@freescale.com, mm-commits@vger.kernel.org, pbonzini@redhat.com, torvalds@linux-foundation.org
 
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: jiffies.h: declare jiffies and jiffies_64 with ____cacheline_aligned_in_smp
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: drivers/virt/fsl_hypervisor.c: use get_user_pages_unlocked()
 
-jiffies_64 is defined in kernel/time/timer.c with
-____cacheline_aligned_in_smp, however this macro is not part of the
-declaration of jiffies and jiffies_64 in jiffies.h.
+Moving from get_user_pages() to get_user_pages_unlocked() simplifies the code
+and takes advantage of VM_FAULT_RETRY functionality when faulting in pages.
 
-As a result clang generates the following warning:
-
-kernel/time/timer.c:57:26: error: section does not match previous declaration [-Werror,-Wsection]
-__visible u64 jiffies_64 __cacheline_aligned_in_smp = INITIAL_JIFFIES;
-                         ^
-include/linux/cache.h:39:36: note: expanded from macro '__cacheline_aligned_in_smp'
-                                   ^
-include/linux/cache.h:34:4: note: expanded from macro '__cacheline_aligned'
-                 __section__(".data..cacheline_aligned")))
-                 ^
-include/linux/jiffies.h:77:12: note: previous attribute is here
-extern u64 __jiffy_data jiffies_64;
-           ^
-include/linux/jiffies.h:70:38: note: expanded from macro '__jiffy_data'
-
-Link: http://lkml.kernel.org/r/20170403190200.70273-1-mka@chromium.org
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Cc: "Jason A . Donenfeld" <Jason@zx2c4.com>
-Cc: Grant Grundler <grundler@chromium.org>
-Cc: Michael Davidson <md@google.com>
-Cc: Greg Hackmann <ghackmann@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20161101194332.23961-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Mihai Caraman <mihai.caraman@freescale.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jiffies.h |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/virt/fsl_hypervisor.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/jiffies.h~jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp include/linux/jiffies.h
---- a/include/linux/jiffies.h~jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp
-+++ a/include/linux/jiffies.h
-@@ -1,6 +1,7 @@
- #ifndef _LINUX_JIFFIES_H
- #define _LINUX_JIFFIES_H
+diff -puN drivers/virt/fsl_hypervisor.c~drivers-virt-use-get_user_pages_unlocked drivers/virt/fsl_hypervisor.c
+--- a/drivers/virt/fsl_hypervisor.c~drivers-virt-use-get_user_pages_unlocked
++++ a/drivers/virt/fsl_hypervisor.c
+@@ -243,11 +243,8 @@ static long ioctl_memcpy(struct fsl_hv_i
+ 	sg_list = PTR_ALIGN(sg_list_unaligned, sizeof(struct fh_sg_list));
  
-+#include <linux/cache.h>
- #include <linux/math64.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
-@@ -63,19 +64,13 @@ extern int register_refined_jiffies(long
- /* TICK_USEC is the time between ticks in usec assuming fake USER_HZ */
- #define TICK_USEC ((1000000UL + USER_HZ/2) / USER_HZ)
+ 	/* Get the physical addresses of the source buffer */
+-	down_read(&current->mm->mmap_sem);
+-	num_pinned = get_user_pages(param.local_vaddr - lb_offset,
+-		num_pages, (param.source == -1) ? 0 : FOLL_WRITE,
+-		pages, NULL);
+-	up_read(&current->mm->mmap_sem);
++	num_pinned = get_user_pages_unlocked(param.local_vaddr - lb_offset,
++		num_pages, pages, (param.source == -1) ? 0 : FOLL_WRITE);
  
--/* some arch's have a small-data section that can be accessed register-relative
-- * but that can only take up to, say, 4-byte variables. jiffies being part of
-- * an 8-byte variable may not be correctly accessed unless we force the issue
-- */
--#define __jiffy_data  __attribute__((section(".data")))
+ 	if (num_pinned != num_pages) {
+ 		/* get_user_pages() failed */
+_
