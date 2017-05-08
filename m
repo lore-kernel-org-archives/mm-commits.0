@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-support-gcc-71.patch added to -mm tree
-Date: Mon, 08 May 2017 14:37:13 -0700
-Message-ID: <5910e509.bcDY7DVuoRn4ani/%akpm@linux-foundation.org>
+Subject: + gcov-support-gcc-71-v2.patch added to -mm tree
+Date: Mon, 08 May 2017 14:37:15 -0700
+Message-ID: <5910e50b.pwjxQYmu1rcanFI9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34098 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750835AbdEHVhO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 17:37:14 -0400
+        with ESMTP id S1751061AbdEHVhQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 17:37:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mliska@suse.cz, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: support GCC 7.1
+     Subject: gcov-support-gcc-71-v2
 has been added to the -mm tree.  Its filename is
-     gcov-support-gcc-71.patch
+     gcov-support-gcc-71-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/gcov-support-gcc-71.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gcov-support-gcc-71-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-support-gcc-71.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-support-gcc-71-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Martin Liska <mliska@suse.cz>
-Subject: gcov: support GCC 7.1
+Subject: gcov-support-gcc-71-v2
 
 Starting from GCC 7.1, __gcov_exit is a new symbol expected
-to be implemented in a profiling runtime.
+to be implemented in a profiling runtime. Update number of profile
+counters.
 
-Link: http://lkml.kernel.org/r/8c4084fa-3885-29fe-5fc4-0d4ca199c785@suse.cz
+Link: http://lkml.kernel.org/r/e63a3c59-0149-c97e-4084-20ca8f146b26@suse.cz
 Signed-off-by: Martin Liska <mliska@suse.cz>
 Acked-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/base.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/gcov/gcc_4_7.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/gcov/base.c~gcov-support-gcc-71 kernel/gcov/base.c
---- a/kernel/gcov/base.c~gcov-support-gcc-71
-+++ a/kernel/gcov/base.c
-@@ -98,6 +98,12 @@ void __gcov_merge_icall_topn(gcov_type *
- }
- EXPORT_SYMBOL(__gcov_merge_icall_topn);
+diff -puN kernel/gcov/gcc_4_7.c~gcov-support-gcc-71-v2 kernel/gcov/gcc_4_7.c
+--- a/kernel/gcov/gcc_4_7.c~gcov-support-gcc-71-v2
++++ a/kernel/gcov/gcc_4_7.c
+@@ -18,7 +18,9 @@
+ #include <linux/vmalloc.h>
+ #include "gcov.h"
  
-+void __gcov_exit (void)
-+{
-+	/* Unused. */
-+}
-+EXPORT_SYMBOL(__gcov_exit);
-+
- /**
-  * gcov_enable_events - enable event reporting through gcov_event()
-  *
+-#if (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
++#if (__GNUC__ >= 7)
++#define GCOV_COUNTERS			9
++#elif (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
+ #define GCOV_COUNTERS			10
+ #elif __GNUC__ == 4 && __GNUC_MINOR__ >= 9
+ #define GCOV_COUNTERS			9
 _
 
 Patches currently in -mm which might be from mliska@suse.cz are
