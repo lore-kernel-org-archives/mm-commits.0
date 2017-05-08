@@ -1,158 +1,177 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Mon, 8 May 2017 15:53:55 -0700
-Message-ID: <20170508155355.a0a32216272a653f0f252faf@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 001/114] mm, compaction: reorder fields in struct
+ compact_control
+Date: Mon, 08 May 2017 15:54:30 -0700
+Message-ID: <20170508225430.nBV_cIrm6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45246 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751071AbdEHWx5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:53:57 -0400
+        with ESMTP id S1751115AbdEHWyc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:54:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-
-- the rest of MM
-
-- various misc things
-
-- procfs updates
-
-- lib/ updates
-
-- checkpatch updates
-
-- kdump/kexec updates
-
-- add kvmalloc helpers, use them
-
-- time helper updates for Y2038 issues.  We're almost ready to remove
-  current_fs_time() but that awaits a btrfs merge.
-
-- add tracepoints to DAX.
-
-
-114 patches, based on 13e0988140374123bead1dd27c287354cb95108e:
-
+From: Vlastimil Babka <vbabka@suse.cz>
 Subject: mm, compaction: reorder fields in struct compact_control
-Subject: mm, compaction: remove redundant watermark check in compact_finished()
-Subject: mm, page_alloc: split smallest stolen page in fallback
-Subject: mm, page_alloc: count movable pages when stealing from pageblock
-Subject: mm, compaction: change migrate_async_suitable() to suitable_migration_source()
-Subject: mm, compaction: add migratetype to compact_control
-Subject: mm, compaction: restrict async compaction to pageblocks of same migratetype
-Subject: mm, compaction: finish whole pageblock to reduce fragmentation
-Subject: fs/proc/inode.c: remove cast from memory allocation
-Subject: proc/sysctl: fix the int overflow for jiffies conversion
-Subject: drivers/virt/fsl_hypervisor.c: use get_user_pages_unlocked()
-Subject: jiffies.h: declare jiffies and jiffies_64 with ____cacheline_aligned_in_smp
-Subject: make help: add tools help target
-Subject: kernel/hung_task.c: defer showing held locks
-Subject: drivers/misc/vmw_vmci/vmci_queue_pair.c: fix a couple integer overflow tests
-Subject: drivers/misc/c2port/c2port-duramar2150.c: checking for NULL instead of IS_ERR()
-Subject: Revert "lib/test_sort.c: make it explicitly non-modular"
-Subject: lib: add module support to array-based sort tests
-Subject: lib: add module support to linked list sorting tests
-Subject: firmware/Makefile: force recompilation if makefile changes
-Subject: checkpatch: remove obsolete CONFIG_EXPERIMENTAL checks
-Subject: checkpatch: add ability to find bad uses of vsprintf %p<foo> extensions
-Subject: checkpatch: improve EMBEDDED_FUNCTION_NAME test
-Subject: checkpatch: allow space leading blank lines in email headers
-Subject: checkpatch: avoid suggesting struct definitions should be const
-Subject: checkpatch: improve MULTISTATEMENT_MACRO_USE_DO_WHILE test
-Subject: checkpatch: clarify the EMBEDDED_FUNCTION_NAME message
-Subject: checkpatch: special audit for revert commit line
-Subject: checkpatch: improve k.alloc with multiplication and sizeof test
-Subject: checkpatch: add --typedefsfile
-Subject: checkpatch: improve the embedded function name test for patch contexts
-Subject: checkpatch: improve the SUSPECT_CODE_INDENT test
-Subject: reiserfs: use designated initializers
-Subject: fork: free vmapped stacks in cache when cpus are offline
-Subject: cpumask: make "nr_cpumask_bits" unsigned
-Subject: crash: move crashkernel parsing and vmcore related code under CONFIG_CRASH_CORE
-Subject: ia64: reuse append_elf_note() and final_note() functions
-Subject: powerpc/fadump: remove dependency with CONFIG_KEXEC
-Subject: powerpc/fadump: reuse crashkernel parameter for fadump memory reservation
-Subject: powerpc/fadump: update documentation about crashkernel parameter reuse
-Subject: pidns: disable pid allocation if pid_ns_prepare_proc() is failed in alloc_pid()
-Subject: ns: allow ns_entries to have custom symlink content
-Subject: pidns: expose task pid_ns_for_children to userspace
-Subject: taskstats: add e/u/stime for TGID command
-Subject: kcov: simplify interrupt check
-Subject: lib/fault-inject.c: use correct check for interrupts
-Subject: lib/zlib_inflate/inftrees.c: fix potential buffer overflow
-Subject: initramfs: provide a way to ignore image provided by bootloader
-Subject: initramfs: use vfs_stat/lstat directly
-Subject: ipc/shm: some shmat cleanups
-Subject: sysv,ipc: cacheline align kern_ipc_perm
-Subject: mm: introduce kv[mz]alloc helpers
-Subject: mm, vmalloc: properly track vmalloc users
-Subject: mm: support __GFP_REPEAT in kvmalloc_node for >32kB
-Subject: lib/rhashtable.c: simplify a strange allocation pattern
-Subject: net/ipv6/ila/ila_xlat.c: simplify a strange allocation pattern
-Subject: fs/xattr.c: zero out memory copied to userspace in getxattr
-Subject: treewide: use kv[mz]alloc* rather than opencoded variants
-Subject: net: use kvmalloc with __GFP_REPEAT rather than open coded variant
-Subject: drivers/md/dm-ioctl.c: use kvmalloc rather than opencoded variant
-Subject: drivers/md/bcache/super.c: use kvmalloc
-Subject: mm, swap: use kvzalloc to allocate some swap data structures
-Subject: mm, vmalloc: use __GFP_HIGHMEM implicitly
-Subject: scripts/spelling.txt: add "memory" pattern and fix typos
-Subject: scripts/spelling.txt: add regsiter -> register spelling mistake
-Subject: scripts/spelling.txt: add "intialise(d)" pattern and fix typo instances
-Subject: treewide: spelling: correct diffrent[iate] and banlance typos
-Subject: treewide: move set_memory_* functions away from cacheflush.h
-Subject: arm: use set_memory.h header
-Subject: arm64: use set_memory.h header
-Subject: s390: use set_memory.h header
-Subject: x86: use set_memory.h header
-Subject: agp: use set_memory.h header
-Subject: drm: use set_memory.h header
-Subject: drivers/hwtracing/intel_th/msu.c: use set_memory.h header
-Subject: drivers/watchdog/hpwdt.c: use set_memory.h header
-Subject: include/linux/filter.h: use set_memory.h header
-Subject: kernel/module.c: use set_memory.h header
-Subject: kernel/power/snapshot.c: use set_memory.h header
-Subject: alsa: use set_memory.h header
-Subject: drivers/misc/sram-exec.c: use set_memory.h header
-Subject: drivers/video/fbdev/vermilion/vermilion.c: use set_memory.h header
-Subject: drivers/staging/media/atomisp/pci/atomisp2: use set_memory.h
-Subject: treewide: decouple cacheflush.h and set_memory.h
-Subject: kref: remove WARN_ON for NULL release functions
-Subject: drivers/scsi/megaraid: remove expensive inline from megasas_return_cmd
-Subject: include/linux/uaccess.h: remove expensive WARN_ON in pagefault_disabled_dec
-Subject: fs: semove set but not checked AOP_FLAG_UNINTERRUPTIBLE flag
-Subject: Documentation/vm/transhuge.txt: fix trivial typos
-Subject: format-security: move static strings to const
-Subject: fs: f2fs: use ktime_get_real_seconds for sit_info times
-Subject: trace: make trace_hwlat timestamp y2038 safe
-Subject: fs: cifs: replace CURRENT_TIME by other appropriate apis
-Subject: fs: ceph: CURRENT_TIME with ktime_get_real_ts()
-Subject: fs: ufs: use ktime_get_real_ts64() for birthtime
-Subject: fs: ubifs: replace CURRENT_TIME_SEC with current_time
-Subject: lustre: replace CURRENT_TIME macro
-Subject: apparmorfs: replace CURRENT_TIME with current_time()
-Subject: gfs2: replace CURRENT_TIME with current_time
-Subject: time: delete CURRENT_TIME_SEC and CURRENT_TIME
-Subject: mm/huge_memory.c: use zap_deposited_table() more
-Subject: mm/huge_memory.c: deposit a pgtable for DAX PMD faults when required
-Subject: mm: prevent potential recursive reclaim due to clearing PF_MEMALLOC
-Subject: mm: introduce memalloc_noreclaim_{save,restore}
-Subject: treewide: convert PF_MEMALLOC manipulations to new helpers
-Subject: mtd: nand: nandsim: convert to memalloc_noreclaim_*()
-Subject: dax: add tracepoints to dax_iomap_pte_fault()
-Subject: dax: add tracepoints to dax_pfn_mkwrite()
-Subject: dax: add tracepoints to dax_load_hole()
-Subject: dax: add tracepoints to dax_writeback_mapping_range()
-Subject: dax: add tracepoint to dax_writeback_one()
-Subject: dax: add tracepoint to dax_insert_mapping()
-Subject: selftests/vm: add a test for virtual address range mapping
-Subject: drivers/staging/ccree/ssi_hash.c: fix build with gcc-4.4.4
+
+Patch series "try to reduce fragmenting fallbacks", v3.
+
+Last year, Johannes Weiner has reported a regression in page mobility
+grouping [1] and while the exact cause was not found, I've come up with
+some ways to improve it by reducing the number of allocations falling back
+to different migratetype and causing permanent fragmentation.
+
+The series was tested with mmtests stress-highalloc modified to do
+GFP_KERNEL order-4 allocations, on 4.9 with "mm, vmscan: fix zone balance
+check in prepare_kswapd_sleep" (without that, kcompactd indeed wasn't
+woken up) on UMA machine with 4GB memory.  There were 5 repeats of each
+run, as the extfrag stats are quite volatile (note the stats below are
+sums, not averages, as it was less perl hacking for me).
+
+Success rate are the same, already high due to the low allocation order
+used, so I'm not including them.
+
+Compaction stats:
+(the patches are stacked, and I haven't measured the non-functional-changes
+patches separately)
+
+                                   patch 1     patch 2     patch 3     patch 4     patch 7     patch 8
+Compaction stalls                    22449       24680       24846       19765       22059       17480
+Compaction success                   12971       14836       14608       10475       11632        8757
+Compaction failures                   9477        9843       10238        9290       10426        8722
+Page migrate success               3109022     3370438     3312164     1695105     1608435     2111379
+Page migrate failure                911588     1149065     1028264     1112675     1077251     1026367
+Compaction pages isolated          7242983     8015530     7782467     4629063     4402787     5377665
+Compaction migrate scanned       980838938   987367943   957690188   917647238   947155598  1018922197
+Compaction free scanned          557926893   598946443   602236894   594024490   541169699   763651731
+Compaction cost                      10243       10578       10304        8286        8398        9440
+
+Compaction stats are mostly within noise until patch 4, which decreases
+the number of compactions, and migrations.  Part of that could be due to
+more pageblocks marked as unmovable, and async compaction skipping those. 
+This changes a bit with patch 7, but not so much.  Patch 8 increases free
+scanner stats and migrations, which comes from the changed termination
+criteria.  Interestingly number of compactions decreases - probably the
+fully compacted pageblock satisfies multiple subsequent allocations, so it
+amortizes.
+
+Next comes the extfrag tracepoint, where "fragmenting" means that an
+allocation had to fallback to a pageblock of another migratetype which
+wasn't fully free (which is almost all of the fallbacks).  I have locally
+added another tracepoint for "Page steal" into steal_suitable_fallback()
+which triggers in situations where we are allowed to do
+move_freepages_block().  If we decide to also do
+set_pageblock_migratetype(), it's "Pages steal with pageblock" with break
+down for which allocation migratetype we are stealing and from which
+fallback migratetype.  The last part "due to counting" comes from patch 4
+and counts the events where the counting of movable pages allowed us to
+change pageblock's migratetype, while the number of free pages alone
+wouldn't be enough to cross the threshold.
+
+                                                     patch 1     patch 2     patch 3     patch 4     patch 7     patch 8
+Page alloc extfrag event                            10155066     8522968    10164959    15622080    13727068    13140319
+Extfrag fragmenting                                 10149231     8517025    10159040    15616925    13721391    13134792
+Extfrag fragmenting for unmovable                     159504      168500      184177       97835       70625       56948
+Extfrag fragmenting unmovable placed with movable     153613      163549      172693       91740       64099       50917
+Extfrag fragmenting unmovable placed with reclaim.      5891        4951       11484        6095        6526        6031
+Extfrag fragmenting for reclaimable                     4738        4829        6345        4822        5640        5378
+Extfrag fragmenting reclaimable placed with movable     1836        1902        1851        1579        1739        1760
+Extfrag fragmenting reclaimable placed with unmov.      2902        2927        4494        3243        3901        3618
+Extfrag fragmenting for movable                      9984989     8343696     9968518    15514268    13645126    13072466
+Pages steal                                           179954      192291      210880      123254       94545       81486
+Pages steal with pageblock                             22153       18943       20154       33562       29969       33444
+Pages steal with pageblock for unmovable               14350       12858       13256       20660       19003       20852
+Pages steal with pageblock for unmovable from mov.     12812       11402       11683       19072       17467       19298
+Pages steal with pageblock for unmovable from recl.     1538        1456        1573        1588        1536        1554
+Pages steal with pageblock for movable                  7114        5489        5965       11787       10012       11493
+Pages steal with pageblock for movable from unmov.      6885        5291        5541       11179        9525       10885
+Pages steal with pageblock for movable from recl.        229         198         424         608         487         608
+Pages steal with pageblock for reclaimable               689         596         933        1115         954        1099
+Pages steal with pageblock for reclaimable from unmov.   273         219         537         658         547         667
+Pages steal with pageblock for reclaimable from mov.     416         377         396         457         407         432
+Pages steal with pageblock due to counting                                                 11834       10075        7530
+... for unmovable                                                                           8993        7381        4616
+... for movable                                                                             2792        2653        2851
+... for reclaimable                                                                           49          41          63
+
+What we can see is that "Extfrag fragmenting for unmovable" and "... 
+placed with movable" drops with almost each patch, which is good as we are
+polluting less movable pageblocks with unmovable pages.
+
+The most significant change is patch 4 with movable page counting.  On the
+other hand it increases "Extfrag fragmenting for movable" by 50%.  "Pages
+steal" drops though, so these movable allocation fallbacks find only small
+free pages and are not allowed to steal whole pageblocks back.  "Pages
+steal with pageblock" raises, because the patch increases the chances of
+pageblock migratetype changes to happen.  This affects all migratetypes.
+
+The summary is that patch 4 is not a clear win wrt these stats, but I
+believe that the tradeoff it makes is a good one.  There's less pollution
+of movable pageblocks by unmovable allocations.  There's less stealing
+between pageblock, and those that remain have higher chance of changing
+migratetype also the pageblock itself, so it should more faithfully
+reflect the migratetype of the pages within the pageblock.  The increase
+of movable allocations falling back to unmovable pageblock might look
+dramatic, but those allocations can be migrated by compaction when needed,
+and other patches in the series (7-9) improve that aspect.
+
+Patches 7 and 8 continue the trend of reduced unmovable fallbacks and also
+reduce the impact on movable fallbacks from patch 4.
+
+[1] https://www.spinics.net/lists/linux-mm/msg114237.html
 
 
+This patch (of 8):
 
+While currently there are (mostly by accident) no holes in struct
+compact_control (on x86_64), but we are going to add more bool flags, so
+place them all together to the end of the structure.  While at it, just
+order all fields from largest to smallest.
+
+Link: http://lkml.kernel.org/r/20170307131545.28577-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/internal.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff -puN mm/internal.h~mm-compaction-reorder-fields-in-struct-compact_control mm/internal.h
+--- a/mm/internal.h~mm-compaction-reorder-fields-in-struct-compact_control
++++ a/mm/internal.h
+@@ -183,6 +183,7 @@ extern int user_min_free_kbytes;
+ struct compact_control {
+ 	struct list_head freepages;	/* List of free pages to migrate to */
+ 	struct list_head migratepages;	/* List of pages being migrated */
++	struct zone *zone;
+ 	unsigned long nr_freepages;	/* Number of isolated free pages */
+ 	unsigned long nr_migratepages;	/* Number of pages to migrate */
+ 	unsigned long total_migrate_scanned;
+@@ -190,16 +191,15 @@ struct compact_control {
+ 	unsigned long free_pfn;		/* isolate_freepages search base */
+ 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
+ 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
++	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
++	int order;			/* order a direct compactor needs */
++	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
++	const int classzone_idx;	/* zone index of a direct compactor */
+ 	enum migrate_mode mode;		/* Async or sync migration mode */
+ 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
+ 	bool ignore_block_suitable;	/* Scan blocks considered unsuitable */
+ 	bool direct_compaction;		/* False from kcompactd or /proc/... */
+ 	bool whole_zone;		/* Whole zone should/has been scanned */
+-	int order;			/* order a direct compactor needs */
+-	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
+-	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
+-	const int classzone_idx;	/* zone index of a direct compactor */
+-	struct zone *zone;
+ 	bool contended;			/* Signal lock or sched contention */
+ };
+ 
+_
