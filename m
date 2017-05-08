@@ -1,61 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] docs-vm-transhuge-fix-few-trivial-typos-fix.patch removed from -mm tree
-Date: Mon, 08 May 2017 15:41:29 -0700
-Message-ID: <5910f419.Goaq7vIUnsF/ALJG%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ treewide-convert-pf_memalloc-manipulations-to-new-helpers-fix.patch removed from -mm tree
+Date: Mon, 08 May 2017 15:41:58 -0700
+Message-ID: <5910f436.r0Arq39uGojK8UZG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751094AbdEHWla (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:41:30 -0400
+        with ESMTP id S1751094AbdEHWl6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:41:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, rdunlap@infradead.org, sj38.park@gmail.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs-vm-transhuge-fix-few-trivial-typos-fix
+     Subject: treewide-convert-pf_memalloc-manipulations-to-new-helpers-fix
 has been removed from the -mm tree.  Its filename was
-     docs-vm-transhuge-fix-few-trivial-typos-fix.patch
+     treewide-convert-pf_memalloc-manipulations-to-new-helpers-fix.patch
 
-This patch was dropped because it was folded into docs-vm-transhuge-fix-few-trivial-typos.patch
+This patch was dropped because it was folded into treewide-convert-pf_memalloc-manipulations-to-new-helpers.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-vm-transhuge-fix-few-trivial-typos-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: treewide-convert-pf_memalloc-manipulations-to-new-helpers-fix
 
-fixes per Randy
+In net/core/sock.c the hunk is missing (that didn't involve
+tsk_restore_flags()).
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: SeongJae Park <sj38.park@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/core/sock.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/vm/transhuge.txt~docs-vm-transhuge-fix-few-trivial-typos-fix Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~docs-vm-transhuge-fix-few-trivial-typos-fix
-+++ a/Documentation/vm/transhuge.txt
-@@ -520,7 +520,7 @@ comes. Splitting will free up unused sub
- Splitting the page right away is not an option due to locking context in
- the place where we can detect partial unmap. It's also might be
- counterproductive since in many cases partial unmap happens during exit(2) if
--an THP crosses VMA boundary.
-+a THP crosses a VMA boundary.
+diff -puN net/core/sock.c~treewide-convert-pf_memalloc-manipulations-to-new-helpers-fix net/core/sock.c
+--- a/net/core/sock.c~treewide-convert-pf_memalloc-manipulations-to-new-helpers-fix
++++ a/net/core/sock.c
+@@ -373,14 +373,14 @@ EXPORT_SYMBOL_GPL(sk_clear_memalloc);
+ int __sk_backlog_rcv(struct sock *sk, struct sk_buff *skb)
+ {
+ 	int ret;
+-	unsigned long pflags = current->flags;
++	unsigned int noreclaim_flag;
  
- Function deferred_split_huge_page() is used to queue page for splitting.
- The splitting itself will happen when we get memory pressure via shrinker
+ 	/* these should have been dropped before queueing */
+ 	BUG_ON(!sock_flag(sk, SOCK_MEMALLOC));
+ 
+-	current->flags |= PF_MEMALLOC;
++	noreclaim_flag = memalloc_noreclaim_save();
+ 	ret = sk->sk_backlog_rcv(sk, skb);
+-	current_restore_flags(pflags, PF_MEMALLOC);
++	memalloc_noreclaim_restore(noreclaim_flag);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
-docs-vm-transhuge-fix-few-trivial-typos.patch
-dax-add-tracepoint-to-dax_writeback_one-fix.patch
-drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch
+mm-compaction-reorder-fields-in-struct-compact_control.patch
+mm-compaction-remove-redundant-watermark-check-in-compact_finished.patch
+mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
+mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
+mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
+mm-compaction-add-migratetype-to-compact_control.patch
+mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype.patch
+mm-compaction-finish-whole-pageblock-to-reduce-fragmentation.patch
+mm-prevent-potential-recursive-reclaim-due-to-clearing-pf_memalloc.patch
+mm-introduce-memalloc_noreclaim_saverestore.patch
+treewide-convert-pf_memalloc-manipulations-to-new-helpers.patch
+mtd-nand-nandsim-convert-to-memalloc_noreclaim_.patch
 
