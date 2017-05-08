@@ -1,140 +1,432 @@
 From: akpm@linux-foundation.org
-Subject: [patch 066/114] scripts/spelling.txt: add "intialise(d)"
- pattern and fix typo instances
-Date: Mon, 08 May 2017 15:57:53 -0700
-Message-ID: <20170508225753.kpJSdl9C9%akpm@linux-foundation.org>
+Subject: [patch 068/114] treewide: move set_memory_* functions away
+ from cacheflush.h
+Date: Mon, 08 May 2017 15:57:59 -0700
+Message-ID: <20170508225759.Vm1ayY4Di%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47190 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752367AbdEHW5y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:57:54 -0400
+        with ESMTP id S1751205AbdEHW6A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:58:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, labbott@redhat.com, mark.rutland@arm.com, mm-commits@vger.kernel.org, rmk+kernel@armlinux.org.uk, torvalds@linux-foundation.org
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: scripts/spelling.txt: add "intialise(d)" pattern and fix typo instances
+From: Laura Abbott <labbott@redhat.com>
+Subject: treewide: move set_memory_* functions away from cacheflush.h
 
-Fix typos and add the following to the scripts/spelling.txt:
+Patch series "set_memory_* functions header refactor", v3.
 
-  intialisation||initialisation
-  intialised||initialised
-  intialise||initialise
+The set_memory_* APIs came out of a desire to have a better way to change
+memory attributes.  Many of these attributes were linked to cache
+functionality so the prototypes were put in cacheflush.h.  These days, the
+APIs have grown and have a much wider use than just cache APIs.  To
+support this growth, split off set_memory_* and friends into a separate
+header file to avoid growing cacheflush.h for APIs that have nothing to do
+with caches.
 
-This commit does not intend to change the British spelling itself.
-
-Link: http://lkml.kernel.org/r/1481573103-11329-18-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Link: http://lkml.kernel.org/r/1488920133-27229-2-git-send-email-labbott@redhat.com
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- certs/blacklist.c                               |    2 +-
- drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c |    8 ++++----
- drivers/video/fbdev/intelfb/intelfbdrv.c        |    2 +-
- fs/inode.c                                      |    2 +-
- fs/xfs/xfs_log_recover.c                        |    2 +-
- scripts/spelling.txt                            |    3 +++
- 6 files changed, 11 insertions(+), 8 deletions(-)
+ arch/arm/include/asm/cacheflush.h   |   21 ------
+ arch/arm/include/asm/set_memory.h   |   32 +++++++++
+ arch/arm64/include/asm/Kbuild       |    1 
+ arch/arm64/include/asm/cacheflush.h |    5 -
+ arch/s390/include/asm/cacheflush.h  |   28 --------
+ arch/s390/include/asm/set_memory.h  |   31 +++++++++
+ arch/x86/include/asm/cacheflush.h   |   86 -------------------------
+ arch/x86/include/asm/set_memory.h   |   87 ++++++++++++++++++++++++++
+ include/asm-generic/set_memory.h    |   12 +++
+ 9 files changed, 167 insertions(+), 136 deletions(-)
 
-diff -puN certs/blacklist.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances certs/blacklist.c
---- a/certs/blacklist.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
-+++ a/certs/blacklist.c
-@@ -140,7 +140,7 @@ int is_hash_blacklisted(const u8 *hash,
- EXPORT_SYMBOL_GPL(is_hash_blacklisted);
+diff -puN arch/arm/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh arch/arm/include/asm/cacheflush.h
+--- a/arch/arm/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh
++++ a/arch/arm/include/asm/cacheflush.h
+@@ -16,6 +16,7 @@
+ #include <asm/shmparam.h>
+ #include <asm/cachetype.h>
+ #include <asm/outercache.h>
++#include <asm/set_memory.h>
+ 
+ #define CACHE_COLOUR(vaddr)	((vaddr & (SHMLBA - 1)) >> PAGE_SHIFT)
+ 
+@@ -478,26 +479,6 @@ static inline void __sync_cache_range_r(
+ 	: : : "r0","r1","r2","r3","r4","r5","r6","r7", \
+ 	      "r9","r10","lr","memory" )
+ 
+-#ifdef CONFIG_MMU
+-int set_memory_ro(unsigned long addr, int numpages);
+-int set_memory_rw(unsigned long addr, int numpages);
+-int set_memory_x(unsigned long addr, int numpages);
+-int set_memory_nx(unsigned long addr, int numpages);
+-#else
+-static inline int set_memory_ro(unsigned long addr, int numpages) { return 0; }
+-static inline int set_memory_rw(unsigned long addr, int numpages) { return 0; }
+-static inline int set_memory_x(unsigned long addr, int numpages) { return 0; }
+-static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
+-#endif
+-
+-#ifdef CONFIG_STRICT_KERNEL_RWX
+-void set_kernel_text_rw(void);
+-void set_kernel_text_ro(void);
+-#else
+-static inline void set_kernel_text_rw(void) { }
+-static inline void set_kernel_text_ro(void) { }
+-#endif
+-
+ void flush_uprobe_xol_access(struct page *page, unsigned long uaddr,
+ 			     void *kaddr, unsigned long len);
+ 
+diff -puN /dev/null arch/arm/include/asm/set_memory.h
+--- /dev/null
++++ a/arch/arm/include/asm/set_memory.h
+@@ -0,0 +1,32 @@
++/*
++ * Copyright (C) 1999-2002 Russell King
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _ASMARM_SET_MEMORY_H
++#define _ASMARM_SET_MEMORY_H
++
++#ifdef CONFIG_MMU
++int set_memory_ro(unsigned long addr, int numpages);
++int set_memory_rw(unsigned long addr, int numpages);
++int set_memory_x(unsigned long addr, int numpages);
++int set_memory_nx(unsigned long addr, int numpages);
++#else
++static inline int set_memory_ro(unsigned long addr, int numpages) { return 0; }
++static inline int set_memory_rw(unsigned long addr, int numpages) { return 0; }
++static inline int set_memory_x(unsigned long addr, int numpages) { return 0; }
++static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
++#endif
++
++#ifdef CONFIG_STRICT_KERNEL_RWX
++void set_kernel_text_rw(void);
++void set_kernel_text_ro(void);
++#else
++static inline void set_kernel_text_rw(void) { }
++static inline void set_kernel_text_ro(void) { }
++#endif
++
++#endif
+diff -puN arch/arm64/include/asm/Kbuild~treewide-move-set_memory_-functions-away-from-cacheflushh arch/arm64/include/asm/Kbuild
+--- a/arch/arm64/include/asm/Kbuild~treewide-move-set_memory_-functions-away-from-cacheflushh
++++ a/arch/arm64/include/asm/Kbuild
+@@ -29,6 +29,7 @@ generic-y += rwsem.h
+ generic-y += segment.h
+ generic-y += sembuf.h
+ generic-y += serial.h
++generic-y += set_memory.h
+ generic-y += shmbuf.h
+ generic-y += simd.h
+ generic-y += sizes.h
+diff -puN arch/arm64/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh arch/arm64/include/asm/cacheflush.h
+--- a/arch/arm64/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh
++++ a/arch/arm64/include/asm/cacheflush.h
+@@ -20,6 +20,7 @@
+ #define __ASM_CACHEFLUSH_H
+ 
+ #include <linux/mm.h>
++#include <asm/set_memory.h>
  
  /*
-- * Intialise the blacklist
-+ * Initialise the blacklist
-  */
- static int __init blacklist_init(void)
+  * This flag is used to indicate that the page pointed to by a pte is clean
+@@ -150,10 +151,6 @@ static inline void flush_cache_vunmap(un
  {
-diff -puN drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
---- a/drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
-+++ a/drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
-@@ -387,7 +387,7 @@ static void sxgbe_free_rx_buffers(struct
- /**
-  * init_tx_ring - init the TX descriptor ring
-  * @dev: net device structure
-- * @tx_ring: ring to be intialised
-+ * @tx_ring: ring to be initialised
-  * @tx_rsize: ring size
-  * Description:  this function initializes the DMA TX descriptor
-  */
-@@ -437,7 +437,7 @@ dmamem_err:
- /**
-  * free_rx_ring - free the RX descriptor ring
-  * @dev: net device structure
-- * @rx_ring: ring to be intialised
-+ * @rx_ring: ring to be initialised
-  * @rx_rsize: ring size
-  * Description:  this function initializes the DMA RX descriptor
-  */
-@@ -453,7 +453,7 @@ static void free_rx_ring(struct device *
- /**
-  * init_rx_ring - init the RX descriptor ring
-  * @dev: net device structure
-- * @rx_ring: ring to be intialised
-+ * @rx_ring: ring to be initialised
-  * @rx_rsize: ring size
-  * Description:  this function initializes the DMA RX descriptor
-  */
-@@ -539,7 +539,7 @@ err_free_dma_rx:
- /**
-  * free_tx_ring - free the TX descriptor ring
-  * @dev: net device structure
-- * @tx_ring: ring to be intialised
-+ * @tx_ring: ring to be initialised
-  * @tx_rsize: ring size
-  * Description:  this function initializes the DMA TX descriptor
-  */
-diff -puN drivers/video/fbdev/intelfb/intelfbdrv.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances drivers/video/fbdev/intelfb/intelfbdrv.c
---- a/drivers/video/fbdev/intelfb/intelfbdrv.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
-+++ a/drivers/video/fbdev/intelfb/intelfbdrv.c
-@@ -934,7 +934,7 @@ static __inline__ int var_to_refresh(con
  }
  
- /***************************************************************
-- *                Various intialisation functions              *
-+ *                Various initialisation functions             *
-  ***************************************************************/
+-int set_memory_ro(unsigned long addr, int numpages);
+-int set_memory_rw(unsigned long addr, int numpages);
+-int set_memory_x(unsigned long addr, int numpages);
+-int set_memory_nx(unsigned long addr, int numpages);
+ int set_memory_valid(unsigned long addr, unsigned long size, int enable);
  
- static void get_initial_mode(struct intelfb_info *dinfo)
-diff -puN fs/inode.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances fs/inode.c
---- a/fs/inode.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
-+++ a/fs/inode.c
-@@ -119,7 +119,7 @@ static int no_open(struct inode *inode,
- }
+ #endif
+diff -puN arch/s390/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh arch/s390/include/asm/cacheflush.h
+--- a/arch/s390/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh
++++ a/arch/s390/include/asm/cacheflush.h
+@@ -3,32 +3,6 @@
  
- /**
-- * inode_init_always - perform inode structure intialisation
-+ * inode_init_always - perform inode structure initialisation
-  * @sb: superblock inode belongs to
-  * @inode: inode to initialise
-  *
-diff -puN fs/xfs/xfs_log_recover.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances fs/xfs/xfs_log_recover.c
---- a/fs/xfs/xfs_log_recover.c~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
-+++ a/fs/xfs/xfs_log_recover.c
-@@ -3796,7 +3796,7 @@ xlog_recover_bud_pass2(
-  * This routine is called when an inode create format structure is found in a
-  * committed transaction in the log.  It's purpose is to initialise the inodes
-  * being allocated on disk. This requires us to get inode cluster buffers that
-- * match the range to be intialised, stamped with inode templates and written
-+ * match the range to be initialised, stamped with inode templates and written
-  * by delayed write so that subsequent modifications will hit the cached buffer
-  * and only need writing out at the end of recovery.
-  */
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-intialised-pattern-and-fix-typo-instances
-+++ a/scripts/spelling.txt
-@@ -605,6 +605,9 @@ interruptted||interrupted
- interupted||interrupted
- interupt||interrupt
- intial||initial
-+intialisation||initialisation
-+intialised||initialised
-+intialise||initialise
- intialization||initialization
- intialized||initialized
- intialize||initialize
+ /* Caches aren't brain-dead on the s390. */
+ #include <asm-generic/cacheflush.h>
+-
+-#define SET_MEMORY_RO	1UL
+-#define SET_MEMORY_RW	2UL
+-#define SET_MEMORY_NX	4UL
+-#define SET_MEMORY_X	8UL
+-
+-int __set_memory(unsigned long addr, int numpages, unsigned long flags);
+-
+-static inline int set_memory_ro(unsigned long addr, int numpages)
+-{
+-	return __set_memory(addr, numpages, SET_MEMORY_RO);
+-}
+-
+-static inline int set_memory_rw(unsigned long addr, int numpages)
+-{
+-	return __set_memory(addr, numpages, SET_MEMORY_RW);
+-}
+-
+-static inline int set_memory_nx(unsigned long addr, int numpages)
+-{
+-	return __set_memory(addr, numpages, SET_MEMORY_NX);
+-}
+-
+-static inline int set_memory_x(unsigned long addr, int numpages)
+-{
+-	return __set_memory(addr, numpages, SET_MEMORY_X);
+-}
++#include <asm/set_memory.h>
+ 
+ #endif /* _S390_CACHEFLUSH_H */
+diff -puN /dev/null arch/s390/include/asm/set_memory.h
+--- /dev/null
++++ a/arch/s390/include/asm/set_memory.h
+@@ -0,0 +1,31 @@
++#ifndef _ASMS390_SET_MEMORY_H
++#define _ASMS390_SET_MEMORY_H
++
++#define SET_MEMORY_RO	1UL
++#define SET_MEMORY_RW	2UL
++#define SET_MEMORY_NX	4UL
++#define SET_MEMORY_X	8UL
++
++int __set_memory(unsigned long addr, int numpages, unsigned long flags);
++
++static inline int set_memory_ro(unsigned long addr, int numpages)
++{
++	return __set_memory(addr, numpages, SET_MEMORY_RO);
++}
++
++static inline int set_memory_rw(unsigned long addr, int numpages)
++{
++	return __set_memory(addr, numpages, SET_MEMORY_RW);
++}
++
++static inline int set_memory_nx(unsigned long addr, int numpages)
++{
++	return __set_memory(addr, numpages, SET_MEMORY_NX);
++}
++
++static inline int set_memory_x(unsigned long addr, int numpages)
++{
++	return __set_memory(addr, numpages, SET_MEMORY_X);
++}
++
++#endif
+diff -puN arch/x86/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh arch/x86/include/asm/cacheflush.h
+--- a/arch/x86/include/asm/cacheflush.h~treewide-move-set_memory_-functions-away-from-cacheflushh
++++ a/arch/x86/include/asm/cacheflush.h
+@@ -4,94 +4,10 @@
+ /* Caches aren't brain-dead on the intel. */
+ #include <asm-generic/cacheflush.h>
+ #include <asm/special_insns.h>
+-
+-/*
+- * The set_memory_* API can be used to change various attributes of a virtual
+- * address range. The attributes include:
+- * Cachability   : UnCached, WriteCombining, WriteThrough, WriteBack
+- * Executability : eXeutable, NoteXecutable
+- * Read/Write    : ReadOnly, ReadWrite
+- * Presence      : NotPresent
+- *
+- * Within a category, the attributes are mutually exclusive.
+- *
+- * The implementation of this API will take care of various aspects that
+- * are associated with changing such attributes, such as:
+- * - Flushing TLBs
+- * - Flushing CPU caches
+- * - Making sure aliases of the memory behind the mapping don't violate
+- *   coherency rules as defined by the CPU in the system.
+- *
+- * What this API does not do:
+- * - Provide exclusion between various callers - including callers that
+- *   operation on other mappings of the same physical page
+- * - Restore default attributes when a page is freed
+- * - Guarantee that mappings other than the requested one are
+- *   in any state, other than that these do not violate rules for
+- *   the CPU you have. Do not depend on any effects on other mappings,
+- *   CPUs other than the one you have may have more relaxed rules.
+- * The caller is required to take care of these.
+- */
+-
+-int _set_memory_uc(unsigned long addr, int numpages);
+-int _set_memory_wc(unsigned long addr, int numpages);
+-int _set_memory_wt(unsigned long addr, int numpages);
+-int _set_memory_wb(unsigned long addr, int numpages);
+-int set_memory_uc(unsigned long addr, int numpages);
+-int set_memory_wc(unsigned long addr, int numpages);
+-int set_memory_wt(unsigned long addr, int numpages);
+-int set_memory_wb(unsigned long addr, int numpages);
+-int set_memory_x(unsigned long addr, int numpages);
+-int set_memory_nx(unsigned long addr, int numpages);
+-int set_memory_ro(unsigned long addr, int numpages);
+-int set_memory_rw(unsigned long addr, int numpages);
+-int set_memory_np(unsigned long addr, int numpages);
+-int set_memory_4k(unsigned long addr, int numpages);
+-
+-int set_memory_array_uc(unsigned long *addr, int addrinarray);
+-int set_memory_array_wc(unsigned long *addr, int addrinarray);
+-int set_memory_array_wt(unsigned long *addr, int addrinarray);
+-int set_memory_array_wb(unsigned long *addr, int addrinarray);
+-
+-int set_pages_array_uc(struct page **pages, int addrinarray);
+-int set_pages_array_wc(struct page **pages, int addrinarray);
+-int set_pages_array_wt(struct page **pages, int addrinarray);
+-int set_pages_array_wb(struct page **pages, int addrinarray);
+-
+-/*
+- * For legacy compatibility with the old APIs, a few functions
+- * are provided that work on a "struct page".
+- * These functions operate ONLY on the 1:1 kernel mapping of the
+- * memory that the struct page represents, and internally just
+- * call the set_memory_* function. See the description of the
+- * set_memory_* function for more details on conventions.
+- *
+- * These APIs should be considered *deprecated* and are likely going to
+- * be removed in the future.
+- * The reason for this is the implicit operation on the 1:1 mapping only,
+- * making this not a generally useful API.
+- *
+- * Specifically, many users of the old APIs had a virtual address,
+- * called virt_to_page() or vmalloc_to_page() on that address to
+- * get a struct page* that the old API required.
+- * To convert these cases, use set_memory_*() on the original
+- * virtual address, do not use these functions.
+- */
+-
+-int set_pages_uc(struct page *page, int numpages);
+-int set_pages_wb(struct page *page, int numpages);
+-int set_pages_x(struct page *page, int numpages);
+-int set_pages_nx(struct page *page, int numpages);
+-int set_pages_ro(struct page *page, int numpages);
+-int set_pages_rw(struct page *page, int numpages);
+-
++#include <asm/set_memory.h>
+ 
+ void clflush_cache_range(void *addr, unsigned int size);
+ 
+ #define mmio_flush_range(addr, size) clflush_cache_range(addr, size)
+ 
+-extern int kernel_set_to_readonly;
+-void set_kernel_text_rw(void);
+-void set_kernel_text_ro(void);
+-
+ #endif /* _ASM_X86_CACHEFLUSH_H */
+diff -puN /dev/null arch/x86/include/asm/set_memory.h
+--- /dev/null
++++ a/arch/x86/include/asm/set_memory.h
+@@ -0,0 +1,87 @@
++#ifndef _ASM_X86_SET_MEMORY_H
++#define _ASM_X86_SET_MEMORY_H
++
++#include <asm/page.h>
++#include <asm-generic/set_memory.h>
++
++/*
++ * The set_memory_* API can be used to change various attributes of a virtual
++ * address range. The attributes include:
++ * Cachability   : UnCached, WriteCombining, WriteThrough, WriteBack
++ * Executability : eXeutable, NoteXecutable
++ * Read/Write    : ReadOnly, ReadWrite
++ * Presence      : NotPresent
++ *
++ * Within a category, the attributes are mutually exclusive.
++ *
++ * The implementation of this API will take care of various aspects that
++ * are associated with changing such attributes, such as:
++ * - Flushing TLBs
++ * - Flushing CPU caches
++ * - Making sure aliases of the memory behind the mapping don't violate
++ *   coherency rules as defined by the CPU in the system.
++ *
++ * What this API does not do:
++ * - Provide exclusion between various callers - including callers that
++ *   operation on other mappings of the same physical page
++ * - Restore default attributes when a page is freed
++ * - Guarantee that mappings other than the requested one are
++ *   in any state, other than that these do not violate rules for
++ *   the CPU you have. Do not depend on any effects on other mappings,
++ *   CPUs other than the one you have may have more relaxed rules.
++ * The caller is required to take care of these.
++ */
++
++int _set_memory_uc(unsigned long addr, int numpages);
++int _set_memory_wc(unsigned long addr, int numpages);
++int _set_memory_wt(unsigned long addr, int numpages);
++int _set_memory_wb(unsigned long addr, int numpages);
++int set_memory_uc(unsigned long addr, int numpages);
++int set_memory_wc(unsigned long addr, int numpages);
++int set_memory_wt(unsigned long addr, int numpages);
++int set_memory_wb(unsigned long addr, int numpages);
++int set_memory_np(unsigned long addr, int numpages);
++int set_memory_4k(unsigned long addr, int numpages);
++
++int set_memory_array_uc(unsigned long *addr, int addrinarray);
++int set_memory_array_wc(unsigned long *addr, int addrinarray);
++int set_memory_array_wt(unsigned long *addr, int addrinarray);
++int set_memory_array_wb(unsigned long *addr, int addrinarray);
++
++int set_pages_array_uc(struct page **pages, int addrinarray);
++int set_pages_array_wc(struct page **pages, int addrinarray);
++int set_pages_array_wt(struct page **pages, int addrinarray);
++int set_pages_array_wb(struct page **pages, int addrinarray);
++
++/*
++ * For legacy compatibility with the old APIs, a few functions
++ * are provided that work on a "struct page".
++ * These functions operate ONLY on the 1:1 kernel mapping of the
++ * memory that the struct page represents, and internally just
++ * call the set_memory_* function. See the description of the
++ * set_memory_* function for more details on conventions.
++ *
++ * These APIs should be considered *deprecated* and are likely going to
++ * be removed in the future.
++ * The reason for this is the implicit operation on the 1:1 mapping only,
++ * making this not a generally useful API.
++ *
++ * Specifically, many users of the old APIs had a virtual address,
++ * called virt_to_page() or vmalloc_to_page() on that address to
++ * get a struct page* that the old API required.
++ * To convert these cases, use set_memory_*() on the original
++ * virtual address, do not use these functions.
++ */
++
++int set_pages_uc(struct page *page, int numpages);
++int set_pages_wb(struct page *page, int numpages);
++int set_pages_x(struct page *page, int numpages);
++int set_pages_nx(struct page *page, int numpages);
++int set_pages_ro(struct page *page, int numpages);
++int set_pages_rw(struct page *page, int numpages);
++
++extern int kernel_set_to_readonly;
++void set_kernel_text_rw(void);
++void set_kernel_text_ro(void);
++
++#endif /* _ASM_X86_SET_MEMORY_H */
+diff -puN /dev/null include/asm-generic/set_memory.h
+--- /dev/null
++++ a/include/asm-generic/set_memory.h
+@@ -0,0 +1,12 @@
++#ifndef __ASM_SET_MEMORY_H
++#define __ASM_SET_MEMORY_H
++
++/*
++ * Functions to change memory attributes.
++ */
++int set_memory_ro(unsigned long addr, int numpages);
++int set_memory_rw(unsigned long addr, int numpages);
++int set_memory_x(unsigned long addr, int numpages);
++int set_memory_nx(unsigned long addr, int numpages);
++
++#endif
 _
