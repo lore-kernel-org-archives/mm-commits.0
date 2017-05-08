@@ -1,57 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 027/114] checkpatch: clarify the
- EMBEDDED_FUNCTION_NAME message
-Date: Mon, 08 May 2017 15:55:51 -0700
-Message-ID: <20170508225551.TbllfemLg%akpm@linux-foundation.org>
+Subject: [patch 029/114] checkpatch: improve k.alloc with
+ multiplication and sizeof test
+Date: Mon, 08 May 2017 15:55:57 -0700
+Message-ID: <20170508225557.yMghhZaDP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45982 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751036AbdEHWzw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:52 -0400
+        with ESMTP id S1751850AbdEHWz6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: clarify the EMBEDDED_FUNCTION_NAME message
+Subject: checkpatch: improve k.alloc with multiplication and sizeof test
 
-Try to make the conversion of embedded function names to "%s: ", __func__
-a bit clearer.
+Find multi-line uses of k.alloc by using the $stat variable and not the
+$line variable.  This can still --fix only the single line variant though.
 
-Add a bit more information to the comment describing the test too.
-
-Link: http://lkml.kernel.org/r/38f5d32f0aec1cd98cb9ceeedd6a736cc9a802db.1491759835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/3f4b23d37cd4c7d8628eefc25afe83ba8fb3ab55.1493167076.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-clarify-the-embedded_function_name-message scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-clarify-the-embedded_function_name-message
+diff -puN scripts/checkpatch.pl~checkpatch-improve-kalloc-with-multiplication-and-sizeof-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-kalloc-with-multiplication-and-sizeof-test
 +++ a/scripts/checkpatch.pl
-@@ -5174,14 +5174,16 @@ sub process {
- 			     "break quoted strings at a space character\n" . $hereprev);
- 		}
+@@ -5922,7 +5922,8 @@ sub process {
  
--#check for an embedded function name in a string when the function is known
--# as part of a diff.  This does not work for -f --file checking as it
--#depends on patch context providing the function name
-+# check for an embedded function name in a string when the function is known
-+# This does not work very well for -f --file checking as it depends on patch
-+# context providing the function name or a single line form for in-file
-+# function declarations
- 		if ($line =~ /^\+.*$String/ &&
- 		    defined($context_function) &&
--		    get_quoted_string($line, $rawline) =~ /\b$context_function\b/) {
-+		    get_quoted_string($line, $rawline) =~ /\b$context_function\b/ &&
-+		    length(get_quoted_string($line, $rawline)) != (length($context_function) + 2)) {
- 			WARN("EMBEDDED_FUNCTION_NAME",
--			     "Prefer using \"%s\", __func__ to embedded function names\n" . $herecurr);
-+			     "Prefer using '\"%s...\", __func__' to using '$context_function', this function's name, in a string\n" . $herecurr);
- 		}
- 
- # check for spaces before a quoted newline
-_
+ # check for k[mz]alloc with multiplies that could be kmalloc_array/kcalloc
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $line =~ /\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)\s*,/) {
++		    defined $stat &&
++		    $stat =~ /^\+\s*($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)\s*,/) {
+ 			my $oldfunc = $3;
+ 			my $a1 = $4;
+ 			my $a2 = $10;
+@@ -5936,11 +5937,17 @@ sub process {
+ 			}
+ 			if ($r1 !~ /^sizeof\b/ && $r2 =~ /^sizeof\s*\S/ &&
+ 			    !($r1 =~ /^$Constant$/ || $r1 =~ /^[A-Z_][A-Z0-9_]*$/)) {
++				my $ctx = '';
++				my $herectx = $here . "\n";
++				my $cnt = statement_rawlines($stat);
++				for (my $n = 0; $n < $cnt; $n++) {
++					$herectx .= raw_line($linenr, $n) . "\n";
++				}
+ 				if (WARN("ALLOC_WITH_MULTIPLY",
+-					 "Prefer $newfunc over $oldfunc with multiply\n" . $herecurr) &&
++					 "Prefer $newfunc over $oldfunc with multiply\n" . $herectx) &&
++				    $cnt == 1 &&
+ 				    $fix) {
+ 					$fixed[$fixlinenr] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*(k[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
