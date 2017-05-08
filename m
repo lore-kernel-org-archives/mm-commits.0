@@ -1,64 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch removed from -mm tree
-Date: Mon, 08 May 2017 15:38:32 -0700
-Message-ID: <5910f368.KS0eCtPB1LtMhmbC%akpm@linux-foundation.org>
+ taskstats-add-e-u-stime-for-tgid-command-fix.patch removed from -mm tree
+Date: Mon, 08 May 2017 15:39:18 -0700
+Message-ID: <5910f396.FvKHwGju3hvXbN+M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751676AbdEHWid (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:38:33 -0400
+        with ESMTP id S1751115AbdEHWjY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:39:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, keescook@chromium.org, william.c.roberts@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bsingharora@gmail.com, oleg@redhat.com, xiao.zhang@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix
+     Subject: taskstats-add-e-u-stime-for-tgid-command-fix
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+     taskstats-add-e-u-stime-for-tgid-command-fix.patch
 
-This patch was dropped because it was folded into checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
+This patch was dropped because it was folded into taskstats-add-e-u-stime-for-tgid-command.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix
+Subject: taskstats-add-e-u-stime-for-tgid-command-fix
 
-text tweak
+run ktime_get_ns() a single time
 
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: William Roberts <william.c.roberts@intel.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Zhang Xiao <xiao.zhang@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/taskstats.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix lib/vsprintf.c
---- a/lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix
-+++ a/lib/vsprintf.c
-@@ -1477,8 +1477,8 @@ int kptr_restrict __read_mostly;
-  * by an extra set of alphanumeric characters that are extended format
-  * specifiers.
-  *
-- * Please update scripts/checkpatch.pl when adding new conversion characters.
-- * (search for "check for vsprintf extension").
-+ * Please update scripts/checkpatch.pl when adding/removing conversion
-+ * characters.  (Search for "check for vsprintf extension").
-  *
-  * Right now we handle:
-  *
+diff -puN kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-add-e-u-stime-for-tgid-command-fix
++++ a/kernel/taskstats.c
+@@ -211,6 +211,7 @@ static int fill_stats_for_tgid(pid_t tgi
+ 	unsigned long flags;
+ 	int rc = -ESRCH;
+ 	u64 delta, utime, stime;
++	u64 start_time;
+ 
+ 	/*
+ 	 * Add additional stats from live tasks except zombie thread group
+@@ -228,6 +229,7 @@ static int fill_stats_for_tgid(pid_t tgi
+ 		memset(stats, 0, sizeof(*stats));
+ 
+ 	tsk = first;
++	start_time = ktime_get_ns();
+ 	do {
+ 		if (tsk->exit_state)
+ 			continue;
+@@ -240,7 +242,7 @@ static int fill_stats_for_tgid(pid_t tgi
+ 		delayacct_add_tsk(stats, tsk);
+ 
+ 		/* calculate task elapsed time in nsec */
+-		delta = ktime_get_ns() - tsk->start_time;
++		delta = start_time - tsk->start_time;
+ 		/* Convert to micro seconds */
+ 		do_div(delta, NSEC_PER_USEC);
+ 		stats->ac_etime += delta;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions.patch
-taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command.patch
 taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
 drm-use-set_memoryh-header-fix.patch
 drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
