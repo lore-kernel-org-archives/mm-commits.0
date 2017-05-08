@@ -1,136 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [patch 001/114] mm, compaction: reorder fields in struct
- compact_control
-Date: Mon, 08 May 2017 15:54:30 -0700
-Message-ID: <20170508225430.nBV_cIrm6%akpm@linux-foundation.org>
+Subject: [patch 002/114] mm, compaction: remove redundant watermark
+ check in compact_finished()
+Date: Mon, 08 May 2017 15:54:33 -0700
+Message-ID: <20170508225433.1x8lyaYhv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45262 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751115AbdEHWyc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:54:32 -0400
+        with ESMTP id S1751115AbdEHWyf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:54:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: reorder fields in struct compact_control
+Subject: mm, compaction: remove redundant watermark check in compact_finished()
 
-Patch series "try to reduce fragmenting fallbacks", v3.
+When detecting whether compaction has succeeded in forming a high-order
+page, __compact_finished() employs a watermark check, followed by an own
+search for a suitable page in the freelists.  This is not ideal for two
+reasons:
 
-Last year, Johannes Weiner has reported a regression in page mobility
-grouping [1] and while the exact cause was not found, I've come up with
-some ways to improve it by reducing the number of allocations falling back
-to different migratetype and causing permanent fragmentation.
+- The watermark check also searches high-order freelists, but has a less
+  strict criteria wrt fallback.  It's therefore redundant and waste of
+  cycles.  This was different in the past when high-order watermark check
+  attempted to apply reserves to high-order pages.
 
-The series was tested with mmtests stress-highalloc modified to do
-GFP_KERNEL order-4 allocations, on 4.9 with "mm, vmscan: fix zone balance
-check in prepare_kswapd_sleep" (without that, kcompactd indeed wasn't
-woken up) on UMA machine with 4GB memory.  There were 5 repeats of each
-run, as the extfrag stats are quite volatile (note the stats below are
-sums, not averages, as it was less perl hacking for me).
+- The watermark check might actually fail due to lack of order-0 pages. 
+  Compaction can't help with that, so there's no point in continuing
+  because of that.  It's possible that high-order page still exists and it
+  terminates.
 
-Success rate are the same, already high due to the low allocation order
-used, so I'm not including them.
+This patch therefore removes the watermark check.  This should save some
+cycles and terminate compaction sooner in some cases.
 
-Compaction stats:
-(the patches are stacked, and I haven't measured the non-functional-changes
-patches separately)
-
-                                   patch 1     patch 2     patch 3     patch 4     patch 7     patch 8
-Compaction stalls                    22449       24680       24846       19765       22059       17480
-Compaction success                   12971       14836       14608       10475       11632        8757
-Compaction failures                   9477        9843       10238        9290       10426        8722
-Page migrate success               3109022     3370438     3312164     1695105     1608435     2111379
-Page migrate failure                911588     1149065     1028264     1112675     1077251     1026367
-Compaction pages isolated          7242983     8015530     7782467     4629063     4402787     5377665
-Compaction migrate scanned       980838938   987367943   957690188   917647238   947155598  1018922197
-Compaction free scanned          557926893   598946443   602236894   594024490   541169699   763651731
-Compaction cost                      10243       10578       10304        8286        8398        9440
-
-Compaction stats are mostly within noise until patch 4, which decreases
-the number of compactions, and migrations.  Part of that could be due to
-more pageblocks marked as unmovable, and async compaction skipping those. 
-This changes a bit with patch 7, but not so much.  Patch 8 increases free
-scanner stats and migrations, which comes from the changed termination
-criteria.  Interestingly number of compactions decreases - probably the
-fully compacted pageblock satisfies multiple subsequent allocations, so it
-amortizes.
-
-Next comes the extfrag tracepoint, where "fragmenting" means that an
-allocation had to fallback to a pageblock of another migratetype which
-wasn't fully free (which is almost all of the fallbacks).  I have locally
-added another tracepoint for "Page steal" into steal_suitable_fallback()
-which triggers in situations where we are allowed to do
-move_freepages_block().  If we decide to also do
-set_pageblock_migratetype(), it's "Pages steal with pageblock" with break
-down for which allocation migratetype we are stealing and from which
-fallback migratetype.  The last part "due to counting" comes from patch 4
-and counts the events where the counting of movable pages allowed us to
-change pageblock's migratetype, while the number of free pages alone
-wouldn't be enough to cross the threshold.
-
-                                                     patch 1     patch 2     patch 3     patch 4     patch 7     patch 8
-Page alloc extfrag event                            10155066     8522968    10164959    15622080    13727068    13140319
-Extfrag fragmenting                                 10149231     8517025    10159040    15616925    13721391    13134792
-Extfrag fragmenting for unmovable                     159504      168500      184177       97835       70625       56948
-Extfrag fragmenting unmovable placed with movable     153613      163549      172693       91740       64099       50917
-Extfrag fragmenting unmovable placed with reclaim.      5891        4951       11484        6095        6526        6031
-Extfrag fragmenting for reclaimable                     4738        4829        6345        4822        5640        5378
-Extfrag fragmenting reclaimable placed with movable     1836        1902        1851        1579        1739        1760
-Extfrag fragmenting reclaimable placed with unmov.      2902        2927        4494        3243        3901        3618
-Extfrag fragmenting for movable                      9984989     8343696     9968518    15514268    13645126    13072466
-Pages steal                                           179954      192291      210880      123254       94545       81486
-Pages steal with pageblock                             22153       18943       20154       33562       29969       33444
-Pages steal with pageblock for unmovable               14350       12858       13256       20660       19003       20852
-Pages steal with pageblock for unmovable from mov.     12812       11402       11683       19072       17467       19298
-Pages steal with pageblock for unmovable from recl.     1538        1456        1573        1588        1536        1554
-Pages steal with pageblock for movable                  7114        5489        5965       11787       10012       11493
-Pages steal with pageblock for movable from unmov.      6885        5291        5541       11179        9525       10885
-Pages steal with pageblock for movable from recl.        229         198         424         608         487         608
-Pages steal with pageblock for reclaimable               689         596         933        1115         954        1099
-Pages steal with pageblock for reclaimable from unmov.   273         219         537         658         547         667
-Pages steal with pageblock for reclaimable from mov.     416         377         396         457         407         432
-Pages steal with pageblock due to counting                                                 11834       10075        7530
-... for unmovable                                                                           8993        7381        4616
-... for movable                                                                             2792        2653        2851
-... for reclaimable                                                                           49          41          63
-
-What we can see is that "Extfrag fragmenting for unmovable" and "... 
-placed with movable" drops with almost each patch, which is good as we are
-polluting less movable pageblocks with unmovable pages.
-
-The most significant change is patch 4 with movable page counting.  On the
-other hand it increases "Extfrag fragmenting for movable" by 50%.  "Pages
-steal" drops though, so these movable allocation fallbacks find only small
-free pages and are not allowed to steal whole pageblocks back.  "Pages
-steal with pageblock" raises, because the patch increases the chances of
-pageblock migratetype changes to happen.  This affects all migratetypes.
-
-The summary is that patch 4 is not a clear win wrt these stats, but I
-believe that the tradeoff it makes is a good one.  There's less pollution
-of movable pageblocks by unmovable allocations.  There's less stealing
-between pageblock, and those that remain have higher chance of changing
-migratetype also the pageblock itself, so it should more faithfully
-reflect the migratetype of the pages within the pageblock.  The increase
-of movable allocations falling back to unmovable pageblock might look
-dramatic, but those allocations can be migrated by compaction when needed,
-and other patches in the series (7-9) improve that aspect.
-
-Patches 7 and 8 continue the trend of reduced unmovable fallbacks and also
-reduce the impact on movable fallbacks from patch 4.
-
-[1] https://www.spinics.net/lists/linux-mm/msg114237.html
-
-
-This patch (of 8):
-
-While currently there are (mostly by accident) no holes in struct
-compact_control (on x86_64), but we are going to add more bool flags, so
-place them all together to the end of the structure.  While at it, just
-order all fields from largest to smallest.
-
-Link: http://lkml.kernel.org/r/20170307131545.28577-2-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20170307131545.28577-3-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -139,39 +43,27 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/compaction.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN mm/internal.h~mm-compaction-reorder-fields-in-struct-compact_control mm/internal.h
---- a/mm/internal.h~mm-compaction-reorder-fields-in-struct-compact_control
-+++ a/mm/internal.h
-@@ -183,6 +183,7 @@ extern int user_min_free_kbytes;
- struct compact_control {
- 	struct list_head freepages;	/* List of free pages to migrate to */
- 	struct list_head migratepages;	/* List of pages being migrated */
-+	struct zone *zone;
- 	unsigned long nr_freepages;	/* Number of isolated free pages */
- 	unsigned long nr_migratepages;	/* Number of pages to migrate */
- 	unsigned long total_migrate_scanned;
-@@ -190,16 +191,15 @@ struct compact_control {
- 	unsigned long free_pfn;		/* isolate_freepages search base */
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
- 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
-+	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
-+	int order;			/* order a direct compactor needs */
-+	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
-+	const int classzone_idx;	/* zone index of a direct compactor */
- 	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
- 	bool ignore_block_suitable;	/* Scan blocks considered unsuitable */
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
- 	bool whole_zone;		/* Whole zone should/has been scanned */
--	int order;			/* order a direct compactor needs */
--	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
--	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
--	const int classzone_idx;	/* zone index of a direct compactor */
--	struct zone *zone;
- 	bool contended;			/* Signal lock or sched contention */
- };
+diff -puN mm/compaction.c~mm-compaction-remove-redundant-watermark-check-in-compact_finished mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-remove-redundant-watermark-check-in-compact_finished
++++ a/mm/compaction.c
+@@ -1280,7 +1280,6 @@ static enum compact_result __compact_fin
+ 			    const int migratetype)
+ {
+ 	unsigned int order;
+-	unsigned long watermark;
  
-_
+ 	if (cc->contended || fatal_signal_pending(current))
+ 		return COMPACT_CONTENDED;
+@@ -1308,13 +1307,6 @@ static enum compact_result __compact_fin
+ 	if (is_via_compact_memory(cc->order))
+ 		return COMPACT_CONTINUE;
+ 
+-	/* Compaction run is not finished if the watermark is not met */
+-	watermark = zone->watermark[cc->alloc_flags & ALLOC_WMARK_MASK];
+-
+-	if (!zone_watermark_ok(zone, cc->order, watermark, cc->classzone_idx,
+-							cc->alloc_flags))
+-		return COMPACT_CONTINUE;
