@@ -1,51 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 086/114] drivers/scsi/megaraid: remove expensive
- inline from megasas_return_cmd
-Date: Mon, 08 May 2017 15:58:53 -0700
-Message-ID: <20170508225853.4NDgMLcml%akpm@linux-foundation.org>
+Subject: [patch 087/114] include/linux/uaccess.h: remove expensive
+ WARN_ON in pagefault_disabled_dec
+Date: Mon, 08 May 2017 15:58:56 -0700
+Message-ID: <20170508225856.YAIdAox5W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47340 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752908AbdEHW6y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:58:54 -0400
+        with ESMTP id S1751205AbdEHW65 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:58:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, kashyap.desai@avagotech.com, mm-commits@vger.kernel.org, sumit.saxena@avagotech.com, torvalds@linux-foundation.org
+To: ak@linux.intel.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Andi Kleen <ak@linux.intel.com>
-Subject: drivers/scsi/megaraid: remove expensive inline from megasas_return_cmd
+Subject: include/linux/uaccess.h: remove expensive WARN_ON in pagefault_disabled_dec
 
-Remove an inline from a fairly big function that is used often.  It's
-unlikely that calling or not calling it makes a lot of difference.
+pagefault_disabled_dec is frequently used inline, and it has a WARN_ON for
+underflow that expands to about 6.5k of extra code.  The warning doesn't
+seem to be that useful and worth so much code so remove it.
 
-Saves around 8k text in my kernel.
+If it was needed could make it depending on some debug kernel option.
+
+Saves ~6.5k in my kernel
 
    text    data     bss     dec     hex filename
-9047801 5367568 11116544        25531913        1859609 vmlinux-before-megasas
-9039417 5367568 11116544        25523529        1857549 vmlinux-megasas
+9039417 5367568 11116544        25523529        1857549 vmlinux-before-pf
+9032805 5367568 11116544        25516917        1855b75 vmlinux-pf
 
-Link: http://lkml.kernel.org/r/20170315021431.13107-7-andi@firstfloor.org
+Link: http://lkml.kernel.org/r/20170315021431.13107-8-andi@firstfloor.org
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Kashyap Desai <kashyap.desai@avagotech.com>
-Cc: Sumit Saxena <sumit.saxena@avagotech.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas_base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/uaccess.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas_base.c~megasas-remove-expensive-inline-from-megasas_return_cmd drivers/scsi/megaraid/megaraid_sas_base.c
---- a/drivers/scsi/megaraid/megaraid_sas_base.c~megasas-remove-expensive-inline-from-megasas_return_cmd
-+++ a/drivers/scsi/megaraid/megaraid_sas_base.c
-@@ -244,7 +244,7 @@ struct megasas_cmd *megasas_get_cmd(stru
-  * @instance:		Adapter soft state
-  * @cmd:		Command packet to be returned to free command pool
-  */
--inline void
-+void
- megasas_return_cmd(struct megasas_instance *instance, struct megasas_cmd *cmd)
+diff -puN include/linux/uaccess.h~remove-expensive-warn_on-in-pagefault_disabled_dec include/linux/uaccess.h
+--- a/include/linux/uaccess.h~remove-expensive-warn_on-in-pagefault_disabled_dec
++++ a/include/linux/uaccess.h
+@@ -203,7 +203,6 @@ static __always_inline void pagefault_di
+ static __always_inline void pagefault_disabled_dec(void)
  {
- 	unsigned long flags;
+ 	current->pagefault_disabled--;
+-	WARN_ON(current->pagefault_disabled < 0);
+ }
+ 
+ /*
 _
