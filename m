@@ -1,93 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [patch 083/114]
- drivers/staging/media/atomisp/pci/atomisp2: use set_memory.h
-Date: Mon, 08 May 2017 15:58:44 -0700
-Message-ID: <20170508225844.DRDFfHHCZ%akpm@linux-foundation.org>
+Subject: [patch 084/114] treewide: decouple cacheflush.h and
+ set_memory.h
+Date: Mon, 08 May 2017 15:58:47 -0700
+Message-ID: <20170508225847.05SdLKhkU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751087AbdEHW6p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:58:45 -0400
+        with ESMTP id S1751087AbdEHW6s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:58:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, labbott@redhat.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, catalin.marinas@arm.com, labbott@redhat.com, mark.rutland@arm.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, torvalds@linux-foundation.org
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/media/atomisp/pci/atomisp2: use set_memory.h
+From: Laura Abbott <labbott@redhat.com>
+Subject: treewide: decouple cacheflush.h and set_memory.h
 
-Cc: Laura Abbott <labbott@redhat.com>
+Now that all call sites, completely decouple cacheflush.h and
+set_memory.h
+
+[sfr@canb.auug.org.au: kprobes/x86: merge fix for set_memory.h decoupling]
+  Link: http://lkml.kernel.org/r/20170418180903.10300fd3@canb.auug.org.au
+Link: http://lkml.kernel.org/r/1488920133-27229-17-git-send-email-labbott@redhat.com
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c            |    3 ++-
- drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c  |    2 +-
- drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c |    3 ++-
- drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c           |    5 ++++-
- 4 files changed, 9 insertions(+), 4 deletions(-)
+ arch/arm/include/asm/cacheflush.h   |    1 -
+ arch/arm64/include/asm/cacheflush.h |    1 -
+ arch/s390/include/asm/Kbuild        |    1 +
+ arch/s390/include/asm/cacheflush.h  |    8 --------
+ arch/x86/include/asm/cacheflush.h   |    1 -
+ arch/x86/kernel/kprobes/core.c      |    1 +
+ arch/x86/kernel/kprobes/opt.c       |    1 +
+ 7 files changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
-+++ a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
-@@ -36,12 +36,13 @@
- #include <linux/string.h>
- #include <linux/list.h>
- #include <linux/errno.h>
--#include <asm/cacheflush.h>
- #include <linux/io.h>
- #include <asm/current.h>
- #include <linux/sched/signal.h>
- #include <linux/file.h>
+diff -puN arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm/include/asm/cacheflush.h
+--- a/arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
++++ a/arch/arm/include/asm/cacheflush.h
+@@ -16,7 +16,6 @@
+ #include <asm/shmparam.h>
+ #include <asm/cachetype.h>
+ #include <asm/outercache.h>
+-#include <asm/set_memory.h>
  
-+#include <asm/set_memory.h>
-+
- #include "atomisp_internal.h"
- #include "hmm/hmm_common.h"
- #include "hmm/hmm_pool.h"
-diff -puN drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
-+++ a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_dynamic_pool.c
-@@ -27,7 +27,7 @@
- #include <linux/types.h>
+ #define CACHE_COLOUR(vaddr)	((vaddr & (SHMLBA - 1)) >> PAGE_SHIFT)
+ 
+diff -puN arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm64/include/asm/cacheflush.h
+--- a/arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
++++ a/arch/arm64/include/asm/cacheflush.h
+@@ -20,7 +20,6 @@
+ #define __ASM_CACHEFLUSH_H
+ 
  #include <linux/mm.h>
+-#include <asm/set_memory.h>
  
--#include "asm/cacheflush.h"
+ /*
+  * This flag is used to indicate that the page pointed to by a pte is clean
+diff -puN arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh arch/s390/include/asm/Kbuild
+--- a/arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh
++++ a/arch/s390/include/asm/Kbuild
+@@ -1,4 +1,5 @@
+ generic-y += asm-offsets.h
++generic-y += cacheflush.h
+ generic-y += clkdev.h
+ generic-y += dma-contiguous.h
+ generic-y += div64.h
+diff -puN arch/s390/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh /dev/null
+--- a/arch/s390/include/asm/cacheflush.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef _S390_CACHEFLUSH_H
+-#define _S390_CACHEFLUSH_H
+-
+-/* Caches aren't brain-dead on the s390. */
+-#include <asm-generic/cacheflush.h>
+-#include <asm/set_memory.h>
+-
+-#endif /* _S390_CACHEFLUSH_H */
+diff -puN arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/include/asm/cacheflush.h
+--- a/arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
++++ a/arch/x86/include/asm/cacheflush.h
+@@ -4,7 +4,6 @@
+ /* Caches aren't brain-dead on the intel. */
+ #include <asm-generic/cacheflush.h>
+ #include <asm/special_insns.h>
+-#include <asm/set_memory.h>
+ 
+ void clflush_cache_range(void *addr, unsigned int size);
+ 
+diff -puN arch/x86/kernel/kprobes/core.c~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/kernel/kprobes/core.c
+--- a/arch/x86/kernel/kprobes/core.c~treewide-decouple-cacheflushh-and-set_memoryh
++++ a/arch/x86/kernel/kprobes/core.c
+@@ -61,6 +61,7 @@
+ #include <asm/alternative.h>
+ #include <asm/insn.h>
+ #include <asm/debugreg.h>
 +#include <asm/set_memory.h>
  
- #include "atomisp_internal.h"
+ #include "common.h"
  
-diff -puN drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
-+++ a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_reserved_pool.c
-@@ -27,7 +27,8 @@
- #include <linux/types.h>
- #include <linux/mm.h>
- 
--#include "asm/cacheflush.h"
+diff -puN arch/x86/kernel/kprobes/opt.c~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/kernel/kprobes/opt.c
+--- a/arch/x86/kernel/kprobes/opt.c~treewide-decouple-cacheflushh-and-set_memoryh
++++ a/arch/x86/kernel/kprobes/opt.c
+@@ -37,6 +37,7 @@
+ #include <asm/alternative.h>
+ #include <asm/insn.h>
+ #include <asm/debugreg.h>
 +#include <asm/set_memory.h>
-+
- #include "atomisp_internal.h"
- #include "hmm/hmm_pool.h"
  
-diff -puN drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c
---- a/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c~drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh
-+++ a/drivers/staging/media/atomisp/pci/atomisp2/mmu/isp_mmu.c
-@@ -30,13 +30,16 @@
- #include <linux/slab.h>		/* for kmalloc */
- #include <linux/list.h>
- #include <linux/io.h>
--#include <asm/cacheflush.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/string.h>
- #include <linux/errno.h>
- #include <linux/sizes.h>
- 
-+#ifdef CONFIG_X86
-+#include <asm/set_memory.h>
-+#endif
-+
- #include "atomisp_internal.h"
- #include "mmu/isp_mmu.h"
+ #include "common.h"
  
 _
