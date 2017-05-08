@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
+Subject: + drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch
  added to -mm tree
-Date: Mon, 08 May 2017 14:42:55 -0700
-Message-ID: <5910e65f.+ZycCd7+1rCTMkcK%akpm@linux-foundation.org>
+Date: Mon, 08 May 2017 15:32:18 -0700
+Message-ID: <5910f1f2.JnwtMbsDIy/Vs2ZE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750835AbdEHVm4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 17:42:56 -0400
+        with ESMTP id S1751442AbdEHWcT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:32:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sj38.park@gmail.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gilad@benyossef.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: add missed tracepoint for collapse_huge_page_swapin
+     Subject: drivers/staging/ccree/ssi_hash.c: fix build with gcc-4.4.4
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
+     drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +39,381 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj38.park@gmail.com>
-Subject: mm/khugepaged: add missed tracepoint for collapse_huge_page_swapin
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/staging/ccree/ssi_hash.c: fix build with gcc-4.4.4
 
-One return case of `__collapse_huge_page_swapin()` does not invoke
-tracepoint while every other return case does.  This commit adds a
-tracepoint invocation for the case.
+drivers/staging/ccree/ssi_hash.c:1990: error: unknown field 'template_ahash' specified in initializer
+drivers/staging/ccree/ssi_hash.c:1991: error: unknown field 'init' specified in initializer
+drivers/staging/ccree/ssi_hash.c:1991: warning: missing braces around initializer
+drivers/staging/ccree/ssi_hash.c:1991: warning: (near initialization for 'driver_hash[0].<anonymous>.template_ahash')
+drivers/staging/ccree/ssi_hash.c:1992: error: unknown field 'update' specified in initializer
+drivers/staging/ccree/ssi_hash.c:1992: warning: excess elements in union initializer
+drivers/staging/ccree/ssi_hash.c:1992: warning: (near initialization for 'driver_hash[0].<anonymous>')
+drivers/staging/ccree/ssi_hash.c:1993: error: unknown field 'final' specified in initializer
+drivers/staging/ccree/ssi_hash.c:1993: warning: excess elements in union initializer
+drivers/staging/ccree/ssi_hash.c:1993: warning: (near initialization for 'driver_hash[0].<anonymous>')
+...
 
-Link: http://lkml.kernel.org/r/20170507101813.30187-1-sj38.park@gmail.com
-Signed-off-by: SeongJae Park <sj38.park@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+gcc-4.4.4 has issuse with anon union initializers.  Work around this.
+
+Cc: Gilad Ben-Yossef <gilad@benyossef.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/staging/ccree/ssi_hash.c |  272 +++++++++++++++--------------
+ 1 file changed, 144 insertions(+), 128 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin mm/khugepaged.c
---- a/mm/khugepaged.c~mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin
-+++ a/mm/khugepaged.c
-@@ -907,8 +907,10 @@ static bool __collapse_huge_page_swapin(
- 				return false;
- 			}
- 			/* check if the pmd is still valid */
--			if (mm_find_pmd(mm, address) != pmd)
-+			if (mm_find_pmd(mm, address) != pmd) {
-+				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
- 				return false;
-+			}
- 		}
- 		if (ret & VM_FAULT_ERROR) {
- 			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+diff -puN drivers/staging/ccree/ssi_hash.c~drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444 drivers/staging/ccree/ssi_hash.c
+--- a/drivers/staging/ccree/ssi_hash.c~drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444
++++ a/drivers/staging/ccree/ssi_hash.c
+@@ -1987,22 +1987,24 @@ static struct ssi_hash_template driver_h
+ 		.hmac_driver_name = "hmac-sha1-dx",
+ 		.blocksize = SHA1_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_ahash_update,
+-			.final = ssi_ahash_final,
+-			.finup = ssi_ahash_finup,
+-			.digest = ssi_ahash_digest,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.setkey = ssi_ahash_setkey,
+-			.halg = {
+-				.digestsize = SHA1_DIGEST_SIZE,
+-				.statesize = sizeof(struct sha1_state),
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_ahash_update,
++				.final = ssi_ahash_final,
++				.finup = ssi_ahash_finup,
++				.digest = ssi_ahash_digest,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.setkey = ssi_ahash_setkey,
++				.halg = {
++					.digestsize = SHA1_DIGEST_SIZE,
++					.statesize = sizeof(struct sha1_state),
++					},
+ 				},
+-			},
++		},
+ 		.hash_mode = DRV_HASH_SHA1,
+ 		.hw_mode = DRV_HASH_HW_SHA1,
+ 		.inter_digestsize = SHA1_DIGEST_SIZE,
+@@ -2014,22 +2016,24 @@ static struct ssi_hash_template driver_h
+ 		.hmac_driver_name = "hmac-sha256-dx",
+ 		.blocksize = SHA256_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_ahash_update,
+-			.final = ssi_ahash_final,
+-			.finup = ssi_ahash_finup,
+-			.digest = ssi_ahash_digest,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.setkey = ssi_ahash_setkey,
+-			.halg = {
+-				.digestsize = SHA256_DIGEST_SIZE,
+-				.statesize = sizeof(struct sha256_state),
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_ahash_update,
++				.final = ssi_ahash_final,
++				.finup = ssi_ahash_finup,
++				.digest = ssi_ahash_digest,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.setkey = ssi_ahash_setkey,
++				.halg = {
++					.digestsize = SHA256_DIGEST_SIZE,
++					.statesize = sizeof(struct sha256_state),
++					},
+ 				},
+-			},
++		},
+ 		.hash_mode = DRV_HASH_SHA256,
+ 		.hw_mode = DRV_HASH_HW_SHA256,
+ 		.inter_digestsize = SHA256_DIGEST_SIZE,
+@@ -2041,22 +2045,24 @@ static struct ssi_hash_template driver_h
+ 		.hmac_driver_name = "hmac-sha224-dx",
+ 		.blocksize = SHA224_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_ahash_update,
+-			.final = ssi_ahash_final,
+-			.finup = ssi_ahash_finup,
+-			.digest = ssi_ahash_digest,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.setkey = ssi_ahash_setkey,
+-			.halg = {
+-				.digestsize = SHA224_DIGEST_SIZE,
+-				.statesize = sizeof(struct sha256_state),
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_ahash_update,
++				.final = ssi_ahash_final,
++				.finup = ssi_ahash_finup,
++				.digest = ssi_ahash_digest,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.setkey = ssi_ahash_setkey,
++				.halg = {
++					.digestsize = SHA224_DIGEST_SIZE,
++					.statesize = sizeof(struct sha256_state),
++					},
+ 				},
+-			},
++		},
+ 		.hash_mode = DRV_HASH_SHA224,
+ 		.hw_mode = DRV_HASH_HW_SHA256,
+ 		.inter_digestsize = SHA256_DIGEST_SIZE,
+@@ -2069,22 +2075,24 @@ static struct ssi_hash_template driver_h
+ 		.hmac_driver_name = "hmac-sha384-dx",
+ 		.blocksize = SHA384_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_ahash_update,
+-			.final = ssi_ahash_final,
+-			.finup = ssi_ahash_finup,
+-			.digest = ssi_ahash_digest,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.setkey = ssi_ahash_setkey,
+-			.halg = {
+-				.digestsize = SHA384_DIGEST_SIZE,
+-				.statesize = sizeof(struct sha512_state),
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_ahash_update,
++				.final = ssi_ahash_final,
++				.finup = ssi_ahash_finup,
++				.digest = ssi_ahash_digest,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.setkey = ssi_ahash_setkey,
++				.halg = {
++					.digestsize = SHA384_DIGEST_SIZE,
++					.statesize = sizeof(struct sha512_state),
++					},
+ 				},
+-			},
++		},
+ 		.hash_mode = DRV_HASH_SHA384,
+ 		.hw_mode = DRV_HASH_HW_SHA512,
+ 		.inter_digestsize = SHA512_DIGEST_SIZE,
+@@ -2096,22 +2104,24 @@ static struct ssi_hash_template driver_h
+ 		.hmac_driver_name = "hmac-sha512-dx",
+ 		.blocksize = SHA512_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_ahash_update,
+-			.final = ssi_ahash_final,
+-			.finup = ssi_ahash_finup,
+-			.digest = ssi_ahash_digest,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.setkey = ssi_ahash_setkey,
+-			.halg = {
+-				.digestsize = SHA512_DIGEST_SIZE,
+-				.statesize = sizeof(struct sha512_state),
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_ahash_update,
++				.final = ssi_ahash_final,
++				.finup = ssi_ahash_finup,
++				.digest = ssi_ahash_digest,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.setkey = ssi_ahash_setkey,
++				.halg = {
++					.digestsize = SHA512_DIGEST_SIZE,
++					.statesize = sizeof(struct sha512_state),
++					},
+ 				},
+-			},
++		},
+ 		.hash_mode = DRV_HASH_SHA512,
+ 		.hw_mode = DRV_HASH_HW_SHA512,
+ 		.inter_digestsize = SHA512_DIGEST_SIZE,
+@@ -2124,22 +2134,24 @@ static struct ssi_hash_template driver_h
+ 		.hmac_driver_name = "hmac-md5-dx",
+ 		.blocksize = MD5_HMAC_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_ahash_update,
+-			.final = ssi_ahash_final,
+-			.finup = ssi_ahash_finup,
+-			.digest = ssi_ahash_digest,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.setkey = ssi_ahash_setkey,
+-			.halg = {
+-				.digestsize = MD5_DIGEST_SIZE,
+-				.statesize = sizeof(struct md5_state),
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_ahash_update,
++				.final = ssi_ahash_final,
++				.finup = ssi_ahash_finup,
++				.digest = ssi_ahash_digest,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.setkey = ssi_ahash_setkey,
++				.halg = {
++					.digestsize = MD5_DIGEST_SIZE,
++					.statesize = sizeof(struct md5_state),
++					},
+ 				},
+-			},
++		},
+ 		.hash_mode = DRV_HASH_MD5,
+ 		.hw_mode = DRV_HASH_HW_MD5,
+ 		.inter_digestsize = MD5_DIGEST_SIZE,
+@@ -2149,52 +2161,56 @@ static struct ssi_hash_template driver_h
+ 		.driver_name = "xcbc-aes-dx",
+ 		.blocksize = AES_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_mac_update,
+-			.final = ssi_mac_final,
+-			.finup = ssi_mac_finup,
+-			.digest = ssi_mac_digest,
+-			.setkey = ssi_xcbc_setkey,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.halg = {
+-				.digestsize = AES_BLOCK_SIZE,
+-				.statesize = sizeof(struct aeshash_state),
+-				},
+-			},
+-			.hash_mode = DRV_HASH_NULL,
+-			.hw_mode = DRV_CIPHER_XCBC_MAC,
+-			.inter_digestsize = AES_BLOCK_SIZE,
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_mac_update,
++				.final = ssi_mac_final,
++				.finup = ssi_mac_finup,
++				.digest = ssi_mac_digest,
++				.setkey = ssi_xcbc_setkey,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.halg = {
++					.digestsize = AES_BLOCK_SIZE,
++					.statesize = sizeof(struct aeshash_state),
++					},
++				},
+ 		},
++		.hash_mode = DRV_HASH_NULL,
++		.hw_mode = DRV_CIPHER_XCBC_MAC,
++		.inter_digestsize = AES_BLOCK_SIZE,
++	},
+ #if SSI_CC_HAS_CMAC
+ 	{
+ 		.name = "cmac(aes)",
+ 		.driver_name = "cmac-aes-dx",
+ 		.blocksize = AES_BLOCK_SIZE,
+ 		.synchronize = false,
+-		.template_ahash = {
+-			.init = ssi_ahash_init,
+-			.update = ssi_mac_update,
+-			.final = ssi_mac_final,
+-			.finup = ssi_mac_finup,
+-			.digest = ssi_mac_digest,
+-			.setkey = ssi_cmac_setkey,
+-#ifdef EXPORT_FIXED
+-			.export = ssi_ahash_export,
+-			.import = ssi_ahash_import,
+-#endif
+-			.halg = {
+-				.digestsize = AES_BLOCK_SIZE,
+-				.statesize = sizeof(struct aeshash_state),
+-				},
+-			},
+-			.hash_mode = DRV_HASH_NULL,
+-			.hw_mode = DRV_CIPHER_CMAC,
+-			.inter_digestsize = AES_BLOCK_SIZE,
++		{
++			.template_ahash = {
++				.init = ssi_ahash_init,
++				.update = ssi_mac_update,
++				.final = ssi_mac_final,
++				.finup = ssi_mac_finup,
++				.digest = ssi_mac_digest,
++				.setkey = ssi_cmac_setkey,
++#ifdef EXPORT_FIXED
++				.export = ssi_ahash_export,
++				.import = ssi_ahash_import,
++#endif
++				.halg = {
++					.digestsize = AES_BLOCK_SIZE,
++					.statesize = sizeof(struct aeshash_state),
++					},
++				},
+ 		},
++		.hash_mode = DRV_HASH_NULL,
++		.hw_mode = DRV_CIPHER_CMAC,
++		.inter_digestsize = AES_BLOCK_SIZE,
++	},
+ #endif
+ 	
+ };
 _
 
-Patches currently in -mm which might be from sj38.park@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
-docs-vm-transhuge-fix-few-trivial-typos.patch
+mm-page_alloc-count-movable-pages-when-stealing-from-pageblock-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix.patch
+checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions-fix-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix.patch
+taskstats-add-e-u-stime-for-tgid-command-fix-fix.patch
+drm-use-set_memoryh-header-fix.patch
+drivers-staging-media-atomisp-pci-atomisp2-use-set_memoryh.patch
+docs-vm-transhuge-fix-few-trivial-typos-fix.patch
+dax-add-tracepoint-to-dax_writeback_one-fix.patch
+drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch
 
