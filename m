@@ -1,43 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 028/114] checkpatch: special audit for revert
- commit line
-Date: Mon, 08 May 2017 15:55:54 -0700
-Message-ID: <20170508225554.L4YuQuwgP%akpm@linux-foundation.org>
+Subject: [patch 031/114] checkpatch: improve the embedded function
+ name test for patch contexts
+Date: Mon, 08 May 2017 15:56:02 -0700
+Message-ID: <20170508225602.xVlxIGHxx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46036 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751036AbdEHWzz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:55 -0400
+        with ESMTP id S1751850AbdEHW4E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:56:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, wvw@google.com
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Wei Wang <wvw@google.com>
-Subject: checkpatch: special audit for revert commit line
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve the embedded function name test for patch contexts
 
-Currently checkpatch.pl does not recognize git's default commit revert
-message and will complain about the hash format.  Add special audit for
-revert commit message line to fix it.
+The current test works only for a single patch context as it is done in
+the foreach ($rawlines) loop that precedes the loop where the actual
+$context_function variable is used.
 
-Link: http://lkml.kernel.org/r/20170411191532.74381-1-wvw@google.com
-Signed-off-by: Wei Wang <wvw@google.com>
-Acked-by: Joe Perches <joe@perches.com>
+Move the set of $context_function into the foreach (@lines) loop where it
+is useful for each patch context.
+
+Link: http://lkml.kernel.org/r/6c675a31c74fbfad4fc45b9f462303d60ca2a283.1493486091.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-special-audit-for-revert-commit-line scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-special-audit-for-revert-commit-line
+diff -puN scripts/checkpatch.pl~checkpatch-improve-the-embedded-function-name-test-for-patch-contexts scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-the-embedded-function-name-test-for-patch-contexts
 +++ a/scripts/checkpatch.pl
-@@ -2539,6 +2539,7 @@ sub process {
- # Check for git id commit length and improperly formed commit descriptions
- 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
- 		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink):/i &&
-+		    $line !~ /^This reverts commit [0-9a-f]{7,40}/ &&
- 		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
- 		     ($line =~ /(?:\s|^)[0-9a-f]{12,40}(?:[\s"'\(\[]|$)/i &&
- 		      $line !~ /[\<\[][0-9a-f]{12,40}[\>\]]/i &&
+@@ -2213,8 +2213,7 @@ sub process {
+ 			}
+ 			#next;
+ 		}
+-		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@(.*)/) {
+-			my $context = $4;
++		if ($rawline =~ /^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
+ 			$realline=$1-1;
+ 			if (defined $2) {
+ 				$realcnt=$3+1;
+@@ -2223,12 +2222,6 @@ sub process {
+ 			}
+ 			$in_comment = 0;
+ 
+-			if ($context =~ /\b(\w+)\s*\(/) {
+-				$context_function = $1;
+-			} else {
+-				undef $context_function;
+-			}
+-
+ 			# Guestimate if this is a continuing comment.  Run
+ 			# the context looking for a comment "edge".  If this
+ 			# edge is a close comment then we must be in a comment
+@@ -2299,7 +2292,8 @@ sub process {
+ 
+ #extract the line range in the file after the patch is applied
+ 		if (!$in_commit_log &&
+-		    $line =~ /^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
++		    $line =~ /^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@(.*)/) {
++			my $context = $4;
+ 			$is_patch = 1;
+ 			$first_line = $linenr + 1;
+ 			$realline=$1-1;
+@@ -2315,6 +2309,11 @@ sub process {
+ 			%suppress_whiletrailers = ();
+ 			%suppress_export = ();
+ 			$suppress_statement = 0;
++			if ($context =~ /\b(\w+)\s*\(/) {
++				$context_function = $1;
++			} else {
++				undef $context_function;
++			}
+ 			next;
+ 
+ # track the line number as we move through the hunk, note that
 _
