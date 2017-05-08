@@ -1,111 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 059/114] net: use kvmalloc with __GFP_REPEAT rather
- than open coded variant
-Date: Mon, 08 May 2017 15:57:31 -0700
-Message-ID: <20170508225731.GVVKXfw4C%akpm@linux-foundation.org>
+Subject: [patch 060/114] drivers/md/dm-ioctl.c: use kvmalloc rather
+ than opencoded variant
+Date: Mon, 08 May 2017 15:57:34 -0700
+Message-ID: <20170508225734.dxLUd9xkJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46974 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751974AbdEHW5d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:57:33 -0400
+        with ESMTP id S1752276AbdEHW5g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:57:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, edumazet@google.com, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, mpatocka@redhat.com, snitzer@redhat.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: net: use kvmalloc with __GFP_REPEAT rather than open coded variant
+Subject: drivers/md/dm-ioctl.c: use kvmalloc rather than opencoded variant
 
-fq_alloc_node, alloc_netdev_mqs and netif_alloc* open code kmalloc with
-vmalloc fallback.  Use the kvmalloc variant instead.  Keep the
-__GFP_REPEAT flag based on explanation from Eric:
+copy_params uses kmalloc with vmalloc fallback.  We already have a helper
+for that - kvmalloc.  This caller requires GFP_NOIO semantic so it hasn't
+been converted with many others by previous patches.  All we need to
+achieve this semantic is to use the scope memalloc_noio_{save,restore}
+around kvmalloc.
 
-"At the time, tests on the hardware I had in my labs showed that vmalloc()
-could deliver pages spread all over the memory and that was a small
-penalty (once memory is fragmented enough, not at boot time)"
-
-The way how the code is constructed means, however, that we prefer to
-go and hit the OOM killer before we fall back to the vmalloc for
-requests <=32kB (with 4kB pages) in the current code.  This is rather
-disruptive for something that can be achived with the fallback.  On the
-other hand __GFP_REPEAT doesn't have any useful semantic for these
-requests.  So the effect of this patch is that requests which fit into
-32kB will fall back to vmalloc easier now.
-
-Link: http://lkml.kernel.org/r/20170306103327.2766-3-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170306103327.2766-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Mike Snitzer <snitzer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c     |   24 +++++++++---------------
- net/sched/sch_fq.c |   12 +-----------
- 2 files changed, 10 insertions(+), 26 deletions(-)
+ drivers/md/dm-ioctl.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN net/core/dev.c~net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant net/core/dev.c
---- a/net/core/dev.c~net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant
-+++ a/net/core/dev.c
-@@ -7264,12 +7264,10 @@ static int netif_alloc_rx_queues(struct
+diff -puN drivers/md/dm-ioctl.c~md-use-kvmalloc-rather-than-opencoded-variant drivers/md/dm-ioctl.c
+--- a/drivers/md/dm-ioctl.c~md-use-kvmalloc-rather-than-opencoded-variant
++++ a/drivers/md/dm-ioctl.c
+@@ -1691,6 +1691,7 @@ static int copy_params(struct dm_ioctl _
+ 	struct dm_ioctl *dmi;
+ 	int secure_data;
+ 	const size_t minimum_data_size = offsetof(struct dm_ioctl, data);
++	unsigned noio_flag;
  
- 	BUG_ON(count < 1);
- 
--	rx = kzalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
--	if (!rx) {
--		rx = vzalloc(sz);
--		if (!rx)
--			return -ENOMEM;
--	}
-+	rx = kvzalloc(sz, GFP_KERNEL | __GFP_REPEAT);
-+	if (!rx)
-+		return -ENOMEM;
-+
- 	dev->_rx = rx;
- 
- 	for (i = 0; i < count; i++)
-@@ -7306,12 +7304,10 @@ static int netif_alloc_netdev_queues(str
- 	if (count < 1 || count > 0xffff)
- 		return -EINVAL;
- 
--	tx = kzalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
--	if (!tx) {
--		tx = vzalloc(sz);
--		if (!tx)
--			return -ENOMEM;
--	}
-+	tx = kvzalloc(sz, GFP_KERNEL | __GFP_REPEAT);
-+	if (!tx)
-+		return -ENOMEM;
-+
- 	dev->_tx = tx;
- 
- 	netdev_for_each_tx_queue(dev, netdev_init_one_queue, NULL);
-@@ -7845,9 +7841,7 @@ struct net_device *alloc_netdev_mqs(int
- 	/* ensure 32-byte alignment of whole construct */
- 	alloc_size += NETDEV_ALIGN - 1;
- 
--	p = kzalloc(alloc_size, GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
--	if (!p)
--		p = vzalloc(alloc_size);
-+	p = kvzalloc(alloc_size, GFP_KERNEL | __GFP_REPEAT);
- 	if (!p)
- 		return NULL;
- 
-diff -puN net/sched/sch_fq.c~net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant net/sched/sch_fq.c
---- a/net/sched/sch_fq.c~net-use-kvmalloc-with-__gfp_repeat-rather-than-open-coded-variant
-+++ a/net/sched/sch_fq.c
-@@ -624,16 +624,6 @@ static void fq_rehash(struct fq_sched_da
- 	q->stat_gc_flows += fcnt;
- }
- 
--static void *fq_alloc_node(size_t sz, int node)
--{
--	void *ptr;
--
--	ptr = kmalloc_node(sz, GFP_KERNEL | __GFP_REPEAT | __GFP_NOWARN, node);
--	if (!ptr)
--		ptr = vmalloc_node(sz, node);
--	return ptr;
--}
+ 	if (copy_from_user(param_kernel, user, minimum_data_size))
+ 		return -EFAULT;
+@@ -1713,15 +1714,9 @@ static int copy_params(struct dm_ioctl _
+ 	 * Use kmalloc() rather than vmalloc() when we can.
+ 	 */
+ 	dmi = NULL;
+-	if (param_kernel->data_size <= KMALLOC_MAX_SIZE)
+-		dmi = kmalloc(param_kernel->data_size, GFP_NOIO | __GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN);
