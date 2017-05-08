@@ -1,65 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 033/114] reiserfs: use designated initializers
-Date: Mon, 08 May 2017 15:56:08 -0700
-Message-ID: <20170508225608.ZzDhghu1X%akpm@linux-foundation.org>
+Subject: [patch 034/114] fork: free vmapped stacks in cache when
+ cpus are offline
+Date: Mon, 08 May 2017 15:56:11 -0700
+Message-ID: <20170508225611.sqoAUVZ3l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46074 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751850AbdEHW4K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:56:10 -0400
+        with ESMTP id S1751850AbdEHW4N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:56:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, keescook@chromium.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, hoeun.ryu@gmail.com, keescook@chromium.org, luto@kernel.org, mguzik@redhat.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: reiserfs: use designated initializers
+From: Hoeun Ryu <hoeun.ryu@gmail.com>
+Subject: fork: free vmapped stacks in cache when cpus are offline
 
-Prepare to mark sensitive kernel structures for randomization by making
-sure they're using designated initializers.  These were identified during
-allyesconfig builds of x86, arm, and arm64, with most initializer fixes
-extracted from grsecurity.
+Using virtually mapped stack, kernel stacks are allocated via vmalloc.  In
+the current implementation, two stacks per cpu can be cached when tasks
+are freed and the cached stacks are used again in task duplications.  but
+the cached stacks may remain unfreed even when cpu are offline.  By adding
+a cpu hotplug callback to free the cached stacks when a cpu goes offline,
+the pages of the cached stacks are not wasted.
 
-Link: http://lkml.kernel.org/r/20170329210419.GA40066@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/1487076043-17802-1-git-send-email-hoeun.ryu@gmail.com
+Signed-off-by: Hoeun Ryu <hoeun.ryu@gmail.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Mateusz Guzik <mguzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/item_ops.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ kernel/fork.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN fs/reiserfs/item_ops.c~reiserfs-use-designated-initializers fs/reiserfs/item_ops.c
---- a/fs/reiserfs/item_ops.c~reiserfs-use-designated-initializers
-+++ a/fs/reiserfs/item_ops.c
-@@ -724,18 +724,18 @@ static void errcatch_print_vi(struct vir
+diff -puN kernel/fork.c~fork-free-vmapped-stacks-in-cache-when-cpus-are-offline kernel/fork.c
+--- a/kernel/fork.c~fork-free-vmapped-stacks-in-cache-when-cpus-are-offline
++++ a/kernel/fork.c
+@@ -179,6 +179,24 @@ void __weak arch_release_thread_stack(un
+  */
+ #define NR_CACHED_STACKS 2
+ static DEFINE_PER_CPU(struct vm_struct *, cached_stacks[NR_CACHED_STACKS]);
++
++static int free_vm_stack_cache(unsigned int cpu)
++{
++	struct vm_struct **cached_vm_stacks = per_cpu_ptr(cached_stacks, cpu);
++	int i;
++
++	for (i = 0; i < NR_CACHED_STACKS; i++) {
++		struct vm_struct *vm_stack = cached_vm_stacks[i];
++
++		if (!vm_stack)
++			continue;
++
++		vfree(vm_stack->addr);
++		cached_vm_stacks[i] = NULL;
++	}
++
++	return 0;
++}
+ #endif
+ 
+ static unsigned long *alloc_thread_stack_node(struct task_struct *tsk, int node)
+@@ -467,6 +485,11 @@ void __init fork_init(void)
+ 	for (i = 0; i < UCOUNT_COUNTS; i++) {
+ 		init_user_ns.ucount_max[i] = max_threads/2;
+ 	}
++
++#ifdef CONFIG_VMAP_STACK
++	cpuhp_setup_state(CPUHP_BP_PREPARE_DYN, "fork:vm_stack_cache",
++			  NULL, free_vm_stack_cache);
++#endif
  }
  
- static struct item_operations errcatch_ops = {
--	errcatch_bytes_number,
--	errcatch_decrement_key,
--	errcatch_is_left_mergeable,
--	errcatch_print_item,
--	errcatch_check_item,
-+	.bytes_number = errcatch_bytes_number,
-+	.decrement_key = errcatch_decrement_key,
-+	.is_left_mergeable = errcatch_is_left_mergeable,
-+	.print_item = errcatch_print_item,
-+	.check_item = errcatch_check_item,
- 
--	errcatch_create_vi,
--	errcatch_check_left,
--	errcatch_check_right,
--	errcatch_part_size,
--	errcatch_unit_num,
--	errcatch_print_vi
-+	.create_vi = errcatch_create_vi,
-+	.check_left = errcatch_check_left,
-+	.check_right = errcatch_check_right,
-+	.part_size = errcatch_part_size,
-+	.unit_num = errcatch_unit_num,
-+	.print_vi = errcatch_print_vi
- };
- 
- #if ! (TYPE_STAT_DATA == 0 && TYPE_INDIRECT == 1 && TYPE_DIRECT == 2 && TYPE_DIRENTRY == 3)
+ int __weak arch_dup_task_struct(struct task_struct *dst,
 _
