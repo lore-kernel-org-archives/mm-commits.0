@@ -1,58 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 021/114] checkpatch: remove obsolete
- CONFIG_EXPERIMENTAL checks
-Date: Mon, 08 May 2017 15:55:33 -0700
-Message-ID: <20170508225533.h5Fp7CAc5%akpm@linux-foundation.org>
+Subject: [patch 022/114] checkpatch: add ability to find bad uses
+ of vsprintf %p<foo> extensions
+Date: Mon, 08 May 2017 15:55:36 -0700
+Message-ID: <20170508225536.UZmdZP8Ic%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45922 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751243AbdEHWze (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:34 -0400
+        with ESMTP id S1751243AbdEHWzh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, keescook@chromium.org, mm-commits@vger.kernel.org, ruslan.bilovol@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, joe@perches.com, keescook@chromium.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, william.c.roberts@intel.com
 
-From: Ruslan Bilovol <ruslan.bilovol@gmail.com>
-Subject: checkpatch: remove obsolete CONFIG_EXPERIMENTAL checks
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add ability to find bad uses of vsprintf %p<foo> extensions
 
-Config EXPERIMENTAL has been removed from kernel in 2013 (see 3d374d0:
-"final removal of CONFIG_EXPERIMENTAL"), there is no any reason to do
-these checks now.
+%pK was at least once misused at %pk in an out-of-tree module.  This lead
+to some security concerns.  Add the ability to track single and multiple
+line statements for misuses of %p<foo>.
 
-Link: http://lkml.kernel.org/r/1488234097-20119-1-git-send-email-ruslan.bilovol@gmail.com
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol@gmail.com>
+[akpm@linux-foundation.org: add helpful comment into lib/vsprintf.c]
+[akpm@linux-foundation.org: text tweak]
+Link: http://lkml.kernel.org/r/163a690510e636a23187c0dc9caa09ddac6d4cde.1488228427.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Joe Perches <joe@perches.com>
+Acked-by: William Roberts <william.c.roberts@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 -------------
- 1 file changed, 13 deletions(-)
+ lib/vsprintf.c        |    3 +++
+ scripts/checkpatch.pl |   26 ++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-remove-obsolete-config_experimental-checks scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-remove-obsolete-config_experimental-checks
+diff -puN lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions lib/vsprintf.c
+--- a/lib/vsprintf.c~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions
++++ a/lib/vsprintf.c
+@@ -1477,6 +1477,9 @@ int kptr_restrict __read_mostly;
+  * by an extra set of alphanumeric characters that are extended format
+  * specifiers.
+  *
++ * Please update scripts/checkpatch.pl when adding/removing conversion
++ * characters.  (Search for "check for vsprintf extension").
++ *
+  * Right now we handle:
+  *
+  * - 'F' For symbolic function descriptor pointers with offset
+diff -puN scripts/checkpatch.pl~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-ability-to-find-bad-uses-of-vsprintf-%pfoo-extensions
 +++ a/scripts/checkpatch.pl
-@@ -2757,13 +2757,6 @@ sub process {
- 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
- 		}
- 
--# discourage the addition of CONFIG_EXPERIMENTAL in Kconfig.
--		if ($realfile =~ /Kconfig/ &&
--		    $line =~ /.\s*depends on\s+.*\bEXPERIMENTAL\b/) {
--			WARN("CONFIG_EXPERIMENTAL",
--			     "Use of CONFIG_EXPERIMENTAL is deprecated. For alternatives, see https://lkml.org/lkml/2012/10/23/580\n");
--		}
--
- # discourage the use of boolean for type definition attributes of Kconfig options
- 		if ($realfile =~ /Kconfig/ &&
- 		    $line =~ /^\+\s*\bboolean\b/) {
-@@ -3157,12 +3150,6 @@ sub process {
+@@ -5663,6 +5663,32 @@ sub process {
  			}
  		}
  
--# discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
--		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
--			WARN("CONFIG_EXPERIMENTAL",
--			     "Use of CONFIG_EXPERIMENTAL is deprecated. For alternatives, see https://lkml.org/lkml/2012/10/23/580\n");
--		}
++		# check for vsprintf extension %p<foo> misuses
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /^\+(?![^\{]*\{\s*).*\b(\w+)\s*\(.*$String\s*,/s &&
++		    $1 !~ /^_*volatile_*$/) {
++			my $bad_extension = "";
++			my $lc = $stat =~ tr@\n@@;
++			$lc = $lc + $linenr;
++		        for (my $count = $linenr; $count <= $lc; $count++) {
++				my $fmt = get_quoted_string($lines[$count - 1], raw_line($count, 0));
++				$fmt =~ s/%%//g;
++				if ($fmt =~ /(\%[\*\d\.]*p(?![\WFfSsBKRraEhMmIiUDdgVCbGN]).)/) {
++					$bad_extension = $1;
++					last;
++				}
++			}
++			if ($bad_extension ne "") {
++				my $stat_real = raw_line($linenr, 0);
++				for (my $count = $linenr + 1; $count <= $lc; $count++) {
++					$stat_real = $stat_real . "\n" . raw_line($count, 0);
++				}
++				WARN("VSPRINTF_POINTER_EXTENSION",
++				     "Invalid vsprintf pointer extension '$bad_extension'\n" . "$here\n$stat_real\n");
++			}
++		}
++
+ # Check for misused memsets
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    defined $stat &&
+_
