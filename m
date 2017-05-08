@@ -1,57 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/114] checkpatch: avoid suggesting struct
- definitions should be const
-Date: Mon, 08 May 2017 15:55:45 -0700
-Message-ID: <20170508225545.T79GmDLZ0%akpm@linux-foundation.org>
+Subject: [patch 026/114] checkpatch: improve
+ MULTISTATEMENT_MACRO_USE_DO_WHILE test
+Date: Mon, 08 May 2017 15:55:48 -0700
+Message-ID: <20170508225548.q3BIBoorU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45958 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751036AbdEHWzq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:46 -0400
+        with ESMTP id S1751036AbdEHWzt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 May 2017 18:55:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, ybalrid@ybalrid.info
+To: akpm@linux-foundation.org, alfonsolimaastor@gmail.com, andi@lisas.de, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: avoid suggesting struct definitions should be const
+Subject: checkpatch: improve MULTISTATEMENT_MACRO_USE_DO_WHILE test
 
-Many structs are generally used const and there is a known list of these
-structs.
+The logic currrently misses macros that start with an if statement.
 
-struct definitions should not be generally be declared const.
+e.g.:    #define foo(bar)   if (bar) baz;
 
-Add a test for the lack of an open brace immediately after the struct to
-avoid definitions.
+Add a test for macro content that starts with if
 
-This avoids the false positive "struct foo should normally be const"
-message only when the open brace is on the same line as the definition.
-
-Link: http://lkml.kernel.org/r/0dce709150d712e66f1b90b03827634b53b28085.1491845946.git.joe@perches.com
+Link: http://lkml.kernel.org/r/a9d41aafe1673889caf1a9850208fb7fd74107a0.1491783914.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Arthur Brainville <ybalrid@ybalrid.info>
+Reported-by: Andreas Mohr <andi@lisas.de>
+Original-patch-by: Alfonso Lima <alfonsolimaastor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-avoid-suggesting-struct-definitions-should-be-const scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-avoid-suggesting-struct-definitions-should-be-const
+diff -puN scripts/checkpatch.pl~checkpatch-improve-multistatement_macro_use_do_while-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-multistatement_macro_use_do_while-test
 +++ a/scripts/checkpatch.pl
-@@ -6090,11 +6090,11 @@ sub process {
- 		}
- 
- # check for various structs that are normally const (ops, kgdb, device_tree)
-+# and avoid what seem like struct definitions 'struct foo {'
- 		if ($line !~ /\bconst\b/ &&
--		    $line =~ /\bstruct\s+($const_structs)\b/) {
-+		    $line =~ /\bstruct\s+($const_structs)\b(?!\s*\{)/) {
- 			WARN("CONST_STRUCT",
--			     "struct $1 should normally be const\n" .
--				$herecurr);
-+			     "struct $1 should normally be const\n" . $herecurr);
- 		}
- 
- # use of NR_CPUS is usually wrong
-_
+@@ -4849,8 +4849,10 @@ sub process {
+ 			    $dstat !~ /^\(\{/ &&						# ({...
+ 			    $ctx !~ /^.\s*#\s*define\s+TRACE_(?:SYSTEM|INCLUDE_FILE|INCLUDE_PATH)\b/)
+ 			{
