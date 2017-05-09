@@ -1,61 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gfs2-replace-current_time-with-current_time.patch
+Subject: [merged] mm-huge_memory-use-zap_deposited_table-more.patch
  removed from -mm tree
-Date: Tue, 09 May 2017 11:04:14 -0700
-Message-ID: <20170509180414.HEylQDpQT%akpm@linux-foundation.org>
+Date: Tue, 09 May 2017 11:04:19 -0700
+Message-ID: <20170509180419.pBAS5N2bo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753737AbdEISEP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:04:15 -0400
+        with ESMTP id S1751838AbdEISEU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:04:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: aneesh.kumar@linux.vnet.ibm.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, oohall@gmail.com
 
 
 The patch titled
-     Subject: gfs2: replace CURRENT_TIME with current_time
+     Subject: mm/huge_memory.c: use zap_deposited_table() more
 has been removed from the -mm tree.  Its filename was
-     gfs2-replace-current_time-with-current_time.patch
+     mm-huge_memory-use-zap_deposited_table-more.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: gfs2: replace CURRENT_TIME with current_time
+From: "Oliver O'Halloran" <oohall@gmail.com>
+Subject: mm/huge_memory.c: use zap_deposited_table() more
 
-Link: http://lkml.kernel.org/r/20170420161852.0492bc3f@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Depending on the flags of the PMD being zapped there may or may not be a
+deposited pgtable to be freed.  In two of the three cases this is open
+coded while the third uses the zap_deposited_table() helper.  This patch
+converts the others to use the helper to clean things up a bit.
+
+Link: http://lkml.kernel.org/r/20170411174233.21902-2-oohall@gmail.com
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: linux-nvdimm@ml01.01.org
+Cc: Oliver O'Halloran <oohall@gmail.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/bmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/gfs2/bmap.c~gfs2-replace-current_time-with-current_time fs/gfs2/bmap.c
---- a/fs/gfs2/bmap.c~gfs2-replace-current_time-with-current_time
-+++ a/fs/gfs2/bmap.c
-@@ -1072,7 +1072,7 @@ out_unlock:
- 			/* Every transaction boundary, we rewrite the dinode
- 			   to keep its di_blocks current in case of failure. */
- 			ip->i_inode.i_mtime = ip->i_inode.i_ctime =
--				CURRENT_TIME;
-+				current_time(&ip->i_inode);
- 			gfs2_trans_add_meta(ip->i_gl, dibh);
- 			gfs2_dinode_out(ip, dibh->b_data);
- 			up_write(&ip->i_rw_mutex);
-@@ -1293,7 +1293,7 @@ static int trunc_dealloc(struct gfs2_ino
- 		gfs2_statfs_change(sdp, 0, +btotal, 0);
- 		gfs2_quota_change(ip, -(s64)btotal, ip->i_inode.i_uid,
- 				  ip->i_inode.i_gid);
--		ip->i_inode.i_mtime = ip->i_inode.i_ctime = CURRENT_TIME;
-+		ip->i_inode.i_mtime = ip->i_inode.i_ctime = current_time(&ip->i_inode);
- 		gfs2_trans_add_meta(ip->i_gl, dibh);
- 		gfs2_dinode_out(ip, dibh->b_data);
- 		up_write(&ip->i_rw_mutex);
+diff -puN mm/huge_memory.c~mm-huge_memory-use-zap_deposited_table-more mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-huge_memory-use-zap_deposited_table-more
++++ a/mm/huge_memory.c
+@@ -1615,8 +1615,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		if (is_huge_zero_pmd(orig_pmd))
+ 			tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
+ 	} else if (is_huge_zero_pmd(orig_pmd)) {
+-		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
+-		atomic_long_dec(&tlb->mm->nr_ptes);
++		zap_deposited_table(tlb->mm, pmd);
+ 		spin_unlock(ptl);
+ 		tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
+ 	} else {
+@@ -1625,10 +1624,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
+ 		VM_BUG_ON_PAGE(!PageHead(page), page);
+ 		if (PageAnon(page)) {
+-			pgtable_t pgtable;
+-			pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
+-			pte_free(tlb->mm, pgtable);
+-			atomic_long_dec(&tlb->mm->nr_ptes);
++			zap_deposited_table(tlb->mm, pmd);
+ 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+ 		} else {
+ 			if (arch_needs_pgtable_deposit())
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from oohall@gmail.com are
 
 
