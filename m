@@ -1,191 +1,267 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-split-smallest-stolen-page-in-fallback.patch removed from -mm
- tree
-Date: Tue, 09 May 2017 11:00:12 -0700
-Message-ID: <20170509180012.f1vlHaGRl%akpm@linux-foundation.org>
+ mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
+ removed from -mm tree
+Date: Tue, 09 May 2017 11:00:15 -0700
+Message-ID: <20170509180015.xikHsqdVK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34130 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753105AbdEISAN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:13 -0400
+        with ESMTP id S1753105AbdEISAQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, page_alloc: split smallest stolen page in fallback
+     Subject: mm, page_alloc: count movable pages when stealing from pageblock
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
+     mm-page_alloc-count-movable-pages-when-stealing-from-pageblock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: split smallest stolen page in fallback
+Subject: mm, page_alloc: count movable pages when stealing from pageblock
 
-The __rmqueue_fallback() function is called when there's no free page of
-requested migratetype, and we need to steal from a different one.  There
-are various heuristics to make this event infrequent and reduce permanent
-fragmentation.  The main one is to try stealing from a pageblock that has
-the most free pages, and possibly steal them all at once and convert the
-whole pageblock.  Precise searching for such pageblock would be expensive,
-so instead the heuristics walks the free lists from MAX_ORDER down to
-requested order and assumes that the block with highest-order free page is
-likely to also have the most free pages in total.
+When stealing pages from pageblock of a different migratetype, we count
+how many free pages were stolen, and change the pageblock's migratetype if
+more than half of the pageblock was free.  This might be too conservative,
+as there might be other pages that are not free, but were allocated with
+the same migratetype as our allocation requested.
 
-Chances are that together with the highest-order page, we steal also pages
-of lower orders from the same block.  But then we still split the highest
-order page.  This is wasteful and can contribute to fragmentation instead
-of avoiding it.
+While we cannot determine the migratetype of allocated pages precisely (at
+least without the page_owner functionality enabled), we can count pages
+that compaction would try to isolate for migration - those are either on
+LRU or __PageMovable().  The rest can be assumed to be MIGRATE_RECLAIMABLE
+or MIGRATE_UNMOVABLE, which we cannot easily distinguish.  This counting
+can be done as part of free page stealing with little additional overhead.
 
-This patch thus changes __rmqueue_fallback() to just steal the page(s) and
-put them on the freelist of the requested migratetype, and only report
-whether it was successful.  Then we pick (and eventually split) the
-smallest page with __rmqueue_smallest().  This all happens under zone
-lock, so nobody can steal it from us in the process.  This should reduce
-fragmentation due to fallbacks.  At worst we are only stealing a single
-highest-order page and waste some cycles by moving it between lists and
-then removing it, but fallback is not exactly hot path so that should not
-be a concern.  As a side benefit the patch removes some duplicate code by
-reusing __rmqueue_smallest().
+The page stealing code is changed so that it considers free pages plus
+pages of the "good" migratetype for the decision whether to change
+pageblock's migratetype.
 
-[vbabka@suse.cz: fix endless loop in the modified __rmqueue()]
-  Link: http://lkml.kernel.org/r/59d71b35-d556-4fc9-ee2e-1574259282fd@suse.cz
-Link: http://lkml.kernel.org/r/20170307131545.28577-4-vbabka@suse.cz
+The result should be more accurate migratetype of pageblocks wrt the
+actual pages in the pageblocks, when stealing from semi-occupied
+pageblocks.  This should help the efficiency of page grouping by mobility.
+
+In testing based on 4.9 kernel with stress-highalloc from mmtests
+configured for order-4 GFP_KERNEL allocations, this patch has reduced the
+number of unmovable allocations falling back to movable pageblocks by 47%.
+The number of movable allocations falling back to other pageblocks are
+increased by 55%, but these events don't cause permanent fragmentation, so
+the tradeoff should be positive.  Later patches also offset the movable
+fallback increase to some extent.
+
+[akpm@linux-foundation.org: merge fix]
+Link: http://lkml.kernel.org/r/20170307131545.28577-5-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   62 +++++++++++++++++++++++++++-------------------
- 1 file changed, 37 insertions(+), 25 deletions(-)
+ include/linux/page-isolation.h |    5 --
+ mm/page_alloc.c                |   74 ++++++++++++++++++++++++-------
+ mm/page_isolation.c            |    5 +-
+ 3 files changed, 63 insertions(+), 21 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback
+diff -puN include/linux/page-isolation.h~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock include/linux/page-isolation.h
+--- a/include/linux/page-isolation.h~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock
++++ a/include/linux/page-isolation.h
+@@ -33,10 +33,7 @@ bool has_unmovable_pages(struct zone *zo
+ 			 bool skip_hwpoisoned_pages);
+ void set_pageblock_migratetype(struct page *page, int migratetype);
+ int move_freepages_block(struct zone *zone, struct page *page,
+-				int migratetype);
+-int move_freepages(struct zone *zone,
+-			  struct page *start_page, struct page *end_page,
+-			  int migratetype);
++				int migratetype, int *num_movable);
+ 
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+diff -puN mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock
 +++ a/mm/page_alloc.c
-@@ -1948,23 +1948,44 @@ static bool can_steal_fallback(unsigned
-  * use it's pages as requested migratetype in the future.
+@@ -1832,9 +1832,9 @@ static inline struct page *__rmqueue_cma
+  * Note that start_page and end_pages are not aligned on a pageblock
+  * boundary. If alignment is required, use move_freepages_block()
   */
- static void steal_suitable_fallback(struct zone *zone, struct page *page,
--							  int start_type)
-+					int start_type, bool whole_block)
- {
- 	unsigned int current_order = page_order(page);
-+	struct free_area *area;
- 	int pages;
- 
-+	/*
-+	 * This can happen due to races and we want to prevent broken
-+	 * highatomic accounting.
-+	 */
-+	if (is_migrate_highatomic_page(page))
-+		goto single_page;
-+
- 	/* Take ownership for orders >= pageblock_order */
- 	if (current_order >= pageblock_order) {
- 		change_pageblock_range(page, current_order, start_type);
--		return;
-+		goto single_page;
- 	}
- 
-+	/* We are not allowed to try stealing from the whole block */
-+	if (!whole_block)
-+		goto single_page;
-+
- 	pages = move_freepages_block(zone, page, start_type);
-+	/* moving whole block can fail due to zone boundary conditions */
-+	if (!pages)
-+		goto single_page;
- 
- 	/* Claim the whole block if over half of it is free */
- 	if (pages >= (1 << (pageblock_order-1)) ||
- 			page_group_by_mobility_disabled)
- 		set_pageblock_migratetype(page, start_type);
-+
-+	return;
-+
-+single_page:
-+	area = &zone->free_area[current_order];
-+	list_move(&page->lru, &area->free_list[start_type]);
- }
- 
- /*
-@@ -2123,8 +2144,13 @@ static bool unreserve_highatomic_pageblo
- 	return false;
- }
- 
--/* Remove an element from the buddy allocator from the fallback list */
--static inline struct page *
-+/*
-+ * Try finding a free buddy page on the fallback list and put it on the free
-+ * list of requested migratetype, possibly along with other pages from the same
-+ * block, depending on fragmentation avoidance heuristics. Returns true if
-+ * fallback was found so that __rmqueue_smallest() can grab it.
-+ */
-+static inline bool
- __rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
- {
- 	struct free_area *area;
-@@ -2145,32 +2171,17 @@ __rmqueue_fallback(struct zone *zone, un
- 
- 		page = list_first_entry(&area->free_list[fallback_mt],
- 						struct page, lru);
--		if (can_steal && !is_migrate_highatomic_page(page))
--			steal_suitable_fallback(zone, page, start_migratetype);
- 
--		/* Remove the page from the freelists */
--		area->nr_free--;
--		list_del(&page->lru);
--		rmv_page_order(page);
--
--		expand(zone, page, order, current_order, area,
--					start_migratetype);
--		/*
--		 * The pcppage_migratetype may differ from pageblock's
--		 * migratetype depending on the decisions in
--		 * find_suitable_fallback(). This is OK as long as it does not
--		 * differ for MIGRATE_CMA pageblocks. Those can be used as
--		 * fallback only via special __rmqueue_cma_fallback() function
--		 */
--		set_pcppage_migratetype(page, start_migratetype);
-+		steal_suitable_fallback(zone, page, start_migratetype,
-+								can_steal);
- 
- 		trace_mm_page_alloc_extfrag(page, order, current_order,
- 			start_migratetype, fallback_mt);
- 
--		return page;
-+		return true;
- 	}
- 
--	return NULL;
-+	return false;
- }
- 
- /*
-@@ -2182,13 +2193,14 @@ static struct page *__rmqueue(struct zon
+-int move_freepages(struct zone *zone,
++static int move_freepages(struct zone *zone,
+ 			  struct page *start_page, struct page *end_page,
+-			  int migratetype)
++			  int migratetype, int *num_movable)
  {
  	struct page *page;
+ 	unsigned int order;
+@@ -1851,6 +1851,9 @@ int move_freepages(struct zone *zone,
+ 	VM_BUG_ON(page_zone(start_page) != page_zone(end_page));
+ #endif
  
-+retry:
- 	page = __rmqueue_smallest(zone, order, migratetype);
- 	if (unlikely(!page)) {
- 		if (migratetype == MIGRATE_MOVABLE)
- 			page = __rmqueue_cma_fallback(zone, order);
++	if (num_movable)
++		*num_movable = 0;
++
+ 	for (page = start_page; page <= end_page;) {
+ 		if (!pfn_valid_within(page_to_pfn(page))) {
+ 			page++;
+@@ -1861,6 +1864,15 @@ int move_freepages(struct zone *zone,
+ 		VM_BUG_ON_PAGE(page_to_nid(page) != zone_to_nid(zone), page);
  
--		if (!page)
--			page = __rmqueue_fallback(zone, order, migratetype);
-+		if (!page && __rmqueue_fallback(zone, order, migratetype))
-+			goto retry;
+ 		if (!PageBuddy(page)) {
++			/*
++			 * We assume that pages that could be isolated for
++			 * migration are movable. But we don't actually try
++			 * isolating, as that would be expensive.
++			 */
++			if (num_movable &&
++					(PageLRU(page) || __PageMovable(page)))
++				(*num_movable)++;
++
+ 			page++;
+ 			continue;
+ 		}
+@@ -1876,7 +1888,7 @@ int move_freepages(struct zone *zone,
+ }
+ 
+ int move_freepages_block(struct zone *zone, struct page *page,
+-				int migratetype)
++				int migratetype, int *num_movable)
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 	struct page *start_page, *end_page;
+@@ -1893,7 +1905,8 @@ int move_freepages_block(struct zone *zo
+ 	if (!zone_spans_pfn(zone, end_pfn))
+ 		return 0;
+ 
+-	return move_freepages(zone, start_page, end_page, migratetype);
++	return move_freepages(zone, start_page, end_page, migratetype,
++								num_movable);
+ }
+ 
+ static void change_pageblock_range(struct page *pageblock_page,
+@@ -1943,22 +1956,26 @@ static bool can_steal_fallback(unsigned
+ /*
+  * This function implements actual steal behaviour. If order is large enough,
+  * we can steal whole pageblock. If not, we first move freepages in this
+- * pageblock and check whether half of pages are moved or not. If half of
+- * pages are moved, we can change migratetype of pageblock and permanently
+- * use it's pages as requested migratetype in the future.
++ * pageblock to our migratetype and determine how many already-allocated pages
++ * are there in the pageblock with a compatible migratetype. If at least half
++ * of pages are free or compatible, we can change migratetype of the pageblock
++ * itself, so pages freed in the future will be put on the correct free list.
+  */
+ static void steal_suitable_fallback(struct zone *zone, struct page *page,
+ 					int start_type, bool whole_block)
+ {
+ 	unsigned int current_order = page_order(page);
+ 	struct free_area *area;
+-	int pages;
++	int free_pages, movable_pages, alike_pages;
++	int old_block_type;
++
++	old_block_type = get_pageblock_migratetype(page);
+ 
+ 	/*
+ 	 * This can happen due to races and we want to prevent broken
+ 	 * highatomic accounting.
+ 	 */
+-	if (is_migrate_highatomic_page(page))
++	if (is_migrate_highatomic(old_block_type))
+ 		goto single_page;
+ 
+ 	/* Take ownership for orders >= pageblock_order */
+@@ -1971,13 +1988,39 @@ static void steal_suitable_fallback(stru
+ 	if (!whole_block)
+ 		goto single_page;
+ 
+-	pages = move_freepages_block(zone, page, start_type);
++	free_pages = move_freepages_block(zone, page, start_type,
++						&movable_pages);
++	/*
++	 * Determine how many pages are compatible with our allocation.
++	 * For movable allocation, it's the number of movable pages which
++	 * we just obtained. For other types it's a bit more tricky.
++	 */
++	if (start_type == MIGRATE_MOVABLE) {
++		alike_pages = movable_pages;
++	} else {
++		/*
++		 * If we are falling back a RECLAIMABLE or UNMOVABLE allocation
++		 * to MOVABLE pageblock, consider all non-movable pages as
++		 * compatible. If it's UNMOVABLE falling back to RECLAIMABLE or
++		 * vice versa, be conservative since we can't distinguish the
++		 * exact migratetype of non-movable pages.
++		 */
++		if (old_block_type == MIGRATE_MOVABLE)
++			alike_pages = pageblock_nr_pages
++						- (free_pages + movable_pages);
++		else
++			alike_pages = 0;
++	}
++
+ 	/* moving whole block can fail due to zone boundary conditions */
+-	if (!pages)
++	if (!free_pages)
+ 		goto single_page;
+ 
+-	/* Claim the whole block if over half of it is free */
+-	if (pages >= (1 << (pageblock_order-1)) ||
++	/*
++	 * If a sufficient number of pages in the block are either free or of
++	 * comparable migratability as our allocation, claim the whole block.
++	 */
++	if (free_pages + alike_pages >= (1 << (pageblock_order-1)) ||
+ 			page_group_by_mobility_disabled)
+ 		set_pageblock_migratetype(page, start_type);
+ 
+@@ -2055,7 +2098,7 @@ static void reserve_highatomic_pageblock
+ 	    && !is_migrate_cma(mt)) {
+ 		zone->nr_reserved_highatomic += pageblock_nr_pages;
+ 		set_pageblock_migratetype(page, MIGRATE_HIGHATOMIC);
+-		move_freepages_block(zone, page, MIGRATE_HIGHATOMIC);
++		move_freepages_block(zone, page, MIGRATE_HIGHATOMIC, NULL);
  	}
  
- 	trace_mm_page_alloc_zone_locked(page, order, migratetype);
+ out_unlock:
+@@ -2132,7 +2175,8 @@ static bool unreserve_highatomic_pageblo
+ 			 * may increase.
+ 			 */
+ 			set_pageblock_migratetype(page, ac->migratetype);
+-			ret = move_freepages_block(zone, page, ac->migratetype);
++			ret = move_freepages_block(zone, page, ac->migratetype,
++									NULL);
+ 			if (ret) {
+ 				spin_unlock_irqrestore(&zone->lock, flags);
+ 				return ret;
+diff -puN mm/page_isolation.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_alloc-count-movable-pages-when-stealing-from-pageblock
++++ a/mm/page_isolation.c
+@@ -66,7 +66,8 @@ out:
+ 
+ 		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+ 		zone->nr_isolate_pageblock++;
+-		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
++		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE,
++									NULL);
+ 
+ 		__mod_zone_freepage_state(zone, -nr_pages, migratetype);
+ 	}
+@@ -120,7 +121,7 @@ static void unset_migratetype_isolate(st
+ 	 * pageblock scanning for freepage moving.
+ 	 */
+ 	if (!isolated_page) {
+-		nr_pages = move_freepages_block(zone, page, migratetype);
++		nr_pages = move_freepages_block(zone, page, migratetype, NULL);
+ 		__mod_zone_freepage_state(zone, nr_pages, migratetype);
+ 	}
+ 	set_pageblock_migratetype(page, migratetype);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
