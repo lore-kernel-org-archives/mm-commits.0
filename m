@@ -1,70 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ila-simplify-a-strange-allocation-pattern.patch
- removed from -mm tree
-Date: Tue, 09 May 2017 11:02:35 -0700
-Message-ID: <20170509180235.W281TR_9a%akpm@linux-foundation.org>
+Subject: [merged]
+ xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch removed from
+ -mm tree
+Date: Tue, 09 May 2017 11:02:38 -0700
+Message-ID: <20170509180238.gGX3PBJP9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34676 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34684 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752586AbdEISCg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:02:36 -0400
+        with ESMTP id S1752586AbdEISCj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, eric.dumazet@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, tom@herbertland.com, vbabka@suse.cz
+To: keescook@chromium.org, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: net/ipv6/ila/ila_xlat.c: simplify a strange allocation pattern
+     Subject: fs/xattr.c: zero out memory copied to userspace in getxattr
 has been removed from the -mm tree.  Its filename was
-     ila-simplify-a-strange-allocation-pattern.patch
+     xattr-zero-out-memory-copied-to-userspace-in-getxattr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: net/ipv6/ila/ila_xlat.c: simplify a strange allocation pattern
+Subject: fs/xattr.c: zero out memory copied to userspace in getxattr
 
-alloc_ila_locks seemed to c&p from alloc_bucket_locks allocation pattern
-which is quite unusual.  The default allocation size is 320 *
-sizeof(spinlock_t) which is sub page unless lockdep is enabled when the
-performance benefit is really questionable and not worth the subtle code
-IMHO.  Also note that the context when we call ila_init_net (modprobe or a
-task creating a net namespace) has to be properly configured.
+getxattr uses vmalloc to allocate memory if kzalloc fails.  This is filled
+by vfs_getxattr and then copied to the userspace.  vmalloc, however,
+doesn't zero out the memory so if the specific implementation of the xattr
+handler is sloppy we can theoretically expose a kernel memory.  There is
+no real sign this is really the case but let's make sure this will not
+happen and use vzalloc instead.
 
-Let's just simplify the code and use kvmalloc helper which is a
-transparent way to use kmalloc with vmalloc fallback.
-
-Link: http://lkml.kernel.org/r/20170306103032.2540-5-mhocko@kernel.org
+Fixes: 779302e67835 ("fs/xattr.c:getxattr(): improve handling of allocation failures")
+Link: http://lkml.kernel.org/r/20170306103327.2766-1-mhocko@kernel.org
+Acked-by: Kees Cook <keescook@chromium.org>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tom Herbert <tom@herbertland.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: <stable@vger.kernel.org>	[3.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/ila/ila_xlat.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ fs/xattr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/ipv6/ila/ila_xlat.c~ila-simplify-a-strange-allocation-pattern net/ipv6/ila/ila_xlat.c
---- a/net/ipv6/ila/ila_xlat.c~ila-simplify-a-strange-allocation-pattern
-+++ a/net/ipv6/ila/ila_xlat.c
-@@ -41,13 +41,7 @@ static int alloc_ila_locks(struct ila_ne
- 	size = roundup_pow_of_two(nr_pcpus * LOCKS_PER_CPU);
- 
- 	if (sizeof(spinlock_t) != 0) {
--#ifdef CONFIG_NUMA
--		if (size * sizeof(spinlock_t) > PAGE_SIZE)
--			ilan->locks = vmalloc(size * sizeof(spinlock_t));
--		else
--#endif
--		ilan->locks = kmalloc_array(size, sizeof(spinlock_t),
--					    GFP_KERNEL);
-+		ilan->locks = kvmalloc(size * sizeof(spinlock_t), GFP_KERNEL);
- 		if (!ilan->locks)
- 			return -ENOMEM;
- 		for (i = 0; i < size; i++)
+diff -puN fs/xattr.c~xattr-zero-out-memory-copied-to-userspace-in-getxattr fs/xattr.c
+--- a/fs/xattr.c~xattr-zero-out-memory-copied-to-userspace-in-getxattr
++++ a/fs/xattr.c
+@@ -530,7 +530,7 @@ getxattr(struct dentry *d, const char __
+ 			size = XATTR_SIZE_MAX;
+ 		kvalue = kzalloc(size, GFP_KERNEL | __GFP_NOWARN);
+ 		if (!kvalue) {
+-			kvalue = vmalloc(size);
++			kvalue = vzalloc(size);
+ 			if (!kvalue)
+ 				return -ENOMEM;
+ 		}
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
