@@ -1,79 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] reiserfs-use-designated-initializers.patch
+Subject: [merged] cpumask-make-nr_cpumask_bits-unsigned.patch
  removed from -mm tree
-Date: Tue, 09 May 2017 11:01:34 -0700
-Message-ID: <20170509180134.-KtNOzXYa%akpm@linux-foundation.org>
+Date: Tue, 09 May 2017 11:01:38 -0700
+Message-ID: <20170509180138.P2QNH5pEC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34398 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34422 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754066AbdEISBf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:35 -0400
+        with ESMTP id S1754090AbdEISBj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, keescook@chromium.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org, rusty@rustcorp.com.au, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Subject: reiserfs: use designated initializers
+     Subject: cpumask: make "nr_cpumask_bits" unsigned
 has been removed from the -mm tree.  Its filename was
-     reiserfs-use-designated-initializers.patch
+     cpumask-make-nr_cpumask_bits-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: reiserfs: use designated initializers
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: cpumask: make "nr_cpumask_bits" unsigned
 
-Prepare to mark sensitive kernel structures for randomization by making
-sure they're using designated initializers.  These were identified during
-allyesconfig builds of x86, arm, and arm64, with most initializer fixes
-extracted from grsecurity.
+Bit searching functions accept "unsigned long" indices but
+"nr_cpumask_bits" is "int" which is signed, so inevitable sign extensions
+occur on x86_64.  Those MOVSX are #1 MOVSX bloat by number of uses across
+whole kernel.
 
-Link: http://lkml.kernel.org/r/20170329210419.GA40066@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Jan Kara <jack@suse.cz>
+Change "nr_cpumask_bits" to unsigned, this number can't be negative after
+all.  It allows to do implicit zero-extension on x86_64 without MOVSX.
+
+Change signed comparisons into unsigned comparisons where necessary.
+
+Other uses looks fine because it is either argument passed to a function
+or comparison is already unsigned.
+
+Net win on allyesconfig type of kernel: ~2.8 KB (!)
+
+	add/remove: 0/0 grow/shrink: 8/725 up/down: 93/-2926 (-2833)
+	function                                     old     new   delta
+	xen_exit_mmap                                691     735     +44
+	qstat_read                                   426     440     +14
+	__cpufreq_cooling_register                  1678    1687      +9
+	trace_rb_cpu_prepare                         447     455      +8
+	vermagic                                      54      60      +6
+	nfp_driver_version                            54      60      +6
+	rcu_torture_stats_print                     1147    1151      +4
+	find_next_push_cpu                           267     269      +2
+	xen_irq_resume                               961     960      -1
+				...
+	init_vp_index                                946     906     -40
+	od_set_powersave_bias                        328     281     -47
+	power_cpu_exit                               193     139     -54
+	arch_show_interrupts                        3538    3484     -54
+	select_idle_sibling                         1558    1471     -87
+	Total: Before=158358910, After=158356077, chg -0.00%
+
+Same arguments apply to "nr_cpu_ids" but I haven't yet found enough
+courage to delve into this issue (and proper fix may require new type
+"cpu_t" which is whole separate story).
+
+Link: http://lkml.kernel.org/r/20170309205322.GA1728@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/item_ops.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/mips/kernel/perf_event_mipsxx.c |    2 +-
+ arch/s390/kernel/perf_cpum_sf.c      |    2 +-
+ include/linux/cpumask.h              |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiserfs/item_ops.c~reiserfs-use-designated-initializers fs/reiserfs/item_ops.c
---- a/fs/reiserfs/item_ops.c~reiserfs-use-designated-initializers
-+++ a/fs/reiserfs/item_ops.c
-@@ -724,18 +724,18 @@ static void errcatch_print_vi(struct vir
- }
+diff -puN arch/mips/kernel/perf_event_mipsxx.c~cpumask-make-nr_cpumask_bits-unsigned arch/mips/kernel/perf_event_mipsxx.c
+--- a/arch/mips/kernel/perf_event_mipsxx.c~cpumask-make-nr_cpumask_bits-unsigned
++++ a/arch/mips/kernel/perf_event_mipsxx.c
+@@ -618,7 +618,7 @@ static int mipspmu_event_init(struct per
+ 		return -ENOENT;
+ 	}
  
- static struct item_operations errcatch_ops = {
--	errcatch_bytes_number,
--	errcatch_decrement_key,
--	errcatch_is_left_mergeable,
--	errcatch_print_item,
--	errcatch_check_item,
-+	.bytes_number = errcatch_bytes_number,
-+	.decrement_key = errcatch_decrement_key,
-+	.is_left_mergeable = errcatch_is_left_mergeable,
-+	.print_item = errcatch_print_item,
-+	.check_item = errcatch_check_item,
+-	if (event->cpu >= nr_cpumask_bits ||
++	if ((unsigned int)event->cpu >= nr_cpumask_bits ||
+ 	    (event->cpu >= 0 && !cpu_online(event->cpu)))
+ 		return -ENODEV;
  
--	errcatch_create_vi,
--	errcatch_check_left,
--	errcatch_check_right,
--	errcatch_part_size,
--	errcatch_unit_num,
--	errcatch_print_vi
-+	.create_vi = errcatch_create_vi,
-+	.check_left = errcatch_check_left,
-+	.check_right = errcatch_check_right,
-+	.part_size = errcatch_part_size,
-+	.unit_num = errcatch_unit_num,
-+	.print_vi = errcatch_print_vi
- };
+diff -puN arch/s390/kernel/perf_cpum_sf.c~cpumask-make-nr_cpumask_bits-unsigned arch/s390/kernel/perf_cpum_sf.c
+--- a/arch/s390/kernel/perf_cpum_sf.c~cpumask-make-nr_cpumask_bits-unsigned
++++ a/arch/s390/kernel/perf_cpum_sf.c
+@@ -823,7 +823,7 @@ static int cpumsf_pmu_event_init(struct
+ 	}
  
- #if ! (TYPE_STAT_DATA == 0 && TYPE_INDIRECT == 1 && TYPE_DIRECT == 2 && TYPE_DIRENTRY == 3)
+ 	/* Check online status of the CPU to which the event is pinned */
+-	if (event->cpu >= nr_cpumask_bits ||
++	if ((unsigned int)event->cpu >= nr_cpumask_bits ||
+ 	    (event->cpu >= 0 && !cpu_online(event->cpu)))
+ 		return -ENODEV;
+ 
+diff -puN include/linux/cpumask.h~cpumask-make-nr_cpumask_bits-unsigned include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-make-nr_cpumask_bits-unsigned
++++ a/include/linux/cpumask.h
+@@ -40,9 +40,9 @@ extern int nr_cpu_ids;
+ #ifdef CONFIG_CPUMASK_OFFSTACK
+ /* Assuming NR_CPUS is huge, a runtime limit is more efficient.  Also,
+  * not all bits may be allocated. */
+-#define nr_cpumask_bits	nr_cpu_ids
++#define nr_cpumask_bits	((unsigned int)nr_cpu_ids)
+ #else
+-#define nr_cpumask_bits	NR_CPUS
++#define nr_cpumask_bits	((unsigned int)NR_CPUS)
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 
