@@ -1,50 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-lib-test_sortc-make-it-explicitly-non-modular.patch removed from -mm
+ lib-add-module-support-to-array-based-sort-tests.patch removed from -mm
  tree
-Date: Tue, 09 May 2017 11:00:52 -0700
-Message-ID: <20170509180052.HQl4yaZQC%akpm@linux-foundation.org>
+Date: Tue, 09 May 2017 11:00:55 -0700
+Message-ID: <20170509180055.DqA3WXp1l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34270 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34286 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752993AbdEISAx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:53 -0400
+        with ESMTP id S1752993AbdEISA4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, geert@linux-m68k.org, mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: Revert "lib/test_sort.c: make it explicitly non-modular"
+     Subject: lib: add module support to array-based sort tests
 has been removed from the -mm tree.  Its filename was
-     revert-lib-test_sortc-make-it-explicitly-non-modular.patch
+     lib-add-module-support-to-array-based-sort-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Revert "lib/test_sort.c: make it explicitly non-modular"
+Subject: lib: add module support to array-based sort tests
 
-Patch series "lib: add module support to sort tests".
+Allow to compile the array-based sort test code either to a loadable
+module, or builtin into the kernel.
 
-This patch series allows to compile the array-based and linked list sort
-test code either to loadable modules, or builtin into the kernel.
-
-It's very valuable to have modular tests, so you can run them just by
-insmodding the test modules, instead of needing a separate kernel that
-runs them at boot.
-
-
-This patch (of 3):
-
-This reverts commit 8893f519330bb073a49c5b4676fce4be6f1be15d.
-
-It's very valuable to have modular tests, so you can run them just by
-insmodding the test modules, instead of needing a separate kernel that
-runs them at boot.
-
-Link: http://lkml.kernel.org/r/1488287219-15832-2-git-send-email-geert@linux-m68k.org
+Link: http://lkml.kernel.org/r/1488287219-15832-3-git-send-email-geert@linux-m68k.org
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -53,34 +38,27 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_sort.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ lib/Kconfig.debug |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN lib/test_sort.c~revert-lib-test_sortc-make-it-explicitly-non-modular lib/test_sort.c
---- a/lib/test_sort.c~revert-lib-test_sortc-make-it-explicitly-non-modular
-+++ a/lib/test_sort.c
-@@ -1,11 +1,8 @@
- #include <linux/sort.h>
- #include <linux/slab.h>
--#include <linux/init.h>
-+#include <linux/module.h>
+diff -puN lib/Kconfig.debug~lib-add-module-support-to-array-based-sort-tests lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-add-module-support-to-array-based-sort-tests
++++ a/lib/Kconfig.debug
+@@ -1728,10 +1728,11 @@ config TEST_LIST_SORT
+ 	  If unsure, say N.
  
--/*
-- * A simple boot-time regression test
-- * License: GPL
-- */
-+/* a simple boot-time regression test */
+ config TEST_SORT
+-	bool "Array-based sort test"
+-	depends on DEBUG_KERNEL
++	tristate "Array-based sort test"
++	depends on DEBUG_KERNEL || m
+ 	help
+-	  This option enables the self-test function of 'sort()' at boot.
++	  This option enables the self-test function of 'sort()' at boot,
++	  or at module load time.
  
- #define TEST_LEN 1000
+ 	  If unsure, say N.
  
-@@ -41,4 +38,6 @@ exit:
- 	kfree(a);
- 	return err;
- }
--subsys_initcall(test_sort_init);
-+
-+module_init(test_sort_init);
-+MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
