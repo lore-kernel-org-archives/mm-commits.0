@@ -1,103 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] agp-use-set_memoryh-header.patch removed from -mm
+Subject: [merged] arm-use-set_memoryh-header.patch removed from -mm
  tree
-Date: Tue, 09 May 2017 11:03:15 -0700
-Message-ID: <20170509180315.8bbhB8pq2%akpm@linux-foundation.org>
+Date: Tue, 09 May 2017 11:03:09 -0700
+Message-ID: <20170509180309.uvFSayOgi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34808 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754423AbdEISDQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:03:16 -0400
+        with ESMTP id S1754293AbdEISDK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:03:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@redhat.com, mm-commits@vger.kernel.org
+To: labbott@redhat.com, mm-commits@vger.kernel.org, rmk+kernel@armlinux.org.uk
 
 
 The patch titled
-     Subject: agp: use set_memory.h header
+     Subject: arm: use set_memory.h header
 has been removed from the -mm tree.  Its filename was
-     agp-use-set_memoryh-header.patch
+     arm-use-set_memoryh-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: agp: use set_memory.h header
+Subject: arm: use set_memory.h header
 
 set_memory_* functions have moved to set_memory.h. Switch to this
-explicitly.
+explicitly
 
-Link: http://lkml.kernel.org/r/1488920133-27229-7-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488920133-27229-3-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/amd-k7-agp.c |    1 +
- drivers/char/agp/ati-agp.c    |    1 +
- drivers/char/agp/generic.c    |    4 +++-
- drivers/char/agp/intel-gtt.c  |    1 +
- drivers/char/agp/sworks-agp.c |    1 +
- 5 files changed, 7 insertions(+), 1 deletion(-)
+ arch/arm/kernel/ftrace.c        |    1 +
+ arch/arm/kernel/machine_kexec.c |    1 +
+ arch/arm/mm/pageattr.c          |    1 +
+ arch/arm/net/bpf_jit_32.c       |    1 +
+ 4 files changed, 4 insertions(+)
 
-diff -puN drivers/char/agp/amd-k7-agp.c~agp-use-set_memoryh-header drivers/char/agp/amd-k7-agp.c
---- a/drivers/char/agp/amd-k7-agp.c~agp-use-set_memoryh-header
-+++ a/drivers/char/agp/amd-k7-agp.c
-@@ -9,6 +9,7 @@
- #include <linux/page-flags.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
+diff -puN arch/arm/kernel/ftrace.c~arm-use-set_memoryh-header arch/arm/kernel/ftrace.c
+--- a/arch/arm/kernel/ftrace.c~arm-use-set_memoryh-header
++++ a/arch/arm/kernel/ftrace.c
+@@ -21,6 +21,7 @@
+ #include <asm/opcodes.h>
+ #include <asm/ftrace.h>
+ #include <asm/insn.h>
 +#include <asm/set_memory.h>
- #include "agp.h"
  
- #define AMD_MMBASE_BAR	1
-diff -puN drivers/char/agp/ati-agp.c~agp-use-set_memoryh-header drivers/char/agp/ati-agp.c
---- a/drivers/char/agp/ati-agp.c~agp-use-set_memoryh-header
-+++ a/drivers/char/agp/ati-agp.c
-@@ -10,6 +10,7 @@
- #include <linux/slab.h>
- #include <linux/agp_backend.h>
- #include <asm/agp.h>
+ #ifdef CONFIG_THUMB2_KERNEL
+ #define	NOP		0xf85deb04	/* pop.w {lr} */
+diff -puN arch/arm/kernel/machine_kexec.c~arm-use-set_memoryh-header arch/arm/kernel/machine_kexec.c
+--- a/arch/arm/kernel/machine_kexec.c~arm-use-set_memoryh-header
++++ a/arch/arm/kernel/machine_kexec.c
+@@ -18,6 +18,7 @@
+ #include <asm/mach-types.h>
+ #include <asm/smp_plat.h>
+ #include <asm/system_misc.h>
 +#include <asm/set_memory.h>
- #include "agp.h"
  
- #define ATI_GART_MMBASE_BAR	1
-diff -puN drivers/char/agp/generic.c~agp-use-set_memoryh-header drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~agp-use-set_memoryh-header
-+++ a/drivers/char/agp/generic.c
-@@ -39,7 +39,9 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <asm/io.h>
--#include <asm/cacheflush.h>
-+#ifdef CONFIG_X86
-+#include <asm/set_memory.h>
-+#endif
+ extern void relocate_new_kernel(void);
+ extern const unsigned int relocate_new_kernel_size;
+diff -puN arch/arm/mm/pageattr.c~arm-use-set_memoryh-header arch/arm/mm/pageattr.c
+--- a/arch/arm/mm/pageattr.c~arm-use-set_memoryh-header
++++ a/arch/arm/mm/pageattr.c
+@@ -15,6 +15,7 @@
+ 
  #include <asm/pgtable.h>
- #include "agp.h"
- 
-diff -puN drivers/char/agp/intel-gtt.c~agp-use-set_memoryh-header drivers/char/agp/intel-gtt.c
---- a/drivers/char/agp/intel-gtt.c~agp-use-set_memoryh-header
-+++ a/drivers/char/agp/intel-gtt.c
-@@ -25,6 +25,7 @@
- #include "agp.h"
- #include "intel-agp.h"
- #include <drm/intel-gtt.h>
+ #include <asm/tlbflush.h>
 +#include <asm/set_memory.h>
  
- /*
-  * If we have Intel graphics, we're not going to have anything other than
-diff -puN drivers/char/agp/sworks-agp.c~agp-use-set_memoryh-header drivers/char/agp/sworks-agp.c
---- a/drivers/char/agp/sworks-agp.c~agp-use-set_memoryh-header
-+++ a/drivers/char/agp/sworks-agp.c
-@@ -9,6 +9,7 @@
- #include <linux/slab.h>
- #include <linux/jiffies.h>
- #include <linux/agp_backend.h>
-+#include <asm/set_memory.h>
- #include "agp.h"
+ struct page_change_data {
+ 	pgprot_t set_mask;
+diff -puN arch/arm/net/bpf_jit_32.c~arm-use-set_memoryh-header arch/arm/net/bpf_jit_32.c
+--- a/arch/arm/net/bpf_jit_32.c~arm-use-set_memoryh-header
++++ a/arch/arm/net/bpf_jit_32.c
+@@ -18,6 +18,7 @@
+ #include <linux/if_vlan.h>
  
- #define SVWRKS_COMMAND		0x04
+ #include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ #include <asm/hwcap.h>
+ #include <asm/opcodes.h>
+ 
 _
 
 Patches currently in -mm which might be from labbott@redhat.com are
