@@ -1,95 +1,200 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse.patch
- removed from -mm tree
-Date: Tue, 09 May 2017 11:01:53 -0700
-Message-ID: <20170509180153.fXJfmmg4i%akpm@linux-foundation.org>
+ ia64-reuse-append_elf_note-and-final_note-functions.patch removed from -mm
+ tree
+Date: Tue, 09 May 2017 11:01:44 -0700
+Message-ID: <20170509180144.sRqo5_h1J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34450 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754377AbdEISBy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:54 -0400
+        with ESMTP id S1754377AbdEISBp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dyoung@redhat.com, ebiederm@xmission.com, fenghua.yu@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, tony.luck@intel.com, vgoyal@redhat.com
 
 
 The patch titled
-     Subject: powerpc/fadump: update documentation about crashkernel parameter reuse
+     Subject: ia64: reuse append_elf_note() and final_note() functions
 has been removed from the -mm tree.  Its filename was
-     powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse.patch
+     ia64-reuse-append_elf_note-and-final_note-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Subject: powerpc/fadump: update documentation about crashkernel parameter reuse
+Subject: ia64: reuse append_elf_note() and final_note() functions
 
-As we are reusing crashkernel parameter instead of fadump_reserve_mem
-parameter to specify the memory to reserve for fadump's crash kernel,
-update the documentation accordingly.
+Get rid of multiple definitions of append_elf_note() & final_note()
+functions.  Reuse these functions compiled under CONFIG_CRASH_CORE Also,
+define Elf_Word and use it instead of generic u32 or the more specific
+Elf64_Word.
 
-Link: http://lkml.kernel.org/r/149035347559.6881.14224829694291758581.stgit@hbathini.in.ibm.com
+Link: http://lkml.kernel.org/r/149035342324.6881.11667840929850361402.stgit@hbathini.in.ibm.com
 Signed-off-by: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Dave Young <dyoung@redhat.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Dave Young <dyoung@redhat.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/powerpc/firmware-assisted-dump.txt |   23 ++++++++-----
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ arch/ia64/kernel/crash.c   |   22 ----------------------
+ include/linux/crash_core.h |    4 ++++
+ include/linux/elf.h        |    2 ++
+ kernel/crash_core.c        |   32 +++++++++++++-------------------
+ kernel/kexec_core.c        |   28 ----------------------------
+ 5 files changed, 19 insertions(+), 69 deletions(-)
 
-diff -puN Documentation/powerpc/firmware-assisted-dump.txt~powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse Documentation/powerpc/firmware-assisted-dump.txt
---- a/Documentation/powerpc/firmware-assisted-dump.txt~powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse
-+++ a/Documentation/powerpc/firmware-assisted-dump.txt
-@@ -55,10 +55,14 @@ as follows:
-          booted with restricted memory. By default, the boot memory
-          size will be the larger of 5% of system RAM or 256MB.
-          Alternatively, user can also specify boot memory size
--         through boot parameter 'fadump_reserve_mem=' which will
--         override the default calculated size. Use this option
--         if default boot memory size is not sufficient for second
--         kernel to boot successfully.
-+         through boot parameter 'crashkernel=' which will override
-+         the default calculated size. Use this option if default
-+         boot memory size is not sufficient for second kernel to
-+         boot successfully. For syntax of crashkernel= parameter,
-+         refer to Documentation/kdump/kdump.txt. If any offset is
-+         provided in crashkernel= parameter, it will be ignored
-+         as fadump reserves memory at end of RAM for boot memory
-+         dump preservation in case of a crash.
+diff -puN arch/ia64/kernel/crash.c~ia64-reuse-append_elf_note-and-final_note-functions arch/ia64/kernel/crash.c
+--- a/arch/ia64/kernel/crash.c~ia64-reuse-append_elf_note-and-final_note-functions
++++ a/arch/ia64/kernel/crash.c
+@@ -27,28 +27,6 @@ static int kdump_freeze_monarch;
+ static int kdump_on_init = 1;
+ static int kdump_on_fatal_mca = 1;
  
- -- After the low memory (boot memory) area has been saved, the
-    firmware will reset PCI and other hardware state.  It will
-@@ -158,13 +162,16 @@ How to enable firmware-assisted dump (fa
+-static inline Elf64_Word
+-*append_elf_note(Elf64_Word *buf, char *name, unsigned type, void *data,
+-		size_t data_len)
+-{
+-	struct elf_note *note = (struct elf_note *)buf;
+-	note->n_namesz = strlen(name) + 1;
+-	note->n_descsz = data_len;
+-	note->n_type   = type;
+-	buf += (sizeof(*note) + 3)/4;
+-	memcpy(buf, name, note->n_namesz);
+-	buf += (note->n_namesz + 3)/4;
+-	memcpy(buf, data, data_len);
+-	buf += (data_len + 3)/4;
+-	return buf;
+-}
+-
+-static void
+-final_note(void *buf)
+-{
+-	memset(buf, 0, sizeof(struct elf_note));
+-}
+-
+ extern void ia64_dump_cpu_regs(void *);
  
- 1. Set config option CONFIG_FA_DUMP=y and build kernel.
- 2. Boot into linux kernel with 'fadump=on' kernel cmdline option.
--3. Optionally, user can also set 'fadump_reserve_mem=' kernel cmdline
-+3. Optionally, user can also set 'crashkernel=' kernel cmdline
-    to specify size of the memory to reserve for boot memory dump
-    preservation.
+ static DEFINE_PER_CPU(struct elf_prstatus, elf_prstatus);
+diff -puN include/linux/crash_core.h~ia64-reuse-append_elf_note-and-final_note-functions include/linux/crash_core.h
+--- a/include/linux/crash_core.h~ia64-reuse-append_elf_note-and-final_note-functions
++++ a/include/linux/crash_core.h
+@@ -55,6 +55,10 @@ extern u32 vmcoreinfo_note[VMCOREINFO_NO
+ extern size_t vmcoreinfo_size;
+ extern size_t vmcoreinfo_max_size;
  
--NOTE: If firmware-assisted dump fails to reserve memory then it will
--   fallback to existing kdump mechanism if 'crashkernel=' option
--   is set at kernel cmdline.
-+NOTE: 1. 'fadump_reserve_mem=' parameter has been deprecated. Instead
-+         use 'crashkernel=' to specify size of the memory to reserve
-+         for boot memory dump preservation.
-+      2. If firmware-assisted dump fails to reserve memory then it
-+         will fallback to existing kdump mechanism if 'crashkernel='
-+         option is set at kernel cmdline.
++Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
++			  void *data, size_t data_len);
++void final_note(Elf_Word *buf);
++
+ int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
+ int parse_crashkernel_high(char *cmdline, unsigned long long system_ram,
+diff -puN include/linux/elf.h~ia64-reuse-append_elf_note-and-final_note-functions include/linux/elf.h
+--- a/include/linux/elf.h~ia64-reuse-append_elf_note-and-final_note-functions
++++ a/include/linux/elf.h
+@@ -29,6 +29,7 @@ extern Elf32_Dyn _DYNAMIC [];
+ #define elf_note	elf32_note
+ #define elf_addr_t	Elf32_Off
+ #define Elf_Half	Elf32_Half
++#define Elf_Word	Elf32_Word
  
- Sysfs/debugfs files:
- ------------
-_
-
-Patches currently in -mm which might be from hbathini@linux.vnet.ibm.com are
-
-
+ #else
+ 
+@@ -39,6 +40,7 @@ extern Elf64_Dyn _DYNAMIC [];
+ #define elf_note	elf64_note
+ #define elf_addr_t	Elf64_Off
+ #define Elf_Half	Elf64_Half
++#define Elf_Word	Elf64_Word
+ 
+ #endif
+ 
+diff -puN kernel/crash_core.c~ia64-reuse-append_elf_note-and-final_note-functions kernel/crash_core.c
+--- a/kernel/crash_core.c~ia64-reuse-append_elf_note-and-final_note-functions
++++ a/kernel/crash_core.c
+@@ -291,32 +291,26 @@ int __init parse_crashkernel_low(char *c
+ 				"crashkernel=", suffix_tbl[SUFFIX_LOW]);
+ }
+ 
+-static u32 *append_elf_note(u32 *buf, char *name, unsigned int type,
+-			    void *data, size_t data_len)
++Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
++			  void *data, size_t data_len)
+ {
+-	struct elf_note note;
++	struct elf_note *note = (struct elf_note *)buf;
+ 
+-	note.n_namesz = strlen(name) + 1;
+-	note.n_descsz = data_len;
+-	note.n_type   = type;
+-	memcpy(buf, &note, sizeof(note));
+-	buf += (sizeof(note) + 3)/4;
+-	memcpy(buf, name, note.n_namesz);
+-	buf += (note.n_namesz + 3)/4;
+-	memcpy(buf, data, note.n_descsz);
+-	buf += (note.n_descsz + 3)/4;
++	note->n_namesz = strlen(name) + 1;
++	note->n_descsz = data_len;
++	note->n_type   = type;
++	buf += DIV_ROUND_UP(sizeof(*note), sizeof(Elf_Word));
++	memcpy(buf, name, note->n_namesz);
++	buf += DIV_ROUND_UP(note->n_namesz, sizeof(Elf_Word));
++	memcpy(buf, data, data_len);
++	buf += DIV_ROUND_UP(data_len, sizeof(Elf_Word));
+ 
+ 	return buf;
+ }
+ 
+-static void final_note(u32 *buf)
++void final_note(Elf_Word *buf)
+ {
+-	struct elf_note note;
+-
+-	note.n_namesz = 0;
+-	note.n_descsz = 0;
+-	note.n_type   = 0;
+-	memcpy(buf, &note, sizeof(note));
++	memset(buf, 0, sizeof(struct elf_note));
+ }
+ 
+ static void update_vmcoreinfo_note(void)
+diff -puN kernel/kexec_core.c~ia64-reuse-append_elf_note-and-final_note-functions kernel/kexec_core.c
+--- a/kernel/kexec_core.c~ia64-reuse-append_elf_note-and-final_note-functions
++++ a/kernel/kexec_core.c
+@@ -990,34 +990,6 @@ unlock:
+ 	return ret;
+ }
+ 
+-static u32 *append_elf_note(u32 *buf, char *name, unsigned type, void *data,
+-			    size_t data_len)
+-{
+-	struct elf_note note;
+-
+-	note.n_namesz = strlen(name) + 1;
+-	note.n_descsz = data_len;
+-	note.n_type   = type;
+-	memcpy(buf, &note, sizeof(note));
+-	buf += (sizeof(note) + 3)/4;
+-	memcpy(buf, name, note.n_namesz);
+-	buf += (note.n_namesz + 3)/4;
+-	memcpy(buf, data, note.n_descsz);
+-	buf += (note.n_descsz + 3)/4;
+-
+-	return buf;
+-}
+-
+-static void final_note(u32 *buf)
+-{
+-	struct elf_note note;
+-
+-	note.n_namesz = 0;
+-	note.n_descsz = 0;
+-	note.n_type   = 0;
+-	memcpy(buf, &note, sizeof(note));
+-}
