@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch added to -mm tree
-Date: Tue, 09 May 2017 14:33:47 -0700
-Message-ID: <591235bb.qlfNIRdvTvndzRKp%akpm@linux-foundation.org>
+Subject: + mm-sparsemem-break-out-of-loops-early.patch added to -mm tree
+Date: Tue, 09 May 2017 14:50:04 -0700
+Message-ID: <5912398c.t1uwGw1qs1E6CH0s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59096 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750778AbdEIVds (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 17:33:48 -0400
+        with ESMTP id S1750759AbdEIVuF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 17:50:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, corbet@lwn.net, mm-commits@vger.kernel.org
+To: dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ramfs: clarify help text that compression applies to ramfs as well as legacy ramdisk.
+     Subject: mm, sparsemem: break out of loops early
 has been added to the -mm tree.  Its filename is
-     clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
+     mm-sparsemem-break-out-of-loops-early.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparsemem-break-out-of-loops-early.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparsemem-break-out-of-loops-early.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +38,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rob Landley <rob@landley.net>
-Subject: ramfs: clarify help text that compression applies to ramfs as well as legacy ramdisk.
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm, sparsemem: break out of loops early
 
-Clarify help text that compression applies to ramfs as well as legacy ramdisk.
+There are a number of times that we loop over NR_MEM_SECTIONS, looking for
+section_present() on each section.  But, when we have very large physical
+address spaces (large MAX_PHYSMEM_BITS), NR_MEM_SECTIONS becomes very
+large, making the loops quite long.
 
-Link: http://lkml.kernel.org/r/f206a960-5a61-cf59-f27c-e9f34872063c@landley.net
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
+With MAX_PHYSMEM_BITS=46 and a section size of 128MB, the current loops
+are 512k iterations, which we barely notice on modern hardware.  But,
+raising MAX_PHYSMEM_BITS higher (like we will see on systems that support
+5-level paging) makes this 64x longer and we start to notice, especially
+on slower systems like simulators.  A 10-second delay for 512k iterations
+is annoying.  But, a 640- second delay is crippling.
+
+This does not help if we have extremely sparse physical address spaces,
+but those are quite rare.  We expect that most of the "slow" systems where
+this matters will also be quite small and non-sparse.
+
+To fix this, we track the highest section we've ever encountered.  This
+lets us know when we will *never* see another section_present(), and lets
+us break out of the loops earlier.
+
+Doing the whole for_each_present_section_nr() macro is probably overkill,
+but it will ensure that any future loop iterations that we grow are more
+likely to be correct.
+
+Kirrill said "It shaved almost 40 seconds from boot time in qemu with
+5-level paging enabled for me".
+
+Link: http://lkml.kernel.org/r/20170504174434.C45A4735@viggo.jf.intel.com
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Tested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/base/memory.c  |    4 ++
+ include/linux/mmzone.h |    2 +
+ mm/sparse.c            |   60 +++++++++++++++++++++++++++++----------
+ 3 files changed, 52 insertions(+), 14 deletions(-)
 
-diff -puN usr/Kconfig~clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk usr/Kconfig
---- a/usr/Kconfig~clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk
-+++ a/usr/Kconfig
-@@ -52,7 +52,7 @@ config INITRAMFS_ROOT_GID
- 	  If you are not sure, leave it set to "0".
+diff -puN drivers/base/memory.c~mm-sparsemem-break-out-of-loops-early drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-sparsemem-break-out-of-loops-early
++++ a/drivers/base/memory.c
+@@ -820,6 +820,10 @@ int __init memory_dev_init(void)
+ 	 */
+ 	mutex_lock(&mem_sysfs_mutex);
+ 	for (i = 0; i < NR_MEM_SECTIONS; i += sections_per_block) {
++		/* Don't iterate over sections we know are !present: */
++		if (i > __highest_present_section_nr)
++			break;
++
+ 		err = add_memory_block(i);
+ 		if (!ret)
+ 			ret = err;
+diff -puN include/linux/mmzone.h~mm-sparsemem-break-out-of-loops-early include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-sparsemem-break-out-of-loops-early
++++ a/include/linux/mmzone.h
+@@ -1179,6 +1179,8 @@ static inline struct mem_section *__pfn_
+ 	return __nr_to_section(pfn_to_section_nr(pfn));
+ }
  
- config RD_GZIP
--	bool "Support initial ramdisks compressed using gzip"
-+	bool "Support initial ramdisk/ramfs compressed using gzip"
- 	depends on BLK_DEV_INITRD
- 	default y
- 	select DECOMPRESS_GZIP
-@@ -61,7 +61,7 @@ config RD_GZIP
- 	  If unsure, say Y.
++extern int __highest_present_section_nr;
++
+ #ifndef CONFIG_HAVE_ARCH_PFN_VALID
+ static inline int pfn_valid(unsigned long pfn)
+ {
+diff -puN mm/sparse.c~mm-sparsemem-break-out-of-loops-early mm/sparse.c
+--- a/mm/sparse.c~mm-sparsemem-break-out-of-loops-early
++++ a/mm/sparse.c
+@@ -168,6 +168,44 @@ void __meminit mminit_validate_memmodel_
+ 	}
+ }
  
- config RD_BZIP2
--	bool "Support initial ramdisks compressed using bzip2"
-+	bool "Support initial ramdisk/ramfs compressed using bzip2"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_BZIP2
-@@ -70,7 +70,7 @@ config RD_BZIP2
- 	  If unsure, say N.
++/*
++ * There are a number of times that we loop over NR_MEM_SECTIONS,
++ * looking for section_present() on each.  But, when we have very
++ * large physical address spaces, NR_MEM_SECTIONS can also be
++ * very large which makes the loops quite long.
++ *
++ * Keeping track of this gives us an easy way to break out of
++ * those loops early.
++ */
++int __highest_present_section_nr;
++static void section_mark_present(struct mem_section *ms)
++{
++	int section_nr = __section_nr(ms);
++
++	if (section_nr > __highest_present_section_nr)
++		__highest_present_section_nr = section_nr;
++
++	ms->section_mem_map |= SECTION_MARKED_PRESENT;
++}
++
++static inline int next_present_section_nr(int section_nr)
++{
++	do {
++		section_nr++;
++		if (present_section_nr(section_nr))
++			return section_nr;
++	} while ((section_nr < NR_MEM_SECTIONS) &&
++		 (section_nr <= __highest_present_section_nr));
++
++	return -1;
++}
++#define for_each_present_section_nr(start, section_nr)		\
++	for (section_nr = next_present_section_nr(start-1);	\
++	     ((section_nr >= 0) &&				\
++	      (section_nr < NR_MEM_SECTIONS) &&			\
++	      (section_nr <= __highest_present_section_nr));	\
++	     section_nr = next_present_section_nr(section_nr))
++
+ /* Record a memory area against a node. */
+ void __init memory_present(int nid, unsigned long start, unsigned long end)
+ {
+@@ -183,9 +221,10 @@ void __init memory_present(int nid, unsi
+ 		set_section_nid(section, nid);
  
- config RD_LZMA
--	bool "Support initial ramdisks compressed using LZMA"
-+	bool "Support initial ramdisk/ramfs compressed using LZMA"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZMA
-@@ -79,7 +79,7 @@ config RD_LZMA
- 	  If unsure, say N.
+ 		ms = __nr_to_section(section);
+-		if (!ms->section_mem_map)
+-			ms->section_mem_map = sparse_encode_early_nid(nid) |
+-							SECTION_MARKED_PRESENT;
++		if (!ms->section_mem_map) {
++			ms->section_mem_map = sparse_encode_early_nid(nid);
++			section_mark_present(ms);
++		}
+ 	}
+ }
  
- config RD_XZ
--	bool "Support initial ramdisks compressed using XZ"
-+	bool "Support initial ramdisk/ramfs compressed using XZ"
- 	depends on BLK_DEV_INITRD
- 	default y
- 	select DECOMPRESS_XZ
-@@ -88,7 +88,7 @@ config RD_XZ
- 	  If unsure, say N.
+@@ -476,23 +515,19 @@ static void __init alloc_usemap_and_memm
+ 	int nodeid_begin = 0;
+ 	unsigned long pnum_begin = 0;
  
- config RD_LZO
--	bool "Support initial ramdisks compressed using LZO"
-+	bool "Support initial ramdisk/ramfs compressed using LZO"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZO
-@@ -97,7 +97,7 @@ config RD_LZO
- 	  If unsure, say N.
+-	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
++	for_each_present_section_nr(0, pnum) {
+ 		struct mem_section *ms;
  
- config RD_LZ4
--	bool "Support initial ramdisks compressed using LZ4"
-+	bool "Support initial ramdisk/ramfs compressed using LZ4"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZ4
-_
-
-Patches currently in -mm which might be from rob@landley.net are
-
-teach-initramfs_root_uid-and-initramfs_root_gid-that-1-means-current-user.patch
-clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
-
+-		if (!present_section_nr(pnum))
+-			continue;
+ 		ms = __nr_to_section(pnum);
+ 		nodeid_begin = sparse_early_nid(ms);
+ 		pnum_begin = pnum;
+ 		break;
+ 	}
+ 	map_count = 1;
+-	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
++	for_each_present_section_nr(pnum_begin + 1, pnum) {
+ 		struct mem_section *ms;
+ 		int nodeid;
+ 
+-		if (!present_section_nr(pnum))
+-			continue;
+ 		ms = __nr_to_section(pnum);
+ 		nodeid = sparse_early_nid(ms);
+ 		if (nodeid == nodeid_begin) {
+@@ -561,10 +596,7 @@ void __init sparse_init(void)
+ 							(void *)map_map);
+ #endif
+ 
+-	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
+-		if (!present_section_nr(pnum))
+-			continue;
