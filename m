@@ -1,56 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bpf-use-set_memoryh-header.patch removed from -mm
- tree
-Date: Tue, 09 May 2017 11:03:21 -0700
-Message-ID: <20170509180321.AcFwJPGnJ%akpm@linux-foundation.org>
+Subject: [merged] module-use-set_memoryh-header.patch removed from
+ -mm tree
+Date: Tue, 09 May 2017 11:03:23 -0700
+Message-ID: <20170509180323.ZIk4gadQb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34860 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754195AbdEISDW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:03:22 -0400
+        with ESMTP id S1754195AbdEISDY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:03:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@iogearbox.net, labbott@redhat.com, mm-commits@vger.kernel.org
+To: jeyu@redhat.com, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/filter.h: use set_memory.h header
+     Subject: kernel/module.c: use set_memory.h header
 has been removed from the -mm tree.  Its filename was
-     bpf-use-set_memoryh-header.patch
+     module-use-set_memoryh-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@redhat.com>
-Subject: include/linux/filter.h: use set_memory.h header
+Subject: kernel/module.c: use set_memory.h header
 
 set_memory_* functions have moved to set_memory.h. Switch to this
 explicitly.
 
-Link: http://lkml.kernel.org/r/1488920133-27229-11-git-send-email-labbott@redhat.com
+Link: http://lkml.kernel.org/r/1488920133-27229-12-git-send-email-labbott@redhat.com
 Signed-off-by: Laura Abbott <labbott@redhat.com>
-Acked-by: Daniel Borkmann <daniel@iogearbox.net>
+Acked-by: Jessica Yu <jeyu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/filter.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/module.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/filter.h~bpf-use-set_memoryh-header include/linux/filter.h
---- a/include/linux/filter.h~bpf-use-set_memoryh-header
-+++ a/include/linux/filter.h
-@@ -19,7 +19,9 @@
- 
- #include <net/sch_generic.h>
- 
--#include <asm/cacheflush.h>
-+#ifdef CONFIG_ARCH_HAS_SET_MEMORY
+diff -puN kernel/module.c~module-use-set_memoryh-header kernel/module.c
+--- a/kernel/module.c~module-use-set_memoryh-header
++++ a/kernel/module.c
+@@ -49,6 +49,9 @@
+ #include <linux/rculist.h>
+ #include <linux/uaccess.h>
+ #include <asm/cacheflush.h>
++#ifdef CONFIG_STRICT_MODULE_RWX
 +#include <asm/set_memory.h>
 +#endif
- 
- #include <uapi/linux/filter.h>
- #include <uapi/linux/bpf.h>
+ #include <asm/mmu_context.h>
+ #include <linux/license.h>
+ #include <asm/sections.h>
 _
 
 Patches currently in -mm which might be from labbott@redhat.com are
