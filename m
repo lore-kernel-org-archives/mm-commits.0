@@ -1,81 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-improve-embedded_function_name-test.patch removed from -mm tree
-Date: Tue, 09 May 2017 11:01:10 -0700
-Message-ID: <20170509180110.IvTMkU3a7%akpm@linux-foundation.org>
+ checkpatch-allow-space-leading-blank-lines-in-email-headers.patch removed
+ from -mm tree
+Date: Tue, 09 May 2017 11:01:13 -0700
+Message-ID: <20170509180113.-7UIN1mHZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34342 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753901AbdEISBL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:11 -0400
+        with ESMTP id S1752586AbdEISBO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: dvhart@infradead.org, dvhart@vmware.com, joe@perches.com, mm-commits@vger.kernel.org, warthog9@eaglescrag.net
 
 
 The patch titled
-     Subject: checkpatch: improve EMBEDDED_FUNCTION_NAME test
+     Subject: checkpatch: allow space leading blank lines in email headers
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-embedded_function_name-test.patch
+     checkpatch-allow-space-leading-blank-lines-in-email-headers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve EMBEDDED_FUNCTION_NAME test
+Subject: checkpatch: allow space leading blank lines in email headers
 
-The existing behavior relies on patch context to identify function
-declarations.  Add the ability to find function declarations when there is
-an open brace in column 1.
+Allow a leading space and otherwise blank link in the email headers as it
+can be a line wrapped Spamassassin multiple line string or any other valid
+rfc 2822/5322 email header.
 
-This finds function declarations only in specific single line forms where
-the function name is on a single line like:
+The line with space causes checkpatch to erroneously think that it's in
+the content body, as opposed to headers and thus flag a mail header as an
+unwrapped long comment line.
 
-int foo(args...)
-{
-
-and
-
-int
-foo(args...)
-{
-
-It does not recognize function declarations like:
-
-int foo(int bar,
-        int baz)
-{
-
-Link: http://lkml.kernel.org/r/738d74bbbe1a06b80f11ed504818107c68903095.1488155636.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/d75a9f0b78b3488078429f4037d9fff3bdfa3b78.1490247180.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>Reported-by: Darren Hart (VMware) <dvhart@infradead.org>
+Tested-by: Darren Hart (VMware) <dvhart@infradead.org>
+Reviewed-by: Darren Hart (VMware) <dvhart@vmware.com>
+Original-patch-by: John 'Warthog9' Hawley (VMware) <warthog9@eaglescrag.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-embedded_function_name-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-embedded_function_name-test
+diff -puN scripts/checkpatch.pl~checkpatch-allow-space-leading-blank-lines-in-email-headers scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-space-leading-blank-lines-in-email-headers
 +++ a/scripts/checkpatch.pl
-@@ -3126,6 +3126,17 @@ sub process {
- # check we are in a valid C source file if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c)$/);
- 
-+# check if this appears to be the start function declaration, save the name
-+		if ($sline =~ /^\+\{\s*$/ &&
-+		    $prevline =~ /^\+(?:(?:(?:$Storage|$Inline)\s*)*\s*$Type\s*)?($Ident)\(/) {
-+			$context_function = $1;
-+		}
-+
-+# check if this appears to be the end of function declaration
-+		if ($sline =~ /^\+\}\s*$/) {
-+			undef $context_function;
-+		}
-+
- # check indentation of any line with a bare else
- # (but not if it is a multiple line "if (foo) return bar; else return baz;")
- # if the previous line is a break or return and is indented 1 tab more...
+@@ -2628,8 +2628,8 @@ sub process {
+ # Check if it's the start of a commit log
+ # (not a header line and we haven't seen the patch filename)
+ 		if ($in_header_lines && $realfile =~ /^$/ &&
+-		    !($rawline =~ /^\s+\S/ ||
+-		      $rawline =~ /^(commit\b|from\b|[\w-]+:).*$/i)) {
++		    !($rawline =~ /^\s+(?:\S|$)/ ||
++		      $rawline =~ /^(?:commit\b|from\b|[\w-]+:)/i)) {
+ 			$in_header_lines = 0;
+ 			$in_commit_log = 1;
+ 			$has_commit_log = 1;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
