@@ -1,66 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- apparmorfs-replace-current_time-with-current_time.patch removed from -mm
- tree
-Date: Tue, 09 May 2017 11:04:12 -0700
-Message-ID: <20170509180412.IAVJ3X02L%akpm@linux-foundation.org>
+Subject: [merged] gfs2-replace-current_time-with-current_time.patch
+ removed from -mm tree
+Date: Tue, 09 May 2017 11:04:14 -0700
+Message-ID: <20170509180414.HEylQDpQT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35444 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35486 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753737AbdEISEN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:04:13 -0400
+        with ESMTP id S1753737AbdEISEP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deepa.kernel@gmail.com, john.johansen@canonical.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: apparmorfs: replace CURRENT_TIME with current_time()
+     Subject: gfs2: replace CURRENT_TIME with current_time
 has been removed from the -mm tree.  Its filename was
-     apparmorfs-replace-current_time-with-current_time.patch
+     gfs2-replace-current_time-with-current_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: apparmorfs: replace CURRENT_TIME with current_time()
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: gfs2: replace CURRENT_TIME with current_time
 
-CURRENT_TIME macro is not y2038 safe on 32 bit systems.
-
-The patch replaces all the uses of CURRENT_TIME by current_time().
-
-This is also in preparation for the patch that transitions vfs timestamps
-to use 64 bit time and hence make them y2038 safe.  current_time() is also
-planned to be transitioned to y2038 safe behavior along with this change.
-
-CURRENT_TIME macro will be deleted before merging the aforementioned
-change.
-
-Link: http://lkml.kernel.org/r/1491613030-11599-11-git-send-email-deepa.kernel@gmail.com
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: John Johansen <john.johansen@canonical.com>
+Link: http://lkml.kernel.org/r/20170420161852.0492bc3f@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/apparmor/apparmorfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/gfs2/bmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/apparmor/apparmorfs.c~apparmorfs-replace-current_time-with-current_time security/apparmor/apparmorfs.c
---- a/security/apparmor/apparmorfs.c~apparmorfs-replace-current_time-with-current_time
-+++ a/security/apparmor/apparmorfs.c
-@@ -1357,7 +1357,7 @@ static int aa_mk_null_file(struct dentry
- 
- 	inode->i_ino = get_next_ino();
- 	inode->i_mode = S_IFCHR | S_IRUGO | S_IWUGO;
--	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-+	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
- 	init_special_inode(inode, S_IFCHR | S_IRUGO | S_IWUGO,
- 			   MKDEV(MEM_MAJOR, 3));
- 	d_instantiate(dentry, inode);
+diff -puN fs/gfs2/bmap.c~gfs2-replace-current_time-with-current_time fs/gfs2/bmap.c
+--- a/fs/gfs2/bmap.c~gfs2-replace-current_time-with-current_time
++++ a/fs/gfs2/bmap.c
+@@ -1072,7 +1072,7 @@ out_unlock:
+ 			/* Every transaction boundary, we rewrite the dinode
+ 			   to keep its di_blocks current in case of failure. */
+ 			ip->i_inode.i_mtime = ip->i_inode.i_ctime =
+-				CURRENT_TIME;
++				current_time(&ip->i_inode);
+ 			gfs2_trans_add_meta(ip->i_gl, dibh);
+ 			gfs2_dinode_out(ip, dibh->b_data);
+ 			up_write(&ip->i_rw_mutex);
+@@ -1293,7 +1293,7 @@ static int trunc_dealloc(struct gfs2_ino
+ 		gfs2_statfs_change(sdp, 0, +btotal, 0);
+ 		gfs2_quota_change(ip, -(s64)btotal, ip->i_inode.i_uid,
+ 				  ip->i_inode.i_gid);
+-		ip->i_inode.i_mtime = ip->i_inode.i_ctime = CURRENT_TIME;
++		ip->i_inode.i_mtime = ip->i_inode.i_ctime = current_time(&ip->i_inode);
+ 		gfs2_trans_add_meta(ip->i_gl, dibh);
+ 		gfs2_dinode_out(ip, dibh->b_data);
+ 		up_write(&ip->i_rw_mutex);
 _
 
-Patches currently in -mm which might be from deepa.kernel@gmail.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-time-delete-current_fs_time-function.patch
 
