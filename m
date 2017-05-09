@@ -1,146 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-typedefsfile.patch removed from
- -mm tree
-Date: Tue, 09 May 2017 11:01:27 -0700
-Message-ID: <20170509180127.ei7-9TbG8%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-improve-the-embedded-function-name-test-for-patch-contexts.patch
+ removed from -mm tree
+Date: Tue, 09 May 2017 11:01:29 -0700
+Message-ID: <20170509180129.gcWdssO0-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34390 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754053AbdEISB2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:28 -0400
+        with ESMTP id S1754053AbdEISBa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, jerome.forissier@linaro.org, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add --typedefsfile
+     Subject: checkpatch: improve the embedded function name test for patch contexts
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-typedefsfile.patch
+     checkpatch-improve-the-embedded-function-name-test-for-patch-contexts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jerome Forissier <jerome.forissier@linaro.org>
-Subject: checkpatch: add --typedefsfile
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve the embedded function name test for patch contexts
 
-When using checkpatch on out-of-tree code, it may occur that some
-project-specific types are used, which will cause spurious warnings.
-Add the --typedefsfile option as a way to extend the known types and
-deal with this issue.
+The current test works only for a single patch context as it is done in
+the foreach ($rawlines) loop that precedes the loop where the actual
+$context_function variable is used.
 
-This was developed for OP-TEE [1].  We run a Travis job on all pull
-requests [2], and checkpatch is part of that.  The typical false warning
-we get on a regular basis is with some pointers to functions returning
-TEE_Result [3], which is a typedef from the GlobalPlatform APIs.  We
-consider it is acceptable to use GP types in the OP-TEE core
-implementation, that's why this patch would be helpful for us.
+Move the set of $context_function into the foreach (@lines) loop where it
+is useful for each patch context.
 
-[1] https://github.com/OP-TEE/optee_os
-[2] https://travis-ci.org/OP-TEE/optee_os/builds
-[3] https://travis-ci.org/OP-TEE/optee_os/builds/193355335#L1733
-
-Link: http://lkml.kernel.org/r/ba1124d6dfa599bb0dd1d8919dd45dd09ce541a4.1492702192.git.jerome.forissier@linaro.org
-Signed-off-by: Jerome Forissier <jerome.forissier@linaro.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Link: http://lkml.kernel.org/r/6c675a31c74fbfad4fc45b9f462303d60ca2a283.1493486091.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   52 ++++++++++++++++++++++++++--------------
- 1 file changed, 35 insertions(+), 17 deletions(-)
+ scripts/checkpatch.pl |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-typedefsfile scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-typedefsfile
+diff -puN scripts/checkpatch.pl~checkpatch-improve-the-embedded-function-name-test-for-patch-contexts scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-the-embedded-function-name-test-for-patch-contexts
 +++ a/scripts/checkpatch.pl
-@@ -55,6 +55,7 @@ my $spelling_file = "$D/spelling.txt";
- my $codespell = 0;
- my $codespellfile = "/usr/share/codespell/dictionary.txt";
- my $conststructsfile = "$D/const_structs.checkpatch";
-+my $typedefsfile = "";
- my $color = 1;
- my $allow_c99_comments = 1;
+@@ -2213,8 +2213,7 @@ sub process {
+ 			}
+ 			#next;
+ 		}
+-		if ($rawline=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@(.*)/) {
+-			my $context = $4;
++		if ($rawline =~ /^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
+ 			$realline=$1-1;
+ 			if (defined $2) {
+ 				$realcnt=$3+1;
+@@ -2223,12 +2222,6 @@ sub process {
+ 			}
+ 			$in_comment = 0;
  
-@@ -113,6 +114,7 @@ Options:
-   --codespell                Use the codespell dictionary for spelling/typos
-                              (default:/usr/share/codespell/dictionary.txt)
-   --codespellfile            Use this codespell dictionary
-+  --typedefsfile             Read additional types from this file
-   --color                    Use colors when output is STDOUT (default: on)
-   -h, --help, --version      display this help and exit
+-			if ($context =~ /\b(\w+)\s*\(/) {
+-				$context_function = $1;
+-			} else {
+-				undef $context_function;
+-			}
+-
+ 			# Guestimate if this is a continuing comment.  Run
+ 			# the context looking for a comment "edge".  If this
+ 			# edge is a close comment then we must be in a comment
+@@ -2299,7 +2292,8 @@ sub process {
  
-@@ -208,6 +210,7 @@ GetOptions(
- 	'test-only=s'	=> \$tst_only,
- 	'codespell!'	=> \$codespell,
- 	'codespellfile=s'	=> \$codespellfile,
-+	'typedefsfile=s'	=> \$typedefsfile,
- 	'color!'	=> \$color,
- 	'h|help'	=> \$help,
- 	'version'	=> \$help
-@@ -629,28 +632,43 @@ if ($codespell) {
- 
- $misspellings = join("|", sort keys %spelling_fix) if keys %spelling_fix;
- 
--my $const_structs = "";
--if (open(my $conststructs, '<', $conststructsfile)) {
--	while (<$conststructs>) {
--		my $line = $_;
-+sub read_words {
-+	my ($wordsRef, $file) = @_;
- 
--		$line =~ s/\s*\n?$//g;
--		$line =~ s/^\s*//g;
-+	if (open(my $words, '<', $file)) {
-+		while (<$words>) {
-+			my $line = $_;
- 
--		next if ($line =~ m/^\s*#/);
--		next if ($line =~ m/^\s*$/);
--		if ($line =~ /\s/) {
--			print("$conststructsfile: '$line' invalid - ignored\n");
--			next;
--		}
-+			$line =~ s/\s*\n?$//g;
-+			$line =~ s/^\s*//g;
- 
--		$const_structs .= '|' if ($const_structs ne "");
--		$const_structs .= $line;
-+			next if ($line =~ m/^\s*#/);
-+			next if ($line =~ m/^\s*$/);
-+			if ($line =~ /\s/) {
-+				print("$file: '$line' invalid - ignored\n");
-+				next;
+ #extract the line range in the file after the patch is applied
+ 		if (!$in_commit_log &&
+-		    $line =~ /^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
++		    $line =~ /^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@(.*)/) {
++			my $context = $4;
+ 			$is_patch = 1;
+ 			$first_line = $linenr + 1;
+ 			$realline=$1-1;
+@@ -2315,6 +2309,11 @@ sub process {
+ 			%suppress_whiletrailers = ();
+ 			%suppress_export = ();
+ 			$suppress_statement = 0;
++			if ($context =~ /\b(\w+)\s*\(/) {
++				$context_function = $1;
++			} else {
++				undef $context_function;
 +			}
-+
-+			$$wordsRef .= '|' if ($$wordsRef ne "");
-+			$$wordsRef .= $line;
-+		}
-+		close($file);
-+		return 1;
- 	}
--	close($conststructsfile);
--} else {
--	warn "No structs that should be const will be found - file '$conststructsfile': $!\n";
-+
-+	return 0;
-+}
-+
-+my $const_structs = "";
-+read_words(\$const_structs, $conststructsfile)
-+    or warn "No structs that should be const will be found - file '$conststructsfile': $!\n";
-+
-+my $typeOtherTypedefs = "";
-+if (length($typedefsfile)) {
-+	read_words(\$typeOtherTypedefs, $typedefsfile)
-+	    or warn "No additional types will be considered - file '$typedefsfile': $!\n";
- }
-+$typeTypedefs .= '|' . $typeOtherTypedefs if ($typeOtherTypedefs ne "");
+ 			next;
  
- sub build_types {
- 	my $mods = "(?x:  \n" . join("|\n  ", (@modifierList, @modifierListFile)) . "\n)";
+ # track the line number as we move through the hunk, note that
 _
 
-Patches currently in -mm which might be from jerome.forissier@linaro.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 
