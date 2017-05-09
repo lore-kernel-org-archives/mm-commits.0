@@ -1,75 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-huge_memory-use-zap_deposited_table-more.patch
- removed from -mm tree
-Date: Tue, 09 May 2017 11:04:19 -0700
-Message-ID: <20170509180419.pBAS5N2bo%akpm@linux-foundation.org>
+Subject: [merged]
+ time-delete-current_time_sec-and-current_time.patch removed from -mm tree
+Date: Tue, 09 May 2017 11:04:16 -0700
+Message-ID: <20170509180416.dga6zz5s4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751838AbdEISEU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:04:20 -0400
+        with ESMTP id S1751838AbdEISER (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:04:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, oohall@gmail.com
+To: arnd@arndb.de, deepa.kernel@gmail.com, john.stultz@linaro.org, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm/huge_memory.c: use zap_deposited_table() more
+     Subject: time: delete CURRENT_TIME_SEC and CURRENT_TIME
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-use-zap_deposited_table-more.patch
+     time-delete-current_time_sec-and-current_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Oliver O'Halloran" <oohall@gmail.com>
-Subject: mm/huge_memory.c: use zap_deposited_table() more
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: time: delete CURRENT_TIME_SEC and CURRENT_TIME
 
-Depending on the flags of the PMD being zapped there may or may not be a
-deposited pgtable to be freed.  In two of the three cases this is open
-coded while the third uses the zap_deposited_table() helper.  This patch
-converts the others to use the helper to clean things up a bit.
+All uses of CURRENT_TIME_SEC and CURRENT_TIME macros have been replaced by
+other time functions.  These macros are also not y2038 safe.  And, all
+their use cases can be fulfilled by y2038 safe ktime_get_* variants.
 
-Link: http://lkml.kernel.org/r/20170411174233.21902-2-oohall@gmail.com
-Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: linux-nvdimm@ml01.01.org
-Cc: Oliver O'Halloran <oohall@gmail.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/1491613030-11599-12-git-send-email-deepa.kernel@gmail.com
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/linux/time.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memory-use-zap_deposited_table-more mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memory-use-zap_deposited_table-more
-+++ a/mm/huge_memory.c
-@@ -1615,8 +1615,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		if (is_huge_zero_pmd(orig_pmd))
- 			tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
- 	} else if (is_huge_zero_pmd(orig_pmd)) {
--		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
--		atomic_long_dec(&tlb->mm->nr_ptes);
-+		zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
- 		tlb_remove_page_size(tlb, pmd_page(orig_pmd), HPAGE_PMD_SIZE);
- 	} else {
-@@ -1625,10 +1624,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
- 		VM_BUG_ON_PAGE(!PageHead(page), page);
- 		if (PageAnon(page)) {
--			pgtable_t pgtable;
--			pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
--			pte_free(tlb->mm, pgtable);
--			atomic_long_dec(&tlb->mm->nr_ptes);
-+			zap_deposited_table(tlb->mm, pmd);
- 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
- 		} else {
- 			if (arch_needs_pgtable_deposit())
-_
-
-Patches currently in -mm which might be from oohall@gmail.com are
-
-
+diff -puN include/linux/time.h~time-delete-current_time_sec-and-current_time include/linux/time.h
+--- a/include/linux/time.h~time-delete-current_time_sec-and-current_time
++++ a/include/linux/time.h
+@@ -151,9 +151,6 @@ static inline bool timespec_inject_offse
+ 	return true;
+ }
+ 
+-#define CURRENT_TIME		(current_kernel_time())
+-#define CURRENT_TIME_SEC	((struct timespec) { get_seconds(), 0 })
