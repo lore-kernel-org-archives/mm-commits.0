@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-compaction-change-migrate=5Fasync=5Fsuitable-to-suitabl?=
- =?US-ASCII?Q?e=5Fmigration=5Fsource.patch?= removed from -mm tree
-Date: Tue, 09 May 2017 11:00:18 -0700
-Message-ID: <20170509180018.cDp-A8n74%akpm@linux-foundation.org>
+ mm-compaction-add-migratetype-to-compact_control.patch removed from -mm
+ tree
+Date: Tue, 09 May 2017 11:00:21 -0700
+Message-ID: <20170509180021.BAi_a7HDQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34154 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753670AbdEISAT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:19 -0400
+        with ESMTP id S1753684AbdEISAW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, compaction: change migrate_async_suitable() to suitable_migration_source()
+     Subject: mm, compaction: add migratetype to compact_control
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-change-migrate_async_suitable-to-suitable_migration_source.patch
+     mm-compaction-add-migratetype-to-compact_control.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: change migrate_async_suitable() to suitable_migration_source()
+Subject: mm, compaction: add migratetype to compact_control
 
-Preparation for making the decisions more complex and depending on
-compact_control flags.  No functional change.
+Preparation patch.  We are going to need migratetype at lower layers than
+compact_zone() and compact_finished().
 
-Link: http://lkml.kernel.org/r/20170307131545.28577-6-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20170307131545.28577-7-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -40,75 +38,74 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 +++++
- mm/compaction.c        |   19 +++++++++++--------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ mm/compaction.c |   15 +++++++--------
+ mm/internal.h   |    1 +
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source
-+++ a/include/linux/mmzone.h
-@@ -74,6 +74,11 @@ extern char * const migratetype_names[MI
- #  define is_migrate_cma_page(_page) false
- #endif
- 
-+static inline bool is_migrate_movable(int mt)
-+{
-+	return is_migrate_cma(mt) || mt == MIGRATE_MOVABLE;
-+}
-+
- #define for_each_migratetype_order(order, type) \
- 	for (order = 0; order < MAX_ORDER; order++) \
- 		for (type = 0; type < MIGRATE_TYPES; type++)
-diff -puN mm/compaction.c~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source mm/compaction.c
---- a/mm/compaction.c~mm-compaction-change-migrate_async_suitable-to-suitable_migration_source
+diff -puN mm/compaction.c~mm-compaction-add-migratetype-to-compact_control mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-migratetype-to-compact_control
 +++ a/mm/compaction.c
-@@ -89,11 +89,6 @@ static void map_pages(struct list_head *
- 	list_splice(&tmp_list, list);
+@@ -1279,10 +1279,11 @@ static inline bool is_via_compact_memory
+ 	return order == -1;
  }
  
--static inline bool migrate_async_suitable(int migratetype)
--{
--	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
--}
--
- #ifdef CONFIG_COMPACTION
+-static enum compact_result __compact_finished(struct zone *zone, struct compact_control *cc,
+-			    const int migratetype)
++static enum compact_result __compact_finished(struct zone *zone,
++						struct compact_control *cc)
+ {
+ 	unsigned int order;
++	const int migratetype = cc->migratetype;
  
- int PageMovable(struct page *page)
-@@ -988,6 +983,15 @@ isolate_migratepages_range(struct compac
- #endif /* CONFIG_COMPACTION || CONFIG_CMA */
- #ifdef CONFIG_COMPACTION
+ 	if (cc->contended || fatal_signal_pending(current))
+ 		return COMPACT_CONTENDED;
+@@ -1338,12 +1339,11 @@ static enum compact_result __compact_fin
+ }
  
-+static bool suitable_migration_source(struct compact_control *cc,
-+							struct page *page)
-+{
-+	if (cc->mode != MIGRATE_ASYNC)
-+		return true;
-+
-+	return is_migrate_movable(get_pageblock_migratetype(page));
-+}
-+
- /* Returns true if the page is within a block suitable for migration to */
- static bool suitable_migration_target(struct compact_control *cc,
- 							struct page *page)
-@@ -1007,7 +1011,7 @@ static bool suitable_migration_target(st
- 		return true;
+ static enum compact_result compact_finished(struct zone *zone,
+-			struct compact_control *cc,
+-			const int migratetype)
++			struct compact_control *cc)
+ {
+ 	int ret;
  
- 	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
--	if (migrate_async_suitable(get_pageblock_migratetype(page)))
-+	if (is_migrate_movable(get_pageblock_migratetype(page)))
- 		return true;
+-	ret = __compact_finished(zone, cc, migratetype);
++	ret = __compact_finished(zone, cc);
+ 	trace_mm_compaction_finished(zone, cc->order, ret);
+ 	if (ret == COMPACT_NO_SUITABLE_PAGE)
+ 		ret = COMPACT_CONTINUE;
+@@ -1476,9 +1476,9 @@ static enum compact_result compact_zone(
+ 	enum compact_result ret;
+ 	unsigned long start_pfn = zone->zone_start_pfn;
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+-	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
+ 	const bool sync = cc->mode != MIGRATE_ASYNC;
  
- 	/* Otherwise skip the block */
-@@ -1242,8 +1246,7 @@ static isolate_migrate_t isolate_migrate
- 		 * Async compaction is optimistic to see if the minimum amount
- 		 * of work satisfies the allocation.
- 		 */
--		if (cc->mode == MIGRATE_ASYNC &&
--		    !migrate_async_suitable(get_pageblock_migratetype(page)))
-+		if (!suitable_migration_source(cc, page))
- 			continue;
++	cc->migratetype = gfpflags_to_migratetype(cc->gfp_mask);
+ 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
+ 							cc->classzone_idx);
+ 	/* Compaction is likely to fail */
+@@ -1528,8 +1528,7 @@ static enum compact_result compact_zone(
  
- 		/* Perform the isolation */
+ 	migrate_prep_local();
+ 
+-	while ((ret = compact_finished(zone, cc, migratetype)) ==
+-						COMPACT_CONTINUE) {
++	while ((ret = compact_finished(zone, cc)) == COMPACT_CONTINUE) {
+ 		int err;
+ 
+ 		switch (isolate_migratepages(zone, cc)) {
+diff -puN mm/internal.h~mm-compaction-add-migratetype-to-compact_control mm/internal.h
+--- a/mm/internal.h~mm-compaction-add-migratetype-to-compact_control
++++ a/mm/internal.h
+@@ -193,6 +193,7 @@ struct compact_control {
+ 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
+ 	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
+ 	int order;			/* order a direct compactor needs */
++	int migratetype;		/* migratetype of direct compactor */
+ 	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
+ 	const int classzone_idx;	/* zone index of a direct compactor */
+ 	enum migrate_mode mode;		/* Async or sync migration mode */
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
