@@ -1,184 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- powerpc-fadump-remove-dependency-with-config_kexec.patch removed from -mm
- tree
-Date: Tue, 09 May 2017 11:01:47 -0700
-Message-ID: <20170509180147.0EfwHtTP4%akpm@linux-foundation.org>
+ powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse.patch
+ removed from -mm tree
+Date: Tue, 09 May 2017 11:01:53 -0700
+Message-ID: <20170509180153.fXJfmmg4i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34460 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34484 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754410AbdEISBt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:49 -0400
+        with ESMTP id S1754377AbdEISBy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dyoung@redhat.com, ebiederm@xmission.com, fenghua.yu@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, tony.luck@intel.com, vgoyal@redhat.com
 
 
 The patch titled
-     Subject: powerpc/fadump: remove dependency with CONFIG_KEXEC
+     Subject: powerpc/fadump: update documentation about crashkernel parameter reuse
 has been removed from the -mm tree.  Its filename was
-     powerpc-fadump-remove-dependency-with-config_kexec.patch
+     powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Subject: powerpc/fadump: remove dependency with CONFIG_KEXEC
+Subject: powerpc/fadump: update documentation about crashkernel parameter reuse
 
-Now that crashkernel parameter parsing and vmcoreinfo related code is
-moved under CONFIG_CRASH_CORE instead of CONFIG_KEXEC_CORE, remove
-dependency with CONFIG_KEXEC for CONFIG_FA_DUMP.  While here, get rid of
-definitions of fadump_append_elf_note() & fadump_final_note() functions to
-reuse similar functions compiled under CONFIG_CRASH_CORE.
+As we are reusing crashkernel parameter instead of fadump_reserve_mem
+parameter to specify the memory to reserve for fadump's crash kernel,
+update the documentation accordingly.
 
-Link: http://lkml.kernel.org/r/149035343956.6881.1536459326017709354.stgit@hbathini.in.ibm.com
+Link: http://lkml.kernel.org/r/149035347559.6881.14224829694291758581.stgit@hbathini.in.ibm.com
 Signed-off-by: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Reviewed-by: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
 Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig               |   10 ++++---
- arch/powerpc/include/asm/fadump.h  |    2 +
- arch/powerpc/kernel/crash.c        |    2 -
- arch/powerpc/kernel/fadump.c       |   34 ++-------------------------
- arch/powerpc/kernel/setup-common.c |    5 +++
- 5 files changed, 16 insertions(+), 37 deletions(-)
+ Documentation/powerpc/firmware-assisted-dump.txt |   23 ++++++++-----
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~powerpc-fadump-remove-dependency-with-config_kexec arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-fadump-remove-dependency-with-config_kexec
-+++ a/arch/powerpc/Kconfig
-@@ -571,21 +571,23 @@ config RELOCATABLE_TEST
- 	  relocation code.
+diff -puN Documentation/powerpc/firmware-assisted-dump.txt~powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse Documentation/powerpc/firmware-assisted-dump.txt
+--- a/Documentation/powerpc/firmware-assisted-dump.txt~powerpc-fadump-update-documentation-about-crashkernel-parameter-reuse
++++ a/Documentation/powerpc/firmware-assisted-dump.txt
+@@ -55,10 +55,14 @@ as follows:
+          booted with restricted memory. By default, the boot memory
+          size will be the larger of 5% of system RAM or 256MB.
+          Alternatively, user can also specify boot memory size
+-         through boot parameter 'fadump_reserve_mem=' which will
+-         override the default calculated size. Use this option
+-         if default boot memory size is not sufficient for second
+-         kernel to boot successfully.
++         through boot parameter 'crashkernel=' which will override
++         the default calculated size. Use this option if default
++         boot memory size is not sufficient for second kernel to
++         boot successfully. For syntax of crashkernel= parameter,
++         refer to Documentation/kdump/kdump.txt. If any offset is
++         provided in crashkernel= parameter, it will be ignored
++         as fadump reserves memory at end of RAM for boot memory
++         dump preservation in case of a crash.
  
- config CRASH_DUMP
--	bool "Build a kdump crash kernel"
-+	bool "Build a dump capture kernel"
- 	depends on PPC64 || 6xx || FSL_BOOKE || (44x && !SMP)
- 	select RELOCATABLE if PPC64 || 44x || FSL_BOOKE
- 	help
--	  Build a kernel suitable for use as a kdump capture kernel.
-+	  Build a kernel suitable for use as a dump capture kernel.
- 	  The same kernel binary can be used as production kernel and dump
- 	  capture kernel.
+ -- After the low memory (boot memory) area has been saved, the
+    firmware will reset PCI and other hardware state.  It will
+@@ -158,13 +162,16 @@ How to enable firmware-assisted dump (fa
  
- config FA_DUMP
- 	bool "Firmware-assisted dump"
--	depends on PPC64 && PPC_RTAS && CRASH_DUMP && KEXEC_CORE
-+	depends on PPC64 && PPC_RTAS
-+	select CRASH_CORE
-+	select CRASH_DUMP
- 	help
- 	  A robust mechanism to get reliable kernel crash dump with
- 	  assistance from firmware. This approach does not use kexec,
--	  instead firmware assists in booting the kdump kernel
-+	  instead firmware assists in booting the capture kernel
- 	  while preserving memory contents. Firmware-assisted dump
- 	  is meant to be a kdump replacement offering robustness and
- 	  speed not possible without system firmware assistance.
-diff -puN arch/powerpc/include/asm/fadump.h~powerpc-fadump-remove-dependency-with-config_kexec arch/powerpc/include/asm/fadump.h
---- a/arch/powerpc/include/asm/fadump.h~powerpc-fadump-remove-dependency-with-config_kexec
-+++ a/arch/powerpc/include/asm/fadump.h
-@@ -73,6 +73,8 @@
- 	reg_entry++;							\
- })
+ 1. Set config option CONFIG_FA_DUMP=y and build kernel.
+ 2. Boot into linux kernel with 'fadump=on' kernel cmdline option.
+-3. Optionally, user can also set 'fadump_reserve_mem=' kernel cmdline
++3. Optionally, user can also set 'crashkernel=' kernel cmdline
+    to specify size of the memory to reserve for boot memory dump
+    preservation.
  
-+extern int crashing_cpu;
-+
- /* Kernel Dump section info */
- struct fadump_section {
- 	__be32	request_flag;
-diff -puN arch/powerpc/kernel/crash.c~powerpc-fadump-remove-dependency-with-config_kexec arch/powerpc/kernel/crash.c
---- a/arch/powerpc/kernel/crash.c~powerpc-fadump-remove-dependency-with-config_kexec
-+++ a/arch/powerpc/kernel/crash.c
-@@ -43,8 +43,6 @@
- #define IPI_TIMEOUT		10000
- #define REAL_MODE_TIMEOUT	10000
+-NOTE: If firmware-assisted dump fails to reserve memory then it will
+-   fallback to existing kdump mechanism if 'crashkernel=' option
+-   is set at kernel cmdline.
++NOTE: 1. 'fadump_reserve_mem=' parameter has been deprecated. Instead
++         use 'crashkernel=' to specify size of the memory to reserve
++         for boot memory dump preservation.
++      2. If firmware-assisted dump fails to reserve memory then it
++         will fallback to existing kdump mechanism if 'crashkernel='
++         option is set at kernel cmdline.
  
--/* This keeps a track of which one is the crashing cpu. */
--int crashing_cpu = -1;
- static int time_to_dump;
- 
- #define CRASH_HANDLER_MAX 3
-diff -puN arch/powerpc/kernel/fadump.c~powerpc-fadump-remove-dependency-with-config_kexec arch/powerpc/kernel/fadump.c
---- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-remove-dependency-with-config_kexec
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -527,34 +527,6 @@ fadump_read_registers(struct fadump_reg_
- 	return reg_entry;
- }
- 
--static u32 *fadump_append_elf_note(u32 *buf, char *name, unsigned type,
--						void *data, size_t data_len)
--{
--	struct elf_note note;
--
--	note.n_namesz = strlen(name) + 1;
--	note.n_descsz = data_len;
--	note.n_type   = type;
--	memcpy(buf, &note, sizeof(note));
--	buf += (sizeof(note) + 3)/4;
--	memcpy(buf, name, note.n_namesz);
--	buf += (note.n_namesz + 3)/4;
--	memcpy(buf, data, note.n_descsz);
--	buf += (note.n_descsz + 3)/4;
--
--	return buf;
--}
--
--static void fadump_final_note(u32 *buf)
--{
--	struct elf_note note;
--
--	note.n_namesz = 0;
--	note.n_descsz = 0;
--	note.n_type   = 0;
--	memcpy(buf, &note, sizeof(note));
--}
--
- static u32 *fadump_regs_to_elf_notes(u32 *buf, struct pt_regs *regs)
- {
- 	struct elf_prstatus prstatus;
-@@ -565,8 +537,8 @@ static u32 *fadump_regs_to_elf_notes(u32
- 	 * prstatus.pr_pid = ????
- 	 */
- 	elf_core_copy_kernel_regs(&prstatus.pr_reg, regs);
--	buf = fadump_append_elf_note(buf, KEXEC_CORE_NOTE_NAME, NT_PRSTATUS,
--				&prstatus, sizeof(prstatus));
-+	buf = append_elf_note(buf, CRASH_CORE_NOTE_NAME, NT_PRSTATUS,
-+			      &prstatus, sizeof(prstatus));
- 	return buf;
- }
- 
-@@ -707,7 +679,7 @@ static int __init fadump_build_cpu_notes
- 			note_buf = fadump_regs_to_elf_notes(note_buf, &regs);
- 		}
- 	}
--	fadump_final_note(note_buf);
-+	final_note(note_buf);
- 
- 	if (fdh) {
- 		pr_debug("Updating elfcore header (%llx) with cpu notes\n",
-diff -puN arch/powerpc/kernel/setup-common.c~powerpc-fadump-remove-dependency-with-config_kexec arch/powerpc/kernel/setup-common.c
---- a/arch/powerpc/kernel/setup-common.c~powerpc-fadump-remove-dependency-with-config_kexec
-+++ a/arch/powerpc/kernel/setup-common.c
-@@ -125,6 +125,11 @@ int ppc_do_canonicalize_irqs;
- EXPORT_SYMBOL(ppc_do_canonicalize_irqs);
- #endif
- 
-+#ifdef CONFIG_CRASH_CORE
-+/* This keeps a track of which one is the crashing cpu. */
-+int crashing_cpu = -1;
-+#endif
-+
- /* also used by kexec */
- void machine_shutdown(void)
- {
+ Sysfs/debugfs files:
+ ------------
 _
 
 Patches currently in -mm which might be from hbathini@linux.vnet.ibm.com are
