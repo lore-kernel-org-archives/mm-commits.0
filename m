@@ -1,396 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-add-module-support-to-linked-list-sorting-tests.patch removed from -mm
- tree
-Date: Tue, 09 May 2017 11:00:58 -0700
-Message-ID: <20170509180058.BQ812AVnY%akpm@linux-foundation.org>
+ firmware-makefile-force-recompilation-if-makefile-changes.patch removed
+ from -mm tree
+Date: Tue, 09 May 2017 11:01:01 -0700
+Message-ID: <20170509180101.8SehHt2E8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34316 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752559AbdEISA7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:59 -0400
+        with ESMTP id S1753219AbdEISBC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, geert@linux-m68k.org, mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, shuah@kernel.org
+To: dwmw2@infradead.org, gregkh@linuxfoundation.org, mcgrof@kernel.org, ming.lei@canonical.com, mm-commits@vger.kernel.org, mmarek@suse.com, teg@jklm.no, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: lib: add module support to linked list sorting tests
+     Subject: firmware/Makefile: force recompilation if makefile changes
 has been removed from the -mm tree.  Its filename was
-     lib-add-module-support-to-linked-list-sorting-tests.patch
+     firmware-makefile-force-recompilation-if-makefile-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: lib: add module support to linked list sorting tests
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: firmware/Makefile: force recompilation if makefile changes
 
-Extract the linked list sorting test code into its own source file, to
-allow to compile it either to a loadable module, or builtin into the
-kernel.
+If you modify the target asm we currently do not force the recompilation
+of the firmware files.  The target asm is in the firmware/Makefile, peg
+this file as a dependency to require re-compilation of firmware targets
+when the asm changes.
 
-Link: http://lkml.kernel.org/r/1488287219-15832-4-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: http://lkml.kernel.org/r/20170123150727.4883-1-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tom Gundersen <teg@jklm.no>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug    |    7 +
- lib/Makefile         |    1 
- lib/list_sort.c      |  149 ----------------------------------------
- lib/test_list_sort.c |  150 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 155 insertions(+), 152 deletions(-)
+ firmware/Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~lib-add-module-support-to-linked-list-sorting-tests lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-add-module-support-to-linked-list-sorting-tests
-+++ a/lib/Kconfig.debug
-@@ -1719,11 +1719,12 @@ config LKDTM
- 	Documentation/fault-injection/provoke-crashes.txt
+diff -puN firmware/Makefile~firmware-makefile-force-recompilation-if-makefile-changes firmware/Makefile
+--- a/firmware/Makefile~firmware-makefile-force-recompilation-if-makefile-changes
++++ a/firmware/Makefile
+@@ -176,7 +176,8 @@ quiet_cmd_fwbin = MK_FW   $@
+ wordsize_deps := $(wildcard include/config/64bit.h include/config/32bit.h \
+ 		include/config/ppc32.h include/config/ppc64.h \
+ 		include/config/superh32.h include/config/superh64.h \
+-		include/config/x86_32.h include/config/x86_64.h)
++		include/config/x86_32.h include/config/x86_64.h \
++		firmware/Makefile)
  
- config TEST_LIST_SORT
--	bool "Linked list sorting test"
--	depends on DEBUG_KERNEL
-+	tristate "Linked list sorting test"
-+	depends on DEBUG_KERNEL || m
- 	help
- 	  Enable this to turn on 'list_sort()' function test. This test is
--	  executed only once during system boot, so affects only boot time.
-+	  executed only once during system boot (so affects only boot time),
-+	  or at module load time.
- 
- 	  If unsure, say N.
- 
-diff -puN lib/Makefile~lib-add-module-support-to-linked-list-sorting-tests lib/Makefile
---- a/lib/Makefile~lib-add-module-support-to-linked-list-sorting-tests
-+++ a/lib/Makefile
-@@ -52,6 +52,7 @@ obj-$(CONFIG_TEST_FIRMWARE) += test_firm
- obj-$(CONFIG_TEST_HASH) += test_hash.o test_siphash.o
- obj-$(CONFIG_TEST_KASAN) += test_kasan.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
-+obj-$(CONFIG_TEST_LIST_SORT) += test_list_sort.o
- obj-$(CONFIG_TEST_LKM) += test_module.o
- obj-$(CONFIG_TEST_RHASHTABLE) += test_rhashtable.o
- obj-$(CONFIG_TEST_SORT) += test_sort.o
-diff -puN lib/list_sort.c~lib-add-module-support-to-linked-list-sorting-tests lib/list_sort.c
---- a/lib/list_sort.c~lib-add-module-support-to-linked-list-sorting-tests
-+++ a/lib/list_sort.c
-@@ -1,6 +1,3 @@
--
--#define pr_fmt(fmt) "list_sort_test: " fmt
--
- #include <linux/kernel.h>
- #include <linux/bug.h>
- #include <linux/compiler.h>
-@@ -145,149 +142,3 @@ void list_sort(void *priv, struct list_h
- 	merge_and_restore_back_links(priv, cmp, head, part[max_lev], list);
- }
- EXPORT_SYMBOL(list_sort);
--
--#ifdef CONFIG_TEST_LIST_SORT
--
--#include <linux/slab.h>
--#include <linux/random.h>
--
--/*
-- * The pattern of set bits in the list length determines which cases
-- * are hit in list_sort().
-- */
--#define TEST_LIST_LEN (512+128+2) /* not including head */
--
--#define TEST_POISON1 0xDEADBEEF
--#define TEST_POISON2 0xA324354C
--
--struct debug_el {
--	unsigned int poison1;
--	struct list_head list;
--	unsigned int poison2;
--	int value;
--	unsigned serial;
--};
--
--/* Array, containing pointers to all elements in the test list */
--static struct debug_el **elts __initdata;
--
--static int __init check(struct debug_el *ela, struct debug_el *elb)
--{
--	if (ela->serial >= TEST_LIST_LEN) {
--		pr_err("error: incorrect serial %d\n", ela->serial);
--		return -EINVAL;
--	}
--	if (elb->serial >= TEST_LIST_LEN) {
--		pr_err("error: incorrect serial %d\n", elb->serial);
--		return -EINVAL;
--	}
--	if (elts[ela->serial] != ela || elts[elb->serial] != elb) {
--		pr_err("error: phantom element\n");
--		return -EINVAL;
--	}
--	if (ela->poison1 != TEST_POISON1 || ela->poison2 != TEST_POISON2) {
--		pr_err("error: bad poison: %#x/%#x\n",
--			ela->poison1, ela->poison2);
--		return -EINVAL;
--	}
--	if (elb->poison1 != TEST_POISON1 || elb->poison2 != TEST_POISON2) {
--		pr_err("error: bad poison: %#x/%#x\n",
--			elb->poison1, elb->poison2);
--		return -EINVAL;
--	}
--	return 0;
--}
--
--static int __init cmp(void *priv, struct list_head *a, struct list_head *b)
--{
--	struct debug_el *ela, *elb;
--
--	ela = container_of(a, struct debug_el, list);
--	elb = container_of(b, struct debug_el, list);
--
--	check(ela, elb);
--	return ela->value - elb->value;
--}
--
--static int __init list_sort_test(void)
--{
--	int i, count = 1, err = -ENOMEM;
--	struct debug_el *el;
--	struct list_head *cur;
--	LIST_HEAD(head);
--
--	pr_debug("start testing list_sort()\n");
--
--	elts = kcalloc(TEST_LIST_LEN, sizeof(*elts), GFP_KERNEL);
--	if (!elts) {
--		pr_err("error: cannot allocate memory\n");
--		return err;
--	}
--
--	for (i = 0; i < TEST_LIST_LEN; i++) {
--		el = kmalloc(sizeof(*el), GFP_KERNEL);
--		if (!el) {
--			pr_err("error: cannot allocate memory\n");
--			goto exit;
--		}
--		 /* force some equivalencies */
--		el->value = prandom_u32() % (TEST_LIST_LEN / 3);
--		el->serial = i;
--		el->poison1 = TEST_POISON1;
--		el->poison2 = TEST_POISON2;
--		elts[i] = el;
--		list_add_tail(&el->list, &head);
--	}
--
--	list_sort(NULL, &head, cmp);
--
--	err = -EINVAL;
--	for (cur = head.next; cur->next != &head; cur = cur->next) {
--		struct debug_el *el1;
--		int cmp_result;
--
--		if (cur->next->prev != cur) {
--			pr_err("error: list is corrupted\n");
--			goto exit;
--		}
--
--		cmp_result = cmp(NULL, cur, cur->next);
--		if (cmp_result > 0) {
--			pr_err("error: list is not sorted\n");
--			goto exit;
--		}
--
--		el = container_of(cur, struct debug_el, list);
--		el1 = container_of(cur->next, struct debug_el, list);
--		if (cmp_result == 0 && el->serial >= el1->serial) {
--			pr_err("error: order of equivalent elements not "
--				"preserved\n");
--			goto exit;
--		}
--
--		if (check(el, el1)) {
--			pr_err("error: element check failed\n");
--			goto exit;
--		}
--		count++;
--	}
--	if (head.prev != cur) {
--		pr_err("error: list is corrupted\n");
--		goto exit;
--	}
--
--
--	if (count != TEST_LIST_LEN) {
--		pr_err("error: bad list length %d", count);
--		goto exit;
--	}
--
--	err = 0;
--exit:
--	for (i = 0; i < TEST_LIST_LEN; i++)
--		kfree(elts[i]);
--	kfree(elts);
--	return err;
--}
--late_initcall(list_sort_test);
--#endif /* CONFIG_TEST_LIST_SORT */
-diff -puN /dev/null lib/test_list_sort.c
---- /dev/null
-+++ a/lib/test_list_sort.c
-@@ -0,0 +1,150 @@
-+#define pr_fmt(fmt) "list_sort_test: " fmt
-+
-+#include <linux/kernel.h>
-+#include <linux/list_sort.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+#include <linux/slab.h>
-+#include <linux/random.h>
-+
-+/*
-+ * The pattern of set bits in the list length determines which cases
-+ * are hit in list_sort().
-+ */
-+#define TEST_LIST_LEN (512+128+2) /* not including head */
-+
-+#define TEST_POISON1 0xDEADBEEF
-+#define TEST_POISON2 0xA324354C
-+
-+struct debug_el {
-+	unsigned int poison1;
-+	struct list_head list;
-+	unsigned int poison2;
-+	int value;
-+	unsigned serial;
-+};
-+
-+/* Array, containing pointers to all elements in the test list */
-+static struct debug_el **elts __initdata;
-+
-+static int __init check(struct debug_el *ela, struct debug_el *elb)
-+{
-+	if (ela->serial >= TEST_LIST_LEN) {
-+		pr_err("error: incorrect serial %d\n", ela->serial);
-+		return -EINVAL;
-+	}
-+	if (elb->serial >= TEST_LIST_LEN) {
-+		pr_err("error: incorrect serial %d\n", elb->serial);
-+		return -EINVAL;
-+	}
-+	if (elts[ela->serial] != ela || elts[elb->serial] != elb) {
-+		pr_err("error: phantom element\n");
-+		return -EINVAL;
-+	}
-+	if (ela->poison1 != TEST_POISON1 || ela->poison2 != TEST_POISON2) {
-+		pr_err("error: bad poison: %#x/%#x\n",
-+			ela->poison1, ela->poison2);
-+		return -EINVAL;
-+	}
-+	if (elb->poison1 != TEST_POISON1 || elb->poison2 != TEST_POISON2) {
-+		pr_err("error: bad poison: %#x/%#x\n",
-+			elb->poison1, elb->poison2);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int __init cmp(void *priv, struct list_head *a, struct list_head *b)
-+{
-+	struct debug_el *ela, *elb;
-+
-+	ela = container_of(a, struct debug_el, list);
-+	elb = container_of(b, struct debug_el, list);
-+
-+	check(ela, elb);
-+	return ela->value - elb->value;
-+}
-+
-+static int __init list_sort_test(void)
-+{
-+	int i, count = 1, err = -ENOMEM;
-+	struct debug_el *el;
-+	struct list_head *cur;
-+	LIST_HEAD(head);
-+
-+	pr_debug("start testing list_sort()\n");
-+
-+	elts = kcalloc(TEST_LIST_LEN, sizeof(*elts), GFP_KERNEL);
-+	if (!elts) {
-+		pr_err("error: cannot allocate memory\n");
-+		return err;
-+	}
-+
-+	for (i = 0; i < TEST_LIST_LEN; i++) {
-+		el = kmalloc(sizeof(*el), GFP_KERNEL);
-+		if (!el) {
-+			pr_err("error: cannot allocate memory\n");
-+			goto exit;
-+		}
-+		 /* force some equivalencies */
-+		el->value = prandom_u32() % (TEST_LIST_LEN / 3);
-+		el->serial = i;
-+		el->poison1 = TEST_POISON1;
-+		el->poison2 = TEST_POISON2;
-+		elts[i] = el;
-+		list_add_tail(&el->list, &head);
-+	}
-+
-+	list_sort(NULL, &head, cmp);
-+
-+	err = -EINVAL;
-+	for (cur = head.next; cur->next != &head; cur = cur->next) {
-+		struct debug_el *el1;
-+		int cmp_result;
-+
-+		if (cur->next->prev != cur) {
-+			pr_err("error: list is corrupted\n");
-+			goto exit;
-+		}
-+
-+		cmp_result = cmp(NULL, cur, cur->next);
-+		if (cmp_result > 0) {
-+			pr_err("error: list is not sorted\n");
-+			goto exit;
-+		}
-+
-+		el = container_of(cur, struct debug_el, list);
-+		el1 = container_of(cur->next, struct debug_el, list);
-+		if (cmp_result == 0 && el->serial >= el1->serial) {
-+			pr_err("error: order of equivalent elements not "
-+				"preserved\n");
-+			goto exit;
-+		}
-+
-+		if (check(el, el1)) {
-+			pr_err("error: element check failed\n");
-+			goto exit;
-+		}
-+		count++;
-+	}
-+	if (head.prev != cur) {
-+		pr_err("error: list is corrupted\n");
-+		goto exit;
-+	}
-+
-+
-+	if (count != TEST_LIST_LEN) {
-+		pr_err("error: bad list length %d", count);
-+		goto exit;
-+	}
-+
-+	err = 0;
-+exit:
-+	for (i = 0; i < TEST_LIST_LEN; i++)
-+		kfree(elts[i]);
-+	kfree(elts);
-+	return err;
-+}
-+module_init(list_sort_test);
-+MODULE_LICENSE("GPL");
+ $(patsubst %,$(obj)/%.gen.S, $(fw-shipped-y)): %: $(wordsize_deps)
+ 	$(call cmd,fwbin,$(patsubst %.gen.S,%,$@))
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
 
