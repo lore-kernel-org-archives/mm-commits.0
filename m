@@ -1,77 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-improve-the-suspect_code_indent-test.patch removed from -mm tree
-Date: Tue, 09 May 2017 11:01:32 -0700
-Message-ID: <20170509180132.h1RDuUf_t%akpm@linux-foundation.org>
+Subject: [merged] reiserfs-use-designated-initializers.patch
+ removed from -mm tree
+Date: Tue, 09 May 2017 11:01:34 -0700
+Message-ID: <20170509180134.-KtNOzXYa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34398 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754053AbdEISBd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:33 -0400
+        with ESMTP id S1754066AbdEISBf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve the SUSPECT_CODE_INDENT test
+     Subject: reiserfs: use designated initializers
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-the-suspect_code_indent-test.patch
+     reiserfs-use-designated-initializers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve the SUSPECT_CODE_INDENT test
+From: Kees Cook <keescook@chromium.org>
+Subject: reiserfs: use designated initializers
 
-The current SUSPECT_CODE_INDENT test does not recognize several defective
-code style defects where code following a logical test is inappropriately
-indented.
+Prepare to mark sensitive kernel structures for randomization by making
+sure they're using designated initializers.  These were identified during
+allyesconfig builds of x86, arm, and arm64, with most initializer fixes
+extracted from grsecurity.
 
-Before this patch, for code like:
-
-	if (foo)
-	bar();
-
-checkpatch would not emit a warning.
-
-Improve the test to warn when code after a logical test has the
-same indentation as the logical test.
-
-Perform the same indentation test for "else" blocks too.
-
-Link: http://lkml.kernel.org/r/df2374b68c4a68af2b7ef08afe486584811f610a.1493683942.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20170329210419.GA40066@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/reiserfs/item_ops.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-the-suspect_code_indent-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-the-suspect_code_indent-test
-+++ a/scripts/checkpatch.pl
-@@ -3354,7 +3354,7 @@ sub process {
- 		}
+diff -puN fs/reiserfs/item_ops.c~reiserfs-use-designated-initializers fs/reiserfs/item_ops.c
+--- a/fs/reiserfs/item_ops.c~reiserfs-use-designated-initializers
++++ a/fs/reiserfs/item_ops.c
+@@ -724,18 +724,18 @@ static void errcatch_print_vi(struct vir
+ }
  
- # Check relative indent for conditionals and blocks.
--		if ($line =~ /\b(?:(?:if|while|for|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
-+		if ($line =~ /\b(?:(?:if|while|for|(?:[a-z_]+|)for_each[a-z_]+)\s*\(|(?:do|else)\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
- 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
- 				ctx_statement_block($linenr, $realcnt, 0)
- 					if (!defined $stat);
-@@ -3446,6 +3446,8 @@ sub process {
- 			if ($check && $s ne '' &&
- 			    (($sindent % 8) != 0 ||
- 			     ($sindent < $indent) ||
-+			     ($sindent == $indent &&
-+			      ($s !~ /^\s*(?:\}|\{|else\b)/)) ||
- 			     ($sindent > $indent + 8))) {
- 				WARN("SUSPECT_CODE_INDENT",
- 				     "suspect code indent for conditional statements ($indent, $sindent)\n" . $herecurr . "$stat_real\n");
+ static struct item_operations errcatch_ops = {
+-	errcatch_bytes_number,
+-	errcatch_decrement_key,
+-	errcatch_is_left_mergeable,
+-	errcatch_print_item,
+-	errcatch_check_item,
++	.bytes_number = errcatch_bytes_number,
++	.decrement_key = errcatch_decrement_key,
++	.is_left_mergeable = errcatch_is_left_mergeable,
++	.print_item = errcatch_print_item,
++	.check_item = errcatch_check_item,
+ 
+-	errcatch_create_vi,
+-	errcatch_check_left,
+-	errcatch_check_right,
+-	errcatch_part_size,
+-	errcatch_unit_num,
+-	errcatch_print_vi
++	.create_vi = errcatch_create_vi,
++	.check_left = errcatch_check_left,
++	.check_right = errcatch_check_right,
++	.part_size = errcatch_part_size,
++	.unit_num = errcatch_unit_num,
++	.print_vi = errcatch_print_vi
+ };
+ 
+ #if ! (TYPE_STAT_DATA == 0 && TYPE_INDIRECT == 1 && TYPE_DIRECT == 2 && TYPE_DIRENTRY == 3)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
