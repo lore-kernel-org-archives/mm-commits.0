@@ -1,51 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-improve-multistatement_macro_use_do_while-test.patch removed
- from -mm tree
-Date: Tue, 09 May 2017 11:01:18 -0700
-Message-ID: <20170509180118.I0Q2fu4S2%akpm@linux-foundation.org>
+ checkpatch-avoid-suggesting-struct-definitions-should-be-const.patch
+ removed from -mm tree
+Date: Tue, 09 May 2017 11:01:16 -0700
+Message-ID: <20170509180116.ja3vddU2R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34352 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752586AbdEISBT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:19 -0400
+        with ESMTP id S1752586AbdEISBR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:01:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alfonsolimaastor@gmail.com, andi@lisas.de, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org, ybalrid@ybalrid.info
 
 
 The patch titled
-     Subject: checkpatch: improve MULTISTATEMENT_MACRO_USE_DO_WHILE test
+     Subject: checkpatch: avoid suggesting struct definitions should be const
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-multistatement_macro_use_do_while-test.patch
+     checkpatch-avoid-suggesting-struct-definitions-should-be-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve MULTISTATEMENT_MACRO_USE_DO_WHILE test
+Subject: checkpatch: avoid suggesting struct definitions should be const
 
-The logic currrently misses macros that start with an if statement.
+Many structs are generally used const and there is a known list of these
+structs.
 
-e.g.:    #define foo(bar)   if (bar) baz;
+struct definitions should not be generally be declared const.
 
-Add a test for macro content that starts with if
+Add a test for the lack of an open brace immediately after the struct to
+avoid definitions.
 
-Link: http://lkml.kernel.org/r/a9d41aafe1673889caf1a9850208fb7fd74107a0.1491783914.git.joe@perches.com
+This avoids the false positive "struct foo should normally be const"
+message only when the open brace is on the same line as the definition.
+
+Link: http://lkml.kernel.org/r/0dce709150d712e66f1b90b03827634b53b28085.1491845946.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Andreas Mohr <andi@lisas.de>
-Original-patch-by: Alfonso Lima <alfonsolimaastor@gmail.com>
+Cc: Arthur Brainville <ybalrid@ybalrid.info>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-multistatement_macro_use_do_while-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-multistatement_macro_use_do_while-test
+diff -puN scripts/checkpatch.pl~checkpatch-avoid-suggesting-struct-definitions-should-be-const scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-avoid-suggesting-struct-definitions-should-be-const
 +++ a/scripts/checkpatch.pl
-@@ -4849,8 +4849,10 @@ sub process {
- 			    $dstat !~ /^\(\{/ &&						# ({...
- 			    $ctx !~ /^.\s*#\s*define\s+TRACE_(?:SYSTEM|INCLUDE_FILE|INCLUDE_PATH)\b/)
- 			{
+@@ -6090,11 +6090,11 @@ sub process {
+ 		}
+ 
+ # check for various structs that are normally const (ops, kgdb, device_tree)
++# and avoid what seem like struct definitions 'struct foo {'
+ 		if ($line !~ /\bconst\b/ &&
+-		    $line =~ /\bstruct\s+($const_structs)\b/) {
++		    $line =~ /\bstruct\s+($const_structs)\b(?!\s*\{)/) {
+ 			WARN("CONST_STRUCT",
+-			     "struct $1 should normally be const\n" .
+-				$herecurr);
++			     "struct $1 should normally be const\n" . $herecurr);
+ 		}
+ 
+ # use of NR_CPUS is usually wrong
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+
