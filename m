@@ -1,70 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch removed from
- -mm tree
-Date: Tue, 09 May 2017 11:00:32 -0700
-Message-ID: <20170509180032.lqu0ksL_0%akpm@linux-foundation.org>
+ =?US-ASCII?Q?jiffiesh-declare-jiffies-and-jiffies=5F64-with-=5F=5F?=
+ =?US-ASCII?Q?=5F=5Fcacheline=5Faligned=5Fin=5Fsmp.patch?= removed from -mm
+ tree
+Date: Tue, 09 May 2017 11:00:38 -0700
+Message-ID: <20170509180038.AkqxSkFY1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34226 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753703AbdEISAd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:33 -0400
+        with ESMTP id S1753459AbdEISAj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: acme@redhat.com, adobriyan@gmail.com, edumazet@google.com, fgao@ikuai8.com, jpoimboe@redhat.com, mingo@kernel.org, mm-commits@vger.kernel.org
+To: ghackmann@google.com, grundler@chromium.org, Jason@zx2c4.com, md@google.com, mka@chromium.org, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: proc/sysctl: fix the int overflow for jiffies conversion
+     Subject: jiffies.h: declare jiffies and jiffies_64 with ____cacheline_aligned_in_smp
 has been removed from the -mm tree.  Its filename was
-     proc-sysctl-fix-the-int-overflow-for-jiffies-conversion.patch
+     jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gao Feng <fgao@ikuai8.com>
-Subject: proc/sysctl: fix the int overflow for jiffies conversion
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: jiffies.h: declare jiffies and jiffies_64 with ____cacheline_aligned_in_smp
 
-do_proc_dointvec_jiffies_conv() uses LONG_MAX/HZ as the max value to avoid
-overflow.  But actually the *valp is int type, so it still causes
-overflow.
+jiffies_64 is defined in kernel/time/timer.c with
+____cacheline_aligned_in_smp, however this macro is not part of the
+declaration of jiffies and jiffies_64 in jiffies.h.
 
-For example,
-echo 2147483647 > ./sys/net/ipv4/tcp_keepalive_time
-Then,
-cat ./sys/net/ipv4/tcp_keepalive_time
-The output is "-1", it is not expected.
+As a result clang generates the following warning:
 
-Now use INT_MAX/HZ as the max value instead LONG_MAX/HZ to fix it.
+kernel/time/timer.c:57:26: error: section does not match previous declaration [-Werror,-Wsection]
+__visible u64 jiffies_64 __cacheline_aligned_in_smp = INITIAL_JIFFIES;
+                         ^
+include/linux/cache.h:39:36: note: expanded from macro '__cacheline_aligned_in_smp'
+                                   ^
+include/linux/cache.h:34:4: note: expanded from macro '__cacheline_aligned'
+                 __section__(".data..cacheline_aligned")))
+                 ^
+include/linux/jiffies.h:77:12: note: previous attribute is here
+extern u64 __jiffy_data jiffies_64;
+           ^
+include/linux/jiffies.h:70:38: note: expanded from macro '__jiffy_data'
 
-Link: http://lkml.kernel.org/r/1490109532-9228-1-git-send-email-fgao@ikuai8.com
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
-Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: http://lkml.kernel.org/r/20170403190200.70273-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Cc: "Jason A . Donenfeld" <Jason@zx2c4.com>
+Cc: Grant Grundler <grundler@chromium.org>
+Cc: Michael Davidson <md@google.com>
+Cc: Greg Hackmann <ghackmann@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/jiffies.h |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN kernel/sysctl.c~proc-sysctl-fix-the-int-overflow-for-jiffies-conversion kernel/sysctl.c
---- a/kernel/sysctl.c~proc-sysctl-fix-the-int-overflow-for-jiffies-conversion
-+++ a/kernel/sysctl.c
-@@ -2576,7 +2576,7 @@ static int do_proc_dointvec_jiffies_conv
- 					 int write, void *data)
- {
- 	if (write) {
--		if (*lvalp > LONG_MAX / HZ)
-+		if (*lvalp > INT_MAX / HZ)
- 			return 1;
- 		*valp = *negp ? -(*lvalp*HZ) : (*lvalp*HZ);
- 	} else {
-_
-
-Patches currently in -mm which might be from fgao@ikuai8.com are
-
-
+diff -puN include/linux/jiffies.h~jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp include/linux/jiffies.h
+--- a/include/linux/jiffies.h~jiffiesh-declare-jiffies-and-jiffies_64-with-____cacheline_aligned_in_smp
++++ a/include/linux/jiffies.h
+@@ -1,6 +1,7 @@
+ #ifndef _LINUX_JIFFIES_H
+ #define _LINUX_JIFFIES_H
+ 
++#include <linux/cache.h>
+ #include <linux/math64.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+@@ -63,19 +64,13 @@ extern int register_refined_jiffies(long
+ /* TICK_USEC is the time between ticks in usec assuming fake USER_HZ */
+ #define TICK_USEC ((1000000UL + USER_HZ/2) / USER_HZ)
+ 
+-/* some arch's have a small-data section that can be accessed register-relative
+- * but that can only take up to, say, 4-byte variables. jiffies being part of
+- * an 8-byte variable may not be correctly accessed unless we force the issue
+- */
+-#define __jiffy_data  __attribute__((section(".data")))
