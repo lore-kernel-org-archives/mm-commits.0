@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-fix-vmalloc-users-tracking-properly.patch added to
- -mm tree
-Date: Tue, 09 May 2017 13:31:05 -0700
-Message-ID: <59122709.f5yRsuIbq3DheTwN%akpm@linux-foundation.org>
+Subject: +
+ mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 09 May 2017 13:34:39 -0700
+Message-ID: <591227df.Hc5/RikdRAQRbI8/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54128 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752049AbdEIUbG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 16:31:06 -0400
+        with ESMTP id S1751210AbdEIUek (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 16:34:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, geert@linux-m68k.org, tklauser@distanz.ch, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmalloc: fix vmalloc users tracking properly
+     Subject: mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
+     mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,159 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmalloc: fix vmalloc users tracking properly
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
 
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#4: 
 1f5307b1e094 ("mm, vmalloc: properly track vmalloc users") has pulled
-asm/pgtable.h include dependency to linux/vmalloc.h and that turned out
-to be a bad idea for some architectures. E.g. m68k fails with
-   In file included from arch/m68k/include/asm/pgtable_mm.h:145:0,
-                    from arch/m68k/include/asm/pgtable.h:4,
-                    from include/linux/vmalloc.h:9,
-                    from arch/m68k/kernel/module.c:9:
-   arch/m68k/include/asm/mcf_pgtable.h: In function 'nocache_page':
+
+WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
+#12: 
 >> arch/m68k/include/asm/mcf_pgtable.h:339:43: error: 'init_mm' undeclared (first use in this function)
-    #define pgd_offset_k(address) pgd_offset(&init_mm, address)
 
-as spotted by kernel build bot. nios2 fails for other reason
-In file included from ./include/asm-generic/io.h:767:0,
-                 from ./arch/nios2/include/asm/io.h:61,
-                 from ./include/linux/io.h:25,
-                 from ./arch/nios2/include/asm/pgtable.h:18,
-                 from ./include/linux/mm.h:70,
-                 from ./include/linux/pid_namespace.h:6,
-                 from ./include/linux/ptrace.h:9,
-                 from ./arch/nios2/include/uapi/asm/elf.h:23,
-                 from ./arch/nios2/include/asm/elf.h:22,
-                 from ./include/linux/elf.h:4,
-                 from ./include/linux/module.h:15,
-                 from init/main.c:16:
-./include/linux/vmalloc.h: In function '__vmalloc_node_flags':
-./include/linux/vmalloc.h:99:40: error: 'PAGE_KERNEL' undeclared (first use in this function); did you mean 'GFP_KERNEL'?
-
-which is due to the newly added #include <asm/pgtable.h>, which on nios2
-includes <linux/io.h> and thus <asm/io.h> and <asm-generic/io.h> which
-again includes <linux/vmalloc.h>.
-
-Tweaking that around just turns out a bigger headache than necessary. 
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#36: 
 This patch reverts 1f5307b1e094 and reimplements the original fix in a
-different way.  __vmalloc_node_flags can stay static inline which will
-cover vmalloc* functions.  We only have one external user (kvmalloc_node)
-and we can export __vmalloc_node_flags_caller and provide the caller
-directly.  This is much simpler and it doesn't really need any games with
-header files.
 
-Fixes: 1f5307b1e094 ("mm, vmalloc: properly track vmalloc users")
-Link: http://lkml.kernel.org/r/20170509153702.GR6481@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Tobias Klauser <tklauser@distanz.ch>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+WARNING: line over 80 characters
+#71: FILE: include/linux/vmalloc.h:85:
++static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
+
+ERROR: "foo* bar" should be "foo *bar"
+#71: FILE: include/linux/vmalloc.h:85:
++static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
+
+ERROR: "foo* bar" should be "foo *bar"
+#92: FILE: include/linux/vmalloc.h:96:
++					int node, gfp_t flags, void* caller);
+
+WARNING: line over 80 characters
+#143: FILE: mm/vmalloc.c:1820:
++void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void *caller)
+
+total: 4 errors, 3 warnings, 80 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-vmalloc-fix-vmalloc-users-tracking-properly.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   17 ++++++-----------
- mm/util.c               |    3 ++-
- mm/vmalloc.c            |   18 +++++++++++++++++-
- 3 files changed, 25 insertions(+), 13 deletions(-)
+ include/linux/vmalloc.h |    5 +++--
+ mm/vmalloc.c            |    3 ++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly
+diff -puN include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
 +++ a/include/linux/vmalloc.h
-@@ -6,7 +6,6 @@
- #include <linux/list.h>
- #include <linux/llist.h>
- #include <asm/page.h>		/* pgprot_t */
--#include <asm/pgtable.h>	/* PAGE_KERNEL */
- #include <linux/rbtree.h>
- 
- struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
-@@ -83,22 +82,18 @@ extern void *__vmalloc_node_range(unsign
+@@ -82,7 +82,8 @@ extern void *__vmalloc_node_range(unsign
  			const void *caller);
  #ifndef CONFIG_MMU
  extern void *__vmalloc_node_flags(unsigned long size, int node, gfp_t flags);
-+static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
-+{
-+	return __vmalloc_node_flags(size, node, flags);
-+}
- #else
--extern void *__vmalloc_node(unsigned long size, unsigned long align,
--			    gfp_t gfp_mask, pgprot_t prot,
--			    int node, const void *caller);
--
- /*
-  * We really want to have this inlined due to caller tracking. This
-  * function is used by the highlevel vmalloc apis and so we want to track
+-static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
++static inline void *__vmalloc_node_flags_caller(unsigned long size, int node,
++						gfp_t flags, void *caller)
+ {
+ 	return __vmalloc_node_flags(size, node, flags);
+ }
+@@ -93,7 +94,7 @@ static inline void *__vmalloc_node_flags
   * their callers and inlining will achieve that.
   */
--static inline void *__vmalloc_node_flags(unsigned long size,
--					int node, gfp_t flags)
--{
--	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
--					node, __builtin_return_address(0));
--}
-+extern void *__vmalloc_node_flags_caller(unsigned long size,
-+					int node, gfp_t flags, void* caller);
+ extern void *__vmalloc_node_flags_caller(unsigned long size,
+-					int node, gfp_t flags, void* caller);
++					 int node, gfp_t flags, void *caller);
  #endif
  
  extern void vfree(const void *addr);
-diff -puN mm/util.c~mm-vmalloc-fix-vmalloc-users-tracking-properly mm/util.c
---- a/mm/util.c~mm-vmalloc-fix-vmalloc-users-tracking-properly
-+++ a/mm/util.c
-@@ -382,7 +382,8 @@ void *kvmalloc_node(size_t size, gfp_t f
- 	if (ret || size <= PAGE_SIZE)
- 		return ret;
- 
--	return __vmalloc_node_flags(size, node, flags);
-+	return __vmalloc_node_flags_caller(size, node, flags,
-+			__builtin_return_address(0));
- }
- EXPORT_SYMBOL(kvmalloc_node);
- 
-diff -puN mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
 +++ a/mm/vmalloc.c
-@@ -1649,6 +1649,9 @@ void *vmap(struct page **pages, unsigned
+@@ -1817,7 +1817,8 @@ static inline void *__vmalloc_node_flags
  }
- EXPORT_SYMBOL(vmap);
  
-+static void *__vmalloc_node(unsigned long size, unsigned long align,
-+			    gfp_t gfp_mask, pgprot_t prot,
-+			    int node, const void *caller);
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, int node)
+ 
+-void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void *caller)
++void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
++				  void *caller)
  {
-@@ -1791,7 +1794,7 @@ fail:
-  *	with mm people.
-  *
-  */
--void *__vmalloc_node(unsigned long size, unsigned long align,
-+static void *__vmalloc_node(unsigned long size, unsigned long align,
- 			    gfp_t gfp_mask, pgprot_t prot,
- 			    int node, const void *caller)
- {
-@@ -1806,6 +1809,19 @@ void *__vmalloc(unsigned long size, gfp_
+ 	return __vmalloc_node(size, 1, flags, PAGE_KERNEL, node, caller);
  }
- EXPORT_SYMBOL(__vmalloc);
- 
-+static inline void *__vmalloc_node_flags(unsigned long size,
-+					int node, gfp_t flags)
-+{
-+	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
-+					node, __builtin_return_address(0));
-+}
-+
-+
-+void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void *caller)
-+{
-+	return __vmalloc_node(size, 1, flags, PAGE_KERNEL, node, caller);
-+}
-+
- /**
-  *	vmalloc  -  allocate virtually contiguous memory
-  *	@size:		allocation size
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
+i-need-old-gcc.patch
+gcov-support-gcc-71-v2-checkpatch-fixes.patch
+mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
