@@ -1,130 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- treewide-decouple-cacheflushh-and-set_memoryh.patch removed from -mm tree
-Date: Tue, 09 May 2017 11:03:35 -0700
-Message-ID: <20170509180335.Vv5fS8bcZ%akpm@linux-foundation.org>
+ kref-remove-warn_on-for-null-release-functions.patch removed from -mm tree
+Date: Tue, 09 May 2017 11:03:37 -0700
+Message-ID: <20170509180337.k8uu88nZL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34902 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753907AbdEISDg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:03:36 -0400
+        with ESMTP id S1753074AbdEISDi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:03:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, labbott@redhat.com, mark.rutland@arm.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: ak@linux.intel.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide: decouple cacheflush.h and set_memory.h
+     Subject: kref: remove WARN_ON for NULL release functions
 has been removed from the -mm tree.  Its filename was
-     treewide-decouple-cacheflushh-and-set_memoryh.patch
+     kref-remove-warn_on-for-null-release-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laura Abbott <labbott@redhat.com>
-Subject: treewide: decouple cacheflush.h and set_memory.h
+From: Andi Kleen <ak@linux.intel.com>
+Subject: kref: remove WARN_ON for NULL release functions
 
-Now that all call sites, completely decouple cacheflush.h and
-set_memory.h
+The kref functions check for NULL release functions.  This WARN_ON seems
+rather pointless.  We will eventually release and then just crash nicely. 
+It is also somewhat expensive because these functions are inlined in a lot
+of places.  Removing the WARN_ONs saves around 2.3k in this kernel (likely
+more in others with more drivers)
 
-[sfr@canb.auug.org.au: kprobes/x86: merge fix for set_memory.h decoupling]
-  Link: http://lkml.kernel.org/r/20170418180903.10300fd3@canb.auug.org.au
-Link: http://lkml.kernel.org/r/1488920133-27229-17-git-send-email-labbott@redhat.com
-Signed-off-by: Laura Abbott <labbott@redhat.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
+   text    data     bss     dec     hex filename
+9083992 5367600 11116544        25568136        1862388 vmlinux-before-load-avg
+9070166 5367600 11116544        25554310        185ed86 vmlinux-load-avg
+
+Link: http://lkml.kernel.org/r/20170315021431.13107-5-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/cacheflush.h   |    1 -
- arch/arm64/include/asm/cacheflush.h |    1 -
- arch/s390/include/asm/Kbuild        |    1 +
- arch/s390/include/asm/cacheflush.h  |    8 --------
- arch/x86/include/asm/cacheflush.h   |    1 -
- arch/x86/kernel/kprobes/core.c      |    1 +
- arch/x86/kernel/kprobes/opt.c       |    1 +
- 7 files changed, 3 insertions(+), 11 deletions(-)
+ include/linux/kref.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm/include/asm/cacheflush.h
---- a/arch/arm/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/arm/include/asm/cacheflush.h
-@@ -16,7 +16,6 @@
- #include <asm/shmparam.h>
- #include <asm/cachetype.h>
- #include <asm/outercache.h>
--#include <asm/set_memory.h>
- 
- #define CACHE_COLOUR(vaddr)	((vaddr & (SHMLBA - 1)) >> PAGE_SHIFT)
- 
-diff -puN arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/arm64/include/asm/cacheflush.h
---- a/arch/arm64/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/arm64/include/asm/cacheflush.h
-@@ -20,7 +20,6 @@
- #define __ASM_CACHEFLUSH_H
- 
- #include <linux/mm.h>
--#include <asm/set_memory.h>
- 
- /*
-  * This flag is used to indicate that the page pointed to by a pte is clean
-diff -puN arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh arch/s390/include/asm/Kbuild
---- a/arch/s390/include/asm/Kbuild~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/s390/include/asm/Kbuild
-@@ -1,4 +1,5 @@
- generic-y += asm-offsets.h
-+generic-y += cacheflush.h
- generic-y += clkdev.h
- generic-y += dma-contiguous.h
- generic-y += div64.h
-diff -puN arch/s390/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh /dev/null
---- a/arch/s390/include/asm/cacheflush.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _S390_CACHEFLUSH_H
--#define _S390_CACHEFLUSH_H
+diff -puN include/linux/kref.h~kref-remove-warn_on-for-null-release-functions include/linux/kref.h
+--- a/include/linux/kref.h~kref-remove-warn_on-for-null-release-functions
++++ a/include/linux/kref.h
+@@ -66,8 +66,6 @@ static inline void kref_get(struct kref
+  */
+ static inline int kref_put(struct kref *kref, void (*release)(struct kref *kref))
+ {
+-	WARN_ON(release == NULL);
 -
--/* Caches aren't brain-dead on the s390. */
--#include <asm-generic/cacheflush.h>
--#include <asm/set_memory.h>
+ 	if (refcount_dec_and_test(&kref->refcount)) {
+ 		release(kref);
+ 		return 1;
+@@ -79,8 +77,6 @@ static inline int kref_put_mutex(struct
+ 				 void (*release)(struct kref *kref),
+ 				 struct mutex *lock)
+ {
+-	WARN_ON(release == NULL);
 -
--#endif /* _S390_CACHEFLUSH_H */
-diff -puN arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/include/asm/cacheflush.h
---- a/arch/x86/include/asm/cacheflush.h~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/x86/include/asm/cacheflush.h
-@@ -4,7 +4,6 @@
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
--#include <asm/set_memory.h>
- 
- void clflush_cache_range(void *addr, unsigned int size);
- 
-diff -puN arch/x86/kernel/kprobes/core.c~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/kernel/kprobes/core.c
---- a/arch/x86/kernel/kprobes/core.c~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/x86/kernel/kprobes/core.c
-@@ -61,6 +61,7 @@
- #include <asm/alternative.h>
- #include <asm/insn.h>
- #include <asm/debugreg.h>
-+#include <asm/set_memory.h>
- 
- #include "common.h"
- 
-diff -puN arch/x86/kernel/kprobes/opt.c~treewide-decouple-cacheflushh-and-set_memoryh arch/x86/kernel/kprobes/opt.c
---- a/arch/x86/kernel/kprobes/opt.c~treewide-decouple-cacheflushh-and-set_memoryh
-+++ a/arch/x86/kernel/kprobes/opt.c
-@@ -37,6 +37,7 @@
- #include <asm/alternative.h>
- #include <asm/insn.h>
- #include <asm/debugreg.h>
-+#include <asm/set_memory.h>
- 
- #include "common.h"
- 
-_
-
-Patches currently in -mm which might be from labbott@redhat.com are
-
-
+ 	if (refcount_dec_and_mutex_lock(&kref->refcount, lock)) {
+ 		release(kref);
+ 		return 1;
+@@ -92,8 +88,6 @@ static inline int kref_put_lock(struct k
+ 				void (*release)(struct kref *kref),
+ 				spinlock_t *lock)
+ {
+-	WARN_ON(release == NULL);
