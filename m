@@ -1,146 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-reorder-fields-in-struct-compact_control.patch removed from
- -mm tree
-Date: Tue, 09 May 2017 11:00:06 -0700
-Message-ID: <20170509180006.DEGnEonlc%akpm@linux-foundation.org>
+ mm-page_alloc-split-smallest-stolen-page-in-fallback.patch removed from -mm
+ tree
+Date: Tue, 09 May 2017 11:00:12 -0700
+Message-ID: <20170509180012.f1vlHaGRl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753105AbdEISAI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:08 -0400
+        with ESMTP id S1753105AbdEISAN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, compaction: reorder fields in struct compact_control
+     Subject: mm, page_alloc: split smallest stolen page in fallback
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-reorder-fields-in-struct-compact_control.patch
+     mm-page_alloc-split-smallest-stolen-page-in-fallback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: reorder fields in struct compact_control
+Subject: mm, page_alloc: split smallest stolen page in fallback
 
-Patch series "try to reduce fragmenting fallbacks", v3.
+The __rmqueue_fallback() function is called when there's no free page of
+requested migratetype, and we need to steal from a different one.  There
+are various heuristics to make this event infrequent and reduce permanent
+fragmentation.  The main one is to try stealing from a pageblock that has
+the most free pages, and possibly steal them all at once and convert the
+whole pageblock.  Precise searching for such pageblock would be expensive,
+so instead the heuristics walks the free lists from MAX_ORDER down to
+requested order and assumes that the block with highest-order free page is
+likely to also have the most free pages in total.
 
-Last year, Johannes Weiner has reported a regression in page mobility
-grouping [1] and while the exact cause was not found, I've come up with
-some ways to improve it by reducing the number of allocations falling back
-to different migratetype and causing permanent fragmentation.
+Chances are that together with the highest-order page, we steal also pages
+of lower orders from the same block.  But then we still split the highest
+order page.  This is wasteful and can contribute to fragmentation instead
+of avoiding it.
 
-The series was tested with mmtests stress-highalloc modified to do
-GFP_KERNEL order-4 allocations, on 4.9 with "mm, vmscan: fix zone balance
-check in prepare_kswapd_sleep" (without that, kcompactd indeed wasn't
-woken up) on UMA machine with 4GB memory.  There were 5 repeats of each
-run, as the extfrag stats are quite volatile (note the stats below are
-sums, not averages, as it was less perl hacking for me).
+This patch thus changes __rmqueue_fallback() to just steal the page(s) and
+put them on the freelist of the requested migratetype, and only report
+whether it was successful.  Then we pick (and eventually split) the
+smallest page with __rmqueue_smallest().  This all happens under zone
+lock, so nobody can steal it from us in the process.  This should reduce
+fragmentation due to fallbacks.  At worst we are only stealing a single
+highest-order page and waste some cycles by moving it between lists and
+then removing it, but fallback is not exactly hot path so that should not
+be a concern.  As a side benefit the patch removes some duplicate code by
+reusing __rmqueue_smallest().
 
-Success rate are the same, already high due to the low allocation order
-used, so I'm not including them.
-
-Compaction stats:
-(the patches are stacked, and I haven't measured the non-functional-changes
-patches separately)
-
-                                   patch 1     patch 2     patch 3     patch 4     patch 7     patch 8
-Compaction stalls                    22449       24680       24846       19765       22059       17480
-Compaction success                   12971       14836       14608       10475       11632        8757
-Compaction failures                   9477        9843       10238        9290       10426        8722
-Page migrate success               3109022     3370438     3312164     1695105     1608435     2111379
-Page migrate failure                911588     1149065     1028264     1112675     1077251     1026367
-Compaction pages isolated          7242983     8015530     7782467     4629063     4402787     5377665
-Compaction migrate scanned       980838938   987367943   957690188   917647238   947155598  1018922197
-Compaction free scanned          557926893   598946443   602236894   594024490   541169699   763651731
-Compaction cost                      10243       10578       10304        8286        8398        9440
-
-Compaction stats are mostly within noise until patch 4, which decreases
-the number of compactions, and migrations.  Part of that could be due to
-more pageblocks marked as unmovable, and async compaction skipping those. 
-This changes a bit with patch 7, but not so much.  Patch 8 increases free
-scanner stats and migrations, which comes from the changed termination
-criteria.  Interestingly number of compactions decreases - probably the
-fully compacted pageblock satisfies multiple subsequent allocations, so it
-amortizes.
-
-Next comes the extfrag tracepoint, where "fragmenting" means that an
-allocation had to fallback to a pageblock of another migratetype which
-wasn't fully free (which is almost all of the fallbacks).  I have locally
-added another tracepoint for "Page steal" into steal_suitable_fallback()
-which triggers in situations where we are allowed to do
-move_freepages_block().  If we decide to also do
-set_pageblock_migratetype(), it's "Pages steal with pageblock" with break
-down for which allocation migratetype we are stealing and from which
-fallback migratetype.  The last part "due to counting" comes from patch 4
-and counts the events where the counting of movable pages allowed us to
-change pageblock's migratetype, while the number of free pages alone
-wouldn't be enough to cross the threshold.
-
-                                                     patch 1     patch 2     patch 3     patch 4     patch 7     patch 8
-Page alloc extfrag event                            10155066     8522968    10164959    15622080    13727068    13140319
-Extfrag fragmenting                                 10149231     8517025    10159040    15616925    13721391    13134792
-Extfrag fragmenting for unmovable                     159504      168500      184177       97835       70625       56948
-Extfrag fragmenting unmovable placed with movable     153613      163549      172693       91740       64099       50917
-Extfrag fragmenting unmovable placed with reclaim.      5891        4951       11484        6095        6526        6031
-Extfrag fragmenting for reclaimable                     4738        4829        6345        4822        5640        5378
-Extfrag fragmenting reclaimable placed with movable     1836        1902        1851        1579        1739        1760
-Extfrag fragmenting reclaimable placed with unmov.      2902        2927        4494        3243        3901        3618
-Extfrag fragmenting for movable                      9984989     8343696     9968518    15514268    13645126    13072466
-Pages steal                                           179954      192291      210880      123254       94545       81486
-Pages steal with pageblock                             22153       18943       20154       33562       29969       33444
-Pages steal with pageblock for unmovable               14350       12858       13256       20660       19003       20852
-Pages steal with pageblock for unmovable from mov.     12812       11402       11683       19072       17467       19298
-Pages steal with pageblock for unmovable from recl.     1538        1456        1573        1588        1536        1554
-Pages steal with pageblock for movable                  7114        5489        5965       11787       10012       11493
-Pages steal with pageblock for movable from unmov.      6885        5291        5541       11179        9525       10885
-Pages steal with pageblock for movable from recl.        229         198         424         608         487         608
-Pages steal with pageblock for reclaimable               689         596         933        1115         954        1099
-Pages steal with pageblock for reclaimable from unmov.   273         219         537         658         547         667
-Pages steal with pageblock for reclaimable from mov.     416         377         396         457         407         432
-Pages steal with pageblock due to counting                                                 11834       10075        7530
-... for unmovable                                                                           8993        7381        4616
-... for movable                                                                             2792        2653        2851
-... for reclaimable                                                                           49          41          63
-
-What we can see is that "Extfrag fragmenting for unmovable" and "... 
-placed with movable" drops with almost each patch, which is good as we are
-polluting less movable pageblocks with unmovable pages.
-
-The most significant change is patch 4 with movable page counting.  On the
-other hand it increases "Extfrag fragmenting for movable" by 50%.  "Pages
-steal" drops though, so these movable allocation fallbacks find only small
-free pages and are not allowed to steal whole pageblocks back.  "Pages
-steal with pageblock" raises, because the patch increases the chances of
-pageblock migratetype changes to happen.  This affects all migratetypes.
-
-The summary is that patch 4 is not a clear win wrt these stats, but I
-believe that the tradeoff it makes is a good one.  There's less pollution
-of movable pageblocks by unmovable allocations.  There's less stealing
-between pageblock, and those that remain have higher chance of changing
-migratetype also the pageblock itself, so it should more faithfully
-reflect the migratetype of the pages within the pageblock.  The increase
-of movable allocations falling back to unmovable pageblock might look
-dramatic, but those allocations can be migrated by compaction when needed,
-and other patches in the series (7-9) improve that aspect.
-
-Patches 7 and 8 continue the trend of reduced unmovable fallbacks and also
-reduce the impact on movable fallbacks from patch 4.
-
-[1] https://www.spinics.net/lists/linux-mm/msg114237.html
-
-
-This patch (of 8):
-
-While currently there are (mostly by accident) no holes in struct
-compact_control (on x86_64), but we are going to add more bool flags, so
-place them all together to the end of the structure.  While at it, just
-order all fields from largest to smallest.
-
-Link: http://lkml.kernel.org/r/20170307131545.28577-2-vbabka@suse.cz
+[vbabka@suse.cz: fix endless loop in the modified __rmqueue()]
+  Link: http://lkml.kernel.org/r/59d71b35-d556-4fc9-ee2e-1574259282fd@suse.cz
+Link: http://lkml.kernel.org/r/20170307131545.28577-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -149,41 +63,129 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   62 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 37 insertions(+), 25 deletions(-)
 
-diff -puN mm/internal.h~mm-compaction-reorder-fields-in-struct-compact_control mm/internal.h
---- a/mm/internal.h~mm-compaction-reorder-fields-in-struct-compact_control
-+++ a/mm/internal.h
-@@ -183,6 +183,7 @@ extern int user_min_free_kbytes;
- struct compact_control {
- 	struct list_head freepages;	/* List of free pages to migrate to */
- 	struct list_head migratepages;	/* List of pages being migrated */
-+	struct zone *zone;
- 	unsigned long nr_freepages;	/* Number of isolated free pages */
- 	unsigned long nr_migratepages;	/* Number of pages to migrate */
- 	unsigned long total_migrate_scanned;
-@@ -190,16 +191,15 @@ struct compact_control {
- 	unsigned long free_pfn;		/* isolate_freepages search base */
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
- 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
-+	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
-+	int order;			/* order a direct compactor needs */
-+	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
-+	const int classzone_idx;	/* zone index of a direct compactor */
- 	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
- 	bool ignore_block_suitable;	/* Scan blocks considered unsuitable */
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
- 	bool whole_zone;		/* Whole zone should/has been scanned */
--	int order;			/* order a direct compactor needs */
--	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
--	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
--	const int classzone_idx;	/* zone index of a direct compactor */
--	struct zone *zone;
- 	bool contended;			/* Signal lock or sched contention */
- };
+diff -puN mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-split-smallest-stolen-page-in-fallback
++++ a/mm/page_alloc.c
+@@ -1948,23 +1948,44 @@ static bool can_steal_fallback(unsigned
+  * use it's pages as requested migratetype in the future.
+  */
+ static void steal_suitable_fallback(struct zone *zone, struct page *page,
+-							  int start_type)
++					int start_type, bool whole_block)
+ {
+ 	unsigned int current_order = page_order(page);
++	struct free_area *area;
+ 	int pages;
  
++	/*
++	 * This can happen due to races and we want to prevent broken
++	 * highatomic accounting.
++	 */
++	if (is_migrate_highatomic_page(page))
++		goto single_page;
++
+ 	/* Take ownership for orders >= pageblock_order */
+ 	if (current_order >= pageblock_order) {
+ 		change_pageblock_range(page, current_order, start_type);
+-		return;
++		goto single_page;
+ 	}
+ 
++	/* We are not allowed to try stealing from the whole block */
++	if (!whole_block)
++		goto single_page;
++
+ 	pages = move_freepages_block(zone, page, start_type);
++	/* moving whole block can fail due to zone boundary conditions */
++	if (!pages)
++		goto single_page;
+ 
+ 	/* Claim the whole block if over half of it is free */
+ 	if (pages >= (1 << (pageblock_order-1)) ||
+ 			page_group_by_mobility_disabled)
+ 		set_pageblock_migratetype(page, start_type);
++
++	return;
++
++single_page:
++	area = &zone->free_area[current_order];
++	list_move(&page->lru, &area->free_list[start_type]);
+ }
+ 
+ /*
+@@ -2123,8 +2144,13 @@ static bool unreserve_highatomic_pageblo
+ 	return false;
+ }
+ 
+-/* Remove an element from the buddy allocator from the fallback list */
+-static inline struct page *
++/*
++ * Try finding a free buddy page on the fallback list and put it on the free
++ * list of requested migratetype, possibly along with other pages from the same
++ * block, depending on fragmentation avoidance heuristics. Returns true if
++ * fallback was found so that __rmqueue_smallest() can grab it.
++ */
++static inline bool
+ __rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
+ {
+ 	struct free_area *area;
+@@ -2145,32 +2171,17 @@ __rmqueue_fallback(struct zone *zone, un
+ 
+ 		page = list_first_entry(&area->free_list[fallback_mt],
+ 						struct page, lru);
+-		if (can_steal && !is_migrate_highatomic_page(page))
+-			steal_suitable_fallback(zone, page, start_migratetype);
+ 
+-		/* Remove the page from the freelists */
+-		area->nr_free--;
+-		list_del(&page->lru);
+-		rmv_page_order(page);
+-
+-		expand(zone, page, order, current_order, area,
+-					start_migratetype);
+-		/*
+-		 * The pcppage_migratetype may differ from pageblock's
+-		 * migratetype depending on the decisions in
+-		 * find_suitable_fallback(). This is OK as long as it does not
+-		 * differ for MIGRATE_CMA pageblocks. Those can be used as
+-		 * fallback only via special __rmqueue_cma_fallback() function
+-		 */
+-		set_pcppage_migratetype(page, start_migratetype);
++		steal_suitable_fallback(zone, page, start_migratetype,
++								can_steal);
+ 
+ 		trace_mm_page_alloc_extfrag(page, order, current_order,
+ 			start_migratetype, fallback_mt);
+ 
+-		return page;
++		return true;
+ 	}
+ 
+-	return NULL;
++	return false;
+ }
+ 
+ /*
+@@ -2182,13 +2193,14 @@ static struct page *__rmqueue(struct zon
+ {
+ 	struct page *page;
+ 
++retry:
+ 	page = __rmqueue_smallest(zone, order, migratetype);
+ 	if (unlikely(!page)) {
+ 		if (migratetype == MIGRATE_MOVABLE)
+ 			page = __rmqueue_cma_fallback(zone, order);
+ 
+-		if (!page)
+-			page = __rmqueue_fallback(zone, order, migratetype);
++		if (!page && __rmqueue_fallback(zone, order, migratetype))
++			goto retry;
+ 	}
+ 
+ 	trace_mm_page_alloc_zone_locked(page, order, migratetype);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
