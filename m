@@ -1,403 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch removed from
+Subject: + mm-vmalloc-fix-vmalloc-users-tracking-properly.patch added to
  -mm tree
-Date: Tue, 09 May 2017 11:04:58 -0700
-Message-ID: <20170509180458.klInJ9wyE%akpm@linux-foundation.org>
+Date: Tue, 09 May 2017 13:31:05 -0700
+Message-ID: <59122709.f5yRsuIbq3DheTwN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54092 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753280AbdEISE7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:04:59 -0400
+        with ESMTP id S1752049AbdEIUbG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 16:31:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gilad@benyossef.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, geert@linux-m68k.org, tklauser@distanz.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/staging/ccree/ssi_hash.c: fix build with gcc-4.4.4
-has been removed from the -mm tree.  Its filename was
-     drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444.patch
+     Subject: mm, vmalloc: fix vmalloc users tracking properly
+has been added to the -mm tree.  Its filename is
+     mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/ccree/ssi_hash.c: fix build with gcc-4.4.4
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmalloc: fix vmalloc users tracking properly
 
-drivers/staging/ccree/ssi_hash.c:1990: error: unknown field 'template_ahash' specified in initializer
-drivers/staging/ccree/ssi_hash.c:1991: error: unknown field 'init' specified in initializer
-drivers/staging/ccree/ssi_hash.c:1991: warning: missing braces around initializer
-drivers/staging/ccree/ssi_hash.c:1991: warning: (near initialization for 'driver_hash[0].<anonymous>.template_ahash')
-drivers/staging/ccree/ssi_hash.c:1992: error: unknown field 'update' specified in initializer
-drivers/staging/ccree/ssi_hash.c:1992: warning: excess elements in union initializer
-drivers/staging/ccree/ssi_hash.c:1992: warning: (near initialization for 'driver_hash[0].<anonymous>')
-drivers/staging/ccree/ssi_hash.c:1993: error: unknown field 'final' specified in initializer
-drivers/staging/ccree/ssi_hash.c:1993: warning: excess elements in union initializer
-drivers/staging/ccree/ssi_hash.c:1993: warning: (near initialization for 'driver_hash[0].<anonymous>')
-...
+1f5307b1e094 ("mm, vmalloc: properly track vmalloc users") has pulled
+asm/pgtable.h include dependency to linux/vmalloc.h and that turned out
+to be a bad idea for some architectures. E.g. m68k fails with
+   In file included from arch/m68k/include/asm/pgtable_mm.h:145:0,
+                    from arch/m68k/include/asm/pgtable.h:4,
+                    from include/linux/vmalloc.h:9,
+                    from arch/m68k/kernel/module.c:9:
+   arch/m68k/include/asm/mcf_pgtable.h: In function 'nocache_page':
+>> arch/m68k/include/asm/mcf_pgtable.h:339:43: error: 'init_mm' undeclared (first use in this function)
+    #define pgd_offset_k(address) pgd_offset(&init_mm, address)
 
-gcc-4.4.4 has issuse with anon union initializers.  Work around this.
+as spotted by kernel build bot. nios2 fails for other reason
+In file included from ./include/asm-generic/io.h:767:0,
+                 from ./arch/nios2/include/asm/io.h:61,
+                 from ./include/linux/io.h:25,
+                 from ./arch/nios2/include/asm/pgtable.h:18,
+                 from ./include/linux/mm.h:70,
+                 from ./include/linux/pid_namespace.h:6,
+                 from ./include/linux/ptrace.h:9,
+                 from ./arch/nios2/include/uapi/asm/elf.h:23,
+                 from ./arch/nios2/include/asm/elf.h:22,
+                 from ./include/linux/elf.h:4,
+                 from ./include/linux/module.h:15,
+                 from init/main.c:16:
+./include/linux/vmalloc.h: In function '__vmalloc_node_flags':
+./include/linux/vmalloc.h:99:40: error: 'PAGE_KERNEL' undeclared (first use in this function); did you mean 'GFP_KERNEL'?
 
-Cc: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+which is due to the newly added #include <asm/pgtable.h>, which on nios2
+includes <linux/io.h> and thus <asm/io.h> and <asm-generic/io.h> which
+again includes <linux/vmalloc.h>.
+
+Tweaking that around just turns out a bigger headache than necessary. 
+This patch reverts 1f5307b1e094 and reimplements the original fix in a
+different way.  __vmalloc_node_flags can stay static inline which will
+cover vmalloc* functions.  We only have one external user (kvmalloc_node)
+and we can export __vmalloc_node_flags_caller and provide the caller
+directly.  This is much simpler and it doesn't really need any games with
+header files.
+
+Fixes: 1f5307b1e094 ("mm, vmalloc: properly track vmalloc users")
+Link: http://lkml.kernel.org/r/20170509153702.GR6481@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Tobias Klauser <tklauser@distanz.ch>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/ccree/ssi_hash.c |  272 +++++++++++++++--------------
- 1 file changed, 144 insertions(+), 128 deletions(-)
+ include/linux/vmalloc.h |   17 ++++++-----------
+ mm/util.c               |    3 ++-
+ mm/vmalloc.c            |   18 +++++++++++++++++-
+ 3 files changed, 25 insertions(+), 13 deletions(-)
 
-diff -puN drivers/staging/ccree/ssi_hash.c~drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444 drivers/staging/ccree/ssi_hash.c
---- a/drivers/staging/ccree/ssi_hash.c~drivers-staging-ccree-ssi_hashc-fix-build-with-gcc-444
-+++ a/drivers/staging/ccree/ssi_hash.c
-@@ -1987,22 +1987,24 @@ static struct ssi_hash_template driver_h
- 		.hmac_driver_name = "hmac-sha1-dx",
- 		.blocksize = SHA1_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_ahash_update,
--			.final = ssi_ahash_final,
--			.finup = ssi_ahash_finup,
--			.digest = ssi_ahash_digest,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.setkey = ssi_ahash_setkey,
--			.halg = {
--				.digestsize = SHA1_DIGEST_SIZE,
--				.statesize = sizeof(struct sha1_state),
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_ahash_update,
-+				.final = ssi_ahash_final,
-+				.finup = ssi_ahash_finup,
-+				.digest = ssi_ahash_digest,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.setkey = ssi_ahash_setkey,
-+				.halg = {
-+					.digestsize = SHA1_DIGEST_SIZE,
-+					.statesize = sizeof(struct sha1_state),
-+					},
- 				},
--			},
-+		},
- 		.hash_mode = DRV_HASH_SHA1,
- 		.hw_mode = DRV_HASH_HW_SHA1,
- 		.inter_digestsize = SHA1_DIGEST_SIZE,
-@@ -2014,22 +2016,24 @@ static struct ssi_hash_template driver_h
- 		.hmac_driver_name = "hmac-sha256-dx",
- 		.blocksize = SHA256_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_ahash_update,
--			.final = ssi_ahash_final,
--			.finup = ssi_ahash_finup,
--			.digest = ssi_ahash_digest,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.setkey = ssi_ahash_setkey,
--			.halg = {
--				.digestsize = SHA256_DIGEST_SIZE,
--				.statesize = sizeof(struct sha256_state),
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_ahash_update,
-+				.final = ssi_ahash_final,
-+				.finup = ssi_ahash_finup,
-+				.digest = ssi_ahash_digest,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.setkey = ssi_ahash_setkey,
-+				.halg = {
-+					.digestsize = SHA256_DIGEST_SIZE,
-+					.statesize = sizeof(struct sha256_state),
-+					},
- 				},
--			},
-+		},
- 		.hash_mode = DRV_HASH_SHA256,
- 		.hw_mode = DRV_HASH_HW_SHA256,
- 		.inter_digestsize = SHA256_DIGEST_SIZE,
-@@ -2041,22 +2045,24 @@ static struct ssi_hash_template driver_h
- 		.hmac_driver_name = "hmac-sha224-dx",
- 		.blocksize = SHA224_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_ahash_update,
--			.final = ssi_ahash_final,
--			.finup = ssi_ahash_finup,
--			.digest = ssi_ahash_digest,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.setkey = ssi_ahash_setkey,
--			.halg = {
--				.digestsize = SHA224_DIGEST_SIZE,
--				.statesize = sizeof(struct sha256_state),
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_ahash_update,
-+				.final = ssi_ahash_final,
-+				.finup = ssi_ahash_finup,
-+				.digest = ssi_ahash_digest,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.setkey = ssi_ahash_setkey,
-+				.halg = {
-+					.digestsize = SHA224_DIGEST_SIZE,
-+					.statesize = sizeof(struct sha256_state),
-+					},
- 				},
--			},
-+		},
- 		.hash_mode = DRV_HASH_SHA224,
- 		.hw_mode = DRV_HASH_HW_SHA256,
- 		.inter_digestsize = SHA256_DIGEST_SIZE,
-@@ -2069,22 +2075,24 @@ static struct ssi_hash_template driver_h
- 		.hmac_driver_name = "hmac-sha384-dx",
- 		.blocksize = SHA384_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_ahash_update,
--			.final = ssi_ahash_final,
--			.finup = ssi_ahash_finup,
--			.digest = ssi_ahash_digest,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.setkey = ssi_ahash_setkey,
--			.halg = {
--				.digestsize = SHA384_DIGEST_SIZE,
--				.statesize = sizeof(struct sha512_state),
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_ahash_update,
-+				.final = ssi_ahash_final,
-+				.finup = ssi_ahash_finup,
-+				.digest = ssi_ahash_digest,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.setkey = ssi_ahash_setkey,
-+				.halg = {
-+					.digestsize = SHA384_DIGEST_SIZE,
-+					.statesize = sizeof(struct sha512_state),
-+					},
- 				},
--			},
-+		},
- 		.hash_mode = DRV_HASH_SHA384,
- 		.hw_mode = DRV_HASH_HW_SHA512,
- 		.inter_digestsize = SHA512_DIGEST_SIZE,
-@@ -2096,22 +2104,24 @@ static struct ssi_hash_template driver_h
- 		.hmac_driver_name = "hmac-sha512-dx",
- 		.blocksize = SHA512_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_ahash_update,
--			.final = ssi_ahash_final,
--			.finup = ssi_ahash_finup,
--			.digest = ssi_ahash_digest,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.setkey = ssi_ahash_setkey,
--			.halg = {
--				.digestsize = SHA512_DIGEST_SIZE,
--				.statesize = sizeof(struct sha512_state),
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_ahash_update,
-+				.final = ssi_ahash_final,
-+				.finup = ssi_ahash_finup,
-+				.digest = ssi_ahash_digest,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.setkey = ssi_ahash_setkey,
-+				.halg = {
-+					.digestsize = SHA512_DIGEST_SIZE,
-+					.statesize = sizeof(struct sha512_state),
-+					},
- 				},
--			},
-+		},
- 		.hash_mode = DRV_HASH_SHA512,
- 		.hw_mode = DRV_HASH_HW_SHA512,
- 		.inter_digestsize = SHA512_DIGEST_SIZE,
-@@ -2124,22 +2134,24 @@ static struct ssi_hash_template driver_h
- 		.hmac_driver_name = "hmac-md5-dx",
- 		.blocksize = MD5_HMAC_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_ahash_update,
--			.final = ssi_ahash_final,
--			.finup = ssi_ahash_finup,
--			.digest = ssi_ahash_digest,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.setkey = ssi_ahash_setkey,
--			.halg = {
--				.digestsize = MD5_DIGEST_SIZE,
--				.statesize = sizeof(struct md5_state),
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_ahash_update,
-+				.final = ssi_ahash_final,
-+				.finup = ssi_ahash_finup,
-+				.digest = ssi_ahash_digest,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.setkey = ssi_ahash_setkey,
-+				.halg = {
-+					.digestsize = MD5_DIGEST_SIZE,
-+					.statesize = sizeof(struct md5_state),
-+					},
- 				},
--			},
-+		},
- 		.hash_mode = DRV_HASH_MD5,
- 		.hw_mode = DRV_HASH_HW_MD5,
- 		.inter_digestsize = MD5_DIGEST_SIZE,
-@@ -2149,52 +2161,56 @@ static struct ssi_hash_template driver_h
- 		.driver_name = "xcbc-aes-dx",
- 		.blocksize = AES_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_mac_update,
--			.final = ssi_mac_final,
--			.finup = ssi_mac_finup,
--			.digest = ssi_mac_digest,
--			.setkey = ssi_xcbc_setkey,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.halg = {
--				.digestsize = AES_BLOCK_SIZE,
--				.statesize = sizeof(struct aeshash_state),
--				},
--			},
--			.hash_mode = DRV_HASH_NULL,
--			.hw_mode = DRV_CIPHER_XCBC_MAC,
--			.inter_digestsize = AES_BLOCK_SIZE,
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_mac_update,
-+				.final = ssi_mac_final,
-+				.finup = ssi_mac_finup,
-+				.digest = ssi_mac_digest,
-+				.setkey = ssi_xcbc_setkey,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.halg = {
-+					.digestsize = AES_BLOCK_SIZE,
-+					.statesize = sizeof(struct aeshash_state),
-+					},
-+				},
- 		},
-+		.hash_mode = DRV_HASH_NULL,
-+		.hw_mode = DRV_CIPHER_XCBC_MAC,
-+		.inter_digestsize = AES_BLOCK_SIZE,
-+	},
- #if SSI_CC_HAS_CMAC
- 	{
- 		.name = "cmac(aes)",
- 		.driver_name = "cmac-aes-dx",
- 		.blocksize = AES_BLOCK_SIZE,
- 		.synchronize = false,
--		.template_ahash = {
--			.init = ssi_ahash_init,
--			.update = ssi_mac_update,
--			.final = ssi_mac_final,
--			.finup = ssi_mac_finup,
--			.digest = ssi_mac_digest,
--			.setkey = ssi_cmac_setkey,
--#ifdef EXPORT_FIXED
--			.export = ssi_ahash_export,
--			.import = ssi_ahash_import,
--#endif
--			.halg = {
--				.digestsize = AES_BLOCK_SIZE,
--				.statesize = sizeof(struct aeshash_state),
--				},
--			},
--			.hash_mode = DRV_HASH_NULL,
--			.hw_mode = DRV_CIPHER_CMAC,
--			.inter_digestsize = AES_BLOCK_SIZE,
-+		{
-+			.template_ahash = {
-+				.init = ssi_ahash_init,
-+				.update = ssi_mac_update,
-+				.final = ssi_mac_final,
-+				.finup = ssi_mac_finup,
-+				.digest = ssi_mac_digest,
-+				.setkey = ssi_cmac_setkey,
-+#ifdef EXPORT_FIXED
-+				.export = ssi_ahash_export,
-+				.import = ssi_ahash_import,
-+#endif
-+				.halg = {
-+					.digestsize = AES_BLOCK_SIZE,
-+					.statesize = sizeof(struct aeshash_state),
-+					},
-+				},
- 		},
-+		.hash_mode = DRV_HASH_NULL,
-+		.hw_mode = DRV_CIPHER_CMAC,
-+		.inter_digestsize = AES_BLOCK_SIZE,
-+	},
+diff -puN include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly
++++ a/include/linux/vmalloc.h
+@@ -6,7 +6,6 @@
+ #include <linux/list.h>
+ #include <linux/llist.h>
+ #include <asm/page.h>		/* pgprot_t */
+-#include <asm/pgtable.h>	/* PAGE_KERNEL */
+ #include <linux/rbtree.h>
+ 
+ struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
+@@ -83,22 +82,18 @@ extern void *__vmalloc_node_range(unsign
+ 			const void *caller);
+ #ifndef CONFIG_MMU
+ extern void *__vmalloc_node_flags(unsigned long size, int node, gfp_t flags);
++static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
++{
++	return __vmalloc_node_flags(size, node, flags);
++}
+ #else
+-extern void *__vmalloc_node(unsigned long size, unsigned long align,
+-			    gfp_t gfp_mask, pgprot_t prot,
+-			    int node, const void *caller);
+-
+ /*
+  * We really want to have this inlined due to caller tracking. This
+  * function is used by the highlevel vmalloc apis and so we want to track
+  * their callers and inlining will achieve that.
+  */
+-static inline void *__vmalloc_node_flags(unsigned long size,
+-					int node, gfp_t flags)
+-{
+-	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
+-					node, __builtin_return_address(0));
+-}
++extern void *__vmalloc_node_flags_caller(unsigned long size,
++					int node, gfp_t flags, void* caller);
  #endif
- 	
- };
+ 
+ extern void vfree(const void *addr);
+diff -puN mm/util.c~mm-vmalloc-fix-vmalloc-users-tracking-properly mm/util.c
+--- a/mm/util.c~mm-vmalloc-fix-vmalloc-users-tracking-properly
++++ a/mm/util.c
+@@ -382,7 +382,8 @@ void *kvmalloc_node(size_t size, gfp_t f
+ 	if (ret || size <= PAGE_SIZE)
+ 		return ret;
+ 
+-	return __vmalloc_node_flags(size, node, flags);
++	return __vmalloc_node_flags_caller(size, node, flags,
++			__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(kvmalloc_node);
+ 
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly
++++ a/mm/vmalloc.c
+@@ -1649,6 +1649,9 @@ void *vmap(struct page **pages, unsigned
+ }
+ EXPORT_SYMBOL(vmap);
+ 
++static void *__vmalloc_node(unsigned long size, unsigned long align,
++			    gfp_t gfp_mask, pgprot_t prot,
++			    int node, const void *caller);
+ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
+ 				 pgprot_t prot, int node)
+ {
+@@ -1791,7 +1794,7 @@ fail:
+  *	with mm people.
+  *
+  */
+-void *__vmalloc_node(unsigned long size, unsigned long align,
++static void *__vmalloc_node(unsigned long size, unsigned long align,
+ 			    gfp_t gfp_mask, pgprot_t prot,
+ 			    int node, const void *caller)
+ {
+@@ -1806,6 +1809,19 @@ void *__vmalloc(unsigned long size, gfp_
+ }
+ EXPORT_SYMBOL(__vmalloc);
+ 
++static inline void *__vmalloc_node_flags(unsigned long size,
++					int node, gfp_t flags)
++{
++	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
++					node, __builtin_return_address(0));
++}
++
++
++void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void *caller)
++{
++	return __vmalloc_node(size, 1, flags, PAGE_KERNEL, node, caller);
++}
++
+ /**
+  *	vmalloc  -  allocate virtually contiguous memory
+  *	@size:		allocation size
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-i-need-old-gcc.patch
-gcov-support-gcc-71-v2-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
 
