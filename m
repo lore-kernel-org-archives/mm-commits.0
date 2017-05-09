@@ -1,147 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?mm-compaction-restrict-async-compaction-to-pageblocks-of-sa?=
- =?US-ASCII?Q?me-migratetype.patch?= removed from -mm tree
-Date: Tue, 09 May 2017 11:00:24 -0700
-Message-ID: <20170509180024.h641fD4LQ%akpm@linux-foundation.org>
+Subject: [merged] proc-remove-cast-from-memory-allocation.patch
+ removed from -mm tree
+Date: Tue, 09 May 2017 11:00:30 -0700
+Message-ID: <20170509180030.8Beq_lK1u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753684AbdEISAZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:25 -0400
+        with ESMTP id S1751838AbdEISAb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:00:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: me@tobin.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: restrict async compaction to pageblocks of same migratetype
+     Subject: fs/proc/inode.c: remove cast from memory allocation
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype.patch
+     proc-remove-cast-from-memory-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: restrict async compaction to pageblocks of same migratetype
+From: "Tobin C. Harding" <me@tobin.cc>
+Subject: fs/proc/inode.c: remove cast from memory allocation
 
-The migrate scanner in async compaction is currently limited to
-MIGRATE_MOVABLE pageblocks.  This is a heuristic intended to reduce
-latency, based on the assumption that non-MOVABLE pageblocks are unlikely
-to contain movable pages.
+Coccinelle emits WARNING: casting value returned by memory allocation
+function to (struct proc_inode *) is useless.
 
-However, with the exception of THP's, most high-order allocations are not
-movable.  Should the async compaction succeed, this increases the chance
-that the non-MOVABLE allocations will fallback to a MOVABLE pageblock,
-making the long-term fragmentation worse.
+Remove unnecessary cast.
 
-This patch attempts to help the situation by changing async direct
-compaction so that the migrate scanner only scans the pageblocks of the
-requested migratetype.  If it's a non-MOVABLE type and there are such
-pageblocks that do contain movable pages, chances are that the allocation
-can succeed within one of such pageblocks, removing the need for a
-fallback.  If that fails, the subsequent sync attempt will ignore this
-restriction.
-
-In testing based on 4.9 kernel with stress-highalloc from mmtests
-configured for order-4 GFP_KERNEL allocations, this patch has reduced the
-number of unmovable allocations falling back to movable pageblocks by 30%.
-The number of movable allocations falling back is reduced by 12%.
-
-Link: http://lkml.kernel.org/r/20170307131545.28577-8-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/1487745720-16967-1-git-send-email-me@tobin.cc
+Signed-off-by: Tobin C. Harding <me@tobin.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 +++++++++--
- mm/page_alloc.c |   22 ++++++++++++++--------
- 2 files changed, 23 insertions(+), 10 deletions(-)
+ fs/proc/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype mm/compaction.c
---- a/mm/compaction.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype
-+++ a/mm/compaction.c
-@@ -986,10 +986,17 @@ isolate_migratepages_range(struct compac
- static bool suitable_migration_source(struct compact_control *cc,
- 							struct page *page)
- {
--	if (cc->mode != MIGRATE_ASYNC)
-+	int block_mt;
-+
-+	if ((cc->mode != MIGRATE_ASYNC) || !cc->direct_compaction)
- 		return true;
+diff -puN fs/proc/inode.c~proc-remove-cast-from-memory-allocation fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-remove-cast-from-memory-allocation
++++ a/fs/proc/inode.c
+@@ -58,7 +58,7 @@ static struct inode *proc_alloc_inode(st
+ 	struct proc_inode *ei;
+ 	struct inode *inode;
  
--	return is_migrate_movable(get_pageblock_migratetype(page));
-+	block_mt = get_pageblock_migratetype(page);
-+
-+	if (cc->migratetype == MIGRATE_MOVABLE)
-+		return is_migrate_movable(block_mt);
-+	else
-+		return block_mt == cc->migratetype;
- }
- 
- /* Returns true if the page is within a block suitable for migration to */
-diff -puN mm/page_alloc.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-restrict-async-compaction-to-pageblocks-of-same-migratetype
-+++ a/mm/page_alloc.c
-@@ -3665,6 +3665,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 						struct alloc_context *ac)
- {
- 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
-+	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
- 	struct page *page = NULL;
- 	unsigned int alloc_flags;
- 	unsigned long did_some_progress;
-@@ -3732,12 +3733,17 @@ retry_cpuset:
- 
- 	/*
- 	 * For costly allocations, try direct compaction first, as it's likely
--	 * that we have enough base pages and don't need to reclaim. Don't try
--	 * that for allocations that are allowed to ignore watermarks, as the
--	 * ALLOC_NO_WATERMARKS attempt didn't yet happen.
--	 */
--	if (can_direct_reclaim && order > PAGE_ALLOC_COSTLY_ORDER &&
--		!gfp_pfmemalloc_allowed(gfp_mask)) {
-+	 * that we have enough base pages and don't need to reclaim. For non-
-+	 * movable high-order allocations, do that as well, as compaction will
-+	 * try prevent permanent fragmentation by migrating from blocks of the
-+	 * same migratetype.
-+	 * Don't try this for allocations that are allowed to ignore
-+	 * watermarks, as the ALLOC_NO_WATERMARKS attempt didn't yet happen.
-+	 */
-+	if (can_direct_reclaim &&
-+			(costly_order ||
-+			   (order > 0 && ac->migratetype != MIGRATE_MOVABLE))
-+			&& !gfp_pfmemalloc_allowed(gfp_mask)) {
- 		page = __alloc_pages_direct_compact(gfp_mask, order,
- 						alloc_flags, ac,
- 						INIT_COMPACT_PRIORITY,
-@@ -3749,7 +3755,7 @@ retry_cpuset:
- 		 * Checks for costly allocations with __GFP_NORETRY, which
- 		 * includes THP page fault allocations
- 		 */
--		if (gfp_mask & __GFP_NORETRY) {
-+		if (costly_order && (gfp_mask & __GFP_NORETRY)) {
- 			/*
- 			 * If compaction is deferred for high-order allocations,
- 			 * it is because sync compaction recently failed. If
-@@ -3830,7 +3836,7 @@ retry:
- 	 * Do not retry costly high order allocations unless they are
- 	 * __GFP_REPEAT
- 	 */
--	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_REPEAT))
-+	if (costly_order && !(gfp_mask & __GFP_REPEAT))
- 		goto nopage;
- 
- 	if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
+-	ei = (struct proc_inode *)kmem_cache_alloc(proc_inode_cachep, GFP_KERNEL);
++	ei = kmem_cache_alloc(proc_inode_cachep, GFP_KERNEL);
+ 	if (!ei)
+ 		return NULL;
+ 	ei->pid = NULL;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from me@tobin.cc are
 
 
