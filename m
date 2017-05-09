@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 09 May 2017 13:34:39 -0700
-Message-ID: <591227df.Hc5/RikdRAQRbI8/%akpm@linux-foundation.org>
+Subject: + ipc-sem-avoid-indexing-past-end-of-sem_array.patch added to -mm tree
+Date: Tue, 09 May 2017 13:49:32 -0700
+Message-ID: <59122b5c.U/ZIl3QJenp0uogH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55230 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751210AbdEIUek (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 16:34:40 -0400
+        with ESMTP id S1752856AbdEIUtd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 16:49:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
+     Subject: ipc/sem: avoid indexing past end of sem_array
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
+     ipc-sem-avoid-indexing-past-end-of-sem_array.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-avoid-indexing-past-end-of-sem_array.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-avoid-indexing-past-end-of-sem_array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,105 +38,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
+From: Kees Cook <keescook@chromium.org>
+Subject: ipc/sem: avoid indexing past end of sem_array
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#4: 
-1f5307b1e094 ("mm, vmalloc: properly track vmalloc users") has pulled
+This changes the struct + trailing data pattern to using a void * so that
+the end of sem_array is found without possibly indexing past the end which
+can upset some static analyzers.  Mostly, this ends up avoiding a cast
+between different non-void types, which the future randstruct GCC plugin
+was warning about.
 
-WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
-#12: 
->> arch/m68k/include/asm/mcf_pgtable.h:339:43: error: 'init_mm' undeclared (first use in this function)
-
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#36: 
-This patch reverts 1f5307b1e094 and reimplements the original fix in a
-
-WARNING: line over 80 characters
-#71: FILE: include/linux/vmalloc.h:85:
-+static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
-
-ERROR: "foo* bar" should be "foo *bar"
-#71: FILE: include/linux/vmalloc.h:85:
-+static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
-
-ERROR: "foo* bar" should be "foo *bar"
-#92: FILE: include/linux/vmalloc.h:96:
-+					int node, gfp_t flags, void* caller);
-
-WARNING: line over 80 characters
-#143: FILE: mm/vmalloc.c:1820:
-+void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void *caller)
-
-total: 4 errors, 3 warnings, 80 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-vmalloc-fix-vmalloc-users-tracking-properly.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170508222345.GA52073@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    5 +++--
- mm/vmalloc.c            |    3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ ipc/sem.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
-+++ a/include/linux/vmalloc.h
-@@ -82,7 +82,8 @@ extern void *__vmalloc_node_range(unsign
- 			const void *caller);
- #ifndef CONFIG_MMU
- extern void *__vmalloc_node_flags(unsigned long size, int node, gfp_t flags);
--static inline void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void* caller)
-+static inline void *__vmalloc_node_flags_caller(unsigned long size, int node,
-+						gfp_t flags, void *caller)
+diff -puN ipc/sem.c~ipc-sem-avoid-indexing-past-end-of-sem_array ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-avoid-indexing-past-end-of-sem_array
++++ a/ipc/sem.c
+@@ -475,6 +475,7 @@ static int newary(struct ipc_namespace *
  {
- 	return __vmalloc_node_flags(size, node, flags);
- }
-@@ -93,7 +94,7 @@ static inline void *__vmalloc_node_flags
-  * their callers and inlining will achieve that.
-  */
- extern void *__vmalloc_node_flags_caller(unsigned long size,
--					int node, gfp_t flags, void* caller);
-+					 int node, gfp_t flags, void *caller);
- #endif
+ 	int id;
+ 	int retval;
++	void *sem_alloc;
+ 	struct sem_array *sma;
+ 	int size;
+ 	key_t key = params->key;
+@@ -488,11 +489,14 @@ static int newary(struct ipc_namespace *
+ 		return -ENOSPC;
  
- extern void vfree(const void *addr);
-diff -puN mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes
-+++ a/mm/vmalloc.c
-@@ -1817,7 +1817,8 @@ static inline void *__vmalloc_node_flags
- }
+ 	size = sizeof(*sma) + nsems * sizeof(struct sem);
+-	sma = ipc_rcu_alloc(size);
+-	if (!sma)
++	sem_alloc = ipc_rcu_alloc(size);
++	if (!sem_alloc)
+ 		return -ENOMEM;
  
+-	memset(sma, 0, size);
++	memset(sem_alloc, 0, size);
++
++	sma = sem_alloc;
++	sma->sem_base = sem_alloc + sizeof(*sma);
  
--void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags, void *caller)
-+void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
-+				  void *caller)
- {
- 	return __vmalloc_node(size, 1, flags, PAGE_KERNEL, node, caller);
- }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-gcov-support-gcc-71-v2-checkpatch-fixes.patch
-mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+ 	sma->sem_perm.mode = (semflg & S_IRWXUGO);
+ 	sma->sem_perm.key = key;
+@@ -504,8 +508,6 @@ static int newary(struct ipc_namespace *
+ 		return retval;
+ 	}
+ 
+-	sma->sem_base = (struct sem *) &sma[1];
