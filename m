@@ -1,125 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-properly-track-vmalloc-users.patch
- removed from -mm tree
-Date: Tue, 09 May 2017 11:02:28 -0700
-Message-ID: <20170509180228.o2bAWCZpg%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch removed from -mm
+ tree
+Date: Tue, 09 May 2017 11:02:30 -0700
+Message-ID: <20170509180230.Wdh6YQxuy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34652 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753219AbdEISC3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:02:29 -0400
+        with ESMTP id S1753868AbdEISCb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 14:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: davem@davemloft.net, mhocko@suse.com, mm-commits@vger.kernel.org, mst@redhat.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, vmalloc: properly track vmalloc users
+     Subject: mm: support __GFP_REPEAT in kvmalloc_node for >32kB
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-properly-track-vmalloc-users.patch
+     mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmalloc: properly track vmalloc users
+Subject: mm: support __GFP_REPEAT in kvmalloc_node for >32kB
 
-__vmalloc_node_flags used to be static inline but this has changed by "mm:
-introduce kv[mz]alloc helpers" because kvmalloc_node needs to use it as
-well and the code is outside of the vmalloc proper.  I haven't realized
-that changing this will lead to a subtle bug though.  The function is
-responsible to track the caller as well.  This caller is then printed by
-/proc/vmallocinfo.  If __vmalloc_node_flags is not inline then we would
-get only direct users of __vmalloc_node_flags as callers (e.g. 
-v[mz]alloc) which reduces usefulness of this debugging feature
-considerably.  It simply doesn't help to see that the given range belongs
-to vmalloc as a caller:
+vhost code uses __GFP_REPEAT when allocating vhost_virtqueue resp. 
+vhost_vsock because it would really like to prefer kmalloc to the vmalloc
+fallback - see 23cc5a991c7a ("vhost-net: extend device allocation to
+vmalloc") for more context.  Michael Tsirkin has also noted:
 
-0xffffc90002c79000-0xffffc90002c7d000   16384 vmalloc+0x16/0x18 pages=3 vmalloc N0=3
-0xffffc90002c81000-0xffffc90002c85000   16384 vmalloc+0x16/0x18 pages=3 vmalloc N1=3
-0xffffc90002c8d000-0xffffc90002c91000   16384 vmalloc+0x16/0x18 pages=3 vmalloc N1=3
-0xffffc90002c95000-0xffffc90002c99000   16384 vmalloc+0x16/0x18 pages=3 vmalloc N1=3
+"__GFP_REPEAT overhead is during allocation time.  Using vmalloc means all
+accesses are slowed down.  Allocation is not on data path, accesses are."
 
-We really want to catch the _caller_ of the vmalloc function.  Fix this
-issue by making __vmalloc_node_flags static inline again.
+The similar applies to other vhost_kvzalloc users.
 
-Link: http://lkml.kernel.org/r/20170502134657.12381-1-mhocko@kernel.org
+Let's teach kvmalloc_node to handle __GFP_REPEAT properly.  There are two
+things to be careful about.  First we should prevent from the OOM killer
+and so have to involve __GFP_NORETRY by default and secondly override
+__GFP_REPEAT for !costly order requests as the __GFP_REPEAT is ignored for
+!costly orders.
+
+Supporting __GFP_REPEAT like semantic for !costly request is possible it
+would require changes in the page allocator.  This is out of scope of this
+patch.
+
+This patch shouldn't introduce any functional change.
+
+Link: http://lkml.kernel.org/r/20170306103032.2540-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   19 +++++++++++++++++++
- mm/vmalloc.c            |   12 +-----------
- 2 files changed, 20 insertions(+), 11 deletions(-)
+ drivers/vhost/net.c   |    9 +++------
+ drivers/vhost/vhost.c |   15 +++------------
+ drivers/vhost/vsock.c |    9 +++------
+ mm/util.c             |   18 +++++++++++++++---
+ 4 files changed, 24 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/vmalloc.h~mm-vmalloc-properly-track-vmalloc-users include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-properly-track-vmalloc-users
-+++ a/include/linux/vmalloc.h
-@@ -6,6 +6,7 @@
- #include <linux/list.h>
- #include <linux/llist.h>
- #include <asm/page.h>		/* pgprot_t */
-+#include <asm/pgtable.h>	/* PAGE_KERNEL */
- #include <linux/rbtree.h>
+diff -puN drivers/vhost/net.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb drivers/vhost/net.c
+--- a/drivers/vhost/net.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
++++ a/drivers/vhost/net.c
+@@ -817,12 +817,9 @@ static int vhost_net_open(struct inode *
+ 	struct vhost_virtqueue **vqs;
+ 	int i;
  
- struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
-@@ -80,7 +81,25 @@ extern void *__vmalloc_node_range(unsign
- 			unsigned long start, unsigned long end, gfp_t gfp_mask,
- 			pgprot_t prot, unsigned long vm_flags, int node,
- 			const void *caller);
-+#ifndef CONFIG_MMU
- extern void *__vmalloc_node_flags(unsigned long size, int node, gfp_t flags);
-+#else
-+extern void *__vmalloc_node(unsigned long size, unsigned long align,
-+			    gfp_t gfp_mask, pgprot_t prot,
-+			    int node, const void *caller);
-+
-+/*
-+ * We really want to have this inlined due to caller tracking. This
-+ * function is used by the highlevel vmalloc apis and so we want to track
-+ * their callers and inlining will achieve that.
-+ */
-+static inline void *__vmalloc_node_flags(unsigned long size,
-+					int node, gfp_t flags)
-+{
-+	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
-+					node, __builtin_return_address(0));
-+}
-+#endif
- 
- extern void vfree(const void *addr);
- extern void vfree_atomic(const void *addr);
-diff -puN mm/vmalloc.c~mm-vmalloc-properly-track-vmalloc-users mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-properly-track-vmalloc-users
-+++ a/mm/vmalloc.c
-@@ -1649,9 +1649,6 @@ void *vmap(struct page **pages, unsigned
+-	n = kmalloc(sizeof *n, GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
+-	if (!n) {
+-		n = vmalloc(sizeof *n);
+-		if (!n)
+-			return -ENOMEM;
+-	}
++	n = kvmalloc(sizeof *n, GFP_KERNEL | __GFP_REPEAT);
++	if (!n)
++		return -ENOMEM;
+ 	vqs = kmalloc(VHOST_NET_VQ_MAX * sizeof(*vqs), GFP_KERNEL);
+ 	if (!vqs) {
+ 		kvfree(n);
+diff -puN drivers/vhost/vhost.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb drivers/vhost/vhost.c
+--- a/drivers/vhost/vhost.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
++++ a/drivers/vhost/vhost.c
+@@ -534,18 +534,9 @@ err_mm:
  }
- EXPORT_SYMBOL(vmap);
+ EXPORT_SYMBOL_GPL(vhost_dev_set_owner);
  
--static void *__vmalloc_node(unsigned long size, unsigned long align,
--			    gfp_t gfp_mask, pgprot_t prot,
--			    int node, const void *caller);
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, int node)
- {
-@@ -1794,7 +1791,7 @@ fail:
-  *	with mm people.
-  *
-  */
--static void *__vmalloc_node(unsigned long size, unsigned long align,
-+void *__vmalloc_node(unsigned long size, unsigned long align,
- 			    gfp_t gfp_mask, pgprot_t prot,
- 			    int node, const void *caller)
- {
-@@ -1809,13 +1806,6 @@ void *__vmalloc(unsigned long size, gfp_
- }
- EXPORT_SYMBOL(__vmalloc);
- 
--void *__vmalloc_node_flags(unsigned long size,
--					int node, gfp_t flags)
+-static void *vhost_kvzalloc(unsigned long size)
 -{
--	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
--					node, __builtin_return_address(0));
+-	void *n = kzalloc(size, GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
+-
+-	if (!n)
+-		n = vzalloc(size);
+-	return n;
 -}
+-
+ struct vhost_umem *vhost_dev_reset_owner_prepare(void)
+ {
+-	return vhost_kvzalloc(sizeof(struct vhost_umem));
++	return kvzalloc(sizeof(struct vhost_umem), GFP_KERNEL);
+ }
+ EXPORT_SYMBOL_GPL(vhost_dev_reset_owner_prepare);
+ 
+@@ -1276,7 +1267,7 @@ EXPORT_SYMBOL_GPL(vhost_vq_access_ok);
+ 
+ static struct vhost_umem *vhost_umem_alloc(void)
+ {
+-	struct vhost_umem *umem = vhost_kvzalloc(sizeof(*umem));
++	struct vhost_umem *umem = kvzalloc(sizeof(*umem), GFP_KERNEL);
+ 
+ 	if (!umem)
+ 		return NULL;
+@@ -1302,7 +1293,7 @@ static long vhost_set_memory(struct vhos
+ 		return -EOPNOTSUPP;
+ 	if (mem.nregions > max_mem_regions)
+ 		return -E2BIG;
+-	newmem = vhost_kvzalloc(size + mem.nregions * sizeof(*m->regions));
++	newmem = kvzalloc(size + mem.nregions * sizeof(*m->regions), GFP_KERNEL);
+ 	if (!newmem)
+ 		return -ENOMEM;
+ 
+diff -puN drivers/vhost/vsock.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb drivers/vhost/vsock.c
+--- a/drivers/vhost/vsock.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
++++ a/drivers/vhost/vsock.c
+@@ -508,12 +508,9 @@ static int vhost_vsock_dev_open(struct i
+ 	/* This struct is large and allocation could fail, fall back to vmalloc
+ 	 * if there is no other way.
+ 	 */
+-	vsock = kzalloc(sizeof(*vsock), GFP_KERNEL | __GFP_NOWARN | __GFP_REPEAT);
+-	if (!vsock) {
+-		vsock = vmalloc(sizeof(*vsock));
+-		if (!vsock)
+-			return -ENOMEM;
+-	}
++	vsock = kvmalloc(sizeof(*vsock), GFP_KERNEL | __GFP_REPEAT);
++	if (!vsock)
++		return -ENOMEM;
+ 
+ 	vqs = kmalloc_array(ARRAY_SIZE(vsock->vqs), sizeof(*vqs), GFP_KERNEL);
+ 	if (!vqs) {
+diff -puN mm/util.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb mm/util.c
+--- a/mm/util.c~mm-support-__gfp_repeat-in-kvmalloc_node-for-32kb
++++ a/mm/util.c
+@@ -339,7 +339,9 @@ EXPORT_SYMBOL(vm_mmap);
+  * Uses kmalloc to get the memory but if the allocation fails then falls back
+  * to the vmalloc allocator. Use kvfree for freeing the memory.
+  *
+- * Reclaim modifiers - __GFP_NORETRY, __GFP_REPEAT and __GFP_NOFAIL are not supported
++ * Reclaim modifiers - __GFP_NORETRY and __GFP_NOFAIL are not supported. __GFP_REPEAT
++ * is supported only for large (>32kB) allocations, and it should be used only if
++ * kmalloc is preferable to the vmalloc fallback, due to visible performance drawbacks.
+  *
+  * Any use of gfp flags outside of GFP_KERNEL should be consulted with mm people.
+  */
+@@ -358,8 +360,18 @@ void *kvmalloc_node(size_t size, gfp_t f
+ 	 * Make sure that larger requests are not too disruptive - no OOM
+ 	 * killer and no allocation failure warnings as we have a fallback
+ 	 */
+-	if (size > PAGE_SIZE)
+-		kmalloc_flags |= __GFP_NORETRY | __GFP_NOWARN;
++	if (size > PAGE_SIZE) {
++		kmalloc_flags |= __GFP_NOWARN;
++
++		/*
++		 * We have to override __GFP_REPEAT by __GFP_NORETRY for !costly
++		 * requests because there is no other way to tell the allocator
++		 * that we want to fail rather than retry endlessly.
++		 */
++		if (!(kmalloc_flags & __GFP_REPEAT) ||
++				(size <= PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
++			kmalloc_flags |= __GFP_NORETRY;
++	}
+ 
+ 	ret = kmalloc_node(size, kmalloc_flags, node);
+ 
+_
+
+Patches currently in -mm which might be from mhocko@suse.com are
+
+
