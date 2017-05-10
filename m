@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-prevent-invalidation-of-mapped-dax-entries.patch added to
+Subject: + mm-fix-data-corruption-due-to-stale-mmap-reads.patch added to
  -mm tree
-Date: Wed, 10 May 2017 13:54:45 -0700
-Message-ID: <59137e15.925JGv9Ne9x+Z5xS%akpm__1618.51308444074$1494449690$gmane$org@linux-foundation.org>
+Date: Wed, 10 May 2017 13:54:47 -0700
+Message-ID: <59137e17.63WHI0bsUyAAsmyq%akpm__1628.41044734723$1494449694$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33930 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33940 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753934AbdEJUyq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 May 2017 16:54:46 -0400
+        with ESMTP id S1754087AbdEJUys (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 May 2017 16:54:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, dan.j.williams@intel.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: prevent invalidation of mapped DAX entries
+     Subject: mm: fix data corruption due to stale mmap reads
 has been added to the -mm tree.  Its filename is
-     dax-prevent-invalidation-of-mapped-dax-entries.patch
+     mm-fix-data-corruption-due-to-stale-mmap-reads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-prevent-invalidation-of-mapped-dax-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-data-corruption-due-to-stale-mmap-reads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-prevent-invalidation-of-mapped-dax-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-data-corruption-due-to-stale-mmap-reads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,140 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: prevent invalidation of mapped DAX entries
+From: Jan Kara <jack@suse.cz>
+Subject: mm: fix data corruption due to stale mmap reads
 
-Patch series "mm,dax: Fix data corruption due to mmap inconsistency", v4.
+Currently, we didn't invalidate page tables during
+invalidate_inode_pages2() for DAX.  That could result in e.g.  2MiB zero
+page being mapped into page tables while there were already underlying
+blocks allocated and thus data seen through mmap were different from data
+seen by read(2).  The following sequence reproduces the problem:
 
-This series fixes data corruption that can happen for DAX mounts when page
-faults race with write(2) and as a result page tables get out of sync with
-block mappings in the filesystem and thus data seen through mmap is
-different from data seen through read(2).
+- open an mmap over a 2MiB hole
 
-The series passes testing with t_mmap_stale test program from Ross and
-also other mmap related tests on DAX filesystem.
+- read from a 2MiB hole, faulting in a 2MiB zero page
 
+- write to the hole with write(3p).  The write succeeds but we
+  incorrectly leave the 2MiB zero page mapping intact.
 
-This patch (of 4):
+- via the mmap, read the data that was just written.  Since the zero
+  page mapping is still intact we read back zeroes instead of the new
+  data.
 
-dax_invalidate_mapping_entry() currently removes DAX exceptional entries
-only if they are clean and unlocked.  This is done via:
+Fix the problem by unconditionally calling invalidate_inode_pages2_range()
+in dax_iomap_actor() for new block allocations and by properly
+invalidating page tables in invalidate_inode_pages2_range() for DAX
+mappings.
 
-invalidate_mapping_pages()
-  invalidate_exceptional_entry()
-    dax_invalidate_mapping_entry()
-
-However, for page cache pages removed in invalidate_mapping_pages() there
-is an additional criteria which is that the page must not be mapped.  This
-is noted in the comments above invalidate_mapping_pages() and is checked
-in invalidate_inode_page().
-
-For DAX entries this means that we can can end up in a situation where a
-DAX exceptional entry, either a huge zero page or a regular DAX entry,
-could end up mapped but without an associated radix tree entry.  This is
-inconsistent with the rest of the DAX code and with what happens in the
-page cache case.
-
-We aren't able to unmap the DAX exceptional entry because according to its
-comments invalidate_mapping_pages() isn't allowed to block, and
-unmap_mapping_range() takes a write lock on the mapping->i_mmap_rwsem.
-
-Since we essentially never have unmapped DAX entries to evict from the
-radix tree, just remove dax_invalidate_mapping_entry().
-
-Fixes: c6dcf52c23d2 ("mm: Invalidate DAX radix tree entries only if appropriate")
-Link: http://lkml.kernel.org/r/20170510085419.27601-2-jack@suse.cz
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Fixes: c6dcf52c23d2d3fb5235cec42d7dd3f786b87d55
+Link: http://lkml.kernel.org/r/20170510085419.27601-3-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>    [4.10+]
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |   29 -----------------------------
- include/linux/dax.h |    1 -
- mm/truncate.c       |    9 +++------
- 3 files changed, 3 insertions(+), 36 deletions(-)
+ fs/dax.c      |    2 +-
+ mm/truncate.c |   12 +++++++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/dax.c~dax-prevent-invalidation-of-mapped-dax-entries fs/dax.c
---- a/fs/dax.c~dax-prevent-invalidation-of-mapped-dax-entries
+diff -puN fs/dax.c~mm-fix-data-corruption-due-to-stale-mmap-reads fs/dax.c
+--- a/fs/dax.c~mm-fix-data-corruption-due-to-stale-mmap-reads
 +++ a/fs/dax.c
-@@ -461,35 +461,6 @@ int dax_delete_mapping_entry(struct addr
- }
- 
- /*
-- * Invalidate exceptional DAX entry if easily possible. This handles DAX
-- * entries for invalidate_inode_pages() so we evict the entry only if we can
-- * do so without blocking.
-- */
--int dax_invalidate_mapping_entry(struct address_space *mapping, pgoff_t index)
--{
--	int ret = 0;
--	void *entry, **slot;
--	struct radix_tree_root *page_tree = &mapping->page_tree;
--
--	spin_lock_irq(&mapping->tree_lock);
--	entry = __radix_tree_lookup(page_tree, index, NULL, &slot);
--	if (!entry || !radix_tree_exceptional_entry(entry) ||
--	    slot_locked(mapping, slot))
--		goto out;
--	if (radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_DIRTY) ||
--	    radix_tree_tag_get(page_tree, index, PAGECACHE_TAG_TOWRITE))
--		goto out;
--	radix_tree_delete(page_tree, index);
--	mapping->nrexceptional--;
--	ret = 1;
--out:
--	spin_unlock_irq(&mapping->tree_lock);
--	if (ret)
--		dax_wake_mapping_entry_waiter(mapping, index, entry, true);
--	return ret;
--}
--
--/*
-  * Invalidate exceptional DAX entry if it is clean.
-  */
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
-diff -puN include/linux/dax.h~dax-prevent-invalidation-of-mapped-dax-entries include/linux/dax.h
---- a/include/linux/dax.h~dax-prevent-invalidation-of-mapped-dax-entries
-+++ a/include/linux/dax.h
-@@ -63,7 +63,6 @@ ssize_t dax_iomap_rw(struct kiocb *iocb,
- int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
- 		    const struct iomap_ops *ops);
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
--int dax_invalidate_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
- void dax_wake_mapping_entry_waiter(struct address_space *mapping,
-diff -puN mm/truncate.c~dax-prevent-invalidation-of-mapped-dax-entries mm/truncate.c
---- a/mm/truncate.c~dax-prevent-invalidation-of-mapped-dax-entries
+@@ -1015,7 +1015,7 @@ dax_iomap_actor(struct inode *inode, lof
+ 	 * into page tables. We have to tear down these mappings so that data
+ 	 * written by write(2) is visible in mmap.
+ 	 */
+-	if ((iomap->flags & IOMAP_F_NEW) && inode->i_mapping->nrpages) {
++	if (iomap->flags & IOMAP_F_NEW) {
+ 		invalidate_inode_pages2_range(inode->i_mapping,
+ 					      pos >> PAGE_SHIFT,
+ 					      (end - 1) >> PAGE_SHIFT);
+diff -puN mm/truncate.c~mm-fix-data-corruption-due-to-stale-mmap-reads mm/truncate.c
+--- a/mm/truncate.c~mm-fix-data-corruption-due-to-stale-mmap-reads
 +++ a/mm/truncate.c
-@@ -67,17 +67,14 @@ static void truncate_exceptional_entry(s
- 
- /*
-  * Invalidate exceptional entry if easily possible. This handles exceptional
-- * entries for invalidate_inode_pages() so for DAX it evicts only unlocked and
-- * clean entries.
-+ * entries for invalidate_inode_pages().
-  */
- static int invalidate_exceptional_entry(struct address_space *mapping,
- 					pgoff_t index, void *entry)
- {
--	/* Handled by shmem itself */
--	if (shmem_mapping(mapping))
-+	/* Handled by shmem itself, or for DAX we do nothing. */
-+	if (shmem_mapping(mapping) || dax_mapping(mapping))
- 		return 1;
--	if (dax_mapping(mapping))
--		return dax_invalidate_mapping_entry(mapping, index);
- 	clear_shadow_entry(mapping, index, entry);
- 	return 1;
- }
-_
-
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
-
-dax-prevent-invalidation-of-mapped-dax-entries.patch
-dax-fix-pmd-data-corruption-when-fault-races-with-write.patch
-
+@@ -686,7 +686,17 @@ int invalidate_inode_pages2_range(struct
+ 		cond_resched();
+ 		index++;
+ 	}
