@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch added to -mm tree
-Date: Wed, 10 May 2017 13:54:49 -0700
-Message-ID: <59137e19.lTDL5ZaozPdhq5se%akpm@linux-foundation.org>
+Subject: + mm-vmscan-fix-unsequenced-modification-and-access-warning.patch added to -mm tree
+Date: Wed, 10 May 2017 14:08:41 -0700
+Message-ID: <59138159./fsDwpJnBBEu6jl6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34490 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753771AbdEJUzA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 May 2017 16:55:00 -0400
+        with ESMTP id S1753535AbdEJVIm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 May 2017 17:08:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dan.j.williams@intel.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: nick.desaulniers@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: return to starting transaction in ext4_dax_huge_fault()
+     Subject: mm/vmscan.c: fix unsequenced modification and access warning
 has been added to the -mm tree.  Its filename is
-     ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch
+     mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +38,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ext4: return to starting transaction in ext4_dax_huge_fault()
+From: Nick Desaulniers <nick.desaulniers@gmail.com>
+Subject: mm/vmscan.c: fix unsequenced modification and access warning
 
-DAX will return to locking exceptional entry before mapping blocks for a
-page fault to fix possible races with concurrent writes.  To avoid lock
-inversion between exceptional entry lock and transaction start, start the
-transaction already in ext4_dax_huge_fault().
+Clang and its -Wunsequenced emits a warning
 
-Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
-Link: http://lkml.kernel.org/r/20170510085419.27601-4-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>
+mm/vmscan.c:2961:25: error: unsequenced modification and access to
+'gfp_mask' [-Wunsequenced]
+                .gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
+                                      ^
+
+While it is not clear to me whether the initialization code violates the
+specification (6.7.8 par 19 (ISO/IEC 9899) looks like it disagrees) the
+code is quite confusing and worth cleaning up anyway. Fix this by
+reusing sc.gfp_mask rather than the updated input gfp_mask parameter.
+
+Link: http://lkml.kernel.org/r/20170510154030.10720-1-nick.desaulniers@gmail.com
+Signed-off-by: Nick Desaulniers <nick.desaulniers@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/file.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/ext4/file.c~ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault fs/ext4/file.c
---- a/fs/ext4/file.c~ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault
-+++ a/fs/ext4/file.c
-@@ -257,6 +257,7 @@ static int ext4_dax_huge_fault(struct vm
- 		enum page_entry_size pe_size)
- {
- 	int result;
-+	handle_t *handle = NULL;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	struct super_block *sb = inode->i_sb;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-@@ -264,12 +265,24 @@ static int ext4_dax_huge_fault(struct vm
- 	if (write) {
- 		sb_start_pagefault(sb);
- 		file_update_time(vmf->vma->vm_file);
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
-+		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
-+					       EXT4_DATA_TRANS_BLOCKS(sb));
-+	} else {
-+		down_read(&EXT4_I(inode)->i_mmap_sem);
- 	}
--	down_read(&EXT4_I(inode)->i_mmap_sem);
--	result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
--	up_read(&EXT4_I(inode)->i_mmap_sem);
--	if (write)
-+	if (!IS_ERR(handle))
-+		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
-+	else
-+		result = VM_FAULT_SIGBUS;
-+	if (write) {
-+		if (!IS_ERR(handle))
-+			ext4_journal_stop(handle);
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
- 		sb_end_pagefault(sb);
-+	} else {
-+		up_read(&EXT4_I(inode)->i_mmap_sem);
-+	}
+diff -puN mm/vmscan.c~mm-vmscan-fix-unsequenced-modification-and-access-warning mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-unsequenced-modification-and-access-warning
++++ a/mm/vmscan.c
+@@ -2958,7 +2958,7 @@ unsigned long try_to_free_pages(struct z
+ 	unsigned long nr_reclaimed;
+ 	struct scan_control sc = {
+ 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
+-		.gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
++		.gfp_mask = current_gfp_context(gfp_mask),
+ 		.reclaim_idx = gfp_zone(gfp_mask),
+ 		.order = order,
+ 		.nodemask = nodemask,
+@@ -2973,12 +2973,12 @@ unsigned long try_to_free_pages(struct z
+ 	 * 1 is returned so that the page allocator does not OOM kill at this
+ 	 * point.
+ 	 */
+-	if (throttle_direct_reclaim(gfp_mask, zonelist, nodemask))
++	if (throttle_direct_reclaim(sc.gfp_mask, zonelist, nodemask))
+ 		return 1;
  
- 	return result;
- }
+ 	trace_mm_vmscan_direct_reclaim_begin(order,
+ 				sc.may_writepage,
+-				gfp_mask,
++				sc.gfp_mask,
+ 				sc.reclaim_idx);
+ 
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
+@@ -3765,17 +3765,16 @@ static int __node_reclaim(struct pglist_
+ 	const unsigned long nr_pages = 1 << order;
+ 	struct task_struct *p = current;
+ 	struct reclaim_state reclaim_state;
+-	int classzone_idx = gfp_zone(gfp_mask);
+ 	unsigned int noreclaim_flag;
+ 	struct scan_control sc = {
+ 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
+-		.gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
++		.gfp_mask = current_gfp_context(gfp_mask),
+ 		.order = order,
+ 		.priority = NODE_RECLAIM_PRIORITY,
+ 		.may_writepage = !!(node_reclaim_mode & RECLAIM_WRITE),
+ 		.may_unmap = !!(node_reclaim_mode & RECLAIM_UNMAP),
+ 		.may_swap = 1,
+-		.reclaim_idx = classzone_idx,
++		.reclaim_idx = gfp_zone(gfp_mask),
+ 	};
+ 
+ 	cond_resched();
+@@ -3786,7 +3785,7 @@ static int __node_reclaim(struct pglist_
+ 	 */
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 	p->flags |= PF_SWAPWRITE;
+-	lockdep_set_current_reclaim_state(gfp_mask);
++	lockdep_set_current_reclaim_state(sc.gfp_mask);
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
+ 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from nick.desaulniers@gmail.com are
 
-mm-fix-data-corruption-due-to-stale-mmap-reads.patch
-ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch
-dax-fix-data-corruption-when-fault-races-with-write.patch
+mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
 
