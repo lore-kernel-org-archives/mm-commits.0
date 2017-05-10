@@ -1,32 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
- added to -mm tree
-Date: Tue, 09 May 2017 16:05:27 -0700
-Message-ID: <59124b37.QxcdkXVASP/en2SD%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 10 May 2017 10:58:06 -0700
+Message-ID: <20170510175806.jwO-Qv9ns%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41774 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751090AbdEIXF2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 May 2017 19:05:28 -0400
+        with ESMTP id S1752285AbdEJR6I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 May 2017 13:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, davidel@xmailserver.org, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, epoll: short circuit fetching events if thread has been killed
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,59 +35,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: fs, epoll: short circuit fetching events if thread has been killed
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-We've encountered zombies that are waiting for a thread to exit that are
-looping in ep_poll() almost endlessly although there is a pending SIGKILL
-as a result of a group exit.
-
-This happens because we always find ep_events_available() and fetch more
-events and never are able to check for signal_pending() that would break
-from the loop and return -EINTR.
-
-Special case fatal signals and break immediately to guarantee that we loop
-to fetch more events and delay making a timely exit.
-
-It would also be possible to simply move the check for signal_pending()
-higher than checking for ep_events_available(), but there have been no
-reports of delayed signal handling other than SIGKILL preventing zombies
-from exiting that would be fixed by this.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1705031722350.76784@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
 
-diff -puN fs/eventpoll.c~fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed fs/eventpoll.c
---- a/fs/eventpoll.c~fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed
-+++ a/fs/eventpoll.c
-@@ -1748,6 +1748,16 @@ fetch_events:
- 			 * to TASK_INTERRUPTIBLE before doing the checks.
- 			 */
- 			set_current_state(TASK_INTERRUPTIBLE);
-+			/*
-+			 * Always short-circuit for fatal signals to allow
-+			 * threads to make a timely exit without the chance of
-+			 * finding more events available and fetching
-+			 * repeatedly.
-+			 */
-+			if (fatal_signal_pending(current)) {
-+				res = -EINTR;
-+				break;
-+			}
- 			if (ep_events_available(ep) || timed_out)
+diff -puN fs/btrfs/file.c~linux-next-git-rejects fs/btrfs/file.c
+--- a/fs/btrfs/file.c~linux-next-git-rejects
++++ a/fs/btrfs/file.c
+@@ -2909,21 +2909,13 @@ static long btrfs_fallocate(struct file
+ 				free_extent_map(em);
  				break;
- 			if (signal_pending(current)) {
-_
-
-Patches currently in -mm which might be from rientjes@google.com are
-
-fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
-
+ 			}
+-<<<<<<< HEAD
+-			ret = btrfs_qgroup_reserve_data(inode, cur_offset,
+-					last_byte - cur_offset);
+-=======
+ 			ret = btrfs_qgroup_reserve_data(inode, &data_reserved,
+ 					cur_offset, last_byte - cur_offset);
+->>>>>>> linux-next/akpm-base
+ 			if (ret < 0) {
+ 				free_extent_map(em);
+ 				break;
+ 			}
+-<<<<<<< HEAD
+-=======
+ 			ret = 0;
+->>>>>>> linux-next/akpm-base
+ 		} else {
+ 			/*
+ 			 * Do not need to reserve unwritten extent for this
+diff -puN fs/btrfs/qgroup.c~linux-next-git-rejects fs/btrfs/qgroup.c
+--- a/fs/btrfs/qgroup.c~linux-next-git-rejects
++++ a/fs/btrfs/qgroup.c
+@@ -2022,8 +2022,6 @@ int btrfs_qgroup_account_extents(struct
+ 
+ 		if (!ret) {
+ 			/*
+-<<<<<<< HEAD
+-=======
+ 			 * old roots should be searched when inserting qgroup
+ 			 * extent record
+ 			 */
+@@ -2036,7 +2034,6 @@ int btrfs_qgroup_account_extents(struct
+ 					goto cleanup;
+ 			}
+ 			/*
+->>>>>>> linux-next/akpm-base
+ 			 * Use SEQ_LAST as time_seq to do special search, which
+ 			 * doesn't lock tree or delayed_refs and search current
+ 			 * root. It's safe inside commit_transaction().
+@@ -2959,10 +2956,7 @@ static int __btrfs_qgroup_release_data(s
+ 		btrfs_qgroup_free_refroot(BTRFS_I(inode)->root->fs_info,
+ 				BTRFS_I(inode)->root->objectid,
+ 				changeset.bytes_changed);
+-<<<<<<< HEAD
+-=======
+ 	ret = changeset.bytes_changed;
+->>>>>>> linux-next/akpm-base
+ out:
+ 	ulist_release(&changeset.range_changed);
+ 	return ret;
+diff -puN fs/btrfs/transaction.c~linux-next-git-rejects fs/btrfs/transaction.c
+--- a/fs/btrfs/transaction.c~linux-next-git-rejects
++++ a/fs/btrfs/transaction.c
+@@ -2177,16 +2177,6 @@ int btrfs_commit_transaction(struct btrf
+ 		goto scrub_continue;
+ 	}
+ 
+-<<<<<<< HEAD
+-	ret = btrfs_qgroup_prepare_account_extents(trans, fs_info);
+-	if (ret) {
+-		mutex_unlock(&fs_info->tree_log_mutex);
+-		mutex_unlock(&fs_info->reloc_mutex);
+-		goto scrub_continue;
+-	}
