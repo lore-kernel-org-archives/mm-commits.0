@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-fix-unsequenced-modification-and-access-warning.patch added to -mm tree
-Date: Wed, 10 May 2017 14:08:41 -0700
-Message-ID: <59138159./fsDwpJnBBEu6jl6%akpm@linux-foundation.org>
+Subject: + mm-thp-copying-user-pages-must-schedule-on-collapse.patch added to -mm tree
+Date: Wed, 10 May 2017 14:42:46 -0700
+Message-ID: <59138956.VoZ7sr/O9qh37QgA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38050 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753535AbdEJVIm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 May 2017 17:08:42 -0400
+        with ESMTP id S1752943AbdEJVmr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 May 2017 17:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nick.desaulniers@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: fix unsequenced modification and access warning
+     Subject: mm, thp: copying user pages must schedule on collapse
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
+     mm-thp-copying-user-pages-must-schedule-on-collapse.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-copying-user-pages-must-schedule-on-collapse.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-copying-user-pages-must-schedule-on-collapse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,89 +38,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nick Desaulniers <nick.desaulniers@gmail.com>
-Subject: mm/vmscan.c: fix unsequenced modification and access warning
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: copying user pages must schedule on collapse
 
-Clang and its -Wunsequenced emits a warning
+We have encountered need_resched warnings in __collapse_huge_page_copy()
+while doing {clear,copy}_user_highpage() over HPAGE_PMD_NR source pages.
 
-mm/vmscan.c:2961:25: error: unsequenced modification and access to
-'gfp_mask' [-Wunsequenced]
-                .gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
-                                      ^
+mm->mmap_sem is held for write, but the iteration is well bounded.
 
-While it is not clear to me whether the initialization code violates the
-specification (6.7.8 par 19 (ISO/IEC 9899) looks like it disagrees) the
-code is quite confusing and worth cleaning up anyway. Fix this by
-reusing sc.gfp_mask rather than the updated input gfp_mask parameter.
+Reschedule as needed.
 
-Link: http://lkml.kernel.org/r/20170510154030.10720-1-nick.desaulniers@gmail.com
-Signed-off-by: Nick Desaulniers <nick.desaulniers@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1705101426380.109808@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-unsequenced-modification-and-access-warning mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-unsequenced-modification-and-access-warning
-+++ a/mm/vmscan.c
-@@ -2958,7 +2958,7 @@ unsigned long try_to_free_pages(struct z
- 	unsigned long nr_reclaimed;
- 	struct scan_control sc = {
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
--		.gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
-+		.gfp_mask = current_gfp_context(gfp_mask),
- 		.reclaim_idx = gfp_zone(gfp_mask),
- 		.order = order,
- 		.nodemask = nodemask,
-@@ -2973,12 +2973,12 @@ unsigned long try_to_free_pages(struct z
- 	 * 1 is returned so that the page allocator does not OOM kill at this
- 	 * point.
- 	 */
--	if (throttle_direct_reclaim(gfp_mask, zonelist, nodemask))
-+	if (throttle_direct_reclaim(sc.gfp_mask, zonelist, nodemask))
- 		return 1;
+diff -puN mm/khugepaged.c~mm-thp-copying-user-pages-must-schedule-on-collapse mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-thp-copying-user-pages-must-schedule-on-collapse
++++ a/mm/khugepaged.c
+@@ -612,7 +612,8 @@ static void __collapse_huge_page_copy(pt
+ 				      spinlock_t *ptl)
+ {
+ 	pte_t *_pte;
+-	for (_pte = pte; _pte < pte+HPAGE_PMD_NR; _pte++) {
++	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
++				_pte++, page++, address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+ 		struct page *src_page;
  
- 	trace_mm_vmscan_direct_reclaim_begin(order,
- 				sc.may_writepage,
--				gfp_mask,
-+				sc.gfp_mask,
- 				sc.reclaim_idx);
- 
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-@@ -3765,17 +3765,16 @@ static int __node_reclaim(struct pglist_
- 	const unsigned long nr_pages = 1 << order;
- 	struct task_struct *p = current;
- 	struct reclaim_state reclaim_state;
--	int classzone_idx = gfp_zone(gfp_mask);
- 	unsigned int noreclaim_flag;
- 	struct scan_control sc = {
- 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
--		.gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
-+		.gfp_mask = current_gfp_context(gfp_mask),
- 		.order = order,
- 		.priority = NODE_RECLAIM_PRIORITY,
- 		.may_writepage = !!(node_reclaim_mode & RECLAIM_WRITE),
- 		.may_unmap = !!(node_reclaim_mode & RECLAIM_UNMAP),
- 		.may_swap = 1,
--		.reclaim_idx = classzone_idx,
-+		.reclaim_idx = gfp_zone(gfp_mask),
- 	};
- 
- 	cond_resched();
-@@ -3786,7 +3785,7 @@ static int __node_reclaim(struct pglist_
- 	 */
- 	noreclaim_flag = memalloc_noreclaim_save();
- 	p->flags |= PF_SWAPWRITE;
--	lockdep_set_current_reclaim_state(gfp_mask);
-+	lockdep_set_current_reclaim_state(sc.gfp_mask);
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
-_
-
-Patches currently in -mm which might be from nick.desaulniers@gmail.com are
-
-mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
-
+@@ -651,9 +652,7 @@ static void __collapse_huge_page_copy(pt
+ 			spin_unlock(ptl);
+ 			free_page_and_swap_cache(src_page);
+ 		}
