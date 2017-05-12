@@ -1,86 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- hwpoison-memcg-forcibly-uncharge-lru-pages-checkpatch-fixes.patch removed
- from -mm tree
-Date: Fri, 12 May 2017 15:40:35 -0700
-Message-ID: <591639e3.m35MuLlHo3S6zxdQ%akpm@linux-foundation.org>
+Subject: [folded-merged] gcov-support-gcc-71-v2.patch removed from -mm
+ tree
+Date: Fri, 12 May 2017 15:40:58 -0700
+Message-ID: <591639fa.Ka1DzllJUOWHuIDE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752997AbdELWkg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:40:36 -0400
+        with ESMTP id S1752997AbdELWk7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:40:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mliska@suse.cz, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hwpoison-memcg-forcibly-uncharge-lru-pages-checkpatch-fixes
+     Subject: gcov-support-gcc-71-v2
 has been removed from the -mm tree.  Its filename was
-     hwpoison-memcg-forcibly-uncharge-lru-pages-checkpatch-fixes.patch
+     gcov-support-gcc-71-v2.patch
 
-This patch was dropped because it was folded into hwpoison-memcg-forcibly-uncharge-lru-pages.patch
+This patch was dropped because it was folded into gcov-support-gcc-71.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hwpoison-memcg-forcibly-uncharge-lru-pages-checkpatch-fixes
+From: Martin Liska <mliska@suse.cz>
+Subject: gcov-support-gcc-71-v2
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#12: 
-least not since 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")). 
+Starting from GCC 7.1, __gcov_exit is a new symbol expected
+to be implemented in a profiling runtime. Update number of profile
+counters.
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#13: 
-Each charge pins memcg (since e8ea14cc6ead ("mm: memcontrol: take a css
-
-WARNING: line over 80 characters
-#54: FILE: mm/memory-failure.c:544:
-+		 * Poisoned page might never drop its ref count to 0 so we have to
-
-total: 2 errors, 1 warnings, 21 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/hwpoison-memcg-forcibly-uncharge-lru-pages.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/e63a3c59-0149-c97e-4084-20ca8f146b26@suse.cz
+Signed-off-by: Martin Liska <mliska@suse.cz>
+Acked-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/gcov/gcc_4_7.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~hwpoison-memcg-forcibly-uncharge-lru-pages-checkpatch-fixes mm/memory-failure.c
---- a/mm/memory-failure.c~hwpoison-memcg-forcibly-uncharge-lru-pages-checkpatch-fixes
-+++ a/mm/memory-failure.c
-@@ -541,8 +541,8 @@ static int delete_from_lru_cache(struct
- 		ClearPageUnevictable(p);
+diff -puN kernel/gcov/gcc_4_7.c~gcov-support-gcc-71-v2 kernel/gcov/gcc_4_7.c
+--- a/kernel/gcov/gcc_4_7.c~gcov-support-gcc-71-v2
++++ a/kernel/gcov/gcc_4_7.c
+@@ -18,7 +18,9 @@
+ #include <linux/vmalloc.h>
+ #include "gcov.h"
  
- 		/*
--		 * Poisoned page might never drop its ref count to 0 so we have to
--		 * uncharge it manually from its memcg.
-+		 * Poisoned page might never drop its ref count to 0 so we have
-+		 * to uncharge it manually from its memcg.
- 		 */
- 		mem_cgroup_uncharge(p);
- 
+-#if (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
++#if (__GNUC__ >= 7)
++#define GCOV_COUNTERS			9
++#elif (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
+ #define GCOV_COUNTERS			10
+ #elif __GNUC__ == 4 && __GNUC_MINOR__ >= 9
+ #define GCOV_COUNTERS			9
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mliska@suse.cz are
 
-hwpoison-memcg-forcibly-uncharge-lru-pages.patch
-gcov-support-gcc-71-v2-checkpatch-fixes.patch
-mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
-tigran-has-moved.patch
-mm-vmscan-scan-until-it-founds-eligible-pages-fix.patch
+gcov-support-gcc-71.patch
 
