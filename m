@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+Subject: + mm-vmstat-standardize-file-operations-variable-names.patch
  added to -mm tree
-Date: Fri, 12 May 2017 14:06:19 -0700
-Message-ID: <591623cb.TRQphqh56j14TxNa%akpm@linux-foundation.org>
+Date: Fri, 12 May 2017 14:07:26 -0700
+Message-ID: <5916240e.yAx05GzPriHOUqSi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34598 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932618AbdELVGU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 17:06:20 -0400
+        with ESMTP id S1758364AbdELVH1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 17:07:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xlpang@redhat.com, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: protect vmcoreinfo data under the crash memory
+     Subject: mm/vmstat.c: standardize file operations variable names
 has been added to the -mm tree.  Its filename is
-     kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+     mm-vmstat-standardize-file-operations-variable-names.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-standardize-file-operations-variable-names.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-standardize-file-operations-variable-names.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,240 +39,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: kdump: protect vmcoreinfo data under the crash memory
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: mm/vmstat.c: standardize file operations variable names
 
-Currently vmcoreinfo data is updated at boot time subsys_initcall(), it
-has the risk of being modified by some wrong code during system is
-running.
+Standardize the file operation variable names related to all four memory
+management /proc interface files.  Also change all the symbol permissions
+(S_IRUGO) into octal permissions (0444) as it got complaints from
+checkpatch.pl.  This does not create any functional change to the
+interface.
 
-As a result, vmcore dumped may contain the wrong vmcoreinfo.  Later on,
-when using "crash", "makedumpfile", etc utility to parse this vmcore, we
-probably will get "Segmentation fault" or other unexpected errors.
-
-E.g.  1) wrong code overwrites vmcoreinfo_data; 2) further crashes the
-system; 3) trigger kdump, then we obviously will fail to recognize the
-crash context correctly due to the corrupted vmcoreinfo.
-
-Now except for vmcoreinfo, all the crash data is well protected(including
-the cpu note which is fully updated in the crash path, thus its
-correctness is guaranteed).  Given that vmcoreinfo data is a large chunk
-prepared for kdump, we better protect it as well.
-
-To solve this, we relocate and copy vmcoreinfo_data to the crash memory
-when kdump is loading via kexec syscalls.  Because the whole crash memory
-will be protected by existing arch_kexec_protect_crashkres() mechanism, we
-naturally protect vmcoreinfo_data from write(even read) access under
-kernel direct mapping after kdump is loaded.
-
-Since kdump is usually loaded at the very early stage after boot, we can
-trust the correctness of the vmcoreinfo data copied.
-
-On the other hand, we still need to operate the vmcoreinfo safe copy when
-crash happens to generate vmcoreinfo_note again, we rely on vmap() to map
-out a new kernel virtual address and update to use this new one instead in
-the following crash_save_vmcoreinfo().
-
-BTW, we do not touch vmcoreinfo_note, because it will be fully updated
-using the protected vmcoreinfo_data after crash which is surely correct
-just like the cpu crash note.
-
-Link: http://lkml.kernel.org/r/1493281021-20737-3-git-send-email-xlpang@redhat.com
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Tested-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20170427030632.8588-1-khandual@linux.vnet.ibm.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_core.h |    2 -
- include/linux/kexec.h      |    2 +
- kernel/crash_core.c        |   17 ++++++++++++++-
- kernel/kexec.c             |    8 +++++++
- kernel/kexec_core.c        |   39 +++++++++++++++++++++++++++++++++++
- kernel/kexec_file.c        |    8 +++++++
- 6 files changed, 74 insertions(+), 2 deletions(-)
+ mm/vmstat.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/crash_core.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory include/linux/crash_core.h
---- a/include/linux/crash_core.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/include/linux/crash_core.h
-@@ -23,6 +23,7 @@
- 
- typedef u32 note_buf_t[CRASH_CORE_NOTE_BYTES/4];
- 
-+void crash_update_vmcoreinfo_safecopy(void *ptr);
- void crash_save_vmcoreinfo(void);
- void arch_crash_save_vmcoreinfo(void);
- __printf(1, 2)
-@@ -52,7 +53,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
- 
- extern u32 *vmcoreinfo_note;
--extern size_t vmcoreinfo_size;
- 
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len);
-diff -puN include/linux/kexec.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/include/linux/kexec.h
-@@ -181,6 +181,7 @@ struct kimage {
- 	unsigned long start;
- 	struct page *control_code_page;
- 	struct page *swap_page;
-+	void *vmcoreinfo_data_copy; /* locates in the crash memory */
- 
- 	unsigned long nr_segments;
- 	struct kexec_segment segment[KEXEC_SEGMENT_MAX];
-@@ -250,6 +251,7 @@ extern void crash_kexec(struct pt_regs *
- int kexec_should_crash(struct task_struct *);
- int kexec_crash_loaded(void);
- void crash_save_cpu(struct pt_regs *regs, int cpu);
-+extern int kimage_crash_copy_vmcoreinfo(struct kimage *image);
- 
- extern struct kimage *kexec_image;
- extern struct kimage *kexec_crash_image;
-diff -puN kernel/crash_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/crash_core.c
---- a/kernel/crash_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/crash_core.c
-@@ -15,9 +15,12 @@
- 
- /* vmcoreinfo stuff */
- static unsigned char *vmcoreinfo_data;
--size_t vmcoreinfo_size;
-+static size_t vmcoreinfo_size;
- u32 *vmcoreinfo_note;
- 
-+/* trusted vmcoreinfo, e.g. we can make a copy in the crash memory */
-+static unsigned char *vmcoreinfo_data_safecopy;
-+
- /*
-  * parsing the "crashkernel" commandline
-  *
-@@ -323,11 +326,23 @@ static void update_vmcoreinfo_note(void)
- 	final_note(buf);
+diff -puN mm/vmstat.c~mm-vmstat-standardize-file-operations-variable-names mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-standardize-file-operations-variable-names
++++ a/mm/vmstat.c
+@@ -1322,7 +1322,7 @@ static int fragmentation_open(struct ino
+ 	return seq_open(file, &fragmentation_op);
  }
  
-+void crash_update_vmcoreinfo_safecopy(void *ptr)
-+{
-+	if (ptr)
-+		memcpy(ptr, vmcoreinfo_data, vmcoreinfo_size);
-+
-+	vmcoreinfo_data_safecopy = ptr;
-+}
-+
- void crash_save_vmcoreinfo(void)
- {
- 	if (!vmcoreinfo_note)
- 		return;
- 
-+	/* Use the safe copy to generate vmcoreinfo note if have */
-+	if (vmcoreinfo_data_safecopy)
-+		vmcoreinfo_data = vmcoreinfo_data_safecopy;
-+
- 	vmcoreinfo_append_str("CRASHTIME=%ld\n", get_seconds());
- 	update_vmcoreinfo_note();
- }
-diff -puN kernel/kexec.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec.c
---- a/kernel/kexec.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/kexec.c
-@@ -144,6 +144,14 @@ static int do_kexec_load(unsigned long e
- 	if (ret)
- 		goto out;
- 
-+	/*
-+	 * Some architecture(like S390) may touch the crash memory before
-+	 * machine_kexec_prepare(), we must copy vmcoreinfo data after it.
-+	 */
-+	ret = kimage_crash_copy_vmcoreinfo(image);
-+	if (ret)
-+		goto out;
-+
- 	for (i = 0; i < nr_segments; i++) {
- 		ret = kimage_load_segment(image, &image->segment[i]);
- 		if (ret)
-diff -puN kernel/kexec_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec_core.c
---- a/kernel/kexec_core.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/kexec_core.c
-@@ -481,6 +481,40 @@ struct page *kimage_alloc_control_pages(
- 	return pages;
+-static const struct file_operations fragmentation_file_operations = {
++static const struct file_operations buddyinfo_file_operations = {
+ 	.open		= fragmentation_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -1341,7 +1341,7 @@ static int pagetypeinfo_open(struct inod
+ 	return seq_open(file, &pagetypeinfo_op);
  }
  
-+int kimage_crash_copy_vmcoreinfo(struct kimage *image)
-+{
-+	struct page *vmcoreinfo_page;
-+	void *safecopy;
-+
-+	if (image->type != KEXEC_TYPE_CRASH)
-+		return 0;
-+
-+	/*
-+	 * For kdump, allocate one vmcoreinfo safe copy from the
-+	 * crash memory. as we have arch_kexec_protect_crashkres()
-+	 * after kexec syscall, we naturally protect it from write
-+	 * (even read) access under kernel direct mapping. But on
-+	 * the other hand, we still need to operate it when crash
-+	 * happens to generate vmcoreinfo note, hereby we rely on
-+	 * vmap for this purpose.
-+	 */
-+	vmcoreinfo_page = kimage_alloc_control_pages(image, 0);
-+	if (!vmcoreinfo_page) {
-+		pr_warn("Could not allocate vmcoreinfo buffer\n");
-+		return -ENOMEM;
-+	}
-+	safecopy = vmap(&vmcoreinfo_page, 1, VM_MAP, PAGE_KERNEL);
-+	if (!safecopy) {
-+		pr_warn("Could not vmap vmcoreinfo buffer\n");
-+		return -ENOMEM;
-+	}
-+
-+	image->vmcoreinfo_data_copy = safecopy;
-+	crash_update_vmcoreinfo_safecopy(safecopy);
-+
-+	return 0;
-+}
-+
- static int kimage_add_entry(struct kimage *image, kimage_entry_t entry)
- {
- 	if (*image->entry != 0)
-@@ -568,6 +602,11 @@ void kimage_free(struct kimage *image)
- 	if (!image)
- 		return;
+-static const struct file_operations pagetypeinfo_file_ops = {
++static const struct file_operations pagetypeinfo_file_operations = {
+ 	.open		= pagetypeinfo_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -1463,7 +1463,7 @@ static int zoneinfo_open(struct inode *i
+ 	return seq_open(file, &zoneinfo_op);
+ }
  
-+	if (image->vmcoreinfo_data_copy) {
-+		crash_update_vmcoreinfo_safecopy(NULL);
-+		vunmap(image->vmcoreinfo_data_copy);
-+	}
-+
- 	kimage_free_extra_pages(image);
- 	for_each_kimage_entry(image, ptr, entry) {
- 		if (entry & IND_INDIRECTION) {
-diff -puN kernel/kexec_file.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory kernel/kexec_file.c
---- a/kernel/kexec_file.c~kdump-protect-vmcoreinfo-data-under-the-crash-memory
-+++ a/kernel/kexec_file.c
-@@ -304,6 +304,14 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 	if (ret)
- 		goto out;
+-static const struct file_operations proc_zoneinfo_file_operations = {
++static const struct file_operations zoneinfo_file_operations = {
+ 	.open		= zoneinfo_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -1552,7 +1552,7 @@ static int vmstat_open(struct inode *ino
+ 	return seq_open(file, &vmstat_op);
+ }
  
-+	/*
-+	 * Some architecture(like S390) may touch the crash memory before
-+	 * machine_kexec_prepare(), we must copy vmcoreinfo data after it.
-+	 */
-+	ret = kimage_crash_copy_vmcoreinfo(image);
-+	if (ret)
-+		goto out;
-+
- 	ret = kexec_calculate_store_digests(image);
- 	if (ret)
- 		goto out;
+-static const struct file_operations proc_vmstat_file_operations = {
++static const struct file_operations vmstat_file_operations = {
+ 	.open		= vmstat_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -1785,10 +1785,10 @@ void __init init_mm_internals(void)
+ 	start_shepherd_timer();
+ #endif
+ #ifdef CONFIG_PROC_FS
+-	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
+-	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
+-	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
+-	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
++	proc_create("buddyinfo", 0444, NULL, &buddyinfo_file_operations);
++	proc_create("pagetypeinfo", 0444, NULL, &pagetypeinfo_file_operations);
++	proc_create("vmstat", 0444, NULL, &vmstat_file_operations);
++	proc_create("zoneinfo", 0444, NULL, &zoneinfo_file_operations);
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from xlpang@redhat.com are
+Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
 
-kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
-powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
-kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+mm-vmstat-standardize-file-operations-variable-names.patch
 
