@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
- added to -mm tree
-Date: Fri, 12 May 2017 14:06:14 -0700
-Message-ID: <591623c6.uAqaXQM6PDSBwTQg%akpm@linux-foundation.org>
+Subject: +
+ powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch added to -mm tree
+Date: Fri, 12 May 2017 14:06:17 -0700
+Message-ID: <591623c9.UK/4nqcX18VcI1IH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34532 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34548 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932618AbdELVGP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 17:06:15 -0400
+        with ESMTP id S932618AbdELVGS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 17:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xlpang@redhat.com, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, hbathini@linux.vnet.ibm.com, holzheu@linux.vnet.ibm.com, jgross@suse.com, mahesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: move vmcoreinfo out of the kernel's .bss section
+     Subject: powerpc/fadump: use the correct VMCOREINFO_NOTE_SIZE for phdr
 has been added to the -mm tree.  Its filename is
-     kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
+     powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,203 +40,79 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec: move vmcoreinfo out of the kernel's .bss section
+Subject: powerpc/fadump: use the correct VMCOREINFO_NOTE_SIZE for phdr
 
-As Eric said,
-"what we need to do is move the variable vmcoreinfo_note out
-of the kernel's .bss section.  And modify the code to regenerate
-and keep this information in something like the control page.
+vmcoreinfo_max_size stands for the vmcoreinfo_data, the correct one we
+should use is vmcoreinfo_note whose total size is VMCOREINFO_NOTE_SIZE.
 
-Definitely something like this needs a page all to itself, and ideally far
-away from any other kernel data structures.  I clearly was not watching
-closely the data someone decided to keep this silly thing in the kernel's
-.bss section."
+Like explained in commit 77019967f06b ("kdump: fix exported size of
+vmcoreinfo note"), it should not affect the actual function, but we better
+fix it, also this change should be safe and backward compatible.
 
-This patch allocates extra pages for these vmcoreinfo_XXX variables, one
-advantage is that it enhances some safety of vmcoreinfo, because
-vmcoreinfo now is kept far away from other kernel data structures.
+After this, we can get rid of variable vmcoreinfo_max_size, let's use the
+corresponding macros directly, fewer variables means more safety for
+vmcoreinfo operation.
 
-Link: http://lkml.kernel.org/r/1493281021-20737-1-git-send-email-xlpang@redhat.com
+Link: http://lkml.kernel.org/r/1493281021-20737-2-git-send-email-xlpang@redhat.com
 Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Tested-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
-Suggested-by: Eric Biederman <ebiederm@xmission.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Young <dyoung@redhat.com>
+Reviewed-by: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Reviewed-by: Dave Young <dyoung@redhat.com>
 Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/machine_kexec.c |    5 -----
- arch/s390/kernel/machine_kexec.c |    1 +
- arch/s390/kernel/setup.c         |    6 ------
- arch/x86/kernel/crash.c          |    2 +-
- arch/x86/xen/mmu_pv.c            |    4 ++--
- include/linux/crash_core.h       |    4 ++--
- kernel/crash_core.c              |   26 ++++++++++++++++++++++----
- kernel/ksysfs.c                  |    2 +-
- 8 files changed, 29 insertions(+), 21 deletions(-)
+ arch/powerpc/kernel/fadump.c |    3 +--
+ include/linux/crash_core.h   |    1 -
+ kernel/crash_core.c          |    3 +--
+ 3 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/ia64/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -163,8 +163,3 @@ void arch_crash_save_vmcoreinfo(void)
- #endif
- }
+diff -puN arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr arch/powerpc/kernel/fadump.c
+--- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
++++ a/arch/powerpc/kernel/fadump.c
+@@ -893,8 +893,7 @@ static int fadump_create_elfcore_headers
  
--phys_addr_t paddr_vmcoreinfo_note(void)
--{
--	return ia64_tpa((unsigned long)(char *)&vmcoreinfo_note);
--}
--
-diff -puN arch/s390/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/s390/kernel/machine_kexec.c
---- a/arch/s390/kernel/machine_kexec.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/s390/kernel/machine_kexec.c
-@@ -246,6 +246,7 @@ void arch_crash_save_vmcoreinfo(void)
- 	VMCOREINFO_SYMBOL(lowcore_ptr);
- 	VMCOREINFO_SYMBOL(high_memory);
- 	VMCOREINFO_LENGTH(lowcore_ptr, NR_CPUS);
-+	mem_assign_absolute(S390_lowcore.vmcore_info, paddr_vmcoreinfo_note());
- }
+ 	phdr->p_paddr	= fadump_relocate(paddr_vmcoreinfo_note());
+ 	phdr->p_offset	= phdr->p_paddr;
+-	phdr->p_memsz	= vmcoreinfo_max_size;
+-	phdr->p_filesz	= vmcoreinfo_max_size;
++	phdr->p_memsz	= phdr->p_filesz = VMCOREINFO_NOTE_SIZE;
  
- void machine_shutdown(void)
-diff -puN arch/s390/kernel/setup.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/s390/kernel/setup.c
---- a/arch/s390/kernel/setup.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/s390/kernel/setup.c
-@@ -496,11 +496,6 @@ static void __init setup_memory_end(void
- 	pr_notice("The maximum memory size is %luMB\n", memory_end >> 20);
- }
- 
--static void __init setup_vmcoreinfo(void)
--{
--	mem_assign_absolute(S390_lowcore.vmcore_info, paddr_vmcoreinfo_note());
--}
--
- #ifdef CONFIG_CRASH_DUMP
- 
- /*
-@@ -939,7 +934,6 @@ void __init setup_arch(char **cmdline_p)
- #endif
- 
- 	setup_resources();
--	setup_vmcoreinfo();
- 	setup_lowcore();
- 	smp_fill_possible_mask();
- 	cpu_detect_mhz_feature();
-diff -puN arch/x86/kernel/crash.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/x86/kernel/crash.c
-@@ -457,7 +457,7 @@ static int prepare_elf64_headers(struct
- 	bufp += sizeof(Elf64_Phdr);
- 	phdr->p_type = PT_NOTE;
- 	phdr->p_offset = phdr->p_paddr = paddr_vmcoreinfo_note();
--	phdr->p_filesz = phdr->p_memsz = sizeof(vmcoreinfo_note);
-+	phdr->p_filesz = phdr->p_memsz = VMCOREINFO_NOTE_SIZE;
- 	(ehdr->e_phnum)++;
- 
- #ifdef CONFIG_X86_64
-diff -puN arch/x86/xen/mmu_pv.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section arch/x86/xen/mmu_pv.c
---- a/arch/x86/xen/mmu_pv.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/arch/x86/xen/mmu_pv.c
-@@ -2724,8 +2724,8 @@ EXPORT_SYMBOL_GPL(xen_destroy_contiguous
- phys_addr_t paddr_vmcoreinfo_note(void)
- {
- 	if (xen_pv_domain())
--		return virt_to_machine(&vmcoreinfo_note).maddr;
-+		return virt_to_machine(vmcoreinfo_note).maddr;
- 	else
--		return __pa_symbol(&vmcoreinfo_note);
-+		return __pa(vmcoreinfo_note);
- }
- #endif /* CONFIG_KEXEC_CORE */
-diff -puN include/linux/crash_core.h~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section include/linux/crash_core.h
---- a/include/linux/crash_core.h~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
+ 	/* Increment number of program headers. */
+ 	(elf->e_phnum)++;
+diff -puN include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr include/linux/crash_core.h
+--- a/include/linux/crash_core.h~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
 +++ a/include/linux/crash_core.h
-@@ -14,7 +14,7 @@
- 				     CRASH_CORE_NOTE_NAME_BYTES +	\
- 				     CRASH_CORE_NOTE_DESC_BYTES)
+@@ -53,7 +53,6 @@ phys_addr_t paddr_vmcoreinfo_note(void);
  
--#define VMCOREINFO_BYTES	   (4096)
-+#define VMCOREINFO_BYTES	   PAGE_SIZE
- #define VMCOREINFO_NOTE_NAME	   "VMCOREINFO"
- #define VMCOREINFO_NOTE_NAME_BYTES ALIGN(sizeof(VMCOREINFO_NOTE_NAME), 4)
- #define VMCOREINFO_NOTE_SIZE	   ((CRASH_CORE_NOTE_HEAD_BYTES * 2) +	\
-@@ -51,7 +51,7 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- #define VMCOREINFO_CONFIG(name) \
- 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
- 
--extern u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
-+extern u32 *vmcoreinfo_note;
+ extern u32 *vmcoreinfo_note;
  extern size_t vmcoreinfo_size;
- extern size_t vmcoreinfo_max_size;
+-extern size_t vmcoreinfo_max_size;
  
-diff -puN kernel/crash_core.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section kernel/crash_core.c
---- a/kernel/crash_core.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
+ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
+ 			  void *data, size_t data_len);
+diff -puN kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr kernel/crash_core.c
+--- a/kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr
 +++ a/kernel/crash_core.c
-@@ -14,10 +14,10 @@
- #include <asm/sections.h>
- 
+@@ -16,7 +16,6 @@
  /* vmcoreinfo stuff */
--static unsigned char vmcoreinfo_data[VMCOREINFO_BYTES];
--u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
-+static unsigned char *vmcoreinfo_data;
+ static unsigned char *vmcoreinfo_data;
  size_t vmcoreinfo_size;
--size_t vmcoreinfo_max_size = sizeof(vmcoreinfo_data);
-+size_t vmcoreinfo_max_size = VMCOREINFO_BYTES;
-+u32 *vmcoreinfo_note;
+-size_t vmcoreinfo_max_size = VMCOREINFO_BYTES;
+ u32 *vmcoreinfo_note;
  
  /*
-  * parsing the "crashkernel" commandline
-@@ -326,6 +326,9 @@ static void update_vmcoreinfo_note(void)
+@@ -343,7 +342,7 @@ void vmcoreinfo_append_str(const char *f
+ 	r = vscnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
  
- void crash_save_vmcoreinfo(void)
- {
-+	if (!vmcoreinfo_note)
-+		return;
-+
- 	vmcoreinfo_append_str("CRASHTIME=%ld\n", get_seconds());
- 	update_vmcoreinfo_note();
- }
-@@ -356,11 +359,26 @@ void __weak arch_crash_save_vmcoreinfo(v
+-	r = min(r, vmcoreinfo_max_size - vmcoreinfo_size);
++	r = min(r, VMCOREINFO_BYTES - vmcoreinfo_size);
  
- phys_addr_t __weak paddr_vmcoreinfo_note(void)
- {
--	return __pa_symbol((unsigned long)(char *)&vmcoreinfo_note);
-+	return __pa(vmcoreinfo_note);
- }
- 
- static int __init crash_save_vmcoreinfo_init(void)
- {
-+	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-+	if (!vmcoreinfo_data) {
-+		pr_warn("Memory allocation for vmcoreinfo_data failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	vmcoreinfo_note = alloc_pages_exact(VMCOREINFO_NOTE_SIZE,
-+						GFP_KERNEL | __GFP_ZERO);
-+	if (!vmcoreinfo_note) {
-+		free_page((unsigned long)vmcoreinfo_data);
-+		vmcoreinfo_data = NULL;
-+		pr_warn("Memory allocation for vmcoreinfo_note failed\n");
-+		return -ENOMEM;
-+	}
-+
- 	VMCOREINFO_OSRELEASE(init_uts_ns.name.release);
- 	VMCOREINFO_PAGESIZE(PAGE_SIZE);
- 
-diff -puN kernel/ksysfs.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section kernel/ksysfs.c
---- a/kernel/ksysfs.c~kexec-move-vmcoreinfo-out-of-the-kernels-bss-section
-+++ a/kernel/ksysfs.c
-@@ -134,7 +134,7 @@ static ssize_t vmcoreinfo_show(struct ko
- {
- 	phys_addr_t vmcore_base = paddr_vmcoreinfo_note();
- 	return sprintf(buf, "%pa %x\n", &vmcore_base,
--		       (unsigned int)sizeof(vmcoreinfo_note));
-+			(unsigned int)VMCOREINFO_NOTE_SIZE);
- }
- KERNEL_ATTR_RO(vmcoreinfo);
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
  
 _
 
