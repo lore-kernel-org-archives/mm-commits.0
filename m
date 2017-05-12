@@ -1,77 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/15] hwpoison, memcg: forcibly uncharge LRU pages
-Date: Fri, 12 May 2017 15:46:26 -0700
-Message-ID: <20170512224626.E1GCYeTyp%akpm@linux-foundation.org>
+Subject: [patch 02/15] time: delete current_fs_time()
+Date: Fri, 12 May 2017 15:46:29 -0700
+Message-ID: <20170512224629.vPxtKowdW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38650 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756700AbdELWq1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:46:27 -0400
+        with ESMTP id S1756700AbdELWqa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:46:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bsingharora@gmail.com, ldufour@linux.vnet.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arnd@arndb.de, deepa.kernel@gmail.com, john.stultz@linaro.org, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: hwpoison, memcg: forcibly uncharge LRU pages
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: time: delete current_fs_time()
 
-Laurent Dufour has noticed that hwpoinsoned pages are kept charged.  In
-his particular case he has hit a bad_page("page still charged to cgroup")
-when onlining a hwpoison page.  While this looks like something that
-shouldn't happen in the first place because onlining hwpages and returning
-them to the page allocator makes only little sense it shows a real
-problem.
+All uses of the current_fs_time() function have been replaced by other
+time interfaces.
 
-hwpoison pages do not get freed usually so we do not uncharge them (at
-least not since 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")). 
-Each charge pins memcg (since e8ea14cc6ead ("mm: memcontrol: take a css
-reference for each charged page")) as well and so the mem_cgroup and the
-associated state will never go away.  Fix this leak by forcibly uncharging
-a LRU hwpoisoned page in delete_from_lru_cache().  We also have to tweak
-uncharge_list because it cannot rely on zero ref count for these pages.
+And, its use cases can be fulfilled by current_time() or ktime_get_*
+variants.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Fixes: 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")
-Link: http://lkml.kernel.org/r/20170502185507.GB19165@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Tested-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Reviewed-by: Balbir Singh <bsingharora@gmail.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/1491613030-11599-13-git-send-email-deepa.kernel@gmail.com
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c     |    2 +-
- mm/memory-failure.c |    7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ include/linux/fs.h |    1 -
+ kernel/time/time.c |   14 --------------
+ 2 files changed, 15 deletions(-)
 
-diff -puN mm/memcontrol.c~hwpoison-memcg-forcibly-uncharge-lru-pages mm/memcontrol.c
---- a/mm/memcontrol.c~hwpoison-memcg-forcibly-uncharge-lru-pages
-+++ a/mm/memcontrol.c
-@@ -5528,7 +5528,7 @@ static void uncharge_list(struct list_he
- 		next = page->lru.next;
+diff -puN include/linux/fs.h~time-delete-current_fs_time-function include/linux/fs.h
+--- a/include/linux/fs.h~time-delete-current_fs_time-function
++++ a/include/linux/fs.h
+@@ -1431,7 +1431,6 @@ static inline void i_gid_write(struct in
+ 	inode->i_gid = make_kgid(inode->i_sb->s_user_ns, gid);
+ }
  
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
--		VM_BUG_ON_PAGE(page_count(page), page);
-+		VM_BUG_ON_PAGE(!PageHWPoison(page) && page_count(page), page);
+-extern struct timespec current_fs_time(struct super_block *sb);
+ extern struct timespec current_time(struct inode *inode);
  
- 		if (!page->mem_cgroup)
- 			continue;
-diff -puN mm/memory-failure.c~hwpoison-memcg-forcibly-uncharge-lru-pages mm/memory-failure.c
---- a/mm/memory-failure.c~hwpoison-memcg-forcibly-uncharge-lru-pages
-+++ a/mm/memory-failure.c
-@@ -539,6 +539,13 @@ static int delete_from_lru_cache(struct
- 		 */
- 		ClearPageActive(p);
- 		ClearPageUnevictable(p);
-+
-+		/*
-+		 * Poisoned page might never drop its ref count to 0 so we have
-+		 * to uncharge it manually from its memcg.
-+		 */
-+		mem_cgroup_uncharge(p);
-+
- 		/*
- 		 * drop the page count elevated by isolate_lru_page()
- 		 */
-_
+ /*
+diff -puN kernel/time/time.c~time-delete-current_fs_time-function kernel/time/time.c
+--- a/kernel/time/time.c~time-delete-current_fs_time-function
++++ a/kernel/time/time.c
+@@ -230,20 +230,6 @@ SYSCALL_DEFINE1(adjtimex, struct timex _
+ 	return copy_to_user(txc_p, &txc, sizeof(struct timex)) ? -EFAULT : ret;
+ }
+ 
+-/**
+- * current_fs_time - Return FS time
+- * @sb: Superblock.
+- *
+- * Return the current time truncated to the time granularity supported by
+- * the fs.
+- */
+-struct timespec current_fs_time(struct super_block *sb)
+-{
+-	struct timespec now = current_kernel_time();
+-	return timespec_trunc(now, sb->s_time_gran);
+-}
+-EXPORT_SYMBOL(current_fs_time);
