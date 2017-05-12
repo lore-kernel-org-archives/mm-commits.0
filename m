@@ -1,63 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] gcov-support-gcc-71-v2.patch removed from -mm
- tree
-Date: Fri, 12 May 2017 15:40:58 -0700
-Message-ID: <591639fa.Ka1DzllJUOWHuIDE%akpm@linux-foundation.org>
+Subject: [folded-merged] gcov-support-gcc-71-v2-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Fri, 12 May 2017 15:41:01 -0700
+Message-ID: <591639fd.6EhC72aT+RfwkzjV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38360 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752997AbdELWk7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:40:59 -0400
+        with ESMTP id S1753257AbdELWlC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mliska@suse.cz, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mliska@suse.cz, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov-support-gcc-71-v2
+     Subject: gcov-support-gcc-71-v2-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     gcov-support-gcc-71-v2.patch
+     gcov-support-gcc-71-v2-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into gcov-support-gcc-71.patch
 
 ------------------------------------------------------
-From: Martin Liska <mliska@suse.cz>
-Subject: gcov-support-gcc-71-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gcov-support-gcc-71-v2-checkpatch-fixes
 
-Starting from GCC 7.1, __gcov_exit is a new symbol expected
-to be implemented in a profiling runtime. Update number of profile
-counters.
-
-Link: http://lkml.kernel.org/r/e63a3c59-0149-c97e-4084-20ca8f146b26@suse.cz
-Signed-off-by: Martin Liska <mliska@suse.cz>
-Acked-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Cc: Martin Liska <mliska@suse.cz>
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/gcc_4_7.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/gcov/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/gcov/gcc_4_7.c~gcov-support-gcc-71-v2 kernel/gcov/gcc_4_7.c
---- a/kernel/gcov/gcc_4_7.c~gcov-support-gcc-71-v2
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -18,7 +18,9 @@
- #include <linux/vmalloc.h>
- #include "gcov.h"
+diff -puN kernel/gcov/base.c~gcov-support-gcc-71-v2-checkpatch-fixes kernel/gcov/base.c
+--- a/kernel/gcov/base.c~gcov-support-gcc-71-v2-checkpatch-fixes
++++ a/kernel/gcov/base.c
+@@ -98,7 +98,7 @@ void __gcov_merge_icall_topn(gcov_type *
+ }
+ EXPORT_SYMBOL(__gcov_merge_icall_topn);
  
--#if (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
-+#if (__GNUC__ >= 7)
-+#define GCOV_COUNTERS			9
-+#elif (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
- #define GCOV_COUNTERS			10
- #elif __GNUC__ == 4 && __GNUC_MINOR__ >= 9
- #define GCOV_COUNTERS			9
+-void __gcov_exit (void)
++void __gcov_exit(void)
+ {
+ 	/* Unused. */
+ }
 _
 
-Patches currently in -mm which might be from mliska@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 gcov-support-gcc-71.patch
+mm-vmalloc-fix-vmalloc-users-tracking-properly-checkpatch-fixes.patch
+tigran-has-moved.patch
+mm-vmscan-scan-until-it-founds-eligible-pages-fix.patch
 
