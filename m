@@ -1,178 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/15] mm: vmscan: scan until it finds eligible
- pages
-Date: Fri, 12 May 2017 15:47:06 -0700
-Message-ID: <20170512224706.qGPcB3mto%akpm@linux-foundation.org>
+Subject: mmotm 2017-05-12-15-53 uploaded
+Date: Fri, 12 May 2017 15:54:45 -0700
+Message-ID: <59163d35.CNbYdTCU7mayKvM0%akpm__29875.8919387639$1494629698$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38890 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758432AbdELWrH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:47:07 -0400
+        with ESMTP id S1751811AbdELWyq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:54:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: vmscan: scan until it finds eligible pages
+The mm-of-the-moment snapshot 2017-05-12-15-53 has been uploaded to
 
-Although there are a ton of free swap and anonymous LRU page in elgible
-zones, OOM happened.
+   http://www.ozlabs.org/~akpm/mmotm/
 
-balloon invoked oom-killer: gfp_mask=0x17080c0(GFP_KERNEL_ACCOUNT|__GFP_ZERO|__GFP_NOTRACK), nodemask=(null),  order=0, oom_score_adj=0
-CPU: 7 PID: 1138 Comm: balloon Not tainted 4.11.0-rc6-mm1-zram-00289-ge228d67e9677-dirty #17
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-Call Trace:
- dump_stack+0x65/0x87
- dump_header.isra.19+0x8f/0x20f
- ? preempt_count_add+0x9e/0xb0
- ? _raw_spin_unlock_irqrestore+0x24/0x40
- oom_kill_process+0x21d/0x3f0
- ? has_capability_noaudit+0x17/0x20
- out_of_memory+0xd8/0x390
- __alloc_pages_slowpath+0xbc1/0xc50
- ? anon_vma_interval_tree_insert+0x84/0x90
- __alloc_pages_nodemask+0x1a5/0x1c0
- pte_alloc_one+0x20/0x50
- __pte_alloc+0x1e/0x110
- __handle_mm_fault+0x919/0x960
- handle_mm_fault+0x77/0x120
- __do_page_fault+0x27a/0x550
- trace_do_page_fault+0x43/0x150
- do_async_page_fault+0x2c/0x90
- async_page_fault+0x28/0x30
-RIP: 0033:0x7fc4636bacb8
-RSP: 002b:00007fff97c9c4c0 EFLAGS: 00010202
-RAX: 00007fc3e818d000 RBX: 00007fc4639f8760 RCX: 00007fc46372e9ca
-RDX: 0000000000101002 RSI: 0000000000101000 RDI: 0000000000000000
-RBP: 0000000000100010 R08: 00000000ffffffff R09: 0000000000000000
-R10: 0000000000000022 R11: 00000000000a3901 R12: 00007fc3e818d010
-R13: 0000000000101000 R14: 00007fc4639f87b8 R15: 00007fc4639f87b8
-Mem-Info:
-active_anon:424716 inactive_anon:65314 isolated_anon:0
- active_file:52 inactive_file:46 isolated_file:0
- unevictable:0 dirty:27 writeback:0 unstable:0
- slab_reclaimable:3967 slab_unreclaimable:4125
- mapped:133 shmem:43 pagetables:1674 bounce:0
- free:4637 free_pcp:225 free_cma:0
-Node 0 active_anon:1698864kB inactive_anon:261256kB active_file:208kB inactive_file:184kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:532kB dirty:108kB writeback:0kB shmem:172kB writeback_tmp:0kB unstable:0kB all_unreclaimable? no
-DMA free:7316kB min:32kB low:44kB high:56kB active_anon:8064kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15992kB managed:15908kB mlocked:0kB slab_reclaimable:464kB slab_unreclaimable:40kB kernel_stack:0kB pagetables:24kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
-lowmem_reserve[]: 0 992 992 1952
-DMA32 free:9088kB min:2048kB low:3064kB high:4080kB active_anon:952176kB inactive_anon:0kB active_file:36kB inactive_file:0kB unevictable:0kB writepending:88kB present:1032192kB managed:1019388kB mlocked:0kB slab_reclaimable:13532kB slab_unreclaimable:16460kB kernel_stack:3552kB pagetables:6672kB bounce:0kB free_pcp:56kB local_pcp:24kB free_cma:0kB
-lowmem_reserve[]: 0 0 0 959
-Movable free:3644kB min:1980kB low:2960kB high:3940kB active_anon:738560kB inactive_anon:261340kB active_file:188kB inactive_file:640kB unevictable:0kB writepending:20kB present:1048444kB managed:1010816kB mlocked:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB bounce:0kB free_pcp:832kB local_pcp:60kB free_cma:0kB
-lowmem_reserve[]: 0 0 0 0
-DMA: 1*4kB (E) 0*8kB 18*16kB (E) 10*32kB (E) 10*64kB (E) 9*128kB (ME) 8*256kB (E) 2*512kB (E) 2*1024kB (E) 0*2048kB 0*4096kB = 7524kB
-DMA32: 417*4kB (UMEH) 181*8kB (UMEH) 68*16kB (UMEH) 48*32kB (UMEH) 14*64kB (MH) 3*128kB (M) 1*256kB (H) 1*512kB (M) 2*1024kB (M) 0*2048kB 0*4096kB = 9836kB
-Movable: 1*4kB (M) 1*8kB (M) 1*16kB (M) 1*32kB (M) 0*64kB 1*128kB (M) 2*256kB (M) 4*512kB (M) 1*1024kB (M) 0*2048kB 0*4096kB = 3772kB
-378 total pagecache pages
-17 pages in swap cache
-Swap cache stats: add 17325, delete 17302, find 0/27
-Free swap  = 978940kB
-Total swap = 1048572kB
-524157 pages RAM
-0 pages HighMem/MovableOnly
-12629 pages reserved
-0 pages cma reserved
-0 pages hwpoisoned
-[ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name
-[  433]     0   433     4904        5      14       3       82             0 upstart-udev-br
-[  438]     0   438    12371        5      27       3      191         -1000 systemd-udevd
+mmotm-readme.txt says
 
-With investigation, skipping page of isolate_lru_pages makes reclaim void
-because it returns zero nr_taken easily so LRU shrinking is effectively
-nothing and just increases priority aggressively.  Finally, OOM happens.
+README for mm-of-the-moment:
 
-The problem is that get_scan_count determines nr_to_scan with eligible
-zones so although priority drops to zero, it couldn't reclaim any pages if
-the LRU contains mostly ineligible pages.
+http://www.ozlabs.org/~akpm/mmotm/
 
-get_scan_count:
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
 
-        size = lruvec_lru_size(lruvec, lru, sc->reclaim_idx);
-	size = size >> sc->priority;
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
 
-Assumes sc->priority is 0 and LRU list is as follows.
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
 
-	N-N-N-N-H-H-H-H-H-H-H-H-H-H-H-H-H-H-H-H
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
-(Ie, small eligible pages are in the head of LRU but others are
- almost ineligible pages)
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
-In that case, size becomes 4 so VM want to scan 4 pages but 4 pages
-from tail of the LRU are not eligible pages.
-If get_scan_count counts skipped pages, it doesn't reclaim any pages
-remained after scanning 4 pages so it ends up OOM happening.
 
-This patch makes isolate_lru_pages try to scan pages until it
-encounters eligible zones's pages.
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-[akpm@linux-foundation.org: clean up mind-bending `for' statement.  Tweak comment text]
-Fixes: 3db65812d688 ("Revert "mm, vmscan: account for skipped pages as a partial scan"")
-Link: http://lkml.kernel.org/r/1494457232-27401-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
- mm/vmscan.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+To develop on top of mmotm git:
 
-diff -puN mm/vmscan.c~mm-vmscan-scan-until-it-founds-eligible-pages mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-scan-until-it-founds-eligible-pages
-+++ a/mm/vmscan.c
-@@ -1449,7 +1449,7 @@ static __always_inline void update_lru_s
-  *
-  * Appropriate locks must be held before calling this function.
-  *
-- * @nr_to_scan:	The number of pages to look through on the list.
-+ * @nr_to_scan:	The number of eligible pages to look through on the list.
-  * @lruvec:	The LRU vector to pull pages from.
-  * @dst:	The temp list to put pages on to.
-  * @nr_scanned:	The number of pages that were scanned.
-@@ -1469,11 +1469,13 @@ static unsigned long isolate_lru_pages(u
- 	unsigned long nr_zone_taken[MAX_NR_ZONES] = { 0 };
- 	unsigned long nr_skipped[MAX_NR_ZONES] = { 0, };
- 	unsigned long skipped = 0;
--	unsigned long scan, nr_pages;
-+	unsigned long scan, total_scan, nr_pages;
- 	LIST_HEAD(pages_skipped);
- 
--	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
--					!list_empty(src); scan++) {
-+	scan = 0;
-+	for (total_scan = 0;
-+	     scan < nr_to_scan && nr_taken < nr_to_scan && !list_empty(src);
-+	     total_scan++) {
- 		struct page *page;
- 
- 		page = lru_to_page(src);
-@@ -1487,6 +1489,13 @@ static unsigned long isolate_lru_pages(u
- 			continue;
- 		}
- 
-+		/*
-+		 * Do not count skipped pages because that makes the function
-+		 * return with no isolated pages if the LRU mostly contains
-+		 * ineligible pages.  This causes the VM to not reclaim any
-+		 * pages, triggering a premature OOM.
-+		 */
-+		scan++;
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			nr_pages = hpage_nr_pages(page);
-@@ -1524,9 +1533,9 @@ static unsigned long isolate_lru_pages(u
- 			skipped += nr_skipped[zid];
- 		}
- 	}
--	*nr_scanned = scan;
-+	*nr_scanned = total_scan;
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan,
--				    scan, skipped, nr_taken, mode, lru);
-+				    total_scan, skipped, nr_taken, mode, lru);
- 	update_lru_sizes(lruvec, lru, nr_zone_taken);
- 	return nr_taken;
- }
-_
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
+
+To rebase a branch with older patches to a new mmotm release:
+
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
+
+
+
+
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
+
+A git copy of this tree is available at
+
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+
+
+This mmotm tree contains the following patches against 4.11:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+  i-need-old-gcc.patch
+* hwpoison-memcg-forcibly-uncharge-lru-pages.patch
+* time-delete-current_fs_time-function.patch
+* mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
+* gcov-support-gcc-71.patch
+* mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
+* mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
+* tigran-has-moved.patch
+* dax-prevent-invalidation-of-mapped-dax-entries.patch
+* mm-fix-data-corruption-due-to-stale-mmap-reads.patch
+* ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch
+* dax-fix-data-corruption-when-fault-races-with-write.patch
+* dax-fix-pmd-data-corruption-when-fault-races-with-write.patch
+* mm-thp-copying-user-pages-must-schedule-on-collapse.patch
+* mm-vmscan-scan-until-it-founds-eligible-pages.patch
+* mm-docs-update-memorystat-description-with-workingset-entries.patch
+* mm-skip-hwpoisoned-pages-when-onlining-pages.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* teach-initramfs_root_uid-and-initramfs_root_gid-that-1-means-current-user.patch
+* clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
+* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+  mm.patch
+* mm-slub-remove-a-redundant-assignment-in-___slab_alloc.patch
+* mm-slub-reset-cpu_slabs-pointer-in-deactivate_slab.patch
+* mm-slub-pack-red_left_pad-with-another-int-to-save-a-word.patch
+* mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial.patch
+* mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+* mm-slub-wrap-kmem_cache-cpu_partial-in-config-config_slub_cpu_partial.patch
+* mm-sparsemem-break-out-of-loops-early.patch
+* mark-protection_map-as-__ro_after_init.patch
+* mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
+* mm-nobootmem-return-0-when-start_pfn-equals-end_pfn.patch
+* ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
+* ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
+* zram-introduce-zram_entry-to-prepare-dedup-functionality.patch
+* zram-implement-deduplication-in-zram.patch
+* zram-make-deduplication-feature-optional.patch
+* zram-compare-all-the-entries-with-same-checksum-for-deduplication.patch
+* mm-vmstat-standardize-file-operations-variable-names.patch
+* mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
+* mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
+* kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
+* powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
+* kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
+* bfs-fix-sanity-checks-for-empty-files.patch
+* scripts-gdb-add-lx-fdtdump-command.patch
+* procfs-fdinfo-extend-information-about-epoll-target-files.patch
+* kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files.patch
+* kernel-reboot-add-devm_register_reboot_notifier.patch
+* kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+* fault-inject-support-systematic-fault-injection.patch
+* fault-inject-support-systematic-fault-injection-fix.patch
+* fault-inject-automatically-detect-the-number-base-for-fail-nth-write-interface.patch
+* fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch
+* fault-inject-make-fail-nth-read-write-interface-symmetric.patch
+* fault-inject-simplify-access-check-for-fail-nth.patch
+* fault-inject-simplify-access-check-for-fail-nth-fix.patch
+* fault-inject-add-proc-pid-fail-nth.patch
+* ipc-sem-avoid-indexing-past-end-of-sem_array.patch
+  linux-next.patch
+  linux-next-git-rejects.patch
+* imx7-fix-kconfig-warning-and-build-errors.patch
+* sparc64-ng4-memset-32-bits-overflow.patch
+* mm-zeroing-hash-tables-in-allocator.patch
+* mm-updated-callers-to-use-hash_zero-flag.patch
+* mm-adaptive-hash-table-scaling.patch
+* lib-crc-ccitt-add-ccitt-false-crc16-variant.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  workaround-for-a-pci-restoring-bug.patch
