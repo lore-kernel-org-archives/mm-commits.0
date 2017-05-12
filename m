@@ -1,140 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/15] dax: fix data corruption when fault races
- with write
-Date: Fri, 12 May 2017 15:46:57 -0700
-Message-ID: <20170512224657.-QzKXHPqe%akpm@linux-foundation.org>
+Subject: [patch 10/15] ext4: return to starting transaction in
+ ext4_dax_huge_fault()
+Date: Fri, 12 May 2017 15:46:54 -0700
+Message-ID: <20170512224654.YrMsyoR0o%akpm__38853.1987592161$1494629217$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38746 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38734 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758272AbdELWq6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:46:58 -0400
+        with ESMTP id S1758228AbdELWqz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:46:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dan.j.williams@intel.com, jack@suse.cz, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Jan Kara <jack@suse.cz>
-Subject: dax: fix data corruption when fault races with write
+Subject: ext4: return to starting transaction in ext4_dax_huge_fault()
 
-Currently DAX read fault can race with write(2) in the following way:
-
-CPU1 - write(2)			CPU2 - read fault
-				dax_iomap_pte_fault()
-				  ->iomap_begin() - sees hole
-dax_iomap_rw()
-  iomap_apply()
-    ->iomap_begin - allocates blocks
-    dax_iomap_actor()
-      invalidate_inode_pages2_range()
-        - there's nothing to invalidate
-				  grab_mapping_entry()
-				  - we add zero page in the radix tree
-				    and map it to page tables
-
-The result is that hole page is mapped into page tables (and thus zeros
-are seen in mmap) while file has data written in that place.
-
-Fix the problem by locking exception entry before mapping blocks for the
-fault.  That way we are sure invalidate_inode_pages2_range() call for
-racing write will either block on entry lock waiting for the fault to
-finish (and unmap stale page tables after that) or read fault will see
-already allocated blocks by write(2).
+DAX will return to locking exceptional entry before mapping blocks for a
+page fault to fix possible races with concurrent writes.  To avoid lock
+inversion between exceptional entry lock and transaction start, start the
+transaction already in ext4_dax_huge_fault().
 
 Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
-Link: http://lkml.kernel.org/r/20170510085419.27601-5-jack@suse.cz
+Link: http://lkml.kernel.org/r/20170510085419.27601-4-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ fs/ext4/file.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-data-corruption-when-fault-races-with-write fs/dax.c
---- a/fs/dax.c~dax-fix-data-corruption-when-fault-races-with-write
-+++ a/fs/dax.c
-@@ -1148,6 +1148,12 @@ static int dax_iomap_pte_fault(struct vm
- 	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
- 		flags |= IOMAP_WRITE;
- 
-+	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
-+	if (IS_ERR(entry)) {
-+		vmf_ret = dax_fault_return(PTR_ERR(entry));
-+		goto out;
+diff -puN fs/ext4/file.c~ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault fs/ext4/file.c
+--- a/fs/ext4/file.c~ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault
++++ a/fs/ext4/file.c
+@@ -257,6 +257,7 @@ static int ext4_dax_huge_fault(struct vm
+ 		enum page_entry_size pe_size)
+ {
+ 	int result;
++	handle_t *handle = NULL;
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+@@ -264,12 +265,24 @@ static int ext4_dax_huge_fault(struct vm
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+ 		file_update_time(vmf->vma->vm_file);
++		down_read(&EXT4_I(inode)->i_mmap_sem);
++		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
++					       EXT4_DATA_TRANS_BLOCKS(sb));
++	} else {
++		down_read(&EXT4_I(inode)->i_mmap_sem);
+ 	}
+-	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
+-	up_read(&EXT4_I(inode)->i_mmap_sem);
+-	if (write)
++	if (!IS_ERR(handle))
++		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
++	else
++		result = VM_FAULT_SIGBUS;
++	if (write) {
++		if (!IS_ERR(handle))
++			ext4_journal_stop(handle);
++		up_read(&EXT4_I(inode)->i_mmap_sem);
+ 		sb_end_pagefault(sb);
++	} else {
++		up_read(&EXT4_I(inode)->i_mmap_sem);
 +	}
-+
- 	/*
- 	 * Note that we don't bother to use iomap_apply here: DAX required
- 	 * the file system block size to be equal the page size, which means
-@@ -1156,17 +1162,11 @@ static int dax_iomap_pte_fault(struct vm
- 	error = ops->iomap_begin(inode, pos, PAGE_SIZE, flags, &iomap);
- 	if (error) {
- 		vmf_ret = dax_fault_return(error);
--		goto out;
-+		goto unlock_entry;
- 	}
- 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
--		vmf_ret = dax_fault_return(-EIO);	/* fs corruption? */
--		goto finish_iomap;
--	}
--
--	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
--	if (IS_ERR(entry)) {
--		vmf_ret = dax_fault_return(PTR_ERR(entry));
--		goto finish_iomap;
-+		error = -EIO;	/* fs corruption? */
-+		goto error_finish_iomap;
- 	}
  
- 	sector = dax_iomap_sector(&iomap, pos);
-@@ -1188,13 +1188,13 @@ static int dax_iomap_pte_fault(struct vm
- 		}
- 
- 		if (error)
--			goto error_unlock_entry;
-+			goto error_finish_iomap;
- 
- 		__SetPageUptodate(vmf->cow_page);
- 		vmf_ret = finish_fault(vmf);
- 		if (!vmf_ret)
- 			vmf_ret = VM_FAULT_DONE_COW;
--		goto unlock_entry;
-+		goto finish_iomap;
- 	}
- 
- 	switch (iomap.type) {
-@@ -1214,7 +1214,7 @@ static int dax_iomap_pte_fault(struct vm
- 	case IOMAP_HOLE:
- 		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
- 			vmf_ret = dax_load_hole(mapping, &entry, vmf);
--			goto unlock_entry;
-+			goto finish_iomap;
- 		}
- 		/*FALLTHRU*/
- 	default:
-@@ -1223,10 +1223,8 @@ static int dax_iomap_pte_fault(struct vm
- 		break;
- 	}
- 
-- error_unlock_entry:
-+ error_finish_iomap:
- 	vmf_ret = dax_fault_return(error) | major;
-- unlock_entry:
--	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-  finish_iomap:
- 	if (ops->iomap_end) {
- 		int copied = PAGE_SIZE;
-@@ -1241,7 +1239,9 @@ static int dax_iomap_pte_fault(struct vm
- 		 */
- 		ops->iomap_end(inode, pos, PAGE_SIZE, copied, flags, &iomap);
- 	}
--out:
-+ unlock_entry:
-+	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
-+ out:
- 	trace_dax_pte_fault_done(inode, vmf, vmf_ret);
- 	return vmf_ret;
+ 	return result;
  }
 _
