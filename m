@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-introduce-zram_entry-to-prepare-dedup-functionality.patch
- added to -mm tree
-Date: Fri, 12 May 2017 13:43:59 -0700
-Message-ID: <59161e8f.lccFPqr18aal2I04%akpm@linux-foundation.org>
+Subject: + zram-make-deduplication-feature-optional.patch added to -mm
+ tree
+Date: Fri, 12 May 2017 13:44:04 -0700
+Message-ID: <59161e94.yfojF2SnMiHdqbWj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33816 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751574AbdELUoA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 16:44:00 -0400
+        with ESMTP id S1751574AbdELUoF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 16:44:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: introduce zram_entry to prepare dedup functionality
+     Subject: zram: make deduplication feature optional
 has been added to the -mm tree.  Its filename is
-     zram-introduce-zram_entry-to-prepare-dedup-functionality.patch
+     zram-make-deduplication-feature-optional.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-zram_entry-to-prepare-dedup-functionality.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-make-deduplication-feature-optional.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-zram_entry-to-prepare-dedup-functionality.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-make-deduplication-feature-optional.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,297 +40,356 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: zram: introduce zram_entry to prepare dedup functionality
+Subject: zram: make deduplication feature optional
 
-The following patch will implement deduplication functionality in zram and
-it requires an indirection layer to manage the life cycle of zsmalloc
-handle.  To prepare that, this patch introduces zram_entry which can be
-used to manage the life-cycle of zsmalloc handle.  Many lines are changed
-due to rename but core change is just simple introduction about newly data
-structure.
+Benefit of deduplication is dependent on the workload so it's not
+preferable to always enable.  Therefore, make it optional in Kconfig and
+device param.  Default is 'off'.  This option will be beneficial for users
+who use the zram as blockdev and stores build output to it.
 
-Link: http://lkml.kernel.org/r/1494556204-25796-2-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1494556204-25796-4-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   95 ++++++++++++++++++++------------
- drivers/block/zram/zram_drv.h |    6 +-
- 2 files changed, 66 insertions(+), 35 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram |   10 ++
+ Documentation/blockdev/zram.txt            |    1 
+ drivers/block/zram/Kconfig                 |   14 +++
+ drivers/block/zram/Makefile                |    3 
+ drivers/block/zram/zram_dedup.c            |   15 +++
+ drivers/block/zram/zram_dedup.h            |   23 +++++
+ drivers/block/zram/zram_drv.c              |   81 ++++++++++++++++---
+ drivers/block/zram/zram_drv.h              |    9 ++
+ 8 files changed, 144 insertions(+), 12 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-introduce-zram_entry-to-prepare-dedup-functionality drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-introduce-zram_entry-to-prepare-dedup-functionality
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-make-deduplication-feature-optional Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-make-deduplication-feature-optional
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -90,3 +90,13 @@ Description:
+ 		device's debugging info useful for kernel developers. Its
+ 		format is not documented intentionally and may change
+ 		anytime without any notice.
++
++What:		/sys/block/zram<id>/use_dedup
++Date:		March 2017
++Contact:	Joonsoo Kim <iamjoonsoo.kim@lge.com>
++Description:
++		The use_dedup file is read-write and specifies deduplication
++		feature is used or not. If enabled, duplicated data is
++		managed by reference count and will not be stored in memory
++		twice. Benefit of this feature largely depends on the workload
++		so keep attention when use.
+diff -puN Documentation/blockdev/zram.txt~zram-make-deduplication-feature-optional Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-make-deduplication-feature-optional
++++ a/Documentation/blockdev/zram.txt
+@@ -168,6 +168,7 @@ max_comp_streams  RW    the number of po
+ comp_algorithm    RW    show and change the compression algorithm
+ compact           WO    trigger memory compaction
+ debug_stat        RO    this file is used for zram debugging purposes
++use_dedup	  RW	show and set deduplication feature
+ 
+ 
+ User space is advised to use the following files to read the device statistics.
+diff -puN drivers/block/zram/Kconfig~zram-make-deduplication-feature-optional drivers/block/zram/Kconfig
+--- a/drivers/block/zram/Kconfig~zram-make-deduplication-feature-optional
++++ a/drivers/block/zram/Kconfig
+@@ -13,3 +13,17 @@ config ZRAM
+ 	  disks and maybe many more.
+ 
+ 	  See zram.txt for more information.
++
++config ZRAM_DEDUP
++	bool "Deduplication support for ZRAM data"
++	depends on ZRAM
++	default n
++	help
++	  Deduplicate ZRAM data to reduce amount of memory consumption.
++	  Advantage largely depends on the workload. In some cases, this
++	  option reduces memory usage to the half. However, if there is no
++	  duplicated data, the amount of memory consumption would be
++	  increased due to additional metadata usage. And, there is
++	  computation time trade-off. Please check the benefit before
++	  enabling this option. Experiment shows the positive effect when
++	  the zram is used as blockdev and is used to store build output.
+diff -puN drivers/block/zram/Makefile~zram-make-deduplication-feature-optional drivers/block/zram/Makefile
+--- a/drivers/block/zram/Makefile~zram-make-deduplication-feature-optional
++++ a/drivers/block/zram/Makefile
+@@ -1,3 +1,4 @@
+-zram-y	:=	zcomp.o zram_drv.o zram_dedup.o
++zram-y				:=	zcomp.o zram_drv.o
++zram-$(CONFIG_ZRAM_DEDUP)	+=	zram_dedup.o
+ 
+ obj-$(CONFIG_ZRAM)	+=	zram.o
+diff -puN drivers/block/zram/zram_dedup.c~zram-make-deduplication-feature-optional drivers/block/zram/zram_dedup.c
+--- a/drivers/block/zram/zram_dedup.c~zram-make-deduplication-feature-optional
++++ a/drivers/block/zram/zram_dedup.c
+@@ -41,6 +41,9 @@ void zram_dedup_insert(struct zram *zram
+ 	struct rb_node **rb_node, *parent = NULL;
+ 	struct zram_entry *entry;
+ 
++	if (!zram_dedup_enabled(zram))
++		return;
++
+ 	new->checksum = checksum;
+ 	hash = &zram->hash[checksum % zram->hash_size];
+ 	rb_root = &hash->rb_root;
+@@ -148,6 +151,9 @@ struct zram_entry *zram_dedup_find(struc
+ 	void *mem;
+ 	struct zram_entry *entry;
+ 
++	if (!zram_dedup_enabled(zram))
++		return NULL;
++
+ 	mem = kmap_atomic(page);
+ 	*checksum = zram_dedup_checksum(mem);
+ 
+@@ -160,6 +166,9 @@ struct zram_entry *zram_dedup_find(struc
+ void zram_dedup_init_entry(struct zram *zram, struct zram_entry *entry,
+ 				unsigned long handle, unsigned int len)
+ {
++	if (!zram_dedup_enabled(zram))
++		return;
++
+ 	entry->handle = handle;
+ 	entry->refcount = 1;
+ 	entry->len = len;
+@@ -167,6 +176,9 @@ void zram_dedup_init_entry(struct zram *
+ 
+ bool zram_dedup_put_entry(struct zram *zram, struct zram_entry *entry)
+ {
++	if (!zram_dedup_enabled(zram))
++		return true;
++
+ 	if (zram_dedup_put(zram, entry))
+ 		return false;
+ 
+@@ -178,6 +190,9 @@ int zram_dedup_init(struct zram *zram, s
+ 	int i;
+ 	struct zram_hash *hash;
+ 
++	if (!zram_dedup_enabled(zram))
++		return 0;
++
+ 	zram->hash_size = num_pages >> ZRAM_HASH_SHIFT;
+ 	zram->hash_size = min_t(size_t, ZRAM_HASH_SIZE_MAX, zram->hash_size);
+ 	zram->hash_size = max_t(size_t, ZRAM_HASH_SIZE_MIN, zram->hash_size);
+diff -puN drivers/block/zram/zram_dedup.h~zram-make-deduplication-feature-optional drivers/block/zram/zram_dedup.h
+--- a/drivers/block/zram/zram_dedup.h~zram-make-deduplication-feature-optional
++++ a/drivers/block/zram/zram_dedup.h
+@@ -4,6 +4,8 @@
+ struct zram;
+ struct zram_entry;
+ 
++#ifdef CONFIG_ZRAM_DEDUP
++
+ u64 zram_dedup_dup_size(struct zram *zram);
+ u64 zram_dedup_meta_size(struct zram *zram);
+ 
+@@ -18,5 +20,26 @@ bool zram_dedup_put_entry(struct zram *z
+ 
+ int zram_dedup_init(struct zram *zram, size_t num_pages);
+ void zram_dedup_fini(struct zram *zram);
++#else
++
++static inline u64 zram_dedup_dup_size(struct zram *zram) { return 0; }
++static inline u64 zram_dedup_meta_size(struct zram *zram) { return 0; }
++
++static inline void zram_dedup_insert(struct zram *zram, struct zram_entry *new,
++			u32 checksum) { }
++static inline struct zram_entry *zram_dedup_find(struct zram *zram,
++			struct page *page, u32 *checksum) { return NULL; }
++
++static inline void zram_dedup_init_entry(struct zram *zram,
++			struct zram_entry *entry, unsigned long handle,
++			unsigned int len) { }
++static inline bool zram_dedup_put_entry(struct zram *zram,
++			struct zram_entry *entry) { return true; }
++
++static inline int zram_dedup_init(struct zram *zram,
++			size_t num_pages) { return 0; }
++static inline void zram_dedup_fini(struct zram *zram) { }
++
++#endif
+ 
+ #endif /* _ZRAM_DEDUP_H_ */
+diff -puN drivers/block/zram/zram_drv.c~zram-make-deduplication-feature-optional drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-make-deduplication-feature-optional
 +++ a/drivers/block/zram/zram_drv.c
-@@ -57,14 +57,15 @@ static inline struct zram *dev_to_zram(s
- 	return (struct zram *)dev_to_disk(dev)->private_data;
+@@ -333,6 +333,41 @@ static ssize_t comp_algorithm_store(stru
+ 	return len;
  }
  
--static unsigned long zram_get_handle(struct zram *zram, u32 index)
-+static struct zram_entry *zram_get_entry(struct zram *zram, u32 index)
- {
--	return zram->table[index].handle;
-+	return zram->table[index].entry;
- }
- 
--static void zram_set_handle(struct zram *zram, u32 index, unsigned long handle)
-+static void zram_set_entry(struct zram *zram, u32 index,
-+			struct zram_entry *entry)
- {
--	zram->table[index].handle = handle;
-+	zram->table[index].entry = entry;
- }
- 
- /* flag operations require table entry bit_spin_lock() being held */
-@@ -437,7 +438,7 @@ static bool zram_same_page_read(struct z
- 				unsigned int offset, unsigned int len)
- {
- 	zram_slot_lock(zram, index);
--	if (unlikely(!zram_get_handle(zram, index) ||
-+	if (unlikely(!zram_get_entry(zram, index) ||
- 			zram_test_flag(zram, index, ZRAM_SAME))) {
- 		void *mem;
- 
-@@ -476,6 +477,32 @@ static bool zram_same_page_write(struct
- 	return false;
- }
- 
-+static struct zram_entry *zram_entry_alloc(struct zram *zram,
-+					unsigned int len, gfp_t flags)
++static ssize_t use_dedup_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	struct zram_entry *entry;
++	bool val;
++	struct zram *zram = dev_to_zram(dev);
++
++	down_read(&zram->init_lock);
++	val = zram->use_dedup;
++	up_read(&zram->init_lock);
++
++	return scnprintf(buf, PAGE_SIZE, "%d\n", (int)val);
++}
++
++#ifdef CONFIG_ZRAM_DEDUP
++static ssize_t use_dedup_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	int val;
++	struct zram *zram = dev_to_zram(dev);
++
++	if (kstrtoint(buf, 10, &val) || (val != 0 && val != 1))
++		return -EINVAL;
++
++	down_write(&zram->init_lock);
++	if (init_done(zram)) {
++		up_write(&zram->init_lock);
++		pr_info("Can't change dedup usage for initialized device\n");
++		return -EBUSY;
++	}
++	zram->use_dedup = val;
++	up_write(&zram->init_lock);
++	return len;
++}
++#endif
++
+ static ssize_t compact_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+@@ -425,6 +460,15 @@ static DEVICE_ATTR_RO(io_stat);
+ static DEVICE_ATTR_RO(mm_stat);
+ static DEVICE_ATTR_RO(debug_stat);
+ 
++static unsigned long zram_entry_handle(struct zram *zram,
++		struct zram_entry *entry)
++{
++	if (zram_dedup_enabled(zram))
++		return entry->handle;
++	else
++		return (unsigned long)entry;
++}
++
+ static void zram_slot_lock(struct zram *zram, u32 index)
+ {
+ 	bit_spin_lock(ZRAM_ACCESS, &zram->table[index].value);
+@@ -485,14 +529,17 @@ static struct zram_entry *zram_entry_all
+ 	struct zram_entry *entry;
+ 	unsigned long handle;
+ 
+-	entry = kzalloc(sizeof(*entry),
+-			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
+-	if (!entry)
++	handle = zs_malloc(zram->mem_pool, len, flags);
++	if (!handle)
+ 		return NULL;
+ 
+-	handle = zs_malloc(zram->mem_pool, len, flags);
+-	if (!handle) {
+-		kfree(entry);
++	if (!zram_dedup_enabled(zram))
++		return (struct zram_entry *)handle;
 +
 +	entry = kzalloc(sizeof(*entry),
 +			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
-+	if (!entry)
-+		return NULL;
-+
-+	entry->handle = zs_malloc(zram->mem_pool, len, flags);
-+	if (!entry->handle) {
-+		kfree(entry);
-+		return NULL;
-+	}
-+
-+	return entry;
-+}
-+
-+static inline void zram_entry_free(struct zram *zram,
-+			struct zram_entry *entry)
-+{
-+	zs_free(zram->mem_pool, entry->handle);
-+	kfree(entry);
-+}
-+
- static void zram_meta_free(struct zram *zram, u64 disksize)
- {
- 	size_t num_pages = disksize >> PAGE_SHIFT;
-@@ -514,7 +541,7 @@ static bool zram_meta_alloc(struct zram
-  */
- static void zram_free_page(struct zram *zram, size_t index)
- {
--	unsigned long handle = zram_get_handle(zram, index);
-+	struct zram_entry *entry = zram_get_entry(zram, index);
- 
- 	/*
- 	 * No memory is allocated for same element filled pages.
-@@ -527,23 +554,23 @@ static void zram_free_page(struct zram *
- 		return;
++	if (!entry) {
++		zs_free(zram->mem_pool, handle);
+ 		return NULL;
  	}
  
--	if (!handle)
-+	if (!entry)
+@@ -507,7 +554,11 @@ void zram_entry_free(struct zram *zram,
+ 	if (!zram_dedup_put_entry(zram, entry))
  		return;
  
--	zs_free(zram->mem_pool, handle);
-+	zram_entry_free(zram, entry);
+-	zs_free(zram->mem_pool, entry->handle);
++	zs_free(zram->mem_pool, zram_entry_handle(zram, entry));
++
++	if (!zram_dedup_enabled(zram))
++		return;
++
+ 	kfree(entry);
  
- 	atomic64_sub(zram_get_obj_size(zram, index),
- 			&zram->stats.compr_data_size);
- 	atomic64_dec(&zram->stats.pages_stored);
- 
--	zram_set_handle(zram, index, 0);
-+	zram_set_entry(zram, index, NULL);
- 	zram_set_obj_size(zram, index, 0);
- }
- 
- static int zram_decompress_page(struct zram *zram, struct page *page, u32 index)
- {
- 	int ret;
--	unsigned long handle;
-+	struct zram_entry *entry;
- 	unsigned int size;
- 	void *src, *dst;
- 
-@@ -551,10 +578,10 @@ static int zram_decompress_page(struct z
- 		return 0;
- 
- 	zram_slot_lock(zram, index);
--	handle = zram_get_handle(zram, index);
-+	entry = zram_get_entry(zram, index);
+ 	atomic64_sub(sizeof(*entry), &zram->stats.meta_data_size);
+@@ -598,7 +649,8 @@ static int zram_decompress_page(struct z
+ 	entry = zram_get_entry(zram, index);
  	size = zram_get_obj_size(zram, index);
  
--	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
-+	src = zs_map_object(zram->mem_pool, entry->handle, ZS_MM_RO);
+-	src = zs_map_object(zram->mem_pool, entry->handle, ZS_MM_RO);
++	src = zs_map_object(zram->mem_pool,
++		zram_entry_handle(zram, entry), ZS_MM_RO);
  	if (size == PAGE_SIZE) {
  		dst = kmap_atomic(page);
  		memcpy(dst, src, PAGE_SIZE);
-@@ -568,7 +595,7 @@ static int zram_decompress_page(struct z
+@@ -612,7 +664,7 @@ static int zram_decompress_page(struct z
  		kunmap_atomic(dst);
  		zcomp_stream_put(zram->comp);
  	}
--	zs_unmap_object(zram->mem_pool, handle);
-+	zs_unmap_object(zram->mem_pool, entry->handle);
+-	zs_unmap_object(zram->mem_pool, entry->handle);
++	zs_unmap_object(zram->mem_pool, zram_entry_handle(zram, entry));
  	zram_slot_unlock(zram, index);
  
  	/* Should NEVER happen. Return bio error if it does. */
-@@ -612,14 +639,14 @@ out:
- }
- 
- static int zram_compress(struct zram *zram, struct zcomp_strm **zstrm,
--			struct page *page,
--			unsigned long *out_handle, unsigned int *out_comp_len)
-+			struct page *page, struct zram_entry **out_entry,
-+			unsigned int *out_comp_len)
- {
- 	int ret;
- 	unsigned int comp_len;
- 	void *src;
- 	unsigned long alloced_pages;
--	unsigned long handle = 0;
-+	struct zram_entry *entry = NULL;
- 
- compress_again:
- 	src = kmap_atomic(page);
-@@ -628,8 +655,8 @@ compress_again:
- 
- 	if (unlikely(ret)) {
- 		pr_err("Compression failed! err=%d\n", ret);
--		if (handle)
--			zs_free(zram->mem_pool, handle);
-+		if (entry)
-+			zram_entry_free(zram, entry);
+@@ -750,7 +802,8 @@ static int __zram_bvec_write(struct zram
  		return ret;
  	}
  
-@@ -637,32 +664,32 @@ compress_again:
- 		comp_len = PAGE_SIZE;
- 
- 	/*
--	 * handle allocation has 2 paths:
-+	 * entry allocation has 2 paths:
- 	 * a) fast path is executed with preemption disabled (for
- 	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
- 	 *  since we can't sleep;
- 	 * b) slow path enables preemption and attempts to allocate
- 	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
- 	 *  put per-cpu compression stream and, thus, to re-do
--	 *  the compression once handle is allocated.
-+	 *  the compression once entry is allocated.
- 	 *
--	 * if we have a 'non-null' handle here then we are coming
--	 * from the slow path and handle has already been allocated.
-+	 * if we have a 'non-null' entry here then we are coming
-+	 * from the slow path and entry has already been allocated.
- 	 */
--	if (!handle)
--		handle = zs_malloc(zram->mem_pool, comp_len,
-+	if (!entry)
-+		entry = zram_entry_alloc(zram, comp_len,
- 				__GFP_KSWAPD_RECLAIM |
- 				__GFP_NOWARN |
- 				__GFP_HIGHMEM |
- 				__GFP_MOVABLE);
--	if (!handle) {
-+	if (!entry) {
- 		zcomp_stream_put(zram->comp);
- 		atomic64_inc(&zram->stats.writestall);
--		handle = zs_malloc(zram->mem_pool, comp_len,
-+		entry = zram_entry_alloc(zram, comp_len,
- 				GFP_NOIO | __GFP_HIGHMEM |
- 				__GFP_MOVABLE);
- 		*zstrm = zcomp_stream_get(zram->comp);
--		if (handle)
-+		if (entry)
- 			goto compress_again;
- 		return -ENOMEM;
- 	}
-@@ -671,11 +698,11 @@ compress_again:
- 	update_used_max(zram, alloced_pages);
- 
- 	if (zram->limit_pages && alloced_pages > zram->limit_pages) {
--		zs_free(zram->mem_pool, handle);
-+		zram_entry_free(zram, entry);
- 		return -ENOMEM;
- 	}
- 
--	*out_handle = handle;
-+	*out_entry = entry;
- 	*out_comp_len = comp_len;
- 	return 0;
- }
-@@ -683,7 +710,7 @@ compress_again:
- static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
- {
- 	int ret;
--	unsigned long handle;
-+	struct zram_entry *entry;
- 	unsigned int comp_len;
- 	void *src, *dst;
- 	struct zcomp_strm *zstrm;
-@@ -693,13 +720,13 @@ static int __zram_bvec_write(struct zram
- 		return 0;
- 
- 	zstrm = zcomp_stream_get(zram->comp);
--	ret = zram_compress(zram, &zstrm, page, &handle, &comp_len);
-+	ret = zram_compress(zram, &zstrm, page, &entry, &comp_len);
- 	if (ret) {
- 		zcomp_stream_put(zram->comp);
- 		return ret;
- 	}
- 
--	dst = zs_map_object(zram->mem_pool, handle, ZS_MM_WO);
-+	dst = zs_map_object(zram->mem_pool, entry->handle, ZS_MM_WO);
+-	dst = zs_map_object(zram->mem_pool, entry->handle, ZS_MM_WO);
++	dst = zs_map_object(zram->mem_pool,
++		zram_entry_handle(zram, entry), ZS_MM_WO);
  
  	src = zstrm->buffer;
  	if (comp_len == PAGE_SIZE)
-@@ -709,7 +736,7 @@ static int __zram_bvec_write(struct zram
+@@ -760,7 +813,7 @@ static int __zram_bvec_write(struct zram
  		kunmap_atomic(src);
  
  	zcomp_stream_put(zram->comp);
--	zs_unmap_object(zram->mem_pool, handle);
-+	zs_unmap_object(zram->mem_pool, entry->handle);
+-	zs_unmap_object(zram->mem_pool, entry->handle);
++	zs_unmap_object(zram->mem_pool, zram_entry_handle(zram, entry));
+ 	zram_dedup_insert(zram, entry, checksum);
  
- 	/*
- 	 * Free memory associated with this sector
-@@ -717,7 +744,7 @@ static int __zram_bvec_write(struct zram
- 	 */
- 	zram_slot_lock(zram, index);
- 	zram_free_page(zram, index);
--	zram_set_handle(zram, index, handle);
-+	zram_set_entry(zram, index, entry);
- 	zram_set_obj_size(zram, index, comp_len);
- 	zram_slot_unlock(zram, index);
+ found_dup:
+@@ -1159,6 +1212,11 @@ static DEVICE_ATTR_WO(mem_limit);
+ static DEVICE_ATTR_WO(mem_used_max);
+ static DEVICE_ATTR_RW(max_comp_streams);
+ static DEVICE_ATTR_RW(comp_algorithm);
++#ifdef CONFIG_ZRAM_DEDUP
++static DEVICE_ATTR_RW(use_dedup);
++#else
++static DEVICE_ATTR_RO(use_dedup);
++#endif
  
-diff -puN drivers/block/zram/zram_drv.h~zram-introduce-zram_entry-to-prepare-dedup-functionality drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-introduce-zram_entry-to-prepare-dedup-functionality
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -1169,6 +1227,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_mem_used_max.attr,
+ 	&dev_attr_max_comp_streams.attr,
+ 	&dev_attr_comp_algorithm.attr,
++	&dev_attr_use_dedup.attr,
+ 	&dev_attr_io_stat.attr,
+ 	&dev_attr_mm_stat.attr,
+ 	&dev_attr_debug_stat.attr,
+diff -puN drivers/block/zram/zram_drv.h~zram-make-deduplication-feature-optional drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-make-deduplication-feature-optional
 +++ a/drivers/block/zram/zram_drv.h
-@@ -69,10 +69,14 @@ enum zram_pageflags {
+@@ -134,7 +134,16 @@ struct zram {
+ 	 * zram is claimed so open request will be failed
+ 	 */
+ 	bool claim; /* Protected by bdev->bd_mutex */
++	bool use_dedup;
+ };
  
- /*-- Data structures */
- 
-+struct zram_entry {
-+	unsigned long handle;
-+};
-+
- /* Allocated for each disk page */
- struct zram_table_entry {
- 	union {
--		unsigned long handle;
-+		struct zram_entry *entry;
- 		unsigned long element;
- 	};
- 	unsigned long value;
++static inline bool zram_dedup_enabled(struct zram *zram)
++{
++#ifdef CONFIG_ZRAM_DEDUP
++	return zram->use_dedup;
++#else
++	return false;
++#endif
++}
+ void zram_entry_free(struct zram *zram, struct zram_entry *entry);
+ #endif
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
