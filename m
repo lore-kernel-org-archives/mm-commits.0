@@ -1,59 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/15] mm, vmstat: remove spurious WARN() during
- zoneinfo print
-Date: Fri, 12 May 2017 15:46:32 -0700
-Message-ID: <20170512224632._kHchziOI%akpm@linux-foundation.org>
+Subject: [patch 04/15] gcov: support GCC 7.1
+Date: Fri, 12 May 2017 15:46:35 -0700
+Message-ID: <20170512224635.iFDFepvvX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38678 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756700AbdELWqe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:46:34 -0400
+        with ESMTP id S1756700AbdELWqh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2017 18:46:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, mliska@suse.cz, mm-commits@vger.kernel.org, oberpar@linux.vnet.ibm.com, torvalds@linux-foundation.org
 
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: mm, vmstat: Remove spurious WARN() during zoneinfo print
+From: Martin Liska <mliska@suse.cz>
+Subject: gcov: support GCC 7.1
 
-After e2ecc8a79ed49f7838 ("mm, vmstat: print non-populated zones in
-zoneinfo"), /proc/zoneinfo will show unpopulated zones.
+Starting from GCC 7.1, __gcov_exit is a new symbol expected
+to be implemented in a profiling runtime.
 
-A memoryless node, having no populated zones at all, was previously
-ignored, but will now trigger the WARN() in is_zone_first_populated().
-
-Remove this warning, as its only purpose was to warn of a situation that
-has since been enabled.
-
-Aside: The "per-node stats" are still printed under the first populated
-zone, but that's not necessarily the first stanza any more. I'm not sure
-which criteria is more important with regard to not breaking parsers, but
-it looks a little weird to the eye.
-
-Fixes:  e2ecc8a79ed49f7838: "mm, vmstat: print node-based stats in zoneinfo file")
-Link: http://lkml.kernel.org/r/1493854905-10918-1-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+[akpm@linux-foundation.org: coding-style fixes]
+[mliska@suse.cz: v2]
+  Link: http://lkml.kernel.org/r/e63a3c59-0149-c97e-4084-20ca8f146b26@suse.cz
+Link: http://lkml.kernel.org/r/8c4084fa-3885-29fe-5fc4-0d4ca199c785@suse.cz
+Signed-off-by: Martin Liska <mliska@suse.cz>
+Acked-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/gcov/base.c    |    6 ++++++
+ kernel/gcov/gcc_4_7.c |    4 +++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print
-+++ a/mm/vmstat.c
-@@ -1359,8 +1359,6 @@ static bool is_zone_first_populated(pg_d
- 			return zone == compare;
- 	}
- 
--	/* The zone must be somewhere! */
--	WARN_ON_ONCE(1);
- 	return false;
+diff -puN kernel/gcov/base.c~gcov-support-gcc-71 kernel/gcov/base.c
+--- a/kernel/gcov/base.c~gcov-support-gcc-71
++++ a/kernel/gcov/base.c
+@@ -98,6 +98,12 @@ void __gcov_merge_icall_topn(gcov_type *
  }
+ EXPORT_SYMBOL(__gcov_merge_icall_topn);
  
++void __gcov_exit(void)
++{
++	/* Unused. */
++}
++EXPORT_SYMBOL(__gcov_exit);
++
+ /**
+  * gcov_enable_events - enable event reporting through gcov_event()
+  *
+diff -puN kernel/gcov/gcc_4_7.c~gcov-support-gcc-71 kernel/gcov/gcc_4_7.c
+--- a/kernel/gcov/gcc_4_7.c~gcov-support-gcc-71
++++ a/kernel/gcov/gcc_4_7.c
+@@ -18,7 +18,9 @@
+ #include <linux/vmalloc.h>
+ #include "gcov.h"
+ 
+-#if (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
++#if (__GNUC__ >= 7)
++#define GCOV_COUNTERS			9
++#elif (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
+ #define GCOV_COUNTERS			10
+ #elif __GNUC__ == 4 && __GNUC_MINOR__ >= 9
+ #define GCOV_COUNTERS			9
 _
