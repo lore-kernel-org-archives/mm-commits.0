@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-consider-offline-memblocks-removable.patch
- added to -mm tree
-Date: Mon, 15 May 2017 14:26:53 -0700
-Message-ID: <591a1d1d.4kqnqxR5pe6JN2SZ%akpm@linux-foundation.org>
+Subject: + mm-__first_valid_page-skip-over-offline-pages.patch added to
+ -mm tree
+Date: Mon, 15 May 2017 14:27:03 -0700
+Message-ID: <591a1d27.5Gj9N3ATw7/M2mJb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48498 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758837AbdEOV0z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 17:26:55 -0400
+        with ESMTP id S1758883AbdEOV1E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 17:27:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: consider offline memblocks removable
+     Subject: mm: __first_valid_page skip over offline pages
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-consider-offline-memblocks-removable.patch
+     mm-__first_valid_page-skip-over-offline-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-consider-offline-memblocks-removable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-__first_valid_page-skip-over-offline-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-consider-offline-memblocks-removable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-__first_valid_page-skip-over-offline-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: consider offline memblocks removable
+Subject: mm: __first_valid_page skip over offline pages
 
-is_pageblock_removable_nolock() relies on having zone association to
-examine all the page blocks to check whether they are movable or free. 
-This is just wasting of cycles when the memblock is offline.  Later patch
-in the series will also change the time when the page is associated with a
-zone so we let's bail out early if the memblock is offline.
+__first_valid_page skips over invalid pfns in the range but it might still
+stumble over offline pages.  At least start_isolate_page_range will mark
+those set_migratetype_isolate.  This doesn't represent any immediate
+AFAICS because alloc_contig_range will fail to isolate those pages but it
+relies on not fully initialized page which will become a problem later
+when we stop associating offline pages to zones.  Use pfn_to_online_page
+to handle this.
 
-Link: http://lkml.kernel.org/r/20170515085827.16474-7-mhocko@kernel.org
+This is more a preparatory patch than a fix.
+
+Link: http://lkml.kernel.org/r/20170515085827.16474-10-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Igor Mammedov <imammedo@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -59,6 +61,7 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Daniel Kiper <daniel.kiper@oracle.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -67,35 +70,58 @@ Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
 Cc: Tobias Regnery <tobias.regnery@gmail.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/page_isolation.c |   26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-memory_hotplug-consider-offline-memblocks-removable drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory_hotplug-consider-offline-memblocks-removable
-+++ a/drivers/base/memory.c
-@@ -128,6 +128,9 @@ static ssize_t show_mem_removable(struct
- 	int ret = 1;
- 	struct memory_block *mem = to_memory_block(dev);
- 
-+	if (mem->state != MEM_ONLINE)
-+		goto out;
+diff -puN mm/page_isolation.c~mm-__first_valid_page-skip-over-offline-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-__first_valid_page-skip-over-offline-pages
++++ a/mm/page_isolation.c
+@@ -138,12 +138,18 @@ static inline struct page *
+ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+ {
+ 	int i;
+-	for (i = 0; i < nr_pages; i++)
+-		if (pfn_valid_within(pfn + i))
+-			break;
+-	if (unlikely(i == nr_pages))
+-		return NULL;
+-	return pfn_to_page(pfn + i);
 +
- 	for (i = 0; i < sections_per_block; i++) {
- 		if (!present_section_nr(mem->start_section_nr + i))
- 			continue;
-@@ -135,6 +138,7 @@ static ssize_t show_mem_removable(struct
- 		ret &= is_mem_section_removable(pfn, PAGES_PER_SECTION);
- 	}
- 
-+out:
- 	return sprintf(buf, "%d\n", ret);
++	for (i = 0; i < nr_pages; i++) {
++		struct page *page;
++
++		if (!pfn_valid_within(pfn + i))
++			continue;
++		page = pfn_to_online_page(pfn + i);
++		if (!page)
++			continue;
++		return page;
++	}
++	return NULL;
  }
  
+ /*
+@@ -184,8 +190,12 @@ int start_isolate_page_range(unsigned lo
+ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+-	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
++	     pfn += pageblock_nr_pages) {
++		struct page *page = pfn_to_online_page(pfn);
++		if (!page)
++			continue;
++		unset_migratetype_isolate(page, migratetype);
++	}
+ 
+ 	return -EBUSY;
+ }
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
