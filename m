@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-prevent-crash-after-write_protect_page-fails.patch added to -mm tree
-Date: Mon, 15 May 2017 13:03:12 -0700
-Message-ID: <591a0980.6XxWrZS5x0wfKGJw%akpm@linux-foundation.org>
+Subject: +
+ kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore.patch added to
+ -mm tree
+Date: Mon, 15 May 2017 13:03:56 -0700
+Message-ID: <591a09ac.QWE5Aa/L1HmAQ6xK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38838 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751970AbdEOUDN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 16:03:13 -0400
+        with ESMTP id S932677AbdEOUD5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 16:03:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, fsimonce@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, akpm@linuxfoundation.org, avagin@openvz.org, gorcunov@openvz.org, jbaron@akamai.com, luto@amacapital.net, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: prevent crash after write_protect_page fails
+     Subject: kcmp: fs/epoll: wrap kcmp code with CONFIG_CHECKPOINT_RESTORE
 has been added to the -mm tree.  Its filename is
-     ksm-prevent-crash-after-write_protect_page-fails.patch
+     kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-prevent-crash-after-write_protect_page-fails.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-prevent-crash-after-write_protect_page-fails.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +40,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: prevent crash after write_protect_page fails
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: kcmp: fs/epoll: wrap kcmp code with CONFIG_CHECKPOINT_RESTORE
 
-"err" needs to be left set to -EFAULT if split_huge_page succeeds. 
-Otherwise if "err" gets clobbered with zero and write_protect_page fails,
-try_to_merge_one_page() will succeed instead of returning -EFAULT and then
-try_to_merge_with_ksm_page() will continue thinking kpage is a PageKsm
-when in fact it's still an anonymous page.  Eventually it'll crash in
-page_add_anon_rmap.
+kcmp syscall is build iif CONFIG_CHECKPOINT_RESTORE is selected, so wrap
+appropriate helpers in epoll code with the config to build it
+conditionally.
 
-This has been reproduced on Fedora25 kernel but I can reproduce with
-upstream too.
-
-The bug was introduced in commit
-f765f540598a129dc4bb6f698fd4acc92f296c14 in v4.5.
-
-page:fffff67546ce1cc0 count:4 mapcount:2 mapping:ffffa094551e36e1 index:0x7f0f46673
-flags: 0x2ffffc0004007c(referenced|uptodate|dirty|lru|active|swapbacked)
-page dumped because: VM_BUG_ON_PAGE(!PageLocked(page))
-page->mem_cgroup:ffffa09674bf0000
-------------[ cut here ]------------
-kernel BUG at mm/rmap.c:1222!
-invalid opcode: 0000 [#1] SMP
-CPU: 1 PID: 76 Comm: ksmd Not tainted 4.9.3-200.fc25.x86_64 #1
-task: ffffa0968be65b80 task.stack: ffffc0e941b3c000
-RIP: 0010:[<ffffffff9a20ac94>]  [<ffffffff9a20ac94>] do_page_add_anon_rmap+0x1c4/0x240
-RSP: 0018:ffffc0e941b3fd48  EFLAGS: 00010282
-RAX: 0000000000000021 RBX: fffff67546ce1cc0 RCX: 0000000000000006
-RDX: 0000000000000000 RSI: 0000000000000246 RDI: ffffa0969ec4e0a0
-RBP: ffffc0e941b3fd70 R08: 0000000000018a84 R09: 0000000000000005
-R10: fffff6754f87de00 R11: 000000000000049f R12: 00007fe6f5f67000
-R13: ffffa094990ecc00 R14: 0000000000000000 R15: ffffa093c369c480
-FS:  0000000000000000(0000) GS:ffffa0969ec40000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f4c21c221f0 CR3: 0000000152e07000 CR4: 00000000000426e0
-Stack:
- fffff675470fd9c0 00007fe6f5f67000 fffff67540f8a900 ffffa094990ecc00
- ffffa093c369c480 ffffc0e941b3fd80 ffffffff9a20ad28 ffffc0e941b3fe00
- ffffffff9a228b4b 80000001c3f67807 0000000000000000 80000001c3f67805
-Call Trace:
- [<ffffffff9a20ad28>] page_add_anon_rmap+0x18/0x20
- [<ffffffff9a228b4b>] try_to_merge_with_ksm_page+0x50b/0x780
- [<ffffffff9a229fd1>] ksm_scan_thread+0x1211/0x1410
- [<ffffffff9a0e7270>] ? prepare_to_wait_event+0x100/0x100
- [<ffffffff9a228dc0>] ? try_to_merge_with_ksm_page+0x780/0x780
- [<ffffffff9a0c2569>] kthread+0xd9/0xf0
- [<ffffffff9a0c2490>] ? kthread_park+0x60/0x60
- [<ffffffff9a81be55>] ret_from_fork+0x25/0x30
-
-Fixes: f765f54059 ("ksm: prepare to new THP semantics")
-Link: http://lkml.kernel.org/r/20170513131040.21732-1-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Federico Simoncelli <fsimonce@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170513083456.GG1881@uranus.lan
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Reported-by: Andrew Morton <akpm@linuxfoundation.org>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/eventpoll.c            |    2 ++
+ include/linux/eventpoll.h |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN mm/ksm.c~ksm-prevent-crash-after-write_protect_page-fails mm/ksm.c
---- a/mm/ksm.c~ksm-prevent-crash-after-write_protect_page-fails
-+++ a/mm/ksm.c
-@@ -1028,8 +1028,7 @@ static int try_to_merge_one_page(struct
- 		goto out;
+diff -puN fs/eventpoll.c~kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore fs/eventpoll.c
+--- a/fs/eventpoll.c~kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore
++++ a/fs/eventpoll.c
+@@ -1077,6 +1077,7 @@ static struct epitem *ep_find(struct eve
+ 	return epir;
+ }
  
- 	if (PageTransCompound(page)) {
--		err = split_huge_page(page);
--		if (err)
-+		if (split_huge_page(page))
- 			goto out_unlock;
- 	}
++#ifdef CONFIG_CHECKPOINT_RESTORE
+ static struct epitem *ep_find_tfd(struct eventpoll *ep, int tfd, unsigned long toff)
+ {
+ 	struct rb_node *rbp;
+@@ -1118,6 +1119,7 @@ struct file *get_epoll_tfile_raw_ptr(str
  
+ 	return file_raw;
+ }
++#endif /* CONFIG_CHECKPOINT_RESTORE */
+ 
+ /*
+  * This is the callback that is passed to the wait queue wakeup
+diff -puN include/linux/eventpoll.h~kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore include/linux/eventpoll.h
+--- a/include/linux/eventpoll.h~kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore
++++ a/include/linux/eventpoll.h
+@@ -23,7 +23,9 @@ struct file;
+ 
+ #ifdef CONFIG_EPOLL
+ 
++#ifdef CONFIG_CHECKPOINT_RESTORE
+ struct file *get_epoll_tfile_raw_ptr(struct file *file, int tfd, unsigned long toff);
++#endif
+ 
+ /* Used to initialize the epoll bits inside the "struct file" */
+ static inline void eventpoll_init_file(struct file *file)
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-ksm-prevent-crash-after-write_protect_page-fails.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
-ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
+procfs-fdinfo-extend-information-about-epoll-target-files.patch
+kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files.patch
+kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore.patch
 
