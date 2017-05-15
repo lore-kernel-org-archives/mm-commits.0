@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-__first_valid_page-skip-over-offline-pages.patch added to
- -mm tree
-Date: Mon, 15 May 2017 14:27:03 -0700
-Message-ID: <591a1d27.5Gj9N3ATw7/M2mJb%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-fix-the-section-mismatch-warning.patch added
+ to -mm tree
+Date: Mon, 15 May 2017 14:27:18 -0700
+Message-ID: <591a1d36.7nxn/e+x3I/IhurV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48634 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758883AbdEOV1E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 17:27:04 -0400
+        with ESMTP id S1758976AbdEOV1U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 17:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: __first_valid_page skip over offline pages
+     Subject: mm, memory_hotplug: fix the section mismatch warning
 has been added to the -mm tree.  Its filename is
-     mm-__first_valid_page-skip-over-offline-pages.patch
+     mm-memory_hotplug-fix-the-section-mismatch-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-__first_valid_page-skip-over-offline-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-fix-the-section-mismatch-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-__first_valid_page-skip-over-offline-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-fix-the-section-mismatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: __first_valid_page skip over offline pages
+Subject: mm, memory_hotplug: fix the section mismatch warning
 
-__first_valid_page skips over invalid pfns in the range but it might still
-stumble over offline pages.  At least start_isolate_page_range will mark
-those set_migratetype_isolate.  This doesn't represent any immediate
-AFAICS because alloc_contig_range will fail to isolate those pages but it
-relies on not fully initialized page which will become a problem later
-when we stop associating offline pages to zones.  Use pfn_to_online_page
-to handle this.
+Tobias has reported following section mismatches introduced by "mm,
+memory_hotplug: do not associate hotadded memory to zones until online".
 
-This is more a preparatory patch than a fix.
+WARNING: mm/built-in.o(.text+0x5a1c2): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:memmap_init_zone()
+The function move_pfn_range_to_zone() references
+the function __meminit memmap_init_zone().
+This is often because move_pfn_range_to_zone lacks a __meminit
+annotation or the annotation of memmap_init_zone is wrong.
 
-Link: http://lkml.kernel.org/r/20170515085827.16474-10-mhocko@kernel.org
+WARNING: mm/built-in.o(.text+0x5a25b): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:init_currently_empty_zone()
+The function move_pfn_range_to_zone() references
+the function __meminit init_currently_empty_zone().
+This is often because move_pfn_range_to_zone lacks a __meminit
+annotation or the annotation of init_currently_empty_zone is wrong.
+
+WARNING: vmlinux.o(.text+0x188aa2): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:memmap_init_zone()
+The function move_pfn_range_to_zone() references
+the function __meminit memmap_init_zone().
+This is often because move_pfn_range_to_zone lacks a __meminit
+annotation or the annotation of memmap_init_zone is wrong.
+
+WARNING: vmlinux.o(.text+0x188b3b): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:init_currently_empty_zone()
+The function move_pfn_range_to_zone() references
+the function __meminit init_currently_empty_zone().
+This is often because move_pfn_range_to_zone lacks a __meminit
+annotation or the annotation of init_currently_empty_zone is wrong.
+
+Both memmap_init_zone and init_currently_empty_zone are marked __meminit
+but move_pfn_range_to_zone is used outside of __meminit sections (e.g.
+devm_memremap_pages) so we have to hide it from the checker by __ref
+annotation.
+
+Link: http://lkml.kernel.org/r/20170515085827.16474-14-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tobias Regnery <tobias.regnery@gmail.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -67,7 +90,6 @@ Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Tobias Regnery <tobias.regnery@gmail.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -76,52 +98,21 @@ Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_isolation.c~mm-__first_valid_page-skip-over-offline-pages mm/page_isolation.c
---- a/mm/page_isolation.c~mm-__first_valid_page-skip-over-offline-pages
-+++ a/mm/page_isolation.c
-@@ -138,12 +138,18 @@ static inline struct page *
- __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-fix-the-section-mismatch-warning mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-the-section-mismatch-warning
++++ a/mm/memory_hotplug.c
+@@ -1074,7 +1074,7 @@ static void __meminit resize_pgdat_range
+ 	pgdat->node_spanned_pages = max(start_pfn + nr_pages, old_end_pfn) - pgdat->node_start_pfn;
+ }
+ 
+-void move_pfn_range_to_zone(struct zone *zone,
++void __ref move_pfn_range_to_zone(struct zone *zone,
+ 		unsigned long start_pfn, unsigned long nr_pages)
  {
- 	int i;
--	for (i = 0; i < nr_pages; i++)
--		if (pfn_valid_within(pfn + i))
--			break;
--	if (unlikely(i == nr_pages))
--		return NULL;
--	return pfn_to_page(pfn + i);
-+
-+	for (i = 0; i < nr_pages; i++) {
-+		struct page *page;
-+
-+		if (!pfn_valid_within(pfn + i))
-+			continue;
-+		page = pfn_to_online_page(pfn + i);
-+		if (!page)
-+			continue;
-+		return page;
-+	}
-+	return NULL;
- }
- 
- /*
-@@ -184,8 +190,12 @@ int start_isolate_page_range(unsigned lo
- undo:
- 	for (pfn = start_pfn;
- 	     pfn < undo_pfn;
--	     pfn += pageblock_nr_pages)
--		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
-+	     pfn += pageblock_nr_pages) {
-+		struct page *page = pfn_to_online_page(pfn);
-+		if (!page)
-+			continue;
-+		unset_migratetype_isolate(page, migratetype);
-+	}
- 
- 	return -EBUSY;
- }
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
