@@ -1,90 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Mon, 15 May 2017 11:50:41 -0700
-Message-ID: <20170515185041.xZmA_x01D%akpm@linux-foundation.org>
+Subject: +
+ powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
+ added to -mm tree
+Date: Mon, 15 May 2017 13:00:36 -0700
+Message-ID: <591a08e4.8Zi8CNcWqHGu5B6H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37772 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964866AbdEOSum (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 14:50:42 -0400
+        with ESMTP id S1752109AbdEOUAj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 16:00:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: xlpang@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: crash: Fix linux-next build warning
+has been added to the -mm tree.  Its filename is
+     powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: crash: Fix linux-next build warning
 
+linux-next build (arm multi_v7_defconfig) produced this warning:
+
+In file included from include/asm-generic/bug.h:15:0,
+                 from arch/arm/include/asm/bug.h:59,
+                 from include/linux/bug.h:4,
+                 from include/linux/elfcore.h:5,
+                 from include/linux/crash_core.h:5,
+                 from kernel/crash_core.c:9:
+kernel/crash_core.c: In function 'vmcoreinfo_append_str':
+include/linux/kernel.h:757:16: warning: comparison of distinct pointer
+types lacks a cast
+  (void) (&min1 == &min2);   \
+                ^
+include/linux/kernel.h:760:2: note: in expansion of macro '__min'
+  __min(typeof(x), typeof(y),   \
+  ^
+kernel/crash_core.c:360:6: note: in expansion of macro 'min'
+  r = min(r, VMCOREINFO_BYTES - vmcoreinfo_size);
+      ^
+
+This patch fixes it with an explicit "size_t" type-casting on
+VMCOREINFO_BYTES.
+
+Andrew will help merge it into commit fc7d2b44367f ("powerpc/fadump:
+use the correct VMCOREINFO_NOTE_SIZE for phdr") before sending it to
+stable.
+
+Link: http://lkml.kernel.org/r/1494830606-27736-1-git-send-email-xlpang@redhat.com
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmvscsi_tgt/ibmvscsi_tgt.c |    6 ------
- include/linux/namei.h                    |    3 ---
- 2 files changed, 9 deletions(-)
+ kernel/crash_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ibmvscsi_tgt/ibmvscsi_tgt.c~linux-next-git-rejects drivers/scsi/ibmvscsi_tgt/ibmvscsi_tgt.c
---- a/drivers/scsi/ibmvscsi_tgt/ibmvscsi_tgt.c~linux-next-git-rejects
-+++ a/drivers/scsi/ibmvscsi_tgt/ibmvscsi_tgt.c
-@@ -1170,11 +1170,8 @@ static struct ibmvscsis_cmd *ibmvscsis_g
- 		cmd = list_first_entry_or_null(&vscsi->free_cmd,
- 					       struct ibmvscsis_cmd, list);
- 		if (cmd) {
--<<<<<<< HEAD
--=======
- 			if (cmd->abort_cmd)
- 				cmd->abort_cmd = NULL;
-->>>>>>> linux-next/akpm-base
- 			cmd->flags &= ~(DELAY_SEND);
- 			list_del(&cmd->list);
- 			cmd->iue = iue;
-@@ -1779,10 +1776,7 @@ static void ibmvscsis_send_messages(stru
- 				if (cmd->abort_cmd) {
- 					retry = true;
- 					cmd->abort_cmd->flags &= ~(DELAY_SEND);
--<<<<<<< HEAD
--=======
- 					cmd->abort_cmd = NULL;
-->>>>>>> linux-next/akpm-base
- 				}
+diff -puN kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix kernel/crash_core.c
+--- a/kernel/crash_core.c~powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix
++++ a/kernel/crash_core.c
+@@ -342,7 +342,7 @@ void vmcoreinfo_append_str(const char *f
+ 	r = vscnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
  
- 				/*
-diff -puN include/linux/namei.h~linux-next-git-rejects include/linux/namei.h
---- a/include/linux/namei.h~linux-next-git-rejects
-+++ a/include/linux/namei.h
-@@ -45,11 +45,8 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LA
- #define LOOKUP_ROOT		0x2000
- #define LOOKUP_EMPTY		0x4000
- #define LOOKUP_DOWN		0x8000
--<<<<<<< HEAD
--=======
+-	r = min(r, VMCOREINFO_BYTES - vmcoreinfo_size);
++	r = min(r, (size_t)VMCOREINFO_BYTES - vmcoreinfo_size);
  
- #define LOOKUP_NO_JUMPS		0x10000
-->>>>>>> linux-next/akpm-base
- 
- extern int path_pts(struct path *path);
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xlpang@redhat.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
+powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
+powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
+kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
 
