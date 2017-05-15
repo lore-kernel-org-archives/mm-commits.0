@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-return-value-from-init_currently_empty_zone.patch
- added to -mm tree
-Date: Mon, 15 May 2017 14:26:39 -0700
-Message-ID: <591a1d0f.ZF3rRqbTjqAfH2Od%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-get-rid-of-is_zone_device_section.patch added to -mm tree
+Date: Mon, 15 May 2017 14:26:46 -0700
+Message-ID: <591a1d16.tiegCn8IAwCF6ari%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48344 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758179AbdEOV0l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 17:26:41 -0400
+        with ESMTP id S1758837AbdEOV0s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2017 17:26:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove return value from init_currently_empty_zone
+     Subject: mm, memory_hotplug: get rid of is_zone_device_section
 has been added to the -mm tree.  Its filename is
-     mm-remove-return-value-from-init_currently_empty_zone.patch
+     mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-return-value-from-init_currently_empty_zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-return-value-from-init_currently_empty_zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,220 +39,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: remove return value from init_currently_empty_zone
+Subject: mm, memory_hotplug: get rid of is_zone_device_section
 
-Patch series "mm: make movable onlining suck less", v4.
+Device memory hotplug hooks into regular memory hotplug only half way.  It
+needs memory sections to track struct pages but there is no need/desire to
+associate those sections with memory blocks and export them to the
+userspace via sysfs because they cannot be onlined anyway.
 
-Movable onlining is a real hack with many downsides - mainly
-reintroduction of lowmem/highmem issues we used to have on 32b systems -
-but it is the only way to make the memory hotremove more reliable which is
-something that people are asking for.
+This is currently expressed by for_device argument to arch_add_memory
+which then makes sure to associate the given memory range with
+ZONE_DEVICE.  register_new_memory then relies on is_zone_device_section to
+distinguish special memory hotplug from the regular one.  While this works
+now, later patches in this series want to move __add_zone outside of
+arch_add_memory path so we have to come up with something else.
 
-The current semantic of memory movable onlinening is really cumbersome,
-however.  The main reason for this is that the udev driven approach is
-basically unusable because udev races with the memory probing while only
-the last memory block or the one adjacent to the existing zone_movable are
-allowed to be onlined movable.  In short the criterion for the successful
-online_movable changes under udev's feet.  A reliable udev approach would
-require a 2 phase approach where the first successful movable online would
-have to check all the previous blocks and online them in descending order.
-This is hard to be considered sane.
+Add want_memblock down the __add_pages path and use it to control whether
+the section->memblock association should be done.  arch_add_memory then
+just trivially want memblock for everything but for_device hotplug.
 
-This patchset aims at making the onlining semantic more usable.  First of
-all it allows to online memory movable as long as it doesn't clash with
-the existing ZONE_NORMAL.  That means that ZONE_NORMAL and ZONE_MOVABLE
-cannot overlap.  Currently I preserve the original ordering semantic so
-the zone always precedes the movable zone but I have plans to remove this
-restriction in future because it is not really necessary.
+remove_memory_section doesn't need is_zone_device_section either.  We can
+simply skip all the memblock specific cleanup if there is no memblock for
+the given section.
 
-First 3 patches are cleanups which should be ready to be merged right
-away (unless I have missed something subtle of course).
+This shouldn't introduce any functional change.
 
-Patch 4 deals with ZONE_DEVICE dependencies down the __add_pages path.
-
-Patch 5 deals with implicit assumptions of register_one_node on pgdat
-initialization.
-
-Patches 6-10 deal with offline holes in the zone for pfn walkers. I
-hope I got all of them right but people familiar with compaction should
-double check this.
-
-Patch 11 is the core of the change. In order to make it easier to review
-I have tried it to be as minimalistic as possible and the large code
-removal is moved to patch 14.
-
-Patch 12 is a trivial follow up cleanup. Patch 13 fixes sparse warnings
-and finally patch 14 removes the unused code.
-
-I have tested the patches in kvm:
-# qemu-system-x86_64 -enable-kvm -monitor pty -m 2G,slots=4,maxmem=4G -numa node,mem=1G -numa node,mem=1G ...
-
-and then probed the additional memory by
-(qemu) object_add memory-backend-ram,id=mem1,size=1G
-(qemu) device_add pc-dimm,id=dimm1,memdev=mem1
-
-Then I have used this simple script to probe the memory block by hand
-# cat probe_memblock.sh
-#!/bin/sh
-
-BLOCK_NR=$1
-
-# echo $((0x100000000+$BLOCK_NR*(128<<20))) > /sys/devices/system/memory/probe
-
-# for i in $(seq 10); do sh probe_memblock.sh $i; done
-# grep . /sys/devices/system/memory/memory3?/valid_zones 2>/dev/null 
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory34/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory35/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory36/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory37/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory38/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory39/valid_zones:Normal Movable
-
-The main difference to the original implementation is that all new
-memblocks can be both online_kernel and online_movable initially
-because there is no clash obviously. For the comparison the original
-implementation would have
-
-/sys/devices/system/memory/memory33/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory34/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory35/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory36/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory37/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory38/valid_zones:Normal                                                                                                                                                     
-/sys/devices/system/memory/memory39/valid_zones:Normal Movable
-
-Now
-# echo online_movable > /sys/devices/system/memory/memory34/state                                                                                                                                      
-# grep . /sys/devices/system/memory/memory3?/valid_zones 2>/dev/null                                                                                                                                   
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable                                                                                                                                                     
-/sys/devices/system/memory/memory34/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory35/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory36/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory37/valid_zones:Movable                                                                                                                                                            
-/sys/devices/system/memory/memory38/valid_zones:Movable
-/sys/devices/system/memory/memory39/valid_zones:Movable
-
-Block 33 can still be online both kernel and movable while all
-the remaining can be only movable.
-/proc/zonelist says
-Node 0, zone   Normal
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  0
-        present  0
---
-Node 0, zone  Movable
-  pages free     32753
-        min      85
-        low      117
-        high     149
-        spanned  32768
-        present  32768
-
-A new memblock at a lower address will result in a new memblock (32)
-which will still allow both Normal and Movable.
-# sh probe_memblock.sh 0
-# grep . /sys/devices/system/memory/memory3[2-5]/valid_zones 2>/dev/null
-/sys/devices/system/memory/memory32/valid_zones:Normal Movable
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable
-/sys/devices/system/memory/memory34/valid_zones:Movable
-/sys/devices/system/memory/memory35/valid_zones:Movable
-
-and online_kernel will convert it to the zone normal properly
-while 33 can be still onlined both ways.
-# echo online_kernel > /sys/devices/system/memory/memory32/state
-# grep . /sys/devices/system/memory/memory3[2-5]/valid_zones 2>/dev/null
-/sys/devices/system/memory/memory32/valid_zones:Normal
-/sys/devices/system/memory/memory33/valid_zones:Normal Movable
-/sys/devices/system/memory/memory34/valid_zones:Movable
-/sys/devices/system/memory/memory35/valid_zones:Movable
-
-/proc/zoneinfo will now tell
-Node 0, zone   Normal
-  pages free     65441
-        min      165
-        low      230
-        high     295
-        spanned  65536
-        present  65536
---
-Node 0, zone  Movable
-  pages free     32740
-        min      82
-        low      114
-        high     146
-        spanned  32768
-        present  32768
-
-so both zones have one memblock spanned and present.
-
-Onlining 39 should associate this block to the movable zone
-# echo online > /sys/devices/system/memory/memory39/state
-
-/proc/zoneinfo will now tell
-Node 0, zone   Normal
-  pages free     32765
-        min      80
-        low      112
-        high     144
-        spanned  32768
-        present  32768
---
-Node 0, zone  Movable
-  pages free     65501
-        min      160
-        low      225
-        high     290
-        spanned  196608
-        present  65536
-
-so we will have a movable zone which spans 6 memblocks, 2 present and 4
-representing a hole.
-
-Offlining both movable blocks will lead to the zone with no present
-pages which is the expected behavior I believe.
-# echo offline > /sys/devices/system/memory/memory39/state
-# echo offline > /sys/devices/system/memory/memory34/state
-# grep -A6 "Movable\|Normal" /proc/zoneinfo 
-Node 0, zone   Normal
-  pages free     32735
-        min      90
-        low      122
-        high     154
-        spanned  32768
-        present  32768
---
-Node 0, zone  Movable
-  pages free     0
-        min      0
-        low      0
-        high     0
-        spanned  196608
-        present  0
-
-As a bonus we will get a nice cleanup in the memory hotplug codebase.
-
-
-
-This patch (of 14):
-
-init_currently_empty_zone doesn't have any error to return yet it is still
-an int and callers try to be defensive and try to handle potential error. 
-Remove this nonsense and simplify all callers.
-
-This patch shouldn't have any visible effect
-
-Link: http://lkml.kernel.org/r/20170515085827.16474-2-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170515085827.16474-5-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
+Tested-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Daniel Kiper <daniel.kiper@oracle.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
@@ -267,128 +83,201 @@ Cc: Tobias Regnery <tobias.regnery@gmail.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/memory_hotplug.c    |   23 +++++------------------
- mm/page_alloc.c        |    8 ++------
- 3 files changed, 8 insertions(+), 25 deletions(-)
+ arch/ia64/mm/init.c            |    2 +-
+ arch/powerpc/mm/mem.c          |    2 +-
+ arch/s390/mm/init.c            |    2 +-
+ arch/sh/mm/init.c              |    2 +-
+ arch/x86/mm/init_32.c          |    2 +-
+ arch/x86/mm/init_64.c          |    2 +-
+ drivers/base/memory.c          |   23 +++++++++--------------
+ include/linux/memory_hotplug.h |    2 +-
+ mm/memory_hotplug.c            |    9 ++++++---
+ 9 files changed, 22 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-remove-return-value-from-init_currently_empty_zone include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-remove-return-value-from-init_currently_empty_zone
-+++ a/include/linux/mmzone.h
-@@ -771,7 +771,7 @@ enum memmap_context {
- 	MEMMAP_EARLY,
- 	MEMMAP_HOTPLUG,
- };
--extern int init_currently_empty_zone(struct zone *zone, unsigned long start_pfn,
-+extern void init_currently_empty_zone(struct zone *zone, unsigned long start_pfn,
- 				     unsigned long size);
+diff -puN arch/ia64/mm/init.c~mm-memory_hotplug-get-rid-of-is_zone_device_section arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/arch/ia64/mm/init.c
+@@ -658,7 +658,7 @@ int arch_add_memory(int nid, u64 start,
  
- extern void lruvec_init(struct lruvec *lruvec);
-diff -puN mm/memory_hotplug.c~mm-remove-return-value-from-init_currently_empty_zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-remove-return-value-from-init_currently_empty_zone
+ 	zone = pgdat->node_zones +
+ 		zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
+-	ret = __add_pages(nid, zone, start_pfn, nr_pages);
++	ret = __add_pages(nid, zone, start_pfn, nr_pages, !for_device);
+ 
+ 	if (ret)
+ 		printk("%s: Problem encountered in __add_pages() as ret=%d\n",
+diff -puN arch/powerpc/mm/mem.c~mm-memory_hotplug-get-rid-of-is_zone_device_section arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/arch/powerpc/mm/mem.c
+@@ -151,7 +151,7 @@ int arch_add_memory(int nid, u64 start,
+ 	zone = pgdata->node_zones +
+ 		zone_for_memory(nid, start, size, 0, for_device);
+ 
+-	return __add_pages(nid, zone, start_pfn, nr_pages);
++	return __add_pages(nid, zone, start_pfn, nr_pages, !for_device);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff -puN arch/s390/mm/init.c~mm-memory_hotplug-get-rid-of-is_zone_device_section arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/arch/s390/mm/init.c
+@@ -191,7 +191,7 @@ int arch_add_memory(int nid, u64 start,
+ 			continue;
+ 		nr_pages = (start_pfn + size_pages > zone_end_pfn) ?
+ 			   zone_end_pfn - start_pfn : size_pages;
+-		rc = __add_pages(nid, zone, start_pfn, nr_pages);
++		rc = __add_pages(nid, zone, start_pfn, nr_pages, !for_device);
+ 		if (rc)
+ 			break;
+ 		start_pfn += nr_pages;
+diff -puN arch/sh/mm/init.c~mm-memory_hotplug-get-rid-of-is_zone_device_section arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/arch/sh/mm/init.c
+@@ -498,7 +498,7 @@ int arch_add_memory(int nid, u64 start,
+ 	ret = __add_pages(nid, pgdat->node_zones +
+ 			zone_for_memory(nid, start, size, ZONE_NORMAL,
+ 			for_device),
+-			start_pfn, nr_pages);
++			start_pfn, nr_pages, !for_device);
+ 	if (unlikely(ret))
+ 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
+ 
+diff -puN arch/x86/mm/init_32.c~mm-memory_hotplug-get-rid-of-is_zone_device_section arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/arch/x86/mm/init_32.c
+@@ -831,7 +831,7 @@ int arch_add_memory(int nid, u64 start,
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
+-	return __add_pages(nid, zone, start_pfn, nr_pages);
++	return __add_pages(nid, zone, start_pfn, nr_pages, !for_device);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff -puN arch/x86/mm/init_64.c~mm-memory_hotplug-get-rid-of-is_zone_device_section arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/arch/x86/mm/init_64.c
+@@ -697,7 +697,7 @@ int arch_add_memory(int nid, u64 start,
+ 
+ 	init_memory_mapping(start, start + size);
+ 
+-	ret = __add_pages(nid, zone, start_pfn, nr_pages);
++	ret = __add_pages(nid, zone, start_pfn, nr_pages, !for_device);
+ 	WARN_ON_ONCE(ret);
+ 
+ 	/* update max_pfn, max_low_pfn and high_memory */
+diff -puN drivers/base/memory.c~mm-memory_hotplug-get-rid-of-is_zone_device_section drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/drivers/base/memory.c
+@@ -685,14 +685,6 @@ static int add_memory_block(int base_sec
+ 	return 0;
+ }
+ 
+-static bool is_zone_device_section(struct mem_section *ms)
+-{
+-	struct page *page;
+-
+-	page = sparse_decode_mem_map(ms->section_mem_map, __section_nr(ms));
+-	return is_zone_device_page(page);
+-}
+-
+ /*
+  * need an interface for the VM to add new memory regions,
+  * but without onlining it.
+@@ -702,9 +694,6 @@ int register_new_memory(int nid, struct
+ 	int ret = 0;
+ 	struct memory_block *mem;
+ 
+-	if (is_zone_device_section(section))
+-		return 0;
+-
+ 	mutex_lock(&mem_sysfs_mutex);
+ 
+ 	mem = find_memory_block(section);
+@@ -741,11 +730,16 @@ static int remove_memory_section(unsigne
+ {
+ 	struct memory_block *mem;
+ 
+-	if (is_zone_device_section(section))
+-		return 0;
+-
+ 	mutex_lock(&mem_sysfs_mutex);
++
++	/*
++	 * Some users of the memory hotplug do not want/need memblock to
++	 * track all sections. Skip over those.
++	 */
+ 	mem = find_memory_block(section);
++	if (!mem)
++		goto out_unlock;
++
+ 	unregister_mem_sect_under_nodes(mem, __section_nr(section));
+ 
+ 	mem->section_count--;
+@@ -754,6 +748,7 @@ static int remove_memory_section(unsigne
+ 	else
+ 		put_device(&mem->dev);
+ 
++out_unlock:
+ 	mutex_unlock(&mem_sysfs_mutex);
+ 	return 0;
+ }
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-get-rid-of-is_zone_device_section include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-get-rid-of-is_zone_device_section
++++ a/include/linux/memory_hotplug.h
+@@ -111,7 +111,7 @@ extern int __remove_pages(struct zone *z
+ 
+ /* reasonably generic interface to expand the physical pages in a zone  */
+ extern int __add_pages(int nid, struct zone *zone, unsigned long start_pfn,
+-	unsigned long nr_pages);
++	unsigned long nr_pages, bool want_memblock);
+ 
+ #ifdef CONFIG_NUMA
+ extern int memory_add_physaddr_to_nid(u64 start);
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-get-rid-of-is_zone_device_section mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-get-rid-of-is_zone_device_section
 +++ a/mm/memory_hotplug.c
-@@ -348,27 +348,20 @@ static void fix_zone_id(struct zone *zon
- 		set_page_links(pfn_to_page(pfn), zid, nid, pfn);
+@@ -494,7 +494,7 @@ static int __meminit __add_zone(struct z
  }
  
--/* Can fail with -ENOMEM from allocating a wait table with vmalloc() or
-- * alloc_bootmem_node_nopanic()/memblock_virt_alloc_node_nopanic() */
--static int __ref ensure_zone_is_initialized(struct zone *zone,
-+static void __ref ensure_zone_is_initialized(struct zone *zone,
- 			unsigned long start_pfn, unsigned long num_pages)
+ static int __meminit __add_section(int nid, struct zone *zone,
+-					unsigned long phys_start_pfn)
++		unsigned long phys_start_pfn, bool want_memblock)
  {
- 	if (!zone_is_initialized(zone))
--		return init_currently_empty_zone(zone, start_pfn, num_pages);
--
--	return 0;
-+		init_currently_empty_zone(zone, start_pfn, num_pages);
+ 	int ret;
+ 
+@@ -511,6 +511,9 @@ static int __meminit __add_section(int n
+ 	if (ret < 0)
+ 		return ret;
+ 
++	if (!want_memblock)
++		return 0;
++
+ 	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
  }
  
- static int __meminit move_pfn_range_left(struct zone *z1, struct zone *z2,
- 		unsigned long start_pfn, unsigned long end_pfn)
+@@ -521,7 +524,7 @@ static int __meminit __add_section(int n
+  * add the new pages.
+  */
+ int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
+-			unsigned long nr_pages)
++			unsigned long nr_pages, bool want_memblock)
  {
--	int ret;
- 	unsigned long flags;
- 	unsigned long z1_start_pfn;
- 
--	ret = ensure_zone_is_initialized(z1, start_pfn, end_pfn - start_pfn);
--	if (ret)
--		return ret;
-+	ensure_zone_is_initialized(z1, start_pfn, end_pfn - start_pfn);
- 
- 	pgdat_resize_lock(z1->zone_pgdat, &flags);
- 
-@@ -404,13 +397,10 @@ out_fail:
- static int __meminit move_pfn_range_right(struct zone *z1, struct zone *z2,
- 		unsigned long start_pfn, unsigned long end_pfn)
- {
--	int ret;
- 	unsigned long flags;
- 	unsigned long z2_end_pfn;
- 
--	ret = ensure_zone_is_initialized(z2, start_pfn, end_pfn - start_pfn);
--	if (ret)
--		return ret;
-+	ensure_zone_is_initialized(z2, start_pfn, end_pfn - start_pfn);
- 
- 	pgdat_resize_lock(z1->zone_pgdat, &flags);
- 
-@@ -481,12 +471,9 @@ static int __meminit __add_zone(struct z
- 	int nid = pgdat->node_id;
- 	int zone_type;
- 	unsigned long flags, pfn;
--	int ret;
- 
- 	zone_type = zone - pgdat->node_zones;
--	ret = ensure_zone_is_initialized(zone, phys_start_pfn, nr_pages);
--	if (ret)
--		return ret;
-+	ensure_zone_is_initialized(zone, phys_start_pfn, nr_pages);
- 
- 	pgdat_resize_lock(zone->zone_pgdat, &flags);
- 	grow_zone_span(zone, phys_start_pfn, phys_start_pfn + nr_pages);
-diff -puN mm/page_alloc.c~mm-remove-return-value-from-init_currently_empty_zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-return-value-from-init_currently_empty_zone
-+++ a/mm/page_alloc.c
-@@ -5515,7 +5515,7 @@ static __meminit void zone_pcp_init(stru
- 					 zone_batchsize(zone));
- }
- 
--int __meminit init_currently_empty_zone(struct zone *zone,
-+void __meminit init_currently_empty_zone(struct zone *zone,
- 					unsigned long zone_start_pfn,
- 					unsigned long size)
- {
-@@ -5533,8 +5533,6 @@ int __meminit init_currently_empty_zone(
- 
- 	zone_init_free_lists(zone);
- 	zone->initialized = 1;
--
--	return 0;
- }
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-@@ -5992,7 +5990,6 @@ static void __paginginit free_area_init_
- {
- 	enum zone_type j;
- 	int nid = pgdat->node_id;
--	int ret;
- 
- 	pgdat_resize_init(pgdat);
- #ifdef CONFIG_NUMA_BALANCING
-@@ -6074,8 +6071,7 @@ static void __paginginit free_area_init_
- 
- 		set_pageblock_order();
- 		setup_usemap(pgdat, zone, zone_start_pfn, size);
--		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
--		BUG_ON(ret);
-+		init_currently_empty_zone(zone, zone_start_pfn, size);
- 		memmap_init(size, nid, j, zone_start_pfn);
+ 	unsigned long i;
+ 	int err = 0;
+@@ -549,7 +552,7 @@ int __ref __add_pages(int nid, struct zo
  	}
- }
+ 
+ 	for (i = start_sec; i <= end_sec; i++) {
+-		err = __add_section(nid, zone, section_nr_to_pfn(i));
++		err = __add_section(nid, zone, section_nr_to_pfn(i), want_memblock);
+ 
+ 		/*
+ 		 * EEXIST is finally dealt with by ioresource collision
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
