@@ -1,64 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-copying-user-pages-must-schedule-on-collapse.patch removed from -mm
- tree
-Date: Tue, 16 May 2017 10:50:20 -0700
-Message-ID: <20170516175020.2Dx9j_bLz%akpm@linux-foundation.org>
+ ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch
+ removed from -mm tree
+Date: Tue, 16 May 2017 10:50:11 -0700
+Message-ID: <20170516175011.2bhrWqRen%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57444 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752745AbdEPRuV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:21 -0400
+        with ESMTP id S1752745AbdEPRuW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: dan.j.williams@intel.com, jack@suse.cz, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: copying user pages must schedule on collapse
+     Subject: ext4: return to starting transaction in ext4_dax_huge_fault()
 has been removed from the -mm tree.  Its filename was
-     mm-thp-copying-user-pages-must-schedule-on-collapse.patch
+     ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: copying user pages must schedule on collapse
+From: Jan Kara <jack@suse.cz>
+Subject: ext4: return to starting transaction in ext4_dax_huge_fault()
 
-We have encountered need_resched warnings in __collapse_huge_page_copy()
-while doing {clear,copy}_user_highpage() over HPAGE_PMD_NR source pages.
+DAX will return to locking exceptional entry before mapping blocks for a
+page fault to fix possible races with concurrent writes.  To avoid lock
+inversion between exceptional entry lock and transaction start, start the
+transaction already in ext4_dax_huge_fault().
 
-mm->mmap_sem is held for write, but the iteration is well bounded.
-
-Reschedule as needed.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1705101426380.109808@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
+Link: http://lkml.kernel.org/r/20170510085419.27601-4-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/ext4/file.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-thp-copying-user-pages-must-schedule-on-collapse mm/khugepaged.c
---- a/mm/khugepaged.c~mm-thp-copying-user-pages-must-schedule-on-collapse
-+++ a/mm/khugepaged.c
-@@ -612,7 +612,8 @@ static void __collapse_huge_page_copy(pt
- 				      spinlock_t *ptl)
+diff -puN fs/ext4/file.c~ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault fs/ext4/file.c
+--- a/fs/ext4/file.c~ext4-return-back-to-starting-transaction-in-ext4_dax_huge_fault
++++ a/fs/ext4/file.c
+@@ -257,6 +257,7 @@ static int ext4_dax_huge_fault(struct vm
+ 		enum page_entry_size pe_size)
  {
- 	pte_t *_pte;
--	for (_pte = pte; _pte < pte+HPAGE_PMD_NR; _pte++) {
-+	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
-+				_pte++, page++, address += PAGE_SIZE) {
- 		pte_t pteval = *_pte;
- 		struct page *src_page;
+ 	int result;
++	handle_t *handle = NULL;
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+@@ -264,12 +265,24 @@ static int ext4_dax_huge_fault(struct vm
+ 	if (write) {
+ 		sb_start_pagefault(sb);
+ 		file_update_time(vmf->vma->vm_file);
++		down_read(&EXT4_I(inode)->i_mmap_sem);
++		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
++					       EXT4_DATA_TRANS_BLOCKS(sb));
++	} else {
++		down_read(&EXT4_I(inode)->i_mmap_sem);
+ 	}
+-	down_read(&EXT4_I(inode)->i_mmap_sem);
+-	result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
+-	up_read(&EXT4_I(inode)->i_mmap_sem);
+-	if (write)
++	if (!IS_ERR(handle))
++		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
++	else
++		result = VM_FAULT_SIGBUS;
++	if (write) {
++		if (!IS_ERR(handle))
++			ext4_journal_stop(handle);
++		up_read(&EXT4_I(inode)->i_mmap_sem);
+ 		sb_end_pagefault(sb);
++	} else {
++		up_read(&EXT4_I(inode)->i_mmap_sem);
++	}
  
-@@ -651,9 +652,7 @@ static void __collapse_huge_page_copy(pt
- 			spin_unlock(ptl);
- 			free_page_and_swap_cache(src_page);
- 		}
+ 	return result;
+ }
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+
