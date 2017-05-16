@@ -1,81 +1,154 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-fix-data-corruption-due-to-stale-mmap-reads.patch removed from -mm tree
-Date: Tue, 16 May 2017 10:50:08 -0700
-Message-ID: <20170516175008.sS7iFsJFX%akpm@linux-foundation.org>
+ dax-fix-data-corruption-when-fault-races-with-write.patch removed from -mm
+ tree
+Date: Tue, 16 May 2017 10:50:14 -0700
+Message-ID: <20170516175014.--V0tCydp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:57436 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752395AbdEPRuO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:14 -0400
+        with ESMTP id S1752745AbdEPRuP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dan.j.williams@intel.com, jack@suse.cz, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix data corruption due to stale mmap reads
+     Subject: dax: fix data corruption when fault races with write
 has been removed from the -mm tree.  Its filename was
-     mm-fix-data-corruption-due-to-stale-mmap-reads.patch
+     dax-fix-data-corruption-when-fault-races-with-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: fix data corruption due to stale mmap reads
+Subject: dax: fix data corruption when fault races with write
 
-Currently, we didn't invalidate page tables during
-invalidate_inode_pages2() for DAX.  That could result in e.g.  2MiB zero
-page being mapped into page tables while there were already underlying
-blocks allocated and thus data seen through mmap were different from data
-seen by read(2).  The following sequence reproduces the problem:
+Currently DAX read fault can race with write(2) in the following way:
 
-- open an mmap over a 2MiB hole
+CPU1 - write(2)			CPU2 - read fault
+				dax_iomap_pte_fault()
+				  ->iomap_begin() - sees hole
+dax_iomap_rw()
+  iomap_apply()
+    ->iomap_begin - allocates blocks
+    dax_iomap_actor()
+      invalidate_inode_pages2_range()
+        - there's nothing to invalidate
+				  grab_mapping_entry()
+				  - we add zero page in the radix tree
+				    and map it to page tables
 
-- read from a 2MiB hole, faulting in a 2MiB zero page
+The result is that hole page is mapped into page tables (and thus zeros
+are seen in mmap) while file has data written in that place.
 
-- write to the hole with write(3p).  The write succeeds but we
-  incorrectly leave the 2MiB zero page mapping intact.
+Fix the problem by locking exception entry before mapping blocks for the
+fault.  That way we are sure invalidate_inode_pages2_range() call for
+racing write will either block on entry lock waiting for the fault to
+finish (and unmap stale page tables after that) or read fault will see
+already allocated blocks by write(2).
 
-- via the mmap, read the data that was just written.  Since the zero
-  page mapping is still intact we read back zeroes instead of the new
-  data.
-
-Fix the problem by unconditionally calling invalidate_inode_pages2_range()
-in dax_iomap_actor() for new block allocations and by properly
-invalidating page tables in invalidate_inode_pages2_range() for DAX
-mappings.
-
-Fixes: c6dcf52c23d2d3fb5235cec42d7dd3f786b87d55
-Link: http://lkml.kernel.org/r/20170510085419.27601-3-jack@suse.cz
+Fixes: 9f141d6ef6258a3a37a045842d9ba7e68f368956
+Link: http://lkml.kernel.org/r/20170510085419.27601-5-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c      |    2 +-
- mm/truncate.c |   12 +++++++++++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ fs/dax.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN fs/dax.c~mm-fix-data-corruption-due-to-stale-mmap-reads fs/dax.c
---- a/fs/dax.c~mm-fix-data-corruption-due-to-stale-mmap-reads
+diff -puN fs/dax.c~dax-fix-data-corruption-when-fault-races-with-write fs/dax.c
+--- a/fs/dax.c~dax-fix-data-corruption-when-fault-races-with-write
 +++ a/fs/dax.c
-@@ -1015,7 +1015,7 @@ dax_iomap_actor(struct inode *inode, lof
- 	 * into page tables. We have to tear down these mappings so that data
- 	 * written by write(2) is visible in mmap.
- 	 */
--	if ((iomap->flags & IOMAP_F_NEW) && inode->i_mapping->nrpages) {
-+	if (iomap->flags & IOMAP_F_NEW) {
- 		invalidate_inode_pages2_range(inode->i_mapping,
- 					      pos >> PAGE_SHIFT,
- 					      (end - 1) >> PAGE_SHIFT);
-diff -puN mm/truncate.c~mm-fix-data-corruption-due-to-stale-mmap-reads mm/truncate.c
---- a/mm/truncate.c~mm-fix-data-corruption-due-to-stale-mmap-reads
-+++ a/mm/truncate.c
-@@ -686,7 +686,17 @@ int invalidate_inode_pages2_range(struct
- 		cond_resched();
- 		index++;
+@@ -1148,6 +1148,12 @@ static int dax_iomap_pte_fault(struct vm
+ 	if ((vmf->flags & FAULT_FLAG_WRITE) && !vmf->cow_page)
+ 		flags |= IOMAP_WRITE;
+ 
++	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
++	if (IS_ERR(entry)) {
++		vmf_ret = dax_fault_return(PTR_ERR(entry));
++		goto out;
++	}
++
+ 	/*
+ 	 * Note that we don't bother to use iomap_apply here: DAX required
+ 	 * the file system block size to be equal the page size, which means
+@@ -1156,17 +1162,11 @@ static int dax_iomap_pte_fault(struct vm
+ 	error = ops->iomap_begin(inode, pos, PAGE_SIZE, flags, &iomap);
+ 	if (error) {
+ 		vmf_ret = dax_fault_return(error);
+-		goto out;
++		goto unlock_entry;
  	}
+ 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
+-		vmf_ret = dax_fault_return(-EIO);	/* fs corruption? */
+-		goto finish_iomap;
+-	}
+-
+-	entry = grab_mapping_entry(mapping, vmf->pgoff, 0);
+-	if (IS_ERR(entry)) {
+-		vmf_ret = dax_fault_return(PTR_ERR(entry));
+-		goto finish_iomap;
++		error = -EIO;	/* fs corruption? */
++		goto error_finish_iomap;
+ 	}
+ 
+ 	sector = dax_iomap_sector(&iomap, pos);
+@@ -1188,13 +1188,13 @@ static int dax_iomap_pte_fault(struct vm
+ 		}
+ 
+ 		if (error)
+-			goto error_unlock_entry;
++			goto error_finish_iomap;
+ 
+ 		__SetPageUptodate(vmf->cow_page);
+ 		vmf_ret = finish_fault(vmf);
+ 		if (!vmf_ret)
+ 			vmf_ret = VM_FAULT_DONE_COW;
+-		goto unlock_entry;
++		goto finish_iomap;
+ 	}
+ 
+ 	switch (iomap.type) {
+@@ -1214,7 +1214,7 @@ static int dax_iomap_pte_fault(struct vm
+ 	case IOMAP_HOLE:
+ 		if (!(vmf->flags & FAULT_FLAG_WRITE)) {
+ 			vmf_ret = dax_load_hole(mapping, &entry, vmf);
+-			goto unlock_entry;
++			goto finish_iomap;
+ 		}
+ 		/*FALLTHRU*/
+ 	default:
+@@ -1223,10 +1223,8 @@ static int dax_iomap_pte_fault(struct vm
+ 		break;
+ 	}
+ 
+- error_unlock_entry:
++ error_finish_iomap:
+ 	vmf_ret = dax_fault_return(error) | major;
+- unlock_entry:
+-	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
+  finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PAGE_SIZE;
+@@ -1241,7 +1239,9 @@ static int dax_iomap_pte_fault(struct vm
+ 		 */
+ 		ops->iomap_end(inode, pos, PAGE_SIZE, copied, flags, &iomap);
+ 	}
+-out:
++ unlock_entry:
++	put_locked_mapping_entry(mapping, vmf->pgoff, entry);
++ out:
+ 	trace_dax_pte_fault_done(inode, vmf, vmf_ret);
+ 	return vmf_ret;
+ }
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+
