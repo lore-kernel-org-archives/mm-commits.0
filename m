@@ -1,105 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwpoison-memcg-forcibly-uncharge-lru-pages.patch
- removed from -mm tree
-Date: Tue, 16 May 2017 10:49:47 -0700
-Message-ID: <20170516174947.81cwHcxkU%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch removed from -mm
+ tree
+Date: Tue, 16 May 2017 10:49:53 -0700
+Message-ID: <20170516174953.QGJdpzuqT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57390 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750970AbdEPRtt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:49:49 -0400
+        with ESMTP id S1751855AbdEPRty (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:49:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bsingharora@gmail.com, ldufour@linux.vnet.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
+To: arbab@linux.vnet.ibm.com, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: hwpoison, memcg: forcibly uncharge LRU pages
+     Subject: mm, vmstat: remove spurious WARN() during zoneinfo print
 has been removed from the -mm tree.  Its filename was
-     hwpoison-memcg-forcibly-uncharge-lru-pages.patch
+     mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: hwpoison, memcg: forcibly uncharge LRU pages
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: mm, vmstat: remove spurious WARN() during zoneinfo print
 
-Laurent Dufour has noticed that hwpoinsoned pages are kept charged.  In
-his particular case he has hit a bad_page("page still charged to cgroup")
-when onlining a hwpoison page.  While this looks like something that
-shouldn't happen in the first place because onlining hwpages and returning
-them to the page allocator makes only little sense it shows a real
-problem.
+After e2ecc8a79ed49f7838 ("mm, vmstat: print non-populated zones in
+zoneinfo"), /proc/zoneinfo will show unpopulated zones.
 
-hwpoison pages do not get freed usually so we do not uncharge them (at
-least not since 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")). 
-Each charge pins memcg (since e8ea14cc6ead ("mm: memcontrol: take a css
-reference for each charged page")) as well and so the mem_cgroup and the
-associated state will never go away.  Fix this leak by forcibly uncharging
-a LRU hwpoisoned page in delete_from_lru_cache().  We also have to tweak
-uncharge_list because it cannot rely on zero ref count for these pages.
+A memoryless node, having no populated zones at all, was previously
+ignored, but will now trigger the WARN() in is_zone_first_populated().
 
-[akpm@linux-foundation.org: coding-style fixes]
-Fixes: 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")
-Link: http://lkml.kernel.org/r/20170502185507.GB19165@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Tested-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Reviewed-by: Balbir Singh <bsingharora@gmail.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Remove this warning, as its only purpose was to warn of a situation that
+has since been enabled.
+
+Aside: The "per-node stats" are still printed under the first populated
+zone, but that's not necessarily the first stanza any more. I'm not sure
+which criteria is more important with regard to not breaking parsers, but
+it looks a little weird to the eye.
+
+Fixes:  e2ecc8a79ed49f7838: "mm, vmstat: print node-based stats in zoneinfo file")
+Link: http://lkml.kernel.org/r/1493854905-10918-1-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c     |    2 +-
- mm/memory-failure.c |    7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ mm/vmstat.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/memcontrol.c~hwpoison-memcg-forcibly-uncharge-lru-pages mm/memcontrol.c
---- a/mm/memcontrol.c~hwpoison-memcg-forcibly-uncharge-lru-pages
-+++ a/mm/memcontrol.c
-@@ -5528,7 +5528,7 @@ static void uncharge_list(struct list_he
- 		next = page->lru.next;
+diff -puN mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print
++++ a/mm/vmstat.c
+@@ -1359,8 +1359,6 @@ static bool is_zone_first_populated(pg_d
+ 			return zone == compare;
+ 	}
  
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
--		VM_BUG_ON_PAGE(page_count(page), page);
-+		VM_BUG_ON_PAGE(!PageHWPoison(page) && page_count(page), page);
+-	/* The zone must be somewhere! */
+-	WARN_ON_ONCE(1);
+ 	return false;
+ }
  
- 		if (!page->mem_cgroup)
- 			continue;
-diff -puN mm/memory-failure.c~hwpoison-memcg-forcibly-uncharge-lru-pages mm/memory-failure.c
---- a/mm/memory-failure.c~hwpoison-memcg-forcibly-uncharge-lru-pages
-+++ a/mm/memory-failure.c
-@@ -539,6 +539,13 @@ static int delete_from_lru_cache(struct
- 		 */
- 		ClearPageActive(p);
- 		ClearPageUnevictable(p);
-+
-+		/*
-+		 * Poisoned page might never drop its ref count to 0 so we have
-+		 * to uncharge it manually from its memcg.
-+		 */
-+		mem_cgroup_uncharge(p);
-+
- 		/*
- 		 * drop the page count elevated by isolate_lru_page()
- 		 */
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
-mm-remove-return-value-from-init_currently_empty_zone.patch
-mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
-mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
-mm-memory_hotplug-split-up-register_one_node.patch
-mm-memory_hotplug-consider-offline-memblocks-removable.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
-mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
-mm-__first_valid_page-skip-over-offline-pages.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
-mm-memory_hotplug-fix-the-section-mismatch-warning.patch
-mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
 
