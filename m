@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch added
- to -mm tree
-Date: Tue, 16 May 2017 13:12:27 -0700
-Message-ID: <591b5d2b.3uf4m6amMjcONNbR%akpm@linux-foundation.org>
+Subject: + seq_file-delete-small-value-optimization.patch added to -mm
+ tree
+Date: Tue, 16 May 2017 13:59:10 -0700
+Message-ID: <591b681e.gjX+Qze+EqpV3Q6I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45752 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752735AbdEPUM2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 16:12:28 -0400
+        with ESMTP id S1750795AbdEPU7L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 16:59:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, kravetz@us.ibm.com, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/hugetlb: enable hugetlb migration for ppc64
+     Subject: fs/seq_file.c: delete small-value optimization
 has been added to the -mm tree.  Its filename is
-     powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
+     seq_file-delete-small-value-optimization.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/seq_file-delete-small-value-optimization.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/seq_file-delete-small-value-optimization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc/hugetlb: enable hugetlb migration for ppc64
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fs/seq_file.c: delete small-value optimization
 
-Link: http://lkml.kernel.org/r/1494926612-23928-10-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Mike Kravetz <kravetz@us.ibm.com>
+num_to_str() optimizes printing small integers [0..9], so the same check
+higher in callchain is unnecessary.
+
+Link: http://lkml.kernel.org/r/20170516204246.GA18123@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/Kconfig.cputype |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/seq_file.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN arch/powerpc/platforms/Kconfig.cputype~powerpc-hugetlb-enable-hugetlb-migration-for-ppc64 arch/powerpc/platforms/Kconfig.cputype
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-hugetlb-enable-hugetlb-migration-for-ppc64
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -350,6 +350,11 @@ config PPC_RADIX_MMU
- 	  is only implemented by IBM Power9 CPUs, if you don't have one of them
- 	  you can probably disable this.
+diff -puN fs/seq_file.c~seq_file-delete-small-value-optimization fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-delete-small-value-optimization
++++ a/fs/seq_file.c
+@@ -694,11 +694,6 @@ void seq_put_decimal_ull(struct seq_file
+ 	if (m->count + 1 >= m->size)
+ 		goto overflow;
  
-+config ARCH_ENABLE_HUGEPAGE_MIGRATION
-+	def_bool y
-+	depends on PPC_BOOK3S_64 && HUGETLB_PAGE && MIGRATION
-+
-+
- config PPC_MMU_NOHASH
- 	def_bool y
- 	depends on !PPC_STD_MMU
-_
-
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
-
-mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
-mm-follow_page_mask-split-follow_page_mask-to-smaller-functions.patch
-mm-hugetlb-export-hugetlb_entry_migration-helper.patch
-mm-hugetlb-move-default-definition-of-hugepd_t-earlier-in-the-header.patch
-mm-follow_page_mask-add-support-for-hugepage-directory-entry.patch
-powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
-powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc.patch
-powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
-
+-	if (num < 10) {
+-		m->buf[m->count++] = num + '0';
+-		return;
+-	}
+-
+ 	len = num_to_str(m->buf + m->count, m->size - m->count, num);
+ 	if (!len)
+ 		goto overflow;
+@@ -733,11 +728,6 @@ void seq_put_decimal_ll(struct seq_file
+ 		num = -num;
+ 	}
+ 
+-	if (num < 10) {
+-		m->buf[m->count++] = num + '0';
+-		return;
+-	}
