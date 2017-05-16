@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
- added to -mm tree
-Date: Tue, 16 May 2017 13:04:12 -0700
-Message-ID: <591b5b3c.TDAl3ZavPbkhSX+x%akpm@linux-foundation.org>
+ mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch added
+ to -mm tree
+Date: Tue, 16 May 2017 13:12:10 -0700
+Message-ID: <591b5d1a.xNhQiGlbemMR4TIh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43856 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752000AbdEPUEN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 16:04:13 -0400
+        with ESMTP id S1751181AbdEPUML (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 16:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, kravetz@us.ibm.com, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: enable (soft|hard) offline of HugeTLB pages at PGD level
+     Subject: mm/hugetlb/migration: use set_huge_pte_at instead of set_pte_at
 has been added to the -mm tree.  Its filename is
-     mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
+     mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,124 +40,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/madvise: enable (soft|hard) offline of HugeTLB pages at PGD level
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/hugetlb/migration: use set_huge_pte_at instead of set_pte_at
 
-Though migrating gigantic HugeTLB pages does not sound much like real
-world use case, they can be affected by memory errors.  Hence migration at
-the PGD level HugeTLB pages should be supported just to enable soft and
-hard offline use cases.
+Patch series "HugeTLB migration support for PPC64", v2.
 
-While allocating the new gigantic HugeTLB page, it should not matter
-whether new page comes from the same node or not.  There would be very few
-gigantic pages on the system afterall, we should not be bothered about
-node locality when trying to save a big page from crashing.
 
-This change renames dequeu_huge_page_node() function as dequeue_huge
-_page_node_exact() preserving it's original functionality.  Now the new
-dequeue_huge_page_node() function scans through all available online nodes
-to allocate a huge page for the NUMA_NO_NODE case and just falls back
-calling dequeu_huge_page_node_exact() for all other cases.
+This patch (of 9):
 
-Link: http://lkml.kernel.org/r/20170516100509.20122-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+The right interface to use to set a hugetlb pte entry is set_huge_pte_at. 
+Use that instead of set_pte_at.
+
+Link: http://lkml.kernel.org/r/1494926612-23928-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mike Kravetz <kravetz@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 ++++++-
- mm/hugetlb.c            |   18 +++++++++++++++++-
- mm/memory-failure.c     |   13 +++++++++----
- 3 files changed, 32 insertions(+), 6 deletions(-)
+ mm/migrate.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
-+++ a/include/linux/hugetlb.h
-@@ -466,7 +466,11 @@ extern int dissolve_free_huge_pages(unsi
- static inline bool hugepage_migration_supported(struct hstate *h)
- {
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
--	return huge_page_shift(h) == PMD_SHIFT;
-+	if ((huge_page_shift(h) == PMD_SHIFT) ||
-+		(huge_page_shift(h) == PGDIR_SHIFT))
-+		return true;
-+	else
-+		return false;
- #else
- 	return false;
- #endif
-@@ -518,6 +522,7 @@ struct hstate {};
- #define vma_mmu_pagesize(v) PAGE_SIZE
- #define huge_page_order(h) 0
- #define huge_page_shift(h) PAGE_SHIFT
-+#define hstate_is_gigantic(h) 0
- static inline unsigned int pages_per_huge_page(struct hstate *h)
- {
- 	return 1;
-diff -puN mm/hugetlb.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level mm/hugetlb.c
---- a/mm/hugetlb.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
-+++ a/mm/hugetlb.c
-@@ -867,7 +867,7 @@ static void enqueue_huge_page(struct hst
- 	h->free_huge_pages_node[nid]++;
- }
+diff -puN mm/migrate.c~mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at mm/migrate.c
+--- a/mm/migrate.c~mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at
++++ a/mm/migrate.c
+@@ -227,25 +227,26 @@ static bool remove_migration_pte(struct
+ 		if (is_write_migration_entry(entry))
+ 			pte = maybe_mkwrite(pte, vma);
  
--static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
-+static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
- {
- 	struct page *page;
++		flush_dcache_page(new);
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		if (PageHuge(new)) {
+ 			pte = pte_mkhuge(pte);
+ 			pte = arch_make_huge_pte(pte, vma, new, 0);
+-		}
+-#endif
+-		flush_dcache_page(new);
+-		set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
+-
+-		if (PageHuge(new)) {
++			set_huge_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
+ 			if (PageAnon(new))
+ 				hugepage_add_anon_rmap(new, vma, pvmw.address);
+ 			else
+ 				page_dup_rmap(new, true);
+-		} else if (PageAnon(new))
+-			page_add_anon_rmap(new, vma, pvmw.address, false);
+-		else
+-			page_add_file_rmap(new, false);
++		} else
++#endif
++		{
++			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
  
-@@ -887,6 +887,22 @@ static struct page *dequeue_huge_page_no
- 	return page;
- }
++			if (PageAnon(new))
++				page_add_anon_rmap(new, vma, pvmw.address, false);
++			else
++				page_add_file_rmap(new, false);
++		}
+ 		if (vma->vm_flags & VM_LOCKED && !PageTransCompound(new))
+ 			mlock_vma_page(new);
  
-+static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
-+{
-+	struct page *page;
-+	int node;
-+
-+	if (nid != NUMA_NO_NODE)
-+		return dequeue_huge_page_node_exact(h, nid);
-+
-+	for_each_online_node(node) {
-+		page = dequeue_huge_page_node_exact(h, node);
-+		if (page)
-+			return page;
-+	}
-+	return NULL;
-+}
-+
- /* Movability of hugepages depends on migration support. */
- static inline gfp_t htlb_alloc_mask(struct hstate *h)
- {
-diff -puN mm/memory-failure.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level mm/memory-failure.c
---- a/mm/memory-failure.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
-+++ a/mm/memory-failure.c
-@@ -1489,11 +1489,16 @@ EXPORT_SYMBOL(unpoison_memory);
- static struct page *new_page(struct page *p, unsigned long private, int **x)
- {
- 	int nid = page_to_nid(p);
--	if (PageHuge(p))
--		return alloc_huge_page_node(page_hstate(compound_head(p)),
--						   nid);
--	else
-+	if (PageHuge(p)) {
-+		struct hstate *hstate = page_hstate(compound_head(p));
-+
-+		if (hstate_is_gigantic(hstate))
-+			return alloc_huge_page_node(hstate, NUMA_NO_NODE);
-+
-+		return alloc_huge_page_node(hstate, nid);
-+	} else {
- 		return __alloc_pages_node(nid, GFP_HIGHUSER_MOVABLE, 0);
-+	}
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-mm-vmstat-standardize-file-operations-variable-names.patch
-mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
+mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
+mm-follow_page_mask-split-follow_page_mask-to-smaller-functions.patch
+mm-hugetlb-export-hugetlb_entry_migration-helper.patch
+mm-hugetlb-move-default-definition-of-hugepd_t-earlier-in-the-header.patch
+mm-follow_page_mask-add-support-for-hugepage-directory-entry.patch
+powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
+powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc.patch
+powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
 
