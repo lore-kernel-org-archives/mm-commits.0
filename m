@@ -1,131 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tigran-has-moved.patch removed from -mm tree
-Date: Tue, 16 May 2017 10:50:03 -0700
-Message-ID: <20170516175003.GHQLNl4f8%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmalloc-fix-vmalloc-users-tracking-properly.patch removed from -mm tree
+Date: Tue, 16 May 2017 10:50:00 -0700
+Message-ID: <20170516175000.Jb6UPBnbA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57420 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57410 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752639AbdEPRuJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:09 -0400
+        with ESMTP id S1751795AbdEPRuB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aivazian.tigran@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, mhocko@suse.com, mm-commits@vger.kernel.org, tklauser@distanz.ch
 
 
 The patch titled
-     Subject: Tigran has moved
+     Subject: mm, vmalloc: fix vmalloc users tracking properly
 has been removed from the -mm tree.  Its filename was
-     tigran-has-moved.patch
+     mm-vmalloc-fix-vmalloc-users-tracking-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Tigran has moved
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmalloc: fix vmalloc users tracking properly
 
-Cc: Tigran Aivazian <aivazian.tigran@gmail.com>
+1f5307b1e094 ("mm, vmalloc: properly track vmalloc users") has pulled
+asm/pgtable.h include dependency to linux/vmalloc.h and that turned out
+to be a bad idea for some architectures. E.g. m68k fails with
+   In file included from arch/m68k/include/asm/pgtable_mm.h:145:0,
+                    from arch/m68k/include/asm/pgtable.h:4,
+                    from include/linux/vmalloc.h:9,
+                    from arch/m68k/kernel/module.c:9:
+   arch/m68k/include/asm/mcf_pgtable.h: In function 'nocache_page':
+>> arch/m68k/include/asm/mcf_pgtable.h:339:43: error: 'init_mm' undeclared (first use in this function)
+    #define pgd_offset_k(address) pgd_offset(&init_mm, address)
+
+as spotted by kernel build bot. nios2 fails for other reason
+In file included from ./include/asm-generic/io.h:767:0,
+                 from ./arch/nios2/include/asm/io.h:61,
+                 from ./include/linux/io.h:25,
+                 from ./arch/nios2/include/asm/pgtable.h:18,
+                 from ./include/linux/mm.h:70,
+                 from ./include/linux/pid_namespace.h:6,
+                 from ./include/linux/ptrace.h:9,
+                 from ./arch/nios2/include/uapi/asm/elf.h:23,
+                 from ./arch/nios2/include/asm/elf.h:22,
+                 from ./include/linux/elf.h:4,
+                 from ./include/linux/module.h:15,
+                 from init/main.c:16:
+./include/linux/vmalloc.h: In function '__vmalloc_node_flags':
+./include/linux/vmalloc.h:99:40: error: 'PAGE_KERNEL' undeclared (first use in this function); did you mean 'GFP_KERNEL'?
+
+which is due to the newly added #include <asm/pgtable.h>, which on nios2
+includes <linux/io.h> and thus <asm/io.h> and <asm-generic/io.h> which
+again includes <linux/vmalloc.h>.
+
+Tweaking that around just turns out a bigger headache than necessary. 
+This patch reverts 1f5307b1e094 and reimplements the original fix in a
+different way.  __vmalloc_node_flags can stay static inline which will
+cover vmalloc* functions.  We only have one external user (kvmalloc_node)
+and we can export __vmalloc_node_flags_caller and provide the caller
+directly.  This is much simpler and it doesn't really need any games with
+header files.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[mhocko@kernel.org: revert old comment]
+  Link: http://lkml.kernel.org/r/20170509211054.GB16325@dhcp22.suse.cz
+Fixes: 1f5307b1e094 ("mm, vmalloc: properly track vmalloc users")
+Link: http://lkml.kernel.org/r/20170509153702.GR6481@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Tobias Klauser <tklauser@distanz.ch>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/bfs.txt     |    2 +-
- MAINTAINERS                           |    2 +-
- arch/x86/kernel/cpu/microcode/amd.c   |    2 +-
- arch/x86/kernel/cpu/microcode/core.c  |    2 +-
- arch/x86/kernel/cpu/microcode/intel.c |    2 +-
- fs/bfs/inode.c                        |    4 ++--
- 6 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/vmalloc.h |   21 ++++++---------------
+ mm/util.c               |    3 ++-
+ mm/vmalloc.c            |   19 ++++++++++++++++++-
+ 3 files changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN Documentation/filesystems/bfs.txt~tigran-has-moved Documentation/filesystems/bfs.txt
---- a/Documentation/filesystems/bfs.txt~tigran-has-moved
-+++ a/Documentation/filesystems/bfs.txt
-@@ -54,4 +54,4 @@ The first 4 bytes should be 0x1badface.
- If you have any patches, questions or suggestions regarding this BFS
- implementation please contact the author:
+diff -puN include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-vmalloc-fix-vmalloc-users-tracking-properly
++++ a/include/linux/vmalloc.h
+@@ -6,7 +6,6 @@
+ #include <linux/list.h>
+ #include <linux/llist.h>
+ #include <asm/page.h>		/* pgprot_t */
+-#include <asm/pgtable.h>	/* PAGE_KERNEL */
+ #include <linux/rbtree.h>
  
--Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-+Tigran Aivazian <aivazian.tigran@gmail.com>
-diff -puN MAINTAINERS~tigran-has-moved MAINTAINERS
---- a/MAINTAINERS~tigran-has-moved
-+++ a/MAINTAINERS
-@@ -2483,7 +2483,7 @@ S:	Maintained
- F:	drivers/net/ethernet/ec_bhf.c
+ struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
+@@ -83,22 +82,14 @@ extern void *__vmalloc_node_range(unsign
+ 			const void *caller);
+ #ifndef CONFIG_MMU
+ extern void *__vmalloc_node_flags(unsigned long size, int node, gfp_t flags);
+-#else
+-extern void *__vmalloc_node(unsigned long size, unsigned long align,
+-			    gfp_t gfp_mask, pgprot_t prot,
+-			    int node, const void *caller);
+-
+-/*
+- * We really want to have this inlined due to caller tracking. This
+- * function is used by the highlevel vmalloc apis and so we want to track
+- * their callers and inlining will achieve that.
+- */
+-static inline void *__vmalloc_node_flags(unsigned long size,
+-					int node, gfp_t flags)
++static inline void *__vmalloc_node_flags_caller(unsigned long size, int node,
++						gfp_t flags, void *caller)
+ {
+-	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
+-					node, __builtin_return_address(0));
++	return __vmalloc_node_flags(size, node, flags);
+ }
++#else
++extern void *__vmalloc_node_flags_caller(unsigned long size,
++					 int node, gfp_t flags, void *caller);
+ #endif
  
- BFS FILE SYSTEM
--M:	"Tigran A. Aivazian" <tigran@aivazian.fsnet.co.uk>
-+M:	"Tigran A. Aivazian" <aivazian.tigran@gmail.com>
- S:	Maintained
- F:	Documentation/filesystems/bfs.txt
- F:	fs/bfs/
-diff -puN arch/x86/kernel/cpu/microcode/amd.c~tigran-has-moved arch/x86/kernel/cpu/microcode/amd.c
---- a/arch/x86/kernel/cpu/microcode/amd.c~tigran-has-moved
-+++ a/arch/x86/kernel/cpu/microcode/amd.c
-@@ -10,7 +10,7 @@
-  *  Author: Peter Oruba <peter.oruba@amd.com>
-  *
-  *  Based on work by:
-- *  Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-+ *  Tigran Aivazian <aivazian.tigran@gmail.com>
-  *
-  *  early loader:
-  *  Copyright (C) 2013 Advanced Micro Devices, Inc.
-diff -puN arch/x86/kernel/cpu/microcode/core.c~tigran-has-moved arch/x86/kernel/cpu/microcode/core.c
---- a/arch/x86/kernel/cpu/microcode/core.c~tigran-has-moved
-+++ a/arch/x86/kernel/cpu/microcode/core.c
-@@ -1,7 +1,7 @@
- /*
-  * CPU Microcode Update Driver for Linux
-  *
-- * Copyright (C) 2000-2006 Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-+ * Copyright (C) 2000-2006 Tigran Aivazian <aivazian.tigran@gmail.com>
-  *	      2006	Shaohua Li <shaohua.li@intel.com>
-  *	      2013-2016	Borislav Petkov <bp@alien8.de>
-  *
-diff -puN arch/x86/kernel/cpu/microcode/intel.c~tigran-has-moved arch/x86/kernel/cpu/microcode/intel.c
---- a/arch/x86/kernel/cpu/microcode/intel.c~tigran-has-moved
-+++ a/arch/x86/kernel/cpu/microcode/intel.c
-@@ -1,7 +1,7 @@
- /*
-  * Intel CPU Microcode Update Driver for Linux
-  *
-- * Copyright (C) 2000-2006 Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-+ * Copyright (C) 2000-2006 Tigran Aivazian <aivazian.tigran@gmail.com>
-  *		 2006 Shaohua Li <shaohua.li@intel.com>
-  *
-  * Intel CPU microcode early update for Linux
-diff -puN fs/bfs/inode.c~tigran-has-moved fs/bfs/inode.c
---- a/fs/bfs/inode.c~tigran-has-moved
-+++ a/fs/bfs/inode.c
-@@ -1,7 +1,7 @@
- /*
-  *	fs/bfs/inode.c
-  *	BFS superblock and inode operations.
-- *	Copyright (C) 1999-2006 Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-+ *	Copyright (C) 1999-2006 Tigran Aivazian <aivazian.tigran@gmail.com>
-  *	From fs/minix, Copyright (C) 1991, 1992 Linus Torvalds.
-  *
-  *      Made endianness-clean by Andrew Stribblehill <ads@wompom.org>, 2005.
-@@ -19,7 +19,7 @@
- #include <linux/uaccess.h>
- #include "bfs.h"
+ extern void vfree(const void *addr);
+diff -puN mm/util.c~mm-vmalloc-fix-vmalloc-users-tracking-properly mm/util.c
+--- a/mm/util.c~mm-vmalloc-fix-vmalloc-users-tracking-properly
++++ a/mm/util.c
+@@ -382,7 +382,8 @@ void *kvmalloc_node(size_t size, gfp_t f
+ 	if (ret || size <= PAGE_SIZE)
+ 		return ret;
  
--MODULE_AUTHOR("Tigran Aivazian <tigran@aivazian.fsnet.co.uk>");
-+MODULE_AUTHOR("Tigran Aivazian <aivazian.tigran@gmail.com>");
- MODULE_DESCRIPTION("SCO UnixWare BFS filesystem for Linux");
- MODULE_LICENSE("GPL");
+-	return __vmalloc_node_flags(size, node, flags);
++	return __vmalloc_node_flags_caller(size, node, flags,
++			__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(kvmalloc_node);
  
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-vmalloc-users-tracking-properly
++++ a/mm/vmalloc.c
+@@ -1649,6 +1649,9 @@ void *vmap(struct page **pages, unsigned
+ }
+ EXPORT_SYMBOL(vmap);
+ 
++static void *__vmalloc_node(unsigned long size, unsigned long align,
++			    gfp_t gfp_mask, pgprot_t prot,
++			    int node, const void *caller);
+ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
+ 				 pgprot_t prot, int node)
+ {
+@@ -1791,7 +1794,7 @@ fail:
+  *	with mm people.
+  *
+  */
+-void *__vmalloc_node(unsigned long size, unsigned long align,
++static void *__vmalloc_node(unsigned long size, unsigned long align,
+ 			    gfp_t gfp_mask, pgprot_t prot,
+ 			    int node, const void *caller)
+ {
+@@ -1806,6 +1809,20 @@ void *__vmalloc(unsigned long size, gfp_
+ }
+ EXPORT_SYMBOL(__vmalloc);
+ 
++static inline void *__vmalloc_node_flags(unsigned long size,
++					int node, gfp_t flags)
++{
++	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
++					node, __builtin_return_address(0));
++}
++
++
++void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
++				  void *caller)
++{
++	return __vmalloc_node(size, 1, flags, PAGE_KERNEL, node, caller);
++}
++
+ /**
+  *	vmalloc  -  allocate virtually contiguous memory
+  *	@size:		allocation size
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-remove-return-value-from-init_currently_empty_zone.patch
+mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
+mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
+mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
+mm-memory_hotplug-split-up-register_one_node.patch
+mm-memory_hotplug-consider-offline-memblocks-removable.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
+mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
+mm-__first_valid_page-skip-over-offline-pages.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
+mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
+mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
+mm-memory_hotplug-fix-the-section-mismatch-warning.patch
+mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
 
