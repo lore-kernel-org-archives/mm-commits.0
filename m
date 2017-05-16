@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-export-hugetlb_entry_migration-helper.patch added to -mm tree
-Date: Tue, 16 May 2017 13:12:14 -0700
-Message-ID: <591b5d1e.goCAumjmi6EvPVu6%akpm@linux-foundation.org>
+Subject: +
+ powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch added to
+ -mm tree
+Date: Tue, 16 May 2017 13:12:23 -0700
+Message-ID: <591b5d27.ezD6I2g4xJN6j0+k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43934 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751531AbdEPUMP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 16:12:15 -0400
+        with ESMTP id S1752502AbdEPUMY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 16:12:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, kravetz@us.ibm.com, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: export hugetlb_entry_migration helper
+     Subject: powerpc/hugetlb: add follow_huge_pd implementation for ppc64
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-export-hugetlb_entry_migration-helper.patch
+     powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-export-hugetlb_entry_migration-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-export-hugetlb_entry_migration-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +41,88 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/hugetlb: export hugetlb_entry_migration helper
+Subject: powerpc/hugetlb: add follow_huge_pd implementation for ppc64
 
-We will be using this later from the ppc64 code.  Change the return type
-to bool.
-
-Link: http://lkml.kernel.org/r/1494926612-23928-4-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1494926612-23928-8-git-send-email-aneesh.kumar@linux.vnet.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Mike Kravetz <kravetz@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- mm/hugetlb.c            |    8 ++++----
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |   43 ++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-export-hugetlb_entry_migration-helper include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-export-hugetlb_entry_migration-helper
-+++ a/include/linux/hugetlb.h
-@@ -126,6 +126,7 @@ int pud_huge(pud_t pud);
- unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
- 		unsigned long address, unsigned long end, pgprot_t newprot);
- 
-+bool is_hugetlb_entry_migration(pte_t pte);
- #else /* !CONFIG_HUGETLB_PAGE */
- 
- static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
-diff -puN mm/hugetlb.c~mm-hugetlb-export-hugetlb_entry_migration-helper mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-export-hugetlb_entry_migration-helper
-+++ a/mm/hugetlb.c
-@@ -3201,17 +3201,17 @@ static void set_huge_ptep_writable(struc
- 		update_mmu_cache(vma, address, ptep);
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64 arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -17,6 +17,8 @@
+ #include <linux/memblock.h>
+ #include <linux/bootmem.h>
+ #include <linux/moduleparam.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlb.h>
+@@ -618,6 +620,46 @@ void hugetlb_free_pgd_range(struct mmu_g
  }
  
--static int is_hugetlb_entry_migration(pte_t pte)
-+bool is_hugetlb_entry_migration(pte_t pte)
- {
- 	swp_entry_t swp;
- 
- 	if (huge_pte_none(pte) || pte_present(pte))
--		return 0;
-+		return false;
- 	swp = pte_to_swp_entry(pte);
- 	if (non_swap_entry(swp) && is_migration_entry(swp))
--		return 1;
-+		return true;
- 	else
--		return 0;
-+		return false;
+ /*
++ * 64 bit book3s use generic follow_page_mask
++ */
++#ifdef CONFIG_PPC_BOOK3S_64
++
++struct page *follow_huge_pd(struct vm_area_struct *vma,
++			    unsigned long address, hugepd_t hpd,
++			    int flags, int pdshift)
++{
++	pte_t *ptep;
++	spinlock_t *ptl;
++	struct page *page = NULL;
++	unsigned long mask;
++	int shift = hugepd_shift(hpd);
++	struct mm_struct *mm = vma->vm_mm;
++
++retry:
++	ptl = &mm->page_table_lock;
++	spin_lock(ptl);
++
++	ptep = hugepte_offset(hpd, address, pdshift);
++	if (pte_present(*ptep)) {
++		mask = (1UL << shift) - 1;
++		page = pte_page(*ptep);
++		page += ((address & mask) >> PAGE_SHIFT);
++		if (flags & FOLL_GET)
++			get_page(page);
++	} else {
++		if (is_hugetlb_entry_migration(*ptep)) {
++			spin_unlock(ptl);
++			__migration_entry_wait(mm, ptep, ptl);
++			goto retry;
++		}
++	}
++	spin_unlock(ptl);
++	return page;
++}
++
++#else /* !CONFIG_PPC_BOOK3S_64 */
++
++/*
+  * We are holding mmap_sem, so a parallel huge page collapse cannot run.
+  * To prevent hugepage split, disable irq.
+  */
+@@ -672,6 +714,7 @@ follow_huge_pud(struct mm_struct *mm, un
+ 	BUG();
+ 	return NULL;
  }
++#endif
  
- static int is_hugetlb_entry_hwpoisoned(pte_t pte)
+ static unsigned long hugepte_addr_end(unsigned long addr, unsigned long end,
+ 				      unsigned long sz)
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
