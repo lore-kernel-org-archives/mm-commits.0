@@ -1,195 +1,144 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-scan-until-it-founds-eligible-pages.patch removed from -mm tree
-Date: Tue, 16 May 2017 10:50:23 -0700
-Message-ID: <20170516175023.4zucrfDZV%akpm@linux-foundation.org>
+ dax-fix-pmd-data-corruption-when-fault-races-with-write.patch removed from
+ -mm tree
+Date: Tue, 16 May 2017 10:50:17 -0700
+Message-ID: <20170516175017.U3FTGwHMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57458 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752797AbdEPRuY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:24 -0400
+        with ESMTP id S1752796AbdEPRuX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:50:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, jack@suse.cz, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: scan until it finds eligible pages
+     Subject: dax: fix PMD data corruption when fault races with write
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-scan-until-it-founds-eligible-pages.patch
+     dax-fix-pmd-data-corruption-when-fault-races-with-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: vmscan: scan until it finds eligible pages
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: fix PMD data corruption when fault races with write
 
-Although there are a ton of free swap and anonymous LRU page in elgible
-zones, OOM happened.
+This is based on a patch from Jan Kara that fixed the equivalent race in
+the DAX PTE fault path.
 
-balloon invoked oom-killer: gfp_mask=0x17080c0(GFP_KERNEL_ACCOUNT|__GFP_ZERO|__GFP_NOTRACK), nodemask=(null),  order=0, oom_score_adj=0
-CPU: 7 PID: 1138 Comm: balloon Not tainted 4.11.0-rc6-mm1-zram-00289-ge228d67e9677-dirty #17
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-Call Trace:
- dump_stack+0x65/0x87
- dump_header.isra.19+0x8f/0x20f
- ? preempt_count_add+0x9e/0xb0
- ? _raw_spin_unlock_irqrestore+0x24/0x40
- oom_kill_process+0x21d/0x3f0
- ? has_capability_noaudit+0x17/0x20
- out_of_memory+0xd8/0x390
- __alloc_pages_slowpath+0xbc1/0xc50
- ? anon_vma_interval_tree_insert+0x84/0x90
- __alloc_pages_nodemask+0x1a5/0x1c0
- pte_alloc_one+0x20/0x50
- __pte_alloc+0x1e/0x110
- __handle_mm_fault+0x919/0x960
- handle_mm_fault+0x77/0x120
- __do_page_fault+0x27a/0x550
- trace_do_page_fault+0x43/0x150
- do_async_page_fault+0x2c/0x90
- async_page_fault+0x28/0x30
-RIP: 0033:0x7fc4636bacb8
-RSP: 002b:00007fff97c9c4c0 EFLAGS: 00010202
-RAX: 00007fc3e818d000 RBX: 00007fc4639f8760 RCX: 00007fc46372e9ca
-RDX: 0000000000101002 RSI: 0000000000101000 RDI: 0000000000000000
-RBP: 0000000000100010 R08: 00000000ffffffff R09: 0000000000000000
-R10: 0000000000000022 R11: 00000000000a3901 R12: 00007fc3e818d010
-R13: 0000000000101000 R14: 00007fc4639f87b8 R15: 00007fc4639f87b8
-Mem-Info:
-active_anon:424716 inactive_anon:65314 isolated_anon:0
- active_file:52 inactive_file:46 isolated_file:0
- unevictable:0 dirty:27 writeback:0 unstable:0
- slab_reclaimable:3967 slab_unreclaimable:4125
- mapped:133 shmem:43 pagetables:1674 bounce:0
- free:4637 free_pcp:225 free_cma:0
-Node 0 active_anon:1698864kB inactive_anon:261256kB active_file:208kB inactive_file:184kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:532kB dirty:108kB writeback:0kB shmem:172kB writeback_tmp:0kB unstable:0kB all_unreclaimable? no
-DMA free:7316kB min:32kB low:44kB high:56kB active_anon:8064kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15992kB managed:15908kB mlocked:0kB slab_reclaimable:464kB slab_unreclaimable:40kB kernel_stack:0kB pagetables:24kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
-lowmem_reserve[]: 0 992 992 1952
-DMA32 free:9088kB min:2048kB low:3064kB high:4080kB active_anon:952176kB inactive_anon:0kB active_file:36kB inactive_file:0kB unevictable:0kB writepending:88kB present:1032192kB managed:1019388kB mlocked:0kB slab_reclaimable:13532kB slab_unreclaimable:16460kB kernel_stack:3552kB pagetables:6672kB bounce:0kB free_pcp:56kB local_pcp:24kB free_cma:0kB
-lowmem_reserve[]: 0 0 0 959
-Movable free:3644kB min:1980kB low:2960kB high:3940kB active_anon:738560kB inactive_anon:261340kB active_file:188kB inactive_file:640kB unevictable:0kB writepending:20kB present:1048444kB managed:1010816kB mlocked:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB bounce:0kB free_pcp:832kB local_pcp:60kB free_cma:0kB
-lowmem_reserve[]: 0 0 0 0
-DMA: 1*4kB (E) 0*8kB 18*16kB (E) 10*32kB (E) 10*64kB (E) 9*128kB (ME) 8*256kB (E) 2*512kB (E) 2*1024kB (E) 0*2048kB 0*4096kB = 7524kB
-DMA32: 417*4kB (UMEH) 181*8kB (UMEH) 68*16kB (UMEH) 48*32kB (UMEH) 14*64kB (MH) 3*128kB (M) 1*256kB (H) 1*512kB (M) 2*1024kB (M) 0*2048kB 0*4096kB = 9836kB
-Movable: 1*4kB (M) 1*8kB (M) 1*16kB (M) 1*32kB (M) 0*64kB 1*128kB (M) 2*256kB (M) 4*512kB (M) 1*1024kB (M) 0*2048kB 0*4096kB = 3772kB
-378 total pagecache pages
-17 pages in swap cache
-Swap cache stats: add 17325, delete 17302, find 0/27
-Free swap  = 978940kB
-Total swap = 1048572kB
-524157 pages RAM
-0 pages HighMem/MovableOnly
-12629 pages reserved
-0 pages cma reserved
-0 pages hwpoisoned
-[ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name
-[  433]     0   433     4904        5      14       3       82             0 upstart-udev-br
-[  438]     0   438    12371        5      27       3      191         -1000 systemd-udevd
+Currently DAX PMD read fault can race with write(2) in the following way:
 
-With investigation, skipping page of isolate_lru_pages makes reclaim void
-because it returns zero nr_taken easily so LRU shrinking is effectively
-nothing and just increases priority aggressively.  Finally, OOM happens.
+CPU1 - write(2)                 CPU2 - read fault
+                                dax_iomap_pmd_fault()
+                                  ->iomap_begin() - sees hole
 
-The problem is that get_scan_count determines nr_to_scan with eligible
-zones so although priority drops to zero, it couldn't reclaim any pages if
-the LRU contains mostly ineligible pages.
+dax_iomap_rw()
+  iomap_apply()
+    ->iomap_begin - allocates blocks
+    dax_iomap_actor()
+      invalidate_inode_pages2_range()
+        - there's nothing to invalidate
 
-get_scan_count:
+                                  grab_mapping_entry()
+				  - we add huge zero page to the radix tree
+				    and map it to page tables
 
-        size = lruvec_lru_size(lruvec, lru, sc->reclaim_idx);
-	size = size >> sc->priority;
+The result is that hole page is mapped into page tables (and thus zeros
+are seen in mmap) while file has data written in that place.
 
-Assumes sc->priority is 0 and LRU list is as follows.
+Fix the problem by locking exception entry before mapping blocks for the
+fault.  That way we are sure invalidate_inode_pages2_range() call for
+racing write will either block on entry lock waiting for the fault to
+finish (and unmap stale page tables after that) or read fault will see
+already allocated blocks by write(2).
 
-	N-N-N-N-H-H-H-H-H-H-H-H-H-H-H-H-H-H-H-H
-
-(Ie, small eligible pages are in the head of LRU but others are
- almost ineligible pages)
-
-In that case, size becomes 4 so VM want to scan 4 pages but 4 pages
-from tail of the LRU are not eligible pages.
-If get_scan_count counts skipped pages, it doesn't reclaim any pages
-remained after scanning 4 pages so it ends up OOM happening.
-
-This patch makes isolate_lru_pages try to scan pages until it
-encounters eligible zones's pages.
-
-[akpm@linux-foundation.org: clean up mind-bending `for' statement.  Tweak comment text]
-Fixes: 3db65812d688 ("Revert "mm, vmscan: account for skipped pages as a partial scan"")
-Link: http://lkml.kernel.org/r/1494457232-27401-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Fixes: 9f141d6ef6258 ("dax: Call ->iomap_begin without entry lock during dax fault")
+Link: http://lkml.kernel.org/r/20170510172700.18991-1-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ fs/dax.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-scan-until-it-founds-eligible-pages mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-scan-until-it-founds-eligible-pages
-+++ a/mm/vmscan.c
-@@ -1449,7 +1449,7 @@ static __always_inline void update_lru_s
-  *
-  * Appropriate locks must be held before calling this function.
-  *
-- * @nr_to_scan:	The number of pages to look through on the list.
-+ * @nr_to_scan:	The number of eligible pages to look through on the list.
-  * @lruvec:	The LRU vector to pull pages from.
-  * @dst:	The temp list to put pages on to.
-  * @nr_scanned:	The number of pages that were scanned.
-@@ -1469,11 +1469,13 @@ static unsigned long isolate_lru_pages(u
- 	unsigned long nr_zone_taken[MAX_NR_ZONES] = { 0 };
- 	unsigned long nr_skipped[MAX_NR_ZONES] = { 0, };
- 	unsigned long skipped = 0;
--	unsigned long scan, nr_pages;
-+	unsigned long scan, total_scan, nr_pages;
- 	LIST_HEAD(pages_skipped);
+diff -puN fs/dax.c~dax-fix-pmd-data-corruption-when-fault-races-with-write fs/dax.c
+--- a/fs/dax.c~dax-fix-pmd-data-corruption-when-fault-races-with-write
++++ a/fs/dax.c
+@@ -1388,6 +1388,16 @@ static int dax_iomap_pmd_fault(struct vm
+ 		goto fallback;
  
--	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
--					!list_empty(src); scan++) {
-+	scan = 0;
-+	for (total_scan = 0;
-+	     scan < nr_to_scan && nr_taken < nr_to_scan && !list_empty(src);
-+	     total_scan++) {
- 		struct page *page;
+ 	/*
++	 * grab_mapping_entry() will make sure we get a 2M empty entry, a DAX
++	 * PMD or a HZP entry.  If it can't (because a 4k page is already in
++	 * the tree, for instance), it will return -EEXIST and we just fall
++	 * back to 4k entries.
++	 */
++	entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);
++	if (IS_ERR(entry))
++		goto fallback;
++
++	/*
+ 	 * Note that we don't use iomap_apply here.  We aren't doing I/O, only
+ 	 * setting up a mapping, so really we're using iomap_begin() as a way
+ 	 * to look up our filesystem block.
+@@ -1395,21 +1405,11 @@ static int dax_iomap_pmd_fault(struct vm
+ 	pos = (loff_t)pgoff << PAGE_SHIFT;
+ 	error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap);
+ 	if (error)
+-		goto fallback;
++		goto unlock_entry;
  
- 		page = lru_to_page(src);
-@@ -1487,6 +1489,13 @@ static unsigned long isolate_lru_pages(u
- 			continue;
- 		}
+ 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
+ 		goto finish_iomap;
  
-+		/*
-+		 * Do not count skipped pages because that makes the function
-+		 * return with no isolated pages if the LRU mostly contains
-+		 * ineligible pages.  This causes the VM to not reclaim any
-+		 * pages, triggering a premature OOM.
-+		 */
-+		scan++;
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			nr_pages = hpage_nr_pages(page);
-@@ -1524,9 +1533,9 @@ static unsigned long isolate_lru_pages(u
- 			skipped += nr_skipped[zid];
- 		}
+-	/*
+-	 * grab_mapping_entry() will make sure we get a 2M empty entry, a DAX
+-	 * PMD or a HZP entry.  If it can't (because a 4k page is already in
+-	 * the tree, for instance), it will return -EEXIST and we just fall
+-	 * back to 4k entries.
+-	 */
+-	entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);
+-	if (IS_ERR(entry))
+-		goto finish_iomap;
+-
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+ 		result = dax_pmd_insert_mapping(vmf, &iomap, pos, &entry);
+@@ -1417,7 +1417,7 @@ static int dax_iomap_pmd_fault(struct vm
+ 	case IOMAP_UNWRITTEN:
+ 	case IOMAP_HOLE:
+ 		if (WARN_ON_ONCE(write))
+-			goto unlock_entry;
++			break;
+ 		result = dax_pmd_load_hole(vmf, &iomap, &entry);
+ 		break;
+ 	default:
+@@ -1425,8 +1425,6 @@ static int dax_iomap_pmd_fault(struct vm
+ 		break;
  	}
--	*nr_scanned = scan;
-+	*nr_scanned = total_scan;
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan,
--				    scan, skipped, nr_taken, mode, lru);
-+				    total_scan, skipped, nr_taken, mode, lru);
- 	update_lru_sizes(lruvec, lru, nr_zone_taken);
- 	return nr_taken;
- }
+ 
+- unlock_entry:
+-	put_locked_mapping_entry(mapping, pgoff, entry);
+  finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PMD_SIZE;
+@@ -1442,6 +1440,8 @@ static int dax_iomap_pmd_fault(struct vm
+ 		ops->iomap_end(inode, pos, PMD_SIZE, copied, iomap_flags,
+ 				&iomap);
+ 	}
++ unlock_entry:
++	put_locked_mapping_entry(mapping, pgoff, entry);
+  fallback:
+ 	if (result == VM_FAULT_FALLBACK) {
+ 		split_huge_pmd(vma, vmf->pmd, vmf->address);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-zram-count-same-page-write-as-page_stored.patch
-zram-do-not-count-duplicated-pages-as-compressed.patch
-mm-thp-swap-unify-swap-slot-free-functions-to-put_swap_page.patch
-mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan.patch
 
