@@ -1,73 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch removed from -mm
- tree
-Date: Tue, 16 May 2017 10:49:53 -0700
-Message-ID: <20170516174953.QGJdpzuqT%akpm@linux-foundation.org>
+ mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
+ removed from -mm tree
+Date: Tue, 16 May 2017 10:49:58 -0700
+Message-ID: <20170516174958.hR1qz3Epu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57390 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57404 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751855AbdEPRty (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:49:54 -0400
+        with ESMTP id S1752531AbdEPRt7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2017 13:49:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arbab@linux.vnet.ibm.com, hannes@cmpxchg.org, khandual@linux.vnet.ibm.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, sj38.park@gmail.com
 
 
 The patch titled
-     Subject: mm, vmstat: remove spurious WARN() during zoneinfo print
+     Subject: mm/khugepaged: add missed tracepoint for collapse_huge_page_swapin
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-remove-spurious-warn-during-zoneinfo-print.patch
+     mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: mm, vmstat: remove spurious WARN() during zoneinfo print
+From: SeongJae Park <sj38.park@gmail.com>
+Subject: mm/khugepaged: add missed tracepoint for collapse_huge_page_swapin
 
-After e2ecc8a79ed49f7838 ("mm, vmstat: print non-populated zones in
-zoneinfo"), /proc/zoneinfo will show unpopulated zones.
+One return case of `__collapse_huge_page_swapin()` does not invoke
+tracepoint while every other return case does.  This commit adds a
+tracepoint invocation for the case.
 
-A memoryless node, having no populated zones at all, was previously
-ignored, but will now trigger the WARN() in is_zone_first_populated().
-
-Remove this warning, as its only purpose was to warn of a situation that
-has since been enabled.
-
-Aside: The "per-node stats" are still printed under the first populated
-zone, but that's not necessarily the first stanza any more. I'm not sure
-which criteria is more important with regard to not breaking parsers, but
-it looks a little weird to the eye.
-
-Fixes:  e2ecc8a79ed49f7838: "mm, vmstat: print node-based stats in zoneinfo file")
-Link: http://lkml.kernel.org/r/1493854905-10918-1-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/20170507101813.30187-1-sj38.park@gmail.com
+Signed-off-by: SeongJae Park <sj38.park@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/khugepaged.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-remove-spurious-warn-during-zoneinfo-print
-+++ a/mm/vmstat.c
-@@ -1359,8 +1359,6 @@ static bool is_zone_first_populated(pg_d
- 			return zone == compare;
- 	}
- 
--	/* The zone must be somewhere! */
--	WARN_ON_ONCE(1);
- 	return false;
- }
- 
+diff -puN mm/khugepaged.c~mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-khugepaged-add-missed-tracepoint-for-collapse_huge_page_swapin
++++ a/mm/khugepaged.c
+@@ -907,8 +907,10 @@ static bool __collapse_huge_page_swapin(
+ 				return false;
+ 			}
+ 			/* check if the pmd is still valid */
+-			if (mm_find_pmd(mm, address) != pmd)
++			if (mm_find_pmd(mm, address) != pmd) {
++				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+ 				return false;
++			}
+ 		}
+ 		if (ret & VM_FAULT_ERROR) {
+ 			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
 _
 
-Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
+Patches currently in -mm which might be from sj38.park@gmail.com are
 
 
