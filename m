@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch added to -mm tree
-Date: Thu, 18 May 2017 12:54:22 -0700
-Message-ID: <591dfbee.+1yE+ZNg90FAg/i3%akpm@linux-foundation.org>
+ mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch added to -mm tree
+Date: Thu, 18 May 2017 13:06:08 -0700
+Message-ID: <591dfeb0.5jamadZyAzsFNVIf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32880 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751731AbdERTyX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 15:54:23 -0400
+        with ESMTP id S1754183AbdERUGJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 16:06:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, arjan@linux.intel.com, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, dave@stgolabs.net, ederevea@redhat.com, gavin.guo@canonical.com, hughd@google.com, jay.vosburgh@canonical.com, mgorman@techsingularity.net, pholasek@redhat.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: optimize refile of stable_node_dup at the head of the chain
+     Subject: fold me "mm: consider zone which is not fully populated to have holes"
 has been added to the -mm tree.  Its filename is
-     ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+     mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,112 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: optimize refile of stable_node_dup at the head of the chain
+From: Michal Hocko <mhocko@suse.com>
+Subject: fold me "mm: consider zone which is not fully populated to have holes"
 
-If a candidate stable_node_dup has been found and it can accept further
-merges it can be refiled to the head of the list to speedup next searches
-without altering which dup is found and how the dups accumulate in the
-chain.
+- check valid section number in pfn_to_online_page - Vlastimil
+- mark sections online after all struct pages are initialized in
+  online_pages_range - Vlastimil
 
-We already refiled it back to the head in the prune_stale_stable_nodes
-case, but we didn't refile it if not pruning (which is more common).  And
-we also refiled it when it was already at the head which is unnecessary
-(in the prune_stale_stable_nodes case, nr > 1 means there's more than one
-dup in the chain, it doesn't mean it's not already at the head of the
-chain).
-
-The stable_node_chain list is single threaded and there's no SMP locking
-contention so it should be faster to refile it to the head of the list
-also if prune_stale_stable_nodes is false.
-
-Profiling shows the refile happens 1.9% of the time when a dup is found
-with a max_page_sharing limit setting of 3 (with max_page_sharing of 2 the
-refile never happens of course as there's never space for one more merge)
-which is reasonably low.  At higher max_page_sharing values it should be
-much less frequent.
-
-This is just an optimization.
-
-Link: http://lkml.kernel.org/r/20170518173721.22316-4-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Evgheni Dereveanchin <ederevea@redhat.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Petr Holasek <pholasek@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Gavin Guo <gavin.guo@canonical.com>
-Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Link: http://lkml.kernel.org/r/20170518164210.GD18333@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   35 +++++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ include/linux/memory_hotplug.h |    3 ++-
+ mm/memory_hotplug.c            |    5 +++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/ksm.c~ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain mm/ksm.c
---- a/mm/ksm.c~ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain
-+++ a/mm/ksm.c
-@@ -1367,13 +1367,14 @@ struct page *stable_node_dup(struct stab
- 		put_page(_tree_page);
- 	}
+diff -puN include/linux/memory_hotplug.h~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix
++++ a/include/linux/memory_hotplug.h
+@@ -22,8 +22,9 @@ struct resource;
+ #define pfn_to_online_page(pfn)				\
+ ({							\
+ 	struct page *___page = NULL;			\
++	unsigned long ___nr = pfn_to_section_nr(pfn);	\
+ 							\
+-	if (online_section_nr(pfn_to_section_nr(pfn)))	\
++	if (___nr < NR_MEM_SECTIONS && online_section_nr(___nr))\
+ 		___page = pfn_to_page(pfn);		\
+ 	___page;					\
+ })
+diff -puN mm/memory_hotplug.c~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix
++++ a/mm/memory_hotplug.c
+@@ -930,8 +930,6 @@ static int online_pages_range(unsigned l
+ 	unsigned long onlined_pages = *(unsigned long *)arg;
+ 	struct page *page;
  
--	/*
--	 * nr is relevant only if prune_stale_stable_nodes is true,
--	 * otherwise we may break the loop at nr == 1 even if there
--	 * are multiple entries.
--	 */
--	if (prune_stale_stable_nodes && found) {
--		if (nr == 1) {
-+	if (found) {
-+		/*
-+		 * nr is counting all dups in the chain only if
-+		 * prune_stale_stable_nodes is true, otherwise we may
-+		 * break the loop at nr == 1 even if there are
-+		 * multiple entries.
-+		 */
-+		if (prune_stale_stable_nodes && nr == 1) {
- 			/*
- 			 * If there's not just one entry it would
- 			 * corrupt memory, better BUG_ON. In KSM
-@@ -1404,12 +1405,22 @@ struct page *stable_node_dup(struct stab
- 			 * time.
- 			 */
- 			stable_node = NULL;
--		} else if (__is_page_sharing_candidate(found, 1)) {
-+		} else if (stable_node->hlist.first != &found->hlist_dup &&
-+			   __is_page_sharing_candidate(found, 1)) {
- 			/*
--			 * Refile our candidate at the head
--			 * after the prune if our candidate
--			 * can accept one more future sharing
--			 * in addition to the one underway.
-+			 * If the found stable_node dup can accept one
-+			 * more future merge (in addition to the one
-+			 * that is underway) and is not at the head of
-+			 * the chain, put it there so next search will
-+			 * be quicker in the !prune_stale_stable_nodes
-+			 * case.
-+			 *
-+			 * NOTE: it would be inaccurate to use nr > 1
-+			 * instead of checking the hlist.first pointer
-+			 * directly, because in the
-+			 * prune_stale_stable_nodes case "nr" isn't
-+			 * the position of the found dup in the chain,
-+			 * but the total number of dups in the chain.
- 			 */
- 			hlist_del(&found->hlist_dup);
- 			hlist_add_head(&found->hlist_dup,
+-	online_mem_sections(start_pfn, start_pfn + nr_pages);
+-
+ 	if (PageReserved(pfn_to_page(start_pfn)))
+ 		for (i = 0; i < nr_pages; i++) {
+ 			page = pfn_to_page(start_pfn + i);
+@@ -942,6 +940,9 @@ static int online_pages_range(unsigned l
+ 			(*online_page_callback)(page);
+ 			onlined_pages++;
+ 		}
++
++	online_mem_sections(start_pfn, start_pfn + nr_pages);
++
+ 	*(unsigned long *)arg = onlined_pages;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-ksm-prevent-crash-after-write_protect_page-fails.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
-ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
-ksm-cleanup-stable_node-chain-collapse-case.patch
-ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
-ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+include-linux-gfph-fix-___gfp_nolockdep-value.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch
+mm-remove-return-value-from-init_currently_empty_zone.patch
+mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
+mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
+mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
+mm-memory_hotplug-split-up-register_one_node.patch
+mm-memory_hotplug-consider-offline-memblocks-removable.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
+mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
+mm-__first_valid_page-skip-over-offline-pages.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
+mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
+mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
+mm-memory_hotplug-fix-the-section-mismatch-warning.patch
+mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
+mm-adaptive-hash-table-scaling-fix.patch
 
