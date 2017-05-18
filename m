@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch added to -mm tree
-Date: Thu, 18 May 2017 13:26:49 -0700
-Message-ID: <591e0389.7Tyi0cy+W4RdEZYi%akpm@linux-foundation.org>
+Subject: + zram-try-harder-to-store-user-data-on-compression-error.patch
+ added to -mm tree
+Date: Thu, 18 May 2017 13:30:13 -0700
+Message-ID: <591e0455.86O/Cx+PqQVa79iN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44308 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751200AbdERU0u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 16:26:50 -0400
+        with ESMTP id S1752483AbdERUaO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 16:30:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, hannes@cmpxchg.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP, swap: Fix two issues in THP optimize patch
+     Subject: zram: try harder to store user data on compression error
 has been added to the -mm tree.  Its filename is
-     mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch
+     zram-try-harder-to-store-user-data-on-compression-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-try-harder-to-store-user-data-on-compression-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-try-harder-to-store-user-data-on-compression-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,67 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP, swap: Fix two issues in THP optimize patch
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zram: try harder to store user data on compression error
 
-When changing the logic for cluster allocation for THP in get_swap_page(),
-I made a mistake so that a normal swap slot may be allocated for a THP
-instead of return with failure.  This is fixed in the patch.
+__zram_bvec_write() overwrites the existing compressed object only when it
+successfully compresses a new one.  When zram_compress() fails, we
+propagate the error, but never touch the old object, so we keep the old
+data for that particular page and all reads that could hit that index
+later will read stale data.  This can cause problems.  For example,
 
-And I found two likely/unlikely annotation is wrong in get_swap_pages(),
-because that is slow path, I just removed the likely/unlikely annotation.
+- Overwriting a file
 
-Link: http://lkml.kernel.org/r/87k25ed8zo.fsf@yhuang-dev.intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+     over-write block 1 aaa->xxx OK
+     over-write block 2 bbb->yyy OK
+     over-write block 3 ccc->zzz error << the block still has 'ccc' data.
+
+- Now, reading the file
+
+     read block 1 xxx OK
+     read block 2 yyy OK
+     read block 3 ccc OK   << we should not return OK here. Because
+                              "xxxyyyccc" is not correct file.
+
+As a solution, when we fail to compress a new page (S/W or H/W compressor
+error, depending on particular setup) try to store the page uncompressed
+(PAGE_SIZE-ed zs_pool object).  This, at least, allows us to return valid
+and correct data:
+
+     read block 1  xxx - OK, compressed
+     read block 2  yyy - OK, compressed
+     read block 3  zzz - OK, uncompressed (because compressing back-end
+                                           returned an error)
+
+Link: http://lkml.kernel.org/r/20170518021714.3229-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |    5 +++--
- mm/swapfile.c   |    4 ++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/swap_slots.c~mm-thp-swap-delay-splitting-thp-during-swap-out-fix mm/swap_slots.c
---- a/mm/swap_slots.c~mm-thp-swap-delay-splitting-thp-during-swap-out-fix
-+++ a/mm/swap_slots.c
-@@ -309,8 +309,9 @@ swp_entry_t get_swap_page(struct page *p
+diff -puN drivers/block/zram/zram_drv.c~zram-try-harder-to-store-user-data-on-compression-error drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-try-harder-to-store-user-data-on-compression-error
++++ a/drivers/block/zram/zram_drv.c
+@@ -732,10 +732,12 @@ compress_again:
+ 	kunmap_atomic(src);
  
- 	entry.val = 0;
- 
--	if (IS_ENABLED(CONFIG_THP_SWAP) && PageTransHuge(page)) {
--		get_swap_pages(1, true, &entry);
-+	if (PageTransHuge(page)) {
-+		if (IS_ENABLED(CONFIG_THP_SWAP))
-+			get_swap_pages(1, true, &entry);
- 		return entry;
+ 	if (unlikely(ret)) {
++		/*
++		 * We failed to compress the page, try to store it
++		 * uncompressed (if there is enough memory).
++		 */
+ 		pr_err("Compression failed! err=%d\n", ret);
+-		if (entry)
+-			zram_entry_free(zram, entry);
+-		return ret;
++		comp_len = PAGE_SIZE;
  	}
  
-diff -puN mm/swapfile.c~mm-thp-swap-delay-splitting-thp-during-swap-out-fix mm/swapfile.c
---- a/mm/swapfile.c~mm-thp-swap-delay-splitting-thp-during-swap-out-fix
-+++ a/mm/swapfile.c
-@@ -937,13 +937,13 @@ start_over:
- 			spin_unlock(&si->lock);
- 			goto nextsi;
- 		}
--		if (likely(cluster))
-+		if (cluster)
- 			n_ret = swap_alloc_cluster(si, swp_entries);
- 		else
- 			n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
- 						    n_goal, swp_entries);
- 		spin_unlock(&si->lock);
--		if (n_ret || unlikely(cluster))
-+		if (n_ret || cluster)
- 			goto check_out;
- 		pr_debug("scan_swap_map of si %d failed to find offset\n",
- 			si->type);
+ 	if (unlikely(comp_len > max_zpage_size))
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-mm-thp-swap-delay-splitting-thp-during-swap-out.patch
-mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch
-mm-thp-swap-check-whether-thp-can-be-split-firstly.patch
-mm-thp-swap-enable-thp-swap-optimization-only-if-has-compound-map.patch
+zram-try-harder-to-store-user-data-on-compression-error.patch
 
