@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch added to -mm tree
-Date: Wed, 17 May 2017 15:06:44 -0700
-Message-ID: <591cc974.biX+VGmcG279G5Bs%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused.patch added to -mm tree
+Date: Thu, 18 May 2017 12:29:18 -0700
+Message-ID: <591df60e.E8uqG6BnDMbWrrX6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57648 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753658AbdEQWGp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2017 18:06:45 -0400
+        with ESMTP id S1754793AbdERT3T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 15:29:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: mka@chromium.org, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm/hugetlb: add support for 1G huge pages
+     Subject: mm/page_alloc.c: mark bad_range() and meminit_pfn_in_nid() as __maybe_unused
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch
+     mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,88 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc/mm/hugetlb: add support for 1G huge pages
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: mm/page_alloc.c: mark bad_range() and meminit_pfn_in_nid() as __maybe_unused
 
-POWER9 supports hugepages of size 2M and 1G in radix MMU mode.  This patch
-enables the usage of 1G page size for hugetlbfs.  This also update the
-helper such we can do 1G page allocation at runtime.
+The functions are not used in some configurations.  Adding the attribute
+fixes the following warnings when building with clang:
 
-We still don't enable 1G page size on DD1 version.  This is to avoid doing
-workaround mentioned in commit: 6d3a0379ebdc8 ("powerpc/mm: Add
-radix__tlb_flush_pte_p9_dd1()").
+mm/page_alloc.c:409:19: error: function 'bad_range' is not needed and
+    will not be emitted [-Werror,-Wunneeded-internal-declaration]
 
-Link: http://lkml.kernel.org/r/1494995292-4443-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+mm/page_alloc.c:1106:30: error: unused function 'meminit_pfn_in_nid'
+    [-Werror,-Wunused-function]
+
+Link: http://lkml.kernel.org/r/20170518182030.165633-1-mka@chromium.org
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/hugetlb.h |   10 ++++++++++
- arch/powerpc/mm/hugetlbpage.c                |    7 +++++--
- arch/powerpc/platforms/Kconfig.cputype       |    1 +
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/hugetlb.h~powerpc-mm-hugetlb-add-support-for-1g-huge-pages arch/powerpc/include/asm/book3s/64/hugetlb.h
---- a/arch/powerpc/include/asm/book3s/64/hugetlb.h~powerpc-mm-hugetlb-add-support-for-1g-huge-pages
-+++ a/arch/powerpc/include/asm/book3s/64/hugetlb.h
-@@ -50,4 +50,14 @@ static inline pte_t arch_make_huge_pte(p
- 	else
- 		return entry;
+diff -puN mm/page_alloc.c~mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused
++++ a/mm/page_alloc.c
+@@ -500,7 +500,7 @@ static int page_is_consistent(struct zon
+ /*
+  * Temporary debugging check for pages not lying within a given zone.
+  */
+-static int bad_range(struct zone *zone, struct page *page)
++static int __maybe_unused bad_range(struct zone *zone, struct page *page)
+ {
+ 	if (page_outside_zone_boundaries(zone, page))
+ 		return 1;
+@@ -510,7 +510,7 @@ static int bad_range(struct zone *zone,
+ 	return 0;
  }
-+
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
-+static inline bool gigantic_page_supported(void)
-+{
-+	if (radix_enabled())
-+		return true;
-+	return false;
-+}
-+#endif
-+
+ #else
+-static inline int bad_range(struct zone *zone, struct page *page)
++static inline int __maybe_unused bad_range(struct zone *zone, struct page *page)
+ {
+ 	return 0;
+ }
+@@ -1286,8 +1286,9 @@ int __meminit early_pfn_to_nid(unsigned
  #endif
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-mm-hugetlb-add-support-for-1g-huge-pages arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-mm-hugetlb-add-support-for-1g-huge-pages
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -742,8 +742,11 @@ static int __init add_huge_page_size(uns
- 	 * Hash: 16M and 16G
- 	 */
- 	if (radix_enabled()) {
--		if (mmu_psize != MMU_PAGE_2M)
--			return -EINVAL;
-+		if (mmu_psize != MMU_PAGE_2M) {
-+			if (cpu_has_feature(CPU_FTR_POWER9_DD1) ||
-+			    (mmu_psize != MMU_PAGE_1G))
-+				return -EINVAL;
-+		}
- 	} else {
- 		if (mmu_psize != MMU_PAGE_16M && mmu_psize != MMU_PAGE_16G)
- 			return -EINVAL;
-diff -puN arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-hugetlb-add-support-for-1g-huge-pages arch/powerpc/platforms/Kconfig.cputype
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-hugetlb-add-support-for-1g-huge-pages
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -344,6 +344,7 @@ config PPC_STD_MMU_64
- config PPC_RADIX_MMU
- 	bool "Radix MMU Support"
- 	depends on PPC_BOOK3S_64
-+	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
- 	default y
- 	help
- 	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
+ 
+ #ifdef CONFIG_NODES_SPAN_OTHER_NODES
+-static inline bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
+-					struct mminit_pfnnid_cache *state)
++static inline bool __meminit __maybe_unused
++meminit_pfn_in_nid(unsigned long pfn, int node,
++		   struct mminit_pfnnid_cache *state)
+ {
+ 	int nid;
+ 
+@@ -1309,8 +1310,9 @@ static inline bool __meminit early_pfn_i
+ {
+ 	return true;
+ }
+-static inline bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
+-					struct mminit_pfnnid_cache *state)
++static inline bool __meminit  __maybe_unused
++meminit_pfn_in_nid(unsigned long pfn, int node,
++		   struct mminit_pfnnid_cache *state)
+ {
+ 	return true;
+ }
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mka@chromium.org are
 
-mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
-mm-follow_page_mask-split-follow_page_mask-to-smaller-functions.patch
-mm-hugetlb-export-hugetlb_entry_migration-helper.patch
-mm-hugetlb-move-default-definition-of-hugepd_t-earlier-in-the-header.patch
-mm-follow_page_mask-add-support-for-hugepage-directory-entry.patch
-powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
-powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc.patch
-powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
-mm-hugetlb-cleanup-arch_has_gigantic_page.patch
-powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch
+frv-declare-jiffies-to-be-located-in-the-data-section.patch
+mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused.patch
 
