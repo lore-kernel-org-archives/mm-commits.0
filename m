@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-kill-config_percpu_rwsem-some-more.patch added to -mm tree
-Date: Thu, 18 May 2017 12:33:04 -0700
-Message-ID: <591df6f0.TwxronWAt1JaOAaJ%akpm@linux-foundation.org>
+Subject: + ksm-cleanup-stable_node-chain-collapse-case.patch added to -mm
+ tree
+Date: Thu, 18 May 2017 12:54:18 -0700
+Message-ID: <591dfbea.nekFpzO3KDjSjLpp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60208 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757265AbdERTdF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 15:33:05 -0400
+        with ESMTP id S1750909AbdERTyT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 15:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, oleg@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, arjan@linux.intel.com, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, dave@stgolabs.net, ederevea@redhat.com, gavin.guo@canonical.com, hughd@google.com, jay.vosburgh@canonical.com, mgorman@techsingularity.net, pholasek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/Kconfig: kill CONFIG_PERCPU_RWSEM some more
+     Subject: ksm: cleanup stable_node chain collapse case
 has been added to the -mm tree.  Its filename is
-     fs-kill-config_percpu_rwsem-some-more.patch
+     ksm-cleanup-stable_node-chain-collapse-case.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-kill-config_percpu_rwsem-some-more.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ksm-cleanup-stable_node-chain-collapse-case.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-kill-config_percpu_rwsem-some-more.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-cleanup-stable_node-chain-collapse-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,39 +39,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: fs/Kconfig: kill CONFIG_PERCPU_RWSEM some more
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: ksm: cleanup stable_node chain collapse case
 
-As of bf3eac84c42 ("percpu-rwsem: kill CONFIG_PERCPU_RWSEM") we
-unconditionally build pcpu-rwsems.  Remove a leftover in for FILE_LOCKING.
+Patch series "KSMscale cleanup/optimizations".
 
-Link: http://lkml.kernel.org/r/20170518180115.2794-1-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
+There are no fixes here it's just minor cleanups and optimizations.
+
+1/3 removes makes the "fix" for the stale stable_node fall in the
+    standard case without introducing new cases.  Setting stable_node to
+    NULL was marginally safer, but stale pointer is still wiped from the
+    caller, this looks cleaner.
+
+2/3 should fix the false positive from Dan's static checker.
+
+3/3 is a microoptimization to apply the the refile of future merge
+    candidate dups at the head of the chain in all cases and to skip it in
+    one case where we did it and but it was a noop (to avoid checking if
+    it was already at the head but now we've to check it anyway so it got
+    optimized away).
+
+
+This patch (of 3):
+
+When the stable_node chain is collapsed we can as well set the caller
+stable_node to match the returned stable_node_dup in chain_prune().
+
+This way the collapse case becomes indistinguishable from the regular
+stable_node case and we can remove two branches from the KSM page
+migration handling slow paths.
+
+While it was all correct this looks cleaner (and faster) as the caller has
+to deal with fewer special cases.
+
+Link: http://lkml.kernel.org/r/20170518173721.22316-2-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Evgheni Dereveanchin <ederevea@redhat.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Petr Holasek <pholasek@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Gavin Guo <gavin.guo@canonical.com>
+Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ mm/ksm.c |   50 ++++++++++++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
 
-diff -puN fs/Kconfig~fs-kill-config_percpu_rwsem-some-more fs/Kconfig
---- a/fs/Kconfig~fs-kill-config_percpu_rwsem-some-more
-+++ a/fs/Kconfig
-@@ -80,7 +80,6 @@ config EXPORTFS_BLOCK_OPS
- config FILE_LOCKING
- 	bool "Enable POSIX file locking API" if EXPERT
- 	default y
--	select PERCPU_RWSEM
- 	help
- 	  This option enables standard file locking support, required
-           for filesystems like NFS and for the flock() system
+diff -puN mm/ksm.c~ksm-cleanup-stable_node-chain-collapse-case mm/ksm.c
+--- a/mm/ksm.c~ksm-cleanup-stable_node-chain-collapse-case
++++ a/mm/ksm.c
+@@ -1392,14 +1392,18 @@ static struct stable_node *stable_node_d
+ 			ksm_stable_node_chains--;
+ 			ksm_stable_node_dups--;
+ 			/*
+-			 * NOTE: the caller depends on the
+-			 * *_stable_node to become NULL if the chain
+-			 * was collapsed. Enforce that if anything
+-			 * uses a stale (freed) stable_node chain a
+-			 * visible crash will materialize (instead of
+-			 * an use after free).
++			 * NOTE: the caller depends on the stable_node
++			 * to be equal to stable_node_dup if the chain
++			 * was collapsed.
+ 			 */
+-			*_stable_node = stable_node = NULL;
++			*_stable_node = found;
++			/*
++			 * Just for robustneess as stable_node is
++			 * otherwise left as a stable pointer, the
++			 * compiler shall optimize it away at build
++			 * time.
++			 */
++			stable_node = NULL;
+ 		} else if (__is_page_sharing_candidate(found, 1)) {
+ 			/*
+ 			 * Refile our candidate at the head
+@@ -1505,7 +1509,11 @@ again:
+ 		 * not NULL. stable_node_dup may have been inserted in
+ 		 * the rbtree instead as a regular stable_node (in
+ 		 * order to collapse the stable_node chain if a single
+-		 * stable_node dup was found in it).
++		 * stable_node dup was found in it). In such case the
++		 * stable_node is overwritten by the calleee to point
++		 * to the stable_node_dup that was collapsed in the
++		 * stable rbtree and stable_node will be equal to
++		 * stable_node_dup like if the chain never existed.
+ 		 */
+ 		if (!stable_node_dup) {
+ 			/*
+@@ -1623,15 +1631,13 @@ out:
+ replace:
+ 	/*
+ 	 * If stable_node was a chain and chain_prune collapsed it,
+-	 * stable_node will be NULL here. In that case the
+-	 * stable_node_dup is the regular stable_node that has
+-	 * replaced the chain. If stable_node is not NULL and equal to
+-	 * stable_node_dup there was no chain and stable_node_dup is
+-	 * the regular stable_node in the stable rbtree. Otherwise
+-	 * stable_node is the chain and stable_node_dup is the dup to
+-	 * replace.
++	 * stable_node has been updated to be the new regular
++	 * stable_node. A collapse of the chain is indistinguishable
++	 * from the case there was no chain in the stable
++	 * rbtree. Otherwise stable_node is the chain and
++	 * stable_node_dup is the dup to replace.
+ 	 */
+-	if (!stable_node || stable_node_dup == stable_node) {
++	if (stable_node_dup == stable_node) {
+ 		VM_BUG_ON(is_stable_node_chain(stable_node_dup));
+ 		VM_BUG_ON(is_stable_node_dup(stable_node_dup));
+ 		/* there is no chain */
+@@ -1676,13 +1682,13 @@ chain_append:
+ 		stable_node_dup = stable_node_any;
+ 	/*
+ 	 * If stable_node was a chain and chain_prune collapsed it,
+-	 * stable_node will be NULL here. In that case the
+-	 * stable_node_dup is the regular stable_node that has
+-	 * replaced the chain. If stable_node is not NULL and equal to
+-	 * stable_node_dup there was no chain and stable_node_dup is
+-	 * the regular stable_node in the stable rbtree.
++	 * stable_node has been updated to be the new regular
++	 * stable_node. A collapse of the chain is indistinguishable
++	 * from the case there was no chain in the stable
++	 * rbtree. Otherwise stable_node is the chain and
++	 * stable_node_dup is the dup to replace.
+ 	 */
+-	if (!stable_node || stable_node_dup == stable_node) {
++	if (stable_node_dup == stable_node) {
+ 		VM_BUG_ON(is_stable_node_chain(stable_node_dup));
+ 		VM_BUG_ON(is_stable_node_dup(stable_node_dup));
+ 		/* chain is missing so create it */
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-lib-interval_tree_test-allow-the-module-to-be-compiled-in.patch
-lib-interval_tree_test-make-test-options-module-parameters.patch
-lib-interval_tree_test-allow-users-to-limit-scope-of-endpoint.patch
-lib-interval_tree_test-allow-full-tree-search.patch
-fs-kill-config_percpu_rwsem-some-more.patch
+ksm-prevent-crash-after-write_protect_page-fails.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
+ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
+ksm-cleanup-stable_node-chain-collapse-case.patch
+ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
+ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
 
