@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch added to
- -mm tree
-Date: Mon, 22 May 2017 13:13:56 -0700
-Message-ID: <59234684.NV/A4WEZVWsqKWp8%akpm@linux-foundation.org>
+Subject: + mm-adaptive-hash-table-scaling-v5.patch added to -mm tree
+Date: Mon, 22 May 2017 13:28:52 -0700
+Message-ID: <59234a04.95i7Qf6ASH42e6Hy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757407AbdEVUN5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 16:13:57 -0400
+        with ESMTP id S933151AbdEVU2y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 16:28:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: pasha.tatashin@oracle.com, babu.moger@oracle.com, davem@davemloft.net, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix
+     Subject: mm-adaptive-hash-table-scaling-v5
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
+     mm-adaptive-hash-table-scaling-v5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-adaptive-hash-table-scaling-v5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-adaptive-hash-table-scaling-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,71 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Subject: mm-adaptive-hash-table-scaling-v5
 
-0-day has reported
-   In file included from arch/x86/include/asm/page.h:75:0,
-                    from arch/x86/include/asm/thread_info.h:11,
-                    from include/linux/thread_info.h:37,
-                    from arch/x86/include/asm/preempt.h:6,
-                    from include/linux/preempt.h:80,
-                    from include/linux/spinlock.h:50,
-                    from include/linux/wait.h:8,
-                    from include/linux/fs.h:5,
-                    from mm/vmstat.c:12:
-   mm/vmstat.c: In function 'pagetypeinfo_showblockcount_print':
->> include/asm-generic/memory_model.h:54:52: warning: 'page' is used uninitialized in this function [-Wuninitialized]
-    #define __page_to_pfn(page) (unsigned long)((page) - vmemmap)
-                                                       ^
-   mm/vmstat.c:1224:16: note: 'page' was declared here
-      struct page *page;
-                   ^~~~
+Disable adaptive hash on 32 bit systems to avoid confusion of whether base
+should be different for smaller systems, and to avoid overflows.
 
-Link: http://lkml.kernel.org/r/20170519072225.GA13041@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Link: http://lkml.kernel.org/r/1495469329-755807-2-git-send-email-pasha.tatashin@oracle.com
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Babu Moger <babu.moger@oracle.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix
-+++ a/mm/vmstat.c
-@@ -1223,7 +1223,8 @@ static void pagetypeinfo_showblockcount_
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
- 		struct page *page;
+diff -puN mm/page_alloc.c~mm-adaptive-hash-table-scaling-v5 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-adaptive-hash-table-scaling-v5
++++ a/mm/page_alloc.c
+@@ -7172,10 +7172,14 @@ static unsigned long __init arch_reserve
+  * slower pace.  Starting from ADAPT_SCALE_BASE (64G), every time memory
+  * quadruples the scale is increased by one, which means the size of hash table
+  * only doubles, instead of quadrupling as well.
++ * Because 32-bit systems cannot have large physical memory, where this scaling
++ * makes sense, it is disabled on such platforms.
+  */
+-#define ADAPT_SCALE_BASE	(64ull << 30)
++#if __BITS_PER_LONG > 32
++#define ADAPT_SCALE_BASE	(64ul << 30)
+ #define ADAPT_SCALE_SHIFT	2
+ #define ADAPT_SCALE_NPAGES	(ADAPT_SCALE_BASE >> PAGE_SHIFT)
++#endif
  
--		if (!pfn_to_online_page(pfn))
-+		page = pfn_to_online_page(pfn);
-+		if (!page)
- 			continue;
+ /*
+  * allocate a large system hash table from bootmem
+@@ -7208,13 +7212,15 @@ void *__init alloc_large_system_hash(con
+ 		if (PAGE_SHIFT < 20)
+ 			numentries = round_up(numentries, (1<<20)/PAGE_SIZE);
  
- 		/* Watch for unexpected holes punched in the memmap */
++#if __BITS_PER_LONG > 32
+ 		if (!high_limit) {
+-			unsigned long long adapt;
++			unsigned long adapt;
+ 
+ 			for (adapt = ADAPT_SCALE_NPAGES; adapt < numentries;
+ 			     adapt <<= ADAPT_SCALE_SHIFT)
+ 				scale++;
+ 		}
++#endif
+ 
+ 		/* limit to 1 bucket per 2^scale bytes of low memory */
+ 		if (scale > PAGE_SHIFT)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from pasha.tatashin@oracle.com are
 
-include-linux-gfph-fix-___gfp_nolockdep-value.patch
-mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch
-mm-remove-return-value-from-init_currently_empty_zone.patch
-mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
-mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
-mm-memory_hotplug-split-up-register_one_node.patch
-mm-memory_hotplug-consider-offline-memblocks-removable.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
-mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
-mm-__first_valid_page-skip-over-offline-pages.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
-mm-memory_hotplug-fix-the-section-mismatch-warning.patch
-mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
-mm-adaptive-hash-table-scaling-fix.patch
+mm-zeroing-hash-tables-in-allocator.patch
+mm-updated-callers-to-use-hash_zero-flag.patch
+mm-adaptive-hash-table-scaling.patch
+mm-adaptive-hash-table-scaling-v2.patch
+mm-adaptive-hash-table-scaling-v5.patch
+sparc64-ng4-memset-32-bits-overflow.patch
 
