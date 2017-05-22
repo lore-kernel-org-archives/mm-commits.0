@@ -1,228 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2017-05-18-14-18 uploaded
-Date: Thu, 18 May 2017 14:19:22 -0700
-Message-ID: <591e0fda.vzk3711i/nFtEx7T%akpm@linux-foundation.org>
+Subject: [failures] make-initramfs-honor-config_devtmpfs_mount.patch
+ removed from -mm tree
+Date: Mon, 22 May 2017 12:32:49 -0700
+Message-ID: <59233ce1.lePemRjpw5hOaX7M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38244 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755203AbdERVTX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2017 17:19:23 -0400
+        with ESMTP id S1752118AbdEVTcv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 15:32:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2017-05-18-14-18 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: rob@landley.net, ebiederm@xmission.com, fabf@skynet.be, jean-paul.saman@nxp.com, keescook@chromium.org, linux@rasmusvillemoes.dk, pmladek@suse.com, prarit@redhat.com, re.emese@gmail.com, viro@zeniv.linux.org.uk, yang.shi@linaro.org, ynorov@caviumnetworks.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: initramfs: make initramfs honor CONFIG_DEVTMPFS_MOUNT
+has been removed from the -mm tree.  Its filename was
+     make-initramfs-honor-config_devtmpfs_mount.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch was dropped because it had testing failures
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Rob Landley <rob@landley.net>
+Subject: initramfs: make initramfs honor CONFIG_DEVTMPFS_MOUNT
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+Make initramfs honor CONFIG_DEVTMPFS_MOUNT, fixing 2b2af54a5bb6 ("Driver
+Core: devtmpfs - kernel-maintained tmpfs-based /dev"), which didn't
+bother.  Move /dev/console open after devtmpfs mount, and update help
+text.
 
-To rebase a branch with older patches to a new mmotm release:
+Commit 456eeabab849 in 2005 made gen_initramfs_list (when run with no
+arguments) spit out an 'example' config creating /dev and /dev/console. 
+The kernel accidentally(?) included this for many years when you didn't
+specify initramfs contents, and of course grew dependencies on this
+/dev/console node in the (often hidden) initramfs.  c33df4eaaf41 ("disable
+init/initramfs.c") in 2007 explicitly preserved this dependency. 
+2bd3a997befc ("init: Open /dev/console from rootfs") in 2010 claimed it
+"removes the occasionally problematic assumption that /dev/console exists
+from the boot code" but actually just moved it later.
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+But nobody never tested statically linking an initramfs.  If you point
+CONFIG_INITRAMFS_SOURCE at a directory running the build as a normal user
+you _don't_ get a /dev/console (because you can't create it without being
+root, and can't use the existing one out of /dev unless you create your
+own initramfs list file), in which case init runs with stdin/stdout/stderr
+closed and you get no output.
 
+Eric's test case for his 2010 commit referenced above was:
 
+  With this patch I was able to throw busybox on my /boot partition
+  (which has no /dev directory) and boot into userspace without
+  problems.
 
+But it didn't work pointing CONFIG_INITRAMFS_SOURCE at a directory of the
+same files.  This provides the "automatically mounting devtmpfs on /dev"
+workaround the earlier commit was trying to avoid.
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Link: http://lkml.kernel.org/r/21935caf-501d-e97c-5611-5c4af7e0f9ae@landley.net
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jean-Paul Saman <jean-paul.saman@nxp.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Emese Revfy <re.emese@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-A git copy of this tree is available at
+ drivers/base/Kconfig |   14 ++++----------
+ init/main.c          |   15 +++++++++------
+ 2 files changed, 13 insertions(+), 16 deletions(-)
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+diff -puN drivers/base/Kconfig~make-initramfs-honor-config_devtmpfs_mount drivers/base/Kconfig
+--- a/drivers/base/Kconfig~make-initramfs-honor-config_devtmpfs_mount
++++ a/drivers/base/Kconfig
+@@ -48,16 +48,10 @@ config DEVTMPFS_MOUNT
+ 	bool "Automount devtmpfs at /dev, after the kernel mounted the rootfs"
+ 	depends on DEVTMPFS
+ 	help
+-	  This will instruct the kernel to automatically mount the
+-	  devtmpfs filesystem at /dev, directly after the kernel has
+-	  mounted the root filesystem. The behavior can be overridden
+-	  with the commandline parameter: devtmpfs.mount=0|1.
+-	  This option does not affect initramfs based booting, here
+-	  the devtmpfs filesystem always needs to be mounted manually
+-	  after the rootfs is mounted.
+-	  With this option enabled, it allows to bring up a system in
+-	  rescue mode with init=/bin/sh, even when the /dev directory
+-	  on the rootfs is completely empty.
++	  Automatically mount devtmpfs at /dev on the root filesystem, which
++	  lets the system to come up in rescue mode with [rd]init=/bin/sh.
++	  Override with devtmpfs.mount=0 on the commandline. Initramfs can
++	  create a /dev dir as needed, other rootfs needs the mount point.
+ 
+ config STANDALONE
+ 	bool "Select only drivers that don't need compile-time external firmware"
+diff -puN init/main.c~make-initramfs-honor-config_devtmpfs_mount init/main.c
+--- a/init/main.c~make-initramfs-honor-config_devtmpfs_mount
++++ a/init/main.c
+@@ -1038,12 +1038,6 @@ static noinline void __init kernel_init_
+ 
+ 	do_basic_setup();
+ 
+-	/* Open the /dev/console on the rootfs, this should never fail */
+-	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+-		pr_err("Warning: unable to open an initial console.\n");
+-
+-	(void) sys_dup(0);
+-	(void) sys_dup(0);
+ 	/*
+ 	 * check if there is an early userspace init.  If yes, let it do all
+ 	 * the work
+@@ -1055,8 +1049,17 @@ static noinline void __init kernel_init_
+ 	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0) {
+ 		ramdisk_execute_command = NULL;
+ 		prepare_namespace();
++	} else if (IS_ENABLED(CONFIG_DEVTMPFS_MOUNT)) {
++		sys_mkdir("/dev", 0755);
++		devtmpfs_mount("/dev");
+ 	}
+ 
++	/* Open the /dev/console on the rootfs, this should never fail */
++	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
++		pr_err("Warning: unable to open an initial console.\n");
++	(void) sys_dup(0);
++	(void) sys_dup(0);
++
+ 	/*
+ 	 * Ok, we have completed the initial bootup, and
+ 	 * we're essentially up and running. Get rid of the
+_
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+Patches currently in -mm which might be from rob@landley.net are
 
+teach-initramfs_root_uid-and-initramfs_root_gid-that-1-means-current-user.patch
+clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
 
-This mmotm tree contains the following patches against 4.12-rc1:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  i-need-old-gcc.patch
-* mm-skip-hwpoisoned-pages-when-onlining-pages.patch
-* ksm-prevent-crash-after-write_protect_page-fails.patch
-* maintainers-greybus-dev-list-is-members-only.patch
-* include-linux-gfph-fix-___gfp_nolockdep-value.patch
-* frv-declare-jiffies-to-be-located-in-the-data-section.patch
-* mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch
-* mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* mn10300-remove-wrapper-header-for-asm-deviceh.patch
-* teach-initramfs_root_uid-and-initramfs_root_gid-that-1-means-current-user.patch
-* clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
-* sh-intc-delete-an-error-message-for-a-failed-memory-allocation-in-add_virq_to_pirq.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
-* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
-* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-  mm.patch
-* mm-slub-remove-a-redundant-assignment-in-___slab_alloc.patch
-* mm-slub-reset-cpu_slabs-pointer-in-deactivate_slab.patch
-* mm-slub-pack-red_left_pad-with-another-int-to-save-a-word.patch
-* mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial.patch
-* mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-* mm-slub-wrap-kmem_cache-cpu_partial-in-config-config_slub_cpu_partial.patch
-* mm-sparsemem-break-out-of-loops-early.patch
-* mark-protection_map-as-__ro_after_init.patch
-* mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
-* mm-nobootmem-return-0-when-start_pfn-equals-end_pfn.patch
-* ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
-* ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
-* ksm-cleanup-stable_node-chain-collapse-case.patch
-* ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
-* ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
-* zram-introduce-zram_entry-to-prepare-dedup-functionality.patch
-* zram-implement-deduplication-in-zram.patch
-* zram-make-deduplication-feature-optional.patch
-* zram-compare-all-the-entries-with-same-checksum-for-deduplication.patch
-* zram-count-same-page-write-as-page_stored.patch
-* zram-do-not-count-duplicated-pages-as-compressed.patch
-* zram-try-harder-to-store-user-data-on-compression-error.patch
-* mm-vmstat-standardize-file-operations-variable-names.patch
-* mm-thp-swap-delay-splitting-thp-during-swap-out.patch
-* mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch
-* mm-thp-swap-unify-swap-slot-free-functions-to-put_swap_page.patch
-* mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan.patch
-* mm-thp-swap-check-whether-thp-can-be-split-firstly.patch
-* mm-thp-swap-enable-thp-swap-optimization-only-if-has-compound-map.patch
-* mm-remove-return-value-from-init_currently_empty_zone.patch
-* mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-* mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
-* mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
-* mm-memory_hotplug-split-up-register_one_node.patch
-* mm-memory_hotplug-consider-offline-memblocks-removable.patch
-* mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
-* mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
-* mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
-* mm-__first_valid_page-skip-over-offline-pages.patch
-* mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
-* mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-* mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
-* mm-memory_hotplug-fix-the-section-mismatch-warning.patch
-* mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
-* exit-dont-include-unused-userfaultfd_kh.patch
-* userfaultfd-drop-dead-code.patch
-* mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
-* mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
-* mm-follow_page_mask-split-follow_page_mask-to-smaller-functions.patch
-* mm-hugetlb-export-hugetlb_entry_migration-helper.patch
-* mm-follow_page_mask-add-support-for-hugetlb-pgd-entries.patch
-* mm-hugetlb-move-default-definition-of-hugepd_t-earlier-in-the-header.patch
-* mm-follow_page_mask-add-support-for-hugepage-directory-entry.patch
-* powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
-* powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc.patch
-* powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
-* mm-zeroing-hash-tables-in-allocator.patch
-* mm-updated-callers-to-use-hash_zero-flag.patch
-* mm-adaptive-hash-table-scaling.patch
-* mm-adaptive-hash-table-scaling-fix.patch
-* mm-hugetlb-cleanup-arch_has_gigantic_page.patch
-* powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch
-* mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused.patch
-* mm-drop-null-return-check-of-pte_offset_map_lock.patch
-* mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
-* mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* mm-kasan-use-kasan_zero_pud-for-p4d-table.patch
-* mm-kasan-rename-xxx_is_zero-to-xxx_is_nonzero.patch
-* frv-remove-wrapper-header-for-asm-deviceh.patch
-* kstrtox-delete-end-of-string-test.patch
-* kstrtox-use-unsigned-int-more.patch
-* lib-interval_tree_test-allow-the-module-to-be-compiled-in.patch
-* lib-interval_tree_test-make-test-options-module-parameters.patch
-* lib-interval_tree_test-allow-users-to-limit-scope-of-endpoint.patch
-* lib-interval_tree_test-allow-full-tree-search.patch
-* fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
-* seq_file-delete-small-value-optimization.patch
-* virtually-mapped-stacks-do-not-disable-interrupts.patch
-* kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
-* powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
-* powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
-* kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
-* kexec-kdump-minor-documentation-updates-for-arm64-and-image.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
-* bfs-fix-sanity-checks-for-empty-files.patch
-* fs-kill-config_percpu_rwsem-some-more.patch
-* scripts-gdb-add-lx-fdtdump-command.patch
-* procfs-fdinfo-extend-information-about-epoll-target-files.patch
-* kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files.patch
-* kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore.patch
-* kernel-reboot-add-devm_register_reboot_notifier.patch
-* kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-* fault-inject-support-systematic-fault-injection.patch
-* fault-inject-support-systematic-fault-injection-fix.patch
-* fault-inject-automatically-detect-the-number-base-for-fail-nth-write-interface.patch
-* fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch
-* fault-inject-make-fail-nth-read-write-interface-symmetric.patch
-* fault-inject-simplify-access-check-for-fail-nth.patch
-* fault-inject-simplify-access-check-for-fail-nth-fix.patch
-* fault-inject-add-proc-pid-fail-nth.patch
-* make-initramfs-honor-config_devtmpfs_mount.patch
-* ipc-semc-remove-sem_base-embed-struct-sem.patch
-* ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
-* include-linux-semh-correctly-document-sem_ctime.patch
-  linux-next.patch
-* sparc64-ng4-memset-32-bits-overflow.patch
-* powerpc-sequoia-fix-nand-partitions-not-to-overlap.patch
-* lib-crc-ccitt-add-ccitt-false-crc16-variant.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  workaround-for-a-pci-restoring-bug.patch
