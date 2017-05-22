@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-fix-lax-sysctl_check_table-sanity-check.patch added to
- -mm tree
-Date: Mon, 22 May 2017 15:44:49 -0700
-Message-ID: <592369e1.tj22ObkvE7KTW6fn%akpm@linux-foundation.org>
+Subject: + sysctl-kdocify-sysctl_writes_strict.patch added to -mm tree
+Date: Mon, 22 May 2017 15:44:51 -0700
+Message-ID: <592369e3.23P3rpGNwJ1lFyZZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50664 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751426AbdEVWou (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 18:44:50 -0400
+        with ESMTP id S1751426AbdEVWow (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 18:44:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mcgrof@kernel.org, adobriyan@gmail.com, ebiederm@xmission.com, keescook@chromium.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: fix lax sysctl_check_table() sanity check
+     Subject: sysctl: kdoc'ify sysctl_writes_strict
 has been added to the -mm tree.  Its filename is
-     sysctl-fix-lax-sysctl_check_table-sanity-check.patch
+     sysctl-kdocify-sysctl_writes_strict.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-fix-lax-sysctl_check_table-sanity-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-kdocify-sysctl_writes_strict.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-fix-lax-sysctl_check_table-sanity-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-kdocify-sysctl_writes_strict.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: sysctl: fix lax sysctl_check_table() sanity check
+Subject: sysctl: kdoc'ify sysctl_writes_strict
 
-Patch series "sysctl: few fixes", v5.
+Document the different sysctl_writes_strict modes in code.
 
-I've been working on making kmod more deterministic, and as I did that I
-couldn't help but notice a few issues with sysctl.  My end goal was just
-to fix unsigned int support, which back then was completely broken. 
-Liping Zhang has sent up small atomic fixes, however it still missed yet
-one more fix and Alexey Dobriyan had also suggested to just drop array
-support given its complexity.
-
-I have inspected array support using Coccinelle and indeed its not that
-popular, so if in fact we can avoid it for new interfaces, I agree its
-best.
-
-I did develop a sysctl stress driver but will hold that off for another
-series.
-
-
-This patch (of 5):
-
-Commit 7c60c48f58a7 ("sysctl: Improve the sysctl sanity checks") improved
-sanity checks considerbly, however the enhancements on
-sysctl_check_table() meant adding a functional change so that only the
-last table entry's sanity error is propagated.  It also changed the way
-errors were propagated so that each new check reset the err value, this
-means only last sanity check computed is used for an error.  This has been
-in the kernel since v3.4 days.
-
-Fix this by carrying on errors from previous checks and iterations as we
-traverse the table and ensuring we keep any error from previous checks. 
-We keep iterating on the table even if an error is found so we can
-complain for all errors found in one shot.  This works as -EINVAL is
-always returned on error anyway, and the check for error is any non-zero
-value.
-
-Fixes: 7c60c48f58a7 ("sysctl: Improve the sysctl sanity checks")
-Link: http://lkml.kernel.org/r/20170519033554.18592-2-mcgrof@kernel.org
+Link: http://lkml.kernel.org/r/20170519033554.18592-3-mcgrof@kernel.org
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -86,41 +52,49 @@ Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/sysctl.c |   29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-fix-lax-sysctl_check_table-sanity-check fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-fix-lax-sysctl_check_table-sanity-check
-+++ a/fs/proc/proc_sysctl.c
-@@ -1066,7 +1066,7 @@ static int sysctl_check_table(const char
- 	int err = 0;
- 	for (; table->procname; table++) {
- 		if (table->child)
--			err = sysctl_err(path, table, "Not a file");
-+			err |= sysctl_err(path, table, "Not a file");
+diff -puN kernel/sysctl.c~sysctl-kdocify-sysctl_writes_strict kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-kdocify-sysctl_writes_strict
++++ a/kernel/sysctl.c
+@@ -174,11 +174,32 @@ extern int no_unaligned_warning;
  
- 		if ((table->proc_handler == proc_dostring) ||
- 		    (table->proc_handler == proc_dointvec) ||
-@@ -1078,15 +1078,15 @@ static int sysctl_check_table(const char
- 		    (table->proc_handler == proc_doulongvec_minmax) ||
- 		    (table->proc_handler == proc_doulongvec_ms_jiffies_minmax)) {
- 			if (!table->data)
--				err = sysctl_err(path, table, "No data");
-+				err |= sysctl_err(path, table, "No data");
- 			if (!table->maxlen)
--				err = sysctl_err(path, table, "No maxlen");
-+				err |= sysctl_err(path, table, "No maxlen");
- 		}
- 		if (!table->proc_handler)
--			err = sysctl_err(path, table, "No proc_handler");
-+			err |= sysctl_err(path, table, "No proc_handler");
+ #ifdef CONFIG_PROC_SYSCTL
  
- 		if ((table->mode & (S_IRUGO|S_IWUGO)) != table->mode)
--			err = sysctl_err(path, table, "bogus .mode 0%o",
-+			err |= sysctl_err(path, table, "bogus .mode 0%o",
- 				table->mode);
- 	}
- 	return err;
+-#define SYSCTL_WRITES_LEGACY	-1
+-#define SYSCTL_WRITES_WARN	 0
+-#define SYSCTL_WRITES_STRICT	 1
++/**
++ * enum sysctl_writes_mode - supported sysctl write modes
++ *
++ * @SYSCTL_WRITES_LEGACY: each write syscall must fully contain the sysctl value
++ * 	to be written, and multiple writes on the same sysctl file descriptor
++ * 	will rewrite the sysctl value, regardless of file position. No warning
++ * 	is issued when the initial position is not 0.
++ * @SYSCTL_WRITES_WARN: same as above but warn when the initial file position is
++ * 	not 0.
++ * @SYSCTL_WRITES_STRICT: writes to numeric sysctl entries must always be at
++ * 	file position 0 and the value must be fully contained in the buffer
++ * 	sent to the write syscall. If dealing with strings respect the file
++ * 	position, but restrict this to the max length of the buffer, anything
++ * 	passed the max lenght will be ignored. Multiple writes will append
++ * 	to the buffer.
++ *
++ * These write modes control how current file position affects the behavior of
++ * updating sysctl values through the proc interface on each write.
++ */
++enum sysctl_writes_mode {
++	SYSCTL_WRITES_LEGACY		= -1,
++	SYSCTL_WRITES_WARN		= 0,
++	SYSCTL_WRITES_STRICT		= 1,
++};
+ 
+-static int sysctl_writes_strict = SYSCTL_WRITES_STRICT;
++static enum sysctl_writes_mode sysctl_writes_strict = SYSCTL_WRITES_STRICT;
+ 
+ static int proc_do_cad_pid(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos);
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
