@@ -1,78 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
- added to -mm tree
-Date: Mon, 22 May 2017 12:34:09 -0700
-Message-ID: <59233d31.4NCUfrwSl1Ez13DW%akpm@linux-foundation.org>
+Subject: [nacked]
+ zram-try-harder-to-store-user-data-on-compression-error.patch removed from
+ -mm tree
+Date: Mon, 22 May 2017 12:35:03 -0700
+Message-ID: <59233d67.F71+ERJVUYAZiaHz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38278 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38298 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757285AbdEVTeK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 15:34:10 -0400
+        with ESMTP id S1758717AbdEVTfJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 15:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2
-has been added to the -mm tree.  Its filename is
-     ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
+     Subject: zram: try harder to store user data on compression error
+has been removed from the -mm tree.  Its filename was
+     zram-try-harder-to-store-user-data-on-compression-error.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zram: try harder to store user data on compression error
 
-Compare with initial version, we only print this error tip when the user
-uses pcmk stack.  since in o2cb stack, the user will not meet this error.
+__zram_bvec_write() overwrites the existing compressed object only when it
+successfully compresses a new one.  When zram_compress() fails, we
+propagate the error, but never touch the old object, so we keep the old
+data for that particular page and all reads that could hit that index
+later will read stale data.  This can cause problems.  For example,
 
-Link: http://lkml.kernel.org/r/1495419305-3780-1-git-send-email-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+- Overwriting a file
+
+     over-write block 1 aaa->xxx OK
+     over-write block 2 bbb->yyy OK
+     over-write block 3 ccc->zzz error << the block still has 'ccc' data.
+
+- Now, reading the file
+
+     read block 1 xxx OK
+     read block 2 yyy OK
+     read block 3 ccc OK   << we should not return OK here. Because
+                              "xxxyyyccc" is not correct file.
+
+As a solution, when we fail to compress a new page (S/W or H/W compressor
+error, depending on particular setup) try to store the page uncompressed
+(PAGE_SIZE-ed zs_pool object).  This, at least, allows us to return valid
+and correct data:
+
+     read block 1  xxx - OK, compressed
+     read block 2  yyy - OK, compressed
+     read block 3  zzz - OK, uncompressed (because compressing back-end
+                                           returned an error)
+
+Link: http://lkml.kernel.org/r/20170518021714.3229-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2 fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2
-+++ a/fs/ocfs2/super.c
-@@ -1844,7 +1844,7 @@ static int ocfs2_mount_volume(struct sup
- 	status = ocfs2_dlm_init(osb);
- 	if (status < 0) {
- 		mlog_errno(status);
--		if (status == -EBADR)
-+		if (status == -EBADR && ocfs2_userspace_stack(osb))
- 			mlog(ML_ERROR, "couldn't mount because cluster name on"
- 			" disk does not match the running cluster name.\n");
- 		goto leave;
+diff -puN drivers/block/zram/zram_drv.c~zram-try-harder-to-store-user-data-on-compression-error drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-try-harder-to-store-user-data-on-compression-error
++++ a/drivers/block/zram/zram_drv.c
+@@ -732,10 +732,12 @@ compress_again:
+ 	kunmap_atomic(src);
+ 
+ 	if (unlikely(ret)) {
++		/*
++		 * We failed to compress the page, try to store it
++		 * uncompressed (if there is enough memory).
++		 */
+ 		pr_err("Compression failed! err=%d\n", ret);
+-		if (entry)
+-			zram_entry_free(zram, entry);
+-		return ret;
++		comp_len = PAGE_SIZE;
+ 	}
+ 
+ 	if (unlikely(comp_len > max_zpage_size))
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
-ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
 
