@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch added to -mm tree
-Date: Mon, 22 May 2017 14:00:46 -0700
-Message-ID: <5923517e.gOOdQK45i72GDSn0%akpm@linux-foundation.org>
+Subject: +
+ mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
+ added to -mm tree
+Date: Mon, 22 May 2017 14:00:36 -0700
+Message-ID: <59235174.eLN9FFJjWcAM2+5F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1762647AbdEVVAr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 17:00:47 -0400
+        with ESMTP id S1762628AbdEVVAm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 17:00:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: punit.agrawal@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: introduce set_huge_swap_pte_at() helper
+     Subject: mm, gup: ensure real head page is ref-counted when using hugepages
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+     mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +41,101 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm/hugetlb: introduce set_huge_swap_pte_at() helper
+Subject: mm, gup: ensure real head page is ref-counted when using hugepages
 
-set_huge_pte_at(), an architecture callback to populate hugepage ptes,
-does not provide the range of virtual memory that is targeted.  This leads
-to ambiguity when dealing with swap entries on architectures that support
-hugepages consisting of contiguous ptes.
+When speculatively taking references to a hugepage using
+page_cache_add_speculative() in gup_huge_pmd(), it is assumed that the
+page returned by pmd_page() is the head page.  Although normally true,
+this assumption doesn't hold when the hugepage comprises of successive
+page table entries such as when using contiguous bit on arm64 at PTE or
+PMD levels.
 
-Fix the problem by introducing an overridable helper that is called when
-populating the page tables with swap entries.  The size of the targeted
-region is provided to the helper to help determine the number of entries
-to be updated.
+This can be addressed by ensuring that the page passed to
+page_cache_add_speculative() is the real head or by de-referencing the
+head page within the function.
 
-Provide a default implementation that maintains the current behaviour.
+We take the first approach to keep the usage pattern aligned with
+page_cache_get_speculative() where users already pass the appropriate
+page, i.e., the de-referenced head.
 
-Link: http://lkml.kernel.org/r/20170522133604.11392-6-punit.agrawal@arm.com
+Apply the same logic to fix gup_huge_[pud|pgd]() as well.
+
+Link: http://lkml.kernel.org/r/20170522133604.11392-3-punit.agrawal@arm.com
 Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
 Acked-by: Steve Capper <steve.capper@arm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 +++
- mm/hugetlb.c            |   14 +++++++++++---
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ mm/gup.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-introduce-set_huge_swap_pte_at-helper include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-introduce-set_huge_swap_pte_at-helper
-+++ a/include/linux/hugetlb.h
-@@ -158,6 +158,9 @@ unsigned long hugetlb_change_protection(
- 		unsigned long address, unsigned long end, pgprot_t newprot);
+diff -puN mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages mm/gup.c
+--- a/mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages
++++ a/mm/gup.c
+@@ -1432,8 +1432,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 		return __gup_device_huge_pmd(orig, addr, end, pages, nr);
  
- bool is_hugetlb_entry_migration(pte_t pte);
-+
-+void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
-+			  pte_t *ptep, pte_t pte, unsigned long sz);
- #else /* !CONFIG_HUGETLB_PAGE */
+ 	refs = 0;
+-	head = pmd_page(orig);
+-	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 	do {
+ 		pages[*nr] = page;
+ 		(*nr)++;
+@@ -1441,6 +1440,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
  
- static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
-diff -puN mm/hugetlb.c~mm-hugetlb-introduce-set_huge_swap_pte_at-helper mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-introduce-set_huge_swap_pte_at-helper
-+++ a/mm/hugetlb.c
-@@ -3224,6 +3224,12 @@ static int is_hugetlb_entry_hwpoisoned(p
++	head = compound_head(page);
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
  		return 0;
- }
+@@ -1470,8 +1470,7 @@ static int gup_huge_pud(pud_t orig, pud_
+ 		return __gup_device_huge_pud(orig, addr, end, pages, nr);
  
-+void __weak set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
-+				 pte_t *ptep, pte_t pte, unsigned long sz)
-+{
-+	set_huge_pte_at(mm, addr, ptep, pte);
-+}
-+
- int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			    struct vm_area_struct *vma)
- {
-@@ -3276,9 +3282,10 @@ int copy_hugetlb_page_range(struct mm_st
- 				 */
- 				make_migration_entry_read(&swp_entry);
- 				entry = swp_entry_to_pte(swp_entry);
--				set_huge_pte_at(src, addr, src_pte, entry);
-+				set_huge_swap_pte_at(src, addr, src_pte,
-+						     entry, sz);
- 			}
--			set_huge_pte_at(dst, addr, dst_pte, entry);
-+			set_huge_swap_pte_at(dst, addr, dst_pte, entry, sz);
- 		} else {
- 			if (cow) {
- 				huge_ptep_set_wrprotect(src, addr, src_pte);
-@@ -4290,7 +4297,8 @@ unsigned long hugetlb_change_protection(
+ 	refs = 0;
+-	head = pud_page(orig);
+-	page = head + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
++	page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+ 	do {
+ 		pages[*nr] = page;
+ 		(*nr)++;
+@@ -1479,6 +1478,7 @@ static int gup_huge_pud(pud_t orig, pud_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
  
- 				make_migration_entry_read(&entry);
- 				newpte = swp_entry_to_pte(entry);
--				set_huge_pte_at(mm, address, ptep, newpte);
-+				set_huge_swap_pte_at(mm, address, ptep,
-+						     newpte, huge_page_size(h));
- 				pages++;
- 			}
- 			spin_unlock(ptl);
++	head = compound_head(page);
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
+@@ -1507,8 +1507,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 
+ 	BUILD_BUG_ON(pgd_devmap(orig));
+ 	refs = 0;
+-	head = pgd_page(orig);
+-	page = head + ((addr & ~PGDIR_MASK) >> PAGE_SHIFT);
++	page = pgd_page(orig) + ((addr & ~PGDIR_MASK) >> PAGE_SHIFT);
+ 	do {
+ 		pages[*nr] = page;
+ 		(*nr)++;
+@@ -1516,6 +1515,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
+ 
++	head = compound_head(page);
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
 _
 
 Patches currently in -mm which might be from punit.agrawal@arm.com are
