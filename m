@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + mm-adaptive-hash-table-scaling-v2.patch added to -mm tree
-Date: Mon, 22 May 2017 12:49:11 -0700
-Message-ID: <592340b7.Vk4tD03E9sdTRXUK%akpm@linux-foundation.org>
+Date: Mon, 22 May 2017 12:49:40 -0700
+Message-ID: <592340d4.zsoevrHbSA2Gf/Wo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38832 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751309AbdEVTtM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 15:49:12 -0400
+        with ESMTP id S1751309AbdEVTtl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 15:49:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pasha.tatashin@oracle.com, babu.moger@oracle.com, davem@davemloft.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: pasha.tatashin@oracle.com, babu.moger@oracle.com, davem@davemloft.net, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -48,6 +48,7 @@ Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Cc: David Miller <davem@davemloft.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Babu Moger <babu.moger@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
