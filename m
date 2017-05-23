@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-add-unsigned-int-range-support.patch added to -mm tree
-Date: Mon, 22 May 2017 15:44:58 -0700
-Message-ID: <592369ea.9DgXOflnS6DlFbW2%akpm@linux-foundation.org>
+Subject: +
+ asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
+ added to -mm tree
+Date: Tue, 23 May 2017 14:43:53 -0700
+Message-ID: <5924ad19.3V60s523BK7vwnW6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50714 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58678 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752267AbdEVWo7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2017 18:44:59 -0400
+        with ESMTP id S1032485AbdEWVn7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2017 17:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@kernel.org, adobriyan@gmail.com, davem@davemloft.net, ebiederm@xmission.com, keescook@chromium.org, mingo@redhat.com, subashab@codeaurora.org, viro@zeniv.linux.org.uk, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: abbotti@mev.co.uk, arnd@arndb.de, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: add unsigned int range support
+     Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
 has been added to the -mm tree.  Its filename is
-     sysctl-add-unsigned-int-range-support.patch
+     asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-add-unsigned-int-range-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-add-unsigned-int-range-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,166 +40,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: sysctl: add unsigned int range support
+From: Ian Abbott <abbotti@mev.co.uk>
+Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
 
-To keep parity with regular int interfaces provide the an unsigned int
-proc_douintvec_minmax() which allows you to specify a range of allowed
-valid numbers.
+The declaration of `__warn()` has `struct pt_regs *regs` as one of its
+parameters.  This can result in compiler warnings if `struct regs` is not
+already declared.  Add an empty declaration of `struct pt_regs` to avoid
+the warnings.
 
-Adding proc_douintvec_minmax_sysadmin() is easy but we can wait for an
-actual user for that.
-
-Link: http://lkml.kernel.org/r/20170519033554.18592-6-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/20170523160112.3446-2-abbotti@mev.co.uk
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c  |    4 +-
- include/linux/sysctl.h |    3 +
- kernel/sysctl.c        |   66 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 72 insertions(+), 1 deletion(-)
+ include/asm-generic/bug.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-add-unsigned-int-range-support fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-add-unsigned-int-range-support
-+++ a/fs/proc/proc_sysctl.c
-@@ -1065,7 +1065,8 @@ static int sysctl_check_table_array(cons
- {
- 	int err = 0;
+diff -puN include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype
++++ a/include/asm-generic/bug.h
+@@ -97,6 +97,7 @@ extern void warn_slowpath_null(const cha
  
--	if (table->proc_handler == proc_douintvec) {
-+	if ((table->proc_handler == proc_douintvec) ||
-+	    (table->proc_handler == proc_douintvec_minmax)) {
- 		if (table->maxlen != sizeof(unsigned int))
- 			err |= sysctl_err(path, table, "array now allowed");
- 	}
-@@ -1083,6 +1084,7 @@ static int sysctl_check_table(const char
- 		if ((table->proc_handler == proc_dostring) ||
- 		    (table->proc_handler == proc_dointvec) ||
- 		    (table->proc_handler == proc_douintvec) ||
-+		    (table->proc_handler == proc_douintvec_minmax) ||
- 		    (table->proc_handler == proc_dointvec_minmax) ||
- 		    (table->proc_handler == proc_dointvec_jiffies) ||
- 		    (table->proc_handler == proc_dointvec_userhz_jiffies) ||
-diff -puN include/linux/sysctl.h~sysctl-add-unsigned-int-range-support include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-unsigned-int-range-support
-+++ a/include/linux/sysctl.h
-@@ -47,6 +47,9 @@ extern int proc_douintvec(struct ctl_tab
- 			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_minmax(struct ctl_table *, int,
- 				void __user *, size_t *, loff_t *);
-+extern int proc_douintvec_minmax(struct ctl_table *table, int write,
-+				 void __user *buffer, size_t *lenp,
-+				 loff_t *ppos);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~sysctl-add-unsigned-int-range-support kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-unsigned-int-range-support
-+++ a/kernel/sysctl.c
-@@ -2567,6 +2567,65 @@ int proc_dointvec_minmax(struct ctl_tabl
- 				do_proc_dointvec_minmax_conv, &param);
- }
+ /* used internally by panic.c */
+ struct warn_args;
++struct pt_regs;
  
-+struct do_proc_douintvec_minmax_conv_param {
-+	unsigned int *min;
-+	unsigned int *max;
-+};
-+
-+static int do_proc_douintvec_minmax_conv(unsigned long *lvalp,
-+					 unsigned int *valp,
-+					 int write, void *data)
-+{
-+	struct do_proc_douintvec_minmax_conv_param *param = data;
-+
-+	if (write) {
-+		unsigned int val = *lvalp;
-+
-+		if ((param->min && *param->min > val) ||
-+		    (param->max && *param->max < val))
-+			return -ERANGE;
-+
-+		if (*lvalp > UINT_MAX)
-+			return -EINVAL;
-+		*valp = val;
-+	} else {
-+		unsigned int val = *valp;
-+		*lvalp = (unsigned long) val;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * proc_douintvec_minmax - read a vector of unsigned ints with min/max values
-+ * @table: the sysctl table
-+ * @write: %TRUE if this is a write to the sysctl file
-+ * @buffer: the user buffer
-+ * @lenp: the size of the user buffer
-+ * @ppos: file position
-+ *
-+ * Reads/writes up to table->maxlen/sizeof(unsigned int) unsigned integer
-+ * values from/to the user buffer, treated as an ASCII string. Negative
-+ * strings are not allowed.
-+ *
-+ * This routine will ensure the values are within the range specified by
-+ * table->extra1 (min) and table->extra2 (max). There is a final sanity
-+ * check for UINT_MAX to avoid having to support wrap around uses from
-+ * userspace.
-+ *
-+ * Returns 0 on success.
-+ */
-+int proc_douintvec_minmax(struct ctl_table *table, int write,
-+			  void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct do_proc_douintvec_minmax_conv_param param = {
-+		.min = (unsigned int *) table->extra1,
-+		.max = (unsigned int *) table->extra2,
-+	};
-+	return do_proc_douintvec(table, write, buffer, lenp, ppos,
-+				 do_proc_douintvec_minmax_conv, &param);
-+}
-+
- static void validate_coredump_safety(void)
- {
- #ifdef CONFIG_COREDUMP
-@@ -3066,6 +3125,12 @@ int proc_dointvec_minmax(struct ctl_tabl
- 	return -ENOSYS;
- }
- 
-+int proc_douintvec_minmax(struct ctl_table *table, int write,
-+			  void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	return -ENOSYS;
-+}
-+
- int proc_dointvec_jiffies(struct ctl_table *table, int write,
- 		    void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -3108,6 +3173,7 @@ EXPORT_SYMBOL(proc_dointvec);
- EXPORT_SYMBOL(proc_douintvec);
- EXPORT_SYMBOL(proc_dointvec_jiffies);
- EXPORT_SYMBOL(proc_dointvec_minmax);
-+EXPORT_SYMBOL_GPL(proc_douintvec_minmax);
- EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
- EXPORT_SYMBOL(proc_dointvec_ms_jiffies);
- EXPORT_SYMBOL(proc_dostring);
+ void __warn(const char *file, int line, void *caller, unsigned taint,
+ 	    struct pt_regs *regs, struct warn_args *args);
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from abbotti@mev.co.uk are
 
-sysctl-fix-lax-sysctl_check_table-sanity-check.patch
-sysctl-kdocify-sysctl_writes_strict.patch
-sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
-sysctl-simplify-unsigned-int-support.patch
-sysctl-add-unsigned-int-range-support.patch
+asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
+kernelh-handle-pointers-to-arrays-better-in-container_of.patch
 
