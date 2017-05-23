@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
+ mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update.patch
  added to -mm tree
-Date: Tue, 23 May 2017 15:26:25 -0700
-Message-ID: <5924b711.6lyhLWH3SnGSxeLz%akpm@linux-foundation.org>
+Date: Tue, 23 May 2017 15:26:23 -0700
+Message-ID: <5924b70f.qq6RDccdJ8Rxe3ZE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60218 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034989AbdEWW00 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2017 18:26:26 -0400
+        with ESMTP id S1034987AbdEWW0Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2017 18:26:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, aarcange@redhat.com, cl@linux.com, hughd@google.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, lizefan@huawei.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, sivanich@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mempolicy: stop adjusting current->il_next in mpol_rebind_nodemask()
+     Subject: mm, page_alloc: fix more premature OOM due to race with cpuset update
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
+     mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,113 +41,186 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, mempolicy: stop adjusting current->il_next in mpol_rebind_nodemask()
+Subject: mm, page_alloc: fix more premature OOM due to race with cpuset update
 
-The task->il_next variable stores the next allocation node id for task's
-MPOL_INTERLEAVE policy.  mpol_rebind_nodemask() updates interleave and
-bind mempolicies due to changing cpuset mems.  Currently it also tries to
-make sure that current->il_next is valid within the updated nodemask. 
-This is bogus, because 1) we are updating potentially any task's
-mempolicy, not just current, and 2) we might be updating a per-vma
-mempolicy, not task one.
+I would like to stress that this patchset aims to fix issues and cleanup
+the code *within the existing documented semantics*, i.e.  patch 1 ignores
+mempolicy restrictions if the set of allowed nodes has no intersection
+with set of nodes allowed by cpuset.  I believe discussing potential
+changes of the semantics can be better done once we have a baseline with
+no known bugs of the current semantics.
 
-The interleave_nodes() function that uses il_next can cope fine with the
-value not being within the currently allowed nodes, so this hasn't
-manifested as an actual issue.
 
-We can remove the need for updating il_next completely by changing it to
-il_prev and store the node id of the previous interleave allocation
-instead of the next id.  Then interleave_nodes() can calculate the next id
-using the current nodemask and also store it as il_prev, except when
-querying the next node via do_get_mempolicy().
 
-Link: http://lkml.kernel.org/r/20170517081140.30654-3-vbabka@suse.cz
+I've recently summarized the cpuset/mempolicy issues in a LSF/MM proposal [1]
+and the discussion itself [2]. I've been trying to rewrite the handling as
+proposed, with the idea that changing semantics to make all mempolicies static
+wrt cpuset updates (and discarding the relative and default modes) can be tried
+on top, as there's a high risk of being rejected/reverted because somebody
+might still care about the removed modes.
+
+However I haven't yet figured out how to properly:
+
+1) make mempolicies swappable instead of rebinding in place.  I thought
+   mbind() already works that way and uses refcounting to avoid
+   use-after-free of the old policy by a parallel allocation, but turns
+   out true refcounting is only done for shared (shmem) mempolicies, and
+   the actual protection for mbind() comes from mmap_sem.  Extending the
+   refcounting means more overhead in allocator hot path.  Also swapping
+   whole mempolicies means that we have to allocate the new ones, which
+   can fail, and reverting of the partially done work also means
+   allocating (note that mbind() doesn't care and will just leave part of
+   the range updated and part not updated when returning -ENOMEM...).
+
+2) make cpuset's task->mems_allowed also swappable (after converting it
+   from nodemask to zonelist, which is the easy part) for mostly the same
+   reasons.
+
+The good news is that while trying to do the above, I've at least figured
+out how to hopefully close the remaining premature OOM's, and do a buch of
+cleanups on top, removing quite some of the code that was also supposed to
+prevent the cpuset update races, but doesn't work anymore nowadays.  This
+should fix the most pressing concerns with this topic and give us a better
+baseline before either proceeding with the original proposal, or pushing a
+change of semantics that removes the problem 1) above.  I'd be then fine
+with trying to change the semantic first and rewrite later.
+
+Patchset has been tested with the LTP cpuset01 stress test.
+
+[1] https://lkml.kernel.org/r/4c44a589-5fd8-08d0-892c-e893bb525b71@suse.cz
+[2] https://lwn.net/Articles/717797/
+[3] https://marc.info/?l=linux-mm&m=149191957922828&w=2
+
+
+
+This patch (of 6):
+
+Commit e47483bca2cc ("mm, page_alloc: fix premature OOM when racing with
+cpuset mems update") has fixed known recent regressions found by LTP's
+cpuset01 testcase.  I have however found that by modifying the testcase to
+use per-vma mempolicies via bind(2) instead of per-task mempolicies via
+set_mempolicy(2), the premature OOM still happens and the issue is much
+older.
+
+The root of the problem is that the cpuset's mems_allowed and mempolicy's
+nodemask can temporarily have no intersection, thus
+get_page_from_freelist() cannot find any usable zone.  The current
+semantic for empty intersection is to ignore mempolicy's nodemask and
+honour cpuset restrictions.  This is checked in node_zonelist(), but the
+racy update can happen after we already passed the check.  Such races
+should be protected by the seqlock task->mems_allowed_seq, but it doesn't
+work here, because 1) mpol_rebind_mm() does not happen under seqlock for
+write, and doing so would lead to deadlock, as it takes mmap_sem for
+write, while the allocation can have mmap_sem for read when it's taking
+the seqlock for read.  And 2) the seqlock cookie of callers of
+node_zonelist() (alloc_pages_vma() and alloc_pages_current()) is different
+than the one of __alloc_pages_slowpath(), so there's still a potential
+race window.
+
+This patch fixes the issue by having __alloc_pages_slowpath() check for
+empty intersection of cpuset and ac->nodemask before OOM or allocation
+failure.  If it's indeed empty, the nodemask is ignored and allocation
+retried, which mimics node_zonelist().  This works fine, because almost
+all callers of __alloc_pages_nodemask are obtaining the nodemask via
+node_zonelist().  The only exception is new_node_page() from hotplug,
+where the potential violation of nodemask isn't an issue, as there's
+already a fallback allocation attempt without any nodemask.  If there's a
+future caller that needs to have its specific nodemask honoured over
+task's cpuset restrictions, we'll have to e.g.  add a gfp flag for that.
+
+Link: http://lkml.kernel.org/r/20170517081140.30654-2-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Christoph Lameter <cl@linux.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Li Zefan <lizefan@huawei.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- mm/mempolicy.c        |   22 +++++++---------------
- 2 files changed, 8 insertions(+), 16 deletions(-)
+ mm/page_alloc.c |   51 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 38 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/sched.h~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask include/linux/sched.h
---- a/include/linux/sched.h~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask
-+++ a/include/linux/sched.h
-@@ -886,7 +886,7 @@ struct task_struct {
- #ifdef CONFIG_NUMA
- 	/* Protected by alloc_lock: */
- 	struct mempolicy		*mempolicy;
--	short				il_next;
-+	short				il_prev;
- 	short				pref_node_fork;
- #endif
- #ifdef CONFIG_NUMA_BALANCING
-diff -puN mm/mempolicy.c~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask
-+++ a/mm/mempolicy.c
-@@ -349,12 +349,6 @@ static void mpol_rebind_nodemask(struct
- 		pol->v.nodes = tmp;
- 	else
- 		BUG();
--
--	if (!node_isset(current->il_next, tmp)) {
--		current->il_next = next_node_in(current->il_next, tmp);
--		if (current->il_next >= MAX_NUMNODES)
--			current->il_next = numa_node_id();
--	}
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update
++++ a/mm/page_alloc.c
+@@ -3666,6 +3666,39 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+ 	return false;
  }
  
- static void mpol_rebind_preferred(struct mempolicy *pol,
-@@ -812,9 +806,8 @@ static long do_set_mempolicy(unsigned sh
++static inline bool
++check_retry_cpuset(int cpuset_mems_cookie, struct alloc_context *ac)
++{
++	/*
++	 * It's possible that cpuset's mems_allowed and the nodemask from
++	 * mempolicy don't intersect. This should be normally dealt with by
++	 * policy_nodemask(), but it's possible to race with cpuset update in
++	 * such a way the check therein was true, and then it became false
++	 * before we got our cpuset_mems_cookie here.
++	 * This assumes that for all allocations, ac->nodemask can come only
++	 * from MPOL_BIND mempolicy (whose documented semantics is to be ignored
++	 * when it does not intersect with the cpuset restrictions) or the
++	 * caller can deal with a violated nodemask.
++	 */
++	if (cpusets_enabled() && ac->nodemask &&
++			!cpuset_nodemask_valid_mems_allowed(ac->nodemask)) {
++		ac->nodemask = NULL;
++		return true;
++	}
++
++	/*
++	 * When updating a task's mems_allowed or mempolicy nodemask, it is
++	 * possible to race with parallel threads in such a way that our
++	 * allocation can fail while the mask is being updated. If we are about
++	 * to fail, check if the cpuset changed during allocation and if so,
++	 * retry.
++	 */
++	if (read_mems_allowed_retry(cpuset_mems_cookie))
++		return true;
++
++	return false;
++}
++
+ static inline struct page *
+ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
+ 						struct alloc_context *ac)
+@@ -3861,11 +3894,9 @@ retry:
+ 				&compaction_retries))
+ 		goto retry;
+ 
+-	/*
+-	 * It's possible we raced with cpuset update so the OOM would be
+-	 * premature (see below the nopage: label for full explanation).
+-	 */
+-	if (read_mems_allowed_retry(cpuset_mems_cookie))
++
++	/* Deal with possible cpuset update races before we start OOM killing */
++	if (check_retry_cpuset(cpuset_mems_cookie, ac))
+ 		goto retry_cpuset;
+ 
+ 	/* Reclaim has failed us, start killing things */
+@@ -3886,14 +3917,8 @@ retry:
  	}
- 	old = current->mempolicy;
- 	current->mempolicy = new;
--	if (new && new->mode == MPOL_INTERLEAVE &&
--	    nodes_weight(new->v.nodes))
--		current->il_next = first_node(new->v.nodes);
-+	if (new && new->mode == MPOL_INTERLEAVE)
-+		current->il_prev = MAX_NUMNODES-1;
- 	task_unlock(current);
- 	mpol_put(old);
- 	ret = 0;
-@@ -916,7 +909,7 @@ static long do_get_mempolicy(int *policy
- 			*policy = err;
- 		} else if (pol == current->mempolicy &&
- 				pol->mode == MPOL_INTERLEAVE) {
--			*policy = current->il_next;
-+			*policy = next_node_in(current->il_prev, pol->v.nodes);
- 		} else {
- 			err = -EINVAL;
- 			goto out;
-@@ -1697,14 +1690,13 @@ static struct zonelist *policy_zonelist(
- /* Do dynamic interleaving for a process */
- static unsigned interleave_nodes(struct mempolicy *policy)
- {
--	unsigned nid, next;
-+	unsigned next;
- 	struct task_struct *me = current;
  
--	nid = me->il_next;
--	next = next_node_in(nid, policy->v.nodes);
-+	next = next_node_in(me->il_prev, policy->v.nodes);
- 	if (next < MAX_NUMNODES)
--		me->il_next = next;
--	return nid;
-+		me->il_prev = next;
-+	return next;
- }
+ nopage:
+-	/*
+-	 * When updating a task's mems_allowed or mempolicy nodemask, it is
+-	 * possible to race with parallel threads in such a way that our
+-	 * allocation can fail while the mask is being updated. If we are about
+-	 * to fail, check if the cpuset changed during allocation and if so,
+-	 * retry.
+-	 */
+-	if (read_mems_allowed_retry(cpuset_mems_cookie))
++	/* Deal with possible cpuset update races before we fail */
++	if (check_retry_cpuset(cpuset_mems_cookie, ac))
+ 		goto retry_cpuset;
  
- /*
+ 	/*
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
