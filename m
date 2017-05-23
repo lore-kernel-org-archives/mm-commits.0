@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-handle-pointers-to-arrays-better-in-container_of.patch
- added to -mm tree
-Date: Tue, 23 May 2017 14:43:55 -0700
-Message-ID: <5924ad1b.nYLb8RmwkGhWylLs%akpm@linux-foundation.org>
+Subject: +
+ mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch added to
+ -mm tree
+Date: Tue, 23 May 2017 14:56:01 -0700
+Message-ID: <5924aff1.MI9af9+aiFzjBCAW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59052 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032453AbdEWVoP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2017 17:44:15 -0400
+        with ESMTP id S1034565AbdEWV4H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2017 17:56:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, bp@suse.de, glider@google.com, hidehiro.kawai.ez@hitachi.com, johannes.berg@intel.com, linux@rasmusvillemoes.dk, mina86@mina86.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jbacik@fb.com, josef@toxicpanda.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: handle pointers to arrays better in container_of()
+     Subject: mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix
 has been added to the -mm tree.  Its filename is
-     kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+     mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,118 +40,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Abbott <abbotti@mev.co.uk>
-Subject: kernel.h: handle pointers to arrays better in container_of()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix
 
-If the first parameter of container_of() is a pointer to a
-non-const-qualified array type (and the third parameter names a
-non-const-qualified array member), the local variable __mptr will be
-defined with a const-qualified array type.  In ISO C, these types are
-incompatible.  They work as expected in GNU C, but some versions will
-issue warnings.  For example, GCC 4.9 produces the warning "initialization
-from incompatible pointer type".
+fix comment
 
-Here is an example of where the problem occurs:
-
--------------------------------------------------------
- #include <linux/kernel.h>
- #include <linux/module.h>
-
-MODULE_LICENSE("GPL");
-
-struct st {
-	int a;
-	char b[16];
-};
-
-static int __init example_init(void) {
-	struct st t = { .a = 101, .b = "hello" };
-	char (*p)[16] = &t.b;
-	struct st *x = container_of(p, struct st, b);
-	printk(KERN_DEBUG "%p %p\n", (void *)&t, (void *)x);
-	return 0;
-}
-
-static void __exit example_exit(void) {
-}
-
-module_init(example_init);
-module_exit(example_exit);
--------------------------------------------------------
-
-Building the module with gcc-4.9 results in these warnings (where '{m}'
-is the module source and '{k}' is the kernel source):
-
--------------------------------------------------------
-In file included from {m}/example.c:1:0:
-{m}/example.c: In function `example_init':
-{k}/include/linux/kernel.h:854:48: warning: initialization from
-incompatible pointer type
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
-{k}/include/linux/kernel.h:854:48: warning: (near initialization for
-`x')
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
--------------------------------------------------------
-
-Replace the type checking performed by the macro to avoid these
-warnings.  Make sure `*(ptr)` either has type compatible with the
-member, or has type compatible with `void`, ignoring qualifiers.  Raise
-compiler errors if this is not true.  This is stronger than the previous
-behaviour, which only resulted in compiler warnings for a type mismatch.
-
-Link: http://lkml.kernel.org/r/20170523160112.3446-3-abbotti@mev.co.uk
-Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Johannes Berg <johannes.berg@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alexander Potapenko <glider@google.com>
+Cc: Josef Bacik <jbacik@fb.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of
-+++ a/include/linux/kernel.h
-@@ -11,6 +11,7 @@
- #include <linux/log2.h>
- #include <linux/typecheck.h>
- #include <linux/printk.h>
-+#include <linux/bug.h>
- #include <asm/byteorder.h>
- #include <uapi/linux/kernel.h>
+diff -puN mm/vmscan.c~mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix
++++ a/mm/vmscan.c
+@@ -2598,9 +2598,9 @@ static bool shrink_node(pg_data_t *pgdat
  
-@@ -850,9 +851,11 @@ static inline void ftrace_dump(enum ftra
-  * @member:	the name of the member within the struct.
-  *
-  */
--#define container_of(ptr, type, member) ({			\
--	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
--	(type *)( (char *)__mptr - offsetof(type,member) );})
-+#define container_of(ptr, type, member) ({				\
-+	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
-+			 !__same_type(*(ptr), void),			\
-+			 "pointer type mismatch in container_of()");	\
-+	((type *)((char *)(ptr) - offsetof(type, member))); })
- 
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+ 	/*
+ 	 * We still want to slightly prefer slab over inactive, so if the
+-	 * inactive on this node is large enough and what is pushing us into
+-	 * reclaim terretitory then limit our flushing to the inactive list for
+-	 * the first go around.
++	 * inactive on this node is large enough and is pushing us into reclaim
++	 * terrtitory then limit our flushing to the inactive list for the first
++	 * go around.
+ 	 *
+ 	 * The idea is that with a memcg configured system we will still reclaim
+ 	 * memcg aware shrinkers, which includes the super block shrinkers.  So
 _
 
-Patches currently in -mm which might be from abbotti@mev.co.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
-kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+i-need-old-gcc.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
