@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-a-static-checker-warning.patch added to -mm tree
-Date: Tue, 23 May 2017 15:30:48 -0700
-Message-ID: <5924b818.ZOepC7BfDhgqufim%akpm@linux-foundation.org>
+Subject: + add-the-option-of-fortified-stringh-functions.patch added to
+ -mm tree
+Date: Tue, 23 May 2017 15:50:38 -0700
+Message-ID: <5924bcbe.8dAH3wQSwQAtBvOe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38300 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S968771AbdEWWat (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2017 18:30:49 -0400
+        with ESMTP id S1764250AbdEWWuj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2017 18:50:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
+To: danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org, mark.rutland@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix a static checker warning
+     Subject: include/linux/string.h: add the option of fortified string.h functions
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-a-static-checker-warning.patch
+     add-the-option-of-fortified-stringh-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-static-checker-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-the-option-of-fortified-stringh-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-static-checker-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-the-option-of-fortified-stringh-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,45 +39,343 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: fix a static checker warning
+From: Daniel Micay <danielmicay@gmail.com>
+Subject: include/linux/string.h: add the option of fortified string.h functions
 
-Fix a static code checker warning:
+This adds support for compiling with a rough equivalent to the glibc
+_FORTIFY_SOURCE=1 feature, providing compile-time and runtime buffer
+overflow checks for string.h functions when the compiler determines the
+size of the source or destination buffer at compile-time.  Unlike glibc,
+it covers buffer reads in addition to writes.
 
-fs/ocfs2/inode.c:179 ocfs2_iget()
-warn: passing zero to 'ERR_PTR'
+GNU C __builtin_*_chk intrinsics are avoided because they would force a
+much more complex implementation.  They aren't designed to detect read
+overflows and offer no real benefit when using an implementation based on
+inline checks.  Inline checks don't add up to much code size and allow
+full use of the regular string intrinsics while avoiding the need for a
+bunch of _chk functions and per-arch assembly to avoid wrapper overhead.
 
-Fixes: d56a8f32e4c6 ("ocfs2: check/fix inode block for online file check")
-Link: http://lkml.kernel.org/r/1495516634-1952-1-git-send-email-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
+This detects various overflows at compile-time in various drivers and some
+non-x86 core kernel code.  There will likely be issues caught in regular
+use at runtime too.
+
+Future improvements left out of initial implementation for simplicity, as
+it's all quite optional and can be done incrementally:
+
+* Some of the fortified string functions (strncpy, strcat), don't yet
+  place a limit on reads from the source based on __builtin_object_size of
+  the source buffer.
+
+* Extending coverage to more string functions like strlcat.
+
+* It should be possible to optionally use __builtin_object_size(x, 1)
+  for some functions (C strings) to detect intra-object overflows (like
+  glibc's _FORTIFY_SOURCE=2), but for now this takes the conservative
+  approach to avoid likely compatibility issues.
+
+* The compile-time checks should be made available via a separate config
+  option which can be enabled by default (or always enabled) once enough
+  time has passed to get the issues it catches fixed.
+
+Link: http://lkml.kernel.org/r/20170522231025.30463-1-danielmicay@gmail.com
+Signed-off-by: Daniel Micay <danielmicay@gmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Daniel Axtens <dja@axtens.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/include/asm/string.h  |    5 
+ arch/x86/boot/compressed/misc.c  |    5 
+ arch/x86/include/asm/string_64.h |    5 
+ include/linux/string.h           |  200 +++++++++++++++++++++++++++++
+ lib/string.c                     |    6 
+ security/Kconfig                 |    6 
+ 6 files changed, 227 insertions(+)
 
-diff -puN fs/ocfs2/inode.c~ocfs2-fix-a-static-checker-warning fs/ocfs2/inode.c
---- a/fs/ocfs2/inode.c~ocfs2-fix-a-static-checker-warning
-+++ a/fs/ocfs2/inode.c
-@@ -136,7 +136,7 @@ struct inode *ocfs2_ilookup(struct super
- struct inode *ocfs2_iget(struct ocfs2_super *osb, u64 blkno, unsigned flags,
- 			 int sysfile_type)
- {
--	int rc = 0;
-+	int rc = -ESTALE;
- 	struct inode *inode = NULL;
- 	struct super_block *sb = osb->sb;
- 	struct ocfs2_find_inode_args args;
+diff -puN arch/arm64/include/asm/string.h~add-the-option-of-fortified-stringh-functions arch/arm64/include/asm/string.h
+--- a/arch/arm64/include/asm/string.h~add-the-option-of-fortified-stringh-functions
++++ a/arch/arm64/include/asm/string.h
+@@ -63,6 +63,11 @@ extern int memcmp(const void *, const vo
+ #define memcpy(dst, src, len) __memcpy(dst, src, len)
+ #define memmove(dst, src, len) __memmove(dst, src, len)
+ #define memset(s, c, n) __memset(s, c, n)
++
++#ifndef __NO_FORTIFY
++#define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
++#endif
++
+ #endif
+ 
+ #endif
+diff -puN arch/x86/boot/compressed/misc.c~add-the-option-of-fortified-stringh-functions arch/x86/boot/compressed/misc.c
+--- a/arch/x86/boot/compressed/misc.c~add-the-option-of-fortified-stringh-functions
++++ a/arch/x86/boot/compressed/misc.c
+@@ -409,3 +409,8 @@ asmlinkage __visible void *extract_kerne
+ 	debug_putstr("done.\nBooting the kernel.\n");
+ 	return output;
+ }
++
++void fortify_panic(const char *name)
++{
++	error("detected buffer overflow");
++}
+diff -puN arch/x86/include/asm/string_64.h~add-the-option-of-fortified-stringh-functions arch/x86/include/asm/string_64.h
+--- a/arch/x86/include/asm/string_64.h~add-the-option-of-fortified-stringh-functions
++++ a/arch/x86/include/asm/string_64.h
+@@ -77,6 +77,11 @@ int strcmp(const char *cs, const char *c
+ #define memcpy(dst, src, len) __memcpy(dst, src, len)
+ #define memmove(dst, src, len) __memmove(dst, src, len)
+ #define memset(s, c, n) __memset(s, c, n)
++
++#ifndef __NO_FORTIFY
++#define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
++#endif
++
+ #endif
+ 
+ #define __HAVE_ARCH_MEMCPY_MCSAFE 1
+diff -puN include/linux/string.h~add-the-option-of-fortified-stringh-functions include/linux/string.h
+--- a/include/linux/string.h~add-the-option-of-fortified-stringh-functions
++++ a/include/linux/string.h
+@@ -187,4 +187,204 @@ static inline const char *kbasename(cons
+ 	return tail ? tail + 1 : path;
+ }
+ 
++#define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
++#define __RENAME(x) __asm__(#x)
++
++void fortify_panic(const char *name) __noreturn __cold;
++void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
++void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
++void __write_overflow(void) __compiletime_error("detected write beyond size of object passed as 1st parameter");
++
++#if !defined(__NO_FORTIFY) && defined(__OPTIMIZE__) && defined(CONFIG_FORTIFY_SOURCE)
++__FORTIFY_INLINE char *strcpy(char *p, const char *q)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	size_t q_size = __builtin_object_size(q, 0);
++	if (p_size == (size_t)-1 && q_size == (size_t)-1)
++		return __builtin_strcpy(p, q);
++	if (strscpy(p, q, p_size < q_size ? p_size : q_size) < 0)
++		fortify_panic(__func__);
++	return p;
++}
++
++__FORTIFY_INLINE char *strncpy(char *p, const char *q, __kernel_size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	if (__builtin_constant_p(size) && p_size < size)
++		__write_overflow();
++	if (p_size < size)
++		fortify_panic(__func__);
++	return __builtin_strncpy(p, q, size);
++}
++
++__FORTIFY_INLINE char *strcat(char *p, const char *q)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	if (p_size == (size_t)-1)
++		return __builtin_strcat(p, q);
++	if (strlcat(p, q, p_size) >= p_size)
++		fortify_panic(__func__);
++	return p;
++}
++
++__FORTIFY_INLINE __kernel_size_t strlen(const char *p)
++{
++	__kernel_size_t ret;
++	size_t p_size = __builtin_object_size(p, 0);
++	if (p_size == (size_t)-1)
++		return __builtin_strlen(p);
++	ret = strnlen(p, p_size);
++	if (p_size <= ret)
++		fortify_panic(__func__);
++	return ret;
++}
++
++extern __kernel_size_t __real_strnlen(const char *, __kernel_size_t) __RENAME(strnlen);
++__FORTIFY_INLINE __kernel_size_t strnlen(const char *p, __kernel_size_t maxlen)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
++	if (p_size <= ret)
++		fortify_panic(__func__);
++	return ret;
++}
++
++/* defined after fortified strlen to reuse it */
++extern size_t __real_strlcpy(char *, const char *, size_t) __RENAME(strlcpy);
++__FORTIFY_INLINE size_t strlcpy(char *p, const char *q, size_t size)
++{
++	size_t ret;
++	size_t p_size = __builtin_object_size(p, 0);
++	size_t q_size = __builtin_object_size(q, 0);
++	if (p_size == (size_t)-1 && q_size == (size_t)-1)
++		return __real_strlcpy(p, q, size);
++	ret = strlen(q);
++	if (size) {
++		size_t len = (ret >= size) ? size - 1 : ret;
++		if (__builtin_constant_p(len) && len >= p_size)
++			__write_overflow();
++		if (len >= p_size)
++			fortify_panic(__func__);
++		__builtin_memcpy(p, q, len);
++		p[len] = '\0';
++	}
++	return ret;
++}
++
++/* defined after fortified strlen and strnlen to reuse them */
++__FORTIFY_INLINE char *strncat(char *p, const char *q, __kernel_size_t count)
++{
++	size_t p_len, copy_len;
++	size_t p_size = __builtin_object_size(p, 0);
++	size_t q_size = __builtin_object_size(q, 0);
++	if (p_size == (size_t)-1 && q_size == (size_t)-1)
++		return __builtin_strncat(p, q, count);
++	p_len = strlen(p);
++	copy_len = strnlen(q, count);
++	if (p_size < p_len + copy_len + 1)
++		fortify_panic(__func__);
++	__builtin_memcpy(p + p_len, q, copy_len);
++	p[p_len + copy_len] = '\0';
++	return p;
++}
++
++__FORTIFY_INLINE void *memset(void *p, int c, __kernel_size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	if (__builtin_constant_p(size) && p_size < size)
++		__write_overflow();
++	if (p_size < size)
++		fortify_panic(__func__);
++	return __builtin_memset(p, c, size);
++}
++
++__FORTIFY_INLINE void *memcpy(void *p, const void *q, __kernel_size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	size_t q_size = __builtin_object_size(q, 0);
++	if (__builtin_constant_p(size)) {
++		if (p_size < size)
++			__write_overflow();
++		if (q_size < size)
++			__read_overflow2();
++	}
++	if (p_size < size || q_size < size)
++		fortify_panic(__func__);
++	return __builtin_memcpy(p, q, size);
++}
++
++__FORTIFY_INLINE void *memmove(void *p, const void *q, __kernel_size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	size_t q_size = __builtin_object_size(q, 0);
++	if (__builtin_constant_p(size)) {
++		if (p_size < size)
++			__write_overflow();
++		if (q_size < size)
++			__read_overflow2();
++	}
++	if (p_size < size || q_size < size)
++		fortify_panic(__func__);
++	return __builtin_memmove(p, q, size);
++}
++
++extern void *__real_memscan(void *, int, __kernel_size_t) __RENAME(memscan);
++__FORTIFY_INLINE void *memscan(void *p, int c, __kernel_size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	if (__builtin_constant_p(size) && p_size < size)
++		__read_overflow();
++	if (p_size < size)
++		fortify_panic(__func__);
++	return __real_memscan(p, c, size);
++}
++
++__FORTIFY_INLINE int memcmp(const void *p, const void *q, __kernel_size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	size_t q_size = __builtin_object_size(q, 0);
++	if (__builtin_constant_p(size)) {
++		if (p_size < size)
++			__read_overflow();
++		if (q_size < size)
++			__read_overflow2();
++	}
++	if (p_size < size || q_size < size)
++		fortify_panic(__func__);
++	return __builtin_memcmp(p, q, size);
++}
++
++__FORTIFY_INLINE void *memchr(const void *p, int c, __kernel_size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	if (__builtin_constant_p(size) && p_size < size)
++		__read_overflow();
++	if (p_size < size)
++		fortify_panic(__func__);
++	return __builtin_memchr(p, c, size);
++}
++
++void *__real_memchr_inv(const void *s, int c, size_t n) __RENAME(memchr_inv);
++__FORTIFY_INLINE void *memchr_inv(const void *p, int c, size_t size)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	if (__builtin_constant_p(size) && p_size < size)
++		__read_overflow();
++	if (p_size < size)
++		fortify_panic(__func__);
++	return __real_memchr_inv(p, c, size);
++}
++
++extern void *__real_kmemdup(const void *src, size_t len, gfp_t gfp) __RENAME(kmemdup);
++__FORTIFY_INLINE void *kmemdup(const void *p, size_t size, gfp_t gfp)
++{
++	size_t p_size = __builtin_object_size(p, 0);
++	if (__builtin_constant_p(size) && p_size < size)
++		__read_overflow();
++	if (p_size < size)
++		fortify_panic(__func__);
++	return __real_kmemdup(p, size, gfp);
++}
++#endif
++
+ #endif /* _LINUX_STRING_H_ */
+diff -puN lib/string.c~add-the-option-of-fortified-stringh-functions lib/string.c
+--- a/lib/string.c~add-the-option-of-fortified-stringh-functions
++++ a/lib/string.c
+@@ -978,3 +978,9 @@ char *strreplace(char *s, char old, char
+ 	return s;
+ }
+ EXPORT_SYMBOL(strreplace);
++
++void fortify_panic(const char *name)
++{
++	panic("detected buffer overflow in %s", name);
++}
++EXPORT_SYMBOL(fortify_panic);
+diff -puN security/Kconfig~add-the-option-of-fortified-stringh-functions security/Kconfig
+--- a/security/Kconfig~add-the-option-of-fortified-stringh-functions
++++ a/security/Kconfig
+@@ -154,6 +154,12 @@ config HARDENED_USERCOPY_PAGESPAN
+ 	  been removed. This config is intended to be used only while
+ 	  trying to find such users.
+ 
++config FORTIFY_SOURCE
++	bool "Harden common functions against buffer overflows"
++	help
++	  Detect overflows of buffers in common functions where the compiler
++	  can determine the buffer size.
++
+ config STATIC_USERMODEHELPER
+ 	bool "Force all usermode helper calls through a single binary"
+ 	help
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from danielmicay@gmail.com are
 
-ocfs2-fix-a-static-checker-warning.patch
-ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
-ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
-ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
+mark-protection_map-as-__ro_after_init.patch
+add-the-option-of-fortified-stringh-functions.patch
 
