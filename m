@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- sysctl-check-name-array-length-in-deprecated_sysctl_warning.patch added to
- -mm tree
-Date: Wed, 24 May 2017 14:49:52 -0700
-Message-ID: <59260000.FZe9VAN427rx+rv9%akpm@linux-foundation.org>
+Subject: + arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch
+ added to -mm tree
+Date: Wed, 24 May 2017 14:58:40 -0700
+Message-ID: <59260210.Gp0HYHxg8L+He1hH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46038 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46558 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1033549AbdEXVtx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 17:49:53 -0400
+        with ESMTP id S1036120AbdEXV6l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 17:58:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjurczyk@google.com, davem@davemloft.net, ebiederm@xmission.com, keescook@chromium.org, penguin-kernel@I-love.SAKURA.ne.jp, tedheadster@gmail.com, mm-commits@vger.kernel.org
+To: steve.capper@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, dwoods@mellanox.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sysctl_binary.c: check name array length in deprecated_sysctl_warning()
+     Subject: arm64: hugetlb: remove spurious calls to huge_ptep_offset()
 has been added to the -mm tree.  Its filename is
-     sysctl-check-name-array-length-in-deprecated_sysctl_warning.patch
+     arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-check-name-array-length-in-deprecated_sysctl_warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-check-name-array-length-in-deprecated_sysctl_warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +39,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mateusz Jurczyk <mjurczyk@google.com>
-Subject: kernel/sysctl_binary.c: check name array length in deprecated_sysctl_warning()
+From: Steve Capper <steve.capper@arm.com>
+Subject: arm64: hugetlb: remove spurious calls to huge_ptep_offset()
 
-Prevent use of uninitialized memory (originating from the stack frame of
-do_sysctl()) by verifying that the name array is filled with sufficient
-input data before comparing its specific entries with integer constants.
+We don't need to call huge_ptep_offset as our accessors are already
+supplied with the pte_t *.  This patch removes those spurious calls.
 
-Through timing measurement or analyzing the kernel debug logs, a user-mode
-program could potentially infer the results of comparisons against the
-uninitialized memory, and acquire some (very limited) information about
-the state of the kernel stack.  The change also eliminates possible future
-warnings by tools such as KMSAN and other code checkers /
-instrumentations.
-
-Link: http://lkml.kernel.org/r/20170524122139.21333-1-mjurczyk@google.com
-Signed-off-by: Mateusz Jurczyk <mjurczyk@google.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Matthew Whitehead <tedheadster@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+[punit.agrawal@arm.com: resolve rebase conflicts due to patch re-ordering]
+Link: http://lkml.kernel.org/r/20170524115409.31309-3-punit.agrawal@arm.com
+Signed-off-by: Steve Capper <steve.capper@arm.com>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: David Woods <dwoods@mellanox.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_binary.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/mm/hugetlbpage.c |   37 ++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
-diff -puN kernel/sysctl_binary.c~sysctl-check-name-array-length-in-deprecated_sysctl_warning kernel/sysctl_binary.c
---- a/kernel/sysctl_binary.c~sysctl-check-name-array-length-in-deprecated_sysctl_warning
-+++ a/kernel/sysctl_binary.c
-@@ -1346,7 +1346,7 @@ static void deprecated_sysctl_warning(co
- 	 * CTL_KERN/KERN_VERSION is used by older glibc and cannot
- 	 * ever go away.
- 	 */
--	if (name[0] == CTL_KERN && name[1] == KERN_VERSION)
-+	if (nlen >= 2 && name[0] == CTL_KERN && name[1] == KERN_VERSION)
- 		return;
+diff -puN arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset arch/arm64/mm/hugetlbpage.c
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -192,21 +192,19 @@ pte_t huge_ptep_get_and_clear(struct mm_
+ 	if (pte_cont(*ptep)) {
+ 		int ncontig, i;
+ 		size_t pgsize;
+-		pte_t *cpte;
+ 		bool is_dirty = false;
  
- 	if (printk_ratelimit()) {
+-		cpte = huge_pte_offset(mm, addr);
+-		ncontig = find_num_contig(mm, addr, cpte, &pgsize);
++		ncontig = find_num_contig(mm, addr, ptep, &pgsize);
+ 		/* save the 1st pte to return */
+-		pte = ptep_get_and_clear(mm, addr, cpte);
++		pte = ptep_get_and_clear(mm, addr, ptep);
+ 		for (i = 1, addr += pgsize; i < ncontig; ++i, addr += pgsize) {
+ 			/*
+ 			 * If HW_AFDBM is enabled, then the HW could
+ 			 * turn on the dirty bit for any of the page
+ 			 * in the set, so check them all.
+ 			 */
+-			++cpte;
+-			if (pte_dirty(ptep_get_and_clear(mm, addr, cpte)))
++			++ptep;
++			if (pte_dirty(ptep_get_and_clear(mm, addr, ptep)))
+ 				is_dirty = true;
+ 		}
+ 		if (is_dirty)
+@@ -222,8 +220,6 @@ int huge_ptep_set_access_flags(struct vm
+ 			       unsigned long addr, pte_t *ptep,
+ 			       pte_t pte, int dirty)
+ {
+-	pte_t *cpte;
+-
+ 	if (pte_cont(pte)) {
+ 		int ncontig, i, changed = 0;
+ 		size_t pgsize = 0;
+@@ -233,12 +229,11 @@ int huge_ptep_set_access_flags(struct vm
+ 			__pgprot(pte_val(pfn_pte(pfn, __pgprot(0))) ^
+ 				 pte_val(pte));
+ 
+-		cpte = huge_pte_offset(vma->vm_mm, addr);
+-		pfn = pte_pfn(*cpte);
+-		ncontig = find_num_contig(vma->vm_mm, addr, cpte,
++		pfn = pte_pfn(pte);
++		ncontig = find_num_contig(vma->vm_mm, addr, ptep,
+ 					  &pgsize);
+-		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize) {
+-			changed |= ptep_set_access_flags(vma, addr, cpte,
++		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize) {
++			changed |= ptep_set_access_flags(vma, addr, ptep,
+ 							pfn_pte(pfn,
+ 								hugeprot),
+ 							dirty);
+@@ -255,13 +250,11 @@ void huge_ptep_set_wrprotect(struct mm_s
+ {
+ 	if (pte_cont(*ptep)) {
+ 		int ncontig, i;
+-		pte_t *cpte;
+ 		size_t pgsize = 0;
+ 
+-		cpte = huge_pte_offset(mm, addr);
+-		ncontig = find_num_contig(mm, addr, cpte, &pgsize);
+-		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize)
+-			ptep_set_wrprotect(mm, addr, cpte);
++		ncontig = find_num_contig(mm, addr, ptep, &pgsize);
++		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize)
++			ptep_set_wrprotect(mm, addr, ptep);
+ 	} else {
+ 		ptep_set_wrprotect(mm, addr, ptep);
+ 	}
+@@ -272,14 +265,12 @@ void huge_ptep_clear_flush(struct vm_are
+ {
+ 	if (pte_cont(*ptep)) {
+ 		int ncontig, i;
+-		pte_t *cpte;
+ 		size_t pgsize = 0;
+ 
+-		cpte = huge_pte_offset(vma->vm_mm, addr);
+-		ncontig = find_num_contig(vma->vm_mm, addr, cpte,
++		ncontig = find_num_contig(vma->vm_mm, addr, ptep,
+ 					  &pgsize);
+-		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize)
+-			ptep_clear_flush(vma, addr, cpte);
++		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize)
++			ptep_clear_flush(vma, addr, ptep);
+ 	} else {
+ 		ptep_clear_flush(vma, addr, ptep);
+ 	}
 _
 
-Patches currently in -mm which might be from mjurczyk@google.com are
+Patches currently in -mm which might be from steve.capper@arm.com are
 
-sysctl-check-name-array-length-in-deprecated_sysctl_warning.patch
+arm64-hugetlb-refactor-find_num_contig.patch
+arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch
 
