@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-move-some-definitions-to-header-file.patch added to -mm
- tree
-Date: Wed, 24 May 2017 15:46:57 -0700
-Message-ID: <59260d61.SQHBxomATRxXCx1A%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-some-small-problems.patch added to -mm tree
+Date: Wed, 24 May 2017 15:46:59 -0700
+Message-ID: <59260d63.DIdLmE4NUgpd1qBR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48838 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48854 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031593AbdEXWq6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 18:46:58 -0400
+        with ESMTP id S1161122AbdEXWrA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 18:47:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: move some definitions to header file
+     Subject: ocfs2: fix some small problems
 has been added to the -mm tree.  Its filename is
-     ocfs2-move-some-definitions-to-header-file.patch
+     ocfs2-fix-some-small-problems.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-move-some-definitions-to-header-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-some-small-problems.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-move-some-definitions-to-header-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-some-small-problems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +39,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gang He <ghe@suse.com>
-Subject: ocfs2: move some definitions to header file
+Subject: ocfs2: fix some small problems
 
-Patch series "ocfs2: use kobject for online file check", v3.
+First, move setting fe_done = 1 in spin lock, avoid bring any potential
+race condition.
 
-Use embedded kobject mechanism for online file check feature, this will
-avoid to use a global list to save/search per-device online file check
-related data.  The changed code is based on Goldwyn Rodrigues's patches
-and ext4 fs code, there is not any new features added, except some very
-small fixes during this code refactoring.  Second, the code change does
-not affect the underlying file check code.  Thank Goldwyn very much.
+Second, tune mlog message level from ERROR to NOTICE, since the message
+should not belong to error message.
 
-Compare with second version, add more comments in the patch descriptions,
-to make sure each modification is mentioned.  Compare with first version,
-split the code change into four patches, make sure each patch will not
-bring ocfs2 kernel modules compiling errors.
+Third, tune errno to -EAGAIN when file check queue is full, this errno is
+more appropriate in the case.
 
-
-This patch (of 3):
-
-Move some definitions to header file, which will be referenced by other
-source files when kobject mechanism is introduced.
-
-Link: http://lkml.kernel.org/r/1495611866-27360-2-git-send-email-ghe@suse.com
+Link: http://lkml.kernel.org/r/1495611866-27360-3-git-send-email-ghe@suse.com
 Signed-off-by: Gang He <ghe@suse.com>
 Cc: Mark Fasheh <mfasheh@versity.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -71,84 +59,45 @@ Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/filecheck.c |   27 ---------------------------
- fs/ocfs2/filecheck.h |   27 +++++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 27 deletions(-)
+ fs/ocfs2/filecheck.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/filecheck.c~ocfs2-move-some-definitions-to-header-file fs/ocfs2/filecheck.c
---- a/fs/ocfs2/filecheck.c~ocfs2-move-some-definitions-to-header-file
+diff -puN fs/ocfs2/filecheck.c~ocfs2-fix-some-small-problems fs/ocfs2/filecheck.c
+--- a/fs/ocfs2/filecheck.c~ocfs2-fix-some-small-problems
 +++ a/fs/ocfs2/filecheck.c
-@@ -56,33 +56,6 @@ static const char * const ocfs2_filechec
- static DEFINE_SPINLOCK(ocfs2_filecheck_sysfs_lock);
- static LIST_HEAD(ocfs2_filecheck_sysfs_list);
+@@ -288,7 +288,7 @@ ocfs2_filecheck_adjust_max(struct ocfs2_
  
--struct ocfs2_filecheck {
--	struct list_head fc_head;	/* File check entry list head */
--	spinlock_t fc_lock;
--	unsigned int fc_max;	/* Maximum number of entry in list */
--	unsigned int fc_size;	/* Current entry count in list */
--	unsigned int fc_done;	/* Finished entry count in list */
--};
--
--struct ocfs2_filecheck_sysfs_entry {	/* sysfs entry per mounting */
--	struct list_head fs_list;
--	atomic_t fs_count;
--	struct super_block *fs_sb;
--	struct kset *fs_devicekset;
--	struct kset *fs_fcheckkset;
--	struct ocfs2_filecheck *fs_fcheck;
--};
--
--#define OCFS2_FILECHECK_MAXSIZE		100
--#define OCFS2_FILECHECK_MINSIZE		10
--
--/* File check operation type */
--enum {
--	OCFS2_FILECHECK_TYPE_CHK = 0,	/* Check a file(inode) */
--	OCFS2_FILECHECK_TYPE_FIX,	/* Fix a file(inode) */
--	OCFS2_FILECHECK_TYPE_SET = 100	/* Set entry list maximum size */
--};
--
- struct ocfs2_filecheck_entry {
- 	struct list_head fe_list;
- 	unsigned long fe_ino;
-diff -puN fs/ocfs2/filecheck.h~ocfs2-move-some-definitions-to-header-file fs/ocfs2/filecheck.h
---- a/fs/ocfs2/filecheck.h~ocfs2-move-some-definitions-to-header-file
-+++ a/fs/ocfs2/filecheck.h
-@@ -43,6 +43,33 @@ enum {
- #define OCFS2_FILECHECK_ERR_START	OCFS2_FILECHECK_ERR_FAILED
- #define OCFS2_FILECHECK_ERR_END		OCFS2_FILECHECK_ERR_UNSUPPORTED
- 
-+struct ocfs2_filecheck {
-+	struct list_head fc_head;	/* File check entry list head */
-+	spinlock_t fc_lock;
-+	unsigned int fc_max;	/* Maximum number of entry in list */
-+	unsigned int fc_size;	/* Current entry count in list */
-+	unsigned int fc_done;	/* Finished entry count in list */
-+};
-+
-+struct ocfs2_filecheck_sysfs_entry {	/* sysfs entry per mounting */
-+	struct list_head fs_list;
-+	atomic_t fs_count;
-+	struct super_block *fs_sb;
-+	struct kset *fs_devicekset;
-+	struct kset *fs_fcheckkset;
-+	struct ocfs2_filecheck *fs_fcheck;
-+};
-+
-+#define OCFS2_FILECHECK_MAXSIZE		100
-+#define OCFS2_FILECHECK_MINSIZE		10
-+
-+/* File check operation type */
-+enum {
-+	OCFS2_FILECHECK_TYPE_CHK = 0,	/* Check a file(inode) */
-+	OCFS2_FILECHECK_TYPE_FIX,	/* Fix a file(inode) */
-+	OCFS2_FILECHECK_TYPE_SET = 100	/* Set entry list maximum size */
-+};
-+
- int ocfs2_filecheck_create_sysfs(struct super_block *sb);
- int ocfs2_filecheck_remove_sysfs(struct super_block *sb);
- 
+ 	spin_lock(&ent->fs_fcheck->fc_lock);
+ 	if (len < (ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done)) {
+-		mlog(ML_ERROR,
++		mlog(ML_NOTICE,
+ 		"Cannot set online file check maximum entry number "
+ 		"to %u due to too many pending entries(%u)\n",
+ 		len, ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done);
+@@ -462,8 +462,8 @@ static void
+ ocfs2_filecheck_done_entry(struct ocfs2_filecheck_sysfs_entry *ent,
+ 			   struct ocfs2_filecheck_entry *entry)
+ {
+-	entry->fe_done = 1;
+ 	spin_lock(&ent->fs_fcheck->fc_lock);
++	entry->fe_done = 1;
+ 	ent->fs_fcheck->fc_done++;
+ 	spin_unlock(&ent->fs_fcheck->fc_lock);
+ }
+@@ -545,11 +545,11 @@ static ssize_t ocfs2_filecheck_store(str
+ 	spin_lock(&ent->fs_fcheck->fc_lock);
+ 	if ((ent->fs_fcheck->fc_size >= ent->fs_fcheck->fc_max) &&
+ 	    (ent->fs_fcheck->fc_done == 0)) {
+-		mlog(ML_ERROR,
++		mlog(ML_NOTICE,
+ 		"Cannot do more file check "
+ 		"since file check queue(%u) is full now\n",
+ 		ent->fs_fcheck->fc_max);
+-		ret = -EBUSY;
++		ret = -EAGAIN;
+ 		kfree(entry);
+ 	} else {
+ 		if ((ent->fs_fcheck->fc_size >= ent->fs_fcheck->fc_max) &&
 _
 
 Patches currently in -mm which might be from ghe@suse.com are
