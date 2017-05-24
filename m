@@ -1,140 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- kernelh-handle-pointers-to-arrays-better-in-container_of.patch removed from -mm tree
-Date: Wed, 24 May 2017 11:59:29 -0700
-Message-ID: <5925d811.q73cZXM5x2pBojvw%akpm@linux-foundation.org>
+Subject: +
+ mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
+ added to -mm tree
+Date: Wed, 24 May 2017 12:56:16 -0700
+Message-ID: <5925e560.vt2upPCob+wKbAsq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36158 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754524AbdEXS7a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 14:59:30 -0400
+        with ESMTP id S968123AbdEXT4R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 15:56:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, bp@suse.de, glider@google.com, hidehiro.kawai.ez@hitachi.com, johannes.berg@intel.com, linux@rasmusvillemoes.dk, mina86@mina86.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: punit.agrawal@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, liwanp@linux.vnet.ibm.com, manoj.iyer@canonical.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: handle pointers to arrays better in container_of()
-has been removed from the -mm tree.  Its filename was
-     kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+     Subject: mm/migrate.c: fix refcount handling when !hugepage_migration_supported()
+has been added to the -mm tree.  Its filename is
+     mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Abbott <abbotti@mev.co.uk>
-Subject: kernel.h: handle pointers to arrays better in container_of()
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: mm/migrate.c: fix refcount handling when !hugepage_migration_supported()
 
-If the first parameter of container_of() is a pointer to a
-non-const-qualified array type (and the third parameter names a
-non-const-qualified array member), the local variable __mptr will be
-defined with a const-qualified array type.  In ISO C, these types are
-incompatible.  They work as expected in GNU C, but some versions will
-issue warnings.  For example, GCC 4.9 produces the warning "initialization
-from incompatible pointer type".
+On failing to migrate a page, soft_offline_huge_page() performs the
+necessary update to the hugepage ref-count.  When
+!hugepage_migration_supported() , unmap_and_move_hugepage() also
+decrements the page ref-count for the hugepage.  The combined behaviour
+leaves the ref-count in an inconsistent state.
 
-Here is an example of where the problem occurs:
+This leads to soft lockups when running the overcommitted hugepage test
+from mce-tests suite.
 
--------------------------------------------------------
- #include <linux/kernel.h>
- #include <linux/module.h>
+Soft offlining pfn 0x83ed600 at process virtual address 0x400000000000
+soft offline: 0x83ed600: migration failed 1, type
+1fffc00000008008 (uptodate|head)
+INFO: rcu_preempt detected stalls on CPUs/tasks:
+ Tasks blocked on level-0 rcu_node (CPUs 0-7): P2715
+  (detected by 7, t=5254 jiffies, g=963, c=962, q=321)
+  thugetlb_overco R  running task        0  2715   2685 0x00000008
+  Call trace:
+  [<ffff000008089f90>] dump_backtrace+0x0/0x268
+  [<ffff00000808a2d4>] show_stack+0x24/0x30
+  [<ffff000008100d34>] sched_show_task+0x134/0x180
+  [<ffff0000081c90fc>] rcu_print_detail_task_stall_rnp+0x54/0x7c
+  [<ffff00000813cfd4>] rcu_check_callbacks+0xa74/0xb08
+  [<ffff000008143a3c>] update_process_times+0x34/0x60
+  [<ffff0000081550e8>] tick_sched_handle.isra.7+0x38/0x70
+  [<ffff00000815516c>] tick_sched_timer+0x4c/0x98
+  [<ffff0000081442e0>] __hrtimer_run_queues+0xc0/0x300
+  [<ffff000008144fa4>] hrtimer_interrupt+0xac/0x228
+  [<ffff0000089a56d4>] arch_timer_handler_phys+0x3c/0x50
+  [<ffff00000812f1bc>] handle_percpu_devid_irq+0x8c/0x290
+  [<ffff0000081297fc>] generic_handle_irq+0x34/0x50
+  [<ffff000008129f00>] __handle_domain_irq+0x68/0xc0
+  [<ffff0000080816b4>] gic_handle_irq+0x5c/0xb0
 
-MODULE_LICENSE("GPL");
+Fix this by dropping the ref-count decrement in unmap_and_move_hugepage()
+when !hugepage_migration_supported().
 
-struct st {
-	int a;
-	char b[16];
-};
-
-static int __init example_init(void) {
-	struct st t = { .a = 101, .b = "hello" };
-	char (*p)[16] = &t.b;
-	struct st *x = container_of(p, struct st, b);
-	printk(KERN_DEBUG "%p %p\n", (void *)&t, (void *)x);
-	return 0;
-}
-
-static void __exit example_exit(void) {
-}
-
-module_init(example_init);
-module_exit(example_exit);
--------------------------------------------------------
-
-Building the module with gcc-4.9 results in these warnings (where '{m}'
-is the module source and '{k}' is the kernel source):
-
--------------------------------------------------------
-In file included from {m}/example.c:1:0:
-{m}/example.c: In function `example_init':
-{k}/include/linux/kernel.h:854:48: warning: initialization from
-incompatible pointer type
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
-{k}/include/linux/kernel.h:854:48: warning: (near initialization for
-`x')
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
--------------------------------------------------------
-
-Replace the type checking performed by the macro to avoid these
-warnings.  Make sure `*(ptr)` either has type compatible with the
-member, or has type compatible with `void`, ignoring qualifiers.  Raise
-compiler errors if this is not true.  This is stronger than the previous
-behaviour, which only resulted in compiler warnings for a type mismatch.
-
-Link: http://lkml.kernel.org/r/20170523160112.3446-3-abbotti@mev.co.uk
-Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Johannes Berg <johannes.berg@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/20170524154728.2492-1-punit.agrawal@arm.com
+Fixes: 32665f2bbfed ("mm/migrate: correct failure handling if !hugepage_migration_support()")
+Reported-by: Manoj Iyer <manoj.iyer@canonical.com>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/migrate.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of
-+++ a/include/linux/kernel.h
-@@ -11,6 +11,7 @@
- #include <linux/log2.h>
- #include <linux/typecheck.h>
- #include <linux/printk.h>
-+#include <linux/bug.h>
- #include <asm/byteorder.h>
- #include <uapi/linux/kernel.h>
+diff -puN mm/migrate.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported
++++ a/mm/migrate.c
+@@ -1201,10 +1201,8 @@ static int unmap_and_move_huge_page(new_
+ 	 * tables or check whether the hugepage is pmd-based or not before
+ 	 * kicking migration.
+ 	 */
+-	if (!hugepage_migration_supported(page_hstate(hpage))) {
+-		putback_active_hugepage(hpage);
++	if (!hugepage_migration_supported(page_hstate(hpage)))
+ 		return -ENOSYS;
+-	}
  
-@@ -850,9 +851,11 @@ static inline void ftrace_dump(enum ftra
-  * @member:	the name of the member within the struct.
-  *
-  */
--#define container_of(ptr, type, member) ({			\
--	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
--	(type *)( (char *)__mptr - offsetof(type,member) );})
-+#define container_of(ptr, type, member) ({				\
-+	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
-+			 !__same_type(*(ptr), void),			\
-+			 "pointer type mismatch in container_of()");	\
-+	((type *)((char *)(ptr) - offsetof(type, member))); })
- 
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+ 	new_hpage = get_new_page(hpage, private, &result);
+ 	if (!new_hpage)
 _
 
-Patches currently in -mm which might be from abbotti@mev.co.uk are
+Patches currently in -mm which might be from punit.agrawal@arm.com are
 
+mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
 
