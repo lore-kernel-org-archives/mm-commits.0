@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch added
- to -mm tree
-Date: Wed, 24 May 2017 14:22:22 -0700
-Message-ID: <5925f98e.neYE+93eaC0oZvlx%akpm@linux-foundation.org>
+Subject: + forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
+ added to -mm tree
+Date: Wed, 24 May 2017 14:22:18 -0700
+Message-ID: <5925f98a.tmvMwYqAIAP8vkRg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44858 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1033614AbdEXVWX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 17:22:23 -0400
+        with ESMTP id S1033614AbdEXVWT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 17:22:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: riel@redhat.com, catalin.marinas@arm.com, danielmicay@gmail.com, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, tytso@mit.edu, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: ascii armor the arm64 boot init stack canary
+     Subject: fork,random: use get_random_canary() to set tsk->stack_canary
 has been added to the -mm tree.  Its filename is
-     arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
+     forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: arm64: ascii armor the arm64 boot init stack canary
+Subject: fork,random: use get_random_canary() to set tsk->stack_canary
 
 Use the ascii-armor canary to prevent unterminated C string overflows from
 being able to successfully overwrite the canary, even if they somehow
@@ -48,7 +48,7 @@ obtain the canary value.
 
 Inspired by execshield ascii-armor and Daniel Micay's linux-hardened tree.
 
-Link: http://lkml.kernel.org/r/20170524155751.424-5-riel@redhat.com
+Link: http://lkml.kernel.org/r/20170524155751.424-3-riel@redhat.com
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Daniel Micay <danielmicay@gmail.com>
@@ -61,20 +61,21 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/stackprotector.h |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm64/include/asm/stackprotector.h~arm64-ascii-armor-the-arm64-boot-init-stack-canary arch/arm64/include/asm/stackprotector.h
---- a/arch/arm64/include/asm/stackprotector.h~arm64-ascii-armor-the-arm64-boot-init-stack-canary
-+++ a/arch/arm64/include/asm/stackprotector.h
-@@ -30,6 +30,7 @@ static __always_inline void boot_init_st
- 	/* Try to get a semi random initial value. */
- 	get_random_bytes(&canary, sizeof(canary));
- 	canary ^= LINUX_VERSION_CODE;
-+	canary &= CANARY_MASK;
+diff -puN kernel/fork.c~forkrandom-use-get_random_canary-to-set-tsk-stack_canary kernel/fork.c
+--- a/kernel/fork.c~forkrandom-use-get_random_canary-to-set-tsk-stack_canary
++++ a/kernel/fork.c
+@@ -560,7 +560,7 @@ static struct task_struct *dup_task_stru
+ 	set_task_stack_end_magic(tsk);
  
- 	current->stack_canary = canary;
- 	__stack_chk_guard = current->stack_canary;
+ #ifdef CONFIG_CC_STACKPROTECTOR
+-	tsk->stack_canary = get_random_long();
++	tsk->stack_canary = get_random_canary();
+ #endif
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
