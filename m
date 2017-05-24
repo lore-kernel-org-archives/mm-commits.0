@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
- added to -mm tree
-Date: Wed, 24 May 2017 15:04:10 -0700
-Message-ID: <5926035a.AIvl3oowJeBYW85V%akpm@linux-foundation.org>
+Subject: +
+ mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 24 May 2017 15:04:48 -0700
+Message-ID: <59260380.ftqNb5h+L2Os7uHQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46924 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1164297AbdEXWEM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 18:04:12 -0400
+        with ESMTP id S1033616AbdEXWEt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 May 2017 18:04:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xieyisheng1@huawei.com, hannes@cmpxchg.org, hughd@google.com, joern@logfs.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, stable@vger.kernel.org, vbabka@suse.cz, walken@google.com, wangkefeng.wang@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, xieyisheng1@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock.c: fix mlock count can not decrease in race condition
+     Subject: mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
+     mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,112 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mm/mlock.c: fix mlock count can not decrease in race condition
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes
 
-Kefeng reported that when running the follow test the mlock count in
-meminfo cannot be decreased:
-
- [1] testcase
- linux:~ # cat test_mlockal
- grep Mlocked /proc/meminfo
-  for j in `seq 0 10`
-  do
- 	for i in `seq 4 15`
- 	do
- 		./p_mlockall >> log &
- 	done
- 	sleep 0.2
- done
- # wait some time to let mlock counter decrease and 5s may not enough
- sleep 5
- grep Mlocked /proc/meminfo
-
- linux:~ # cat p_mlockall.c
- #include <sys/mman.h>
- #include <stdlib.h>
- #include <stdio.h>
-
- #define SPACE_LEN	4096
-
- int main(int argc, char ** argv)
- {
- 	int ret;
- 	void *adr = malloc(SPACE_LEN);
- 	if (!adr)
- 		return -1;
-
- 	ret = mlockall(MCL_CURRENT | MCL_FUTURE);
- 	printf("mlcokall ret = %d\n", ret);
-
- 	ret = munlockall();
- 	printf("munlcokall ret = %d\n", ret);
-
- 	free(adr);
- 	return 0;
- }
-
-In __munlock_pagevec() we ClearPageMlock but isolation_failed in race
-condition, and we do not count these page into delta_munlocked, which
-causes mlock counter inaccuracy because we cleared the PageMlock and
-cannot count down the number in the future.
-
-Fix it by counting the number of pages whose PageMlock flag is cleared.
-
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
+#53: 
 Fixes 1ebb7cc6a583 (" mm: munlock: batch NR_MLOCK zone state updates")
-Link: http://lkml.kernel.org/r/1495620504-7007-1-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Reported-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@vger.kernel.org>
+
+ERROR: space prohibited before that '--' (ctx:WxO)
+#89: FILE: mm/mlock.c:299:
++			munlocked --;
+ 			          ^
+
+total: 2 errors, 0 warnings, 25 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Yisheng Xie <xieyisheng1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/mlock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition mm/mlock.c
---- a/mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition
+diff -puN mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes mm/mlock.c
+--- a/mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes
 +++ a/mm/mlock.c
-@@ -284,7 +284,7 @@ static void __munlock_pagevec(struct pag
- {
- 	int i;
- 	int nr = pagevec_count(pvec);
--	int delta_munlocked;
-+	int munlocked = 0;
- 	struct pagevec pvec_putback;
- 	int pgrescued = 0;
- 
-@@ -296,6 +296,7 @@ static void __munlock_pagevec(struct pag
+@@ -296,7 +296,7 @@ static void __munlock_pagevec(struct pag
  		struct page *page = pvec->pages[i];
  
  		if (TestClearPageMlocked(page)) {
-+			munlocked --;
+-			munlocked --;
++			munlocked--;
  			/*
  			 * We already have pin from follow_page_mask()
  			 * so we can spare the get_page() here.
-@@ -315,8 +316,8 @@ static void __munlock_pagevec(struct pag
- 		pagevec_add(&pvec_putback, pvec->pages[i]);
- 		pvec->pages[i] = NULL;
- 	}
--	delta_munlocked = -nr + pagevec_count(&pvec_putback);
--	__mod_zone_page_state(zone, NR_MLOCK, delta_munlocked);
-+	if (munlocked)
-+		__mod_zone_page_state(zone, NR_MLOCK, munlocked);
- 	spin_unlock_irq(zone_lru_lock(zone));
- 
- 	/* Now we can release pins of pages that we are not munlocking */
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
+i-need-old-gcc.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+mlock-fix-mlock-count-can-not-decrease-in-race-condition-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
