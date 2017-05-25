@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare.patch added to -mm tree
-Date: Thu, 25 May 2017 16:29:37 -0700
-Message-ID: <592768e1.q9RTXtif6CU689Ux%akpm@linux-foundation.org>
+Subject: + mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+ added to -mm tree
+Date: Thu, 25 May 2017 16:40:07 -0700
+Message-ID: <59276b57.l4JbTY3d7F/B/RL1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48458 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965050AbdEYX3i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:29:38 -0400
+        with ESMTP id S933514AbdEYXkI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:40:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elfring@users.sourceforge.net, ddstreet@ieee.org, sjenning@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, guro@fb.com, guroan@gmail.com, khlebnikov@yandex-team.ru, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap.c: delete an error message for a failed memory allocation in zswap_dstmem_prepare()
+     Subject: mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix
 has been added to the -mm tree.  Its filename is
-     zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare.patch
+     mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: mm/zswap.c: delete an error message for a failed memory allocation in zswap_dstmem_prepare()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix
 
-Omit an extra message for a memory allocation failure in this function.
+"mm: per-cgroup memory reclaim stats" renamed mem_cgroup_count_vm_event()
 
-This issue was detected by using the Coccinelle software.
+Cc: David Rientjes <rientjes@google.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Guschin <guroan@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Roman Gushchin <guro@fb.com>
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
-Link: http://lkml.kernel.org/r/bae25b04-2ce2-7137-a71c-50d7b4f06431@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zswap.c~zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare mm/zswap.c
---- a/mm/zswap.c~zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare
-+++ a/mm/zswap.c
-@@ -371,10 +371,9 @@ static int zswap_dstmem_prepare(unsigned
- 	u8 *dst;
+diff -puN mm/oom_kill.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix
++++ a/mm/oom_kill.c
+@@ -879,7 +879,7 @@ static void oom_kill_process(struct oom_
  
- 	dst = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
--	if (!dst) {
--		pr_err("can't allocate compressor buffer\n");
-+	if (!dst)
- 		return -ENOMEM;
--	}
-+
- 	per_cpu(zswap_dstmem, cpu) = dst;
- 	return 0;
- }
+ 	/* Raise event before sending signal: reaper must see this */
+ 	count_vm_event(OOM_KILL);
+-	mem_cgroup_count_vm_event(mm, OOM_KILL);
++	count_memcg_event_mm(mm, OOM_KILL);
+ 
+ 	/*
+ 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sh-intc-delete-an-error-message-for-a-failed-memory-allocation-in-add_virq_to_pirq.patch
-zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create.patch
-zswap-improve-a-size-determination-in-zswap_frontswap_init.patch
-zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare.patch
+i-need-old-gcc.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
