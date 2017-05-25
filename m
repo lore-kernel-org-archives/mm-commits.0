@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-sem-do-not-use-ipc_rcu_free.patch added to -mm tree
-Date: Thu, 25 May 2017 15:11:00 -0700
-Message-ID: <59275674.ShDwWi4PtaRj2DYE%akpm@linux-foundation.org>
+Subject: + ipc-msg-do-not-use-ipc_rcu_free.patch added to -mm tree
+Date: Thu, 25 May 2017 15:11:04 -0700
+Message-ID: <59275678.lkpXHEzzUwrLSX3f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43170 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S943086AbdEYWLB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:01 -0400
+        with ESMTP id S1163339AbdEYWLM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem: do not use ipc_rcu_free()
+     Subject: ipc/msg: do not use ipc_rcu_free()
 has been added to the -mm tree.  Its filename is
-     ipc-sem-do-not-use-ipc_rcu_free.patch
+     ipc-msg-do-not-use-ipc_rcu_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-do-not-use-ipc_rcu_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msg-do-not-use-ipc_rcu_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-do-not-use-ipc_rcu_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msg-do-not-use-ipc_rcu_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +39,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: ipc/sem: do not use ipc_rcu_free()
+Subject: ipc/msg: do not use ipc_rcu_free()
 
 Avoid using ipc_rcu_free, since it just re-finds the original structure
 pointer.  For the pre-list-init failure path, there is no RCU needed,
 since it was just allocated.  It can be directly freed.
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-6-manfred@colorfullife.com
+Link: http://lkml.kernel.org/r/20170525185107.12869-8-manfred@colorfullife.com
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    9 +++++++--
+ ipc/msg.c |    9 +++++++--
  1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN ipc/sem.c~ipc-sem-do-not-use-ipc_rcu_free ipc/sem.c
---- a/ipc/sem.c~ipc-sem-do-not-use-ipc_rcu_free
-+++ a/ipc/sem.c
-@@ -258,13 +258,18 @@ static void merge_queues(struct sem_arra
- 	}
+diff -puN ipc/msg.c~ipc-msg-do-not-use-ipc_rcu_free ipc/msg.c
+--- a/ipc/msg.c~ipc-msg-do-not-use-ipc_rcu_free
++++ a/ipc/msg.c
+@@ -95,13 +95,18 @@ static inline void msg_rmid(struct ipc_n
+ 	ipc_rmid(&msg_ids(ns), &s->q_perm);
  }
  
-+static void __sem_free(struct sem_array *sma)
++static void __msg_free(struct msg_queue *msq)
 +{
-+	kvfree(sma);
++	kvfree(msq);
 +}
 +
- static void sem_rcu_free(struct rcu_head *head)
+ static void msg_rcu_free(struct rcu_head *head)
  {
  	struct kern_ipc_perm *p = container_of(head, struct kern_ipc_perm, rcu);
- 	struct sem_array *sma = container_of(p, struct sem_array, sem_perm);
+ 	struct msg_queue *msq = container_of(p, struct msg_queue, q_perm);
  
- 	security_sem_free(sma);
+ 	security_msg_queue_free(msq);
 -	ipc_rcu_free(head);
-+	__sem_free(sma);
++	__msg_free(msq);
  }
  
- /*
-@@ -482,7 +487,7 @@ static int newary(struct ipc_namespace *
- 	sma->sem_perm.security = NULL;
- 	retval = security_sem_alloc(sma);
+ /**
+@@ -131,7 +136,7 @@ static int newque(struct ipc_namespace *
+ 	msq->q_perm.security = NULL;
+ 	retval = security_msg_queue_alloc(msq);
  	if (retval) {
--		ipc_rcu_putref(&sma->sem_perm, ipc_rcu_free);
-+		__sem_free(sma);
+-		ipc_rcu_putref(&msq->q_perm, ipc_rcu_free);
++		__msg_free(msq);
  		return retval;
  	}
  
