@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-sort-swap-entries-before-free.patch added to -mm tree
-Date: Thu, 25 May 2017 16:23:58 -0700
-Message-ID: <5927678e.fYkEqhsy6BjD6upX%akpm@linux-foundation.org>
+Subject: + mm-swap-sort-swap-entries-before-free-fix.patch added to -mm
+ tree
+Date: Thu, 25 May 2017 16:24:00 -0700
+Message-ID: <59276790.LWYWPR1pmFvFWAML%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48002 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1165994AbdEYXX7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:23:59 -0400
+        with ESMTP id S1165995AbdEYXYB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:24:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, hughd@google.com, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile.c: sort swap entries before free
+     Subject: mm-swap-sort-swap-entries-before-free-fix
 has been added to the -mm tree.  Its filename is
-     mm-swap-sort-swap-entries-before-free.patch
+     mm-swap-sort-swap-entries-before-free-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-sort-swap-entries-before-free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-sort-swap-entries-before-free-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-sort-swap-entries-before-free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-sort-swap-entries-before-free-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,91 +39,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/swapfile.c: sort swap entries before free
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-sort-swap-entries-before-free-fix
 
-To reduce the lock contention of swap_info_struct->lock when freeing swap
-entry.  The freed swap entries will be collected in a per-CPU buffer
-firstly, and be really freed later in batch.  During the batch freeing, if
-the consecutive swap entries in the per-CPU buffer belongs to same swap
-device, the swap_info_struct->lock needs to be acquired/released only
-once, so that the lock contention could be reduced greatly.  But if there
-are multiple swap devices, it is possible that the lock may be
-unnecessarily released/acquired because the swap entries belong to the
-same swap device are non-consecutive in the per-CPU buffer.
+tweak comment
 
-To solve the issue, the per-CPU buffer is sorted according to the swap
-device before freeing the swap entries.
-
-With the patch, the memory (some swapped out) free time reduced 11.6%
-(from 2.65s to 2.35s) in the vm-scalability swap-w-rand test case with 16
-processes.  The test is done on a Xeon E5 v3 system.  The swap device used
-is a RAM simulated PMEM (persistent memory) device.  To test swapping, the
-test case creates 16 processes, which allocate and write to the anonymous
-pages until the RAM and part of the swap device is used up, finally the
-memory (some swapped out) is freed before exit.
-
-Link: http://lkml.kernel.org/r/20170525005916.25249-1-ying.huang@intel.com
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Tim Chen <tim.c.chen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/swapfile.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-sort-swap-entries-before-free mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-sort-swap-entries-before-free
+diff -puN mm/swapfile.c~mm-swap-sort-swap-entries-before-free-fix mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-sort-swap-entries-before-free-fix
 +++ a/mm/swapfile.c
-@@ -37,6 +37,7 @@
- #include <linux/swapfile.h>
- #include <linux/export.h>
- #include <linux/swap_slots.h>
-+#include <linux/sort.h>
- 
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
-@@ -1198,6 +1199,13 @@ void put_swap_page(struct page *page, sw
- 		swapcache_free_cluster(entry);
- }
- 
-+static int swp_entry_cmp(const void *ent1, const void *ent2)
-+{
-+	const swp_entry_t *e1 = ent1, *e2 = ent2;
-+
-+	return (int)swp_type(*e1) - (int)swp_type(*e2);
-+}
-+
- void swapcache_free_entries(swp_entry_t *entries, int n)
- {
- 	struct swap_info_struct *p, *prev;
-@@ -1208,6 +1216,15 @@ void swapcache_free_entries(swp_entry_t
- 
- 	prev = NULL;
+@@ -1218,10 +1218,9 @@ void swapcache_free_entries(swp_entry_t
  	p = NULL;
-+
-+	/*
-+	 * Sort swap entries by swap device, so each lock is only
-+	 * taken once.  Although nr_swapfiles isn't absolute correct,
-+	 * but the overhead of sort() is so low that it isn't
-+	 * necessary to optimize further.
-+	 */
-+	if (nr_swapfiles > 1)
-+		sort(entries, n, sizeof(entries[0]), swp_entry_cmp, NULL);
- 	for (i = 0; i < n; ++i) {
- 		p = swap_info_get_cont(entries[i], prev);
- 		if (p)
+ 
+ 	/*
+-	 * Sort swap entries by swap device, so each lock is only
+-	 * taken once.  Although nr_swapfiles isn't absolute correct,
+-	 * but the overhead of sort() is so low that it isn't
+-	 * necessary to optimize further.
++	 * Sort swap entries by swap device, so each lock is only taken once.
++	 * nr_swapfiles isn't absolutely correct, but the overhead of sort() is
++	 * so low that it isn't necessary to optimize further.
+ 	 */
+ 	if (nr_swapfiles > 1)
+ 		sort(entries, n, sizeof(entries[0]), swp_entry_cmp, NULL);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-thp-swap-delay-splitting-thp-during-swap-out.patch
-mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch
-mm-thp-swap-check-whether-thp-can-be-split-firstly.patch
-mm-thp-swap-enable-thp-swap-optimization-only-if-has-compound-map.patch
-mm-swap-sort-swap-entries-before-free.patch
+i-need-old-gcc.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
