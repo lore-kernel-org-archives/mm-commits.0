@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-sort-swap-entries-before-free-fix.patch added to -mm
- tree
-Date: Thu, 25 May 2017 16:24:00 -0700
-Message-ID: <59276790.LWYWPR1pmFvFWAML%akpm@linux-foundation.org>
+Subject: + maintainers-give-proc-sysctl-some-maintainer-love.patch added
+ to -mm tree
+Date: Thu, 25 May 2017 16:25:02 -0700
+Message-ID: <592767ce.3MRMVuMDP0yuCZvE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1165995AbdEYXYB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:24:01 -0400
+        with ESMTP id S965050AbdEYXZD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:25:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: mcgrof@kernel.org, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swap-sort-swap-entries-before-free-fix
+     Subject: MAINTAINERS: give proc sysctl some maintainer love
 has been added to the -mm tree.  Its filename is
-     mm-swap-sort-swap-entries-before-free-fix.patch
+     maintainers-give-proc-sysctl-some-maintainer-love.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-sort-swap-entries-before-free-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-give-proc-sysctl-some-maintainer-love.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-sort-swap-entries-before-free-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-give-proc-sysctl-some-maintainer-love.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-sort-swap-entries-before-free-fix
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: MAINTAINERS: give proc sysctl some maintainer love
 
-tweak comment
+We poke at proc sysctl enough that really we should declare it maintained.
+We'll just be Cc'd and sending updates / ACK'ing changes through akpm's
+tree.
 
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20170524231305.8649-1-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ MAINTAINERS |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/swapfile.c~mm-swap-sort-swap-entries-before-free-fix mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-sort-swap-entries-before-free-fix
-+++ a/mm/swapfile.c
-@@ -1218,10 +1218,9 @@ void swapcache_free_entries(swp_entry_t
- 	p = NULL;
+diff -puN MAINTAINERS~maintainers-give-proc-sysctl-some-maintainer-love MAINTAINERS
+--- a/MAINTAINERS~maintainers-give-proc-sysctl-some-maintainer-love
++++ a/MAINTAINERS
+@@ -10284,6 +10284,17 @@ W:	http://wireless.kernel.org/en/users/D
+ S:	Obsolete
+ F:	drivers/net/wireless/intersil/prism54/
  
- 	/*
--	 * Sort swap entries by swap device, so each lock is only
--	 * taken once.  Although nr_swapfiles isn't absolute correct,
--	 * but the overhead of sort() is so low that it isn't
--	 * necessary to optimize further.
-+	 * Sort swap entries by swap device, so each lock is only taken once.
-+	 * nr_swapfiles isn't absolutely correct, but the overhead of sort() is
-+	 * so low that it isn't necessary to optimize further.
- 	 */
- 	if (nr_swapfiles > 1)
- 		sort(entries, n, sizeof(entries[0]), swp_entry_cmp, NULL);
++PROC SYSCTL
++M:	"Luis R. Rodriguez" <mcgrof@kernel.org>
++M:	Kees Cook <keescook@chromium.org>
++L:	linux-kernel@vger.kernel.org
++L:	linux-fsdevel@vger.kernel.org
++S:	Maintained
++F:	fs/proc/proc_sysctl.c
++F:	include/linux/sysctl.h
++F:	kernel/sysctl.c
++F:	tools/testing/selftests/sysctl/
++
+ PS3 NETWORK SUPPORT
+ M:	Geoff Levand <geoff@infradead.org>
+ L:	netdev@vger.kernel.org
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-i-need-old-gcc.patch
-mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
-mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+maintainers-give-proc-sysctl-some-maintainer-love.patch
+sysctl-fix-lax-sysctl_check_table-sanity-check.patch
+sysctl-kdocify-sysctl_writes_strict.patch
+sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
+sysctl-simplify-unsigned-int-support.patch
+sysctl-add-unsigned-int-range-support.patch
 
