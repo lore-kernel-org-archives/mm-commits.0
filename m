@@ -1,306 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch added to -mm tree
-Date: Thu, 25 May 2017 15:40:39 -0700
-Message-ID: <59275d67.4Sp5f6tCElbq/CB1%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
+ removed from -mm tree
+Date: Thu, 25 May 2017 15:45:10 -0700
+Message-ID: <59275e76.oxFkDgUw7WvaC8iZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45086 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1761604AbdEYWkk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:40:40 -0400
+        with ESMTP id S1165891AbdEYWpL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:45:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, luto@amacapital.net, mcgrof@kernel.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: punit.agrawal@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, liwanp@linux.vnet.ibm.com, manoj.iyer@canonical.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: treat vm_struct as alternative reference to vmalloc'ed objects
-has been added to the -mm tree.  Its filename is
-     mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
+     Subject: mm/migrate.c: fix refcount handling when !hugepage_migration_supported()
+has been removed from the -mm tree.  Its filename was
+     mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: kmemleak: treat vm_struct as alternative reference to vmalloc'ed objects
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: mm/migrate.c: fix refcount handling when !hugepage_migration_supported()
 
-Kmemleak requires that vmalloc'ed objects have a minimum reference count
-of 2: one in the corresponding vm_struct object and the other owned by the
-vmalloc() caller.  There are cases, however, where the original vmalloc()
-returned pointer is lost and, instead, a pointer to vm_struct is stored
-(see free_thread_stack()).  Kmemleak currently reports such objects as
-leaks.
+On failing to migrate a page, soft_offline_huge_page() performs the
+necessary update to the hugepage ref-count.  When
+!hugepage_migration_supported() , unmap_and_move_hugepage() also
+decrements the page ref-count for the hugepage.  The combined behaviour
+leaves the ref-count in an inconsistent state.
 
-This patch adds support for treating any surplus references to an object
-as additional references to a specified object.  It introduces the
-kmemleak_vmalloc() API function which takes a vm_struct pointer and sets
-its surplus reference passing to the actual vmalloc() returned pointer. 
-The __vmalloc_node_range() calling site has been modified accordingly.
+This leads to soft lockups when running the overcommitted hugepage test
+from mce-tests suite.
 
-Link: http://lkml.kernel.org/r/1495726937-23557-4-git-send-email-catalin.marinas@arm.com
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reported-by: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Soft offlining pfn 0x83ed600 at process virtual address 0x400000000000
+soft offline: 0x83ed600: migration failed 1, type
+1fffc00000008008 (uptodate|head)
+INFO: rcu_preempt detected stalls on CPUs/tasks:
+ Tasks blocked on level-0 rcu_node (CPUs 0-7): P2715
+  (detected by 7, t=5254 jiffies, g=963, c=962, q=321)
+  thugetlb_overco R  running task        0  2715   2685 0x00000008
+  Call trace:
+  [<ffff000008089f90>] dump_backtrace+0x0/0x268
+  [<ffff00000808a2d4>] show_stack+0x24/0x30
+  [<ffff000008100d34>] sched_show_task+0x134/0x180
+  [<ffff0000081c90fc>] rcu_print_detail_task_stall_rnp+0x54/0x7c
+  [<ffff00000813cfd4>] rcu_check_callbacks+0xa74/0xb08
+  [<ffff000008143a3c>] update_process_times+0x34/0x60
+  [<ffff0000081550e8>] tick_sched_handle.isra.7+0x38/0x70
+  [<ffff00000815516c>] tick_sched_timer+0x4c/0x98
+  [<ffff0000081442e0>] __hrtimer_run_queues+0xc0/0x300
+  [<ffff000008144fa4>] hrtimer_interrupt+0xac/0x228
+  [<ffff0000089a56d4>] arch_timer_handler_phys+0x3c/0x50
+  [<ffff00000812f1bc>] handle_percpu_devid_irq+0x8c/0x290
+  [<ffff0000081297fc>] generic_handle_irq+0x34/0x50
+  [<ffff000008129f00>] __handle_domain_irq+0x68/0xc0
+  [<ffff0000080816b4>] gic_handle_irq+0x5c/0xb0
+
+Fix this by dropping the ref-count decrement in unmap_and_move_hugepage()
+when !hugepage_migration_supported().
+
+Link: http://lkml.kernel.org/r/20170524154728.2492-1-punit.agrawal@arm.com
+Fixes: 32665f2bbfed ("mm/migrate: correct failure handling if !hugepage_migration_support()")
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Reported-by: Manoj Iyer <manoj.iyer@canonical.com>
+Tested-By: Manoj Iyer <manoj.iyer@canonical.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kmemleak.rst |    1 
- include/linux/kmemleak.h             |    7 +
- mm/kmemleak.c                        |   93 +++++++++++++++++++++++--
- mm/vmalloc.c                         |    7 -
- 4 files changed, 98 insertions(+), 10 deletions(-)
+ mm/migrate.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN Documentation/dev-tools/kmemleak.rst~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects Documentation/dev-tools/kmemleak.rst
---- a/Documentation/dev-tools/kmemleak.rst~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
-+++ a/Documentation/dev-tools/kmemleak.rst
-@@ -150,6 +150,7 @@ See the include/linux/kmemleak.h header
- - ``kmemleak_init``		 - initialize kmemleak
- - ``kmemleak_alloc``		 - notify of a memory block allocation
- - ``kmemleak_alloc_percpu``	 - notify of a percpu memory block allocation
-+- ``kmemleak_vmalloc``		 - notify of a vmalloc() memory allocation
- - ``kmemleak_free``		 - notify of a memory block freeing
- - ``kmemleak_free_part``	 - notify of a partial memory block freeing
- - ``kmemleak_free_percpu``	 - notify of a percpu memory block freeing
-diff -puN include/linux/kmemleak.h~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects include/linux/kmemleak.h
---- a/include/linux/kmemleak.h~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
-+++ a/include/linux/kmemleak.h
-@@ -22,6 +22,7 @@
- #define __KMEMLEAK_H
- 
- #include <linux/slab.h>
-+#include <linux/vmalloc.h>
- 
- #ifdef CONFIG_DEBUG_KMEMLEAK
- 
-@@ -30,6 +31,8 @@ extern void kmemleak_alloc(const void *p
- 			   gfp_t gfp) __ref;
- extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
- 				  gfp_t gfp) __ref;
-+extern void kmemleak_vmalloc(const struct vm_struct *area, size_t size,
-+			     gfp_t gfp) __ref;
- extern void kmemleak_free(const void *ptr) __ref;
- extern void kmemleak_free_part(const void *ptr, size_t size) __ref;
- extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
-@@ -81,6 +84,10 @@ static inline void kmemleak_alloc_percpu
- 					 gfp_t gfp)
- {
- }
-+static inline void kmemleak_vmalloc(const struct vm_struct *area, size_t size,
-+				    gfp_t gfp)
-+{
-+}
- static inline void kmemleak_free(const void *ptr)
- {
- }
-diff -puN mm/kmemleak.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
-+++ a/mm/kmemleak.c
-@@ -159,6 +159,8 @@ struct kmemleak_object {
- 	atomic_t use_count;
- 	unsigned long pointer;
- 	size_t size;
-+	/* pass surplus references to this pointer */
-+	unsigned long excess_ref;
- 	/* minimum number of a pointers found before it is considered leak */
- 	int min_count;
- 	/* the total number of pointers found pointing to this object */
-@@ -253,7 +255,8 @@ enum {
- 	KMEMLEAK_NOT_LEAK,
- 	KMEMLEAK_IGNORE,
- 	KMEMLEAK_SCAN_AREA,
--	KMEMLEAK_NO_SCAN
-+	KMEMLEAK_NO_SCAN,
-+	KMEMLEAK_SET_EXCESS_REF
- };
- 
- /*
-@@ -264,7 +267,10 @@ struct early_log {
- 	int op_type;			/* kmemleak operation type */
- 	int min_count;			/* minimum reference count */
- 	const void *ptr;		/* allocated/freed memory block */
--	size_t size;			/* memory block size */
-+	union {
-+		size_t size;		/* memory block size */
-+		unsigned long excess_ref; /* surplus reference passing */
-+	};
- 	unsigned long trace[MAX_TRACE];	/* stack trace */
- 	unsigned int trace_len;		/* stack trace length */
- };
-@@ -562,6 +568,7 @@ static struct kmemleak_object *create_ob
- 	object->flags = OBJECT_ALLOCATED;
- 	object->pointer = ptr;
- 	object->size = size;
-+	object->excess_ref = 0;
- 	object->min_count = min_count;
- 	object->count = 0;			/* white color initially */
- 	object->jiffies = jiffies;
-@@ -795,6 +802,30 @@ out:
- }
- 
- /*
-+ * Any surplus references (object already gray) to 'ptr' are passed to
-+ * 'excess_ref'. This is used in the vmalloc() case where a pointer to
-+ * vm_struct may be used as an alternative reference to the vmalloc'ed object
-+ * (see free_thread_stack()).
-+ */
-+static void object_set_excess_ref(unsigned long ptr, unsigned long excess_ref)
-+{
-+	unsigned long flags;
-+	struct kmemleak_object *object;
-+
-+	object = find_and_get_object(ptr, 0);
-+	if (!object) {
-+		kmemleak_warn("Setting excess_ref on unknown object at 0x%08lx\n",
-+			      ptr);
-+		return;
-+	}
-+
-+	spin_lock_irqsave(&object->lock, flags);
-+	object->excess_ref = excess_ref;
-+	spin_unlock_irqrestore(&object->lock, flags);
-+	put_object(object);
-+}
-+
-+/*
-  * Set the OBJECT_NO_SCAN flag for the object corresponding to the give
-  * pointer. Such object will not be scanned by kmemleak but references to it
-  * are searched.
-@@ -908,7 +939,7 @@ static void early_alloc_percpu(struct ea
-  * @gfp:	kmalloc() flags used for kmemleak internal memory allocations
-  *
-  * This function is called from the kernel allocators when a new object
-- * (memory block) is allocated (kmem_cache_alloc, kmalloc, vmalloc etc.).
-+ * (memory block) is allocated (kmem_cache_alloc, kmalloc etc.).
-  */
- void __ref kmemleak_alloc(const void *ptr, size_t size, int min_count,
- 			  gfp_t gfp)
-@@ -952,6 +983,36 @@ void __ref kmemleak_alloc_percpu(const v
- EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
- 
- /**
-+ * kmemleak_vmalloc - register a newly vmalloc'ed object
-+ * @area:	pointer to vm_struct
-+ * @size:	size of the object
-+ * @gfp:	__vmalloc() flags used for kmemleak internal memory allocations
-+ *
-+ * This function is called from the vmalloc() kernel allocator when a new
-+ * object (memory block) is allocated.
-+ */
-+void __ref kmemleak_vmalloc(const struct vm_struct *area, size_t size, gfp_t gfp)
-+{
-+	pr_debug("%s(0x%p, %zu)\n", __func__, area, size);
-+
-+	/*
-+	 * A min_count = 2 is needed because vm_struct contains a reference to
-+	 * the virtual address of the vmalloc'ed block.
-+	 */
-+	if (kmemleak_enabled) {
-+		create_object((unsigned long)area->addr, size, 2, gfp);
-+		object_set_excess_ref((unsigned long)area,
-+				      (unsigned long)area->addr);
-+	} else if (kmemleak_early_log) {
-+		log_early(KMEMLEAK_ALLOC, area->addr, size, 2);
-+		/* reusing early_log.size for storing area->addr */
-+		log_early(KMEMLEAK_SET_EXCESS_REF,
-+			  area, (unsigned long)area->addr, 0);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(kmemleak_vmalloc);
-+
-+/**
-  * kmemleak_free - unregister a previously registered object
-  * @ptr:	pointer to beginning of the object
-  *
-@@ -1248,6 +1309,7 @@ static void scan_block(void *_start, voi
- 	for (ptr = start; ptr < end; ptr++) {
- 		struct kmemleak_object *object;
- 		unsigned long pointer;
-+		unsigned long excess_ref;
- 
- 		if (scan_should_stop())
- 			break;
-@@ -1283,8 +1345,27 @@ static void scan_block(void *_start, voi
- 		 * enclosed by scan_mutex.
- 		 */
- 		spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
--		update_refs(object);
-+		/* only pass surplus references (object already gray) */
-+		if (color_gray(object)) {
-+			excess_ref = object->excess_ref;
-+			/* no need for update_refs() if object already gray */
-+		} else {
-+			excess_ref = 0;
-+			update_refs(object);
-+		}
- 		spin_unlock(&object->lock);
-+
-+		if (excess_ref) {
-+			object = lookup_object(excess_ref, 0);
-+			if (!object)
-+				continue;
-+			if (object == scanned)
-+				/* circular reference, ignore */
-+				continue;
-+			spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
-+			update_refs(object);
-+			spin_unlock(&object->lock);
-+		}
- 	}
- 	read_unlock_irqrestore(&kmemleak_lock, flags);
- }
-@@ -1987,6 +2068,10 @@ void __init kmemleak_init(void)
- 		case KMEMLEAK_NO_SCAN:
- 			kmemleak_no_scan(log->ptr);
- 			break;
-+		case KMEMLEAK_SET_EXCESS_REF:
-+			object_set_excess_ref((unsigned long)log->ptr,
-+					      log->excess_ref);
-+			break;
- 		default:
- 			kmemleak_warn("Unknown early log operation: %d\n",
- 				      log->op_type);
-diff -puN mm/vmalloc.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects mm/vmalloc.c
---- a/mm/vmalloc.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
-+++ a/mm/vmalloc.c
-@@ -1759,12 +1759,7 @@ void *__vmalloc_node_range(unsigned long
+diff -puN mm/migrate.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported
++++ a/mm/migrate.c
+@@ -1201,10 +1201,8 @@ static int unmap_and_move_huge_page(new_
+ 	 * tables or check whether the hugepage is pmd-based or not before
+ 	 * kicking migration.
  	 */
- 	clear_vm_uninitialized_flag(area);
+-	if (!hugepage_migration_supported(page_hstate(hpage))) {
+-		putback_active_hugepage(hpage);
++	if (!hugepage_migration_supported(page_hstate(hpage)))
+ 		return -ENOSYS;
+-	}
  
--	/*
--	 * A ref_count = 2 is needed because vm_struct allocated in
--	 * __get_vm_area_node() contains a reference to the virtual address of
--	 * the vmalloc'ed block.
--	 */
--	kmemleak_alloc(addr, real_size, 2, gfp_mask);
-+	kmemleak_vmalloc(area, size, gfp_mask);
- 
- 	return addr;
- 
+ 	new_hpage = get_new_page(hpage, private, &result);
+ 	if (!new_hpage)
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from punit.agrawal@arm.com are
 
-mm-kmemleak-slightly-reduce-the-size-of-some-structures-on-64-bit-architectures.patch
-mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
-mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
+mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
+mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
+mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
+mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
 
