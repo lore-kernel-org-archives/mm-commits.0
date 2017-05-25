@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-give-proc-sysctl-some-maintainer-love.patch added
- to -mm tree
-Date: Thu, 25 May 2017 16:25:02 -0700
-Message-ID: <592767ce.3MRMVuMDP0yuCZvE%akpm@linux-foundation.org>
+Subject: +
+ zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create.patch added to -mm tree
+Date: Thu, 25 May 2017 16:29:33 -0700
+Message-ID: <592768dd.Z9Cg+cI9HSB93eqs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48270 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965050AbdEYXZD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:25:03 -0400
+        with ESMTP id S965050AbdEYX3e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:29:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@kernel.org, keescook@chromium.org, mm-commits@vger.kernel.org
+To: elfring@users.sourceforge.net, ddstreet@ieee.org, sjenning@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: give proc sysctl some maintainer love
+     Subject: mm/zswap.c: delete an error message for a failed memory allocation in zswap_pool_create()
 has been added to the -mm tree.  Its filename is
-     maintainers-give-proc-sysctl-some-maintainer-love.patch
+     zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-give-proc-sysctl-some-maintainer-love.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-give-proc-sysctl-some-maintainer-love.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: MAINTAINERS: give proc sysctl some maintainer love
+From: Markus Elfring <elfring@users.sourceforge.net>
+Subject: mm/zswap.c: delete an error message for a failed memory allocation in zswap_pool_create()
 
-We poke at proc sysctl enough that really we should declare it maintained.
-We'll just be Cc'd and sending updates / ACK'ing changes through akpm's
-tree.
+Omit an extra message for a memory allocation failure in this function.
 
-Link: http://lkml.kernel.org/r/20170524231305.8649-1-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Acked-by: Kees Cook <keescook@chromium.org>
+This issue was detected by using the Coccinelle software.
+
+Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
+Link: http://lkml.kernel.org/r/2345aabc-ae98-1d31-afba-40a02c5baf3d@users.sourceforge.net
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjenning@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/zswap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-give-proc-sysctl-some-maintainer-love MAINTAINERS
---- a/MAINTAINERS~maintainers-give-proc-sysctl-some-maintainer-love
-+++ a/MAINTAINERS
-@@ -10284,6 +10284,17 @@ W:	http://wireless.kernel.org/en/users/D
- S:	Obsolete
- F:	drivers/net/wireless/intersil/prism54/
+diff -puN mm/zswap.c~zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create mm/zswap.c
+--- a/mm/zswap.c~zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create
++++ a/mm/zswap.c
+@@ -515,10 +515,8 @@ static struct zswap_pool *zswap_pool_cre
+ 	}
  
-+PROC SYSCTL
-+M:	"Luis R. Rodriguez" <mcgrof@kernel.org>
-+M:	Kees Cook <keescook@chromium.org>
-+L:	linux-kernel@vger.kernel.org
-+L:	linux-fsdevel@vger.kernel.org
-+S:	Maintained
-+F:	fs/proc/proc_sysctl.c
-+F:	include/linux/sysctl.h
-+F:	kernel/sysctl.c
-+F:	tools/testing/selftests/sysctl/
-+
- PS3 NETWORK SUPPORT
- M:	Geoff Levand <geoff@infradead.org>
- L:	netdev@vger.kernel.org
+ 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+-	if (!pool) {
+-		pr_err("pool alloc failed\n");
++	if (!pool)
+ 		return NULL;
+-	}
+ 
+ 	/* unique name for each pool specifically required by zsmalloc */
+ 	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from elfring@users.sourceforge.net are
 
-maintainers-give-proc-sysctl-some-maintainer-love.patch
-sysctl-fix-lax-sysctl_check_table-sanity-check.patch
-sysctl-kdocify-sysctl_writes_strict.patch
-sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
-sysctl-simplify-unsigned-int-support.patch
-sysctl-add-unsigned-int-range-support.patch
+sh-intc-delete-an-error-message-for-a-failed-memory-allocation-in-add_virq_to_pirq.patch
+zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create.patch
+zswap-improve-a-size-determination-in-zswap_frontswap_init.patch
+zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare.patch
 
