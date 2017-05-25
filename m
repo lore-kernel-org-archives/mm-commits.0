@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-handle-pointers-to-arrays-better-in-container_of.patch
- added to -mm tree
-Date: Thu, 25 May 2017 16:09:55 -0700
-Message-ID: <59276443.w2YFtuBAI2UxIB14%akpm@linux-foundation.org>
+Subject: + mm-drop-wait-parameter-from-write_one_page.patch added to -mm
+ tree
+Date: Thu, 25 May 2017 16:10:55 -0700
+Message-ID: <5927647f.jDMsFN1+Foc3JYoA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46822 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1163136AbdEYXJ4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:09:56 -0400
+        with ESMTP id S1163136AbdEYXK4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:10:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, bp@suse.de, glider@google.com, hidehiro.kawai.ez@hitachi.com, johannes.berg@intel.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mina86@mina86.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, hch@lst.de, jack@suse.cz, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: handle pointers to arrays better in container_of()
+     Subject: mm: drop "wait" parameter from write_one_page()
 has been added to the -mm tree.  Its filename is
-     kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+     mm-drop-wait-parameter-from-write_one_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-wait-parameter-from-write_one_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-wait-parameter-from-write_one_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,123 +39,173 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Abbott <abbotti@mev.co.uk>
-Subject: kernel.h: handle pointers to arrays better in container_of()
+From: Jeff Layton <jlayton@redhat.com>
+Subject: mm: drop "wait" parameter from write_one_page()
 
-If the first parameter of container_of() is a pointer to a
-non-const-qualified array type (and the third parameter names a
-non-const-qualified array member), the local variable __mptr will be
-defined with a const-qualified array type.  In ISO C, these types are
-incompatible.  They work as expected in GNU C, but some versions will
-issue warnings.  For example, GCC 4.9 produces the warning "initialization
-from incompatible pointer type".
+The callers all set it to 1.
 
-Here is an example of where the problem occurs:
+Also, make it clear that this function will not set any sort of AS_*
+error, and that the caller must do so if necessary.  No existing caller
+uses this on normal files, so none of them need it.
 
--------------------------------------------------------
- #include <linux/kernel.h>
- #include <linux/module.h>
+Also, add __must_check here since, in general, the callers need to handle
+an error here in some fashion.
 
-MODULE_LICENSE("GPL");
-
-struct st {
-	int a;
-	char b[16];
-};
-
-static int __init example_init(void) {
-	struct st t = { .a = 101, .b = "hello" };
-	char (*p)[16] = &t.b;
-	struct st *x = container_of(p, struct st, b);
-	printk(KERN_DEBUG "%p %p\n", (void *)&t, (void *)x);
-	return 0;
-}
-
-static void __exit example_exit(void) {
-}
-
-module_init(example_init);
-module_exit(example_exit);
--------------------------------------------------------
-
-Building the module with gcc-4.9 results in these warnings (where '{m}'
-is the module source and '{k}' is the kernel source):
-
--------------------------------------------------------
-In file included from {m}/example.c:1:0:
-{m}/example.c: In function `example_init':
-{k}/include/linux/kernel.h:854:48: warning: initialization from
-incompatible pointer type
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
-{k}/include/linux/kernel.h:854:48: warning: (near initialization for
-`x')
-  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                                                ^
-{m}/example.c:14:17: note: in expansion of macro `container_of'
-  struct st *x = container_of(p, struct st, b);
-                 ^
--------------------------------------------------------
-
-Replace the type checking performed by the macro to avoid these warnings. 
-Make sure `*(ptr)` either has type compatible with the member, or has type
-compatible with `void`, ignoring qualifiers.  Raise compiler errors if
-this is not true.  This is stronger than the previous behaviour, which
-only resulted in compiler warnings for a type mismatch.
-
-Link: http://lkml.kernel.org/r/20170525120316.24473-7-abbotti@mev.co.uk
-Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Johannes Berg <johannes.berg@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/20170525103303.6524-1-jlayton@redhat.com
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/exofs/dir.c        |    2 +-
+ fs/ext2/dir.c         |    2 +-
+ fs/jfs/jfs_metapage.c |    4 ++--
+ fs/minix/dir.c        |    2 +-
+ fs/sysv/dir.c         |    2 +-
+ fs/ufs/dir.c          |    2 +-
+ include/linux/mm.h    |    2 +-
+ mm/page-writeback.c   |   14 +++++++-------
+ 8 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of
-+++ a/include/linux/kernel.h
-@@ -11,6 +11,7 @@
- #include <linux/log2.h>
- #include <linux/typecheck.h>
- #include <linux/printk.h>
-+#include <linux/build_bug.h>
- #include <asm/byteorder.h>
- #include <uapi/linux/kernel.h>
+diff -puN fs/exofs/dir.c~mm-drop-wait-parameter-from-write_one_page fs/exofs/dir.c
+--- a/fs/exofs/dir.c~mm-drop-wait-parameter-from-write_one_page
++++ a/fs/exofs/dir.c
+@@ -72,7 +72,7 @@ static int exofs_commit_chunk(struct pag
+ 	set_page_dirty(page);
  
-@@ -850,9 +851,11 @@ static inline void ftrace_dump(enum ftra
-  * @member:	the name of the member within the struct.
+ 	if (IS_DIRSYNC(dir))
+-		err = write_one_page(page, 1);
++		err = write_one_page(page);
+ 	else
+ 		unlock_page(page);
+ 
+diff -puN fs/ext2/dir.c~mm-drop-wait-parameter-from-write_one_page fs/ext2/dir.c
+--- a/fs/ext2/dir.c~mm-drop-wait-parameter-from-write_one_page
++++ a/fs/ext2/dir.c
+@@ -100,7 +100,7 @@ static int ext2_commit_chunk(struct page
+ 	}
+ 
+ 	if (IS_DIRSYNC(dir)) {
+-		err = write_one_page(page, 1);
++		err = write_one_page(page);
+ 		if (!err)
+ 			err = sync_inode_metadata(dir, 1);
+ 	} else {
+diff -puN fs/jfs/jfs_metapage.c~mm-drop-wait-parameter-from-write_one_page fs/jfs/jfs_metapage.c
+--- a/fs/jfs/jfs_metapage.c~mm-drop-wait-parameter-from-write_one_page
++++ a/fs/jfs/jfs_metapage.c
+@@ -711,7 +711,7 @@ void force_metapage(struct metapage *mp)
+ 	get_page(page);
+ 	lock_page(page);
+ 	set_page_dirty(page);
+-	write_one_page(page, 1);
++	write_one_page(page);
+ 	clear_bit(META_forcewrite, &mp->flag);
+ 	put_page(page);
+ }
+@@ -756,7 +756,7 @@ void release_metapage(struct metapage *
+ 		set_page_dirty(page);
+ 		if (test_bit(META_sync, &mp->flag)) {
+ 			clear_bit(META_sync, &mp->flag);
+-			write_one_page(page, 1);
++			write_one_page(page);
+ 			lock_page(page); /* write_one_page unlocks the page */
+ 		}
+ 	} else if (mp->lsn)	/* discard_metapage doesn't remove it */
+diff -puN fs/minix/dir.c~mm-drop-wait-parameter-from-write_one_page fs/minix/dir.c
+--- a/fs/minix/dir.c~mm-drop-wait-parameter-from-write_one_page
++++ a/fs/minix/dir.c
+@@ -57,7 +57,7 @@ static int dir_commit_chunk(struct page
+ 		mark_inode_dirty(dir);
+ 	}
+ 	if (IS_DIRSYNC(dir))
+-		err = write_one_page(page, 1);
++		err = write_one_page(page);
+ 	else
+ 		unlock_page(page);
+ 	return err;
+diff -puN fs/sysv/dir.c~mm-drop-wait-parameter-from-write_one_page fs/sysv/dir.c
+--- a/fs/sysv/dir.c~mm-drop-wait-parameter-from-write_one_page
++++ a/fs/sysv/dir.c
+@@ -45,7 +45,7 @@ static int dir_commit_chunk(struct page
+ 		mark_inode_dirty(dir);
+ 	}
+ 	if (IS_DIRSYNC(dir))
+-		err = write_one_page(page, 1);
++		err = write_one_page(page);
+ 	else
+ 		unlock_page(page);
+ 	return err;
+diff -puN fs/ufs/dir.c~mm-drop-wait-parameter-from-write_one_page fs/ufs/dir.c
+--- a/fs/ufs/dir.c~mm-drop-wait-parameter-from-write_one_page
++++ a/fs/ufs/dir.c
+@@ -53,7 +53,7 @@ static int ufs_commit_chunk(struct page
+ 		mark_inode_dirty(dir);
+ 	}
+ 	if (IS_DIRSYNC(dir))
+-		err = write_one_page(page, 1);
++		err = write_one_page(page);
+ 	else
+ 		unlock_page(page);
+ 	return err;
+diff -puN include/linux/mm.h~mm-drop-wait-parameter-from-write_one_page include/linux/mm.h
+--- a/include/linux/mm.h~mm-drop-wait-parameter-from-write_one_page
++++ a/include/linux/mm.h
+@@ -2199,7 +2199,7 @@ extern void filemap_map_pages(struct vm_
+ extern int filemap_page_mkwrite(struct vm_fault *vmf);
+ 
+ /* mm/page-writeback.c */
+-int write_one_page(struct page *page, int wait);
++int __must_check write_one_page(struct page *page);
+ void task_dirty_inc(struct task_struct *tsk);
+ 
+ /* readahead.c */
+diff -puN mm/page-writeback.c~mm-drop-wait-parameter-from-write_one_page mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-drop-wait-parameter-from-write_one_page
++++ a/mm/page-writeback.c
+@@ -2366,15 +2366,16 @@ int do_writepages(struct address_space *
+ }
+ 
+ /**
+- * write_one_page - write out a single page and optionally wait on I/O
++ * write_one_page - write out a single page and wait on I/O
+  * @page: the page to write
+- * @wait: if true, wait on writeout
   *
+  * The page must be locked by the caller and will be unlocked upon return.
+  *
+- * write_one_page() returns a negative error code if I/O failed.
++ * write_one_page() returns a negative error code if I/O failed. Note that
++ * the address_space is not marked for error. The caller must do this if
++ * needed.
   */
--#define container_of(ptr, type, member) ({			\
--	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
--	(type *)( (char *)__mptr - offsetof(type,member) );})
-+#define container_of(ptr, type, member) ({				\
-+	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
-+			 !__same_type(*(ptr), void),			\
-+			 "pointer type mismatch in container_of()");	\
-+	((type *)((char *)(ptr) - offsetof(type, member))); })
+-int write_one_page(struct page *page, int wait)
++int write_one_page(struct page *page)
+ {
+ 	struct address_space *mapping = page->mapping;
+ 	int ret = 0;
+@@ -2385,13 +2386,12 @@ int write_one_page(struct page *page, in
  
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+ 	BUG_ON(!PageLocked(page));
+ 
+-	if (wait)
+-		wait_on_page_writeback(page);
++	wait_on_page_writeback(page);
+ 
+ 	if (clear_page_dirty_for_io(page)) {
+ 		get_page(page);
+ 		ret = mapping->a_ops->writepage(page, &wbc);
+-		if (ret == 0 && wait) {
++		if (ret == 0) {
+ 			wait_on_page_writeback(page);
+ 			if (PageError(page))
+ 				ret = -EIO;
 _
 
-Patches currently in -mm which might be from abbotti@mev.co.uk are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
-linux-bugh-correct-formatting-of-block-comment.patch
-linux-bugh-correct-foo-should-be-foo.patch
-linux-bugh-correct-space-required-before-that.patch
-bug-split-build_bug-stuff-out-into-linux-build_bugh.patch
-kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+mm-drop-wait-parameter-from-write_one_page.patch
 
