@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch added
- to -mm tree
-Date: Thu, 25 May 2017 15:11:18 -0700
-Message-ID: <59275686.f54PggcEl273eTDK%akpm@linux-foundation.org>
+Subject: + ipc-move-atomic_set-to-where-it-is-needed.patch added to -mm
+ tree
+Date: Thu, 25 May 2017 15:11:22 -0700
+Message-ID: <5927568a.k+G54k0EPmz3VEVY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1163339AbdEYWLT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:19 -0400
+        with ESMTP id S943082AbdEYWLX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, dave@stgolabs.net, keescook@chromium.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm.c: avoid ipc_rcu_putref for failed ipc_addid()
+     Subject: ipc: move atomic_set() to where it is needed
 has been added to the -mm tree.  Its filename is
-     ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+     ipc-move-atomic_set-to-where-it-is-needed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-move-atomic_set-to-where-it-is-needed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-move-atomic_set-to-where-it-is-needed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/shm.c: avoid ipc_rcu_putref for failed ipc_addid()
+From: Kees Cook <keescook@chromium.org>
+Subject: ipc: move atomic_set() to where it is needed
 
-Loosely based on a patch from Kees Cook <keescook@chromium.org>:
-- id and error can be merged
-- if operations before ipc_addid() fail, then use call_rcu() directly.
+Only after ipc_addid() has succeeded will refcounting be used, so move
+initialization into ipc_addid() and remove from open-coded *_alloc()
+routines.
 
-The difference is that call_rcu is used for failures after
-security_shm_alloc(), to continue to guaranteed an rcu delay for
-security_sem_free().
-
-Link: http://lkml.kernel.org/r/20170525185107.12869-15-manfred@colorfullife.com
+Link: http://lkml.kernel.org/r/20170525185107.12869-17-manfred@colorfullife.com
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ ipc/msg.c  |    2 --
+ ipc/sem.c  |    1 -
+ ipc/shm.c  |    2 --
+ ipc/util.c |    1 +
+ 4 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN ipc/shm.c~ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid ipc/shm.c
---- a/ipc/shm.c~ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid
-+++ a/ipc/shm.c
-@@ -548,7 +548,6 @@ static int newseg(struct ipc_namespace *
- 	size_t numpages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	struct file *file;
- 	char name[13];
--	int id;
- 	vm_flags_t acctflag = 0;
+diff -puN ipc/msg.c~ipc-move-atomic_set-to-where-it-is-needed ipc/msg.c
+--- a/ipc/msg.c~ipc-move-atomic_set-to-where-it-is-needed
++++ a/ipc/msg.c
+@@ -117,8 +117,6 @@ static struct msg_queue *msg_alloc(void)
+ 	if (unlikely(!msq))
+ 		return NULL;
  
- 	if (size < SHMMIN || size > ns->shm_ctlmax)
-@@ -617,11 +616,9 @@ static int newseg(struct ipc_namespace *
- 	shp->shm_file = file;
- 	shp->shm_creator = current;
- 
--	id = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
--	if (id < 0) {
--		error = id;
-+	error = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
-+	if (error < 0)
- 		goto no_id;
--	}
- 
- 	list_add(&shp->shm_clist, &current->sysvshm.shm_clist);
- 
-@@ -643,7 +640,7 @@ no_id:
- 		user_shm_unlock(size, shp->mlock_user);
- 	fput(file);
- no_file:
--	ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
-+	call_rcu(&shp->shm_perm.rcu, shm_rcu_free);
- 	return error;
+-	atomic_set(&msq->q_perm.refcount, 1);
+-
+ 	return msq;
  }
  
+diff -puN ipc/sem.c~ipc-move-atomic_set-to-where-it-is-needed ipc/sem.c
+--- a/ipc/sem.c~ipc-move-atomic_set-to-where-it-is-needed
++++ a/ipc/sem.c
+@@ -465,7 +465,6 @@ static struct sem_array *sem_alloc(size_
+ 		return NULL;
+ 
+ 	memset(sma, 0, size);
+-	atomic_set(&sma->sem_perm.refcount, 1);
+ 
+ 	return sma;
+ }
+diff -puN ipc/shm.c~ipc-move-atomic_set-to-where-it-is-needed ipc/shm.c
+--- a/ipc/shm.c~ipc-move-atomic_set-to-where-it-is-needed
++++ a/ipc/shm.c
+@@ -526,8 +526,6 @@ static struct shmid_kernel *shm_alloc(vo
+ 	if (unlikely(!shp))
+ 		return NULL;
+ 
+-	atomic_set(&shp->shm_perm.refcount, 1);
+-
+ 	return shp;
+ }
+ 
+diff -puN ipc/util.c~ipc-move-atomic_set-to-where-it-is-needed ipc/util.c
+--- a/ipc/util.c~ipc-move-atomic_set-to-where-it-is-needed
++++ a/ipc/util.c
+@@ -232,6 +232,7 @@ int ipc_addid(struct ipc_ids *ids, struc
+ 
+ 	idr_preload(GFP_KERNEL);
+ 
++	atomic_set(&new->refcount, 1);
+ 	spin_lock_init(&new->lock);
+ 	new->deleted = false;
+ 	rcu_read_lock();
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-ipc-semc-remove-sem_base-embed-struct-sem.patch
-ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
-ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
-include-linux-semh-correctly-document-sem_ctime.patch
-ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
 
