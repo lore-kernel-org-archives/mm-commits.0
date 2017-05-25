@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch added to -mm tree
-Date: Thu, 25 May 2017 15:46:23 -0700
-Message-ID: <59275ebf.J2Z9kk9uuHWKdJS8%akpm@linux-foundation.org>
+ asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
+ added to -mm tree
+Date: Thu, 25 May 2017 16:09:45 -0700
+Message-ID: <59276439.a3r4LpP+2/mruW7w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030517AbdEYWqc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:46:32 -0400
+        with ESMTP id S1162933AbdEYXJr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:09:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: punit.agrawal@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, manoj.iyer@canonical.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, wanpeng.li@hotmail.com, mm-commits@vger.kernel.org
+To: abbotti@mev.co.uk, arnd@arndb.de, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: fix refcount handling when !hugepage_migration_supported()
+     Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
 has been added to the -mm tree.  Its filename is
-     mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+     asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +40,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm/migrate: fix refcount handling when !hugepage_migration_supported()
+From: Ian Abbott <abbotti@mev.co.uk>
+Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
 
-On failing to migrate a page, soft_offline_huge_page() performs the
-necessary update to the hugepage ref-count.  When
-!hugepage_migration_supported() , unmap_and_move_hugepage() also
-decrements the page ref-count for the hugepage.  The combined behaviour
-leaves the ref-count in an inconsistent state.
+This series of patches splits BUILD_BUG related macros out of
+"include/linux/bug.h" into new file "include/linux/build_bug.h" (patch 5),
+and changes the pointer type checking in the `container_of()` macro to
+deal with pointers of array type better (patch 6).  Patches 1 to 4 are
+prerequisites.
 
-This leads to soft lockups when running the overcommitted hugepage test
-from mce-tests suite.
+Patches 2, 3, 4, and 5 have been inserted since the previous version of
+this patch series.  Patch 6 here corresponds to v3 and v4's patch 2.
 
-Soft offlining pfn 0x83ed600 at process virtual address 0x400000000000
-soft offline: 0x83ed600: migration failed 1, type
-1fffc00000008008 (uptodate|head)
-INFO: rcu_preempt detected stalls on CPUs/tasks:
- Tasks blocked on level-0 rcu_node (CPUs 0-7): P2715
-  (detected by 7, t=5254 jiffies, g=963, c=962, q=321)
-  thugetlb_overco R  running task        0  2715   2685 0x00000008
-  Call trace:
-  [<ffff000008089f90>] dump_backtrace+0x0/0x268
-  [<ffff00000808a2d4>] show_stack+0x24/0x30
-  [<ffff000008100d34>] sched_show_task+0x134/0x180
-  [<ffff0000081c90fc>] rcu_print_detail_task_stall_rnp+0x54/0x7c
-  [<ffff00000813cfd4>] rcu_check_callbacks+0xa74/0xb08
-  [<ffff000008143a3c>] update_process_times+0x34/0x60
-  [<ffff0000081550e8>] tick_sched_handle.isra.7+0x38/0x70
-  [<ffff00000815516c>] tick_sched_timer+0x4c/0x98
-  [<ffff0000081442e0>] __hrtimer_run_queues+0xc0/0x300
-  [<ffff000008144fa4>] hrtimer_interrupt+0xac/0x228
-  [<ffff0000089a56d4>] arch_timer_handler_phys+0x3c/0x50
-  [<ffff00000812f1bc>] handle_percpu_devid_irq+0x8c/0x290
-  [<ffff0000081297fc>] generic_handle_irq+0x34/0x50
-  [<ffff000008129f00>] __handle_domain_irq+0x68/0xc0
-  [<ffff0000080816b4>] gic_handle_irq+0x5c/0xb0
+Patch 1 was a prerequisite in v3 of this series to avoid a lot of warnings
+when <linux/bug.h> was included by <linux/kernel.h>.  That is no longer
+relevant for v5 of the series, but I left it in because it was acked by a
+Arnd Bergmann and Michal Nazarewicz.
 
-Address this by changing the putback_active_hugepage() in
-soft_offline_huge_page() to putback_movable_pages().
+Patches 2, 3, and 4 are some checkpatch clean-ups on "include/linux/bug.h"
+before splitting out the BUILD_BUG stuff in patch 5.
 
-Link: http://lkml.kernel.org/r/20170525135146.32011-1-punit.agrawal@arm.com
-Reported-by: Manoj Iyer <manoj.iyer@canonical.com>
-Tested-by: Manoj Iyer <manoj.iyer@canonical.com>
-Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Wanpeng Li <wanpeng.li@hotmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>	[3.14+]
+Patch 5 splits the BUILD_BUG related macros out of "include/linux/bug.h"
+into new file "include/linux/build_bug.h" because including <linux/bug.h>
+in "include/linux/kernel.h" would result in build failures due to circular
+dependencies.
+
+Patch 6 changes the pointer type checking by `container_of()` to avoid
+some incompatible pointer warnings when the dereferenced pointer has array
+type.
+
+1) asm-generic/bug.h: declare struct pt_regs; before function prototype
+2) linux/bug.h: correct formatting of block comment
+3) linux/bug.h: correct "(foo*)" should be "(foo *)"
+4) linux/bug.h: correct "space required before that '-'"
+5) bug: split BUILD_BUG stuff out into <linux/build_bug.h>
+6) kernel.h: handle pointers to arrays better in container_of()
+
+
+This patch (of 6):
+
+The declaration of `__warn()` has `struct pt_regs *regs` as one of its
+parameters.  This can result in compiler warnings if `struct regs` is not
+already declared.  Add an empty declaration of `struct pt_regs` to avoid
+the warnings.
+
+Link: http://lkml.kernel.org/r/20170525120316.24473-2-abbotti@mev.co.uk
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/asm-generic/bug.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2 mm/memory-failure.c
---- a/mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2
-+++ a/mm/memory-failure.c
-@@ -1600,7 +1600,8 @@ static int soft_offline_huge_page(struct
- 		 * only one hugepage pointed to by hpage, so we need not
- 		 * run through the pagelist here.
- 		 */
--		putback_active_hugepage(hpage);
-+		if (!list_empty(&pagelist))
-+			putback_movable_pages(&pagelist);
- 		if (ret > 0)
- 			ret = -EIO;
- 	} else {
+diff -puN include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype
++++ a/include/asm-generic/bug.h
+@@ -97,6 +97,7 @@ extern void warn_slowpath_null(const cha
+ 
+ /* used internally by panic.c */
+ struct warn_args;
++struct pt_regs;
+ 
+ void __warn(const char *file, int line, void *caller, unsigned taint,
+ 	    struct pt_regs *regs, struct warn_args *args);
 _
 
-Patches currently in -mm which might be from punit.agrawal@arm.com are
+Patches currently in -mm which might be from abbotti@mev.co.uk are
 
-mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
-mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
-mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
-mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
-mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
+asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
+linux-bugh-correct-formatting-of-block-comment.patch
+linux-bugh-correct-foo-should-be-foo.patch
+linux-bugh-correct-space-required-before-that.patch
+bug-split-build_bug-stuff-out-into-linux-build_bugh.patch
+kernelh-handle-pointers-to-arrays-better-in-container_of.patch
 
