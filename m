@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semc-remove-sem_base-embed-struct-sem-v3.patch added to -mm tree
-Date: Thu, 25 May 2017 15:10:53 -0700
-Message-ID: <5927566d.3asRt/Hv9lIh6u0n%akpm@linux-foundation.org>
+Subject: + ipc-util-drop-ipc_rcu_free.patch added to -mm tree
+Date: Thu, 25 May 2017 15:11:06 -0700
+Message-ID: <5927567a.tMnUAPHW6pyj4gLc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43178 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934007AbdEYWKy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:10:54 -0400
+        with ESMTP id S943233AbdEYWLI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, dave@stgolabs.net, hch@infradead.org, keescook@chromium.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-semc-remove-sem_base-embed-struct-sem-v3
+     Subject: ipc/util: drop ipc_rcu_free()
 has been added to the -mm tree.  Its filename is
-     ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
+     ipc-util-drop-ipc_rcu_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-util-drop-ipc_rcu_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-util-drop-ipc_rcu_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,44 +38,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc-semc-remove-sem_base-embed-struct-sem-v3
+From: Kees Cook <keescook@chromium.org>
+Subject: ipc/util: drop ipc_rcu_free()
 
-s/[0]/[]/, per hch
+There are no more callers of ipc_rcu_free(), so remove it.
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-2-manfred@colorfullife.com
+Link: http://lkml.kernel.org/r/20170525185107.12869-9-manfred@colorfullife.com
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/util.c |    7 -------
+ ipc/util.h |    1 -
+ 2 files changed, 8 deletions(-)
 
-diff -puN include/linux/sem.h~ipc-semc-remove-sem_base-embed-struct-sem-v3 include/linux/sem.h
---- a/include/linux/sem.h~ipc-semc-remove-sem_base-embed-struct-sem-v3
-+++ a/include/linux/sem.h
-@@ -40,7 +40,7 @@ struct sem_array {
- 	int			complex_count;	/* pending complex operations */
- 	unsigned int		use_global_lock;/* >0: global lock required */
+diff -puN ipc/util.c~ipc-util-drop-ipc_rcu_free ipc/util.c
+--- a/ipc/util.c~ipc-util-drop-ipc_rcu_free
++++ a/ipc/util.c
+@@ -429,13 +429,6 @@ void ipc_rcu_putref(struct kern_ipc_perm
+ 	call_rcu(&ptr->rcu, func);
+ }
  
--	struct sem		sems[0];
-+	struct sem		sems[];
- };
+-void ipc_rcu_free(struct rcu_head *h)
+-{
+-	struct kern_ipc_perm *ptr = container_of(h, struct kern_ipc_perm, rcu);
+-
+-	kvfree(ptr);
+-}
+-
+ /**
+  * ipcperms - check ipc permissions
+  * @ns: ipc namespace
+diff -puN ipc/util.h~ipc-util-drop-ipc_rcu_free ipc/util.h
+--- a/ipc/util.h~ipc-util-drop-ipc_rcu_free
++++ a/ipc/util.h
+@@ -119,7 +119,6 @@ struct kern_ipc_perm *ipc_rcu_alloc(int
+ int ipc_rcu_getref(struct kern_ipc_perm *ptr);
+ void ipc_rcu_putref(struct kern_ipc_perm *ptr,
+ 			void (*func)(struct rcu_head *head));
+-void ipc_rcu_free(struct rcu_head *h);
  
- #ifdef CONFIG_SYSVIPC
+ struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
+ struct kern_ipc_perm *ipc_obtain_object_idr(struct ipc_ids *ids, int id);
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-ipc-semc-remove-sem_base-embed-struct-sem.patch
-ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
-ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
-include-linux-semh-correctly-document-sem_ctime.patch
-ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
 
