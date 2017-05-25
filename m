@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-sem-drop-__sem_free.patch added to -mm tree
-Date: Thu, 25 May 2017 15:11:28 -0700
-Message-ID: <59275690.pAAMaL9vePtLE41Y%akpm@linux-foundation.org>
+Subject: +
+ ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch added to -mm tree
+Date: Thu, 25 May 2017 15:11:30 -0700
+Message-ID: <59275692.uLH8DdxBXx7ZDXeF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43264 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S970364AbdEYWL3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:29 -0400
+        with ESMTP id S970366AbdEYWLb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, dave@stgolabs.net, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem: drop __sem_free()
+     Subject: ipc/util.h: update documentation for ipc_getref() and ipc_putref()
 has been added to the -mm tree.  Its filename is
-     ipc-sem-drop-__sem_free.patch
+     ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-drop-__sem_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-drop-__sem_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ipc/sem: drop __sem_free()
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/util.h: update documentation for ipc_getref() and ipc_putref()
 
-The remaining users of __sem_free() can simply call kvfree() instead for
-better readability.
+Now that ipc_rcu_alloc() and ipc_rcu_free() are removed,
+document when it is valid to use ipc_getref() and ipc_putref().
 
-[manfred@colorfullife.com: Rediff to keep rcu protection for security_sem_alloc()]
-Link: http://lkml.kernel.org/r/20170525185107.12869-20-manfred@colorfullife.com
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20170525185107.12869-21-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ ipc/util.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN ipc/sem.c~ipc-sem-drop-__sem_free ipc/sem.c
---- a/ipc/sem.c~ipc-sem-drop-__sem_free
-+++ a/ipc/sem.c
-@@ -258,18 +258,13 @@ static void merge_queues(struct sem_arra
- 	}
- }
- 
--static void __sem_free(struct sem_array *sma)
--{
--	kvfree(sma);
--}
--
- static void sem_rcu_free(struct rcu_head *head)
- {
- 	struct kern_ipc_perm *p = container_of(head, struct kern_ipc_perm, rcu);
- 	struct sem_array *sma = container_of(p, struct sem_array, sem_perm);
- 
- 	security_sem_free(sma);
--	__sem_free(sma);
-+	kvfree(sma);
- }
- 
- /*
-@@ -500,7 +495,7 @@ static int newary(struct ipc_namespace *
- 	sma->sem_perm.security = NULL;
- 	retval = security_sem_alloc(sma);
- 	if (retval) {
--		__sem_free(sma);
-+		kvfree(sma);
- 		return retval;
- 	}
- 
+diff -puN ipc/util.h~ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref ipc/util.h
+--- a/ipc/util.h~ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref
++++ a/ipc/util.h
+@@ -112,6 +112,9 @@ int ipcperms(struct ipc_namespace *ns, s
+  * Objects are reference counted, they start with reference count 1.
+  * getref increases the refcount, the putref call that reduces the recount
+  * to 0 schedules the rcu destruction. Caller must guarantee locking.
++ *
++ * refcount is initialized by ipc_addid(), before that point call_rcu()
++ * must be used.
+  */
+ int ipc_rcu_getref(struct kern_ipc_perm *ptr);
+ void ipc_rcu_putref(struct kern_ipc_perm *ptr,
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-ipc-drop-non-rcu-allocation.patch
-ipc-sem-do-not-use-ipc_rcu_free.patch
-ipc-shm-do-not-use-ipc_rcu_free.patch
-ipc-msg-do-not-use-ipc_rcu_free.patch
-ipc-util-drop-ipc_rcu_free.patch
-ipc-sem-avoid-ipc_rcu_alloc.patch
-ipc-shm-avoid-ipc_rcu_alloc.patch
-ipc-msg-avoid-ipc_rcu_alloc.patch
-ipc-util-drop-ipc_rcu_alloc.patch
-ipc-move-atomic_set-to-where-it-is-needed.patch
-ipc-shm-remove-special-shm_alloc-free.patch
-ipc-msg-remove-special-msg_alloc-free.patch
-ipc-sem-drop-__sem_free.patch
+ipc-semc-remove-sem_base-embed-struct-sem.patch
+ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
+ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
+include-linux-semh-correctly-document-sem_ctime.patch
+ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
 
