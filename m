@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bug-split-build_bug-stuff-out-into-linux-build_bugh.patch added to -mm tree
-Date: Thu, 25 May 2017 16:09:53 -0700
-Message-ID: <59276441.fcRuTXCVG8UxWj+P%akpm@linux-foundation.org>
+Subject: + kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+ added to -mm tree
+Date: Thu, 25 May 2017 16:09:55 -0700
+Message-ID: <59276443.w2YFtuBAI2UxIB14%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46816 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1163136AbdEYXJy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:09:54 -0400
+        with ESMTP id S1163136AbdEYXJ4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:09:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, jakub.kicinski@netronome.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mina86@mina86.com, peterz@infradead.org, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: abbotti@mev.co.uk, bp@suse.de, glider@google.com, hidehiro.kawai.ez@hitachi.com, johannes.berg@intel.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mina86@mina86.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bug: split BUILD_BUG stuff out into <linux/build_bug.h>
+     Subject: kernel.h: handle pointers to arrays better in container_of()
 has been added to the -mm tree.  Its filename is
-     bug-split-build_bug-stuff-out-into-linux-build_bugh.patch
+     kernelh-handle-pointers-to-arrays-better-in-container_of.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bug-split-build_bug-stuff-out-into-linux-build_bugh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bug-split-build_bug-stuff-out-into-linux-build_bugh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,213 +40,114 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ian Abbott <abbotti@mev.co.uk>
-Subject: bug: split BUILD_BUG stuff out into <linux/build_bug.h>
+Subject: kernel.h: handle pointers to arrays better in container_of()
 
-Including <linux/bug.h> pulls in a lot of bloat from <asm/bug.h> and
-<asm-generic/bug.h> that is not needed to call the BUILD_BUG() family of
-macros.  Split them out into their own header, <linux/build_bug.h>.
+If the first parameter of container_of() is a pointer to a
+non-const-qualified array type (and the third parameter names a
+non-const-qualified array member), the local variable __mptr will be
+defined with a const-qualified array type.  In ISO C, these types are
+incompatible.  They work as expected in GNU C, but some versions will
+issue warnings.  For example, GCC 4.9 produces the warning "initialization
+from incompatible pointer type".
 
-Also correct some checkpatch.pl errors for the BUILD_BUG_ON_ZERO() and
-BUILD_BUG_ON_NULL() macros by adding parentheses around the bitfield
-widths that begin with a minus sign.
+Here is an example of where the problem occurs:
 
-Link: http://lkml.kernel.org/r/20170525120316.24473-6-abbotti@mev.co.uk
+-------------------------------------------------------
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+
+MODULE_LICENSE("GPL");
+
+struct st {
+	int a;
+	char b[16];
+};
+
+static int __init example_init(void) {
+	struct st t = { .a = 101, .b = "hello" };
+	char (*p)[16] = &t.b;
+	struct st *x = container_of(p, struct st, b);
+	printk(KERN_DEBUG "%p %p\n", (void *)&t, (void *)x);
+	return 0;
+}
+
+static void __exit example_exit(void) {
+}
+
+module_init(example_init);
+module_exit(example_exit);
+-------------------------------------------------------
+
+Building the module with gcc-4.9 results in these warnings (where '{m}'
+is the module source and '{k}' is the kernel source):
+
+-------------------------------------------------------
+In file included from {m}/example.c:1:0:
+{m}/example.c: In function `example_init':
+{k}/include/linux/kernel.h:854:48: warning: initialization from
+incompatible pointer type
+  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+                                                ^
+{m}/example.c:14:17: note: in expansion of macro `container_of'
+  struct st *x = container_of(p, struct st, b);
+                 ^
+{k}/include/linux/kernel.h:854:48: warning: (near initialization for
+`x')
+  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+                                                ^
+{m}/example.c:14:17: note: in expansion of macro `container_of'
+  struct st *x = container_of(p, struct st, b);
+                 ^
+-------------------------------------------------------
+
+Replace the type checking performed by the macro to avoid these warnings. 
+Make sure `*(ptr)` either has type compatible with the member, or has type
+compatible with `void`, ignoring qualifiers.  Raise compiler errors if
+this is not true.  This is stronger than the previous behaviour, which
+only resulted in compiler warnings for a type mismatch.
+
+Link: http://lkml.kernel.org/r/20170525120316.24473-7-abbotti@mev.co.uk
 Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
 Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Borislav Petkov <bp@suse.de>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Johannes Berg <johannes.berg@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bug.h       |   74 -------------------------------
- include/linux/build_bug.h |   84 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 85 insertions(+), 73 deletions(-)
+ include/linux/kernel.h |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/bug.h~bug-split-build_bug-stuff-out-into-linux-build_bugh include/linux/bug.h
---- a/include/linux/bug.h~bug-split-build_bug-stuff-out-into-linux-build_bugh
-+++ a/include/linux/bug.h
-@@ -3,6 +3,7 @@
- 
- #include <asm/bug.h>
- #include <linux/compiler.h>
+diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of
++++ a/include/linux/kernel.h
+@@ -11,6 +11,7 @@
+ #include <linux/log2.h>
+ #include <linux/typecheck.h>
+ #include <linux/printk.h>
 +#include <linux/build_bug.h>
+ #include <asm/byteorder.h>
+ #include <uapi/linux/kernel.h>
  
- enum bug_trap_type {
- 	BUG_TRAP_TYPE_NONE = 0,
-@@ -13,82 +14,9 @@ enum bug_trap_type {
- struct pt_regs;
+@@ -850,9 +851,11 @@ static inline void ftrace_dump(enum ftra
+  * @member:	the name of the member within the struct.
+  *
+  */
+-#define container_of(ptr, type, member) ({			\
+-	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+-	(type *)( (char *)__mptr - offsetof(type,member) );})
++#define container_of(ptr, type, member) ({				\
++	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
++			 !__same_type(*(ptr), void),			\
++			 "pointer type mismatch in container_of()");	\
++	((type *)((char *)(ptr) - offsetof(type, member))); })
  
- #ifdef __CHECKER__
--#define __BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
--#define BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
--#define BUILD_BUG_ON_ZERO(e) (0)
--#define BUILD_BUG_ON_NULL(e) ((void *)0)
--#define BUILD_BUG_ON_INVALID(e) (0)
--#define BUILD_BUG_ON_MSG(cond, msg) (0)
--#define BUILD_BUG_ON(condition) (0)
--#define BUILD_BUG() (0)
- #define MAYBE_BUILD_BUG_ON(cond) (0)
- #else /* __CHECKER__ */
- 
--/* Force a compilation error if a constant expression is not a power of 2 */
--#define __BUILD_BUG_ON_NOT_POWER_OF_2(n)	\
--	BUILD_BUG_ON(((n) & ((n) - 1)) != 0)
--#define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
--	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
--
--/*
-- * Force a compilation error if condition is true, but also produce a
-- * result (of value 0 and type size_t), so the expression can be used
-- * e.g. in a structure initializer (or where-ever else comma expressions
-- * aren't permitted).
-- */
--#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
--#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:(-!!(e)); }))
--
--/*
-- * BUILD_BUG_ON_INVALID() permits the compiler to check the validity of the
-- * expression but avoids the generation of any code, even if that expression
-- * has side-effects.
-- */
--#define BUILD_BUG_ON_INVALID(e) ((void)(sizeof((__force long)(e))))
--
--/**
-- * BUILD_BUG_ON_MSG - break compile if a condition is true & emit supplied
-- *		      error message.
-- * @condition: the condition which the compiler should know is false.
-- *
-- * See BUILD_BUG_ON for description.
-- */
--#define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
--
--/**
-- * BUILD_BUG_ON - break compile if a condition is true.
-- * @condition: the condition which the compiler should know is false.
-- *
-- * If you have some code which relies on certain constants being equal, or
-- * some other compile-time-evaluated condition, you should use BUILD_BUG_ON to
-- * detect if someone changes it.
-- *
-- * The implementation uses gcc's reluctance to create a negative array, but gcc
-- * (as of 4.4) only emits that error for obvious cases (e.g. not arguments to
-- * inline functions).  Luckily, in 4.3 they added the "error" function
-- * attribute just for this type of case.  Thus, we use a negative sized array
-- * (should always create an error on gcc versions older than 4.4) and then call
-- * an undefined function with the error attribute (should always create an
-- * error on gcc 4.3 and later).  If for some reason, neither creates a
-- * compile-time error, we'll still have a link-time error, which is harder to
-- * track down.
-- */
--#ifndef __OPTIMIZE__
--#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
--#else
--#define BUILD_BUG_ON(condition) \
--	BUILD_BUG_ON_MSG(condition, "BUILD_BUG_ON failed: " #condition)
--#endif
--
--/**
-- * BUILD_BUG - break compile if used.
-- *
-- * If you have some code that you expect the compiler to eliminate at
-- * build time, you should use BUILD_BUG to detect if it is
-- * unexpectedly used.
-- */
--#define BUILD_BUG() BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
--
- #define MAYBE_BUILD_BUG_ON(cond)			\
- 	do {						\
- 		if (__builtin_constant_p((cond)))       \
-diff -puN /dev/null include/linux/build_bug.h
---- /dev/null
-+++ a/include/linux/build_bug.h
-@@ -0,0 +1,84 @@
-+#ifndef _LINUX_BUILD_BUG_H
-+#define _LINUX_BUILD_BUG_H
-+
-+#include <linux/compiler.h>
-+
-+#ifdef __CHECKER__
-+#define __BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
-+#define BUILD_BUG_ON_NOT_POWER_OF_2(n) (0)
-+#define BUILD_BUG_ON_ZERO(e) (0)
-+#define BUILD_BUG_ON_NULL(e) ((void *)0)
-+#define BUILD_BUG_ON_INVALID(e) (0)
-+#define BUILD_BUG_ON_MSG(cond, msg) (0)
-+#define BUILD_BUG_ON(condition) (0)
-+#define BUILD_BUG() (0)
-+#else /* __CHECKER__ */
-+
-+/* Force a compilation error if a constant expression is not a power of 2 */
-+#define __BUILD_BUG_ON_NOT_POWER_OF_2(n)	\
-+	BUILD_BUG_ON(((n) & ((n) - 1)) != 0)
-+#define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
-+	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
-+
-+/*
-+ * Force a compilation error if condition is true, but also produce a
-+ * result (of value 0 and type size_t), so the expression can be used
-+ * e.g. in a structure initializer (or where-ever else comma expressions
-+ * aren't permitted).
-+ */
-+#define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:(-!!(e)); }))
-+#define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:(-!!(e)); }))
-+
-+/*
-+ * BUILD_BUG_ON_INVALID() permits the compiler to check the validity of the
-+ * expression but avoids the generation of any code, even if that expression
-+ * has side-effects.
-+ */
-+#define BUILD_BUG_ON_INVALID(e) ((void)(sizeof((__force long)(e))))
-+
-+/**
-+ * BUILD_BUG_ON_MSG - break compile if a condition is true & emit supplied
-+ *		      error message.
-+ * @condition: the condition which the compiler should know is false.
-+ *
-+ * See BUILD_BUG_ON for description.
-+ */
-+#define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
-+
-+/**
-+ * BUILD_BUG_ON - break compile if a condition is true.
-+ * @condition: the condition which the compiler should know is false.
-+ *
-+ * If you have some code which relies on certain constants being equal, or
-+ * some other compile-time-evaluated condition, you should use BUILD_BUG_ON to
-+ * detect if someone changes it.
-+ *
-+ * The implementation uses gcc's reluctance to create a negative array, but gcc
-+ * (as of 4.4) only emits that error for obvious cases (e.g. not arguments to
-+ * inline functions).  Luckily, in 4.3 they added the "error" function
-+ * attribute just for this type of case.  Thus, we use a negative sized array
-+ * (should always create an error on gcc versions older than 4.4) and then call
-+ * an undefined function with the error attribute (should always create an
-+ * error on gcc 4.3 and later).  If for some reason, neither creates a
-+ * compile-time error, we'll still have a link-time error, which is harder to
-+ * track down.
-+ */
-+#ifndef __OPTIMIZE__
-+#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
-+#else
-+#define BUILD_BUG_ON(condition) \
-+	BUILD_BUG_ON_MSG(condition, "BUILD_BUG_ON failed: " #condition)
-+#endif
-+
-+/**
-+ * BUILD_BUG - break compile if used.
-+ *
-+ * If you have some code that you expect the compiler to eliminate at
-+ * build time, you should use BUILD_BUG to detect if it is
-+ * unexpectedly used.
-+ */
-+#define BUILD_BUG() BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
-+
-+#endif	/* __CHECKER__ */
-+
-+#endif	/* _LINUX_BUILD_BUG_H */
+ /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
+ #ifdef CONFIG_FTRACE_MCOUNT_RECORD
 _
 
 Patches currently in -mm which might be from abbotti@mev.co.uk are
