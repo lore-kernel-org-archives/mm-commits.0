@@ -1,33 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
- removed from -mm tree
-Date: Thu, 25 May 2017 15:45:10 -0700
-Message-ID: <59275e76.oxFkDgUw7WvaC8iZ%akpm@linux-foundation.org>
+Subject: +
+ mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch added to -mm tree
+Date: Thu, 25 May 2017 15:46:23 -0700
+Message-ID: <59275ebf.J2Z9kk9uuHWKdJS8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1165891AbdEYWpL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:45:11 -0400
+        with ESMTP id S1030517AbdEYWqc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:46:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: punit.agrawal@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, liwanp@linux.vnet.ibm.com, manoj.iyer@canonical.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: punit.agrawal@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, manoj.iyer@canonical.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, wanpeng.li@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate.c: fix refcount handling when !hugepage_migration_supported()
-has been removed from the -mm tree.  Its filename was
-     mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported.patch
+     Subject: mm/migrate: fix refcount handling when !hugepage_migration_supported()
+has been added to the -mm tree.  Its filename is
+     mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm/migrate.c: fix refcount handling when !hugepage_migration_supported()
+Subject: mm/migrate: fix refcount handling when !hugepage_migration_supported()
 
 On failing to migrate a page, soft_offline_huge_page() performs the
 necessary update to the hugepage ref-count.  When
@@ -62,39 +75,38 @@ INFO: rcu_preempt detected stalls on CPUs/tasks:
   [<ffff000008129f00>] __handle_domain_irq+0x68/0xc0
   [<ffff0000080816b4>] gic_handle_irq+0x5c/0xb0
 
-Fix this by dropping the ref-count decrement in unmap_and_move_hugepage()
-when !hugepage_migration_supported().
+Address this by changing the putback_active_hugepage() in
+soft_offline_huge_page() to putback_movable_pages().
 
-Link: http://lkml.kernel.org/r/20170524154728.2492-1-punit.agrawal@arm.com
-Fixes: 32665f2bbfed ("mm/migrate: correct failure handling if !hugepage_migration_support()")
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Link: http://lkml.kernel.org/r/20170525135146.32011-1-punit.agrawal@arm.com
 Reported-by: Manoj Iyer <manoj.iyer@canonical.com>
-Tested-By: Manoj Iyer <manoj.iyer@canonical.com>
+Tested-by: Manoj Iyer <manoj.iyer@canonical.com>
+Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Wanpeng Li <wanpeng.li@hotmail.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>	[3.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/memory-failure.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported mm/migrate.c
---- a/mm/migrate.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported
-+++ a/mm/migrate.c
-@@ -1201,10 +1201,8 @@ static int unmap_and_move_huge_page(new_
- 	 * tables or check whether the hugepage is pmd-based or not before
- 	 * kicking migration.
- 	 */
--	if (!hugepage_migration_supported(page_hstate(hpage))) {
+diff -puN mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2 mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2
++++ a/mm/memory-failure.c
+@@ -1600,7 +1600,8 @@ static int soft_offline_huge_page(struct
+ 		 * only one hugepage pointed to by hpage, so we need not
+ 		 * run through the pagelist here.
+ 		 */
 -		putback_active_hugepage(hpage);
-+	if (!hugepage_migration_supported(page_hstate(hpage)))
- 		return -ENOSYS;
--	}
- 
- 	new_hpage = get_new_page(hpage, private, &result);
- 	if (!new_hpage)
++		if (!list_empty(&pagelist))
++			putback_movable_pages(&pagelist);
+ 		if (ret > 0)
+ 			ret = -EIO;
+ 	} else {
 _
 
 Patches currently in -mm which might be from punit.agrawal@arm.com are
