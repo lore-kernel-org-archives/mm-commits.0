@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch added
- to -mm tree
-Date: Thu, 25 May 2017 15:11:20 -0700
-Message-ID: <59275688.1VW2E6P3iIILYSND%akpm@linux-foundation.org>
+Subject: + ipc-msg-remove-special-msg_alloc-free.patch added to -mm tree
+Date: Thu, 25 May 2017 15:11:26 -0700
+Message-ID: <5927568e.k0f+yUzXfD39wmgK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43248 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1163339AbdEYWL0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:26 -0400
+        with ESMTP id S1165841AbdEYWL1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, dave@stgolabs.net, keescook@chromium.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/msg.c: avoid ipc_rcu_putref for failed ipc_addid()
+     Subject: ipc/msg: remove special msg_alloc/free
 has been added to the -mm tree.  Its filename is
-     ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+     ipc-msg-remove-special-msg_alloc-free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msg-remove-special-msg_alloc-free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msg-remove-special-msg_alloc-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +38,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/msg.c: avoid ipc_rcu_putref for failed ipc_addid()
+From: Kees Cook <keescook@chromium.org>
+Subject: ipc/msg: remove special msg_alloc/free
 
-Loosely based on a patch from Kees Cook <keescook@chromium.org>:
-- id and retval can be merged
-- if ipc_addid() fails, then use call_rcu() directly.
+There is nothing special about the msg_alloc/free routines any more,
+so remove them to make code more readable.
 
-The difference is that call_rcu is used for failed ipc_addid() calls, to
-continue to guaranteed an rcu delay for security_msg_queue_free().
-
-Link: http://lkml.kernel.org/r/20170525185107.12869-16-manfred@colorfullife.com
+[manfred@colorfullife.com: Rediff to keep rcu protection for security_msg_queue_alloc()]
+Link: http://lkml.kernel.org/r/20170525185107.12869-19-manfred@colorfullife.com
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ ipc/msg.c |   24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
 
-diff -puN ipc/msg.c~ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid ipc/msg.c
---- a/ipc/msg.c~ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid
+diff -puN ipc/msg.c~ipc-msg-remove-special-msg_alloc-free ipc/msg.c
+--- a/ipc/msg.c~ipc-msg-remove-special-msg_alloc-free
 +++ a/ipc/msg.c
-@@ -132,7 +132,7 @@ static struct msg_queue *msg_alloc(void)
- static int newque(struct ipc_namespace *ns, struct ipc_params *params)
+@@ -95,29 +95,13 @@ static inline void msg_rmid(struct ipc_n
+ 	ipc_rmid(&msg_ids(ns), &s->q_perm);
+ }
+ 
+-static void __msg_free(struct msg_queue *msq)
+-{
+-	kvfree(msq);
+-}
+-
+ static void msg_rcu_free(struct rcu_head *head)
  {
- 	struct msg_queue *msq;
--	int id, retval;
-+	int retval;
+ 	struct kern_ipc_perm *p = container_of(head, struct kern_ipc_perm, rcu);
+ 	struct msg_queue *msq = container_of(p, struct msg_queue, q_perm);
+ 
+ 	security_msg_queue_free(msq);
+-	__msg_free(msq);
+-}
+-
+-static struct msg_queue *msg_alloc(void)
+-{
+-	struct msg_queue *msq;
+-
+-	msq = kvmalloc(sizeof(*msq), GFP_KERNEL);
+-	if (unlikely(!msq))
+-		return NULL;
+-
+-	return msq;
++	kvfree(msq);
+ }
+ 
+ /**
+@@ -134,8 +118,8 @@ static int newque(struct ipc_namespace *
  	key_t key = params->key;
  	int msgflg = params->flg;
  
-@@ -160,10 +160,10 @@ static int newque(struct ipc_namespace *
- 	INIT_LIST_HEAD(&msq->q_senders);
+-	msq = msg_alloc();
+-	if (!msq)
++	msq = kvmalloc(sizeof(*msq), GFP_KERNEL);
++	if (unlikely(!msq))
+ 		return -ENOMEM;
  
- 	/* ipc_addid() locks msq upon success. */
--	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
--	if (id < 0) {
--		ipc_rcu_putref(&msq->q_perm, msg_rcu_free);
--		return id;
-+	retval = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
-+	if (retval < 0) {
-+		call_rcu(&msq->q_perm.rcu, msg_rcu_free);
-+		return retval;
+ 	msq->q_perm.mode = msgflg & S_IRWXUGO;
+@@ -144,7 +128,7 @@ static int newque(struct ipc_namespace *
+ 	msq->q_perm.security = NULL;
+ 	retval = security_msg_queue_alloc(msq);
+ 	if (retval) {
+-		__msg_free(msq);
++		kvfree(msq);
+ 		return retval;
  	}
  
- 	ipc_unlock_object(&msq->q_perm);
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-ipc-semc-remove-sem_base-embed-struct-sem.patch
-ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
-ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
-include-linux-semh-correctly-document-sem_ctime.patch
-ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
-ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
 
