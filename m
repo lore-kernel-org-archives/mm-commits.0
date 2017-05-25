@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch added
- to -mm tree
-Date: Thu, 25 May 2017 15:40:37 -0700
-Message-ID: <59275d65.7kV3iedVoSV//WXY%akpm@linux-foundation.org>
+ mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch added to -mm tree
+Date: Thu, 25 May 2017 15:40:39 -0700
+Message-ID: <59275d67.4Sp5f6tCElbq/CB1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44288 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760433AbdEYWki (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:40:38 -0400
+        with ESMTP id S1761604AbdEYWkk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:40:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: catalin.marinas@arm.com, luto@amacapital.net, mcgrof@kernel.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: factor object reference updating out of scan_block()
+     Subject: mm: kmemleak: treat vm_struct as alternative reference to vmalloc'ed objects
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
+     mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,63 +40,267 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: kmemleak: factor object reference updating out of scan_block()
+Subject: mm: kmemleak: treat vm_struct as alternative reference to vmalloc'ed objects
 
-scan_block() updates the number of references (pointers) to objects,
-adding them to the gray_list when object->min_count is reached.  The patch
-factors out this functionality into a separate update_refs() function.
+Kmemleak requires that vmalloc'ed objects have a minimum reference count
+of 2: one in the corresponding vm_struct object and the other owned by the
+vmalloc() caller.  There are cases, however, where the original vmalloc()
+returned pointer is lost and, instead, a pointer to vm_struct is stored
+(see free_thread_stack()).  Kmemleak currently reports such objects as
+leaks.
 
-Link: http://lkml.kernel.org/r/1495726937-23557-3-git-send-email-catalin.marinas@arm.com
+This patch adds support for treating any surplus references to an object
+as additional references to a specified object.  It introduces the
+kmemleak_vmalloc() API function which takes a vm_struct pointer and sets
+its surplus reference passing to the actual vmalloc() returned pointer. 
+The __vmalloc_node_range() calling site has been modified accordingly.
+
+Link: http://lkml.kernel.org/r/1495726937-23557-4-git-send-email-catalin.marinas@arm.com
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: "Luis R. Rodriguez" <mcgrof@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   43 +++++++++++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+ Documentation/dev-tools/kmemleak.rst |    1 
+ include/linux/kmemleak.h             |    7 +
+ mm/kmemleak.c                        |   93 +++++++++++++++++++++++--
+ mm/vmalloc.c                         |    7 -
+ 4 files changed, 98 insertions(+), 10 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-kmemleak-factor-object-reference-updating-out-of-scan_block mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-factor-object-reference-updating-out-of-scan_block
+diff -puN Documentation/dev-tools/kmemleak.rst~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects Documentation/dev-tools/kmemleak.rst
+--- a/Documentation/dev-tools/kmemleak.rst~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
++++ a/Documentation/dev-tools/kmemleak.rst
+@@ -150,6 +150,7 @@ See the include/linux/kmemleak.h header
+ - ``kmemleak_init``		 - initialize kmemleak
+ - ``kmemleak_alloc``		 - notify of a memory block allocation
+ - ``kmemleak_alloc_percpu``	 - notify of a percpu memory block allocation
++- ``kmemleak_vmalloc``		 - notify of a vmalloc() memory allocation
+ - ``kmemleak_free``		 - notify of a memory block freeing
+ - ``kmemleak_free_part``	 - notify of a partial memory block freeing
+ - ``kmemleak_free_percpu``	 - notify of a percpu memory block freeing
+diff -puN include/linux/kmemleak.h~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects include/linux/kmemleak.h
+--- a/include/linux/kmemleak.h~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
++++ a/include/linux/kmemleak.h
+@@ -22,6 +22,7 @@
+ #define __KMEMLEAK_H
+ 
+ #include <linux/slab.h>
++#include <linux/vmalloc.h>
+ 
+ #ifdef CONFIG_DEBUG_KMEMLEAK
+ 
+@@ -30,6 +31,8 @@ extern void kmemleak_alloc(const void *p
+ 			   gfp_t gfp) __ref;
+ extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
+ 				  gfp_t gfp) __ref;
++extern void kmemleak_vmalloc(const struct vm_struct *area, size_t size,
++			     gfp_t gfp) __ref;
+ extern void kmemleak_free(const void *ptr) __ref;
+ extern void kmemleak_free_part(const void *ptr, size_t size) __ref;
+ extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
+@@ -81,6 +84,10 @@ static inline void kmemleak_alloc_percpu
+ 					 gfp_t gfp)
+ {
+ }
++static inline void kmemleak_vmalloc(const struct vm_struct *area, size_t size,
++				    gfp_t gfp)
++{
++}
+ static inline void kmemleak_free(const void *ptr)
+ {
+ }
+diff -puN mm/kmemleak.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
 +++ a/mm/kmemleak.c
-@@ -1188,6 +1188,30 @@ static bool update_checksum(struct kmeml
+@@ -159,6 +159,8 @@ struct kmemleak_object {
+ 	atomic_t use_count;
+ 	unsigned long pointer;
+ 	size_t size;
++	/* pass surplus references to this pointer */
++	unsigned long excess_ref;
+ 	/* minimum number of a pointers found before it is considered leak */
+ 	int min_count;
+ 	/* the total number of pointers found pointing to this object */
+@@ -253,7 +255,8 @@ enum {
+ 	KMEMLEAK_NOT_LEAK,
+ 	KMEMLEAK_IGNORE,
+ 	KMEMLEAK_SCAN_AREA,
+-	KMEMLEAK_NO_SCAN
++	KMEMLEAK_NO_SCAN,
++	KMEMLEAK_SET_EXCESS_REF
+ };
+ 
+ /*
+@@ -264,7 +267,10 @@ struct early_log {
+ 	int op_type;			/* kmemleak operation type */
+ 	int min_count;			/* minimum reference count */
+ 	const void *ptr;		/* allocated/freed memory block */
+-	size_t size;			/* memory block size */
++	union {
++		size_t size;		/* memory block size */
++		unsigned long excess_ref; /* surplus reference passing */
++	};
+ 	unsigned long trace[MAX_TRACE];	/* stack trace */
+ 	unsigned int trace_len;		/* stack trace length */
+ };
+@@ -562,6 +568,7 @@ static struct kmemleak_object *create_ob
+ 	object->flags = OBJECT_ALLOCATED;
+ 	object->pointer = ptr;
+ 	object->size = size;
++	object->excess_ref = 0;
+ 	object->min_count = min_count;
+ 	object->count = 0;			/* white color initially */
+ 	object->jiffies = jiffies;
+@@ -795,6 +802,30 @@ out:
  }
  
  /*
-+ * Update an object's references. object->lock must be held by the caller.
++ * Any surplus references (object already gray) to 'ptr' are passed to
++ * 'excess_ref'. This is used in the vmalloc() case where a pointer to
++ * vm_struct may be used as an alternative reference to the vmalloc'ed object
++ * (see free_thread_stack()).
 + */
-+static void update_refs(struct kmemleak_object *object)
++static void object_set_excess_ref(unsigned long ptr, unsigned long excess_ref)
 +{
-+	if (!color_white(object)) {
-+		/* non-orphan, ignored or new */
++	unsigned long flags;
++	struct kmemleak_object *object;
++
++	object = find_and_get_object(ptr, 0);
++	if (!object) {
++		kmemleak_warn("Setting excess_ref on unknown object at 0x%08lx\n",
++			      ptr);
 +		return;
 +	}
 +
-+	/*
-+	 * Increase the object's reference count (number of pointers to the
-+	 * memory block). If this count reaches the required minimum, the
-+	 * object's color will become gray and it will be added to the
-+	 * gray_list.
-+	 */
-+	object->count++;
-+	if (color_gray(object)) {
-+		/* put_object() called when removing from gray_list */
-+		WARN_ON(!get_object(object));
-+		list_add_tail(&object->gray_list, &gray_list);
-+	}
++	spin_lock_irqsave(&object->lock, flags);
++	object->excess_ref = excess_ref;
++	spin_unlock_irqrestore(&object->lock, flags);
++	put_object(object);
 +}
 +
 +/*
-  * Memory scanning is a long process and it needs to be interruptable. This
-  * function checks whether such interrupt condition occurred.
+  * Set the OBJECT_NO_SCAN flag for the object corresponding to the give
+  * pointer. Such object will not be scanned by kmemleak but references to it
+  * are searched.
+@@ -908,7 +939,7 @@ static void early_alloc_percpu(struct ea
+  * @gfp:	kmalloc() flags used for kmemleak internal memory allocations
+  *
+  * This function is called from the kernel allocators when a new object
+- * (memory block) is allocated (kmem_cache_alloc, kmalloc, vmalloc etc.).
++ * (memory block) is allocated (kmem_cache_alloc, kmalloc etc.).
   */
-@@ -1259,24 +1283,7 @@ static void scan_block(void *_start, voi
+ void __ref kmemleak_alloc(const void *ptr, size_t size, int min_count,
+ 			  gfp_t gfp)
+@@ -952,6 +983,36 @@ void __ref kmemleak_alloc_percpu(const v
+ EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
+ 
+ /**
++ * kmemleak_vmalloc - register a newly vmalloc'ed object
++ * @area:	pointer to vm_struct
++ * @size:	size of the object
++ * @gfp:	__vmalloc() flags used for kmemleak internal memory allocations
++ *
++ * This function is called from the vmalloc() kernel allocator when a new
++ * object (memory block) is allocated.
++ */
++void __ref kmemleak_vmalloc(const struct vm_struct *area, size_t size, gfp_t gfp)
++{
++	pr_debug("%s(0x%p, %zu)\n", __func__, area, size);
++
++	/*
++	 * A min_count = 2 is needed because vm_struct contains a reference to
++	 * the virtual address of the vmalloc'ed block.
++	 */
++	if (kmemleak_enabled) {
++		create_object((unsigned long)area->addr, size, 2, gfp);
++		object_set_excess_ref((unsigned long)area,
++				      (unsigned long)area->addr);
++	} else if (kmemleak_early_log) {
++		log_early(KMEMLEAK_ALLOC, area->addr, size, 2);
++		/* reusing early_log.size for storing area->addr */
++		log_early(KMEMLEAK_SET_EXCESS_REF,
++			  area, (unsigned long)area->addr, 0);
++	}
++}
++EXPORT_SYMBOL_GPL(kmemleak_vmalloc);
++
++/**
+  * kmemleak_free - unregister a previously registered object
+  * @ptr:	pointer to beginning of the object
+  *
+@@ -1248,6 +1309,7 @@ static void scan_block(void *_start, voi
+ 	for (ptr = start; ptr < end; ptr++) {
+ 		struct kmemleak_object *object;
+ 		unsigned long pointer;
++		unsigned long excess_ref;
+ 
+ 		if (scan_should_stop())
+ 			break;
+@@ -1283,8 +1345,27 @@ static void scan_block(void *_start, voi
  		 * enclosed by scan_mutex.
  		 */
  		spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
--		if (!color_white(object)) {
--			/* non-orphan, ignored or new */
--			spin_unlock(&object->lock);
--			continue;
--		}
+-		update_refs(object);
++		/* only pass surplus references (object already gray) */
++		if (color_gray(object)) {
++			excess_ref = object->excess_ref;
++			/* no need for update_refs() if object already gray */
++		} else {
++			excess_ref = 0;
++			update_refs(object);
++		}
+ 		spin_unlock(&object->lock);
++
++		if (excess_ref) {
++			object = lookup_object(excess_ref, 0);
++			if (!object)
++				continue;
++			if (object == scanned)
++				/* circular reference, ignore */
++				continue;
++			spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
++			update_refs(object);
++			spin_unlock(&object->lock);
++		}
+ 	}
+ 	read_unlock_irqrestore(&kmemleak_lock, flags);
+ }
+@@ -1987,6 +2068,10 @@ void __init kmemleak_init(void)
+ 		case KMEMLEAK_NO_SCAN:
+ 			kmemleak_no_scan(log->ptr);
+ 			break;
++		case KMEMLEAK_SET_EXCESS_REF:
++			object_set_excess_ref((unsigned long)log->ptr,
++					      log->excess_ref);
++			break;
+ 		default:
+ 			kmemleak_warn("Unknown early log operation: %d\n",
+ 				      log->op_type);
+diff -puN mm/vmalloc.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects
++++ a/mm/vmalloc.c
+@@ -1759,12 +1759,7 @@ void *__vmalloc_node_range(unsigned long
+ 	 */
+ 	clear_vm_uninitialized_flag(area);
+ 
+-	/*
+-	 * A ref_count = 2 is needed because vm_struct allocated in
+-	 * __get_vm_area_node() contains a reference to the virtual address of
+-	 * the vmalloc'ed block.
+-	 */
+-	kmemleak_alloc(addr, real_size, 2, gfp_mask);
++	kmemleak_vmalloc(area, size, gfp_mask);
+ 
+ 	return addr;
+ 
+_
+
+Patches currently in -mm which might be from catalin.marinas@arm.com are
+
+mm-kmemleak-slightly-reduce-the-size-of-some-structures-on-64-bit-architectures.patch
+mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
+mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
+
