@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shm-do-not-use-ipc_rcu_free.patch added to -mm tree
-Date: Thu, 25 May 2017 15:11:02 -0700
-Message-ID: <59275676.L/YApkSmNOpJG9Yj%akpm@linux-foundation.org>
+Subject: + ipc-sem-avoid-ipc_rcu_alloc.patch added to -mm tree
+Date: Thu, 25 May 2017 15:11:08 -0700
+Message-ID: <5927567c.y1ZJ/zwXyZP7H4kU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43180 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933583AbdEYWLH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:07 -0400
+        with ESMTP id S943234AbdEYWLJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 18:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm: do not use ipc_rcu_free()
+     Subject: ipc/sem: avoid ipc_rcu_alloc()
 has been added to the -mm tree.  Its filename is
-     ipc-shm-do-not-use-ipc_rcu_free.patch
+     ipc-sem-avoid-ipc_rcu_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-do-not-use-ipc_rcu_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-avoid-ipc_rcu_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-do-not-use-ipc_rcu_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-avoid-ipc_rcu_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +39,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: ipc/shm: do not use ipc_rcu_free()
+Subject: ipc/sem: avoid ipc_rcu_alloc()
 
-Avoid using ipc_rcu_free, since it just re-finds the original structure
-pointer.  For the pre-list-init failure path, there is no RCU needed,
-since it was just allocated.  It can be directly freed.
+Instead of using ipc_rcu_alloc() which only performs the refcount bump,
+open code it to perform better sem-specific checks.  This also allows for
+sem_array structure layout to be randomized in the future.
 
-Link: http://lkml.kernel.org/r/20170525185107.12869-7-manfred@colorfullife.com
+[manfred@colorfullife.com: Rediff, because the memset was temporarily inside ipc_rcu_alloc()]
+Link: http://lkml.kernel.org/r/20170525185107.12869-10-manfred@colorfullife.com
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ ipc/sem.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN ipc/shm.c~ipc-shm-do-not-use-ipc_rcu_free ipc/shm.c
---- a/ipc/shm.c~ipc-shm-do-not-use-ipc_rcu_free
-+++ a/ipc/shm.c
-@@ -172,6 +172,11 @@ static inline void shm_lock_by_ptr(struc
- 	ipc_lock_object(&ipcp->shm_perm);
+diff -puN ipc/sem.c~ipc-sem-avoid-ipc_rcu_alloc ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-avoid-ipc_rcu_alloc
++++ a/ipc/sem.c
+@@ -451,6 +451,25 @@ static inline void sem_rmid(struct ipc_n
+ 	ipc_rmid(&sem_ids(ns), &s->sem_perm);
  }
  
-+static void __shm_free(struct shmid_kernel *shp)
++static struct sem_array *sem_alloc(size_t nsems)
 +{
-+	kvfree(shp);
++	struct sem_array *sma;
++	size_t size;
++
++	if (nsems > (INT_MAX - sizeof(*sma)) / sizeof(sma->sems[0]))
++		return NULL;
++
++	size = sizeof(*sma) + nsems * sizeof(sma->sems[0]);
++	sma = kvmalloc(size, GFP_KERNEL);
++	if (unlikely(!sma))
++		return NULL;
++
++	memset(sma, 0, size);
++	atomic_set(&sma->sem_perm.refcount, 1);
++
++	return sma;
 +}
 +
- static void shm_rcu_free(struct rcu_head *head)
- {
- 	struct kern_ipc_perm *ptr = container_of(head, struct kern_ipc_perm,
-@@ -179,7 +184,7 @@ static void shm_rcu_free(struct rcu_head
- 	struct shmid_kernel *shp = container_of(ptr, struct shmid_kernel,
- 							shm_perm);
- 	security_shm_free(shp);
--	ipc_rcu_free(head);
-+	__shm_free(shp);
- }
+ /**
+  * newary - Create a new semaphore set
+  * @ns: namespace
+@@ -463,7 +482,6 @@ static int newary(struct ipc_namespace *
+ 	int id;
+ 	int retval;
+ 	struct sem_array *sma;
+-	int size;
+ 	key_t key = params->key;
+ 	int nsems = params->u.nsems;
+ 	int semflg = params->flg;
+@@ -474,10 +492,7 @@ static int newary(struct ipc_namespace *
+ 	if (ns->used_sems + nsems > ns->sc_semmns)
+ 		return -ENOSPC;
  
- static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
-@@ -557,7 +562,7 @@ static int newseg(struct ipc_namespace *
- 	shp->shm_perm.security = NULL;
- 	error = security_shm_alloc(shp);
- 	if (error) {
--		ipc_rcu_putref(&shp->shm_perm, ipc_rcu_free);
-+		__shm_free(shp);
- 		return error;
- 	}
- 
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-ipc-drop-non-rcu-allocation.patch
-ipc-sem-do-not-use-ipc_rcu_free.patch
-ipc-shm-do-not-use-ipc_rcu_free.patch
-ipc-msg-do-not-use-ipc_rcu_free.patch
-ipc-util-drop-ipc_rcu_free.patch
-ipc-sem-avoid-ipc_rcu_alloc.patch
-ipc-shm-avoid-ipc_rcu_alloc.patch
-ipc-msg-avoid-ipc_rcu_alloc.patch
-ipc-util-drop-ipc_rcu_alloc.patch
-ipc-move-atomic_set-to-where-it-is-needed.patch
-ipc-shm-remove-special-shm_alloc-free.patch
-ipc-msg-remove-special-msg_alloc-free.patch
-ipc-sem-drop-__sem_free.patch
-
+-	BUILD_BUG_ON(offsetof(struct sem_array, sem_perm) != 0);
