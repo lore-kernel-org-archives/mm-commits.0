@@ -1,363 +1,321 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- add-the-option-of-fortified-stringh-functions.patch removed from -mm tree
-Date: Thu, 25 May 2017 16:52:36 -0700
-Message-ID: <20170525235236.FRsjuA6Tq%akpm@linux-foundation.org>
+Subject: mmotm 2017-05-25-17-28 uploaded
+Date: Thu, 25 May 2017 17:28:46 -0700
+Message-ID: <592776be.DReAO8hNs7HUKfxe%akpm__35103.4433384941$1495758542$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1165888AbdEYXwi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 19:52:38 -0400
+        with ESMTP id S1763433AbdEZA2r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2017 20:28:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: danielmicay@gmail.com, dja@axtens.net, keescook@chromium.org, mark.rutland@arm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2017-05-25-17-28 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: include/linux/string.h: add the option of fortified string.h functions
-has been removed from the -mm tree.  Its filename was
-     add-the-option-of-fortified-stringh-functions.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch was dropped because it had testing failures
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-------------------------------------------------------
-From: Daniel Micay <danielmicay@gmail.com>
-Subject: include/linux/string.h: add the option of fortified string.h functions
+To develop on top of mmotm git:
 
-This adds support for compiling with a rough equivalent to the glibc
-_FORTIFY_SOURCE=1 feature, providing compile-time and runtime buffer
-overflow checks for string.h functions when the compiler determines the
-size of the source or destination buffer at compile-time.  Unlike glibc,
-it covers buffer reads in addition to writes.
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-GNU C __builtin_*_chk intrinsics are avoided because they would force a
-much more complex implementation.  They aren't designed to detect read
-overflows and offer no real benefit when using an implementation based on
-inline checks.  Inline checks don't add up to much code size and allow
-full use of the regular string intrinsics while avoiding the need for a
-bunch of _chk functions and per-arch assembly to avoid wrapper overhead.
+To rebase a branch with older patches to a new mmotm release:
 
-This detects various overflows at compile-time in various drivers and some
-non-x86 core kernel code.  There will likely be issues caught in regular
-use at runtime too.
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
-Future improvements left out of initial implementation for simplicity, as
-it's all quite optional and can be done incrementally:
 
-* Some of the fortified string functions (strncpy, strcat), don't yet
-  place a limit on reads from the source based on __builtin_object_size of
-  the source buffer.
 
-* Extending coverage to more string functions like strlcat.
 
-* It should be possible to optionally use __builtin_object_size(x, 1)
-  for some functions (C strings) to detect intra-object overflows (like
-  glibc's _FORTIFY_SOURCE=2), but for now this takes the conservative
-  approach to avoid likely compatibility issues.
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-* The compile-time checks should be made available via a separate config
-  option which can be enabled by default (or always enabled) once enough
-  time has passed to get the issues it catches fixed.
+A git copy of this tree is available at
 
-Link: http://lkml.kernel.org/r/20170522231025.30463-1-danielmicay@gmail.com
-Signed-off-by: Daniel Micay <danielmicay@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
 
- arch/arm64/include/asm/string.h  |    5 
- arch/x86/boot/compressed/misc.c  |    5 
- arch/x86/include/asm/string_64.h |    5 
- include/linux/string.h           |  200 +++++++++++++++++++++++++++++
- lib/string.c                     |    6 
- security/Kconfig                 |    6 
- 6 files changed, 227 insertions(+)
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
 
-diff -puN arch/arm64/include/asm/string.h~add-the-option-of-fortified-stringh-functions arch/arm64/include/asm/string.h
---- a/arch/arm64/include/asm/string.h~add-the-option-of-fortified-stringh-functions
-+++ a/arch/arm64/include/asm/string.h
-@@ -63,6 +63,11 @@ extern int memcmp(const void *, const vo
- #define memcpy(dst, src, len) __memcpy(dst, src, len)
- #define memmove(dst, src, len) __memmove(dst, src, len)
- #define memset(s, c, n) __memset(s, c, n)
-+
-+#ifndef __NO_FORTIFY
-+#define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
-+#endif
-+
- #endif
- 
- #endif
-diff -puN arch/x86/boot/compressed/misc.c~add-the-option-of-fortified-stringh-functions arch/x86/boot/compressed/misc.c
---- a/arch/x86/boot/compressed/misc.c~add-the-option-of-fortified-stringh-functions
-+++ a/arch/x86/boot/compressed/misc.c
-@@ -409,3 +409,8 @@ asmlinkage __visible void *extract_kerne
- 	debug_putstr("done.\nBooting the kernel.\n");
- 	return output;
- }
-+
-+void fortify_panic(const char *name)
-+{
-+	error("detected buffer overflow");
-+}
-diff -puN arch/x86/include/asm/string_64.h~add-the-option-of-fortified-stringh-functions arch/x86/include/asm/string_64.h
---- a/arch/x86/include/asm/string_64.h~add-the-option-of-fortified-stringh-functions
-+++ a/arch/x86/include/asm/string_64.h
-@@ -77,6 +77,11 @@ int strcmp(const char *cs, const char *c
- #define memcpy(dst, src, len) __memcpy(dst, src, len)
- #define memmove(dst, src, len) __memmove(dst, src, len)
- #define memset(s, c, n) __memset(s, c, n)
-+
-+#ifndef __NO_FORTIFY
-+#define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
-+#endif
-+
- #endif
- 
- #define __HAVE_ARCH_MEMCPY_MCSAFE 1
-diff -puN include/linux/string.h~add-the-option-of-fortified-stringh-functions include/linux/string.h
---- a/include/linux/string.h~add-the-option-of-fortified-stringh-functions
-+++ a/include/linux/string.h
-@@ -187,4 +187,204 @@ static inline const char *kbasename(cons
- 	return tail ? tail + 1 : path;
- }
- 
-+#define __FORTIFY_INLINE extern __always_inline __attribute__((gnu_inline))
-+#define __RENAME(x) __asm__(#x)
-+
-+void fortify_panic(const char *name) __noreturn __cold;
-+void __read_overflow(void) __compiletime_error("detected read beyond size of object passed as 1st parameter");
-+void __read_overflow2(void) __compiletime_error("detected read beyond size of object passed as 2nd parameter");
-+void __write_overflow(void) __compiletime_error("detected write beyond size of object passed as 1st parameter");
-+
-+#if !defined(__NO_FORTIFY) && defined(__OPTIMIZE__) && defined(CONFIG_FORTIFY_SOURCE)
-+__FORTIFY_INLINE char *strcpy(char *p, const char *q)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	size_t q_size = __builtin_object_size(q, 0);
-+	if (p_size == (size_t)-1 && q_size == (size_t)-1)
-+		return __builtin_strcpy(p, q);
-+	if (strscpy(p, q, p_size < q_size ? p_size : q_size) < 0)
-+		fortify_panic(__func__);
-+	return p;
-+}
-+
-+__FORTIFY_INLINE char *strncpy(char *p, const char *q, __kernel_size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (__builtin_constant_p(size) && p_size < size)
-+		__write_overflow();
-+	if (p_size < size)
-+		fortify_panic(__func__);
-+	return __builtin_strncpy(p, q, size);
-+}
-+
-+__FORTIFY_INLINE char *strcat(char *p, const char *q)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (p_size == (size_t)-1)
-+		return __builtin_strcat(p, q);
-+	if (strlcat(p, q, p_size) >= p_size)
-+		fortify_panic(__func__);
-+	return p;
-+}
-+
-+__FORTIFY_INLINE __kernel_size_t strlen(const char *p)
-+{
-+	__kernel_size_t ret;
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (p_size == (size_t)-1)
-+		return __builtin_strlen(p);
-+	ret = strnlen(p, p_size);
-+	if (p_size <= ret)
-+		fortify_panic(__func__);
-+	return ret;
-+}
-+
-+extern __kernel_size_t __real_strnlen(const char *, __kernel_size_t) __RENAME(strnlen);
-+__FORTIFY_INLINE __kernel_size_t strnlen(const char *p, __kernel_size_t maxlen)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	__kernel_size_t ret = __real_strnlen(p, maxlen < p_size ? maxlen : p_size);
-+	if (p_size <= ret)
-+		fortify_panic(__func__);
-+	return ret;
-+}
-+
-+/* defined after fortified strlen to reuse it */
-+extern size_t __real_strlcpy(char *, const char *, size_t) __RENAME(strlcpy);
-+__FORTIFY_INLINE size_t strlcpy(char *p, const char *q, size_t size)
-+{
-+	size_t ret;
-+	size_t p_size = __builtin_object_size(p, 0);
-+	size_t q_size = __builtin_object_size(q, 0);
-+	if (p_size == (size_t)-1 && q_size == (size_t)-1)
-+		return __real_strlcpy(p, q, size);
-+	ret = strlen(q);
-+	if (size) {
-+		size_t len = (ret >= size) ? size - 1 : ret;
-+		if (__builtin_constant_p(len) && len >= p_size)
-+			__write_overflow();
-+		if (len >= p_size)
-+			fortify_panic(__func__);
-+		__builtin_memcpy(p, q, len);
-+		p[len] = '\0';
-+	}
-+	return ret;
-+}
-+
-+/* defined after fortified strlen and strnlen to reuse them */
-+__FORTIFY_INLINE char *strncat(char *p, const char *q, __kernel_size_t count)
-+{
-+	size_t p_len, copy_len;
-+	size_t p_size = __builtin_object_size(p, 0);
-+	size_t q_size = __builtin_object_size(q, 0);
-+	if (p_size == (size_t)-1 && q_size == (size_t)-1)
-+		return __builtin_strncat(p, q, count);
-+	p_len = strlen(p);
-+	copy_len = strnlen(q, count);
-+	if (p_size < p_len + copy_len + 1)
-+		fortify_panic(__func__);
-+	__builtin_memcpy(p + p_len, q, copy_len);
-+	p[p_len + copy_len] = '\0';
-+	return p;
-+}
-+
-+__FORTIFY_INLINE void *memset(void *p, int c, __kernel_size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (__builtin_constant_p(size) && p_size < size)
-+		__write_overflow();
-+	if (p_size < size)
-+		fortify_panic(__func__);
-+	return __builtin_memset(p, c, size);
-+}
-+
-+__FORTIFY_INLINE void *memcpy(void *p, const void *q, __kernel_size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	size_t q_size = __builtin_object_size(q, 0);
-+	if (__builtin_constant_p(size)) {
-+		if (p_size < size)
-+			__write_overflow();
-+		if (q_size < size)
-+			__read_overflow2();
-+	}
-+	if (p_size < size || q_size < size)
-+		fortify_panic(__func__);
-+	return __builtin_memcpy(p, q, size);
-+}
-+
-+__FORTIFY_INLINE void *memmove(void *p, const void *q, __kernel_size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	size_t q_size = __builtin_object_size(q, 0);
-+	if (__builtin_constant_p(size)) {
-+		if (p_size < size)
-+			__write_overflow();
-+		if (q_size < size)
-+			__read_overflow2();
-+	}
-+	if (p_size < size || q_size < size)
-+		fortify_panic(__func__);
-+	return __builtin_memmove(p, q, size);
-+}
-+
-+extern void *__real_memscan(void *, int, __kernel_size_t) __RENAME(memscan);
-+__FORTIFY_INLINE void *memscan(void *p, int c, __kernel_size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (__builtin_constant_p(size) && p_size < size)
-+		__read_overflow();
-+	if (p_size < size)
-+		fortify_panic(__func__);
-+	return __real_memscan(p, c, size);
-+}
-+
-+__FORTIFY_INLINE int memcmp(const void *p, const void *q, __kernel_size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	size_t q_size = __builtin_object_size(q, 0);
-+	if (__builtin_constant_p(size)) {
-+		if (p_size < size)
-+			__read_overflow();
-+		if (q_size < size)
-+			__read_overflow2();
-+	}
-+	if (p_size < size || q_size < size)
-+		fortify_panic(__func__);
-+	return __builtin_memcmp(p, q, size);
-+}
-+
-+__FORTIFY_INLINE void *memchr(const void *p, int c, __kernel_size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (__builtin_constant_p(size) && p_size < size)
-+		__read_overflow();
-+	if (p_size < size)
-+		fortify_panic(__func__);
-+	return __builtin_memchr(p, c, size);
-+}
-+
-+void *__real_memchr_inv(const void *s, int c, size_t n) __RENAME(memchr_inv);
-+__FORTIFY_INLINE void *memchr_inv(const void *p, int c, size_t size)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (__builtin_constant_p(size) && p_size < size)
-+		__read_overflow();
-+	if (p_size < size)
-+		fortify_panic(__func__);
-+	return __real_memchr_inv(p, c, size);
-+}
-+
-+extern void *__real_kmemdup(const void *src, size_t len, gfp_t gfp) __RENAME(kmemdup);
-+__FORTIFY_INLINE void *kmemdup(const void *p, size_t size, gfp_t gfp)
-+{
-+	size_t p_size = __builtin_object_size(p, 0);
-+	if (__builtin_constant_p(size) && p_size < size)
-+		__read_overflow();
-+	if (p_size < size)
-+		fortify_panic(__func__);
-+	return __real_kmemdup(p, size, gfp);
-+}
-+#endif
-+
- #endif /* _LINUX_STRING_H_ */
-diff -puN lib/string.c~add-the-option-of-fortified-stringh-functions lib/string.c
---- a/lib/string.c~add-the-option-of-fortified-stringh-functions
-+++ a/lib/string.c
-@@ -978,3 +978,9 @@ char *strreplace(char *s, char old, char
- 	return s;
- }
- EXPORT_SYMBOL(strreplace);
-+
-+void fortify_panic(const char *name)
-+{
-+	panic("detected buffer overflow in %s", name);
-+}
-+EXPORT_SYMBOL(fortify_panic);
-diff -puN security/Kconfig~add-the-option-of-fortified-stringh-functions security/Kconfig
---- a/security/Kconfig~add-the-option-of-fortified-stringh-functions
-+++ a/security/Kconfig
-@@ -154,6 +154,12 @@ config HARDENED_USERCOPY_PAGESPAN
- 	  been removed. This config is intended to be used only while
- 	  trying to find such users.
- 
-+config FORTIFY_SOURCE
-+	bool "Harden common functions against buffer overflows"
-+	help
-+	  Detect overflows of buffers in common functions where the compiler
-+	  can determine the buffer size.
-+
- config STATIC_USERMODEHELPER
- 	bool "Force all usermode helper calls through a single binary"
- 	help
-_
 
-Patches currently in -mm which might be from danielmicay@gmail.com are
+This mmotm tree contains the following patches against 4.12-rc2:
+(patches marked "*" will be included in linux-next)
 
-mark-protection_map-as-__ro_after_init.patch
-
+  origin.patch
+  i-need-old-gcc.patch
+* mm-skip-hwpoisoned-pages-when-onlining-pages.patch
+* ksm-prevent-crash-after-write_protect_page-fails.patch
+* include-linux-gfph-fix-___gfp_nolockdep-value.patch
+* frv-declare-jiffies-to-be-located-in-the-data-section.patch
+* mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch
+* mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+* initramfs-fix-disabling-of-initramfs-and-its-compression.patch
+* slub-memcg-cure-the-brainless-abuse-of-sysfs-attributes.patch
+* pcmcia-remove-left-over-%z-format.patch
+* mmpage_alloc-make-sure-oom-victim-can-try-allocations-with-no-watermarks-once.patch
+* mm-avoid-spurious-bad-pmd-warning-messages.patch
+* dax-fix-race-between-colliding-pmd-pte-entries.patch
+* mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+* mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
+* mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified.patch
+* mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+* mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* mn10300-remove-wrapper-header-for-asm-deviceh.patch
+* mn10300-use-generic-fbh.patch
+* tile-provide-default-ioremap-declaration.patch
+* teach-initramfs_root_uid-and-initramfs_root_gid-that-1-means-current-user.patch
+* clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
+* sh-intc-delete-an-error-message-for-a-failed-memory-allocation-in-add_virq_to_pirq.patch
+* ocfs2-fix-a-static-checker-warning.patch
+* ocfs2-use-magich.patch
+* ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called.patch
+* ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks.patch
+* ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
+* ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
+* ocfs2-move-some-definitions-to-header-file.patch
+* ocfs2-fix-some-small-problems.patch
+* ocfs2-add-kobject-for-online-file-check.patch
+* ocfs2-add-duplicative-ino-number-check.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+  mm.patch
+* mm-slub-remove-a-redundant-assignment-in-___slab_alloc.patch
+* mm-slub-reset-cpu_slabs-pointer-in-deactivate_slab.patch
+* mm-slub-pack-red_left_pad-with-another-int-to-save-a-word.patch
+* mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial.patch
+* mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+* mm-slub-wrap-kmem_cache-cpu_partial-in-config-config_slub_cpu_partial.patch
+* mm-sparsemem-break-out-of-loops-early.patch
+* mark-protection_map-as-__ro_after_init.patch
+* mm-vmscan-fix-unsequenced-modification-and-access-warning.patch
+* mm-nobootmem-return-0-when-start_pfn-equals-end_pfn.patch
+* ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
+* ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
+* ksm-cleanup-stable_node-chain-collapse-case.patch
+* ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
+* ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+* zram-introduce-zram_entry-to-prepare-dedup-functionality.patch
+* zram-implement-deduplication-in-zram.patch
+* zram-make-deduplication-feature-optional.patch
+* zram-compare-all-the-entries-with-same-checksum-for-deduplication.patch
+* zram-count-same-page-write-as-page_stored.patch
+* zram-do-not-count-duplicated-pages-as-compressed.patch
+* mm-vmstat-standardize-file-operations-variable-names.patch
+* mm-thp-swap-delay-splitting-thp-during-swap-out.patch
+* mm-thp-swap-delay-splitting-thp-during-swap-out-fix.patch
+* mm-thp-swap-unify-swap-slot-free-functions-to-put_swap_page.patch
+* mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan.patch
+* mm-thp-swap-check-whether-thp-can-be-split-firstly.patch
+* mm-thp-swap-enable-thp-swap-optimization-only-if-has-compound-map.patch
+* mm-remove-return-value-from-init_currently_empty_zone.patch
+* mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
+* mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
+* mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
+* mm-memory_hotplug-split-up-register_one_node.patch
+* mm-memory_hotplug-consider-offline-memblocks-removable.patch
+* mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
+* mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
+* mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
+* mm-__first_valid_page-skip-over-offline-pages.patch
+* mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
+* mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
+* mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
+* mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
+* mm-memory_hotplug-fix-the-section-mismatch-warning.patch
+* mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
+* exit-dont-include-unused-userfaultfd_kh.patch
+* userfaultfd-drop-dead-code.patch
+* mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
+* mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level-fix.patch
+* mm-hugetlb-migration-use-set_huge_pte_at-instead-of-set_pte_at.patch
+* mm-follow_page_mask-split-follow_page_mask-to-smaller-functions.patch
+* mm-hugetlb-export-hugetlb_entry_migration-helper.patch
+* mm-follow_page_mask-add-support-for-hugetlb-pgd-entries.patch
+* mm-hugetlb-move-default-definition-of-hugepd_t-earlier-in-the-header.patch
+* mm-follow_page_mask-add-support-for-hugepage-directory-entry.patch
+* powerpc-hugetlb-add-follow_huge_pd-implementation-for-ppc64.patch
+* powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc.patch
+* powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
+* mm-zeroing-hash-tables-in-allocator.patch
+* mm-updated-callers-to-use-hash_zero-flag.patch
+* mm-adaptive-hash-table-scaling.patch
+* mm-adaptive-hash-table-scaling-fix.patch
+* mm-adaptive-hash-table-scaling-v2.patch
+* mm-adaptive-hash-table-scaling-v5.patch
+* mm-hugetlb-cleanup-arch_has_gigantic_page.patch
+* powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch
+* mm-page_alloc-mark-bad_range-and-meminit_pfn_in_nid-as-__maybe_unused.patch
+* mm-drop-null-return-check-of-pte_offset_map_lock.patch
+* arm64-hugetlb-refactor-find_num_contig.patch
+* arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch
+* mm-gup-remove-broken-vm_bug_on_page-compound-check-for-hugepages.patch
+* mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
+* mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
+* mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
+* mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+* mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
+* mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
+* mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
+* mm-make-kswapd-try-harder-to-keep-active-pages-in-cache.patch
+* mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
+* mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update.patch
+* mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
+* mm-page_alloc-pass-preferred-nid-instead-of-zonelist-to-allocator.patch
+* mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets.patch
+* mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask.patch
+* mm-mempolicy-dont-check-cpuset-seqlock-where-it-doesnt-matter.patch
+* swap-add-block-io-poll-in-swapin-path.patch
+* swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+* mm-kmemleak-slightly-reduce-the-size-of-some-structures-on-64-bit-architectures.patch
+* mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
+* mm-kmemleak-treat-vm_struct-as-alternative-reference-to-vmalloced-objects.patch
+* mm-drop-wait-parameter-from-write_one_page.patch
+* mm-fix-mapping_set_error-call-in-me_pagecache_dirty.patch
+* mm-per-cgroup-memory-reclaim-stats.patch
+* mm-oom_kill-count-global-and-memory-cgroup-oom-kills.patch
+* mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+* mm-swap-sort-swap-entries-before-free.patch
+* mm-swap-sort-swap-entries-before-free-fix.patch
+* zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_pool_create.patch
+* zswap-improve-a-size-determination-in-zswap_frontswap_init.patch
+* zswap-delete-an-error-message-for-a-failed-memory-allocation-in-zswap_dstmem_prepare.patch
+* mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
+* mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* mm-kasan-use-kasan_zero_pud-for-p4d-table.patch
+* mm-kasan-rename-xxx_is_zero-to-xxx_is_nonzero.patch
+* frv-remove-wrapper-header-for-asm-deviceh.patch
+* frv-use-generic-fbh.patch
+* randomstackprotect-introduce-get_random_canary-function.patch
+* forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
+* x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
+* arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
+* sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
+* asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
+* linux-bugh-correct-formatting-of-block-comment.patch
+* linux-bugh-correct-foo-should-be-foo.patch
+* linux-bugh-correct-space-required-before-that.patch
+* bug-split-build_bug-stuff-out-into-linux-build_bugh.patch
+* kernelh-handle-pointers-to-arrays-better-in-container_of.patch
+* maintainers-give-proc-sysctl-some-maintainer-love.patch
+* kstrtox-delete-end-of-string-test.patch
+* kstrtox-use-unsigned-int-more.patch
+* lib-interval_tree_test-allow-the-module-to-be-compiled-in.patch
+* lib-interval_tree_test-make-test-options-module-parameters.patch
+* lib-interval_tree_test-allow-users-to-limit-scope-of-endpoint.patch
+* lib-interval_tree_test-allow-full-tree-search.patch
+* fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
+* seq_file-delete-small-value-optimization.patch
+* virtually-mapped-stacks-do-not-disable-interrupts.patch
+* kexec-move-vmcoreinfo-out-of-the-kernels-bss-section.patch
+* powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr.patch
+* powerpc-fadump-use-the-correct-vmcoreinfo_note_size-for-phdr-fix.patch
+* kdump-protect-vmcoreinfo-data-under-the-crash-memory.patch
+* kexec-kdump-minor-documentation-updates-for-arm64-and-image.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* sysctl-fix-lax-sysctl_check_table-sanity-check.patch
+* sysctl-kdocify-sysctl_writes_strict.patch
+* sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
+* sysctl-simplify-unsigned-int-support.patch
+* sysctl-add-unsigned-int-range-support.patch
+* sysctl-check-name-array-length-in-deprecated_sysctl_warning.patch
+* uapi-fix-linux-sysctlh-userspace-compilation-errors.patch
+* bfs-fix-sanity-checks-for-empty-files.patch
+* fs-kill-config_percpu_rwsem-some-more.patch
+* scripts-gdb-add-lx-fdtdump-command.patch
+* procfs-fdinfo-extend-information-about-epoll-target-files.patch
+* kcmp-add-kcmp_epoll_tfd-mode-to-compare-epoll-target-files.patch
+* kcmp-fs-epoll-wrap-kcmp-code-with-config_checkpoint_restore.patch
+* kernel-reboot-add-devm_register_reboot_notifier.patch
+* kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+* fault-inject-support-systematic-fault-injection.patch
+* fault-inject-support-systematic-fault-injection-fix.patch
+* fault-inject-automatically-detect-the-number-base-for-fail-nth-write-interface.patch
+* fault-inject-parse-as-natural-1-based-value-for-fail-nth-write-interface.patch
+* fault-inject-make-fail-nth-read-write-interface-symmetric.patch
+* fault-inject-simplify-access-check-for-fail-nth.patch
+* fault-inject-simplify-access-check-for-fail-nth-fix.patch
+* fault-inject-add-proc-pid-fail-nth.patch
+* ipc-semc-remove-sem_base-embed-struct-sem.patch
+* ipc-semc-remove-sem_base-embed-struct-sem-v3.patch
+* ipc-merge-ipc_rcu-and-kern_ipc_perm.patch
+* include-linux-semh-correctly-document-sem_ctime.patch
+* ipc-drop-non-rcu-allocation.patch
+* ipc-sem-do-not-use-ipc_rcu_free.patch
+* ipc-shm-do-not-use-ipc_rcu_free.patch
+* ipc-msg-do-not-use-ipc_rcu_free.patch
+* ipc-util-drop-ipc_rcu_free.patch
+* ipc-sem-avoid-ipc_rcu_alloc.patch
+* ipc-shm-avoid-ipc_rcu_alloc.patch
+* ipc-msg-avoid-ipc_rcu_alloc.patch
+* ipc-util-drop-ipc_rcu_alloc.patch
+* ipc-semc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+* ipc-shmc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+* ipc-msgc-avoid-ipc_rcu_putref-for-failed-ipc_addid.patch
+* ipc-move-atomic_set-to-where-it-is-needed.patch
+* ipc-shm-remove-special-shm_alloc-free.patch
+* ipc-msg-remove-special-msg_alloc-free.patch
+* ipc-sem-drop-__sem_free.patch
+* ipc-utilh-update-documentation-for-ipc_getref-and-ipc_putref.patch
+  linux-next.patch
+* sparc64-ng4-memset-32-bits-overflow.patch
+* powerpc-sequoia-fix-nand-partitions-not-to-overlap.patch
+* xtensa-use-generic-fbh.patch
+* lib-crc-ccitt-add-ccitt-false-crc16-variant.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  workaround-for-a-pci-restoring-bug.patch
