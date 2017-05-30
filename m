@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-drop-config_movable_node.patch added to -mm
- tree
-Date: Tue, 30 May 2017 14:13:16 -0700
-Message-ID: <592de06c.Hzq8WqV63F/pS3gJ%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock.patch added to -mm tree
+Date: Tue, 30 May 2017 14:22:56 -0700
+Message-ID: <592de2b0.CpGecRIj9tXl8LII%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58056 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59796 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750811AbdE3VNS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 17:13:18 -0400
+        with ESMTP id S1750869AbdE3VXF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 17:23:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, imammedo@redhat.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: drop CONFIG_MOVABLE_NODE
+     Subject: mm, page_alloc: fallback to smallest page when not stealing whole pageblock
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-drop-config_movable_node.patch
+     mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-drop-config_movable_node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-drop-config_movable_node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,263 +39,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: drop CONFIG_MOVABLE_NODE
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: fallback to smallest page when not stealing whole pageblock
 
-20b2f52b73fe ("numa: add CONFIG_MOVABLE_NODE for movable-dedicated node")
-has introduced CONFIG_MOVABLE_NODE without a good explanation on why it is
-actually useful.  It makes a lot of sense to make movable node semantic
-opt in but we already have that because the feature has to be explicitly
-enabled on the kernel command line.  A config option on top only makes the
-configuration space larger without a good reason.  It also adds an
-additional ifdefery that pollutes the code.  Just drop the config option
-and make it de-facto always enabled.  This shouldn't introduce any change
-to the semantic.
+Since commit 3bc48f96cf11 ("mm, page_alloc: split smallest stolen page in
+fallback") we pick the smallest (but sufficient) page of all that have
+been stolen from a pageblock of different migratetype.  However, there are
+cases when we decide not to steal the whole pageblock.  Practically in the
+current implementation it means that we are trying to fallback for a
+MIGRATE_MOVABLE allocation of order X, go through the freelists from
+MAX_ORDER-1 down to X, and find free page of order Y.  If Y is less than
+pageblock_order / 2, we decide not to steal all pages from the pageblock. 
+When Y > X, it means we are potentially splitting a larger page than we
+need, as there might be other pages of order Z, where X <= Z < Y.  Since Y
+is already too small to steal whole pageblock, picking smallest available
+Z will result in the same decision and we avoid splitting a higher-order
+page in a MIGRATE_UNMOVABLE or MIGRATE_RECLAIMABLE pageblock.
 
-Link: http://lkml.kernel.org/r/20170529114141.536-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Kani Toshimitsu <toshi.kani@hpe.com>
-Cc: Chen Yucong <slaoub@gmail.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+This patch therefore changes the fallback algorithm so that in the
+situation described above, we switch the fallback search strategy to go
+from order X upwards to find the smallest suitable fallback.  In theory
+there shouldn't be a downside of this change wrt fragmentation.
+
+This has been tested with mmtests' stress-highalloc performing GFP_KERNEL
+order-4 allocations, here is the relevant extfrag tracepoint statistics:
+
+                                                      4.12.0-rc2      4.12.0-rc2
+                                                       1-kernel4       2-kernel4
+Page alloc extfrag event                                  25640976    69680977
+Extfrag fragmenting                                       25621086    69661364
+Extfrag fragmenting for unmovable                            74409       73204
+Extfrag fragmenting unmovable placed with movable            69003       67684
+Extfrag fragmenting unmovable placed with reclaim.            5406        5520
+Extfrag fragmenting for reclaimable                           6398        8467
+Extfrag fragmenting reclaimable placed with movable            869         884
+Extfrag fragmenting reclaimable placed with unmov.            5529        7583
+Extfrag fragmenting for movable                           25540279    69579693
+
+Since we force movable allocations to steal the smallest available page
+(which we then practially always split), we steal less per fallback, so
+the number of fallbacks increases and steals potentially happen from
+different pageblocks.  This is however not an issue for movable pages that
+can be compacted.
+
+Importantly, the "unmovable placed with movable" statistics is lower,
+which is the result of less fragmentation in the unmovable pageblocks. 
+The effect on reclaimable allocation is a bit unclear.
+
+Link: http://lkml.kernel.org/r/20170529093947.22618-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    7 ++-
- drivers/base/node.c                             |    4 --
- include/linux/memblock.h                        |   18 ---------
- include/linux/nodemask.h                        |    4 --
- mm/Kconfig                                      |   26 --------------
- mm/memblock.c                                   |    2 -
- mm/memory_hotplug.c                             |    4 --
- mm/page_alloc.c                                 |    2 -
- 8 files changed, 5 insertions(+), 62 deletions(-)
+ mm/page_alloc.c |   53 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 44 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-drop-config_movable_node Documentation/admin-guide/kernel-parameters.txt
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-drop-config_movable_node
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2261,8 +2261,11 @@
- 			that the amount of memory usable for all allocations
- 			is not too small.
- 
--	movable_node	[KNL] Boot-time switch to enable the effects
--			of CONFIG_MOVABLE_NODE=y. See mm/Kconfig for details.
-+	movable_node	[KNL] Boot-time switch to make hotplugable memory
-+			NUMA nodes to be movable. This means that the memory
-+			of such nodes will be usable only for movable
-+			allocations which rules out almost all kernel
-+			allocations. Use with caution!
- 
- 	MTD_Partition=	[MTD]
- 			Format: <name>,<region-number>,<size>,<offset>
-diff -puN drivers/base/node.c~mm-memory_hotplug-drop-config_movable_node drivers/base/node.c
---- a/drivers/base/node.c~mm-memory_hotplug-drop-config_movable_node
-+++ a/drivers/base/node.c
-@@ -639,9 +639,7 @@ static struct node_attr node_state_attr[
- #ifdef CONFIG_HIGHMEM
- 	[N_HIGH_MEMORY] = _NODE_ATTR(has_high_memory, N_HIGH_MEMORY),
- #endif
--#ifdef CONFIG_MOVABLE_NODE
- 	[N_MEMORY] = _NODE_ATTR(has_memory, N_MEMORY),
--#endif
- 	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
- };
- 
-@@ -652,9 +650,7 @@ static struct attribute *node_state_attr
- #ifdef CONFIG_HIGHMEM
- 	&node_state_attr[N_HIGH_MEMORY].attr.attr,
- #endif
--#ifdef CONFIG_MOVABLE_NODE
- 	&node_state_attr[N_MEMORY].attr.attr,
--#endif
- 	&node_state_attr[N_CPU].attr.attr,
- 	NULL
- };
-diff -puN include/linux/memblock.h~mm-memory_hotplug-drop-config_movable_node include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memory_hotplug-drop-config_movable_node
-+++ a/include/linux/memblock.h
-@@ -57,10 +57,8 @@ struct memblock {
- 
- extern struct memblock memblock;
- extern int memblock_debug;
--#ifdef CONFIG_MOVABLE_NODE
- /* If movable_node boot option specified */
- extern bool movable_node_enabled;
--#endif /* CONFIG_MOVABLE_NODE */
- 
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
- #define __init_memblock __meminit
-@@ -169,7 +167,6 @@ void __next_reserved_mem_region(u64 *idx
- 	     i != (u64)ULLONG_MAX;					\
- 	     __next_reserved_mem_region(&i, p_start, p_end))
- 
--#ifdef CONFIG_MOVABLE_NODE
- static inline bool memblock_is_hotpluggable(struct memblock_region *m)
- {
- 	return m->flags & MEMBLOCK_HOTPLUG;
-@@ -179,16 +176,6 @@ static inline bool __init_memblock movab
- {
- 	return movable_node_enabled;
- }
--#else
--static inline bool memblock_is_hotpluggable(struct memblock_region *m)
--{
--	return false;
--}
--static inline bool movable_node_is_enabled(void)
--{
--	return false;
--}
--#endif
- 
- static inline bool memblock_is_mirror(struct memblock_region *m)
- {
-@@ -296,7 +283,6 @@ phys_addr_t memblock_alloc_try_nid(phys_
- 
- phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
- 
--#ifdef CONFIG_MOVABLE_NODE
- /*
-  * Set the allocation direction to bottom-up or top-down.
-  */
-@@ -314,10 +300,6 @@ static inline bool memblock_bottom_up(vo
- {
- 	return memblock.bottom_up;
- }
--#else
--static inline void __init memblock_set_bottom_up(bool enable) {}
--static inline bool memblock_bottom_up(void) { return false; }
--#endif
- 
- /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
- #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
-diff -puN include/linux/nodemask.h~mm-memory_hotplug-drop-config_movable_node include/linux/nodemask.h
---- a/include/linux/nodemask.h~mm-memory_hotplug-drop-config_movable_node
-+++ a/include/linux/nodemask.h
-@@ -387,11 +387,7 @@ enum node_states {
- #else
- 	N_HIGH_MEMORY = N_NORMAL_MEMORY,
- #endif
--#ifdef CONFIG_MOVABLE_NODE
- 	N_MEMORY,		/* The node has memory(regular, high, movable) */
--#else
--	N_MEMORY = N_HIGH_MEMORY,
--#endif
- 	N_CPU,		/* The node has one or more cpus */
- 	NR_NODE_STATES
- };
-diff -puN mm/Kconfig~mm-memory_hotplug-drop-config_movable_node mm/Kconfig
---- a/mm/Kconfig~mm-memory_hotplug-drop-config_movable_node
-+++ a/mm/Kconfig
-@@ -149,32 +149,6 @@ config NO_BOOTMEM
- config MEMORY_ISOLATION
- 	bool
- 
--config MOVABLE_NODE
--	bool "Enable to assign a node which has only movable memory"
--	depends on HAVE_MEMBLOCK
--	depends on NO_BOOTMEM
--	depends on X86_64 || OF_EARLY_FLATTREE || MEMORY_HOTPLUG
--	depends on NUMA
--	default n
--	help
--	  Allow a node to have only movable memory.  Pages used by the kernel,
--	  such as direct mapping pages cannot be migrated.  So the corresponding
--	  memory device cannot be hotplugged.  This option allows the following
--	  two things:
--	  - When the system is booting, node full of hotpluggable memory can
--	  be arranged to have only movable memory so that the whole node can
--	  be hot-removed. (need movable_node boot option specified).
--	  - After the system is up, the option allows users to online all the
--	  memory of a node as movable memory so that the whole node can be
--	  hot-removed.
--
--	  Users who don't use the memory hotplug feature are fine with this
--	  option on since they don't specify movable_node boot option or they
--	  don't online memory as movable.
--
--	  Say Y here if you want to hotplug a whole node.
--	  Say N here if you want kernel to use memory on all nodes evenly.
--
- #
- # Only be set on architectures that have completely implemented memory hotplug
- # feature. If you are not sure, don't touch it.
-diff -puN mm/memblock.c~mm-memory_hotplug-drop-config_movable_node mm/memblock.c
---- a/mm/memblock.c~mm-memory_hotplug-drop-config_movable_node
-+++ a/mm/memblock.c
-@@ -54,9 +54,7 @@ struct memblock memblock __initdata_memb
- };
- 
- int memblock_debug __initdata_memblock;
--#ifdef CONFIG_MOVABLE_NODE
- bool movable_node_enabled __initdata_memblock = false;
--#endif
- static bool system_has_some_mirror __initdata_memblock = false;
- static int memblock_can_resize __initdata_memblock;
- static int memblock_memory_in_slab __initdata_memblock = 0;
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-drop-config_movable_node mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-config_movable_node
-+++ a/mm/memory_hotplug.c
-@@ -1559,11 +1559,7 @@ check_pages_isolated(unsigned long start
- 
- static int __init cmdline_parse_movable_node(char *p)
- {
--#ifdef CONFIG_MOVABLE_NODE
- 	movable_node_enabled = true;
--#else
--	pr_warn("movable_node option not supported\n");
--#endif
- 	return 0;
- }
- early_param("movable_node", cmdline_parse_movable_node);
-diff -puN mm/page_alloc.c~mm-memory_hotplug-drop-config_movable_node mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-drop-config_movable_node
+diff -puN mm/page_alloc.c~mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock
 +++ a/mm/page_alloc.c
-@@ -113,9 +113,7 @@ nodemask_t node_states[NR_NODE_STATES] _
- #ifdef CONFIG_HIGHMEM
- 	[N_HIGH_MEMORY] = { { [0] = 1UL } },
- #endif
--#ifdef CONFIG_MOVABLE_NODE
- 	[N_MEMORY] = { { [0] = 1UL } },
--#endif
- 	[N_CPU] = { { [0] = 1UL } },
- #endif	/* NUMA */
- };
+@@ -2205,7 +2205,11 @@ __rmqueue_fallback(struct zone *zone, un
+ 	int fallback_mt;
+ 	bool can_steal;
+ 
+-	/* Find the largest possible block of pages in the other list */
++	/*
++	 * Find the largest available free page in the other list. This roughly
++	 * approximates finding the pageblock with the most free pages, which
++	 * would be too costly to do exactly.
++	 */
+ 	for (current_order = MAX_ORDER-1;
+ 				current_order >= order && current_order <= MAX_ORDER-1;
+ 				--current_order) {
+@@ -2215,19 +2219,50 @@ __rmqueue_fallback(struct zone *zone, un
+ 		if (fallback_mt == -1)
+ 			continue;
+ 
+-		page = list_first_entry(&area->free_list[fallback_mt],
+-						struct page, lru);
++		/*
++		 * We cannot steal all free pages from the pageblock and the
++		 * requested migratetype is movable. In that case it's better to
++		 * steal and split the smallest available page instead of the
++		 * largest available page, because even if the next movable
++		 * allocation falls back into a different pageblock than this
++		 * one, it won't cause permanent fragmentation.
++		 */
++		if (!can_steal && start_migratetype == MIGRATE_MOVABLE
++					&& current_order > order)
++			goto find_smallest;
+ 
+-		steal_suitable_fallback(zone, page, start_migratetype,
+-								can_steal);
++		goto do_steal;
++	}
+ 
+-		trace_mm_page_alloc_extfrag(page, order, current_order,
+-			start_migratetype, fallback_mt);
++	return false;
+ 
+-		return true;
++find_smallest:
++	for (current_order = order; current_order < MAX_ORDER;
++							current_order++) {
++		area = &(zone->free_area[current_order]);
++		fallback_mt = find_suitable_fallback(area, current_order,
++				start_migratetype, false, &can_steal);
++		if (fallback_mt != -1)
++			break;
+ 	}
+ 
+-	return false;
++	/*
++	 * This should not happen - we already found a suitable fallback
++	 * when looking for the largest page.
++	 */
++	VM_BUG_ON(current_order == MAX_ORDER);
++
++do_steal:
++	page = list_first_entry(&area->free_list[fallback_mt],
++							struct page, lru);
++
++	steal_suitable_fallback(zone, page, start_migratetype, can_steal);
++
++	trace_mm_page_alloc_extfrag(page, order, current_order,
++		start_migratetype, fallback_mt);
++
++	return true;
++
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-include-linux-gfph-fix-___gfp_nolockdep-value.patch
-mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch
-mm-remove-return-value-from-init_currently_empty_zone.patch
-mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
-mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
-mm-memory_hotplug-split-up-register_one_node.patch
-mm-memory_hotplug-consider-offline-memblocks-removable.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
-mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
-mm-__first_valid_page-skip-over-offline-pages.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
-mm-memory_hotplug-fix-the-section-mismatch-warning.patch
-mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
-mm-adaptive-hash-table-scaling-fix.patch
-mm-memory_hotplug-drop-artificial-restriction-on-online-offline.patch
-mm-memory_hotplug-drop-config_movable_node.patch
-mm-memory_hotplug-move-movable_node-to-the-hotplug-proper.patch
+mm-page_alloc-fix-more-premature-oom-due-to-race-with-cpuset-update.patch
+mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
+mm-page_alloc-pass-preferred-nid-instead-of-zonelist-to-allocator.patch
+mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets.patch
+mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask.patch
+mm-mempolicy-dont-check-cpuset-seqlock-where-it-doesnt-matter.patch
+mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock.patch
 
