@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + mm-drop-wait-parameter-from-write_one_page-fix.patch added to
  -mm tree
-Date: Tue, 30 May 2017 12:38:20 -0700
-Message-ID: <592dca2c.mkU6J0dGwnvgo4lQ%akpm@linux-foundation.org>
+Date: Tue, 30 May 2017 12:38:40 -0700
+Message-ID: <592dca40.SguppqjXoJ25rTSI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47380 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47396 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750821AbdE3TiV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 15:38:21 -0400
+        with ESMTP id S1750767AbdE3Til (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 15:38:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.kleikamp@oracle.com, hch@lst.de, jack@suse.cz, jlayton@redhat.com, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: dave.kleikamp@oracle.com, hch@lst.de, jack@suse.cz, jlayton@redhat.com, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -54,6 +54,7 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
