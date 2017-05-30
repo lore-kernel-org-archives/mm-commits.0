@@ -1,82 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + mm-convert-to-define_debugfs_attribute.patch added to -mm tree
-Date: Tue, 30 May 2017 14:29:54 -0700
-Message-ID: <592de452.E9QTbK+HvwzuFayg%akpm@linux-foundation.org>
+Subject: [failures] mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
+ removed from -mm tree
+Date: Tue, 30 May 2017 14:51:09 -0700
+Message-ID: <592de94d.Frw1f+MuF6Ol8Dnd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37856 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750908AbdE3V3z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 17:29:55 -0400
+        with ESMTP id S1750942AbdE3VvK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 17:51:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y.pronenko@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, riel@redhat.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: convert to DEFINE_DEBUGFS_ATTRIBUTE
-has been added to the -mm tree.  Its filename is
-     mm-convert-to-define_debugfs_attribute.patch
+     Subject: mm: vmscan: delete unused pgdat_reclaimable_pages()
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-to-define_debugfs_attribute.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-to-define_debugfs_attribute.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Yevgen Pronenko <y.pronenko@gmail.com>
-Subject: mm/memory.c: convert to DEFINE_DEBUGFS_ATTRIBUTE
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: delete unused pgdat_reclaimable_pages()
 
-The preferred strategy to define debugfs attributes is to use the
-DEFINE_DEBUGFS_ATTRIBUTE() macro and to use debugfs_create_file_unsafe().
+Patch series "mm: per-lruvec slab stats"
 
-Link: http://lkml.kernel.org/r/20170528145948.32127-1-y.pronenko@gmail.com
-Signed-off-by: Yevgen Pronenko <y.pronenko@gmail.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
+Josef is working on a new approach to balancing slab caches and the page
+cache.  For this to work, he needs slab cache statistics on the lruvec
+level.  These patches implement that by adding infrastructure that allows
+updating and reading generic VM stat items per lruvec, then switches some
+existing VM accounting sites, including the slab accounting ones, to this
+new cgroup-aware API.
+
+I'll follow up with more patches on this, because there is actually
+substantial simplification that can be done to the memory controller when
+we replace private memcg accounting with making the existing VM accounting
+sites cgroup-aware.  But this is enough for Josef to base his slab reclaim
+work on, so here goes.
+
+
+This patch (of 6): delete unused pgdat_reclaimable_pages().
+
+Link: http://lkml.kernel.org/r/20170530181724.27197-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    1 -
+ mm/vmscan.c          |   16 ----------------
+ 2 files changed, 17 deletions(-)
 
-diff -puN mm/memory.c~mm-convert-to-define_debugfs_attribute mm/memory.c
---- a/mm/memory.c~mm-convert-to-define_debugfs_attribute
-+++ a/mm/memory.c
-@@ -3300,14 +3300,14 @@ static int fault_around_bytes_set(void *
- 		fault_around_bytes = PAGE_SIZE; /* rounddown_pow_of_two(0) is undefined */
- 	return 0;
+diff -puN include/linux/swap.h~mm-vmscan-delete-unused-pgdat_reclaimable_pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-vmscan-delete-unused-pgdat_reclaimable_pages
++++ a/include/linux/swap.h
+@@ -289,7 +289,6 @@ extern void lru_cache_add_active_or_unev
+ 
+ /* linux/mm/vmscan.c */
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+-extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+ extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
+diff -puN mm/vmscan.c~mm-vmscan-delete-unused-pgdat_reclaimable_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-delete-unused-pgdat_reclaimable_pages
++++ a/mm/vmscan.c
+@@ -228,22 +228,6 @@ unsigned long zone_reclaimable_pages(str
+ 	return nr;
  }
--DEFINE_SIMPLE_ATTRIBUTE(fault_around_bytes_fops,
-+DEFINE_DEBUGFS_ATTRIBUTE(fault_around_bytes_fops,
- 		fault_around_bytes_get, fault_around_bytes_set, "%llu\n");
  
- static int __init fault_around_debugfs(void)
- {
- 	void *ret;
- 
--	ret = debugfs_create_file("fault_around_bytes", 0644, NULL, NULL,
-+	ret = debugfs_create_file_unsafe("fault_around_bytes", 0644, NULL, NULL,
- 			&fault_around_bytes_fops);
- 	if (!ret)
- 		pr_warn("Failed to create fault_around_bytes in debugfs");
-_
-
-Patches currently in -mm which might be from y.pronenko@gmail.com are
-
-mm-convert-to-define_debugfs_attribute.patch
-
+-unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat)
+-{
+-	unsigned long nr;
+-
+-	nr = node_page_state_snapshot(pgdat, NR_ACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_INACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_ISOLATED_FILE);
+-
+-	if (get_nr_swap_pages() > 0)
+-		nr += node_page_state_snapshot(pgdat, NR_ACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_INACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_ISOLATED_ANON);
+-
+-	return nr;
+-}
