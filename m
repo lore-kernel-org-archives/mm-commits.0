@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-drop-wait-parameter-from-write_one_page-fix.patch added to
- -mm tree
-Date: Tue, 30 May 2017 12:38:40 -0700
-Message-ID: <592dca40.SguppqjXoJ25rTSI%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-use-the-node-native-slab-memory-counters.patch
+ added to -mm tree
+Date: Tue, 30 May 2017 13:53:47 -0700
+Message-ID: <592ddbdb.O4Fj0r7F34JQwUym%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57140 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750767AbdE3Til (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 15:38:41 -0400
+        with ESMTP id S1751118AbdE3Uxs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 16:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.kleikamp@oracle.com, hch@lst.de, jack@suse.cz, jlayton@redhat.com, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, riel@redhat.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: JFS: do not ignore return code from write_one_page()
+     Subject: mm: memcontrol: use the node-native slab memory counters
 has been added to the -mm tree.  Its filename is
-     mm-drop-wait-parameter-from-write_one_page-fix.patch
+     mm-memcontrol-use-the-node-native-slab-memory-counters.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-wait-parameter-from-write_one_page-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-the-node-native-slab-memory-counters.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-wait-parameter-from-write_one_page-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-the-node-native-slab-memory-counters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +39,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Subject: JFS: do not ignore return code from write_one_page()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: use the node-native slab memory counters
 
-There are a couple places where jfs calls write_one_page() where clean
-recovery is not possible.  In these cases, the file system should be
-marked dirty.  To do this, it is now necessary to store the superblock in
-the metapage structure.
+Now that the slab counters are moved from the zone to the node level we
+can drop the private memcg node stats and use the official ones.
 
-Link: http://lkml.kernel.org/r/db45ab67-55c7-08ff-6776-f76b3bf5cbf5@oracle.com
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Jeff Layton <jlayton@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/20170530181724.27197-4-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_metapage.c |    7 +++++--
- fs/jfs/jfs_metapage.h |    1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    2 --
+ mm/memcontrol.c            |    8 ++++----
+ mm/slab.h                  |    4 ++--
+ 3 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/jfs/jfs_metapage.c~mm-drop-wait-parameter-from-write_one_page-fix fs/jfs/jfs_metapage.c
---- a/fs/jfs/jfs_metapage.c~mm-drop-wait-parameter-from-write_one_page-fix
-+++ a/fs/jfs/jfs_metapage.c
-@@ -664,6 +664,7 @@ struct metapage *__get_metapage(struct i
- 		INCREMENT(mpStat.pagealloc);
- 		mp = alloc_metapage(GFP_NOFS);
- 		mp->page = page;
-+		mp->sb = inode->i_sb;
- 		mp->flag = 0;
- 		mp->xflag = COMMIT_PAGE;
- 		mp->count = 1;
-@@ -711,7 +712,8 @@ void force_metapage(struct metapage *mp)
- 	get_page(page);
- 	lock_page(page);
- 	set_page_dirty(page);
--	write_one_page(page);
-+	if (write_one_page(page))
-+		jfs_error(mp->sb, "write_one_page() failed\n");
- 	clear_bit(META_forcewrite, &mp->flag);
- 	put_page(page);
+diff -puN include/linux/memcontrol.h~mm-memcontrol-use-the-node-native-slab-memory-counters include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-use-the-node-native-slab-memory-counters
++++ a/include/linux/memcontrol.h
+@@ -44,8 +44,6 @@ enum memcg_stat_item {
+ 	MEMCG_SOCK,
+ 	/* XXX: why are these zone and not node counters? */
+ 	MEMCG_KERNEL_STACK_KB,
+-	MEMCG_SLAB_RECLAIMABLE,
+-	MEMCG_SLAB_UNRECLAIMABLE,
+ 	MEMCG_NR_STAT,
+ };
+ 
+diff -puN mm/memcontrol.c~mm-memcontrol-use-the-node-native-slab-memory-counters mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-use-the-node-native-slab-memory-counters
++++ a/mm/memcontrol.c
+@@ -5198,8 +5198,8 @@ static int memory_stat_show(struct seq_f
+ 	seq_printf(m, "kernel_stack %llu\n",
+ 		   (u64)stat[MEMCG_KERNEL_STACK_KB] * 1024);
+ 	seq_printf(m, "slab %llu\n",
+-		   (u64)(stat[MEMCG_SLAB_RECLAIMABLE] +
+-			 stat[MEMCG_SLAB_UNRECLAIMABLE]) * PAGE_SIZE);
++		   (u64)(stat[NR_SLAB_RECLAIMABLE] +
++			 stat[NR_SLAB_UNRECLAIMABLE]) * PAGE_SIZE);
+ 	seq_printf(m, "sock %llu\n",
+ 		   (u64)stat[MEMCG_SOCK] * PAGE_SIZE);
+ 
+@@ -5223,9 +5223,9 @@ static int memory_stat_show(struct seq_f
+ 	}
+ 
+ 	seq_printf(m, "slab_reclaimable %llu\n",
+-		   (u64)stat[MEMCG_SLAB_RECLAIMABLE] * PAGE_SIZE);
++		   (u64)stat[NR_SLAB_RECLAIMABLE] * PAGE_SIZE);
+ 	seq_printf(m, "slab_unreclaimable %llu\n",
+-		   (u64)stat[MEMCG_SLAB_UNRECLAIMABLE] * PAGE_SIZE);
++		   (u64)stat[NR_SLAB_UNRECLAIMABLE] * PAGE_SIZE);
+ 
+ 	/* Accumulated memory events */
+ 
+diff -puN mm/slab.h~mm-memcontrol-use-the-node-native-slab-memory-counters mm/slab.h
+--- a/mm/slab.h~mm-memcontrol-use-the-node-native-slab-memory-counters
++++ a/mm/slab.h
+@@ -287,7 +287,7 @@ static __always_inline int memcg_charge_
+ 
+ 	memcg_kmem_update_page_stat(page,
+ 			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
+-			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
++			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
+ 			1 << order);
+ 	return 0;
  }
-@@ -756,7 +758,8 @@ void release_metapage(struct metapage *
- 		set_page_dirty(page);
- 		if (test_bit(META_sync, &mp->flag)) {
- 			clear_bit(META_sync, &mp->flag);
--			write_one_page(page);
-+			if (write_one_page(page))
-+				jfs_error(mp->sb, "write_one_page() failed\n");
- 			lock_page(page); /* write_one_page unlocks the page */
- 		}
- 	} else if (mp->lsn)	/* discard_metapage doesn't remove it */
-diff -puN fs/jfs/jfs_metapage.h~mm-drop-wait-parameter-from-write_one_page-fix fs/jfs/jfs_metapage.h
---- a/fs/jfs/jfs_metapage.h~mm-drop-wait-parameter-from-write_one_page-fix
-+++ a/fs/jfs/jfs_metapage.h
-@@ -38,6 +38,7 @@ struct metapage {
+@@ -300,7 +300,7 @@ static __always_inline void memcg_unchar
  
- 	/* implementation */
- 	struct page *page;
-+	struct super_block *sb;
- 	unsigned int logical_size;
- 
- 	/* Journal management */
+ 	memcg_kmem_update_page_stat(page,
+ 			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
+-			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
++			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
+ 			-(1 << order));
+ 	memcg_kmem_uncharge(page, order);
+ }
 _
 
-Patches currently in -mm which might be from dave.kleikamp@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-drop-wait-parameter-from-write_one_page-fix.patch
+mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
+mm-vmstat-move-slab-statistics-from-zone-to-node-counters.patch
+mm-memcontrol-use-the-node-native-slab-memory-counters.patch
+mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch
+mm-memcontrol-per-lruvec-stats-infrastructure.patch
+mm-memcontrol-account-slab-stats-per-lruvec.patch
 
