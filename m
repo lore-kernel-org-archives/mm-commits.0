@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch added to -mm tree
-Date: Tue, 30 May 2017 14:27:24 -0700
-Message-ID: <592de3bc.1/xtXq2A/MH8sSuL%akpm@linux-foundation.org>
+Subject: + mm-convert-to-define_debugfs_attribute.patch added to -mm tree
+Date: Tue, 30 May 2017 14:29:54 -0700
+Message-ID: <592de452.E9QTbK+HvwzuFayg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34602 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750897AbdE3V1Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 17:27:25 -0400
+        with ESMTP id S1750908AbdE3V3z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 17:29:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: y.pronenko@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: clean up duplicated codes in __zram_bvec_write
+     Subject: mm/memory.c: convert to DEFINE_DEBUGFS_ATTRIBUTE
 has been added to the -mm tree.  Its filename is
-     zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+     mm-convert-to-define_debugfs_attribute.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-to-define_debugfs_attribute.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-clean-up-duplicated-codes-in-__zram_bvec_write.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-to-define_debugfs_attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,121 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: clean up duplicated codes in __zram_bvec_write
+From: Yevgen Pronenko <y.pronenko@gmail.com>
+Subject: mm/memory.c: convert to DEFINE_DEBUGFS_ATTRIBUTE
 
-__zram_bvec_write has some of duplicated logic for zram meta data handling
-of same_page|dedup_page|compressed_page.  This patch aims to clean it up
-without behavior change.
+The preferred strategy to define debugfs attributes is to use the
+DEFINE_DEBUGFS_ATTRIBUTE() macro and to use debugfs_create_file_unsafe().
 
-Link: http://lkml.kernel.org/r/1496019048-27016-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/20170528145948.32127-1-y.pronenko@gmail.com
+Signed-off-by: Yevgen Pronenko <y.pronenko@gmail.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   70 ++++++++++++--------------------
- 1 file changed, 27 insertions(+), 43 deletions(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-clean-up-duplicated-codes-in-__zram_bvec_write
-+++ a/drivers/block/zram/zram_drv.c
-@@ -500,30 +500,6 @@ static bool zram_same_page_read(struct z
- 	return false;
+diff -puN mm/memory.c~mm-convert-to-define_debugfs_attribute mm/memory.c
+--- a/mm/memory.c~mm-convert-to-define_debugfs_attribute
++++ a/mm/memory.c
+@@ -3300,14 +3300,14 @@ static int fault_around_bytes_set(void *
+ 		fault_around_bytes = PAGE_SIZE; /* rounddown_pow_of_two(0) is undefined */
+ 	return 0;
  }
+-DEFINE_SIMPLE_ATTRIBUTE(fault_around_bytes_fops,
++DEFINE_DEBUGFS_ATTRIBUTE(fault_around_bytes_fops,
+ 		fault_around_bytes_get, fault_around_bytes_set, "%llu\n");
  
--static bool zram_same_page_write(struct zram *zram, u32 index,
--					struct page *page)
--{
--	unsigned long element;
--	void *mem = kmap_atomic(page);
--
--	if (page_same_filled(mem, &element)) {
--		kunmap_atomic(mem);
--		/* Free memory associated with this sector now. */
--		zram_slot_lock(zram, index);
--		zram_free_page(zram, index);
--		zram_set_flag(zram, index, ZRAM_SAME);
--		zram_set_element(zram, index, element);
--		zram_slot_unlock(zram, index);
--
--		atomic64_inc(&zram->stats.same_pages);
--		atomic64_inc(&zram->stats.pages_stored);
--		return true;
--	}
--	kunmap_atomic(mem);
--
--	return false;
--}
--
- static struct zram_entry *zram_entry_alloc(struct zram *zram,
- 					unsigned int len, gfp_t flags)
+ static int __init fault_around_debugfs(void)
  {
-@@ -788,28 +764,31 @@ compress_again:
- static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index)
- {
- 	int ret;
--	struct zram_entry *entry;
--	unsigned int comp_len;
--	void *src, *dst;
-+	struct zram_entry *uninitialized_var(entry);
-+	unsigned int uninitialized_var(comp_len);
-+	void *src, *dst, *mem;
- 	struct zcomp_strm *zstrm;
- 	struct page *page = bvec->bv_page;
- 	u32 checksum;
-+	enum zram_pageflags flags = 0;
-+	unsigned long uninitialized_var(element);
+ 	void *ret;
  
--	if (zram_same_page_write(zram, index, page))
--		return 0;
-+	mem = kmap_atomic(page);
-+	if (page_same_filled(mem, &element)) {
-+		kunmap_atomic(mem);
-+		/* Free memory associated with this sector now. */
-+		flags = ZRAM_SAME;
-+		atomic64_inc(&zram->stats.same_pages);
-+		goto out;
-+	}
-+	kunmap_atomic(mem);
- 
- 	entry = zram_dedup_find(zram, page, &checksum);
- 	if (entry) {
- 		comp_len = entry->len;
--		zram_slot_lock(zram, index);
--		zram_free_page(zram, index);
--		zram_set_flag(zram, index, ZRAM_DUP);
--		zram_set_entry(zram, index, entry);
--		zram_set_obj_size(zram, index, comp_len);
--		zram_slot_unlock(zram, index);
-+		flags = ZRAM_DUP;
- 		atomic64_add(comp_len, &zram->stats.dup_data_size);
--		atomic64_inc(&zram->stats.pages_stored);
--		return 0;
-+		goto out;
- 	}
- 
- 	zstrm = zcomp_stream_get(zram->comp);
-@@ -833,19 +812,24 @@ static int __zram_bvec_write(struct zram
- 	zs_unmap_object(zram->mem_pool, zram_entry_handle(zram, entry));
- 	zram_dedup_insert(zram, entry, checksum);
- 
-+out:
-+	zram_slot_lock(zram, index);
- 	/*
- 	 * Free memory associated with this sector
- 	 * before overwriting unused sectors.
- 	 */
--	zram_slot_lock(zram, index);
- 	zram_free_page(zram, index);
--	zram_set_entry(zram, index, entry);
--	zram_set_obj_size(zram, index, comp_len);
-+	if (flags)
-+		zram_set_flag(zram, index, flags);
-+	if (flags != ZRAM_SAME) {
-+		zram_set_obj_size(zram, index, comp_len);
-+		zram_set_entry(zram, index, entry);
-+	} else {
-+		zram_set_element(zram, index, element);
-+	}
- 	zram_slot_unlock(zram, index);
+-	ret = debugfs_create_file("fault_around_bytes", 0644, NULL, NULL,
++	ret = debugfs_create_file_unsafe("fault_around_bytes", 0644, NULL, NULL,
+ 			&fault_around_bytes_fops);
+ 	if (!ret)
+ 		pr_warn("Failed to create fault_around_bytes in debugfs");
+_
+
+Patches currently in -mm which might be from y.pronenko@gmail.com are
+
+mm-convert-to-define_debugfs_attribute.patch
+
