@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch added to
- -mm tree
-Date: Tue, 30 May 2017 13:53:42 -0700
-Message-ID: <592ddbd6.TivlUsjGIJduoGSf%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch added
+ to -mm tree
+Date: Tue, 30 May 2017 13:53:49 -0700
+Message-ID: <592ddbdd.sx9HCXo0PQLn26aM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57158 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751099AbdE3Uxn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 16:53:43 -0400
+        with ESMTP id S1751128AbdE3Uxu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 16:53:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, riel@redhat.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: delete unused pgdat_reclaimable_pages()
+     Subject: mm: memcontrol: use generic mod_memcg_page_state for kmem pages
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
+     mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,27 +41,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: delete unused pgdat_reclaimable_pages()
+Subject: mm: memcontrol: use generic mod_memcg_page_state for kmem pages
 
-Patch series "mm: per-lruvec slab stats"
+The kmem-specific functions do the same thing. Switch and drop.
 
-Josef is working on a new approach to balancing slab caches and the page
-cache.  For this to work, he needs slab cache statistics on the lruvec
-level.  These patches implement that by adding infrastructure that allows
-updating and reading generic VM stat items per lruvec, then switches some
-existing VM accounting sites, including the slab accounting ones, to this
-new cgroup-aware API.
-
-I'll follow up with more patches on this, because there is actually
-substantial simplification that can be done to the memory controller when
-we replace private memcg accounting with making the existing VM accounting
-sites cgroup-aware.  But this is enough for Josef to base his slab reclaim
-work on, so here goes.
-
-
-This patch (of 6): delete unused pgdat_reclaimable_pages().
-
-Link: http://lkml.kernel.org/r/20170530181724.27197-2-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20170530181724.27197-5-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -69,40 +54,111 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 -
- mm/vmscan.c          |   16 ----------------
- 2 files changed, 17 deletions(-)
+ include/linux/memcontrol.h |   17 -----------------
+ kernel/fork.c              |    8 ++++----
+ mm/slab.h                  |   16 ++++++++--------
+ 3 files changed, 12 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/swap.h~mm-vmscan-delete-unused-pgdat_reclaimable_pages include/linux/swap.h
---- a/include/linux/swap.h~mm-vmscan-delete-unused-pgdat_reclaimable_pages
-+++ a/include/linux/swap.h
-@@ -289,7 +289,6 @@ extern void lru_cache_add_active_or_unev
- 
- /* linux/mm/vmscan.c */
- extern unsigned long zone_reclaimable_pages(struct zone *zone);
--extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
- extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
-diff -puN mm/vmscan.c~mm-vmscan-delete-unused-pgdat_reclaimable_pages mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-delete-unused-pgdat_reclaimable_pages
-+++ a/mm/vmscan.c
-@@ -228,22 +228,6 @@ unsigned long zone_reclaimable_pages(str
- 	return nr;
+diff -puN include/linux/memcontrol.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages
++++ a/include/linux/memcontrol.h
+@@ -929,19 +929,6 @@ static inline int memcg_cache_id(struct
+ 	return memcg ? memcg->kmemcg_id : -1;
  }
  
--unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat)
+-/**
+- * memcg_kmem_update_page_stat - update kmem page state statistics
+- * @page: the page
+- * @idx: page state item to account
+- * @val: number of pages (positive or negative)
+- */
+-static inline void memcg_kmem_update_page_stat(struct page *page,
+-				enum memcg_stat_item idx, int val)
 -{
--	unsigned long nr;
--
--	nr = node_page_state_snapshot(pgdat, NR_ACTIVE_FILE) +
--	     node_page_state_snapshot(pgdat, NR_INACTIVE_FILE) +
--	     node_page_state_snapshot(pgdat, NR_ISOLATED_FILE);
--
--	if (get_nr_swap_pages() > 0)
--		nr += node_page_state_snapshot(pgdat, NR_ACTIVE_ANON) +
--		      node_page_state_snapshot(pgdat, NR_INACTIVE_ANON) +
--		      node_page_state_snapshot(pgdat, NR_ISOLATED_ANON);
--
--	return nr;
+-	if (memcg_kmem_enabled() && page->mem_cgroup)
+-		this_cpu_add(page->mem_cgroup->stat->count[idx], val);
 -}
+-
+ #else
+ #define for_each_memcg_cache_index(_idx)	\
+ 	for (; NULL; )
+@@ -964,10 +951,6 @@ static inline void memcg_put_cache_ids(v
+ {
+ }
+ 
+-static inline void memcg_kmem_update_page_stat(struct page *page,
+-				enum memcg_stat_item idx, int val)
+-{
+-}
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN kernel/fork.c~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages kernel/fork.c
+--- a/kernel/fork.c~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages
++++ a/kernel/fork.c
+@@ -326,8 +326,8 @@ static void account_kernel_stack(struct
+ 		}
+ 
+ 		/* All stack pages belong to the same memcg. */
+-		memcg_kmem_update_page_stat(vm->pages[0], MEMCG_KERNEL_STACK_KB,
+-					    account * (THREAD_SIZE / 1024));
++		mod_memcg_page_state(vm->pages[0], MEMCG_KERNEL_STACK_KB,
++				     account * (THREAD_SIZE / 1024));
+ 	} else {
+ 		/*
+ 		 * All stack pages are in the same zone and belong to the
+@@ -338,8 +338,8 @@ static void account_kernel_stack(struct
+ 		mod_zone_page_state(page_zone(first_page), NR_KERNEL_STACK_KB,
+ 				    THREAD_SIZE / 1024 * account);
+ 
+-		memcg_kmem_update_page_stat(first_page, MEMCG_KERNEL_STACK_KB,
+-					    account * (THREAD_SIZE / 1024));
++		mod_memcg_page_state(first_page, MEMCG_KERNEL_STACK_KB,
++				     account * (THREAD_SIZE / 1024));
+ 	}
+ }
+ 
+diff -puN mm/slab.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages mm/slab.h
+--- a/mm/slab.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages
++++ a/mm/slab.h
+@@ -285,10 +285,10 @@ static __always_inline int memcg_charge_
+ 	if (ret)
+ 		return ret;
+ 
+-	memcg_kmem_update_page_stat(page,
+-			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
+-			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
+-			1 << order);
++	mod_memcg_page_state(page,
++			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
++			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
++			     1 << order);
+ 	return 0;
+ }
+ 
+@@ -298,10 +298,10 @@ static __always_inline void memcg_unchar
+ 	if (!memcg_kmem_enabled())
+ 		return;
+ 
+-	memcg_kmem_update_page_stat(page,
+-			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
+-			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
+-			-(1 << order));
++	mod_memcg_page_state(page,
++			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
++			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
++			     -(1 << order));
+ 	memcg_kmem_uncharge(page, order);
+ }
+ 
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
+mm-vmstat-move-slab-statistics-from-zone-to-node-counters.patch
+mm-memcontrol-use-the-node-native-slab-memory-counters.patch
+mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch
+mm-memcontrol-per-lruvec-stats-infrastructure.patch
+mm-memcontrol-account-slab-stats-per-lruvec.patch
+
