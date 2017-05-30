@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-use-the-node-native-slab-memory-counters.patch
- added to -mm tree
-Date: Tue, 30 May 2017 13:53:47 -0700
-Message-ID: <592ddbdb.O4Fj0r7F34JQwUym%akpm@linux-foundation.org>
+Subject: + mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch added to
+ -mm tree
+Date: Tue, 30 May 2017 13:53:42 -0700
+Message-ID: <592ddbd6.TivlUsjGIJduoGSf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57120 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751118AbdE3Uxs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 16:53:48 -0400
+        with ESMTP id S1751099AbdE3Uxn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2017 16:53:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, riel@redhat.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: use the node-native slab memory counters
+     Subject: mm: vmscan: delete unused pgdat_reclaimable_pages()
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-use-the-node-native-slab-memory-counters.patch
+     mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-use-the-node-native-slab-memory-counters.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-use-the-node-native-slab-memory-counters.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: use the node-native slab memory counters
+Subject: mm: vmscan: delete unused pgdat_reclaimable_pages()
 
-Now that the slab counters are moved from the zone to the node level we
-can drop the private memcg node stats and use the official ones.
+Patch series "mm: per-lruvec slab stats"
 
-Link: http://lkml.kernel.org/r/20170530181724.27197-4-hannes@cmpxchg.org
+Josef is working on a new approach to balancing slab caches and the page
+cache.  For this to work, he needs slab cache statistics on the lruvec
+level.  These patches implement that by adding infrastructure that allows
+updating and reading generic VM stat items per lruvec, then switches some
+existing VM accounting sites, including the slab accounting ones, to this
+new cgroup-aware API.
+
+I'll follow up with more patches on this, because there is actually
+substantial simplification that can be done to the memory controller when
+we replace private memcg accounting with making the existing VM accounting
+sites cgroup-aware.  But this is enough for Josef to base his slab reclaim
+work on, so here goes.
+
+
+This patch (of 6): delete unused pgdat_reclaimable_pages().
+
+Link: http://lkml.kernel.org/r/20170530181724.27197-2-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -54,78 +69,40 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 --
- mm/memcontrol.c            |    8 ++++----
- mm/slab.h                  |    4 ++--
- 3 files changed, 6 insertions(+), 8 deletions(-)
+ include/linux/swap.h |    1 -
+ mm/vmscan.c          |   16 ----------------
+ 2 files changed, 17 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-use-the-node-native-slab-memory-counters include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-use-the-node-native-slab-memory-counters
-+++ a/include/linux/memcontrol.h
-@@ -44,8 +44,6 @@ enum memcg_stat_item {
- 	MEMCG_SOCK,
- 	/* XXX: why are these zone and not node counters? */
- 	MEMCG_KERNEL_STACK_KB,
--	MEMCG_SLAB_RECLAIMABLE,
--	MEMCG_SLAB_UNRECLAIMABLE,
- 	MEMCG_NR_STAT,
- };
+diff -puN include/linux/swap.h~mm-vmscan-delete-unused-pgdat_reclaimable_pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-vmscan-delete-unused-pgdat_reclaimable_pages
++++ a/include/linux/swap.h
+@@ -289,7 +289,6 @@ extern void lru_cache_add_active_or_unev
  
-diff -puN mm/memcontrol.c~mm-memcontrol-use-the-node-native-slab-memory-counters mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-use-the-node-native-slab-memory-counters
-+++ a/mm/memcontrol.c
-@@ -5198,8 +5198,8 @@ static int memory_stat_show(struct seq_f
- 	seq_printf(m, "kernel_stack %llu\n",
- 		   (u64)stat[MEMCG_KERNEL_STACK_KB] * 1024);
- 	seq_printf(m, "slab %llu\n",
--		   (u64)(stat[MEMCG_SLAB_RECLAIMABLE] +
--			 stat[MEMCG_SLAB_UNRECLAIMABLE]) * PAGE_SIZE);
-+		   (u64)(stat[NR_SLAB_RECLAIMABLE] +
-+			 stat[NR_SLAB_UNRECLAIMABLE]) * PAGE_SIZE);
- 	seq_printf(m, "sock %llu\n",
- 		   (u64)stat[MEMCG_SOCK] * PAGE_SIZE);
- 
-@@ -5223,9 +5223,9 @@ static int memory_stat_show(struct seq_f
- 	}
- 
- 	seq_printf(m, "slab_reclaimable %llu\n",
--		   (u64)stat[MEMCG_SLAB_RECLAIMABLE] * PAGE_SIZE);
-+		   (u64)stat[NR_SLAB_RECLAIMABLE] * PAGE_SIZE);
- 	seq_printf(m, "slab_unreclaimable %llu\n",
--		   (u64)stat[MEMCG_SLAB_UNRECLAIMABLE] * PAGE_SIZE);
-+		   (u64)stat[NR_SLAB_UNRECLAIMABLE] * PAGE_SIZE);
- 
- 	/* Accumulated memory events */
- 
-diff -puN mm/slab.h~mm-memcontrol-use-the-node-native-slab-memory-counters mm/slab.h
---- a/mm/slab.h~mm-memcontrol-use-the-node-native-slab-memory-counters
-+++ a/mm/slab.h
-@@ -287,7 +287,7 @@ static __always_inline int memcg_charge_
- 
- 	memcg_kmem_update_page_stat(page,
- 			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
--			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
-+			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
- 			1 << order);
- 	return 0;
+ /* linux/mm/vmscan.c */
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+-extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+ extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
+diff -puN mm/vmscan.c~mm-vmscan-delete-unused-pgdat_reclaimable_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-delete-unused-pgdat_reclaimable_pages
++++ a/mm/vmscan.c
+@@ -228,22 +228,6 @@ unsigned long zone_reclaimable_pages(str
+ 	return nr;
  }
-@@ -300,7 +300,7 @@ static __always_inline void memcg_unchar
  
- 	memcg_kmem_update_page_stat(page,
- 			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
--			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
-+			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
- 			-(1 << order));
- 	memcg_kmem_uncharge(page, order);
- }
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-mm-vmscan-delete-unused-pgdat_reclaimable_pages.patch
-mm-vmstat-move-slab-statistics-from-zone-to-node-counters.patch
-mm-memcontrol-use-the-node-native-slab-memory-counters.patch
-mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch
-mm-memcontrol-per-lruvec-stats-infrastructure.patch
-mm-memcontrol-account-slab-stats-per-lruvec.patch
-
+-unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat)
+-{
+-	unsigned long nr;
+-
+-	nr = node_page_state_snapshot(pgdat, NR_ACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_INACTIVE_FILE) +
+-	     node_page_state_snapshot(pgdat, NR_ISOLATED_FILE);
+-
+-	if (get_nr_swap_pages() > 0)
+-		nr += node_page_state_snapshot(pgdat, NR_ACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_INACTIVE_ANON) +
+-		      node_page_state_snapshot(pgdat, NR_ISOLATED_ANON);
+-
+-	return nr;
+-}
