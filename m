@@ -1,86 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2.patch removed from -mm tree
-Date: Wed, 31 May 2017 14:01:26 -0700
-Message-ID: <592f2f26.Dd4dzabiXaaeEha+%akpm@linux-foundation.org>
+Subject: +
+ mm-add-null-check-to-avoid-potential-null-pointer-dereference.patch added
+ to -mm tree
+Date: Wed, 31 May 2017 14:08:04 -0700
+Message-ID: <592f30b4.W16g98555m/RVpyI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52114 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52754 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751097AbdEaVB1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 17:01:27 -0400
+        with ESMTP id S1750898AbdEaVIF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 17:08:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, jbacik@fb.com, josef@toxicpanda.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: garsilva@embeddedor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2
-has been removed from the -mm tree.  Its filename was
-     mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2.patch
+     Subject: mm/memory_hotplug.c: add NULL check to avoid potential NULL pointer dereference
+has been added to the -mm tree.  Its filename is
+     mm-add-null-check-to-avoid-potential-null-pointer-dereference.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-null-check-to-avoid-potential-null-pointer-dereference.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-null-check-to-avoid-potential-null-pointer-dereference.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: mm/memory_hotplug.c: add NULL check to avoid potential NULL pointer dereference
 
-avoid div-by-zero
+NULL check at line 1226: if (!pgdat), implies that pointer pgdat
+might be NULL.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <jbacik@fb.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Rik van Riel <riel@redhat.com>
+rollback_node_hotadd() dereferences this pointer.  Add NULL check to avoid
+a potential NULL pointer dereference.
+
+Addresses-Coverity-ID: 1369133
+Link: http://lkml.kernel.org/r/20170530212436.GA6195@embeddedgus
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2 mm/vmscan.c
---- a/mm/vmscan.c~mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2
-+++ a/mm/vmscan.c
-@@ -2724,7 +2724,7 @@ static bool shrink_node(pg_data_t *pgdat
- 		if (sc->nr_reclaimed - nr_reclaimed) {
- 			reclaimable = true;
- 		} else if (sc->inactive_only && !skip_slab) {
--			unsigned long percent;
-+			unsigned long percent = 100;
+diff -puN mm/memory_hotplug.c~mm-add-null-check-to-avoid-potential-null-pointer-dereference mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-add-null-check-to-avoid-potential-null-pointer-dereference
++++ a/mm/memory_hotplug.c
+@@ -1273,7 +1273,7 @@ register_fail:
  
- 			/*
- 			 * We didn't reclaim anything this go around, so the
-@@ -2735,7 +2735,8 @@ static bool shrink_node(pg_data_t *pgdat
- 			 * hoping that eventually we'll start freeing enough
- 			 * objects to reclaim space.
- 			 */
--			percent = (slab_reclaimed * 100 / slab_scanned);
-+			if (slab_scanned)
-+				percent = (slab_reclaimed * 100 / slab_scanned);
- 			if (percent < 50)
- 				sc->inactive_only = 0;
- 			else
+ error:
+ 	/* rollback pgdat allocation and others */
+-	if (new_pgdat)
++	if (new_pgdat && pgdat)
+ 		rollback_node_hotadd(nid, pgdat);
+ 	memblock_remove(start, size);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from garsilva@embeddedor.com are
 
-i-need-old-gcc.patch
-mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
-mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix.patch
-mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-add-null-check-to-avoid-potential-null-pointer-dereference.patch
 
