@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bufferc-make-bh_lru_install-more-efficient.patch added to
- -mm tree
-Date: Wed, 31 May 2017 15:53:13 -0700
-Message-ID: <592f4959.hf6G/WhBeHpccHb7%akpm@linux-foundation.org>
+Subject: + fs-proc-switch-to-ida_simple_get-remove.patch added to -mm tree
+Date: Wed, 31 May 2017 15:56:21 -0700
+Message-ID: <592f4a15.00aNRFCNc9+A0TIJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36964 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdEaWxO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 18:53:14 -0400
+        with ESMTP id S1751019AbdEaW4W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 18:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers@google.com, cl@linux.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hkallweit1@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/buffer.c: make bh_lru_install() more efficient
+     Subject: fs/proc/generic.c: switch to ida_simple_get/remove
 has been added to the -mm tree.  Its filename is
-     fs-bufferc-make-bh_lru_install-more-efficient.patch
+     fs-proc-switch-to-ida_simple_get-remove.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-bufferc-make-bh_lru_install-more-efficient.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-switch-to-ida_simple_get-remove.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-bufferc-make-bh_lru_install-more-efficient.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-switch-to-ida_simple_get-remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,102 +38,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@google.com>
-Subject: fs/buffer.c: make bh_lru_install() more efficient
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: fs/proc/generic.c: switch to ida_simple_get/remove
 
-To install a buffer_head into the cpu's LRU queue, bh_lru_install() would
-construct a new copy of the queue and then memcpy it over the real queue. 
-But it's easily possible to do the update in-place, which is faster and
-simpler.  Some work can also be skipped if the buffer_head was already in
-the queue.
+The code can be much simplified by switching to ida_simple_get/remove.
 
-As a microbenchmark I timed how long it takes to run sb_getblk()
-10,000,000 times alternating between BH_LRU_SIZE + 1 blocks.  Effectively,
-this benchmarks looking up buffer_heads that are in the page cache but not
-in the LRU:
-
-	Before this patch: 1.758s
-	After this patch: 1.653s
-
-This patch also removes about 350 bytes of compiled code (on x86_64),
-partly due to removal of the memcpy() which was being inlined+unrolled.
-
-Link: http://lkml.kernel.org/r/20161229193445.1913-1-ebiggers3@gmail.com
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/8d1cc9f7-5115-c9dc-028e-c0770b6bfe1f@gmail.com
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   43 +++++++++++++++----------------------------
- 1 file changed, 15 insertions(+), 28 deletions(-)
+ fs/proc/generic.c |   34 ++++++++--------------------------
+ 1 file changed, 8 insertions(+), 26 deletions(-)
 
-diff -puN fs/buffer.c~fs-bufferc-make-bh_lru_install-more-efficient fs/buffer.c
---- a/fs/buffer.c~fs-bufferc-make-bh_lru_install-more-efficient
-+++ a/fs/buffer.c
-@@ -1273,44 +1273,31 @@ static inline void check_irqs_on(void)
+diff -puN fs/proc/generic.c~fs-proc-switch-to-ida_simple_get-remove fs/proc/generic.c
+--- a/fs/proc/generic.c~fs-proc-switch-to-ida_simple_get-remove
++++ a/fs/proc/generic.c
+@@ -180,7 +180,6 @@ static int xlate_proc_name(const char *n
  }
  
- /*
-- * The LRU management algorithm is dopey-but-simple.  Sorry.
-+ * Install a buffer_head into this cpu's LRU.  If not already in the LRU, it is
-+ * inserted at the front, and the buffer_head at the back if any is evicted.
-+ * Or, if already in the LRU it is moved to the front.
+ static DEFINE_IDA(proc_inum_ida);
+-static DEFINE_SPINLOCK(proc_inum_lock); /* protects the above */
+ 
+ #define PROC_DYNAMIC_FIRST 0xF0000000U
+ 
+@@ -190,37 +189,20 @@ static DEFINE_SPINLOCK(proc_inum_lock);
   */
- static void bh_lru_install(struct buffer_head *bh)
+ int proc_alloc_inum(unsigned int *inum)
  {
--	struct buffer_head *evictee = NULL;
-+	struct buffer_head *evictee = bh;
-+	struct bh_lru *b;
+-	unsigned int i;
+-	int error;
 +	int i;
  
- 	check_irqs_on();
- 	bh_lru_lock();
--	if (__this_cpu_read(bh_lrus.bhs[0]) != bh) {
--		struct buffer_head *bhs[BH_LRU_SIZE];
--		int in;
--		int out = 0;
- 
--		get_bh(bh);
--		bhs[out++] = bh;
--		for (in = 0; in < BH_LRU_SIZE; in++) {
--			struct buffer_head *bh2 =
--				__this_cpu_read(bh_lrus.bhs[in]);
+-retry:
+-	if (!ida_pre_get(&proc_inum_ida, GFP_KERNEL))
+-		return -ENOMEM;
 -
--			if (bh2 == bh) {
--				__brelse(bh2);
--			} else {
--				if (out >= BH_LRU_SIZE) {
--					BUG_ON(evictee != NULL);
--					evictee = bh2;
--				} else {
--					bhs[out++] = bh2;
--				}
--			}
-+	b = this_cpu_ptr(&bh_lrus);
-+	for (i = 0; i < BH_LRU_SIZE; i++) {
-+		swap(evictee, b->bhs[i]);
-+		if (evictee == bh) {
-+			bh_lru_unlock();
-+			return;
- 		}
--		while (out < BH_LRU_SIZE)
--			bhs[out++] = NULL;
--		memcpy(this_cpu_ptr(&bh_lrus.bhs), bhs, sizeof(bhs));
- 	}
--	bh_lru_unlock();
+-	spin_lock_irq(&proc_inum_lock);
+-	error = ida_get_new(&proc_inum_ida, &i);
+-	spin_unlock_irq(&proc_inum_lock);
+-	if (error == -EAGAIN)
+-		goto retry;
+-	else if (error)
+-		return error;
+-
+-	if (i > UINT_MAX - PROC_DYNAMIC_FIRST) {
+-		spin_lock_irq(&proc_inum_lock);
+-		ida_remove(&proc_inum_ida, i);
+-		spin_unlock_irq(&proc_inum_lock);
+-		return -ENOSPC;
+-	}
+-	*inum = PROC_DYNAMIC_FIRST + i;
++	i = ida_simple_get(&proc_inum_ida, 0, UINT_MAX - PROC_DYNAMIC_FIRST + 1,
++			   GFP_KERNEL);
++	if (i < 0)
++		return i;
++
++	*inum = PROC_DYNAMIC_FIRST + (unsigned int)i;
+ 	return 0;
+ }
  
--	if (evictee)
--		__brelse(evictee);
-+	get_bh(bh);
-+	bh_lru_unlock();
-+	brelse(evictee);
+ void proc_free_inum(unsigned int inum)
+ {
+-	unsigned long flags;
+-	spin_lock_irqsave(&proc_inum_lock, flags);
+-	ida_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
+-	spin_unlock_irqrestore(&proc_inum_lock, flags);
++	ida_simple_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
  }
  
  /*
 _
 
-Patches currently in -mm which might be from ebiggers@google.com are
+Patches currently in -mm which might be from hkallweit1@gmail.com are
 
-fs-bufferc-make-bh_lru_install-more-efficient.patch
+fs-proc-switch-to-ida_simple_get-remove.patch
 
