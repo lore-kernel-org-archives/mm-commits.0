@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing.patch added to -mm tree
-Date: Wed, 31 May 2017 13:39:48 -0700
-Message-ID: <592f2a14.q7mhevxlIR8GoBjS%akpm@linux-foundation.org>
+ mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2.patch added
+ to -mm tree
+Date: Wed, 31 May 2017 13:51:41 -0700
+Message-ID: <592f2cdd.ylseBD+jEm/xcZOZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51702 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751141AbdEaUjt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 16:39:49 -0400
+        with ESMTP id S1750898AbdEaUvm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 16:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mgorman@suse.de, srikar@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, jbacik@fb.com, josef@toxicpanda.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: consider memblock reservations for deferred memory initialization sizing
+     Subject: mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing.patch
+     mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,246 +40,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: consider memblock reservations for deferred memory initialization sizing
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2
 
-We have seen an early OOM killer invocation on ppc64 systems with
-crashkernel=4096M
-	kthreadd invoked oom-killer: gfp_mask=0x16040c0(GFP_KERNEL|__GFP_COMP|__GFP_NOTRACK), nodemask=7, order=0, oom_score_adj=0
-	kthreadd cpuset=/ mems_allowed=7
-	CPU: 0 PID: 2 Comm: kthreadd Not tainted 4.4.68-1.gd7fe927-default #1
-	Call Trace:
-	[c0000000072fb7c0] [c00000000080830c] dump_stack+0xb0/0xf0 (unreliable)
-	[c0000000072fb800] [c0000000008032d4] dump_header+0xb0/0x258
-	[c0000000072fb8e0] [c00000000023dfc0] out_of_memory+0x5f0/0x640
-	[c0000000072fb990] [c00000000024459c] __alloc_pages_nodemask+0xa8c/0xc80
-	[c0000000072fbb10] [c0000000002b2504] kmem_getpages+0x84/0x1a0
-	[c0000000072fbb50] [c0000000002b5174] fallback_alloc+0x2a4/0x320
-	[c0000000072fbbc0] [c0000000002b4240] kmem_cache_alloc_node+0xc0/0x2e0
-	[c0000000072fbc30] [c0000000000b9a80] copy_process.isra.25+0x260/0x1b30
-	[c0000000072fbd10] [c0000000000bb514] _do_fork+0x94/0x470
-	[c0000000072fbd80] [c0000000000bb978] kernel_thread+0x48/0x60
-	[c0000000072fbda0] [c0000000000e9df4] kthreadd+0x264/0x330
-	[c0000000072fbe30] [c000000000009538] ret_from_kernel_thread+0x5c/0xa4
-	Mem-Info:
-	active_anon:0 inactive_anon:0 isolated_anon:0
-	 active_file:0 inactive_file:0 isolated_file:0
-	 unevictable:0 dirty:0 writeback:0 unstable:0
-	 slab_reclaimable:5 slab_unreclaimable:73
-	 mapped:0 shmem:0 pagetables:0 bounce:0
-	 free:0 free_pcp:0 free_cma:0
-	Node 7 DMA free:0kB min:0kB low:0kB high:0kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:52428800kB managed:110016kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:320kB slab_unreclaimable:4672kB kernel_stack:1152kB pagetables:0kB unstable:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? yes
-	lowmem_reserve[]: 0 0 0 0
-	Node 7 DMA: 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB 0*8192kB 0*16384kB = 0kB
-	0 total pagecache pages
-	0 pages in swap cache
-	Swap cache stats: add 0, delete 0, find 0/0
-	Free swap  = 0kB
-	Total swap = 0kB
-	819200 pages RAM
-	0 pages HighMem/MovableOnly
-	817481 pages reserved
-	0 pages cma reserved
-	0 pages hwpoisoned
+avoid div-by-zero
 
-the reason is that the managed memory is too low (only 110MB) while the
-rest of the the 50GB is still waiting for the deferred intialization to be
-done.  update_defer_init estimates the initial memoty to initialize to 2GB
-at least but it doesn't consider any memory allocated in that range.  In
-this particular case we've had
-
-	Reserving 4096MB of memory at 128MB for crashkernel (System RAM: 51200MB)
-
-so the low 2GB is mostly depleted.
-
-Fix this by considering memblock allocations in the initial static
-initialization estimation.  Move the max_initialise to
-reset_deferred_meminit and implement a simple memblock_reserved_memory
-helper which iterates all reserved blocks and sums the size of all that
-start below the given address.  The cumulative size is than added on top
-of the initial estimation.  This is still not ideal because
-reset_deferred_meminit doesn't consider holes and so reservation might be
-above the initial estimation whihch we ignore but let's make the logic
-simpler until we really need to handle more complicated cases.
-
-Fixes: 3a80a7fa7989 ("mm: meminit: initialise a subset of struct pages if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set")
-Link: http://lkml.kernel.org/r/20170531104010.GI27783@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Tested-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>	[4.2+]
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <jbacik@fb.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    8 ++++++++
- include/linux/mmzone.h   |    1 +
- mm/memblock.c            |   23 +++++++++++++++++++++++
- mm/page_alloc.c          |   33 ++++++++++++++++++++++-----------
- 4 files changed, 54 insertions(+), 11 deletions(-)
+ mm/vmscan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing include/linux/memblock.h
---- a/include/linux/memblock.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/include/linux/memblock.h
-@@ -425,11 +425,19 @@ static inline void early_memtest(phys_ad
- }
- #endif
+diff -puN mm/vmscan.c~mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2 mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2
++++ a/mm/vmscan.c
+@@ -2724,7 +2724,7 @@ static bool shrink_node(pg_data_t *pgdat
+ 		if (sc->nr_reclaimed - nr_reclaimed) {
+ 			reclaimable = true;
+ 		} else if (sc->inactive_only && !skip_slab) {
+-			unsigned long percent;
++			unsigned long percent = 100;
  
-+extern unsigned long memblock_reserved_memory_within(phys_addr_t start_addr,
-+		phys_addr_t end_addr);
- #else
- static inline phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align)
- {
- 	return 0;
- }
-+
-+static inline unsigned long memblock_reserved_memory_within(phys_addr_t start_addr,
-+		phys_addr_t end_addr)
-+{
-+	return 0;
-+}
- 
- #endif /* CONFIG_HAVE_MEMBLOCK */
- 
-diff -puN include/linux/mmzone.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/include/linux/mmzone.h
-@@ -678,6 +678,7 @@ typedef struct pglist_data {
- 	 * is the first PFN that needs to be initialised.
- 	 */
- 	unsigned long first_deferred_pfn;
-+	unsigned long static_init_size;
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN mm/memblock.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing mm/memblock.c
---- a/mm/memblock.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/mm/memblock.c
-@@ -1739,6 +1739,29 @@ static void __init_memblock memblock_dum
- 	}
- }
- 
-+extern unsigned long __init_memblock
-+memblock_reserved_memory_within(phys_addr_t start_addr, phys_addr_t end_addr)
-+{
-+	struct memblock_region *rgn;
-+	unsigned long size = 0;
-+	int idx;
-+
-+	for_each_memblock_type((&memblock.reserved), rgn) {
-+		phys_addr_t start, end;
-+
-+		if (rgn->base + rgn->size < start_addr)
-+			continue;
-+		if (rgn->base > end_addr)
-+			continue;
-+
-+		start = rgn->base;
-+		end = start + rgn->size;
-+		size += end - start;
-+	}
-+
-+	return size;
-+}
-+
- void __init_memblock __memblock_dump_all(void)
- {
- 	pr_info("MEMBLOCK configuration:\n");
-diff -puN mm/page_alloc.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing mm/page_alloc.c
---- a/mm/page_alloc.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/mm/page_alloc.c
-@@ -292,6 +292,26 @@ int page_group_by_mobility_disabled __re
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static inline void reset_deferred_meminit(pg_data_t *pgdat)
- {
-+	unsigned long max_initialise;
-+	unsigned long reserved_lowmem;
-+
-+	/*
-+	 * Initialise at least 2G of a node but also take into account that
-+	 * two large system hashes that can take up 1GB for 0.25TB/node.
-+	 */
-+	max_initialise = max(2UL << (30 - PAGE_SHIFT),
-+		(pgdat->node_spanned_pages >> 8));
-+
-+	/*
-+	 * Compensate the all the memblock reservations (e.g. crash kernel)
-+	 * from the initial estimation to make sure we will initialize enough
-+	 * memory to boot.
-+	 */
-+	reserved_lowmem = memblock_reserved_memory_within(pgdat->node_start_pfn,
-+			pgdat->node_start_pfn + max_initialise);
-+	max_initialise += reserved_lowmem;
-+
-+	pgdat->static_init_size = min(max_initialise, pgdat->node_spanned_pages);
- 	pgdat->first_deferred_pfn = ULONG_MAX;
- }
- 
-@@ -314,20 +334,11 @@ static inline bool update_defer_init(pg_
- 				unsigned long pfn, unsigned long zone_end,
- 				unsigned long *nr_initialised)
- {
--	unsigned long max_initialise;
--
- 	/* Always populate low zones for address-contrained allocations */
- 	if (zone_end < pgdat_end_pfn(pgdat))
- 		return true;
--	/*
--	 * Initialise at least 2G of a node but also take into account that
--	 * two large system hashes that can take up 1GB for 0.25TB/node.
--	 */
--	max_initialise = max(2UL << (30 - PAGE_SHIFT),
--		(pgdat->node_spanned_pages >> 8));
--
- 	(*nr_initialised)++;
--	if ((*nr_initialised > max_initialise) &&
-+	if ((*nr_initialised > pgdat->static_init_size) &&
- 	    (pfn & (PAGES_PER_SECTION - 1)) == 0) {
- 		pgdat->first_deferred_pfn = pfn;
- 		return false;
-@@ -6138,7 +6149,6 @@ void __paginginit free_area_init_node(in
- 	/* pg_data_t should be reset to zero when it's allocated */
- 	WARN_ON(pgdat->nr_zones || pgdat->kswapd_classzone_idx);
- 
--	reset_deferred_meminit(pgdat);
- 	pgdat->node_id = nid;
- 	pgdat->node_start_pfn = node_start_pfn;
- 	pgdat->per_cpu_nodestats = NULL;
-@@ -6160,6 +6170,7 @@ void __paginginit free_area_init_node(in
- 		(unsigned long)pgdat->node_mem_map);
- #endif
- 
-+	reset_deferred_meminit(pgdat);
- 	free_area_init_core(pgdat);
- }
- 
+ 			/*
+ 			 * We didn't reclaim anything this go around, so the
+@@ -2735,7 +2735,8 @@ static bool shrink_node(pg_data_t *pgdat
+ 			 * hoping that eventually we'll start freeing enough
+ 			 * objects to reclaim space.
+ 			 */
+-			percent = (slab_reclaimed * 100 / slab_scanned);
++			if (slab_scanned)
++				percent = (slab_reclaimed * 100 / slab_scanned);
+ 			if (percent < 50)
+ 				sc->inactive_only = 0;
+ 			else
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-include-linux-gfph-fix-___gfp_nolockdep-value.patch
-mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch
-mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing.patch
-fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
-mm-remove-return-value-from-init_currently_empty_zone.patch
-mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
-mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
-mm-memory_hotplug-split-up-register_one_node.patch
-mm-memory_hotplug-consider-offline-memblocks-removable.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
-mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
-mm-__first_valid_page-skip-over-offline-pages.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
-mm-memory_hotplug-fix-the-section-mismatch-warning.patch
-mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
-mm-adaptive-hash-table-scaling-fix.patch
-mm-memory_hotplug-drop-artificial-restriction-on-online-offline.patch
-mm-memory_hotplug-drop-config_movable_node.patch
-mm-memory_hotplug-move-movable_node-to-the-hotplug-proper.patch
-lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
-netfilter-use-kvmalloc-xt_alloc_table_info.patch
+i-need-old-gcc.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix.patch
+mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix.patch
+mm-make-kswapd-try-harder-to-keep-active-pages-in-cache-fix-2.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
