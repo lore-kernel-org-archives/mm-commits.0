@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
- added to -mm tree
-Date: Wed, 31 May 2017 12:09:08 -0700
-Message-ID: <592f14d4.r5AcLXj4U9AfJ70H%akpm@linux-foundation.org>
+Subject: + netfilter-use-kvmalloc-xt_alloc_table_info.patch added to -mm
+ tree
+Date: Wed, 31 May 2017 12:09:10 -0700
+Message-ID: <592f14d6.Rn7n8f/ZeRcSIymS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40542 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750952AbdEaTJJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 15:09:09 -0400
+        with ESMTP id S1751004AbdEaTJL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 15:09:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, herbert@gondor.apana.org.au, tgraf@suug.ch, mm-commits@vger.kernel.org
+To: mhocko@suse.com, fw@strlen.de, kadlec@blackhole.kfki.hu, pablo@netfilter.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rhashtable.c: use kvzalloc() in bucket_table_alloc() when possible
+     Subject: net/netfilter/x_tables.c: use kvmalloc() in xt_alloc_table_info()
 has been added to the -mm tree.  Its filename is
-     lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+     netfilter-use-kvmalloc-xt_alloc_table_info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/netfilter-use-kvmalloc-xt_alloc_table_info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/netfilter-use-kvmalloc-xt_alloc_table_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,41 +40,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: lib/rhashtable.c: use kvzalloc() in bucket_table_alloc() when possible
+Subject: net/netfilter/x_tables.c: use kvmalloc() in xt_alloc_table_info()
 
-bucket_table_alloc() can be currently called with GFP_KERNEL or
-GFP_ATOMIC.  For the former we basically have an open coded kvzalloc()
-while the later only uses kzalloc().  Let's simplify the code a bit by the
-dropping the open coded path and replace it with kvzalloc().
+xt_alloc_table_info() basically opencodes kvmalloc() so use the library
+function instead.
 
-Link: http://lkml.kernel.org/r/20170531155145.17111-3-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170531155145.17111-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Thomas Graf <tgraf@suug.ch>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rhashtable.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ net/netfilter/x_tables.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN lib/rhashtable.c~lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible lib/rhashtable.c
---- a/lib/rhashtable.c~lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible
-+++ a/lib/rhashtable.c
-@@ -211,11 +211,10 @@ static struct bucket_table *bucket_table
- 	int i;
+diff -puN net/netfilter/x_tables.c~netfilter-use-kvmalloc-xt_alloc_table_info net/netfilter/x_tables.c
+--- a/net/netfilter/x_tables.c~netfilter-use-kvmalloc-xt_alloc_table_info
++++ a/net/netfilter/x_tables.c
+@@ -1003,14 +1003,10 @@ struct xt_table_info *xt_alloc_table_inf
+ 	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
  
- 	size = sizeof(*tbl) + nbuckets * sizeof(tbl->buckets[0]);
--	if (size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER) ||
--	    gfp != GFP_KERNEL)
-+	if (gfp != GFP_KERNEL)
- 		tbl = kzalloc(size, gfp | __GFP_NOWARN | __GFP_NORETRY);
--	if (tbl == NULL && gfp == GFP_KERNEL)
--		tbl = vzalloc(size);
-+	else
-+		tbl = kvzalloc(size, gfp);
- 
- 	size = nbuckets;
- 
+-	if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
+-		info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
+-	if (!info) {
+-		info = __vmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY,
+-				 PAGE_KERNEL);
+-		if (!info)
+-			return NULL;
+-	}
++	info = kvmalloc(sz, GFP_KERNEL);
++	if (!info)
++		return NULL;
++
+ 	memset(info, 0, sizeof(*info));
+ 	info->size = size;
+ 	return info;
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
