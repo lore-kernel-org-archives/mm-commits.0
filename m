@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
+Subject: +
+ lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
  added to -mm tree
-Date: Wed, 31 May 2017 12:09:06 -0700
-Message-ID: <592f14d2.+6Vu/7M39eddLf4S%akpm@linux-foundation.org>
+Date: Wed, 31 May 2017 12:09:08 -0700
+Message-ID: <592f14d4.r5AcLXj4U9AfJ70H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdEaTJH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 15:09:07 -0400
+        with ESMTP id S1750952AbdEaTJJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 15:09:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, herbert@gondor.apana.org.au, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/file.c: replace alloc_fdmem() with kvmalloc() alternative
+     Subject: lib/rhashtable.c: use kvzalloc() in bucket_table_alloc() when possible
 has been added to the -mm tree.  Its filename is
-     fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
+     lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,63 +41,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: fs/file.c: replace alloc_fdmem() with kvmalloc() alternative
+Subject: lib/rhashtable.c: use kvzalloc() in bucket_table_alloc() when possible
 
-There is no real reason to duplicate kvmalloc* helpers so drop alloc_fdmem
-and replace it with the appropriate library function.
+bucket_table_alloc() can be currently called with GFP_KERNEL or
+GFP_ATOMIC.  For the former we basically have an open coded kvzalloc()
+while the later only uses kzalloc().  Let's simplify the code a bit by the
+dropping the open coded path and replace it with kvzalloc().
 
-Link: http://lkml.kernel.org/r/20170531155145.17111-2-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170531155145.17111-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Graf <tgraf@suug.ch>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ lib/rhashtable.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/file.c~fs-file-replace-alloc_fdmem-with-kvmalloc-alternative fs/file.c
---- a/fs/file.c~fs-file-replace-alloc_fdmem-with-kvmalloc-alternative
-+++ a/fs/file.c
-@@ -30,21 +30,6 @@ unsigned int sysctl_nr_open_min = BITS_P
- unsigned int sysctl_nr_open_max =
- 	__const_min(INT_MAX, ~(size_t)0/sizeof(void *)) & -BITS_PER_LONG;
+diff -puN lib/rhashtable.c~lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible lib/rhashtable.c
+--- a/lib/rhashtable.c~lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible
++++ a/lib/rhashtable.c
+@@ -211,11 +211,10 @@ static struct bucket_table *bucket_table
+ 	int i;
  
--static void *alloc_fdmem(size_t size)
--{
--	/*
--	 * Very large allocations can stress page reclaim, so fall back to
--	 * vmalloc() if the allocation size will be considered "large" by the VM.
--	 */
--	if (size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER)) {
--		void *data = kmalloc(size, GFP_KERNEL_ACCOUNT |
--				     __GFP_NOWARN | __GFP_NORETRY);
--		if (data != NULL)
--			return data;
--	}
--	return __vmalloc(size, GFP_KERNEL_ACCOUNT, PAGE_KERNEL);
--}
--
- static void __free_fdtable(struct fdtable *fdt)
- {
- 	kvfree(fdt->fd);
-@@ -131,13 +116,14 @@ static struct fdtable * alloc_fdtable(un
- 	if (!fdt)
- 		goto out;
- 	fdt->max_fds = nr;
--	data = alloc_fdmem(nr * sizeof(struct file *));
-+	data = kvmalloc_array(nr, sizeof(struct file *), GFP_KERNEL_ACCOUNT);
- 	if (!data)
- 		goto out_fdt;
- 	fdt->fd = data;
+ 	size = sizeof(*tbl) + nbuckets * sizeof(tbl->buckets[0]);
+-	if (size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER) ||
+-	    gfp != GFP_KERNEL)
++	if (gfp != GFP_KERNEL)
+ 		tbl = kzalloc(size, gfp | __GFP_NOWARN | __GFP_NORETRY);
+-	if (tbl == NULL && gfp == GFP_KERNEL)
+-		tbl = vzalloc(size);
++	else
++		tbl = kvzalloc(size, gfp);
  
--	data = alloc_fdmem(max_t(size_t,
--				 2 * nr / BITS_PER_BYTE + BITBIT_SIZE(nr), L1_CACHE_BYTES));
-+	data = kvmalloc(max_t(size_t,
-+				 2 * nr / BITS_PER_BYTE + BITBIT_SIZE(nr), L1_CACHE_BYTES),
-+				 GFP_KERNEL_ACCOUNT);
- 	if (!data)
- 		goto out_arr;
- 	fdt->open_fds = data;
+ 	size = nbuckets;
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
