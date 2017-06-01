@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch added to -mm tree
-Date: Thu, 01 Jun 2017 15:38:03 -0700
-Message-ID: <5930974b.+4fXttQUPjyBnIA/%akpm@linux-foundation.org>
+Subject: + mm-soft-offline-dissolve-free-hugepage-if-soft-offlined.patch
+ added to -mm tree
+Date: Thu, 01 Jun 2017 15:38:05 -0700
+Message-ID: <5930974d.8+wYDIVoS/5N6Ro7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41670 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751078AbdFAWiE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2017 18:38:04 -0400
+        with ESMTP id S1751134AbdFAWiG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2017 18:38:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: soft-offline: dissolve source hugepage after successful migration
+     Subject: mm: soft-offline: dissolve free hugepage if soft-offlined
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
+     mm-soft-offline-dissolve-free-hugepage-if-soft-offlined.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-soft-offline-dissolve-free-hugepage-if-soft-offlined.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-soft-offline-dissolve-free-hugepage-if-soft-offlined.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,110 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm: hugetlb: soft-offline: dissolve source hugepage after successful migration
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: soft-offline: dissolve free hugepage if soft-offlined
 
-Currently hugepage migrated by soft-offline (i.e.  due to correctable
-memory errors) is contained as a hugepage, which means many non-error
-pages in it are unreusable, i.e.  wasted.
+Now we have code to rescue most of healthy pages from a hwpoisoned
+hugepage.  So let's apply it to soft_offline_free_page too.
 
-This patch solves this issue by dissolving source hugepages into buddy. 
-As done in previous patch, PageHWPoison is set only on a head page of the
-error hugepage.  Then in dissoliving we move the PageHWPoison flag to the
-raw error page so that all healthy subpages return back to buddy.
-
-Link: http://lkml.kernel.org/r/1496305019-5493-5-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1496305019-5493-6-git-send-email-n-horiguchi@ah.jp.nec.com
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 ++
- mm/hugetlb.c            |   10 +++++++++-
- mm/memory-failure.c     |    5 +----
- mm/migrate.c            |    2 ++
- 4 files changed, 14 insertions(+), 5 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration
-+++ a/include/linux/hugetlb.h
-@@ -472,6 +472,7 @@ static inline pgoff_t basepage_index(str
- 	return __basepage_index(page);
- }
- 
-+extern int dissolve_free_huge_page(struct page *page);
- extern int dissolve_free_huge_pages(unsigned long start_pfn,
- 				    unsigned long end_pfn);
- static inline bool hugepage_migration_supported(struct hstate *h)
-@@ -557,6 +558,7 @@ static inline pgoff_t basepage_index(str
- {
- 	return page->index;
- }
-+#define dissolve_free_huge_page(p)	0
- #define dissolve_free_huge_pages(s, e)	0
- #define hugepage_migration_supported(h)	false
- 
-diff -puN mm/hugetlb.c~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration
-+++ a/mm/hugetlb.c
-@@ -1459,7 +1459,7 @@ static int free_pool_huge_page(struct hs
-  * number of free hugepages would be reduced below the number of reserved
-  * hugepages.
-  */
--static int dissolve_free_huge_page(struct page *page)
-+int dissolve_free_huge_page(struct page *page)
- {
- 	int rc = 0;
- 
-@@ -1472,6 +1472,14 @@ static int dissolve_free_huge_page(struc
- 			rc = -EBUSY;
- 			goto out;
- 		}
-+		/*
-+		 * Move PageHWPoison flag from head page to the raw error page,
-+		 * which makes any subpages rather than the error page reusable.
-+		 */
-+		if (PageHWPoison(head) && page != head) {
-+			SetPageHWPoison(page);
-+			ClearPageHWPoison(head);
-+		}
- 		list_del(&head->lru);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
-diff -puN mm/memory-failure.c~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration
+diff -puN mm/memory-failure.c~mm-soft-offline-dissolve-free-hugepage-if-soft-offlined mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-soft-offline-dissolve-free-hugepage-if-soft-offlined
 +++ a/mm/memory-failure.c
-@@ -1572,11 +1572,8 @@ static int soft_offline_huge_page(struct
- 		if (ret > 0)
- 			ret = -EIO;
- 	} else {
--		/* overcommit hugetlb page will be freed to buddy */
--		SetPageHWPoison(page);
- 		if (PageHuge(page))
--			dequeue_hwpoisoned_huge_page(hpage);
--		num_poisoned_pages_inc();
+@@ -1694,7 +1694,7 @@ static void soft_offline_free_page(struc
+ 	if (!TestSetPageHWPoison(head)) {
+ 		num_poisoned_pages_inc();
+ 		if (PageHuge(head))
+-			dequeue_hwpoisoned_huge_page(head);
 +			dissolve_free_huge_page(page);
  	}
- 	return ret;
  }
-diff -puN mm/migrate.c~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration mm/migrate.c
---- a/mm/migrate.c~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration
-+++ a/mm/migrate.c
-@@ -1252,6 +1252,8 @@ put_anon:
- out:
- 	if (rc != -EAGAIN)
- 		putback_active_hugepage(hpage);
-+	if (reason == MR_MEMORY_FAILURE && !test_set_page_hwpoison(hpage))
-+		num_poisoned_pages_inc();
  
- 	/*
- 	 * If migration was not successful and there's a freeing callback, use
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-vmstat-standardize-file-operations-variable-names.patch
-mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
-mm-follow_page_mask-add-support-for-hugetlb-pgd-entries.patch
-mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
+mm-drop-null-return-check-of-pte_offset_map_lock.patch
+mm-hugetlb-prevent-reuse-of-hwpoisoned-free-hugepages.patch
+mm-hugetlb-return-immediately-for-hugetlb-page-in-__delete_from_page_cache.patch
+mm-hwpoison-change-pagehwpoison-behavior-on-hugetlb-pages.patch
+mm-soft-offline-dissolve-free-hugepage-if-soft-offlined.patch
+mm-hwpoison-introduce-memory_failure_hugetlb.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error.patch
+mm-hugetlb-delete-dequeue_hwpoisoned_huge_page.patch
+mm-hwpoison-introduce-idenfity_page_state.patch
 
