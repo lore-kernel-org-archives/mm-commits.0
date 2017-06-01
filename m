@@ -1,30 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-switch-to-ida_simple_get-remove.patch added to -mm tree
-Date: Wed, 31 May 2017 15:56:21 -0700
-Message-ID: <592f4a15.00aNRFCNc9+A0TIJ%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 01 Jun 2017 12:42:09 -0700
+Message-ID: <20170601194209.CBqpWnglw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751019AbdEaW4W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2017 18:56:22 -0400
+        with ESMTP id S1751097AbdFATmK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2017 15:42:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hkallweit1@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/generic.c: switch to ida_simple_get/remove
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fs-proc-switch-to-ida_simple_get-remove.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-switch-to-ida_simple_get-remove.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-switch-to-ida_simple_get-remove.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +35,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: fs/proc/generic.c: switch to ida_simple_get/remove
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The code can be much simplified by switching to ida_simple_get/remove.
-
-Link: http://lkml.kernel.org/r/8d1cc9f7-5115-c9dc-028e-c0770b6bfe1f@gmail.com
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   34 ++++++++--------------------------
- 1 file changed, 8 insertions(+), 26 deletions(-)
 
-diff -puN fs/proc/generic.c~fs-proc-switch-to-ida_simple_get-remove fs/proc/generic.c
---- a/fs/proc/generic.c~fs-proc-switch-to-ida_simple_get-remove
-+++ a/fs/proc/generic.c
-@@ -180,7 +180,6 @@ static int xlate_proc_name(const char *n
+diff -puN drivers/gpu/drm/i915/i915_gem_shrinker.c~linux-next-git-rejects drivers/gpu/drm/i915/i915_gem_shrinker.c
+--- a/drivers/gpu/drm/i915/i915_gem_shrinker.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/i915_gem_shrinker.c
+@@ -58,11 +58,7 @@ static void shrinker_unlock(struct drm_i
+ 	if (!unlock)
+ 		return;
+ 
+-<<<<<<< HEAD
+-	mutex_unlock(&dev->struct_mutex);
+-=======
+ 	mutex_unlock(&dev_priv->drm.struct_mutex);
+->>>>>>> linux-next/akpm-base
  }
  
- static DEFINE_IDA(proc_inum_ida);
--static DEFINE_SPINLOCK(proc_inum_lock); /* protects the above */
+ static bool any_vma_pinned(struct drm_i915_gem_object *obj)
+diff -puN drivers/target/target_core_transport.c~linux-next-git-rejects drivers/target/target_core_transport.c
+--- a/drivers/target/target_core_transport.c~linux-next-git-rejects
++++ a/drivers/target/target_core_transport.c
+@@ -1166,14 +1166,6 @@ target_cmd_size_check(struct se_cmd *cmd
+ 				cmd->data_length, size, cmd->t_task_cdb[0]);
  
- #define PROC_DYNAMIC_FIRST 0xF0000000U
- 
-@@ -190,37 +189,20 @@ static DEFINE_SPINLOCK(proc_inum_lock);
-  */
- int proc_alloc_inum(unsigned int *inum)
- {
--	unsigned int i;
--	int error;
-+	int i;
- 
--retry:
--	if (!ida_pre_get(&proc_inum_ida, GFP_KERNEL))
--		return -ENOMEM;
--
--	spin_lock_irq(&proc_inum_lock);
--	error = ida_get_new(&proc_inum_ida, &i);
--	spin_unlock_irq(&proc_inum_lock);
--	if (error == -EAGAIN)
--		goto retry;
--	else if (error)
--		return error;
--
--	if (i > UINT_MAX - PROC_DYNAMIC_FIRST) {
--		spin_lock_irq(&proc_inum_lock);
--		ida_remove(&proc_inum_ida, i);
--		spin_unlock_irq(&proc_inum_lock);
--		return -ENOSPC;
--	}
--	*inum = PROC_DYNAMIC_FIRST + i;
-+	i = ida_simple_get(&proc_inum_ida, 0, UINT_MAX - PROC_DYNAMIC_FIRST + 1,
-+			   GFP_KERNEL);
-+	if (i < 0)
-+		return i;
-+
-+	*inum = PROC_DYNAMIC_FIRST + (unsigned int)i;
- 	return 0;
- }
- 
- void proc_free_inum(unsigned int inum)
- {
--	unsigned long flags;
--	spin_lock_irqsave(&proc_inum_lock, flags);
--	ida_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
--	spin_unlock_irqrestore(&proc_inum_lock, flags);
-+	ida_simple_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
- }
- 
- /*
+ 		if (cmd->data_direction == DMA_TO_DEVICE) {
+-<<<<<<< HEAD
+-			if (cmd->se_cmd_flags & SCF_SCSI_DATA_CDB) {
+-				pr_err_ratelimited("Rejecting underflow/overflow"
+-						   " for WRITE data CDB\n");
+-				return TCM_INVALID_CDB_FIELD;
+-			}
+-=======
+->>>>>>> linux-next/akpm-base
+ 			/*
+ 			 * Some fabric drivers like iscsi-target still expect to
+ 			 * always reject overflow writes.  Reject this case until
+@@ -1185,20 +1177,6 @@ target_cmd_size_check(struct se_cmd *cmd
+ 						   " WRITE control CDB\n");
+ 				return TCM_INVALID_CDB_FIELD;
+ 			}
+-<<<<<<< HEAD
+-		}
+-		/*
+-		 * Reject READ_* or WRITE_* with overflow/underflow for
+-		 * type SCF_SCSI_DATA_CDB.
+-		 */
+-		if (dev->dev_attrib.block_size != 512)  {
+-			pr_err("Failing OVERFLOW/UNDERFLOW for LBA op"
+-				" CDB on non 512-byte sector setup subsystem"
+-				" plugin: %s\n", dev->transport->name);
+-			/* Returns CHECK_CONDITION + INVALID_CDB_FIELD */
+-			return TCM_INVALID_CDB_FIELD;
+-=======
+->>>>>>> linux-next/akpm-base
+ 		}
+ 		/*
+ 		 * For the overflow case keep the existing fabric provided
 _
 
-Patches currently in -mm which might be from hkallweit1@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-proc-switch-to-ida_simple_get-remove.patch
+i-need-old-gcc.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix.patch
+mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
