@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch added to -mm tree
-Date: Fri, 02 Jun 2017 13:36:44 -0700
-Message-ID: <5931cc5c.2geagLYsr2biThrW%akpm@linux-foundation.org>
+ mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch added to -mm tree
+Date: Fri, 02 Jun 2017 14:02:26 -0700
+Message-ID: <5931d262.lofVRk7w+Sxo7QSk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42448 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750918AbdFBUgp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 16:36:45 -0400
+        with ESMTP id S1750971AbdFBVC1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:02:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
+     Subject: mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+     mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
+Subject: mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix
 
-fix build
+fix unused var warnings
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
-+++ a/mm/vmscan.c
-@@ -2233,7 +2233,7 @@ static void get_scan_count(struct lruvec
- 			 * anonymous pages on the LRU in eligible zones.
- 			 * Otherwise, the small LRU gets thrashed.
- 			 */
--			if (!inactive_list_is_low(lruvec, false, sc, false) &&
-+			if (!inactive_list_is_low(lruvec, false, memcg, sc, false) &&
- 			    lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, sc->reclaim_idx)
- 					>> sc->priority) {
- 				scan_balance = SCAN_ANON;
+diff -puN mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix
++++ a/mm/memory-failure.c
+@@ -611,7 +611,6 @@ static int me_unknown(struct page *p, un
+  */
+ static int me_pagecache_clean(struct page *p, unsigned long pfn)
+ {
+-	int err;
+ 	struct address_space *mapping;
+ 
+ 	delete_from_lru_cache(p);
+@@ -758,8 +757,6 @@ static int me_huge_page(struct page *p,
+ 	if (mapping) {
+ 		res = truncate_error_page(hpage, pfn, mapping);
+ 	} else {
+-		int dissolve_ret;
+-
+ 		unlock_page(hpage);
+ 		/*
+ 		 * migration entry prevents later access on error anonymous
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +89,7 @@ mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
 mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
 mm-swap-sort-swap-entries-before-free-fix.patch
 mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
 kernel-reboot-add-devm_register_reboot_notifier-fix.patch
 fault-inject-support-systematic-fault-injection-fix.patch
 linux-next-git-rejects.patch
