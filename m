@@ -1,104 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- dax-fix-race-between-colliding-pmd-pte-entries-fix.patch removed from -mm
- tree
-Date: Fri, 02 Jun 2017 14:40:36 -0700
-Message-ID: <5931db54.yx4M0SjjDbuMQV3c%akpm@linux-foundation.org>
+ mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix.patch removed from -mm tree
+Date: Fri, 02 Jun 2017 14:41:32 -0700
+Message-ID: <5931db8c.rPjfzEj+9Ndu7E3O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49444 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBVkh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:40:37 -0400
+        with ESMTP id S1750971AbdFBVle (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:41:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, jack@suse.cz, pawel.lebioda@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, manoj.iyer@canonical.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, wanpeng.li@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: improve fix for colliding PMD & PTE entries
+     Subject: mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix
 has been removed from the -mm tree.  Its filename was
-     dax-fix-race-between-colliding-pmd-pte-entries-fix.patch
+     mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix.patch
 
-This patch was dropped because it was folded into dax-fix-race-between-colliding-pmd-pte-entries.patch
+This patch was dropped because it was folded into mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: improve fix for colliding PMD & PTE entries
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix
 
-This commit, which has not yet made it upstream but is in the -mm tree:
+remove dead comment, per Naoya
 
-    dax: Fix race between colliding PMD & PTE entries
-
-fixed a pair of race conditions where racing DAX PTE and PMD faults could
-corrupt page tables.  This fix had two shortcomings which are addressed by
-this patch:
-
-1) In the PTE fault handler we only checked for a collision using
-   pmd_devmap().  The pmd_devmap() check will trigger when we have raced
-   with a PMD that has real DAX storage, but to account for the case where
-   we collide with a huge zero page entry we also need to check for
-   pmd_trans_huge().
-
-2) In the PMD fault handler we only continued with the fault if no PMD
-   at all was present (pmd_none()).  This is the case when we are faulting
-   in a PMD for the first time, but there are two other cases to consider.
-   The first is that we are servicing a write fault over a PMD huge zero
-   page, which we detect with pmd_trans_huge().  The second is that we are
-   servicing a write fault over a DAX PMD with real storage, which we
-   address with pmd_devmap().
-
-Fix both of these, and instead of manually triggering a fallback in the
-PMD collision case instead be consistent with the other collision
-detection code in the fault handlers and just retry.
-
-Link: http://lkml.kernel.org/r/20170526195932.32178-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Pawel Lebioda <pawel.lebioda@intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Manoj Iyer <manoj.iyer@canonical.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Wanpeng Li <wanpeng.li@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-race-between-colliding-pmd-pte-entries-fix fs/dax.c
---- a/fs/dax.c~dax-fix-race-between-colliding-pmd-pte-entries-fix
-+++ a/fs/dax.c
-@@ -1160,7 +1160,7 @@ static int dax_iomap_pte_fault(struct vm
- 	 * the PTE we need to set up.  If so just return and the fault will be
- 	 * retried.
- 	 */
--	if (pmd_devmap(*vmf->pmd)) {
-+	if (pmd_trans_huge(*vmf->pmd) || pmd_devmap(*vmf->pmd)) {
- 		vmf_ret = VM_FAULT_NOPAGE;
- 		goto unlock_entry;
- 	}
-@@ -1411,11 +1411,14 @@ static int dax_iomap_pmd_fault(struct vm
- 	/*
- 	 * It is possible, particularly with mixed reads & writes to private
- 	 * mappings, that we have raced with a PTE fault that overlaps with
--	 * the PMD we need to set up.  If so we just fall back to a PTE fault
--	 * ourselves.
-+	 * the PMD we need to set up.  If so just return and the fault will be
-+	 * retried.
- 	 */
--	if (!pmd_none(*vmf->pmd))
-+	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd) &&
-+			!pmd_devmap(*vmf->pmd)) {
-+		result = 0;
- 		goto unlock_entry;
-+	}
- 
- 	/*
- 	 * Note that we don't use iomap_apply here.  We aren't doing I/O, only
+diff -puN mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix
++++ a/mm/memory-failure.c
+@@ -1595,11 +1595,6 @@ static int soft_offline_huge_page(struct
+ 	if (ret) {
+ 		pr_info("soft offline: %#lx: migration failed %d, type %lx (%pGp)\n",
+ 			pfn, ret, page->flags, &page->flags);
+-		/*
+-		 * We know that soft_offline_huge_page() tries to migrate
+-		 * only one hugepage pointed to by hpage, so we need not
+-		 * run through the pagelist here.
+-		 */
+ 		if (!list_empty(&pagelist))
+ 			putback_movable_pages(&pagelist);
+ 		if (ret > 0)
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-avoid-spurious-bad-pmd-warning-messages.patch
-dax-fix-race-between-colliding-pmd-pte-entries.patch
+i-need-old-gcc.patch
+mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
