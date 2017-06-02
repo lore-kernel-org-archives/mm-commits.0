@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf-document-load_bias-a-little-bit.patch added to -mm
- tree
-Date: Fri, 02 Jun 2017 12:42:10 -0700
-Message-ID: <5931bf92.8VwmmjweTDMXNV7t%akpm@linux-foundation.org>
+Subject: + x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch added to -mm tree
+Date: Fri, 02 Jun 2017 12:42:13 -0700
+Message-ID: <5931bf95.4ro1XAGmuwWoGFhl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38210 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750918AbdFBTmM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 15:42:12 -0400
+        with ESMTP id S1751007AbdFBTmO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 15:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hpa@zytor.com, lwoodman@redhat.com, mhocko@kernel.org, mingo@kernel.org, oleg@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt_elf: document load_bias a little bit
+     Subject: x86/elf: move 32 bit ELF_ET_DYN_BASE to 256MB
 has been added to the -mm tree.  Its filename is
-     binfmt_elf-document-load_bias-a-little-bit.patch
+     x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf-document-load_bias-a-little-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf-document-load_bias-a-little-bit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +39,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: binfmt_elf: document load_bias a little bit
+Subject: x86/elf: move 32 bit ELF_ET_DYN_BASE to 256MB
 
-Patch series "move mmap_area and PIE binaries away from the stack".
+When setting up mmap_base, we take care to start the mmap base below the
+maximum extent to which the stack will grow.  However, we take no such
+precautions with PIE binaries, which are placed at 5/6 of TASK_SIZE plus a
+random offset.  As a result, 32 bit PIE binaries can end up smack in the
+middle of where the stack (which is randomized down) is supposed to go.
 
-There are a few bugs causing the kernel to sometimes map PIE binaries and
-the mmap_area where the stack is supposed to go.
+That problem can be avoided by putting the 32 bit ELF_ET_DYN_BASE at
+256MB, which is a value linux-hardened and grsecurity have used for a long
+time now without any known (to me) bug reports.
 
-This series fixes them for x86, ARM64, and PPC.  S390 seems to be ok.
-
-
-This patch (of 6):
-
-After I and another unnamed developer got confused by the subtraction of
-vaddr in this branch of the code, followed by adding vaddr back in a
-little bit later, for the third time, maybe it is time to document this
-quirky bit of code.
-
-Link: http://lkml.kernel.org/r/20170602152010.2064-2-riel@redhat.com
+Link: http://lkml.kernel.org/r/20170602152010.2064-3-riel@redhat.com
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -73,44 +67,47 @@ Cc: Florian Weimer <fweimer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/elf.h |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-document-load_bias-a-little-bit fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-document-load_bias-a-little-bit
-+++ a/fs/binfmt_elf.c
-@@ -930,10 +930,16 @@ static int load_elf_binary(struct linux_
- 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
- 			elf_flags |= MAP_FIXED;
- 		} else if (loc->elf_ex.e_type == ET_DYN) {
--			/* Try and get dynamic programs out of the way of the
-+			/*
-+			 * Try and get dynamic programs out of the way of the
- 			 * default mmap base, as well as whatever program they
- 			 * might try to exec.  This is because the brk will
--			 * follow the loader, and is not movable.  */
-+			 * follow the loader, and is not movable.
-+			 *
-+			 * The load_bias is the difference between the address
-+			 * in the elf header and the address where the binary
-+			 * is mmapped.
-+			 */
- 			load_bias = ELF_ET_DYN_BASE - vaddr;
- 			if (current->flags & PF_RANDOMIZE)
- 				load_bias += arch_mmap_rnd();
-_
-
-Patches currently in -mm which might be from riel@redhat.com are
-
-binfmt_elf-document-load_bias-a-little-bit.patch
-x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
-x86-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
-arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
-arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch
-powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
-randomstackprotect-introduce-get_random_canary-function.patch
-forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
-x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
-arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
-sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
-
+diff -puN arch/x86/include/asm/elf.h~x86-elf-move-32-bit-elf_et_dyn_base-to-256mb arch/x86/include/asm/elf.h
+--- a/arch/x86/include/asm/elf.h~x86-elf-move-32-bit-elf_et_dyn_base-to-256mb
++++ a/arch/x86/include/asm/elf.h
+@@ -245,12 +245,23 @@ extern int force_personality32;
+ #define CORE_DUMP_USE_REGSET
+ #define ELF_EXEC_PAGESIZE	4096
+ 
++/*
++ * True on X86_32 or when emulating IA32 on X86_64
++ */
++static inline int mmap_is_ia32(void)
++{
++	return IS_ENABLED(CONFIG_X86_32) ||
++	       (IS_ENABLED(CONFIG_COMPAT) &&
++		test_thread_flag(TIF_ADDR32));
++}
++
+ /* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
+    use of this is to invoke "./ld.so someprog" to test out a new version of
+    the loader.  We need to make sure that it is out of the way of the program
+    that it will "exec", and that there is sufficient room for the brk.  */
+ 
+-#define ELF_ET_DYN_BASE		(TASK_SIZE / 3 * 2)
++#define ELF_ET_DYN_BASE		(mmap_is_ia32() ? 0x10000000UL : \
++				(TASK_SIZE / 3 * 2))
+ 
+ /* This yields a mask that user programs can use to figure out what
+    instruction set this CPU supports.  This could be done in user space,
+@@ -293,16 +304,6 @@ do {									\
+ 	}								\
+ } while (0)
+ 
+-/*
+- * True on X86_32 or when emulating IA32 on X86_64
+- */
+-static inline int mmap_is_ia32(void)
+-{
+-	return IS_ENABLED(CONFIG_X86_32) ||
+-	       (IS_ENABLED(CONFIG_COMPAT) &&
+-		test_thread_flag(TIF_ADDR32));
+-}
