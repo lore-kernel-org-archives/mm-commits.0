@@ -1,135 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/15] mm/hugetlb: report -EHWPOISON not -EFAULT when
- FOLL_HWPOISON is specified
-Date: Fri, 02 Jun 2017 14:46:46 -0700
-Message-ID: <5931dcc6.TA6aEQyaInMq97w1%akpm@linux-foundation.org>
+Subject: [patch 14/15] mm: consider memblock reservations for deferred
+ memory initialization sizing
+Date: Fri, 02 Jun 2017 14:46:49 -0700
+Message-ID: <5931dcc9.NMu6lR+raJhoJOUY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51574 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBVqr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:46:47 -0400
+        with ESMTP id S1750971AbdFBVqu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, james.morse@arm.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, mgorman@suse.de, srikar@linux.vnet.ibm.com, stable@vger.kernel.org
 
-From: James Morse <james.morse@arm.com>
-Subject: mm/hugetlb: report -EHWPOISON not -EFAULT when FOLL_HWPOISON is specified
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: consider memblock reservations for deferred memory initialization sizing
 
-KVM uses get_user_pages() to resolve its stage2 faults.  KVM sets the
-FOLL_HWPOISON flag causing faultin_page() to return -EHWPOISON when it
-finds a VM_FAULT_HWPOISON.  KVM handles these hwpoison pages as a special
-case.  (check_user_page_hwpoison())
+We have seen an early OOM killer invocation on ppc64 systems with
+crashkernel=4096M
+	kthreadd invoked oom-killer: gfp_mask=0x16040c0(GFP_KERNEL|__GFP_COMP|__GFP_NOTRACK), nodemask=7, order=0, oom_score_adj=0
+	kthreadd cpuset=/ mems_allowed=7
+	CPU: 0 PID: 2 Comm: kthreadd Not tainted 4.4.68-1.gd7fe927-default #1
+	Call Trace:
+	[c0000000072fb7c0] [c00000000080830c] dump_stack+0xb0/0xf0 (unreliable)
+	[c0000000072fb800] [c0000000008032d4] dump_header+0xb0/0x258
+	[c0000000072fb8e0] [c00000000023dfc0] out_of_memory+0x5f0/0x640
+	[c0000000072fb990] [c00000000024459c] __alloc_pages_nodemask+0xa8c/0xc80
+	[c0000000072fbb10] [c0000000002b2504] kmem_getpages+0x84/0x1a0
+	[c0000000072fbb50] [c0000000002b5174] fallback_alloc+0x2a4/0x320
+	[c0000000072fbbc0] [c0000000002b4240] kmem_cache_alloc_node+0xc0/0x2e0
+	[c0000000072fbc30] [c0000000000b9a80] copy_process.isra.25+0x260/0x1b30
+	[c0000000072fbd10] [c0000000000bb514] _do_fork+0x94/0x470
+	[c0000000072fbd80] [c0000000000bb978] kernel_thread+0x48/0x60
+	[c0000000072fbda0] [c0000000000e9df4] kthreadd+0x264/0x330
+	[c0000000072fbe30] [c000000000009538] ret_from_kernel_thread+0x5c/0xa4
+	Mem-Info:
+	active_anon:0 inactive_anon:0 isolated_anon:0
+	 active_file:0 inactive_file:0 isolated_file:0
+	 unevictable:0 dirty:0 writeback:0 unstable:0
+	 slab_reclaimable:5 slab_unreclaimable:73
+	 mapped:0 shmem:0 pagetables:0 bounce:0
+	 free:0 free_pcp:0 free_cma:0
+	Node 7 DMA free:0kB min:0kB low:0kB high:0kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:52428800kB managed:110016kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:320kB slab_unreclaimable:4672kB kernel_stack:1152kB pagetables:0kB unstable:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? yes
+	lowmem_reserve[]: 0 0 0 0
+	Node 7 DMA: 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB 0*8192kB 0*16384kB = 0kB
+	0 total pagecache pages
+	0 pages in swap cache
+	Swap cache stats: add 0, delete 0, find 0/0
+	Free swap  = 0kB
+	Total swap = 0kB
+	819200 pages RAM
+	0 pages HighMem/MovableOnly
+	817481 pages reserved
+	0 pages cma reserved
+	0 pages hwpoisoned
 
-When huge pages are involved, this doesn't work so well.  get_user_pages()
-calls follow_hugetlb_page(), which stops early if it receives
-VM_FAULT_HWPOISON from hugetlb_fault(), eventually returning -EFAULT to
-the caller.  The step to map this to -EHWPOISON based on the FOLL_ flags
-is missing.  The hwpoison special case is skipped, and -EFAULT is returned
-to user-space, causing Qemu or kvmtool to exit.
+the reason is that the managed memory is too low (only 110MB) while the
+rest of the the 50GB is still waiting for the deferred intialization to be
+done.  update_defer_init estimates the initial memoty to initialize to 2GB
+at least but it doesn't consider any memory allocated in that range.  In
+this particular case we've had
 
-Instead, move this VM_FAULT_ to errno mapping code into a header file and
-use it from faultin_page() and follow_hugetlb_page().
+	Reserving 4096MB of memory at 128MB for crashkernel (System RAM: 51200MB)
 
-With this, KVM works as expected.
+so the low 2GB is mostly depleted.
 
-This isn't a problem for arm64 today as we haven't enabled MEMORY_FAILURE,
-but I can't see any reason this doesn't happen on x86 too, so I think this
-should be a fix. This doesn't apply earlier than stable's v4.11.1 due to
-all sorts of cleanup.
+Fix this by considering memblock allocations in the initial static
+initialization estimation.  Move the max_initialise to
+reset_deferred_meminit and implement a simple memblock_reserved_memory
+helper which iterates all reserved blocks and sums the size of all that
+start below the given address.  The cumulative size is than added on top
+of the initial estimation.  This is still not ideal because
+reset_deferred_meminit doesn't consider holes and so reservation might be
+above the initial estimation whihch we ignore but let's make the logic
+simpler until we really need to handle more complicated cases.
 
-[james.morse@arm.com: add vm_fault_to_errno() call to faultin_page()]
-suggested.
-  Link: http://lkml.kernel.org/r/20170525171035.16359-1-james.morse@arm.com
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170524160900.28786-1-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Acked-by: Punit Agrawal <punit.agrawal@arm.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[4.11.1+]
+Fixes: 3a80a7fa7989 ("mm: meminit: initialise a subset of struct pages if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set")
+Link: http://lkml.kernel.org/r/20170531104010.GI27783@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Tested-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   11 +++++++++++
- mm/gup.c           |   20 ++++++++------------
- mm/hugetlb.c       |    5 +++++
- 3 files changed, 24 insertions(+), 12 deletions(-)
+ include/linux/memblock.h |    8 ++++++++
+ include/linux/mmzone.h   |    1 +
+ mm/memblock.c            |   23 +++++++++++++++++++++++
+ mm/page_alloc.c          |   33 ++++++++++++++++++++++-----------
+ 4 files changed, 54 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mm.h~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified include/linux/mm.h
---- a/include/linux/mm.h~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified
-+++ a/include/linux/mm.h
-@@ -2327,6 +2327,17 @@ static inline struct page *follow_page(s
- #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
- #define FOLL_COW	0x4000	/* internal GUP flag */
+diff -puN include/linux/memblock.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
++++ a/include/linux/memblock.h
+@@ -425,11 +425,19 @@ static inline void early_memtest(phys_ad
+ }
+ #endif
  
-+static inline int vm_fault_to_errno(int vm_fault, int foll_flags)
++extern unsigned long memblock_reserved_memory_within(phys_addr_t start_addr,
++		phys_addr_t end_addr);
+ #else
+ static inline phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align)
+ {
+ 	return 0;
+ }
++
++static inline unsigned long memblock_reserved_memory_within(phys_addr_t start_addr,
++		phys_addr_t end_addr)
 +{
-+	if (vm_fault & VM_FAULT_OOM)
-+		return -ENOMEM;
-+	if (vm_fault & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
-+		return (foll_flags & FOLL_HWPOISON) ? -EHWPOISON : -EFAULT;
-+	if (vm_fault & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
-+		return -EFAULT;
 +	return 0;
 +}
-+
- typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
- 			void *data);
- extern int apply_to_page_range(struct mm_struct *mm, unsigned long address,
-diff -puN mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified mm/gup.c
---- a/mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified
-+++ a/mm/gup.c
-@@ -407,12 +407,10 @@ static int faultin_page(struct task_stru
  
- 	ret = handle_mm_fault(vma, address, fault_flags);
- 	if (ret & VM_FAULT_ERROR) {
--		if (ret & VM_FAULT_OOM)
--			return -ENOMEM;
--		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
--			return *flags & FOLL_HWPOISON ? -EHWPOISON : -EFAULT;
--		if (ret & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
--			return -EFAULT;
-+		int err = vm_fault_to_errno(ret, *flags);
-+
-+		if (err)
-+			return err;
- 		BUG();
+ #endif /* CONFIG_HAVE_MEMBLOCK */
+ 
+diff -puN include/linux/mmzone.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
++++ a/include/linux/mmzone.h
+@@ -678,6 +678,7 @@ typedef struct pglist_data {
+ 	 * is the first PFN that needs to be initialised.
+ 	 */
+ 	unsigned long first_deferred_pfn;
++	unsigned long static_init_size;
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN mm/memblock.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing mm/memblock.c
+--- a/mm/memblock.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
++++ a/mm/memblock.c
+@@ -1739,6 +1739,29 @@ static void __init_memblock memblock_dum
  	}
+ }
  
-@@ -723,12 +721,10 @@ retry:
- 	ret = handle_mm_fault(vma, address, fault_flags);
- 	major |= ret & VM_FAULT_MAJOR;
- 	if (ret & VM_FAULT_ERROR) {
--		if (ret & VM_FAULT_OOM)
--			return -ENOMEM;
--		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
--			return -EHWPOISON;
--		if (ret & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
--			return -EFAULT;
-+		int err = vm_fault_to_errno(ret, 0);
++extern unsigned long __init_memblock
++memblock_reserved_memory_within(phys_addr_t start_addr, phys_addr_t end_addr)
++{
++	struct memblock_region *rgn;
++	unsigned long size = 0;
++	int idx;
 +
-+		if (err)
-+			return err;
- 		BUG();
- 	}
++	for_each_memblock_type((&memblock.reserved), rgn) {
++		phys_addr_t start, end;
++
++		if (rgn->base + rgn->size < start_addr)
++			continue;
++		if (rgn->base > end_addr)
++			continue;
++
++		start = rgn->base;
++		end = start + rgn->size;
++		size += end - start;
++	}
++
++	return size;
++}
++
+ void __init_memblock __memblock_dump_all(void)
+ {
+ 	pr_info("MEMBLOCK configuration:\n");
+diff -puN mm/page_alloc.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
++++ a/mm/page_alloc.c
+@@ -292,6 +292,26 @@ int page_group_by_mobility_disabled __re
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static inline void reset_deferred_meminit(pg_data_t *pgdat)
+ {
++	unsigned long max_initialise;
++	unsigned long reserved_lowmem;
++
++	/*
++	 * Initialise at least 2G of a node but also take into account that
++	 * two large system hashes that can take up 1GB for 0.25TB/node.
++	 */
++	max_initialise = max(2UL << (30 - PAGE_SHIFT),
++		(pgdat->node_spanned_pages >> 8));
++
++	/*
++	 * Compensate the all the memblock reservations (e.g. crash kernel)
++	 * from the initial estimation to make sure we will initialize enough
++	 * memory to boot.
++	 */
++	reserved_lowmem = memblock_reserved_memory_within(pgdat->node_start_pfn,
++			pgdat->node_start_pfn + max_initialise);
++	max_initialise += reserved_lowmem;
++
++	pgdat->static_init_size = min(max_initialise, pgdat->node_spanned_pages);
+ 	pgdat->first_deferred_pfn = ULONG_MAX;
+ }
  
-diff -puN mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified
-+++ a/mm/hugetlb.c
-@@ -4170,6 +4170,11 @@ long follow_hugetlb_page(struct mm_struc
- 			}
- 			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
- 			if (ret & VM_FAULT_ERROR) {
-+				int err = vm_fault_to_errno(ret, flags);
-+
-+				if (err)
-+					return err;
-+
- 				remainder = 0;
- 				break;
- 			}
-_
+@@ -314,20 +334,11 @@ static inline bool update_defer_init(pg_
+ 				unsigned long pfn, unsigned long zone_end,
+ 				unsigned long *nr_initialised)
+ {
+-	unsigned long max_initialise;
+-
+ 	/* Always populate low zones for address-contrained allocations */
+ 	if (zone_end < pgdat_end_pfn(pgdat))
+ 		return true;
+-	/*
+-	 * Initialise at least 2G of a node but also take into account that
+-	 * two large system hashes that can take up 1GB for 0.25TB/node.
+-	 */
+-	max_initialise = max(2UL << (30 - PAGE_SHIFT),
+-		(pgdat->node_spanned_pages >> 8));
