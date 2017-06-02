@@ -1,207 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/15] mm: consider memblock reservations for deferred
- memory initialization sizing
-Date: Fri, 02 Jun 2017 14:46:49 -0700
-Message-ID: <5931dcc9.NMu6lR+raJhoJOUY%akpm@linux-foundation.org>
+Subject: [patch 15/15] scripts/gdb: make lx-dmesg command work (reliably)
+Date: Fri, 02 Jun 2017 14:46:51 -0700
+Message-ID: <5931dccb.dBIGP5o/I8IDt29M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBVqu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:46:50 -0400
+        with ESMTP id S1750971AbdFBVqw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:46:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, mgorman@suse.de, srikar@linux.vnet.ibm.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, git@andred.net, jan.kiszka@siemens.com, kieran@ksquared.org.uk
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: consider memblock reservations for deferred memory initialization sizing
+From: André Draszik <git@andred.net>
+Subject: scripts/gdb: make lx-dmesg command work (reliably)
 
-We have seen an early OOM killer invocation on ppc64 systems with
-crashkernel=4096M
-	kthreadd invoked oom-killer: gfp_mask=0x16040c0(GFP_KERNEL|__GFP_COMP|__GFP_NOTRACK), nodemask=7, order=0, oom_score_adj=0
-	kthreadd cpuset=/ mems_allowed=7
-	CPU: 0 PID: 2 Comm: kthreadd Not tainted 4.4.68-1.gd7fe927-default #1
-	Call Trace:
-	[c0000000072fb7c0] [c00000000080830c] dump_stack+0xb0/0xf0 (unreliable)
-	[c0000000072fb800] [c0000000008032d4] dump_header+0xb0/0x258
-	[c0000000072fb8e0] [c00000000023dfc0] out_of_memory+0x5f0/0x640
-	[c0000000072fb990] [c00000000024459c] __alloc_pages_nodemask+0xa8c/0xc80
-	[c0000000072fbb10] [c0000000002b2504] kmem_getpages+0x84/0x1a0
-	[c0000000072fbb50] [c0000000002b5174] fallback_alloc+0x2a4/0x320
-	[c0000000072fbbc0] [c0000000002b4240] kmem_cache_alloc_node+0xc0/0x2e0
-	[c0000000072fbc30] [c0000000000b9a80] copy_process.isra.25+0x260/0x1b30
-	[c0000000072fbd10] [c0000000000bb514] _do_fork+0x94/0x470
-	[c0000000072fbd80] [c0000000000bb978] kernel_thread+0x48/0x60
-	[c0000000072fbda0] [c0000000000e9df4] kthreadd+0x264/0x330
-	[c0000000072fbe30] [c000000000009538] ret_from_kernel_thread+0x5c/0xa4
-	Mem-Info:
-	active_anon:0 inactive_anon:0 isolated_anon:0
-	 active_file:0 inactive_file:0 isolated_file:0
-	 unevictable:0 dirty:0 writeback:0 unstable:0
-	 slab_reclaimable:5 slab_unreclaimable:73
-	 mapped:0 shmem:0 pagetables:0 bounce:0
-	 free:0 free_pcp:0 free_cma:0
-	Node 7 DMA free:0kB min:0kB low:0kB high:0kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:52428800kB managed:110016kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:320kB slab_unreclaimable:4672kB kernel_stack:1152kB pagetables:0kB unstable:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? yes
-	lowmem_reserve[]: 0 0 0 0
-	Node 7 DMA: 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB 0*8192kB 0*16384kB = 0kB
-	0 total pagecache pages
-	0 pages in swap cache
-	Swap cache stats: add 0, delete 0, find 0/0
-	Free swap  = 0kB
-	Total swap = 0kB
-	819200 pages RAM
-	0 pages HighMem/MovableOnly
-	817481 pages reserved
-	0 pages cma reserved
-	0 pages hwpoisoned
+lx-dmesg needs access to the log_buf symbol from printk.c.  Unfortunately,
+the symbol log_buf also exists in BPF's verifier.c and hence gdb can pick
+one or the other.  If it happens to pick BPF's log_buf, lx-dmesg doesn't
+work:
 
-the reason is that the managed memory is too low (only 110MB) while the
-rest of the the 50GB is still waiting for the deferred intialization to be
-done.  update_defer_init estimates the initial memoty to initialize to 2GB
-at least but it doesn't consider any memory allocated in that range.  In
-this particular case we've had
+  (gdb) lx-dmesg
+  Python Exception <class 'gdb.MemoryError'> Cannot access memory at address 0x0:
+  Error occurred in Python command: Cannot access memory at address 0x0
+  (gdb) p log_buf
+  $15 = 0x0
 
-	Reserving 4096MB of memory at 128MB for crashkernel (System RAM: 51200MB)
+Luckily, GDB has a way to deal with this, see
+  https://sourceware.org/gdb/onlinedocs/gdb/Symbols.html
 
-so the low 2GB is mostly depleted.
+  (gdb) info variables ^log_buf$
+  All variables matching regular expression "^log_buf$":
 
-Fix this by considering memblock allocations in the initial static
-initialization estimation.  Move the max_initialise to
-reset_deferred_meminit and implement a simple memblock_reserved_memory
-helper which iterates all reserved blocks and sums the size of all that
-start below the given address.  The cumulative size is than added on top
-of the initial estimation.  This is still not ideal because
-reset_deferred_meminit doesn't consider holes and so reservation might be
-above the initial estimation whihch we ignore but let's make the logic
-simpler until we really need to handle more complicated cases.
+  File <linux.git>/kernel/bpf/verifier.c:
+  static char *log_buf;
 
-Fixes: 3a80a7fa7989 ("mm: meminit: initialise a subset of struct pages if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set")
-Link: http://lkml.kernel.org/r/20170531104010.GI27783@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Tested-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>	[4.2+]
+  File <linux.git>/kernel/printk/printk.c:
+  static char *log_buf;
+  (gdb) p 'verifier.c'::log_buf
+  $1 = 0x0
+  (gdb) p 'printk.c'::log_buf
+  $2 = 0x811a6aa0 <__log_buf> ""
+  (gdb) p &log_buf
+  $3 = (char **) 0x8120fe40 <log_buf>
+  (gdb) p &'verifier.c'::log_buf
+  $4 = (char **) 0x8120fe40 <log_buf>
+  (gdb) p &'printk.c'::log_buf
+  $5 = (char **) 0x8048b7d0 <log_buf>
+
+By being explicit about the location of the symbol, we can make lx-dmesg
+work again.  While at it, do the same for the other symbols we need from
+printk.c
+
+Link: http://lkml.kernel.org/r/20170526112222.3414-1-git@andred.net
+Signed-off-by: André Draszik <git@andred.net>
+Tested-by: Kieran Bingham <kieran@bingham.xyz>
+Acked-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    8 ++++++++
- include/linux/mmzone.h   |    1 +
- mm/memblock.c            |   23 +++++++++++++++++++++++
- mm/page_alloc.c          |   33 ++++++++++++++++++++++-----------
- 4 files changed, 54 insertions(+), 11 deletions(-)
+ scripts/gdb/linux/dmesg.py |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing include/linux/memblock.h
---- a/include/linux/memblock.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/include/linux/memblock.h
-@@ -425,11 +425,19 @@ static inline void early_memtest(phys_ad
- }
- #endif
+diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-make-lx-dmesg-command-work-reliably scripts/gdb/linux/dmesg.py
+--- a/scripts/gdb/linux/dmesg.py~scripts-gdb-make-lx-dmesg-command-work-reliably
++++ a/scripts/gdb/linux/dmesg.py
+@@ -23,10 +23,11 @@ class LxDmesg(gdb.Command):
+         super(LxDmesg, self).__init__("lx-dmesg", gdb.COMMAND_DATA)
  
-+extern unsigned long memblock_reserved_memory_within(phys_addr_t start_addr,
-+		phys_addr_t end_addr);
- #else
- static inline phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align)
- {
- 	return 0;
- }
-+
-+static inline unsigned long memblock_reserved_memory_within(phys_addr_t start_addr,
-+		phys_addr_t end_addr)
-+{
-+	return 0;
-+}
+     def invoke(self, arg, from_tty):
+-        log_buf_addr = int(str(gdb.parse_and_eval("log_buf")).split()[0], 16)
+-        log_first_idx = int(gdb.parse_and_eval("log_first_idx"))
+-        log_next_idx = int(gdb.parse_and_eval("log_next_idx"))
+-        log_buf_len = int(gdb.parse_and_eval("log_buf_len"))
++        log_buf_addr = int(str(gdb.parse_and_eval(
++            "'printk.c'::log_buf")).split()[0], 16)
++        log_first_idx = int(gdb.parse_and_eval("'printk.c'::log_first_idx"))
++        log_next_idx = int(gdb.parse_and_eval("'printk.c'::log_next_idx"))
++        log_buf_len = int(gdb.parse_and_eval("'printk.c'::log_buf_len"))
  
- #endif /* CONFIG_HAVE_MEMBLOCK */
- 
-diff -puN include/linux/mmzone.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/include/linux/mmzone.h
-@@ -678,6 +678,7 @@ typedef struct pglist_data {
- 	 * is the first PFN that needs to be initialised.
- 	 */
- 	unsigned long first_deferred_pfn;
-+	unsigned long static_init_size;
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN mm/memblock.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing mm/memblock.c
---- a/mm/memblock.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/mm/memblock.c
-@@ -1739,6 +1739,29 @@ static void __init_memblock memblock_dum
- 	}
- }
- 
-+extern unsigned long __init_memblock
-+memblock_reserved_memory_within(phys_addr_t start_addr, phys_addr_t end_addr)
-+{
-+	struct memblock_region *rgn;
-+	unsigned long size = 0;
-+	int idx;
-+
-+	for_each_memblock_type((&memblock.reserved), rgn) {
-+		phys_addr_t start, end;
-+
-+		if (rgn->base + rgn->size < start_addr)
-+			continue;
-+		if (rgn->base > end_addr)
-+			continue;
-+
-+		start = rgn->base;
-+		end = start + rgn->size;
-+		size += end - start;
-+	}
-+
-+	return size;
-+}
-+
- void __init_memblock __memblock_dump_all(void)
- {
- 	pr_info("MEMBLOCK configuration:\n");
-diff -puN mm/page_alloc.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing mm/page_alloc.c
---- a/mm/page_alloc.c~mm-consider-memblock-reservations-for-deferred-memory-initialization-sizing
-+++ a/mm/page_alloc.c
-@@ -292,6 +292,26 @@ int page_group_by_mobility_disabled __re
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static inline void reset_deferred_meminit(pg_data_t *pgdat)
- {
-+	unsigned long max_initialise;
-+	unsigned long reserved_lowmem;
-+
-+	/*
-+	 * Initialise at least 2G of a node but also take into account that
-+	 * two large system hashes that can take up 1GB for 0.25TB/node.
-+	 */
-+	max_initialise = max(2UL << (30 - PAGE_SHIFT),
-+		(pgdat->node_spanned_pages >> 8));
-+
-+	/*
-+	 * Compensate the all the memblock reservations (e.g. crash kernel)
-+	 * from the initial estimation to make sure we will initialize enough
-+	 * memory to boot.
-+	 */
-+	reserved_lowmem = memblock_reserved_memory_within(pgdat->node_start_pfn,
-+			pgdat->node_start_pfn + max_initialise);
-+	max_initialise += reserved_lowmem;
-+
-+	pgdat->static_init_size = min(max_initialise, pgdat->node_spanned_pages);
- 	pgdat->first_deferred_pfn = ULONG_MAX;
- }
- 
-@@ -314,20 +334,11 @@ static inline bool update_defer_init(pg_
- 				unsigned long pfn, unsigned long zone_end,
- 				unsigned long *nr_initialised)
- {
--	unsigned long max_initialise;
--
- 	/* Always populate low zones for address-contrained allocations */
- 	if (zone_end < pgdat_end_pfn(pgdat))
- 		return true;
--	/*
--	 * Initialise at least 2G of a node but also take into account that
--	 * two large system hashes that can take up 1GB for 0.25TB/node.
--	 */
--	max_initialise = max(2UL << (30 - PAGE_SHIFT),
--		(pgdat->node_spanned_pages >> 8));
+         inf = gdb.inferiors()[0]
+         start = log_buf_addr + log_first_idx
+_
