@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-use-compound_head-flags-for-huge-pages.patch added
- to -mm tree
-Date: Thu, 01 Jun 2017 15:44:25 -0700
-Message-ID: <593098c9.S9QgnsnDHkTMcznU%akpm@linux-foundation.org>
+Subject: + binfmt_elf-document-load_bias-a-little-bit.patch added to -mm
+ tree
+Date: Fri, 02 Jun 2017 12:42:10 -0700
+Message-ID: <5931bf92.8VwmmjweTDMXNV7t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751105AbdFAWo0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2017 18:44:26 -0400
+        with ESMTP id S1750918AbdFBTmM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 15:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: james.morse@arm.com, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hpa@zytor.com, lwoodman@redhat.com, mhocko@kernel.org, mingo@kernel.org, oleg@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: use compound_head() flags for huge pages
+     Subject: binfmt_elf: document load_bias a little bit
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-use-compound_head-flags-for-huge-pages.patch
+     binfmt_elf-document-load_bias-a-little-bit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-use-compound_head-flags-for-huge-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf-document-load_bias-a-little-bit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-use-compound_head-flags-for-huge-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf-document-load_bias-a-little-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +39,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: James Morse <james.morse@arm.com>
-Subject: mm/memory-failure.c: use compound_head() flags for huge pages
+From: Rik van Riel <riel@redhat.com>
+Subject: binfmt_elf: document load_bias a little bit
 
-memory_failure() chooses a recovery action function based on the page
-flags. For huge pages it uses the tail page flags which don't have
-anything interesting set, resulting in:
+Patch series "move mmap_area and PIE binaries away from the stack".
 
-> Memory failure: 0x9be3b4: Unknown page state
-> Memory failure: 0x9be3b4: recovery action for unknown page: Failed
+There are a few bugs causing the kernel to sometimes map PIE binaries and
+the mmap_area where the stack is supposed to go.
 
-Instead, save a copy of the head page's flags if this is a huge page, this
-means if there are no relevant flags for this tail page, we use the head
-pages flags instead.  This results in the me_huge_page() recovery action
-being called:
+This series fixes them for x86, ARM64, and PPC.  S390 seems to be ok.
 
-> Memory failure: 0x9b7969: recovery action for huge page: Delayed
 
-For hugepages that have not yet been allocated, this allows the hugepage
-to be dequeued.
+This patch (of 6):
 
-Fixes: 524fca1e7356 ("HWPOISON: fix misjudgement of page_action() for errors on mlocked pages")
-Link: http://lkml.kernel.org/r/20170524130204.21845-1-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Tested-by: Punit Agrawal <punit.agrawal@arm.com>
-Acked-by: Punit Agrawal <punit.agrawal@arm.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>
+After I and another unnamed developer got confused by the subtraction of
+vaddr in this branch of the code, followed by adding vaddr back in a
+little bit later, for the third time, maybe it is time to document this
+quirky bit of code.
+
+Link: http://lkml.kernel.org/r/20170602152010.2064-2-riel@redhat.com
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Florian Weimer <fweimer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/binfmt_elf.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-use-compound_head-flags-for-huge-pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-use-compound_head-flags-for-huge-pages
-+++ a/mm/memory-failure.c
-@@ -1184,7 +1184,10 @@ int memory_failure(unsigned long pfn, in
- 	 * page_remove_rmap() in try_to_unmap_one(). So to determine page status
- 	 * correctly, we save a copy of the page flags at this time.
- 	 */
--	page_flags = p->flags;
-+	if (PageHuge(p))
-+		page_flags = hpage->flags;
-+	else
-+		page_flags = p->flags;
- 
- 	/*
- 	 * unpoison always clear PG_hwpoison inside page lock
+diff -puN fs/binfmt_elf.c~binfmt_elf-document-load_bias-a-little-bit fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-document-load_bias-a-little-bit
++++ a/fs/binfmt_elf.c
+@@ -930,10 +930,16 @@ static int load_elf_binary(struct linux_
+ 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
+ 			elf_flags |= MAP_FIXED;
+ 		} else if (loc->elf_ex.e_type == ET_DYN) {
+-			/* Try and get dynamic programs out of the way of the
++			/*
++			 * Try and get dynamic programs out of the way of the
+ 			 * default mmap base, as well as whatever program they
+ 			 * might try to exec.  This is because the brk will
+-			 * follow the loader, and is not movable.  */
++			 * follow the loader, and is not movable.
++			 *
++			 * The load_bias is the difference between the address
++			 * in the elf header and the address where the binary
++			 * is mmapped.
++			 */
+ 			load_bias = ELF_ET_DYN_BASE - vaddr;
+ 			if (current->flags & PF_RANDOMIZE)
+ 				load_bias += arch_mmap_rnd();
 _
 
-Patches currently in -mm which might be from james.morse@arm.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified.patch
-mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2.patch
-mm-hwpoison-use-compound_head-flags-for-huge-pages.patch
+binfmt_elf-document-load_bias-a-little-bit.patch
+x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
+x86-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch
+powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+randomstackprotect-introduce-get_random_canary-function.patch
+forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
+x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
+arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
+sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
 
