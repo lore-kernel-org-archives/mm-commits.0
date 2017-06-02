@@ -1,118 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 02 Jun 2017 14:42:01 -0700
-Message-ID: <5931dba9.2jeinUFbE10H3vb+%akpm@linux-foundation.org>
+ mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2.patch removed from -mm tree
+Date: Fri, 02 Jun 2017 14:42:22 -0700
+Message-ID: <5931dbbe.kdBBjTDQlkfh6P1t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49578 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBVmC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:42:02 -0400
+        with ESMTP id S1750971AbdFBVmX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:42:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, james.morse@arm.com, mm-commits@vger.kernel.org
+To: james.morse@arm.com, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes
+     Subject: mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+     mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2.patch
 
 This patch was dropped because it was folded into mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes
+From: James Morse <james.morse@arm.com>
+Subject: mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2
 
-ERROR: open brace '{' following function declarations go on the next line
-#47: FILE: include/linux/mm.h:2330:
-+static inline int vm_fault_to_errno(int vm_fault, int foll_flags) {
+Added vm_fault_to_errno() call to faultin_page() as Naoya Horiguchi
+suggested.
 
-WARNING: Missing a blank line after declarations
-#74: FILE: mm/gup.c:485:
-+		int err = vm_fault_to_errno(ret, *flags);
-+		if (err)
-
-total: 1 errors, 1 warnings, 41 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: James Morse <james.morse@arm.com>
+Link: http://lkml.kernel.org/r/20170525171035.16359-1-james.morse@arm.com
+Signed-off-by: James Morse <james.morse@arm.com>
+Acked-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- mm/gup.c           |    1 +
- mm/hugetlb.c       |    1 +
- 3 files changed, 4 insertions(+), 1 deletion(-)
+ mm/gup.c     |   10 ++++------
+ mm/hugetlb.c |    3 ++-
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/mm.h~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes include/linux/mm.h
---- a/include/linux/mm.h~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes
-+++ a/include/linux/mm.h
-@@ -2327,7 +2327,8 @@ static inline struct page *follow_page(s
- #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
- #define FOLL_COW	0x4000	/* internal GUP flag */
- 
--static inline int vm_fault_to_errno(int vm_fault, int foll_flags) {
-+static inline int vm_fault_to_errno(int vm_fault, int foll_flags)
-+{
- 	if (vm_fault & VM_FAULT_OOM)
- 		return -ENOMEM;
- 	if (vm_fault & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
-diff -puN mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes mm/gup.c
---- a/mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes
+diff -puN mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2 mm/gup.c
+--- a/mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2
 +++ a/mm/gup.c
-@@ -408,6 +408,7 @@ static int faultin_page(struct task_stru
+@@ -721,12 +721,10 @@ retry:
  	ret = handle_mm_fault(vma, address, fault_flags);
+ 	major |= ret & VM_FAULT_MAJOR;
  	if (ret & VM_FAULT_ERROR) {
- 		int err = vm_fault_to_errno(ret, *flags);
+-		if (ret & VM_FAULT_OOM)
+-			return -ENOMEM;
+-		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
+-			return -EHWPOISON;
+-		if (ret & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
+-			return -EFAULT;
++		int err = vm_fault_to_errno(ret, 0);
 +
- 		if (err)
- 			return err;
++		if (err)
++			return err;
  		BUG();
-diff -puN mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes
+ 	}
+ 
+diff -puN mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-v2
 +++ a/mm/hugetlb.c
-@@ -4171,6 +4171,7 @@ long follow_hugetlb_page(struct mm_struc
- 			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
+@@ -4172,9 +4172,10 @@ long follow_hugetlb_page(struct mm_struc
  			if (ret & VM_FAULT_ERROR) {
  				int err = vm_fault_to_errno(ret, flags);
-+
- 				remainder = 0;
+ 
+-				remainder = 0;
  				if (err)
  					return err;
++
++				remainder = 0;
+ 				break;
+ 			}
+ 			if (ret & VM_FAULT_RETRY) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from james.morse@arm.com are
 
-i-need-old-gcc.patch
 mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-hwpoison-use-compound_head-flags-for-huge-pages.patch
 
