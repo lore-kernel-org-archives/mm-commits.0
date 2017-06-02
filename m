@@ -1,166 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/15] dax: fix race between colliding PMD & PTE entries
-Date: Fri, 02 Jun 2017 14:46:37 -0700
-Message-ID: <5931dcbd.A5ge14jmQJFMQTgO%akpm@linux-foundation.org>
+Subject: [patch 11/15] mm/migrate: fix refcount handling when
+ !hugepage_migration_supported()
+Date: Fri, 02 Jun 2017 14:46:40 -0700
+Message-ID: <5931dcc0.YdfR2j7RS9xQOPW+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51524 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBVqi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:46:38 -0400
+        with ESMTP id S1750971AbdFBVql (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 17:46:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dan.j.williams@intel.com, darrick.wong@oracle.com, dave.hansen@intel.com, dave.jiang@intel.com, eguan@redhat.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, pawel.lebioda@intel.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, xzhou@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, punit.agrawal@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, manoj.iyer@canonical.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, wanpeng.li@hotmail.com
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix race between colliding PMD & PTE entries
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: mm/migrate: fix refcount handling when !hugepage_migration_supported()
 
-We currently have two related PMD vs PTE races in the DAX code.  These can
-both be easily triggered by having two threads reading and writing
-simultaneously to the same private mapping, with the key being that
-private mapping reads can be handled with PMDs but private mapping writes
-are always handled with PTEs so that we can COW.
+On failing to migrate a page, soft_offline_huge_page() performs the
+necessary update to the hugepage ref-count.  When
+!hugepage_migration_supported() , unmap_and_move_hugepage() also
+decrements the page ref-count for the hugepage.  The combined behaviour
+leaves the ref-count in an inconsistent state.
 
-Here is the first race:
+This leads to soft lockups when running the overcommitted hugepage test
+from mce-tests suite.
 
-CPU 0					CPU 1
+Soft offlining pfn 0x83ed600 at process virtual address 0x400000000000
+soft offline: 0x83ed600: migration failed 1, type
+1fffc00000008008 (uptodate|head)
+INFO: rcu_preempt detected stalls on CPUs/tasks:
+ Tasks blocked on level-0 rcu_node (CPUs 0-7): P2715
+  (detected by 7, t=5254 jiffies, g=963, c=962, q=321)
+  thugetlb_overco R  running task        0  2715   2685 0x00000008
+  Call trace:
+  [<ffff000008089f90>] dump_backtrace+0x0/0x268
+  [<ffff00000808a2d4>] show_stack+0x24/0x30
+  [<ffff000008100d34>] sched_show_task+0x134/0x180
+  [<ffff0000081c90fc>] rcu_print_detail_task_stall_rnp+0x54/0x7c
+  [<ffff00000813cfd4>] rcu_check_callbacks+0xa74/0xb08
+  [<ffff000008143a3c>] update_process_times+0x34/0x60
+  [<ffff0000081550e8>] tick_sched_handle.isra.7+0x38/0x70
+  [<ffff00000815516c>] tick_sched_timer+0x4c/0x98
+  [<ffff0000081442e0>] __hrtimer_run_queues+0xc0/0x300
+  [<ffff000008144fa4>] hrtimer_interrupt+0xac/0x228
+  [<ffff0000089a56d4>] arch_timer_handler_phys+0x3c/0x50
+  [<ffff00000812f1bc>] handle_percpu_devid_irq+0x8c/0x290
+  [<ffff0000081297fc>] generic_handle_irq+0x34/0x50
+  [<ffff000008129f00>] __handle_domain_irq+0x68/0xc0
+  [<ffff0000080816b4>] gic_handle_irq+0x5c/0xb0
 
-(private mapping write)
-__handle_mm_fault()
-  create_huge_pmd() - FALLBACK
-  handle_pte_fault()
-    passes check for pmd_devmap()
+Address this by changing the putback_active_hugepage() in
+soft_offline_huge_page() to putback_movable_pages().
 
-					(private mapping read)
-					__handle_mm_fault()
-					  create_huge_pmd()
-					    dax_iomap_pmd_fault() inserts PMD
+This only triggers on systems that enable memory failure handling
+(ARCH_SUPPORTS_MEMORY_FAILURE) but not hugepage migration
+(!ARCH_ENABLE_HUGEPAGE_MIGRATION).
 
-    dax_iomap_pte_fault() does a PTE fault, but we already have a DAX PMD
-    			  installed in our page tables at this spot.
+I imagine this wasn't triggered as there aren't many systems running this
+configuration.
 
-Here's the second race:
-
-CPU 0					CPU 1
-
-(private mapping read)
-__handle_mm_fault()
-  passes check for pmd_none()
-  create_huge_pmd()
-    dax_iomap_pmd_fault() inserts PMD
-
-(private mapping write)
-__handle_mm_fault()
-  create_huge_pmd() - FALLBACK
-					(private mapping read)
-					__handle_mm_fault()
-					  passes check for pmd_none()
-					  create_huge_pmd()
-
-  handle_pte_fault()
-    dax_iomap_pte_fault() inserts PTE
-					    dax_iomap_pmd_fault() inserts PMD,
-					       but we already have a PTE at
-					       this spot.
-
-The core of the issue is that while there is isolation between faults to
-the same range in the DAX fault handlers via our DAX entry locking, there
-is no isolation between faults in the code in mm/memory.c.  This means for
-instance that this code in __handle_mm_fault() can run:
-
-	if (pmd_none(*vmf.pmd) && transparent_hugepage_enabled(vma)) {
-		ret = create_huge_pmd(&vmf);
-
-But by the time we actually get to run the fault handler called by
-create_huge_pmd(), the PMD is no longer pmd_none() because a racing PTE
-fault has installed a normal PMD here as a parent.  This is the cause of
-the 2nd race.  The first race is similar - there is the following check in
-handle_pte_fault():
-
-	} else {
-		/* See comment in pte_alloc_one_map() */
-		if (pmd_devmap(*vmf->pmd) || pmd_trans_unstable(vmf->pmd))
-			return 0;
-
-So if a pmd_devmap() PMD (a DAX PMD) has been installed at vmf->pmd, we
-will bail and retry the fault.  This is correct, but there is nothing
-preventing the PMD from being installed after this check but before we
-actually get to the DAX PTE fault handlers.
-
-In my testing these races result in the following types of errors:
-
- BUG: Bad rss-counter state mm:ffff8800a817d280 idx:1 val:1
- BUG: non-zero nr_ptes on freeing mm: 15
-
-Fix this issue by having the DAX fault handlers verify that it is safe to
-continue their fault after they have taken an entry lock to block other
-racing faults.
-
-[ross.zwisler@linux.intel.com: improve fix for colliding PMD & PTE entries]
-  Link: http://lkml.kernel.org/r/20170526195932.32178-1-ross.zwisler@linux.intel.com
-Link: http://lkml.kernel.org/r/20170522215749.23516-2-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Pawel Lebioda <pawel.lebioda@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Pawel Lebioda <pawel.lebioda@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Xiong Zhou <xzhou@redhat.com>
-Cc: Eryu Guan <eguan@redhat.com>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: remove dead comment, per Naoya]
+Link: http://lkml.kernel.org/r/20170525135146.32011-1-punit.agrawal@arm.com
+Reported-by: Manoj Iyer <manoj.iyer@canonical.com>
+Tested-by: Manoj Iyer <manoj.iyer@canonical.com>
+Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Wanpeng Li <wanpeng.li@hotmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>	[3.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ mm/memory-failure.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-race-between-colliding-pmd-pte-entries fs/dax.c
---- a/fs/dax.c~dax-fix-race-between-colliding-pmd-pte-entries
-+++ a/fs/dax.c
-@@ -1155,6 +1155,17 @@ static int dax_iomap_pte_fault(struct vm
- 	}
- 
- 	/*
-+	 * It is possible, particularly with mixed reads & writes to private
-+	 * mappings, that we have raced with a PMD fault that overlaps with
-+	 * the PTE we need to set up.  If so just return and the fault will be
-+	 * retried.
-+	 */
-+	if (pmd_trans_huge(*vmf->pmd) || pmd_devmap(*vmf->pmd)) {
-+		vmf_ret = VM_FAULT_NOPAGE;
-+		goto unlock_entry;
-+	}
-+
-+	/*
- 	 * Note that we don't bother to use iomap_apply here: DAX required
- 	 * the file system block size to be equal the page size, which means
- 	 * that we never have to deal with more than a single extent here.
-@@ -1398,6 +1409,18 @@ static int dax_iomap_pmd_fault(struct vm
- 		goto fallback;
- 
- 	/*
-+	 * It is possible, particularly with mixed reads & writes to private
-+	 * mappings, that we have raced with a PTE fault that overlaps with
-+	 * the PMD we need to set up.  If so just return and the fault will be
-+	 * retried.
-+	 */
-+	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd) &&
-+			!pmd_devmap(*vmf->pmd)) {
-+		result = 0;
-+		goto unlock_entry;
-+	}
-+
-+	/*
- 	 * Note that we don't use iomap_apply here.  We aren't doing I/O, only
- 	 * setting up a mapping, so really we're using iomap_begin() as a way
- 	 * to look up our filesystem block.
+diff -puN mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2 mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2
++++ a/mm/memory-failure.c
+@@ -1595,12 +1595,8 @@ static int soft_offline_huge_page(struct
+ 	if (ret) {
+ 		pr_info("soft offline: %#lx: migration failed %d, type %lx (%pGp)\n",
+ 			pfn, ret, page->flags, &page->flags);
+-		/*
+-		 * We know that soft_offline_huge_page() tries to migrate
+-		 * only one hugepage pointed to by hpage, so we need not
+-		 * run through the pagelist here.
+-		 */
+-		putback_active_hugepage(hpage);
++		if (!list_empty(&pagelist))
++			putback_movable_pages(&pagelist);
+ 		if (ret > 0)
+ 			ret = -EIO;
+ 	} else {
 _
