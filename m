@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
- added to -mm tree
-Date: Fri, 02 Jun 2017 12:42:21 -0700
-Message-ID: <5931bf9d.25giVBYVUJ1Teb9X%akpm@linux-foundation.org>
+ mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch added to -mm tree
+Date: Fri, 02 Jun 2017 13:36:44 -0700
+Message-ID: <5931cc5c.2geagLYsr2biThrW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751007AbdFBTmW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 15:42:22 -0400
+        with ESMTP id S1750918AbdFBUgp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2017 16:36:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hpa@zytor.com, lwoodman@redhat.com, mhocko@kernel.org, mingo@kernel.org, oleg@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc,mmap: properly account for stack randomization in mmap_base
+     Subject: mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
 has been added to the -mm tree.  Its filename is
-     powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+     mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,100 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: powerpc,mmap: properly account for stack randomization in mmap_base
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
 
-When RLIMIT_STACK is, for example, 256MB, the current code results in a
-gap between the top of the task and mmap_base of 256MB, failing to take
-into account the amount by which the stack address was randomized.  In
-other words, the stack gets less than RLIMIT_STACK space.
+fix build
 
-Ensure that the gap between the stack and mmap_base always takes stack
-randomization into account.
-
-Inspired by Daniel Micay's linux-hardened tree.
-
-Link: http://lkml.kernel.org/r/20170602152010.2064-7-riel@redhat.com
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Florian Weimer <fweimer@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mmap.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/mmap.c~powerpcmmap-properly-account-for-stack-randomization-in-mmap_base arch/powerpc/mm/mmap.c
---- a/arch/powerpc/mm/mmap.c~powerpcmmap-properly-account-for-stack-randomization-in-mmap_base
-+++ a/arch/powerpc/mm/mmap.c
-@@ -34,16 +34,9 @@
- /*
-  * Top of mmap area (just below the process stack).
-  *
-- * Leave at least a ~128 MB hole on 32bit applications.
-- *
-- * On 64bit applications we randomise the stack by 1GB so we need to
-- * space our mmap start address by a further 1GB, otherwise there is a
-- * chance the mmap area will end up closer to the stack than our ulimit
-- * requires.
-+ * Leave at least a ~128 MB hole.
-  */
--#define MIN_GAP32 (128*1024*1024)
--#define MIN_GAP64 ((128 + 1024)*1024*1024UL)
--#define MIN_GAP ((is_32bit_task()) ? MIN_GAP32 : MIN_GAP64)
-+#define MIN_GAP (128*1024*1024)
- #define MAX_GAP (TASK_SIZE/6*5)
- 
- static inline int mmap_is_legacy(void)
-@@ -71,9 +64,26 @@ unsigned long arch_mmap_rnd(void)
- 	return rnd << PAGE_SHIFT;
- }
- 
-+static inline unsigned long stack_maxrandom_size(void)
-+{
-+	if (!(current->flags & PF_RANDOMIZE))
-+		return 0;
-+
-+	/* 8MB for 32bit, 1GB for 64bit */
-+	if (is_32bit_task())
-+		return (1<<23);
-+	else
-+		return (1<<30);
-+}
-+
- static inline unsigned long mmap_base(unsigned long rnd)
- {
- 	unsigned long gap = rlimit(RLIMIT_STACK);
-+	unsigned long pad = stack_maxrandom_size();
-+
-+	/* Values close to RLIM_INFINITY can overflow. */
-+	if (gap + pad > gap)
-+		gap += pad;
- 
- 	if (gap < MIN_GAP)
- 		gap = MIN_GAP;
+diff -puN mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
++++ a/mm/vmscan.c
+@@ -2233,7 +2233,7 @@ static void get_scan_count(struct lruvec
+ 			 * anonymous pages on the LRU in eligible zones.
+ 			 * Otherwise, the small LRU gets thrashed.
+ 			 */
+-			if (!inactive_list_is_low(lruvec, false, sc, false) &&
++			if (!inactive_list_is_low(lruvec, false, memcg, sc, false) &&
+ 			    lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, sc->reclaim_idx)
+ 					>> sc->priority) {
+ 				scan_balance = SCAN_ANON;
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-binfmt_elf-document-load_bias-a-little-bit.patch
-x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
-x86-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
-arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
-arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch
-powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
-randomstackprotect-introduce-get_random_canary-function.patch
-forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
-x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
-arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
-sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
+i-need-old-gcc.patch
+mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock-checkpatch-fixes.patch
+mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2-fix.patch
+mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
