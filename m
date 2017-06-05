@@ -1,137 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch removed from
+Subject: + mm-make-pr_set_thp_disable-immediately-active.patch added to
  -mm tree
-Date: Mon, 05 Jun 2017 12:03:06 -0700
-Message-ID: <20170605190306.9ueTmoU4l%akpm@linux-foundation.org>
+Date: Mon, 05 Jun 2017 14:20:26 -0700
+Message-ID: <5935cb1a.+VxhZWzYVaES12Bw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50160 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbdFETDM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:03:12 -0400
+        with ESMTP id S1751153AbdFEVU1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 17:20:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guohanjun@huawei.com, hannes@cmpxchg.org, hughd@google.com, joern@logfs.org, mgorman@suse.de, mhocko@suse.cz, mm-commits@vger.kernel.org, qiuxishi@huawei.com, riel@redhat.com, stable@vger.kernel.org, vbabka@suse.cz, walken@google.com, wangkefeng.wang@huawei.com, xieyisheng1@huawei.com, zhongjiang@huawei.com
+To: mhocko@suse.com, aarcange@redhat.com, arnd@arndb.de, kirill.shutemov@linux.intel.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, xemul@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mlock: fix mlock count can not decrease in race condition
-has been removed from the -mm tree.  Its filename was
-     mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
+     Subject: mm: make PR_SET_THP_DISABLE immediately active
+has been added to the -mm tree.  Its filename is
+     mm-make-pr_set_thp_disable-immediately-active.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-pr_set_thp_disable-immediately-active.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-pr_set_thp_disable-immediately-active.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: mlock: fix mlock count can not decrease in race condition
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: make PR_SET_THP_DISABLE immediately active
 
-Kefeng reported that when running the follow test, the mlock count in
-meminfo will increase permanently:
+PR_SET_THP_DISABLE has a rather subtle semantic.  It doesn't affect any
+existing mapping because it only updated mm->def_flags which is a template
+for new mappings.  The mappings created after prctl(PR_SET_THP_DISABLE)
+have VM_NOHUGEPAGE flag set.  This can be quite surprising for all those
+applications which do not do prctl(); fork() & exec() and want to control
+their own THP behavior.
 
- [1] testcase
- linux:~ # cat test_mlockal
- grep Mlocked /proc/meminfo
-  for j in `seq 0 10`
-  do
- 	for i in `seq 4 15`
- 	do
- 		./p_mlockall >> log &
- 	done
- 	sleep 0.2
- done
- # wait some time to let mlock counter decrease and 5s may not enough
- sleep 5
- grep Mlocked /proc/meminfo
+Another usecase when the immediate semantic of the prctl might be useful
+is a combination of pre- and post-copy migration of containers with CRIU. 
+In this case CRIU populates a part of a memory region with data that was
+saved during the pre-copy stage.  Afterwards, the region is registered
+with userfaultfd and CRIU expects to get page faults for the parts of the
+region that were not yet populated.  However, khugepaged collapses the
+pages and the expected page faults do not occur.
 
- linux:~ # cat p_mlockall.c
- #include <sys/mman.h>
- #include <stdlib.h>
- #include <stdio.h>
+In more general case, the prctl(PR_SET_THP_DISABLE) could be used as a
+temporary mechanism for enabling/disabling THP process wide.
 
- #define SPACE_LEN	4096
+Implementation wise, a new MMF_DISABLE_THP flag is added.  This flag is
+tested when decision whether to use huge pages is taken either during page
+fault of at the time of THP collapse.
 
- int main(int argc, char ** argv)
- {
-	 	int ret;
-	 	void *adr = malloc(SPACE_LEN);
-	 	if (!adr)
-	 		return -1;
-	
-	 	ret = mlockall(MCL_CURRENT | MCL_FUTURE);
-	 	printf("mlcokall ret = %d\n", ret);
-	
-	 	ret = munlockall();
-	 	printf("munlcokall ret = %d\n", ret);
-	
-	 	free(adr);
-	 	return 0;
-	 }
+It should be noted, that the new implementation makes PR_SET_THP_DISABLE
+master override to any per-VMA setting, which was not the case previously.
 
-In __munlock_pagevec() we should decrement NR_MLOCK for each page where we
-clear the PageMlocked flag.  Commit 1ebb7cc6a583 ("mm: munlock: batch
-NR_MLOCK zone state updates") has introduced a bug where we don't
-decrement NR_MLOCK for pages where we clear the flag, but fail to isolate
-them from the lru list (e.g.  when the pages are on some other cpu's
-percpu pagevec).  Since PageMlocked stays cleared, the NR_MLOCK accounting
-gets permanently disrupted by this.
-
-Fix it by counting the number of page whose PageMlock flag is cleared. 
-
-Fixes: 1ebb7cc6a583 (" mm: munlock: batch NR_MLOCK zone state updates")
-Link: http://lkml.kernel.org/r/1495678405-54569-1-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Reported-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Fixes: a0715cc22601 ("mm, thp: add VM_INIT_DEF_MASK and PRCTL_THP_DISABLE")
+Link: http://lkml.kernel.org/r/1496415802-30944-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: zhongjiang <zhongjiang@huawei.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/huge_mm.h        |    1 +
+ include/linux/khugepaged.h     |    3 ++-
+ include/linux/sched/coredump.h |    5 ++++-
+ kernel/sys.c                   |    6 +++---
+ mm/khugepaged.c                |    3 ++-
+ mm/shmem.c                     |    8 +++++---
+ 6 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition mm/mlock.c
---- a/mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition
-+++ a/mm/mlock.c
-@@ -284,7 +284,7 @@ static void __munlock_pagevec(struct pag
+diff -puN include/linux/huge_mm.h~mm-make-pr_set_thp_disable-immediately-active include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-make-pr_set_thp_disable-immediately-active
++++ a/include/linux/huge_mm.h
+@@ -92,6 +92,7 @@ extern bool is_vma_temporary_stack(struc
+ 	   (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
+ 	   ((__vma)->vm_flags & VM_HUGEPAGE))) &&			\
+ 	 !((__vma)->vm_flags & VM_NOHUGEPAGE) &&			\
++	 !test_bit(MMF_DISABLE_THP, &(__vma)->vm_mm->flags) &&		\
+ 	 !is_vma_temporary_stack(__vma))
+ #define transparent_hugepage_use_zero_page()				\
+ 	(transparent_hugepage_flags &					\
+diff -puN include/linux/khugepaged.h~mm-make-pr_set_thp_disable-immediately-active include/linux/khugepaged.h
+--- a/include/linux/khugepaged.h~mm-make-pr_set_thp_disable-immediately-active
++++ a/include/linux/khugepaged.h
+@@ -48,7 +48,8 @@ static inline int khugepaged_enter(struc
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags))
+ 		if ((khugepaged_always() ||
+ 		     (khugepaged_req_madv() && (vm_flags & VM_HUGEPAGE))) &&
+-		    !(vm_flags & VM_NOHUGEPAGE))
++		    !(vm_flags & VM_NOHUGEPAGE) &&
++		    !test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+ 			if (__khugepaged_enter(vma->vm_mm))
+ 				return -ENOMEM;
+ 	return 0;
+diff -puN include/linux/sched/coredump.h~mm-make-pr_set_thp_disable-immediately-active include/linux/sched/coredump.h
+--- a/include/linux/sched/coredump.h~mm-make-pr_set_thp_disable-immediately-active
++++ a/include/linux/sched/coredump.h
+@@ -68,7 +68,10 @@ static inline int get_dumpable(struct mm
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+ #define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
++#define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
++#define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
+ 
+-#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
++#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
++				 MMF_DISABLE_THP_MASK)
+ 
+ #endif /* _LINUX_SCHED_COREDUMP_H */
+diff -puN kernel/sys.c~mm-make-pr_set_thp_disable-immediately-active kernel/sys.c
+--- a/kernel/sys.c~mm-make-pr_set_thp_disable-immediately-active
++++ a/kernel/sys.c
+@@ -2266,7 +2266,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 	case PR_GET_THP_DISABLE:
+ 		if (arg2 || arg3 || arg4 || arg5)
+ 			return -EINVAL;
+-		error = !!(me->mm->def_flags & VM_NOHUGEPAGE);
++		error = !!test_bit(MMF_DISABLE_THP, &me->mm->flags);
+ 		break;
+ 	case PR_SET_THP_DISABLE:
+ 		if (arg3 || arg4 || arg5)
+@@ -2274,9 +2274,9 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 		if (down_write_killable(&me->mm->mmap_sem))
+ 			return -EINTR;
+ 		if (arg2)
+-			me->mm->def_flags |= VM_NOHUGEPAGE;
++			set_bit(MMF_DISABLE_THP, &me->mm->flags);
+ 		else
+-			me->mm->def_flags &= ~VM_NOHUGEPAGE;
++			clear_bit(MMF_DISABLE_THP, &me->mm->flags);
+ 		up_write(&me->mm->mmap_sem);
+ 		break;
+ 	case PR_MPX_ENABLE_MANAGEMENT:
+diff -puN mm/khugepaged.c~mm-make-pr_set_thp_disable-immediately-active mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-make-pr_set_thp_disable-immediately-active
++++ a/mm/khugepaged.c
+@@ -817,7 +817,8 @@ khugepaged_alloc_page(struct page **hpag
+ static bool hugepage_vma_check(struct vm_area_struct *vma)
  {
- 	int i;
- 	int nr = pagevec_count(pvec);
--	int delta_munlocked;
-+	int delta_munlocked = -nr;
- 	struct pagevec pvec_putback;
- 	int pgrescued = 0;
- 
-@@ -304,6 +304,8 @@ static void __munlock_pagevec(struct pag
- 				continue;
- 			else
- 				__munlock_isolation_failed(page);
-+		} else {
-+			delta_munlocked++;
- 		}
- 
- 		/*
-@@ -315,7 +317,6 @@ static void __munlock_pagevec(struct pag
- 		pagevec_add(&pvec_putback, pvec->pages[i]);
- 		pvec->pages[i] = NULL;
+ 	if ((!(vma->vm_flags & VM_HUGEPAGE) && !khugepaged_always()) ||
+-	    (vma->vm_flags & VM_NOHUGEPAGE))
++	    (vma->vm_flags & VM_NOHUGEPAGE) ||
++	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+ 		return false;
+ 	if (shmem_file(vma->vm_file)) {
+ 		if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE))
+diff -puN mm/shmem.c~mm-make-pr_set_thp_disable-immediately-active mm/shmem.c
+--- a/mm/shmem.c~mm-make-pr_set_thp_disable-immediately-active
++++ a/mm/shmem.c
+@@ -1976,10 +1976,12 @@ static int shmem_fault(struct vm_fault *
  	}
--	delta_munlocked = -nr + pagevec_count(&pvec_putback);
- 	__mod_zone_page_state(zone, NR_MLOCK, delta_munlocked);
- 	spin_unlock_irq(zone_lru_lock(zone));
  
+ 	sgp = SGP_CACHE;
+-	if (vma->vm_flags & VM_HUGEPAGE)
+-		sgp = SGP_HUGE;
+-	else if (vma->vm_flags & VM_NOHUGEPAGE)
++
++	if ((vma->vm_flags & VM_NOHUGEPAGE) ||
++	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+ 		sgp = SGP_NOHUGE;
++	else if (vma->vm_flags & VM_HUGEPAGE)
++		sgp = SGP_HUGE;
+ 
+ 	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, sgp,
+ 				  gfp, vma, vmf, &ret);
 _
 
-Patches currently in -mm which might be from xieyisheng1@huawei.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
+mm-remove-return-value-from-init_currently_empty_zone.patch
+mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
+mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
+mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
+mm-memory_hotplug-split-up-register_one_node.patch
+mm-memory_hotplug-consider-offline-memblocks-removable.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
+mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
+mm-__first_valid_page-skip-over-offline-pages.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
+mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
+mm-memory_hotplug-fix-mmop_online_keep-behavior.patch
+mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone.patch
+mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
+mm-memory_hotplug-fix-the-section-mismatch-warning.patch
+mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
+mm-adaptive-hash-table-scaling-fix.patch
+mm-memory_hotplug-drop-artificial-restriction-on-online-offline.patch
+mm-memory_hotplug-drop-config_movable_node.patch
+mm-memory_hotplug-move-movable_node-to-the-hotplug-proper.patch
+mm-make-pr_set_thp_disable-immediately-active.patch
+lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+netfilter-use-kvmalloc-xt_alloc_table_info.patch
 
