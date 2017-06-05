@@ -1,93 +1,124 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch removed
- from -mm tree
-Date: Mon, 05 Jun 2017 12:02:43 -0700
-Message-ID: <20170605190243.6t3LEiHLq%akpm@linux-foundation.org>
+ initramfs-fix-disabling-of-initramfs-and-its-compression.patch removed from
+ -mm tree
+Date: Mon, 05 Jun 2017 12:02:45 -0700
+Message-ID: <20170605190245.HZ0qTLX6a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40514 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdFETCo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:44 -0400
+        with ESMTP id S1751170AbdFETCq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chris-wilson.co.uk, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: daniel.thompson@linaro.org, f.fainelli@gmail.com, mm-commits@vger.kernel.org, mmarek@suse.cz, npiggin@gmail.com, pebolle@tiscali.nl, ppandit@redhat.com
 
 
 The patch titled
-     Subject: mm: clarify why we want kmalloc before falling backto vmallock
+     Subject: initramfs: fix disabling of initramfs (and its compression)
 has been removed from the -mm tree.  Its filename was
-     mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock.patch
+     initramfs-fix-disabling-of-initramfs-and-its-compression.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: clarify why we want kmalloc before falling backto vmallock
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: initramfs: fix disabling of initramfs (and its compression)
 
-While converting drm_[cm]alloc* helpers to kvmalloc* variants Chris Wilson
-has wondered why we want to try kmalloc before vmalloc fallback even for
-larger allocations requests.  Let's clarify that one larger physically
-contiguous block is less likely to fragment memory than many scattered
-pages which can prevent more large blocks from being created.
+db2aa7fd15e8 ("initramfs: allow again choice of the embedded initram
+compression algorithm") introduced the possibility to select the initramfs
+compression algorithm from Kconfig and while this is a nice feature it
+broke the use case described below.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20170517080932.21423-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Here is what my build system does:
+
+- kernel is initially configured not to have an initramfs included
+
+- build the user space root file system
+
+- re-configure the kernel to have an initramfs included
+  (CONFIG_INITRAMFS_SOURCE="/path/to/romfs") and set relevant
+  CONFIG_INITRAMFS options, in my case, no compression option
+  (CONFIG_INITRAMFS_COMPRESSION_NONE)
+
+- kernel is re-built with these options -> kernel+initramfs image is
+  copied
+
+- kernel is re-built again without these options -> kernel image is
+  copied
+
+Building a kernel without an initramfs means setting this option:
+
+CONFIG_INITRAMFS_SOURCE="" (and this one only)
+
+whereas building a kernel with an initramfs means setting these options:
+
+CONFIG_INITRAMFS_SOURCE="/home/fainelli/work/uclinux-rootfs/romfs
+/home/fainelli/work/uclinux-rootfs/misc/initramfs.dev"
+CONFIG_INITRAMFS_ROOT_UID=1000
+CONFIG_INITRAMFS_ROOT_GID=1000
+CONFIG_INITRAMFS_COMPRESSION_NONE=y
+CONFIG_INITRAMFS_COMPRESSION=""
+
+db2aa7fd15e85 ("initramfs: allow again choice of the embedded initram
+compression algorithm") is problematic because
+CONFIG_INITRAMFS_COMPRESSION which is used to determine the
+initramfs_data.cpio extension/compression is a string, and due to how
+Kconfig works it will evaluate in order, how to assign it.
+
+Setting CONFIG_INITRAMFS_COMPRESSION_NONE with CONFIG_INITRAMFS_SOURCE=""
+cannot possibly work (because of the depends on INITRAMFS_SOURCE!=""
+imposed on CONFIG_INITRAMFS_COMPRESSION ) yet we still get
+CONFIG_INITRAMFS_COMPRESSION assigned to ".gz" because CONFIG_RD_GZIP=y is
+set in my kernel, even when there is no initramfs being built.
+
+So we basically end-up generating two initramfs_data.cpio* files, one
+without extension, and one with .gz.  This causes usr/Makefile to track
+usr/initramfs_data.cpio.gz, and not usr/initramfs_data.cpio anymore, that
+is also largely problematic after 9e3596b0c6539e ("kbuild: initramfs
+cleanup, set target from Kconfig") because we used to track all possible
+initramfs_data files in the $(targets) variable before that commit.
+
+The end result is that the kernel with an initramfs clearly does not
+contain what we expect it to, it has a stale initramfs_data.cpio file
+built into it, and we keep re-generating an initramfs_data.cpio.gz file
+which is not the one that we want to include in the kernel image proper.
+
+The fix consists in hiding CONFIG_INITRAMFS_COMPRESSION when
+CONFIG_INITRAMFS_SOURCE="".  This puts us back in a state to the pre-4.10
+behavior where we can properly disable and re-enable initramfs within the
+same kernel .config file, and be in control of what
+CONFIG_INITRAMFS_COMPRESSION is set to.
+
+Fixes: db2aa7fd15e8 ("initramfs: allow again choice of the embedded initram compression algorithm")
+Fixes: 9e3596b0c653 ("kbuild: initramfs cleanup, set target from Kconfig")
+Link: http://lkml.kernel.org/r/20170521033337.6197-1-f.fainelli@gmail.com
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Acked-by: Nicholas Piggin <npiggin@gmail.com>
+Cc: P J P <ppandit@redhat.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ usr/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/util.c~mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock mm/util.c
---- a/mm/util.c~mm-clarify-why-we-want-kmalloc-before-falling-backto-vmallock
-+++ a/mm/util.c
-@@ -357,8 +357,11 @@ void *kvmalloc_node(size_t size, gfp_t f
- 	WARN_ON_ONCE((flags & GFP_KERNEL) != GFP_KERNEL);
+diff -puN usr/Kconfig~initramfs-fix-disabling-of-initramfs-and-its-compression usr/Kconfig
+--- a/usr/Kconfig~initramfs-fix-disabling-of-initramfs-and-its-compression
++++ a/usr/Kconfig
+@@ -220,6 +220,7 @@ config INITRAMFS_COMPRESSION_LZ4
+ endchoice
  
- 	/*
--	 * Make sure that larger requests are not too disruptive - no OOM
--	 * killer and no allocation failure warnings as we have a fallback
-+	 * We want to attempt a large physically contiguous block first because
-+	 * it is less likely to fragment multiple larger blocks and therefore
-+	 * contribute to a long term fragmentation less than vmalloc fallback.
-+	 * However make sure that larger requests are not too disruptive - no
-+	 * OOM killer and no allocation failure warnings as we have a fallback.
- 	 */
- 	if (size > PAGE_SIZE) {
- 		kmalloc_flags |= __GFP_NOWARN;
+ config INITRAMFS_COMPRESSION
++	depends on INITRAMFS_SOURCE!=""
+ 	string
+ 	default ""      if INITRAMFS_COMPRESSION_NONE
+ 	default ".gz"   if INITRAMFS_COMPRESSION_GZIP
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from f.fainelli@gmail.com are
 
-fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
-mm-remove-return-value-from-init_currently_empty_zone.patch
-mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
-mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
-mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
-mm-memory_hotplug-split-up-register_one_node.patch
-mm-memory_hotplug-consider-offline-memblocks-removable.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
-mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
-mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
-mm-__first_valid_page-skip-over-offline-pages.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
-mm-memory_hotplug-fix-mmop_online_keep-behavior.patch
-mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone.patch
-mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
-mm-memory_hotplug-fix-the-section-mismatch-warning.patch
-mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
-mm-adaptive-hash-table-scaling-fix.patch
-mm-memory_hotplug-drop-artificial-restriction-on-online-offline.patch
-mm-memory_hotplug-drop-config_movable_node.patch
-mm-memory_hotplug-move-movable_node-to-the-hotplug-proper.patch
-lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
-netfilter-use-kvmalloc-xt_alloc_table_info.patch
 
