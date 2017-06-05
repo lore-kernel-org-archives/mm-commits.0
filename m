@@ -1,120 +1,149 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-migrate-fix-ref-count-handling-when-hugepage=5Fmigratio?=
- =?US-ASCII?Q?n=5Fsupported-v2.patch?= removed from -mm tree
-Date: Mon, 05 Jun 2017 12:03:03 -0700
-Message-ID: <20170605190303.B2hOxCUHn%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-hugetlb-report-ehwpoison-not-efault-when-foll=5Fhwpoiso?=
+ =?US-ASCII?Q?n-is-specified.patch?= removed from -mm tree
+Date: Mon, 05 Jun 2017 12:03:08 -0700
+Message-ID: <20170605190308.9nXR-AA-9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40640 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbdFETDE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:03:04 -0400
+        with ESMTP id S1751194AbdFETDJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:03:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, iamjoonsoo.kim@lge.com, manoj.iyer@canonical.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, stable@vger.kernel.org, wanpeng.li@hotmail.com
+To: james.morse@arm.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: fix refcount handling when !hugepage_migration_supported()
+     Subject: mm/hugetlb: report -EHWPOISON not -EFAULT when FOLL_HWPOISON is specified
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2.patch
+     mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm/migrate: fix refcount handling when !hugepage_migration_supported()
+From: James Morse <james.morse@arm.com>
+Subject: mm/hugetlb: report -EHWPOISON not -EFAULT when FOLL_HWPOISON is specified
 
-On failing to migrate a page, soft_offline_huge_page() performs the
-necessary update to the hugepage ref-count.  When
-!hugepage_migration_supported() , unmap_and_move_hugepage() also
-decrements the page ref-count for the hugepage.  The combined behaviour
-leaves the ref-count in an inconsistent state.
+KVM uses get_user_pages() to resolve its stage2 faults.  KVM sets the
+FOLL_HWPOISON flag causing faultin_page() to return -EHWPOISON when it
+finds a VM_FAULT_HWPOISON.  KVM handles these hwpoison pages as a special
+case.  (check_user_page_hwpoison())
 
-This leads to soft lockups when running the overcommitted hugepage test
-from mce-tests suite.
+When huge pages are involved, this doesn't work so well.  get_user_pages()
+calls follow_hugetlb_page(), which stops early if it receives
+VM_FAULT_HWPOISON from hugetlb_fault(), eventually returning -EFAULT to
+the caller.  The step to map this to -EHWPOISON based on the FOLL_ flags
+is missing.  The hwpoison special case is skipped, and -EFAULT is returned
+to user-space, causing Qemu or kvmtool to exit.
 
-Soft offlining pfn 0x83ed600 at process virtual address 0x400000000000
-soft offline: 0x83ed600: migration failed 1, type
-1fffc00000008008 (uptodate|head)
-INFO: rcu_preempt detected stalls on CPUs/tasks:
- Tasks blocked on level-0 rcu_node (CPUs 0-7): P2715
-  (detected by 7, t=5254 jiffies, g=963, c=962, q=321)
-  thugetlb_overco R  running task        0  2715   2685 0x00000008
-  Call trace:
-  [<ffff000008089f90>] dump_backtrace+0x0/0x268
-  [<ffff00000808a2d4>] show_stack+0x24/0x30
-  [<ffff000008100d34>] sched_show_task+0x134/0x180
-  [<ffff0000081c90fc>] rcu_print_detail_task_stall_rnp+0x54/0x7c
-  [<ffff00000813cfd4>] rcu_check_callbacks+0xa74/0xb08
-  [<ffff000008143a3c>] update_process_times+0x34/0x60
-  [<ffff0000081550e8>] tick_sched_handle.isra.7+0x38/0x70
-  [<ffff00000815516c>] tick_sched_timer+0x4c/0x98
-  [<ffff0000081442e0>] __hrtimer_run_queues+0xc0/0x300
-  [<ffff000008144fa4>] hrtimer_interrupt+0xac/0x228
-  [<ffff0000089a56d4>] arch_timer_handler_phys+0x3c/0x50
-  [<ffff00000812f1bc>] handle_percpu_devid_irq+0x8c/0x290
-  [<ffff0000081297fc>] generic_handle_irq+0x34/0x50
-  [<ffff000008129f00>] __handle_domain_irq+0x68/0xc0
-  [<ffff0000080816b4>] gic_handle_irq+0x5c/0xb0
+Instead, move this VM_FAULT_ to errno mapping code into a header file and
+use it from faultin_page() and follow_hugetlb_page().
 
-Address this by changing the putback_active_hugepage() in
-soft_offline_huge_page() to putback_movable_pages().
+With this, KVM works as expected.
 
-This only triggers on systems that enable memory failure handling
-(ARCH_SUPPORTS_MEMORY_FAILURE) but not hugepage migration
-(!ARCH_ENABLE_HUGEPAGE_MIGRATION).
+This isn't a problem for arm64 today as we haven't enabled MEMORY_FAILURE,
+but I can't see any reason this doesn't happen on x86 too, so I think this
+should be a fix. This doesn't apply earlier than stable's v4.11.1 due to
+all sorts of cleanup.
 
-I imagine this wasn't triggered as there aren't many systems running this
-configuration.
-
-[akpm@linux-foundation.org: remove dead comment, per Naoya]
-Link: http://lkml.kernel.org/r/20170525135146.32011-1-punit.agrawal@arm.com
-Reported-by: Manoj Iyer <manoj.iyer@canonical.com>
-Tested-by: Manoj Iyer <manoj.iyer@canonical.com>
-Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Wanpeng Li <wanpeng.li@hotmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>	[3.14+]
+[james.morse@arm.com: add vm_fault_to_errno() call to faultin_page()]
+suggested.
+  Link: http://lkml.kernel.org/r/20170525171035.16359-1-james.morse@arm.com
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20170524160900.28786-1-james.morse@arm.com
+Signed-off-by: James Morse <james.morse@arm.com>
+Acked-by: Punit Agrawal <punit.agrawal@arm.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>	[4.11.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/linux/mm.h |   11 +++++++++++
+ mm/gup.c           |   20 ++++++++------------
+ mm/hugetlb.c       |    5 +++++
+ 3 files changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2 mm/memory-failure.c
---- a/mm/memory-failure.c~mm-migrate-fix-ref-count-handling-when-hugepage_migration_supported-v2
-+++ a/mm/memory-failure.c
-@@ -1595,12 +1595,8 @@ static int soft_offline_huge_page(struct
- 	if (ret) {
- 		pr_info("soft offline: %#lx: migration failed %d, type %lx (%pGp)\n",
- 			pfn, ret, page->flags, &page->flags);
--		/*
--		 * We know that soft_offline_huge_page() tries to migrate
--		 * only one hugepage pointed to by hpage, so we need not
--		 * run through the pagelist here.
--		 */
--		putback_active_hugepage(hpage);
-+		if (!list_empty(&pagelist))
-+			putback_movable_pages(&pagelist);
- 		if (ret > 0)
- 			ret = -EIO;
- 	} else {
+diff -puN include/linux/mm.h~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified include/linux/mm.h
+--- a/include/linux/mm.h~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified
++++ a/include/linux/mm.h
+@@ -2327,6 +2327,17 @@ static inline struct page *follow_page(s
+ #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
+ #define FOLL_COW	0x4000	/* internal GUP flag */
+ 
++static inline int vm_fault_to_errno(int vm_fault, int foll_flags)
++{
++	if (vm_fault & VM_FAULT_OOM)
++		return -ENOMEM;
++	if (vm_fault & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
++		return (foll_flags & FOLL_HWPOISON) ? -EHWPOISON : -EFAULT;
++	if (vm_fault & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
++		return -EFAULT;
++	return 0;
++}
++
+ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ 			void *data);
+ extern int apply_to_page_range(struct mm_struct *mm, unsigned long address,
+diff -puN mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified mm/gup.c
+--- a/mm/gup.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified
++++ a/mm/gup.c
+@@ -407,12 +407,10 @@ static int faultin_page(struct task_stru
+ 
+ 	ret = handle_mm_fault(vma, address, fault_flags);
+ 	if (ret & VM_FAULT_ERROR) {
+-		if (ret & VM_FAULT_OOM)
+-			return -ENOMEM;
+-		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
+-			return *flags & FOLL_HWPOISON ? -EHWPOISON : -EFAULT;
+-		if (ret & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
+-			return -EFAULT;
++		int err = vm_fault_to_errno(ret, *flags);
++
++		if (err)
++			return err;
+ 		BUG();
+ 	}
+ 
+@@ -723,12 +721,10 @@ retry:
+ 	ret = handle_mm_fault(vma, address, fault_flags);
+ 	major |= ret & VM_FAULT_MAJOR;
+ 	if (ret & VM_FAULT_ERROR) {
+-		if (ret & VM_FAULT_OOM)
+-			return -ENOMEM;
+-		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
+-			return -EHWPOISON;
+-		if (ret & (VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV))
+-			return -EFAULT;
++		int err = vm_fault_to_errno(ret, 0);
++
++		if (err)
++			return err;
+ 		BUG();
+ 	}
+ 
+diff -puN mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-report-ehwpoison-not-efault-when-foll_hwpoison-is-specified
++++ a/mm/hugetlb.c
+@@ -4170,6 +4170,11 @@ long follow_hugetlb_page(struct mm_struc
+ 			}
+ 			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
+ 			if (ret & VM_FAULT_ERROR) {
++				int err = vm_fault_to_errno(ret, flags);
++
++				if (err)
++					return err;
++
+ 				remainder = 0;
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from punit.agrawal@arm.com are
+Patches currently in -mm which might be from james.morse@arm.com are
 
-mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
-mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
-mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
-mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
+mm-hwpoison-use-compound_head-flags-for-huge-pages.patch
 
