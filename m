@@ -1,124 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+Subject: [merged]
+ ksm-prevent-crash-after-write_protect_page-fails.patch removed from -mm
  tree
-Date: Mon, 05 Jun 2017 12:02:27 -0700
-Message-ID: <20170605190227.zw_cltK5L%akpm@linux-foundation.org>
+Date: Mon, 05 Jun 2017 12:02:35 -0700
+Message-ID: <20170605190235.QOzCtXi1s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40478 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdFETC3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:29 -0400
+        with ESMTP id S1751170AbdFETCg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, fsimonce@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: ksm: prevent crash after write_protect_page fails
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     ksm-prevent-crash-after-write_protect_page-fails.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: ksm: prevent crash after write_protect_page fails
 
+"err" needs to be left set to -EFAULT if split_huge_page succeeds. 
+Otherwise if "err" gets clobbered with zero and write_protect_page fails,
+try_to_merge_one_page() will succeed instead of returning -EFAULT and then
+try_to_merge_with_ksm_page() will continue thinking kpage is a PageKsm
+when in fact it's still an anonymous page.  Eventually it'll crash in
+page_add_anon_rmap.
+
+This has been reproduced on Fedora25 kernel but I can reproduce with
+upstream too.
+
+The bug was introduced in commit
+f765f540598a129dc4bb6f698fd4acc92f296c14 in v4.5.
+
+page:fffff67546ce1cc0 count:4 mapcount:2 mapping:ffffa094551e36e1 index:0x7f0f46673
+flags: 0x2ffffc0004007c(referenced|uptodate|dirty|lru|active|swapbacked)
+page dumped because: VM_BUG_ON_PAGE(!PageLocked(page))
+page->mem_cgroup:ffffa09674bf0000
+------------[ cut here ]------------
+kernel BUG at mm/rmap.c:1222!
+invalid opcode: 0000 [#1] SMP
+CPU: 1 PID: 76 Comm: ksmd Not tainted 4.9.3-200.fc25.x86_64 #1
+task: ffffa0968be65b80 task.stack: ffffc0e941b3c000
+RIP: 0010:[<ffffffff9a20ac94>]  [<ffffffff9a20ac94>] do_page_add_anon_rmap+0x1c4/0x240
+RSP: 0018:ffffc0e941b3fd48  EFLAGS: 00010282
+RAX: 0000000000000021 RBX: fffff67546ce1cc0 RCX: 0000000000000006
+RDX: 0000000000000000 RSI: 0000000000000246 RDI: ffffa0969ec4e0a0
+RBP: ffffc0e941b3fd70 R08: 0000000000018a84 R09: 0000000000000005
+R10: fffff6754f87de00 R11: 000000000000049f R12: 00007fe6f5f67000
+R13: ffffa094990ecc00 R14: 0000000000000000 R15: ffffa093c369c480
+FS:  0000000000000000(0000) GS:ffffa0969ec40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f4c21c221f0 CR3: 0000000152e07000 CR4: 00000000000426e0
+Stack:
+ fffff675470fd9c0 00007fe6f5f67000 fffff67540f8a900 ffffa094990ecc00
+ ffffa093c369c480 ffffc0e941b3fd80 ffffffff9a20ad28 ffffc0e941b3fe00
+ ffffffff9a228b4b 80000001c3f67807 0000000000000000 80000001c3f67805
+Call Trace:
+ [<ffffffff9a20ad28>] page_add_anon_rmap+0x18/0x20
+ [<ffffffff9a228b4b>] try_to_merge_with_ksm_page+0x50b/0x780
+ [<ffffffff9a229fd1>] ksm_scan_thread+0x1211/0x1410
+ [<ffffffff9a0e7270>] ? prepare_to_wait_event+0x100/0x100
+ [<ffffffff9a228dc0>] ? try_to_merge_with_ksm_page+0x780/0x780
+ [<ffffffff9a0c2569>] kthread+0xd9/0xf0
+ [<ffffffff9a0c2490>] ? kthread_park+0x60/0x60
+ [<ffffffff9a81be55>] ret_from_fork+0x25/0x30
+
+Fixes: f765f54059 ("ksm: prepare to new THP semantics")
+Link: http://lkml.kernel.org/r/20170513131040.21732-1-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Federico Simoncelli <fsimonce@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/mv_xor_v2.c |    6 ------
- drivers/hid/wacom_wac.c |   15 ---------------
- 2 files changed, 21 deletions(-)
+ mm/ksm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/dma/mv_xor_v2.c~linux-next-git-rejects drivers/dma/mv_xor_v2.c
---- a/drivers/dma/mv_xor_v2.c~linux-next-git-rejects
-+++ a/drivers/dma/mv_xor_v2.c
-@@ -257,8 +257,6 @@ static int mv_xor_v2_set_desc_size(struc
- 	return MV_XOR_V2_EXT_DESC_SIZE;
- }
+diff -puN mm/ksm.c~ksm-prevent-crash-after-write_protect_page-fails mm/ksm.c
+--- a/mm/ksm.c~ksm-prevent-crash-after-write_protect_page-fails
++++ a/mm/ksm.c
+@@ -1028,8 +1028,7 @@ static int try_to_merge_one_page(struct
+ 		goto out;
  
--<<<<<<< HEAD
--=======
- /*
-  * Set the IMSG threshold
-  */
-@@ -282,7 +280,6 @@ void mv_xor_v2_enable_imsg_thrd(struct m
- 	writel(reg, xor_dev->dma_base + MV_XOR_V2_DMA_IMSG_TMOT);
- }
+ 	if (PageTransCompound(page)) {
+-		err = split_huge_page(page);
+-		if (err)
++		if (split_huge_page(page))
+ 			goto out_unlock;
+ 	}
  
-->>>>>>> linux-next/akpm-base
- static irqreturn_t mv_xor_v2_interrupt_handler(int irq, void *data)
- {
- 	struct mv_xor_v2_device *xor_dev = data;
-@@ -696,8 +693,6 @@ static int mv_xor_v2_descq_init(struct m
- 	/* enable the DMA engine */
- 	writel(0, xor_dev->dma_base + MV_XOR_V2_DMA_DESQ_STOP_OFF);
- 
--<<<<<<< HEAD
--=======
- 	return 0;
- }
- 
-@@ -719,7 +714,6 @@ static int mv_xor_v2_resume(struct platf
- 	mv_xor_v2_enable_imsg_thrd(xor_dev);
- 	mv_xor_v2_descq_init(xor_dev);
- 
-->>>>>>> linux-next/akpm-base
- 	return 0;
- }
- 
-diff -puN drivers/hid/wacom_wac.c~linux-next-git-rejects drivers/hid/wacom_wac.c
---- a/drivers/hid/wacom_wac.c~linux-next-git-rejects
-+++ a/drivers/hid/wacom_wac.c
-@@ -1593,7 +1593,6 @@ static int wacom_tpc_irq(struct wacom_wa
- 		switch (len) {
- 		case WACOM_PKGLEN_TPC1FG:
- 			return wacom_tpc_single_touch(wacom, len);
--<<<<<<< HEAD
- 
- 		case WACOM_PKGLEN_TPC2FG:
- 			return wacom_tpc_mt_touch(wacom);
-@@ -1606,20 +1605,6 @@ static int wacom_tpc_irq(struct wacom_wa
- 			case WACOM_REPORT_TPC1FGE:
- 				return wacom_tpc_single_touch(wacom, len);
- 
--=======
--
--		case WACOM_PKGLEN_TPC2FG:
--			return wacom_tpc_mt_touch(wacom);
--
--		default:
--			switch (data[0]) {
--			case WACOM_REPORT_TPC1FG:
--			case WACOM_REPORT_TPCHID:
--			case WACOM_REPORT_TPCST:
--			case WACOM_REPORT_TPC1FGE:
--				return wacom_tpc_single_touch(wacom, len);
--
-->>>>>>> linux-next/akpm-base
- 			case WACOM_REPORT_TPCMT:
- 			case WACOM_REPORT_TPCMT2:
- 				return wacom_mt_touch(wacom);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
+ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
+ksm-cleanup-stable_node-chain-collapse-case.patch
+ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
+ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
 
