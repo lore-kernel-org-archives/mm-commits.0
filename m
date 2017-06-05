@@ -1,124 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- initramfs-fix-disabling-of-initramfs-and-its-compression.patch removed from
- -mm tree
-Date: Mon, 05 Jun 2017 12:02:45 -0700
-Message-ID: <20170605190245.HZ0qTLX6a%akpm@linux-foundation.org>
+Subject: [merged] pcmcia-remove-left-over-%z-format.patch removed
+ from -mm tree
+Date: Mon, 05 Jun 2017 12:02:51 -0700
+Message-ID: <20170605190251.cn9lL2MK5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdFETCq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:46 -0400
+        with ESMTP id S1751170AbdFETCw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.thompson@linaro.org, f.fainelli@gmail.com, mm-commits@vger.kernel.org, mmarek@suse.cz, npiggin@gmail.com, pebolle@tiscali.nl, ppandit@redhat.com
+To: adobriyan@gmail.com, laforge@gnumonks.org, mm-commits@vger.kernel.org, nicolas.iooss_linux@m4x.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: fix disabling of initramfs (and its compression)
+     Subject: pcmcia: remove left-over %Z format
 has been removed from the -mm tree.  Its filename was
-     initramfs-fix-disabling-of-initramfs-and-its-compression.patch
+     pcmcia-remove-left-over-%z-format.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: initramfs: fix disabling of initramfs (and its compression)
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: pcmcia: remove left-over %Z format
 
-db2aa7fd15e8 ("initramfs: allow again choice of the embedded initram
-compression algorithm") introduced the possibility to select the initramfs
-compression algorithm from Kconfig and while this is a nice feature it
-broke the use case described below.
+5b5e0928f742 ("lib/vsprintf.c: remove %Z support") removed some usages of
+format %Z but forgot "%.2Zx".  This makes clang 4.0 reports a
+-Wformat-extra-args warning because it does not know about %Z.
 
-Here is what my build system does:
+Replace %Z with %z.
 
-- kernel is initially configured not to have an initramfs included
-
-- build the user space root file system
-
-- re-configure the kernel to have an initramfs included
-  (CONFIG_INITRAMFS_SOURCE="/path/to/romfs") and set relevant
-  CONFIG_INITRAMFS options, in my case, no compression option
-  (CONFIG_INITRAMFS_COMPRESSION_NONE)
-
-- kernel is re-built with these options -> kernel+initramfs image is
-  copied
-
-- kernel is re-built again without these options -> kernel image is
-  copied
-
-Building a kernel without an initramfs means setting this option:
-
-CONFIG_INITRAMFS_SOURCE="" (and this one only)
-
-whereas building a kernel with an initramfs means setting these options:
-
-CONFIG_INITRAMFS_SOURCE="/home/fainelli/work/uclinux-rootfs/romfs
-/home/fainelli/work/uclinux-rootfs/misc/initramfs.dev"
-CONFIG_INITRAMFS_ROOT_UID=1000
-CONFIG_INITRAMFS_ROOT_GID=1000
-CONFIG_INITRAMFS_COMPRESSION_NONE=y
-CONFIG_INITRAMFS_COMPRESSION=""
-
-db2aa7fd15e85 ("initramfs: allow again choice of the embedded initram
-compression algorithm") is problematic because
-CONFIG_INITRAMFS_COMPRESSION which is used to determine the
-initramfs_data.cpio extension/compression is a string, and due to how
-Kconfig works it will evaluate in order, how to assign it.
-
-Setting CONFIG_INITRAMFS_COMPRESSION_NONE with CONFIG_INITRAMFS_SOURCE=""
-cannot possibly work (because of the depends on INITRAMFS_SOURCE!=""
-imposed on CONFIG_INITRAMFS_COMPRESSION ) yet we still get
-CONFIG_INITRAMFS_COMPRESSION assigned to ".gz" because CONFIG_RD_GZIP=y is
-set in my kernel, even when there is no initramfs being built.
-
-So we basically end-up generating two initramfs_data.cpio* files, one
-without extension, and one with .gz.  This causes usr/Makefile to track
-usr/initramfs_data.cpio.gz, and not usr/initramfs_data.cpio anymore, that
-is also largely problematic after 9e3596b0c6539e ("kbuild: initramfs
-cleanup, set target from Kconfig") because we used to track all possible
-initramfs_data files in the $(targets) variable before that commit.
-
-The end result is that the kernel with an initramfs clearly does not
-contain what we expect it to, it has a stale initramfs_data.cpio file
-built into it, and we keep re-generating an initramfs_data.cpio.gz file
-which is not the one that we want to include in the kernel image proper.
-
-The fix consists in hiding CONFIG_INITRAMFS_COMPRESSION when
-CONFIG_INITRAMFS_SOURCE="".  This puts us back in a state to the pre-4.10
-behavior where we can properly disable and re-enable initramfs within the
-same kernel .config file, and be in control of what
-CONFIG_INITRAMFS_COMPRESSION is set to.
-
-Fixes: db2aa7fd15e8 ("initramfs: allow again choice of the embedded initram compression algorithm")
-Fixes: 9e3596b0c653 ("kbuild: initramfs cleanup, set target from Kconfig")
-Link: http://lkml.kernel.org/r/20170521033337.6197-1-f.fainelli@gmail.com
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Acked-by: Nicholas Piggin <npiggin@gmail.com>
-Cc: P J P <ppandit@redhat.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Link: http://lkml.kernel.org/r/20170520090946.22562-1-nicolas.iooss_linux@m4x.org
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Cc: Harald Welte <laforge@gnumonks.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.11+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/pcmcia/cm4040_cs.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN usr/Kconfig~initramfs-fix-disabling-of-initramfs-and-its-compression usr/Kconfig
---- a/usr/Kconfig~initramfs-fix-disabling-of-initramfs-and-its-compression
-+++ a/usr/Kconfig
-@@ -220,6 +220,7 @@ config INITRAMFS_COMPRESSION_LZ4
- endchoice
+diff -puN drivers/char/pcmcia/cm4040_cs.c~pcmcia-remove-left-over-%z-format drivers/char/pcmcia/cm4040_cs.c
+--- a/drivers/char/pcmcia/cm4040_cs.c~pcmcia-remove-left-over-%z-format
++++ a/drivers/char/pcmcia/cm4040_cs.c
+@@ -374,7 +374,7 @@ static ssize_t cm4040_write(struct file
  
- config INITRAMFS_COMPRESSION
-+	depends on INITRAMFS_SOURCE!=""
- 	string
- 	default ""      if INITRAMFS_COMPRESSION_NONE
- 	default ".gz"   if INITRAMFS_COMPRESSION_GZIP
+ 	rc = write_sync_reg(SCR_HOST_TO_READER_START, dev);
+ 	if (rc <= 0) {
+-		DEBUGP(5, dev, "write_sync_reg c=%.2Zx\n", rc);
++		DEBUGP(5, dev, "write_sync_reg c=%.2zx\n", rc);
+ 		DEBUGP(2, dev, "<- cm4040_write (failed)\n");
+ 		if (rc == -ERESTARTSYS)
+ 			return rc;
+@@ -387,7 +387,7 @@ static ssize_t cm4040_write(struct file
+ 	for (i = 0; i < bytes_to_write; i++) {
+ 		rc = wait_for_bulk_out_ready(dev);
+ 		if (rc <= 0) {
+-			DEBUGP(5, dev, "wait_for_bulk_out_ready rc=%.2Zx\n",
++			DEBUGP(5, dev, "wait_for_bulk_out_ready rc=%.2zx\n",
+ 			       rc);
+ 			DEBUGP(2, dev, "<- cm4040_write (failed)\n");
+ 			if (rc == -ERESTARTSYS)
+@@ -403,7 +403,7 @@ static ssize_t cm4040_write(struct file
+ 	rc = write_sync_reg(SCR_HOST_TO_READER_DONE, dev);
+ 
+ 	if (rc <= 0) {
+-		DEBUGP(5, dev, "write_sync_reg c=%.2Zx\n", rc);
++		DEBUGP(5, dev, "write_sync_reg c=%.2zx\n", rc);
+ 		DEBUGP(2, dev, "<- cm4040_write (failed)\n");
+ 		if (rc == -ERESTARTSYS)
+ 			return rc;
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
 
