@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch
+Subject: + signal-avoid-undefined-behaviour-in-kill_something_info.patch
  added to -mm tree
-Date: Mon, 05 Jun 2017 14:50:19 -0700
-Message-ID: <5935d21b.nMKZJpbL8yAMRpuU%akpm@linux-foundation.org>
+Date: Mon, 05 Jun 2017 14:55:53 -0700
+Message-ID: <5935d369.eJxJ2Iu8e8LJyFy7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751213AbdFEVuU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 17:50:20 -0400
+        with ESMTP id S1751189AbdFEVzy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 17:55:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sean.j.christopherson@intel.com, bsingharora@gmail.com, hannes@cmpxchg.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, mhocko@kernel.org, oleg@redhat.com, qiuxishi@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
+     Subject: kernel/signal.c: avoid undefined behaviour in kill_something_info
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch
+     signal-avoid-undefined-behaviour-in-kill_something_info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/signal-avoid-undefined-behaviour-in-kill_something_info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/signal-avoid-undefined-behaviour-in-kill_something_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,240 +39,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sean Christopherson <sean.j.christopherson@intel.com>
-Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
+From: zhongjiang <zhongjiang@huawei.com>
+Subject: kernel/signal.c: avoid undefined behaviour in kill_something_info
 
-Make @root exclusive in mem_cgroup_low; it is never considered low when
-looked at directly and is not checked when traversing the tree.  In
-effect, @root is handled identically to how root_mem_cgroup was previously
-handled by mem_cgroup_low.
+When running kill(72057458746458112, 0) in userspace I hit the following
+issue.
 
-If @root is not excluded from the checks, a cgroup underneath @root will
-never be considered low during targeted reclaim of @root, e.g.  due to
-memory.current > memory.high, unless @root is misconfigured to have
-memory.low > memory.high.
+[  304.606353] UBSAN: Undefined behaviour in kernel/signal.c:1462:11
+[  304.612622] negation of -2147483648 cannot be represented in type 'int':
+[  304.619516] CPU: 226 PID: 9849 Comm: test Tainted: G    B          ---- -------   3.10.0-327.53.58.70.x86_64_ubsan+ #116
+[  304.630692] Hardware name: Huawei Technologies Co., Ltd. RH8100 V3/BC61PBIA, BIOS BLHSV028 11/11/2014
+[  304.640168]  ffffffff825ded30 000000005dc276fa ffff883c3a4b7ce0 ffffffff81d6eb06
+[  304.647870]  ffff883c3a4b7cf8 ffffffff81d6ebb9 ffffffff825ded20 ffff883c3a4b7de8
+[  304.655584]  ffffffff81d6fc89 0000000041b58ab3 ffffffff8228d6d8 ffffffff81d6fb80
+[  304.663299] Call Trace:
+[  304.665827]  [<ffffffff81d6eb06>] dump_stack+0x19/0x1b
+[  304.671115]  [<ffffffff81d6ebb9>] ubsan_epilogue+0xd/0x50
+[  304.676668]  [<ffffffff81d6fc89>] __ubsan_handle_negate_overflow+0x109/0x14e
+[  304.683917]  [<ffffffff81d6fb80>] ? __ubsan_handle_divrem_overflow+0x1df/0x1df
+[  304.691353]  [<ffffffff8134a129>] ? __inc_zone_state+0x29/0xf0
+[  304.697358]  [<ffffffff813272df>] ? __lru_cache_add+0x8f/0xe0
+[  304.703272]  [<ffffffff8132764e>] ? lru_cache_add+0xe/0x10
+[  304.708921]  [<ffffffff812263bd>] ? map_id_up+0xad/0xe0
+[  304.714306]  [<ffffffff8113126e>] SYSC_kill+0x43e/0x4d0
+[  304.725359]  [<ffffffff8116e630>] ? lg_local_unlock+0x20/0xd0
+[  304.736978]  [<ffffffff81130e30>] ? kill_pid+0x20/0x20
+[  304.747928]  [<ffffffff81366f90>] ? __pmd_alloc+0x180/0x180
+[  304.759273]  [<ffffffff8143f80b>] ? mntput+0x3b/0x70
+[  304.769919]  [<ffffffff81d85c3c>] ? __do_page_fault+0x2bc/0x650
+[  304.781462]  [<ffffffff8123bb47>] ? __audit_syscall_entry+0x1f7/0x2a0
+[  304.793476]  [<ffffffff8113535e>] SyS_kill+0xe/0x10
+[  304.803859]  [<ffffffff81d91109>] system_call_fastpath+0x16/0x1b
 
-Excluding @root enables using memory.low to prioritize memory usage
-between cgroups within a subtree of the hierarchy that is limited by
-memory.high or memory.max, e.g.  when ROOT owns @root's controls but
-delegates the @root directory to a USER so that USER can create and
-administer children of @root.
+Add code to avoid the UBSAN detection.
 
-For example, given cgroup A with children B and C:
-
-    A
-   / \
-  B   C
-
-and
-
-  1. A/memory.current > A/memory.high
-  2. A/B/memory.current < A/B/memory.low
-  3. A/C/memory.current >= A/C/memory.low
-
-As 'A' is high, i.e.  triggers reclaim from 'A', and 'B' is low, we should
-reclaim from 'C' until 'A' is no longer high or until we can no longer
-reclaim from 'C'.  If 'A', i.e.  @root, isn't excluded by mem_cgroup_low
-when reclaming from 'A', then 'B' won't be considered low and we will
-reclaim indiscriminately from both 'B' and 'C'.
-
-Here is the test I used to confirm the bug and the patch.
-
-20:00:55@sjchrist-vm ? ~ $ cat ~/.bin/memcg_low_test
-#!/bin/bash
-
-x62mb=$((62<<20))
-x66mb=$((66<<20))
-x94mb=$((94<<20))
-x98mb=$((98<<20))
-
-setup() {
-    set -e
-
-    if [[ -n $DEBUG ]]; then
-        set -x
-    fi
-
-    trap teardown EXIT HUP INT TERM
-
-    if [[ ! -e /mnt/1gb.swap ]]; then
-        sudo fallocate -l 1G /mnt/1gb.swap > /dev/null
-        sudo mkswap /mnt/1gb.swap > /dev/null
-    fi
-    if ! swapon --show=NAME | grep -q "/mnt/1gb.swap"; then
-        sudo swapon /mnt/1gb.swap
-    fi
-
-    if [[ ! -e /cgroup/cgroup.controllers ]]; then
-        sudo mount -t cgroup2 none /cgroup
-    fi
-
-    grep -q memory /cgroup/cgroup.controllers
-
-    sudo sh -c "echo '+memory' > /cgroup/cgroup.subtree_control"
-
-    sudo mkdir /cgroup/A && sudo chown $USER:$USER /cgroup/A
-    sudo sh -c "echo '+memory' > /cgroup/A/cgroup.subtree_control"
-    sudo sh -c "echo '96m' > /cgroup/A/memory.high"
-
-    mkdir /cgroup/A/0
-    mkdir /cgroup/A/1
-
-    echo 64m > /cgroup/A/0/memory.low
-}
-
-teardown() {
-    set +e
-
-    trap - EXIT HUP INT TERM
-
-    if [[ -z $1 ]]; then
-        printf "\n"
-        printf "%0.s*" {1..35}
-        printf "\nFAILED!\n\n"
-        tail /cgroup/A/**/memory.current
-        printf "%0.s*" {1..35}
-        printf "\n\n"
-    fi
-
-    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
-
-    sleep 2
-
-    if [[ -e /cgroup/A/0 ]]; then
-        rmdir /cgroup/A/0
-    fi
-    if [[ -e /cgroup/A/1 ]]; then
-        rmdir /cgroup/A/1
-    fi
-    if [[ -e /cgroup/A ]]; then
-        sudo rmdir /cgroup/A
-    fi
-}
-
-
-stress_test() {
-    sudo sh -c "echo $$ > /cgroup/A/$1/cgroup.procs"
-    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
-
-    sudo sh -c "echo $$ > /cgroup/A/$2/cgroup.procs"
-    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
-
-    sudo sh -c "echo $$ > /cgroup/cgroup.procs"
-
-    sleep 1
-
-    # A/0 should be consuming more memory than A/1
-    [[ $(cat /cgroup/A/0/memory.current) -ge $(cat /cgroup/A/1/memory.current) ]]
-
-    # A/0 should be consuming ~64mb
-    [[ $(cat /cgroup/A/0/memory.current) -ge $x62mb ]] && [[ $(cat /cgroup/A/0/memory.current) -le $x66mb ]]
-
-    # A should cumulatively be consuming ~96mb
-    [[ $(cat /cgroup/A/memory.current) -ge $x94mb ]] && [[ $(cat /cgroup/A/memory.current) -le $x98mb ]]
-
-    # Stop the stressors
-    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
-}
-
-
-teardown 1
-setup
-
-for ((i=1;i<=$1;i++)); do
-    printf "ITERATION $i of $1 - stress_test 0 1"
-    stress_test 0 1
-    printf "\x1b[2K\r"
-
-    printf "ITERATION $i of $1 - stress_test 1 0"
-    stress_test 1 0
-    printf "\x1b[2K\r"
-
-    printf "ITERATION $i of $1 - PASSED\n"
-done
-
-teardown 1
-
-
-echo PASSED!
-
-
-20:11:26@sjchrist-vm ? ~ $ memcg_low_test 10
-
-
-Link: http://lkml.kernel.org/r/1496434412-21005-1-git-send-email-sean.j.christopherson@intel.com
-Signed-off-by: Sean Christopherson <sean.j.christopherson@intel.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1496670008-59084-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhongjiang <zhongjiang@huawei.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   50 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 32 insertions(+), 18 deletions(-)
+ kernel/signal.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low
-+++ a/mm/memcontrol.c
-@@ -5317,38 +5317,52 @@ struct cgroup_subsys memory_cgrp_subsys
+diff -puN kernel/signal.c~signal-avoid-undefined-behaviour-in-kill_something_info kernel/signal.c
+--- a/kernel/signal.c~signal-avoid-undefined-behaviour-in-kill_something_info
++++ a/kernel/signal.c
+@@ -1393,6 +1393,13 @@ static int kill_something_info(int sig,
+ 		return ret;
+ 	}
  
- /**
-  * mem_cgroup_low - check if memory consumption is below the normal range
-- * @root: the highest ancestor to consider
-+ * @root: the top ancestor of the sub-tree being checked
-  * @memcg: the memory cgroup to check
-  *
-  * Returns %true if memory consumption of @memcg, and that of all
-- * configurable ancestors up to @root, is below the normal range.
-+ * ancestors up to (but not including) @root, is below the normal range.
-+ *
-+ * @root is exclusive; it is never low when looked at directly and isn't
-+ * checked when traversing the hierarchy.
-+ *
-+ * Excluding @root enables using memory.low to prioritize memory usage
-+ * between cgroups within a subtree of the hierarchy that is limited by
-+ * memory.high or memory.max.
-+ *
-+ * For example, given cgroup A with children B and C:
-+ *
-+ *    A
-+ *   / \
-+ *  B   C
-+ *
-+ * and
-+ *
-+ *  1. A/memory.current > A/memory.high
-+ *  2. A/B/memory.current < A/B/memory.low
-+ *  3. A/C/memory.current >= A/C/memory.low
-+ *
-+ * As 'A' is high, i.e. triggers reclaim from 'A', and 'B' is low, we
-+ * should reclaim from 'C' until 'A' is no longer high or until we can
-+ * no longer reclaim from 'C'.  If 'A', i.e. @root, isn't excluded by
-+ * mem_cgroup_low when reclaming from 'A', then 'B' won't be considered
-+ * low and we will reclaim indiscriminately from both 'B' and 'C'.
-  */
- bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg)
- {
- 	if (mem_cgroup_disabled())
- 		return false;
- 
--	/*
--	 * The toplevel group doesn't have a configurable range, so
--	 * it's never low when looked at directly, and it is not
--	 * considered an ancestor when assessing the hierarchy.
--	 */
--
--	if (memcg == root_mem_cgroup)
--		return false;
--
--	if (page_counter_read(&memcg->memory) >= memcg->low)
-+	if (!root)
-+		root = root_mem_cgroup;
-+	if (memcg == root)
- 		return false;
- 
--	while (memcg != root) {
--		memcg = parent_mem_cgroup(memcg);
--
--		if (memcg == root_mem_cgroup)
--			break;
++	/*
++	 * -INT_MIN is undefined, it need to exclude following case to
++	 * avoid the UBSAN detection.
++	 */
++	if (pid == INT_MIN)
++		return -ESRCH;
++
+ 	read_lock(&tasklist_lock);
+ 	if (pid != -1) {
+ 		ret = __kill_pgrp_info(sig, info,
+_
+
+Patches currently in -mm which might be from zhongjiang@huawei.com are
+
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+signal-avoid-undefined-behaviour-in-kill_something_info.patch
+
