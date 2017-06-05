@@ -1,79 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pcmcia-remove-left-over-%z-format.patch removed
- from -mm tree
-Date: Mon, 05 Jun 2017 12:02:51 -0700
-Message-ID: <20170605190251.cn9lL2MK5%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-memcg-cure-the-brainless-abuse-of-sysfs-attributes.patch removed from
+ -mm tree
+Date: Mon, 05 Jun 2017 12:02:48 -0700
+Message-ID: <20170605190248.cOSY4MQRb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40544 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40526 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdFETCw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:52 -0400
+        with ESMTP id S1751170AbdFETCt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, laforge@gnumonks.org, mm-commits@vger.kernel.org, nicolas.iooss_linux@m4x.org, stable@vger.kernel.org
+To: cl@linux.com, hannes@cmpxchg.org, hch@infradead.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, peterz@infradead.org, rientjes@google.com, rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: pcmcia: remove left-over %Z format
+     Subject: slub/memcg: cure the brainless abuse of sysfs attributes
 has been removed from the -mm tree.  Its filename was
-     pcmcia-remove-left-over-%z-format.patch
+     slub-memcg-cure-the-brainless-abuse-of-sysfs-attributes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: pcmcia: remove left-over %Z format
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: slub/memcg: cure the brainless abuse of sysfs attributes
 
-5b5e0928f742 ("lib/vsprintf.c: remove %Z support") removed some usages of
-format %Z but forgot "%.2Zx".  This makes clang 4.0 reports a
--Wformat-extra-args warning because it does not know about %Z.
+memcg_propagate_slab_attrs() abuses the sysfs attribute file functions to
+propagate settings from the root kmem_cache to a newly created kmem_cache.
+It does that with:
 
-Replace %Z with %z.
+     attr->show(root, buf);
+     attr->store(new, buf, strlen(bug);
 
-Link: http://lkml.kernel.org/r/20170520090946.22562-1-nicolas.iooss_linux@m4x.org
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Cc: Harald Welte <laforge@gnumonks.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <stable@vger.kernel.org>	[4.11+]
+Aside of being a lazy and absurd hackery this is broken because it does
+not check the return value of the show() function.
+
+Some of the show() functions return 0 w/o touching the buffer.  That means
+in such a case the store function is called with the stale content of the
+previous show().  That causes nonsense like invoking kmem_cache_shrink()
+on a newly created kmem_cache.  In the worst case it would cause handing
+in an uninitialized buffer.
+
+This should be rewritten proper by adding a propagate() callback to those
+slub_attributes which must be propagated and avoid that insane conversion
+to and from ASCII, but that's too large for a hot fix.
+
+Check at least the return value of the show() function, so calling store()
+with stale content is prevented.
+
+Steven said:
+
+: It can cause a deadlock with get_online_cpus() that has been uncovered
+: by recent cpu hotplug and lockdep changes that Thomas and Peter have
+: been doing.
+: 
+: [  102.567308]  Possible unsafe locking scenario:
+: [  102.567308] 
+: [  102.574846]        CPU0                    CPU1
+: [  102.580148]        ----                    ----
+: [  102.585421]   lock(cpu_hotplug.lock);
+: [  102.589808]                                lock(slab_mutex);
+: [  102.596166]                                lock(cpu_hotplug.lock);
+: [  102.603028]   lock(slab_mutex);
+: [  102.606846] 
+: [  102.606846]  *** DEADLOCK ***
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.20.1705201244540.2255@nanos
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4040_cs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/pcmcia/cm4040_cs.c~pcmcia-remove-left-over-%z-format drivers/char/pcmcia/cm4040_cs.c
---- a/drivers/char/pcmcia/cm4040_cs.c~pcmcia-remove-left-over-%z-format
-+++ a/drivers/char/pcmcia/cm4040_cs.c
-@@ -374,7 +374,7 @@ static ssize_t cm4040_write(struct file
+diff -puN mm/slub.c~slub-memcg-cure-the-brainless-abuse-of-sysfs-attributes mm/slub.c
+--- a/mm/slub.c~slub-memcg-cure-the-brainless-abuse-of-sysfs-attributes
++++ a/mm/slub.c
+@@ -5512,6 +5512,7 @@ static void memcg_propagate_slab_attrs(s
+ 		char mbuf[64];
+ 		char *buf;
+ 		struct slab_attribute *attr = to_slab_attr(slab_attrs[i]);
++		ssize_t len;
  
- 	rc = write_sync_reg(SCR_HOST_TO_READER_START, dev);
- 	if (rc <= 0) {
--		DEBUGP(5, dev, "write_sync_reg c=%.2Zx\n", rc);
-+		DEBUGP(5, dev, "write_sync_reg c=%.2zx\n", rc);
- 		DEBUGP(2, dev, "<- cm4040_write (failed)\n");
- 		if (rc == -ERESTARTSYS)
- 			return rc;
-@@ -387,7 +387,7 @@ static ssize_t cm4040_write(struct file
- 	for (i = 0; i < bytes_to_write; i++) {
- 		rc = wait_for_bulk_out_ready(dev);
- 		if (rc <= 0) {
--			DEBUGP(5, dev, "wait_for_bulk_out_ready rc=%.2Zx\n",
-+			DEBUGP(5, dev, "wait_for_bulk_out_ready rc=%.2zx\n",
- 			       rc);
- 			DEBUGP(2, dev, "<- cm4040_write (failed)\n");
- 			if (rc == -ERESTARTSYS)
-@@ -403,7 +403,7 @@ static ssize_t cm4040_write(struct file
- 	rc = write_sync_reg(SCR_HOST_TO_READER_DONE, dev);
+ 		if (!attr || !attr->store || !attr->show)
+ 			continue;
+@@ -5536,8 +5537,9 @@ static void memcg_propagate_slab_attrs(s
+ 			buf = buffer;
+ 		}
  
- 	if (rc <= 0) {
--		DEBUGP(5, dev, "write_sync_reg c=%.2Zx\n", rc);
-+		DEBUGP(5, dev, "write_sync_reg c=%.2zx\n", rc);
- 		DEBUGP(2, dev, "<- cm4040_write (failed)\n");
- 		if (rc == -ERESTARTSYS)
- 			return rc;
+-		attr->show(root_cache, buf);
+-		attr->store(s, buf, strlen(buf));
++		len = attr->show(root_cache, buf);
++		if (len > 0)
++			attr->store(s, buf, len);
+ 	}
+ 
+ 	if (buffer)
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 
