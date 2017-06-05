@@ -1,101 +1,137 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-gdb-make-lx-dmesg-command-work-reliably.patch removed from -mm tree
-Date: Mon, 05 Jun 2017 12:03:13 -0700
-Message-ID: <20170605190313.FV2YR8BXa%akpm@linux-foundation.org>
+ mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch removed from
+ -mm tree
+Date: Mon, 05 Jun 2017 12:03:06 -0700
+Message-ID: <20170605190306.9ueTmoU4l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40628 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751319AbdFETDO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:03:14 -0400
+        with ESMTP id S1751271AbdFETDM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:03:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: git@andred.net, jan.kiszka@siemens.com, kieran@ksquared.org.uk, mm-commits@vger.kernel.org
+To: guohanjun@huawei.com, hannes@cmpxchg.org, hughd@google.com, joern@logfs.org, mgorman@suse.de, mhocko@suse.cz, mm-commits@vger.kernel.org, qiuxishi@huawei.com, riel@redhat.com, stable@vger.kernel.org, vbabka@suse.cz, walken@google.com, wangkefeng.wang@huawei.com, xieyisheng1@huawei.com, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: scripts/gdb: make lx-dmesg command work (reliably)
+     Subject: mlock: fix mlock count can not decrease in race condition
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-make-lx-dmesg-command-work-reliably.patch
+     mlock-fix-mlock-count-can-not-decrease-in-race-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: André Draszik <git@andred.net>
-Subject: scripts/gdb: make lx-dmesg command work (reliably)
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: mlock: fix mlock count can not decrease in race condition
 
-lx-dmesg needs access to the log_buf symbol from printk.c.  Unfortunately,
-the symbol log_buf also exists in BPF's verifier.c and hence gdb can pick
-one or the other.  If it happens to pick BPF's log_buf, lx-dmesg doesn't
-work:
+Kefeng reported that when running the follow test, the mlock count in
+meminfo will increase permanently:
 
-  (gdb) lx-dmesg
-  Python Exception <class 'gdb.MemoryError'> Cannot access memory at address 0x0:
-  Error occurred in Python command: Cannot access memory at address 0x0
-  (gdb) p log_buf
-  $15 = 0x0
+ [1] testcase
+ linux:~ # cat test_mlockal
+ grep Mlocked /proc/meminfo
+  for j in `seq 0 10`
+  do
+ 	for i in `seq 4 15`
+ 	do
+ 		./p_mlockall >> log &
+ 	done
+ 	sleep 0.2
+ done
+ # wait some time to let mlock counter decrease and 5s may not enough
+ sleep 5
+ grep Mlocked /proc/meminfo
 
-Luckily, GDB has a way to deal with this, see
-  https://sourceware.org/gdb/onlinedocs/gdb/Symbols.html
+ linux:~ # cat p_mlockall.c
+ #include <sys/mman.h>
+ #include <stdlib.h>
+ #include <stdio.h>
 
-  (gdb) info variables ^log_buf$
-  All variables matching regular expression "^log_buf$":
+ #define SPACE_LEN	4096
 
-  File <linux.git>/kernel/bpf/verifier.c:
-  static char *log_buf;
+ int main(int argc, char ** argv)
+ {
+	 	int ret;
+	 	void *adr = malloc(SPACE_LEN);
+	 	if (!adr)
+	 		return -1;
+	
+	 	ret = mlockall(MCL_CURRENT | MCL_FUTURE);
+	 	printf("mlcokall ret = %d\n", ret);
+	
+	 	ret = munlockall();
+	 	printf("munlcokall ret = %d\n", ret);
+	
+	 	free(adr);
+	 	return 0;
+	 }
 
-  File <linux.git>/kernel/printk/printk.c:
-  static char *log_buf;
-  (gdb) p 'verifier.c'::log_buf
-  $1 = 0x0
-  (gdb) p 'printk.c'::log_buf
-  $2 = 0x811a6aa0 <__log_buf> ""
-  (gdb) p &log_buf
-  $3 = (char **) 0x8120fe40 <log_buf>
-  (gdb) p &'verifier.c'::log_buf
-  $4 = (char **) 0x8120fe40 <log_buf>
-  (gdb) p &'printk.c'::log_buf
-  $5 = (char **) 0x8048b7d0 <log_buf>
+In __munlock_pagevec() we should decrement NR_MLOCK for each page where we
+clear the PageMlocked flag.  Commit 1ebb7cc6a583 ("mm: munlock: batch
+NR_MLOCK zone state updates") has introduced a bug where we don't
+decrement NR_MLOCK for pages where we clear the flag, but fail to isolate
+them from the lru list (e.g.  when the pages are on some other cpu's
+percpu pagevec).  Since PageMlocked stays cleared, the NR_MLOCK accounting
+gets permanently disrupted by this.
 
-By being explicit about the location of the symbol, we can make lx-dmesg
-work again.  While at it, do the same for the other symbols we need from
-printk.c
+Fix it by counting the number of page whose PageMlock flag is cleared. 
 
-Link: http://lkml.kernel.org/r/20170526112222.3414-1-git@andred.net
-Signed-off-by: André Draszik <git@andred.net>
-Tested-by: Kieran Bingham <kieran@bingham.xyz>
-Acked-by: Jan Kiszka <jan.kiszka@siemens.com>
+Fixes: 1ebb7cc6a583 (" mm: munlock: batch NR_MLOCK zone state updates")
+Link: http://lkml.kernel.org/r/1495678405-54569-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Reported-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: zhongjiang <zhongjiang@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/dmesg.py |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/mlock.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-make-lx-dmesg-command-work-reliably scripts/gdb/linux/dmesg.py
---- a/scripts/gdb/linux/dmesg.py~scripts-gdb-make-lx-dmesg-command-work-reliably
-+++ a/scripts/gdb/linux/dmesg.py
-@@ -23,10 +23,11 @@ class LxDmesg(gdb.Command):
-         super(LxDmesg, self).__init__("lx-dmesg", gdb.COMMAND_DATA)
+diff -puN mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition mm/mlock.c
+--- a/mm/mlock.c~mlock-fix-mlock-count-can-not-decrease-in-race-condition
++++ a/mm/mlock.c
+@@ -284,7 +284,7 @@ static void __munlock_pagevec(struct pag
+ {
+ 	int i;
+ 	int nr = pagevec_count(pvec);
+-	int delta_munlocked;
++	int delta_munlocked = -nr;
+ 	struct pagevec pvec_putback;
+ 	int pgrescued = 0;
  
-     def invoke(self, arg, from_tty):
--        log_buf_addr = int(str(gdb.parse_and_eval("log_buf")).split()[0], 16)
--        log_first_idx = int(gdb.parse_and_eval("log_first_idx"))
--        log_next_idx = int(gdb.parse_and_eval("log_next_idx"))
--        log_buf_len = int(gdb.parse_and_eval("log_buf_len"))
-+        log_buf_addr = int(str(gdb.parse_and_eval(
-+            "'printk.c'::log_buf")).split()[0], 16)
-+        log_first_idx = int(gdb.parse_and_eval("'printk.c'::log_first_idx"))
-+        log_next_idx = int(gdb.parse_and_eval("'printk.c'::log_next_idx"))
-+        log_buf_len = int(gdb.parse_and_eval("'printk.c'::log_buf_len"))
+@@ -304,6 +304,8 @@ static void __munlock_pagevec(struct pag
+ 				continue;
+ 			else
+ 				__munlock_isolation_failed(page);
++		} else {
++			delta_munlocked++;
+ 		}
  
-         inf = gdb.inferiors()[0]
-         start = log_buf_addr + log_first_idx
+ 		/*
+@@ -315,7 +317,6 @@ static void __munlock_pagevec(struct pag
+ 		pagevec_add(&pvec_putback, pvec->pages[i]);
+ 		pvec->pages[i] = NULL;
+ 	}
+-	delta_munlocked = -nr + pagevec_count(&pvec_putback);
+ 	__mod_zone_page_state(zone, NR_MLOCK, delta_munlocked);
+ 	spin_unlock_irq(zone_lru_lock(zone));
+ 
 _
 
-Patches currently in -mm which might be from git@andred.net are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
 
