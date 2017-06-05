@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + swap-cond_resched-in-swap_cgroup_prepare.patch added to -mm
  tree
-Date: Mon, 05 Jun 2017 14:29:37 -0700
-Message-ID: <5935cd41.y1kLyeJjrwfdGH98%akpm@linux-foundation.org>
+Date: Mon, 05 Jun 2017 14:30:24 -0700
+Message-ID: <5935cd70.QEEL/LHrjwnJXjDZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50372 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbdFEV3i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 17:29:38 -0400
+        with ESMTP id S1751195AbdFEVaZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 17:30:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yuzhao@google.com, mhocko@suse.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: yuzhao@google.com, mhocko@suse.com, stable@vger.kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -52,6 +52,7 @@ Link: http://lkml.kernel.org/r/20170604200109.17606-1-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
