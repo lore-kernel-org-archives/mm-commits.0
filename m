@@ -1,110 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ksm-prevent-crash-after-write_protect_page-fails.patch removed from -mm
- tree
-Date: Mon, 05 Jun 2017 12:02:35 -0700
-Message-ID: <20170605190235.QOzCtXi1s%akpm@linux-foundation.org>
+ include-linux-gfph-fix-___gfp_nolockdep-value.patch removed from -mm tree
+Date: Mon, 05 Jun 2017 12:02:38 -0700
+Message-ID: <20170605190238.z27446oVu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40486 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdFETCg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:36 -0400
+        with ESMTP id S1751170AbdFETCj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, fsimonce@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: igor.stoppa@nokia.com, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: ksm: prevent crash after write_protect_page fails
+     Subject: include/linux/gfp.h: fix  ___GFP_NOLOCKDEP value
 has been removed from the -mm tree.  Its filename was
-     ksm-prevent-crash-after-write_protect_page-fails.patch
+     include-linux-gfph-fix-___gfp_nolockdep-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: prevent crash after write_protect_page fails
+From: Michal Hocko <mhocko@suse.com>
+Subject: include/linux/gfp.h: fix  ___GFP_NOLOCKDEP value
 
-"err" needs to be left set to -EFAULT if split_huge_page succeeds. 
-Otherwise if "err" gets clobbered with zero and write_protect_page fails,
-try_to_merge_one_page() will succeed instead of returning -EFAULT and then
-try_to_merge_with_ksm_page() will continue thinking kpage is a PageKsm
-when in fact it's still an anonymous page.  Eventually it'll crash in
-page_add_anon_rmap.
+Igor Stoppa has noticed that __GFP_NOLOCKDEP can use a lower bit. At the
+time 7e7844226f10 ("lockdep: allow to disable reclaim lockup detection")
+was written we still had __GFP_OTHER_NODE but I have removed it in
+41b6167e8f74 ("mm: get rid of __GFP_OTHER_NODE") and forgot to lower the
+bit value. The current value is outside of __GFP_BITS_SHIFT so it cannot
+be used actually.
 
-This has been reproduced on Fedora25 kernel but I can reproduce with
-upstream too.
-
-The bug was introduced in commit
-f765f540598a129dc4bb6f698fd4acc92f296c14 in v4.5.
-
-page:fffff67546ce1cc0 count:4 mapcount:2 mapping:ffffa094551e36e1 index:0x7f0f46673
-flags: 0x2ffffc0004007c(referenced|uptodate|dirty|lru|active|swapbacked)
-page dumped because: VM_BUG_ON_PAGE(!PageLocked(page))
-page->mem_cgroup:ffffa09674bf0000
-------------[ cut here ]------------
-kernel BUG at mm/rmap.c:1222!
-invalid opcode: 0000 [#1] SMP
-CPU: 1 PID: 76 Comm: ksmd Not tainted 4.9.3-200.fc25.x86_64 #1
-task: ffffa0968be65b80 task.stack: ffffc0e941b3c000
-RIP: 0010:[<ffffffff9a20ac94>]  [<ffffffff9a20ac94>] do_page_add_anon_rmap+0x1c4/0x240
-RSP: 0018:ffffc0e941b3fd48  EFLAGS: 00010282
-RAX: 0000000000000021 RBX: fffff67546ce1cc0 RCX: 0000000000000006
-RDX: 0000000000000000 RSI: 0000000000000246 RDI: ffffa0969ec4e0a0
-RBP: ffffc0e941b3fd70 R08: 0000000000018a84 R09: 0000000000000005
-R10: fffff6754f87de00 R11: 000000000000049f R12: 00007fe6f5f67000
-R13: ffffa094990ecc00 R14: 0000000000000000 R15: ffffa093c369c480
-FS:  0000000000000000(0000) GS:ffffa0969ec40000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f4c21c221f0 CR3: 0000000152e07000 CR4: 00000000000426e0
-Stack:
- fffff675470fd9c0 00007fe6f5f67000 fffff67540f8a900 ffffa094990ecc00
- ffffa093c369c480 ffffc0e941b3fd80 ffffffff9a20ad28 ffffc0e941b3fe00
- ffffffff9a228b4b 80000001c3f67807 0000000000000000 80000001c3f67805
-Call Trace:
- [<ffffffff9a20ad28>] page_add_anon_rmap+0x18/0x20
- [<ffffffff9a228b4b>] try_to_merge_with_ksm_page+0x50b/0x780
- [<ffffffff9a229fd1>] ksm_scan_thread+0x1211/0x1410
- [<ffffffff9a0e7270>] ? prepare_to_wait_event+0x100/0x100
- [<ffffffff9a228dc0>] ? try_to_merge_with_ksm_page+0x780/0x780
- [<ffffffff9a0c2569>] kthread+0xd9/0xf0
- [<ffffffff9a0c2490>] ? kthread_park+0x60/0x60
- [<ffffffff9a81be55>] ret_from_fork+0x25/0x30
-
-Fixes: f765f54059 ("ksm: prepare to new THP semantics")
-Link: http://lkml.kernel.org/r/20170513131040.21732-1-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Federico Simoncelli <fsimonce@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 7e7844226f10 ("lockdep: allow to disable reclaim lockup detection")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Igor Stoppa <igor.stoppa@nokia.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/gfp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~ksm-prevent-crash-after-write_protect_page-fails mm/ksm.c
---- a/mm/ksm.c~ksm-prevent-crash-after-write_protect_page-fails
-+++ a/mm/ksm.c
-@@ -1028,8 +1028,7 @@ static int try_to_merge_one_page(struct
- 		goto out;
- 
- 	if (PageTransCompound(page)) {
--		err = split_huge_page(page);
--		if (err)
-+		if (split_huge_page(page))
- 			goto out_unlock;
- 	}
- 
+diff -puN include/linux/gfp.h~include-linux-gfph-fix-___gfp_nolockdep-value include/linux/gfp.h
+--- a/include/linux/gfp.h~include-linux-gfph-fix-___gfp_nolockdep-value
++++ a/include/linux/gfp.h
+@@ -41,7 +41,7 @@ struct vm_area_struct;
+ #define ___GFP_WRITE		0x800000u
+ #define ___GFP_KSWAPD_RECLAIM	0x1000000u
+ #ifdef CONFIG_LOCKDEP
+-#define ___GFP_NOLOCKDEP	0x4000000u
++#define ___GFP_NOLOCKDEP	0x2000000u
+ #else
+ #define ___GFP_NOLOCKDEP	0
+ #endif
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
-ksm-fix-use-after-free-with-merge_across_nodes-=-0.patch
-ksm-cleanup-stable_node-chain-collapse-case.patch
-ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
-ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
+mm-remove-return-value-from-init_currently_empty_zone.patch
+mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
+mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
+mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
+mm-memory_hotplug-split-up-register_one_node.patch
+mm-memory_hotplug-consider-offline-memblocks-removable.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
+mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
+mm-__first_valid_page-skip-over-offline-pages.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
+mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
+mm-memory_hotplug-fix-mmop_online_keep-behavior.patch
+mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone.patch
+mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
+mm-memory_hotplug-fix-the-section-mismatch-warning.patch
+mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
+mm-adaptive-hash-table-scaling-fix.patch
+mm-memory_hotplug-drop-artificial-restriction-on-online-offline.patch
+mm-memory_hotplug-drop-config_movable_node.patch
+mm-memory_hotplug-move-movable_node-to-the-hotplug-proper.patch
+lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+netfilter-use-kvmalloc-xt_alloc_table_info.patch
 
