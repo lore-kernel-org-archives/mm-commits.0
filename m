@@ -1,186 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?mmpage=5Falloc-make-sure-oom-victim-can-try-allocations-w?=
- =?US-ASCII?Q?ith-no-watermarks-once.patch?= removed from -mm tree
-Date: Mon, 05 Jun 2017 12:02:54 -0700
-Message-ID: <20170605190254.rsUH90Jgy%akpm@linux-foundation.org>
+Subject: [merged] mm-avoid-spurious-bad-pmd-warning-messages.patch
+ removed from -mm tree
+Date: Mon, 05 Jun 2017 12:02:57 -0700
+Message-ID: <20170605190257.SpdgpDYMA%akpm__38969.0411197536$1496689383$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40568 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751170AbdFETCz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:55 -0400
+        with ESMTP id S1751170AbdFETC6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2017 15:02:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, vdavydov.dev@gmail.com
+To: dan.j.williams@intel.com, darrick.wong@oracle.com, dave.hansen@intel.com, dave.jiang@intel.com, eguan@redhat.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mm-commits@vger.kernel.org, pawel.lebioda@intel.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, xzhou@redhat.com
 
 
 The patch titled
-     Subject: mm/page_alloc.c: make sure OOM victim can try allocations with no watermarks once
+     Subject: mm: avoid spurious 'bad pmd' warning messages
 has been removed from the -mm tree.  Its filename was
-     mmpage_alloc-make-sure-oom-victim-can-try-allocations-with-no-watermarks-once.patch
+     mm-avoid-spurious-bad-pmd-warning-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm/page_alloc.c: make sure OOM victim can try allocations with no watermarks once
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: mm: avoid spurious 'bad pmd' warning messages
 
-Roman Gushchin has reported that the OOM killer can trivially selects next
-OOM victim when a thread doing memory allocation from page fault path was
-selected as first OOM victim.
+When the pmd_devmap() checks were added by 5c7fb56e5e3f ("mm, dax: dax-pmd
+vs thp-pmd vs hugetlbfs-pmd") to add better support for DAX huge pages,
+they were all added to the end of if() statements after existing
+pmd_trans_huge() checks.  So, things like:
 
-----------
-[   25.721494] allocate invoked oom-killer: gfp_mask=0x14280ca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), nodemask=(null),  order=0, oom_score_adj=0
-[   25.725658] allocate cpuset=/ mems_allowed=0
-[   25.727033] CPU: 1 PID: 492 Comm: allocate Not tainted 4.12.0-rc1-mm1+ #181
-[   25.729215] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-[   25.729598] Call Trace:
-[   25.729598]  dump_stack+0x63/0x82
-[   25.729598]  dump_header+0x97/0x21a
-[   25.729598]  ? do_try_to_free_pages+0x2d7/0x360
-[   25.729598]  ? security_capable_noaudit+0x45/0x60
-[   25.729598]  oom_kill_process+0x219/0x3e0
-[   25.729598]  out_of_memory+0x11d/0x480
-[   25.729598]  __alloc_pages_slowpath+0xc84/0xd40
-[   25.729598]  __alloc_pages_nodemask+0x245/0x260
-[   25.729598]  alloc_pages_vma+0xa2/0x270
-[   25.729598]  __handle_mm_fault+0xca9/0x10c0
-[   25.729598]  handle_mm_fault+0xf3/0x210
-[   25.729598]  __do_page_fault+0x240/0x4e0
-[   25.729598]  trace_do_page_fault+0x37/0xe0
-[   25.729598]  do_async_page_fault+0x19/0x70
-[   25.729598]  async_page_fault+0x28/0x30
-(...snipped...)
-[   25.781882] Out of memory: Kill process 492 (allocate) score 899 or sacrifice child
-[   25.783874] Killed process 492 (allocate) total-vm:2052368kB, anon-rss:1894576kB, file-rss:4kB, shmem-rss:0kB
-[   25.785680] allocate: page allocation failure: order:0, mode:0x14280ca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), nodemask=(null)
-[   25.786797] allocate cpuset=/ mems_allowed=0
-[   25.787246] CPU: 1 PID: 492 Comm: allocate Not tainted 4.12.0-rc1-mm1+ #181
-[   25.787935] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-[   25.788867] Call Trace:
-[   25.789119]  dump_stack+0x63/0x82
-[   25.789451]  warn_alloc+0x114/0x1b0
-[   25.789451]  __alloc_pages_slowpath+0xd32/0xd40
-[   25.789451]  __alloc_pages_nodemask+0x245/0x260
-[   25.789451]  alloc_pages_vma+0xa2/0x270
-[   25.789451]  __handle_mm_fault+0xca9/0x10c0
-[   25.789451]  handle_mm_fault+0xf3/0x210
-[   25.789451]  __do_page_fault+0x240/0x4e0
-[   25.789451]  trace_do_page_fault+0x37/0xe0
-[   25.789451]  do_async_page_fault+0x19/0x70
-[   25.789451]  async_page_fault+0x28/0x30
-(...snipped...)
-[   25.810868] oom_reaper: reaped process 492 (allocate), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
-(...snipped...)
-[   25.817589] allocate invoked oom-killer: gfp_mask=0x0(), nodemask=(null),  order=0, oom_score_adj=0
-[   25.818821] allocate cpuset=/ mems_allowed=0
-[   25.819259] CPU: 1 PID: 492 Comm: allocate Not tainted 4.12.0-rc1-mm1+ #181
-[   25.819847] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-[   25.820549] Call Trace:
-[   25.820733]  dump_stack+0x63/0x82
-[   25.820961]  dump_header+0x97/0x21a
-[   25.820961]  ? security_capable_noaudit+0x45/0x60
-[   25.820961]  oom_kill_process+0x219/0x3e0
-[   25.820961]  out_of_memory+0x11d/0x480
-[   25.820961]  pagefault_out_of_memory+0x68/0x80
-[   25.820961]  mm_fault_error+0x8f/0x190
-[   25.820961]  ? handle_mm_fault+0xf3/0x210
-[   25.820961]  __do_page_fault+0x4b2/0x4e0
-[   25.820961]  trace_do_page_fault+0x37/0xe0
-[   25.820961]  do_async_page_fault+0x19/0x70
-[   25.820961]  async_page_fault+0x28/0x30
-(...snipped...)
-[   25.863078] Out of memory: Kill process 233 (firewalld) score 10 or sacrifice child
-[   25.863634] Killed process 233 (firewalld) total-vm:246076kB, anon-rss:20956kB, file-rss:0kB, shmem-rss:0kB
-----------
+-       if (pmd_trans_huge(*pmd))
++       if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
 
-There is a race window that the OOM reaper completes reclaiming the first
-victim's memory while nothing but mutex_trylock() prevents the first
-victim from calling out_of_memory() from pagefault_out_of_memory() after
-memory allocation for page fault path failed due to being selected as an
-OOM victim.
+When further checks were added after pmd_trans_unstable() checks by
+7267ec008b5c ("mm: postpone page table allocation until we have page to
+map") they were also added at the end of the conditional:
 
-This is a side effect of commit 9a67f6488eca926f ("mm: consolidate
-GFP_NOFAIL checks in the allocator slowpath") because that commit silently
-changed the behavior from
++       if (pmd_trans_unstable(fe->pmd) || pmd_devmap(*fe->pmd))
 
-    /* Avoid allocations with no watermarks from looping endlessly */
+This ordering is fine for pmd_trans_huge(), but doesn't work for
+pmd_trans_unstable().  This is because DAX huge pages trip the bad_pmd()
+check inside of pmd_none_or_trans_huge_or_clear_bad() (called by
+pmd_trans_unstable()), which prints out a warning and returns 1.  So, we
+do end up doing the right thing, but only after spamming dmesg with
+suspicious looking messages:
 
-to
+mm/pgtable-generic.c:39: bad pmd ffff8808daa49b88(84000001006000a5)
 
-    /*
-     * Give up allocations without trying memory reserves if selected
-     * as an OOM victim
-     */
+Reorder these checks in a helper so that pmd_devmap() is checked first,
+avoiding the error messages, and add a comment explaining why the ordering
+is important.
 
-in __alloc_pages_slowpath() by moving the location to check TIF_MEMDIE
-flag.  I have noticed this change but I didn't post a patch because I
-thought it is an acceptable change other than noise by warn_alloc()
-because !__GFP_NOFAIL allocations are allowed to fail.  But we overlooked
-that failing memory allocation from page fault path makes difference due
-to the race window explained above.
-
-While it might be possible to add a check to pagefault_out_of_memory()
-that prevents the first victim from calling out_of_memory() or remove
-out_of_memory() from pagefault_out_of_memory(), changing
-pagefault_out_of_memory() does not suppress noise by warn_alloc() when
-allocating thread was selected as an OOM victim.  There is little point
-with printing similar backtraces and memory information from both
-out_of_memory() and warn_alloc().
-
-Instead, if we guarantee that current thread can try allocations with no
-watermarks once when current thread looping inside
-__alloc_pages_slowpath() was selected as an OOM victim, we can follow "who
-can use memory reserves" rules and suppress noise by warn_alloc() and
-prevent memory allocations from page fault path from calling
-pagefault_out_of_memory().
-
-If we take the comment literally, this patch would do
-
-: -    if (test_thread_flag(TIF_MEMDIE))
-: -        goto nopage;
-: +    if (alloc_flags == ALLOC_NO_WATERMARKS || (gfp_mask & __GFP_NOMEMALLOC))
-: +        goto nopage;
-
-because gfp_pfmemalloc_allowed() returns false if __GFP_NOMEMALLOC is
-given.  But if I recall correctly (I couldn't find the message), the
-condition is meant to apply to only OOM victims despite the comment. 
-Therefore, this patch preserves TIF_MEMDIE check.
-
-Fixes: 9a67f6488eca926f ("mm: consolidate GFP_NOFAIL checks in the allocator slowpath")
-Link: http://lkml.kernel.org/r/201705192112.IAF69238.OQOHSJLFOFFMtV@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: Roman Gushchin <guro@fb.com>
-Tested-by: Roman Gushchin <guro@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: <stable@vger.kernel.org>	[4.11]
+Fixes: commit 7267ec008b5c ("mm: postpone page table allocation until we have page to map")
+Link: http://lkml.kernel.org/r/20170522215749.23516-1-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Pawel Lebioda <pawel.lebioda@intel.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Xiong Zhou <xzhou@redhat.com>
+Cc: Eryu Guan <eguan@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memory.c |   40 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 30 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~mmpage_alloc-make-sure-oom-victim-can-try-allocations-with-no-watermarks-once mm/page_alloc.c
---- a/mm/page_alloc.c~mmpage_alloc-make-sure-oom-victim-can-try-allocations-with-no-watermarks-once
-+++ a/mm/page_alloc.c
-@@ -3870,7 +3870,9 @@ retry:
- 		goto got_pg;
+diff -puN mm/memory.c~mm-avoid-spurious-bad-pmd-warning-messages mm/memory.c
+--- a/mm/memory.c~mm-avoid-spurious-bad-pmd-warning-messages
++++ a/mm/memory.c
+@@ -3029,6 +3029,17 @@ static int __do_fault(struct vm_fault *v
+ 	return ret;
+ }
  
- 	/* Avoid allocations with no watermarks from looping endlessly */
--	if (test_thread_flag(TIF_MEMDIE))
-+	if (test_thread_flag(TIF_MEMDIE) &&
-+	    (alloc_flags == ALLOC_NO_WATERMARKS ||
-+	     (gfp_mask & __GFP_NOMEMALLOC)))
- 		goto nopage;
++/*
++ * The ordering of these checks is important for pmds with _PAGE_DEVMAP set.
++ * If we check pmd_trans_unstable() first we will trip the bad_pmd() check
++ * inside of pmd_none_or_trans_huge_or_clear_bad(). This will end up correctly
++ * returning 1 but not before it spams dmesg with the pmd_clear_bad() output.
++ */
++static int pmd_devmap_trans_unstable(pmd_t *pmd)
++{
++	return pmd_devmap(*pmd) || pmd_trans_unstable(pmd);
++}
++
+ static int pte_alloc_one_map(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -3052,18 +3063,27 @@ static int pte_alloc_one_map(struct vm_f
+ map_pte:
+ 	/*
+ 	 * If a huge pmd materialized under us just retry later.  Use
+-	 * pmd_trans_unstable() instead of pmd_trans_huge() to ensure the pmd
+-	 * didn't become pmd_trans_huge under us and then back to pmd_none, as
+-	 * a result of MADV_DONTNEED running immediately after a huge pmd fault
+-	 * in a different thread of this mm, in turn leading to a misleading
+-	 * pmd_trans_huge() retval.  All we have to ensure is that it is a
+-	 * regular pmd that we can walk with pte_offset_map() and we can do that
+-	 * through an atomic read in C, which is what pmd_trans_unstable()
+-	 * provides.
++	 * pmd_trans_unstable() via pmd_devmap_trans_unstable() instead of
++	 * pmd_trans_huge() to ensure the pmd didn't become pmd_trans_huge
++	 * under us and then back to pmd_none, as a result of MADV_DONTNEED
++	 * running immediately after a huge pmd fault in a different thread of
++	 * this mm, in turn leading to a misleading pmd_trans_huge() retval.
++	 * All we have to ensure is that it is a regular pmd that we can walk
++	 * with pte_offset_map() and we can do that through an atomic read in
++	 * C, which is what pmd_trans_unstable() provides.
+ 	 */
+-	if (pmd_trans_unstable(vmf->pmd) || pmd_devmap(*vmf->pmd))
++	if (pmd_devmap_trans_unstable(vmf->pmd))
+ 		return VM_FAULT_NOPAGE;
  
- 	/* Retry as long as the OOM killer is making progress */
++	/*
++	 * At this point we know that our vmf->pmd points to a page of ptes
++	 * and it cannot become pmd_none(), pmd_devmap() or pmd_trans_huge()
++	 * for the duration of the fault.  If a racing MADV_DONTNEED runs and
++	 * we zap the ptes pointed to by our vmf->pmd, the vmf->ptl will still
++	 * be valid and we will re-check to make sure the vmf->pte isn't
++	 * pte_none() under vmf->ptl protection when we return to
++	 * alloc_set_pte().
++	 */
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
+ 			&vmf->ptl);
+ 	return 0;
+@@ -3690,7 +3710,7 @@ static int handle_pte_fault(struct vm_fa
+ 		vmf->pte = NULL;
+ 	} else {
+ 		/* See comment in pte_alloc_one_map() */
+-		if (pmd_trans_unstable(vmf->pmd) || pmd_devmap(*vmf->pmd))
++		if (pmd_devmap_trans_unstable(vmf->pmd))
+ 			return 0;
+ 		/*
+ 		 * A regular pmd is established and it can't morph into a huge
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
 
