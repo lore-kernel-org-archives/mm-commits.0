@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-use-__sysfs_match_string-helper.patch added to -mm tree
-Date: Thu, 15 Jun 2017 13:57:02 -0700
-Message-ID: <5942f49e.VsIcZAPJS+is2L6B%akpm@linux-foundation.org>
+Subject: + mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch added to -mm tree
+Date: Thu, 15 Jun 2017 14:05:41 -0700
+Message-ID: <5942f6a5.0aOuMNbo+ejthnM9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36990 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37108 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751888AbdFOU5I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 16:57:08 -0400
+        with ESMTP id S1751926AbdFOVFm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 17:05:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: stummala@codeaurora.org, apolyakov@beget.ru, jack@suse.cz, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use __sysfs_match_string() helper
+     Subject: mm/list_lru.c: use cond_resched_lock() for nlru->lock
 has been added to the -mm tree.  Its filename is
-     zram-use-__sysfs_match_string-helper.patch
+     mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-__sysfs_match_string-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-__sysfs_match_string-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,46 +38,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: zram: use __sysfs_match_string() helper
+From: Sahitya Tummala <stummala@codeaurora.org>
+Subject: mm/list_lru.c: use cond_resched_lock() for nlru->lock
 
-Use __sysfs_match_string() helper instead of open coded variant.
+__list_lru_walk_one() can hold the spin lock for longer duration
+if there are more number of entries to be isolated.
 
-Link: http://lkml.kernel.org/r/20170609120835.22156-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+This results in "BUG: spinlock lockup suspected" in the below path -
+
+[<ffffff8eca0fb0bc>] spin_bug+0x90
+[<ffffff8eca0fb220>] do_raw_spin_lock+0xfc
+[<ffffff8ecafb7798>] _raw_spin_lock+0x28
+[<ffffff8eca1ae884>] list_lru_add+0x28
+[<ffffff8eca1f5dac>] dput+0x1c8
+[<ffffff8eca1eb46c>] path_put+0x20
+[<ffffff8eca1eb73c>] terminate_walk+0x3c
+[<ffffff8eca1eee58>] path_lookupat+0x100
+[<ffffff8eca1f00fc>] filename_lookup+0x6c
+[<ffffff8eca1f0264>] user_path_at_empty+0x54
+[<ffffff8eca1e066c>] SyS_faccessat+0xd0
+[<ffffff8eca084e30>] el0_svc_naked+0x24
+
+This nlru->lock has been acquired by another CPU in this path -
+
+[<ffffff8eca1f5fd0>] d_lru_shrink_move+0x34
+[<ffffff8eca1f6180>] dentry_lru_isolate_shrink+0x48
+[<ffffff8eca1aeafc>] __list_lru_walk_one.isra.10+0x94
+[<ffffff8eca1aec34>] list_lru_walk_node+0x40
+[<ffffff8eca1f6620>] shrink_dcache_sb+0x60
+[<ffffff8eca1e56a8>] do_remount_sb+0xbc
+[<ffffff8eca1e583c>] do_emergency_remount+0xb0
+[<ffffff8eca0ba510>] process_one_work+0x228
+[<ffffff8eca0bb158>] worker_thread+0x2e0
+[<ffffff8eca0c040c>] kthread+0xf4
+[<ffffff8eca084dd0>] ret_from_fork+0x10
+
+Link: http://marc.info/?t=149511514800002&r=1&w=2
+Link: http://lkml.kernel.org/r/1497228440-10349-1-git-send-email-stummala@codeaurora.org
+Signed-off-by: Sahitya Tummala <stummala@codeaurora.org>
+Suggested-by: Jan kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Alexander Polakov <apolyakov@beget.ru>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/list_lru.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/block/zram/zcomp.c~zram-use-__sysfs_match_string-helper drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-use-__sysfs_match_string-helper
-+++ a/drivers/block/zram/zcomp.c
-@@ -68,13 +68,11 @@ static struct zcomp_strm *zcomp_strm_all
+diff -puN mm/list_lru.c~mm-list_lruc-use-cond_resched_lock-for-nlru-lock mm/list_lru.c
+--- a/mm/list_lru.c~mm-list_lruc-use-cond_resched_lock-for-nlru-lock
++++ a/mm/list_lru.c
+@@ -249,6 +249,8 @@ restart:
+ 		default:
+ 			BUG();
+ 		}
++		if (cond_resched_lock(&nlru->lock))
++			goto restart;
+ 	}
  
- bool zcomp_available_algorithm(const char *comp)
- {
--	int i = 0;
-+	int i;
- 
--	while (backends[i]) {
--		if (sysfs_streq(comp, backends[i]))
--			return true;
--		i++;
--	}
-+	i = __sysfs_match_string(backends, -1, comp);
-+	if (i >= 0)
-+		return true;
- 
- 	/*
- 	 * Crypto does not ignore a trailing new line symbol,
+ 	spin_unlock(&nlru->lock);
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from stummala@codeaurora.org are
 
-zram-use-__sysfs_match_string-helper.patch
+mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
 
