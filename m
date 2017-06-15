@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-introduce-rwf_nowait-and-fmode_aio_nowait.patch added to -mm tree
-Date: Thu, 15 Jun 2017 11:54:43 -0700
-Message-ID: <5942d7f3.8FZ1Xyf/54jax/rB%akpm@linux-foundation.org>
+Subject: + fs-introduce-filemap_range_has_page.patch added to -mm tree
+Date: Thu, 15 Jun 2017 11:54:39 -0700
+Message-ID: <5942d7ef.eA+zV4Nlef2wPzBI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59298 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752583AbdFOSyy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 14:54:54 -0400
+        with ESMTP id S1752541AbdFOSyp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 14:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rgoldwyn@suse.com, adilger.kernel@dilger.ca, axboe@kernel.dk, clm@fb.com, darrick.wong@oracle.com, dsterba@suse.com, hch@lst.de, jack@suse.cz, jbacik@fb.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: introduce RWF_NOWAIT and FMODE_AIO_NOWAIT
+     Subject: fs: introduce filemap_range_has_page()
 has been added to the -mm tree.  Its filename is
-     fs-introduce-rwf_nowait-and-fmode_aio_nowait.patch
+     fs-introduce-filemap_range_has_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-introduce-rwf_nowait-and-fmode_aio_nowait.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-introduce-filemap_range_has_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-introduce-rwf_nowait-and-fmode_aio_nowait.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-introduce-filemap_range_has_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,21 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Subject: fs: introduce RWF_NOWAIT and FMODE_AIO_NOWAIT
+Subject: fs: introduce filemap_range_has_page()
 
-RWF_NOWAIT informs kernel to bail out if an AIO request will block for
-reasons such as file allocations, or a writeback triggered, or would block
-while allocating requests while performing direct I/O.
+filemap_range_has_page() return true if the file's mapping has a page
+within the range mentioned.  This function will be used to check if a
+write() call will cause a writeback of previous writes.
 
-RWF_NOWAIT is translated to IOCB_NOWAIT for iocb->ki_flags.
-
-FMODE_AIO_NOWAIT is a flag which identifies the file opened is capable of
-returning -EAGAIN if the AIO call will block.  This must be set by
-supporting filesystems in the ->open() call.
-
-Filesystems xfs, btrfs and ext4 would be supported in the following patches.
-
-Link: http://lkml.kernel.org/r/20170615160002.17233-5-rgoldwyn@suse.de
+Link: http://lkml.kernel.org/r/20170615160002.17233-3-rgoldwyn@suse.de
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -68,74 +60,65 @@ Cc: Josef Bacik <jbacik@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c                |    6 ++++++
- include/linux/fs.h      |   11 ++++++++++-
- include/uapi/linux/fs.h |    1 +
- 3 files changed, 17 insertions(+), 1 deletion(-)
+ include/linux/fs.h |    2 ++
+ mm/filemap.c       |   33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
 
-diff -puN fs/aio.c~fs-introduce-rwf_nowait-and-fmode_aio_nowait fs/aio.c
---- a/fs/aio.c~fs-introduce-rwf_nowait-and-fmode_aio_nowait
-+++ a/fs/aio.c
-@@ -1592,6 +1592,12 @@ static int io_submit_one(struct kioctx *
- 		goto out_put_req;
- 	}
- 
-+	if ((req->common.ki_flags & IOCB_NOWAIT) &&
-+			!(req->common.ki_flags & IOCB_DIRECT)) {
-+		ret = -EOPNOTSUPP;
-+		goto out_put_req;
-+	}
-+
- 	ret = put_user(KIOCB_KEY, &user_iocb->aio_key);
- 	if (unlikely(ret)) {
- 		pr_debug("EFAULT: aio_key\n");
-diff -puN include/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait include/linux/fs.h
---- a/include/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait
+diff -puN include/linux/fs.h~fs-introduce-filemap_range_has_page include/linux/fs.h
+--- a/include/linux/fs.h~fs-introduce-filemap_range_has_page
 +++ a/include/linux/fs.h
-@@ -142,6 +142,9 @@ typedef int (dio_iodone_t)(struct kiocb
- /* File was opened by fanotify and shouldn't generate fanotify events */
- #define FMODE_NONOTIFY		((__force fmode_t)0x4000000)
+@@ -2517,6 +2517,8 @@ extern int filemap_fdatawait(struct addr
+ extern void filemap_fdatawait_keep_errors(struct address_space *);
+ extern int filemap_fdatawait_range(struct address_space *, loff_t lstart,
+ 				   loff_t lend);
++extern int filemap_range_has_page(struct address_space *, loff_t lstart,
++				  loff_t lend);
+ extern int filemap_write_and_wait(struct address_space *mapping);
+ extern int filemap_write_and_wait_range(struct address_space *mapping,
+ 				        loff_t lstart, loff_t lend);
+diff -puN mm/filemap.c~fs-introduce-filemap_range_has_page mm/filemap.c
+--- a/mm/filemap.c~fs-introduce-filemap_range_has_page
++++ a/mm/filemap.c
+@@ -376,6 +376,39 @@ int filemap_flush(struct address_space *
+ }
+ EXPORT_SYMBOL(filemap_flush);
  
-+/* File is capable of returning -EAGAIN if AIO will block */
-+#define FMODE_AIO_NOWAIT	((__force fmode_t)0x8000000)
++/**
++ * filemap_range_has_page - check if a page exists in range.
++ * @mapping:           address space structure to wait for
++ * @start_byte:        offset in bytes where the range starts
++ * @end_byte:          offset in bytes where the range ends (inclusive)
++ *
++ * Find at least one page in the range supplied, usually used to check if
++ * direct writing in this range will trigger a writeback.
++ */
++int filemap_range_has_page(struct address_space *mapping,
++			   loff_t start_byte, loff_t end_byte)
++{
++	pgoff_t index = start_byte >> PAGE_SHIFT;
++	pgoff_t end = end_byte >> PAGE_SHIFT;
++	struct pagevec pvec;
++	int ret;
 +
- /*
-  * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
-  * that indicates that they should check the contents of the iovec are
-@@ -268,6 +271,7 @@ struct writeback_control;
- #define IOCB_DSYNC		(1 << 4)
- #define IOCB_SYNC		(1 << 5)
- #define IOCB_WRITE		(1 << 6)
-+#define IOCB_NOWAIT		(1 << 7)
- 
- struct kiocb {
- 	struct file		*ki_filp;
-@@ -3060,9 +3064,14 @@ static inline int iocb_flags(struct file
- 
- static inline int kiocb_set_rw_flags(struct kiocb *ki, int flags)
++	if (end_byte < start_byte)
++		return 0;
++
++	if (mapping->nrpages == 0)
++		return 0;
++
++	pagevec_init(&pvec, 0);
++	ret = pagevec_lookup(&pvec, mapping, index, 1);
++	if (!ret)
++		return 0;
++	ret = (pvec.pages[0]->index <= end);
++	pagevec_release(&pvec);
++	return ret;
++}
++EXPORT_SYMBOL(filemap_range_has_page);
++
+ static int __filemap_fdatawait_range(struct address_space *mapping,
+ 				     loff_t start_byte, loff_t end_byte)
  {
--	if (unlikely(flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC)))
-+	if (unlikely(flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT)))
- 		return -EOPNOTSUPP;
- 
-+	if (flags & RWF_NOWAIT) {
-+		if (!(ki->ki_filp->f_mode & FMODE_AIO_NOWAIT))
-+			return -EOPNOTSUPP;
-+		ki->ki_flags |= IOCB_NOWAIT;
-+	}
- 	if (flags & RWF_HIPRI)
- 		ki->ki_flags |= IOCB_HIPRI;
- 	if (flags & RWF_DSYNC)
-diff -puN include/uapi/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait include/uapi/linux/fs.h
---- a/include/uapi/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait
-+++ a/include/uapi/linux/fs.h
-@@ -360,5 +360,6 @@ struct fscrypt_key {
- #define RWF_HIPRI			0x00000001 /* high priority request, poll if possible */
- #define RWF_DSYNC			0x00000002 /* per-IO O_DSYNC */
- #define RWF_SYNC			0x00000004 /* per-IO O_SYNC */
-+#define RWF_NOWAIT			0x00000008 /* per-IO, return -EAGAIN if operation would block */
- 
- #endif /* _UAPI_LINUX_FS_H */
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.com are
