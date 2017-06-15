@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 15 Jun 2017 14:37:04 -0700
-Message-ID: <5942fe00.zHktw4LkfpRCbzTb%akpm@linux-foundation.org>
+Subject: + userfaultfd-shmem-handle-coredumping-in-handle_userfault.patch
+ added to -mm tree
+Date: Thu, 15 Jun 2017 14:55:03 -0700
+Message-ID: <59430237.vL9JjrKEzXMHXvlE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43926 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751016AbdFOVhF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 17:37:05 -0400
+        with ESMTP id S1752017AbdFOVzE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 17:55:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, thomas@m3y3r.de, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dgilbert@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes
+     Subject: userfaultfd: shmem: handle coredumping in handle_userfault()
 has been added to the -mm tree.  Its filename is
-     lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes.patch
+     userfaultfd-shmem-handle-coredumping-in-handle_userfault.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-shmem-handle-coredumping-in-handle_userfault.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-shmem-handle-coredumping-in-handle_userfault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,104 +39,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: shmem: handle coredumping in handle_userfault()
 
-WARNING: line over 80 characters
-#42: FILE: kernel/extable.c:58:
-+	e = search_extable(__start___ex_table, __stop___ex_table - __start___ex_table, addr);
+Anon and hugetlbfs handle FOLL_DUMP set by get_dump_page() internally to
+__get_user_pages().
 
-ERROR: "foo * bar" should be "foo *bar"
-#94: FILE: lib/extable.c:100:
-+	const struct exception_table_entry * _elt = elt;
+shmem as opposed has no special FOLL_DUMP handling there so
+handle_mm_fault() is invoked without mmap_sem and ends up calling
+handle_userfault() that isn't expecting to be invoked without mmap_sem
+held.
 
-ERROR: "(foo*)" should be "(foo *)"
-#95: FILE: lib/extable.c:101:
-+	unsigned long k = *(unsigned long*) key;
+This makes handle_userfault() fail immediately if invoked through
+shmem_vm_ops->fault during coredumping and solves the problem.
 
-WARNING: line over 80 characters
-#132: FILE: lib/extable.c:123:
-+	return bsearch(&value, first, num, sizeof(struct exception_table_entry), cmp_ex_search);
+It's zero cost as we already had a check for current->flags to prevent
+futex to trigger userfaults during exit (PF_EXITING).
 
-total: 2 errors, 2 warnings, 100 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/lib-extablec-use-bsearch-library-function-in-search_extable.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Thomas Meyer <thomas@m3y3r.de>
+Link: http://lkml.kernel.org/r/20170615214838.27429-1-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/extable.c |    3 ++-
- lib/extable.c    |    7 ++++---
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ fs/userfaultfd.c |   29 +++++++++++++++++++++--------
+ 1 file changed, 21 insertions(+), 8 deletions(-)
 
-diff -puN kernel/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes kernel/extable.c
---- a/kernel/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes
-+++ a/kernel/extable.c
-@@ -55,7 +55,8 @@ const struct exception_table_entry *sear
- {
- 	const struct exception_table_entry *e;
+diff -puN fs/userfaultfd.c~userfaultfd-shmem-handle-coredumping-in-handle_userfault fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-shmem-handle-coredumping-in-handle_userfault
++++ a/fs/userfaultfd.c
+@@ -342,9 +342,28 @@ int handle_userfault(struct vm_fault *vm
+ 	bool must_wait, return_to_userland;
+ 	long blocking_state;
  
--	e = search_extable(__start___ex_table, __stop___ex_table - __start___ex_table, addr);
-+	e = search_extable(__start___ex_table,
-+			   __stop___ex_table - __start___ex_table, addr);
- 	if (!e)
- 		e = search_module_extables(addr);
- 	return e;
-diff -puN lib/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes lib/extable.c
---- a/lib/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes
-+++ a/lib/extable.c
-@@ -97,8 +97,8 @@ void trim_init_extable(struct module *m)
+-	BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
+-
+ 	ret = VM_FAULT_SIGBUS;
++
++	/*
++	 * We don't do userfault handling for the final child pid update.
++	 *
++	 * We also don't do userfault handling during
++	 * coredumping. hugetlbfs has the special
++	 * follow_hugetlb_page() to skip missing pages in the
++	 * FOLL_DUMP case, anon memory also checks for FOLL_DUMP with
++	 * the no_page_table() helper in follow_page_mask(), but the
++	 * shmem_vm_ops->fault method is invoked even during
++	 * coredumping without mmap_sem and it ends up here.
++	 */
++	if (current->flags & (PF_EXITING|PF_DUMPCORE))
++		goto out;
++
++	/*
++	 * Coredumping runs without mmap_sem so we can only check that
++	 * the mmap_sem is held, if PF_DUMPCORE was not set.
++	 */
++	WARN_ON_ONCE(!rwsem_is_locked(&mm->mmap_sem));
++
+ 	ctx = vmf->vma->vm_userfaultfd_ctx.ctx;
+ 	if (!ctx)
+ 		goto out;
+@@ -363,12 +382,6 @@ int handle_userfault(struct vm_fault *vm
+ 		goto out;
  
- static int cmp_ex_search(const void *key, const void *elt)
- {
--	const struct exception_table_entry * _elt = elt;
--	unsigned long k = *(unsigned long*) key;
-+	const struct exception_table_entry *_elt = elt;
-+	unsigned long k = *(unsigned long *)key;
- 
- 	/* avoid overflow */
- 	if (k > ex_to_insn(_elt))
-@@ -120,6 +120,7 @@ search_extable(const struct exception_ta
- 	       const size_t num,
- 	       unsigned long value)
- {
--	return bsearch(&value, first, num, sizeof(struct exception_table_entry), cmp_ex_search);
-+	return bsearch(&value, first, num,
-+		       sizeof(struct exception_table_entry), cmp_ex_search);
- }
- #endif
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
-lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes.patch
-signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+ 	/*
+-	 * We don't do userfault handling for the final child pid update.
+-	 */
+-	if (current->flags & PF_EXITING)
+-		goto out;
