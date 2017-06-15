@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-introduce-filemap_range_has_page.patch added to -mm tree
-Date: Thu, 15 Jun 2017 11:54:39 -0700
-Message-ID: <5942d7ef.eA+zV4Nlef2wPzBI%akpm@linux-foundation.org>
+Subject: + fs-use-rwf_-flags-for-aio-operations.patch added to -mm tree
+Date: Thu, 15 Jun 2017 11:54:41 -0700
+Message-ID: <5942d7f1.lkmxY/tegsroYtN7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752541AbdFOSyp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 14:54:45 -0400
+        with ESMTP id S1752414AbdFOSym (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 14:54:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rgoldwyn@suse.com, adilger.kernel@dilger.ca, axboe@kernel.dk, clm@fb.com, darrick.wong@oracle.com, dsterba@suse.com, hch@lst.de, jack@suse.cz, jbacik@fb.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: introduce filemap_range_has_page()
+     Subject: fs: use RWF_* flags for AIO operations
 has been added to the -mm tree.  Its filename is
-     fs-introduce-filemap_range_has_page.patch
+     fs-use-rwf_-flags-for-aio-operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-introduce-filemap_range_has_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-use-rwf_-flags-for-aio-operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-introduce-filemap_range_has_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-use-rwf_-flags-for-aio-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Subject: fs: introduce filemap_range_has_page()
+Subject: fs: use RWF_* flags for AIO operations
 
-filemap_range_has_page() return true if the file's mapping has a page
-within the range mentioned.  This function will be used to check if a
-write() call will cause a writeback of previous writes.
+aio_rw_flags is introduced in struct iocb (using aio_reserved1) which will
+carry the RWF_* flags.  We cannot use aio_flags because they are not
+checked for validity which may break existing applications.
 
-Link: http://lkml.kernel.org/r/20170615160002.17233-3-rgoldwyn@suse.de
+Note, the only place RWF_HIPRI comes in effect is dio_await_one().  All
+the rest of the locations, aio code return -EIOCBQUEUED before the checks
+for RWF_HIPRI.
+
+Link: http://lkml.kernel.org/r/20170615160002.17233-4-rgoldwyn@suse.de
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -60,65 +64,47 @@ Cc: Josef Bacik <jbacik@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    2 ++
- mm/filemap.c       |   33 +++++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+)
+ fs/aio.c                     |    8 +++++++-
+ include/uapi/linux/aio_abi.h |    2 +-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/fs.h~fs-introduce-filemap_range_has_page include/linux/fs.h
---- a/include/linux/fs.h~fs-introduce-filemap_range_has_page
-+++ a/include/linux/fs.h
-@@ -2517,6 +2517,8 @@ extern int filemap_fdatawait(struct addr
- extern void filemap_fdatawait_keep_errors(struct address_space *);
- extern int filemap_fdatawait_range(struct address_space *, loff_t lstart,
- 				   loff_t lend);
-+extern int filemap_range_has_page(struct address_space *, loff_t lstart,
-+				  loff_t lend);
- extern int filemap_write_and_wait(struct address_space *mapping);
- extern int filemap_write_and_wait_range(struct address_space *mapping,
- 				        loff_t lstart, loff_t lend);
-diff -puN mm/filemap.c~fs-introduce-filemap_range_has_page mm/filemap.c
---- a/mm/filemap.c~fs-introduce-filemap_range_has_page
-+++ a/mm/filemap.c
-@@ -376,6 +376,39 @@ int filemap_flush(struct address_space *
- }
- EXPORT_SYMBOL(filemap_flush);
+diff -puN fs/aio.c~fs-use-rwf_-flags-for-aio-operations fs/aio.c
+--- a/fs/aio.c~fs-use-rwf_-flags-for-aio-operations
++++ a/fs/aio.c
+@@ -1541,7 +1541,7 @@ static int io_submit_one(struct kioctx *
+ 	ssize_t ret;
  
-+/**
-+ * filemap_range_has_page - check if a page exists in range.
-+ * @mapping:           address space structure to wait for
-+ * @start_byte:        offset in bytes where the range starts
-+ * @end_byte:          offset in bytes where the range ends (inclusive)
-+ *
-+ * Find at least one page in the range supplied, usually used to check if
-+ * direct writing in this range will trigger a writeback.
-+ */
-+int filemap_range_has_page(struct address_space *mapping,
-+			   loff_t start_byte, loff_t end_byte)
-+{
-+	pgoff_t index = start_byte >> PAGE_SHIFT;
-+	pgoff_t end = end_byte >> PAGE_SHIFT;
-+	struct pagevec pvec;
-+	int ret;
+ 	/* enforce forwards compatibility on users */
+-	if (unlikely(iocb->aio_reserved1 || iocb->aio_reserved2)) {
++	if (unlikely(iocb->aio_reserved2)) {
+ 		pr_debug("EINVAL: reserve field set\n");
+ 		return -EINVAL;
+ 	}
+@@ -1586,6 +1586,12 @@ static int io_submit_one(struct kioctx *
+ 		req->common.ki_flags |= IOCB_EVENTFD;
+ 	}
+ 
++	ret = kiocb_set_rw_flags(&req->common, iocb->aio_rw_flags);
++	if (unlikely(ret)) {
++		pr_debug("EINVAL: aio_rw_flags\n");
++		goto out_put_req;
++	}
 +
-+	if (end_byte < start_byte)
-+		return 0;
-+
-+	if (mapping->nrpages == 0)
-+		return 0;
-+
-+	pagevec_init(&pvec, 0);
-+	ret = pagevec_lookup(&pvec, mapping, index, 1);
-+	if (!ret)
-+		return 0;
-+	ret = (pvec.pages[0]->index <= end);
-+	pagevec_release(&pvec);
-+	return ret;
-+}
-+EXPORT_SYMBOL(filemap_range_has_page);
-+
- static int __filemap_fdatawait_range(struct address_space *mapping,
- 				     loff_t start_byte, loff_t end_byte)
- {
+ 	ret = put_user(KIOCB_KEY, &user_iocb->aio_key);
+ 	if (unlikely(ret)) {
+ 		pr_debug("EFAULT: aio_key\n");
+diff -puN include/uapi/linux/aio_abi.h~fs-use-rwf_-flags-for-aio-operations include/uapi/linux/aio_abi.h
+--- a/include/uapi/linux/aio_abi.h~fs-use-rwf_-flags-for-aio-operations
++++ a/include/uapi/linux/aio_abi.h
+@@ -79,7 +79,7 @@ struct io_event {
+ struct iocb {
+ 	/* these are internal to the kernel/libc. */
+ 	__u64	aio_data;	/* data to be returned in event's data */
+-	__u32	PADDED(aio_key, aio_reserved1);
++	__u32	PADDED(aio_key, aio_rw_flags);
+ 				/* the kernel sets aio_key to the req # */
+ 
+ 	/* common fields */
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.com are
