@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-remove-false-warning-for-commit-reference.patch
- added to -mm tree
-Date: Thu, 15 Jun 2017 15:55:35 -0700
-Message-ID: <59431067.XKQa5Drhg0pcdrqI%akpm@linux-foundation.org>
+Subject: + bsearch-micro-optimize-pivot-position-calculation.patch added
+ to -mm tree
+Date: Thu, 15 Jun 2017 16:03:55 -0700
+Message-ID: <5943125b.hZCFVXFld9kWxURr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46670 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46976 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751883AbdFOWzg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 18:55:36 -0400
+        with ESMTP id S1751644AbdFOXD4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 19:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xypron.glpk@gmx.de, joe@perches.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: remove false warning for commit reference
+     Subject: lib/bsearch.c: micro-optimize pivot position calculation
 has been added to the -mm tree.  Its filename is
-     checkpatch-remove-false-warning-for-commit-reference.patch
+     bsearch-micro-optimize-pivot-position-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-remove-false-warning-for-commit-reference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bsearch-micro-optimize-pivot-position-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-remove-false-warning-for-commit-reference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bsearch-micro-optimize-pivot-position-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +39,157 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: checkpatch: remove false warning for commit reference
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: lib/bsearch.c: micro-optimize pivot position calculation
 
-Checkpatch warns of an incorrect commit reference style for any
-hexadecimal number of 12 digits and more.
+There is a slightly faster way (in terms of the number of instructions
+being used) to calculate the position of a middle element, preserving
+integer overflow safeness.
 
-Numbers of 12 digits are not necessarily commit ids.
+./scripts/bloat-o-meter lib/bsearch.o.old lib/bsearch.o.new
+add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-24 (-24)
+function                                     old     new   delta
+bsearch                                      122      98     -24
 
-For an example provoking the problem see
-https://patchwork.kernel.org/patch/9170897/
+TEST
 
-Checkpatch should only warn if the number refers to an existing commit.
+INT array of size 100001, elements [0..100000]. gcc 7.1, Os, x86_64.
 
-Link: http://lkml.kernel.org/r/20170607184008.5869-1-xypron.glpk@gmx.de
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Acked-by: Joe Perches <joe@perches.com>
+a) bsearch() of existing key "100001 - 2":
+
+BASE
+====
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        619.445196      task-clock:u (msec)       #    0.999 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               133      page-faults:u             #    0.215 K/sec
+     1,949,517,279      cycles:u                  #    3.147 GHz                      (83.06%)
+       181,017,938      stalled-cycles-frontend:u #    9.29% frontend cycles idle     (83.05%)
+        82,959,265      stalled-cycles-backend:u  #    4.26% backend cycles idle      (67.02%)
+     4,355,706,383      instructions:u            #    2.23  insn per cycle
+                                                  #    0.04  stalled cycles per insn  (83.54%)
+     1,051,539,242      branches:u                # 1697.550 M/sec                    (83.54%)
+        15,263,381      branch-misses:u           #    1.45% of all branches          (83.43%)
+
+       0.620082548 seconds time elapsed
+
+PATCHED
+=======
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        475.097316      task-clock:u (msec)       #    0.999 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               135      page-faults:u             #    0.284 K/sec
+     1,487,467,717      cycles:u                  #    3.131 GHz                      (82.95%)
+       186,537,162      stalled-cycles-frontend:u #   12.54% frontend cycles idle     (82.93%)
+        28,797,869      stalled-cycles-backend:u  #    1.94% backend cycles idle      (67.10%)
+     3,807,564,203      instructions:u            #    2.56  insn per cycle
+                                                  #    0.05  stalled cycles per insn  (83.57%)
+     1,049,344,291      branches:u                # 2208.693 M/sec                    (83.60%)
+             5,485      branch-misses:u           #    0.00% of all branches          (83.58%)
+
+       0.475760235 seconds time elapsed
+
+b) bsearch() of un-existing key "100001 + 2":
+
+BASE
+====
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        499.244480      task-clock:u (msec)       #    0.999 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               132      page-faults:u             #    0.264 K/sec
+     1,571,194,855      cycles:u                  #    3.147 GHz                      (83.18%)
+        13,450,980      stalled-cycles-frontend:u #    0.86% frontend cycles idle     (83.18%)
+        21,256,072      stalled-cycles-backend:u  #    1.35% backend cycles idle      (66.78%)
+     4,171,197,909      instructions:u            #    2.65  insn per cycle
+                                                  #    0.01  stalled cycles per insn  (83.68%)
+     1,009,175,281      branches:u                # 2021.405 M/sec                    (83.79%)
+             3,122      branch-misses:u           #    0.00% of all branches          (83.37%)
+
+       0.499871144 seconds time elapsed
+
+PATCHED
+=======
+
+$ perf stat ./a.out
+
+ Performance counter stats for './a.out':
+
+        399.023499      task-clock:u (msec)       #    0.998 CPUs utilized
+                 0      context-switches:u        #    0.000 K/sec
+                 0      cpu-migrations:u          #    0.000 K/sec
+               134      page-faults:u             #    0.336 K/sec
+     1,245,793,991      cycles:u                  #    3.122 GHz                      (83.39%)
+        11,529,273      stalled-cycles-frontend:u #    0.93% frontend cycles idle     (83.46%)
+        12,116,311      stalled-cycles-backend:u  #    0.97% backend cycles idle      (66.92%)
+     3,679,710,005      instructions:u            #    2.95  insn per cycle
+                                                  #    0.00  stalled cycles per insn  (83.47%)
+     1,009,792,625      branches:u                # 2530.660 M/sec                    (83.46%)
+             2,590      branch-misses:u           #    0.00% of all branches          (83.12%)
+
+       0.399733539 seconds time elapsed
+
+Link: http://lkml.kernel.org/r/20170607150457.5905-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/bsearch.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference
-+++ a/scripts/checkpatch.pl
-@@ -866,6 +866,7 @@ sub git_commit_info {
- #		    echo "commit $(cut -c 1-12,41-)"
- #		done
- 	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./) {
-+		$id = undef;
- 	} else {
- 		$id = substr($lines[0], 0, 12);
- 		$desc = substr($lines[0], 41);
-@@ -2605,7 +2606,8 @@ sub process {
- 			($id, $description) = git_commit_info($orig_commit,
- 							      $id, $orig_desc);
+diff -puN lib/bsearch.c~bsearch-micro-optimize-pivot-position-calculation lib/bsearch.c
+--- a/lib/bsearch.c~bsearch-micro-optimize-pivot-position-calculation
++++ a/lib/bsearch.c
+@@ -33,19 +33,21 @@
+ void *bsearch(const void *key, const void *base, size_t num, size_t size,
+ 	      int (*cmp)(const void *key, const void *elt))
+ {
+-	size_t start = 0, end = num;
++	const char *pivot;
+ 	int result;
  
--			if ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens) {
-+			if (defined($id) &&
-+			   ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens)) {
- 				ERROR("GIT_COMMIT_ID",
- 				      "Please use git commit description style 'commit <12+ chars of sha1> (\"<title line>\")' - ie: '${init_char}ommit $id (\"$description\")'\n" . $herecurr);
- 			}
+-	while (start < end) {
+-		size_t mid = start + (end - start) / 2;
++	while (num > 0) {
++		pivot = base + (num >> 1) * size;
++		result = cmp(key, pivot);
+ 
+-		result = cmp(key, base + mid * size);
+-		if (result < 0)
+-			end = mid;
+-		else if (result > 0)
+-			start = mid + 1;
+-		else
+-			return (void *)base + mid * size;
++		if (result == 0)
++			return (void *)pivot;
++
++		if (result > 0) {
++			base = pivot + size;
++			num--;
++		}
++		num >>= 1;
+ 	}
+ 
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from xypron.glpk@gmx.de are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-checkpatch-remove-false-warning-for-commit-reference.patch
+bsearch-micro-optimize-pivot-position-calculation.patch
 
