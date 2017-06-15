@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- sendfile-do-not-update-file-offset-of-non-lseekable-objects.patch added to
- -mm tree
-Date: Thu, 15 Jun 2017 13:55:11 -0700
-Message-ID: <5942f42f.70Hp+XFLGmiKGMJ4%akpm@linux-foundation.org>
+Subject: + zram-use-__sysfs_match_string-helper.patch added to -mm tree
+Date: Thu, 15 Jun 2017 13:57:02 -0700
+Message-ID: <5942f49e.VsIcZAPJS+is2L6B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36990 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751590AbdFOUzM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 16:55:12 -0400
+        with ESMTP id S1751888AbdFOU5I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 16:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sendfile: do not update file offset of non-lseek()able objects.
+     Subject: zram: use __sysfs_match_string() helper
 has been added to the -mm tree.  Its filename is
-     sendfile-do-not-update-file-offset-of-non-lseekable-objects.patch
+     zram-use-__sysfs_match_string-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sendfile-do-not-update-file-offset-of-non-lseekable-objects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-__sysfs_match_string-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sendfile-do-not-update-file-offset-of-non-lseekable-objects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-__sysfs_match_string-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +38,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: sendfile: do not update file offset of non-lseek()able objects.
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: zram: use __sysfs_match_string() helper
 
-I tried to sendfile() a file which is larger than 4GB to a pipe (which is
-the stdout of Apache's CGI program), and noticed that sendfile() fails
-with EFBIG after 2GB is copied to stdout pipe.  This is because sendfile()
-is updating file offset of the file descriptor of the pipe.
+Use __sysfs_match_string() helper instead of open coded variant.
 
-sendfile() should not update file offset if the file descriptor refers to
-an non-lseek()able object.
-
-Link: http://lkml.kernel.org/r/1497262469-7536-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20170609120835.22156-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/zram/zcomp.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/read_write.c~sendfile-do-not-update-file-offset-of-non-lseekable-objects fs/read_write.c
---- a/fs/read_write.c~sendfile-do-not-update-file-offset-of-non-lseekable-objects
-+++ a/fs/read_write.c
-@@ -1459,7 +1459,8 @@ static ssize_t do_sendfile(int out_fd, i
- 		add_wchar(current, retval);
- 		fsnotify_access(in.file);
- 		fsnotify_modify(out.file);
--		out.file->f_pos = out_pos;
-+		if (out.file->f_op->llseek != no_llseek)
-+			out.file->f_pos = out_pos;
- 		if (ppos)
- 			*ppos = pos;
- 		else
+diff -puN drivers/block/zram/zcomp.c~zram-use-__sysfs_match_string-helper drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-use-__sysfs_match_string-helper
++++ a/drivers/block/zram/zcomp.c
+@@ -68,13 +68,11 @@ static struct zcomp_strm *zcomp_strm_all
+ 
+ bool zcomp_available_algorithm(const char *comp)
+ {
+-	int i = 0;
++	int i;
+ 
+-	while (backends[i]) {
+-		if (sysfs_streq(comp, backends[i]))
+-			return true;
+-		i++;
+-	}
++	i = __sysfs_match_string(backends, -1, comp);
++	if (i >= 0)
++		return true;
+ 
+ 	/*
+ 	 * Crypto does not ignore a trailing new line symbol,
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-sendfile-do-not-update-file-offset-of-non-lseekable-objects.patch
+zram-use-__sysfs_match_string-helper.patch
 
