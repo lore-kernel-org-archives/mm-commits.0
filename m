@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-improve-tests-for-multiple-line-function-definitions.patch added to -mm tree
-Date: Thu, 15 Jun 2017 16:06:46 -0700
-Message-ID: <59431306.AI6v66R3oybHvQqa%akpm@linux-foundation.org>
+ checkpatch-silence-perl-5260-unescaped-left-brace-warnings.patch added to
+ -mm tree
+Date: Thu, 15 Jun 2017 16:08:07 -0700
+Message-ID: <59431357.e9ffnhJI47BVqnMU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47028 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751677AbdFOXGr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 19:06:47 -0400
+        with ESMTP id S1751641AbdFOXII (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 19:08:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, david.kershner@unisys.com, mm-commits@vger.kernel.org
+To: cyrilbur@gmail.com, joe@perches.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve tests for multiple line function definitions
+     Subject: checkpatch: silence perl 5.26.0 unescaped left brace warnings
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-tests-for-multiple-line-function-definitions.patch
+     checkpatch-silence-perl-5260-unescaped-left-brace-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-tests-for-multiple-line-function-definitions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-silence-perl-5260-unescaped-left-brace-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-tests-for-multiple-line-function-definitions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-silence-perl-5260-unescaped-left-brace-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +40,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve tests for multiple line function definitions
+From: Cyril Bur <cyrilbur@gmail.com>
+Subject: checkpatch: silence perl 5.26.0 unescaped left brace warnings
 
-Add a block that identifies multiple line function definitions.
+As of perl 5, version 26, subversion 0 (v5.26.0) some new warnings have
+occurred when running checkpatch.
 
-Save the function name into $context_function to improve the embedded
-function name test.
+Unescaped left brace in regex is deprecated here (and will be fatal in
+Perl 5.30), passed through in regex; marked by <-- HERE in m/^(.\s*){
+<-- HERE \s*/ at scripts/checkpatch.pl line 3544.
 
-Look for misplaced open brace on the function definition.
-Emit an OPEN_BRACE error when the function definition is similar to
+Unescaped left brace in regex is deprecated here (and will be fatal in
+Perl 5.30), passed through in regex; marked by <-- HERE in m/^(.\s*){
+<-- HERE \s*/ at scripts/checkpatch.pl line 3885.
 
-     void foo(int arg1,
-              int arg2) {
+Unescaped left brace in regex is deprecated here (and will be fatal in
+Perl 5.30), passed through in regex; marked by <-- HERE in
+m/^(\+.*(?:do|\))){ <-- HERE / at scripts/checkpatch.pl line 4374.
 
-Miscellanea:
+It seems perfectly reasonable to do as the warning suggests and simply
+escape the left brace in these three locations.
 
-o Remove the $realfile test in function declaration w/o named arguments test
-o Comment the function declaration w/o named arguments test
-
-Link: http://lkml.kernel.org/r/de620ed6ebab75fdfa323741ada2134a0f545892.1496835238.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: David Kershner <david.kershner@unisys.com>
+Link: http://lkml.kernel.org/r/20170607060135.17384-1-cyrilbur@gmail.com
+Signed-off-by: Cyril Bur <cyrilbur@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-tests-for-multiple-line-function-definitions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-tests-for-multiple-line-function-definitions
+diff -puN scripts/checkpatch.pl~checkpatch-silence-perl-5260-unescaped-left-brace-warnings scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-silence-perl-5260-unescaped-left-brace-warnings
 +++ a/scripts/checkpatch.pl
-@@ -5915,7 +5915,8 @@ sub process {
- 			     "externs should be avoided in .c files\n" .  $herecurr);
+@@ -3554,7 +3554,7 @@ sub process {
+ 				$fixedline =~ s/\s*=\s*$/ = {/;
+ 				fix_insert_line($fixlinenr, $fixedline);
+ 				$fixedline = $line;
+-				$fixedline =~ s/^(.\s*){\s*/$1/;
++				$fixedline =~ s/^(.\s*)\{\s*/$1/;
+ 				fix_insert_line($fixlinenr, $fixedline);
+ 			}
  		}
- 
--		if ($realfile =~ /\.[ch]$/ && defined $stat &&
-+# check for function declarations that have arguments without identifier names
-+		if (defined $stat &&
- 		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*$Ident\s*\(\s*([^{]+)\s*\)\s*;/s &&
- 		    $1 ne "void") {
- 			my $args = trim($1);
-@@ -5928,6 +5929,29 @@ sub process {
+@@ -3895,7 +3895,7 @@ sub process {
+ 				my $fixedline = rtrim($prevrawline) . " {";
+ 				fix_insert_line($fixlinenr, $fixedline);
+ 				$fixedline = $rawline;
+-				$fixedline =~ s/^(.\s*){\s*/$1\t/;
++				$fixedline =~ s/^(.\s*)\{\s*/$1\t/;
+ 				if ($fixedline !~ /^\+\s*$/) {
+ 					fix_insert_line($fixlinenr, $fixedline);
+ 				}
+@@ -4384,7 +4384,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space required before the open brace '{'\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\))){/$1 {/;
++				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\)))\{/$1 {/;
  			}
  		}
  
-+# check for function definitions
-+		if ($^V && $^V ge 5.10.0 &&
-+		    defined $stat &&
-+		    $stat =~ /^.\s*(?:$Storage\s+)?$Type\s*($Ident)\s*$balanced_parens\s*{/s) {
-+			$context_function = $1;
-+
-+# check for multiline function definition with misplaced open brace
-+			my $ok = 0;
-+			my $cnt = statement_rawlines($stat);
-+			my $herectx = $here . "\n";
-+			for (my $n = 0; $n < $cnt; $n++) {
-+				my $rl = raw_line($linenr, $n);
-+				$herectx .=  $rl . "\n";
-+				$ok = 1 if ($rl =~ /^[ \+]\{/);
-+				$ok = 1 if ($rl =~ /\{/ && $n == 0);
-+				last if $rl =~ /^[ \+].*\{/;
-+			}
-+			if (!$ok) {
-+				ERROR("OPEN_BRACE",
-+				      "open brace '{' following function definitions go on the next line\n" . $herectx);
-+			}
-+		}
-+
- # checks for new __setup's
- 		if ($rawline =~ /\b__setup\("([^"]*)"/) {
- 			my $name = $1;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from cyrilbur@gmail.com are
 
-checkpatch-improve-the-unnecessary-oom-message-test.patch
-checkpatch-warn-when-a-maintainers-entry-isnt-t.patch
-checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block.patch
-checkpatch-improve-tests-for-multiple-line-function-definitions.patch
+checkpatch-silence-perl-5260-unescaped-left-brace-warnings.patch
 
