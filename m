@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings.patch added
- to -mm tree
-Date: Thu, 15 Jun 2017 14:26:01 -0700
-Message-ID: <5942fb69.zFI2I6QFeZGhs2TW%akpm@linux-foundation.org>
+ lib-extablec-use-bsearch-library-function-in-search_extable.patch added to
+ -mm tree
+Date: Thu, 15 Jun 2017 14:35:34 -0700
+Message-ID: <5942fda6.2QWHUhYGO28i6k9v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750814AbdFOV0C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 17:26:02 -0400
+        with ESMTP id S1751590AbdFOVff (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 17:35:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, dave.hansen@intel.com, labbott@redhat.com, mark.rutland@arm.com, mhocko@suse.com, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: thomas@m3y3r.de, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: huge-vmap: fail gracefully on unexpected huge vmap mappings
+     Subject: lib/extable.c: use bsearch() library function in search_extable()
 has been added to the -mm tree.  Its filename is
-     mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings.patch
+     lib-extablec-use-bsearch-library-function-in-search_extable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-extablec-use-bsearch-library-function-in-search_extable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-extablec-use-bsearch-library-function-in-search_extable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,65 +40,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: mm/vmalloc.c: huge-vmap: fail gracefully on unexpected huge vmap mappings
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: lib/extable.c: use bsearch() library function in search_extable()
 
-Existing code that uses vmalloc_to_page() may assume that any address for
-which is_vmalloc_addr() returns true may be passed into vmalloc_to_page()
-to retrieve the associated struct page.
-
-This is not un unreasonable assumption to make, but on architectures that
-have CONFIG_HAVE_ARCH_HUGE_VMAP=y, it no longer holds, and we need to
-ensure that vmalloc_to_page() does not go off into the weeds trying to
-dereference huge PUDs or PMDs as table entries.
-
-Given that vmalloc() and vmap() themselves never create huge mappings or
-deal with compound pages at all, there is no correct answer in this case,
-so return NULL instead, and issue a warning.
-
-Link: http://lkml.kernel.org/r/20170609082226.26152-1-ard.biesheuvel@linaro.org
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Reviewed-by: Laura Abbott <labbott@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: zhong jiang <zhongjiang@huawei.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ include/linux/extable.h |    3 ++-
+ kernel/extable.c        |    2 +-
+ kernel/module.c         |    2 +-
+ lib/extable.c           |   38 +++++++++++++++++++-------------------
+ 4 files changed, 23 insertions(+), 22 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings mm/vmalloc.c
---- a/mm/vmalloc.c~mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings
-+++ a/mm/vmalloc.c
-@@ -287,10 +287,21 @@ struct page *vmalloc_to_page(const void
- 	if (p4d_none(*p4d))
- 		return NULL;
- 	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud))
-+
-+	/*
-+	 * Don't dereference bad PUD or PMD (below) entries. This will also
-+	 * identify huge mappings, which we may encounter on architectures
-+	 * that define CONFIG_HAVE_ARCH_HUGE_VMAP=y. Such regions will be
-+	 * identified as vmalloc addresses by is_vmalloc_addr(), but are
-+	 * not [unambiguously] associated with a struct page, so there is
-+	 * no correct value to return for them.
-+	 */
-+	WARN_ON_ONCE(pud_bad(*pud));
-+	if (pud_none(*pud) || pud_bad(*pud))
- 		return NULL;
- 	pmd = pmd_offset(pud, addr);
--	if (pmd_none(*pmd))
-+	WARN_ON_ONCE(pmd_bad(*pmd));
-+	if (pmd_none(*pmd) || pmd_bad(*pmd))
- 		return NULL;
+diff -puN include/linux/extable.h~lib-extablec-use-bsearch-library-function-in-search_extable include/linux/extable.h
+--- a/include/linux/extable.h~lib-extablec-use-bsearch-library-function-in-search_extable
++++ a/include/linux/extable.h
+@@ -2,13 +2,14 @@
+ #define _LINUX_EXTABLE_H
  
- 	ptep = pte_offset_map(pmd, addr);
-_
-
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
-
-mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings.patch
-
+ #include <linux/stddef.h>	/* for NULL */
++#include <linux/types.h>
+ 
+ struct module;
+ struct exception_table_entry;
+ 
+ const struct exception_table_entry *
+ search_extable(const struct exception_table_entry *first,
+-	       const struct exception_table_entry *last,
++	       const size_t num,
+ 	       unsigned long value);
+ void sort_extable(struct exception_table_entry *start,
+ 		  struct exception_table_entry *finish);
+diff -puN kernel/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable kernel/extable.c
+--- a/kernel/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable
++++ a/kernel/extable.c
+@@ -55,7 +55,7 @@ const struct exception_table_entry *sear
+ {
+ 	const struct exception_table_entry *e;
+ 
+-	e = search_extable(__start___ex_table, __stop___ex_table-1, addr);
++	e = search_extable(__start___ex_table, __stop___ex_table - __start___ex_table, addr);
+ 	if (!e)
+ 		e = search_module_extables(addr);
+ 	return e;
+diff -puN kernel/module.c~lib-extablec-use-bsearch-library-function-in-search_extable kernel/module.c
+--- a/kernel/module.c~lib-extablec-use-bsearch-library-function-in-search_extable
++++ a/kernel/module.c
+@@ -4201,7 +4201,7 @@ const struct exception_table_entry *sear
+ 		goto out;
+ 
+ 	e = search_extable(mod->extable,
+-			   mod->extable + mod->num_exentries - 1,
++			   mod->num_exentries,
+ 			   addr);
+ out:
+ 	preempt_enable();
+diff -puN lib/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable lib/extable.c
+--- a/lib/extable.c~lib-extablec-use-bsearch-library-function-in-search_extable
++++ a/lib/extable.c
+@@ -9,6 +9,7 @@
+  * 2 of the License, or (at your option) any later version.
+  */
+ 
++#include <linux/bsearch.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/sort.h>
+@@ -51,7 +52,7 @@ static void swap_ex(void *a, void *b, in
+  * This is used both for the kernel exception table and for
+  * the exception tables of modules that get loaded.
+  */
+-static int cmp_ex(const void *a, const void *b)
++static int cmp_ex_sort(const void *a, const void *b)
+ {
+ 	const struct exception_table_entry *x = a, *y = b;
+ 
+@@ -67,7 +68,7 @@ void sort_extable(struct exception_table
+ 		  struct exception_table_entry *finish)
+ {
+ 	sort(start, finish - start, sizeof(struct exception_table_entry),
+-	     cmp_ex, swap_ex);
++	     cmp_ex_sort, swap_ex);
+ }
+ 
+ #ifdef CONFIG_MODULES
+@@ -93,6 +94,20 @@ void trim_init_extable(struct module *m)
+ #endif /* !ARCH_HAS_SORT_EXTABLE */
+ 
+ #ifndef ARCH_HAS_SEARCH_EXTABLE
++
++static int cmp_ex_search(const void *key, const void *elt)
++{
++	const struct exception_table_entry * _elt = elt;
++	unsigned long k = *(unsigned long*) key;
++
++	/* avoid overflow */
++	if (k > ex_to_insn(_elt))
++		return 1;
++	if (k < ex_to_insn(_elt))
++		return -1;
++	return 0;
++}
++
+ /*
+  * Search one exception table for an entry corresponding to the
+  * given instruction address, and return the address of the entry,
+@@ -102,24 +117,9 @@ void trim_init_extable(struct module *m)
+  */
+ const struct exception_table_entry *
+ search_extable(const struct exception_table_entry *first,
+-	       const struct exception_table_entry *last,
++	       const size_t num,
+ 	       unsigned long value)
+ {
+-	while (first <= last) {
+-		const struct exception_table_entry *mid;
