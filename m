@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-return-if-direct-write-will-trigger-writeback.patch added to -mm tree
-Date: Thu, 15 Jun 2017 11:54:46 -0700
-Message-ID: <5942d7f6.k5tul9CfMgsfUeH8%akpm@linux-foundation.org>
+Subject: + fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
+ added to -mm tree
+Date: Thu, 15 Jun 2017 11:54:36 -0700
+Message-ID: <5942d7ec.1qELsHCGKjTzu4pB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59276 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752583AbdFOSyr (ORCPT
+        with ESMTP id S1752535AbdFOSyr (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 14:54:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rgoldwyn@suse.com, adilger.kernel@dilger.ca, axboe@kernel.dk, clm@fb.com, darrick.wong@oracle.com, dsterba@suse.com, hch@lst.de, jack@suse.cz, jbacik@fb.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rgoldwyn@suse.com, adilger.kernel@dilger.ca, clm@fb.com, darrick.wong@oracle.com, dsterba@suse.com, hch@lst.de, jack@suse.cz, jbacik@fb.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: return if direct write will trigger writeback
+     Subject: fs: separate out kiocb flags setup based on RWF_* flags
 has been added to the -mm tree.  Its filename is
-     fs-return-if-direct-write-will-trigger-writeback.patch
+     fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-return-if-direct-write-will-trigger-writeback.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-return-if-direct-write-will-trigger-writeback.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +40,110 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Subject: fs: return if direct write will trigger writeback
+Subject: fs: separate out kiocb flags setup based on RWF_* flags
 
-Find out if the write will trigger a wait due to writeback. If yes,
-return -EAGAIN.
+Patch series "No wait AIO", v12.
 
-Return -EINVAL for buffered AIO: there are multiple causes of delay such
-as page locks, dirty throttling logic, page loading from disk etc.  which
-cannot be taken care of.
+This series adds nonblocking feature to asynchronous I/O writes. 
+io_submit() can be delayed for a number of reasons:
 
-Link: http://lkml.kernel.org/r/20170615160002.17233-6-rgoldwyn@suse.de
+ - Block allocation for files
+ - Data writebacks for direct I/O
+ - Sleeping because of waiting to acquire i_rwsem
+ - Congested block device
+
+The goal of the patch series is to return -EAGAIN/-EWOULDBLOCK if any of
+these conditions are met.  This way userspace can push most of the
+write()s to the kernel to the best of its ability to complete and if it
+returns -EAGAIN, can defer it to another thread.
+
+In order to enable this, IOCB_RW_FLAG_NOWAIT is introduced in
+uapi/linux/aio_abi.h.  If set for aio_rw_flags, it translates to
+IOCB_NOWAIT for struct iocb, REQ_NOWAIT for bio.bi_opf and IOMAP_NOWAIT
+for iomap.  aio_rw_flags is a new flag replacing aio_reserved1.  We could
+not use aio_flags because it is not currently checked for invalidity in
+the kernel.
+
+This feature is provided for direct I/O of asynchronous I/O only.  I have
+tested it against xfs, ext4, and btrfs while I intend to add more
+filesystems.  The nowait feature is for request based devices.  In the
+future, I intend to add support to stacked devices such as md.
+
+Applications will have to check supportability by sending a async direct
+write and any other error besides -EAGAIN would mean it is not supported.
+
+First two patches are prep patches into nowait I/O.
+
+
+This patch (of 10):
+
+Separate out kiocb flags setup based on RWF_* flags.
+
+Link: http://lkml.kernel.org/r/20170615160002.17233-2-rgoldwyn@suse.de
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Chris Mason <clm@fb.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Chris Mason <clm@fb.com>
 Cc: Josef Bacik <jbacik@fb.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ fs/read_write.c    |   12 +++---------
+ include/linux/fs.h |   14 ++++++++++++++
+ 2 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/filemap.c~fs-return-if-direct-write-will-trigger-writeback mm/filemap.c
---- a/mm/filemap.c~fs-return-if-direct-write-will-trigger-writeback
-+++ a/mm/filemap.c
-@@ -2675,6 +2675,9 @@ inline ssize_t generic_write_checks(stru
+diff -puN fs/read_write.c~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags fs/read_write.c
+--- a/fs/read_write.c~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags
++++ a/fs/read_write.c
+@@ -678,16 +678,10 @@ static ssize_t do_iter_readv_writev(stru
+ 	struct kiocb kiocb;
+ 	ssize_t ret;
  
- 	pos = iocb->ki_pos;
+-	if (flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC))
+-		return -EOPNOTSUPP;
+-
+ 	init_sync_kiocb(&kiocb, filp);
+-	if (flags & RWF_HIPRI)
+-		kiocb.ki_flags |= IOCB_HIPRI;
+-	if (flags & RWF_DSYNC)
+-		kiocb.ki_flags |= IOCB_DSYNC;
+-	if (flags & RWF_SYNC)
+-		kiocb.ki_flags |= (IOCB_DSYNC | IOCB_SYNC);
++	ret = kiocb_set_rw_flags(&kiocb, flags);
++	if (ret)
++		return ret;
+ 	kiocb.ki_pos = *ppos;
  
-+	if ((iocb->ki_flags & IOCB_NOWAIT) && !(iocb->ki_flags & IOCB_DIRECT))
-+		return -EINVAL;
+ 	if (type == READ)
+diff -puN include/linux/fs.h~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags include/linux/fs.h
+--- a/include/linux/fs.h~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags
++++ a/include/linux/fs.h
+@@ -3056,6 +3056,20 @@ static inline int iocb_flags(struct file
+ 	return res;
+ }
+ 
++static inline int kiocb_set_rw_flags(struct kiocb *ki, int flags)
++{
++	if (unlikely(flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC)))
++		return -EOPNOTSUPP;
 +
- 	if (limit != RLIM_INFINITY) {
- 		if (iocb->ki_pos >= limit) {
- 			send_sig(SIGXFSZ, current, 0);
-@@ -2743,9 +2746,17 @@ generic_file_direct_write(struct kiocb *
- 	write_len = iov_iter_count(from);
- 	end = (pos + write_len - 1) >> PAGE_SHIFT;
- 
--	written = filemap_write_and_wait_range(mapping, pos, pos + write_len - 1);
--	if (written)
--		goto out;
-+	if (iocb->ki_flags & IOCB_NOWAIT) {
-+		/* If there are pages to writeback, return */
-+		if (filemap_range_has_page(inode->i_mapping, pos,
-+					   pos + iov_iter_count(from)))
-+			return -EAGAIN;
-+	} else {
-+		written = filemap_write_and_wait_range(mapping, pos,
-+							pos + write_len - 1);
-+		if (written)
-+			goto out;
-+	}
- 
- 	/*
- 	 * After a write we want buffered reads to be sure to go to disk to get
++	if (flags & RWF_HIPRI)
++		ki->ki_flags |= IOCB_HIPRI;
++	if (flags & RWF_DSYNC)
++		ki->ki_flags |= IOCB_DSYNC;
++	if (flags & RWF_SYNC)
++		ki->ki_flags |= (IOCB_DSYNC | IOCB_SYNC);
++	return 0;
++}
++
+ static inline ino_t parent_ino(struct dentry *dentry)
+ {
+ 	ino_t res;
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.com are
