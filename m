@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-improve-readability-of-transparent_hugepage_enabled.patch
- added to -mm tree
-Date: Thu, 15 Jun 2017 13:10:26 -0700
-Message-ID: <5942e9b2.IBVAoG6L8iMAbknD%akpm@linux-foundation.org>
+Subject: + mm-always-enable-thp-for-dax-mappings.patch added to -mm tree
+Date: Thu, 15 Jun 2017 13:10:30 -0700
+Message-ID: <5942e9b6.ejuANDQdi1OU9DFL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34680 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751667AbdFOUK1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 16:10:27 -0400
+        with ESMTP id S1751667AbdFOUKb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 16:10:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: improve readability of transparent_hugepage_enabled()
+     Subject: mm: always enable thp for dax mappings
 has been added to the -mm tree.  Its filename is
-     mm-improve-readability-of-transparent_hugepage_enabled.patch
+     mm-always-enable-thp-for-dax-mappings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-improve-readability-of-transparent_hugepage_enabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-always-enable-thp-for-dax-mappings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-improve-readability-of-transparent_hugepage_enabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-always-enable-thp-for-dax-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,63 +39,107 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: improve readability of transparent_hugepage_enabled()
+Subject: mm: always enable thp for dax mappings
 
-Turn the macro into a static inline and rewrite the condition checks for
-better readability in preparation for adding another condition.
+The madvise policy for transparent huge pages is meant to avoid unwanted
+allocations of transparent huge pages.  It allows a policy of disabling
+the extra memory pressure and effort to arrange for a huge page when it is
+not needed.
 
-[ross.zwisler@linux.intel.com: fix logic to make conversion equivalent]
-Link: http://lkml.kernel.org/r/149739530612.20686.14760671150202647861.stgit@dwillia2-desk3.amr.corp.intel.com
+DAX by definition never incurs this overhead since it is statically
+allocated.  The policy choice makes even less sense for device-dax which
+tries to guarantee a given tlb-fault size.  Specifically, the following
+setting:
+
+	echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+...violates that guarantee and silently disables all device-dax instances
+with a 2M or 1G alignment.  So, let's avoid that non-obvious side effect
+by force enabling thp for dax mappings in all cases.
+
+It is worth noting that the reason this uses vma_is_dax(), and the
+resulting header include changes, is that previous attempts to add a
+VM_DAX flag were NAKd.
+
+Link: http://lkml.kernel.org/r/149739531127.20686.15813586620597484283.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ include/linux/dax.h     |    5 -----
+ include/linux/fs.h      |    6 ++++++
+ include/linux/huge_mm.h |    5 +++++
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-improve-readability-of-transparent_hugepage_enabled include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-improve-readability-of-transparent_hugepage_enabled
-+++ a/include/linux/huge_mm.h
-@@ -85,15 +85,23 @@ extern struct kobj_attribute shmem_enabl
+diff -puN include/linux/dax.h~mm-always-enable-thp-for-dax-mappings include/linux/dax.h
+--- a/include/linux/dax.h~mm-always-enable-thp-for-dax-mappings
++++ a/include/linux/dax.h
+@@ -142,11 +142,6 @@ static inline unsigned int dax_radix_ord
+ #endif
+ int dax_pfn_mkwrite(struct vm_fault *vmf);
  
- extern bool is_vma_temporary_stack(struct vm_area_struct *vma);
+-static inline bool vma_is_dax(struct vm_area_struct *vma)
+-{
+-	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
+-}
+-
+ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+diff -puN include/linux/fs.h~mm-always-enable-thp-for-dax-mappings include/linux/fs.h
+--- a/include/linux/fs.h~mm-always-enable-thp-for-dax-mappings
++++ a/include/linux/fs.h
+@@ -18,6 +18,7 @@
+ #include <linux/bug.h>
+ #include <linux/mutex.h>
+ #include <linux/rwsem.h>
++#include <linux/mm_types.h>
+ #include <linux/capability.h>
+ #include <linux/semaphore.h>
+ #include <linux/fiemap.h>
+@@ -3048,6 +3049,11 @@ static inline bool io_is_direct(struct f
+ 	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
+ }
  
--#define transparent_hugepage_enabled(__vma)				\
--	((transparent_hugepage_flags &					\
--	  (1<<TRANSPARENT_HUGEPAGE_FLAG) ||				\
--	  (transparent_hugepage_flags &					\
--	   (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
--	   ((__vma)->vm_flags & VM_HUGEPAGE))) &&			\
--	 !((__vma)->vm_flags & VM_NOHUGEPAGE) &&			\
--	 !test_bit(MMF_DISABLE_THP, &(__vma)->vm_mm->flags) &&		\
--	 !is_vma_temporary_stack(__vma))
-+extern unsigned long transparent_hugepage_flags;
-+
-+static inline bool transparent_hugepage_enabled(struct vm_area_struct *vma)
++static inline bool vma_is_dax(struct vm_area_struct *vma)
 +{
-+	if ((vma->vm_flags & VM_NOHUGEPAGE) || is_vma_temporary_stack(vma))
-+		return false;
-+
-+	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
-+		return true;
-+
-+	if (transparent_hugepage_flags &
-+				(1 << TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
-+		return !!(vma->vm_flags & VM_HUGEPAGE);
-+
-+	return false;
++	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
 +}
 +
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
- 	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
-@@ -105,8 +113,6 @@ extern bool is_vma_temporary_stack(struc
- #define transparent_hugepage_debug_cow() 0
- #endif /* CONFIG_DEBUG_VM */
+ static inline int iocb_flags(struct file *file)
+ {
+ 	int res = 0;
+diff -puN include/linux/huge_mm.h~mm-always-enable-thp-for-dax-mappings include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-always-enable-thp-for-dax-mappings
++++ a/include/linux/huge_mm.h
+@@ -1,6 +1,8 @@
+ #ifndef _LINUX_HUGE_MM_H
+ #define _LINUX_HUGE_MM_H
  
--extern unsigned long transparent_hugepage_flags;
++#include <linux/fs.h> /* only for vma_is_dax() */
++
+ extern int do_huge_pmd_anonymous_page(struct vm_fault *vmf);
+ extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+@@ -101,6 +103,9 @@ static inline bool transparent_hugepage_
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
+ 		return true;
+ 
++	if (vma_is_dax(vma))
++		return true;
++
+ 	if (transparent_hugepage_flags &
+ 				(1 << TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
+ 		return !!(vma->vm_flags & VM_HUGEPAGE);
+_
+
+Patches currently in -mm which might be from dan.j.williams@intel.com are
+
+mm-improve-readability-of-transparent_hugepage_enabled.patch
+mm-always-enable-thp-for-dax-mappings.patch
+
