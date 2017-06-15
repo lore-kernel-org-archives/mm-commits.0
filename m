@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmpressure-pass-through-notification-support-fix.patch added to -mm tree
-Date: Thu, 15 Jun 2017 13:13:21 -0700
-Message-ID: <5942ea61.7hXDLB1Ua9VUdUZ1%akpm@linux-foundation.org>
+Subject: + mm-numa-avoid-waiting-on-freed-migrated-pages.patch added to
+ -mm tree
+Date: Thu, 15 Jun 2017 13:31:25 -0700
+Message-ID: <5942ee9d.WEXupQ6mpkFleNjw%akpm__7001.37447934157$1497558705$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35338 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752323AbdFOUNW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 16:13:22 -0400
+        with ESMTP id S1751590AbdFOUb0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 16:31:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, mhocko@suse.com, minchan@kernel.org, rientjes@google.com, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
+To: mark.rutland@arm.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, stable@vger.kernel.org, steve.capper@arm.com, vbabka@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmpressure.c: free the same pointer we allocated
+     Subject: mm: numa: avoid waiting on freed migrated pages
 has been added to the -mm tree.  Its filename is
-     mm-vmpressure-pass-through-notification-support-fix.patch
+     mm-numa-avoid-waiting-on-freed-migrated-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmpressure-pass-through-notification-support-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-avoid-waiting-on-freed-migrated-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmpressure-pass-through-notification-support-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-avoid-waiting-on-freed-migrated-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,54 +39,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: mm/vmpressure.c: free the same pointer we allocated
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: mm: numa: avoid waiting on freed migrated pages
 
-We keep incrementing "spec" as we parse the args so we end up calling
-kfree() on a modified of spec.  It probably works or this would have been
-caught in testing, but it looks weird.
+In do_huge_pmd_numa_page(), we attempt to handle a migrating thp pmd by
+waiting until the pmd is unlocked before we return and retry.  However, we
+can race with migrate_misplaced_transhuge_page():
 
-Link: http://lkml.kernel.org/r/20170613191820.GA20003@elgon.mountain
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Michal Hocko <mhocko@suse.com>
+// do_huge_pmd_numa_page                // migrate_misplaced_transhuge_page()
+// Holds 0 refs on page                 // Holds 2 refs on page
+
+vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+/* ... */
+if (pmd_trans_migrating(*vmf->pmd)) {
+        page = pmd_page(*vmf->pmd);
+        spin_unlock(vmf->ptl);
+                                        ptl = pmd_lock(mm, pmd);
+                                        if (page_count(page) != 2)) {
+                                                /* roll back */
+                                        }
+                                        /* ... */
+                                        mlock_migrate_page(new_page, page);
+                                        /* ... */
+                                        spin_unlock(ptl);
+                                        put_page(page);
+                                        put_page(page); // page freed here
+        wait_on_page_locked(page);
+        goto out;
+}
+
+This can result in the freed page having its waiters flag set
+unexpectedly, which trips the PAGE_FLAGS_CHECK_AT_PREP checks in the page
+alloc/free functions.  This has been observed on arm64 KVM guests.
+
+We can avoid this by having do_huge_pmd_numa_page() take a reference on
+the page before dropping the pmd lock, mirroring what we do in
+__migration_entry_wait().
+
+When we hit the race, migrate_misplaced_transhuge_page() will see the
+reference and abort the migration, as it may do today in other cases.
+
+Fixes: b8916634b77bffb2 ("mm: Prevent parallel splits during THP migration")
+Link: http://lkml.kernel.org/r/1497349722-6731-2-git-send-email-will.deacon@arm.com
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Acked-by: Steve Capper <steve.capper@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmpressure.c~mm-vmpressure-pass-through-notification-support-fix mm/vmpressure.c
---- a/mm/vmpressure.c~mm-vmpressure-pass-through-notification-support-fix
-+++ a/mm/vmpressure.c
-@@ -386,11 +386,11 @@ int vmpressure_register_event(struct mem
- 	struct vmpressure_event *ev;
- 	enum vmpressure_modes mode = VMPRESSURE_NO_PASSTHROUGH;
- 	enum vmpressure_levels level = -1;
--	char *spec = NULL;
-+	char *spec, *spec_orig;
- 	char *token;
- 	int ret = 0;
- 
--	spec = kzalloc(MAX_VMPRESSURE_ARGS_LEN + 1, GFP_KERNEL);
-+	spec_orig = spec = kzalloc(MAX_VMPRESSURE_ARGS_LEN + 1, GFP_KERNEL);
- 	if (!spec) {
- 		ret = -ENOMEM;
+diff -puN mm/huge_memory.c~mm-numa-avoid-waiting-on-freed-migrated-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-avoid-waiting-on-freed-migrated-pages
++++ a/mm/huge_memory.c
+@@ -1426,8 +1426,11 @@ int do_huge_pmd_numa_page(struct vm_faul
+ 	 */
+ 	if (unlikely(pmd_trans_migrating(*vmf->pmd))) {
+ 		page = pmd_page(*vmf->pmd);
++		if (!get_page_unless_zero(page))
++			goto out_unlock;
+ 		spin_unlock(vmf->ptl);
+ 		wait_on_page_locked(page);
++		put_page(page);
  		goto out;
-@@ -429,7 +429,7 @@ int vmpressure_register_event(struct mem
- 	list_add(&ev->node, &vmpr->events);
- 	mutex_unlock(&vmpr->events_lock);
- out:
--	kfree(spec);
-+	kfree(spec_orig);
- 	return ret;
- }
+ 	}
+ 
+@@ -1459,9 +1462,12 @@ int do_huge_pmd_numa_page(struct vm_faul
+ 
+ 	/* Migration could have started since the pmd_trans_migrating check */
+ 	if (!page_locked) {
++		page_nid = -1;
++		if (!get_page_unless_zero(page))
++			goto out_unlock;
+ 		spin_unlock(vmf->ptl);
+ 		wait_on_page_locked(page);
+-		page_nid = -1;
++		put_page(page);
+ 		goto out;
+ 	}
  
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
-mm-vmpressure-pass-through-notification-support-fix.patch
+mm-numa-avoid-waiting-on-freed-migrated-pages.patch
 
