@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch added to -mm tree
-Date: Thu, 15 Jun 2017 14:05:41 -0700
-Message-ID: <5942f6a5.0aOuMNbo+ejthnM9%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch added to -mm tree
+Date: Thu, 15 Jun 2017 14:12:00 -0700
+Message-ID: <5942f820.xgx2p9XfFwdxBac5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37822 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751926AbdFOVFm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 17:05:42 -0400
+        with ESMTP id S1751590AbdFOVMB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 17:12:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stummala@codeaurora.org, apolyakov@beget.ru, jack@suse.cz, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/list_lru.c: use cond_resched_lock() for nlru->lock
+     Subject: mm: hugetlb: replace some macros with inline functions
 has been added to the -mm tree.  Its filename is
-     mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
+     mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sahitya Tummala <stummala@codeaurora.org>
-Subject: mm/list_lru.c: use cond_resched_lock() for nlru->lock
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: hugetlb: replace some macros with inline functions
 
-__list_lru_walk_one() can hold the spin lock for longer duration
-if there are more number of entries to be isolated.
+All users of dissolve_free_huge_page() that ignore the result cause a
+warning when CONFIG_HUGETLB_PAGE is disabled:
 
-This results in "BUG: spinlock lockup suspected" in the below path -
+mm/memory-failure.c: In function 'me_huge_page':
+include/linux/hugetlb.h:556:36: error: statement with no effect [-Werror=unused-value]
+ #define dissolve_free_huge_page(p) 0
 
-[<ffffff8eca0fb0bc>] spin_bug+0x90
-[<ffffff8eca0fb220>] do_raw_spin_lock+0xfc
-[<ffffff8ecafb7798>] _raw_spin_lock+0x28
-[<ffffff8eca1ae884>] list_lru_add+0x28
-[<ffffff8eca1f5dac>] dput+0x1c8
-[<ffffff8eca1eb46c>] path_put+0x20
-[<ffffff8eca1eb73c>] terminate_walk+0x3c
-[<ffffff8eca1eee58>] path_lookupat+0x100
-[<ffffff8eca1f00fc>] filename_lookup+0x6c
-[<ffffff8eca1f0264>] user_path_at_empty+0x54
-[<ffffff8eca1e066c>] SyS_faccessat+0xd0
-[<ffffff8eca084e30>] el0_svc_naked+0x24
+We can avoid this by using an inline function instead of the macro, and I
+decided to do the same change for the related helpers as well.
 
-This nlru->lock has been acquired by another CPU in this path -
-
-[<ffffff8eca1f5fd0>] d_lru_shrink_move+0x34
-[<ffffff8eca1f6180>] dentry_lru_isolate_shrink+0x48
-[<ffffff8eca1aeafc>] __list_lru_walk_one.isra.10+0x94
-[<ffffff8eca1aec34>] list_lru_walk_node+0x40
-[<ffffff8eca1f6620>] shrink_dcache_sb+0x60
-[<ffffff8eca1e56a8>] do_remount_sb+0xbc
-[<ffffff8eca1e583c>] do_emergency_remount+0xb0
-[<ffffff8eca0ba510>] process_one_work+0x228
-[<ffffff8eca0bb158>] worker_thread+0x2e0
-[<ffffff8eca0c040c>] kthread+0xf4
-[<ffffff8eca084dd0>] ret_from_fork+0x10
-
-Link: http://marc.info/?t=149511514800002&r=1&w=2
-Link: http://lkml.kernel.org/r/1497228440-10349-1-git-send-email-stummala@codeaurora.org
-Signed-off-by: Sahitya Tummala <stummala@codeaurora.org>
-Suggested-by: Jan kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Polakov <apolyakov@beget.ru>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Fixes: mmotm ("mm: hugetlb: soft-offline: dissolve source hugepage after successful migration")
+Link: http://lkml.kernel.org/r/20170609102544.2947326-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/hugetlb.h |   31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
-diff -puN mm/list_lru.c~mm-list_lruc-use-cond_resched_lock-for-nlru-lock mm/list_lru.c
---- a/mm/list_lru.c~mm-list_lruc-use-cond_resched_lock-for-nlru-lock
-+++ a/mm/list_lru.c
-@@ -249,6 +249,8 @@ restart:
- 		default:
- 			BUG();
- 		}
-+		if (cond_resched_lock(&nlru->lock))
-+			goto restart;
- 	}
+diff -puN include/linux/hugetlb.h~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix
++++ a/include/linux/hugetlb.h
+@@ -551,16 +551,37 @@ static inline unsigned int pages_per_hug
+ {
+ 	return 1;
+ }
+-#define hstate_index_to_shift(index) 0
+-#define hstate_index(h) 0
++
++static inline unsigned hstate_index_to_shift(unsigned index)
++{
++	return 0;
++}
++
++static inline int hstate_index(struct hstate *h)
++{
++	return 0;
++}
  
- 	spin_unlock(&nlru->lock);
+ static inline pgoff_t basepage_index(struct page *page)
+ {
+ 	return page->index;
+ }
+-#define dissolve_free_huge_page(p)	0
+-#define dissolve_free_huge_pages(s, e)	0
+-#define hugepage_migration_supported(h)	false
++
++static inline int dissolve_free_huge_page(struct page *page)
++{
++	return 0;
++}
++
++static inline int dissolve_free_huge_pages(unsigned long start_pfn,
++					   unsigned long end_pfn)
++{
++	return 0;
++}
++
++static inline bool hugepage_migration_supported(struct hstate *h)
++{
++	return false;
++}
+ 
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+ 					   struct mm_struct *mm, pte_t *pte)
 _
 
-Patches currently in -mm which might be from stummala@codeaurora.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
+mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level-fix.patch
+mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
 
