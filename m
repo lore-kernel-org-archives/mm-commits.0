@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
- added to -mm tree
-Date: Thu, 15 Jun 2017 11:54:36 -0700
-Message-ID: <5942d7ec.1qELsHCGKjTzu4pB%akpm@linux-foundation.org>
+Subject: + btrfs-nowait-aio-support.patch added to -mm tree
+Date: Thu, 15 Jun 2017 11:54:57 -0700
+Message-ID: <5942d801.4ayqiLpawSnzXakg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59350 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752535AbdFOSyr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 14:54:47 -0400
+        with ESMTP id S1752594AbdFOSy6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jun 2017 14:54:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rgoldwyn@suse.com, adilger.kernel@dilger.ca, clm@fb.com, darrick.wong@oracle.com, dsterba@suse.com, hch@lst.de, jack@suse.cz, jbacik@fb.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rgoldwyn@suse.com, adilger.kernel@dilger.ca, axboe@kernel.dk, clm@fb.com, darrick.wong@oracle.com, dsterba@suse.com, hch@lst.de, jack@suse.cz, jbacik@fb.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: separate out kiocb flags setup based on RWF_* flags
+     Subject: btrfs: nowait aio support
 has been added to the -mm tree.  Its filename is
-     fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
+     btrfs-nowait-aio-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/btrfs-nowait-aio-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/btrfs-nowait-aio-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,110 +39,112 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Subject: fs: separate out kiocb flags setup based on RWF_* flags
+Subject: btrfs: nowait aio support
 
-Patch series "No wait AIO", v12.
+Return EAGAIN if any of the following checks fail
+ + i_rwsem is not lockable
+ + NODATACOW or PREALLOC is not set
+ + Cannot nocow at the desired location
+ + Writing beyond end of file which is not allocated
 
-This series adds nonblocking feature to asynchronous I/O writes. 
-io_submit() can be delayed for a number of reasons:
-
- - Block allocation for files
- - Data writebacks for direct I/O
- - Sleeping because of waiting to acquire i_rwsem
- - Congested block device
-
-The goal of the patch series is to return -EAGAIN/-EWOULDBLOCK if any of
-these conditions are met.  This way userspace can push most of the
-write()s to the kernel to the best of its ability to complete and if it
-returns -EAGAIN, can defer it to another thread.
-
-In order to enable this, IOCB_RW_FLAG_NOWAIT is introduced in
-uapi/linux/aio_abi.h.  If set for aio_rw_flags, it translates to
-IOCB_NOWAIT for struct iocb, REQ_NOWAIT for bio.bi_opf and IOMAP_NOWAIT
-for iomap.  aio_rw_flags is a new flag replacing aio_reserved1.  We could
-not use aio_flags because it is not currently checked for invalidity in
-the kernel.
-
-This feature is provided for direct I/O of asynchronous I/O only.  I have
-tested it against xfs, ext4, and btrfs while I intend to add more
-filesystems.  The nowait feature is for request based devices.  In the
-future, I intend to add support to stacked devices such as md.
-
-Applications will have to check supportability by sending a async direct
-write and any other error besides -EAGAIN would mean it is not supported.
-
-First two patches are prep patches into nowait I/O.
-
-
-This patch (of 10):
-
-Separate out kiocb flags setup based on RWF_* flags.
-
-Link: http://lkml.kernel.org/r/20170615160002.17233-2-rgoldwyn@suse.de
+Link: http://lkml.kernel.org/r/20170615160002.17233-11-rgoldwyn@suse.de
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <jbacik@fb.com>
-Cc: David Sterba <dsterba@suse.com>
+Acked-by: David Sterba <dsterba@suse.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Josef Bacik <jbacik@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c    |   12 +++---------
- include/linux/fs.h |   14 ++++++++++++++
- 2 files changed, 17 insertions(+), 9 deletions(-)
+ fs/btrfs/file.c  |   33 +++++++++++++++++++++++++++------
+ fs/btrfs/inode.c |    3 +++
+ 2 files changed, 30 insertions(+), 6 deletions(-)
 
-diff -puN fs/read_write.c~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags fs/read_write.c
---- a/fs/read_write.c~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags
-+++ a/fs/read_write.c
-@@ -678,16 +678,10 @@ static ssize_t do_iter_readv_writev(stru
- 	struct kiocb kiocb;
- 	ssize_t ret;
+diff -puN fs/btrfs/file.c~btrfs-nowait-aio-support fs/btrfs/file.c
+--- a/fs/btrfs/file.c~btrfs-nowait-aio-support
++++ a/fs/btrfs/file.c
+@@ -1875,12 +1875,29 @@ static ssize_t btrfs_file_write_iter(str
+ 	ssize_t num_written = 0;
+ 	bool sync = (file->f_flags & O_DSYNC) || IS_SYNC(file->f_mapping->host);
+ 	ssize_t err;
+-	loff_t pos;
+-	size_t count;
++	loff_t pos = iocb->ki_pos;
++	size_t count = iov_iter_count(from);
+ 	loff_t oldsize;
+ 	int clean_page = 0;
  
--	if (flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC))
--		return -EOPNOTSUPP;
--
- 	init_sync_kiocb(&kiocb, filp);
--	if (flags & RWF_HIPRI)
--		kiocb.ki_flags |= IOCB_HIPRI;
--	if (flags & RWF_DSYNC)
--		kiocb.ki_flags |= IOCB_DSYNC;
--	if (flags & RWF_SYNC)
--		kiocb.ki_flags |= (IOCB_DSYNC | IOCB_SYNC);
-+	ret = kiocb_set_rw_flags(&kiocb, flags);
-+	if (ret)
-+		return ret;
- 	kiocb.ki_pos = *ppos;
+-	inode_lock(inode);
++	if ((iocb->ki_flags & IOCB_NOWAIT) &&
++			(iocb->ki_flags & IOCB_DIRECT)) {
++		/* Don't sleep on inode rwsem */
++		if (!inode_trylock(inode))
++			return -EAGAIN;
++		/*
++		 * We will allocate space in case nodatacow is not set,
++		 * so bail
++		 */
++		if (!(BTRFS_I(inode)->flags & (BTRFS_INODE_NODATACOW |
++					      BTRFS_INODE_PREALLOC)) ||
++		    check_can_nocow(BTRFS_I(inode), pos, &count) <= 0) {
++			inode_unlock(inode);
++			return -EAGAIN;
++		}
++	} else
++		inode_lock(inode);
++
+ 	err = generic_write_checks(iocb, from);
+ 	if (err <= 0) {
+ 		inode_unlock(inode);
+@@ -1914,8 +1931,6 @@ static ssize_t btrfs_file_write_iter(str
+ 	 */
+ 	update_time_for_write(inode);
  
- 	if (type == READ)
-diff -puN include/linux/fs.h~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags include/linux/fs.h
---- a/include/linux/fs.h~fs-separate-out-kiocb-flags-setup-based-on-rwf_-flags
-+++ a/include/linux/fs.h
-@@ -3056,6 +3056,20 @@ static inline int iocb_flags(struct file
- 	return res;
+-	pos = iocb->ki_pos;
+-	count = iov_iter_count(from);
+ 	start_pos = round_down(pos, fs_info->sectorsize);
+ 	oldsize = i_size_read(inode);
+ 	if (start_pos > oldsize) {
+@@ -3071,13 +3086,19 @@ out:
+ 	return offset;
  }
  
-+static inline int kiocb_set_rw_flags(struct kiocb *ki, int flags)
++static int btrfs_file_open(struct inode *inode, struct file *filp)
 +{
-+	if (unlikely(flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC)))
-+		return -EOPNOTSUPP;
-+
-+	if (flags & RWF_HIPRI)
-+		ki->ki_flags |= IOCB_HIPRI;
-+	if (flags & RWF_DSYNC)
-+		ki->ki_flags |= IOCB_DSYNC;
-+	if (flags & RWF_SYNC)
-+		ki->ki_flags |= (IOCB_DSYNC | IOCB_SYNC);
-+	return 0;
++	filp->f_mode |= FMODE_AIO_NOWAIT;
++	return generic_file_open(inode, filp);
 +}
 +
- static inline ino_t parent_ino(struct dentry *dentry)
- {
- 	ino_t res;
+ const struct file_operations btrfs_file_operations = {
+ 	.llseek		= btrfs_file_llseek,
+ 	.read_iter      = generic_file_read_iter,
+ 	.splice_read	= generic_file_splice_read,
+ 	.write_iter	= btrfs_file_write_iter,
+ 	.mmap		= btrfs_file_mmap,
+-	.open		= generic_file_open,
++	.open		= btrfs_file_open,
+ 	.release	= btrfs_release_file,
+ 	.fsync		= btrfs_sync_file,
+ 	.fallocate	= btrfs_fallocate,
+diff -puN fs/btrfs/inode.c~btrfs-nowait-aio-support fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~btrfs-nowait-aio-support
++++ a/fs/btrfs/inode.c
+@@ -8755,6 +8755,9 @@ static ssize_t btrfs_direct_IO(struct ki
+ 			dio_data.overwrite = 1;
+ 			inode_unlock(inode);
+ 			relock = true;
++		} else if (iocb->ki_flags & IOCB_NOWAIT) {
++			ret = -EAGAIN;
++			goto out;
+ 		}
+ 		ret = btrfs_delalloc_reserve_space(inode, offset, count);
+ 		if (ret)
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.com are
