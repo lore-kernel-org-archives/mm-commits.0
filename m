@@ -1,42 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fs-use-rwf_-flags-for-aio-operations.patch
- removed from -mm tree
-Date: Fri, 16 Jun 2017 13:00:02 -0700
-Message-ID: <594438c2.hLYCKXOI68Sj0jZN%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ fs-introduce-rwf_nowait-and-fmode_aio_nowait.patch removed from -mm tree
+Date: Fri, 16 Jun 2017 13:00:05 -0700
+Message-ID: <594438c5.lSHexYndwoay9DwR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44456 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751757AbdFPUAD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 16:00:03 -0400
+        with ESMTP id S1751757AbdFPUAG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 16:00:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rgoldwyn@suse.com, adilger.kernel@dilger.ca, axboe@kernel.dk, clm@fb.com, darrick.wong@oracle.com, dsterba@suse.com, hch@lst.de, jack@suse.cz, jbacik@fb.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: use RWF_* flags for AIO operations
+     Subject: fs: introduce RWF_NOWAIT and FMODE_AIO_NOWAIT
 has been removed from the -mm tree.  Its filename was
-     fs-use-rwf_-flags-for-aio-operations.patch
+     fs-introduce-rwf_nowait-and-fmode_aio_nowait.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Subject: fs: use RWF_* flags for AIO operations
+Subject: fs: introduce RWF_NOWAIT and FMODE_AIO_NOWAIT
 
-aio_rw_flags is introduced in struct iocb (using aio_reserved1) which will
-carry the RWF_* flags.  We cannot use aio_flags because they are not
-checked for validity which may break existing applications.
+RWF_NOWAIT informs kernel to bail out if an AIO request will block for
+reasons such as file allocations, or a writeback triggered, or would block
+while allocating requests while performing direct I/O.
 
-Note, the only place RWF_HIPRI comes in effect is dio_await_one().  All
-the rest of the locations, aio code return -EIOCBQUEUED before the checks
-for RWF_HIPRI.
+RWF_NOWAIT is translated to IOCB_NOWAIT for iocb->ki_flags.
 
-Link: http://lkml.kernel.org/r/20170615160002.17233-4-rgoldwyn@suse.de
+FMODE_AIO_NOWAIT is a flag which identifies the file opened is capable of
+returning -EAGAIN if the AIO call will block.  This must be set by
+supporting filesystems in the ->open() call.
+
+Filesystems xfs, btrfs and ext4 would be supported in the following patches.
+
+Link: http://lkml.kernel.org/r/20170615160002.17233-5-rgoldwyn@suse.de
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -51,52 +55,78 @@ Cc: Josef Bacik <jbacik@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c                     |    8 +++++++-
- include/uapi/linux/aio_abi.h |    2 +-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ fs/aio.c                |    6 ++++++
+ include/linux/fs.h      |   11 ++++++++++-
+ include/uapi/linux/fs.h |    1 +
+ 3 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~fs-use-rwf_-flags-for-aio-operations fs/aio.c
---- a/fs/aio.c~fs-use-rwf_-flags-for-aio-operations
+diff -puN fs/aio.c~fs-introduce-rwf_nowait-and-fmode_aio_nowait fs/aio.c
+--- a/fs/aio.c~fs-introduce-rwf_nowait-and-fmode_aio_nowait
 +++ a/fs/aio.c
-@@ -1541,7 +1541,7 @@ static int io_submit_one(struct kioctx *
- 	ssize_t ret;
- 
- 	/* enforce forwards compatibility on users */
--	if (unlikely(iocb->aio_reserved1 || iocb->aio_reserved2)) {
-+	if (unlikely(iocb->aio_reserved2)) {
- 		pr_debug("EINVAL: reserve field set\n");
- 		return -EINVAL;
- 	}
-@@ -1586,6 +1586,12 @@ static int io_submit_one(struct kioctx *
- 		req->common.ki_flags |= IOCB_EVENTFD;
+@@ -1592,6 +1592,12 @@ static int io_submit_one(struct kioctx *
+ 		goto out_put_req;
  	}
  
-+	ret = kiocb_set_rw_flags(&req->common, iocb->aio_rw_flags);
-+	if (unlikely(ret)) {
-+		pr_debug("EINVAL: aio_rw_flags\n");
++	if ((req->common.ki_flags & IOCB_NOWAIT) &&
++			!(req->common.ki_flags & IOCB_DIRECT)) {
++		ret = -EOPNOTSUPP;
 +		goto out_put_req;
 +	}
 +
  	ret = put_user(KIOCB_KEY, &user_iocb->aio_key);
  	if (unlikely(ret)) {
  		pr_debug("EFAULT: aio_key\n");
-diff -puN include/uapi/linux/aio_abi.h~fs-use-rwf_-flags-for-aio-operations include/uapi/linux/aio_abi.h
---- a/include/uapi/linux/aio_abi.h~fs-use-rwf_-flags-for-aio-operations
-+++ a/include/uapi/linux/aio_abi.h
-@@ -79,7 +79,7 @@ struct io_event {
- struct iocb {
- 	/* these are internal to the kernel/libc. */
- 	__u64	aio_data;	/* data to be returned in event's data */
--	__u32	PADDED(aio_key, aio_reserved1);
-+	__u32	PADDED(aio_key, aio_rw_flags);
- 				/* the kernel sets aio_key to the req # */
+diff -puN include/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait include/linux/fs.h
+--- a/include/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait
++++ a/include/linux/fs.h
+@@ -142,6 +142,9 @@ typedef int (dio_iodone_t)(struct kiocb
+ /* File was opened by fanotify and shouldn't generate fanotify events */
+ #define FMODE_NONOTIFY		((__force fmode_t)0x4000000)
  
- 	/* common fields */
++/* File is capable of returning -EAGAIN if AIO will block */
++#define FMODE_AIO_NOWAIT	((__force fmode_t)0x8000000)
++
+ /*
+  * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
+  * that indicates that they should check the contents of the iovec are
+@@ -268,6 +271,7 @@ struct writeback_control;
+ #define IOCB_DSYNC		(1 << 4)
+ #define IOCB_SYNC		(1 << 5)
+ #define IOCB_WRITE		(1 << 6)
++#define IOCB_NOWAIT		(1 << 7)
+ 
+ struct kiocb {
+ 	struct file		*ki_filp;
+@@ -3060,9 +3064,14 @@ static inline int iocb_flags(struct file
+ 
+ static inline int kiocb_set_rw_flags(struct kiocb *ki, int flags)
+ {
+-	if (unlikely(flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC)))
++	if (unlikely(flags & ~(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT)))
+ 		return -EOPNOTSUPP;
+ 
++	if (flags & RWF_NOWAIT) {
++		if (!(ki->ki_filp->f_mode & FMODE_AIO_NOWAIT))
++			return -EOPNOTSUPP;
++		ki->ki_flags |= IOCB_NOWAIT;
++	}
+ 	if (flags & RWF_HIPRI)
+ 		ki->ki_flags |= IOCB_HIPRI;
+ 	if (flags & RWF_DSYNC)
+diff -puN include/uapi/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait include/uapi/linux/fs.h
+--- a/include/uapi/linux/fs.h~fs-introduce-rwf_nowait-and-fmode_aio_nowait
++++ a/include/uapi/linux/fs.h
+@@ -360,5 +360,6 @@ struct fscrypt_key {
+ #define RWF_HIPRI			0x00000001 /* high priority request, poll if possible */
+ #define RWF_DSYNC			0x00000002 /* per-IO O_DSYNC */
+ #define RWF_SYNC			0x00000004 /* per-IO O_SYNC */
++#define RWF_NOWAIT			0x00000008 /* per-IO, return -EAGAIN if operation would block */
+ 
+ #endif /* _UAPI_LINUX_FS_H */
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.com are
 
-fs-introduce-rwf_nowait-and-fmode_aio_nowait.patch
 fs-return-if-direct-write-will-trigger-writeback.patch
 fs-introduce-iomap_nowait.patch
 block-return-on-congested-block-device.patch
