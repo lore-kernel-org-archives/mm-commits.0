@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + replace-memfmt-with-string_get_size.patch added to -mm tree
-Date: Fri, 16 Jun 2017 11:48:23 -0700
-Message-ID: <594427f7.uHM6+yBKATL11nYJ%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-per-lruvec-stats-infrastructure-fix-4.patch added to -mm tree
+Date: Fri, 16 Jun 2017 11:58:16 -0700
+Message-ID: <59442a48.a/K0CjOqThXYFpHh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39130 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750792AbdFPSsY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 14:48:24 -0400
+        with ESMTP id S1752848AbdFPS6R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 14:58:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@infradead.org, Liam.Howlett@Oracle.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, mawilcox@microsoft.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, private@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: replace memfmt with string_get_size
+     Subject: mm-memcontrol-per-lruvec-stats-infrastructure-fix-4
 has been added to the -mm tree.  Its filename is
-     replace-memfmt-with-string_get_size.patch
+     mm-memcontrol-per-lruvec-stats-infrastructure-fix-4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/replace-memfmt-with-string_get_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-per-lruvec-stats-infrastructure-fix-4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/replace-memfmt-with-string_get_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-per-lruvec-stats-infrastructure-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,84 +38,414 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm/hugetlb.c: replace memfmt with string_get_size
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm-memcontrol-per-lruvec-stats-infrastructure-fix-4
 
-The hugetlb code has its own function to report human-readable sizes. 
-Convert it to use the shared string_get_size() function.  This will lead
-to a minor difference in user visible output (MiB/GiB instead of MB/GB),
-but some would argue that's desirable anyway.
+On Wed, Jun 14, 2017 at 12:26:46AM -0700, Guenter Roeck wrote:
+> Hi,
+>
+> I see the following build error in -next when building hexagon images.
+>
+>   CC      arch/hexagon/kernel/asm-offsets.s
+> In file included from ./include/linux/memcontrol.h:30:0,
+>                  from ./include/linux/swap.h:8,
+>                  from ./arch/hexagon/include/asm/pgtable.h:27,
+>                  from ./include/linux/mm.h:70,
+>                  from arch/hexagon/kernel/asm-offsets.c:28:
+> ./include/linux/vmstat.h: In function '__inc_zone_page_state':
+> ./include/linux/vmstat.h:294:2: error: implicit declaration of function 'page_zone' [-Werror=implicit-function-declaration]
+> ./include/linux/vmstat.h:294:2: warning: passing argument 1 of '__inc_zone_state' makes pointer from integer without a cast [enabled by default]
+> ./include/linux/vmstat.h:267:20: note: expected 'struct zone *' but argument is of type 'int'
 
-Link: http://lkml.kernel.org/r/20170606190350.GA20010@bombadil.infradead.org
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: zhong jiang <zhongjiang@huawei.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+vmstat.h depends on definitions in mm.h, but mm.h through the above
+chain includes vmstat.h first. It worked in my x86 test because x86
+pgtable.h doesn't include swap.h.
+
+The headers are a bit of a mess. memcontrol.h is supposed to be a
+lower level header than mm.h and vmstat.h, yet the new accounting
+functions depend on mm.h definitions.
+
+Let's move the lruvec accounting infra to vmstat.h and shuffle
+memcontrol.h into the stack under mm.h and vmstat.h.
+
+Reported-by: Guenter Roeck <private@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ include/linux/memcontrol.h |  152 ----------------------------------
+ include/linux/vmstat.h     |  153 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 153 insertions(+), 152 deletions(-)
 
-diff -puN mm/hugetlb.c~replace-memfmt-with-string_get_size mm/hugetlb.c
---- a/mm/hugetlb.c~replace-memfmt-with-string_get_size
-+++ a/mm/hugetlb.c
-@@ -20,6 +20,7 @@
- #include <linux/slab.h>
- #include <linux/sched/signal.h>
- #include <linux/rmap.h>
-+#include <linux/string_helpers.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/jhash.h>
-@@ -70,17 +71,6 @@ struct mutex *hugetlb_fault_mutex_table
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
+diff -puN include/linux/memcontrol.h~mm-memcontrol-per-lruvec-stats-infrastructure-fix-4 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-per-lruvec-stats-infrastructure-fix-4
++++ a/include/linux/memcontrol.h
+@@ -26,8 +26,6 @@
+ #include <linux/page_counter.h>
+ #include <linux/vmpressure.h>
+ #include <linux/eventfd.h>
+-#include <linux/mm.h>
+-#include <linux/vmstat.h>
+ #include <linux/writeback.h>
+ #include <linux/page-flags.h>
  
--static char * __init memfmt(char *buf, unsigned long n)
--{
--	if (n >= (1UL << 30))
--		sprintf(buf, "%lu GB", n >> 30);
--	else if (n >= (1UL << 20))
--		sprintf(buf, "%lu MB", n >> 20);
--	else
--		sprintf(buf, "%lu KB", n >> 10);
--	return buf;
--}
--
- static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
- {
- 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
-@@ -2255,7 +2245,7 @@ static void __init hugetlb_hstate_alloc_
- 	if (i < h->max_huge_pages) {
- 		char buf[32];
- 
--		memfmt(buf, huge_page_size(h)),
-+		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
- 		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
- 			h->max_huge_pages, buf, i);
- 		h->max_huge_pages = i;
-@@ -2283,9 +2273,10 @@ static void __init report_hugepages(void
- 
- 	for_each_hstate(h) {
- 		char buf[32];
-+
-+		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
- 		pr_info("HugeTLB registered %s page size, pre-allocated %ld pages\n",
--			memfmt(buf, huge_page_size(h)),
--			h->free_huge_pages);
-+			buf, h->free_huge_pages);
- 	}
+@@ -547,78 +545,6 @@ static inline void mod_memcg_page_state(
+ 		mod_memcg_state(page->mem_cgroup, idx, val);
  }
  
+-static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
+-					      enum node_stat_item idx)
+-{
+-	struct mem_cgroup_per_node *pn;
+-	long val = 0;
+-	int cpu;
+-
+-	if (mem_cgroup_disabled())
+-		return node_page_state(lruvec_pgdat(lruvec), idx);
+-
+-	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	for_each_possible_cpu(cpu)
+-		val += per_cpu(pn->lruvec_stat->count[idx], cpu);
+-
+-	if (val < 0)
+-		val = 0;
+-
+-	return val;
+-}
+-
+-static inline void __mod_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx, int val)
+-{
+-	struct mem_cgroup_per_node *pn;
+-
+-	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
+-	if (mem_cgroup_disabled())
+-		return;
+-	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	__mod_memcg_state(pn->memcg, idx, val);
+-	__this_cpu_add(pn->lruvec_stat->count[idx], val);
+-}
+-
+-static inline void mod_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx, int val)
+-{
+-	struct mem_cgroup_per_node *pn;
+-
+-	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
+-	if (mem_cgroup_disabled())
+-		return;
+-	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	mod_memcg_state(pn->memcg, idx, val);
+-	this_cpu_add(pn->lruvec_stat->count[idx], val);
+-}
+-
+-static inline void __mod_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx, int val)
+-{
+-	struct mem_cgroup_per_node *pn;
+-
+-	__mod_node_page_state(page_pgdat(page), idx, val);
+-	if (mem_cgroup_disabled() || !page->mem_cgroup)
+-		return;
+-	__mod_memcg_state(page->mem_cgroup, idx, val);
+-	pn = page->mem_cgroup->nodeinfo[page_to_nid(page)];
+-	__this_cpu_add(pn->lruvec_stat->count[idx], val);
+-}
+-
+-static inline void mod_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx, int val)
+-{
+-	struct mem_cgroup_per_node *pn;
+-
+-	mod_node_page_state(page_pgdat(page), idx, val);
+-	if (mem_cgroup_disabled() || !page->mem_cgroup)
+-		return;
+-	mod_memcg_state(page->mem_cgroup, idx, val);
+-	pn = page->mem_cgroup->nodeinfo[page_to_nid(page)];
+-	this_cpu_add(pn->lruvec_stat->count[idx], val);
+-}
+-
+ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
+ 						gfp_t gfp_mask,
+ 						unsigned long *total_scanned);
+@@ -869,36 +795,6 @@ static inline void mod_memcg_page_state(
+ {
+ }
+ 
+-static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
+-					      enum node_stat_item idx)
+-{
+-	return node_page_state(lruvec_pgdat(lruvec), idx);
+-}
+-
+-static inline void __mod_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx, int val)
+-{
+-	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
+-}
+-
+-static inline void mod_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx, int val)
+-{
+-	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
+-}
+-
+-static inline void __mod_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx, int val)
+-{
+-	__mod_node_page_state(page_pgdat(page), idx, val);
+-}
+-
+-static inline void mod_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx, int val)
+-{
+-	mod_node_page_state(page_pgdat(page), idx, val);
+-}
+-
+ static inline
+ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
+ 					    gfp_t gfp_mask,
+@@ -952,30 +848,6 @@ static inline void __dec_memcg_page_stat
+ 	__mod_memcg_page_state(page, idx, -1);
+ }
+ 
+-static inline void __inc_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx)
+-{
+-	__mod_lruvec_state(lruvec, idx, 1);
+-}
+-
+-static inline void __dec_lruvec_state(struct lruvec *lruvec,
+-				      enum node_stat_item idx)
+-{
+-	__mod_lruvec_state(lruvec, idx, -1);
+-}
+-
+-static inline void __inc_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx)
+-{
+-	__mod_lruvec_page_state(page, idx, 1);
+-}
+-
+-static inline void __dec_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx)
+-{
+-	__mod_lruvec_page_state(page, idx, -1);
+-}
+-
+ static inline void inc_memcg_state(struct mem_cgroup *memcg,
+ 				   enum memcg_stat_item idx)
+ {
+@@ -1000,30 +872,6 @@ static inline void dec_memcg_page_state(
+ 	mod_memcg_page_state(page, idx, -1);
+ }
+ 
+-static inline void inc_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx)
+-{
+-	mod_lruvec_state(lruvec, idx, 1);
+-}
+-
+-static inline void dec_lruvec_state(struct lruvec *lruvec,
+-				    enum node_stat_item idx)
+-{
+-	mod_lruvec_state(lruvec, idx, -1);
+-}
+-
+-static inline void inc_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx)
+-{
+-	mod_lruvec_page_state(page, idx, 1);
+-}
+-
+-static inline void dec_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx)
+-{
+-	mod_lruvec_page_state(page, idx, -1);
+-}
+-
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ 
+ struct list_head *mem_cgroup_cgwb_list(struct mem_cgroup *memcg);
+diff -puN include/linux/vmstat.h~mm-memcontrol-per-lruvec-stats-infrastructure-fix-4 include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-memcontrol-per-lruvec-stats-infrastructure-fix-4
++++ a/include/linux/vmstat.h
+@@ -6,6 +6,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/vm_event_item.h>
+ #include <linux/atomic.h>
++#include <linux/memcontrol.h>
+ 
+ extern int sysctl_stat_interval;
+ 
+@@ -350,4 +351,156 @@ static inline void __mod_zone_freepage_s
+ 
+ extern const char * const vmstat_text[];
+ 
++#ifdef CONFIG_MEMCG
++static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
++					      enum node_stat_item idx)
++{
++	struct mem_cgroup_per_node *pn;
++	long val = 0;
++	int cpu;
++
++	if (mem_cgroup_disabled())
++		return node_page_state(lruvec_pgdat(lruvec), idx);
++
++	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	for_each_possible_cpu(cpu)
++		val += per_cpu(pn->lruvec_stat->count[idx], cpu);
++
++	if (val < 0)
++		val = 0;
++
++	return val;
++}
++
++static inline void __mod_lruvec_state(struct lruvec *lruvec,
++				      enum node_stat_item idx, int val)
++{
++	struct mem_cgroup_per_node *pn;
++
++	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++	if (mem_cgroup_disabled())
++		return;
++	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	__mod_memcg_state(pn->memcg, idx, val);
++	__this_cpu_add(pn->lruvec_stat->count[idx], val);
++}
++
++static inline void mod_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx, int val)
++{
++	struct mem_cgroup_per_node *pn;
++
++	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++	if (mem_cgroup_disabled())
++		return;
++	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	mod_memcg_state(pn->memcg, idx, val);
++	this_cpu_add(pn->lruvec_stat->count[idx], val);
++}
++
++static inline void __mod_lruvec_page_state(struct page *page,
++					   enum node_stat_item idx, int val)
++{
++	struct mem_cgroup_per_node *pn;
++
++	__mod_node_page_state(page_pgdat(page), idx, val);
++	if (mem_cgroup_disabled() || !page->mem_cgroup)
++		return;
++	__mod_memcg_state(page->mem_cgroup, idx, val);
++	pn = page->mem_cgroup->nodeinfo[page_to_nid(page)];
++	__this_cpu_add(pn->lruvec_stat->count[idx], val);
++}
++
++static inline void mod_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx, int val)
++{
++	struct mem_cgroup_per_node *pn;
++
++	mod_node_page_state(page_pgdat(page), idx, val);
++	if (mem_cgroup_disabled() || !page->mem_cgroup)
++		return;
++	mod_memcg_state(page->mem_cgroup, idx, val);
++	pn = page->mem_cgroup->nodeinfo[page_to_nid(page)];
++	this_cpu_add(pn->lruvec_stat->count[idx], val);
++}
++#else /* CONFIG_MEMCG */
++static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
++					      enum node_stat_item idx)
++{
++	return node_page_state(lruvec_pgdat(lruvec), idx);
++}
++
++static inline void __mod_lruvec_state(struct lruvec *lruvec,
++				      enum node_stat_item idx, int val)
++{
++	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++}
++
++static inline void mod_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx, int val)
++{
++	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++}
++
++static inline void __mod_lruvec_page_state(struct page *page,
++					   enum node_stat_item idx, int val)
++{
++	__mod_node_page_state(page_pgdat(page), idx, val);
++}
++
++static inline void mod_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx, int val)
++{
++	mod_node_page_state(page_pgdat(page), idx, val);
++}
++#endif /* CONFIG_MEMCG */
++
++static inline void __inc_lruvec_state(struct lruvec *lruvec,
++				      enum node_stat_item idx)
++{
++	__mod_lruvec_state(lruvec, idx, 1);
++}
++
++static inline void __dec_lruvec_state(struct lruvec *lruvec,
++				      enum node_stat_item idx)
++{
++	__mod_lruvec_state(lruvec, idx, -1);
++}
++
++static inline void __inc_lruvec_page_state(struct page *page,
++					   enum node_stat_item idx)
++{
++	__mod_lruvec_page_state(page, idx, 1);
++}
++
++static inline void __dec_lruvec_page_state(struct page *page,
++					   enum node_stat_item idx)
++{
++	__mod_lruvec_page_state(page, idx, -1);
++}
++
++static inline void inc_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx)
++{
++	mod_lruvec_state(lruvec, idx, 1);
++}
++
++static inline void dec_lruvec_state(struct lruvec *lruvec,
++				    enum node_stat_item idx)
++{
++	mod_lruvec_state(lruvec, idx, -1);
++}
++
++static inline void inc_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx)
++{
++	mod_lruvec_page_state(page, idx, 1);
++}
++
++static inline void dec_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx)
++{
++	mod_lruvec_page_state(page, idx, -1);
++}
++
+ #endif /* _LINUX_VMSTAT_H */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-replace-memfmt-with-string_get_size.patch
+mm-vmstat-move-slab-statistics-from-zone-to-node-counters.patch
+mm-vmstat-move-slab-statistics-from-zone-to-node-counters-fix.patch
+mm-memcontrol-use-the-node-native-slab-memory-counters.patch
+mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages.patch
+mm-memcontrol-per-lruvec-stats-infrastructure.patch
+mm-memcontrol-per-lruvec-stats-infrastructure-fix.patch
+mm-memcontrol-per-lruvec-stats-infrastructure-fix-2.patch
+mm-memcontrol-per-lruvec-stats-infrastructure-fix-3.patch
+mm-memcontrol-per-lruvec-stats-infrastructure-fix-4.patch
+mm-memcontrol-account-slab-stats-per-lruvec.patch
 
