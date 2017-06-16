@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-change-format-of-color-argument-to-color.patch added to -mm tree
-Date: Fri, 16 Jun 2017 11:37:58 -0700
-Message-ID: <59442586.JdMWSzbCbD11Ikpo%akpm@linux-foundation.org>
+Subject: +
+ mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch added
+ to -mm tree
+Date: Fri, 16 Jun 2017 11:47:03 -0700
+Message-ID: <594427a7.6HGj4klc67egBsWm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33702 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750798AbdFPSh7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 14:37:59 -0400
+        with ESMTP id S1750792AbdFPSrE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 14:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john@fastquake.com, joe@perches.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: change format of --color argument to --color[=WHEN]
+     Subject: mm-improve-readability-of-transparent_hugepage_enabled-fix-fix
 has been added to the -mm tree.  Its filename is
-     checkpatch-change-format-of-color-argument-to-color.patch
+     mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-change-format-of-color-argument-to-color.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-change-format-of-color-argument-to-color.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,119 +40,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Brooks <john@fastquake.com>
-Subject: checkpatch: change format of --color argument to --color[=WHEN]
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-improve-readability-of-transparent_hugepage_enabled-fix-fix
 
-The boolean --color argument did not offer the ability to force colourized
-output even if stdout is not a terminal.  Change the format of the
-argument to the familiar --color[=WHEN] construct as seen in common Linux
-utilities such as git, ls and dmesg, which allows the user to specify
-whether to colourize output "always", "never", or "auto" when the output
-is a terminal.  The default is "auto".
+include coredump.h for MMF_DISABLE_THP
 
-The old command-line uses of --color and --no-color are unchanged.
-
-Link: http://lkml.kernel.org/r/efe43bdbad400f39ba691ae663044462493b0773.1496799721.git.joe@perches.com
-Signed-off-by: John Brooks <john@fastquake.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+ include/linux/huge_mm.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color
-+++ a/scripts/checkpatch.pl
-@@ -56,7 +56,7 @@ my $codespell = 0;
- my $codespellfile = "/usr/share/codespell/dictionary.txt";
- my $conststructsfile = "$D/const_structs.checkpatch";
- my $typedefsfile = "";
--my $color = 1;
-+my $color = "auto";
- my $allow_c99_comments = 1;
+diff -puN include/linux/huge_mm.h~mm-improve-readability-of-transparent_hugepage_enabled-fix-fix include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-improve-readability-of-transparent_hugepage_enabled-fix-fix
++++ a/include/linux/huge_mm.h
+@@ -1,6 +1,8 @@
+ #ifndef _LINUX_HUGE_MM_H
+ #define _LINUX_HUGE_MM_H
  
- sub help {
-@@ -115,7 +115,8 @@ Options:
-                              (default:/usr/share/codespell/dictionary.txt)
-   --codespellfile            Use this codespell dictionary
-   --typedefsfile             Read additional types from this file
--  --color                    Use colors when output is STDOUT (default: on)
-+  --color[=WHEN]             Use colors 'always', 'never', or only when output
-+                             is a terminal ('auto'). Default is 'auto'.
-   -h, --help, --version      display this help and exit
- 
- When FILE is - read standard input.
-@@ -181,6 +182,14 @@ if (-f $conf) {
- 	unshift(@ARGV, @conf_args) if @conf_args;
- }
- 
-+# Perl's Getopt::Long allows options to take optional arguments after a space.
-+# Prevent --color by itself from consuming other arguments
-+foreach (@ARGV) {
-+	if ($_ eq "--color" || $_ eq "-color") {
-+		$_ = "--color=$color";
-+	}
-+}
++#include <linux/sched/coredump.h>
 +
- GetOptions(
- 	'q|quiet+'	=> \$quiet,
- 	'tree!'		=> \$tree,
-@@ -211,7 +220,9 @@ GetOptions(
- 	'codespell!'	=> \$codespell,
- 	'codespellfile=s'	=> \$codespellfile,
- 	'typedefsfile=s'	=> \$typedefsfile,
--	'color!'	=> \$color,
-+	'color=s'	=> \$color,
-+	'no-color'	=> \$color,	#keep old behaviors of -nocolor
-+	'nocolor'	=> \$color,	#keep old behaviors of -nocolor
- 	'h|help'	=> \$help,
- 	'version'	=> \$help
- ) or help(1);
-@@ -237,6 +248,18 @@ if ($#ARGV < 0) {
- 	push(@ARGV, '-');
- }
- 
-+if ($color =~ /^[01]$/) {
-+	$color = !$color;
-+} elsif ($color =~ /^always$/i) {
-+	$color = 1;
-+} elsif ($color =~ /^never$/i) {
-+	$color = 0;
-+} elsif ($color =~ /^auto$/i) {
-+	$color = (-t STDOUT);
-+} else {
-+	die "Invalid color mode: $color\n";
-+}
-+
- sub hash_save_array_words {
- 	my ($hashRef, $arrayRef) = @_;
- 
-@@ -1882,7 +1905,7 @@ sub report {
- 		return 0;
- 	}
- 	my $output = '';
--	if (-t STDOUT && $color) {
-+	if ($color) {
- 		if ($level eq 'ERROR') {
- 			$output .= RED;
- 		} elsif ($level eq 'WARNING') {
-@@ -1893,10 +1916,10 @@ sub report {
- 	}
- 	$output .= $prefix . $level . ':';
- 	if ($show_types) {
--		$output .= BLUE if (-t STDOUT && $color);
-+		$output .= BLUE if ($color);
- 		$output .= "$type:";
- 	}
--	$output .= RESET if (-t STDOUT && $color);
-+	$output .= RESET if ($color);
- 	$output .= ' ' . $msg . "\n";
- 
- 	if ($showfile) {
+ extern int do_huge_pmd_anonymous_page(struct vm_fault *vmf);
+ extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
 _
 
-Patches currently in -mm which might be from john@fastquake.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-checkpatch-change-format-of-color-argument-to-color.patch
+i-need-old-gcc.patch
+mm-correct-the-comment-when-reclaimed-pages-exceed-the-scanned-pages-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+fs-introduce-filemap_range_has_page-fix.patch
+powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
+mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
+lib-extablec-use-bsearch-library-function-in-search_extable-checkpatch-fixes.patch
+signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+linux-next-git-rejects.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
