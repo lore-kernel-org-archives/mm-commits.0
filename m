@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all.patch
- added to -mm tree
-Date: Fri, 16 Jun 2017 11:37:02 -0700
-Message-ID: <5944254e.pfC7+PW5/m4k2OaU%akpm@linux-foundation.org>
+Subject: + checkpatch-change-format-of-color-argument-to-color.patch added to -mm tree
+Date: Fri, 16 Jun 2017 11:37:58 -0700
+Message-ID: <59442586.JdMWSzbCbD11Ikpo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60048 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750787AbdFPShD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 14:37:03 -0400
+        with ESMTP id S1750798AbdFPSh7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2017 14:37:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, ast@kernel.org, daniel@iogearbox.net, davem@davemloft.net, mm-commits@vger.kernel.org
+To: john@fastquake.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/kallsyms.c: replace all_var with IS_ENABLED(CONFIG_KALLSYMS_ALL)
+     Subject: checkpatch: change format of --color argument to --color[=WHEN]
 has been added to the -mm tree.  Its filename is
-     kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all.patch
+     checkpatch-change-format-of-color-argument-to-color.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-change-format-of-color-argument-to-color.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-change-format-of-color-argument-to-color.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +38,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: kernel/kallsyms.c: replace all_var with IS_ENABLED(CONFIG_KALLSYMS_ALL)
+From: John Brooks <john@fastquake.com>
+Subject: checkpatch: change format of --color argument to --color[=WHEN]
 
-'all_var' looks like a variable, but is actually a macro.  Use
-IS_ENABLED(CONFIG_KALLSYMS_ALL) for clarification.
+The boolean --color argument did not offer the ability to force colourized
+output even if stdout is not a terminal.  Change the format of the
+argument to the familiar --color[=WHEN] construct as seen in common Linux
+utilities such as git, ls and dmesg, which allows the user to specify
+whether to colourize output "always", "never", or "auto" when the output
+is a terminal.  The default is "auto".
 
-Link: http://lkml.kernel.org/r/1497577591-3434-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+The old command-line uses of --color and --no-color are unchanged.
+
+Link: http://lkml.kernel.org/r/efe43bdbad400f39ba691ae663044462493b0773.1496799721.git.joe@perches.com
+Signed-off-by: John Brooks <john@fastquake.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 6 deletions(-)
 
-diff -puN kernel/kallsyms.c~kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all kernel/kallsyms.c
---- a/kernel/kallsyms.c~kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all
-+++ a/kernel/kallsyms.c
-@@ -28,12 +28,6 @@
+diff -puN scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color
++++ a/scripts/checkpatch.pl
+@@ -56,7 +56,7 @@ my $codespell = 0;
+ my $codespellfile = "/usr/share/codespell/dictionary.txt";
+ my $conststructsfile = "$D/const_structs.checkpatch";
+ my $typedefsfile = "";
+-my $color = 1;
++my $color = "auto";
+ my $allow_c99_comments = 1;
  
- #include <asm/sections.h>
+ sub help {
+@@ -115,7 +115,8 @@ Options:
+                              (default:/usr/share/codespell/dictionary.txt)
+   --codespellfile            Use this codespell dictionary
+   --typedefsfile             Read additional types from this file
+-  --color                    Use colors when output is STDOUT (default: on)
++  --color[=WHEN]             Use colors 'always', 'never', or only when output
++                             is a terminal ('auto'). Default is 'auto'.
+   -h, --help, --version      display this help and exit
  
--#ifdef CONFIG_KALLSYMS_ALL
--#define all_var 1
--#else
--#define all_var 0
--#endif
--
- /*
-  * These will be re-linked against their real values
-  * during the second link stage.
-@@ -82,7 +76,7 @@ static inline int is_kernel(unsigned lon
+ When FILE is - read standard input.
+@@ -181,6 +182,14 @@ if (-f $conf) {
+ 	unshift(@ARGV, @conf_args) if @conf_args;
+ }
  
- static int is_ksym_addr(unsigned long addr)
- {
--	if (all_var)
-+	if (IS_ENABLED(CONFIG_KALLSYMS_ALL))
- 		return is_kernel(addr);
++# Perl's Getopt::Long allows options to take optional arguments after a space.
++# Prevent --color by itself from consuming other arguments
++foreach (@ARGV) {
++	if ($_ eq "--color" || $_ eq "-color") {
++		$_ = "--color=$color";
++	}
++}
++
+ GetOptions(
+ 	'q|quiet+'	=> \$quiet,
+ 	'tree!'		=> \$tree,
+@@ -211,7 +220,9 @@ GetOptions(
+ 	'codespell!'	=> \$codespell,
+ 	'codespellfile=s'	=> \$codespellfile,
+ 	'typedefsfile=s'	=> \$typedefsfile,
+-	'color!'	=> \$color,
++	'color=s'	=> \$color,
++	'no-color'	=> \$color,	#keep old behaviors of -nocolor
++	'nocolor'	=> \$color,	#keep old behaviors of -nocolor
+ 	'h|help'	=> \$help,
+ 	'version'	=> \$help
+ ) or help(1);
+@@ -237,6 +248,18 @@ if ($#ARGV < 0) {
+ 	push(@ARGV, '-');
+ }
  
- 	return is_kernel_text(addr) || is_kernel_inittext(addr);
-@@ -280,7 +274,7 @@ static unsigned long get_symbol_pos(unsi
- 	if (!symbol_end) {
- 		if (is_kernel_inittext(addr))
- 			symbol_end = (unsigned long)_einittext;
--		else if (all_var)
-+		else if (IS_ENABLED(CONFIG_KALLSYMS_ALL))
- 			symbol_end = (unsigned long)_end;
- 		else
- 			symbol_end = (unsigned long)_etext;
++if ($color =~ /^[01]$/) {
++	$color = !$color;
++} elsif ($color =~ /^always$/i) {
++	$color = 1;
++} elsif ($color =~ /^never$/i) {
++	$color = 0;
++} elsif ($color =~ /^auto$/i) {
++	$color = (-t STDOUT);
++} else {
++	die "Invalid color mode: $color\n";
++}
++
+ sub hash_save_array_words {
+ 	my ($hashRef, $arrayRef) = @_;
+ 
+@@ -1882,7 +1905,7 @@ sub report {
+ 		return 0;
+ 	}
+ 	my $output = '';
+-	if (-t STDOUT && $color) {
++	if ($color) {
+ 		if ($level eq 'ERROR') {
+ 			$output .= RED;
+ 		} elsif ($level eq 'WARNING') {
+@@ -1893,10 +1916,10 @@ sub report {
+ 	}
+ 	$output .= $prefix . $level . ':';
+ 	if ($show_types) {
+-		$output .= BLUE if (-t STDOUT && $color);
++		$output .= BLUE if ($color);
+ 		$output .= "$type:";
+ 	}
+-	$output .= RESET if (-t STDOUT && $color);
++	$output .= RESET if ($color);
+ 	$output .= ' ' . $msg . "\n";
+ 
+ 	if ($showfile) {
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from john@fastquake.com are
 
-kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all.patch
+checkpatch-change-format-of-color-argument-to-color.patch
 
