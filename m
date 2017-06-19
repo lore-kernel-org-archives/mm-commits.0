@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-remove-cond_resched-from-__collapse_huge_page_copy.patch added to -mm tree
-Date: Mon, 19 Jun 2017 14:12:36 -0700
-Message-ID: <59483e44.SrE2O6p89oHKloxG%akpm@linux-foundation.org>
+Subject: +
+ mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
+ added to -mm tree
+Date: Mon, 19 Jun 2017 15:08:00 -0700
+Message-ID: <59484b40.onc1NQepOxneuYpY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55540 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750903AbdFSVMh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2017 17:12:37 -0400
+        with ESMTP id S1752335AbdFSWIH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2017 18:08:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, Larry.Finger@lwfinger.net, mm-commits@vger.kernel.org
+To: punit.agrawal@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: remove cond_resched from __collapse_huge_page_copy
+     Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
 has been added to the -mm tree.  Its filename is
-     mm-thp-remove-cond_resched-from-__collapse_huge_page_copy.patch
+     mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-remove-cond_resched-from-__collapse_huge_page_copy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-remove-cond_resched-from-__collapse_huge_page_copy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,53 +40,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: remove cond_resched from __collapse_huge_page_copy
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
 
-This is a partial revert of commit 338a16ba1549 ("mm, thp: copying user
-pages must schedule on collapse") which added a cond_resched() to
-__collapse_huge_page_copy().
+fix arm64 ltp failure (pth_str01, pth_str03)
+(https://lkml.org/lkml/2017/6/5/332)
 
-On x86 with CONFIG_HIGHPTE, __collapse_huge_page_copy is called in atomic
-context and thus scheduling is not possible.  This is only a possible
-config on arm and i386.
-
-Although need_resched has been shown to be set for over 100 jiffies while
-doing the iteration in __collapse_huge_page_copy, this is better than
-doing
-
-	if (in_atomic())
-		cond_resched()
-
-to cover only non-CONFIG_HIGHPTE configs.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1706191341550.97821@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Larry Finger <Larry.Finger@lwfinger.net>
+Link: http://lkml.kernel.org/r/20170619170145.25577-5-punit.agrawal@arm.com
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/gup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-thp-remove-cond_resched-from-__collapse_huge_page_copy mm/khugepaged.c
---- a/mm/khugepaged.c~mm-thp-remove-cond_resched-from-__collapse_huge_page_copy
-+++ a/mm/khugepaged.c
-@@ -652,7 +652,6 @@ static void __collapse_huge_page_copy(pt
- 			spin_unlock(ptl);
- 			free_page_and_swap_cache(src_page);
- 		}
--		cond_resched();
- 	}
- }
+diff -puN mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5 mm/gup.c
+--- a/mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
++++ a/mm/gup.c
+@@ -1431,7 +1431,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
  
+-	head = compound_head(page);
++	head = compound_head(pmd_page(orig));
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
+@@ -1469,7 +1469,7 @@ static int gup_huge_pud(pud_t orig, pud_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
+ 
+-	head = compound_head(page);
++	head = compound_head(pud_page(orig));
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
+@@ -1506,7 +1506,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
+ 
+-	head = compound_head(page);
++	head = compound_head(pgd_page(orig));
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from punit.agrawal@arm.com are
 
-mm-thp-remove-cond_resched-from-__collapse_huge_page_copy.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch
-mm-vmpressure-pass-through-notification-support.patch
-mm-hugetlb-schedule-when-potentially-allocating-many-hugepages.patch
-fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
+mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
+mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
+mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
+mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
+mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
 
