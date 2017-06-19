@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
- added to -mm tree
-Date: Mon, 19 Jun 2017 15:08:00 -0700
-Message-ID: <59484b40.onc1NQepOxneuYpY%akpm@linux-foundation.org>
+Subject: + mm-fix-thp-handling-in-invalidate_mapping_pages.patch added to
+ -mm tree
+Date: Mon, 19 Jun 2017 15:20:51 -0700
+Message-ID: <59484e43.fcroHOJhZ+xU5g4w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56760 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752335AbdFSWIH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2017 18:08:07 -0400
+        with ESMTP id S1752227AbdFSWUw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2017 18:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: punit.agrawal@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
+     Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
 has been added to the -mm tree.  Its filename is
-     mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
+     mm-fix-thp-handling-in-invalidate_mapping_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-thp-handling-in-invalidate_mapping_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-thp-handling-in-invalidate_mapping_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,70 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
+From: Jan Kara <jack@suse.cz>
+Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
 
-fix arm64 ltp failure (pth_str01, pth_str03)
-(https://lkml.org/lkml/2017/6/5/332)
+The condition checking for THP straddling end of invalidated range is
+wrong - it checks 'index' against 'end' but 'index' has been already
+advanced to point to the end of THP and thus the condition can never be
+true.  As a result THP straddling 'end' has been fully invalidated.  Given
+the nature of invalidate_mapping_pages(), this could be only performance
+issue.  In fact, we are lucky the condition is wrong because if it was
+ever true, we'd leave locked page behind.
 
-Link: http://lkml.kernel.org/r/20170619170145.25577-5-punit.agrawal@arm.com
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Fix the condition checking for THP straddling 'end' and also properly
+unlock the page. Also update the comment before the condition to explain
+why we decide not to invalidate the page as it was not clear to me and I
+had to ask Kirill.
+
+Link: http://lkml.kernel.org/r/20170619124723.21656-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/truncate.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5 mm/gup.c
---- a/mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
-+++ a/mm/gup.c
-@@ -1431,7 +1431,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 		refs++;
- 	} while (addr += PAGE_SIZE, addr != end);
+diff -puN mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages mm/truncate.c
+--- a/mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages
++++ a/mm/truncate.c
+@@ -530,9 +530,15 @@ unsigned long invalidate_mapping_pages(s
+ 			} else if (PageTransHuge(page)) {
+ 				index += HPAGE_PMD_NR - 1;
+ 				i += HPAGE_PMD_NR - 1;
+-				/* 'end' is in the middle of THP */
+-				if (index ==  round_down(end, HPAGE_PMD_NR))
++				/*
++				 * 'end' is in the middle of THP. Don't
++				 * invalidate the page as the part outside of
++				 * 'end' could be still useful.
++				 */
++				if (index > end) {
++					unlock_page(page);
+ 					continue;
++				}
+ 			}
  
--	head = compound_head(page);
-+	head = compound_head(pmd_page(orig));
- 	if (!page_cache_add_speculative(head, refs)) {
- 		*nr -= refs;
- 		return 0;
-@@ -1469,7 +1469,7 @@ static int gup_huge_pud(pud_t orig, pud_
- 		refs++;
- 	} while (addr += PAGE_SIZE, addr != end);
- 
--	head = compound_head(page);
-+	head = compound_head(pud_page(orig));
- 	if (!page_cache_add_speculative(head, refs)) {
- 		*nr -= refs;
- 		return 0;
-@@ -1506,7 +1506,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
- 		refs++;
- 	} while (addr += PAGE_SIZE, addr != end);
- 
--	head = compound_head(page);
-+	head = compound_head(pgd_page(orig));
- 	if (!page_cache_add_speculative(head, refs)) {
- 		*nr -= refs;
- 		return 0;
+ 			ret = invalidate_inode_page(page);
 _
 
-Patches currently in -mm which might be from punit.agrawal@arm.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
-mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
-mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
-mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
-mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
+mm-fix-thp-handling-in-invalidate_mapping_pages.patch
 
