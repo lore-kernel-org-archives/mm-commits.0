@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-thp-handling-in-invalidate_mapping_pages.patch added to
- -mm tree
-Date: Mon, 19 Jun 2017 15:20:51 -0700
-Message-ID: <59484e43.fcroHOJhZ+xU5g4w%akpm@linux-foundation.org>
+Subject: + dax-fix-inefficiency-in-dax_writeback_mapping_range.patch added to -mm tree
+Date: Mon, 19 Jun 2017 15:22:26 -0700
+Message-ID: <59484ea2.ULJvjYft9m86Sc6I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56878 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752227AbdFSWUw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2017 18:20:52 -0400
+        with ESMTP id S1752364AbdFSWW1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2017 18:22:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, dan.j.williams@intel.com, ross.zwisler@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
+     Subject: fs/dax.c: fix inefficiency in dax_writeback_mapping_range()
 has been added to the -mm tree.  Its filename is
-     mm-fix-thp-handling-in-invalidate_mapping_pages.patch
+     dax-fix-inefficiency-in-dax_writeback_mapping_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-thp-handling-in-invalidate_mapping_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-inefficiency-in-dax_writeback_mapping_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-thp-handling-in-invalidate_mapping_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-inefficiency-in-dax_writeback_mapping_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +39,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
+Subject: fs/dax.c: fix inefficiency in dax_writeback_mapping_range()
 
-The condition checking for THP straddling end of invalidated range is
-wrong - it checks 'index' against 'end' but 'index' has been already
-advanced to point to the end of THP and thus the condition can never be
-true.  As a result THP straddling 'end' has been fully invalidated.  Given
-the nature of invalidate_mapping_pages(), this could be only performance
-issue.  In fact, we are lucky the condition is wrong because if it was
-ever true, we'd leave locked page behind.
+dax_writeback_mapping_range() fails to update iteration index when
+searching radix tree for entries needing cache flushing.  Thus each
+pagevec worth of entries is searched starting from the start which is
+inefficient and prone to livelocks.  Update index properly.
 
-Fix the condition checking for THP straddling 'end' and also properly
-unlock the page. Also update the comment before the condition to explain
-why we decide not to invalidate the page as it was not clear to me and I
-had to ask Kirill.
-
-Link: http://lkml.kernel.org/r/20170619124723.21656-1-jack@suse.cz
+Link: http://lkml.kernel.org/r/20170619124531.21491-1-jack@suse.cz
+Fixes: 9973c98ecfda3 ("dax: add support for fsync/sync")
 Signed-off-by: Jan Kara <jack@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ fs/dax.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages mm/truncate.c
---- a/mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages
-+++ a/mm/truncate.c
-@@ -530,9 +530,15 @@ unsigned long invalidate_mapping_pages(s
- 			} else if (PageTransHuge(page)) {
- 				index += HPAGE_PMD_NR - 1;
- 				i += HPAGE_PMD_NR - 1;
--				/* 'end' is in the middle of THP */
--				if (index ==  round_down(end, HPAGE_PMD_NR))
-+				/*
-+				 * 'end' is in the middle of THP. Don't
-+				 * invalidate the page as the part outside of
-+				 * 'end' could be still useful.
-+				 */
-+				if (index > end) {
-+					unlock_page(page);
- 					continue;
-+				}
- 			}
- 
- 			ret = invalidate_inode_page(page);
+diff -puN fs/dax.c~dax-fix-inefficiency-in-dax_writeback_mapping_range fs/dax.c
+--- a/fs/dax.c~dax-fix-inefficiency-in-dax_writeback_mapping_range
++++ a/fs/dax.c
+@@ -859,6 +859,7 @@ int dax_writeback_mapping_range(struct a
+ 			if (ret < 0)
+ 				goto out;
+ 		}
++		start_index = indices[pvec.nr - 1] + 1;
+ 	}
+ out:
+ 	put_dax(dax_dev);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
 
+dax-fix-inefficiency-in-dax_writeback_mapping_range.patch
 mm-fix-thp-handling-in-invalidate_mapping_pages.patch
 
