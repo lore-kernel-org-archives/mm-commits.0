@@ -1,27 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Tue, 20 Jun 2017 11:28:17 -0700
-Message-ID: <20170620182817.rrHpMbF4b%akpm@linux-foundation.org>
+Subject: +
+ kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch added to -mm tree
+Date: Tue, 20 Jun 2017 13:41:19 -0700
+Message-ID: <5949886f.fWKhjUcRjdaJRtEz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48738 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60216 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbdFTS2S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jun 2017 14:28:18 -0400
+        with ESMTP id S1751767AbdFTUlU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jun 2017 16:41:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, abbotti@mev.co.uk, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: kernel.h: fix new warnings for container_of()
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,62 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kernel.h: fix new warnings for container_of()
 
+I see new warnings with gcc-7.0.1 with the modified container_of():
+
+fs/f2fs/dir.c: In function 'F2FS_I':
+fs/f2fs/f2fs.h:1122:385: note: found mismatched ssa struct pointer types: 'struct f2fs_inode_info' and 'struct inode'
+
+This seems to happen for all structures that have a zero offset
+between the member and the container structure, i.e. idential
+pointers.
+
+Reverting to an intermediate pointer avoids the warning, and using
+a void pointer instead of the target type should also avoid
+regressing on the previous patch again.
+
+Fixes: mmotm ("kernel.h: handle pointers to arrays better in container_of()")
+Link: http://lkml.kernel.org/r/20170620200940.90557-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/kernel.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ipc.h~linux-next-rejects include/linux/ipc.h
---- a/include/linux/ipc.h~linux-next-rejects
-+++ a/include/linux/ipc.h
-@@ -23,6 +23,6 @@ struct kern_ipc_perm {
+diff -puN include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-handle-pointers-to-arrays-better-in-container_of-fix
++++ a/include/linux/kernel.h
+@@ -852,10 +852,11 @@ static inline void ftrace_dump(enum ftra
+  *
+  */
+ #define container_of(ptr, type, member) ({				\
++	void *__mptr = (void *)(ptr);					\
+ 	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
+ 			 !__same_type(*(ptr), void),			\
+ 			 "pointer type mismatch in container_of()");	\
+-	((type *)((char *)(ptr) - offsetof(type, member))); })
++	((type *)(__mptr - offsetof(type, member))); })
  
- 	struct rcu_head rcu;
- 	atomic_t refcount;
--} ____cacheline_aligned_in_smp;
-+} ____cacheline_aligned_in_smp __randomize_layout;
- 
- #endif /* _LINUX_IPC_H */
-diff -puN include/linux/sem.h~linux-next-rejects include/linux/sem.h
---- a/include/linux/sem.h~linux-next-rejects
-+++ a/include/linux/sem.h
-@@ -41,7 +41,7 @@ struct sem_array {
- 	unsigned int		use_global_lock;/* >0: global lock required */
- 
- 	struct sem		sems[];
--};
-+} __randomize_layout;
- 
- #ifdef CONFIG_SYSVIPC
- 
+ /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
+ #ifdef CONFIG_FTRACE_MCOUNT_RECORD
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
-hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
-signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level-fix.patch
+mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
+kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
 
