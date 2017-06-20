@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slub-make-sysfs-file-removal-asynchronous.patch added to -mm
+Subject: + kernel-watchdog-fix-spurious-hard-lockups.patch added to -mm
  tree
-Date: Tue, 20 Jun 2017 14:58:44 -0700
-Message-ID: <59499a94.YR3Nnr5G8KAGoYiz%akpm@linux-foundation.org>
+Date: Tue, 20 Jun 2017 15:02:29 -0700
+Message-ID: <59499b75.dRrb46FkfTn+dfvM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44058 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752749AbdFTV6p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jun 2017 17:58:45 -0400
+        with ESMTP id S1751090AbdFTWCa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jun 2017 18:02:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: Kan.liang@intel.com, acme@redhat.com, ak@linux.intel.com, atomlin@redhat.com, babu.moger@oracle.com, dzickus@redhat.com, eranian@google.com, mingo@kernel.org, peterz@infradead.org, prarit@redhat.com, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: make sysfs file removal asynchronous
+     Subject: kernel/watchdog_hld.c: fix spurious hard lockups
 has been added to the -mm tree.  Its filename is
-     slub-make-sysfs-file-removal-asynchronous.patch
+     kernel-watchdog-fix-spurious-hard-lockups.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-make-sysfs-file-removal-asynchronous.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdog-fix-spurious-hard-lockups.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-make-sysfs-file-removal-asynchronous.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdog-fix-spurious-hard-lockups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,188 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: slub: make sysfs file removal asynchronous
+From: Kan Liang <Kan.liang@intel.com>
+Subject: kernel/watchdog_hld.c: fix spurious hard lockups
 
-bf5eb3de3847 ("slub: separate out sysfs_slab_release() from
-sysfs_slab_remove()") made slub sysfs file removals synchronous to
-kmem_cache shutdown.  Unfortunately, this created a possible ABBA deadlock
-between slab_mutex and sysfs draining mechanism triggering the following
-lockdep warning.
+Some users reported spurious NMI watchdog timeouts.
 
-  ======================================================
-  [ INFO: possible circular locking dependency detected ]
-  4.10.0-test+ #48 Not tainted
-  -------------------------------------------------------
-  rmmod/1211 is trying to acquire lock:
-   (s_active#120){++++.+}, at: [<ffffffff81308073>] kernfs_remove+0x23/0x40
+We now have more and more systems where the Turbo range is wide enough
+that the NMI watchdog expires faster than the soft watchdog timer that
+updates the interrupt tick the NMI watchdog relies on.
 
-  but task is already holding lock:
-   (slab_mutex){+.+.+.}, at: [<ffffffff8120f691>] kmem_cache_destroy+0x41/0x2d0
+This problem was originally added by 58687acba592 ("lockup_detector:
+Combine nmi_watchdog and softlockup detector").  Previously the NMI
+watchdog would always check jiffies, which were ticking fast enough.  But
+now the backing is quite slow so the expire time becomes more sensitive.
 
-  which lock already depends on the new lock.
+For mainline the right fix is to switch the NMI watchdog to reference
+cycles, which tick always at the same rate independent of turbo mode.  But
+this is requires some complicated changes in perf, which are too difficult
+to backport.  Since we need a stable fix too just increase the NMI
+watchdog rate here to avoid the spurious timeouts.  This is not an ideal
+fix because a 3x as large Turbo range could still fail, but for now that's
+not likely.
 
-  the existing dependency chain (in reverse order) is:
+The right fix for mainline can be found here.
+perf/x86/intel: enable CPU ref_cycles for GP counter
+perf/x86/intel, watchdog: Switch NMI watchdog to ref cycles on x86
+https://patchwork.kernel.org/patch/9779087/
+https://patchwork.kernel.org/patch/9779089/
 
-  -> #1 (slab_mutex){+.+.+.}:
-	 lock_acquire+0xf6/0x1f0
-	 __mutex_lock+0x75/0x950
-	 mutex_lock_nested+0x1b/0x20
-	 slab_attr_store+0x75/0xd0
-	 sysfs_kf_write+0x45/0x60
-	 kernfs_fop_write+0x13c/0x1c0
-	 __vfs_write+0x28/0x120
-	 vfs_write+0xc8/0x1e0
-	 SyS_write+0x49/0xa0
-	 entry_SYSCALL_64_fastpath+0x1f/0xc2
-
-  -> #0 (s_active#120){++++.+}:
-	 __lock_acquire+0x10ed/0x1260
-	 lock_acquire+0xf6/0x1f0
-	 __kernfs_remove+0x254/0x320
-	 kernfs_remove+0x23/0x40
-	 sysfs_remove_dir+0x51/0x80
-	 kobject_del+0x18/0x50
-	 __kmem_cache_shutdown+0x3e6/0x460
-	 kmem_cache_destroy+0x1fb/0x2d0
-	 kvm_exit+0x2d/0x80 [kvm]
-	 vmx_exit+0x19/0xa1b [kvm_intel]
-	 SyS_delete_module+0x198/0x1f0
-	 entry_SYSCALL_64_fastpath+0x1f/0xc2
-
-  other info that might help us debug this:
-
-   Possible unsafe locking scenario:
-
-	 CPU0                    CPU1
-	 ----                    ----
-    lock(slab_mutex);
-				 lock(s_active#120);
-				 lock(slab_mutex);
-    lock(s_active#120);
-
-   *** DEADLOCK ***
-
-  2 locks held by rmmod/1211:
-   #0:  (cpu_hotplug.dep_map){++++++}, at: [<ffffffff810a7877>] get_online_cpus+0x37/0x80
-   #1:  (slab_mutex){+.+.+.}, at: [<ffffffff8120f691>] kmem_cache_destroy+0x41/0x2d0
-
-  stack backtrace:
-  CPU: 3 PID: 1211 Comm: rmmod Not tainted 4.10.0-test+ #48
-  Hardware name: Hewlett-Packard HP Compaq Pro 6300 SFF/339A, BIOS K01 v02.05 05/07/2012
-  Call Trace:
-   dump_stack+0x86/0xc3
-   print_circular_bug+0x1be/0x210
-   __lock_acquire+0x10ed/0x1260
-   ? 0xffffffffa0000077
-   lock_acquire+0xf6/0x1f0
-   ? kernfs_remove+0x23/0x40
-   __kernfs_remove+0x254/0x320
-   ? kernfs_remove+0x23/0x40
-   ? __kernfs_remove+0x5/0x320
-   kernfs_remove+0x23/0x40
-   sysfs_remove_dir+0x51/0x80
-   kobject_del+0x18/0x50
-   __kmem_cache_shutdown+0x3e6/0x460
-   kmem_cache_destroy+0x1fb/0x2d0
-   kvm_exit+0x2d/0x80 [kvm]
-   vmx_exit+0x19/0xa1b [kvm_intel]
-   SyS_delete_module+0x198/0x1f0
-   ? SyS_delete_module+0x5/0x1f0
-   entry_SYSCALL_64_fastpath+0x1f/0xc2
-  RIP: 0033:0x7fdf0439f487
-  RSP: 002b:00007ffcd39eb6b8 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
-  RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007fdf0439f487
-  RDX: 000000000000000a RSI: 0000000000000800 RDI: 000055e4e32f3258
-  RBP: 0000000000000000 R08: 000000000000000a R09: 0000000000000000
-  R10: 00007fdf0440ace0 R11: 0000000000000206 R12: 000055e4e32f31f0
-  R13: 00007ffcd39ea6a0 R14: 0000000000000000 R15: 000055e4e32f31f0
-
-It'd be the cleanest to deal with the issue by removing sysfs files
-without holding slab_mutex before the rest of shutdown; however, given the
-current code structure, it is pretty difficult to do so.  This patch punts
-sysfs file removal to a work item.  Before bf5eb3de3847, the removal was
-punted to a RCU delayed work item which is executed after release.  Now,
-we're punting to a different work item on shutdown which still maintains
-the goal removing the sysfs files earlier when destroying kmem_caches.
-
-Link: http://lkml.kernel.org/r/20170620204512.GI21326@htj.duckdns.org
-Fixes: bf5eb3de3847 ("slub: separate out sysfs_slab_release() from sysfs_slab_remove()")
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Tested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20170620213309.30051-1-kan.liang@intel.com
+Fixes: 58687acba592 ("lockup_detector: Combine nmi_watchdog and softlockup detector")
+Signed-off-by: Kan Liang <Kan.liang@intel.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Babu Moger <babu.moger@oracle.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Stephane Eranian <eranian@google.com>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    1 
- mm/slub.c                |   40 ++++++++++++++++++++++++-------------
- 2 files changed, 27 insertions(+), 14 deletions(-)
+ kernel/watchdog_hld.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/slub_def.h~slub-make-sysfs-file-removal-asynchronous include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-make-sysfs-file-removal-asynchronous
-+++ a/include/linux/slub_def.h
-@@ -84,6 +84,7 @@ struct kmem_cache {
- 	int red_left_pad;	/* Left redzone padding size */
- #ifdef CONFIG_SYSFS
- 	struct kobject kobj;	/* For sysfs */
-+	struct work_struct kobj_remove_work;
- #endif
- #ifdef CONFIG_MEMCG
- 	struct memcg_cache_params memcg_params;
-diff -puN mm/slub.c~slub-make-sysfs-file-removal-asynchronous mm/slub.c
---- a/mm/slub.c~slub-make-sysfs-file-removal-asynchronous
-+++ a/mm/slub.c
-@@ -5625,6 +5625,28 @@ static char *create_unique_id(struct kme
- 	return name;
- }
+diff -puN kernel/watchdog_hld.c~kernel-watchdog-fix-spurious-hard-lockups kernel/watchdog_hld.c
+--- a/kernel/watchdog_hld.c~kernel-watchdog-fix-spurious-hard-lockups
++++ a/kernel/watchdog_hld.c
+@@ -164,7 +164,7 @@ int watchdog_nmi_enable(unsigned int cpu
+ 		firstcpu = 1;
  
-+static void sysfs_slab_remove_workfn(struct work_struct *work)
-+{
-+	struct kmem_cache *s =
-+		container_of(work, struct kmem_cache, kobj_remove_work);
-+
-+	if (!s->kobj.state_in_sysfs)
-+		/*
-+		 * For a memcg cache, this may be called during
-+		 * deactivation and again on shutdown.  Remove only once.
-+		 * A cache is never shut down before deactivation is
-+		 * complete, so no need to worry about synchronization.
-+		 */
-+		return;
-+
-+#ifdef CONFIG_MEMCG
-+	kset_unregister(s->memcg_kset);
-+#endif
-+	kobject_uevent(&s->kobj, KOBJ_REMOVE);
-+	kobject_del(&s->kobj);
-+	kobject_put(&s->kobj);
-+}
-+
- static int sysfs_slab_add(struct kmem_cache *s)
- {
- 	int err;
-@@ -5632,6 +5654,8 @@ static int sysfs_slab_add(struct kmem_ca
- 	struct kset *kset = cache_kset(s);
- 	int unmergeable = slab_unmergeable(s);
+ 	wd_attr = &wd_hw_attr;
+-	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
++	wd_attr->sample_period = 3 * hw_nmi_get_sample_period(watchdog_thresh);
  
-+	INIT_WORK(&s->kobj_remove_work, sysfs_slab_remove_workfn);
-+
- 	if (!kset) {
- 		kobject_init(&s->kobj, &slab_ktype);
- 		return 0;
-@@ -5695,20 +5719,8 @@ static void sysfs_slab_remove(struct kme
- 		 */
- 		return;
- 
--	if (!s->kobj.state_in_sysfs)
--		/*
--		 * For a memcg cache, this may be called during
--		 * deactivation and again on shutdown.  Remove only once.
--		 * A cache is never shut down before deactivation is
--		 * complete, so no need to worry about synchronization.
--		 */
--		return;
+ 	/* Try to register using hardware perf events */
+ 	event = perf_event_create_kernel_counter(wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
+_
+
+Patches currently in -mm which might be from Kan.liang@intel.com are
+
+kernel-watchdog-fix-spurious-hard-lockups.patch
+
