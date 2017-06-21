@@ -1,99 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-shmem-handle-coredumping-in-handle_userfault.patch removed from
- -mm tree
-Date: Wed, 21 Jun 2017 15:05:32 -0700
-Message-ID: <20170621220532.BlmIzeeck%akpm@linux-foundation.org>
+ mm-correct-the-comment-when-reclaimed-pages-exceed-the-scanned-pages.patch
+ removed from -mm tree
+Date: Wed, 21 Jun 2017 15:05:35 -0700
+Message-ID: <20170621220535.X6jNL1k2u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36628 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751667AbdFUWFd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2017 18:05:33 -0400
+        with ESMTP id S1751667AbdFUWFg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2017 18:05:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dgilbert@redhat.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: minchan@kernel.org, mm-commits@vger.kernel.org, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: userfaultfd: shmem: handle coredumping in handle_userfault()
+     Subject: mm: correct the comment when reclaimed pages exceed the scanned pages
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-shmem-handle-coredumping-in-handle_userfault.patch
+     mm-correct-the-comment-when-reclaimed-pages-exceed-the-scanned-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: shmem: handle coredumping in handle_userfault()
+From: zhongjiang <zhongjiang@huawei.com>
+Subject: mm: correct the comment when reclaimed pages exceed the scanned pages
 
-Anon and hugetlbfs handle FOLL_DUMP set by get_dump_page() internally to
-__get_user_pages().
+e1587a494540 ("mm: vmpressure: fix sending wrong events on underflow")
+declare that reclaimed pages exceed the scanned pages due to the thp
+reclaim.  it is incorrect because THP will be spilt to normal page and
+loop again.  which will result in the scanned pages increment.
 
-shmem as opposed has no special FOLL_DUMP handling there so
-handle_mm_fault() is invoked without mmap_sem and ends up calling
-handle_userfault() that isn't expecting to be invoked without mmap_sem
-held.
-
-This makes handle_userfault() fail immediately if invoked through
-shmem_vm_ops->fault during coredumping and solves the problem.
-
-The side effect is a BUG_ON with no lock held triggered by the coredumping
-process which exits.  Only 4.11 is affected, pre-4.11 anon memory holes
-are skipped in __get_user_pages by checking FOLL_DUMP explicitly against
-empty pagetables (mm/gup.c:no_page_table()).
-
-It's zero cost as we already had a check for current->flags to prevent
-futex to trigger userfaults during exit (PF_EXITING).
-
-Link: http://lkml.kernel.org/r/20170615214838.27429-1-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: <stable@vger.kernel.org>	[4.11+]
+[akpm@linux-foundation.org: tweak comment text]
+Link: http://lkml.kernel.org/r/1496824266-25235-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhongjiang <zhongjiang@huawei.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   29 +++++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ mm/vmpressure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-shmem-handle-coredumping-in-handle_userfault fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-shmem-handle-coredumping-in-handle_userfault
-+++ a/fs/userfaultfd.c
-@@ -340,9 +340,28 @@ int handle_userfault(struct vm_fault *vm
- 	bool must_wait, return_to_userland;
- 	long blocking_state;
- 
--	BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
--
- 	ret = VM_FAULT_SIGBUS;
-+
-+	/*
-+	 * We don't do userfault handling for the final child pid update.
-+	 *
-+	 * We also don't do userfault handling during
-+	 * coredumping. hugetlbfs has the special
-+	 * follow_hugetlb_page() to skip missing pages in the
-+	 * FOLL_DUMP case, anon memory also checks for FOLL_DUMP with
-+	 * the no_page_table() helper in follow_page_mask(), but the
-+	 * shmem_vm_ops->fault method is invoked even during
-+	 * coredumping without mmap_sem and it ends up here.
-+	 */
-+	if (current->flags & (PF_EXITING|PF_DUMPCORE))
-+		goto out;
-+
-+	/*
-+	 * Coredumping runs without mmap_sem so we can only check that
-+	 * the mmap_sem is held, if PF_DUMPCORE was not set.
-+	 */
-+	WARN_ON_ONCE(!rwsem_is_locked(&mm->mmap_sem));
-+
- 	ctx = vmf->vma->vm_userfaultfd_ctx.ctx;
- 	if (!ctx)
- 		goto out;
-@@ -361,12 +380,6 @@ int handle_userfault(struct vm_fault *vm
- 		goto out;
+diff -puN mm/vmpressure.c~mm-correct-the-comment-when-reclaimed-pages-exceed-the-scanned-pages mm/vmpressure.c
+--- a/mm/vmpressure.c~mm-correct-the-comment-when-reclaimed-pages-exceed-the-scanned-pages
++++ a/mm/vmpressure.c
+@@ -115,9 +115,9 @@ static enum vmpressure_levels vmpressure
+ 	unsigned long pressure = 0;
  
  	/*
--	 * We don't do userfault handling for the final child pid update.
--	 */
--	if (current->flags & PF_EXITING)
--		goto out;
+-	 * reclaimed can be greater than scanned in cases
+-	 * like THP, where the scanned is 1 and reclaimed
+-	 * could be 512
++	 * reclaimed can be greater than scanned for things such as reclaimed
++	 * slab pages. shrink_node() just adds reclaimed pages without a
++	 * related increment to scanned pages.
+ 	 */
+ 	if (reclaimed >= scanned)
+ 		goto out;
+_
+
+Patches currently in -mm which might be from zhongjiang@huawei.com are
+
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+signal-avoid-undefined-behaviour-in-kill_something_info.patch
+exit-avoid-undefined-behaviour-when-call-wait4.patch
+
