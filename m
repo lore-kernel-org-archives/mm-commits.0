@@ -1,62 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap-cond_resched-in-swap_cgroup_prepare.patch
- removed from -mm tree
-Date: Wed, 21 Jun 2017 15:05:27 -0700
-Message-ID: <20170621220527.aU6OIiIu9%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-numa-avoid-waiting-on-freed-migrated-pages.patch removed from -mm tree
+Date: Wed, 21 Jun 2017 15:05:29 -0700
+Message-ID: <20170621220529.azQ-qAqyS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36618 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751667AbdFUWF2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2017 18:05:28 -0400
+        with ESMTP id S1751667AbdFUWFa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2017 18:05:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vdavydov.dev@gmail.com, yuzhao@google.com
+To: kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mgorman@suse.de, mm-commits@vger.kernel.org, stable@vger.kernel.org, steve.capper@arm.com, vbabka@suse.cz, will.deacon@arm.com
 
 
 The patch titled
-     Subject: swap: cond_resched in swap_cgroup_prepare()
+     Subject: mm: numa: avoid waiting on freed migrated pages
 has been removed from the -mm tree.  Its filename was
-     swap-cond_resched-in-swap_cgroup_prepare.patch
+     mm-numa-avoid-waiting-on-freed-migrated-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: swap: cond_resched in swap_cgroup_prepare()
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: mm: numa: avoid waiting on freed migrated pages
 
-Saw need_resched() warnings when swapping on large swapfile (TBs) because
-continuously allocating many pages in swap_cgroup_prepare() took too long.
+In do_huge_pmd_numa_page(), we attempt to handle a migrating thp pmd by
+waiting until the pmd is unlocked before we return and retry.  However, we
+can race with migrate_misplaced_transhuge_page():
 
-We already cond_resched when freeing page in swap_cgroup_swapoff().  Do
-the same for the page allocation.
+// do_huge_pmd_numa_page                // migrate_misplaced_transhuge_page()
+// Holds 0 refs on page                 // Holds 2 refs on page
 
-Link: http://lkml.kernel.org/r/20170604200109.17606-1-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+/* ... */
+if (pmd_trans_migrating(*vmf->pmd)) {
+        page = pmd_page(*vmf->pmd);
+        spin_unlock(vmf->ptl);
+                                        ptl = pmd_lock(mm, pmd);
+                                        if (page_count(page) != 2)) {
+                                                /* roll back */
+                                        }
+                                        /* ... */
+                                        mlock_migrate_page(new_page, page);
+                                        /* ... */
+                                        spin_unlock(ptl);
+                                        put_page(page);
+                                        put_page(page); // page freed here
+        wait_on_page_locked(page);
+        goto out;
+}
+
+This can result in the freed page having its waiters flag set
+unexpectedly, which trips the PAGE_FLAGS_CHECK_AT_PREP checks in the page
+alloc/free functions.  This has been observed on arm64 KVM guests.
+
+We can avoid this by having do_huge_pmd_numa_page() take a reference on
+the page before dropping the pmd lock, mirroring what we do in
+__migration_entry_wait().
+
+When we hit the race, migrate_misplaced_transhuge_page() will see the
+reference and abort the migration, as it may do today in other cases.
+
+Fixes: b8916634b77bffb2 ("mm: Prevent parallel splits during THP migration")
+Link: http://lkml.kernel.org/r/1497349722-6731-2-git-send-email-will.deacon@arm.com
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Acked-by: Steve Capper <steve.capper@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_cgroup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/huge_memory.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap_cgroup.c~swap-cond_resched-in-swap_cgroup_prepare mm/swap_cgroup.c
---- a/mm/swap_cgroup.c~swap-cond_resched-in-swap_cgroup_prepare
-+++ a/mm/swap_cgroup.c
-@@ -48,6 +48,9 @@ static int swap_cgroup_prepare(int type)
- 		if (!page)
- 			goto not_enough_page;
- 		ctrl->map[idx] = page;
-+
-+		if (!(idx % SWAP_CLUSTER_MAX))
-+			cond_resched();
+diff -puN mm/huge_memory.c~mm-numa-avoid-waiting-on-freed-migrated-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-avoid-waiting-on-freed-migrated-pages
++++ a/mm/huge_memory.c
+@@ -1426,8 +1426,11 @@ int do_huge_pmd_numa_page(struct vm_faul
+ 	 */
+ 	if (unlikely(pmd_trans_migrating(*vmf->pmd))) {
+ 		page = pmd_page(*vmf->pmd);
++		if (!get_page_unless_zero(page))
++			goto out_unlock;
+ 		spin_unlock(vmf->ptl);
+ 		wait_on_page_locked(page);
++		put_page(page);
+ 		goto out;
  	}
- 	return 0;
- not_enough_page:
+ 
+@@ -1459,9 +1462,12 @@ int do_huge_pmd_numa_page(struct vm_faul
+ 
+ 	/* Migration could have started since the pmd_trans_migrating check */
+ 	if (!page_locked) {
++		page_nid = -1;
++		if (!get_page_unless_zero(page))
++			goto out_unlock;
+ 		spin_unlock(vmf->ptl);
+ 		wait_on_page_locked(page);
+-		page_nid = -1;
++		put_page(page);
+ 		goto out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
 
