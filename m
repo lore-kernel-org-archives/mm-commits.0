@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
 Subject: + writeback-rework-wb__stat-family-of-functions.patch added to
  -mm tree
-Date: Thu, 22 Jun 2017 14:33:37 -0700
-Message-ID: <594c37b1.HrHfsTe6uKMaPwUa%akpm@linux-foundation.org>
+Date: Thu, 22 Jun 2017 14:34:43 -0700
+Message-ID: <594c37f3.ry3488mTL/LDE7sh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49750 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49762 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753261AbdFVVdi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:33:38 -0400
+        with ESMTP id S1752227AbdFVVep (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nborisov@suse.com, mm-commits@vger.kernel.org
+To: nborisov@suse.com, jack@suse.cz, jbacik@fb.com, jlayton@redhat.com, mgorman@techsingularity.net, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: Rework wb_[dec|inc]_stat family of functions
+     Subject: writeback: rework wb_[dec|inc]_stat family of functions
 has been added to the -mm tree.  Its filename is
      writeback-rework-wb__stat-family-of-functions.patch
 
@@ -40,32 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nikolay Borisov <nborisov@suse.com>
-Subject: writeback: Rework wb_[dec|inc]_stat family of functions
+Subject: writeback: rework wb_[dec|inc]_stat family of functions
 
 Currently the writeback statistics code uses a percpu counters to hold
-various statistics. Furthermore we have 2 families of functions - those which
-disable local irq and those which doesn't and whose names begin with
-double underscore. However, they both end up calling __add_wb_stats which in
-turn calls percpu_counter_add_batch which is already irq-safe.
+various statistics.  Furthermore we have 2 families of functions - those
+which disable local irq and those which doesn't and whose names begin with
+double underscore.  However, they both end up calling __add_wb_stats which
+in turn calls percpu_counter_add_batch which is already irq-safe.
 
-Exploiting this fact allows to eliminated the __wb_* functions since they don't
-add any further protection than we already have. Furthermore, refactor
-the wb_* function to call __add_wb_stat directly without the irq-disabling
-dance. This will likely result in better runtime of code which deals with
-modifying the stat counters.
+Exploiting this fact allows to eliminated the __wb_* functions since they
+don't add any further protection than we already have.  Furthermore,
+refactor the wb_* function to call __add_wb_stat directly without the
+irq-disabling dance.  This will likely result in better runtime of code
+which deals with modifying the stat counters.
 
-While at it also document why percpu_counter_add_batch is in fact preempt and
-irq-safe since at least 3 people got confused.
+While at it also document why percpu_counter_add_batch is in fact preempt
+and irq-safe since at least 3 people got confused.
 
 Link: http://lkml.kernel.org/r/1498029937-27293-1-git-send-email-nborisov@suse.com
 Signed-off-by: Nikolay Borisov <nborisov@suse.com>
----
-
-Changes since v2:
-    * Fixed build failure reported by kbuild test robot
-    * Explicitly document that percpu_counter_add_batch is preempt/irq safe
-
-index 63ee2940775c..309364aab2a5 100644
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Josef Bacik <jbacik@fb.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
