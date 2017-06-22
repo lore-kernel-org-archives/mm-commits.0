@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+ powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
  added to -mm tree
-Date: Thu, 22 Jun 2017 14:07:37 -0700
-Message-ID: <594c3199.i6qy+xjhOXWfagb9%akpm@linux-foundation.org>
+Date: Thu, 22 Jun 2017 14:07:39 -0700
+Message-ID: <594c319b.zf3c0C0ZazZppDDg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47448 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751224AbdFVVHi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:07:38 -0400
+        with ESMTP id S1751224AbdFVVHk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:07:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hughd@google.com, mingo@kernel.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/mmap: properly account for stack randomization in mmap_base
+     Subject: powerpc,mmap: properly account for stack randomization in mmap_base
 has been added to the -mm tree.  Its filename is
-     arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+     powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: arm64/mmap: properly account for stack randomization in mmap_base
+Subject: powerpc,mmap: properly account for stack randomization in mmap_base
 
 When RLIMIT_STACK is, for example, 256MB, the current code results in a
 gap between the top of the task and mmap_base of 256MB, failing to take
@@ -51,10 +51,9 @@ other words, the stack gets less than RLIMIT_STACK space.
 Ensure that the gap between the stack and mmap_base always takes stack
 randomization and the stack guard gap into account.
 
-Obtained from Daniel Micay's linux-hardened tree.
+Inspired by Daniel Micay's linux-hardened tree.
 
-Link: http://lkml.kernel.org/r/20170622200033.25714-3-riel@redhat.com
-Signed-off-by: Daniel Micay <danielmicay@gmail.com>
+Link: http://lkml.kernel.org/r/20170622200033.25714-4-riel@redhat.com
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Reported-by: Florian Weimer <fweimer@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -66,26 +65,51 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmap.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/mmap.c |   28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm64/mm/mmap.c~arm64-mmap-properly-account-for-stack-randomization-in-mmap_base arch/arm64/mm/mmap.c
---- a/arch/arm64/mm/mmap.c~arm64-mmap-properly-account-for-stack-randomization-in-mmap_base
-+++ a/arch/arm64/mm/mmap.c
-@@ -35,7 +35,7 @@
-  * Leave enough space between the mmap area and the stack to honour ulimit in
-  * the face of randomisation.
+diff -puN arch/powerpc/mm/mmap.c~powerpcmmap-properly-account-for-stack-randomization-in-mmap_base arch/powerpc/mm/mmap.c
+--- a/arch/powerpc/mm/mmap.c~powerpcmmap-properly-account-for-stack-randomization-in-mmap_base
++++ a/arch/powerpc/mm/mmap.c
+@@ -34,16 +34,9 @@
+ /*
+  * Top of mmap area (just below the process stack).
+  *
+- * Leave at least a ~128 MB hole on 32bit applications.
+- *
+- * On 64bit applications we randomise the stack by 1GB so we need to
+- * space our mmap start address by a further 1GB, otherwise there is a
+- * chance the mmap area will end up closer to the stack than our ulimit
+- * requires.
++ * Leave at least a ~128 MB hole.
   */
--#define MIN_GAP (SZ_128M + ((STACK_RND_MASK << PAGE_SHIFT) + 1))
-+#define MIN_GAP (SZ_128M)
- #define MAX_GAP	(STACK_TOP/6*5)
+-#define MIN_GAP32 (128*1024*1024)
+-#define MIN_GAP64 ((128 + 1024)*1024*1024UL)
+-#define MIN_GAP ((is_32bit_task()) ? MIN_GAP32 : MIN_GAP64)
++#define MIN_GAP (128*1024*1024)
+ #define MAX_GAP (TASK_SIZE/6*5)
  
- static int mmap_is_legacy(void)
-@@ -65,6 +65,11 @@ unsigned long arch_mmap_rnd(void)
- static unsigned long mmap_base(unsigned long rnd)
+ static inline int mmap_is_legacy(void)
+@@ -71,9 +64,26 @@ unsigned long arch_mmap_rnd(void)
+ 	return rnd << PAGE_SHIFT;
+ }
+ 
++static inline unsigned long stack_maxrandom_size(void)
++{
++	if (!(current->flags & PF_RANDOMIZE))
++		return 0;
++
++	/* 8MB for 32bit, 1GB for 64bit */
++	if (is_32bit_task())
++		return (1<<23);
++	else
++		return (1<<30);
++}
++
+ static inline unsigned long mmap_base(unsigned long rnd)
  {
  	unsigned long gap = rlimit(RLIMIT_STACK);
-+	unsigned long pad = (STACK_RND_MASK << PAGE_SHIFT) + stack_guard_gap;
++	unsigned long pad = stack_maxrandom_size() + stack_guard_gap;
 +
 +	/* Values close to RLIM_INFINITY can overflow. */
 +	if (gap + pad > gap)
