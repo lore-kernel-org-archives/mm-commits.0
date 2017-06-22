@@ -1,96 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
- removed from -mm tree
-Date: Thu, 22 Jun 2017 14:05:14 -0700
-Message-ID: <594c310a.avAi/ll1QabI+vnf%akpm@linux-foundation.org>
+ x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch removed from -mm tree
+Date: Thu, 22 Jun 2017 14:05:08 -0700
+Message-ID: <594c3104.KSqmQ+noZI/I7PMZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47308 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753692AbdFVVFU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:05:20 -0400
+        with ESMTP id S1752149AbdFVVFJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:05:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hpa@zytor.com, lwoodman@redhat.com, mhocko@kernel.org, mingo@kernel.org, oleg@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/mmap: properly account for stack randomization in mmap_base
+     Subject: x86/elf: move 32 bit ELF_ET_DYN_BASE to 256MB
 has been removed from the -mm tree.  Its filename was
-     arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+     x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: arm64/mmap: properly account for stack randomization in mmap_base
+Subject: x86/elf: move 32 bit ELF_ET_DYN_BASE to 256MB
 
-When RLIMIT_STACK is, for example, 256MB, the current code results in a
-gap between the top of the task and mmap_base of 256MB, failing to take
-into account the amount by which the stack address was randomized.  In
-other words, the stack gets less than RLIMIT_STACK space.
+When setting up mmap_base, we take care to start the mmap base below the
+maximum extent to which the stack will grow.  However, we take no such
+precautions with PIE binaries, which are placed at 5/6 of TASK_SIZE plus a
+random offset.  As a result, 32 bit PIE binaries can end up smack in the
+middle of where the stack (which is randomized down) is supposed to go.
 
-Ensure that the gap between the stack and mmap_base always takes stack
-randomization into account.
+That problem can be avoided by putting the 32 bit ELF_ET_DYN_BASE at
+256MB, which is a value linux-hardened and grsecurity have used for a long
+time now without any known (to me) bug reports.
 
-Obtained from Daniel Micay's linux-hardened tree.
-
-Link: http://lkml.kernel.org/r/20170602152010.2064-5-riel@redhat.com
-Signed-off-by: Daniel Micay <danielmicay@gmail.com>
+Link: http://lkml.kernel.org/r/20170602152010.2064-3-riel@redhat.com
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Florian Weimer <fweimer@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Florian Weimer <fweimer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmap.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/elf.h |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN arch/arm64/mm/mmap.c~arm64-mmap-properly-account-for-stack-randomization-in-mmap_base arch/arm64/mm/mmap.c
---- a/arch/arm64/mm/mmap.c~arm64-mmap-properly-account-for-stack-randomization-in-mmap_base
-+++ a/arch/arm64/mm/mmap.c
-@@ -34,7 +34,7 @@
-  * Leave enough space between the mmap area and the stack to honour ulimit in
-  * the face of randomisation.
-  */
--#define MIN_GAP (SZ_128M + ((STACK_RND_MASK << PAGE_SHIFT) + 1))
-+#define MIN_GAP (SZ_128M)
- #define MAX_GAP	(STACK_TOP/6*5)
+diff -puN arch/x86/include/asm/elf.h~x86-elf-move-32-bit-elf_et_dyn_base-to-256mb arch/x86/include/asm/elf.h
+--- a/arch/x86/include/asm/elf.h~x86-elf-move-32-bit-elf_et_dyn_base-to-256mb
++++ a/arch/x86/include/asm/elf.h
+@@ -245,12 +245,23 @@ extern int force_personality32;
+ #define CORE_DUMP_USE_REGSET
+ #define ELF_EXEC_PAGESIZE	4096
  
- static int mmap_is_legacy(void)
-@@ -64,6 +64,11 @@ unsigned long arch_mmap_rnd(void)
- static unsigned long mmap_base(unsigned long rnd)
- {
- 	unsigned long gap = rlimit(RLIMIT_STACK);
-+	unsigned long pad = STACK_RND_MASK << PAGE_SHIFT;
++/*
++ * True on X86_32 or when emulating IA32 on X86_64
++ */
++static inline int mmap_is_ia32(void)
++{
++	return IS_ENABLED(CONFIG_X86_32) ||
++	       (IS_ENABLED(CONFIG_COMPAT) &&
++		test_thread_flag(TIF_ADDR32));
++}
 +
-+	/* Values close to RLIM_INFINITY can overflow. */
-+	if (gap + pad > gap)
-+		gap += pad;
+ /* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
+    use of this is to invoke "./ld.so someprog" to test out a new version of
+    the loader.  We need to make sure that it is out of the way of the program
+    that it will "exec", and that there is sufficient room for the brk.  */
  
- 	if (gap < MIN_GAP)
- 		gap = MIN_GAP;
-_
-
-Patches currently in -mm which might be from riel@redhat.com are
-
-arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch
-powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
-randomstackprotect-introduce-get_random_canary-function.patch
-forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
-x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
-arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
-sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
-
+-#define ELF_ET_DYN_BASE		(TASK_SIZE / 3 * 2)
++#define ELF_ET_DYN_BASE		(mmap_is_ia32() ? 0x10000000UL : \
++				(TASK_SIZE / 3 * 2))
+ 
+ /* This yields a mask that user programs can use to figure out what
+    instruction set this CPU supports.  This could be done in user space,
+@@ -293,16 +304,6 @@ do {									\
+ 	}								\
+ } while (0)
+ 
+-/*
+- * True on X86_32 or when emulating IA32 on X86_64
+- */
+-static inline int mmap_is_ia32(void)
+-{
+-	return IS_ENABLED(CONFIG_X86_32) ||
+-	       (IS_ENABLED(CONFIG_COMPAT) &&
+-		test_thread_flag(TIF_ADDR32));
+-}
