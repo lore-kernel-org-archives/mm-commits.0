@@ -1,47 +1,48 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch removed
- from -mm tree
-Date: Thu, 22 Jun 2017 14:05:17 -0700
-Message-ID: <594c310d.5CNlXqvC/OCCaUOp%akpm@linux-foundation.org>
+ arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+ removed from -mm tree
+Date: Thu, 22 Jun 2017 14:05:14 -0700
+Message-ID: <594c310a.avAi/ll1QabI+vnf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47340 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753692AbdFVVFS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:05:18 -0400
+        with ESMTP id S1753692AbdFVVFU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:05:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hpa@zytor.com, lwoodman@redhat.com, mhocko@kernel.org, mingo@kernel.org, oleg@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: move COMPAT_ELF_ET_DYN_BASE lower in the address space
+     Subject: arm64/mmap: properly account for stack randomization in mmap_base
 has been removed from the -mm tree.  Its filename was
-     arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch
+     arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
-Subject: arm64: move COMPAT_ELF_ET_DYN_BASE lower in the address space
+Subject: arm64/mmap: properly account for stack randomization in mmap_base
 
-When setting up mmap_base, we take care to start the mmap base below the
-maximum extent to which the stack will grow.  However, we take no such
-precautions with PIE binaries, which are placed at 2/3 of TASK_SIZE plus a
-random offset.  As a result, 32 bit PIE binaries can end up smack in the
-middle of where the stack (which is randomized down) is supposed to go.
+When RLIMIT_STACK is, for example, 256MB, the current code results in a
+gap between the top of the task and mmap_base of 256MB, failing to take
+into account the amount by which the stack address was randomized.  In
+other words, the stack gets less than RLIMIT_STACK space.
 
-That problem can be avoided by putting the 32 bit ELF_ET_DYN_BASE at
-256MB, which is a value linux-hardened and grsecurity have used for a long
-time now without any known (to me) bug reports.
+Ensure that the gap between the stack and mmap_base always takes stack
+randomization into account.
 
-Link: http://lkml.kernel.org/r/20170602152010.2064-6-riel@redhat.com
-Signed-off-by: Rik van Riel <riel@redhat.com>
+Obtained from Daniel Micay's linux-hardened tree.
+
+Link: http://lkml.kernel.org/r/20170602152010.2064-5-riel@redhat.com
 Signed-off-by: Daniel Micay <danielmicay@gmail.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Florian Weimer <fweimer@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Larry Woodman <lwoodman@redhat.com>
@@ -51,29 +52,41 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Florian Weimer <fweimer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/elf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/mm/mmap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm64/include/asm/elf.h~arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space arch/arm64/include/asm/elf.h
---- a/arch/arm64/include/asm/elf.h~arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space
-+++ a/arch/arm64/include/asm/elf.h
-@@ -173,7 +173,7 @@ extern int arch_setup_additional_pages(s
+diff -puN arch/arm64/mm/mmap.c~arm64-mmap-properly-account-for-stack-randomization-in-mmap_base arch/arm64/mm/mmap.c
+--- a/arch/arm64/mm/mmap.c~arm64-mmap-properly-account-for-stack-randomization-in-mmap_base
++++ a/arch/arm64/mm/mmap.c
+@@ -34,7 +34,7 @@
+  * Leave enough space between the mmap area and the stack to honour ulimit in
+  * the face of randomisation.
+  */
+-#define MIN_GAP (SZ_128M + ((STACK_RND_MASK << PAGE_SHIFT) + 1))
++#define MIN_GAP (SZ_128M)
+ #define MAX_GAP	(STACK_TOP/6*5)
  
- #ifdef CONFIG_COMPAT
+ static int mmap_is_legacy(void)
+@@ -64,6 +64,11 @@ unsigned long arch_mmap_rnd(void)
+ static unsigned long mmap_base(unsigned long rnd)
+ {
+ 	unsigned long gap = rlimit(RLIMIT_STACK);
++	unsigned long pad = STACK_RND_MASK << PAGE_SHIFT;
++
++	/* Values close to RLIM_INFINITY can overflow. */
++	if (gap + pad > gap)
++		gap += pad;
  
--#define COMPAT_ELF_ET_DYN_BASE		(2 * TASK_SIZE_32 / 3)
-+#define COMPAT_ELF_ET_DYN_BASE		(0x10000000UL)
- 
- /* AArch32 registers. */
- #define COMPAT_ELF_NGREG		18
+ 	if (gap < MIN_GAP)
+ 		gap = MIN_GAP;
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
 
+arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch
 powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
 randomstackprotect-introduce-get_random_canary-function.patch
 forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
