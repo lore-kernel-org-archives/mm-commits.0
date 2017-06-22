@@ -1,122 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: + arm-reduce-elf_et_dyn_base.patch added to -mm tree
-Date: Thu, 22 Jun 2017 12:49:49 -0700
-Message-ID: <594c1f5d.B9XDilT+M5svSKrN%akpm@linux-foundation.org>
+Subject: [to-be-updated] binfmt_elf-document-load_bias-a-little-bit.patch
+ removed from -mm tree
+Date: Thu, 22 Jun 2017 14:05:05 -0700
+Message-ID: <594c3101.b8Qt+LUuNQJ5wuN2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40038 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47290 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753612AbdFVTtv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 15:49:51 -0400
+        with ESMTP id S1751221AbdFVVFG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, dsafonov@virtuozzo.com, grzegorz.andrejczuk@intel.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.hogan@imgtec.com, linux@armlinux.org.uk, luto@amacapital.net, mingo@kernel.org, mpe@ellerman.id.au, panand@redhat.com, paulus@samba.org, qsa@qualys.com, riel@redhat.com, schwidefsky@de.ibm.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, will.deacon@arm.com, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hpa@zytor.com, lwoodman@redhat.com, mhocko@kernel.org, mingo@kernel.org, oleg@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: reduce ELF_ET_DYN_BASE
-has been added to the -mm tree.  Its filename is
-     arm-reduce-elf_et_dyn_base.patch
+     Subject: binfmt_elf: document load_bias a little bit
+has been removed from the -mm tree.  Its filename was
+     binfmt_elf-document-load_bias-a-little-bit.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-reduce-elf_et_dyn_base.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-reduce-elf_et_dyn_base.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: arm: reduce ELF_ET_DYN_BASE
+From: Rik van Riel <riel@redhat.com>
+Subject: binfmt_elf: document load_bias a little bit
 
-Now that explicitly executed loaders are loaded in the mmap region,
-position PIE binaries lower in the address space to avoid possible
-collisions with mmap or stack regions.
+Patch series "move mmap_area and PIE binaries away from the stack".
 
-Link: http://lkml.kernel.org/r/1498154792-49952-2-git-send-email-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+There are a few bugs causing the kernel to sometimes map PIE binaries and
+the mmap_area where the stack is supposed to go.
+
+This series fixes them for x86, ARM64, and PPC.  S390 seems to be ok.
+
+
+This patch (of 6):
+
+After I and another unnamed developer got confused by the subtraction of
+vaddr in this branch of the code, followed by adding vaddr back in a
+little bit later, for the third time, maybe it is time to document this
+quirky bit of code.
+
+Link: http://lkml.kernel.org/r/20170602152010.2064-2-riel@redhat.com
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Pratyush Anand <panand@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
-Cc: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Qualys Security Advisory <qsa@qualys.com>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Florian Weimer <fweimer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/elf.h |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ fs/binfmt_elf.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/include/asm/elf.h~arm-reduce-elf_et_dyn_base arch/arm/include/asm/elf.h
---- a/arch/arm/include/asm/elf.h~arm-reduce-elf_et_dyn_base
-+++ a/arch/arm/include/asm/elf.h
-@@ -112,12 +112,8 @@ int dump_task_regs(struct task_struct *t
- #define CORE_DUMP_USE_REGSET
- #define ELF_EXEC_PAGESIZE	4096
- 
--/* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
--   use of this is to invoke "./ld.so someprog" to test out a new version of
--   the loader.  We need to make sure that it is out of the way of the program
--   that it will "exec", and that there is sufficient room for the brk.  */
--
--#define ELF_ET_DYN_BASE	(TASK_SIZE / 3 * 2)
-+/* This is the base location for PIE (ET_DYN with INTERP) loads. */
-+#define ELF_ET_DYN_BASE		0x400000UL
- 
- /* When the program starts, a1 contains a pointer to a function to be 
-    registered with atexit, as per the SVR4 ABI.  A value of 0 means we 
+diff -puN fs/binfmt_elf.c~binfmt_elf-document-load_bias-a-little-bit fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-document-load_bias-a-little-bit
++++ a/fs/binfmt_elf.c
+@@ -930,10 +930,16 @@ static int load_elf_binary(struct linux_
+ 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
+ 			elf_flags |= MAP_FIXED;
+ 		} else if (loc->elf_ex.e_type == ET_DYN) {
+-			/* Try and get dynamic programs out of the way of the
++			/*
++			 * Try and get dynamic programs out of the way of the
+ 			 * default mmap base, as well as whatever program they
+ 			 * might try to exec.  This is because the brk will
+-			 * follow the loader, and is not movable.  */
++			 * follow the loader, and is not movable.
++			 *
++			 * The load_bias is the difference between the address
++			 * in the elf header and the address where the binary
++			 * is mmapped.
++			 */
+ 			load_bias = ELF_ET_DYN_BASE - vaddr;
+ 			if (current->flags & PF_RANDOMIZE)
+ 				load_bias += arch_mmap_rnd();
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
-arm-reduce-elf_et_dyn_base.patch
-arm64-reduce-elf_et_dyn_base.patch
-powerpc-reduce-elf_et_dyn_base.patch
-s390-reduce-elf_et_dyn_base.patch
-ipc-drop-non-rcu-allocation.patch
-ipc-sem-do-not-use-ipc_rcu_free.patch
-ipc-shm-do-not-use-ipc_rcu_free.patch
-ipc-msg-do-not-use-ipc_rcu_free.patch
-ipc-util-drop-ipc_rcu_free.patch
-ipc-sem-avoid-ipc_rcu_alloc.patch
-ipc-shm-avoid-ipc_rcu_alloc.patch
-ipc-msg-avoid-ipc_rcu_alloc.patch
-ipc-util-drop-ipc_rcu_alloc.patch
-ipc-move-atomic_set-to-where-it-is-needed.patch
-ipc-shm-remove-special-shm_alloc-free.patch
-ipc-msg-remove-special-msg_alloc-free.patch
-ipc-sem-drop-__sem_free.patch
-efi-avoid-fortify-checks-in-efi-stub.patch
-x86-power-64-use-char-arrays-for-asm-function-names.patch
-kexec_file-adjust-declaration-of-kexec_purgatory.patch
-ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
+x86-elf-move-32-bit-elf_et_dyn_base-to-256mb.patch
+x86-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
+arm64-move-compat_elf_et_dyn_base-lower-in-the-address-space.patch
+powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+randomstackprotect-introduce-get_random_canary-function.patch
+forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
+x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
+arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
+sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
 
