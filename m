@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
- added to -mm tree
-Date: Thu, 22 Jun 2017 14:07:39 -0700
-Message-ID: <594c319b.zf3c0C0ZazZppDDg%akpm@linux-foundation.org>
+Subject: + binfmt_elf-safely-increment-argv-pointers.patch added to -mm
+ tree
+Date: Thu, 22 Jun 2017 14:08:48 -0700
+Message-ID: <594c31e0.gzybbbmJE5IHpT+w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47454 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751224AbdFVVHk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:07:40 -0400
+        with ESMTP id S1751221AbdFVVIt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, fweimer@redhat.com, hughd@google.com, mingo@kernel.org, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, danielmicay@gmail.com, dsafonov@virtuozzo.com, grzegorz.andrejczuk@intel.com, hpa@zytor.com, luto@amacapital.net, mingo@redhat.com, qsa@qualys.com, riel@redhat.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc,mmap: properly account for stack randomization in mmap_base
+     Subject: binfmt_elf: safely increment argv pointers
 has been added to the -mm tree.  Its filename is
-     powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+     binfmt_elf-safely-increment-argv-pointers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf-safely-increment-argv-pointers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf-safely-increment-argv-pointers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,93 +39,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: powerpc,mmap: properly account for stack randomization in mmap_base
+From: Kees Cook <keescook@chromium.org>
+Subject: binfmt_elf: safely increment argv pointers
 
-When RLIMIT_STACK is, for example, 256MB, the current code results in a
-gap between the top of the task and mmap_base of 256MB, failing to take
-into account the amount by which the stack address was randomized.  In
-other words, the stack gets less than RLIMIT_STACK space.
+When building the argv/envp pointers, the envp is needlessly
+pre-incremented instead of just continuing after the argv pointers are
+finished.  In some (likely impossible) race where the strings could be
+changed from userspace between copy_strings() and here, it might be
+possible to confuse the envp position.  Instead, just use sp like
+everything else.
 
-Ensure that the gap between the stack and mmap_base always takes stack
-randomization and the stack guard gap into account.
-
-Inspired by Daniel Micay's linux-hardened tree.
-
-Link: http://lkml.kernel.org/r/20170622200033.25714-4-riel@redhat.com
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Florian Weimer <fweimer@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>
+Link: http://lkml.kernel.org/r/20170622173838.GA43308@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Qualys Security Advisory <qsa@qualys.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mmap.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ fs/binfmt_elf.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/mm/mmap.c~powerpcmmap-properly-account-for-stack-randomization-in-mmap_base arch/powerpc/mm/mmap.c
---- a/arch/powerpc/mm/mmap.c~powerpcmmap-properly-account-for-stack-randomization-in-mmap_base
-+++ a/arch/powerpc/mm/mmap.c
-@@ -34,16 +34,9 @@
- /*
-  * Top of mmap area (just below the process stack).
-  *
-- * Leave at least a ~128 MB hole on 32bit applications.
-- *
-- * On 64bit applications we randomise the stack by 1GB so we need to
-- * space our mmap start address by a further 1GB, otherwise there is a
-- * chance the mmap area will end up closer to the stack than our ulimit
-- * requires.
-+ * Leave at least a ~128 MB hole.
-  */
--#define MIN_GAP32 (128*1024*1024)
--#define MIN_GAP64 ((128 + 1024)*1024*1024UL)
--#define MIN_GAP ((is_32bit_task()) ? MIN_GAP32 : MIN_GAP64)
-+#define MIN_GAP (128*1024*1024)
- #define MAX_GAP (TASK_SIZE/6*5)
+diff -puN fs/binfmt_elf.c~binfmt_elf-safely-increment-argv-pointers fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-safely-increment-argv-pointers
++++ a/fs/binfmt_elf.c
+@@ -163,8 +163,6 @@ create_elf_tables(struct linux_binprm *b
+ 	unsigned long p = bprm->p;
+ 	int argc = bprm->argc;
+ 	int envc = bprm->envc;
+-	elf_addr_t __user *argv;
+-	elf_addr_t __user *envp;
+ 	elf_addr_t __user *sp;
+ 	elf_addr_t __user *u_platform;
+ 	elf_addr_t __user *u_base_platform;
+@@ -304,38 +302,38 @@ create_elf_tables(struct linux_binprm *b
+ 	/* Now, let's put argc (and argv, envp if appropriate) on the stack */
+ 	if (__put_user(argc, sp++))
+ 		return -EFAULT;
+-	argv = sp;
+-	envp = argv + argc + 1;
  
- static inline int mmap_is_legacy(void)
-@@ -71,9 +64,26 @@ unsigned long arch_mmap_rnd(void)
- 	return rnd << PAGE_SHIFT;
- }
+-	/* Populate argv and envp */
++	/* Populate list of argv pointers back to argv strings. */
+ 	p = current->mm->arg_end = current->mm->arg_start;
+ 	while (argc-- > 0) {
+ 		size_t len;
+-		if (__put_user((elf_addr_t)p, argv++))
++		if (__put_user((elf_addr_t)p, sp++))
+ 			return -EFAULT;
+ 		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
+ 		if (!len || len > MAX_ARG_STRLEN)
+ 			return -EINVAL;
+ 		p += len;
+ 	}
+-	if (__put_user(0, argv))
++	if (__put_user(0, sp++))
+ 		return -EFAULT;
+-	current->mm->arg_end = current->mm->env_start = p;
++	current->mm->arg_end = p;
++
++	/* Populate list of envp pointers back to envp strings. */
++	current->mm->env_end = current->mm->env_start = p;
+ 	while (envc-- > 0) {
+ 		size_t len;
+-		if (__put_user((elf_addr_t)p, envp++))
++		if (__put_user((elf_addr_t)p, sp++))
+ 			return -EFAULT;
+ 		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
+ 		if (!len || len > MAX_ARG_STRLEN)
+ 			return -EINVAL;
+ 		p += len;
+ 	}
+-	if (__put_user(0, envp))
++	if (__put_user(0, sp++))
+ 		return -EFAULT;
+ 	current->mm->env_end = p;
  
-+static inline unsigned long stack_maxrandom_size(void)
-+{
-+	if (!(current->flags & PF_RANDOMIZE))
-+		return 0;
-+
-+	/* 8MB for 32bit, 1GB for 64bit */
-+	if (is_32bit_task())
-+		return (1<<23);
-+	else
-+		return (1<<30);
-+}
-+
- static inline unsigned long mmap_base(unsigned long rnd)
- {
- 	unsigned long gap = rlimit(RLIMIT_STACK);
-+	unsigned long pad = stack_maxrandom_size() + stack_guard_gap;
-+
-+	/* Values close to RLIM_INFINITY can overflow. */
-+	if (gap + pad > gap)
-+		gap += pad;
- 
- 	if (gap < MIN_GAP)
- 		gap = MIN_GAP;
+ 	/* Put the elf_info on the stack in the right place.  */
+-	sp = (elf_addr_t __user *)envp + 1;
+ 	if (copy_to_user(sp, elf_info, ei_index * sizeof(elf_addr_t)))
+ 		return -EFAULT;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-randomstackprotect-introduce-get_random_canary-function.patch
-forkrandom-use-get_random_canary-to-set-tsk-stack_canary.patch
-x86-ascii-armor-the-x86_64-boot-init-stack-canary.patch
-arm64-ascii-armor-the-arm64-boot-init-stack-canary.patch
-sh64-ascii-armor-the-sh64-boot-init-stack-canary.patch
-x86-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
-arm64-mmap-properly-account-for-stack-randomization-in-mmap_base.patch
-powerpcmmap-properly-account-for-stack-randomization-in-mmap_base.patch
+binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
+arm-reduce-elf_et_dyn_base.patch
+arm64-reduce-elf_et_dyn_base.patch
+powerpc-reduce-elf_et_dyn_base.patch
+s390-reduce-elf_et_dyn_base.patch
+binfmt_elf-safely-increment-argv-pointers.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
+efi-avoid-fortify-checks-in-efi-stub.patch
+x86-power-64-use-char-arrays-for-asm-function-names.patch
+kexec_file-adjust-declaration-of-kexec_purgatory.patch
+ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
 
