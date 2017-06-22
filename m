@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2.patch added to -mm tree
-Date: Thu, 22 Jun 2017 14:21:50 -0700
-Message-ID: <594c34ee.OyAZSii/OS/KHX92%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr.patch
+ added to -mm tree
+Date: Thu, 22 Jun 2017 14:24:11 -0700
+Message-ID: <594c357b.nG5MAN/gbB6AndIW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49270 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753842AbdFVVV4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:21:56 -0400
+        with ESMTP id S1752424AbdFVVYM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:24:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.weiyang@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, tv@lio96.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: remove duplicate call for set_page_links
+     Subject: ocfs2: fix deadlock caused by recursive locking in xattr
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2.patch
+     ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memory_hotplug: remove duplicate call for set_page_links
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix deadlock caused by recursive locking in xattr
 
-In move_pfn_range_to_zone(), memmap_init_zone() will call set_page_links
-for each page.  This means we don't need to call it on each page
-explicitly.
+Another deadlock path caused by recursive locking is reported.  This kind
+of issue was introduced since commit 743b5f1434f5 ("ocfs2: take inode lock
+in ocfs2_iop_set/get_acl()").  Two deadlock paths have been fixed by
+commit b891fa5024a9 ("ocfs2: fix deadlock issue when taking inode lock at
+vfs entry points").  Yes, we intend to fix this kind of case in
+incremental way, because it's hard to find out all possible paths at once.
 
-This patch just removes the loop.
+This one can be reproduced like this.  On node1, cp a large file from home
+directory to ocfs2 mountpoint.  While on node2, run setfacl/getfacl.  Both
+nodes will hang up there.  The backtraces:
 
-Link: http://lkml.kernel.org/r/20170616092335.5177-2-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+On node1:
+[<ffffffffc06a1f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
+[<ffffffffc06a2d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
+[<ffffffffc0692043>] ocfs2_write_begin+0x43/0x1a0 [ocfs2]
+[<ffffffffa21ac719>] generic_perform_write+0xa9/0x180
+[<ffffffffa21aecda>] __generic_file_write_iter+0x1aa/0x1d0
+[<ffffffffc06abc24>] ocfs2_file_write_iter+0x4f4/0xb40 [ocfs2]
+[<ffffffffa223c3b3>] __vfs_write+0xc3/0x130
+[<ffffffffa223cae1>] vfs_write+0xb1/0x1a0
+[<ffffffffa223dfe6>] SyS_write+0x46/0xa0
+
+On node2:
+[<ffffffffc07b6f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
+[<ffffffffc07b7d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
+[<ffffffffc0815c1e>] ocfs2_xattr_set+0x12e/0xe80 [ocfs2]
+[<ffffffffc081783d>] ocfs2_set_acl+0x22d/0x260 [ocfs2]
+[<ffffffffc08178d5>] ocfs2_iop_set_acl+0x65/0xb0 [ocfs2]
+[<ffffffffa62a43f5>] set_posix_acl+0x75/0xb0
+[<ffffffffa62a4479>] posix_acl_xattr_set+0x49/0xa0
+[<ffffffffa6265c69>] __vfs_setxattr+0x69/0x80
+[<ffffffffa6266832>] __vfs_setxattr_noperm+0x72/0x1a0
+[<ffffffffa6266a07>] vfs_setxattr+0xa7/0xb0
+[<ffffffffa6266b3d>] setxattr+0x12d/0x190
+[<ffffffffa6266c3f>] path_setxattr+0x9f/0xb0
+[<ffffffffa6266d74>] SyS_setxattr+0x14/0x20
+
+Fixes this one by using ocfs2_inode_{lock|unlock}_tracker, which is
+exported by commit 439a36b8ef38 ("ocfs2/dlmglue: prepare tracking logic to
+avoid recursive cluster lock").
+
+Link: http://lkml.kernel.org/r/20170622014746.5815-1-zren@suse.com
+Fixes: 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+Signed-off-by: Eric Ren <zren@suse.com>
+Reported-by: Thomas Voegtle <tv@lio96.de>
+Tested-by: Thomas Voegtle <tv@lio96.de>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/ocfs2/dlmglue.c |    4 ++++
+ fs/ocfs2/xattr.c   |   23 +++++++++++++----------
+ 2 files changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2 mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2
-+++ a/mm/memory_hotplug.c
-@@ -1103,10 +1103,6 @@ void move_pfn_range_to_zone(struct zone
- 	 * are reserved so nobody should be touching them so we should be safe
- 	 */
- 	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn, MEMMAP_HOTPLUG);
--	for (i = 0; i < nr_pages; i++) {
--		unsigned long pfn = start_pfn + i;
--		set_page_links(pfn_to_page(pfn), zone_idx(zone), nid, pfn);
--	}
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
++++ a/fs/ocfs2/dlmglue.c
+@@ -2591,6 +2591,10 @@ void ocfs2_inode_unlock_tracker(struct i
+ 	struct ocfs2_lock_res *lockres;
  
- 	set_zone_contiguous(zone);
- }
+ 	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	/* had_lock means that the currect process already takes the cluster
++	 * lock previously. If had_lock is 1, we have nothing to do here, and
++	 * it will get unlocked where we got the lock.
++	 */
+ 	if (!had_lock) {
+ 		ocfs2_remove_holder(lockres, oh);
+ 		ocfs2_inode_unlock(inode, ex);
+diff -puN fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
++++ a/fs/ocfs2/xattr.c
+@@ -1328,20 +1328,21 @@ static int ocfs2_xattr_get(struct inode
+ 			   void *buffer,
+ 			   size_t buffer_size)
+ {
+-	int ret;
++	int ret, had_lock;
+ 	struct buffer_head *di_bh = NULL;
++	struct ocfs2_lock_holder oh;
+ 
+-	ret = ocfs2_inode_lock(inode, &di_bh, 0);
+-	if (ret < 0) {
+-		mlog_errno(ret);
+-		return ret;
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 0, &oh);
++	if (had_lock < 0) {
++		mlog_errno(had_lock);
++		return had_lock;
+ 	}
+ 	down_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	ret = ocfs2_xattr_get_nolock(inode, di_bh, name_index,
+ 				     name, buffer, buffer_size);
+ 	up_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 
+-	ocfs2_inode_unlock(inode, 0);
++	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ 
+ 	brelse(di_bh);
+ 
+@@ -3537,11 +3538,12 @@ int ocfs2_xattr_set(struct inode *inode,
+ {
+ 	struct buffer_head *di_bh = NULL;
+ 	struct ocfs2_dinode *di;
+-	int ret, credits, ref_meta = 0, ref_credits = 0;
++	int ret, credits, had_lock, ref_meta = 0, ref_credits = 0;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	struct inode *tl_inode = osb->osb_tl_inode;
+ 	struct ocfs2_xattr_set_ctxt ctxt = { NULL, NULL, NULL, };
+ 	struct ocfs2_refcount_tree *ref_tree = NULL;
++	struct ocfs2_lock_holder oh;
+ 
+ 	struct ocfs2_xattr_info xi = {
+ 		.xi_name_index = name_index,
+@@ -3572,8 +3574,9 @@ int ocfs2_xattr_set(struct inode *inode,
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = ocfs2_inode_lock(inode, &di_bh, 1);
+-	if (ret < 0) {
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 1, &oh);
++	if (had_lock < 0) {
++		ret = had_lock;
+ 		mlog_errno(ret);
+ 		goto cleanup_nolock;
+ 	}
+@@ -3670,7 +3673,7 @@ cleanup:
+ 		if (ret)
+ 			mlog_errno(ret);
+ 	}
+-	ocfs2_inode_unlock(inode, 1);
++	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ cleanup_nolock:
+ 	brelse(di_bh);
+ 	brelse(xbs.xattr_bh);
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from zren@suse.com are
 
-mm-slub-remove-a-redundant-assignment-in-___slab_alloc.patch
-mm-slub-reset-cpu_slabs-pointer-in-deactivate_slab.patch
-mm-slub-pack-red_left_pad-with-another-int-to-save-a-word.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial.patch
-mm-slub-wrap-kmem_cache-cpu_partial-in-config-config_slub_cpu_partial.patch
-mm-nobootmem-return-0-when-start_pfn-equals-end_pfn.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2.patch
-mm-page_alloc-return-0-in-case-this-node-has-no-page-within-the-zone.patch
+ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr.patch
 
