@@ -1,204 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-rework-wb__stat-family-of-functions.patch added to
- -mm tree
-Date: Thu, 22 Jun 2017 14:34:43 -0700
-Message-ID: <594c37f3.ry3488mTL/LDE7sh%akpm@linux-foundation.org>
+Subject: [to-be-updated] kernel-watchdog-fix-spurious-hard-lockups.patch
+ removed from -mm tree
+Date: Thu, 22 Jun 2017 14:38:32 -0700
+Message-ID: <594c38d8.BoHN6gf765OB0FJ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49876 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752227AbdFVVep (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:34:45 -0400
+        with ESMTP id S1753772AbdFVVie (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:38:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nborisov@suse.com, jack@suse.cz, jbacik@fb.com, jlayton@redhat.com, mgorman@techsingularity.net, tj@kernel.org, mm-commits@vger.kernel.org
+To: Kan.liang@intel.com, acme@redhat.com, ak@linux.intel.com, atomlin@redhat.com, babu.moger@oracle.com, dzickus@redhat.com, eranian@google.com, mingo@kernel.org, peterz@infradead.org, prarit@redhat.com, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: rework wb_[dec|inc]_stat family of functions
-has been added to the -mm tree.  Its filename is
-     writeback-rework-wb__stat-family-of-functions.patch
+     Subject: kernel/watchdog_hld.c: fix spurious hard lockups
+has been removed from the -mm tree.  Its filename was
+     kernel-watchdog-fix-spurious-hard-lockups.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/writeback-rework-wb__stat-family-of-functions.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/writeback-rework-wb__stat-family-of-functions.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Nikolay Borisov <nborisov@suse.com>
-Subject: writeback: rework wb_[dec|inc]_stat family of functions
+From: Kan Liang <Kan.liang@intel.com>
+Subject: kernel/watchdog_hld.c: fix spurious hard lockups
 
-Currently the writeback statistics code uses a percpu counters to hold
-various statistics.  Furthermore we have 2 families of functions - those
-which disable local irq and those which doesn't and whose names begin with
-double underscore.  However, they both end up calling __add_wb_stats which
-in turn calls percpu_counter_add_batch which is already irq-safe.
+Some users reported spurious NMI watchdog timeouts.
 
-Exploiting this fact allows to eliminated the __wb_* functions since they
-don't add any further protection than we already have.  Furthermore,
-refactor the wb_* function to call __add_wb_stat directly without the
-irq-disabling dance.  This will likely result in better runtime of code
-which deals with modifying the stat counters.
+We now have more and more systems where the Turbo range is wide enough
+that the NMI watchdog expires faster than the soft watchdog timer that
+updates the interrupt tick the NMI watchdog relies on.
 
-While at it also document why percpu_counter_add_batch is in fact preempt
-and irq-safe since at least 3 people got confused.
+This problem was originally added by 58687acba592 ("lockup_detector:
+Combine nmi_watchdog and softlockup detector").  Previously the NMI
+watchdog would always check jiffies, which were ticking fast enough.  But
+now the backing is quite slow so the expire time becomes more sensitive.
 
-Link: http://lkml.kernel.org/r/1498029937-27293-1-git-send-email-nborisov@suse.com
-Signed-off-by: Nikolay Borisov <nborisov@suse.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Josef Bacik <jbacik@fb.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jeff Layton <jlayton@redhat.com>
+For mainline the right fix is to switch the NMI watchdog to reference
+cycles, which tick always at the same rate independent of turbo mode.  But
+this is requires some complicated changes in perf, which are too difficult
+to backport.  Since we need a stable fix too just increase the NMI
+watchdog rate here to avoid the spurious timeouts.  This is not an ideal
+fix because a 3x as large Turbo range could still fail, but for now that's
+not likely.
+
+The right fix for mainline can be found here.
+perf/x86/intel: enable CPU ref_cycles for GP counter
+perf/x86/intel, watchdog: Switch NMI watchdog to ref cycles on x86
+https://patchwork.kernel.org/patch/9779087/
+https://patchwork.kernel.org/patch/9779089/
+
+Link: http://lkml.kernel.org/r/20170620213309.30051-1-kan.liang@intel.com
+Fixes: 58687acba592 ("lockup_detector: Combine nmi_watchdog and softlockup detector")
+Signed-off-by: Kan Liang <Kan.liang@intel.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Babu Moger <babu.moger@oracle.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Stephane Eranian <eranian@google.com>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c           |    8 ++++----
- include/linux/backing-dev.h |   24 ++----------------------
- lib/percpu_counter.c        |    7 +++++++
- mm/page-writeback.c         |   10 +++++-----
- 4 files changed, 18 insertions(+), 31 deletions(-)
+ kernel/watchdog_hld.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-rework-wb__stat-family-of-functions fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-rework-wb__stat-family-of-functions
-+++ a/fs/fs-writeback.c
-@@ -380,8 +380,8 @@ static void inode_switch_wbs_work_fn(str
- 		struct page *page = radix_tree_deref_slot_protected(slot,
- 							&mapping->tree_lock);
- 		if (likely(page) && PageDirty(page)) {
--			__dec_wb_stat(old_wb, WB_RECLAIMABLE);
--			__inc_wb_stat(new_wb, WB_RECLAIMABLE);
-+			dec_wb_stat(old_wb, WB_RECLAIMABLE);
-+			inc_wb_stat(new_wb, WB_RECLAIMABLE);
- 		}
- 	}
+diff -puN kernel/watchdog_hld.c~kernel-watchdog-fix-spurious-hard-lockups kernel/watchdog_hld.c
+--- a/kernel/watchdog_hld.c~kernel-watchdog-fix-spurious-hard-lockups
++++ a/kernel/watchdog_hld.c
+@@ -164,7 +164,7 @@ int watchdog_nmi_enable(unsigned int cpu
+ 		firstcpu = 1;
  
-@@ -391,8 +391,8 @@ static void inode_switch_wbs_work_fn(str
- 							&mapping->tree_lock);
- 		if (likely(page)) {
- 			WARN_ON_ONCE(!PageWriteback(page));
--			__dec_wb_stat(old_wb, WB_WRITEBACK);
--			__inc_wb_stat(new_wb, WB_WRITEBACK);
-+			dec_wb_stat(old_wb, WB_WRITEBACK);
-+			inc_wb_stat(new_wb, WB_WRITEBACK);
- 		}
- 	}
+ 	wd_attr = &wd_hw_attr;
+-	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
++	wd_attr->sample_period = 3 * hw_nmi_get_sample_period(watchdog_thresh);
  
-diff -puN include/linux/backing-dev.h~writeback-rework-wb__stat-family-of-functions include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~writeback-rework-wb__stat-family-of-functions
-+++ a/include/linux/backing-dev.h
-@@ -69,34 +69,14 @@ static inline void __add_wb_stat(struct
- 	percpu_counter_add_batch(&wb->stat[item], amount, WB_STAT_BATCH);
- }
- 
--static inline void __inc_wb_stat(struct bdi_writeback *wb,
--				 enum wb_stat_item item)
--{
--	__add_wb_stat(wb, item, 1);
--}
--
- static inline void inc_wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
- {
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__inc_wb_stat(wb, item);
--	local_irq_restore(flags);
--}
--
--static inline void __dec_wb_stat(struct bdi_writeback *wb,
--				 enum wb_stat_item item)
--{
--	__add_wb_stat(wb, item, -1);
-+	__add_wb_stat(wb, item, 1);
- }
- 
- static inline void dec_wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
- {
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__dec_wb_stat(wb, item);
--	local_irq_restore(flags);
-+	__add_wb_stat(wb, item, -1);
- }
- 
- static inline s64 wb_stat(struct bdi_writeback *wb, enum wb_stat_item item)
-diff -puN lib/percpu_counter.c~writeback-rework-wb__stat-family-of-functions lib/percpu_counter.c
---- a/lib/percpu_counter.c~writeback-rework-wb__stat-family-of-functions
-+++ a/lib/percpu_counter.c
-@@ -72,6 +72,13 @@ void percpu_counter_set(struct percpu_co
- }
- EXPORT_SYMBOL(percpu_counter_set);
- 
-+/**
-+ * This function is both preempt and irq safe. The former is due to explicit
-+ * preemption disable. The latter is guaranteed by the fact that the slow path
-+ * is explicitly protected by an irq-safe spinlock whereas the fast patch uses
-+ * this_cpu_add which is irq-safe by definition. Hence there is no need muck
-+ * with irq state before calling this one
-+ */
- void percpu_counter_add_batch(struct percpu_counter *fbc, s64 amount, s32 batch)
- {
- 	s64 count;
-diff -puN mm/page-writeback.c~writeback-rework-wb__stat-family-of-functions mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-rework-wb__stat-family-of-functions
-+++ a/mm/page-writeback.c
-@@ -601,7 +601,7 @@ static inline void __wb_writeout_inc(str
- {
- 	struct wb_domain *cgdom;
- 
--	__inc_wb_stat(wb, WB_WRITTEN);
-+	inc_wb_stat(wb, WB_WRITTEN);
- 	wb_domain_writeout_inc(&global_wb_domain, &wb->completions,
- 			       wb->bdi->max_prop_frac);
- 
-@@ -2435,8 +2435,8 @@ void account_page_dirtied(struct page *p
- 		__inc_lruvec_page_state(page, NR_FILE_DIRTY);
- 		__inc_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		__inc_node_page_state(page, NR_DIRTIED);
--		__inc_wb_stat(wb, WB_RECLAIMABLE);
--		__inc_wb_stat(wb, WB_DIRTIED);
-+		inc_wb_stat(wb, WB_RECLAIMABLE);
-+		inc_wb_stat(wb, WB_DIRTIED);
- 		task_io_account_write(PAGE_SIZE);
- 		current->nr_dirtied++;
- 		this_cpu_inc(bdp_ratelimits);
-@@ -2741,7 +2741,7 @@ int test_clear_page_writeback(struct pag
- 			if (bdi_cap_account_writeback(bdi)) {
- 				struct bdi_writeback *wb = inode_to_wb(inode);
- 
--				__dec_wb_stat(wb, WB_WRITEBACK);
-+				dec_wb_stat(wb, WB_WRITEBACK);
- 				__wb_writeout_inc(wb);
- 			}
- 		}
-@@ -2786,7 +2786,7 @@ int __test_set_page_writeback(struct pag
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
- 			if (bdi_cap_account_writeback(bdi))
--				__inc_wb_stat(inode_to_wb(inode), WB_WRITEBACK);
-+				inc_wb_stat(inode_to_wb(inode), WB_WRITEBACK);
- 
- 			/*
- 			 * We can come through here when swapping anonymous
+ 	/* Try to register using hardware perf events */
+ 	event = perf_event_create_kernel_counter(wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
 _
 
-Patches currently in -mm which might be from nborisov@suse.com are
+Patches currently in -mm which might be from Kan.liang@intel.com are
 
-writeback-rework-wb__stat-family-of-functions.patch
 
