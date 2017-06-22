@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed.patch added to -mm tree
-Date: Thu, 22 Jun 2017 14:47:44 -0700
-Message-ID: <594c3b00.8v1M0VuI/0xPIHzd%akpm@linux-foundation.org>
+Subject: + kernel-extablec-mark-core_kernel_text-notrace.patch added to
+ -mm tree
+Date: Thu, 22 Jun 2017 14:57:42 -0700
+Message-ID: <594c3d56.SdUXG2ESkWZBBqTT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50324 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751202AbdFVVrq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:47:46 -0400
+        with ESMTP id S1751202AbdFVV5n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 17:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vinmenon@codeaurora.org, bigeasy@linutronix.de, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, rientjes@google.com, sergey.senozhatsky@gmail.com, sudipm.mukherjee@gmail.com, vbabka@suse.cz, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: marcin.nowakowski@imgtec.com, daniel@iogearbox.net, mhiramat@kernel.org, mingo@kernel.org, paul.gortmaker@windriver.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, thomas@m3y3r.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid taking zone lock in pagetypeinfo_showmixed()
+     Subject: kernel/extable.c: mark core_kernel_text notrace
 has been added to the -mm tree.  Its filename is
-     mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed.patch
+     kernel-extablec-mark-core_kernel_text-notrace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-extablec-mark-core_kernel_text-notrace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-extablec-mark-core_kernel_text-notrace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,146 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vinayak Menon <vinmenon@codeaurora.org>
-Subject: mm: avoid taking zone lock in pagetypeinfo_showmixed()
+From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Subject: kernel/extable.c: mark core_kernel_text notrace
 
-pagetypeinfo_showmixedcount_print is found to take a lot of time to
-complete and it does this holding the zone lock and disabling interrupts. 
-In some cases it is found to take more than a second (On a 2.4GHz,8Gb
-RAM,arm64 cpu).  Avoid taking the zone lock similar to what is done by
-read_page_owner, which means possibility of inaccurate results.
+core_kernel_text is used by MIPS in its function graph trace processing,
+so having this method traced leads to an infinite set of recursive calls
+such as:
 
-Link: http://lkml.kernel.org/r/1498045643-12257-1-git-send-email-vinmenon@codeaurora.org
-Signed-off-by: Vinayak Menon <vinmenon@codeaurora.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: zhongjiang <zhongjiang@huawei.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+[    2.972075] Call Trace:
+[    2.972111]
+[    2.976731] [<80506584>] ftrace_return_to_handler+0x50/0x128
+[    2.983379] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    2.989146] [<804119b8>] prepare_ftrace_return+0x6c/0x114
+[    2.995402] [<80411b2c>] ftrace_graph_caller+0x20/0x44
+[    3.001362] [<80411b60>] return_to_handler+0x10/0x30
+[    3.007159] [<80411b50>] return_to_handler+0x0/0x30
+[    3.012827] [<80411b50>] return_to_handler+0x0/0x30
+[    3.018621] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
+[    3.024602] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.030377] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.036140] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.041915] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
+[    3.047923] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.053682] [<804119b8>] prepare_ftrace_return+0x6c/0x114
+[    3.059938] [<80411b2c>] ftrace_graph_caller+0x20/0x44
+(...)
+
+Mark the function notrace to avoid it being traced.
+
+Link: http://lkml.kernel.org/r/1498028607-6765-1-git-send-email-marcin.nowakowski@imgtec.com
+Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Reviewed-by: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Meyer <thomas@m3y3r.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    6 +++++-
- mm/vmstat.c     |   24 ++++++++++++++----------
- 2 files changed, 19 insertions(+), 11 deletions(-)
+ kernel/extable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_owner.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed mm/page_owner.c
---- a/mm/page_owner.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed
-+++ a/mm/page_owner.c
-@@ -281,7 +281,11 @@ void pagetypeinfo_showmixedcount_print(s
- 				continue;
+diff -puN kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace kernel/extable.c
+--- a/kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace
++++ a/kernel/extable.c
+@@ -69,7 +69,7 @@ static inline int init_kernel_text(unsig
+ 	return 0;
+ }
  
- 			if (PageBuddy(page)) {
--				pfn += (1UL << page_order(page)) - 1;
-+				unsigned long freepage_order;
-+
-+				freepage_order = page_order_unsafe(page);
-+				if (freepage_order < MAX_ORDER)
-+					pfn += (1UL << freepage_order) - 1;
- 				continue;
- 			}
- 
-diff -puN mm/vmstat.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed mm/vmstat.c
---- a/mm/vmstat.c~mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed
-+++ a/mm/vmstat.c
-@@ -1130,7 +1130,7 @@ static void frag_stop(struct seq_file *m
-  * If @assert_populated is true, only use callback for zones that are populated.
-  */
- static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
--		bool assert_populated,
-+		bool assert_populated, bool nolock,
- 		void (*print)(struct seq_file *m, pg_data_t *, struct zone *))
+-int core_kernel_text(unsigned long addr)
++int notrace core_kernel_text(unsigned long addr)
  {
- 	struct zone *zone;
-@@ -1141,9 +1141,11 @@ static void walk_zones_in_node(struct se
- 		if (assert_populated && !populated_zone(zone))
- 			continue;
- 
--		spin_lock_irqsave(&zone->lock, flags);
-+		if (!nolock)
-+			spin_lock_irqsave(&zone->lock, flags);
- 		print(m, pgdat, zone);
--		spin_unlock_irqrestore(&zone->lock, flags);
-+		if (!nolock)
-+			spin_unlock_irqrestore(&zone->lock, flags);
- 	}
- }
- #endif
-@@ -1166,7 +1168,7 @@ static void frag_show_print(struct seq_f
- static int frag_show(struct seq_file *m, void *arg)
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
--	walk_zones_in_node(m, pgdat, true, frag_show_print);
-+	walk_zones_in_node(m, pgdat, true, false, frag_show_print);
- 	return 0;
- }
- 
-@@ -1207,7 +1209,7 @@ static int pagetypeinfo_showfree(struct
- 		seq_printf(m, "%6d ", order);
- 	seq_putc(m, '\n');
- 
--	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showfree_print);
-+	walk_zones_in_node(m, pgdat, true, false, pagetypeinfo_showfree_print);
- 
- 	return 0;
- }
-@@ -1258,7 +1260,8 @@ static int pagetypeinfo_showblockcount(s
- 	for (mtype = 0; mtype < MIGRATE_TYPES; mtype++)
- 		seq_printf(m, "%12s ", migratetype_names[mtype]);
- 	seq_putc(m, '\n');
--	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showblockcount_print);
-+	walk_zones_in_node(m, pgdat, true, false,
-+		pagetypeinfo_showblockcount_print);
- 
- 	return 0;
- }
-@@ -1284,7 +1287,8 @@ static void pagetypeinfo_showmixedcount(
- 		seq_printf(m, "%12s ", migratetype_names[mtype]);
- 	seq_putc(m, '\n');
- 
--	walk_zones_in_node(m, pgdat, true, pagetypeinfo_showmixedcount_print);
-+	walk_zones_in_node(m, pgdat, true, true,
-+		pagetypeinfo_showmixedcount_print);
- #endif /* CONFIG_PAGE_OWNER */
- }
- 
-@@ -1446,7 +1450,7 @@ static void zoneinfo_show_print(struct s
- static int zoneinfo_show(struct seq_file *m, void *arg)
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
--	walk_zones_in_node(m, pgdat, false, zoneinfo_show_print);
-+	walk_zones_in_node(m, pgdat, false, false, zoneinfo_show_print);
- 	return 0;
- }
- 
-@@ -1852,7 +1856,7 @@ static int unusable_show(struct seq_file
- 	if (!node_state(pgdat->node_id, N_MEMORY))
- 		return 0;
- 
--	walk_zones_in_node(m, pgdat, true, unusable_show_print);
-+	walk_zones_in_node(m, pgdat, true, false, unusable_show_print);
- 
- 	return 0;
- }
-@@ -1904,7 +1908,7 @@ static int extfrag_show(struct seq_file
- {
- 	pg_data_t *pgdat = (pg_data_t *)arg;
- 
--	walk_zones_in_node(m, pgdat, true, extfrag_show_print);
-+	walk_zones_in_node(m, pgdat, true, false, extfrag_show_print);
- 
- 	return 0;
- }
+ 	if (addr >= (unsigned long)_stext &&
+ 	    addr < (unsigned long)_etext)
 _
 
-Patches currently in -mm which might be from vinmenon@codeaurora.org are
+Patches currently in -mm which might be from marcin.nowakowski@imgtec.com are
 
-mm-avoid-taking-zone-lock-in-pagetypeinfo_showmixed.patch
-mm-vmscan-do-not-pass-reclaimed-slab-to-vmpressure.patch
+kernel-extablec-mark-core_kernel_text-notrace.patch
 
