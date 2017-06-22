@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
- added to -mm tree
-Date: Thu, 22 Jun 2017 12:41:50 -0700
-Message-ID: <594c1d7e.EeUho0GzJZGDU+Cz%akpm@linux-foundation.org>
+ mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration.patch added to -mm tree
+Date: Thu, 22 Jun 2017 12:41:52 -0700
+Message-ID: <594c1d80.Tz0MDr/HTcM2czxe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39596 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752392AbdFVTlv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 15:41:51 -0400
+        with ESMTP id S1752392AbdFVTlx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 15:41:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, mgorman@suse.de, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: add support for preferred node to alloc_huge_page_nodemask
+     Subject: mm, hugetlb, soft_offline: use new_page_nodemask for soft offline migration
 has been added to the -mm tree.  Its filename is
-     hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
+     mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,222 +40,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: hugetlb: add support for preferred node to alloc_huge_page_nodemask
+Subject: mm, hugetlb, soft_offline: use new_page_nodemask for soft offline migration
 
-alloc_huge_page_nodemask tries to allocate from any numa node in the
-allowed node mask starting from lower numa nodes.  This might lead to
-filling up those low NUMA nodes while others are not used.  We can reduce
-this risk by introducing a concept of the preferred node similar to what
-we have in the regular page allocator.  We will start allocating from the
-preferred nid and then iterate over all allowed nodes in the zonelist
-order until we try them all.
+new_page is yet another duplication of the migration callback which has to
+handle hugetlb migration specially.  We can safely use the generic
+new_page_nodemask for the same purpose.
 
-This is mimicing the page allocator logic except it operates on per-node
-mempools.  dequeue_huge_page_vma already does this so distill the zonelist
-logic into a more generic dequeue_huge_page_nodemask and use it in
-alloc_huge_page_nodemask.
+Please note that gigantic hugetlb pages do not need any special handling
+because alloc_huge_page_nodemask will make sure to check pages in all per
+node pools.  The reason this was done previously was that
+alloc_huge_page_node treated NO_NUMA_NODE and a specific node differently
+and so alloc_huge_page_node(nid) would check on this specific node.
 
-This will allow us to use proper per numa distance fallback also for
-alloc_huge_page_node which can use alloc_huge_page_nodemask now and we can
-get rid of alloc_huge_page_node helper which doesn't have any user
-anymore.
-
-Link: http://lkml.kernel.org/r/20170622193034.28972-3-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170622193034.28972-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +-
- include/linux/migrate.h |    2 
- mm/hugetlb.c            |   88 +++++++++++++++++++-------------------
- 3 files changed, 48 insertions(+), 47 deletions(-)
+ mm/memory-failure.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/include/linux/hugetlb.h
-@@ -349,7 +349,8 @@ struct page *alloc_huge_page(struct vm_a
- struct page *alloc_huge_page_node(struct hstate *h, int nid);
- struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
--struct page *alloc_huge_page_nodemask(struct hstate *h, nodemask_t *nmask);
-+struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-+				nodemask_t *nmask);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
- 
-@@ -525,7 +526,7 @@ static inline void set_huge_swap_pte_at(
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
- #define alloc_huge_page_node(h, nid) NULL
--#define alloc_huge_page_nodemask(h, nmask) NULL
-+#define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
- #define alloc_huge_page_noerr(v, a, r) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
-diff -puN include/linux/migrate.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask include/linux/migrate.h
---- a/include/linux/migrate.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/include/linux/migrate.h
-@@ -38,7 +38,7 @@ static inline struct page *new_page_node
- 
- 	if (PageHuge(page))
- 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
--				nodemask);
-+				preferred_nid, nodemask);
- 
- 	if (PageHighMem(page)
- 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
-diff -puN mm/hugetlb.c~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/mm/hugetlb.c
-@@ -887,19 +887,39 @@ static struct page *dequeue_huge_page_no
- 	return page;
- }
- 
--static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
-+static struct page *dequeue_huge_page_nodemask(struct hstate *h, gfp_t gfp_mask, int nid,
-+		nodemask_t *nmask)
+diff -puN mm/memory-failure.c~mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration
++++ a/mm/memory-failure.c
+@@ -1484,16 +1484,8 @@ EXPORT_SYMBOL(unpoison_memory);
+ static struct page *new_page(struct page *p, unsigned long private, int **x)
  {
--	struct page *page;
--	int node;
-+	unsigned int cpuset_mems_cookie;
-+	struct zonelist *zonelist;
-+	struct zone *zone;
-+	struct zoneref *z;
-+	int node = -1;
+ 	int nid = page_to_nid(p);
+-	if (PageHuge(p)) {
+-		struct hstate *hstate = page_hstate(compound_head(p));
  
--	if (nid != NUMA_NO_NODE)
--		return dequeue_huge_page_node_exact(h, nid);
-+	zonelist = node_zonelist(nid, gfp_mask);
-+
-+retry_cpuset:
-+	cpuset_mems_cookie = read_mems_allowed_begin();
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), nmask) {
-+		struct page *page;
-+
-+		if (!cpuset_zone_allowed(zone, gfp_mask))
-+			continue;
-+		/*
-+		 * no need to ask again on the same node. Pool is node rather than
-+		 * zone aware
-+		 */
-+		if (zone_to_nid(zone) == node)
-+			continue;
-+		node = zone_to_nid(zone);
- 
--	for_each_online_node(node) {
- 		page = dequeue_huge_page_node_exact(h, node);
- 		if (page)
- 			return page;
- 	}
-+	if (unlikely(read_mems_allowed_retry(cpuset_mems_cookie)))
-+		goto retry_cpuset;
-+
- 	return NULL;
- }
- 
-@@ -917,15 +937,11 @@ static struct page *dequeue_huge_page_vm
- 				unsigned long address, int avoid_reserve,
- 				long chg)
- {
--	struct page *page = NULL;
-+	struct page *page;
- 	struct mempolicy *mpol;
--	nodemask_t *nodemask;
- 	gfp_t gfp_mask;
-+	nodemask_t *nodemask;
- 	int nid;
--	struct zonelist *zonelist;
--	struct zone *zone;
--	struct zoneref *z;
--	unsigned int cpuset_mems_cookie;
- 
- 	/*
- 	 * A child process with MAP_PRIVATE mappings created by their parent
-@@ -940,32 +956,15 @@ static struct page *dequeue_huge_page_vm
- 	if (avoid_reserve && h->free_huge_pages - h->resv_huge_pages == 0)
- 		goto err;
- 
--retry_cpuset:
--	cpuset_mems_cookie = read_mems_allowed_begin();
- 	gfp_mask = htlb_alloc_mask(h);
- 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
--	zonelist = node_zonelist(nid, gfp_mask);
+-		if (hstate_is_gigantic(hstate))
+-			return alloc_huge_page_node(hstate, NUMA_NO_NODE);
 -
--	for_each_zone_zonelist_nodemask(zone, z, zonelist,
--						MAX_NR_ZONES - 1, nodemask) {
--		if (cpuset_zone_allowed(zone, gfp_mask)) {
--			page = dequeue_huge_page_node(h, zone_to_nid(zone));
--			if (page) {
--				if (avoid_reserve)
--					break;
--				if (!vma_has_reserves(vma, chg))
--					break;
--
--				SetPagePrivate(page);
--				h->resv_huge_pages--;
--				break;
--			}
--		}
-+	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
-+	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
-+		SetPagePrivate(page);
-+		h->resv_huge_pages--;
- 	}
- 
- 	mpol_cond_put(mpol);
--	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
--		goto retry_cpuset;
- 	return page;
- 
- err:
-@@ -1633,7 +1632,7 @@ struct page *alloc_huge_page_node(struct
- 
- 	spin_lock(&hugetlb_lock);
- 	if (h->free_huge_pages - h->resv_huge_pages > 0)
--		page = dequeue_huge_page_node(h, nid);
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, NULL);
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (!page)
-@@ -1642,26 +1641,27 @@ struct page *alloc_huge_page_node(struct
- 	return page;
- }
- 
--struct page *alloc_huge_page_nodemask(struct hstate *h, nodemask_t *nmask)
-+
-+struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-+		nodemask_t *nmask)
- {
- 	gfp_t gfp_mask = htlb_alloc_mask(h);
--	struct page *page = NULL;
--	int node;
- 
- 	spin_lock(&hugetlb_lock);
- 	if (h->free_huge_pages - h->resv_huge_pages > 0) {
--		for_each_node_mask(node, *nmask) {
--			page = dequeue_huge_page_node_exact(h, node);
--			if (page)
--				break;
-+		struct page *page;
-+
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, preferred_nid, nmask);
-+		if (page) {
-+			spin_unlock(&hugetlb_lock);
-+			return page;
- 		}
- 	}
- 	spin_unlock(&hugetlb_lock);
--	if (page)
--		return page;
- 
- 	/* No reservations, try to overcommit */
--	return __alloc_buddy_huge_page(h, gfp_mask, NUMA_NO_NODE, nmask);
-+
-+	return __alloc_buddy_huge_page(h, gfp_mask, preferred_nid, nmask);
+-		return alloc_huge_page_node(hstate, nid);
+-	} else {
+-		return __alloc_pages_node(nid, GFP_HIGHUSER_MOVABLE, 0);
+-	}
++	return new_page_nodemask(p, nid, &node_states[N_MEMORY]);
  }
  
  /*
