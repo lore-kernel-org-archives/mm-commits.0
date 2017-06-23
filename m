@@ -1,85 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/8] mm/vmalloc.c: huge-vmap: fail gracefully on
- unexpected huge vmap mappings
-Date: Fri, 23 Jun 2017 15:08:41 -0700
-Message-ID: <594d9169.wPs8/IeorwZEY/vz%akpm@linux-foundation.org>
+Subject: [patch 3/8] autofs: sanity check status reported with
+ AUTOFS_DEV_IOCTL_FAIL
+Date: Fri, 23 Jun 2017 15:08:43 -0700
+Message-ID: <594d916b.izoUMznm5AJdaAvW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33004 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754499AbdFWWIm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 18:08:42 -0400
+        with ESMTP id S1754466AbdFWWIp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 18:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ard.biesheuvel@linaro.org, dave.hansen@intel.com, labbott@redhat.com, mark.rutland@arm.com, mhocko@suse.com, zhongjiang@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, neilb@suse.com, raven@themaw.net, stable@vger.kernel.org
 
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: mm/vmalloc.c: huge-vmap: fail gracefully on unexpected huge vmap mappings
+From: NeilBrown <neilb@suse.com>
+Subject: autofs: sanity check status reported with AUTOFS_DEV_IOCTL_FAIL
 
-Existing code that uses vmalloc_to_page() may assume that any address for
-which is_vmalloc_addr() returns true may be passed into vmalloc_to_page()
-to retrieve the associated struct page.
+If a positive status is passed with the AUTOFS_DEV_IOCTL_FAIL ioctl,
+autofs4_d_automount() will return
 
-This is not un unreasonable assumption to make, but on architectures that
-have CONFIG_HAVE_ARCH_HUGE_VMAP=y, it no longer holds, and we need to
-ensure that vmalloc_to_page() does not go off into the weeds trying to
-dereference huge PUDs or PMDs as table entries.
+   ERR_PTR(status)
 
-Given that vmalloc() and vmap() themselves never create huge mappings or
-deal with compound pages at all, there is no correct answer in this case,
-so return NULL instead, and issue a warning.
+with that status to follow_automount(), which will then dereference an
+invalid pointer.
 
-When reading /proc/kcore on arm64, you will hit an oops as soon as you
-hit the huge mappings used for the various segments that make up the
-mapping of vmlinux.  With this patch applied, you will no longer hit
-the oops, but the kcore contents willl be incorrect (these regions will
-be zeroed out)
+So treat a positive status the same as zero, and map to ENOENT.
 
-We are fixing this for kcore specifically, so it avoids vread() for
-those regions.  At least one other problematic user exists, i.e.,
-/dev/kmem, but that is currently broken on arm64 for other reasons.
+See comment in systemd src/core/automount.c::automount_send_ready().
 
-Link: http://lkml.kernel.org/r/20170609082226.26152-1-ard.biesheuvel@linaro.org
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Reviewed-by: Laura Abbott <labbott@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: zhong jiang <zhongjiang@huawei.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Link: http://lkml.kernel.org/r/871sqwczx5.fsf@notabene.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.com>
+Cc: Ian Kent <raven@themaw.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ fs/autofs4/dev-ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings mm/vmalloc.c
---- a/mm/vmalloc.c~mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings
-+++ a/mm/vmalloc.c
-@@ -287,10 +287,21 @@ struct page *vmalloc_to_page(const void
- 	if (p4d_none(*p4d))
- 		return NULL;
- 	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud))
-+
-+	/*
-+	 * Don't dereference bad PUD or PMD (below) entries. This will also
-+	 * identify huge mappings, which we may encounter on architectures
-+	 * that define CONFIG_HAVE_ARCH_HUGE_VMAP=y. Such regions will be
-+	 * identified as vmalloc addresses by is_vmalloc_addr(), but are
-+	 * not [unambiguously] associated with a struct page, so there is
-+	 * no correct value to return for them.
-+	 */
-+	WARN_ON_ONCE(pud_bad(*pud));
-+	if (pud_none(*pud) || pud_bad(*pud))
- 		return NULL;
- 	pmd = pmd_offset(pud, addr);
--	if (pmd_none(*pmd))
-+	WARN_ON_ONCE(pmd_bad(*pmd));
-+	if (pmd_none(*pmd) || pmd_bad(*pmd))
- 		return NULL;
+diff -puN fs/autofs4/dev-ioctl.c~autofs-sanity-check-status-reported-with-autofs_dev_ioctl_fail fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-sanity-check-status-reported-with-autofs_dev_ioctl_fail
++++ a/fs/autofs4/dev-ioctl.c
+@@ -344,7 +344,7 @@ static int autofs_dev_ioctl_fail(struct
+ 	int status;
  
- 	ptep = pte_offset_map(pmd, addr);
+ 	token = (autofs_wqt_t) param->fail.token;
+-	status = param->fail.status ? param->fail.status : -ENOENT;
++	status = param->fail.status < 0 ? param->fail.status : -ENOENT;
+ 	return autofs4_wait_release(sbi, token, status);
+ }
+ 
 _
