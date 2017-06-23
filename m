@@ -1,130 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- powerpc-64-initialise-thread_info-for-emergency-stacks.patch removed from
- -mm tree
-Date: Fri, 23 Jun 2017 11:49:21 -0700
-Message-ID: <20170623184921.2gO7Bm-mE%akpm@linux-foundation.org>
+Subject: [merged]
+ x86-power-64-use-char-arrays-for-asm-function-names.patch removed from -mm
+ tree
+Date: Fri, 23 Jun 2017 11:49:57 -0700
+Message-ID: <20170623184957.lJPMgdRK4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41416 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754549AbdFWStW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 14:49:22 -0400
+        with ESMTP id S1754549AbdFWSuI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 14:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abdhalee@linux.vnet.ibm.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com, sfr@canb.auug.org.au
+To: danielmicay@gmail.com, keescook@chromium.org, mingo@kernel.org, mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com
 
 
 The patch titled
-     Subject: powerpc/64: initialise thread_info for emergency stacks
+     Subject: x86/power/64: use char arrays for asm function names
 has been removed from the -mm tree.  Its filename was
-     powerpc-64-initialise-thread_info-for-emergency-stacks.patch
+     x86-power-64-use-char-arrays-for-asm-function-names.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: powerpc/64: initialise thread_info for emergency stacks
+From: Kees Cook <keescook@chromium.org>
+Subject: x86/power/64: use char arrays for asm function names
 
-Emergency stacks have their thread_info mostly uninitialised, which in
-particular means garbage preempt_count values.
+This switches the hibernate_64.S function names into character arrays to
+match other areas of the kernel where this is done (e.g., linker scripts).
+Specifically this fixes a compile-time error noticed by the future
+CONFIG_FORTIFY_SOURCE routines that complained about PAGE_SIZE being
+copied out of the "single byte" core_restore_code variable.
 
-Emergency stack code runs with interrupts disabled entirely, and is used
-very rarely, so this has been unnoticed so far.  It was found by a
-proposed new powerpc watchdog that takes a soft-NMI directly from the
-masked_interrupt handler and using the emergency stack.  That crashed at
-BUG_ON(in_nmi()) in nmi_enter().  preempt_count()s were found to be
-garbage.
+Additionally drops the "acpi_save_state_mem" exern which does not appear
+to be used anywhere else in the kernel.
 
-This bug looks to be breaking linux-next on some powerpc boxes due to
-interaction with a proposed new powerpc watchdog driver ("powerpc/64s:
-implement arch-specific hardlockup watchdog").
-
-Link: http://lkml.kernel.org/r/20170620135801.13272-1-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Reported-by: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
-Tested-by: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Link: http://lkml.kernel.org/r/1497903987-21002-3-git-send-email-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/thread_info.h |   19 +++++++++++++++++++
- arch/powerpc/kernel/setup_64.c         |    6 +++---
- 2 files changed, 22 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/suspend_64.h |    5 ++---
+ arch/x86/power/hibernate_64.c     |    6 +++---
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/include/asm/thread_info.h~powerpc-64-initialise-thread_info-for-emergency-stacks arch/powerpc/include/asm/thread_info.h
---- a/arch/powerpc/include/asm/thread_info.h~powerpc-64-initialise-thread_info-for-emergency-stacks
-+++ a/arch/powerpc/include/asm/thread_info.h
-@@ -54,6 +54,7 @@ struct thread_info {
- 	.task =		&tsk,			\
- 	.cpu =		0,			\
- 	.preempt_count = INIT_PREEMPT_COUNT,	\
-+	.local_flags =	0,			\
- 	.flags =	0,			\
- }
+diff -puN arch/x86/include/asm/suspend_64.h~x86-power-64-use-char-arrays-for-asm-function-names arch/x86/include/asm/suspend_64.h
+--- a/arch/x86/include/asm/suspend_64.h~x86-power-64-use-char-arrays-for-asm-function-names
++++ a/arch/x86/include/asm/suspend_64.h
+@@ -42,8 +42,7 @@ struct saved_context {
+ 	set_debugreg((thread)->debugreg##register, register)
  
-@@ -62,6 +63,24 @@ struct thread_info {
+ /* routines for saving/restoring kernel state */
+-extern int acpi_save_state_mem(void);
+-extern char core_restore_code;
+-extern char restore_registers;
++extern char core_restore_code[];
++extern char restore_registers[];
  
- #define THREAD_SIZE_ORDER	(THREAD_SHIFT - PAGE_SHIFT)
+ #endif /* _ASM_X86_SUSPEND_64_H */
+diff -puN arch/x86/power/hibernate_64.c~x86-power-64-use-char-arrays-for-asm-function-names arch/x86/power/hibernate_64.c
+--- a/arch/x86/power/hibernate_64.c~x86-power-64-use-char-arrays-for-asm-function-names
++++ a/arch/x86/power/hibernate_64.c
+@@ -147,7 +147,7 @@ static int relocate_restore_code(void)
+ 	if (!relocated_restore_code)
+ 		return -ENOMEM;
  
-+/*
-+ * Emergency stacks are used for a range of things, from asynchronous
-+ * NMIs (system reset, machine check) to synchronous, process context.
-+ * Set HARDIRQ_OFFSET because we don't know exactly what context we
-+ * come from or if it had a valid stack, which is about the best we
-+ * can do.
-+ * TODO: what to do with accounting?
-+ */
-+#define emstack_init_thread_info(ti, c)		\
-+do {						\
-+	(ti)->task = NULL;			\
-+	(ti)->cpu = (c);			\
-+	(ti)->preempt_count = HARDIRQ_OFFSET;	\
-+	(ti)->local_flags = 0;			\
-+	(ti)->flags = 0;			\
-+	klp_init_thread_info(ti);		\
-+} while (0)
-+
- /* how to get the thread information struct from C */
- static inline struct thread_info *current_thread_info(void)
- {
-diff -puN arch/powerpc/kernel/setup_64.c~powerpc-64-initialise-thread_info-for-emergency-stacks arch/powerpc/kernel/setup_64.c
---- a/arch/powerpc/kernel/setup_64.c~powerpc-64-initialise-thread_info-for-emergency-stacks
-+++ a/arch/powerpc/kernel/setup_64.c
-@@ -639,18 +639,18 @@ void __init emergency_stack_init(void)
- 	for_each_possible_cpu(i) {
- 		struct thread_info *ti;
- 		ti = __va(memblock_alloc_base(THREAD_SIZE, THREAD_SIZE, limit));
--		klp_init_thread_info(ti);
-+		emstack_init_thread_info(ti, i);
- 		paca[i].emergency_sp = (void *)ti + THREAD_SIZE;
+-	memcpy((void *)relocated_restore_code, &core_restore_code, PAGE_SIZE);
++	memcpy((void *)relocated_restore_code, core_restore_code, PAGE_SIZE);
  
- #ifdef CONFIG_PPC_BOOK3S_64
- 		/* emergency stack for NMI exception handling. */
- 		ti = __va(memblock_alloc_base(THREAD_SIZE, THREAD_SIZE, limit));
--		klp_init_thread_info(ti);
-+		emstack_init_thread_info(ti, i);
- 		paca[i].nmi_emergency_sp = (void *)ti + THREAD_SIZE;
+ 	/* Make the page containing the relocated code executable */
+ 	pgd = (pgd_t *)__va(read_cr3_pa()) +
+@@ -293,8 +293,8 @@ int arch_hibernation_header_save(void *a
  
- 		/* emergency stack for machine check exception handling. */
- 		ti = __va(memblock_alloc_base(THREAD_SIZE, THREAD_SIZE, limit));
--		klp_init_thread_info(ti);
-+		emstack_init_thread_info(ti, i);
- 		paca[i].mc_emergency_sp = (void *)ti + THREAD_SIZE;
- #endif
- 	}
+ 	if (max_size < sizeof(struct restore_data_record))
+ 		return -EOVERFLOW;
+-	rdr->jump_address = (unsigned long)&restore_registers;
+-	rdr->jump_address_phys = __pa_symbol(&restore_registers);
++	rdr->jump_address = (unsigned long)restore_registers;
++	rdr->jump_address_phys = __pa_symbol(restore_registers);
+ 	rdr->cr3 = restore_cr3;
+ 	rdr->magic = RESTORE_MAGIC;
+ 
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-watchdog-remove-unused-declaration.patch
-watchdog-introduce-arch_touch_nmi_watchdog.patch
-watchdog-split-up-config-options.patch
-watchdog-split-up-config-options-fix.patch
-watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
-watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix.patch
+exec-account-for-argv-envp-pointers.patch
+mm-allow-slab_nomerge-to-be-set-at-build-time.patch
+binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
+arm-reduce-elf_et_dyn_base.patch
+arm64-reduce-elf_et_dyn_base.patch
+powerpc-reduce-elf_et_dyn_base.patch
+s390-reduce-elf_et_dyn_base.patch
+binfmt_elf-safely-increment-argv-pointers.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
+efi-avoid-fortify-checks-in-efi-stub.patch
+kexec_file-adjust-declaration-of-kexec_purgatory.patch
+ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
 
