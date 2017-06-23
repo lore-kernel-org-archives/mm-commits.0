@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
- added to -mm tree
-Date: Fri, 23 Jun 2017 13:54:33 -0700
-Message-ID: <594d8009.vLNNuTRfHJtBEFNq%akpm@linux-foundation.org>
+Subject: + drm-i915-use-__gfp_retry_mayfail.patch added to -mm tree
+Date: Fri, 23 Jun 2017 13:54:35 -0700
+Message-ID: <594d800b.cQAgnqn9p6FKJqhT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50886 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754011AbdFWUye (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 16:54:34 -0400
+        with ESMTP id S1753629AbdFWUyg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 16:54:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, alex.belits@cavium.com, chris@chris-wilson.co.uk, darrick.wong@oracle.com, david.daney@cavium.com, hannes@cmpxchg.org, hch@infradead.org, mgorman@suse.de, neilb@suse.com, ralf@linux-mips.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kvmalloc support __GFP_RETRY_MAYFAIL for all sizes
+     Subject: drm/i915: use __GFP_RETRY_MAYFAIL
 has been added to the -mm tree.  Its filename is
-     mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+     drm-i915-use-__gfp_retry_mayfail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-i915-use-__gfp_retry_mayfail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-use-__gfp_retry_mayfail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +39,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: kvmalloc support __GFP_RETRY_MAYFAIL for all sizes
+Subject: drm/i915: use __GFP_RETRY_MAYFAIL
 
-Now that __GFP_RETRY_MAYFAIL has a reasonable semantic regardless of the
-request size we can drop the hackish implementation for !costly orders. 
-__GFP_RETRY_MAYFAIL retries as long as the reclaim makes a forward
-progress and backs of when we are out of memory for the requested size. 
-Therefore we do not need to enforce__GFP_NORETRY for !costly orders just
-to silent the oom killer anymore.
+24f8e00a8a2e ("drm/i915: Prefer to report ENOMEM rather than incur the oom
+for gfx allocations") has tried to remove disruptive OOM killer because
+the userspace should be able to cope with allocation failures.  At the
+time only __GFP_NORETRY could achieve that and it turned out that this
+would fail the allocations just too easily.  So "drm/i915: Remove
+__GFP_NORETRY from our buffer allocator" removed it and hoped for a better
+solution.  __GFP_RETRY_MAYFAIL is that solution.  It will keep retrying
+the allocation until there is no more progress and we would go OOM. 
+Instead we fail the allocation and let the caller to deal with it.
 
-Link: http://lkml.kernel.org/r/20170623085345.11304-5-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170623085345.11304-6-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Alex Belits <alex.belits@cavium.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Alex Belits <alex.belits@cavium.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: David Daney <david.daney@cavium.com>
@@ -64,39 +66,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/i915/i915_gem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/util.c~mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes mm/util.c
---- a/mm/util.c~mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes
-+++ a/mm/util.c
-@@ -339,9 +339,9 @@ EXPORT_SYMBOL(vm_mmap);
-  * Uses kmalloc to get the memory but if the allocation fails then falls back
-  * to the vmalloc allocator. Use kvfree for freeing the memory.
-  *
-- * Reclaim modifiers - __GFP_NORETRY and __GFP_NOFAIL are not supported. __GFP_RETRY_MAYFAIL
-- * is supported only for large (>32kB) allocations, and it should be used only if
-- * kmalloc is preferable to the vmalloc fallback, due to visible performance drawbacks.
-+ * Reclaim modifiers - __GFP_NORETRY and __GFP_NOFAIL are not supported.
-+ * __GFP_RETRY_MAYFAIL is supported, and it should be used only if kmalloc is
-+ * preferable to the vmalloc fallback, due to visible performance drawbacks.
-  *
-  * Any use of gfp flags outside of GFP_KERNEL should be consulted with mm people.
-  */
-@@ -366,13 +366,7 @@ void *kvmalloc_node(size_t size, gfp_t f
- 	if (size > PAGE_SIZE) {
- 		kmalloc_flags |= __GFP_NOWARN;
- 
--		/*
--		 * We have to override __GFP_RETRY_MAYFAIL by __GFP_NORETRY for !costly
--		 * requests because there is no other way to tell the allocator
--		 * that we want to fail rather than retry endlessly.
--		 */
--		if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL) ||
--				(size <= PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
-+		if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL))
- 			kmalloc_flags |= __GFP_NORETRY;
- 	}
+diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-use-__gfp_retry_mayfail drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-use-__gfp_retry_mayfail
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -2434,8 +2434,9 @@ rebuild_st:
+ 				 * again with !__GFP_NORETRY. However, we still
+ 				 * want to fail this allocation rather than
+ 				 * trigger the out-of-memory killer and for
+-				 * this we want the future __GFP_MAYFAIL.
++				 * this we want __GFP_RETRY_MAYFAIL.
+ 				 */
++				gfp |= __GFP_RETRY_MAYFAIL;
+ 			}
+ 		} while (1);
  
 _
 
