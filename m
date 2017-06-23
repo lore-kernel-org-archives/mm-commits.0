@@ -1,61 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] arm64-reduce-elf_et_dyn_base.patch removed from
- -mm tree
-Date: Fri, 23 Jun 2017 14:13:52 -0700
-Message-ID: <594d8490.XHQ3Pw9R1bl/BT7P%akpm@linux-foundation.org>
+Subject: + arm64-move-elf_et_dyn_base-to-4gb-4mb.patch added to -mm tree
+Date: Fri, 23 Jun 2017 14:14:49 -0700
+Message-ID: <594d84c9.dqD0wyLxQIgAEGB4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53412 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751488AbdFWVNy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 17:13:54 -0400
+        with ESMTP id S1751488AbdFWVOu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 17:14:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, benh@kernel.crashing.org, catalin.marinas@arm.com, heiko.carstens@de.ibm.com, james.hogan@imgtec.com, linux@armlinux.org.uk, mingo@kernel.org, mpe@ellerman.id.au, panand@redhat.com, paulus@samba.org, schwidefsky@de.ibm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, ard.biesheuvel@linaro.org, catalin.marinas@arm.com, mark.rutland@arm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: reduce ELF_ET_DYN_BASE
-has been removed from the -mm tree.  Its filename was
-     arm64-reduce-elf_et_dyn_base.patch
+     Subject: arm64: move ELF_ET_DYN_BASE to 4GB / 4MB
+has been added to the -mm tree.  Its filename is
+     arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: arm64: reduce ELF_ET_DYN_BASE
+Subject: arm64: move ELF_ET_DYN_BASE to 4GB / 4MB
 
-Now that explicitly executed loaders are loaded in the mmap region,
-position PIE binaries lower in the address space to avoid possible
-collisions with mmap or stack regions.  For 64-bit, align to 4GB to allow
-runtimes to use the entire 32-bit address space for 32-bit pointers.
+Now that explicitly executed loaders are loaded in the mmap region, we
+have more freedom to decide where we position PIE binaries in the address
+space to avoid possible collisions with mmap or stack regions.
 
-Link: http://lkml.kernel.org/r/1498154792-49952-3-git-send-email-keescook@chromium.org
+For 64-bit, align to 4GB to allow runtimes to use the entire 32-bit
+address space for 32-bit pointers.  On 32-bit use 4MB, to match ARM.  This
+could be 0x8000, the standard ET_EXEC load address, but that is needlessly
+close to the NULL address, and anyone running arm compat PIE will have an
+MMU, so the tight mapping is not needed.
+
+Link: http://lkml.kernel.org/r/1498251600-132458-4-git-send-email-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Russell King <linux@armlinux.org.uk>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Pratyush Anand <panand@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/elf.h |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ arch/arm64/include/asm/elf.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm64/include/asm/elf.h~arm64-reduce-elf_et_dyn_base arch/arm64/include/asm/elf.h
---- a/arch/arm64/include/asm/elf.h~arm64-reduce-elf_et_dyn_base
+diff -puN arch/arm64/include/asm/elf.h~arm64-move-elf_et_dyn_base-to-4gb-4mb arch/arm64/include/asm/elf.h
+--- a/arch/arm64/include/asm/elf.h~arm64-move-elf_et_dyn_base-to-4gb-4mb
 +++ a/arch/arm64/include/asm/elf.h
-@@ -113,12 +113,13 @@
+@@ -113,12 +113,11 @@
  #define ELF_EXEC_PAGESIZE	PAGE_SIZE
  
  /*
@@ -68,21 +79,20 @@ diff -puN arch/arm64/include/asm/elf.h~arm64-reduce-elf_et_dyn_base arch/arm64/i
 + * space open for things that want to use the area for 32-bit pointers.
   */
 -#define ELF_ET_DYN_BASE	(2 * TASK_SIZE_64 / 3)
-+#define ELF_ET_DYN_BASE		(test_thread_flag(TIF_32BIT) ?	\
-+					0x000400000UL :		\
-+					0x100000000UL)
++#define ELF_ET_DYN_BASE		0x100000000UL
  
  #ifndef __ASSEMBLY__
  
-@@ -173,8 +174,6 @@ extern int arch_setup_additional_pages(s
+@@ -173,7 +172,8 @@ extern int arch_setup_additional_pages(s
  
  #ifdef CONFIG_COMPAT
  
 -#define COMPAT_ELF_ET_DYN_BASE		(2 * TASK_SIZE_32 / 3)
--
++/* PIE load location for compat arm. Must match ARM ELF_ET_DYN_BASE. */
++#define COMPAT_ELF_ET_DYN_BASE		0x000400000UL
+ 
  /* AArch32 registers. */
  #define COMPAT_ELF_NGREG		18
- typedef unsigned int			compat_elf_greg_t;
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
@@ -91,6 +101,7 @@ exec-account-for-argv-envp-pointers.patch
 mm-allow-slab_nomerge-to-be-set-at-build-time.patch
 binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
 arm-reduce-elf_et_dyn_base.patch
+arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
 powerpc-reduce-elf_et_dyn_base.patch
 s390-reduce-elf_et_dyn_base.patch
 binfmt_elf-safely-increment-argv-pointers.patch
