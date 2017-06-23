@@ -1,98 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [patch 8/8] fs/exec.c: account for argv/envp pointers
-Date: Fri, 23 Jun 2017 15:08:57 -0700
-Message-ID: <594d9179.2uuOaozXe/6vn6cY%akpm@linux-foundation.org>
+Subject: [patch 7/8] ocfs2: fix deadlock caused by recursive locking in
+ xattr
+Date: Fri, 23 Jun 2017 15:08:55 -0700
+Message-ID: <594d9177.1Mah7XY/n92scx6f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752606AbdFWWI7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 18:08:59 -0400
+        with ESMTP id S1753397AbdFWWI4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 18:08:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, mhocko@suse.com, qsa@qualys.com, riel@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, tv@lio96.de
 
-From: Kees Cook <keescook@chromium.org>
-Subject: fs/exec.c: account for argv/envp pointers
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix deadlock caused by recursive locking in xattr
 
-When limiting the argv/envp strings during exec to 1/4 of the stack limit,
-the storage of the pointers to the strings was not included.  This means
-that an exec with huge numbers of tiny strings could eat 1/4 of the stack
-limit in strings and then additional space would be later used by the
-pointers to the strings.  For example, on 32-bit with a 8MB stack rlimit,
-an exec with 1677721 single-byte strings would consume less than 2MB of
-stack, the max (8MB / 4) amount allowed, but the pointers to the strings
-would consume the remaining additional stack space (1677721 * 4 ==
-6710884).  The result (1677721 + 6710884 == 8388605) would exhaust stack
-space entirely.  Controlling this stack exhaustion could result in
-pathological behavior in setuid binaries (CVE-2017-1000365).
+Another deadlock path caused by recursive locking is reported.  This kind
+of issue was introduced since commit 743b5f1434f5 ("ocfs2: take inode lock
+in ocfs2_iop_set/get_acl()").  Two deadlock paths have been fixed by
+commit b891fa5024a9 ("ocfs2: fix deadlock issue when taking inode lock at
+vfs entry points").  Yes, we intend to fix this kind of case in
+incremental way, because it's hard to find out all possible paths at once.
 
-[akpm@linux-foundation.org: additional commenting from Kees]
-Fixes: b6a2fea39318 ("mm: variable length argument support")
-Link: http://lkml.kernel.org/r/20170622001720.GA32173@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Qualys Security Advisory <qsa@qualys.com>
-Cc: <stable@vger.kernel.org>
+This one can be reproduced like this.  On node1, cp a large file from home
+directory to ocfs2 mountpoint.  While on node2, run setfacl/getfacl.  Both
+nodes will hang up there.  The backtraces:
+
+On node1:
+[<ffffffffc06a1f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
+[<ffffffffc06a2d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
+[<ffffffffc0692043>] ocfs2_write_begin+0x43/0x1a0 [ocfs2]
+[<ffffffffa21ac719>] generic_perform_write+0xa9/0x180
+[<ffffffffa21aecda>] __generic_file_write_iter+0x1aa/0x1d0
+[<ffffffffc06abc24>] ocfs2_file_write_iter+0x4f4/0xb40 [ocfs2]
+[<ffffffffa223c3b3>] __vfs_write+0xc3/0x130
+[<ffffffffa223cae1>] vfs_write+0xb1/0x1a0
+[<ffffffffa223dfe6>] SyS_write+0x46/0xa0
+
+On node2:
+[<ffffffffc07b6f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
+[<ffffffffc07b7d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
+[<ffffffffc0815c1e>] ocfs2_xattr_set+0x12e/0xe80 [ocfs2]
+[<ffffffffc081783d>] ocfs2_set_acl+0x22d/0x260 [ocfs2]
+[<ffffffffc08178d5>] ocfs2_iop_set_acl+0x65/0xb0 [ocfs2]
+[<ffffffffa62a43f5>] set_posix_acl+0x75/0xb0
+[<ffffffffa62a4479>] posix_acl_xattr_set+0x49/0xa0
+[<ffffffffa6265c69>] __vfs_setxattr+0x69/0x80
+[<ffffffffa6266832>] __vfs_setxattr_noperm+0x72/0x1a0
+[<ffffffffa6266a07>] vfs_setxattr+0xa7/0xb0
+[<ffffffffa6266b3d>] setxattr+0x12d/0x190
+[<ffffffffa6266c3f>] path_setxattr+0x9f/0xb0
+[<ffffffffa6266d74>] SyS_setxattr+0x14/0x20
+
+Fixes this one by using ocfs2_inode_{lock|unlock}_tracker, which is
+exported by commit 439a36b8ef38 ("ocfs2/dlmglue: prepare tracking logic to
+avoid recursive cluster lock").
+
+Link: http://lkml.kernel.org/r/20170622014746.5815-1-zren@suse.com
+Fixes: 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+Signed-off-by: Eric Ren <zren@suse.com>
+Reported-by: Thomas Voegtle <tv@lio96.de>
+Tested-by: Thomas Voegtle <tv@lio96.de>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ fs/ocfs2/dlmglue.c |    4 ++++
+ fs/ocfs2/xattr.c   |   23 +++++++++++++----------
+ 2 files changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN fs/exec.c~exec-account-for-argv-envp-pointers fs/exec.c
---- a/fs/exec.c~exec-account-for-argv-envp-pointers
-+++ a/fs/exec.c
-@@ -220,8 +220,26 @@ static struct page *get_arg_page(struct
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
++++ a/fs/ocfs2/dlmglue.c
+@@ -2591,6 +2591,10 @@ void ocfs2_inode_unlock_tracker(struct i
+ 	struct ocfs2_lock_res *lockres;
  
- 	if (write) {
- 		unsigned long size = bprm->vma->vm_end - bprm->vma->vm_start;
-+		unsigned long ptr_size;
- 		struct rlimit *rlim;
+ 	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	/* had_lock means that the currect process already takes the cluster
++	 * lock previously. If had_lock is 1, we have nothing to do here, and
++	 * it will get unlocked where we got the lock.
++	 */
+ 	if (!had_lock) {
+ 		ocfs2_remove_holder(lockres, oh);
+ 		ocfs2_inode_unlock(inode, ex);
+diff -puN fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
++++ a/fs/ocfs2/xattr.c
+@@ -1328,20 +1328,21 @@ static int ocfs2_xattr_get(struct inode
+ 			   void *buffer,
+ 			   size_t buffer_size)
+ {
+-	int ret;
++	int ret, had_lock;
+ 	struct buffer_head *di_bh = NULL;
++	struct ocfs2_lock_holder oh;
  
-+		/*
-+		 * Since the stack will hold pointers to the strings, we
-+		 * must account for them as well.
-+		 *
-+		 * The size calculation is the entire vma while each arg page is
-+		 * built, so each time we get here it's calculating how far it
-+		 * is currently (rather than each call being just the newly
-+		 * added size from the arg page).  As a result, we need to
-+		 * always add the entire size of the pointers, so that on the
-+		 * last call to get_arg_page() we'll actually have the entire
-+		 * correct size.
-+		 */
-+		ptr_size = (bprm->argc + bprm->envc) * sizeof(void *);
-+		if (ptr_size > ULONG_MAX - size)
-+			goto fail;
-+		size += ptr_size;
-+
- 		acct_arg_size(bprm, size / PAGE_SIZE);
+-	ret = ocfs2_inode_lock(inode, &di_bh, 0);
+-	if (ret < 0) {
+-		mlog_errno(ret);
+-		return ret;
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 0, &oh);
++	if (had_lock < 0) {
++		mlog_errno(had_lock);
++		return had_lock;
+ 	}
+ 	down_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	ret = ocfs2_xattr_get_nolock(inode, di_bh, name_index,
+ 				     name, buffer, buffer_size);
+ 	up_read(&OCFS2_I(inode)->ip_xattr_sem);
  
- 		/*
-@@ -239,13 +257,15 @@ static struct page *get_arg_page(struct
- 		 *    to work from.
- 		 */
- 		rlim = current->signal->rlim;
--		if (size > ACCESS_ONCE(rlim[RLIMIT_STACK].rlim_cur) / 4) {
--			put_page(page);
--			return NULL;
--		}
-+		if (size > READ_ONCE(rlim[RLIMIT_STACK].rlim_cur) / 4)
-+			goto fail;
+-	ocfs2_inode_unlock(inode, 0);
++	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ 
+ 	brelse(di_bh);
+ 
+@@ -3537,11 +3538,12 @@ int ocfs2_xattr_set(struct inode *inode,
+ {
+ 	struct buffer_head *di_bh = NULL;
+ 	struct ocfs2_dinode *di;
+-	int ret, credits, ref_meta = 0, ref_credits = 0;
++	int ret, credits, had_lock, ref_meta = 0, ref_credits = 0;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	struct inode *tl_inode = osb->osb_tl_inode;
+ 	struct ocfs2_xattr_set_ctxt ctxt = { NULL, NULL, NULL, };
+ 	struct ocfs2_refcount_tree *ref_tree = NULL;
++	struct ocfs2_lock_holder oh;
+ 
+ 	struct ocfs2_xattr_info xi = {
+ 		.xi_name_index = name_index,
+@@ -3572,8 +3574,9 @@ int ocfs2_xattr_set(struct inode *inode,
+ 		return -ENOMEM;
  	}
  
- 	return page;
-+
-+fail:
-+	put_page(page);
-+	return NULL;
- }
- 
- static void put_arg_page(struct page *page)
+-	ret = ocfs2_inode_lock(inode, &di_bh, 1);
+-	if (ret < 0) {
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 1, &oh);
++	if (had_lock < 0) {
++		ret = had_lock;
+ 		mlog_errno(ret);
+ 		goto cleanup_nolock;
+ 	}
+@@ -3670,7 +3673,7 @@ cleanup:
+ 		if (ret)
+ 			mlog_errno(ret);
+ 	}
+-	ocfs2_inode_unlock(inode, 1);
++	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ cleanup_nolock:
+ 	brelse(di_bh);
+ 	brelse(xbs.xattr_bh);
 _
