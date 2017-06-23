@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + exec-account-for-argv-envp-pointers-fix.patch added to -mm tree
-Date: Fri, 23 Jun 2017 11:57:08 -0700
-Message-ID: <594d6484.oPUzmA+1e8VczNgK%akpm@linux-foundation.org>
+Subject: + obsoleted-comment-in-show_map_vma.patch added to -mm tree
+Date: Fri, 23 Jun 2017 13:07:55 -0700
+Message-ID: <594d751b.CaTuyrQcTrX222qr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44838 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754327AbdFWS5J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 14:57:09 -0400
+        with ESMTP id S1754851AbdFWUH4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 16:07:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, keescook@chromium.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: vvs@virtuozzo.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exec-account-for-argv-envp-pointers-fix
+     Subject: fs/proc/task_mmu.c: remove obsolete comment in show_map_vma()
 has been added to the -mm tree.  Its filename is
-     exec-account-for-argv-envp-pointers-fix.patch
+     obsoleted-comment-in-show_map_vma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-account-for-argv-envp-pointers-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/obsoleted-comment-in-show_map_vma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-account-for-argv-envp-pointers-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/obsoleted-comment-in-show_map_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,63 +38,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: exec-account-for-argv-envp-pointers-fix
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: fs/proc/task_mmu.c: remove obsolete comment in show_map_vma()
 
-additional commenting from Kees
+After 1be7107 ("mm: larger stack guard gap, between vmas") we do not hide
+stack guard page in /proc/<pid>/maps
 
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/211f3c2a-f7ef-7c13-82bf-46fd426f6e1b@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/proc/task_mmu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/exec.c~exec-account-for-argv-envp-pointers-fix fs/exec.c
---- a/fs/exec.c~exec-account-for-argv-envp-pointers-fix
-+++ a/fs/exec.c
-@@ -226,6 +226,14 @@ static struct page *get_arg_page(struct
- 		/*
- 		 * Since the stack will hold pointers to the strings, we
- 		 * must account for them as well.
-+		 *
-+		 * The size calculation is the entire vma while each arg page is
-+		 * built, so each time we get here it's calculating how far it
-+		 * is currently (rather than each call being just the newly
-+		 * added size from the arg page).  As a result, we need to
-+		 * always add the entire size of the pointers, so that on the
-+		 * last call to get_arg_page() we'll actually have the entire
-+		 * correct size.
- 		 */
- 		ptr_size = (bprm->argc + bprm->envc) * sizeof(void *);
- 		if (ptr_size > ULONG_MAX - size)
+diff -puN fs/proc/task_mmu.c~obsoleted-comment-in-show_map_vma fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~obsoleted-comment-in-show_map_vma
++++ a/fs/proc/task_mmu.c
+@@ -298,7 +298,6 @@ show_map_vma(struct seq_file *m, struct
+ 		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+ 	}
+ 
+-	/* We don't show the stack guard page in /proc/maps */
+ 	start = vma->vm_start;
+ 	end = vma->vm_end;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-i-need-old-gcc.patch
-exec-account-for-argv-envp-pointers-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
-hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
-signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+obsoleted-comment-in-show_map_vma.patch
 
