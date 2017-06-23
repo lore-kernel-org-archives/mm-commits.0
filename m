@@ -1,182 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allow-slab_nomerge-to-be-set-at-build-time.patch added to
- -mm tree
-Date: Thu, 22 Jun 2017 15:01:23 -0700
-Message-ID: <594c3e33.GCdLZ6CJpzDKpsd4%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Fri, 23 Jun 2017 11:49:08 -0700
+Message-ID: <20170623184908.8H8NlYurO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50526 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41398 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751202AbdFVWBZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jun 2017 18:01:25 -0400
+        with ESMTP id S1754549AbdFWStJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 14:49:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, arnd@arndb.de, bigeasy@linutronix.de, cl@linux.com, corbet@lwn.net, daniel@zonque.org, danielmicay@gmail.com, dave@nullcore.net, deller@gmx.de, ebiggers3@gmail.com, iamjoonsoo.kim@lge.com, luto@kernel.org, mchehab@kernel.org, mingo@kernel.org, nicolas.pitre@linaro.org, paulmck@linux.vnet.ibm.com, penberg@kernel.org, rafael.j.wysocki@intel.com, rdunlap@infradead.org, riel@redhat.com, rientjes@google.com, sergey.senozhatsky@gmail.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: Allow slab_nomerge to be set at build time
-has been added to the -mm tree.  Its filename is
-     mm-allow-slab_nomerge-to-be-set-at-build-time.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-allow-slab_nomerge-to-be-set-at-build-time.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-slab_nomerge-to-be-set-at-build-time.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm: Allow slab_nomerge to be set at build time
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Some hardened environments want to build kernels with slab_nomerge
-already set (so that they do not depend on remembering to set the kernel
-command line option). This is desired to reduce the risk of kernel heap
-overflows being able to overwrite objects from merged caches and changes
-the requirements for cache layout control, increasing the difficulty of
-these attacks. By keeping caches unmerged, these kinds of exploits can
-usually only damage objects in the same cache (though the risk to metadata
-exploitation is unchanged).
-
-Link: http://lkml.kernel.org/r/20170620230911.GA25238@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: David Windsor <dave@nullcore.net>
-Cc: Eric Biggers <ebiggers3@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: David Windsor <dave@nullcore.net>
-Cc: Eric Biggers <ebiggers3@gmail.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Daniel Mack <daniel@zonque.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   10 ++++++++--
- init/Kconfig                                    |   14 ++++++++++++++
- mm/slab_common.c                                |    5 ++---
- 3 files changed, 24 insertions(+), 5 deletions(-)
+ arch/powerpc/kvm/book3s_hv_rmhandlers.S |   15 --
+ block/blk-mq-sched.c                    |  124 ----------------------
+ 2 files changed, 139 deletions(-)
 
-diff -puN Documentation/admin-guide/kernel-parameters.txt~mm-allow-slab_nomerge-to-be-set-at-build-time Documentation/admin-guide/kernel-parameters.txt
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-allow-slab_nomerge-to-be-set-at-build-time
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3715,8 +3715,14 @@
- 	slab_nomerge	[MM]
- 			Disable merging of slabs with similar size. May be
- 			necessary if there is some reason to distinguish
--			allocs to different slabs. Debug options disable
--			merging on their own.
-+			allocs to different slabs, especially in hardened
-+			environments where the risk of heap overflows and
-+			layout control by attackers can usually be
-+			frustrated by disabling merging. This will reduce
-+			most of the exposure of a heap attack to a single
-+			cache (risks via metadata attacks are mostly
-+			unchanged). Debug options disable merging on their
-+			own.
- 			For more information see Documentation/vm/slub.txt.
+diff -puN arch/powerpc/kvm/book3s_hv_rmhandlers.S~linux-next-git-rejects arch/powerpc/kvm/book3s_hv_rmhandlers.S
+--- a/arch/powerpc/kvm/book3s_hv_rmhandlers.S~linux-next-git-rejects
++++ a/arch/powerpc/kvm/book3s_hv_rmhandlers.S
+@@ -45,11 +45,7 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_300)
+ #define NAPPING_NOVCPU	2
  
- 	slab_max_order=	[MM, SLAB]
-diff -puN init/Kconfig~mm-allow-slab_nomerge-to-be-set-at-build-time init/Kconfig
---- a/init/Kconfig~mm-allow-slab_nomerge-to-be-set-at-build-time
-+++ a/init/Kconfig
-@@ -1891,6 +1891,20 @@ config SLOB
- 
- endchoice
- 
-+config SLAB_MERGE_DEFAULT
-+	bool "Allow slab caches to be merged"
-+	default y
-+	help
-+	  For reduced kernel memory fragmentation, slab caches can be
-+	  merged when they share the same size and other characteristics.
-+	  This carries a risk of kernel heap overflows being able to
-+	  overwrite objects from merged caches (and more easily control
-+	  cache layout), which makes such heap attacks easier to exploit
-+	  by attackers. By keeping caches unmerged, these kinds of exploits
-+	  can usually only damage objects in the same cache. To disable
-+	  merging at runtime, "slab_nomerge" can be passed on the kernel
-+	  command line.
-+
- config SLAB_FREELIST_RANDOM
- 	default n
- 	depends on SLAB || SLUB
-diff -puN mm/slab_common.c~mm-allow-slab_nomerge-to-be-set-at-build-time mm/slab_common.c
---- a/mm/slab_common.c~mm-allow-slab_nomerge-to-be-set-at-build-time
-+++ a/mm/slab_common.c
-@@ -47,13 +47,12 @@ static DECLARE_WORK(slab_caches_to_rcu_d
+ /* Stack frame offsets for kvmppc_hv_entry */
+-<<<<<<< HEAD
+-#define SFS			144
+-=======
+ #define SFS			160
+->>>>>>> linux-next/akpm-base
+ #define STACK_SLOT_TRAP		(SFS-4)
+ #define STACK_SLOT_TID		(SFS-16)
+ #define STACK_SLOT_PSSCR	(SFS-24)
+@@ -58,10 +54,7 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_300)
+ #define STACK_SLOT_CIABR	(SFS-48)
+ #define STACK_SLOT_DAWR		(SFS-56)
+ #define STACK_SLOT_DAWRX	(SFS-64)
+-<<<<<<< HEAD
+-=======
+ #define STACK_SLOT_HFSCR	(SFS-72)
+->>>>>>> linux-next/akpm-base
  
  /*
-  * Merge control. If this is set then no merging of slab caches will occur.
-- * (Could be removed. This was introduced to pacify the merge skeptics.)
-  */
--static int slab_nomerge;
-+static bool slab_nomerge = !IS_ENABLED(CONFIG_SLAB_MERGE_DEFAULT);
- 
- static int __init setup_slab_nomerge(char *str)
- {
--	slab_nomerge = 1;
-+	slab_nomerge = true;
- 	return 1;
+  * Call kvmppc_hv_entry in real mode.
+@@ -785,11 +778,8 @@ BEGIN_FTR_SECTION
+ 	std	r6, STACK_SLOT_PSSCR(r1)
+ 	std	r7, STACK_SLOT_PID(r1)
+ 	std	r8, STACK_SLOT_IAMR(r1)
+-<<<<<<< HEAD
+-=======
+ 	mfspr	r5, SPRN_HFSCR
+ 	std	r5, STACK_SLOT_HFSCR(r1)
+->>>>>>> linux-next/akpm-base
+ END_FTR_SECTION_IFSET(CPU_FTR_ARCH_300)
+ BEGIN_FTR_SECTION
+ 	mfspr	r5, SPRN_CIABR
+@@ -2464,10 +2454,6 @@ END_FTR_SECTION_IFSET(CPU_FTR_TM)
+ 	mfspr	r3, SPRN_DEC
+ 	mfspr	r4, SPRN_HDEC
+ 	mftb	r5
+-<<<<<<< HEAD
+-	extsw	r3, r3
+-	EXTEND_HDEC(r4)
+-=======
+ BEGIN_FTR_SECTION
+ 	/* On P9 check whether the guest has large decrementer mode enabled */
+ 	ld	r6, HSTATE_KVM_VCORE(r13)
+@@ -2477,7 +2463,6 @@ BEGIN_FTR_SECTION
+ END_FTR_SECTION_IFSET(CPU_FTR_ARCH_300)
+ 	extsw	r3, r3
+ 68:	EXTEND_HDEC(r4)
+->>>>>>> linux-next/akpm-base
+ 	cmpd	r3, r4
+ 	ble	67f
+ 	mtspr	SPRN_DEC, r4
+diff -puN block/blk-mq-sched.c~linux-next-git-rejects block/blk-mq-sched.c
+--- a/block/blk-mq-sched.c~linux-next-git-rejects
++++ a/block/blk-mq-sched.c
+@@ -48,130 +48,6 @@ void blk_mq_sched_assign_ioc(struct requ
+ 	}
+ 	get_io_context(icq->ioc);
+ 	rq->elv.icq = icq;
+-<<<<<<< HEAD
+-	if (!blk_mq_sched_get_rq_priv(q, rq, bio)) {
+-		rq->rq_flags |= RQF_ELVPRIV;
+-		get_io_context(icq->ioc);
+-		return;
+-	}
+-
+-	rq->elv.icq = NULL;
+-}
+-
+-static void blk_mq_sched_assign_ioc(struct request_queue *q,
+-				    struct request *rq, struct bio *bio)
+-{
+-	struct io_context *ioc;
+-
+-	ioc = rq_ioc(bio);
+-	if (ioc)
+-		__blk_mq_sched_assign_ioc(q, rq, bio, ioc);
+-}
+-
+-/*
+- * Mark a hardware queue as needing a restart. For shared queues, maintain
+- * a count of how many hardware queues are marked for restart.
+- */
+-static void blk_mq_sched_mark_restart_hctx(struct blk_mq_hw_ctx *hctx)
+-{
+-	if (test_bit(BLK_MQ_S_SCHED_RESTART, &hctx->state))
+-		return;
+-
+-	if (hctx->flags & BLK_MQ_F_TAG_SHARED) {
+-		struct request_queue *q = hctx->queue;
+-
+-		if (!test_and_set_bit(BLK_MQ_S_SCHED_RESTART, &hctx->state))
+-			atomic_inc(&q->shared_hctx_restart);
+-	} else
+-		set_bit(BLK_MQ_S_SCHED_RESTART, &hctx->state);
+-}
+-
+-static bool blk_mq_sched_restart_hctx(struct blk_mq_hw_ctx *hctx)
+-{
+-	if (!test_bit(BLK_MQ_S_SCHED_RESTART, &hctx->state))
+-		return false;
+-
+-	if (hctx->flags & BLK_MQ_F_TAG_SHARED) {
+-		struct request_queue *q = hctx->queue;
+-
+-		if (test_and_clear_bit(BLK_MQ_S_SCHED_RESTART, &hctx->state))
+-			atomic_dec(&q->shared_hctx_restart);
+-	} else
+-		clear_bit(BLK_MQ_S_SCHED_RESTART, &hctx->state);
+-
+-	if (blk_mq_hctx_has_pending(hctx)) {
+-		blk_mq_run_hw_queue(hctx, true);
+-		return true;
+-	}
+-
+-	return false;
+-}
+-
+-struct request *blk_mq_sched_get_request(struct request_queue *q,
+-					 struct bio *bio,
+-					 unsigned int op,
+-					 struct blk_mq_alloc_data *data)
+-{
+-	struct elevator_queue *e = q->elevator;
+-	struct request *rq;
+-
+-	blk_queue_enter_live(q);
+-	data->q = q;
+-	if (likely(!data->ctx))
+-		data->ctx = blk_mq_get_ctx(q);
+-	if (likely(!data->hctx))
+-		data->hctx = blk_mq_map_queue(q, data->ctx->cpu);
+-
+-	if (e) {
+-		data->flags |= BLK_MQ_REQ_INTERNAL;
+-
+-		/*
+-		 * Flush requests are special and go directly to the
+-		 * dispatch list.
+-		 */
+-		if (!op_is_flush(op) && e->type->ops.mq.get_request) {
+-			rq = e->type->ops.mq.get_request(q, op, data);
+-			if (rq)
+-				rq->rq_flags |= RQF_QUEUED;
+-		} else
+-			rq = __blk_mq_alloc_request(data, op);
+-	} else {
+-		rq = __blk_mq_alloc_request(data, op);
+-	}
+-
+-	if (rq) {
+-		if (!op_is_flush(op)) {
+-			rq->elv.icq = NULL;
+-			if (e && e->type->icq_cache)
+-				blk_mq_sched_assign_ioc(q, rq, bio);
+-		}
+-		data->hctx->queued++;
+-		return rq;
+-	}
+-
+-	blk_queue_exit(q);
+-	return NULL;
+-}
+-
+-void blk_mq_sched_put_request(struct request *rq)
+-{
+-	struct request_queue *q = rq->q;
+-	struct elevator_queue *e = q->elevator;
+-
+-	if (rq->rq_flags & RQF_ELVPRIV) {
+-		blk_mq_sched_put_rq_priv(rq->q, rq);
+-		if (rq->elv.icq) {
+-			put_io_context(rq->elv.icq->ioc);
+-			rq->elv.icq = NULL;
+-		}
+-	}
+-
+-	if ((rq->rq_flags & RQF_QUEUED) && e && e->type->ops.mq.put_request)
+-		e->type->ops.mq.put_request(rq);
+-	else
+-		blk_mq_finish_request(rq);
+-=======
+->>>>>>> linux-next/akpm-base
  }
  
+ void blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx *hctx)
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-exec-account-for-argv-envp-pointers.patch
-mm-allow-slab_nomerge-to-be-set-at-build-time.patch
-binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
-arm-reduce-elf_et_dyn_base.patch
-arm64-reduce-elf_et_dyn_base.patch
-powerpc-reduce-elf_et_dyn_base.patch
-s390-reduce-elf_et_dyn_base.patch
-binfmt_elf-safely-increment-argv-pointers.patch
-ipc-drop-non-rcu-allocation.patch
-ipc-sem-do-not-use-ipc_rcu_free.patch
-ipc-shm-do-not-use-ipc_rcu_free.patch
-ipc-msg-do-not-use-ipc_rcu_free.patch
-ipc-util-drop-ipc_rcu_free.patch
-ipc-sem-avoid-ipc_rcu_alloc.patch
-ipc-shm-avoid-ipc_rcu_alloc.patch
-ipc-msg-avoid-ipc_rcu_alloc.patch
-ipc-util-drop-ipc_rcu_alloc.patch
-ipc-move-atomic_set-to-where-it-is-needed.patch
-ipc-shm-remove-special-shm_alloc-free.patch
-ipc-msg-remove-special-msg_alloc-free.patch
-ipc-sem-drop-__sem_free.patch
-efi-avoid-fortify-checks-in-efi-stub.patch
-x86-power-64-use-char-arrays-for-asm-function-names.patch
-kexec_file-adjust-declaration-of-kexec_purgatory.patch
-ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
+mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
+hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
+signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+linux-next-rejects.patch
+powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
