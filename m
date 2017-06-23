@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mips-do-not-use-__gfp_repeat-for-order-0-request.patch added to -mm tree
-Date: Fri, 23 Jun 2017 13:54:23 -0700
-Message-ID: <594d7fff.KVkEwHUm0lOhTyRB%akpm@linux-foundation.org>
+Subject: +
+ mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch added to -mm tree
+Date: Fri, 23 Jun 2017 13:54:37 -0700
+Message-ID: <594d800d.CyY5xHqKB2JMtcTl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50902 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755051AbdFWUyZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 16:54:25 -0400
+        with ESMTP id S1754179AbdFWUyi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 16:54:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, alex.belits@cavium.com, chris@chris-wilson.co.uk, darrick.wong@oracle.com, david.daney@cavium.com, hannes@cmpxchg.org, hch@infradead.org, mgorman@suse.de, neilb@suse.com, ralf@linux-mips.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MIPS: do not use __GFP_REPEAT for order-0 request
+     Subject: mm, migration: do not trigger OOM killer when migrating memory
 has been added to the -mm tree.  Its filename is
-     mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+     mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +40,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: MIPS: do not use __GFP_REPEAT for order-0 request
+Subject: mm, migration: do not trigger OOM killer when migrating memory
 
-Patch series "mm: give __GFP_REPEAT a better semantic".
+Page migration (for memory hotplug, soft_offline_page or mbind) needs to
+allocate a new memory.  This can trigger an oom killer if the target
+memory is depleated.  Although quite unlikely, still possible, especially
+for the memory hotplug (offlining of memoery).  Up to now we didn't really
+have reasonable means to back off.  __GFP_NORETRY can fail just too easily
+and __GFP_THISNODE sticks to a single node and that is not suitable for
+all callers.
 
-The main motivation for the change is that the current implementation of
-__GFP_REPEAT is not very much useful.  
+But now that we have __GFP_RETRY_MAYFAIL we should use it.  It is
+preferable to fail the migration than disrupt the system by killing some
+processes.
 
-The documentation says:
- * __GFP_REPEAT: Try hard to allocate the memory, but the allocation attempt
- *   _might_ fail.  This depends upon the particular VM implementation.
-
-It just fails to mention that this is true only for large (costly) high
-order which has been the case since the flag was introduced.  A similar
-semantic would be really helpful for smal orders as well, though, because
-we have places where a failure with a specific fallback error handling is
-preferred to a potential endless loop inside the page allocator.
-
-The earlier cleanup dropped __GFP_REPEAT usage for low (!costly) order
-users so only those which might use larger orders have stayed.  One new
-user added in the meantime is addressed in patch 1.
-
-Let's rename the flag to something more verbose and use it for existing
-users.  Semantic for those will not change.  Then implement low (!costly)
-orders failure path which is hit after the page allocator is about to
-invoke the oom killer.  With that we have a good counterpart for
-__GFP_NORETRY and finally can tell try as hard as possible without the OOM
-killer.
-
-Xfs code already has an existing annotation for allocations which are
-allowed to fail and we can trivially map them to the new gfp flag because
-it will provide the semantic KM_MAYFAIL wants.  Christoph didn't consider
-the new flag really necessary but didn't respond to the OOM killer aspect
-of the change so I have kept the patch.  If this is still seen as not
-really needed I can drop the patch.
-
-kvmalloc will allow also !costly high order allocations to retry hard
-before falling back to the vmalloc.
-
-drm/i915 asked for the new semantic explicitly.
-
-Memory migration code, especially for the memory hotplug, should back off
-rather than invoking the OOM killer as well.
-
-
-This patch (of 6):
-
-3377e227af44 ("MIPS: Add 48-bit VA space (and 4-level page tables) for 4K
-pages.") has added a new __GFP_REPEAT user but using this flag doesn't
-really make any sense for order-0 request which is the case here because
-PUD_ORDER is 0.  __GFP_REPEAT has historically effect only on allocation
-requests with order > PAGE_ALLOC_COSTLY_ORDER.
-
-This doesn't introduce any functional change.  This is a preparatory patch
-for later work which renames the flag and redefines its semantic.
-
-Link: http://lkml.kernel.org/r/20170623085345.11304-2-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170623085345.11304-7-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Cc: Alex Belits <alex.belits@cavium.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: David Daney <david.daney@cavium.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: NeilBrown <neilb@suse.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgalloc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/migrate.h |    2 +-
+ mm/mempolicy.c          |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/include/asm/pgalloc.h~mips-do-not-use-__gfp_repeat-for-order-0-request arch/mips/include/asm/pgalloc.h
---- a/arch/mips/include/asm/pgalloc.h~mips-do-not-use-__gfp_repeat-for-order-0-request
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -116,7 +116,7 @@ static inline pud_t *pud_alloc_one(struc
+diff -puN include/linux/migrate.h~mm-migration-do-not-trigger-oom-killer-when-migrating-memory include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migration-do-not-trigger-oom-killer-when-migrating-memory
++++ a/include/linux/migrate.h
+@@ -34,7 +34,7 @@ extern char *migrate_reason_names[MR_TYP
+ static inline struct page *new_page_nodemask(struct page *page,
+ 				int preferred_nid, nodemask_t *nodemask)
  {
- 	pud_t *pud;
+-	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
++	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
  
--	pud = (pud_t *) __get_free_pages(GFP_KERNEL|__GFP_REPEAT, PUD_ORDER);
-+	pud = (pud_t *) __get_free_pages(GFP_KERNEL, PUD_ORDER);
- 	if (pud)
- 		pud_init((unsigned long)pud, (unsigned long)invalid_pmd_table);
- 	return pud;
+ 	if (PageHuge(page))
+ 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
+diff -puN mm/mempolicy.c~mm-migration-do-not-trigger-oom-killer-when-migrating-memory mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-migration-do-not-trigger-oom-killer-when-migrating-memory
++++ a/mm/mempolicy.c
+@@ -1078,7 +1078,8 @@ static struct page *new_page(struct page
+ 	/*
+ 	 * if !vma, alloc_page_vma() will use task or system default policy
+ 	 */
+-	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
++	return alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_RETRY_MAYFAIL,
++			vma, address);
+ }
+ #else
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
