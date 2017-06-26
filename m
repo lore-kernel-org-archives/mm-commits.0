@@ -1,209 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-make-sysfs-file-removal-asynchronous.patch
- removed from -mm tree
-Date: Mon, 26 Jun 2017 13:22:48 -0700
-Message-ID: <20170626202248.4doHTHr0H%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr.patch removed from
+ -mm tree
+Date: Mon, 26 Jun 2017 13:22:51 -0700
+Message-ID: <20170626202251.NvoaA8wOq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:51400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751922AbdFZUWt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:49 -0400
+        with ESMTP id S1751934AbdFZUWw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, tj@kernel.org
+To: jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, tv@lio96.de, zren@suse.com
 
 
 The patch titled
-     Subject: slub: make sysfs file removal asynchronous
+     Subject: ocfs2: fix deadlock caused by recursive locking in xattr
 has been removed from the -mm tree.  Its filename was
-     slub-make-sysfs-file-removal-asynchronous.patch
+     ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: slub: make sysfs file removal asynchronous
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix deadlock caused by recursive locking in xattr
 
-bf5eb3de3847 ("slub: separate out sysfs_slab_release() from
-sysfs_slab_remove()") made slub sysfs file removals synchronous to
-kmem_cache shutdown.  Unfortunately, this created a possible ABBA deadlock
-between slab_mutex and sysfs draining mechanism triggering the following
-lockdep warning.
+Another deadlock path caused by recursive locking is reported.  This kind
+of issue was introduced since commit 743b5f1434f5 ("ocfs2: take inode lock
+in ocfs2_iop_set/get_acl()").  Two deadlock paths have been fixed by
+commit b891fa5024a9 ("ocfs2: fix deadlock issue when taking inode lock at
+vfs entry points").  Yes, we intend to fix this kind of case in
+incremental way, because it's hard to find out all possible paths at once.
 
-  ======================================================
-  [ INFO: possible circular locking dependency detected ]
-  4.10.0-test+ #48 Not tainted
-  -------------------------------------------------------
-  rmmod/1211 is trying to acquire lock:
-   (s_active#120){++++.+}, at: [<ffffffff81308073>] kernfs_remove+0x23/0x40
+This one can be reproduced like this.  On node1, cp a large file from home
+directory to ocfs2 mountpoint.  While on node2, run setfacl/getfacl.  Both
+nodes will hang up there.  The backtraces:
 
-  but task is already holding lock:
-   (slab_mutex){+.+.+.}, at: [<ffffffff8120f691>] kmem_cache_destroy+0x41/0x2d0
+On node1:
+[<ffffffffc06a1f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
+[<ffffffffc06a2d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
+[<ffffffffc0692043>] ocfs2_write_begin+0x43/0x1a0 [ocfs2]
+[<ffffffffa21ac719>] generic_perform_write+0xa9/0x180
+[<ffffffffa21aecda>] __generic_file_write_iter+0x1aa/0x1d0
+[<ffffffffc06abc24>] ocfs2_file_write_iter+0x4f4/0xb40 [ocfs2]
+[<ffffffffa223c3b3>] __vfs_write+0xc3/0x130
+[<ffffffffa223cae1>] vfs_write+0xb1/0x1a0
+[<ffffffffa223dfe6>] SyS_write+0x46/0xa0
 
-  which lock already depends on the new lock.
+On node2:
+[<ffffffffc07b6f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
+[<ffffffffc07b7d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
+[<ffffffffc0815c1e>] ocfs2_xattr_set+0x12e/0xe80 [ocfs2]
+[<ffffffffc081783d>] ocfs2_set_acl+0x22d/0x260 [ocfs2]
+[<ffffffffc08178d5>] ocfs2_iop_set_acl+0x65/0xb0 [ocfs2]
+[<ffffffffa62a43f5>] set_posix_acl+0x75/0xb0
+[<ffffffffa62a4479>] posix_acl_xattr_set+0x49/0xa0
+[<ffffffffa6265c69>] __vfs_setxattr+0x69/0x80
+[<ffffffffa6266832>] __vfs_setxattr_noperm+0x72/0x1a0
+[<ffffffffa6266a07>] vfs_setxattr+0xa7/0xb0
+[<ffffffffa6266b3d>] setxattr+0x12d/0x190
+[<ffffffffa6266c3f>] path_setxattr+0x9f/0xb0
+[<ffffffffa6266d74>] SyS_setxattr+0x14/0x20
 
-  the existing dependency chain (in reverse order) is:
+Fixes this one by using ocfs2_inode_{lock|unlock}_tracker, which is
+exported by commit 439a36b8ef38 ("ocfs2/dlmglue: prepare tracking logic to
+avoid recursive cluster lock").
 
-  -> #1 (slab_mutex){+.+.+.}:
-	 lock_acquire+0xf6/0x1f0
-	 __mutex_lock+0x75/0x950
-	 mutex_lock_nested+0x1b/0x20
-	 slab_attr_store+0x75/0xd0
-	 sysfs_kf_write+0x45/0x60
-	 kernfs_fop_write+0x13c/0x1c0
-	 __vfs_write+0x28/0x120
-	 vfs_write+0xc8/0x1e0
-	 SyS_write+0x49/0xa0
-	 entry_SYSCALL_64_fastpath+0x1f/0xc2
-
-  -> #0 (s_active#120){++++.+}:
-	 __lock_acquire+0x10ed/0x1260
-	 lock_acquire+0xf6/0x1f0
-	 __kernfs_remove+0x254/0x320
-	 kernfs_remove+0x23/0x40
-	 sysfs_remove_dir+0x51/0x80
-	 kobject_del+0x18/0x50
-	 __kmem_cache_shutdown+0x3e6/0x460
-	 kmem_cache_destroy+0x1fb/0x2d0
-	 kvm_exit+0x2d/0x80 [kvm]
-	 vmx_exit+0x19/0xa1b [kvm_intel]
-	 SyS_delete_module+0x198/0x1f0
-	 entry_SYSCALL_64_fastpath+0x1f/0xc2
-
-  other info that might help us debug this:
-
-   Possible unsafe locking scenario:
-
-	 CPU0                    CPU1
-	 ----                    ----
-    lock(slab_mutex);
-				 lock(s_active#120);
-				 lock(slab_mutex);
-    lock(s_active#120);
-
-   *** DEADLOCK ***
-
-  2 locks held by rmmod/1211:
-   #0:  (cpu_hotplug.dep_map){++++++}, at: [<ffffffff810a7877>] get_online_cpus+0x37/0x80
-   #1:  (slab_mutex){+.+.+.}, at: [<ffffffff8120f691>] kmem_cache_destroy+0x41/0x2d0
-
-  stack backtrace:
-  CPU: 3 PID: 1211 Comm: rmmod Not tainted 4.10.0-test+ #48
-  Hardware name: Hewlett-Packard HP Compaq Pro 6300 SFF/339A, BIOS K01 v02.05 05/07/2012
-  Call Trace:
-   dump_stack+0x86/0xc3
-   print_circular_bug+0x1be/0x210
-   __lock_acquire+0x10ed/0x1260
-   ? 0xffffffffa0000077
-   lock_acquire+0xf6/0x1f0
-   ? kernfs_remove+0x23/0x40
-   __kernfs_remove+0x254/0x320
-   ? kernfs_remove+0x23/0x40
-   ? __kernfs_remove+0x5/0x320
-   kernfs_remove+0x23/0x40
-   sysfs_remove_dir+0x51/0x80
-   kobject_del+0x18/0x50
-   __kmem_cache_shutdown+0x3e6/0x460
-   kmem_cache_destroy+0x1fb/0x2d0
-   kvm_exit+0x2d/0x80 [kvm]
-   vmx_exit+0x19/0xa1b [kvm_intel]
-   SyS_delete_module+0x198/0x1f0
-   ? SyS_delete_module+0x5/0x1f0
-   entry_SYSCALL_64_fastpath+0x1f/0xc2
-  RIP: 0033:0x7fdf0439f487
-  RSP: 002b:00007ffcd39eb6b8 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
-  RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007fdf0439f487
-  RDX: 000000000000000a RSI: 0000000000000800 RDI: 000055e4e32f3258
-  RBP: 0000000000000000 R08: 000000000000000a R09: 0000000000000000
-  R10: 00007fdf0440ace0 R11: 0000000000000206 R12: 000055e4e32f31f0
-  R13: 00007ffcd39ea6a0 R14: 0000000000000000 R15: 000055e4e32f31f0
-
-It'd be the cleanest to deal with the issue by removing sysfs files
-without holding slab_mutex before the rest of shutdown; however, given the
-current code structure, it is pretty difficult to do so.  This patch punts
-sysfs file removal to a work item.  Before bf5eb3de3847, the removal was
-punted to a RCU delayed work item which is executed after release.  Now,
-we're punting to a different work item on shutdown which still maintains
-the goal removing the sysfs files earlier when destroying kmem_caches.
-
-Link: http://lkml.kernel.org/r/20170620204512.GI21326@htj.duckdns.org
-Fixes: bf5eb3de3847 ("slub: separate out sysfs_slab_release() from sysfs_slab_remove()")
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Tested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20170622014746.5815-1-zren@suse.com
+Fixes: 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+Signed-off-by: Eric Ren <zren@suse.com>
+Reported-by: Thomas Voegtle <tv@lio96.de>
+Tested-by: Thomas Voegtle <tv@lio96.de>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    1 
- mm/slub.c                |   40 ++++++++++++++++++++++++-------------
- 2 files changed, 27 insertions(+), 14 deletions(-)
+ fs/ocfs2/dlmglue.c |    4 ++++
+ fs/ocfs2/xattr.c   |   23 +++++++++++++----------
+ 2 files changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-make-sysfs-file-removal-asynchronous include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-make-sysfs-file-removal-asynchronous
-+++ a/include/linux/slub_def.h
-@@ -84,6 +84,7 @@ struct kmem_cache {
- 	int red_left_pad;	/* Left redzone padding size */
- #ifdef CONFIG_SYSFS
- 	struct kobject kobj;	/* For sysfs */
-+	struct work_struct kobj_remove_work;
- #endif
- #ifdef CONFIG_MEMCG
- 	struct memcg_cache_params memcg_params;
-diff -puN mm/slub.c~slub-make-sysfs-file-removal-asynchronous mm/slub.c
---- a/mm/slub.c~slub-make-sysfs-file-removal-asynchronous
-+++ a/mm/slub.c
-@@ -5625,6 +5625,28 @@ static char *create_unique_id(struct kme
- 	return name;
- }
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
++++ a/fs/ocfs2/dlmglue.c
+@@ -2591,6 +2591,10 @@ void ocfs2_inode_unlock_tracker(struct i
+ 	struct ocfs2_lock_res *lockres;
  
-+static void sysfs_slab_remove_workfn(struct work_struct *work)
-+{
-+	struct kmem_cache *s =
-+		container_of(work, struct kmem_cache, kobj_remove_work);
-+
-+	if (!s->kobj.state_in_sysfs)
-+		/*
-+		 * For a memcg cache, this may be called during
-+		 * deactivation and again on shutdown.  Remove only once.
-+		 * A cache is never shut down before deactivation is
-+		 * complete, so no need to worry about synchronization.
-+		 */
-+		return;
-+
-+#ifdef CONFIG_MEMCG
-+	kset_unregister(s->memcg_kset);
-+#endif
-+	kobject_uevent(&s->kobj, KOBJ_REMOVE);
-+	kobject_del(&s->kobj);
-+	kobject_put(&s->kobj);
-+}
-+
- static int sysfs_slab_add(struct kmem_cache *s)
+ 	lockres = &OCFS2_I(inode)->ip_inode_lockres;
++	/* had_lock means that the currect process already takes the cluster
++	 * lock previously. If had_lock is 1, we have nothing to do here, and
++	 * it will get unlocked where we got the lock.
++	 */
+ 	if (!had_lock) {
+ 		ocfs2_remove_holder(lockres, oh);
+ 		ocfs2_inode_unlock(inode, ex);
+diff -puN fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
++++ a/fs/ocfs2/xattr.c
+@@ -1328,20 +1328,21 @@ static int ocfs2_xattr_get(struct inode
+ 			   void *buffer,
+ 			   size_t buffer_size)
  {
- 	int err;
-@@ -5632,6 +5654,8 @@ static int sysfs_slab_add(struct kmem_ca
- 	struct kset *kset = cache_kset(s);
- 	int unmergeable = slab_unmergeable(s);
+-	int ret;
++	int ret, had_lock;
+ 	struct buffer_head *di_bh = NULL;
++	struct ocfs2_lock_holder oh;
  
-+	INIT_WORK(&s->kobj_remove_work, sysfs_slab_remove_workfn);
-+
- 	if (!kset) {
- 		kobject_init(&s->kobj, &slab_ktype);
- 		return 0;
-@@ -5695,20 +5719,8 @@ static void sysfs_slab_remove(struct kme
- 		 */
- 		return;
+-	ret = ocfs2_inode_lock(inode, &di_bh, 0);
+-	if (ret < 0) {
+-		mlog_errno(ret);
+-		return ret;
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 0, &oh);
++	if (had_lock < 0) {
++		mlog_errno(had_lock);
++		return had_lock;
+ 	}
+ 	down_read(&OCFS2_I(inode)->ip_xattr_sem);
+ 	ret = ocfs2_xattr_get_nolock(inode, di_bh, name_index,
+ 				     name, buffer, buffer_size);
+ 	up_read(&OCFS2_I(inode)->ip_xattr_sem);
  
--	if (!s->kobj.state_in_sysfs)
--		/*
--		 * For a memcg cache, this may be called during
--		 * deactivation and again on shutdown.  Remove only once.
--		 * A cache is never shut down before deactivation is
--		 * complete, so no need to worry about synchronization.
--		 */
--		return;
+-	ocfs2_inode_unlock(inode, 0);
++	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
+ 
+ 	brelse(di_bh);
+ 
+@@ -3537,11 +3538,12 @@ int ocfs2_xattr_set(struct inode *inode,
+ {
+ 	struct buffer_head *di_bh = NULL;
+ 	struct ocfs2_dinode *di;
+-	int ret, credits, ref_meta = 0, ref_credits = 0;
++	int ret, credits, had_lock, ref_meta = 0, ref_credits = 0;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	struct inode *tl_inode = osb->osb_tl_inode;
+ 	struct ocfs2_xattr_set_ctxt ctxt = { NULL, NULL, NULL, };
+ 	struct ocfs2_refcount_tree *ref_tree = NULL;
++	struct ocfs2_lock_holder oh;
+ 
+ 	struct ocfs2_xattr_info xi = {
+ 		.xi_name_index = name_index,
+@@ -3572,8 +3574,9 @@ int ocfs2_xattr_set(struct inode *inode,
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = ocfs2_inode_lock(inode, &di_bh, 1);
+-	if (ret < 0) {
++	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 1, &oh);
++	if (had_lock < 0) {
++		ret = had_lock;
+ 		mlog_errno(ret);
+ 		goto cleanup_nolock;
+ 	}
+@@ -3670,7 +3673,7 @@ cleanup:
+ 		if (ret)
+ 			mlog_errno(ret);
+ 	}
+-	ocfs2_inode_unlock(inode, 1);
++	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
+ cleanup_nolock:
+ 	brelse(di_bh);
+ 	brelse(xbs.xattr_bh);
+_
+
+Patches currently in -mm which might be from zren@suse.com are
+
+
