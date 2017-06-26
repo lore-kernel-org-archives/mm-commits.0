@@ -1,132 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-account-for-argv-envp-pointers.patch removed
- from -mm tree
-Date: Mon, 26 Jun 2017 13:22:54 -0700
-Message-ID: <20170626202254.jNNe7-QuV%akpm@linux-foundation.org>
+Subject: +
+ mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch added to -mm tree
+Date: Mon, 26 Jun 2017 14:38:43 -0700
+Message-ID: <59517ee3.2BOWGX9ahKmgjz7b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60334 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751934AbdFZUWz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:55 -0400
+        with ESMTP id S1751466AbdFZVio (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 17:38:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, mhocko@suse.com, mm-commits@vger.kernel.org, qsa@qualys.com, riel@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, davem@davemloft.net, jag.raman@oracle.com, mhocko@suse.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/exec.c: account for argv/envp pointers
-has been removed from the -mm tree.  Its filename was
-     exec-account-for-argv-envp-pointers.patch
+     Subject: mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix
+has been added to the -mm tree.  Its filename is
+     mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs/exec.c: account for argv/envp pointers
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix
 
-When limiting the argv/envp strings during exec to 1/4 of the stack limit,
-the storage of the pointers to the strings was not included.  This means
-that an exec with huge numbers of tiny strings could eat 1/4 of the stack
-limit in strings and then additional space would be later used by the
-pointers to the strings.  For example, on 32-bit with a 8MB stack rlimit,
-an exec with 1677721 single-byte strings would consume less than 2MB of
-stack, the max (8MB / 4) amount allowed, but the pointers to the strings
-would consume the remaining additional stack space (1677721 * 4 ==
-6710884).  The result (1677721 + 6710884 == 8388605) would exhaust stack
-space entirely.  Controlling this stack exhaustion could result in
-pathological behavior in setuid binaries (CVE-2017-1000365).
+fix arch/sparc/kernel/mdesc.c
 
-[akpm@linux-foundation.org: additional commenting from Kees]
-Fixes: b6a2fea39318 ("mm: variable length argument support")
-Link: http://lkml.kernel.org/r/20170622001720.GA32173@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Qualys Security Advisory <qsa@qualys.com>
-Cc: <stable@vger.kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Miller <davem@davemloft.net>
+Cc: Jag Raman <jag.raman@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/mdesc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-account-for-argv-envp-pointers fs/exec.c
---- a/fs/exec.c~exec-account-for-argv-envp-pointers
-+++ a/fs/exec.c
-@@ -220,8 +220,26 @@ static struct page *get_arg_page(struct
+diff -puN arch/sparc/kernel/mdesc.c~mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix arch/sparc/kernel/mdesc.c
+--- a/arch/sparc/kernel/mdesc.c~mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix
++++ a/arch/sparc/kernel/mdesc.c
+@@ -205,7 +205,7 @@ static struct mdesc_handle *mdesc_kmallo
+ 	handle_size = (sizeof(struct mdesc_handle) -
+ 		       sizeof(struct mdesc_hdr) +
+ 		       mdesc_size);
+-	base = kmalloc(handle_size + 15, GFP_KERNEL | __GFP_REPEAT);
++	base = kmalloc(handle_size + 15, GFP_KERNEL | __GFP_RETRY_MAYFAIL);
+ 	if (!base)
+ 		return NULL;
  
- 	if (write) {
- 		unsigned long size = bprm->vma->vm_end - bprm->vma->vm_start;
-+		unsigned long ptr_size;
- 		struct rlimit *rlim;
- 
-+		/*
-+		 * Since the stack will hold pointers to the strings, we
-+		 * must account for them as well.
-+		 *
-+		 * The size calculation is the entire vma while each arg page is
-+		 * built, so each time we get here it's calculating how far it
-+		 * is currently (rather than each call being just the newly
-+		 * added size from the arg page).  As a result, we need to
-+		 * always add the entire size of the pointers, so that on the
-+		 * last call to get_arg_page() we'll actually have the entire
-+		 * correct size.
-+		 */
-+		ptr_size = (bprm->argc + bprm->envc) * sizeof(void *);
-+		if (ptr_size > ULONG_MAX - size)
-+			goto fail;
-+		size += ptr_size;
-+
- 		acct_arg_size(bprm, size / PAGE_SIZE);
- 
- 		/*
-@@ -239,13 +257,15 @@ static struct page *get_arg_page(struct
- 		 *    to work from.
- 		 */
- 		rlim = current->signal->rlim;
--		if (size > ACCESS_ONCE(rlim[RLIMIT_STACK].rlim_cur) / 4) {
--			put_page(page);
--			return NULL;
--		}
-+		if (size > READ_ONCE(rlim[RLIMIT_STACK].rlim_cur) / 4)
-+			goto fail;
- 	}
- 
- 	return page;
-+
-+fail:
-+	put_page(page);
-+	return NULL;
- }
- 
- static void put_arg_page(struct page *page)
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-allow-slab_nomerge-to-be-set-at-build-time.patch
-binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
-arm-reduce-elf_et_dyn_base.patch
-arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
-powerpc-reduce-elf_et_dyn_base.patch
-s390-reduce-elf_et_dyn_base.patch
-binfmt_elf-safely-increment-argv-pointers.patch
-ipc-drop-non-rcu-allocation.patch
-ipc-sem-do-not-use-ipc_rcu_free.patch
-ipc-shm-do-not-use-ipc_rcu_free.patch
-ipc-msg-do-not-use-ipc_rcu_free.patch
-ipc-util-drop-ipc_rcu_free.patch
-ipc-sem-avoid-ipc_rcu_alloc.patch
-ipc-shm-avoid-ipc_rcu_alloc.patch
-ipc-msg-avoid-ipc_rcu_alloc.patch
-ipc-util-drop-ipc_rcu_alloc.patch
-ipc-move-atomic_set-to-where-it-is-needed.patch
-ipc-shm-remove-special-shm_alloc-free.patch
-ipc-msg-remove-special-msg_alloc-free.patch
-ipc-sem-drop-__sem_free.patch
-efi-avoid-fortify-checks-in-efi-stub.patch
-kexec_file-adjust-declaration-of-kexec_purgatory.patch
-ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
+mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
+hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
+signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+linux-next-rejects.patch
+powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
