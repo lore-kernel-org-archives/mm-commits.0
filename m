@@ -1,77 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-thp-remove-cond_resched-from-__collapse_huge_page_copy.patch removed
- from -mm tree
-Date: Mon, 26 Jun 2017 13:22:36 -0700
-Message-ID: <20170626202236.KQr5Z_3ke%akpm@linux-foundation.org>
+Subject: [merged] slub-make-sysfs-file-removal-asynchronous.patch
+ removed from -mm tree
+Date: Mon, 26 Jun 2017 13:22:48 -0700
+Message-ID: <20170626202248.4doHTHr0H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51400 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751439AbdFZUWh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:37 -0400
+        with ESMTP id S1751922AbdFZUWt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Larry.Finger@lwfinger.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, tj@kernel.org
 
 
 The patch titled
-     Subject: mm, thp: remove cond_resched from __collapse_huge_page_copy
+     Subject: slub: make sysfs file removal asynchronous
 has been removed from the -mm tree.  Its filename was
-     mm-thp-remove-cond_resched-from-__collapse_huge_page_copy.patch
+     slub-make-sysfs-file-removal-asynchronous.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: remove cond_resched from __collapse_huge_page_copy
+From: Tejun Heo <tj@kernel.org>
+Subject: slub: make sysfs file removal asynchronous
 
-This is a partial revert of commit 338a16ba1549 ("mm, thp: copying user
-pages must schedule on collapse") which added a cond_resched() to
-__collapse_huge_page_copy().
+bf5eb3de3847 ("slub: separate out sysfs_slab_release() from
+sysfs_slab_remove()") made slub sysfs file removals synchronous to
+kmem_cache shutdown.  Unfortunately, this created a possible ABBA deadlock
+between slab_mutex and sysfs draining mechanism triggering the following
+lockdep warning.
 
-On x86 with CONFIG_HIGHPTE, __collapse_huge_page_copy is called in atomic
-context and thus scheduling is not possible.  This is only a possible
-config on arm and i386.
+  ======================================================
+  [ INFO: possible circular locking dependency detected ]
+  4.10.0-test+ #48 Not tainted
+  -------------------------------------------------------
+  rmmod/1211 is trying to acquire lock:
+   (s_active#120){++++.+}, at: [<ffffffff81308073>] kernfs_remove+0x23/0x40
 
-Although need_resched has been shown to be set for over 100 jiffies while
-doing the iteration in __collapse_huge_page_copy, this is better than
-doing
+  but task is already holding lock:
+   (slab_mutex){+.+.+.}, at: [<ffffffff8120f691>] kmem_cache_destroy+0x41/0x2d0
 
-	if (in_atomic())
-		cond_resched()
+  which lock already depends on the new lock.
 
-to cover only non-CONFIG_HIGHPTE configs.
+  the existing dependency chain (in reverse order) is:
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1706191341550.97821@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Larry Finger <Larry.Finger@lwfinger.net>
-Tested-by: Larry Finger <Larry.Finger@lwfinger.net>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+  -> #1 (slab_mutex){+.+.+.}:
+	 lock_acquire+0xf6/0x1f0
+	 __mutex_lock+0x75/0x950
+	 mutex_lock_nested+0x1b/0x20
+	 slab_attr_store+0x75/0xd0
+	 sysfs_kf_write+0x45/0x60
+	 kernfs_fop_write+0x13c/0x1c0
+	 __vfs_write+0x28/0x120
+	 vfs_write+0xc8/0x1e0
+	 SyS_write+0x49/0xa0
+	 entry_SYSCALL_64_fastpath+0x1f/0xc2
+
+  -> #0 (s_active#120){++++.+}:
+	 __lock_acquire+0x10ed/0x1260
+	 lock_acquire+0xf6/0x1f0
+	 __kernfs_remove+0x254/0x320
+	 kernfs_remove+0x23/0x40
+	 sysfs_remove_dir+0x51/0x80
+	 kobject_del+0x18/0x50
+	 __kmem_cache_shutdown+0x3e6/0x460
+	 kmem_cache_destroy+0x1fb/0x2d0
+	 kvm_exit+0x2d/0x80 [kvm]
+	 vmx_exit+0x19/0xa1b [kvm_intel]
+	 SyS_delete_module+0x198/0x1f0
+	 entry_SYSCALL_64_fastpath+0x1f/0xc2
+
+  other info that might help us debug this:
+
+   Possible unsafe locking scenario:
+
+	 CPU0                    CPU1
+	 ----                    ----
+    lock(slab_mutex);
+				 lock(s_active#120);
+				 lock(slab_mutex);
+    lock(s_active#120);
+
+   *** DEADLOCK ***
+
+  2 locks held by rmmod/1211:
+   #0:  (cpu_hotplug.dep_map){++++++}, at: [<ffffffff810a7877>] get_online_cpus+0x37/0x80
+   #1:  (slab_mutex){+.+.+.}, at: [<ffffffff8120f691>] kmem_cache_destroy+0x41/0x2d0
+
+  stack backtrace:
+  CPU: 3 PID: 1211 Comm: rmmod Not tainted 4.10.0-test+ #48
+  Hardware name: Hewlett-Packard HP Compaq Pro 6300 SFF/339A, BIOS K01 v02.05 05/07/2012
+  Call Trace:
+   dump_stack+0x86/0xc3
+   print_circular_bug+0x1be/0x210
+   __lock_acquire+0x10ed/0x1260
+   ? 0xffffffffa0000077
+   lock_acquire+0xf6/0x1f0
+   ? kernfs_remove+0x23/0x40
+   __kernfs_remove+0x254/0x320
+   ? kernfs_remove+0x23/0x40
+   ? __kernfs_remove+0x5/0x320
+   kernfs_remove+0x23/0x40
+   sysfs_remove_dir+0x51/0x80
+   kobject_del+0x18/0x50
+   __kmem_cache_shutdown+0x3e6/0x460
+   kmem_cache_destroy+0x1fb/0x2d0
+   kvm_exit+0x2d/0x80 [kvm]
+   vmx_exit+0x19/0xa1b [kvm_intel]
+   SyS_delete_module+0x198/0x1f0
+   ? SyS_delete_module+0x5/0x1f0
+   entry_SYSCALL_64_fastpath+0x1f/0xc2
+  RIP: 0033:0x7fdf0439f487
+  RSP: 002b:00007ffcd39eb6b8 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
+  RAX: ffffffffffffffda RBX: 0000000000000046 RCX: 00007fdf0439f487
+  RDX: 000000000000000a RSI: 0000000000000800 RDI: 000055e4e32f3258
+  RBP: 0000000000000000 R08: 000000000000000a R09: 0000000000000000
+  R10: 00007fdf0440ace0 R11: 0000000000000206 R12: 000055e4e32f31f0
+  R13: 00007ffcd39ea6a0 R14: 0000000000000000 R15: 000055e4e32f31f0
+
+It'd be the cleanest to deal with the issue by removing sysfs files
+without holding slab_mutex before the rest of shutdown; however, given the
+current code structure, it is pretty difficult to do so.  This patch punts
+sysfs file removal to a work item.  Before bf5eb3de3847, the removal was
+punted to a RCU delayed work item which is executed after release.  Now,
+we're punting to a different work item on shutdown which still maintains
+the goal removing the sysfs files earlier when destroying kmem_caches.
+
+Link: http://lkml.kernel.org/r/20170620204512.GI21326@htj.duckdns.org
+Fixes: bf5eb3de3847 ("slub: separate out sysfs_slab_release() from sysfs_slab_remove()")
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Tested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/slub_def.h |    1 
+ mm/slub.c                |   40 ++++++++++++++++++++++++-------------
+ 2 files changed, 27 insertions(+), 14 deletions(-)
 
-diff -puN mm/khugepaged.c~mm-thp-remove-cond_resched-from-__collapse_huge_page_copy mm/khugepaged.c
---- a/mm/khugepaged.c~mm-thp-remove-cond_resched-from-__collapse_huge_page_copy
-+++ a/mm/khugepaged.c
-@@ -652,7 +652,6 @@ static void __collapse_huge_page_copy(pt
- 			spin_unlock(ptl);
- 			free_page_and_swap_cache(src_page);
- 		}
--		cond_resched();
- 	}
+diff -puN include/linux/slub_def.h~slub-make-sysfs-file-removal-asynchronous include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-make-sysfs-file-removal-asynchronous
++++ a/include/linux/slub_def.h
+@@ -84,6 +84,7 @@ struct kmem_cache {
+ 	int red_left_pad;	/* Left redzone padding size */
+ #ifdef CONFIG_SYSFS
+ 	struct kobject kobj;	/* For sysfs */
++	struct work_struct kobj_remove_work;
+ #endif
+ #ifdef CONFIG_MEMCG
+ 	struct memcg_cache_params memcg_params;
+diff -puN mm/slub.c~slub-make-sysfs-file-removal-asynchronous mm/slub.c
+--- a/mm/slub.c~slub-make-sysfs-file-removal-asynchronous
++++ a/mm/slub.c
+@@ -5625,6 +5625,28 @@ static char *create_unique_id(struct kme
+ 	return name;
  }
  
-_
-
-Patches currently in -mm which might be from rientjes@google.com are
-
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch
-mm-vmpressure-pass-through-notification-support.patch
-mm-hugetlb-schedule-when-potentially-allocating-many-hugepages.patch
-fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
-
++static void sysfs_slab_remove_workfn(struct work_struct *work)
++{
++	struct kmem_cache *s =
++		container_of(work, struct kmem_cache, kobj_remove_work);
++
++	if (!s->kobj.state_in_sysfs)
++		/*
++		 * For a memcg cache, this may be called during
++		 * deactivation and again on shutdown.  Remove only once.
++		 * A cache is never shut down before deactivation is
++		 * complete, so no need to worry about synchronization.
++		 */
++		return;
++
++#ifdef CONFIG_MEMCG
++	kset_unregister(s->memcg_kset);
++#endif
++	kobject_uevent(&s->kobj, KOBJ_REMOVE);
++	kobject_del(&s->kobj);
++	kobject_put(&s->kobj);
++}
++
+ static int sysfs_slab_add(struct kmem_cache *s)
+ {
+ 	int err;
+@@ -5632,6 +5654,8 @@ static int sysfs_slab_add(struct kmem_ca
+ 	struct kset *kset = cache_kset(s);
+ 	int unmergeable = slab_unmergeable(s);
+ 
++	INIT_WORK(&s->kobj_remove_work, sysfs_slab_remove_workfn);
++
+ 	if (!kset) {
+ 		kobject_init(&s->kobj, &slab_ktype);
+ 		return 0;
+@@ -5695,20 +5719,8 @@ static void sysfs_slab_remove(struct kme
+ 		 */
+ 		return;
+ 
+-	if (!s->kobj.state_in_sysfs)
+-		/*
+-		 * For a memcg cache, this may be called during
+-		 * deactivation and again on shutdown.  Remove only once.
+-		 * A cache is never shut down before deactivation is
+-		 * complete, so no need to worry about synchronization.
+-		 */
+-		return;
