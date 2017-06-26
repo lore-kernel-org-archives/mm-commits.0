@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-unused-zone_type-variable-from-__remove_zone.patch
- added to -mm tree
-Date: Mon, 26 Jun 2017 16:14:00 -0700
-Message-ID: <59519538.SlJFXEKj/RCzy+xc%akpm@linux-foundation.org>
+Subject: +
+ compiler-clang-always-inline-when-config_optimize_inlining-is-disabled.patch added to -mm tree
+Date: Mon, 26 Jun 2017 16:16:39 -0700
+Message-ID: <595195d7.lDL7BJ9wPjOfjsfc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38802 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751434AbdFZXOB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 19:14:01 -0400
+        with ESMTP id S1751308AbdFZXQk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 19:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jhubbard@nvidia.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, catalin.marinas@arm.com, mark.rutland@arm.com, mingo@kernel.org, mka@chromium.org, peterz@infradead.org, psodagud@codeaurora.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: remove unused local zone_type from __remove_zone()
+     Subject: compiler, clang: always inline when CONFIG_OPTIMIZE_INLINING is disabled
 has been added to the -mm tree.  Its filename is
-     mm-remove-unused-zone_type-variable-from-__remove_zone.patch
+     compiler-clang-always-inline-when-config_optimize_inlining-is-disabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unused-zone_type-variable-from-__remove_zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/compiler-clang-always-inline-when-config_optimize_inlining-is-disabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unused-zone_type-variable-from-__remove_zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-clang-always-inline-when-config_optimize_inlining-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/memory_hotplug.c: remove unused local zone_type from __remove_zone()
+From: David Rientjes <rientjes@google.com>
+Subject: compiler, clang: always inline when CONFIG_OPTIMIZE_INLINING is disabled
 
-__remove_zone() sets up up zone_type, but never uses it for anything. 
-This does not cause a warning, due to the (necessary) use of
--Wno-unused-but-set-variable.  However, it's noise, so just delete it.
+The motivation of abb2ea7dfd82 ("compiler, clang: suppress warning for
+unused static inline functions") is to suppress clang's warnings about
+unused static inline functions.
 
-Link: http://lkml.kernel.org/r/20170624043421.24465-2-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+For configs without CONFIG_OPTIMIZE_INLINING enabled, such as any non-x86
+architecture, `inline' in the kernel implies that
+__attribute__((always_inline)) is used.
+
+Some code depends on that behavior, see
+https://lkml.org/lkml/2017/6/13/918:
+
+net/built-in.o: In function `__xchg_mb':
+arch/arm64/include/asm/cmpxchg.h:99: undefined reference to `__compiletime_assert_99'
+arch/arm64/include/asm/cmpxchg.h:99: undefined reference to `__compiletime_assert_99
+
+The full fix would be to identify these breakages and annotate the
+functions with __always_inline instead of `inline'.  But since we are late
+in the 4.12-rc cycle, simply carry forward the forced inlining behavior
+and work toward moving arm64, and other architectures, toward
+CONFIG_OPTIMIZE_INLINING behavior.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1706261552200.1075@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Sodagudi Prasad <psodagud@codeaurora.org>
+Tested-by: Matthias Kaehlcke <mka@chromium.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/compiler-clang.h |    8 --------
+ include/linux/compiler-gcc.h   |   18 +++++++++++-------
+ 2 files changed, 11 insertions(+), 15 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-remove-unused-zone_type-variable-from-__remove_zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-remove-unused-zone_type-variable-from-__remove_zone
-+++ a/mm/memory_hotplug.c
-@@ -580,11 +580,8 @@ static void __remove_zone(struct zone *z
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	int nr_pages = PAGES_PER_SECTION;
--	int zone_type;
- 	unsigned long flags;
+diff -puN include/linux/compiler-clang.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled include/linux/compiler-clang.h
+--- a/include/linux/compiler-clang.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled
++++ a/include/linux/compiler-clang.h
+@@ -15,11 +15,3 @@
+  * with any version that can compile the kernel
+  */
+ #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
+-
+-/*
+- * GCC does not warn about unused static inline functions for
+- * -Wunused-function.  This turns out to avoid the need for complex #ifdef
+- * directives.  Suppress the warning in clang as well.
+- */
+-#undef inline
+-#define inline inline __attribute__((unused)) notrace
+diff -puN include/linux/compiler-gcc.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled
++++ a/include/linux/compiler-gcc.h
+@@ -66,18 +66,22 @@
  
--	zone_type = zone - pgdat->node_zones;
+ /*
+  * Force always-inline if the user requests it so via the .config,
+- * or if gcc is too old:
++ * or if gcc is too old.
++ * GCC does not warn about unused static inline functions for
++ * -Wunused-function.  This turns out to avoid the need for complex #ifdef
++ * directives.  Suppress the warning in clang as well by using "unused"
++ * function attribute, which is redundant but not harmful for gcc.
+  */
+ #if !defined(CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING) ||		\
+     !defined(CONFIG_OPTIMIZE_INLINING) || (__GNUC__ < 4)
+-#define inline		inline		__attribute__((always_inline)) notrace
+-#define __inline__	__inline__	__attribute__((always_inline)) notrace
+-#define __inline	__inline	__attribute__((always_inline)) notrace
++#define inline inline		__attribute__((always_inline,unused)) notrace
++#define __inline__ __inline__	__attribute__((always_inline,unused)) notrace
++#define __inline __inline	__attribute__((always_inline,unused)) notrace
+ #else
+ /* A lot of inline functions can cause havoc with function tracing */
+-#define inline		inline		notrace
+-#define __inline__	__inline__	notrace
+-#define __inline	__inline	notrace
++#define inline inline		__attribute__((unused)) notrace
++#define __inline__ __inline__	__attribute__((unused)) notrace
++#define __inline __inline	__attribute__((unused)) notrace
+ #endif
+ 
+ #define __always_inline	inline __attribute__((always_inline))
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+compiler-clang-always-inline-when-config_optimize_inlining-is-disabled.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch
+mm-vmpressure-pass-through-notification-support.patch
+mm-hugetlb-schedule-when-potentially-allocating-many-hugepages.patch
+fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
+
