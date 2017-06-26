@@ -1,159 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 7/8] ocfs2: fix deadlock caused by recursive locking in
- xattr
-Date: Fri, 23 Jun 2017 15:08:55 -0700
-Message-ID: <594d9177.1Mah7XY/n92scx6f%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings.patch removed
+ from -mm tree
+Date: Mon, 26 Jun 2017 13:22:39 -0700
+Message-ID: <20170626202239.RIOonz-kG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51370 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753397AbdFWWI4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2017 18:08:56 -0400
+        with ESMTP id S1751465AbdFZUWl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zren@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, tv@lio96.de
+To: ard.biesheuvel@linaro.org, dave.hansen@intel.com, labbott@redhat.com, mark.rutland@arm.com, mhocko@suse.com, mm-commits@vger.kernel.org, zhongjiang@huawei.com
 
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2: fix deadlock caused by recursive locking in xattr
 
-Another deadlock path caused by recursive locking is reported.  This kind
-of issue was introduced since commit 743b5f1434f5 ("ocfs2: take inode lock
-in ocfs2_iop_set/get_acl()").  Two deadlock paths have been fixed by
-commit b891fa5024a9 ("ocfs2: fix deadlock issue when taking inode lock at
-vfs entry points").  Yes, we intend to fix this kind of case in
-incremental way, because it's hard to find out all possible paths at once.
+The patch titled
+     Subject: mm/vmalloc.c: huge-vmap: fail gracefully on unexpected huge vmap mappings
+has been removed from the -mm tree.  Its filename was
+     mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings.patch
 
-This one can be reproduced like this.  On node1, cp a large file from home
-directory to ocfs2 mountpoint.  While on node2, run setfacl/getfacl.  Both
-nodes will hang up there.  The backtraces:
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-On node1:
-[<ffffffffc06a1f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
-[<ffffffffc06a2d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
-[<ffffffffc0692043>] ocfs2_write_begin+0x43/0x1a0 [ocfs2]
-[<ffffffffa21ac719>] generic_perform_write+0xa9/0x180
-[<ffffffffa21aecda>] __generic_file_write_iter+0x1aa/0x1d0
-[<ffffffffc06abc24>] ocfs2_file_write_iter+0x4f4/0xb40 [ocfs2]
-[<ffffffffa223c3b3>] __vfs_write+0xc3/0x130
-[<ffffffffa223cae1>] vfs_write+0xb1/0x1a0
-[<ffffffffa223dfe6>] SyS_write+0x46/0xa0
+------------------------------------------------------
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: mm/vmalloc.c: huge-vmap: fail gracefully on unexpected huge vmap mappings
 
-On node2:
-[<ffffffffc07b6f67>] __ocfs2_cluster_lock.isra.39+0x357/0x740 [ocfs2]
-[<ffffffffc07b7d3d>] ocfs2_inode_lock_full_nested+0x17d/0x840 [ocfs2]
-[<ffffffffc0815c1e>] ocfs2_xattr_set+0x12e/0xe80 [ocfs2]
-[<ffffffffc081783d>] ocfs2_set_acl+0x22d/0x260 [ocfs2]
-[<ffffffffc08178d5>] ocfs2_iop_set_acl+0x65/0xb0 [ocfs2]
-[<ffffffffa62a43f5>] set_posix_acl+0x75/0xb0
-[<ffffffffa62a4479>] posix_acl_xattr_set+0x49/0xa0
-[<ffffffffa6265c69>] __vfs_setxattr+0x69/0x80
-[<ffffffffa6266832>] __vfs_setxattr_noperm+0x72/0x1a0
-[<ffffffffa6266a07>] vfs_setxattr+0xa7/0xb0
-[<ffffffffa6266b3d>] setxattr+0x12d/0x190
-[<ffffffffa6266c3f>] path_setxattr+0x9f/0xb0
-[<ffffffffa6266d74>] SyS_setxattr+0x14/0x20
+Existing code that uses vmalloc_to_page() may assume that any address for
+which is_vmalloc_addr() returns true may be passed into vmalloc_to_page()
+to retrieve the associated struct page.
 
-Fixes this one by using ocfs2_inode_{lock|unlock}_tracker, which is
-exported by commit 439a36b8ef38 ("ocfs2/dlmglue: prepare tracking logic to
-avoid recursive cluster lock").
+This is not un unreasonable assumption to make, but on architectures that
+have CONFIG_HAVE_ARCH_HUGE_VMAP=y, it no longer holds, and we need to
+ensure that vmalloc_to_page() does not go off into the weeds trying to
+dereference huge PUDs or PMDs as table entries.
 
-Link: http://lkml.kernel.org/r/20170622014746.5815-1-zren@suse.com
-Fixes: 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
-Signed-off-by: Eric Ren <zren@suse.com>
-Reported-by: Thomas Voegtle <tv@lio96.de>
-Tested-by: Thomas Voegtle <tv@lio96.de>
-Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mfasheh@versity.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Given that vmalloc() and vmap() themselves never create huge mappings or
+deal with compound pages at all, there is no correct answer in this case,
+so return NULL instead, and issue a warning.
+
+When reading /proc/kcore on arm64, you will hit an oops as soon as you
+hit the huge mappings used for the various segments that make up the
+mapping of vmlinux.  With this patch applied, you will no longer hit
+the oops, but the kcore contents willl be incorrect (these regions will
+be zeroed out)
+
+We are fixing this for kcore specifically, so it avoids vread() for
+those regions.  At least one other problematic user exists, i.e.,
+/dev/kmem, but that is currently broken on arm64 for other reasons.
+
+Link: http://lkml.kernel.org/r/20170609082226.26152-1-ard.biesheuvel@linaro.org
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Reviewed-by: Laura Abbott <labbott@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: zhong jiang <zhongjiang@huawei.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |    4 ++++
- fs/ocfs2/xattr.c   |   23 +++++++++++++----------
- 2 files changed, 17 insertions(+), 10 deletions(-)
+ mm/vmalloc.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
-+++ a/fs/ocfs2/dlmglue.c
-@@ -2591,6 +2591,10 @@ void ocfs2_inode_unlock_tracker(struct i
- 	struct ocfs2_lock_res *lockres;
- 
- 	lockres = &OCFS2_I(inode)->ip_inode_lockres;
-+	/* had_lock means that the currect process already takes the cluster
-+	 * lock previously. If had_lock is 1, we have nothing to do here, and
-+	 * it will get unlocked where we got the lock.
+diff -puN mm/vmalloc.c~mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-huge-vmap-fail-gracefully-on-unexpected-huge-vmap-mappings
++++ a/mm/vmalloc.c
+@@ -287,10 +287,21 @@ struct page *vmalloc_to_page(const void
+ 	if (p4d_none(*p4d))
+ 		return NULL;
+ 	pud = pud_offset(p4d, addr);
+-	if (pud_none(*pud))
++
++	/*
++	 * Don't dereference bad PUD or PMD (below) entries. This will also
++	 * identify huge mappings, which we may encounter on architectures
++	 * that define CONFIG_HAVE_ARCH_HUGE_VMAP=y. Such regions will be
++	 * identified as vmalloc addresses by is_vmalloc_addr(), but are
++	 * not [unambiguously] associated with a struct page, so there is
++	 * no correct value to return for them.
 +	 */
- 	if (!had_lock) {
- 		ocfs2_remove_holder(lockres, oh);
- 		ocfs2_inode_unlock(inode, ex);
-diff -puN fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-fix-deadlock-caused-by-recursive-locking-in-xattr
-+++ a/fs/ocfs2/xattr.c
-@@ -1328,20 +1328,21 @@ static int ocfs2_xattr_get(struct inode
- 			   void *buffer,
- 			   size_t buffer_size)
- {
--	int ret;
-+	int ret, had_lock;
- 	struct buffer_head *di_bh = NULL;
-+	struct ocfs2_lock_holder oh;
++	WARN_ON_ONCE(pud_bad(*pud));
++	if (pud_none(*pud) || pud_bad(*pud))
+ 		return NULL;
+ 	pmd = pmd_offset(pud, addr);
+-	if (pmd_none(*pmd))
++	WARN_ON_ONCE(pmd_bad(*pmd));
++	if (pmd_none(*pmd) || pmd_bad(*pmd))
+ 		return NULL;
  
--	ret = ocfs2_inode_lock(inode, &di_bh, 0);
--	if (ret < 0) {
--		mlog_errno(ret);
--		return ret;
-+	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 0, &oh);
-+	if (had_lock < 0) {
-+		mlog_errno(had_lock);
-+		return had_lock;
- 	}
- 	down_read(&OCFS2_I(inode)->ip_xattr_sem);
- 	ret = ocfs2_xattr_get_nolock(inode, di_bh, name_index,
- 				     name, buffer, buffer_size);
- 	up_read(&OCFS2_I(inode)->ip_xattr_sem);
- 
--	ocfs2_inode_unlock(inode, 0);
-+	ocfs2_inode_unlock_tracker(inode, 0, &oh, had_lock);
- 
- 	brelse(di_bh);
- 
-@@ -3537,11 +3538,12 @@ int ocfs2_xattr_set(struct inode *inode,
- {
- 	struct buffer_head *di_bh = NULL;
- 	struct ocfs2_dinode *di;
--	int ret, credits, ref_meta = 0, ref_credits = 0;
-+	int ret, credits, had_lock, ref_meta = 0, ref_credits = 0;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 	struct inode *tl_inode = osb->osb_tl_inode;
- 	struct ocfs2_xattr_set_ctxt ctxt = { NULL, NULL, NULL, };
- 	struct ocfs2_refcount_tree *ref_tree = NULL;
-+	struct ocfs2_lock_holder oh;
- 
- 	struct ocfs2_xattr_info xi = {
- 		.xi_name_index = name_index,
-@@ -3572,8 +3574,9 @@ int ocfs2_xattr_set(struct inode *inode,
- 		return -ENOMEM;
- 	}
- 
--	ret = ocfs2_inode_lock(inode, &di_bh, 1);
--	if (ret < 0) {
-+	had_lock = ocfs2_inode_lock_tracker(inode, &di_bh, 1, &oh);
-+	if (had_lock < 0) {
-+		ret = had_lock;
- 		mlog_errno(ret);
- 		goto cleanup_nolock;
- 	}
-@@ -3670,7 +3673,7 @@ cleanup:
- 		if (ret)
- 			mlog_errno(ret);
- 	}
--	ocfs2_inode_unlock(inode, 1);
-+	ocfs2_inode_unlock_tracker(inode, 1, &oh, had_lock);
- cleanup_nolock:
- 	brelse(di_bh);
- 	brelse(xbs.xattr_bh);
+ 	ptep = pte_offset_map(pmd, addr);
 _
+
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+
+
