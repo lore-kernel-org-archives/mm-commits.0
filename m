@@ -1,77 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- cmdline-fix-get_options-overflow-while-parsing-ranges.patch removed from
- -mm tree
-Date: Mon, 26 Jun 2017 13:22:46 -0700
-Message-ID: <20170626202246.uAlE71KvF%akpm@linux-foundation.org>
+ dax-fix-inefficiency-in-dax_writeback_mapping_range.patch removed from -mm
+ tree
+Date: Mon, 26 Jun 2017 13:22:44 -0700
+Message-ID: <20170626202244.wcW1sJlqZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51390 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751435AbdFZUWs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:48 -0400
+        with ESMTP id S1751435AbdFZUWp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2017 16:22:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, matvejchikov@gmail.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: dan.j.williams@intel.com, jack@suse.cz, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline.c: fix get_options() overflow while parsing ranges
+     Subject: fs/dax.c: fix inefficiency in dax_writeback_mapping_range()
 has been removed from the -mm tree.  Its filename was
-     cmdline-fix-get_options-overflow-while-parsing-ranges.patch
+     dax-fix-inefficiency-in-dax_writeback_mapping_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ilya Matveychikov <matvejchikov@gmail.com>
-Subject: lib/cmdline.c: fix get_options() overflow while parsing ranges
+From: Jan Kara <jack@suse.cz>
+Subject: fs/dax.c: fix inefficiency in dax_writeback_mapping_range()
 
-When using get_options() it's possible to specify a range of numbers, like
-1-100500.  The problem is that it doesn't track array size while calling
-internally to get_range() which iterates over the range and fills the
-memory with numbers.
+dax_writeback_mapping_range() fails to update iteration index when
+searching radix tree for entries needing cache flushing.  Thus each
+pagevec worth of entries is searched starting from the start which is
+inefficient and prone to livelocks.  Update index properly.
 
-Link: http://lkml.kernel.org/r/2613C75C-B04D-4BFF-82A6-12F97BA0F620@gmail.com
-Signed-off-by: Ilya V. Matveychikov <matvejchikov@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: http://lkml.kernel.org/r/20170619124531.21491-1-jack@suse.cz
+Fixes: 9973c98ecfda3 ("dax: add support for fsync/sync")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/dax.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/cmdline.c~cmdline-fix-get_options-overflow-while-parsing-ranges lib/cmdline.c
---- a/lib/cmdline.c~cmdline-fix-get_options-overflow-while-parsing-ranges
-+++ a/lib/cmdline.c
-@@ -23,14 +23,14 @@
-  *	the values[M, M+1, ..., N] into the ints array in get_options.
-  */
- 
--static int get_range(char **str, int *pint)
-+static int get_range(char **str, int *pint, int n)
- {
- 	int x, inc_counter, upper_range;
- 
- 	(*str)++;
- 	upper_range = simple_strtol((*str), NULL, 0);
- 	inc_counter = upper_range - *pint;
--	for (x = *pint; x < upper_range; x++)
-+	for (x = *pint; n && x < upper_range; x++, n--)
- 		*pint++ = x;
- 	return inc_counter;
- }
-@@ -97,7 +97,7 @@ char *get_options(const char *str, int n
- 			break;
- 		if (res == 3) {
- 			int range_nums;
--			range_nums = get_range((char **)&str, ints + i);
-+			range_nums = get_range((char **)&str, ints + i, nints - i);
- 			if (range_nums < 0)
- 				break;
- 			/*
+diff -puN fs/dax.c~dax-fix-inefficiency-in-dax_writeback_mapping_range fs/dax.c
+--- a/fs/dax.c~dax-fix-inefficiency-in-dax_writeback_mapping_range
++++ a/fs/dax.c
+@@ -859,6 +859,7 @@ int dax_writeback_mapping_range(struct a
+ 			if (ret < 0)
+ 				goto out;
+ 		}
++		start_index = indices[pvec.nr - 1] + 1;
+ 	}
+ out:
+ 	put_dax(dax_dev);
 _
 
-Patches currently in -mm which might be from matvejchikov@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
+mm-fix-thp-handling-in-invalidate_mapping_pages.patch
 
