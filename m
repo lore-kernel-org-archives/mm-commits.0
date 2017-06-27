@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory_hotplug-just-build-zonelist-for-new-added-node.patch
- added to -mm tree
-Date: Tue, 27 Jun 2017 12:18:16 -0700
-Message-ID: <5952af78.Ea34cTKUkmwrQlFr%akpm@linux-foundation.org>
+Subject: + sh-mark-end-of-bug-implementation-as-unreachable.patch added to -mm tree
+Date: Tue, 27 Jun 2017 13:03:23 -0700
+Message-ID: <5952ba0b.rzEDEJZuFQjvEtLV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47712 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752963AbdF0TSR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jun 2017 15:18:17 -0400
+        with ESMTP id S1752646AbdF0UDY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jun 2017 16:03:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.weiyang@gmail.com, liuj97@gmail.com, mhocko@suse.com, qiuxishi@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: keescook@chromium.org, dalias@libc.org, danielmicay@gmail.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: just build zonelist for newly added node
+     Subject: sh: mark end of BUG() implementation as unreachable
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-just-build-zonelist-for-new-added-node.patch
+     sh-mark-end-of-bug-implementation-as-unreachable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-just-build-zonelist-for-new-added-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-mark-end-of-bug-implementation-as-unreachable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-just-build-zonelist-for-new-added-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-mark-end-of-bug-implementation-as-unreachable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +38,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memory_hotplug: just build zonelist for newly added node
+From: Kees Cook <keescook@chromium.org>
+Subject: sh: mark end of BUG() implementation as unreachable
 
-9adb62a5df9c0fbef7 ("mm/hotplug: correctly setup fallback zonelists when
-creating new pgdat") tries to build the correct zonelist for a newly added
-node, while it is not necessary to rebuild it for already exist nodes.
+When building the sh architecture, the compiler doesn't realize that
+BUG() doesn't return, so it will complain about functions using BUG()
+that are marked with the noreturn attribute:
 
-In build_zonelists(), it will iterate on nodes with memory.  For a newly
-added node, it will have memory until node_states_set_node() is called in
-online_pages().
+   lib/string.c: In function 'fortify_panic':
+>> lib/string.c:986:1: warning: 'noreturn' function does return
+    }
+    ^
 
-This patch avoids rebuilding the zonelists for already existing nodes.
-
-Link: http://lkml.kernel.org/r/20170626035822.50155-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Link: http://lkml.kernel.org/r/20170627192050.GA66784@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ arch/sh/include/asm/bug.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-just-build-zonelist-for-new-added-node mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-just-build-zonelist-for-new-added-node
-+++ a/mm/page_alloc.c
-@@ -5205,15 +5205,17 @@ static int __build_all_zonelists(void *d
- 	memset(node_load, 0, sizeof(node_load));
- #endif
+diff -puN arch/sh/include/asm/bug.h~sh-mark-end-of-bug-implementation-as-unreachable arch/sh/include/asm/bug.h
+--- a/arch/sh/include/asm/bug.h~sh-mark-end-of-bug-implementation-as-unreachable
++++ a/arch/sh/include/asm/bug.h
+@@ -48,6 +48,7 @@ do {							\
+ 		   "i" (__FILE__),			\
+ 		   "i" (__LINE__), "i" (0),		\
+ 		   "i" (sizeof(struct bug_entry)));	\
++	unreachable();					\
+ } while (0)
  
--	if (self && !node_online(self->node_id)) {
-+	/* This node is hotadded and no memory preset yet.
-+	 * So just build zonelists is fine, no need to touch other nodes.
-+	 */
-+	if (self && !node_online(self->node_id))
- 		build_zonelists(self);
--	}
-+	else
-+		for_each_online_node(nid) {
-+			pg_data_t *pgdat = NODE_DATA(nid);
- 
--	for_each_online_node(nid) {
--		pg_data_t *pgdat = NODE_DATA(nid);
+ #define __WARN_FLAGS(flags)				\
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+mm-allow-slab_nomerge-to-be-set-at-build-time.patch
+binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
+arm-reduce-elf_et_dyn_base.patch
+arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
+powerpc-reduce-elf_et_dyn_base.patch
+s390-reduce-elf_et_dyn_base.patch
+binfmt_elf-safely-increment-argv-pointers.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
+efi-avoid-fortify-checks-in-efi-stub.patch
+kexec_file-adjust-declaration-of-kexec_purgatory.patch
+ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
+sh-mark-end-of-bug-implementation-as-unreachable.patch
+
