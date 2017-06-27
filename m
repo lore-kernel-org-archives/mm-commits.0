@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch added to -mm tree
-Date: Tue, 27 Jun 2017 13:40:41 -0700
-Message-ID: <5952c2c9.MtCVV/1ZC/Gh3YdB%akpm@linux-foundation.org>
+ include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch added to -mm tree
+Date: Tue, 27 Jun 2017 13:44:13 -0700
+Message-ID: <5952c39d.URJ1D9KC4BKQAyM2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53950 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753634AbdF0Ukn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jun 2017 16:40:43 -0400
+        with ESMTP id S1753511AbdF0Uo2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jun 2017 16:44:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haolee.swjtu@gmail.com, huang.ying.caritas@gmail.com, linux@rasmusvillemoes.dk, mhocko@suse.com, vbabka@suse.cz, weiyang@gmail.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, danielmicay@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix
+     Subject: fortify: avoid panic() in favor of BUG()
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
+     include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: fortify: avoid panic() in favor of BUG()
 
-fix up reject fixupping
+Since detection of a given fortify failure is sufficient to stop the
+memory corruption from happening, it doesn't make sense to unconditionally
+bring down the entire system.  Instead, use BUG() which will stop the bad
+thread of kernel execution (and only optionally panic the system).
 
-Cc: Hao Lee <haolee.swjtu@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <weiyang@gmail.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>
+Link: http://lkml.kernel.org/r/20170626235122.GA25261@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/string.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix
-+++ a/mm/page_alloc.c
-@@ -2212,7 +2212,7 @@ static bool unreserve_highatomic_pageblo
-  * condition simpler.
-  */
- static inline bool
--__rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
-+__rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+diff -puN lib/string.c~include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2 lib/string.c
+--- a/lib/string.c~include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2
++++ a/lib/string.c
+@@ -981,6 +981,7 @@ EXPORT_SYMBOL(strreplace);
+ 
+ void fortify_panic(const char *name)
  {
- 	struct free_area *area;
- 	int current_order;
+-	panic("detected buffer overflow in %s", name);
++	pr_emerg("detected buffer overflow in %s\n", name);
++	BUG();
+ }
+ EXPORT_SYMBOL(fortify_panic);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
-hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
-mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-allow-slab_nomerge-to-be-set-at-build-time.patch
+binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
+arm-reduce-elf_et_dyn_base.patch
+arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
+powerpc-reduce-elf_et_dyn_base.patch
+s390-reduce-elf_et_dyn_base.patch
+binfmt_elf-safely-increment-argv-pointers.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
+efi-avoid-fortify-checks-in-efi-stub.patch
+kexec_file-adjust-declaration-of-kexec_purgatory.patch
+ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
+include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch
+sh-mark-end-of-bug-implementation-as-unreachable.patch
 
