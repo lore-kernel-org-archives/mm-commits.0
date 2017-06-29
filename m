@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch added to
- -mm tree
-Date: Thu, 29 Jun 2017 15:21:19 -0700
-Message-ID: <59557d5f.ryNe6cgGaINGRcWu%akpm@linux-foundation.org>
+Subject: + bitmap-use-memcmp-optimisation-in-more-situations.patch added
+ to -mm tree
+Date: Thu, 29 Jun 2017 15:21:21 -0700
+Message-ID: <59557d61.BwWqXR8xGxoClvvM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39218 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751745AbdF2WVU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 18:21:20 -0400
+        with ESMTP id S1751745AbdF2WVW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 18:21:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mawilcox@microsoft.com, linux@rasmusvillemoes.dk, schwidefsky@de.ibm.com, willy@infradead.org, mm-commits@vger.kernel.org
+To: willy@infradead.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/bitmap.h: turn bitmap_set and bitmap_clear into memset when possible
+     Subject: bitmap: Use memcmp optimisation in more situations
 has been added to the -mm tree.  Its filename is
-     turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch
+     bitmap-use-memcmp-optimisation-in-more-situations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-use-memcmp-optimisation-in-more-situations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-use-memcmp-optimisation-in-more-situations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: include/linux/bitmap.h: turn bitmap_set and bitmap_clear into memset when possible
+From: Matthew Wilcox <willy@infradead.org>
+Subject: bitmap: Use memcmp optimisation in more situations
 
-Several callers have constant 'start' and an 'nbits' that is a multiple of
-8, so we can turn them into calls to memset.  We don't need the entirety
-of 'start' and 'nbits' to be constant, we just need to know whether
-they're divisible by 8.
 
-Link: http://lkml.kernel.org/r/20170628153221.11322-4-willy@infradead.org
+Commit 7dd968163f ("bitmap: bitmap_equal memcmp optimization") was
+rather more restrictive than necessary; we can use memcmp() to implement
+bitmap_equal() as long as the number of bits can be proved to be a
+multiple of 8.  And architectures other than s390 may be able to make
+good use of this optimisation.
+
+Link: http://lkml.kernel.org/r/20170628153221.11322-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+index c04c9d155e59..5797ca6fdfe2 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/bitmap.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/bitmap.h~turn-bitmap_set-and-bitmap_clear-into-memset-when-possible include/linux/bitmap.h
---- a/include/linux/bitmap.h~turn-bitmap_set-and-bitmap_clear-into-memset-when-possible
+diff -puN include/linux/bitmap.h~bitmap-use-memcmp-optimisation-in-more-situations include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-use-memcmp-optimisation-in-more-situations
 +++ a/include/linux/bitmap.h
-@@ -319,6 +319,9 @@ static __always_inline void bitmap_set(u
+@@ -266,10 +266,8 @@ static inline int bitmap_equal(const uns
  {
- 	if (__builtin_constant_p(nbits) && nbits == 1)
- 		__set_bit(start, map);
-+	else if (__builtin_constant_p(start & 7) && IS_ALIGNED(start, 8) &&
-+		 __builtin_constant_p(nbits & 7) && IS_ALIGNED(nbits, 8))
-+		memset((char *)map + start / 8, 0xff, nbits / 8);
- 	else
- 		__bitmap_set(map, start, nbits);
+ 	if (small_const_nbits(nbits))
+ 		return !((*src1 ^ *src2) & BITMAP_LAST_WORD_MASK(nbits));
+-#ifdef CONFIG_S390
+-	if (__builtin_constant_p(nbits) && (nbits % BITS_PER_LONG) == 0)
++	if (__builtin_constant_p(nbits & 7) && IS_ALIGNED(nbits, 8))
+ 		return !memcmp(src1, src2, nbits / 8);
+-#endif
+ 	return __bitmap_equal(src1, src2, nbits);
  }
-@@ -328,6 +331,9 @@ static __always_inline void bitmap_clear
- {
- 	if (__builtin_constant_p(nbits) && nbits == 1)
- 		__clear_bit(start, map);
-+	else if (__builtin_constant_p(start & 7) && IS_ALIGNED(start, 8) &&
-+		 __builtin_constant_p(nbits & 7) && IS_ALIGNED(nbits, 8))
-+		memset((char *)map + start / 8, 0, nbits / 8);
- 	else
- 		__bitmap_clear(map, start, nbits);
- }
+ 
 _
 
-Patches currently in -mm which might be from mawilcox@microsoft.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-test_bitmap-add-optimisation-tests.patch
-bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit.patch
-turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch
+replace-memfmt-with-string_get_size.patch
 bitmap-use-memcmp-optimisation-in-more-situations.patch
 
