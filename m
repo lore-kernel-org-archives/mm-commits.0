@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+Subject: + mm-list_lruc-fix-list_lru_count_node-to-be-race-free.patch
  added to -mm tree
-Date: Thu, 29 Jun 2017 15:42:30 -0700
-Message-ID: <59558256.DufjEF7R/I8SHey1%akpm@linux-foundation.org>
+Date: Thu, 29 Jun 2017 15:48:50 -0700
+Message-ID: <595583d2.XU067SbAxxLKiPo1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40398 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751532AbdF2Wmb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 18:42:31 -0400
+        with ESMTP id S1751545AbdF2WtG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 18:49:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, liuj97@gmail.com, mhocko@suse.com, qiuxishi@huawei.com, richard.weiyang@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: stummala@codeaurora.org, apolyakov@beget.ru, jack@suse.cz, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix
+     Subject: mm/list_lru.c: fix list_lru_count_node() to be race free
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+     mm-list_lruc-fix-list_lru_count_node-to-be-race-free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-list_lruc-fix-list_lru_count_node-to-be-race-free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-list_lruc-fix-list_lru_count_node-to-be-race-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,74 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix
+From: Sahitya Tummala <stummala@codeaurora.org>
+Subject: mm/list_lru.c: fix list_lru_count_node() to be race free
 
-coding-style tweak, per Vlastimil
+list_lru_count_node() iterates over all memcgs to get the total number of
+entries on the node but it can race with memcg_drain_all_list_lrus(),
+which migrates the entries from a dead cgroup to another.  This can return
+incorrect number of entries from list_lru_count_node().
 
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Fix this by keeping track of entries per node and simply return it in
+list_lru_count_node().
+
+Link: http://lkml.kernel.org/r/1498707555-30525-1-git-send-email-stummala@codeaurora.org
+Signed-off-by: Sahitya Tummala <stummala@codeaurora.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Alexander Polakov <apolyakov@beget.ru>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/list_lru.h |    1 +
+ mm/list_lru.c            |   14 ++++++--------
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix
-+++ a/mm/page_alloc.c
-@@ -5209,14 +5209,15 @@ static int __build_all_zonelists(void *d
- 	 * This node is hotadded and no memory is yet present.   So just
- 	 * building zonelists is fine - no need to touch other nodes.
- 	 */
--	if (self && !node_online(self->node_id))
-+	if (self && !node_online(self->node_id)) {
- 		build_zonelists(self);
--	else
-+	} else {
- 		for_each_online_node(nid) {
- 			pg_data_t *pgdat = NODE_DATA(nid);
+diff -puN include/linux/list_lru.h~mm-list_lruc-fix-list_lru_count_node-to-be-race-free include/linux/list_lru.h
+--- a/include/linux/list_lru.h~mm-list_lruc-fix-list_lru_count_node-to-be-race-free
++++ a/include/linux/list_lru.h
+@@ -44,6 +44,7 @@ struct list_lru_node {
+ 	/* for cgroup aware lrus points to per cgroup lists, otherwise NULL */
+ 	struct list_lru_memcg	*memcg_lrus;
+ #endif
++	long nr_items;
+ } ____cacheline_aligned_in_smp;
  
- 			build_zonelists(pgdat);
- 		}
-+	}
+ struct list_lru {
+diff -puN mm/list_lru.c~mm-list_lruc-fix-list_lru_count_node-to-be-race-free mm/list_lru.c
+--- a/mm/list_lru.c~mm-list_lruc-fix-list_lru_count_node-to-be-race-free
++++ a/mm/list_lru.c
+@@ -117,6 +117,7 @@ bool list_lru_add(struct list_lru *lru,
+ 		l = list_lru_from_kmem(nlru, item);
+ 		list_add_tail(item, &l->list);
+ 		l->nr_items++;
++		nlru->nr_items++;
+ 		spin_unlock(&nlru->lock);
+ 		return true;
+ 	}
+@@ -136,6 +137,7 @@ bool list_lru_del(struct list_lru *lru,
+ 		l = list_lru_from_kmem(nlru, item);
+ 		list_del_init(item);
+ 		l->nr_items--;
++		nlru->nr_items--;
+ 		spin_unlock(&nlru->lock);
+ 		return true;
+ 	}
+@@ -183,15 +185,10 @@ EXPORT_SYMBOL_GPL(list_lru_count_one);
  
- 	/*
- 	 * Initialize the boot_pagesets that are going to be used
+ unsigned long list_lru_count_node(struct list_lru *lru, int nid)
+ {
+-	long count = 0;
+-	int memcg_idx;
++	struct list_lru_node *nlru;
+ 
+-	count += __list_lru_count_one(lru, nid, -1);
+-	if (list_lru_memcg_aware(lru)) {
+-		for_each_memcg_cache_index(memcg_idx)
+-			count += __list_lru_count_one(lru, nid, memcg_idx);
+-	}
+-	return count;
++	nlru = &lru->node[nid];
++	return nlru->nr_items;
+ }
+ EXPORT_SYMBOL_GPL(list_lru_count_node);
+ 
+@@ -226,6 +223,7 @@ restart:
+ 			assert_spin_locked(&nlru->lock);
+ 		case LRU_REMOVED:
+ 			isolated++;
++			nlru->nr_items--;
+ 			/*
+ 			 * If the lru lock has been dropped, our list
+ 			 * traversal is now invalid and so we have to
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stummala@codeaurora.org are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
-hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
-mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-list_lruc-use-cond_resched_lock-for-nlru-lock.patch
+mm-list_lruc-fix-list_lru_count_node-to-be-race-free.patch
+fs-dcachec-fix-spin-lockup-issue-on-nlru-lock.patch
 
