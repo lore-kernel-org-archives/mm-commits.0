@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cma-fix-calculation-of-aligned-offset.patch added to -mm tree
-Date: Thu, 29 Jun 2017 13:48:54 -0700
-Message-ID: <595567b6.u5YZ4R6JqXDleUcY%akpm@linux-foundation.org>
+Subject: + thp-mm-fix-crash-due-race-in-madv_free-handling.patch added to
+ -mm tree
+Date: Thu, 29 Jun 2017 13:53:08 -0700
+Message-ID: <595568b4.Or66YmQRVZfA0ulN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57100 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751532AbdF2Usz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 16:48:55 -0400
+        with ESMTP id S1753624AbdF2UxJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 16:53:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: opendmb@gmail.com, angus@angusclark.org, catalin.marinas@arm.com, gregkh@linuxfoundation.org, gregory.0xf0@gmail.com, jaewon31.kim@samsung.com, l.stach@pengutronix.de, labbott@redhat.com, shashim@codeaurora.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dave.hansen@intel.com, mhocko@suse.com, minchan@kernel.org, reinette.chatre@intel.com, stable@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma: fix calculation of aligned offset
+     Subject: thp, mm: fix crash due race in MADV_FREE handling
 has been added to the -mm tree.  Its filename is
-     cma-fix-calculation-of-aligned-offset.patch
+     thp-mm-fix-crash-due-race-in-madv_free-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cma-fix-calculation-of-aligned-offset.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-mm-fix-crash-due-race-in-madv_free-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cma-fix-calculation-of-aligned-offset.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-mm-fix-crash-due-race-in-madv_free-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,73 +39,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Doug Berger <opendmb@gmail.com>
-Subject: cma: fix calculation of aligned offset
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp, mm: fix crash due race in MADV_FREE handling
 
-The align_offset parameter is used by bitmap_find_next_zero_area_off()
-to represent the offset of map's base from the previous alignment
-boundary; the function ensures that the returned index, plus the
-align_offset, honors the specified align_mask.
+Reinette reported following crash:
 
-The logic introduced by commit b5be83e308f7 ("mm: cma: align to
-physical address, not CMA region position") has the cma driver
-calculate the offset to the *next* alignment boundary.  In most cases,
-the base alignment is greater than that specified when making
-allocations, resulting in a zero offset whether we align up or down.
-In the example given with the commit, the base alignment (8MB) was
-half the requested alignment (16MB) so the math also happened to work
-since the offset is 8MB in both directions.  However, when requesting
-allocations with an alignment greater than twice that of the base,
-the returned index would not be correctly aligned.
+  BUG: Bad page state in process log2exe  pfn:57600
+  page:ffffea00015d8000 count:0 mapcount:0 mapping:          (null) index:0x20200
+  flags: 0x4000000000040019(locked|uptodate|dirty|swapbacked)
+  raw: 4000000000040019 0000000000000000 0000000000020200 00000000ffffffff
+  raw: ffffea00015d8020 ffffea00015d8020 0000000000000000 0000000000000000
+  page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+  bad because of flags: 0x1(locked)
+  Modules linked in: rfcomm 8021q bnep intel_rapl x86_pkg_temp_thermal coretemp efivars btusb btrtl btbcm pwm_lpss_pci snd_hda_codec_hdmi btintel pwm_lpss snd_hda_codec_realtek snd_soc_skl snd_hda_codec_generic snd_soc_skl_ipc spi_pxa2xx_platform snd_soc_sst_ipc snd_soc_sst_dsp i2c_designware_platform i2c_designware_core snd_hda_ext_core snd_soc_sst_match snd_hda_intel snd_hda_codec mei_me snd_hda_core mei snd_soc_rt286 snd_soc_rl6347a snd_soc_core efivarfs
+  CPU: 1 PID: 354 Comm: log2exe Not tainted 4.12.0-rc7-test-test #19
+  Hardware name: Intel corporation NUC6CAYS/NUC6CAYB, BIOS AYAPLCEL.86A.0027.2016.1108.1529 11/08/2016
+  Call Trace:
+   dump_stack+0x95/0xeb
+   bad_page+0x16a/0x1f0
+   free_pages_check_bad+0x117/0x190
+   ? rcu_read_lock_sched_held+0xa8/0x130
+   free_hot_cold_page+0x7b1/0xad0
+   __put_page+0x70/0xa0
+   madvise_free_huge_pmd+0x627/0x7b0
+   madvise_free_pte_range+0x6f8/0x1150
+   ? debug_check_no_locks_freed+0x280/0x280
+   ? swapin_walk_pmd_entry+0x380/0x380
+   __walk_page_range+0x6b5/0xe30
+   walk_page_range+0x13b/0x310
+   madvise_free_page_range.isra.16+0xad/0xd0
+   ? force_swapin_readahead+0x110/0x110
+   ? swapin_walk_pmd_entry+0x380/0x380
+   ? lru_add_drain_cpu+0x160/0x320
+   madvise_free_single_vma+0x2e4/0x470
+   ? madvise_free_page_range.isra.16+0xd0/0xd0
+   ? vmacache_update+0x100/0x130
+   ? find_vma+0x35/0x160
+   SyS_madvise+0x8ce/0x1450
 
-Also, the align_order arguments of cma_bitmap_aligned_mask() and
-cma_bitmap_aligned_offset() should not be negative so the argument
-type was made unsigned.
+If somebody frees the page under us and we hold the last reference to
+it, put_page() would attempt to free the page before unlocking it.
 
-Fixes: b5be83e308f7 ("mm: cma: align to physical address, not CMA region position")
-Link: http://lkml.kernel.org/r/20170628170742.2895-1-opendmb@gmail.com
-Signed-off-by: Angus Clark <angus@angusclark.org>
-Signed-off-by: Doug Berger <opendmb@gmail.com>
-Cc: Gregory Fong <gregory.0xf0@gmail.com>
-Cc: Doug Berger <opendmb@gmail.com>
-Cc: Angus Clark <angus@angusclark.org>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Lucas Stach <l.stach@pengutronix.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Shiraz Hashim <shashim@codeaurora.org>
-Cc: Jaewon Kim <jaewon31.kim@samsung.com>
+The fix is trivial reorder of operations.
+
+Dave said:
+
+: I came up with the exact same patch.  For posterity, here's the test
+: case, generated by syzkaller and trimmed down by Reinette:
+: 
+: 	https://www.sr71.net/~dave/intel/log2.c
+: 
+: And the config that helps detect this:
+: 
+: 	https://www.sr71.net/~dave/intel/config-log2
+
+Fixes: 9818b8cde622 ("madvise_free, thp: fix madvise_free_huge_pmd return value after splitting")
+Link: http://lkml.kernel.org/r/20170628101249.17879-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Reinette Chatre <reinette.chatre@intel.com>
+Acked-by: Dave Hansen <dave.hansen@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/cma.c~cma-fix-calculation-of-aligned-offset mm/cma.c
---- a/mm/cma.c~cma-fix-calculation-of-aligned-offset
-+++ a/mm/cma.c
-@@ -59,7 +59,7 @@ const char *cma_get_name(const struct cm
- }
+diff -puN mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling
++++ a/mm/huge_memory.c
+@@ -1575,8 +1575,8 @@ bool madvise_free_huge_pmd(struct mmu_ga
+ 		get_page(page);
+ 		spin_unlock(ptl);
+ 		split_huge_page(page);
+-		put_page(page);
+ 		unlock_page(page);
++		put_page(page);
+ 		goto out_unlocked;
+ 	}
  
- static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
--					     int align_order)
-+					     unsigned int align_order)
- {
- 	if (align_order <= cma->order_per_bit)
- 		return 0;
-@@ -67,17 +67,14 @@ static unsigned long cma_bitmap_aligned_
- }
- 
- /*
-- * Find a PFN aligned to the specified order and return an offset represented in
-- * order_per_bits.
-+ * Find the offset of the base PFN from the specified align_order.
-+ * The value returned is represented in order_per_bits.
-  */
- static unsigned long cma_bitmap_aligned_offset(const struct cma *cma,
--					       int align_order)
-+					       unsigned int align_order)
- {
--	if (align_order <= cma->order_per_bit)
--		return 0;
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+thp-mm-fix-crash-due-race-in-madv_free-handling.patch
+
