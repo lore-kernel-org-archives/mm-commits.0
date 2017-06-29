@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-ksysfs-constify-attribute_group-structures.patch added
- to -mm tree
-Date: Thu, 29 Jun 2017 14:17:00 -0700
-Message-ID: <59556e4c.tr3kc7P3jNL2ZJWG%akpm@linux-foundation.org>
+Subject: + provide-linux-set_memoryh.patch added to -mm tree
+Date: Thu, 29 Jun 2017 14:39:06 -0700
+Message-ID: <5955737a.GmETiau2qWkcENG9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60192 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34906 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752378AbdF2VRB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:17:01 -0400
+        with ESMTP id S1751896AbdF2VjH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:39:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvind.yadav.cs@gmail.com, dyoung@redhat.com, hbathini@linux.vnet.ibm.com, keescook@chromium.org, ptesarik@suse.com, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mpe@ellerman.id.au, daniel@iogearbox.net, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/ksysfs.c: constify attribute_group structures.
+     Subject: provide linux/set_memory.h
 has been added to the -mm tree.  Its filename is
-     kernel-ksysfs-constify-attribute_group-structures.patch
+     provide-linux-set_memoryh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-ksysfs-constify-attribute_group-structures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/provide-linux-set_memoryh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-ksysfs-constify-attribute_group-structures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/provide-linux-set_memoryh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +38,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: kernel/ksysfs.c: constify attribute_group structures.
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: provide linux/set_memory.h
 
-attribute_groups are not supposed to change at runtime.  All functions
-working with attribute_groups provided by <linux/sysfs.h> work with const
-attribute_group.  So mark the non-const structs as const.
+Currently code that wants to use set_memory_ro() etc, needs to include
+asm/set_memory.h, which doesn't exist on all arches.  Some code knows it
+only builds on arches which have the header, other code guards the
+inclusion with an #ifdef, neither is ideal.
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-   1120	    544	     16	   1680	    690	kernel/ksysfs.o
+So create linux/set_memory.h.  This always exists, so users don't need an
+#ifdef just to include the header.
 
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-   1160	    480	     16	   1656	    678	kernel/ksysfs.o
+When CONFIG_ARCH_HAS_SET_MEMORY=y it includes asm/set_memory.h, otherwise
+it provides empty non-failing implementations.
 
-Link: http://lkml.kernel.org/r/aa224b3cc923fdbb3edd0c41b2c639c85408c9e8.1498737347.git.arvind.yadav.cs@gmail.com
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Petr Tesarik <ptesarik@suse.com>
+Link: http://lkml.kernel.org/r/1498717781-29151-1-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Daniel Borkmann <daniel@iogearbox.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/set_memory.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN kernel/ksysfs.c~kernel-ksysfs-constify-attribute_group-structures kernel/ksysfs.c
---- a/kernel/ksysfs.c~kernel-ksysfs-constify-attribute_group-structures
-+++ a/kernel/ksysfs.c
-@@ -234,7 +234,7 @@ static struct attribute * kernel_attrs[]
- 	NULL
- };
- 
--static struct attribute_group kernel_attr_group = {
-+static const struct attribute_group kernel_attr_group = {
- 	.attrs = kernel_attrs,
- };
- 
+diff -puN /dev/null include/linux/set_memory.h
+--- /dev/null
++++ a/include/linux/set_memory.h
+@@ -0,0 +1,20 @@
++/*
++ * Copyright 2017, Michael Ellerman, IBM Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation;
++ */
++#ifndef _LINUX_SET_MEMORY_H_
++#define _LINUX_SET_MEMORY_H_
++
++#ifdef CONFIG_ARCH_HAS_SET_MEMORY
++#include <asm/set_memory.h>
++#else
++static inline int set_memory_ro(unsigned long addr, int numpages) { return 0; }
++static inline int set_memory_rw(unsigned long addr, int numpages) { return 0; }
++static inline int set_memory_x(unsigned long addr,  int numpages) { return 0; }
++static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
++#endif
++
++#endif /* _LINUX_SET_MEMORY_H_ */
 _
 
-Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
-kernel-ksysfs-constify-attribute_group-structures.patch
+provide-linux-set_memoryh.patch
+pm-hibernate-use-linux-set_memoryh.patch
+module-use-linux-set_memoryh.patch
+bpf-use-linux-set_memoryh.patch
 
