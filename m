@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-throttle-kmod-thread-limit.patch added to -mm tree
-Date: Thu, 29 Jun 2017 14:52:12 -0700
-Message-ID: <5955768c.uPRyaK+qTleY0nXc%akpm@linux-foundation.org>
+Subject: + expand_downwards-dont-require-the-gap-if-vm_prev.patch added to -mm tree
+Date: Thu, 29 Jun 2017 15:14:58 -0700
+Message-ID: <59557be2.yR8B8SZgdiM5+87e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37370 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751752AbdF2VwS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:52:18 -0400
+        with ESMTP id S1752397AbdF2WO7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 18:14:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mcgrof@kernel.org, gregkh@linuxfoundation.org, jeyu@redhat.com, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, hughd@google.com, lwoodman@redhat.com, mhocko@suse.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: throttle kmod thread limit
+     Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
 has been added to the -mm tree.  Its filename is
-     kmod-throttle-kmod-thread-limit.patch
+     expand_downwards-dont-require-the-gap-if-vm_prev.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmod-throttle-kmod-thread-limit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/expand_downwards-dont-require-the-gap-if-vm_prev.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-throttle-kmod-thread-limit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/expand_downwards-dont-require-the-gap-if-vm_prev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,149 +38,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: kmod: throttle kmod thread limit
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
 
-If we reach the limit of modprobe_limit threads running the next
-request_module() call will fail.  The original reason for adding a kill
-was to do away with possible issues with in old circumstances which would
-create a recursive series of request_module() calls.
+expand_stack(vma) fails if address < stack_guard_gap even if there is no
+vma->vm_prev.  I don't think this makes sense, and we didn't do this
+before the recent commit 1be7107fbe18 ("mm: larger stack guard gap,
+between vmas").  We do not need a gap in this case, any address is fine as
+long as security_mmap_addr() doesn't object.
 
-We can do better than just be super aggressive and reject calls once we've
-reached the limit by simply making pending callers wait until the
-threshold has been reduced, and then throttling them in, one by one.
+This also simplifies the code, we know that address >= prev->vm_end and
+thus underflow is not possible.
 
-This throttling enables requests over the kmod concurrent limit to be
-processed once a pending request completes.  Only the first item queued up
-to wait is woken up.  The assumption here is once a task is woken it will
-have no other option to also kick the queue to check if there are more
-pending tasks -- regardless of whether or not it was successful.
-
-By throttling and processing only max kmod concurrent tasks we ensure we
-avoid unexpected fatal request_module() calls, and we keep memory
-consumption on module loading to a minimum.
-
-With x86_64 qemu, with 4 cores, 4 GiB of RAM it takes the following run
-time to run both tests:
-
-time ./kmod.sh -t 0008
-real    0m16.366s
-user    0m0.883s
-sys     0m8.916s
-
-time ./kmod.sh -t 0009
-real    0m50.803s
-user    0m0.791s
-sys     0m9.852s
-
-Link: http://lkml.kernel.org/r/20170628223155.26472-4-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Jessica Yu <jeyu@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: http://lkml.kernel.org/r/20170628175258.GA24881@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c                        |   16 +++++++---------
- tools/testing/selftests/kmod/kmod.sh |   24 ++----------------------
- 2 files changed, 9 insertions(+), 31 deletions(-)
+ mm/mmap.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-throttle-kmod-thread-limit kernel/kmod.c
---- a/kernel/kmod.c~kmod-throttle-kmod-thread-limit
-+++ a/kernel/kmod.c
-@@ -68,6 +68,7 @@ static DECLARE_RWSEM(umhelper_sem);
-  */
- #define MAX_KMOD_CONCURRENT 50
- static atomic_t kmod_concurrent_max = ATOMIC_INIT(MAX_KMOD_CONCURRENT);
-+static DECLARE_WAIT_QUEUE_HEAD(kmod_wq);
+diff -puN mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev mm/mmap.c
+--- a/mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev
++++ a/mm/mmap.c
+@@ -2315,7 +2315,6 @@ int expand_downwards(struct vm_area_stru
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *prev;
+-	unsigned long gap_addr;
+ 	int error;
  
- /*
- 	modprobe_path is set via /proc/sys.
-@@ -140,7 +141,6 @@ int __request_module(bool wait, const ch
- 	va_list args;
- 	char module_name[MODULE_NAME_LEN];
- 	int ret;
--	static int kmod_loop_msg;
+ 	address &= PAGE_MASK;
+@@ -2324,14 +2323,11 @@ int expand_downwards(struct vm_area_stru
+ 		return error;
  
- 	/*
- 	 * We don't allow synchronous module loading from async.  Module
-@@ -164,14 +164,11 @@ int __request_module(bool wait, const ch
- 		return ret;
- 
- 	if (atomic_dec_if_positive(&kmod_concurrent_max) < 0) {
--		/* We may be blaming an innocent here, but unlikely */
--		if (kmod_loop_msg < 5) {
--			printk(KERN_ERR
--			       "request_module: runaway loop modprobe %s\n",
--			       module_name);
--			kmod_loop_msg++;
--		}
+ 	/* Enforce stack_guard_gap */
+-	gap_addr = address - stack_guard_gap;
+-	if (gap_addr > address)
 -		return -ENOMEM;
-+		pr_warn_ratelimited("request_module: kmod_concurrent_max (%u) close to 0 (max_modprobes: %u), for module %s, throttling...",
-+				    atomic_read(&kmod_concurrent_max),
-+				    MAX_KMOD_CONCURRENT, module_name);
-+		wait_event_interruptible(kmod_wq,
-+					 atomic_dec_if_positive(&kmod_concurrent_max) >= 0);
+ 	prev = vma->vm_prev;
+-	if (prev && prev->vm_end > gap_addr) {
+-		if (!(prev->vm_flags & VM_GROWSDOWN))
++	/* Check that both stack segments have the same anon_vma? */
++	if (prev && !(prev->vm_flags & VM_GROWSDOWN)) {
++		if (address - prev->vm_end < stack_guard_gap)
+ 			return -ENOMEM;
+-		/* Check that both stack segments have the same anon_vma? */
  	}
  
- 	trace_module_request(module_name, wait, _RET_IP_);
-@@ -179,6 +176,7 @@ int __request_module(bool wait, const ch
- 	ret = call_modprobe(module_name, wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC);
- 
- 	atomic_inc(&kmod_concurrent_max);
-+	wake_up(&kmod_wq);
- 
- 	return ret;
- }
-diff -puN tools/testing/selftests/kmod/kmod.sh~kmod-throttle-kmod-thread-limit tools/testing/selftests/kmod/kmod.sh
---- a/tools/testing/selftests/kmod/kmod.sh~kmod-throttle-kmod-thread-limit
-+++ a/tools/testing/selftests/kmod/kmod.sh
-@@ -59,28 +59,8 @@ ALL_TESTS="$ALL_TESTS 0004:1:1"
- ALL_TESTS="$ALL_TESTS 0005:10:1"
- ALL_TESTS="$ALL_TESTS 0006:10:1"
- ALL_TESTS="$ALL_TESTS 0007:5:1"
--
--# Disabled tests:
--#
--# 0008 x 150 -  multithreaded - push kmod_concurrent over max_modprobes for request_module()"
--# Current best-effort failure interpretation:
--# Enough module requests get loaded in place fast enough to reach over the
--# max_modprobes limit and trigger a failure -- before we're even able to
--# start processing pending requests.
--ALL_TESTS="$ALL_TESTS 0008:150:0"
--
--# 0009 x 150 - multithreaded - push kmod_concurrent over max_modprobes for get_fs_type()"
--# Current best-effort failure interpretation:
--#
--# get_fs_type() requests modules using aliases as such the optimization in
--# place today to look for already loaded modules will not take effect and
--# we end up requesting a new module to load, this bumps the kmod_concurrent,
--# and in certain circumstances can lead to pushing the kmod_concurrent over
--# the max_modprobe limit.
--#
--# This test fails much easier than test 0008 since the alias optimizations
--# are not in place.
--ALL_TESTS="$ALL_TESTS 0009:150:0"
-+ALL_TESTS="$ALL_TESTS 0008:150:1"
-+ALL_TESTS="$ALL_TESTS 0009:150:1"
- 
- test_modprobe()
- {
+ 	/* We must make sure the anon_vma is allocated. */
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-maintainers-give-proc-sysctl-some-maintainer-love.patch
-sysctl-fix-lax-sysctl_check_table-sanity-check.patch
-sysctl-kdocify-sysctl_writes_strict.patch
-sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
-sysctl-simplify-unsigned-int-support.patch
-sysctl-add-unsigned-int-range-support.patch
-test_sysctl-add-dedicated-proc-sysctl-test-driver.patch
-maintainers-give-kmod-some-maintainer-love.patch
-kmod-add-test-driver-to-stress-test-the-module-loader.patch
-kmod-throttle-kmod-thread-limit.patch
+expand_downwards-dont-require-the-gap-if-vm_prev.patch
 
