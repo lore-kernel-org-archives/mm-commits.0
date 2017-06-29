@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + expand_downwards-dont-require-the-gap-if-vm_prev.patch added to -mm tree
-Date: Thu, 29 Jun 2017 15:14:58 -0700
-Message-ID: <59557be2.yR8B8SZgdiM5+87e%akpm@linux-foundation.org>
+Subject: + test_bitmap-add-optimisation-tests.patch added to -mm tree
+Date: Thu, 29 Jun 2017 15:21:15 -0700
+Message-ID: <59557d5b.g81hJ589nK2Nu1Qp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39188 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752397AbdF2WO7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 18:14:59 -0400
+        with ESMTP id S1751626AbdF2WVQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 18:21:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, hughd@google.com, lwoodman@redhat.com, mhocko@suse.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: mawilcox@microsoft.com, linux@rasmusvillemoes.dk, schwidefsky@de.ibm.com, willy@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
+     Subject: lib/test_bitmap.c: add optimisation tests
 has been added to the -mm tree.  Its filename is
-     expand_downwards-dont-require-the-gap-if-vm_prev.patch
+     test_bitmap-add-optimisation-tests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/expand_downwards-dont-require-the-gap-if-vm_prev.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_bitmap-add-optimisation-tests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/expand_downwards-dont-require-the-gap-if-vm_prev.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_bitmap-add-optimisation-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,62 +38,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: lib/test_bitmap.c: add optimisation tests
 
-expand_stack(vma) fails if address < stack_guard_gap even if there is no
-vma->vm_prev.  I don't think this makes sense, and we didn't do this
-before the recent commit 1be7107fbe18 ("mm: larger stack guard gap,
-between vmas").  We do not need a gap in this case, any address is fine as
-long as security_mmap_addr() doesn't object.
+Patch series "Bitmap optimisations", v2.
 
-This also simplifies the code, we know that address >= prev->vm_end and
-thus underflow is not possible.
+These three bitmap patches use more efficient specialisations when the
+compiler can figure out that it's safe to do so.  Thanks to Rasmus's eagle
+eyes, a nasty bug in v1 was avoided, and I've added a test case which
+would have caught it.
 
-Link: http://lkml.kernel.org/r/20170628175258.GA24881@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
+This patch (of 4):
+
+This version of the test is actually a no-op; the next patch will
+enable it.
+
+Link: http://lkml.kernel.org/r/20170628153221.11322-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ lib/test_bitmap.c |   32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff -puN mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev mm/mmap.c
---- a/mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev
-+++ a/mm/mmap.c
-@@ -2315,7 +2315,6 @@ int expand_downwards(struct vm_area_stru
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *prev;
--	unsigned long gap_addr;
- 	int error;
- 
- 	address &= PAGE_MASK;
-@@ -2324,14 +2323,11 @@ int expand_downwards(struct vm_area_stru
- 		return error;
- 
- 	/* Enforce stack_guard_gap */
--	gap_addr = address - stack_guard_gap;
--	if (gap_addr > address)
--		return -ENOMEM;
- 	prev = vma->vm_prev;
--	if (prev && prev->vm_end > gap_addr) {
--		if (!(prev->vm_flags & VM_GROWSDOWN))
-+	/* Check that both stack segments have the same anon_vma? */
-+	if (prev && !(prev->vm_flags & VM_GROWSDOWN)) {
-+		if (address - prev->vm_end < stack_guard_gap)
- 			return -ENOMEM;
--		/* Check that both stack segments have the same anon_vma? */
+diff -puN lib/test_bitmap.c~test_bitmap-add-optimisation-tests lib/test_bitmap.c
+--- a/lib/test_bitmap.c~test_bitmap-add-optimisation-tests
++++ a/lib/test_bitmap.c
+@@ -333,10 +333,42 @@ static void __init test_bitmap_u32_array
  	}
+ }
  
- 	/* We must make sure the anon_vma is allocated. */
++#define __bitmap_set(a, b, c)	bitmap_set(a, b, c)
++#define __bitmap_clear(a, b, c)	bitmap_clear(a, b, c)
++
++static void noinline __init test_mem_optimisations(void)
++{
++	DECLARE_BITMAP(bmap1, 1024);
++	DECLARE_BITMAP(bmap2, 1024);
++	unsigned int start, nbits;
++
++	for (start = 0; start < 1024; start += 8) {
++		memset(bmap1, 0x5a, sizeof(bmap1));
++		memset(bmap2, 0x5a, sizeof(bmap2));
++		for (nbits = 0; nbits < 1024 - start; nbits += 8) {
++			bitmap_set(bmap1, start, nbits);
++			__bitmap_set(bmap2, start, nbits);
++			if (!bitmap_equal(bmap1, bmap2, 1024))
++				printk("set not equal %d %d\n", start, nbits);
++			if (!__bitmap_equal(bmap1, bmap2, 1024))
++				printk("set not __equal %d %d\n", start, nbits);
++
++			bitmap_clear(bmap1, start, nbits);
++			__bitmap_clear(bmap2, start, nbits);
++			if (!bitmap_equal(bmap1, bmap2, 1024))
++				printk("clear not equal %d %d\n", start, nbits);
++			if (!__bitmap_equal(bmap1, bmap2, 1024))
++				printk("clear not __equal %d %d\n", start,
++									nbits);
++		}
++	}
++}
++
+ static int __init test_bitmap_init(void)
+ {
+ 	test_zero_fill_copy();
+ 	test_bitmap_u32_array_conversions();
++	test_mem_optimisations();
+ 
+ 	if (failed_tests == 0)
+ 		pr_info("all %u tests passed\n", total_tests);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mawilcox@microsoft.com are
 
-expand_downwards-dont-require-the-gap-if-vm_prev.patch
+test_bitmap-add-optimisation-tests.patch
+bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit.patch
+turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch
+bitmap-use-memcmp-optimisation-in-more-situations.patch
 
