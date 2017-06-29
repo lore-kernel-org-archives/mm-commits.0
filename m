@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch added
  to -mm tree
-Date: Thu, 29 Jun 2017 14:11:13 -0700
-Message-ID: <59556cf1.7SuuHmkl2D2VwJ0k%akpm@linux-foundation.org>
+Date: Thu, 29 Jun 2017 14:13:56 -0700
+Message-ID: <59556d94.QSwwGdvnW+P1kgFM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60106 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753347AbdF2VLO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:11:14 -0400
+        with ESMTP id S1751626AbdF2VN6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:13:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, aryabinin@virtuozzo.com, mhocko@kernel.org, vbabka@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, aryabinin@virtuozzo.com, dkiper@net-space.pl, mhocko@kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -78,8 +78,8 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Daniel Kiper <dkiper@net-space.pl>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Daniel Kiper <dkiper@net-space.pl>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
