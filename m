@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bpf-use-linux-set_memoryh.patch added to -mm tree
-Date: Thu, 29 Jun 2017 14:39:12 -0700
-Message-ID: <59557380.NzazNujCFj93fckV%akpm@linux-foundation.org>
+Subject: + mm-balloon-enqueue-zero-page-to-balloon-device.patch added to
+ -mm tree
+Date: Thu, 29 Jun 2017 14:45:47 -0700
+Message-ID: <5955750b.Ih1+ygwPLzQtCs/W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35646 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753095AbdF2VjN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:39:13 -0400
+        with ESMTP id S1753799AbdF2Vps (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpe@ellerman.id.au, daniel@iogearbox.net, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org
+To: zhenwei.pi@youruncloud.com, aquini@redhat.com, gi-oh.kim@profitbricks.com, k.khlebnikov@samsung.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/filter.h: use linux/set_memory.h
+     Subject: mm/balloon_compaction.c: enqueue zero page to balloon device
 has been added to the -mm tree.  Its filename is
-     bpf-use-linux-set_memoryh.patch
+     mm-balloon-enqueue-zero-page-to-balloon-device.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bpf-use-linux-set_memoryh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon-enqueue-zero-page-to-balloon-device.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bpf-use-linux-set_memoryh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon-enqueue-zero-page-to-balloon-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,35 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: include/linux/filter.h: use linux/set_memory.h
+From: "zhenwei.pi" <zhenwei.pi@youruncloud.com>
+Subject: mm/balloon_compaction.c: enqueue zero page to balloon device
 
-This header always exists, so doesn't require an ifdef around its
-inclusion.  When CONFIG_ARCH_HAS_SET_MEMORY=y it includes the asm header,
-otherwise it provides empty versions of the set_memory_xx() routines.
+presently pages in the balloon device have random value, and these pages
+will be scanned by ksmd on the host.  They usually cannot be merged. 
+Enqueue zero pages will resolve this problem.
 
-Link: http://lkml.kernel.org/r/1498717781-29151-4-git-send-email-mpe@ellerman.id.au
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Acked-by: Daniel Borkmann <daniel@iogearbox.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Laura Abbott <labbott@redhat.com>
+Link: http://lkml.kernel.org/r/1498698637-26389-1-git-send-email-zhenwei.pi@youruncloud.com
+Signed-off-by: zhenwei.pi <zhenwei.pi@youruncloud.com>
+Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/filter.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/balloon_compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/filter.h~bpf-use-linux-set_memoryh include/linux/filter.h
---- a/include/linux/filter.h~bpf-use-linux-set_memoryh
-+++ a/include/linux/filter.h
-@@ -16,13 +16,10 @@
- #include <linux/sched.h>
- #include <linux/capability.h>
- #include <linux/cryptohash.h>
-+#include <linux/set_memory.h>
+diff -puN mm/balloon_compaction.c~mm-balloon-enqueue-zero-page-to-balloon-device mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-balloon-enqueue-zero-page-to-balloon-device
++++ a/mm/balloon_compaction.c
+@@ -24,7 +24,7 @@ struct page *balloon_page_enqueue(struct
+ {
+ 	unsigned long flags;
+ 	struct page *page = alloc_page(balloon_mapping_gfp_mask() |
+-					__GFP_NOMEMALLOC | __GFP_NORETRY);
++					__GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_ZERO);
+ 	if (!page)
+ 		return NULL;
  
- #include <net/sch_generic.h>
- 
--#ifdef CONFIG_ARCH_HAS_SET_MEMORY
--#include <asm/set_memory.h>
--#endif
+_
+
+Patches currently in -mm which might be from zhenwei.pi@youruncloud.com are
+
+mm-balloon-enqueue-zero-page-to-balloon-device.patch
+
