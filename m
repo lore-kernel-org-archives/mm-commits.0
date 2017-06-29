@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-balloon-enqueue-zero-page-to-balloon-device.patch added to
- -mm tree
-Date: Thu, 29 Jun 2017 14:45:47 -0700
-Message-ID: <5955750b.Ih1+ygwPLzQtCs/W%akpm@linux-foundation.org>
+Subject: + maintainers-give-kmod-some-maintainer-love.patch added to -mm
+ tree
+Date: Thu, 29 Jun 2017 14:52:06 -0700
+Message-ID: <59557686.bzsNk12SYM2Rwuvb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36528 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753799AbdF2Vps (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:45:48 -0400
+        with ESMTP id S1751626AbdF2VwH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:52:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenwei.pi@youruncloud.com, aquini@redhat.com, gi-oh.kim@profitbricks.com, k.khlebnikov@samsung.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mcgrof@kernel.org, gregkh@linuxfoundation.org, jeyu@redhat.com, mmarek@suse.com, pmladek@suse.com, rusty@rustcorp.com.au, shuah@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/balloon_compaction.c: enqueue zero page to balloon device
+     Subject: MAINTAINERS: give kmod some maintainer love
 has been added to the -mm tree.  Its filename is
-     mm-balloon-enqueue-zero-page-to-balloon-device.patch
+     maintainers-give-kmod-some-maintainer-love.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-balloon-enqueue-zero-page-to-balloon-device.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-give-kmod-some-maintainer-love.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-balloon-enqueue-zero-page-to-balloon-device.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-give-kmod-some-maintainer-love.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "zhenwei.pi" <zhenwei.pi@youruncloud.com>
-Subject: mm/balloon_compaction.c: enqueue zero page to balloon device
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: MAINTAINERS: give kmod some maintainer love
 
-presently pages in the balloon device have random value, and these pages
-will be scanned by ksmd on the host.  They usually cannot be merged. 
-Enqueue zero pages will resolve this problem.
+As suggested by Jessica, I've been actively working on kmod, so
+might as well reflect its maintained status.
 
-Link: http://lkml.kernel.org/r/1498698637-26389-1-git-send-email-zhenwei.pi@youruncloud.com
-Signed-off-by: zhenwei.pi <zhenwei.pi@youruncloud.com>
-Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Changes are expected to go through akpm's tree.
+
+Link: http://lkml.kernel.org/r/20170628223155.26472-2-mcgrof@kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Suggested-by: Jessica Yu <jeyu@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/balloon_compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/balloon_compaction.c~mm-balloon-enqueue-zero-page-to-balloon-device mm/balloon_compaction.c
---- a/mm/balloon_compaction.c~mm-balloon-enqueue-zero-page-to-balloon-device
-+++ a/mm/balloon_compaction.c
-@@ -24,7 +24,7 @@ struct page *balloon_page_enqueue(struct
- {
- 	unsigned long flags;
- 	struct page *page = alloc_page(balloon_mapping_gfp_mask() |
--					__GFP_NOMEMALLOC | __GFP_NORETRY);
-+					__GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_ZERO);
- 	if (!page)
- 		return NULL;
+diff -puN MAINTAINERS~maintainers-give-kmod-some-maintainer-love MAINTAINERS
+--- a/MAINTAINERS~maintainers-give-kmod-some-maintainer-love
++++ a/MAINTAINERS
+@@ -7564,6 +7564,13 @@ F:	include/linux/kmemleak.h
+ F:	mm/kmemleak.c
+ F:	mm/kmemleak-test.c
  
++KMOD MODULE USERMODE HELPER
++M:	"Luis R. Rodriguez" <mcgrof@kernel.org>
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
++F:	kernel/kmod.c
++F:	include/linux/kmod.h
++
+ KPROBES
+ M:	Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
+ M:	Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 _
 
-Patches currently in -mm which might be from zhenwei.pi@youruncloud.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-mm-balloon-enqueue-zero-page-to-balloon-device.patch
+maintainers-give-proc-sysctl-some-maintainer-love.patch
+sysctl-fix-lax-sysctl_check_table-sanity-check.patch
+sysctl-kdocify-sysctl_writes_strict.patch
+sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
+sysctl-simplify-unsigned-int-support.patch
+sysctl-add-unsigned-int-range-support.patch
+test_sysctl-add-dedicated-proc-sysctl-test-driver.patch
+maintainers-give-kmod-some-maintainer-love.patch
+kmod-add-test-driver-to-stress-test-the-module-loader.patch
+kmod-throttle-kmod-thread-limit.patch
 
