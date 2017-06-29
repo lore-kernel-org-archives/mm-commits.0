@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-mm-fix-crash-due-race-in-madv_free-handling.patch added to
- -mm tree
-Date: Thu, 29 Jun 2017 13:53:08 -0700
-Message-ID: <595568b4.Or66YmQRVZfA0ulN%akpm@linux-foundation.org>
+Subject: + mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch added
+ to -mm tree
+Date: Thu, 29 Jun 2017 14:11:13 -0700
+Message-ID: <59556cf1.7SuuHmkl2D2VwJ0k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60062 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753624AbdF2UxJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 16:53:09 -0400
+        with ESMTP id S1753347AbdF2VLO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jun 2017 17:11:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dave.hansen@intel.com, mhocko@suse.com, minchan@kernel.org, reinette.chatre@intel.com, stable@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, aryabinin@virtuozzo.com, mhocko@kernel.org, vbabka@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp, mm: fix crash due race in MADV_FREE handling
+     Subject: mm/memory-hotplug: switch locking to a percpu rwsem
 has been added to the -mm tree.  Its filename is
-     thp-mm-fix-crash-due-race-in-madv_free-handling.patch
+     mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-mm-fix-crash-due-race-in-madv_free-handling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-mm-fix-crash-due-race-in-madv_free-handling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +39,179 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp, mm: fix crash due race in MADV_FREE handling
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mm/memory-hotplug: switch locking to a percpu rwsem
 
-Reinette reported following crash:
+Andrey reported a potential deadlock with the memory hotplug lock and the
+cpu hotplug lock.
 
-  BUG: Bad page state in process log2exe  pfn:57600
-  page:ffffea00015d8000 count:0 mapcount:0 mapping:          (null) index:0x20200
-  flags: 0x4000000000040019(locked|uptodate|dirty|swapbacked)
-  raw: 4000000000040019 0000000000000000 0000000000020200 00000000ffffffff
-  raw: ffffea00015d8020 ffffea00015d8020 0000000000000000 0000000000000000
-  page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
-  bad because of flags: 0x1(locked)
-  Modules linked in: rfcomm 8021q bnep intel_rapl x86_pkg_temp_thermal coretemp efivars btusb btrtl btbcm pwm_lpss_pci snd_hda_codec_hdmi btintel pwm_lpss snd_hda_codec_realtek snd_soc_skl snd_hda_codec_generic snd_soc_skl_ipc spi_pxa2xx_platform snd_soc_sst_ipc snd_soc_sst_dsp i2c_designware_platform i2c_designware_core snd_hda_ext_core snd_soc_sst_match snd_hda_intel snd_hda_codec mei_me snd_hda_core mei snd_soc_rt286 snd_soc_rl6347a snd_soc_core efivarfs
-  CPU: 1 PID: 354 Comm: log2exe Not tainted 4.12.0-rc7-test-test #19
-  Hardware name: Intel corporation NUC6CAYS/NUC6CAYB, BIOS AYAPLCEL.86A.0027.2016.1108.1529 11/08/2016
-  Call Trace:
-   dump_stack+0x95/0xeb
-   bad_page+0x16a/0x1f0
-   free_pages_check_bad+0x117/0x190
-   ? rcu_read_lock_sched_held+0xa8/0x130
-   free_hot_cold_page+0x7b1/0xad0
-   __put_page+0x70/0xa0
-   madvise_free_huge_pmd+0x627/0x7b0
-   madvise_free_pte_range+0x6f8/0x1150
-   ? debug_check_no_locks_freed+0x280/0x280
-   ? swapin_walk_pmd_entry+0x380/0x380
-   __walk_page_range+0x6b5/0xe30
-   walk_page_range+0x13b/0x310
-   madvise_free_page_range.isra.16+0xad/0xd0
-   ? force_swapin_readahead+0x110/0x110
-   ? swapin_walk_pmd_entry+0x380/0x380
-   ? lru_add_drain_cpu+0x160/0x320
-   madvise_free_single_vma+0x2e4/0x470
-   ? madvise_free_page_range.isra.16+0xd0/0xd0
-   ? vmacache_update+0x100/0x130
-   ? find_vma+0x35/0x160
-   SyS_madvise+0x8ce/0x1450
+The reason is that memory hotplug takes the memory hotplug lock and then
+calls stop_machine() which calls get_online_cpus().  That's the reverse
+lock order to get_online_cpus(); get_online_mems(); in mm/slub_common.c
 
-If somebody frees the page under us and we hold the last reference to
-it, put_page() would attempt to free the page before unlocking it.
+The problem has been there forever.  The reason why this was never
+reported is that the cpu hotplug locking had this homebrewn recursive
+reader writer semaphore construct which due to the recursion evaded the
+full lock dep coverage.  The memory hotplug code copied that construct
+verbatim and therefor has similar issues.
 
-The fix is trivial reorder of operations.
+Two steps to fix this:
 
-Dave said:
+1) Convert the memory hotplug locking to a per cpu rwsem so the potential
+   issues get reported proper by lockdep.
 
-: I came up with the exact same patch.  For posterity, here's the test
-: case, generated by syzkaller and trimmed down by Reinette:
-: 
-: 	https://www.sr71.net/~dave/intel/log2.c
-: 
-: And the config that helps detect this:
-: 
-: 	https://www.sr71.net/~dave/intel/config-log2
+2) Lock the online cpus in mem_hotplug_begin() before taking the memory
+   hotplug rwsem and use stop_machine_cpuslocked() in the page_alloc code
+   to avoid recursive locking.
 
-Fixes: 9818b8cde622 ("madvise_free, thp: fix madvise_free_huge_pmd return value after splitting")
-Link: http://lkml.kernel.org/r/20170628101249.17879-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Reinette Chatre <reinette.chatre@intel.com>
-Acked-by: Dave Hansen <dave.hansen@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+Note:
+
+Most of the call sites of get_online_mems() are also calling
+get_online_cpus().
+
+So we could switch the whole machinery to use the CPU hotplug locking for
+protecting both memory and CPU hotplug.  That actually works and removes
+another 40 lines of code.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.20.1706291803380.1861@nanos
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Daniel Kiper <dkiper@net-space.pl>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |   85 ++++++------------------------------------
+ mm/page_alloc.c     |    2 
+ 2 files changed, 14 insertions(+), 73 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling mm/huge_memory.c
---- a/mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling
-+++ a/mm/huge_memory.c
-@@ -1575,8 +1575,8 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		get_page(page);
- 		spin_unlock(ptl);
- 		split_huge_page(page);
--		put_page(page);
- 		unlock_page(page);
-+		put_page(page);
- 		goto out_unlocked;
- 	}
+diff -puN mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
++++ a/mm/memory_hotplug.c
+@@ -52,32 +52,17 @@ static void generic_online_page(struct p
+ static online_page_callback_t online_page_callback = generic_online_page;
+ static DEFINE_MUTEX(online_page_callback_lock);
  
+-/* The same as the cpu_hotplug lock, but for memory hotplug. */
+-static struct {
+-	struct task_struct *active_writer;
+-	struct mutex lock; /* Synchronizes accesses to refcount, */
+-	/*
+-	 * Also blocks the new readers during
+-	 * an ongoing mem hotplug operation.
+-	 */
+-	int refcount;
++DEFINE_STATIC_PERCPU_RWSEM(mem_hotplug_lock);
+ 
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-	struct lockdep_map dep_map;
+-#endif
+-} mem_hotplug = {
+-	.active_writer = NULL,
+-	.lock = __MUTEX_INITIALIZER(mem_hotplug.lock),
+-	.refcount = 0,
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-	.dep_map = {.name = "mem_hotplug.lock" },
+-#endif
+-};
++void get_online_mems(void)
++{
++	percpu_down_read(&mem_hotplug_lock);
++}
+ 
+-/* Lockdep annotations for get/put_online_mems() and mem_hotplug_begin/end() */
+-#define memhp_lock_acquire_read() lock_map_acquire_read(&mem_hotplug.dep_map)
+-#define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+-#define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
++void put_online_mems(void)
++{
++	percpu_up_read(&mem_hotplug_lock);
++}
+ 
+ bool movable_node_enabled = false;
+ 
+@@ -99,60 +84,16 @@ static int __init setup_memhp_default_st
+ }
+ __setup("memhp_default_state=", setup_memhp_default_state);
+ 
+-void get_online_mems(void)
+-{
+-	might_sleep();
+-	if (mem_hotplug.active_writer == current)
+-		return;
+-	memhp_lock_acquire_read();
+-	mutex_lock(&mem_hotplug.lock);
+-	mem_hotplug.refcount++;
+-	mutex_unlock(&mem_hotplug.lock);
+-
+-}
+-
+-void put_online_mems(void)
+-{
+-	if (mem_hotplug.active_writer == current)
+-		return;
+-	mutex_lock(&mem_hotplug.lock);
+-
+-	if (WARN_ON(!mem_hotplug.refcount))
+-		mem_hotplug.refcount++; /* try to fix things up */
+-
+-	if (!--mem_hotplug.refcount && unlikely(mem_hotplug.active_writer))
+-		wake_up_process(mem_hotplug.active_writer);
+-	mutex_unlock(&mem_hotplug.lock);
+-	memhp_lock_release();
+-
+-}
+-
+-/* Serializes write accesses to mem_hotplug.active_writer. */
+-static DEFINE_MUTEX(memory_add_remove_lock);
+-
+ void mem_hotplug_begin(void)
+ {
+-	mutex_lock(&memory_add_remove_lock);
+-
+-	mem_hotplug.active_writer = current;
+-
+-	memhp_lock_acquire();
+-	for (;;) {
+-		mutex_lock(&mem_hotplug.lock);
+-		if (likely(!mem_hotplug.refcount))
+-			break;
+-		__set_current_state(TASK_UNINTERRUPTIBLE);
+-		mutex_unlock(&mem_hotplug.lock);
+-		schedule();
+-	}
++	cpus_read_lock();
++	percpu_down_write(&mem_hotplug_lock);
+ }
+ 
+ void mem_hotplug_done(void)
+ {
+-	mem_hotplug.active_writer = NULL;
+-	mutex_unlock(&mem_hotplug.lock);
+-	memhp_lock_release();
+-	mutex_unlock(&memory_add_remove_lock);
++	percpu_up_write(&mem_hotplug_lock);
++	cpus_read_unlock();
+ }
+ 
+ /* add this memory to iomem resource */
+diff -puN mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
++++ a/mm/page_alloc.c
+@@ -5289,7 +5289,7 @@ void __ref build_all_zonelists(pg_data_t
+ #endif
+ 		/* we have to stop all cpus to guarantee there is no user
+ 		   of zonelist */
+-		stop_machine(__build_all_zonelists, pgdat, NULL);
++		stop_machine_cpuslocked(__build_all_zonelists, pgdat, NULL);
+ 		/* cpuset refresh routine should be here */
+ 	}
+ 	vm_total_pages = nr_free_pagecache_pages();
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-thp-mm-fix-crash-due-race-in-madv_free-handling.patch
+mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
 
