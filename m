@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2.patch added
- to -mm tree
-Date: Fri, 30 Jun 2017 12:14:09 -0700
-Message-ID: <5956a301.osUzjPeMuwbDKirt%akpm@linux-foundation.org>
+Subject: + ocfs2-constify-attribute_group-structures.patch added to -mm
+ tree
+Date: Fri, 30 Jun 2017 12:15:15 -0700
+Message-ID: <5956a343.M6eGdXAyXpvMyOcX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34512 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751970AbdF3TOK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jun 2017 15:14:10 -0400
+        with ESMTP id S1751942AbdF3TPQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jun 2017 15:15:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@gmail.com, dzickus@redhat.com, mpe@ellerman.id.au, santosiv@in.ibm.com, mm-commits@vger.kernel.org
+To: arvind.yadav.cs@gmail.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/64s: watchdog false positive warning at CPU unplug
+     Subject: ocfs2: constify attribute_group structures
 has been added to the -mm tree.  Its filename is
-     powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2.patch
+     ocfs2-constify-attribute_group-structures.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-constify-attribute_group-structures.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-constify-attribute_group-structures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +39,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: powerpc/64s: watchdog false positive warning at CPU unplug
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: ocfs2: constify attribute_group structures
 
-CPU unplug will call stop_wd_on_cpu regardless if the watchdog has been
-configured to be enabled on that CPU.  Don't warn in the case it's not in
-our enabled mask, this is a valid case.
+attribute_groups are not supposed to change at runtime.  All functions
+working with attribute_groups provided by <linux/sysfs.h> work with const
+attribute_group.  So mark the non-const structs as const.
 
-Fixes: powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
-Link: http://lkml.kernel.org/r/20170630080740.20766-1-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Reported-by: Santosh Sivaraj <santosiv@in.ibm.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Don Zickus <dzickus@redhat.com>
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   4402	   1088	     38	   5528	   1598	fs/ocfs2/stackglue.o
+
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+   4442	   1024	     38	   5504	   1580	fs/ocfs2/stackglue.o
+
+Link: http://lkml.kernel.org/r/cab4e59b4918db3ed2ec77073a4cb310c4429ef5.1498808026.git.arvind.yadav.cs@gmail.com
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/watchdog.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/ocfs2/stackglue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/watchdog.c~powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2 arch/powerpc/kernel/watchdog.c
---- a/arch/powerpc/kernel/watchdog.c~powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2
-+++ a/arch/powerpc/kernel/watchdog.c
-@@ -310,10 +310,8 @@ static int start_wd_on_cpu(unsigned int
+diff -puN fs/ocfs2/stackglue.c~ocfs2-constify-attribute_group-structures fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-constify-attribute_group-structures
++++ a/fs/ocfs2/stackglue.c
+@@ -631,7 +631,7 @@ static struct attribute *ocfs2_attrs[] =
+ 	NULL,
+ };
  
- static int stop_wd_on_cpu(unsigned int cpu)
- {
--	if (!cpumask_test_cpu(cpu, &wd_cpus_enabled)) {
--		WARN_ON(1);
--		return 0;
--	}
-+	if (!cpumask_test_cpu(cpu, &wd_cpus_enabled))
-+		return 0; /* Can happen in CPU unplug case */
- 
- 	stop_watchdog_timer_on(cpu);
+-static struct attribute_group ocfs2_attr_group = {
++static const struct attribute_group ocfs2_attr_group = {
+ 	.attrs = ocfs2_attrs,
+ };
  
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
 
-watchdog-remove-unused-declaration.patch
-watchdog-introduce-arch_touch_nmi_watchdog.patch
-watchdog-split-up-config-options.patch
-watchdog-split-up-config-options-fix.patch
-watchdog-provide-watchdog_reconfigure-for-arch-watchdogs.patch
-watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-fix-2.patch
+ocfs2-constify-attribute_group-structures.patch
+kernel-ksysfs-constify-attribute_group-structures.patch
 
