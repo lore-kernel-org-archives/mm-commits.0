@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-use-memcmp-optimisation-in-more-situations-fix.patch
+Subject: + mm-change-cpuhotplug-lock-order-in-lru_add_drain_all.patch
  added to -mm tree
-Date: Fri, 30 Jun 2017 12:06:11 -0700
-Message-ID: <5956a123.euX6aix1994vc2YH%akpm@linux-foundation.org>
+Date: Fri, 30 Jun 2017 12:12:06 -0700
+Message-ID: <5956a286.1jL+uQEKJgmyLCnG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34480 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752444AbdF3TGR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jun 2017 15:06:17 -0400
+        with ESMTP id S1752491AbdF3TMH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jun 2017 15:12:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, linux@armlinux.org.uk, mawilcox@microsoft.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, aryabinin@virtuozzo.com, dkiper@net-space.pl, mhocko@kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: decompressor: add a memcmp() declaration
+     Subject: mm: change cpuhotplug lock order in lru_add_drain_all()
 has been added to the -mm tree.  Its filename is
-     bitmap-use-memcmp-optimisation-in-more-situations-fix.patch
+     mm-change-cpuhotplug-lock-order-in-lru_add_drain_all.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-use-memcmp-optimisation-in-more-situations-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-cpuhotplug-lock-order-in-lru_add_drain_all.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-use-memcmp-optimisation-in-more-situations-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-cpuhotplug-lock-order-in-lru_add_drain_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +39,160 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: ARM: decompressor: add a memcmp() declaration
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mm: change cpuhotplug lock order in lru_add_drain_all()
 
-A reference to memcmp() was added to bitmap.h, which causes another build
-warning in the decompressor due to the incompatibility with the regular
-kernel string functions:
+[  131.022567] ============================================
+[  131.023034] WARNING: possible recursive locking detected
+[  131.023034] 4.12.0-rc7-next-20170630 #10 Not tainted
+[  131.023034] --------------------------------------------
+[  131.023034] bash/2266 is trying to acquire lock:
+[  131.023034]  (cpu_hotplug_lock.rw_sem){++++++}, at: [<ffffffff8117fcd2>] lru_add_drain_all+0x42/0x190
+[  131.023034] 
+               but task is already holding lock:
+[  131.023034]  (cpu_hotplug_lock.rw_sem){++++++}, at: [<ffffffff811d5489>] mem_hotplug_begin+0x9/0x20
+[  131.023034] 
+               other info that might help us debug this:
+[  131.023034]  Possible unsafe locking scenario:
 
-In file included from /git/arm-soc/include/linux/nodemask.h:94:0,
-                 from /git/arm-soc/include/linux/mmzone.h:16,
-                 from /git/arm-soc/include/linux/gfp.h:5,
-                 from /git/arm-soc/include/linux/kmod.h:22,
-                 from /git/arm-soc/include/linux/module.h:13,
-                 from /git/arm-soc/arch/arm/boot/compressed/../../../../lib/lz4/lz4_decompress.c:39,
-                 from /git/arm-soc/arch/arm/boot/compressed/../../../../lib/decompress_unlz4.c:13,
-                 from /git/arm-soc/arch/arm/boot/compressed/decompress.c:56:
-include/linux/bitmap.h: In function 'bitmap_equal':
-include/linux/bitmap.h:270:11: error: implicit declaration of function 'memcmp'; did you mean 'memchr'? [-Werror=implicit-function-declaration]
+[  131.023034]        CPU0
+[  131.023034]        ----
+[  131.023034]   lock(cpu_hotplug_lock.rw_sem);
+[  131.023034]   lock(cpu_hotplug_lock.rw_sem);
+[  131.023034] 
+                *** DEADLOCK ***
 
-This adds one more declaration along with the existing ones.  It would be
-nice to find a more generic solution here so we don't have to do this
-again the next time, but I couldn't think of a good way to do that.
+[  131.023034]  May be due to missing lock nesting notation
 
-Fixes: 2118d3a701a8 ("bitmap: Use memcmp optimisation in more situations")
-Link: http://lkml.kernel.org/r/20170630153908.3439707-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Russell King <linux@armlinux.org.uk>
+[  131.023034] 8 locks held by bash/2266:
+[  131.023034]  #0:  (sb_writers#8){.+.+.+}, at: [<ffffffff811e81f8>] vfs_write+0x1a8/0x1d0
+[  131.023034]  #1:  (&of->mutex){+.+.+.}, at: [<ffffffff81274b2c>] kernfs_fop_write+0xfc/0x1b0
+[  131.023034]  #2:  (s_active#48){.+.+.+}, at: [<ffffffff81274b34>] kernfs_fop_write+0x104/0x1b0
+[  131.023034]  #3:  (device_hotplug_lock){+.+.+.}, at: [<ffffffff816d4810>] lock_device_hotplug_sysfs+0x10/0x40
+[  131.023034]  #4:  (cpu_hotplug_lock.rw_sem){++++++}, at: [<ffffffff811d5489>] mem_hotplug_begin+0x9/0x20
+[  131.023034]  #5:  (mem_hotplug_lock.rw_sem){++++++}, at: [<ffffffff810ada81>] percpu_down_write+0x21/0x110
+[  131.023034]  #6:  (&dev->mutex){......}, at: [<ffffffff816d5bd5>] device_offline+0x45/0xb0
+[  131.023034]  #7:  (lock#3){+.+...}, at: [<ffffffff8117fccd>] lru_add_drain_all+0x3d/0x190
+[  131.023034] 
+               stack backtrace:
+[  131.023034] CPU: 0 PID: 2266 Comm: bash Not tainted 4.12.0-rc7-next-20170630 #10
+[  131.023034] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.10.2-0-g5f4c7b1-prebuilt.qemu-project.org 04/01/2014
+[  131.023034] Call Trace:
+[  131.023034]  dump_stack+0x85/0xc7
+[  131.023034]  __lock_acquire+0x1747/0x17a0
+[  131.023034]  ? lru_add_drain_all+0x3d/0x190
+[  131.023034]  ? __mutex_lock+0x218/0x940
+[  131.023034]  ? trace_hardirqs_on+0xd/0x10
+[  131.023034]  lock_acquire+0x103/0x200
+[  131.023034]  ? lock_acquire+0x103/0x200
+[  131.023034]  ? lru_add_drain_all+0x42/0x190
+[  131.023034]  cpus_read_lock+0x3d/0x80
+[  131.023034]  ? lru_add_drain_all+0x42/0x190
+[  131.023034]  lru_add_drain_all+0x42/0x190
+[  131.023034]  __offline_pages.constprop.25+0x5de/0x870
+[  131.023034]  offline_pages+0xc/0x10
+[  131.023034]  memory_subsys_offline+0x43/0x70
+[  131.023034]  device_offline+0x83/0xb0
+[  131.023034]  store_mem_state+0xdb/0xe0
+[  131.023034]  dev_attr_store+0x13/0x20
+[  131.023034]  sysfs_kf_write+0x40/0x50
+[  131.023034]  kernfs_fop_write+0x130/0x1b0
+[  131.023034]  __vfs_write+0x23/0x130
+[  131.023034]  ? rcu_read_lock_sched_held+0x6d/0x80
+[  131.023034]  ? rcu_sync_lockdep_assert+0x2a/0x50
+[  131.023034]  ? __sb_start_write+0xd4/0x1c0
+[  131.023034]  ? vfs_write+0x1a8/0x1d0
+[  131.023034]  vfs_write+0xc8/0x1d0
+[  131.023034]  SyS_write+0x44/0xa0
+[  131.023034]  entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Daniel Kiper <dkiper@net-space.pl>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/compressed/decompress.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/swap.h |    1 +
+ mm/memory_hotplug.c  |    4 ++--
+ mm/swap.c            |   11 ++++++++---
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN arch/arm/boot/compressed/decompress.c~bitmap-use-memcmp-optimisation-in-more-situations-fix arch/arm/boot/compressed/decompress.c
---- a/arch/arm/boot/compressed/decompress.c~bitmap-use-memcmp-optimisation-in-more-situations-fix
-+++ a/arch/arm/boot/compressed/decompress.c
-@@ -33,6 +33,7 @@ extern void error(char *);
- /* Not needed, but used in some headers pulled in by decompressors */
- extern char * strstr(const char * s1, const char *s2);
- extern size_t strlen(const char *s);
-+extern int memcmp(const void *cs, const void *ct, size_t count);
+diff -puN include/linux/swap.h~mm-change-cpuhotplug-lock-order-in-lru_add_drain_all include/linux/swap.h
+--- a/include/linux/swap.h~mm-change-cpuhotplug-lock-order-in-lru_add_drain_all
++++ a/include/linux/swap.h
+@@ -277,6 +277,7 @@ extern void mark_page_accessed(struct pa
+ extern void lru_add_drain(void);
+ extern void lru_add_drain_cpu(int cpu);
+ extern void lru_add_drain_all(void);
++extern void lru_add_drain_all_cpuslocked(void);
+ extern void rotate_reclaimable_page(struct page *page);
+ extern void deactivate_file_page(struct page *page);
+ extern void mark_page_lazyfree(struct page *page);
+diff -puN mm/memory_hotplug.c~mm-change-cpuhotplug-lock-order-in-lru_add_drain_all mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-change-cpuhotplug-lock-order-in-lru_add_drain_all
++++ a/mm/memory_hotplug.c
+@@ -1670,7 +1670,7 @@ repeat:
+ 		goto failed_removal;
+ 	ret = 0;
+ 	if (drain) {
+-		lru_add_drain_all();
++		lru_add_drain_all_cpuslocked();
+ 		cond_resched();
+ 		drain_all_pages(zone);
+ 	}
+@@ -1691,7 +1691,7 @@ repeat:
+ 		}
+ 	}
+ 	/* drain all zone's lru pagevec, this is asynchronous... */
+-	lru_add_drain_all();
++	lru_add_drain_all_cpuslocked();
+ 	yield();
+ 	/* drain pcp pages, this is synchronous. */
+ 	drain_all_pages(zone);
+diff -puN mm/swap.c~mm-change-cpuhotplug-lock-order-in-lru_add_drain_all mm/swap.c
+--- a/mm/swap.c~mm-change-cpuhotplug-lock-order-in-lru_add_drain_all
++++ a/mm/swap.c
+@@ -688,7 +688,7 @@ static void lru_add_drain_per_cpu(struct
  
- #ifdef CONFIG_KERNEL_GZIP
- #include "../../../../lib/decompress_inflate.c"
+ static DEFINE_PER_CPU(struct work_struct, lru_add_drain_work);
+ 
+-void lru_add_drain_all(void)
++void lru_add_drain_all_cpuslocked(void)
+ {
+ 	static DEFINE_MUTEX(lock);
+ 	static struct cpumask has_work;
+@@ -702,7 +702,6 @@ void lru_add_drain_all(void)
+ 		return;
+ 
+ 	mutex_lock(&lock);
+-	get_online_cpus();
+ 	cpumask_clear(&has_work);
+ 
+ 	for_each_online_cpu(cpu) {
+@@ -722,10 +721,16 @@ void lru_add_drain_all(void)
+ 	for_each_cpu(cpu, &has_work)
+ 		flush_work(&per_cpu(lru_add_drain_work, cpu));
+ 
+-	put_online_cpus();
+ 	mutex_unlock(&lock);
+ }
+ 
++void lru_add_drain_all(void)
++{
++	get_online_cpus();
++	lru_add_drain_all_cpuslocked();
++	put_online_cpus();
++}
++
+ /**
+  * release_pages - batched put_page()
+  * @pages: array of pages to release
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level-fix.patch
-mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
-kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
-bitmap-use-memcmp-optimisation-in-more-situations-fix.patch
-watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
-include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch
-kmod-add-test-driver-to-stress-test-the-module-loader-fix.patch
+mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
+mm-change-cpuhotplug-lock-order-in-lru_add_drain_all.patch
 
