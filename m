@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-multi-line-alignment-test.patch added to -mm tree
-Date: Fri, 30 Jun 2017 12:02:40 -0700
-Message-ID: <5956a050.9BlLBQZ8nO6R0exL%akpm@linux-foundation.org>
+Subject: + kmod-add-test-driver-to-stress-test-the-module-loader-fix.patch added to -mm tree
+Date: Fri, 30 Jun 2017 12:03:58 -0700
+Message-ID: <5956a09e.vrkOSYTm8DwDsX+s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34104 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751072AbdF3TCl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jun 2017 15:02:41 -0400
+        with ESMTP id S1751918AbdF3TD7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jun 2017 15:03:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, mcgrof@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve multi-line alignment test
+     Subject: kmod: add dependencies for test module
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-multi-line-alignment-test.patch
+     kmod-add-test-driver-to-stress-test-the-module-loader-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-multi-line-alignment-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmod-add-test-driver-to-stress-test-the-module-loader-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-multi-line-alignment-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-add-test-driver-to-stress-test-the-module-loader-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,46 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve multi-line alignment test
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kmod: add dependencies for test module
 
-The current test fails to warn about improper alignment with code like
+When we try to 'select' drivers whose dependencies are not met, we get a
+kconfig warning and undefined behavior as further 'select' statements in
+those drivers can not be honored:
 
-	foo->bar = func(arg1,
-				arg2);
+warning: (TEST_KMOD) selects TUN which has unmet direct dependencies (NETDEVICES && NET_CORE && INET)
+warning: (TEST_KMOD) selects XFS_FS which has unmet direct dependencies (BLOCK && (64BIT || LBDAF))
+ERROR: "iomap_zero_range" [fs/xfs/xfs.ko] undefined!
+ERROR: "iomap_fiemap" [fs/xfs/xfs.ko] undefined!
+ERROR: "iomap_page_mkwrite" [fs/xfs/xfs.ko] undefined!
 
-because foo->bar is not a single identifier.
+To work around that, this adds the dependencies required by the 'tun',
+'xfs' and 'btrfs' modules for CONFIG_TEST_KMOD, guaranteeing that we can
+always enable those, and fixing the 'randconfig' issues.
 
-Convert the $Ident to $Lval which allows for multiple dereferences.
+Unfortunately, there is another problem that I have not found a good
+solution for: If any of the three drivers are built-in rather than
+loadable modules, then the module load test will later fail at runtime.
 
-Link: http://lkml.kernel.org/r/01c35b9b6a12a415e57746d45d589bfaad39952a.1498841563.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Fixes: ec159fed8677 ("kmod: add test driver to stress test the module loader")
+Link: http://lkml.kernel.org/r/20170630154834.3689272-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-multi-line-alignment-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-multi-line-alignment-test
-+++ a/scripts/checkpatch.pl
-@@ -2992,7 +2992,7 @@ sub process {
- 
- # check multi-line statement indentation matches previous line
- 		if ($^V && $^V ge 5.10.0 &&
--		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|$Ident\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
-+		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|(?:\*\s*)*$Lval\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
- 			$prevline =~ /^\+(\t*)(.*)$/;
- 			my $oldindent = $1;
- 			my $rest = $2;
+diff -puN lib/Kconfig.debug~kmod-add-test-driver-to-stress-test-the-module-loader-fix lib/Kconfig.debug
+--- a/lib/Kconfig.debug~kmod-add-test-driver-to-stress-test-the-module-loader-fix
++++ a/lib/Kconfig.debug
+@@ -1868,6 +1868,8 @@ config TEST_KMOD
+ 	tristate "kmod stress tester"
+ 	default n
+ 	depends on m
++	depends on BLOCK && (64BIT || LBDAF)	  # for XFS, BTRFS
++	depends on NETDEVICES && NET_CORE && INET # for TUN
+ 	select TEST_LKM
+ 	select XFS_FS
+ 	select TUN
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-checkpatch-improve-the-unnecessary-oom-message-test.patch
-checkpatch-warn-when-a-maintainers-entry-isnt-t.patch
-checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block.patch
-checkpatch-improve-tests-for-multiple-line-function-definitions.patch
-checkpatch-improve-macro-reuse-test.patch
-checkpatch-improve-multi-line-alignment-test.patch
+mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level-fix.patch
+mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
+kernelh-handle-pointers-to-arrays-better-in-container_of-fix.patch
+watchdog-provide-watchdog_reconfigure-for-arch-watchdogs-fix-2.patch
+include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix.patch
+kmod-add-test-driver-to-stress-test-the-module-loader-fix.patch
 
