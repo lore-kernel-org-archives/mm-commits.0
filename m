@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm-kvm-move-asmlinkage-before-type.patch added to -mm tree
-Date: Wed, 05 Jul 2017 13:45:06 -0700
-Message-ID: <595d4fd2.tfL+dA0EU1x4tIEa%akpm@linux-foundation.org>
+Subject: + arm-hp-jornada-7xx-move-inline-before-return-type.patch added
+ to -mm tree
+Date: Wed, 05 Jul 2017 13:45:08 -0700
+Message-ID: <595d4fd4.hrbTxAnX6OQTWD+M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54672 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753115AbdGEUpH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 16:45:07 -0400
+        with ESMTP id S1753115AbdGEUpJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 16:45:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, christoffer.dall@linaro.org, linux@armlinux.org.uk, marc.zyngier@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: KVM: move asmlinkage before type
+     Subject: ARM: HP Jornada 7XX: move inline before return type
 has been added to the -mm tree.  Its filename is
-     arm-kvm-move-asmlinkage-before-type.patch
+     arm-hp-jornada-7xx-move-inline-before-return-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-kvm-move-asmlinkage-before-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-hp-jornada-7xx-move-inline-before-return-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-kvm-move-asmlinkage-before-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-hp-jornada-7xx-move-inline-before-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: ARM: KVM: move asmlinkage before type
+Subject: ARM: HP Jornada 7XX: move inline before return type
 
-asmlinkage is either 'extern "C"' or blank.
+Convert 'u8 inline' to 'inline u8' to be the same style used
+by the rest of the kernel.
 
-Move the uses of asmlinkage before the return types to be similar
-to the rest of the kernel.
+Miscellanea:
 
-Link: http://lkml.kernel.org/r/005b8e120650c6a13b541e420f4e3605603fe9e6.1499284835.git.joe@perches.com
+jornada_ssp_reverse is an odd function.
+It is declared inline but is also EXPORT_SYMBOL.
+It is also apparently only used by jornada720_ssp.c
+Likely the EXPORT_SYMBOL could be removed and the function
+converted to static.
+
+The addition of static and removal of EXPORT_SYMBOL was not done.
+
+Link: http://lkml.kernel.org/r/5bd3b2bf39c6c9caf773949f18158f8f5ec08582.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Radim Krcmar <rkrcmar@redhat.com>
 Cc: Russell King <linux@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/kvm_hyp.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-sa1100/jornada720_ssp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/kvm_hyp.h~arm-kvm-move-asmlinkage-before-type arch/arm/include/asm/kvm_hyp.h
---- a/arch/arm/include/asm/kvm_hyp.h~arm-kvm-move-asmlinkage-before-type
-+++ a/arch/arm/include/asm/kvm_hyp.h
-@@ -110,8 +110,8 @@ void __sysreg_restore_state(struct kvm_c
- void __vgic_v3_save_state(struct kvm_vcpu *vcpu);
- void __vgic_v3_restore_state(struct kvm_vcpu *vcpu);
- 
--void asmlinkage __vfp_save_state(struct vfp_hard_struct *vfp);
--void asmlinkage __vfp_restore_state(struct vfp_hard_struct *vfp);
-+asmlinkage void __vfp_save_state(struct vfp_hard_struct *vfp);
-+asmlinkage void __vfp_restore_state(struct vfp_hard_struct *vfp);
- static inline bool __vfp_enabled(void)
+diff -puN arch/arm/mach-sa1100/jornada720_ssp.c~arm-hp-jornada-7xx-move-inline-before-return-type arch/arm/mach-sa1100/jornada720_ssp.c
+--- a/arch/arm/mach-sa1100/jornada720_ssp.c~arm-hp-jornada-7xx-move-inline-before-return-type
++++ a/arch/arm/mach-sa1100/jornada720_ssp.c
+@@ -33,7 +33,7 @@ static unsigned long jornada_ssp_flags;
+  * we need to reverse all data we receive from the mcu due to its physical location
+  * returns : 01110111 -> 11101110
+  */
+-u8 inline jornada_ssp_reverse(u8 byte)
++inline u8 jornada_ssp_reverse(u8 byte)
  {
- 	return !(read_sysreg(HCPTR) & (HCPTR_TCP(11) | HCPTR_TCP(10)));
-@@ -120,8 +120,8 @@ static inline bool __vfp_enabled(void)
- void __hyp_text __banked_save_state(struct kvm_cpu_context *ctxt);
- void __hyp_text __banked_restore_state(struct kvm_cpu_context *ctxt);
- 
--int asmlinkage __guest_enter(struct kvm_vcpu *vcpu,
-+asmlinkage int __guest_enter(struct kvm_vcpu *vcpu,
- 			     struct kvm_cpu_context *host);
--int asmlinkage __hyp_do_panic(const char *, int, u32);
-+asmlinkage int __hyp_do_panic(const char *, int, u32);
- 
- #endif /* __ARM_KVM_HYP_H__ */
+ 	return
+ 		((0x80 & byte) >> 7) |
 _
 
 Patches currently in -mm which might be from joe@perches.com are
