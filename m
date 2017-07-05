@@ -1,7 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: + sh-move-inline-before-return-type.patch added to -mm tree
-Date: Wed, 05 Jul 2017 13:45:22 -0700
-Message-ID: <595d4fe2.HScR7pviZO4tCFzl%akpm@linux-foundation.org>
+Subject: + mips-smp-move-asmlinkage-before-return-type.patch added to -mm
+ tree
+Date: Wed, 05 Jul 2017 13:45:20 -0700
+Message-ID: <595d4fe0.6lJ9fiR8/JKeMjdq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -9,22 +10,22 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:54706 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753396AbdGEUp2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 16:45:28 -0400
+        with ESMTP id S1753115AbdGEUpW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 16:45:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dalias@libc.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: joe@perches.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: move inline before return type
+     Subject: MIPS: SMP: move asmlinkage before return type
 has been added to the -mm tree.  Its filename is
-     sh-move-inline-before-return-type.patch
+     mips-smp-move-asmlinkage-before-return-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-move-inline-before-return-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-smp-move-asmlinkage-before-return-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-move-inline-before-return-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-smp-move-asmlinkage-before-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: sh: move inline before return type
+Subject: MIPS: SMP: move asmlinkage before return type
 
 Make the code like the rest of the kernel.
 
-Link: http://lkml.kernel.org/r/f81bb2a67a97b1fd8b6ea99bd350d8a0f6864fb1.1499284835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/756d3fb543e981b9284e756fa27616725a354b28.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>	
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/cache-sh5.c |    2 +-
+ arch/mips/include/asm/smp.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh/mm/cache-sh5.c~sh-move-inline-before-return-type arch/sh/mm/cache-sh5.c
---- a/arch/sh/mm/cache-sh5.c~sh-move-inline-before-return-type
-+++ a/arch/sh/mm/cache-sh5.c
-@@ -234,7 +234,7 @@ static void sh64_icache_inv_current_user
- #define DUMMY_ALLOCO_AREA_SIZE ((L1_CACHE_BYTES << 10) + (1024 * 4))
- static unsigned char dummy_alloco_area[DUMMY_ALLOCO_AREA_SIZE] __cacheline_aligned = { 0, };
+diff -puN arch/mips/include/asm/smp.h~mips-smp-move-asmlinkage-before-return-type arch/mips/include/asm/smp.h
+--- a/arch/mips/include/asm/smp.h~mips-smp-move-asmlinkage-before-return-type
++++ a/arch/mips/include/asm/smp.h
+@@ -47,7 +47,7 @@ extern int __cpu_logical_map[NR_CPUS];
+ /* Mask of CPUs which are currently definitely operating coherently */
+ extern cpumask_t cpu_coherent_mask;
  
--static void inline sh64_dcache_purge_sets(int sets_to_purge_base, int n_sets)
-+static inline void sh64_dcache_purge_sets(int sets_to_purge_base, int n_sets)
- {
- 	/* Purge all ways in a particular block of sets, specified by the base
- 	   set number and number of sets.  Can handle wrap-around, if that's
+-extern void asmlinkage smp_bootstrap(void);
++extern asmlinkage void smp_bootstrap(void);
+ 
+ extern void calculate_cpu_foreign_map(void);
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
