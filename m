@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-provide-lru_add_drain_all_cpuslocked.patch added to -mm tree
-Date: Wed, 05 Jul 2017 15:01:02 -0700
-Message-ID: <595d619e.Bvizd38hiBay82uU%akpm@linux-foundation.org>
+Subject: +
+ mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch added to -mm tree
+Date: Wed, 05 Jul 2017 16:01:14 -0700
+Message-ID: <595d6fba.hE19dNer7CKkFs2F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34416 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752459AbdGEWBD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 18:01:03 -0400
+        with ESMTP id S1752157AbdGEXBP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 19:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, aryabinin@virtuozzo.com, dave@stgolabs.net, mhocko@suse.com, peterz@infradead.org, vbabka@suse.cz, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, js1304@gmail.com, mgorman@suse.de, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap: provide lru_add_drain_all_cpuslocked()
+     Subject: mm: disallow early_pfn_to_nid on configurations which do not implement it
 has been added to the -mm tree.  Its filename is
-     mm-swap-provide-lru_add_drain_all_cpuslocked.patch
+     mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-provide-lru_add_drain_all_cpuslocked.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-provide-lru_add_drain_all_cpuslocked.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,89 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: mm: swap: provide lru_add_drain_all_cpuslocked()
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: disallow early_pfn_to_nid on configurations which do not implement it
 
-The rework of the cpu hotplug locking unearthed potential deadlocks with
-the memory hotplug locking code.
+early_pfn_to_nid will return node 0 if both HAVE_ARCH_EARLY_PFN_TO_NID and
+HAVE_MEMBLOCK_NODE_MAP are disabled.  It seems we are safe now because all
+architectures which support NUMA define one of them (with an exception of
+alpha which however has CONFIG_NUMA marked as broken) so this works as
+expected.  It can get silently and subtly broken too easily, though.  Make
+sure we fail the compilation if NUMA is enabled and there is no proper
+implementation for this function.  If that ever happens we know that
+either the specific configuration is invalid and the fix should either
+disable NUMA or enable one of the above configs.
 
-The solution for these is to rework the memory hotplug locking code as
-well and take the cpu hotplug lock before the memory hotplug lock in
-mem_hotplug_begin(), but this will cause a recursive locking of the cpu
-hotplug lock when the memory hotplug code calls lru_add_drain_all().
-
-Split out the inner workings of lru_add_drain_all() into
-lru_add_drain_all_cpuslocked() so this function can be invoked from the
-memory hotplug code with the cpu hotplug lock held.
-
-Link: http://lkml.kernel.org/r/20170704093421.419329357@linutronix.de
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170704075803.15979-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 +
- mm/swap.c            |   11 ++++++++---
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/swap.h~mm-swap-provide-lru_add_drain_all_cpuslocked include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-provide-lru_add_drain_all_cpuslocked
-+++ a/include/linux/swap.h
-@@ -277,6 +277,7 @@ extern void mark_page_accessed(struct pa
- extern void lru_add_drain(void);
- extern void lru_add_drain_cpu(int cpu);
- extern void lru_add_drain_all(void);
-+extern void lru_add_drain_all_cpuslocked(void);
- extern void rotate_reclaimable_page(struct page *page);
- extern void deactivate_file_page(struct page *page);
- extern void mark_page_lazyfree(struct page *page);
-diff -puN mm/swap.c~mm-swap-provide-lru_add_drain_all_cpuslocked mm/swap.c
---- a/mm/swap.c~mm-swap-provide-lru_add_drain_all_cpuslocked
-+++ a/mm/swap.c
-@@ -688,7 +688,7 @@ static void lru_add_drain_per_cpu(struct
- 
- static DEFINE_PER_CPU(struct work_struct, lru_add_drain_work);
- 
--void lru_add_drain_all(void)
-+void lru_add_drain_all_cpuslocked(void)
+diff -puN include/linux/mmzone.h~mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it
++++ a/include/linux/mmzone.h
+@@ -1055,6 +1055,7 @@ static inline struct zoneref *first_zone
+ 	!defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
+ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
  {
- 	static DEFINE_MUTEX(lock);
- 	static struct cpumask has_work;
-@@ -702,7 +702,6 @@ void lru_add_drain_all(void)
- 		return;
- 
- 	mutex_lock(&lock);
--	get_online_cpus();
- 	cpumask_clear(&has_work);
- 
- 	for_each_online_cpu(cpu) {
-@@ -722,10 +721,16 @@ void lru_add_drain_all(void)
- 	for_each_cpu(cpu, &has_work)
- 		flush_work(&per_cpu(lru_add_drain_work, cpu));
- 
--	put_online_cpus();
- 	mutex_unlock(&lock);
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_NUMA));
+ 	return 0;
  }
- 
-+void lru_add_drain_all(void)
-+{
-+	get_online_cpus();
-+	lru_add_drain_all_cpuslocked();
-+	put_online_cpus();
-+}
-+
- /**
-  * release_pages - batched put_page()
-  * @pages: array of pages to release
+ #endif
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-swap-provide-lru_add_drain_all_cpuslocked.patch
-mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
+fs-file-replace-alloc_fdmem-with-kvmalloc-alternative.patch
+mm-remove-return-value-from-init_currently_empty_zone.patch
+mm-memory_hotplug-use-node-instead-of-zone-in-can_online_high_movable.patch
+mm-drop-page_initialized-check-from-get_nid_for_pfn.patch
+mm-memory_hotplug-get-rid-of-is_zone_device_section.patch
+mm-memory_hotplug-split-up-register_one_node.patch
+mm-memory_hotplug-consider-offline-memblocks-removable.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
+mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
+mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
+mm-__first_valid_page-skip-over-offline-pages.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
+mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
+mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
+mm-memory_hotplug-fix-mmop_online_keep-behavior.patch
+mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone.patch
+mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
+mm-memory_hotplug-fix-the-section-mismatch-warning.patch
+mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework.patch
+mm-adaptive-hash-table-scaling-fix.patch
+mm-memory_hotplug-drop-artificial-restriction-on-online-offline.patch
+mm-memory_hotplug-drop-config_movable_node.patch
+mm-memory_hotplug-move-movable_node-to-the-hotplug-proper.patch
+mm-make-pr_set_thp_disable-immediately-active.patch
+mm-memory_hotplug-simplify-empty-node-mask-handling-in-new_node_page.patch
+hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration.patch
+mm-unify-new_node_page-and-alloc_migrate_target.patch
+mm-memcg-fix-potential-undefined-behavior-in-mem_cgroup_event_ratelimit.patch
+mm-hugetlb-unclutter-hugetlb-allocation-layers.patch
+hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
+mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration.patch
+mm-document-highmem_is_dirtyable-sysctl.patch
+mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack.patch
+mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch
+lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+netfilter-use-kvmalloc-xt_alloc_table_info.patch
+mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
+xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
+mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+drm-i915-use-__gfp_retry_mayfail.patch
+mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
