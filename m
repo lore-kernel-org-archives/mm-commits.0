@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + uaccess-zero-destination-buffer-on-overflow-attempt.patch added to -mm tree
-Date: Wed, 05 Jul 2017 14:36:27 -0700
-Message-ID: <595d5bdb.BOne6Ev3HtZLFIGZ%akpm@linux-foundation.org>
+Subject: + mm-use-dedicated-helper-to-access-rlimit-value.patch added to
+ -mm tree
+Date: Wed, 05 Jul 2017 14:44:27 -0700
+Message-ID: <595d5dbb.2AcU0q8KU3CetRl1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57550 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751744AbdGEVg2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 17:36:28 -0400
+        with ESMTP id S1751784AbdGEVo2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 17:44:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, ak@linux.intel.com, arnd@arndb.de, egtvedt@samfundet.no, hoeun.ryu@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: k.opasiak@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uaccess: zero destination buffer on overflow attempt
+     Subject: mm: use dedicated helper to access rlimit value
 has been added to the -mm tree.  Its filename is
-     uaccess-zero-destination-buffer-on-overflow-attempt.patch
+     mm-use-dedicated-helper-to-access-rlimit-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/uaccess-zero-destination-buffer-on-overflow-attempt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-dedicated-helper-to-access-rlimit-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/uaccess-zero-destination-buffer-on-overflow-attempt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-dedicated-helper-to-access-rlimit-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,110 +39,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: uaccess: zero destination buffer on overflow attempt
+From: Krzysztof Opasiak <k.opasiak@samsung.com>
+Subject: mm: use dedicated helper to access rlimit value
 
-When the destination buffer size is known at build time but the runtime
-size to copy into it is not known, the copy_from_user() will WARN when it
-is too large and the copy_from_user() will fail.  However, it was not
-zeroing the destination buffer (for which it knows the correct size). 
-This fixes that corner case and adds a test for it in test_user_copy.c.
+Use rlimit() helper instead of manually writing whole chain from current
+task to rlim_cur.
 
-Link: http://lkml.kernel.org/r/20170705200113.GA146915@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Hoeun Ryu <hoeun.ryu@gmail.com>
-Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
+Link: http://lkml.kernel.org/r/20170705172811.8027-1-k.opasiak@samsung.com
+Signed-off-by: Krzysztof Opasiak <k.opasiak@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |    5 +++--
- lib/test_user_copy.c    |   12 ++++++++++++
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ mm/mmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/uaccess.h~uaccess-zero-destination-buffer-on-overflow-attempt include/linux/uaccess.h
---- a/include/linux/uaccess.h~uaccess-zero-destination-buffer-on-overflow-attempt
-+++ a/include/linux/uaccess.h
-@@ -152,9 +152,10 @@ copy_from_user(void *to, const void __us
- 	if (likely(sz < 0 || sz >= n)) {
- 		check_object_size(to, n, false);
- 		n = _copy_from_user(to, from, n);
--	} else if (!__builtin_constant_p(n))
-+	} else if (!__builtin_constant_p(n)) {
- 		copy_user_overflow(sz, n);
--	else
-+		memset(to, 0, sz);
-+	} else
- 		__bad_copy_user();
+diff -puN mm/mmap.c~mm-use-dedicated-helper-to-access-rlimit-value mm/mmap.c
+--- a/mm/mmap.c~mm-use-dedicated-helper-to-access-rlimit-value
++++ a/mm/mmap.c
+@@ -2177,7 +2177,6 @@ static int acct_stack_growth(struct vm_a
+ 			     unsigned long size, unsigned long grow)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+-	struct rlimit *rlim = current->signal->rlim;
+ 	unsigned long new_start;
  
- 	return n;
-diff -puN lib/test_user_copy.c~uaccess-zero-destination-buffer-on-overflow-attempt lib/test_user_copy.c
---- a/lib/test_user_copy.c~uaccess-zero-destination-buffer-on-overflow-attempt
-+++ a/lib/test_user_copy.c
-@@ -57,6 +57,8 @@ static int __init test_user_copy_init(vo
- 	char __user *usermem;
- 	char *bad_usermem;
- 	unsigned long user_addr;
-+	volatile int unconst = 0;
-+	char charbuf[8];
- 	u8 val_u8;
- 	u16 val_u16;
- 	u32 val_u32;
-@@ -124,6 +126,7 @@ static int __init test_user_copy_init(vo
- 	/* Prepare kernel memory with check values. */
- 	memset(kmem, 0x5a, PAGE_SIZE);
- 	memset(kmem + PAGE_SIZE, 0, PAGE_SIZE);
-+	memset(charbuf, 0x6a, sizeof(charbuf));
+ 	/* address space limit tests */
+@@ -2185,7 +2184,7 @@ static int acct_stack_growth(struct vm_a
+ 		return -ENOMEM;
  
- 	/* Reject kernel-to-kernel copies through copy_from_user(). */
- 	ret |= test(!copy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
-@@ -134,6 +137,15 @@ static int __init test_user_copy_init(vo
- 	ret |= test(memcmp(kmem + PAGE_SIZE, kmem, PAGE_SIZE),
- 		    "zeroing failure for illegal all-kernel copy_from_user");
+ 	/* Stack limit test */
+-	if (size > READ_ONCE(rlim[RLIMIT_STACK].rlim_cur))
++	if (size > rlimit(RLIMIT_STACK))
+ 		return -ENOMEM;
  
-+	/* Reject copies into too-small buffers. */
-+	ret |= test(!copy_from_user(charbuf, usermem,
-+				    sizeof(charbuf) + 1 + unconst),
-+		    "illegal too-large copy_from_user passed");
-+
-+	/* Destination buffer should have been entirely zeroed. */
-+	ret |= test(memcmp(kmem + PAGE_SIZE, charbuf, sizeof(charbuf)),
-+		    "zeroing failure for illegal too-large copy_from_user");
-+
- #if 0
- 	/*
- 	 * When running with SMAP/PAN/etc, this will Oops the kernel
+ 	/* mlock limit tests */
+@@ -2193,7 +2192,7 @@ static int acct_stack_growth(struct vm_a
+ 		unsigned long locked;
+ 		unsigned long limit;
+ 		locked = mm->locked_vm + grow;
+-		limit = READ_ONCE(rlim[RLIMIT_MEMLOCK].rlim_cur);
++		limit = rlimit(RLIMIT_MEMLOCK);
+ 		limit >>= PAGE_SHIFT;
+ 		if (locked > limit && !capable(CAP_IPC_LOCK))
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from k.opasiak@samsung.com are
 
-mm-allow-slab_nomerge-to-be-set-at-build-time.patch
-uaccess-zero-destination-buffer-on-overflow-attempt.patch
-binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
-arm-reduce-elf_et_dyn_base.patch
-arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
-powerpc-reduce-elf_et_dyn_base.patch
-s390-reduce-elf_et_dyn_base.patch
-binfmt_elf-safely-increment-argv-pointers.patch
-random-do-not-ignore-early-device-randomness.patch
-ipc-drop-non-rcu-allocation.patch
-ipc-sem-do-not-use-ipc_rcu_free.patch
-ipc-shm-do-not-use-ipc_rcu_free.patch
-ipc-msg-do-not-use-ipc_rcu_free.patch
-ipc-util-drop-ipc_rcu_free.patch
-ipc-sem-avoid-ipc_rcu_alloc.patch
-ipc-shm-avoid-ipc_rcu_alloc.patch
-ipc-msg-avoid-ipc_rcu_alloc.patch
-ipc-util-drop-ipc_rcu_alloc.patch
-ipc-move-atomic_set-to-where-it-is-needed.patch
-ipc-shm-remove-special-shm_alloc-free.patch
-ipc-msg-remove-special-msg_alloc-free.patch
-ipc-sem-drop-__sem_free.patch
-efi-avoid-fortify-checks-in-efi-stub.patch
-kexec_file-adjust-declaration-of-kexec_purgatory.patch
-ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
-include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch
-sh-mark-end-of-bug-implementation-as-unreachable.patch
+mm-use-dedicated-helper-to-access-rlimit-value.patch
 
