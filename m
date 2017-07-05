@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch added to -mm tree
-Date: Wed, 05 Jul 2017 16:14:52 -0700
-Message-ID: <595d72ec.W2tcrQPsuFhwdjPo%akpm@linux-foundation.org>
+Subject: + mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch added to
+ -mm tree
+Date: Wed, 05 Jul 2017 16:14:50 -0700
+Message-ID: <595d72ea.erOYUJNjEJlTR5hY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36534 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752467AbdGEXO6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 19:14:58 -0400
+        with ESMTP id S1752467AbdGEXPB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 19:15:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jmarchan@redhat.com, minchan@kernel.org, opensource.ganesh@gmail.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: jmarchan@redhat.com, minchan@kernel.org, opensource.ganesh@gmail.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix
+     Subject: mm/zsmalloc: simplify zs_max_alloc_size handling
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
+     mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,65 +39,182 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix
+From: "Jerome Marchand" <jmarchan@redhat.com>
+Subject: mm/zsmalloc: simplify zs_max_alloc_size handling
 
-use min_t
+40f9fb8cffc6 ("mm/zsmalloc: support allocating obj with size of
+ZS_MAX_ALLOC_SIZE") fixes a size calculation error that prevented zsmalloc
+to allocate an object of the maximal size (ZS_MAX_ALLOC_SIZE).  I think
+however the fix is unneededly complicated.
 
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+This patch replaces the dynamic calculation of zs_size_classes at init
+time by a compile time calculation that uses the DIV_ROUND_UP() macro
+already used in get_size_class_index().
+
+Link: http://lkml.kernel.org/r/20170630114859.1979-1-jmarchan@redhat.com
+Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zsmalloc.c |   52 +++++++++++++-----------------------------------
+ 1 file changed, 15 insertions(+), 37 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix
+diff -puN mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling
 +++ a/mm/zsmalloc.c
-@@ -548,7 +548,7 @@ static int get_size_class_index(int size
+@@ -116,6 +116,11 @@
+ #define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - OBJ_TAG_BITS)
+ #define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
+ 
++#define FULLNESS_BITS	2
++#define CLASS_BITS	8
++#define ISOLATED_BITS	3
++#define MAGIC_VAL_BITS	8
++
+ #define MAX(a, b) ((a) >= (b) ? (a) : (b))
+ /* ZS_MIN_ALLOC_SIZE must be multiple of ZS_ALIGN */
+ #define ZS_MIN_ALLOC_SIZE \
+@@ -137,6 +142,8 @@
+  *  (reason above)
+  */
+ #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> CLASS_BITS)
++#define ZS_SIZE_CLASSES	(DIV_ROUND_UP(ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE, \
++				      ZS_SIZE_CLASS_DELTA) + 1)
+ 
+ enum fullness_group {
+ 	ZS_EMPTY,
+@@ -169,11 +176,6 @@ static struct vfsmount *zsmalloc_mnt;
+ #endif
+ 
+ /*
+- * number of size_classes
+- */
+-static int zs_size_classes;
+-
+-/*
+  * We assign a page to ZS_ALMOST_EMPTY fullness group when:
+  *	n <= N / f, where
+  * n = number of allocated objects
+@@ -244,7 +246,7 @@ struct link_free {
+ struct zs_pool {
+ 	const char *name;
+ 
+-	struct size_class **size_class;
++	struct size_class *size_class[ZS_SIZE_CLASSES];
+ 	struct kmem_cache *handle_cachep;
+ 	struct kmem_cache *zspage_cachep;
+ 
+@@ -268,11 +270,6 @@ struct zs_pool {
+ #endif
+ };
+ 
+-#define FULLNESS_BITS	2
+-#define CLASS_BITS	8
+-#define ISOLATED_BITS	3
+-#define MAGIC_VAL_BITS	8
+-
+ struct zspage {
+ 	struct {
+ 		unsigned int fullness:FULLNESS_BITS;
+@@ -551,7 +548,7 @@ static int get_size_class_index(int size
  		idx = DIV_ROUND_UP(size - ZS_MIN_ALLOC_SIZE,
  				ZS_SIZE_CLASS_DELTA);
  
--	return min((int)ZS_SIZE_CLASSES - 1, idx);
-+	return min_t(int, ZS_SIZE_CLASSES - 1, idx);
+-	return min(zs_size_classes - 1, idx);
++	return min((int)ZS_SIZE_CLASSES - 1, idx);
  }
  
  static inline void zs_stat_inc(struct size_class *class,
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
-ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
-mm.patch
-mm-slub-wrap-cpu_slab-partial-in-config_slub_cpu_partial-fix.patch
-mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online-fix-2-fix.patch
-swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
-mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
-mm-swap-sort-swap-entries-before-free-fix.patch
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
-hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
-mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
-mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
-mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
-signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
-kernel-reboot-add-devm_register_reboot_notifier-fix.patch
-fault-inject-support-systematic-fault-injection-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+@@ -610,7 +607,7 @@ static int zs_stats_size_show(struct seq
+ 			"obj_allocated", "obj_used", "pages_used",
+ 			"pages_per_zspage", "freeable");
+ 
+-	for (i = 0; i < zs_size_classes; i++) {
++	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
+ 		class = pool->size_class[i];
+ 
+ 		if (class->index != i)
+@@ -1294,17 +1291,6 @@ static int zs_cpu_dead(unsigned int cpu)
+ 	return 0;
+ }
+ 
+-static void __init init_zs_size_classes(void)
+-{
+-	int nr;
+-
+-	nr = (ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / ZS_SIZE_CLASS_DELTA + 1;
+-	if ((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) % ZS_SIZE_CLASS_DELTA)
+-		nr += 1;
+-
+-	zs_size_classes = nr;
+-}
+-
+ static bool can_merge(struct size_class *prev, int pages_per_zspage,
+ 					int objs_per_zspage)
+ {
+@@ -2145,7 +2131,7 @@ static void async_free_zspage(struct wor
+ 	struct zs_pool *pool = container_of(work, struct zs_pool,
+ 					free_work);
+ 
+-	for (i = 0; i < zs_size_classes; i++) {
++	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
+ 		class = pool->size_class[i];
+ 		if (class->index != i)
+ 			continue;
+@@ -2263,7 +2249,7 @@ unsigned long zs_compact(struct zs_pool
+ 	int i;
+ 	struct size_class *class;
+ 
+-	for (i = zs_size_classes - 1; i >= 0; i--) {
++	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
+ 		class = pool->size_class[i];
+ 		if (!class)
+ 			continue;
+@@ -2309,7 +2295,7 @@ static unsigned long zs_shrinker_count(s
+ 	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
+ 			shrinker);
+ 
+-	for (i = zs_size_classes - 1; i >= 0; i--) {
++	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
+ 		class = pool->size_class[i];
+ 		if (!class)
+ 			continue;
+@@ -2361,12 +2347,6 @@ struct zs_pool *zs_create_pool(const cha
+ 		return NULL;
+ 
+ 	init_deferred_free(pool);
+-	pool->size_class = kcalloc(zs_size_classes, sizeof(struct size_class *),
+-			GFP_KERNEL);
+-	if (!pool->size_class) {
+-		kfree(pool);
+-		return NULL;
+-	}
+ 
+ 	pool->name = kstrdup(name, GFP_KERNEL);
+ 	if (!pool->name)
+@@ -2379,7 +2359,7 @@ struct zs_pool *zs_create_pool(const cha
+ 	 * Iterate reversely, because, size of size_class that we want to use
+ 	 * for merging should be larger or equal to current size.
+ 	 */
+-	for (i = zs_size_classes - 1; i >= 0; i--) {
++	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
+ 		int size;
+ 		int pages_per_zspage;
+ 		int objs_per_zspage;
+@@ -2453,7 +2433,7 @@ void zs_destroy_pool(struct zs_pool *poo
+ 	zs_unregister_migration(pool);
+ 	zs_pool_stat_destroy(pool);
+ 
+-	for (i = 0; i < zs_size_classes; i++) {
++	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
+ 		int fg;
+ 		struct size_class *class = pool->size_class[i];
+ 
+@@ -2492,8 +2472,6 @@ static int __init zs_init(void)
+ 	if (ret)
+ 		goto hp_setup_fail;
+ 
+-	init_zs_size_classes();
