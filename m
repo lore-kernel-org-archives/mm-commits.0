@@ -1,29 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch removed from -mm
- tree
-Date: Wed, 05 Jul 2017 14:56:43 -0700
-Message-ID: <595d609b.jcHnFQXgI1mqCpYB%akpm@linux-foundation.org>
+Subject: + mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch added
+ to -mm tree
+Date: Wed, 05 Jul 2017 15:01:04 -0700
+Message-ID: <595d61a0.tmD0cr0Hy7WM2jhj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752030AbdGEV4p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 17:56:45 -0400
+        with ESMTP id S1752459AbdGEWBF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 18:01:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, aryabinin@virtuozzo.com, dkiper@net-space.pl, mhocko@kernel.org, vbabka@suse.cz, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, aryabinin@virtuozzo.com, dave@stgolabs.net, mhocko@suse.com, peterz@infradead.org, vbabka@suse.cz, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: mm/memory-hotplug: switch locking to a percpu rwsem
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Thomas Gleixner <tglx@linutronix.de>
@@ -42,7 +55,7 @@ reader writer semaphore construct which due to the recursion evaded the
 full lock dep coverage.  The memory hotplug code copied that construct
 verbatim and therefor has similar issues.
 
-Two steps to fix this:
+Three steps to fix this:
 
 1) Convert the memory hotplug locking to a per cpu rwsem so the potential
    issues get reported proper by lockdep.
@@ -51,28 +64,24 @@ Two steps to fix this:
    hotplug rwsem and use stop_machine_cpuslocked() in the page_alloc code
    to avoid recursive locking.
 
-Note:
+3) The cpu hotpluck locking in #2 causes a recursive locking of the cpu
+   hotplug lock via __offline_pages() -> lru_add_drain_all(). Solve this by
+   invoking lru_add_drain_all_cpuslocked() instead.
 
-Most of the call sites of get_online_mems() are also calling
-get_online_cpus().
-
-So we could switch the whole machinery to use the CPU hotplug locking for
-protecting both memory and CPU hotplug.  That actually works and removes
-another 40 lines of code.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.20.1706291803380.1861@nanos
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20170704093421.506836322@linutronix.de
 Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Daniel Kiper <dkiper@net-space.pl>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   85 ++++++------------------------------------
+ mm/memory_hotplug.c |   89 +++++++-----------------------------------
  mm/page_alloc.c     |    2 
- 2 files changed, 14 insertions(+), 73 deletions(-)
+ 2 files changed, 16 insertions(+), 75 deletions(-)
 
 diff -puN mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/memory_hotplug.c
 --- a/mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
@@ -184,10 +193,28 @@ diff -puN mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
  }
  
  /* add this memory to iomem resource */
+@@ -1729,7 +1670,7 @@ repeat:
+ 		goto failed_removal;
+ 	ret = 0;
+ 	if (drain) {
+-		lru_add_drain_all();
++		lru_add_drain_all_cpuslocked();
+ 		cond_resched();
+ 		drain_all_pages(zone);
+ 	}
+@@ -1750,7 +1691,7 @@ repeat:
+ 		}
+ 	}
+ 	/* drain all zone's lru pagevec, this is asynchronous... */
+-	lru_add_drain_all();
++	lru_add_drain_all_cpuslocked();
+ 	yield();
+ 	/* drain pcp pages, this is synchronous. */
+ 	drain_all_pages(zone);
 diff -puN mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/page_alloc.c
 --- a/mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
 +++ a/mm/page_alloc.c
-@@ -5290,7 +5290,7 @@ void __ref build_all_zonelists(pg_data_t
+@@ -5282,7 +5282,7 @@ void __ref build_all_zonelists(pg_data_t
  #endif
  		/* we have to stop all cpus to guarantee there is no user
  		   of zonelist */
@@ -200,5 +227,6 @@ _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
 
-mm-change-cpuhotplug-lock-order-in-lru_add_drain_all.patch
+mm-swap-provide-lru_add_drain_all_cpuslocked.patch
+mm-memory-hotplug-switch-locking-to-a-percpu-rwsem.patch
 
