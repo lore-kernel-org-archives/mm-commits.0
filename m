@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + video-fbdev-intelfb-move-inline-before-return-type.patch added
- to -mm tree
-Date: Wed, 05 Jul 2017 13:45:32 -0700
-Message-ID: <595d4fec.Opg2jYRZCUtyx4Kf%akpm@linux-foundation.org>
+Subject: + arm-samsung-usb-ohci-move-inline-before-return-type.patch added to -mm tree
+Date: Wed, 05 Jul 2017 13:45:36 -0700
+Message-ID: <595d4ff0.yZW79WzXsfRrop2C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54768 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753454AbdGEUpi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 16:45:38 -0400
+        with ESMTP id S1753113AbdGEUpm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 16:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, b.zolnierkie@samsung.com, mbroemme@libmpq.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video: fbdev: intelfb: move inline before return type
+     Subject: ARM: samsung: usb-ohci: move inline before return type
 has been added to the -mm tree.  Its filename is
-     video-fbdev-intelfb-move-inline-before-return-type.patch
+     arm-samsung-usb-ohci-move-inline-before-return-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/video-fbdev-intelfb-move-inline-before-return-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-samsung-usb-ohci-move-inline-before-return-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/video-fbdev-intelfb-move-inline-before-return-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-samsung-usb-ohci-move-inline-before-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: video: fbdev: intelfb: move inline before return type
+Subject: ARM: samsung: usb-ohci: move inline before return type
 
 Make the code like the rest of the kernel.
 
-But there is an oddity here because the inline should probably be removed.
-
-It's an extern function in intelfb.h and it is used in intelfbdrv.c and
-intelfbhw.c.
-
-The inline is kept here as I suppose it's possible for some compiler to
-make the uses inline in intelfbdrv and and also create an external
-function for intelfbhw.
-
-Link: http://lkml.kernel.org/r/8ba151a1fdc84e42cbf4aafc798513c0158edee1.1499284835.git.joe@perches.com
+Link: http://lkml.kernel.org/r/667a515b8d0f10f2465d519f8595edd91552fc5e.1499284835.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Maik Broemme <mbroemme@libmpq.org>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/intelfb/intelfbdrv.c |    2 +-
+ include/linux/platform_data/usb-ohci-s3c2410.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/fbdev/intelfb/intelfbdrv.c~video-fbdev-intelfb-move-inline-before-return-type drivers/video/fbdev/intelfb/intelfbdrv.c
---- a/drivers/video/fbdev/intelfb/intelfbdrv.c~video-fbdev-intelfb-move-inline-before-return-type
-+++ a/drivers/video/fbdev/intelfb/intelfbdrv.c
-@@ -907,7 +907,7 @@ static void intelfb_pci_unregister(struc
-  *                       helper functions                      *
-  ***************************************************************/
+diff -puN include/linux/platform_data/usb-ohci-s3c2410.h~arm-samsung-usb-ohci-move-inline-before-return-type include/linux/platform_data/usb-ohci-s3c2410.h
+--- a/include/linux/platform_data/usb-ohci-s3c2410.h~arm-samsung-usb-ohci-move-inline-before-return-type
++++ a/include/linux/platform_data/usb-ohci-s3c2410.h
+@@ -31,7 +31,7 @@ struct s3c2410_hcd_info {
+ 	void		(*report_oc)(struct s3c2410_hcd_info *, int ports);
+ };
  
--int __inline__ intelfb_var_to_depth(const struct fb_var_screeninfo *var)
-+__inline__ int intelfb_var_to_depth(const struct fb_var_screeninfo *var)
+-static void inline s3c2410_usb_report_oc(struct s3c2410_hcd_info *info, int ports)
++static inline void s3c2410_usb_report_oc(struct s3c2410_hcd_info *info, int ports)
  {
- 	DBG_MSG("intelfb_var_to_depth: bpp: %d, green.length is %d\n",
- 		var->bits_per_pixel, var->green.length);
+ 	if (info->report_oc != NULL) {
+ 		(info->report_oc)(info, ports);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
