@@ -1,127 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [patch 105/108] mm: memcontrol: account slab stats per
- lruvec
-Date: Thu, 06 Jul 2017 15:40:55 -0700
-Message-ID: <20170706224055.7_SJVA7jt%akpm@linux-foundation.org>
+Subject: [patch 106/108] mm, memory_hotplug: drop artificial
+ restriction on online/offline
+Date: Thu, 06 Jul 2017 15:40:58 -0700
+Message-ID: <20170706224058.umm3L2dx2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37474 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752825AbdGFWk7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:40:59 -0400
+        with ESMTP id S1752707AbdGFWlA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:41:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, mm-commits@vger.kernel.org, riel@redhat.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: aarcange@redhat.com, ak@linux.intel.com, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, imammedo@redhat.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: account slab stats per lruvec
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: drop artificial restriction on online/offline
 
-Josef's redesign of the balancing between slab caches and the page cache
-requires slab cache statistics at the lruvec level.
+Patch series "remove CONFIG_MOVABLE_NODE".
 
-Link: http://lkml.kernel.org/r/20170530181724.27197-7-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@redhat.com>
+I am continuing to clean up the memory hotplug code and
+CONFIG_MOVABLE_NODE seems dubious at best.  The following two patches
+simply removes the flag and make it de-facto always enabled.
+
+The current semantic of the config option is twofold 1) it automatically
+binds hotplugable nodes to have memory in zone_movable by default when
+movable_node is enabled 2) forbids memory hotplug to online all the memory
+as movable when !CONFIG_MOVABLE_NODE.
+
+The later restriction is quite dubious because there is no clear cut of
+how much normal memory do we need for a reasonable system operation.  A
+single memory block which is sufficient to allow further movable onlines
+is far from sufficient (e.g a node with >2GB and memblocks 128MB will fill
+up this zone with struct pages leaving nothing for other allocations). 
+Removing the config option will not only reduce the configuration space it
+also removes quite some code.
+
+The semantic of the movable_node command line parameter is preserved.
+
+The first patch removes the restriction mentioned above and the second one
+simply removes all the CONFIG_MOVABLE_NODE related stuff.  The last patch
+moves movable_node flag handling to memory_hotplug proper where it
+belongs.
+
+[1] http://lkml.kernel.org/r/20170524122411.25212-1-mhocko@kernel.org
+
+
+
+This patch (of 3):
+
+74d42d8fe146 ("memory_hotplug: ensure every online node has NORMAL
+memory") has introduced a restriction that every numa node has to have at
+least some memory in !movable zones before a first movable memory can be
+onlined if !CONFIG_MOVABLE_NODE.  Likewise_offline_normal checks the
+amount of normal memory in !movable zones and it disallows to offline
+memory if there is no normal memory left with a justification that
+"memory-management acts bad when we have nodes which is online but don't
+have any normal memory".
+
+While it is true that not having _any_ memory for kernel allocations on a
+NUMA node is far from great and such a node would be quite subotimal
+because all kernel allocations will have to fallback to another NUMA node
+but there is no reason to disallow such a configuration in principle.
+
+Besides that there is not really a big difference to have one memblock for
+ZONE_NORMAL available or none.  With 128MB size memblocks the system might
+trash on the kernel allocations requests anyway.  It is really hard to
+draw a line on how much normal memory is really sufficient so we have to
+rely on administrator to configure system sanely therefore drop the
+artificial restriction and remove can_offline_normal and
+can_online_high_movable altogether.
+
+Link: http://lkml.kernel.org/r/20170529114141.536-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Kani Toshimitsu <toshi.kani@hpe.com>
+Cc: Chen Yucong <slaoub@gmail.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   12 ++++--------
- mm/slab.h |   18 +-----------------
- mm/slub.c |    4 ++--
- 3 files changed, 7 insertions(+), 27 deletions(-)
+ mm/memory_hotplug.c |   58 ------------------------------------------
+ 1 file changed, 58 deletions(-)
 
-diff -puN mm/slab.c~mm-memcontrol-account-slab-stats-per-lruvec mm/slab.c
---- a/mm/slab.c~mm-memcontrol-account-slab-stats-per-lruvec
-+++ a/mm/slab.c
-@@ -1425,11 +1425,9 @@ static struct page *kmem_getpages(struct
- 
- 	nr_pages = (1 << cachep->gfporder);
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
--		add_node_page_state(page_pgdat(page),
--			NR_SLAB_RECLAIMABLE, nr_pages);
-+		mod_lruvec_page_state(page, NR_SLAB_RECLAIMABLE, nr_pages);
- 	else
--		add_node_page_state(page_pgdat(page),
--			NR_SLAB_UNRECLAIMABLE, nr_pages);
-+		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE, nr_pages);
- 
- 	__SetPageSlab(page);
- 	/* Record if ALLOC_NO_WATERMARKS was set when allocating the slab */
-@@ -1459,11 +1457,9 @@ static void kmem_freepages(struct kmem_c
- 	kmemcheck_free_shadow(page, order);
- 
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
--		sub_node_page_state(page_pgdat(page),
--				NR_SLAB_RECLAIMABLE, nr_freed);
-+		mod_lruvec_page_state(page, NR_SLAB_RECLAIMABLE, -nr_freed);
- 	else
--		sub_node_page_state(page_pgdat(page),
--				NR_SLAB_UNRECLAIMABLE, nr_freed);
-+		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE, -nr_freed);
- 
- 	BUG_ON(!PageSlab(page));
- 	__ClearPageSlabPfmemalloc(page);
-diff -puN mm/slab.h~mm-memcontrol-account-slab-stats-per-lruvec mm/slab.h
---- a/mm/slab.h~mm-memcontrol-account-slab-stats-per-lruvec
-+++ a/mm/slab.h
-@@ -274,22 +274,11 @@ static __always_inline int memcg_charge_
- 					     gfp_t gfp, int order,
- 					     struct kmem_cache *s)
- {
--	int ret;
--
- 	if (!memcg_kmem_enabled())
- 		return 0;
- 	if (is_root_cache(s))
- 		return 0;
--
--	ret = memcg_kmem_charge_memcg(page, gfp, order, s->memcg_params.memcg);
--	if (ret)
--		return ret;
--
--	mod_memcg_page_state(page,
--			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
--			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
--			     1 << order);
--	return 0;
-+	return memcg_kmem_charge_memcg(page, gfp, order, s->memcg_params.memcg);
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-drop-artificial-restriction-on-online-offline mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-artificial-restriction-on-online-offline
++++ a/mm/memory_hotplug.c
+@@ -759,23 +759,6 @@ static int online_pages_range(unsigned l
+ 	return 0;
  }
  
- static __always_inline void memcg_uncharge_slab(struct page *page, int order,
-@@ -297,11 +286,6 @@ static __always_inline void memcg_unchar
- {
- 	if (!memcg_kmem_enabled())
- 		return;
+-#ifdef CONFIG_MOVABLE_NODE
+-/*
+- * When CONFIG_MOVABLE_NODE, we permit onlining of a node which doesn't have
+- * normal memory.
+- */
+-static bool can_online_high_movable(int nid)
+-{
+-	return true;
+-}
+-#else /* CONFIG_MOVABLE_NODE */
+-/* ensure every online node has NORMAL memory */
+-static bool can_online_high_movable(int nid)
+-{
+-	return node_state(nid, N_NORMAL_MEMORY);
+-}
+-#endif /* CONFIG_MOVABLE_NODE */
 -
--	mod_memcg_page_state(page,
--			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
--			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
--			     -(1 << order));
- 	memcg_kmem_uncharge(page, order);
+ /* check which state of node_states will be changed when online memory */
+ static void node_states_check_changes_online(unsigned long nr_pages,
+ 	struct zone *zone, struct memory_notify *arg)
+@@ -992,9 +975,6 @@ int __ref online_pages(unsigned long pfn
+ 	if (!allow_online_pfn_range(nid, pfn, nr_pages, online_type))
+ 		return -EINVAL;
+ 
+-	if (online_type == MMOP_ONLINE_MOVABLE && !can_online_high_movable(nid))
+-		return -EINVAL;
+-
+ 	/* associate pfn range with the zone */
+ 	zone = move_pfn_range(online_type, nid, pfn, nr_pages);
+ 
+@@ -1590,41 +1570,6 @@ check_pages_isolated(unsigned long start
+ 	return offlined;
  }
  
-diff -puN mm/slub.c~mm-memcontrol-account-slab-stats-per-lruvec mm/slub.c
---- a/mm/slub.c~mm-memcontrol-account-slab-stats-per-lruvec
-+++ a/mm/slub.c
-@@ -1615,7 +1615,7 @@ out:
- 	if (!page)
- 		return NULL;
+-#ifdef CONFIG_MOVABLE_NODE
+-/*
+- * When CONFIG_MOVABLE_NODE, we permit offlining of a node which doesn't have
+- * normal memory.
+- */
+-static bool can_offline_normal(struct zone *zone, unsigned long nr_pages)
+-{
+-	return true;
+-}
+-#else /* CONFIG_MOVABLE_NODE */
+-/* ensure the node has NORMAL memory if it is still online */
+-static bool can_offline_normal(struct zone *zone, unsigned long nr_pages)
+-{
+-	struct pglist_data *pgdat = zone->zone_pgdat;
+-	unsigned long present_pages = 0;
+-	enum zone_type zt;
+-
+-	for (zt = 0; zt <= ZONE_NORMAL; zt++)
+-		present_pages += pgdat->node_zones[zt].present_pages;
+-
+-	if (present_pages > nr_pages)
+-		return true;
+-
+-	present_pages = 0;
+-	for (; zt <= ZONE_MOVABLE; zt++)
+-		present_pages += pgdat->node_zones[zt].present_pages;
+-
+-	/*
+-	 * we can't offline the last normal memory until all
+-	 * higher memory is offlined.
+-	 */
+-	return present_pages == 0;
+-}
+-#endif /* CONFIG_MOVABLE_NODE */
+-
+ static int __init cmdline_parse_movable_node(char *p)
+ {
+ #ifdef CONFIG_MOVABLE_NODE
+@@ -1752,9 +1697,6 @@ static int __ref __offline_pages(unsigne
+ 	node = zone_to_nid(zone);
+ 	nr_pages = end_pfn - start_pfn;
  
--	mod_node_page_state(page_pgdat(page),
-+	mod_lruvec_page_state(page,
- 		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
- 		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
- 		1 << oo_order(oo));
-@@ -1655,7 +1655,7 @@ static void __free_slab(struct kmem_cach
- 
- 	kmemcheck_free_shadow(page, compound_order(page));
- 
--	mod_node_page_state(page_pgdat(page),
-+	mod_lruvec_page_state(page,
- 		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
- 		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
- 		-pages);
-_
+-	if (zone_idx(zone) <= ZONE_NORMAL && !can_offline_normal(zone, nr_pages))
+-		return -EINVAL;
