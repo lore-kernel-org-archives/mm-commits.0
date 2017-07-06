@@ -1,37 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [patch 056/108] mm, memory_hotplug: replace for_device by
- want_memblock in arch_add_memory
-Date: Thu, 06 Jul 2017 15:38:21 -0700
-Message-ID: <20170706223821.bDaqGM9uj%akpm@linux-foundation.org>
+Subject: [patch 058/108] mm, memory_hotplug: remove unused cruft
+ after memory hotplug rework
+Date: Thu, 06 Jul 2017 15:38:28 -0700
+Message-ID: <20170706223828.NLPRj_eTN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36034 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36252 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752784AbdGFWiZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:25 -0400
+        with ESMTP id S1751723AbdGFWia (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, ak@linux.intel.com, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: replace for_device by want_memblock in arch_add_memory
+Subject: mm, memory_hotplug: remove unused cruft after memory hotplug rework
 
-arch_add_memory gets for_device argument which then controls whether we
-want to create memblocks for created memory sections.  Simplify the logic
-by telling whether we want memblocks directly rather than going through
-pointless negation.  This also makes the api easier to understand because
-it is clear what we want rather than nothing telling for_device which can
-mean anything.
+zone_for_memory doesn't have any user anymore as well as the whole zone
+shifting infrastructure so drop them all.
 
-This shouldn't introduce any functional change.
+This shouldn't introduce any functional changes.
 
-Link: http://lkml.kernel.org/r/20170515085827.16474-13-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170515085827.16474-15-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Tested-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Daniel Kiper <daniel.kiper@oracle.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
@@ -49,171 +45,239 @@ Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c            |    4 ++--
- arch/powerpc/mm/mem.c          |    4 ++--
- arch/s390/mm/init.c            |    4 ++--
- arch/sh/mm/init.c              |    4 ++--
- arch/x86/mm/init_32.c          |    4 ++--
- arch/x86/mm/init_64.c          |    4 ++--
- include/linux/memory_hotplug.h |    2 +-
- kernel/memremap.c              |    2 +-
- mm/memory_hotplug.c            |    2 +-
- 9 files changed, 15 insertions(+), 15 deletions(-)
+ include/linux/memory_hotplug.h |    2 
+ mm/memory_hotplug.c            |  207 -------------------------------
+ 2 files changed, 209 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
-+++ a/arch/ia64/mm/init.c
-@@ -646,13 +646,13 @@ mem_init (void)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
--	ret = __add_pages(nid, start_pfn, nr_pages, !for_device);
-+	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
- 	if (ret)
- 		printk("%s: Problem encountered in __add_pages() as ret=%d\n",
- 		       __func__,  ret);
-diff -puN arch/powerpc/mm/mem.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
-+++ a/arch/powerpc/mm/mem.c
-@@ -126,7 +126,7 @@ int __weak remove_section_mapping(unsign
- 	return -ENODEV;
- }
- 
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
-@@ -143,7 +143,7 @@ int arch_add_memory(int nid, u64 start,
- 		return -EFAULT;
- 	}
- 
--	return __add_pages(nid, start_pfn, nr_pages, !for_device);
-+	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-diff -puN arch/s390/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/s390/mm/init.c
---- a/arch/s390/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
-+++ a/arch/s390/mm/init.c
-@@ -166,7 +166,7 @@ unsigned long memory_block_size_bytes(vo
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
- {
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long size_pages = PFN_DOWN(size);
-@@ -176,7 +176,7 @@ int arch_add_memory(int nid, u64 start,
- 	if (rc)
- 		return rc;
- 
--	rc = __add_pages(nid, start_pfn, size_pages, !for_device);
-+	rc = __add_pages(nid, start_pfn, size_pages, want_memblock);
- 	if (rc)
- 		vmem_remove_mapping(start, size);
- 	return rc;
-diff -puN arch/sh/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
-+++ a/arch/sh/mm/init.c
-@@ -485,14 +485,14 @@ void free_initrd_mem(unsigned long start
- #endif
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
- {
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
- 	/* We only have ZONE_NORMAL, so this is easy.. */
--	ret = __add_pages(nid, start_pfn, nr_pages, !for_device);
-+	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
- 	if (unlikely(ret))
- 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
- 
-diff -puN arch/x86/mm/init_32.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
-+++ a/arch/x86/mm/init_32.c
-@@ -823,12 +823,12 @@ void __init mem_init(void)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
--	return __add_pages(nid, start_pfn, nr_pages, !for_device);
-+	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-diff -puN arch/x86/mm/init_64.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
-+++ a/arch/x86/mm/init_64.c
-@@ -772,7 +772,7 @@ static void  update_end_of_memory_vars(u
- 	}
- }
- 
--int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
-+int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
-@@ -780,7 +780,7 @@ int arch_add_memory(int nid, u64 start,
- 
- 	init_memory_mapping(start, start + size);
- 
--	ret = __add_pages(nid, start_pfn, nr_pages, !for_device);
-+	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
- 	WARN_ON_ONCE(ret);
- 
- 	/* update max_pfn, max_low_pfn and high_memory */
-diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework
 +++ a/include/linux/memory_hotplug.h
-@@ -298,7 +298,7 @@ extern int add_memory(int nid, u64 start
+@@ -296,8 +296,6 @@ extern int walk_memory_range(unsigned lo
+ 		void *arg, int (*func)(struct memory_block *, void *));
+ extern int add_memory(int nid, u64 start, u64 size);
  extern int add_memory_resource(int nid, struct resource *resource, bool online);
- extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
- 		bool for_device);
--extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
-+extern int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock);
+-extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+-		bool for_device);
+ extern int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock);
  extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
  		unsigned long nr_pages);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
-diff -puN kernel/memremap.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory kernel/memremap.c
---- a/kernel/memremap.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
-+++ a/kernel/memremap.c
-@@ -358,7 +358,7 @@ void *devm_memremap_pages(struct device
- 		goto err_pfn_remap;
- 
- 	mem_hotplug_begin();
--	error = arch_add_memory(nid, align_start, align_size, true);
-+	error = arch_add_memory(nid, align_start, align_size, false);
- 	if (!error)
- 		move_pfn_range_to_zone(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 					align_start >> PAGE_SHIFT,
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-unused-cruft-after-memory-hotplug-rework
 +++ a/mm/memory_hotplug.c
-@@ -1448,7 +1448,7 @@ int __ref add_memory_resource(int nid, s
- 	}
+@@ -300,180 +300,6 @@ void __init register_page_bootmem_info_n
+ }
+ #endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
  
- 	/* call arch's memory hotadd */
--	ret = arch_add_memory(nid, start, size, false);
-+	ret = arch_add_memory(nid, start, size, true);
+-static void __meminit grow_zone_span(struct zone *zone, unsigned long start_pfn,
+-				     unsigned long end_pfn)
+-{
+-	unsigned long old_zone_end_pfn;
+-
+-	zone_span_writelock(zone);
+-
+-	old_zone_end_pfn = zone_end_pfn(zone);
+-	if (zone_is_empty(zone) || start_pfn < zone->zone_start_pfn)
+-		zone->zone_start_pfn = start_pfn;
+-
+-	zone->spanned_pages = max(old_zone_end_pfn, end_pfn) -
+-				zone->zone_start_pfn;
+-
+-	zone_span_writeunlock(zone);
+-}
+-
+-static void resize_zone(struct zone *zone, unsigned long start_pfn,
+-		unsigned long end_pfn)
+-{
+-	zone_span_writelock(zone);
+-
+-	if (end_pfn - start_pfn) {
+-		zone->zone_start_pfn = start_pfn;
+-		zone->spanned_pages = end_pfn - start_pfn;
+-	} else {
+-		/*
+-		 * make it consist as free_area_init_core(),
+-		 * if spanned_pages = 0, then keep start_pfn = 0
+-		 */
+-		zone->zone_start_pfn = 0;
+-		zone->spanned_pages = 0;
+-	}
+-
+-	zone_span_writeunlock(zone);
+-}
+-
+-static void fix_zone_id(struct zone *zone, unsigned long start_pfn,
+-		unsigned long end_pfn)
+-{
+-	enum zone_type zid = zone_idx(zone);
+-	int nid = zone->zone_pgdat->node_id;
+-	unsigned long pfn;
+-
+-	for (pfn = start_pfn; pfn < end_pfn; pfn++)
+-		set_page_links(pfn_to_page(pfn), zid, nid, pfn);
+-}
+-
+-static void __ref ensure_zone_is_initialized(struct zone *zone,
+-			unsigned long start_pfn, unsigned long num_pages)
+-{
+-	if (!zone_is_initialized(zone))
+-		init_currently_empty_zone(zone, start_pfn, num_pages);
+-}
+-
+-static int __meminit move_pfn_range_left(struct zone *z1, struct zone *z2,
+-		unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long flags;
+-	unsigned long z1_start_pfn;
+-
+-	ensure_zone_is_initialized(z1, start_pfn, end_pfn - start_pfn);
+-
+-	pgdat_resize_lock(z1->zone_pgdat, &flags);
+-
+-	/* can't move pfns which are higher than @z2 */
+-	if (end_pfn > zone_end_pfn(z2))
+-		goto out_fail;
+-	/* the move out part must be at the left most of @z2 */
+-	if (start_pfn > z2->zone_start_pfn)
+-		goto out_fail;
+-	/* must included/overlap */
+-	if (end_pfn <= z2->zone_start_pfn)
+-		goto out_fail;
+-
+-	/* use start_pfn for z1's start_pfn if z1 is empty */
+-	if (!zone_is_empty(z1))
+-		z1_start_pfn = z1->zone_start_pfn;
+-	else
+-		z1_start_pfn = start_pfn;
+-
+-	resize_zone(z1, z1_start_pfn, end_pfn);
+-	resize_zone(z2, end_pfn, zone_end_pfn(z2));
+-
+-	pgdat_resize_unlock(z1->zone_pgdat, &flags);
+-
+-	fix_zone_id(z1, start_pfn, end_pfn);
+-
+-	return 0;
+-out_fail:
+-	pgdat_resize_unlock(z1->zone_pgdat, &flags);
+-	return -1;
+-}
+-
+-static int __meminit move_pfn_range_right(struct zone *z1, struct zone *z2,
+-		unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long flags;
+-	unsigned long z2_end_pfn;
+-
+-	ensure_zone_is_initialized(z2, start_pfn, end_pfn - start_pfn);
+-
+-	pgdat_resize_lock(z1->zone_pgdat, &flags);
+-
+-	/* can't move pfns which are lower than @z1 */
+-	if (z1->zone_start_pfn > start_pfn)
+-		goto out_fail;
+-	/* the move out part mast at the right most of @z1 */
+-	if (zone_end_pfn(z1) >  end_pfn)
+-		goto out_fail;
+-	/* must included/overlap */
+-	if (start_pfn >= zone_end_pfn(z1))
+-		goto out_fail;
+-
+-	/* use end_pfn for z2's end_pfn if z2 is empty */
+-	if (!zone_is_empty(z2))
+-		z2_end_pfn = zone_end_pfn(z2);
+-	else
+-		z2_end_pfn = end_pfn;
+-
+-	resize_zone(z1, z1->zone_start_pfn, start_pfn);
+-	resize_zone(z2, start_pfn, z2_end_pfn);
+-
+-	pgdat_resize_unlock(z1->zone_pgdat, &flags);
+-
+-	fix_zone_id(z2, start_pfn, end_pfn);
+-
+-	return 0;
+-out_fail:
+-	pgdat_resize_unlock(z1->zone_pgdat, &flags);
+-	return -1;
+-}
+-
+-static void __meminit grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
+-				      unsigned long end_pfn)
+-{
+-	unsigned long old_pgdat_end_pfn = pgdat_end_pfn(pgdat);
+-
+-	if (!pgdat->node_spanned_pages || start_pfn < pgdat->node_start_pfn)
+-		pgdat->node_start_pfn = start_pfn;
+-
+-	pgdat->node_spanned_pages = max(old_pgdat_end_pfn, end_pfn) -
+-					pgdat->node_start_pfn;
+-}
+-
+-static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn)
+-{
+-	struct pglist_data *pgdat = zone->zone_pgdat;
+-	int nr_pages = PAGES_PER_SECTION;
+-	int nid = pgdat->node_id;
+-	int zone_type;
+-	unsigned long flags, pfn;
+-
+-	zone_type = zone - pgdat->node_zones;
+-	ensure_zone_is_initialized(zone, phys_start_pfn, nr_pages);
+-
+-	pgdat_resize_lock(zone->zone_pgdat, &flags);
+-	grow_zone_span(zone, phys_start_pfn, phys_start_pfn + nr_pages);
+-	grow_pgdat_span(zone->zone_pgdat, phys_start_pfn,
+-			phys_start_pfn + nr_pages);
+-	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+-	memmap_init_zone(nr_pages, nid, zone_type,
+-			 phys_start_pfn, MEMMAP_HOTPLUG);
+-
+-	/* online_page_range is called later and expects pages reserved */
+-	for (pfn = phys_start_pfn; pfn < phys_start_pfn + nr_pages; pfn++) {
+-		if (!pfn_valid(pfn))
+-			continue;
+-
+-		SetPageReserved(pfn_to_page(pfn));
+-	}
+-	return 0;
+-}
+-
+ static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
+ 		bool want_memblock)
+ {
+@@ -1370,39 +1196,6 @@ static int check_hotplug_memory_range(u6
+ 	return 0;
+ }
  
- 	if (ret < 0)
- 		goto error;
-_
+-/*
+- * If movable zone has already been setup, newly added memory should be check.
+- * If its address is higher than movable zone, it should be added as movable.
+- * Without this check, movable zone may overlap with other zone.
+- */
+-static int should_add_memory_movable(int nid, u64 start, u64 size)
+-{
+-	unsigned long start_pfn = start >> PAGE_SHIFT;
+-	pg_data_t *pgdat = NODE_DATA(nid);
+-	struct zone *movable_zone = pgdat->node_zones + ZONE_MOVABLE;
+-
+-	if (zone_is_empty(movable_zone))
+-		return 0;
+-
+-	if (movable_zone->zone_start_pfn <= start_pfn)
+-		return 1;
+-
+-	return 0;
+-}
+-
+-int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+-		bool for_device)
+-{
+-#ifdef CONFIG_ZONE_DEVICE
+-	if (for_device)
+-		return ZONE_DEVICE;
+-#endif
+-	if (should_add_memory_movable(nid, start, size))
+-		return ZONE_MOVABLE;
+-
+-	return zone_default;
+-}
