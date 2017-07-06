@@ -1,50 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [patch 012/108] kernel/module.c: use linux/set_memory.h
-Date: Thu, 06 Jul 2017 15:35:58 -0700
-Message-ID: <20170706223558.kfQ-x0tw6%akpm@linux-foundation.org>
+Subject: [patch 013/108] include/linux/filter.h: use
+ linux/set_memory.h
+Date: Thu, 06 Jul 2017 15:36:01 -0700
+Message-ID: <20170706223601.zxlHEMgZV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34448 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752658AbdGFWf7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:59 -0400
+        with ESMTP id S1752658AbdGFWgC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:36:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, daniel@iogearbox.net, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, torvalds@linux-foundation.org
 
 From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: kernel/module.c: use linux/set_memory.h
+Subject: include/linux/filter.h: use linux/set_memory.h
 
 This header always exists, so doesn't require an ifdef around its
 inclusion.  When CONFIG_ARCH_HAS_SET_MEMORY=y it includes the asm header,
 otherwise it provides empty versions of the set_memory_xx() routines.
 
-The usages of set_memory_xx() are still guarded by
-CONFIG_STRICT_MODULE_RWX.
-
-Link: http://lkml.kernel.org/r/1498717781-29151-3-git-send-email-mpe@ellerman.id.au
+Link: http://lkml.kernel.org/r/1498717781-29151-4-git-send-email-mpe@ellerman.id.au
 Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Daniel Borkmann <daniel@iogearbox.net>
 Acked-by: Kees Cook <keescook@chromium.org>
 Acked-by: Laura Abbott <labbott@redhat.com>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/filter.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/module.c~module-use-linux-set_memoryh kernel/module.c
---- a/kernel/module.c~module-use-linux-set_memoryh
-+++ a/kernel/module.c
-@@ -49,9 +49,7 @@
- #include <linux/rculist.h>
- #include <linux/uaccess.h>
- #include <asm/cacheflush.h>
--#ifdef CONFIG_STRICT_MODULE_RWX
+diff -puN include/linux/filter.h~bpf-use-linux-set_memoryh include/linux/filter.h
+--- a/include/linux/filter.h~bpf-use-linux-set_memoryh
++++ a/include/linux/filter.h
+@@ -16,13 +16,10 @@
+ #include <linux/sched.h>
+ #include <linux/capability.h>
+ #include <linux/cryptohash.h>
++#include <linux/set_memory.h>
+ 
+ #include <net/sch_generic.h>
+ 
+-#ifdef CONFIG_ARCH_HAS_SET_MEMORY
 -#include <asm/set_memory.h>
 -#endif
-+#include <linux/set_memory.h>
- #include <asm/mmu_context.h>
- #include <linux/license.h>
- #include <asm/sections.h>
-_
