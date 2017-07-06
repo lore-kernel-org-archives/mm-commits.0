@@ -1,96 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/108] mm/vmscan.c: fix unsequenced modification
- and access warning
-Date: Thu, 06 Jul 2017 15:36:50 -0700
-Message-ID: <20170706223650.pcVRJOoie%akpm@linux-foundation.org>
+Subject: [patch 030/108] mm/nobootmem.c: return 0 when start_pfn
+ equals end_pfn
+Date: Thu, 06 Jul 2017 15:36:53 -0700
+Message-ID: <20170706223653.TELrDBQ-2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752068AbdGFWgv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:36:51 -0400
+        with ESMTP id S1752068AbdGFWgy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:36:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, nick.desaulniers@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, torvalds@linux-foundation.org
 
-From: Nick Desaulniers <nick.desaulniers@gmail.com>
-Subject: mm/vmscan.c: fix unsequenced modification and access warning
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/nobootmem.c: return 0 when start_pfn equals end_pfn
 
-Clang and its -Wunsequenced emits a warning
+When start_pfn equals end_pfn, __free_pages_memory() has no effect and
+__free_memory_core() will finally return (end_pfn - start_pfn) = 0.
 
-mm/vmscan.c:2961:25: error: unsequenced modification and access to
-'gfp_mask' [-Wunsequenced]
-                .gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
-                                      ^
+This patch returns 0 directly when start_pfn equals end_pfn.
 
-While it is not clear to me whether the initialization code violates the
-specification (6.7.8 par 19 (ISO/IEC 9899) looks like it disagrees) the
-code is quite confusing and worth cleaning up anyway. Fix this by
-reusing sc.gfp_mask rather than the updated input gfp_mask parameter.
-
-Link: http://lkml.kernel.org/r/20170510154030.10720-1-nick.desaulniers@gmail.com
-Signed-off-by: Nick Desaulniers <nick.desaulniers@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170502131115.6650-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/nobootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-unsequenced-modification-and-access-warning mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-unsequenced-modification-and-access-warning
-+++ a/mm/vmscan.c
-@@ -2967,7 +2967,7 @@ unsigned long try_to_free_pages(struct z
- 	unsigned long nr_reclaimed;
- 	struct scan_control sc = {
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
--		.gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
-+		.gfp_mask = current_gfp_context(gfp_mask),
- 		.reclaim_idx = gfp_zone(gfp_mask),
- 		.order = order,
- 		.nodemask = nodemask,
-@@ -2982,12 +2982,12 @@ unsigned long try_to_free_pages(struct z
- 	 * 1 is returned so that the page allocator does not OOM kill at this
- 	 * point.
- 	 */
--	if (throttle_direct_reclaim(gfp_mask, zonelist, nodemask))
-+	if (throttle_direct_reclaim(sc.gfp_mask, zonelist, nodemask))
- 		return 1;
+diff -puN mm/nobootmem.c~mm-nobootmem-return-0-when-start_pfn-equals-end_pfn mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmem-return-0-when-start_pfn-equals-end_pfn
++++ a/mm/nobootmem.c
+@@ -118,7 +118,7 @@ static unsigned long __init __free_memor
+ 	unsigned long end_pfn = min_t(unsigned long,
+ 				      PFN_DOWN(end), max_low_pfn);
  
- 	trace_mm_vmscan_direct_reclaim_begin(order,
- 				sc.may_writepage,
--				gfp_mask,
-+				sc.gfp_mask,
- 				sc.reclaim_idx);
+-	if (start_pfn > end_pfn)
++	if (start_pfn >= end_pfn)
+ 		return 0;
  
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
-@@ -3774,17 +3774,16 @@ static int __node_reclaim(struct pglist_
- 	const unsigned long nr_pages = 1 << order;
- 	struct task_struct *p = current;
- 	struct reclaim_state reclaim_state;
--	int classzone_idx = gfp_zone(gfp_mask);
- 	unsigned int noreclaim_flag;
- 	struct scan_control sc = {
- 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
--		.gfp_mask = (gfp_mask = current_gfp_context(gfp_mask)),
-+		.gfp_mask = current_gfp_context(gfp_mask),
- 		.order = order,
- 		.priority = NODE_RECLAIM_PRIORITY,
- 		.may_writepage = !!(node_reclaim_mode & RECLAIM_WRITE),
- 		.may_unmap = !!(node_reclaim_mode & RECLAIM_UNMAP),
- 		.may_swap = 1,
--		.reclaim_idx = classzone_idx,
-+		.reclaim_idx = gfp_zone(gfp_mask),
- 	};
- 
- 	cond_resched();
-@@ -3795,7 +3794,7 @@ static int __node_reclaim(struct pglist_
- 	 */
- 	noreclaim_flag = memalloc_noreclaim_save();
- 	p->flags |= PF_SWAPWRITE;
--	lockdep_set_current_reclaim_state(gfp_mask);
-+	lockdep_set_current_reclaim_state(sc.gfp_mask);
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
+ 	__free_pages_memory(start_pfn, end_pfn);
 _
