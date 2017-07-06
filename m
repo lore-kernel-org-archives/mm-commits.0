@@ -1,154 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [patch 096/108] mm/oom_kill: count global and memory
- cgroup oom kills
-Date: Thu, 06 Jul 2017 15:40:28 -0700
-Message-ID: <20170706224028.gsL4CP9In%akpm@linux-foundation.org>
+Subject: [patch 103/108] mm: memcontrol: use generic
+ mod_memcg_page_state for kmem pages
+Date: Thu, 06 Jul 2017 15:40:49 -0700
+Message-ID: <20170706224049.WlIULprab%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752892AbdGFWka (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:40:30 -0400
+        with ESMTP id S1751619AbdGFWkv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:40:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guroan@gmail.com, khlebnikov@yandex-team.ru, mhocko@kernel.org, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, mm-commits@vger.kernel.org, riel@redhat.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
 
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/oom_kill: count global and memory cgroup oom kills
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: use generic mod_memcg_page_state for kmem pages
 
-Show count of oom killer invocations in /proc/vmstat and count of
-processes killed in memory cgroup in knob "memory.events" (in
-memory.oom_control for v1 cgroup).
+The kmem-specific functions do the same thing. Switch and drop.
 
-Also describe difference between "oom" and "oom_kill" in memory cgroup
-documentation.  Currently oom in memory cgroup kills tasks iff shortage
-has happened inside page fault.
-
-These counters helps in monitoring oom kills - for now
-the only way is grepping for magic words in kernel log.
-
-[akpm@linux-foundation.org: fix for mem_cgroup_count_vm_event() rename]
-[akpm@linux-foundation.org: fix comment, per Konstantin]
-Link: http://lkml.kernel.org/r/149570810989.203600.9492483715840752937.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Roman Guschin <guroan@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/20170530181724.27197-5-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroup-v2.txt   |   20 ++++++++++++++++----
- include/linux/memcontrol.h    |    5 ++++-
- include/linux/vm_event_item.h |    1 +
- mm/memcontrol.c               |    2 ++
- mm/oom_kill.c                 |    5 +++++
- mm/vmstat.c                   |    1 +
- 6 files changed, 29 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |   17 -----------------
+ kernel/fork.c              |    8 ++++----
+ mm/slab.h                  |   16 ++++++++--------
+ 3 files changed, 12 insertions(+), 29 deletions(-)
 
-diff -puN Documentation/cgroup-v2.txt~mm-oom_kill-count-global-and-memory-cgroup-oom-kills Documentation/cgroup-v2.txt
---- a/Documentation/cgroup-v2.txt~mm-oom_kill-count-global-and-memory-cgroup-oom-kills
-+++ a/Documentation/cgroup-v2.txt
-@@ -852,13 +852,25 @@ PAGE_SIZE multiple when read back.
- 
- 		The number of times the cgroup's memory usage was
- 		about to go over the max boundary.  If direct reclaim
--		fails to bring it down, the OOM killer is invoked.
-+		fails to bring it down, the cgroup goes to OOM state.
- 
- 	  oom
- 
--		The number of times the OOM killer has been invoked in
--		the cgroup.  This may not exactly match the number of
--		processes killed but should generally be close.
-+		The number of time the cgroup's memory usage was
-+		reached the limit and allocation was about to fail.
-+
-+		Depending on context result could be invocation of OOM
-+		killer and retrying allocation or failing alloction.
-+
-+		Failed allocation in its turn could be returned into
-+		userspace as -ENOMEM or siletly ignored in cases like
-+		disk readahead.	 For now OOM in memory cgroup kills
-+		tasks iff shortage has happened inside page fault.
-+
-+	  oom_kill
-+
-+		The number of processes belonging to this cgroup
-+		killed by any kind of OOM killer.
- 
-   memory.stat
- 
-diff -puN include/linux/memcontrol.h~mm-oom_kill-count-global-and-memory-cgroup-oom-kills include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-oom_kill-count-global-and-memory-cgroup-oom-kills
+diff -puN include/linux/memcontrol.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages
 +++ a/include/linux/memcontrol.h
-@@ -582,8 +582,11 @@ static inline void count_memcg_event_mm(
- 
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
--	if (likely(memcg))
-+	if (likely(memcg)) {
- 		this_cpu_inc(memcg->stat->events[idx]);
-+		if (idx == OOM_KILL)
-+			cgroup_file_notify(&memcg->events_file);
-+	}
- 	rcu_read_unlock();
+@@ -929,19 +929,6 @@ static inline int memcg_cache_id(struct
+ 	return memcg ? memcg->kmemcg_id : -1;
  }
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN include/linux/vm_event_item.h~mm-oom_kill-count-global-and-memory-cgroup-oom-kills include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-oom_kill-count-global-and-memory-cgroup-oom-kills
-+++ a/include/linux/vm_event_item.h
-@@ -41,6 +41,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		KSWAPD_LOW_WMARK_HIT_QUICKLY, KSWAPD_HIGH_WMARK_HIT_QUICKLY,
- 		PAGEOUTRUN, PGROTATED,
- 		DROP_PAGECACHE, DROP_SLAB,
-+		OOM_KILL,
- #ifdef CONFIG_NUMA_BALANCING
- 		NUMA_PTE_UPDATES,
- 		NUMA_HUGE_PTE_UPDATES,
-diff -puN mm/memcontrol.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills mm/memcontrol.c
---- a/mm/memcontrol.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills
-+++ a/mm/memcontrol.c
-@@ -3573,6 +3573,7 @@ static int mem_cgroup_oom_control_read(s
  
- 	seq_printf(sf, "oom_kill_disable %d\n", memcg->oom_kill_disable);
- 	seq_printf(sf, "under_oom %d\n", (bool)memcg->under_oom);
-+	seq_printf(sf, "oom_kill %lu\n", memcg_sum_events(memcg, OOM_KILL));
+-/**
+- * memcg_kmem_update_page_stat - update kmem page state statistics
+- * @page: the page
+- * @idx: page state item to account
+- * @val: number of pages (positive or negative)
+- */
+-static inline void memcg_kmem_update_page_stat(struct page *page,
+-				enum memcg_stat_item idx, int val)
+-{
+-	if (memcg_kmem_enabled() && page->mem_cgroup)
+-		this_cpu_add(page->mem_cgroup->stat->count[idx], val);
+-}
+-
+ #else
+ #define for_each_memcg_cache_index(_idx)	\
+ 	for (; NULL; )
+@@ -964,10 +951,6 @@ static inline void memcg_put_cache_ids(v
+ {
+ }
+ 
+-static inline void memcg_kmem_update_page_stat(struct page *page,
+-				enum memcg_stat_item idx, int val)
+-{
+-}
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN kernel/fork.c~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages kernel/fork.c
+--- a/kernel/fork.c~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages
++++ a/kernel/fork.c
+@@ -326,8 +326,8 @@ static void account_kernel_stack(struct
+ 		}
+ 
+ 		/* All stack pages belong to the same memcg. */
+-		memcg_kmem_update_page_stat(vm->pages[0], MEMCG_KERNEL_STACK_KB,
+-					    account * (THREAD_SIZE / 1024));
++		mod_memcg_page_state(vm->pages[0], MEMCG_KERNEL_STACK_KB,
++				     account * (THREAD_SIZE / 1024));
+ 	} else {
+ 		/*
+ 		 * All stack pages are in the same zone and belong to the
+@@ -338,8 +338,8 @@ static void account_kernel_stack(struct
+ 		mod_zone_page_state(page_zone(first_page), NR_KERNEL_STACK_KB,
+ 				    THREAD_SIZE / 1024 * account);
+ 
+-		memcg_kmem_update_page_stat(first_page, MEMCG_KERNEL_STACK_KB,
+-					    account * (THREAD_SIZE / 1024));
++		mod_memcg_page_state(first_page, MEMCG_KERNEL_STACK_KB,
++				     account * (THREAD_SIZE / 1024));
+ 	}
+ }
+ 
+diff -puN mm/slab.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages mm/slab.h
+--- a/mm/slab.h~mm-memcontrol-use-generic-mod_memcg_page_state-for-kmem-pages
++++ a/mm/slab.h
+@@ -285,10 +285,10 @@ static __always_inline int memcg_charge_
+ 	if (ret)
+ 		return ret;
+ 
+-	memcg_kmem_update_page_stat(page,
+-			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
+-			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
+-			1 << order);
++	mod_memcg_page_state(page,
++			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
++			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
++			     1 << order);
  	return 0;
  }
  
-@@ -5164,6 +5165,7 @@ static int memory_events_show(struct seq
- 	seq_printf(m, "high %lu\n", memcg_sum_events(memcg, MEMCG_HIGH));
- 	seq_printf(m, "max %lu\n", memcg_sum_events(memcg, MEMCG_MAX));
- 	seq_printf(m, "oom %lu\n", memcg_sum_events(memcg, MEMCG_OOM));
-+	seq_printf(m, "oom_kill %lu\n", memcg_sum_events(memcg, OOM_KILL));
+@@ -298,10 +298,10 @@ static __always_inline void memcg_unchar
+ 	if (!memcg_kmem_enabled())
+ 		return;
  
- 	return 0;
+-	memcg_kmem_update_page_stat(page,
+-			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
+-			NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
+-			-(1 << order));
++	mod_memcg_page_state(page,
++			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
++			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
++			     -(1 << order));
+ 	memcg_kmem_uncharge(page, order);
  }
-diff -puN mm/oom_kill.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills
-+++ a/mm/oom_kill.c
-@@ -876,6 +876,11 @@ static void oom_kill_process(struct oom_
- 	/* Get a reference to safely compare mm after task_unlock(victim) */
- 	mm = victim->mm;
- 	mmgrab(mm);
-+
-+	/* Raise event before sending signal: task reaper must see this */
-+	count_vm_event(OOM_KILL);
-+	count_memcg_event_mm(mm, OOM_KILL);
-+
- 	/*
- 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
- 	 * the OOM victim from depleting the memory reserves from the user
-diff -puN mm/vmstat.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills mm/vmstat.c
---- a/mm/vmstat.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills
-+++ a/mm/vmstat.c
-@@ -1018,6 +1018,7 @@ const char * const vmstat_text[] = {
  
- 	"drop_pagecache",
- 	"drop_slab",
-+	"oom_kill",
- 
- #ifdef CONFIG_NUMA_BALANCING
- 	"numa_pte_updates",
 _
