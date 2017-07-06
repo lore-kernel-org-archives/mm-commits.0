@@ -1,98 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 002/108] thp, mm: fix crash due race in MADV_FREE
- handling
-Date: Thu, 06 Jul 2017 15:35:28 -0700
-Message-ID: <20170706223528.t22lgwbke%akpm@linux-foundation.org>
+Subject: [patch 003/108] kernel/extable.c: mark core_kernel_text
+ notrace
+Date: Thu, 06 Jul 2017 15:35:31 -0700
+Message-ID: <20170706223531.zIpff-nZ2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34318 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34332 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752683AbdGFWf3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:29 -0400
+        with ESMTP id S1752683AbdGFWfd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, reinette.chatre@intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, daniel@iogearbox.net, marcin.nowakowski@imgtec.com, mhiramat@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, peterz@infradead.org, rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de, thomas@m3y3r.de, torvalds@linux-foundation.org
 
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp, mm: fix crash due race in MADV_FREE handling
+From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Subject: kernel/extable.c: mark core_kernel_text notrace
 
-Reinette reported following crash:
+core_kernel_text is used by MIPS in its function graph trace processing,
+so having this method traced leads to an infinite set of recursive calls
+such as:
 
-  BUG: Bad page state in process log2exe  pfn:57600
-  page:ffffea00015d8000 count:0 mapcount:0 mapping:          (null) index:0x20200
-  flags: 0x4000000000040019(locked|uptodate|dirty|swapbacked)
-  raw: 4000000000040019 0000000000000000 0000000000020200 00000000ffffffff
-  raw: ffffea00015d8020 ffffea00015d8020 0000000000000000 0000000000000000
-  page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
-  bad because of flags: 0x1(locked)
-  Modules linked in: rfcomm 8021q bnep intel_rapl x86_pkg_temp_thermal coretemp efivars btusb btrtl btbcm pwm_lpss_pci snd_hda_codec_hdmi btintel pwm_lpss snd_hda_codec_realtek snd_soc_skl snd_hda_codec_generic snd_soc_skl_ipc spi_pxa2xx_platform snd_soc_sst_ipc snd_soc_sst_dsp i2c_designware_platform i2c_designware_core snd_hda_ext_core snd_soc_sst_match snd_hda_intel snd_hda_codec mei_me snd_hda_core mei snd_soc_rt286 snd_soc_rl6347a snd_soc_core efivarfs
-  CPU: 1 PID: 354 Comm: log2exe Not tainted 4.12.0-rc7-test-test #19
-  Hardware name: Intel corporation NUC6CAYS/NUC6CAYB, BIOS AYAPLCEL.86A.0027.2016.1108.1529 11/08/2016
-  Call Trace:
-   dump_stack+0x95/0xeb
-   bad_page+0x16a/0x1f0
-   free_pages_check_bad+0x117/0x190
-   ? rcu_read_lock_sched_held+0xa8/0x130
-   free_hot_cold_page+0x7b1/0xad0
-   __put_page+0x70/0xa0
-   madvise_free_huge_pmd+0x627/0x7b0
-   madvise_free_pte_range+0x6f8/0x1150
-   ? debug_check_no_locks_freed+0x280/0x280
-   ? swapin_walk_pmd_entry+0x380/0x380
-   __walk_page_range+0x6b5/0xe30
-   walk_page_range+0x13b/0x310
-   madvise_free_page_range.isra.16+0xad/0xd0
-   ? force_swapin_readahead+0x110/0x110
-   ? swapin_walk_pmd_entry+0x380/0x380
-   ? lru_add_drain_cpu+0x160/0x320
-   madvise_free_single_vma+0x2e4/0x470
-   ? madvise_free_page_range.isra.16+0xd0/0xd0
-   ? vmacache_update+0x100/0x130
-   ? find_vma+0x35/0x160
-   SyS_madvise+0x8ce/0x1450
+[    2.972075] Call Trace:
+[    2.972111]
+[    2.976731] [<80506584>] ftrace_return_to_handler+0x50/0x128
+[    2.983379] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    2.989146] [<804119b8>] prepare_ftrace_return+0x6c/0x114
+[    2.995402] [<80411b2c>] ftrace_graph_caller+0x20/0x44
+[    3.001362] [<80411b60>] return_to_handler+0x10/0x30
+[    3.007159] [<80411b50>] return_to_handler+0x0/0x30
+[    3.012827] [<80411b50>] return_to_handler+0x0/0x30
+[    3.018621] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
+[    3.024602] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.030377] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.036140] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.041915] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
+[    3.047923] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.053682] [<804119b8>] prepare_ftrace_return+0x6c/0x114
+[    3.059938] [<80411b2c>] ftrace_graph_caller+0x20/0x44
+(...)
 
-If somebody frees the page under us and we hold the last reference to
-it, put_page() would attempt to free the page before unlocking it.
+Mark the function notrace to avoid it being traced.
 
-The fix is trivial reorder of operations.
-
-Dave said:
-
-: I came up with the exact same patch.  For posterity, here's the test
-: case, generated by syzkaller and trimmed down by Reinette:
-: 
-: 	https://www.sr71.net/~dave/intel/log2.c
-: 
-: And the config that helps detect this:
-: 
-: 	https://www.sr71.net/~dave/intel/config-log2
-
-Fixes: b8d3c4c3009d ("mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called")
-Link: http://lkml.kernel.org/r/20170628101249.17879-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Reinette Chatre <reinette.chatre@intel.com>
-Acked-by: Dave Hansen <dave.hansen@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
+Link: http://lkml.kernel.org/r/1498028607-6765-1-git-send-email-marcin.nowakowski@imgtec.com
+Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Reviewed-by: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Meyer <thomas@m3y3r.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
+ kernel/extable.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling mm/huge_memory.c
---- a/mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling
-+++ a/mm/huge_memory.c
-@@ -1575,8 +1575,8 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		get_page(page);
- 		spin_unlock(ptl);
- 		split_huge_page(page);
--		put_page(page);
- 		unlock_page(page);
-+		put_page(page);
- 		goto out_unlocked;
- 	}
+diff -puN kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace kernel/extable.c
+--- a/kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace
++++ a/kernel/extable.c
+@@ -69,7 +69,7 @@ static inline int init_kernel_text(unsig
+ 	return 0;
+ }
  
+-int core_kernel_text(unsigned long addr)
++int notrace core_kernel_text(unsigned long addr)
+ {
+ 	if (addr >= (unsigned long)_stext &&
+ 	    addr < (unsigned long)_etext)
 _
