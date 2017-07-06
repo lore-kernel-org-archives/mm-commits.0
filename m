@@ -1,67 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 085/108] mm: rmap: use correct helper when
- poisoning hugepages
-Date: Thu, 06 Jul 2017 15:39:53 -0700
-Message-ID: <20170706223953.fl0TRq8j0%akpm@linux-foundation.org>
+Subject: [patch 083/108] mm/hugetlb: allow architectures to
+ override huge_pte_clear()
+Date: Thu, 06 Jul 2017 15:39:46 -0700
+Message-ID: <20170706223946.jvT94foGw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36790 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752649AbdGFWjy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:39:54 -0400
+        with ESMTP id S1751956AbdGFWjs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:39:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, steve.capper@arm.com, torvalds@linux-foundation.org, will.deacon@arm.com
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, catalin.marinas@arm.com, heiko.carstens@de.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, schwidefsky@de.ibm.com, steve.capper@arm.com, torvalds@linux-foundation.org, will.deacon@arm.com
 
 From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm: rmap: use correct helper when poisoning hugepages
+Subject: mm/hugetlb: allow architectures to override huge_pte_clear()
 
-Using set_pte_at() does not do the right thing when putting down HWPOISON
-swap entries for hugepages on architectures that support contiguous ptes.
+When unmapping a hugepage range, huge_pte_clear() is used to clear the
+page table entries that are marked as not present.  huge_pte_clear()
+internally just ends up calling pte_clear() which does not correctly deal
+with hugepages consisting of contiguous page table entries.
 
-Fix this problem by using set_huge_swap_pte_at() which was introduced to
-fix exactly this problem.
+Add a size argument to address this issue and allow architectures to
+override huge_pte_clear() by wrapping it in a #ifndef block.
 
-Link: http://lkml.kernel.org/r/20170522133604.11392-7-punit.agrawal@arm.com
+Update s390 implementation with the size parameter as well.
+
+Note that the change only affects huge_pte_clear() - the other generic
+hugetlb functions don't need any change.
+
+Link: http://lkml.kernel.org/r/20170522162555.4313-1-punit.agrawal@arm.com
 Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Acked-by: Steve Capper <steve.capper@arm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>	[s390 bits]
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Steve Capper <steve.capper@arm.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/s390/include/asm/hugetlb.h |    2 +-
+ include/asm-generic/hugetlb.h   |    4 +++-
+ mm/hugetlb.c                    |    2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/rmap.c~mm-rmap-use-correct-helper-when-poisoning-hugepages mm/rmap.c
---- a/mm/rmap.c~mm-rmap-use-correct-helper-when-poisoning-hugepages
-+++ a/mm/rmap.c
-@@ -1367,15 +1367,18 @@ static bool try_to_unmap_one(struct page
- 		update_hiwater_rss(mm);
+diff -puN arch/s390/include/asm/hugetlb.h~mm-hugetlb-allow-architectures-to-override-huge_pte_clear arch/s390/include/asm/hugetlb.h
+--- a/arch/s390/include/asm/hugetlb.h~mm-hugetlb-allow-architectures-to-override-huge_pte_clear
++++ a/arch/s390/include/asm/hugetlb.h
+@@ -39,7 +39,7 @@ static inline int prepare_hugepage_range
+ #define arch_clear_hugepage_flags(page)		do { } while (0)
  
- 		if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
-+			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
- 			if (PageHuge(page)) {
- 				int nr = 1 << compound_order(page);
- 				hugetlb_count_sub(nr, mm);
-+				set_huge_swap_pte_at(mm, address,
-+						     pvmw.pte, pteval,
-+						     vma_mmu_pagesize(vma));
- 			} else {
- 				dec_mm_counter(mm, mm_counter(page));
-+				set_pte_at(mm, address, pvmw.pte, pteval);
- 			}
+ static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+-				  pte_t *ptep)
++				  pte_t *ptep, unsigned long sz)
+ {
+ 	if ((pte_val(*ptep) & _REGION_ENTRY_TYPE_MASK) == _REGION_ENTRY_TYPE_R3)
+ 		pte_val(*ptep) = _REGION3_ENTRY_EMPTY;
+diff -puN include/asm-generic/hugetlb.h~mm-hugetlb-allow-architectures-to-override-huge_pte_clear include/asm-generic/hugetlb.h
+--- a/include/asm-generic/hugetlb.h~mm-hugetlb-allow-architectures-to-override-huge_pte_clear
++++ a/include/asm-generic/hugetlb.h
+@@ -31,10 +31,12 @@ static inline pte_t huge_pte_modify(pte_
+ 	return pte_modify(pte, newprot);
+ }
  
--			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
--			set_pte_at(mm, address, pvmw.pte, pteval);
- 		} else if (pte_unused(pteval)) {
- 			/*
- 			 * The guest indicated that the page content is of no
++#ifndef huge_pte_clear
+ static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+-				  pte_t *ptep)
++		    pte_t *ptep, unsigned long sz)
+ {
+ 	pte_clear(mm, addr, ptep);
+ }
++#endif
+ 
+ #endif /* _ASM_GENERIC_HUGETLB_H */
+diff -puN mm/hugetlb.c~mm-hugetlb-allow-architectures-to-override-huge_pte_clear mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-allow-architectures-to-override-huge_pte_clear
++++ a/mm/hugetlb.c
+@@ -3351,7 +3351,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 		 * unmapped and its refcount is dropped, so just clear pte here.
+ 		 */
+ 		if (unlikely(!pte_present(pte))) {
+-			huge_pte_clear(mm, address, ptep);
++			huge_pte_clear(mm, address, ptep, sz);
+ 			spin_unlock(ptl);
+ 			continue;
+ 		}
 _
