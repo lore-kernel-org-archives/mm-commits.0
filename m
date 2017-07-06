@@ -1,90 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [patch 057/108] mm, memory_hotplug: fix the section
- mismatch warning
-Date: Thu, 06 Jul 2017 15:38:25 -0700
-Message-ID: <20170706223825.OkzzpITmE%akpm@linux-foundation.org>
+Subject: [patch 055/108] mm, memory_hotplug: do not assume
+ ZONE_NORMAL is default kernel zone
+Date: Thu, 06 Jul 2017 15:38:18 -0700
+Message-ID: <20170706223818.ma073K9yY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751723AbdGFWi1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:27 -0400
+        with ESMTP id S1752784AbdGFWiY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, ak@linux.intel.com, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com
+To: akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, dan.j.williams@intel.com, heiko.carstens@de.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: fix the section mismatch warning
+Subject: mm, memory_hotplug: do not assume ZONE_NORMAL is default kernel zone
 
-Tobias has reported following section mismatches introduced by "mm,
-memory_hotplug: do not associate hotadded memory to zones until online".
+Heiko Carstens has noticed that he can generate overlapping zones for
+ZONE_DMA and ZONE_NORMAL:
 
-WARNING: mm/built-in.o(.text+0x5a1c2): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:memmap_init_zone()
-The function move_pfn_range_to_zone() references
-the function __meminit memmap_init_zone().
-This is often because move_pfn_range_to_zone lacks a __meminit
-annotation or the annotation of memmap_init_zone is wrong.
+DMA      [mem 0x0000000000000000-0x000000007fffffff]
+Normal   [mem 0x0000000080000000-0x000000017fffffff]
 
-WARNING: mm/built-in.o(.text+0x5a25b): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:init_currently_empty_zone()
-The function move_pfn_range_to_zone() references
-the function __meminit init_currently_empty_zone().
-This is often because move_pfn_range_to_zone lacks a __meminit
-annotation or the annotation of init_currently_empty_zone is wrong.
+$ cat /sys/devices/system/memory/block_size_bytes
+10000000
+$ cat /sys/devices/system/memory/memory5/valid_zones
+DMA
+$ echo 0 > /sys/devices/system/memory/memory5/online
+$ cat /sys/devices/system/memory/memory5/valid_zones
+Normal
+$ echo 1 > /sys/devices/system/memory/memory5/online
+Normal
 
-WARNING: vmlinux.o(.text+0x188aa2): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:memmap_init_zone()
-The function move_pfn_range_to_zone() references
-the function __meminit memmap_init_zone().
-This is often because move_pfn_range_to_zone lacks a __meminit
-annotation or the annotation of memmap_init_zone is wrong.
+$ cat /proc/zoneinfo
+Node 0, zone      DMA
+spanned  524288        <-----
+present  458752
+managed  455078
+start_pfn:           0 <-----
 
-WARNING: vmlinux.o(.text+0x188b3b): Section mismatch in reference from the function move_pfn_range_to_zone() to the function .meminit.text:init_currently_empty_zone()
-The function move_pfn_range_to_zone() references
-the function __meminit init_currently_empty_zone().
-This is often because move_pfn_range_to_zone lacks a __meminit
-annotation or the annotation of init_currently_empty_zone is wrong.
+Node 0, zone   Normal
+spanned  720896
+present  589824
+managed  571648
+start_pfn:           327680 <-----
 
-Both memmap_init_zone and init_currently_empty_zone are marked __meminit
-but move_pfn_range_to_zone is used outside of __meminit sections (e.g.
-devm_memremap_pages) so we have to hide it from the checker by __ref
-annotation.
+The reason is that we assume that the default zone for kernel onlining is
+ZONE_NORMAL.  This was a simplification introduced by the memory hotplug
+rework and it is easily fixable by checking the range overlap in the zone
+order and considering the first matching zone as the default one.  If
+there is no such zone then assume ZONE_NORMAL as we have been doing so
+far.
 
-Link: http://lkml.kernel.org/r/20170515085827.16474-14-mhocko@kernel.org
+Fixes: "mm, memory_hotplug: do not associate hotadded memory to zones until online"
+Link: http://lkml.kernel.org/r/20170601083746.4924-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tobias Regnery <tobias.regnery@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Tested-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/memory.c          |    2 +-
+ include/linux/memory_hotplug.h |    2 ++
+ mm/memory_hotplug.c            |   27 ++++++++++++++++++++++++---
+ 3 files changed, 27 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-fix-the-section-mismatch-warning mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-the-section-mismatch-warning
+diff -puN drivers/base/memory.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone
++++ a/drivers/base/memory.c
+@@ -419,7 +419,7 @@ static ssize_t show_valid_zones(struct d
+ 
+ 	nid = pfn_to_nid(start_pfn);
+ 	if (allow_online_pfn_range(nid, start_pfn, nr_pages, MMOP_ONLINE_KERNEL)) {
+-		strcat(buf, NODE_DATA(nid)->node_zones[ZONE_NORMAL].name);
++		strcat(buf, default_zone_for_pfn(nid, start_pfn, nr_pages)->name);
+ 		append = true;
+ 	}
+ 
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone
++++ a/include/linux/memory_hotplug.h
+@@ -311,4 +311,6 @@ extern struct page *sparse_decode_mem_ma
+ 					  unsigned long pnum);
+ extern bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned long nr_pages,
+ 		int online_type);
++extern struct zone *default_zone_for_pfn(int nid, unsigned long pfn,
++		unsigned long nr_pages);
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone
 +++ a/mm/memory_hotplug.c
-@@ -1071,7 +1071,7 @@ static void __meminit resize_pgdat_range
- 	pgdat->node_spanned_pages = max(start_pfn + nr_pages, old_end_pfn) - pgdat->node_start_pfn;
+@@ -1028,7 +1028,7 @@ bool allow_online_pfn_range(int nid, uns
+ {
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+ 	struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
+-	struct zone *normal_zone =  &pgdat->node_zones[ZONE_NORMAL];
++	struct zone *default_zone = default_zone_for_pfn(nid, pfn, nr_pages);
+ 
+ 	/*
+ 	 * TODO there shouldn't be any inherent reason to have ZONE_NORMAL
+@@ -1042,7 +1042,7 @@ bool allow_online_pfn_range(int nid, uns
+ 			return true;
+ 		return movable_zone->zone_start_pfn >= pfn + nr_pages;
+ 	} else if (online_type == MMOP_ONLINE_MOVABLE) {
+-		return zone_end_pfn(normal_zone) <= pfn;
++		return zone_end_pfn(default_zone) <= pfn;
+ 	}
+ 
+ 	/* MMOP_ONLINE_KEEP will always succeed and inherits the current zone */
+@@ -1103,6 +1103,27 @@ void move_pfn_range_to_zone(struct zone
  }
  
--void move_pfn_range_to_zone(struct zone *zone,
-+void __ref move_pfn_range_to_zone(struct zone *zone,
+ /*
++ * Returns a default kernel memory zone for the given pfn range.
++ * If no kernel zone covers this pfn range it will automatically go
++ * to the ZONE_NORMAL.
++ */
++struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
++		unsigned long nr_pages)
++{
++	struct pglist_data *pgdat = NODE_DATA(nid);
++	int zid;
++
++	for (zid = 0; zid <= ZONE_NORMAL; zid++) {
++		struct zone *zone = &pgdat->node_zones[zid];
++
++		if (zone_intersects(zone, start_pfn, nr_pages))
++			return zone;
++	}
++
++	return &pgdat->node_zones[ZONE_NORMAL];
++}
++
++/*
+  * Associates the given pfn range with the given node and the zone appropriate
+  * for the given online type.
+  */
+@@ -1110,7 +1131,7 @@ static struct zone * __meminit move_pfn_
  		unsigned long start_pfn, unsigned long nr_pages)
  {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+-	struct zone *zone = &pgdat->node_zones[ZONE_NORMAL];
++	struct zone *zone = default_zone_for_pfn(nid, start_pfn, nr_pages);
+ 
+ 	if (online_type == MMOP_ONLINE_KEEP) {
+ 		struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
 _
