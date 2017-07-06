@@ -1,51 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [patch 036/108] zram: count same page write as page_stored
-Date: Thu, 06 Jul 2017 15:37:12 -0700
-Message-ID: <20170706223712.KA8t9mZ3z%akpm@linux-foundation.org>
+Subject: [patch 040/108] mm, THP, swap: move anonymous THP split
+ logic to vmscan
+Date: Thu, 06 Jul 2017 15:37:24 -0700
+Message-ID: <20170706223724.oIh9Bwe9o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35066 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751723AbdGFWhN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:37:13 -0400
+        with ESMTP id S1751956AbdGFWh0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:37:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, torvalds@linux-foundation.org, ying.huang@intel.com
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: count same page write as page_stored
+Subject: mm, THP, swap: move anonymous THP split logic to vmscan
 
-Regardless of whether it is same page or not, it's surely write and stored
-to zram so we should increase pages_stored stat.  Otherwise, user can see
-zero value via mm_stats although he writes a lot of pages to zram.
+The add_to_swap aims to allocate swap_space(ie, swap slot and swapcache)
+so if it fails due to lack of space in case of THP or something(hdd swap
+but tries THP swapout) *caller* rather than add_to_swap itself should
+split the THP page and retry it with base page which is more natural.
 
-Link: http://lkml.kernel.org/r/1494834068-27004-1-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/20170515112522.32457-4-ying.huang@intel.com
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/swap.h |    4 ++--
+ mm/swap_state.c      |   23 ++++++-----------------
+ mm/vmscan.c          |   17 ++++++++++++++++-
+ 3 files changed, 24 insertions(+), 20 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-count-same-page-write-as-page_stored drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-count-same-page-write-as-page_stored
-+++ a/drivers/block/zram/zram_drv.c
-@@ -469,6 +469,7 @@ static bool zram_same_page_write(struct
- 		zram_slot_unlock(zram, index);
+diff -puN include/linux/swap.h~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan
++++ a/include/linux/swap.h
+@@ -353,7 +353,7 @@ extern struct address_space *swapper_spa
+ 		>> SWAP_ADDRESS_SPACE_SHIFT])
+ extern unsigned long total_swapcache_pages(void);
+ extern void show_swap_cache_info(void);
+-extern int add_to_swap(struct page *, struct list_head *list);
++extern int add_to_swap(struct page *page);
+ extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
+ extern int __add_to_swap_cache(struct page *page, swp_entry_t entry);
+ extern void __delete_from_swap_cache(struct page *);
+@@ -473,7 +473,7 @@ static inline struct page *lookup_swap_c
+ 	return NULL;
+ }
  
- 		atomic64_inc(&zram->stats.same_pages);
-+		atomic64_inc(&zram->stats.pages_stored);
- 		return true;
- 	}
- 	kunmap_atomic(mem);
-@@ -524,6 +525,7 @@ static void zram_free_page(struct zram *
- 		zram_clear_flag(zram, index, ZRAM_SAME);
- 		zram_set_element(zram, index, 0);
- 		atomic64_dec(&zram->stats.same_pages);
-+		atomic64_dec(&zram->stats.pages_stored);
- 		return;
- 	}
+-static inline int add_to_swap(struct page *page, struct list_head *list)
++static inline int add_to_swap(struct page *page)
+ {
+ 	return 0;
+ }
+diff -puN mm/swap_state.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan mm/swap_state.c
+--- a/mm/swap_state.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan
++++ a/mm/swap_state.c
+@@ -184,7 +184,7 @@ void __delete_from_swap_cache(struct pag
+  * Allocate swap space for the page and add the page to the
+  * swap cache.  Caller needs to hold the page lock. 
+  */
+-int add_to_swap(struct page *page, struct list_head *list)
++int add_to_swap(struct page *page)
+ {
+ 	swp_entry_t entry;
+ 	int err;
+@@ -192,12 +192,12 @@ int add_to_swap(struct page *page, struc
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(!PageUptodate(page), page);
  
+-retry:
+ 	entry = get_swap_page(page);
+ 	if (!entry.val)
+-		goto fail;
++		return 0;
++
+ 	if (mem_cgroup_try_charge_swap(page, entry))
+-		goto fail_free;
++		goto fail;
+ 
+ 	/*
+ 	 * Radix-tree node allocations from PF_MEMALLOC contexts could
+@@ -218,23 +218,12 @@ retry:
+ 		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
+ 		 * clear SWAP_HAS_CACHE flag.
+ 		 */
+-		goto fail_free;
+-
+-	if (PageTransHuge(page)) {
+-		err = split_huge_page_to_list(page, list);
+-		if (err) {
+-			delete_from_swap_cache(page);
+-			return 0;
+-		}
+-	}
++		goto fail;
+ 
+ 	return 1;
+ 
+-fail_free:
+-	put_swap_page(page, entry);
+ fail:
+-	if (PageTransHuge(page) && !split_huge_page_to_list(page, list))
+-		goto retry;
++	put_swap_page(page, entry);
+ 	return 0;
+ }
+ 
+diff -puN mm/vmscan.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan mm/vmscan.c
+--- a/mm/vmscan.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan
++++ a/mm/vmscan.c
+@@ -1125,8 +1125,23 @@ static unsigned long shrink_page_list(st
+ 		    !PageSwapCache(page)) {
+ 			if (!(sc->gfp_mask & __GFP_IO))
+ 				goto keep_locked;
+-			if (!add_to_swap(page, page_list))
++			if (!add_to_swap(page)) {
++				if (!PageTransHuge(page))
++					goto activate_locked;
++				/* Split THP and swap individual base pages */
++				if (split_huge_page_to_list(page, page_list))
++					goto activate_locked;
++				if (!add_to_swap(page))
++					goto activate_locked;
++			}
++
++			/* XXX: We don't support THP writes */
++			if (PageTransHuge(page) &&
++				  split_huge_page_to_list(page, page_list)) {
++				delete_from_swap_cache(page);
+ 				goto activate_locked;
++			}
++
+ 			may_enter_fs = 1;
+ 
+ 			/* Adding to swap updated mapping */
 _
