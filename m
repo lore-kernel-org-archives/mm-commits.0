@@ -1,30 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [patch 079/108] arm64: hugetlb: remove spurious calls to
- huge_ptep_offset()
-Date: Thu, 06 Jul 2017 15:39:33 -0700
-Message-ID: <20170706223933.Faq7nTYzX%akpm@linux-foundation.org>
+Subject: [patch 080/108] mm, gup: remove broken VM_BUG_ON_PAGE
+ compound check for hugepages
+Date: Thu, 06 Jul 2017 15:39:36 -0700
+Message-ID: <20170706223936.arFnnyad1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36696 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752658AbdGFWjj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:39:39 -0400
+        with ESMTP id S1752733AbdGFWjh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:39:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, dwoods@mellanox.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, steve.capper@arm.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, steve.capper@arm.com, torvalds@linux-foundation.org, will.deacon@arm.com
 
-From: Steve Capper <steve.capper@arm.com>
-Subject: arm64: hugetlb: remove spurious calls to huge_ptep_offset()
+From: Will Deacon <will.deacon@arm.com>
+Subject: mm, gup: remove broken VM_BUG_ON_PAGE compound check for hugepages
 
-We don't need to call huge_ptep_offset as our accessors are already
-supplied with the pte_t *.  This patch removes those spurious calls.
+When operating on hugepages with DEBUG_VM enabled, the GUP code checks the
+compound head for each tail page prior to calling
+page_cache_add_speculative.  This is broken, because on the fast-GUP path
+(where we don't hold any page table locks) we can be racing with a
+concurrent invocation of split_huge_page_to_list.
 
-[punit.agrawal@arm.com: resolve rebase conflicts due to patch re-ordering]
-Link: http://lkml.kernel.org/r/20170524115409.31309-3-punit.agrawal@arm.com
-Signed-off-by: Steve Capper <steve.capper@arm.com>
+split_huge_page_to_list deals with this race by using page_ref_freeze to
+freeze the page and force concurrent GUPs to fail whilst the component
+pages are modified.  This modification includes clearing the compound_head
+field for the tail pages, so checking this prior to a successful call to
+page_cache_add_speculative can lead to false positives: In fact,
+page_cache_add_speculative *already* has this check once the page refcount
+has been successfully updated, so we can simply remove the broken calls to
+VM_BUG_ON_PAGE.
+
+Link: http://lkml.kernel.org/r/20170522133604.11392-2-punit.agrawal@arm.com
+Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: David Woods <dwoods@mellanox.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Steve Capper <steve.capper@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -35,97 +46,34 @@ Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c |   37 ++++++++++++----------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ mm/gup.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset arch/arm64/mm/hugetlbpage.c
---- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -183,21 +183,19 @@ pte_t huge_ptep_get_and_clear(struct mm_
- 	if (pte_cont(*ptep)) {
- 		int ncontig, i;
- 		size_t pgsize;
--		pte_t *cpte;
- 		bool is_dirty = false;
- 
--		cpte = huge_pte_offset(mm, addr);
--		ncontig = find_num_contig(mm, addr, cpte, &pgsize);
-+		ncontig = find_num_contig(mm, addr, ptep, &pgsize);
- 		/* save the 1st pte to return */
--		pte = ptep_get_and_clear(mm, addr, cpte);
-+		pte = ptep_get_and_clear(mm, addr, ptep);
- 		for (i = 1, addr += pgsize; i < ncontig; ++i, addr += pgsize) {
- 			/*
- 			 * If HW_AFDBM is enabled, then the HW could
- 			 * turn on the dirty bit for any of the page
- 			 * in the set, so check them all.
- 			 */
--			++cpte;
--			if (pte_dirty(ptep_get_and_clear(mm, addr, cpte)))
-+			++ptep;
-+			if (pte_dirty(ptep_get_and_clear(mm, addr, ptep)))
- 				is_dirty = true;
- 		}
- 		if (is_dirty)
-@@ -213,8 +211,6 @@ int huge_ptep_set_access_flags(struct vm
- 			       unsigned long addr, pte_t *ptep,
- 			       pte_t pte, int dirty)
- {
--	pte_t *cpte;
--
- 	if (pte_cont(pte)) {
- 		int ncontig, i, changed = 0;
- 		size_t pgsize = 0;
-@@ -224,12 +220,11 @@ int huge_ptep_set_access_flags(struct vm
- 			__pgprot(pte_val(pfn_pte(pfn, __pgprot(0))) ^
- 				 pte_val(pte));
- 
--		cpte = huge_pte_offset(vma->vm_mm, addr);
--		pfn = pte_pfn(*cpte);
--		ncontig = find_num_contig(vma->vm_mm, addr, cpte,
-+		pfn = pte_pfn(pte);
-+		ncontig = find_num_contig(vma->vm_mm, addr, ptep,
- 					  &pgsize);
--		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize) {
--			changed |= ptep_set_access_flags(vma, addr, cpte,
-+		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize) {
-+			changed |= ptep_set_access_flags(vma, addr, ptep,
- 							pfn_pte(pfn,
- 								hugeprot),
- 							dirty);
-@@ -246,13 +241,11 @@ void huge_ptep_set_wrprotect(struct mm_s
- {
- 	if (pte_cont(*ptep)) {
- 		int ncontig, i;
--		pte_t *cpte;
- 		size_t pgsize = 0;
- 
--		cpte = huge_pte_offset(mm, addr);
--		ncontig = find_num_contig(mm, addr, cpte, &pgsize);
--		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize)
--			ptep_set_wrprotect(mm, addr, cpte);
-+		ncontig = find_num_contig(mm, addr, ptep, &pgsize);
-+		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize)
-+			ptep_set_wrprotect(mm, addr, ptep);
- 	} else {
- 		ptep_set_wrprotect(mm, addr, ptep);
- 	}
-@@ -263,14 +256,12 @@ void huge_ptep_clear_flush(struct vm_are
- {
- 	if (pte_cont(*ptep)) {
- 		int ncontig, i;
--		pte_t *cpte;
- 		size_t pgsize = 0;
- 
--		cpte = huge_pte_offset(vma->vm_mm, addr);
--		ncontig = find_num_contig(vma->vm_mm, addr, cpte,
-+		ncontig = find_num_contig(vma->vm_mm, addr, ptep,
- 					  &pgsize);
--		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize)
--			ptep_clear_flush(vma, addr, cpte);
-+		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize)
-+			ptep_clear_flush(vma, addr, ptep);
- 	} else {
- 		ptep_clear_flush(vma, addr, ptep);
- 	}
+diff -puN mm/gup.c~mm-gup-remove-broken-vm_bug_on_page-compound-check-for-hugepages mm/gup.c
+--- a/mm/gup.c~mm-gup-remove-broken-vm_bug_on_page-compound-check-for-hugepages
++++ a/mm/gup.c
+@@ -1426,7 +1426,6 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 	head = pmd_page(orig);
+ 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 	do {
+-		VM_BUG_ON_PAGE(compound_head(page) != head, page);
+ 		pages[*nr] = page;
+ 		(*nr)++;
+ 		page++;
+@@ -1465,7 +1464,6 @@ static int gup_huge_pud(pud_t orig, pud_
+ 	head = pud_page(orig);
+ 	page = head + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+ 	do {
+-		VM_BUG_ON_PAGE(compound_head(page) != head, page);
+ 		pages[*nr] = page;
+ 		(*nr)++;
+ 		page++;
+@@ -1503,7 +1501,6 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 	head = pgd_page(orig);
+ 	page = head + ((addr & ~PGDIR_MASK) >> PAGE_SHIFT);
+ 	do {
+-		VM_BUG_ON_PAGE(compound_head(page) != head, page);
+ 		pages[*nr] = page;
+ 		(*nr)++;
+ 		page++;
 _
