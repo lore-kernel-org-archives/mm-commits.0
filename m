@@ -1,242 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [patch 072/108] mm: update callers to use HASH_ZERO flag
-Date: Thu, 06 Jul 2017 15:39:11 -0700
-Message-ID: <20170706223911.KXZDQDlsF%akpm@linux-foundation.org>
+Subject: [patch 073/108] mm: adaptive hash table scaling
+Date: Thu, 06 Jul 2017 15:39:14 -0700
+Message-ID: <20170706223914.lZAI3hzO0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36582 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751619AbdGFWjM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:39:12 -0400
+        with ESMTP id S1751619AbdGFWjQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:39:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, babu.moger@oracle.com, davem@davemloft.net, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, babu.moger@oracle.com, davem@davemloft.net, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm: update callers to use HASH_ZERO flag
+Subject: mm: adaptive hash table scaling
 
-Update dcache, inode, pid, mountpoint, and mount hash tables to use
-HASH_ZERO, and remove initialization after allocations.  In case of places
-where HASH_EARLY was used such as in __pv_init_lock_hash the zeroed hash
-table was already assumed, because memblock zeroes the memory.
+Allow hash tables to scale with memory but at slower pace, when HASH_ADAPT
+is provided every time memory quadruples the sizes of hash tables will
+only double instead of quadrupling as well.  This algorithm starts working
+only when memory size reaches a certain point, currently set to 64G.
 
-CPU: SPARC M6, Memory: 7T
-Before fix:
-Dentry cache hash table entries: 1073741824
-Inode-cache hash table entries: 536870912
-Mount-cache hash table entries: 16777216
-Mountpoint-cache hash table entries: 16777216
-ftrace: allocating 20414 entries in 40 pages
-Total time: 11.798s
+This is example of dentry hash table size, before and after four various
+memory configurations:
 
-After fix:
-Dentry cache hash table entries: 1073741824
-Inode-cache hash table entries: 536870912
-Mount-cache hash table entries: 16777216
-Mountpoint-cache hash table entries: 16777216
-ftrace: allocating 20414 entries in 40 pages
-Total time: 3.198s
+MEMORY	   SCALE	 HASH_SIZE
+	old	new	old	new
+    8G	 13	 13      8M      8M
+   16G	 13	 13     16M     16M
+   32G	 13	 13     32M     32M
+   64G	 13	 13     64M     64M
+  128G	 13	 14    128M     64M
+  256G	 13	 14    256M    128M
+  512G	 13	 15    512M    128M
+ 1024G	 13	 15   1024M    256M
+ 2048G	 13	 16   2048M    256M
+ 4096G	 13	 16   4096M    512M
+ 8192G	 13	 17   8192M    512M
+16384G	 13	 17  16384M   1024M
+32768G	 13	 18  32768M   1024M
+65536G	 13	 18  65536M   2048M
 
-CPU: Intel Xeon E5-2630, Memory: 2.2T:
-Before fix:
-Dentry cache hash table entries: 536870912
-Inode-cache hash table entries: 268435456
-Mount-cache hash table entries: 8388608
-Mountpoint-cache hash table entries: 8388608
-CPU: Physical Processor ID: 0
-Total time: 3.245s
+The effect of this change on runtime is undetectable as filesystem
+growth is not proportional to machine memory size as is currently
+assumed.  The change effects only large memory machine.  Additional
+tuning might be needed, but that can be done by the clients of the
+kmem_cache_create interface, not the generic cache allocator itself.
 
-After fix:
-Dentry cache hash table entries: 536870912
-Inode-cache hash table entries: 268435456
-Mount-cache hash table entries: 8388608
-Mountpoint-cache hash table entries: 8388608
-CPU: Physical Processor ID: 0
-Total time: 3.244s
+The adaptive hashing is disabled on 32 bit systems to avoid confusion of
+whether base should be different for smaller systems, and to avoid
+overflows.
 
-Link: http://lkml.kernel.org/r/1488432825-92126-4-git-send-email-pasha.tatashin@oracle.com
+[mhocko@suse.com: drop HASH_ADAPT]
+  Link: http://lkml.kernel.org/r/20170509094607.GG6481@dhcp22.suse.cz
+[pasha.tatashin@oracle.com: UL -> ULL fix]
+  Link: http://lkml.kernel.org/r/1495300013-653283-2-git-send-email-pasha.tatashin@oracle.com
+[pasha.tatashin@oracle.com: disable adaptive hash on 32 bit systems]
+  Link: http://lkml.kernel.org/r/1495469329-755807-2-git-send-email-pasha.tatashin@oracle.com
+Link: http://lkml.kernel.org/r/1488432825-92126-5-git-send-email-pasha.tatashin@oracle.com
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: David Miller <davem@davemloft.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Babu Moger <babu.moger@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c                         |   18 ++++--------------
- fs/inode.c                          |   14 ++------------
- fs/namespace.c                      |   10 ++--------
- kernel/locking/qspinlock_paravirt.h |    3 ++-
- kernel/pid.c                        |    7 ++-----
- 5 files changed, 12 insertions(+), 40 deletions(-)
+ mm/page_alloc.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN fs/dcache.c~mm-updated-callers-to-use-hash_zero-flag fs/dcache.c
---- a/fs/dcache.c~mm-updated-callers-to-use-hash_zero-flag
-+++ a/fs/dcache.c
-@@ -3546,8 +3546,6 @@ __setup("dhash_entries=", set_dhash_entr
+diff -puN mm/page_alloc.c~mm-adaptive-hash-table-scaling mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-adaptive-hash-table-scaling
++++ a/mm/page_alloc.c
+@@ -7180,6 +7180,21 @@ static unsigned long __init arch_reserve
+ #endif
  
- static void __init dcache_init_early(void)
- {
--	unsigned int loop;
--
- 	/* If hashes are distributed across NUMA nodes, defer
- 	 * hash allocation until vmalloc space is available.
- 	 */
-@@ -3559,24 +3557,19 @@ static void __init dcache_init_early(voi
- 					sizeof(struct hlist_bl_head),
- 					dhash_entries,
- 					13,
--					HASH_EARLY,
-+					HASH_EARLY | HASH_ZERO,
- 					&d_hash_shift,
- 					&d_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << d_hash_shift); loop++)
--		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
- }
+ /*
++ * Adaptive scale is meant to reduce sizes of hash tables on large memory
++ * machines. As memory size is increased the scale is also increased but at
++ * slower pace.  Starting from ADAPT_SCALE_BASE (64G), every time memory
++ * quadruples the scale is increased by one, which means the size of hash table
++ * only doubles, instead of quadrupling as well.
++ * Because 32-bit systems cannot have large physical memory, where this scaling
++ * makes sense, it is disabled on such platforms.
++ */
++#if __BITS_PER_LONG > 32
++#define ADAPT_SCALE_BASE	(64ul << 30)
++#define ADAPT_SCALE_SHIFT	2
++#define ADAPT_SCALE_NPAGES	(ADAPT_SCALE_BASE >> PAGE_SHIFT)
++#endif
++
++/*
+  * allocate a large system hash table from bootmem
+  * - it is assumed that the hash table must contain an exact power-of-2
+  *   quantity of entries
+@@ -7210,6 +7225,16 @@ void *__init alloc_large_system_hash(con
+ 		if (PAGE_SHIFT < 20)
+ 			numentries = round_up(numentries, (1<<20)/PAGE_SIZE);
  
- static void __init dcache_init(void)
- {
--	unsigned int loop;
--
--	/* 
-+	/*
- 	 * A constructor could be added for stable state like the lists,
- 	 * but it is probably not worth it because of the cache nature
--	 * of the dcache. 
-+	 * of the dcache.
- 	 */
- 	dentry_cache = KMEM_CACHE(dentry,
- 		SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|SLAB_MEM_SPREAD|SLAB_ACCOUNT);
-@@ -3590,14 +3583,11 @@ static void __init dcache_init(void)
- 					sizeof(struct hlist_bl_head),
- 					dhash_entries,
- 					13,
--					0,
-+					HASH_ZERO,
- 					&d_hash_shift,
- 					&d_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << d_hash_shift); loop++)
--		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
- }
- 
- /* SLAB cache for __getname() consumers */
-diff -puN fs/inode.c~mm-updated-callers-to-use-hash_zero-flag fs/inode.c
---- a/fs/inode.c~mm-updated-callers-to-use-hash_zero-flag
-+++ a/fs/inode.c
-@@ -1915,8 +1915,6 @@ __setup("ihash_entries=", set_ihash_entr
-  */
- void __init inode_init_early(void)
- {
--	unsigned int loop;
--
- 	/* If hashes are distributed across NUMA nodes, defer
- 	 * hash allocation until vmalloc space is available.
- 	 */
-@@ -1928,20 +1926,15 @@ void __init inode_init_early(void)
- 					sizeof(struct hlist_head),
- 					ihash_entries,
- 					14,
--					HASH_EARLY,
-+					HASH_EARLY | HASH_ZERO,
- 					&i_hash_shift,
- 					&i_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << i_hash_shift); loop++)
--		INIT_HLIST_HEAD(&inode_hashtable[loop]);
- }
- 
- void __init inode_init(void)
- {
--	unsigned int loop;
--
- 	/* inode slab cache */
- 	inode_cachep = kmem_cache_create("inode_cache",
- 					 sizeof(struct inode),
-@@ -1959,14 +1952,11 @@ void __init inode_init(void)
- 					sizeof(struct hlist_head),
- 					ihash_entries,
- 					14,
--					0,
-+					HASH_ZERO,
- 					&i_hash_shift,
- 					&i_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << i_hash_shift); loop++)
--		INIT_HLIST_HEAD(&inode_hashtable[loop]);
- }
- 
- void init_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
-diff -puN fs/namespace.c~mm-updated-callers-to-use-hash_zero-flag fs/namespace.c
---- a/fs/namespace.c~mm-updated-callers-to-use-hash_zero-flag
-+++ a/fs/namespace.c
-@@ -3239,7 +3239,6 @@ static void __init init_mount_tree(void)
- 
- void __init mnt_init(void)
- {
--	unsigned u;
- 	int err;
- 
- 	mnt_cache = kmem_cache_create("mnt_cache", sizeof(struct mount),
-@@ -3248,22 +3247,17 @@ void __init mnt_init(void)
- 	mount_hashtable = alloc_large_system_hash("Mount-cache",
- 				sizeof(struct hlist_head),
- 				mhash_entries, 19,
--				0,
-+				HASH_ZERO,
- 				&m_hash_shift, &m_hash_mask, 0, 0);
- 	mountpoint_hashtable = alloc_large_system_hash("Mountpoint-cache",
- 				sizeof(struct hlist_head),
- 				mphash_entries, 19,
--				0,
-+				HASH_ZERO,
- 				&mp_hash_shift, &mp_hash_mask, 0, 0);
- 
- 	if (!mount_hashtable || !mountpoint_hashtable)
- 		panic("Failed to allocate mount hash table\n");
- 
--	for (u = 0; u <= m_hash_mask; u++)
--		INIT_HLIST_HEAD(&mount_hashtable[u]);
--	for (u = 0; u <= mp_hash_mask; u++)
--		INIT_HLIST_HEAD(&mountpoint_hashtable[u]);
--
- 	kernfs_init();
- 
- 	err = sysfs_init();
-diff -puN kernel/locking/qspinlock_paravirt.h~mm-updated-callers-to-use-hash_zero-flag kernel/locking/qspinlock_paravirt.h
---- a/kernel/locking/qspinlock_paravirt.h~mm-updated-callers-to-use-hash_zero-flag
-+++ a/kernel/locking/qspinlock_paravirt.h
-@@ -193,7 +193,8 @@ void __init __pv_init_lock_hash(void)
- 	 */
- 	pv_lock_hash = alloc_large_system_hash("PV qspinlock",
- 					       sizeof(struct pv_hash_entry),
--					       pv_hash_size, 0, HASH_EARLY,
-+					       pv_hash_size, 0,
-+					       HASH_EARLY | HASH_ZERO,
- 					       &pv_lock_hash_bits, NULL,
- 					       pv_hash_size, pv_hash_size);
- }
-diff -puN kernel/pid.c~mm-updated-callers-to-use-hash_zero-flag kernel/pid.c
---- a/kernel/pid.c~mm-updated-callers-to-use-hash_zero-flag
-+++ a/kernel/pid.c
-@@ -575,16 +575,13 @@ struct pid *find_ge_pid(int nr, struct p
-  */
- void __init pidhash_init(void)
- {
--	unsigned int i, pidhash_size;
-+	unsigned int pidhash_size;
- 
- 	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
--					   HASH_EARLY | HASH_SMALL,
-+					   HASH_EARLY | HASH_SMALL | HASH_ZERO,
- 					   &pidhash_shift, NULL,
- 					   0, 4096);
- 	pidhash_size = 1U << pidhash_shift;
++#if __BITS_PER_LONG > 32
++		if (!high_limit) {
++			unsigned long adapt;
++
++			for (adapt = ADAPT_SCALE_NPAGES; adapt < numentries;
++			     adapt <<= ADAPT_SCALE_SHIFT)
++				scale++;
++		}
++#endif
++
+ 		/* limit to 1 bucket per 2^scale bytes of low memory */
+ 		if (scale > PAGE_SHIFT)
+ 			numentries >>= (scale - PAGE_SHIFT);
+_
