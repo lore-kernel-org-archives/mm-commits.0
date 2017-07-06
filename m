@@ -1,106 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [patch 001/108] compiler, clang: always inline when
- CONFIG_OPTIMIZE_INLINING is disabled
-Date: Thu, 06 Jul 2017 15:35:24 -0700
-Message-ID: <20170706223524.3xIfMLsG8%akpm@linux-foundation.org>
+Subject: [patch 002/108] thp, mm: fix crash due race in MADV_FREE
+ handling
+Date: Thu, 06 Jul 2017 15:35:28 -0700
+Message-ID: <20170706223528.t22lgwbke%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34304 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34318 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752452AbdGFWf0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:26 -0400
+        with ESMTP id S1752683AbdGFWf3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, mark.rutland@arm.com, mingo@kernel.org, mka@chromium.org, mm-commits@vger.kernel.org, peterz@infradead.org, psodagud@codeaurora.org, rientjes@google.com, stable@vger.kernel.org, torvalds@linux-foundation.org, will.deacon@arm.com
+To: akpm@linux-foundation.org, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, reinette.chatre@intel.com, stable@vger.kernel.org, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: David Rientjes <rientjes@google.com>
-Subject: compiler, clang: always inline when CONFIG_OPTIMIZE_INLINING is disabled
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp, mm: fix crash due race in MADV_FREE handling
 
-The motivation of abb2ea7dfd82 ("compiler, clang: suppress warning for
-unused static inline functions") is to suppress clang's warnings about
-unused static inline functions.
+Reinette reported following crash:
 
-For configs without CONFIG_OPTIMIZE_INLINING enabled, such as any non-x86
-architecture, `inline' in the kernel implies that
-__attribute__((always_inline)) is used.
+  BUG: Bad page state in process log2exe  pfn:57600
+  page:ffffea00015d8000 count:0 mapcount:0 mapping:          (null) index:0x20200
+  flags: 0x4000000000040019(locked|uptodate|dirty|swapbacked)
+  raw: 4000000000040019 0000000000000000 0000000000020200 00000000ffffffff
+  raw: ffffea00015d8020 ffffea00015d8020 0000000000000000 0000000000000000
+  page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+  bad because of flags: 0x1(locked)
+  Modules linked in: rfcomm 8021q bnep intel_rapl x86_pkg_temp_thermal coretemp efivars btusb btrtl btbcm pwm_lpss_pci snd_hda_codec_hdmi btintel pwm_lpss snd_hda_codec_realtek snd_soc_skl snd_hda_codec_generic snd_soc_skl_ipc spi_pxa2xx_platform snd_soc_sst_ipc snd_soc_sst_dsp i2c_designware_platform i2c_designware_core snd_hda_ext_core snd_soc_sst_match snd_hda_intel snd_hda_codec mei_me snd_hda_core mei snd_soc_rt286 snd_soc_rl6347a snd_soc_core efivarfs
+  CPU: 1 PID: 354 Comm: log2exe Not tainted 4.12.0-rc7-test-test #19
+  Hardware name: Intel corporation NUC6CAYS/NUC6CAYB, BIOS AYAPLCEL.86A.0027.2016.1108.1529 11/08/2016
+  Call Trace:
+   dump_stack+0x95/0xeb
+   bad_page+0x16a/0x1f0
+   free_pages_check_bad+0x117/0x190
+   ? rcu_read_lock_sched_held+0xa8/0x130
+   free_hot_cold_page+0x7b1/0xad0
+   __put_page+0x70/0xa0
+   madvise_free_huge_pmd+0x627/0x7b0
+   madvise_free_pte_range+0x6f8/0x1150
+   ? debug_check_no_locks_freed+0x280/0x280
+   ? swapin_walk_pmd_entry+0x380/0x380
+   __walk_page_range+0x6b5/0xe30
+   walk_page_range+0x13b/0x310
+   madvise_free_page_range.isra.16+0xad/0xd0
+   ? force_swapin_readahead+0x110/0x110
+   ? swapin_walk_pmd_entry+0x380/0x380
+   ? lru_add_drain_cpu+0x160/0x320
+   madvise_free_single_vma+0x2e4/0x470
+   ? madvise_free_page_range.isra.16+0xd0/0xd0
+   ? vmacache_update+0x100/0x130
+   ? find_vma+0x35/0x160
+   SyS_madvise+0x8ce/0x1450
 
-Some code depends on that behavior, see
-https://lkml.org/lkml/2017/6/13/918:
+If somebody frees the page under us and we hold the last reference to
+it, put_page() would attempt to free the page before unlocking it.
 
-net/built-in.o: In function `__xchg_mb':
-arch/arm64/include/asm/cmpxchg.h:99: undefined reference to `__compiletime_assert_99'
-arch/arm64/include/asm/cmpxchg.h:99: undefined reference to `__compiletime_assert_99
+The fix is trivial reorder of operations.
 
-The full fix would be to identify these breakages and annotate the
-functions with __always_inline instead of `inline'.  But since we are late
-in the 4.12-rc cycle, simply carry forward the forced inlining behavior
-and work toward moving arm64, and other architectures, toward
-CONFIG_OPTIMIZE_INLINING behavior.
+Dave said:
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1706261552200.1075@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Sodagudi Prasad <psodagud@codeaurora.org>
-Tested-by: Sodagudi Prasad <psodagud@codeaurora.org>
-Tested-by: Matthias Kaehlcke <mka@chromium.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+: I came up with the exact same patch.  For posterity, here's the test
+: case, generated by syzkaller and trimmed down by Reinette:
+: 
+: 	https://www.sr71.net/~dave/intel/log2.c
+: 
+: And the config that helps detect this:
+: 
+: 	https://www.sr71.net/~dave/intel/config-log2
+
+Fixes: b8d3c4c3009d ("mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called")
+Link: http://lkml.kernel.org/r/20170628101249.17879-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Reinette Chatre <reinette.chatre@intel.com>
+Acked-by: Dave Hansen <dave.hansen@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    8 --------
- include/linux/compiler-gcc.h   |   18 +++++++++++-------
- 2 files changed, 11 insertions(+), 15 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-clang.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled include/linux/compiler-clang.h
---- a/include/linux/compiler-clang.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled
-+++ a/include/linux/compiler-clang.h
-@@ -15,11 +15,3 @@
-  * with any version that can compile the kernel
-  */
- #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
--
--/*
-- * GCC does not warn about unused static inline functions for
-- * -Wunused-function.  This turns out to avoid the need for complex #ifdef
-- * directives.  Suppress the warning in clang as well.
-- */
--#undef inline
--#define inline inline __attribute__((unused)) notrace
-diff -puN include/linux/compiler-gcc.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled
-+++ a/include/linux/compiler-gcc.h
-@@ -66,18 +66,22 @@
+diff -puN mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-mm-fix-crash-due-race-in-madv_free-handling
++++ a/mm/huge_memory.c
+@@ -1575,8 +1575,8 @@ bool madvise_free_huge_pmd(struct mmu_ga
+ 		get_page(page);
+ 		spin_unlock(ptl);
+ 		split_huge_page(page);
+-		put_page(page);
+ 		unlock_page(page);
++		put_page(page);
+ 		goto out_unlocked;
+ 	}
  
- /*
-  * Force always-inline if the user requests it so via the .config,
-- * or if gcc is too old:
-+ * or if gcc is too old.
-+ * GCC does not warn about unused static inline functions for
-+ * -Wunused-function.  This turns out to avoid the need for complex #ifdef
-+ * directives.  Suppress the warning in clang as well by using "unused"
-+ * function attribute, which is redundant but not harmful for gcc.
-  */
- #if !defined(CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING) ||		\
-     !defined(CONFIG_OPTIMIZE_INLINING) || (__GNUC__ < 4)
--#define inline		inline		__attribute__((always_inline)) notrace
--#define __inline__	__inline__	__attribute__((always_inline)) notrace
--#define __inline	__inline	__attribute__((always_inline)) notrace
-+#define inline inline		__attribute__((always_inline,unused)) notrace
-+#define __inline__ __inline__	__attribute__((always_inline,unused)) notrace
-+#define __inline __inline	__attribute__((always_inline,unused)) notrace
- #else
- /* A lot of inline functions can cause havoc with function tracing */
--#define inline		inline		notrace
--#define __inline__	__inline__	notrace
--#define __inline	__inline	notrace
-+#define inline inline		__attribute__((unused)) notrace
-+#define __inline__ __inline__	__attribute__((unused)) notrace
-+#define __inline __inline	__attribute__((unused)) notrace
- #endif
- 
- #define __always_inline	inline __attribute__((always_inline))
 _
