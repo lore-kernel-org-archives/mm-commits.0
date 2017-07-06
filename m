@@ -1,73 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 003/108] kernel/extable.c: mark core_kernel_text
- notrace
-Date: Thu, 06 Jul 2017 15:35:31 -0700
-Message-ID: <20170706223531.zIpff-nZ2%akpm@linux-foundation.org>
+Subject: [patch 004/108] mn10300: remove wrapper header for
+ asm/device.h
+Date: Thu, 06 Jul 2017 15:35:34 -0700
+Message-ID: <20170706223534.7N_p9Afx7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34340 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752683AbdGFWfd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:33 -0400
+        with ESMTP id S1752683AbdGFWff (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel@iogearbox.net, marcin.nowakowski@imgtec.com, mhiramat@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, peterz@infradead.org, rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de, thomas@m3y3r.de, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org, tklauser@distanz.ch, torvalds@linux-foundation.org
 
-From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Subject: kernel/extable.c: mark core_kernel_text notrace
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: mn10300: remove wrapper header for asm/device.h
 
-core_kernel_text is used by MIPS in its function graph trace processing,
-so having this method traced leads to an infinite set of recursive calls
-such as:
+mn10300's asm/device.h is merely including asm-generic/device.h.  Thus,
+the arch specific header can be omitted and the generic header can be used
+directly.
 
-[    2.972075] Call Trace:
-[    2.972111]
-[    2.976731] [<80506584>] ftrace_return_to_handler+0x50/0x128
-[    2.983379] [<8045478c>] core_kernel_text+0x10/0x1b8
-[    2.989146] [<804119b8>] prepare_ftrace_return+0x6c/0x114
-[    2.995402] [<80411b2c>] ftrace_graph_caller+0x20/0x44
-[    3.001362] [<80411b60>] return_to_handler+0x10/0x30
-[    3.007159] [<80411b50>] return_to_handler+0x0/0x30
-[    3.012827] [<80411b50>] return_to_handler+0x0/0x30
-[    3.018621] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
-[    3.024602] [<8045478c>] core_kernel_text+0x10/0x1b8
-[    3.030377] [<8045478c>] core_kernel_text+0x10/0x1b8
-[    3.036140] [<8045478c>] core_kernel_text+0x10/0x1b8
-[    3.041915] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
-[    3.047923] [<8045478c>] core_kernel_text+0x10/0x1b8
-[    3.053682] [<804119b8>] prepare_ftrace_return+0x6c/0x114
-[    3.059938] [<80411b2c>] ftrace_graph_caller+0x20/0x44
-(...)
-
-Mark the function notrace to avoid it being traced.
-
-Link: http://lkml.kernel.org/r/1498028607-6765-1-git-send-email-marcin.nowakowski@imgtec.com
-Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Reviewed-by: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Meyer <thomas@m3y3r.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20170517124857.26834-1-tklauser@distanz.ch
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/extable.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mn10300/include/asm/Kbuild   |    1 +
+ arch/mn10300/include/asm/device.h |    1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace kernel/extable.c
---- a/kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace
-+++ a/kernel/extable.c
-@@ -69,7 +69,7 @@ static inline int init_kernel_text(unsig
- 	return 0;
- }
+diff -puN arch/mn10300/include/asm/Kbuild~mn10300-remove-wrapper-header-for-asm-deviceh arch/mn10300/include/asm/Kbuild
+--- a/arch/mn10300/include/asm/Kbuild~mn10300-remove-wrapper-header-for-asm-deviceh
++++ a/arch/mn10300/include/asm/Kbuild
+@@ -1,6 +1,7 @@
  
--int core_kernel_text(unsigned long addr)
-+int notrace core_kernel_text(unsigned long addr)
- {
- 	if (addr >= (unsigned long)_stext &&
- 	    addr < (unsigned long)_etext)
+ generic-y += barrier.h
+ generic-y += clkdev.h
++generic-y += device.h
+ generic-y += exec.h
+ generic-y += extable.h
+ generic-y += irq_work.h
+diff -puN arch/mn10300/include/asm/device.h~mn10300-remove-wrapper-header-for-asm-deviceh /dev/null
+--- a/arch/mn10300/include/asm/device.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/device.h>
 _
