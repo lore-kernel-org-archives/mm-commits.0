@@ -1,100 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [patch 091/108] mm, mempolicy: don't check cpuset seqlock
- where it doesn't matter
-Date: Thu, 06 Jul 2017 15:40:13 -0700
-Message-ID: <20170706224013.7BynLSmLR%akpm@linux-foundation.org>
+Subject: [patch 093/108] mm: kmemleak: factor object reference
+ updating out of scan_block()
+Date: Thu, 06 Jul 2017 15:40:19 -0700
+Message-ID: <20170706224019.5YRiLnxGV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36996 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752327AbdGFWkO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:40:14 -0400
+        with ESMTP id S1752975AbdGFWkU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:40:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, cl@linux.com, hughd@google.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, lizefan@huawei.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, sivanich@sgi.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, catalin.marinas@arm.com, luto@amacapital.net, mcgrof@kernel.org, mhocko@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, mempolicy: don't check cpuset seqlock where it doesn't matter
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: factor object reference updating out of scan_block()
 
-Two wrappers of __alloc_pages_nodemask() are checking
-task->mems_allowed_seq themselves to retry allocation that has raced with
-a cpuset update.  This has been shown to be ineffective in preventing
-premature OOM's which can happen in __alloc_pages_slowpath() long before
-it returns back to the wrappers to detect the race at that level. 
-Previous patches have made __alloc_pages_slowpath() more robust, so we can
-now simply remove the seqlock checking in the wrappers to prevent further
-wrong impression that it can actually help.
+scan_block() updates the number of references (pointers) to objects,
+adding them to the gray_list when object->min_count is reached.  The patch
+factors out this functionality into a separate update_refs() function.
 
-Link: http://lkml.kernel.org/r/20170517081140.30654-7-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1495726937-23557-3-git-send-email-catalin.marinas@arm.com
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   16 ----------------
- 1 file changed, 16 deletions(-)
+ mm/kmemleak.c |   43 +++++++++++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 18 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-dont-check-cpuset-seqlock-where-it-doesnt-matter mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-dont-check-cpuset-seqlock-where-it-doesnt-matter
-+++ a/mm/mempolicy.c
-@@ -1898,12 +1898,9 @@ alloc_pages_vma(gfp_t gfp, int order, st
- 	struct mempolicy *pol;
- 	struct page *page;
- 	int preferred_nid;
--	unsigned int cpuset_mems_cookie;
- 	nodemask_t *nmask;
- 
--retry_cpuset:
- 	pol = get_vma_policy(vma, addr);
--	cpuset_mems_cookie = read_mems_allowed_begin();
- 
- 	if (pol->mode == MPOL_INTERLEAVE) {
- 		unsigned nid;
-@@ -1945,8 +1942,6 @@ retry_cpuset:
- 	page = __alloc_pages_nodemask(gfp, order, preferred_nid, nmask);
- 	mpol_cond_put(pol);
- out:
--	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
--		goto retry_cpuset;
- 	return page;
+diff -puN mm/kmemleak.c~mm-kmemleak-factor-object-reference-updating-out-of-scan_block mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-factor-object-reference-updating-out-of-scan_block
++++ a/mm/kmemleak.c
+@@ -1188,6 +1188,30 @@ static bool update_checksum(struct kmeml
  }
  
-@@ -1964,23 +1959,15 @@ out:
-  *	Allocate a page from the kernel page pool.  When not in
-  *	interrupt context and apply the current process NUMA policy.
-  *	Returns NULL when no page can be allocated.
-- *
-- *	Don't call cpuset_update_task_memory_state() unless
-- *	1) it's ok to take cpuset_sem (can WAIT), and
-- *	2) allocating for current task (not interrupt).
+ /*
++ * Update an object's references. object->lock must be held by the caller.
++ */
++static void update_refs(struct kmemleak_object *object)
++{
++	if (!color_white(object)) {
++		/* non-orphan, ignored or new */
++		return;
++	}
++
++	/*
++	 * Increase the object's reference count (number of pointers to the
++	 * memory block). If this count reaches the required minimum, the
++	 * object's color will become gray and it will be added to the
++	 * gray_list.
++	 */
++	object->count++;
++	if (color_gray(object)) {
++		/* put_object() called when removing from gray_list */
++		WARN_ON(!get_object(object));
++		list_add_tail(&object->gray_list, &gray_list);
++	}
++}
++
++/*
+  * Memory scanning is a long process and it needs to be interruptable. This
+  * function checks whether such interrupt condition occurred.
   */
- struct page *alloc_pages_current(gfp_t gfp, unsigned order)
- {
- 	struct mempolicy *pol = &default_policy;
- 	struct page *page;
--	unsigned int cpuset_mems_cookie;
- 
- 	if (!in_interrupt() && !(gfp & __GFP_THISNODE))
- 		pol = get_task_policy(current);
- 
--retry_cpuset:
--	cpuset_mems_cookie = read_mems_allowed_begin();
--
- 	/*
- 	 * No reference counting needed for current->mempolicy
- 	 * nor system default_policy
-@@ -1992,9 +1979,6 @@ retry_cpuset:
- 				policy_node(gfp, pol, numa_node_id()),
- 				policy_nodemask(gfp, pol));
- 
--	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
--		goto retry_cpuset;
+@@ -1259,24 +1283,7 @@ static void scan_block(void *_start, voi
+ 		 * enclosed by scan_mutex.
+ 		 */
+ 		spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
+-		if (!color_white(object)) {
+-			/* non-orphan, ignored or new */
+-			spin_unlock(&object->lock);
+-			continue;
+-		}
