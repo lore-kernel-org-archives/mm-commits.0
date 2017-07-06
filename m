@@ -1,73 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [patch 048/108] mm, memory_hotplug: consider offline
- memblocks removable
-Date: Thu, 06 Jul 2017 15:37:53 -0700
-Message-ID: <20170706223753.O7vfFlwzx%akpm@linux-foundation.org>
+Subject: [patch 054/108] mm, memory_hotplug: fix MMOP_ONLINE_KEEP
+ behavior
+Date: Thu, 06 Jul 2017 15:38:15 -0700
+Message-ID: <20170706223815.ux763XnJn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35990 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752784AbdGFWiB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:01 -0400
+        with ESMTP id S1752056AbdGFWiQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, ak@linux.intel.com, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com
+To: akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, dan.j.williams@intel.com, heiko.carstens@de.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: consider offline memblocks removable
+Subject: mm, memory_hotplug: fix MMOP_ONLINE_KEEP behavior
 
-is_pageblock_removable_nolock() relies on having zone association to
-examine all the page blocks to check whether they are movable or free. 
-This is just wasting of cycles when the memblock is offline.  Later patch
-in the series will also change the time when the page is associated with a
-zone so we let's bail out early if the memblock is offline.
+Heiko Carstens has noticed that the MMOP_ONLINE_KEEP is broken currently
+$ grep . memory3?/valid_zones
+memory34/valid_zones:Normal Movable
+memory35/valid_zones:Normal Movable
+memory36/valid_zones:Normal Movable
+memory37/valid_zones:Normal Movable
 
-Link: http://lkml.kernel.org/r/20170515085827.16474-7-mhocko@kernel.org
+$ echo online_movable > memory34/state
+$ grep . memory3?/valid_zones
+memory34/valid_zones:Movable
+memory35/valid_zones:Movable
+memory36/valid_zones:Movable
+memory37/valid_zones:Movable
+
+$ echo online > memory36/state
+$ grep . memory3?/valid_zones
+memory34/valid_zones:Movable
+memory36/valid_zones:Normal
+memory37/valid_zones:Movable
+
+so we have effectively punched a hole into the movable zone.  The problem
+is that move_pfn_range() check for MMOP_ONLINE_KEEP is wrong.  It only
+checks whether the given range is already part of the movable zone which
+is not the case here as only memory34 is in the zone.  Fix this by using
+allow_online_pfn_range(..., MMOP_ONLINE_KERNEL) if that is false then we
+can be sure that movable onlining is the right thing to do.
+
+Fixes: "mm, memory_hotplug: do not associate hotadded memory to zones until online"
+Link: http://lkml.kernel.org/r/20170601083746.4924-2-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Igor Mammedov <imammedo@redhat.com>
+Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Tested-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Tobias Regnery <tobias.regnery@gmail.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memory_hotplug.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-memory_hotplug-consider-offline-memblocks-removable drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory_hotplug-consider-offline-memblocks-removable
-+++ a/drivers/base/memory.c
-@@ -128,6 +128,9 @@ static ssize_t show_mem_removable(struct
- 	int ret = 1;
- 	struct memory_block *mem = to_memory_block(dev);
- 
-+	if (mem->state != MEM_ONLINE)
-+		goto out;
-+
- 	for (i = 0; i < sections_per_block; i++) {
- 		if (!present_section_nr(mem->start_section_nr + i))
- 			continue;
-@@ -135,6 +138,7 @@ static ssize_t show_mem_removable(struct
- 		ret &= is_mem_section_removable(pfn, PAGES_PER_SECTION);
- 	}
- 
-+out:
- 	return sprintf(buf, "%d\n", ret);
- }
- 
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-fix-mmop_online_keep-behavior mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-mmop_online_keep-behavior
++++ a/mm/memory_hotplug.c
+@@ -1115,11 +1115,12 @@ static struct zone * __meminit move_pfn_
+ 	if (online_type == MMOP_ONLINE_KEEP) {
+ 		struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
+ 		/*
+-		 * MMOP_ONLINE_KEEP inherits the current zone which is
+-		 * ZONE_NORMAL by default but we might be within ZONE_MOVABLE
+-		 * already.
++		 * MMOP_ONLINE_KEEP defaults to MMOP_ONLINE_KERNEL but use
++		 * movable zone if that is not possible (e.g. we are within
++		 * or past the existing movable zone)
+ 		 */
+-		if (zone_intersects(movable_zone, start_pfn, nr_pages))
++		if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
++					MMOP_ONLINE_KERNEL))
+ 			zone = movable_zone;
+ 	} else if (online_type == MMOP_ONLINE_MOVABLE) {
+ 		zone = &pgdat->node_zones[ZONE_MOVABLE];
 _
