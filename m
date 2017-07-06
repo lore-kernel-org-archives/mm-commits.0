@@ -1,261 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 009/108] scripts/spelling.txt: add a bunch more
- spelling mistakes
-Date: Thu, 06 Jul 2017 15:35:49 -0700
-Message-ID: <20170706223549.NWZuMNpYg%akpm@linux-foundation.org>
+Subject: [patch 010/108] provide linux/set_memory.h
+Date: Thu, 06 Jul 2017 15:35:52 -0700
+Message-ID: <20170706223552.WgwBO81Va%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34412 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752056AbdGFWfu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:50 -0400
+        with ESMTP id S1752658AbdGFWfx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:35:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, colin.king@canonical.com, joe@perches.com, keescook@chromium.org, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, sboyd@codeaurora.org, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
+To: akpm@linux-foundation.org, daniel@iogearbox.net, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, torvalds@linux-foundation.org
 
-From: Colin Ian King <colin.king@canonical.com>
-Subject: scripts/spelling.txt: add a bunch more spelling mistakes
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: provide linux/set_memory.h
 
-Here are some of the more spelling mistakes and typos that I've found
-while fixing up spelling mistakes in kernel error message text over the
-past several weeks.
+Currently code that wants to use set_memory_ro() etc, needs to include
+asm/set_memory.h, which doesn't exist on all arches.  Some code knows it
+only builds on arches which have the header, other code guards the
+inclusion with an #ifdef, neither is ideal.
 
-Link: http://lkml.kernel.org/r/20170621142614.12529-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+So create linux/set_memory.h.  This always exists, so users don't need an
+#ifdef just to include the header.
+
+When CONFIG_ARCH_HAS_SET_MEMORY=y it includes asm/set_memory.h, otherwise
+it provides empty non-failing implementations.
+
+Link: http://lkml.kernel.org/r/1498717781-29151-1-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Daniel Borkmann <daniel@iogearbox.net>
 Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ include/linux/set_memory.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN scripts/spelling.txt~scripts-spellingtxt-add-a-bunch-more-spelling-mistakes scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-add-a-bunch-more-spelling-mistakes
-+++ a/scripts/spelling.txt
-@@ -54,6 +54,7 @@ adapater||adapter
- addional||additional
- additionaly||additionally
- addres||address
-+adddress||address
- addreses||addresses
- addresss||address
- aditional||additional
-@@ -130,6 +131,7 @@ arraival||arrival
- artifical||artificial
- artillary||artillery
- asign||assign
-+asser||assert
- assertation||assertion
- assiged||assigned
- assigment||assignment
-@@ -149,6 +151,7 @@ atempt||attempt
- attachement||attachment
- attched||attached
- attemps||attempts
-+attemping||attempting
- attruibutes||attributes
- authentification||authentication
- automaticaly||automatically
-@@ -205,9 +208,11 @@ callibration||calibration
- calucate||calculate
- calulate||calculate
- cancelation||cancellation
-+cancle||cancel
- capabilites||capabilities
- capabitilies||capabilities
- capatibilities||capabilities
-+capapbilities||capabilities
- carefuly||carefully
- cariage||carriage
- catagory||category
-@@ -216,6 +221,7 @@ challange||challenge
- challanges||challenges
- chanell||channel
- changable||changeable
-+chanined||chained
- channle||channel
- channnel||channel
- charachter||character
-@@ -241,6 +247,7 @@ claread||cleared
- clared||cleared
- closeing||closing
- clustred||clustered
-+coexistance||coexistence
- collapsable||collapsible
- colorfull||colorful
- comand||command
-@@ -269,6 +276,7 @@ completition||completion
- completly||completely
- complient||compliant
- componnents||components
-+compoment||component
- compres||compress
- compresion||compression
- comression||compression
-@@ -315,6 +323,7 @@ correponding||corresponding
- correponds||corresponds
- correspoding||corresponding
- cotrol||control
-+cound||could
- couter||counter
- coutner||counter
- cryptocraphic||cryptographic
-@@ -326,6 +335,7 @@ deafult||default
- deamon||daemon
- decompres||decompress
- decription||description
-+dectected||detected
- defailt||default
- defferred||deferred
- definate||definite
-@@ -343,6 +353,8 @@ delare||declare
- delares||declares
- delaring||declaring
- delemiter||delimiter
-+demodualtor||demodulator
-+demension||dimension
- dependancies||dependencies
- dependancy||dependency
- dependant||dependent
-@@ -357,11 +369,13 @@ descritptor||descriptor
- desctiptor||descriptor
- desriptor||descriptor
- desriptors||descriptors
-+destionation||destination
- destory||destroy
- destoryed||destroyed
- destorys||destroys
- destroied||destroyed
- detabase||database
-+deteced||detected
- develope||develop
- developement||development
- developped||developed
-@@ -419,9 +433,11 @@ enchanced||enhanced
- encorporating||incorporating
- encrupted||encrypted
- encrypiton||encryption
-+encryptio||encryption
- endianess||endianness
- enhaced||enhanced
- enlightnment||enlightenment
-+entrys||entries
- enocded||encoded
- enterily||entirely
- enviroiment||environment
-@@ -439,6 +455,7 @@ etsbalishment||establishment
- excecutable||executable
- exceded||exceeded
- excellant||excellent
-+exeed||exceed
- existance||existence
- existant||existent
- exixt||exist
-@@ -467,6 +484,7 @@ failuer||failure
- faireness||fairness
- falied||failed
- faliure||failure
-+fallbck||fallback
- familar||familiar
- fatser||faster
- feauture||feature
-@@ -564,6 +582,7 @@ independant||independent
- independantly||independently
- independed||independent
- indiate||indicate
-+indicat||indicate
- inexpect||inexpected
- infomation||information
- informatiom||information
-@@ -682,6 +701,7 @@ messags||messages
- messgaes||messages
- messsage||message
- messsages||messages
-+micropone||microphone
- microprocesspr||microprocessor
- milliseonds||milliseconds
- minium||minimum
-@@ -693,11 +713,14 @@ misformed||malformed
- mispelled||misspelled
- mispelt||misspelt
- mising||missing
-+missmanaged||mismanaged
-+missmatch||mismatch
- miximum||maximum
- mmnemonic||mnemonic
- mnay||many
- modulues||modules
- momery||memory
-+memomry||memory
- monochorome||monochrome
- monochromo||monochrome
- monocrome||monochrome
-@@ -798,6 +821,7 @@ permissons||permissions
- peroid||period
- persistance||persistence
- persistant||persistent
-+plalform||platform
- platfrom||platform
- plattform||platform
- pleaes||please
-@@ -810,6 +834,7 @@ posible||possible
- positon||position
- possibilites||possibilities
- powerfull||powerful
-+preapre||prepare
- preceeded||preceded
- preceeding||preceding
- preceed||precede
-@@ -868,6 +893,7 @@ psuedo||pseudo
- psychadelic||psychedelic
- pwoer||power
- quering||querying
-+randomally||randomly
- raoming||roaming
- reasearcher||researcher
- reasearchers||researchers
-@@ -895,6 +921,7 @@ refernnce||reference
- refrence||reference
- registerd||registered
- registeresd||registered
-+registerred||registered
- registes||registers
- registraration||registration
- regsiter||register
-@@ -923,6 +950,7 @@ requried||required
- requst||request
- reseting||resetting
- resizeable||resizable
-+resouce||resource
- resouces||resources
- resoures||resources
- responce||response
-@@ -938,6 +966,7 @@ reudce||reduce
- reuest||request
- reuqest||request
- reutnred||returned
-+revsion||revision
- rmeoved||removed
- rmeove||remove
- rmeoves||removes
-@@ -1099,6 +1128,7 @@ transfering||transferring
- transision||transition
- transmittd||transmitted
- transormed||transformed
-+trasfer||transfer
- trasmission||transmission
- treshold||threshold
- trigerring||triggering
-@@ -1167,6 +1197,7 @@ virtaul||virtual
- virtiual||virtual
- visiters||visitors
- vitual||virtual
-+wakeus||wakeups
- wating||waiting
- wether||whether
- whataver||whatever
+diff -puN /dev/null include/linux/set_memory.h
+--- /dev/null
++++ a/include/linux/set_memory.h
+@@ -0,0 +1,20 @@
++/*
++ * Copyright 2017, Michael Ellerman, IBM Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation;
++ */
++#ifndef _LINUX_SET_MEMORY_H_
++#define _LINUX_SET_MEMORY_H_
++
++#ifdef CONFIG_ARCH_HAS_SET_MEMORY
++#include <asm/set_memory.h>
++#else
++static inline int set_memory_ro(unsigned long addr, int numpages) { return 0; }
++static inline int set_memory_rw(unsigned long addr, int numpages) { return 0; }
++static inline int set_memory_x(unsigned long addr,  int numpages) { return 0; }
++static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
++#endif
++
++#endif /* _LINUX_SET_MEMORY_H_ */
 _
