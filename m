@@ -1,214 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 063/108] mm/follow_page_mask: split
- follow_page_mask to smaller functions.
-Date: Thu, 06 Jul 2017 15:38:44 -0700
-Message-ID: <20170706223844.h4DuKB-0i%akpm@linux-foundation.org>
+Subject: [patch 065/108] mm/follow_page_mask: add support for
+ hugetlb pgd entries
+Date: Thu, 06 Jul 2017 15:38:50 -0700
+Message-ID: <20170706223850.xAZasKM65%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36336 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752718AbdGFWip (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:45 -0400
+        with ESMTP id S1752683AbdGFWiv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:38:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, kravetz@us.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/follow_page_mask: split follow_page_mask to smaller functions.
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: mm/follow_page_mask: add support for hugetlb pgd entries
 
-Makes code reading easy.  No functional changes in this patch.  In a
-followup patch, we will be updating the follow_page_mask to handle hugetlb
-hugepd format so that archs like ppc64 can switch to the generic version. 
-This split helps in doing that nicely.
+ppc64 supports pgd hugetlb entries.  Add code to handle hugetlb pgd
+entries to follow_page_mask so that ppc64 can switch to it to handle
+hugetlbe entries.
 
-Link: http://lkml.kernel.org/r/1494926612-23928-3-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1494926612-23928-5-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Mike Kravetz <kravetz@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  148 ++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 91 insertions(+), 57 deletions(-)
+ include/linux/hugetlb.h |    4 ++++
+ mm/gup.c                |    7 +++++++
+ mm/hugetlb.c            |    9 +++++++++
+ 3 files changed, 20 insertions(+)
 
-diff -puN mm/gup.c~mm-follow_page_mask-split-follow_page_mask-to-smaller-functions mm/gup.c
---- a/mm/gup.c~mm-follow_page_mask-split-follow_page_mask-to-smaller-functions
+diff -puN include/linux/hugetlb.h~mm-follow_page_mask-add-support-for-hugetlb-pgd-entries include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-follow_page_mask-add-support-for-hugetlb-pgd-entries
++++ a/include/linux/hugetlb.h
+@@ -121,6 +121,9 @@ struct page *follow_huge_pmd(struct mm_s
+ 				pmd_t *pmd, int flags);
+ struct page *follow_huge_pud(struct mm_struct *mm, unsigned long address,
+ 				pud_t *pud, int flags);
++struct page *follow_huge_pgd(struct mm_struct *mm, unsigned long address,
++			     pgd_t *pgd, int flags);
++
+ int pmd_huge(pmd_t pmd);
+ int pud_huge(pud_t pud);
+ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+@@ -150,6 +153,7 @@ static inline void hugetlb_show_meminfo(
+ }
+ #define follow_huge_pmd(mm, addr, pmd, flags)	NULL
+ #define follow_huge_pud(mm, addr, pud, flags)	NULL
++#define follow_huge_pgd(mm, addr, pgd, flags)	NULL
+ #define prepare_hugepage_range(file, addr, len)	(-EINVAL)
+ #define pmd_huge(x)	0
+ #define pud_huge(x)	0
+diff -puN mm/gup.c~mm-follow_page_mask-add-support-for-hugetlb-pgd-entries mm/gup.c
+--- a/mm/gup.c~mm-follow_page_mask-add-support-for-hugetlb-pgd-entries
 +++ a/mm/gup.c
-@@ -208,68 +208,16 @@ no_page:
- 	return no_page_table(vma, flags);
- }
- 
--/**
-- * follow_page_mask - look up a page descriptor from a user-virtual address
-- * @vma: vm_area_struct mapping @address
-- * @address: virtual address to look up
-- * @flags: flags modifying lookup behaviour
-- * @page_mask: on output, *page_mask is set according to the size of the page
-- *
-- * @flags can have FOLL_ flags set, defined in <linux/mm.h>
-- *
-- * Returns the mapped (struct page *), %NULL if no mapping exists, or
-- * an error pointer if there is a mapping to something not represented
-- * by a page descriptor (see also vm_normal_page()).
-- */
--struct page *follow_page_mask(struct vm_area_struct *vma,
--			      unsigned long address, unsigned int flags,
--			      unsigned int *page_mask)
-+static struct page *follow_pmd_mask(struct vm_area_struct *vma,
-+				    unsigned long address, pud_t *pudp,
-+				    unsigned int flags, unsigned int *page_mask)
- {
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	spinlock_t *ptl;
- 	struct page *page;
- 	struct mm_struct *mm = vma->vm_mm;
- 
--	*page_mask = 0;
--
--	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
--	if (!IS_ERR(page)) {
--		BUG_ON(flags & FOLL_GET);
--		return page;
--	}
--
--	pgd = pgd_offset(mm, address);
--	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
--		return no_page_table(vma, flags);
--	p4d = p4d_offset(pgd, address);
--	if (p4d_none(*p4d))
--		return no_page_table(vma, flags);
--	BUILD_BUG_ON(p4d_huge(*p4d));
--	if (unlikely(p4d_bad(*p4d)))
--		return no_page_table(vma, flags);
--	pud = pud_offset(p4d, address);
--	if (pud_none(*pud))
--		return no_page_table(vma, flags);
--	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
--		page = follow_huge_pud(mm, address, pud, flags);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
--	if (pud_devmap(*pud)) {
--		ptl = pud_lock(mm, pud);
--		page = follow_devmap_pud(vma, address, pud, flags);
--		spin_unlock(ptl);
--		if (page)
--			return page;
--	}
--	if (unlikely(pud_bad(*pud)))
--		return no_page_table(vma, flags);
--
--	pmd = pmd_offset(pud, address);
-+	pmd = pmd_offset(pudp, address);
- 	if (pmd_none(*pmd))
+@@ -357,6 +357,13 @@ struct page *follow_page_mask(struct vm_
+ 	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
  		return no_page_table(vma, flags);
- 	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
-@@ -319,13 +267,99 @@ struct page *follow_page_mask(struct vm_
- 		return ret ? ERR_PTR(ret) :
- 			follow_page_pte(vma, address, pmd, flags);
- 	}
--
- 	page = follow_trans_huge_pmd(vma, address, pmd, flags);
- 	spin_unlock(ptl);
- 	*page_mask = HPAGE_PMD_NR - 1;
- 	return page;
+ 
++	if (pgd_huge(*pgd)) {
++		page = follow_huge_pgd(mm, address, pgd, flags);
++		if (page)
++			return page;
++		return no_page_table(vma, flags);
++	}
++
+ 	return follow_p4d_mask(vma, address, pgd, flags, page_mask);
  }
  
-+
-+static struct page *follow_pud_mask(struct vm_area_struct *vma,
-+				    unsigned long address, p4d_t *p4dp,
-+				    unsigned int flags, unsigned int *page_mask)
+diff -puN mm/hugetlb.c~mm-follow_page_mask-add-support-for-hugetlb-pgd-entries mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-follow_page_mask-add-support-for-hugetlb-pgd-entries
++++ a/mm/hugetlb.c
+@@ -4715,6 +4715,15 @@ follow_huge_pud(struct mm_struct *mm, un
+ 	return pte_page(*(pte_t *)pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
+ }
+ 
++struct page * __weak
++follow_huge_pgd(struct mm_struct *mm, unsigned long address, pgd_t *pgd, int flags)
 +{
-+	pud_t *pud;
-+	spinlock_t *ptl;
-+	struct page *page;
-+	struct mm_struct *mm = vma->vm_mm;
++	if (flags & FOLL_GET)
++		return NULL;
 +
-+	pud = pud_offset(p4dp, address);
-+	if (pud_none(*pud))
-+		return no_page_table(vma, flags);
-+	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
-+		page = follow_huge_pud(mm, address, pud, flags);
-+		if (page)
-+			return page;
-+		return no_page_table(vma, flags);
-+	}
-+	if (pud_devmap(*pud)) {
-+		ptl = pud_lock(mm, pud);
-+		page = follow_devmap_pud(vma, address, pud, flags);
-+		spin_unlock(ptl);
-+		if (page)
-+			return page;
-+	}
-+	if (unlikely(pud_bad(*pud)))
-+		return no_page_table(vma, flags);
-+
-+	return follow_pmd_mask(vma, address, pud, flags, page_mask);
++	return pte_page(*(pte_t *)pgd) + ((address & ~PGDIR_MASK) >> PAGE_SHIFT);
 +}
 +
-+
-+static struct page *follow_p4d_mask(struct vm_area_struct *vma,
-+				    unsigned long address, pgd_t *pgdp,
-+				    unsigned int flags, unsigned int *page_mask)
-+{
-+	p4d_t *p4d;
-+
-+	p4d = p4d_offset(pgdp, address);
-+	if (p4d_none(*p4d))
-+		return no_page_table(vma, flags);
-+	BUILD_BUG_ON(p4d_huge(*p4d));
-+	if (unlikely(p4d_bad(*p4d)))
-+		return no_page_table(vma, flags);
-+
-+	return follow_pud_mask(vma, address, p4d, flags, page_mask);
-+}
-+
-+/**
-+ * follow_page_mask - look up a page descriptor from a user-virtual address
-+ * @vma: vm_area_struct mapping @address
-+ * @address: virtual address to look up
-+ * @flags: flags modifying lookup behaviour
-+ * @page_mask: on output, *page_mask is set according to the size of the page
-+ *
-+ * @flags can have FOLL_ flags set, defined in <linux/mm.h>
-+ *
-+ * Returns the mapped (struct page *), %NULL if no mapping exists, or
-+ * an error pointer if there is a mapping to something not represented
-+ * by a page descriptor (see also vm_normal_page()).
-+ */
-+struct page *follow_page_mask(struct vm_area_struct *vma,
-+			      unsigned long address, unsigned int flags,
-+			      unsigned int *page_mask)
-+{
-+	pgd_t *pgd;
-+	struct page *page;
-+	struct mm_struct *mm = vma->vm_mm;
-+
-+	*page_mask = 0;
-+
-+	/* make this handle hugepd */
-+	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
-+	if (!IS_ERR(page)) {
-+		BUG_ON(flags & FOLL_GET);
-+		return page;
-+	}
-+
-+	pgd = pgd_offset(mm, address);
-+
-+	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
-+		return no_page_table(vma, flags);
-+
-+	return follow_p4d_mask(vma, address, pgd, flags, page_mask);
-+}
-+
- static int get_gate_page(struct mm_struct *mm, unsigned long address,
- 		unsigned int gup_flags, struct vm_area_struct **vma,
- 		struct page **page)
+ #ifdef CONFIG_MEMORY_FAILURE
+ 
+ /*
 _
