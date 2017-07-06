@@ -1,99 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch removed from -mm tree
-Date: Thu, 06 Jul 2017 15:19:53 -0700
-Message-ID: <595eb789.RDjWaWde1wBwUQpC%akpm@linux-foundation.org>
+ mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch removed from -mm tree
+Date: Thu, 06 Jul 2017 15:21:04 -0700
+Message-ID: <595eb7d0.94H6wWxizFClZBTM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33144 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752717AbdGFWTy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:19:54 -0400
+        with ESMTP id S1752495AbdGFWVF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:21:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: punit.agrawal@arm.com, aneesh.kumar@linux.vnet.ibm.com, mike.kravetz@oracle.com, steve.capper@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, guro@fb.com, guroan@gmail.com, khlebnikov@yandex-team.ru, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41
+     Subject: mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
+     mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+This patch was dropped because it was folded into mm-oom_kill-count-global-and-memory-cgroup-oom-kills.patch
 
 ------------------------------------------------------
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix
 
-Add an empty definition for set_huge_swap_pte_at() when
-CONFIG_HUGETLB_PAGE is disabled.
+"mm: per-cgroup memory reclaim stats" renamed mem_cgroup_count_vm_event()
 
-Link: http://lkml.kernel.org/r/20170525171331.31469-1-punit.agrawal@arm.com
-Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Acked-by: Steve Capper <steve.capper@arm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Guschin <guroan@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Roman Gushchin <guro@fb.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41 include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41
-+++ a/include/linux/hugetlb.h
-@@ -445,14 +445,6 @@ static inline pte_t arch_make_huge_pte(p
- }
- #endif
+diff -puN mm/oom_kill.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix
++++ a/mm/oom_kill.c
+@@ -879,7 +879,7 @@ static void oom_kill_process(struct oom_
  
--#ifndef set_huge_swap_pte_at
--static inline void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
--					pte_t *ptep, pte_t pte, unsigned long sz)
--{
--	set_huge_pte_at(mm, addr, ptep, pte);
--}
--#endif
--
- static inline struct hstate *page_hstate(struct page *page)
- {
- 	VM_BUG_ON_PAGE(!PageHuge(page), page);
-@@ -524,6 +516,14 @@ static inline void hugetlb_count_sub(lon
- {
- 	atomic_long_sub(l, &mm->hugetlb_usage);
- }
-+
-+#ifndef set_huge_swap_pte_at
-+static inline void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
-+					pte_t *ptep, pte_t pte, unsigned long sz)
-+{
-+	set_huge_pte_at(mm, addr, ptep, pte);
-+}
-+#endif
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
-@@ -573,6 +573,11 @@ static inline void hugetlb_report_usage(
- static inline void hugetlb_count_sub(long l, struct mm_struct *mm)
- {
- }
-+
-+static inline void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
-+					pte_t *ptep, pte_t pte, unsigned long sz)
-+{
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
+ 	/* Raise event before sending signal: reaper must see this */
+ 	count_vm_event(OOM_KILL);
+-	mem_cgroup_count_vm_event(mm, OOM_KILL);
++	count_memcg_event_mm(mm, OOM_KILL);
  
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
+ 	/*
+ 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
 _
 
-Patches currently in -mm which might be from punit.agrawal@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
-mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
-mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
-mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
+i-need-old-gcc.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills.patch
+mm-oom_kill-count-global-and-memory-cgroup-oom-kills-fix-fix.patch
+mm-swap-sort-swap-entries-before-free-fix.patch
 
