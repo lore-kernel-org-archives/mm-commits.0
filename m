@@ -1,87 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 037/108] mm/vmstat.c: standardize file operations
- variable names
-Date: Thu, 06 Jul 2017 15:37:15 -0700
-Message-ID: <20170706223715.pxF4YTLUN%akpm@linux-foundation.org>
+Subject: [patch 036/108] zram: count same page write as page_stored
+Date: Thu, 06 Jul 2017 15:37:12 -0700
+Message-ID: <20170706223712.KA8t9mZ3z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34998 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751723AbdGFWhQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:37:16 -0400
+        with ESMTP id S1751723AbdGFWhN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:37:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
 
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/vmstat.c: standardize file operations variable names
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: count same page write as page_stored
 
-Standardize the file operation variable names related to all four memory
-management /proc interface files.  Also change all the symbol permissions
-(S_IRUGO) into octal permissions (0444) as it got complaints from
-checkpatch.pl.  This does not create any functional change to the
-interface.
+Regardless of whether it is same page or not, it's surely write and stored
+to zram so we should increase pages_stored stat.  Otherwise, user can see
+zero value via mm_stats although he writes a lot of pages to zram.
 
-Link: http://lkml.kernel.org/r/20170427030632.8588-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1494834068-27004-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/vmstat.c~mm-vmstat-standardize-file-operations-variable-names mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-standardize-file-operations-variable-names
-+++ a/mm/vmstat.c
-@@ -1322,7 +1322,7 @@ static int fragmentation_open(struct ino
- 	return seq_open(file, &fragmentation_op);
- }
+diff -puN drivers/block/zram/zram_drv.c~zram-count-same-page-write-as-page_stored drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-count-same-page-write-as-page_stored
++++ a/drivers/block/zram/zram_drv.c
+@@ -469,6 +469,7 @@ static bool zram_same_page_write(struct
+ 		zram_slot_unlock(zram, index);
  
--static const struct file_operations fragmentation_file_operations = {
-+static const struct file_operations buddyinfo_file_operations = {
- 	.open		= fragmentation_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1341,7 +1341,7 @@ static int pagetypeinfo_open(struct inod
- 	return seq_open(file, &pagetypeinfo_op);
- }
- 
--static const struct file_operations pagetypeinfo_file_ops = {
-+static const struct file_operations pagetypeinfo_file_operations = {
- 	.open		= pagetypeinfo_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1463,7 +1463,7 @@ static int zoneinfo_open(struct inode *i
- 	return seq_open(file, &zoneinfo_op);
- }
- 
--static const struct file_operations proc_zoneinfo_file_operations = {
-+static const struct file_operations zoneinfo_file_operations = {
- 	.open		= zoneinfo_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1552,7 +1552,7 @@ static int vmstat_open(struct inode *ino
- 	return seq_open(file, &vmstat_op);
- }
- 
--static const struct file_operations proc_vmstat_file_operations = {
-+static const struct file_operations vmstat_file_operations = {
- 	.open		= vmstat_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1785,10 +1785,10 @@ void __init init_mm_internals(void)
- 	start_shepherd_timer();
- #endif
- #ifdef CONFIG_PROC_FS
--	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
--	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
--	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
--	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
-+	proc_create("buddyinfo", 0444, NULL, &buddyinfo_file_operations);
-+	proc_create("pagetypeinfo", 0444, NULL, &pagetypeinfo_file_operations);
-+	proc_create("vmstat", 0444, NULL, &vmstat_file_operations);
-+	proc_create("zoneinfo", 0444, NULL, &zoneinfo_file_operations);
- #endif
- }
+ 		atomic64_inc(&zram->stats.same_pages);
++		atomic64_inc(&zram->stats.pages_stored);
+ 		return true;
+ 	}
+ 	kunmap_atomic(mem);
+@@ -524,6 +525,7 @@ static void zram_free_page(struct zram *
+ 		zram_clear_flag(zram, index, ZRAM_SAME);
+ 		zram_set_element(zram, index, 0);
+ 		atomic64_dec(&zram->stats.same_pages);
++		atomic64_dec(&zram->stats.pages_stored);
+ 		return;
+ 	}
  
 _
