@@ -1,220 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch added to
- -mm tree
-Date: Wed, 05 Jul 2017 16:14:50 -0700
-Message-ID: <595d72ea.erOYUJNjEJlTR5hY%akpm@linux-foundation.org>
+Subject: [wrecked]
+ uaccess-zero-destination-buffer-on-overflow-attempt.patch removed from -mm
+ tree
+Date: Thu, 06 Jul 2017 11:55:19 -0700
+Message-ID: <20170706185519._97rZg4U9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38272 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752467AbdGEXPB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jul 2017 19:15:01 -0400
+        with ESMTP id S1751817AbdGFSzV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 14:55:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmarchan@redhat.com, minchan@kernel.org, opensource.ganesh@gmail.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, arnd@arndb.de, egtvedt@samfundet.no, hoeun.ryu@gmail.com, keescook@chromium.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/zsmalloc: simplify zs_max_alloc_size handling
-has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
+     Subject: uaccess: zero destination buffer on overflow attempt
+has been removed from the -mm tree.  Its filename was
+     uaccess-zero-destination-buffer-on-overflow-attempt.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: "Jerome Marchand" <jmarchan@redhat.com>
-Subject: mm/zsmalloc: simplify zs_max_alloc_size handling
+From: Kees Cook <keescook@chromium.org>
+Subject: uaccess: zero destination buffer on overflow attempt
 
-40f9fb8cffc6 ("mm/zsmalloc: support allocating obj with size of
-ZS_MAX_ALLOC_SIZE") fixes a size calculation error that prevented zsmalloc
-to allocate an object of the maximal size (ZS_MAX_ALLOC_SIZE).  I think
-however the fix is unneededly complicated.
+When the destination buffer size is known at build time but the runtime
+size to copy into it is not known, the copy_from_user() will WARN when it
+is too large and the copy_from_user() will fail.  However, it was not
+zeroing the destination buffer (for which it knows the correct size). 
+This fixes that corner case and adds a test for it in test_user_copy.c.
 
-This patch replaces the dynamic calculation of zs_size_classes at init
-time by a compile time calculation that uses the DIV_ROUND_UP() macro
-already used in get_size_class_index().
-
-Link: http://lkml.kernel.org/r/20170630114859.1979-1-jmarchan@redhat.com
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
+Link: http://lkml.kernel.org/r/20170705200113.GA146915@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Hoeun Ryu <hoeun.ryu@gmail.com>
+Cc: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   52 +++++++++++++-----------------------------------
- 1 file changed, 15 insertions(+), 37 deletions(-)
+ include/linux/uaccess.h |    5 +++--
+ lib/test_user_copy.c    |   12 ++++++++++++
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling
-+++ a/mm/zsmalloc.c
-@@ -116,6 +116,11 @@
- #define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - OBJ_TAG_BITS)
- #define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
+diff -puN include/linux/uaccess.h~uaccess-zero-destination-buffer-on-overflow-attempt include/linux/uaccess.h
+--- a/include/linux/uaccess.h~uaccess-zero-destination-buffer-on-overflow-attempt
++++ a/include/linux/uaccess.h
+@@ -152,9 +152,10 @@ copy_from_user(void *to, const void __us
+ 	if (likely(sz < 0 || sz >= n)) {
+ 		check_object_size(to, n, false);
+ 		n = _copy_from_user(to, from, n);
+-	} else if (!__builtin_constant_p(n))
++	} else if (!__builtin_constant_p(n)) {
+ 		copy_user_overflow(sz, n);
+-	else
++		memset(to, 0, sz);
++	} else
+ 		__bad_copy_user();
  
-+#define FULLNESS_BITS	2
-+#define CLASS_BITS	8
-+#define ISOLATED_BITS	3
-+#define MAGIC_VAL_BITS	8
+ 	return n;
+diff -puN lib/test_user_copy.c~uaccess-zero-destination-buffer-on-overflow-attempt lib/test_user_copy.c
+--- a/lib/test_user_copy.c~uaccess-zero-destination-buffer-on-overflow-attempt
++++ a/lib/test_user_copy.c
+@@ -57,6 +57,8 @@ static int __init test_user_copy_init(vo
+ 	char __user *usermem;
+ 	char *bad_usermem;
+ 	unsigned long user_addr;
++	volatile int unconst = 0;
++	char charbuf[8];
+ 	u8 val_u8;
+ 	u16 val_u16;
+ 	u32 val_u32;
+@@ -124,6 +126,7 @@ static int __init test_user_copy_init(vo
+ 	/* Prepare kernel memory with check values. */
+ 	memset(kmem, 0x5a, PAGE_SIZE);
+ 	memset(kmem + PAGE_SIZE, 0, PAGE_SIZE);
++	memset(charbuf, 0x6a, sizeof(charbuf));
+ 
+ 	/* Reject kernel-to-kernel copies through copy_from_user(). */
+ 	ret |= test(!copy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
+@@ -134,6 +137,15 @@ static int __init test_user_copy_init(vo
+ 	ret |= test(memcmp(kmem + PAGE_SIZE, kmem, PAGE_SIZE),
+ 		    "zeroing failure for illegal all-kernel copy_from_user");
+ 
++	/* Reject copies into too-small buffers. */
++	ret |= test(!copy_from_user(charbuf, usermem,
++				    sizeof(charbuf) + 1 + unconst),
++		    "illegal too-large copy_from_user passed");
 +
- #define MAX(a, b) ((a) >= (b) ? (a) : (b))
- /* ZS_MIN_ALLOC_SIZE must be multiple of ZS_ALIGN */
- #define ZS_MIN_ALLOC_SIZE \
-@@ -137,6 +142,8 @@
-  *  (reason above)
-  */
- #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> CLASS_BITS)
-+#define ZS_SIZE_CLASSES	(DIV_ROUND_UP(ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE, \
-+				      ZS_SIZE_CLASS_DELTA) + 1)
- 
- enum fullness_group {
- 	ZS_EMPTY,
-@@ -169,11 +176,6 @@ static struct vfsmount *zsmalloc_mnt;
- #endif
- 
- /*
-- * number of size_classes
-- */
--static int zs_size_classes;
--
--/*
-  * We assign a page to ZS_ALMOST_EMPTY fullness group when:
-  *	n <= N / f, where
-  * n = number of allocated objects
-@@ -244,7 +246,7 @@ struct link_free {
- struct zs_pool {
- 	const char *name;
- 
--	struct size_class **size_class;
-+	struct size_class *size_class[ZS_SIZE_CLASSES];
- 	struct kmem_cache *handle_cachep;
- 	struct kmem_cache *zspage_cachep;
- 
-@@ -268,11 +270,6 @@ struct zs_pool {
- #endif
- };
- 
--#define FULLNESS_BITS	2
--#define CLASS_BITS	8
--#define ISOLATED_BITS	3
--#define MAGIC_VAL_BITS	8
--
- struct zspage {
- 	struct {
- 		unsigned int fullness:FULLNESS_BITS;
-@@ -551,7 +548,7 @@ static int get_size_class_index(int size
- 		idx = DIV_ROUND_UP(size - ZS_MIN_ALLOC_SIZE,
- 				ZS_SIZE_CLASS_DELTA);
- 
--	return min(zs_size_classes - 1, idx);
-+	return min((int)ZS_SIZE_CLASSES - 1, idx);
- }
- 
- static inline void zs_stat_inc(struct size_class *class,
-@@ -610,7 +607,7 @@ static int zs_stats_size_show(struct seq
- 			"obj_allocated", "obj_used", "pages_used",
- 			"pages_per_zspage", "freeable");
- 
--	for (i = 0; i < zs_size_classes; i++) {
-+	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
- 		class = pool->size_class[i];
- 
- 		if (class->index != i)
-@@ -1294,17 +1291,6 @@ static int zs_cpu_dead(unsigned int cpu)
- 	return 0;
- }
- 
--static void __init init_zs_size_classes(void)
--{
--	int nr;
--
--	nr = (ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / ZS_SIZE_CLASS_DELTA + 1;
--	if ((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) % ZS_SIZE_CLASS_DELTA)
--		nr += 1;
--
--	zs_size_classes = nr;
--}
--
- static bool can_merge(struct size_class *prev, int pages_per_zspage,
- 					int objs_per_zspage)
- {
-@@ -2145,7 +2131,7 @@ static void async_free_zspage(struct wor
- 	struct zs_pool *pool = container_of(work, struct zs_pool,
- 					free_work);
- 
--	for (i = 0; i < zs_size_classes; i++) {
-+	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
- 		class = pool->size_class[i];
- 		if (class->index != i)
- 			continue;
-@@ -2263,7 +2249,7 @@ unsigned long zs_compact(struct zs_pool
- 	int i;
- 	struct size_class *class;
- 
--	for (i = zs_size_classes - 1; i >= 0; i--) {
-+	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
- 		if (!class)
- 			continue;
-@@ -2309,7 +2295,7 @@ static unsigned long zs_shrinker_count(s
- 	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
- 			shrinker);
- 
--	for (i = zs_size_classes - 1; i >= 0; i--) {
-+	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
- 		if (!class)
- 			continue;
-@@ -2361,12 +2347,6 @@ struct zs_pool *zs_create_pool(const cha
- 		return NULL;
- 
- 	init_deferred_free(pool);
--	pool->size_class = kcalloc(zs_size_classes, sizeof(struct size_class *),
--			GFP_KERNEL);
--	if (!pool->size_class) {
--		kfree(pool);
--		return NULL;
--	}
- 
- 	pool->name = kstrdup(name, GFP_KERNEL);
- 	if (!pool->name)
-@@ -2379,7 +2359,7 @@ struct zs_pool *zs_create_pool(const cha
- 	 * Iterate reversely, because, size of size_class that we want to use
- 	 * for merging should be larger or equal to current size.
- 	 */
--	for (i = zs_size_classes - 1; i >= 0; i--) {
-+	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		int size;
- 		int pages_per_zspage;
- 		int objs_per_zspage;
-@@ -2453,7 +2433,7 @@ void zs_destroy_pool(struct zs_pool *poo
- 	zs_unregister_migration(pool);
- 	zs_pool_stat_destroy(pool);
- 
--	for (i = 0; i < zs_size_classes; i++) {
-+	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
- 		int fg;
- 		struct size_class *class = pool->size_class[i];
- 
-@@ -2492,8 +2472,6 @@ static int __init zs_init(void)
- 	if (ret)
- 		goto hp_setup_fail;
- 
--	init_zs_size_classes();
++	/* Destination buffer should have been entirely zeroed. */
++	ret |= test(memcmp(kmem + PAGE_SIZE, charbuf, sizeof(charbuf)),
++		    "zeroing failure for illegal too-large copy_from_user");
++
+ #if 0
+ 	/*
+ 	 * When running with SMAP/PAN/etc, this will Oops the kernel
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+mm-allow-slab_nomerge-to-be-set-at-build-time.patch
+binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
+arm-reduce-elf_et_dyn_base.patch
+arm64-move-elf_et_dyn_base-to-4gb-4mb.patch
+powerpc-reduce-elf_et_dyn_base.patch
+s390-reduce-elf_et_dyn_base.patch
+binfmt_elf-safely-increment-argv-pointers.patch
+random-do-not-ignore-early-device-randomness.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
+efi-avoid-fortify-checks-in-efi-stub.patch
+kexec_file-adjust-declaration-of-kexec_purgatory.patch
+ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
+include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch
+sh-mark-end-of-bug-implementation-as-unreachable.patch
+
