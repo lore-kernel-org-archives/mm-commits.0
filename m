@@ -1,84 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
- removed from -mm tree
-Date: Thu, 06 Jul 2017 15:13:03 -0700
-Message-ID: <595eb5ef.tkfjW0QQsvinkR0M%akpm@linux-foundation.org>
+ mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch removed
+ from -mm tree
+Date: Thu, 06 Jul 2017 15:14:41 -0700
+Message-ID: <595eb651.M3un1knSq2L9UHff%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59718 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60538 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751943AbdGFWNJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:13:09 -0400
+        with ESMTP id S1752452AbdGFWOm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:14:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fold me "mm: consider zone which is not fully populated to have holes"
+     Subject: mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix
 has been removed from the -mm tree.  Its filename was
-     mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix.patch
+     mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
 
-This patch was dropped because it was folded into mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
+This patch was dropped because it was folded into mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: fold me "mm: consider zone which is not fully populated to have holes"
+Subject: mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix
 
-- check valid section number in pfn_to_online_page - Vlastimil
-- mark sections online after all struct pages are initialized in
-  online_pages_range - Vlastimil
+0-day has reported
+   In file included from arch/x86/include/asm/page.h:75:0,
+                    from arch/x86/include/asm/thread_info.h:11,
+                    from include/linux/thread_info.h:37,
+                    from arch/x86/include/asm/preempt.h:6,
+                    from include/linux/preempt.h:80,
+                    from include/linux/spinlock.h:50,
+                    from include/linux/wait.h:8,
+                    from include/linux/fs.h:5,
+                    from mm/vmstat.c:12:
+   mm/vmstat.c: In function 'pagetypeinfo_showblockcount_print':
+>> include/asm-generic/memory_model.h:54:52: warning: 'page' is used uninitialized in this function [-Wuninitialized]
+    #define __page_to_pfn(page) (unsigned long)((page) - vmemmap)
+                                                       ^
+   mm/vmstat.c:1224:16: note: 'page' was declared here
+      struct page *page;
+                   ^~~~
 
-Link: http://lkml.kernel.org/r/20170518164210.GD18333@dhcp22.suse.cz
+Link: http://lkml.kernel.org/r/20170519072225.GA13041@dhcp22.suse.cz
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    3 ++-
- mm/memory_hotplug.c            |    5 +++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ mm/vmstat.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memory_hotplug.h~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix
-+++ a/include/linux/memory_hotplug.h
-@@ -22,8 +22,9 @@ struct resource;
- #define pfn_to_online_page(pfn)				\
- ({							\
- 	struct page *___page = NULL;			\
-+	unsigned long ___nr = pfn_to_section_nr(pfn);	\
- 							\
--	if (online_section_nr(pfn_to_section_nr(pfn)))	\
-+	if (___nr < NR_MEM_SECTIONS && online_section_nr(___nr))\
- 		___page = pfn_to_page(pfn);		\
- 	___page;					\
- })
-diff -puN mm/memory_hotplug.c~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-consider-zone-which-is-not-fully-populated-to-have-holes-fix
-+++ a/mm/memory_hotplug.c
-@@ -930,8 +930,6 @@ static int online_pages_range(unsigned l
- 	unsigned long onlined_pages = *(unsigned long *)arg;
- 	struct page *page;
+diff -puN mm/vmstat.c~mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix
++++ a/mm/vmstat.c
+@@ -1223,7 +1223,8 @@ static void pagetypeinfo_showblockcount_
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		struct page *page;
  
--	online_mem_sections(start_pfn, start_pfn + nr_pages);
--
- 	if (PageReserved(pfn_to_page(start_pfn)))
- 		for (i = 0; i < nr_pages; i++) {
- 			page = pfn_to_page(start_pfn + i);
-@@ -942,6 +940,9 @@ static int online_pages_range(unsigned l
- 			(*online_page_callback)(page);
- 			onlined_pages++;
- 		}
-+
-+	online_mem_sections(start_pfn, start_pfn + nr_pages);
-+
- 	*(unsigned long *)arg = onlined_pages;
- 	return 0;
- }
+-		if (!pfn_to_online_page(pfn))
++		page = pfn_to_online_page(pfn);
++		if (!page)
+ 			continue;
+ 
+ 		/* Watch for unexpected holes punched in the memmap */
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
@@ -94,7 +85,6 @@ mm-consider-zone-which-is-not-fully-populated-to-have-holes.patch
 mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
 mm-__first_valid_page-skip-over-offline-pages.patch
 mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
-mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo-fix.patch
 mm-memory_hotplug-do-not-associate-hotadded-memory-to-zones-until-online.patch
 mm-memory_hotplug-fix-mmop_online_keep-behavior.patch
 mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone.patch
