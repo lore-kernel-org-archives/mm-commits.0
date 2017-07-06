@@ -1,141 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [patch 108/108] mm, memory_hotplug: move movable_node to
- the hotplug proper
-Date: Thu, 06 Jul 2017 15:41:05 -0700
-Message-ID: <20170706224105.vLnZWzhDk%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects-2.patch added to -mm tree
+Date: Thu, 06 Jul 2017 15:59:50 -0700
+Message-ID: <595ec0e6.mw+wpWsVuKzMl19q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39598 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752919AbdGFWlH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:41:07 -0400
+        with ESMTP id S1752808AbdGFW7v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:59:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, ak@linux.intel.com, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, imammedo@redhat.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: move movable_node to the hotplug proper
 
-movable_node_is_enabled is defined in memblock proper while it is
-initialized from the memory hotplug proper.  This is quite messy and it
-makes a dependency between the two so move movable_node along with the
-helper functions to memory_hotplug.
+The patch titled
+     Subject: a
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects-2.patch
 
-To make it more entertaining the kernel parameter is ignored unless
-CONFIG_HAVE_MEMBLOCK_NODE_MAP=y because we do not have the node
-information for each memblock otherwise.  So let's warn when the option is
-disabled.
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects-2.patch
 
-Link: http://lkml.kernel.org/r/20170529114141.536-4-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Kani Toshimitsu <toshi.kani@hpe.com>
-Cc: Chen Yucong <slaoub@gmail.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: a
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h       |    7 -------
- include/linux/memory_hotplug.h |   10 ++++++++++
- mm/memblock.c                  |    1 -
- mm/memory_hotplug.c            |    6 ++++++
- 4 files changed, 16 insertions(+), 8 deletions(-)
+ drivers/acpi/apei/ghes.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper
-+++ a/include/linux/memblock.h
-@@ -57,8 +57,6 @@ struct memblock {
+diff -puN drivers/acpi/apei/ghes.c~a drivers/acpi/apei/ghes.c
+--- a/drivers/acpi/apei/ghes.c~a
++++ a/drivers/acpi/apei/ghes.c
+@@ -1098,14 +1098,6 @@ static int ghes_probe(struct platform_de
+ 	case ACPI_HEST_NOTIFY_GSIV:
+ 	case ACPI_HEST_NOTIFY_GPIO:
+ 		break;
+-	case ACPI_HEST_NOTIFY_SEA:
+-		if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
+-			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SEA is not supported\n",
+-				generic->header.source_id);
+-			rc = -ENOTSUPP;
+-			goto err;
+-		}
+-		break;
  
- extern struct memblock memblock;
- extern int memblock_debug;
--/* If movable_node boot option specified */
--extern bool movable_node_enabled;
- 
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
- #define __init_memblock __meminit
-@@ -172,11 +170,6 @@ static inline bool memblock_is_hotplugga
- 	return m->flags & MEMBLOCK_HOTPLUG;
- }
- 
--static inline bool __init_memblock movable_node_is_enabled(void)
--{
--	return movable_node_enabled;
--}
+ 	case ACPI_HEST_NOTIFY_SEA:
+ 		if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
+@@ -1185,10 +1177,6 @@ static int ghes_probe(struct platform_de
+ 	case ACPI_HEST_NOTIFY_SEA:
+ 		ghes_sea_add(ghes);
+ 		break;
 -
- static inline bool memblock_is_mirror(struct memblock_region *m)
- {
- 	return m->flags & MEMBLOCK_MIRROR;
-diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper
-+++ a/include/linux/memory_hotplug.h
-@@ -115,6 +115,12 @@ extern void __online_page_free(struct pa
- extern int try_online_node(int nid);
- 
- extern bool memhp_auto_online;
-+/* If movable_node boot option specified */
-+extern bool movable_node_enabled;
-+static inline bool movable_node_is_enabled(void)
-+{
-+	return movable_node_enabled;
-+}
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
- extern bool is_pageblock_removable_nolock(struct page *page);
-@@ -266,6 +272,10 @@ static inline void put_online_mems(void)
- static inline void mem_hotplug_begin(void) {}
- static inline void mem_hotplug_done(void) {}
- 
-+static inline bool movable_node_is_enabled(void)
-+{
-+	return false;
-+}
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-diff -puN mm/memblock.c~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper mm/memblock.c
---- a/mm/memblock.c~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper
-+++ a/mm/memblock.c
-@@ -54,7 +54,6 @@ struct memblock memblock __initdata_memb
- };
- 
- int memblock_debug __initdata_memblock;
--bool movable_node_enabled __initdata_memblock = false;
- static bool system_has_some_mirror __initdata_memblock = false;
- static int memblock_can_resize __initdata_memblock;
- static int memblock_memory_in_slab __initdata_memblock = 0;
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-move-movable_node-to-the-hotplug-proper
-+++ a/mm/memory_hotplug.c
-@@ -79,6 +79,8 @@ static struct {
- #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
- #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
- 
-+bool movable_node_enabled = false;
-+
- #ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
- bool memhp_auto_online;
- #else
-@@ -1572,7 +1574,11 @@ check_pages_isolated(unsigned long start
- 
- static int __init cmdline_parse_movable_node(char *p)
- {
-+#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	movable_node_enabled = true;
-+#else
-+	pr_warn("movable_node parameter depends on CONFIG_HAVE_MEMBLOCK_NODE_MAP to work properly\n");
-+#endif
- 	return 0;
- }
- early_param("movable_node", cmdline_parse_movable_node);
+-	case ACPI_HEST_NOTIFY_SEA:
+-		ghes_sea_add(ghes);
+-		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+ 		ghes_nmi_add(ghes);
+ 		break;
+@@ -1241,10 +1229,6 @@ static int ghes_remove(struct platform_d
+ 	case ACPI_HEST_NOTIFY_SEA:
+ 		ghes_sea_remove(ghes);
+ 		break;
+-
+-	case ACPI_HEST_NOTIFY_SEA:
+-		ghes_sea_remove(ghes);
+-		break;
+ 	case ACPI_HEST_NOTIFY_NMI:
+ 		ghes_nmi_remove(ghes);
+ 		break;
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-old-mle-put-and-release-after-the-function-dlm_add_migration_mle-called-fix.patch
+ocfs2-dlm-optimization-of-code-while-free-dead-node-locks-checkpatch-fixes.patch
+mm.patch
+swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
+mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
+hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
+mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix.patch
+mm-memory_hotplug-just-build-zonelist-for-new-added-node-fix-fix.patch
+mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
+signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
+kernel-reboot-add-devm_register_reboot_notifier-fix.patch
+fault-inject-support-systematic-fault-injection-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+powerpc-64s-implement-arch-specific-hardlockup-watchdog-checkpatch-fixes.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects-2.patch
+
