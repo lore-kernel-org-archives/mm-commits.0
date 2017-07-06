@@ -1,94 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
- removed from -mm tree
-Date: Thu, 06 Jul 2017 15:19:11 -0700
-Message-ID: <595eb75f.NoFiFJ9EewQusXvQ%akpm@linux-foundation.org>
+ mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch removed from -mm
+ tree
+Date: Thu, 06 Jul 2017 15:19:46 -0700
+Message-ID: <595eb782.J5190opGDb/vRxS0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33126 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752975AbdGFWTM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:19:12 -0400
+        with ESMTP id S1753035AbdGFWTr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:19:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: punit.agrawal@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: punit.agrawal@arm.com, aneesh.kumar@linux.vnet.ibm.com, mike.kravetz@oracle.com, steve.capper@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
+     Subject: mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4
 has been removed from the -mm tree.  Its filename was
-     mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
+     mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
 
-This patch was dropped because it was folded into mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
+This patch was dropped because it was folded into mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
 
 ------------------------------------------------------
 From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
+Subject: mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4
 
-fix arm64 ltp failure (pth_str01, pth_str03)
-(https://lkml.org/lkml/2017/6/5/332)
-
-Link: http://lkml.kernel.org/r/20170619170145.25577-5-punit.agrawal@arm.com
+Link: http://lkml.kernel.org/r/20170524115409.31309-8-punit.agrawal@arm.com
 Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Steve Capper <steve.capper@arm.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |   11 ++++++++---
+ mm/hugetlb.c            |    6 ------
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5 mm/gup.c
---- a/mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
-+++ a/mm/gup.c
-@@ -1431,7 +1431,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 		refs++;
- 	} while (addr += PAGE_SIZE, addr != end);
+diff -puN include/linux/hugetlb.h~mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4 include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4
++++ a/include/linux/hugetlb.h
+@@ -158,9 +158,6 @@ unsigned long hugetlb_change_protection(
+ 		unsigned long address, unsigned long end, pgprot_t newprot);
  
--	head = compound_head(page);
-+	head = compound_head(pmd_page(orig));
- 	if (!page_cache_add_speculative(head, refs)) {
- 		*nr -= refs;
- 		return 0;
-@@ -1469,7 +1469,7 @@ static int gup_huge_pud(pud_t orig, pud_
- 		refs++;
- 	} while (addr += PAGE_SIZE, addr != end);
+ bool is_hugetlb_entry_migration(pte_t pte);
+-
+-void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
+-			  pte_t *ptep, pte_t pte, unsigned long sz);
+ #else /* !CONFIG_HUGETLB_PAGE */
  
--	head = compound_head(page);
-+	head = compound_head(pud_page(orig));
- 	if (!page_cache_add_speculative(head, refs)) {
- 		*nr -= refs;
- 		return 0;
-@@ -1506,7 +1506,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
- 		refs++;
- 	} while (addr += PAGE_SIZE, addr != end);
+ static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
+@@ -448,6 +445,14 @@ static inline pte_t arch_make_huge_pte(p
+ }
+ #endif
  
--	head = compound_head(page);
-+	head = compound_head(pgd_page(orig));
- 	if (!page_cache_add_speculative(head, refs)) {
- 		*nr -= refs;
++#ifndef set_huge_swap_pte_at
++static inline void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
++					pte_t *ptep, pte_t pte, unsigned long sz)
++{
++	set_huge_pte_at(mm, addr, ptep, pte);
++}
++#endif
++
+ static inline struct hstate *page_hstate(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!PageHuge(page), page);
+diff -puN mm/hugetlb.c~mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4 mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4
++++ a/mm/hugetlb.c
+@@ -3224,12 +3224,6 @@ static int is_hugetlb_entry_hwpoisoned(p
  		return 0;
-_
-
-Patches currently in -mm which might be from punit.agrawal@arm.com are
-
-mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
-mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
-mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
-mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
-mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
-
+ }
+ 
+-void __weak set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
+-				 pte_t *ptep, pte_t pte, unsigned long sz)
+-{
+-	set_huge_pte_at(mm, addr, ptep, pte);
+-}
