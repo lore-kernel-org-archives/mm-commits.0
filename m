@@ -1,89 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-adaptive-hash-table-scaling-v5.patch removed
- from -mm tree
-Date: Thu, 06 Jul 2017 15:17:45 -0700
-Message-ID: <595eb709.7RJ3l82tcHrcxKN3%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
+ removed from -mm tree
+Date: Thu, 06 Jul 2017 15:19:11 -0700
+Message-ID: <595eb75f.NoFiFJ9EewQusXvQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33116 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751974AbdGFWRq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:17:46 -0400
+        with ESMTP id S1752975AbdGFWTM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:19:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pasha.tatashin@oracle.com, babu.moger@oracle.com, davem@davemloft.net, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: punit.agrawal@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-adaptive-hash-table-scaling-v5
+     Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
 has been removed from the -mm tree.  Its filename was
-     mm-adaptive-hash-table-scaling-v5.patch
+     mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5.patch
 
-This patch was dropped because it was folded into mm-adaptive-hash-table-scaling.patch
+This patch was dropped because it was folded into mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm-adaptive-hash-table-scaling-v5
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
 
-Disable adaptive hash on 32 bit systems to avoid confusion of whether base
-should be different for smaller systems, and to avoid overflows.
+fix arm64 ltp failure (pth_str01, pth_str03)
+(https://lkml.org/lkml/2017/6/5/332)
 
-Link: http://lkml.kernel.org/r/1495469329-755807-2-git-send-email-pasha.tatashin@oracle.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/20170619170145.25577-5-punit.agrawal@arm.com
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/gup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-adaptive-hash-table-scaling-v5 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-adaptive-hash-table-scaling-v5
-+++ a/mm/page_alloc.c
-@@ -7185,10 +7185,14 @@ static unsigned long __init arch_reserve
-  * slower pace.  Starting from ADAPT_SCALE_BASE (64G), every time memory
-  * quadruples the scale is increased by one, which means the size of hash table
-  * only doubles, instead of quadrupling as well.
-+ * Because 32-bit systems cannot have large physical memory, where this scaling
-+ * makes sense, it is disabled on such platforms.
-  */
--#define ADAPT_SCALE_BASE	(64ull << 30)
-+#if __BITS_PER_LONG > 32
-+#define ADAPT_SCALE_BASE	(64ul << 30)
- #define ADAPT_SCALE_SHIFT	2
- #define ADAPT_SCALE_NPAGES	(ADAPT_SCALE_BASE >> PAGE_SHIFT)
-+#endif
+diff -puN mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5 mm/gup.c
+--- a/mm/gup.c~mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages-v5
++++ a/mm/gup.c
+@@ -1431,7 +1431,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
  
- /*
-  * allocate a large system hash table from bootmem
-@@ -7221,13 +7225,15 @@ void *__init alloc_large_system_hash(con
- 		if (PAGE_SHIFT < 20)
- 			numentries = round_up(numentries, (1<<20)/PAGE_SIZE);
+-	head = compound_head(page);
++	head = compound_head(pmd_page(orig));
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
+@@ -1469,7 +1469,7 @@ static int gup_huge_pud(pud_t orig, pud_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
  
-+#if __BITS_PER_LONG > 32
- 		if (!high_limit) {
--			unsigned long long adapt;
-+			unsigned long adapt;
+-	head = compound_head(page);
++	head = compound_head(pud_page(orig));
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
+@@ -1506,7 +1506,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 		refs++;
+ 	} while (addr += PAGE_SIZE, addr != end);
  
- 			for (adapt = ADAPT_SCALE_NPAGES; adapt < numentries;
- 			     adapt <<= ADAPT_SCALE_SHIFT)
- 				scale++;
- 		}
-+#endif
- 
- 		/* limit to 1 bucket per 2^scale bytes of low memory */
- 		if (scale > PAGE_SHIFT)
+-	head = compound_head(page);
++	head = compound_head(pgd_page(orig));
+ 	if (!page_cache_add_speculative(head, refs)) {
+ 		*nr -= refs;
+ 		return 0;
 _
 
-Patches currently in -mm which might be from pasha.tatashin@oracle.com are
+Patches currently in -mm which might be from punit.agrawal@arm.com are
 
-mm-zeroing-hash-tables-in-allocator.patch
-mm-updated-callers-to-use-hash_zero-flag.patch
-mm-adaptive-hash-table-scaling.patch
+mm-gup-ensure-real-head-page-is-ref-counted-when-using-hugepages.patch
+mm-hugetlb-add-size-parameter-to-huge_pte_offset.patch
+mm-hugetlb-allow-architectures-to-override-huge_pte_clear.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v4.patch
+mm-hugetlb-introduce-set_huge_swap_pte_at-helper-v41.patch
+mm-rmap-use-correct-helper-when-poisoning-hugepages.patch
 
