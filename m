@@ -1,39 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [patch 089/108] mm, mempolicy: simplify rebinding
- mempolicies when updating cpusets
-Date: Thu, 06 Jul 2017 15:40:06 -0700
-Message-ID: <20170706224006._PdTiZ2JX%akpm@linux-foundation.org>
+Subject: [patch 090/108] mm, cpuset: always use seqlock when
+ changing task's nodemask
+Date: Thu, 06 Jul 2017 15:40:09 -0700
+Message-ID: <20170706224009.zaXsLPlqP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36944 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752945AbdGFWkH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:40:07 -0400
+        with ESMTP id S1752068AbdGFWkL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2017 18:40:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, cl@linux.com, hughd@google.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, lizefan@huawei.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, sivanich@sgi.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, mempolicy: simplify rebinding mempolicies when updating cpusets
+Subject: mm, cpuset: always use seqlock when changing task's nodemask
 
-Commit c0ff7453bb5c ("cpuset,mm: fix no node to alloc memory when changing
-cpuset's mems") has introduced a two-step protocol when rebinding task's
-mempolicy due to cpuset update, in order to avoid a parallel allocation
-seeing an empty effective nodemask and failing.  Later, commit
-cc9a6c877661 ("cpuset: mm: reduce large amounts of memory barrier related
-damage v3") introduced a seqlock protection and removed the
-synchronization point between the two update steps.  At that point (or
-perhaps later), the two-step rebinding became unnecessary.  Currently it
-only makes sure that the update first adds new nodes in step 1 and then
-removes nodes in step 2.  Without memory barriers the effects are
-questionable, and even then this cannot prevent a parallel zonelist
-iteration checking the nodemask at each step to observe all nodes as
-unusable for allocation.  We now fully rely on the seqlock to prevent
-premature OOMs and allocation failures.
+When updating task's mems_allowed and rebinding its mempolicy due to
+cpuset's mems being changed, we currently only take the seqlock for
+writing when either the task has a mempolicy, or the new mems has no
+intersection with the old mems.  This should be enough to prevent a
+parallel allocation seeing no available nodes, but the optimization is
+IMHO unnecessary (cpuset updates should not be frequent), and we still
+potentially risk issues if the intersection of new and old nodes has
+limited amount of free/reclaimable memory.  Let's just use the seqlock for
+all tasks.
 
-We can thus remove the two-step update parts and simplify the code.
-
-Link: http://lkml.kernel.org/r/20170517081140.30654-5-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20170517081140.30654-6-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -48,245 +41,57 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h      |    6 -
- include/uapi/linux/mempolicy.h |    8 --
- kernel/cgroup/cpuset.c         |    4 -
- mm/mempolicy.c                 |  102 +++++--------------------------
- 4 files changed, 21 insertions(+), 99 deletions(-)
+ kernel/cgroup/cpuset.c |   29 ++++++++---------------------
+ 1 file changed, 8 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
-+++ a/include/linux/mempolicy.h
-@@ -142,8 +142,7 @@ bool vma_policy_mof(struct vm_area_struc
- 
- extern void numa_default_policy(void);
- extern void numa_policy_init(void);
--extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
--				enum mpol_rebind_step step);
-+extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new);
- extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
- 
- extern int huge_node(struct vm_area_struct *vma,
-@@ -260,8 +259,7 @@ static inline void numa_default_policy(v
- }
- 
- static inline void mpol_rebind_task(struct task_struct *tsk,
--				const nodemask_t *new,
--				enum mpol_rebind_step step)
-+				const nodemask_t *new)
- {
- }
- 
-diff -puN include/uapi/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets include/uapi/linux/mempolicy.h
---- a/include/uapi/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
-+++ a/include/uapi/linux/mempolicy.h
-@@ -24,13 +24,6 @@ enum {
- 	MPOL_MAX,	/* always last member of enum */
- };
- 
--enum mpol_rebind_step {
--	MPOL_REBIND_ONCE,	/* do rebind work at once(not by two step) */
--	MPOL_REBIND_STEP1,	/* first step(set all the newly nodes) */
--	MPOL_REBIND_STEP2,	/* second step(clean all the disallowed nodes)*/
--	MPOL_REBIND_NSTEP,
--};
--
- /* Flags for set_mempolicy */
- #define MPOL_F_STATIC_NODES	(1 << 15)
- #define MPOL_F_RELATIVE_NODES	(1 << 14)
-@@ -65,7 +58,6 @@ enum mpol_rebind_step {
-  */
- #define MPOL_F_SHARED  (1 << 0)	/* identify shared policies */
- #define MPOL_F_LOCAL   (1 << 1)	/* preferred local allocation */
--#define MPOL_F_REBINDING (1 << 2)	/* identify policies in rebinding */
- #define MPOL_F_MOF	(1 << 3) /* this policy wants migrate on fault */
- #define MPOL_F_MORON	(1 << 4) /* Migrate On protnone Reference On Node */
- 
-diff -puN kernel/cgroup/cpuset.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets kernel/cgroup/cpuset.c
---- a/kernel/cgroup/cpuset.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
+diff -puN kernel/cgroup/cpuset.c~mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask kernel/cgroup/cpuset.c
+--- a/kernel/cgroup/cpuset.c~mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask
 +++ a/kernel/cgroup/cpuset.c
-@@ -1063,9 +1063,7 @@ static void cpuset_change_task_nodemask(
- 	}
+@@ -1038,38 +1038,25 @@ static void cpuset_post_attach(void)
+  * @tsk: the task to change
+  * @newmems: new nodes that the task will be set
+  *
+- * In order to avoid seeing no nodes if the old and new nodes are disjoint,
+- * we structure updates as setting all new allowed nodes, then clearing newly
+- * disallowed ones.
++ * We use the mems_allowed_seq seqlock to safely update both tsk->mems_allowed
++ * and rebind an eventual tasks' mempolicy. If the task is allocating in
++ * parallel, it might temporarily see an empty intersection, which results in
++ * a seqlock check and retry before OOM or allocation failure.
+  */
+ static void cpuset_change_task_nodemask(struct task_struct *tsk,
+ 					nodemask_t *newmems)
+ {
+-	bool need_loop;
+-
+ 	task_lock(tsk);
+-	/*
+-	 * Determine if a loop is necessary if another thread is doing
+-	 * read_mems_allowed_begin().  If at least one node remains unchanged and
+-	 * tsk does not have a mempolicy, then an empty nodemask will not be
+-	 * possible when mems_allowed is larger than a word.
+-	 */
+-	need_loop = task_has_mempolicy(tsk) ||
+-			!nodes_intersects(*newmems, tsk->mems_allowed);
+ 
+-	if (need_loop) {
+-		local_irq_disable();
+-		write_seqcount_begin(&tsk->mems_allowed_seq);
+-	}
++	local_irq_disable();
++	write_seqcount_begin(&tsk->mems_allowed_seq);
  
  	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
--	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
--
--	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP2);
-+	mpol_rebind_task(tsk, newmems);
+ 	mpol_rebind_task(tsk, newmems);
  	tsk->mems_allowed = *newmems;
  
- 	if (need_loop) {
-diff -puN mm/mempolicy.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
-+++ a/mm/mempolicy.c
-@@ -146,22 +146,7 @@ struct mempolicy *get_task_policy(struct
+-	if (need_loop) {
+-		write_seqcount_end(&tsk->mems_allowed_seq);
+-		local_irq_enable();
+-	}
++	write_seqcount_end(&tsk->mems_allowed_seq);
++	local_irq_enable();
  
- static const struct mempolicy_operations {
- 	int (*create)(struct mempolicy *pol, const nodemask_t *nodes);
--	/*
--	 * If read-side task has no lock to protect task->mempolicy, write-side
--	 * task will rebind the task->mempolicy by two step. The first step is
--	 * setting all the newly nodes, and the second step is cleaning all the
--	 * disallowed nodes. In this way, we can avoid finding no node to alloc
--	 * page.
--	 * If we have a lock to protect task->mempolicy in read-side, we do
--	 * rebind directly.
--	 *
--	 * step:
--	 * 	MPOL_REBIND_ONCE - do rebind work at once
--	 * 	MPOL_REBIND_STEP1 - set all the newly nodes
--	 * 	MPOL_REBIND_STEP2 - clean all the disallowed nodes
--	 */
--	void (*rebind)(struct mempolicy *pol, const nodemask_t *nodes,
--			enum mpol_rebind_step step);
-+	void (*rebind)(struct mempolicy *pol, const nodemask_t *nodes);
- } mpol_ops[MPOL_MAX];
- 
- static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
-@@ -304,19 +289,11 @@ void __mpol_put(struct mempolicy *p)
- 	kmem_cache_free(policy_cache, p);
+ 	task_unlock(tsk);
  }
- 
--static void mpol_rebind_default(struct mempolicy *pol, const nodemask_t *nodes,
--				enum mpol_rebind_step step)
-+static void mpol_rebind_default(struct mempolicy *pol, const nodemask_t *nodes)
- {
- }
- 
--/*
-- * step:
-- * 	MPOL_REBIND_ONCE  - do rebind work at once
-- * 	MPOL_REBIND_STEP1 - set all the newly nodes
-- * 	MPOL_REBIND_STEP2 - clean all the disallowed nodes
-- */
--static void mpol_rebind_nodemask(struct mempolicy *pol, const nodemask_t *nodes,
--				 enum mpol_rebind_step step)
-+static void mpol_rebind_nodemask(struct mempolicy *pol, const nodemask_t *nodes)
- {
- 	nodemask_t tmp;
- 
-@@ -325,35 +302,19 @@ static void mpol_rebind_nodemask(struct
- 	else if (pol->flags & MPOL_F_RELATIVE_NODES)
- 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
- 	else {
--		/*
--		 * if step == 1, we use ->w.cpuset_mems_allowed to cache the
--		 * result
--		 */
--		if (step == MPOL_REBIND_ONCE || step == MPOL_REBIND_STEP1) {
--			nodes_remap(tmp, pol->v.nodes,
--					pol->w.cpuset_mems_allowed, *nodes);
--			pol->w.cpuset_mems_allowed = step ? tmp : *nodes;
--		} else if (step == MPOL_REBIND_STEP2) {
--			tmp = pol->w.cpuset_mems_allowed;
--			pol->w.cpuset_mems_allowed = *nodes;
--		} else
--			BUG();
-+		nodes_remap(tmp, pol->v.nodes,pol->w.cpuset_mems_allowed,
-+								*nodes);
-+		pol->w.cpuset_mems_allowed = tmp;
- 	}
- 
- 	if (nodes_empty(tmp))
- 		tmp = *nodes;
- 
--	if (step == MPOL_REBIND_STEP1)
--		nodes_or(pol->v.nodes, pol->v.nodes, tmp);
--	else if (step == MPOL_REBIND_ONCE || step == MPOL_REBIND_STEP2)
--		pol->v.nodes = tmp;
--	else
--		BUG();
-+	pol->v.nodes = tmp;
- }
- 
- static void mpol_rebind_preferred(struct mempolicy *pol,
--				  const nodemask_t *nodes,
--				  enum mpol_rebind_step step)
-+						const nodemask_t *nodes)
- {
- 	nodemask_t tmp;
- 
-@@ -379,42 +340,19 @@ static void mpol_rebind_preferred(struct
- /*
-  * mpol_rebind_policy - Migrate a policy to a different set of nodes
-  *
-- * If read-side task has no lock to protect task->mempolicy, write-side
-- * task will rebind the task->mempolicy by two step. The first step is
-- * setting all the newly nodes, and the second step is cleaning all the
-- * disallowed nodes. In this way, we can avoid finding no node to alloc
-- * page.
-- * If we have a lock to protect task->mempolicy in read-side, we do
-- * rebind directly.
-- *
-- * step:
-- * 	MPOL_REBIND_ONCE  - do rebind work at once
-- * 	MPOL_REBIND_STEP1 - set all the newly nodes
-- * 	MPOL_REBIND_STEP2 - clean all the disallowed nodes
-+ * Per-vma policies are protected by mmap_sem. Allocations using per-task
-+ * policies are protected by task->mems_allowed_seq to prevent a premature
-+ * OOM/allocation failure due to parallel nodemask modification.
-  */
--static void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask,
--				enum mpol_rebind_step step)
-+static void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask)
- {
- 	if (!pol)
- 		return;
--	if (!mpol_store_user_nodemask(pol) && step == MPOL_REBIND_ONCE &&
-+	if (!mpol_store_user_nodemask(pol) &&
- 	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
- 		return;
- 
--	if (step == MPOL_REBIND_STEP1 && (pol->flags & MPOL_F_REBINDING))
--		return;
--
--	if (step == MPOL_REBIND_STEP2 && !(pol->flags & MPOL_F_REBINDING))
--		BUG();
--
--	if (step == MPOL_REBIND_STEP1)
--		pol->flags |= MPOL_F_REBINDING;
--	else if (step == MPOL_REBIND_STEP2)
--		pol->flags &= ~MPOL_F_REBINDING;
--	else if (step >= MPOL_REBIND_NSTEP)
--		BUG();
--
--	mpol_ops[pol->mode].rebind(pol, newmask, step);
-+	mpol_ops[pol->mode].rebind(pol, newmask);
- }
- 
- /*
-@@ -424,10 +362,9 @@ static void mpol_rebind_policy(struct me
-  * Called with task's alloc_lock held.
-  */
- 
--void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
--			enum mpol_rebind_step step)
-+void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new)
- {
--	mpol_rebind_policy(tsk->mempolicy, new, step);
-+	mpol_rebind_policy(tsk->mempolicy, new);
- }
- 
- /*
-@@ -442,7 +379,7 @@ void mpol_rebind_mm(struct mm_struct *mm
- 
- 	down_write(&mm->mmap_sem);
- 	for (vma = mm->mmap; vma; vma = vma->vm_next)
--		mpol_rebind_policy(vma->vm_policy, new, MPOL_REBIND_ONCE);
-+		mpol_rebind_policy(vma->vm_policy, new);
- 	up_write(&mm->mmap_sem);
- }
- 
-@@ -2101,10 +2038,7 @@ struct mempolicy *__mpol_dup(struct memp
- 
- 	if (current_cpuset_is_being_rebound()) {
- 		nodemask_t mems = cpuset_mems_allowed(current);
--		if (new->flags & MPOL_F_REBINDING)
--			mpol_rebind_policy(new, &mems, MPOL_REBIND_STEP2);
--		else
--			mpol_rebind_policy(new, &mems, MPOL_REBIND_ONCE);
-+		mpol_rebind_policy(new, &mems);
- 	}
- 	atomic_set(&new->refcnt, 1);
- 	return new;
 _
