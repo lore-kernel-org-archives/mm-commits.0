@@ -1,40 +1,41 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-consider-offline-memblocks-removable.patch removed from
+ mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch removed from
  -mm tree
-Date: Fri, 07 Jul 2017 12:09:04 -0700
-Message-ID: <20170707190904.HXNRdlVUE%akpm@linux-foundation.org>
+Date: Fri, 07 Jul 2017 12:09:16 -0700
+Message-ID: <20170707190916.OZxtkwNKF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33064 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752456AbdGGTJG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:06 -0400
+        with ESMTP id S1751438AbdGGTJR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com
 
 
 The patch titled
-     Subject: mm, memory_hotplug: consider offline memblocks removable
+     Subject: mm, vmstat: skip reporting offline pages in pagetypeinfo
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-consider-offline-memblocks-removable.patch
+     mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: consider offline memblocks removable
+Subject: mm, vmstat: skip reporting offline pages in pagetypeinfo
 
-is_pageblock_removable_nolock() relies on having zone association to
-examine all the page blocks to check whether they are movable or free. 
-This is just wasting of cycles when the memblock is offline.  Later patch
-in the series will also change the time when the page is associated with a
-zone so we let's bail out early if the memblock is offline.
+pagetypeinfo_showblockcount_print skips over invalid pfns but it would
+report pages which are offline because those have a valid pfn.  Their
+migrate type is misleading at best.  Now that we have pfn_to_online_page()
+we can use it instead of pfn_valid() and fix this.
 
-Link: http://lkml.kernel.org/r/20170515085827.16474-7-mhocko@kernel.org
+[mhocko@suse.com: fix build]
+  Link: http://lkml.kernel.org/r/20170519072225.GA13041@dhcp22.suse.cz
+Link: http://lkml.kernel.org/r/20170515085827.16474-11-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Igor Mammedov <imammedo@redhat.com>
+Reported-by: Joonsoo Kim <js1304@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -43,43 +44,40 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Daniel Kiper <daniel.kiper@oracle.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
 Cc: Tobias Regnery <tobias.regnery@gmail.com>
 Cc: Toshi Kani <toshi.kani@hpe.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/vmstat.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-memory_hotplug-consider-offline-memblocks-removable drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory_hotplug-consider-offline-memblocks-removable
-+++ a/drivers/base/memory.c
-@@ -128,6 +128,9 @@ static ssize_t show_mem_removable(struct
- 	int ret = 1;
- 	struct memory_block *mem = to_memory_block(dev);
+diff -puN mm/vmstat.c~mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-skip-reporting-offline-pages-in-pagetypeinfo
++++ a/mm/vmstat.c
+@@ -1223,11 +1223,10 @@ static void pagetypeinfo_showblockcount_
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		struct page *page;
  
-+	if (mem->state != MEM_ONLINE)
-+		goto out;
-+
- 	for (i = 0; i < sections_per_block; i++) {
- 		if (!present_section_nr(mem->start_section_nr + i))
+-		if (!pfn_valid(pfn))
++		page = pfn_to_online_page(pfn);
++		if (!page)
  			continue;
-@@ -135,6 +138,7 @@ static ssize_t show_mem_removable(struct
- 		ret &= is_mem_section_removable(pfn, PAGES_PER_SECTION);
- 	}
  
-+out:
- 	return sprintf(buf, "%d\n", ret);
- }
- 
+-		page = pfn_to_page(pfn);
+-
+ 		/* Watch for unexpected holes punched in the memmap */
+ 		if (!memmap_valid_within(pfn, page, zone))
+ 			continue;
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
