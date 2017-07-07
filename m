@@ -1,103 +1,161 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmstat-standardize-file-operations-variable-names.patch removed from -mm
+ mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan.patch removed from -mm
  tree
-Date: Fri, 07 Jul 2017 12:08:35 -0700
-Message-ID: <20170707190835.6lehJtjvh%akpm@linux-foundation.org>
+Date: Fri, 07 Jul 2017 12:08:42 -0700
+Message-ID: <20170707190842.C1vI4r9t4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60962 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751032AbdGGTIg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:36 -0400
+        with ESMTP id S1751100AbdGGTIn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, ebru.akagunduz@gmail.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/vmstat.c: standardize file operations variable names
+     Subject: mm, THP, swap: move anonymous THP split logic to vmscan
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-standardize-file-operations-variable-names.patch
+     mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/vmstat.c: standardize file operations variable names
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm, THP, swap: move anonymous THP split logic to vmscan
 
-Standardize the file operation variable names related to all four memory
-management /proc interface files.  Also change all the symbol permissions
-(S_IRUGO) into octal permissions (0444) as it got complaints from
-checkpatch.pl.  This does not create any functional change to the
-interface.
+The add_to_swap aims to allocate swap_space(ie, swap slot and swapcache)
+so if it fails due to lack of space in case of THP or something(hdd swap
+but tries THP swapout) *caller* rather than add_to_swap itself should
+split the THP page and retry it with base page which is more natural.
 
-Link: http://lkml.kernel.org/r/20170427030632.8588-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20170515112522.32457-4-ying.huang@intel.com
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/swap.h |    4 ++--
+ mm/swap_state.c      |   23 ++++++-----------------
+ mm/vmscan.c          |   17 ++++++++++++++++-
+ 3 files changed, 24 insertions(+), 20 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-standardize-file-operations-variable-names mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-standardize-file-operations-variable-names
-+++ a/mm/vmstat.c
-@@ -1322,7 +1322,7 @@ static int fragmentation_open(struct ino
- 	return seq_open(file, &fragmentation_op);
+diff -puN include/linux/swap.h~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan
++++ a/include/linux/swap.h
+@@ -353,7 +353,7 @@ extern struct address_space *swapper_spa
+ 		>> SWAP_ADDRESS_SPACE_SHIFT])
+ extern unsigned long total_swapcache_pages(void);
+ extern void show_swap_cache_info(void);
+-extern int add_to_swap(struct page *, struct list_head *list);
++extern int add_to_swap(struct page *page);
+ extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
+ extern int __add_to_swap_cache(struct page *page, swp_entry_t entry);
+ extern void __delete_from_swap_cache(struct page *);
+@@ -473,7 +473,7 @@ static inline struct page *lookup_swap_c
+ 	return NULL;
  }
  
--static const struct file_operations fragmentation_file_operations = {
-+static const struct file_operations buddyinfo_file_operations = {
- 	.open		= fragmentation_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1341,7 +1341,7 @@ static int pagetypeinfo_open(struct inod
- 	return seq_open(file, &pagetypeinfo_op);
+-static inline int add_to_swap(struct page *page, struct list_head *list)
++static inline int add_to_swap(struct page *page)
+ {
+ 	return 0;
+ }
+diff -puN mm/swap_state.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan mm/swap_state.c
+--- a/mm/swap_state.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan
++++ a/mm/swap_state.c
+@@ -184,7 +184,7 @@ void __delete_from_swap_cache(struct pag
+  * Allocate swap space for the page and add the page to the
+  * swap cache.  Caller needs to hold the page lock. 
+  */
+-int add_to_swap(struct page *page, struct list_head *list)
++int add_to_swap(struct page *page)
+ {
+ 	swp_entry_t entry;
+ 	int err;
+@@ -192,12 +192,12 @@ int add_to_swap(struct page *page, struc
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(!PageUptodate(page), page);
+ 
+-retry:
+ 	entry = get_swap_page(page);
+ 	if (!entry.val)
+-		goto fail;
++		return 0;
++
+ 	if (mem_cgroup_try_charge_swap(page, entry))
+-		goto fail_free;
++		goto fail;
+ 
+ 	/*
+ 	 * Radix-tree node allocations from PF_MEMALLOC contexts could
+@@ -218,23 +218,12 @@ retry:
+ 		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
+ 		 * clear SWAP_HAS_CACHE flag.
+ 		 */
+-		goto fail_free;
+-
+-	if (PageTransHuge(page)) {
+-		err = split_huge_page_to_list(page, list);
+-		if (err) {
+-			delete_from_swap_cache(page);
+-			return 0;
+-		}
+-	}
++		goto fail;
+ 
+ 	return 1;
+ 
+-fail_free:
+-	put_swap_page(page, entry);
+ fail:
+-	if (PageTransHuge(page) && !split_huge_page_to_list(page, list))
+-		goto retry;
++	put_swap_page(page, entry);
+ 	return 0;
  }
  
--static const struct file_operations pagetypeinfo_file_ops = {
-+static const struct file_operations pagetypeinfo_file_operations = {
- 	.open		= pagetypeinfo_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1463,7 +1463,7 @@ static int zoneinfo_open(struct inode *i
- 	return seq_open(file, &zoneinfo_op);
- }
+diff -puN mm/vmscan.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan mm/vmscan.c
+--- a/mm/vmscan.c~mm-thp-swap-move-anonymous-thp-split-logic-to-vmscan
++++ a/mm/vmscan.c
+@@ -1125,8 +1125,23 @@ static unsigned long shrink_page_list(st
+ 		    !PageSwapCache(page)) {
+ 			if (!(sc->gfp_mask & __GFP_IO))
+ 				goto keep_locked;
+-			if (!add_to_swap(page, page_list))
++			if (!add_to_swap(page)) {
++				if (!PageTransHuge(page))
++					goto activate_locked;
++				/* Split THP and swap individual base pages */
++				if (split_huge_page_to_list(page, page_list))
++					goto activate_locked;
++				if (!add_to_swap(page))
++					goto activate_locked;
++			}
++
++			/* XXX: We don't support THP writes */
++			if (PageTransHuge(page) &&
++				  split_huge_page_to_list(page, page_list)) {
++				delete_from_swap_cache(page);
+ 				goto activate_locked;
++			}
++
+ 			may_enter_fs = 1;
  
--static const struct file_operations proc_zoneinfo_file_operations = {
-+static const struct file_operations zoneinfo_file_operations = {
- 	.open		= zoneinfo_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1552,7 +1552,7 @@ static int vmstat_open(struct inode *ino
- 	return seq_open(file, &vmstat_op);
- }
- 
--static const struct file_operations proc_vmstat_file_operations = {
-+static const struct file_operations vmstat_file_operations = {
- 	.open		= vmstat_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -1785,10 +1785,10 @@ void __init init_mm_internals(void)
- 	start_shepherd_timer();
- #endif
- #ifdef CONFIG_PROC_FS
--	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
--	proc_create("pagetypeinfo", S_IRUGO, NULL, &pagetypeinfo_file_ops);
--	proc_create("vmstat", S_IRUGO, NULL, &proc_vmstat_file_operations);
--	proc_create("zoneinfo", S_IRUGO, NULL, &proc_zoneinfo_file_operations);
-+	proc_create("buddyinfo", 0444, NULL, &buddyinfo_file_operations);
-+	proc_create("pagetypeinfo", 0444, NULL, &pagetypeinfo_file_operations);
-+	proc_create("vmstat", 0444, NULL, &vmstat_file_operations);
-+	proc_create("zoneinfo", 0444, NULL, &zoneinfo_file_operations);
- #endif
- }
- 
+ 			/* Adding to swap updated mapping */
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
-mm-cma-warn-if-the-cma-area-could-not-be-activated.patch
 
