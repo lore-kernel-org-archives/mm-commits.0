@@ -1,62 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-cleanup-stable_node-chain-collapse-case.patch
- removed from -mm tree
-Date: Fri, 07 Jul 2017 12:08:24 -0700
-Message-ID: <20170707190824.EYs1DUHZI%akpm@linux-foundation.org>
+Subject: [merged]
+ ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch removed from
+ -mm tree
+Date: Fri, 07 Jul 2017 12:08:27 -0700
+Message-ID: <20170707190827.fU4aOWIpU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60868 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60880 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbdGGTIZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:25 -0400
+        with ESMTP id S1751032AbdGGTI2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, arjan@linux.intel.com, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, dave@stgolabs.net, ederevea@redhat.com, gavin.guo@canonical.com, hughd@google.com, jay.vosburgh@canonical.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, pholasek@redhat.com
 
 
 The patch titled
-     Subject: ksm: cleanup stable_node chain collapse case
+     Subject: ksm: swap the two output parameters of chain/chain_prune
 has been removed from the -mm tree.  Its filename was
-     ksm-cleanup-stable_node-chain-collapse-case.patch
+     ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: cleanup stable_node chain collapse case
+Subject: ksm: swap the two output parameters of chain/chain_prune
 
-Patch series "KSMscale cleanup/optimizations".
+Some static checker complains if chain/chain_prune returns a potentially
+stale pointer.
 
-There are no fixes here it's just minor cleanups and optimizations.
+There are two output parameters to chain/chain_prune, one is tree_page the
+other is stable_node_dup.  Like in get_ksm_page the caller has to check
+tree_page is NULL before touching the stable_node.  Similarly in
+chain/chain_prune the caller has to check tree_page before touching the
+stable_node_dup returned or the original stable_node passed as parameter.
 
-1/3 removes makes the "fix" for the stale stable_node fall in the
-    standard case without introducing new cases.  Setting stable_node to
-    NULL was marginally safer, but stale pointer is still wiped from the
-    caller, this looks cleaner.
+Because the tree_page is never returned as a stale pointer, it may be more
+intuitive to return tree_page and to pass stable_node_dup for reference
+instead of the reverse.
 
-2/3 should fix the false positive from Dan's static checker.
+This patch purely swaps the two output parameters of chain/chain_prune as
+a cleanup for the static checker and to mimic the get_ksm_page behavior
+more closely.  There's no change to the caller at all except the swap,
+it's purely a cleanup and it is a noop from the caller point of view.
 
-3/3 is a microoptimization to apply the the refile of future merge
-    candidate dups at the head of the chain in all cases and to skip it in
-    one case where we did it and but it was a noop (to avoid checking if
-    it was already at the head but now we've to check it anyway so it got
-    optimized away).
-
-
-This patch (of 3):
-
-When the stable_node chain is collapsed we can as well set the caller
-stable_node to match the returned stable_node_dup in chain_prune().
-
-This way the collapse case becomes indistinguishable from the regular
-stable_node case and we can remove two branches from the KSM page
-migration handling slow paths.
-
-While it was all correct this looks cleaner (and faster) as the caller has
-to deal with fewer special cases.
-
-Link: http://lkml.kernel.org/r/20170518173721.22316-2-aarcange@redhat.com
+Link: http://lkml.kernel.org/r/20170518173721.22316-3-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Tested-by: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: Evgheni Dereveanchin <ederevea@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Petr Holasek <pholasek@redhat.com>
@@ -66,97 +57,157 @@ Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Gavin Guo <gavin.guo@canonical.com>
 Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   50 ++++++++++++++++++++++++++++----------------------
- 1 file changed, 28 insertions(+), 22 deletions(-)
+ mm/ksm.c |   78 +++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 52 insertions(+), 26 deletions(-)
 
-diff -puN mm/ksm.c~ksm-cleanup-stable_node-chain-collapse-case mm/ksm.c
---- a/mm/ksm.c~ksm-cleanup-stable_node-chain-collapse-case
+diff -puN mm/ksm.c~ksm-swap-the-two-output-parameters-of-chain-chain_prune mm/ksm.c
+--- a/mm/ksm.c~ksm-swap-the-two-output-parameters-of-chain-chain_prune
 +++ a/mm/ksm.c
-@@ -1392,14 +1392,18 @@ static struct stable_node *stable_node_d
- 			ksm_stable_node_chains--;
- 			ksm_stable_node_dups--;
- 			/*
--			 * NOTE: the caller depends on the
--			 * *_stable_node to become NULL if the chain
--			 * was collapsed. Enforce that if anything
--			 * uses a stale (freed) stable_node chain a
--			 * visible crash will materialize (instead of
--			 * an use after free).
-+			 * NOTE: the caller depends on the stable_node
-+			 * to be equal to stable_node_dup if the chain
-+			 * was collapsed.
- 			 */
--			*_stable_node = stable_node = NULL;
-+			*_stable_node = found;
-+			/*
-+			 * Just for robustneess as stable_node is
-+			 * otherwise left as a stable pointer, the
-+			 * compiler shall optimize it away at build
-+			 * time.
-+			 */
-+			stable_node = NULL;
- 		} else if (__is_page_sharing_candidate(found, 1)) {
- 			/*
- 			 * Refile our candidate at the head
-@@ -1505,7 +1509,11 @@ again:
- 		 * not NULL. stable_node_dup may have been inserted in
- 		 * the rbtree instead as a regular stable_node (in
- 		 * order to collapse the stable_node chain if a single
--		 * stable_node dup was found in it).
-+		 * stable_node dup was found in it). In such case the
-+		 * stable_node is overwritten by the calleee to point
-+		 * to the stable_node_dup that was collapsed in the
-+		 * stable rbtree and stable_node will be equal to
-+		 * stable_node_dup like if the chain never existed.
- 		 */
+@@ -1313,14 +1313,14 @@ bool is_page_sharing_candidate(struct st
+ 	return __is_page_sharing_candidate(stable_node, 0);
+ }
+ 
+-static struct stable_node *stable_node_dup(struct stable_node **_stable_node,
+-					   struct page **tree_page,
+-					   struct rb_root *root,
+-					   bool prune_stale_stable_nodes)
++struct page *stable_node_dup(struct stable_node **_stable_node_dup,
++			     struct stable_node **_stable_node,
++			     struct rb_root *root,
++			     bool prune_stale_stable_nodes)
+ {
+ 	struct stable_node *dup, *found = NULL, *stable_node = *_stable_node;
+ 	struct hlist_node *hlist_safe;
+-	struct page *_tree_page;
++	struct page *_tree_page, *tree_page = NULL;
+ 	int nr = 0;
+ 	int found_rmap_hlist_len;
+ 
+@@ -1353,14 +1353,14 @@ static struct stable_node *stable_node_d
+ 			if (!found ||
+ 			    dup->rmap_hlist_len > found_rmap_hlist_len) {
+ 				if (found)
+-					put_page(*tree_page);
++					put_page(tree_page);
+ 				found = dup;
+ 				found_rmap_hlist_len = found->rmap_hlist_len;
+-				*tree_page = _tree_page;
++				tree_page = _tree_page;
+ 
++				/* skip put_page for found dup */
+ 				if (!prune_stale_stable_nodes)
+ 					break;
+-				/* skip put_page */
+ 				continue;
+ 			}
+ 		}
+@@ -1417,7 +1417,8 @@ static struct stable_node *stable_node_d
+ 		}
+ 	}
+ 
+-	return found;
++	*_stable_node_dup = found;
++	return tree_page;
+ }
+ 
+ static struct stable_node *stable_node_dup_any(struct stable_node *stable_node,
+@@ -1433,35 +1434,60 @@ static struct stable_node *stable_node_d
+ 			   typeof(*stable_node), hlist_dup);
+ }
+ 
+-static struct stable_node *__stable_node_chain(struct stable_node **_stable_node,
+-					       struct page **tree_page,
+-					       struct rb_root *root,
+-					       bool prune_stale_stable_nodes)
++/*
++ * Like for get_ksm_page, this function can free the *_stable_node and
++ * *_stable_node_dup if the returned tree_page is NULL.
++ *
++ * It can also free and overwrite *_stable_node with the found
++ * stable_node_dup if the chain is collapsed (in which case
++ * *_stable_node will be equal to *_stable_node_dup like if the chain
++ * never existed). It's up to the caller to verify tree_page is not
++ * NULL before dereferencing *_stable_node or *_stable_node_dup.
++ *
++ * *_stable_node_dup is really a second output parameter of this
++ * function and will be overwritten in all cases, the caller doesn't
++ * need to initialize it.
++ */
++static struct page *__stable_node_chain(struct stable_node **_stable_node_dup,
++					struct stable_node **_stable_node,
++					struct rb_root *root,
++					bool prune_stale_stable_nodes)
+ {
+ 	struct stable_node *stable_node = *_stable_node;
+ 	if (!is_stable_node_chain(stable_node)) {
+ 		if (is_page_sharing_candidate(stable_node)) {
+-			*tree_page = get_ksm_page(stable_node, false);
+-			return stable_node;
++			*_stable_node_dup = stable_node;
++			return get_ksm_page(stable_node, false);
+ 		}
++		/*
++		 * _stable_node_dup set to NULL means the stable_node
++		 * reached the ksm_max_page_sharing limit.
++		 */
++		*_stable_node_dup = NULL;
+ 		return NULL;
+ 	}
+-	return stable_node_dup(_stable_node, tree_page, root,
++	return stable_node_dup(_stable_node_dup, _stable_node, root,
+ 			       prune_stale_stable_nodes);
+ }
+ 
+-static __always_inline struct stable_node *chain_prune(struct stable_node **s_n,
+-						       struct page **t_p,
+-						       struct rb_root *root)
++static __always_inline struct page *chain_prune(struct stable_node **s_n_d,
++						struct stable_node **s_n,
++						struct rb_root *root)
+ {
+-	return __stable_node_chain(s_n, t_p, root, true);
++	return __stable_node_chain(s_n_d, s_n, root, true);
+ }
+ 
+-static __always_inline struct stable_node *chain(struct stable_node *s_n,
+-						 struct page **t_p,
+-						 struct rb_root *root)
++static __always_inline struct page *chain(struct stable_node **s_n_d,
++					  struct stable_node *s_n,
++					  struct rb_root *root)
+ {
+-	return __stable_node_chain(&s_n, t_p, root, false);
++	struct stable_node *old_stable_node = s_n;
++	struct page *tree_page;
++
++	tree_page = __stable_node_chain(s_n_d, &s_n, root, false);
++	/* not pruning dups so s_n cannot have changed */
++	VM_BUG_ON(s_n != old_stable_node);
++	return tree_page;
+ }
+ 
+ /*
+@@ -1502,7 +1528,7 @@ again:
+ 		cond_resched();
+ 		stable_node = rb_entry(*new, struct stable_node, node);
+ 		stable_node_any = NULL;
+-		stable_node_dup = chain_prune(&stable_node, &tree_page, root);
++		tree_page = chain_prune(&stable_node_dup, &stable_node,	root);
+ 		/*
+ 		 * NOTE: stable_node may have been freed by
+ 		 * chain_prune() if the returned stable_node_dup is
+@@ -1743,7 +1769,7 @@ again:
+ 		cond_resched();
+ 		stable_node = rb_entry(*new, struct stable_node, node);
+ 		stable_node_any = NULL;
+-		stable_node_dup = chain(stable_node, &tree_page, root);
++		tree_page = chain(&stable_node_dup, stable_node, root);
  		if (!stable_node_dup) {
  			/*
-@@ -1623,15 +1631,13 @@ out:
- replace:
- 	/*
- 	 * If stable_node was a chain and chain_prune collapsed it,
--	 * stable_node will be NULL here. In that case the
--	 * stable_node_dup is the regular stable_node that has
--	 * replaced the chain. If stable_node is not NULL and equal to
--	 * stable_node_dup there was no chain and stable_node_dup is
--	 * the regular stable_node in the stable rbtree. Otherwise
--	 * stable_node is the chain and stable_node_dup is the dup to
--	 * replace.
-+	 * stable_node has been updated to be the new regular
-+	 * stable_node. A collapse of the chain is indistinguishable
-+	 * from the case there was no chain in the stable
-+	 * rbtree. Otherwise stable_node is the chain and
-+	 * stable_node_dup is the dup to replace.
- 	 */
--	if (!stable_node || stable_node_dup == stable_node) {
-+	if (stable_node_dup == stable_node) {
- 		VM_BUG_ON(is_stable_node_chain(stable_node_dup));
- 		VM_BUG_ON(is_stable_node_dup(stable_node_dup));
- 		/* there is no chain */
-@@ -1676,13 +1682,13 @@ chain_append:
- 		stable_node_dup = stable_node_any;
- 	/*
- 	 * If stable_node was a chain and chain_prune collapsed it,
--	 * stable_node will be NULL here. In that case the
--	 * stable_node_dup is the regular stable_node that has
--	 * replaced the chain. If stable_node is not NULL and equal to
--	 * stable_node_dup there was no chain and stable_node_dup is
--	 * the regular stable_node in the stable rbtree.
-+	 * stable_node has been updated to be the new regular
-+	 * stable_node. A collapse of the chain is indistinguishable
-+	 * from the case there was no chain in the stable
-+	 * rbtree. Otherwise stable_node is the chain and
-+	 * stable_node_dup is the dup to replace.
- 	 */
--	if (!stable_node || stable_node_dup == stable_node) {
-+	if (stable_node_dup == stable_node) {
- 		VM_BUG_ON(is_stable_node_chain(stable_node_dup));
- 		VM_BUG_ON(is_stable_node_dup(stable_node_dup));
- 		/* chain is missing so create it */
+ 			 * Either all stable_node dups were full in
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
