@@ -1,112 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask.patch removed
- from -mm tree
-Date: Fri, 07 Jul 2017 12:11:00 -0700
-Message-ID: <20170707191100.Z8OTOVXdr%akpm@linux-foundation.org>
+ mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
+ removed from -mm tree
+Date: Fri, 07 Jul 2017 12:11:09 -0700
+Message-ID: <20170707191109.z4tQz6o9g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34606 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751438AbdGGTLD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:11:03 -0400
+        with ESMTP id S1751210AbdGGTLK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:11:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, cl@linux.com, hughd@google.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, lizefan@huawei.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, sivanich@sgi.com, vbabka@suse.cz
+To: catalin.marinas@arm.com, luto@amacapital.net, mcgrof@kernel.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, cpuset: always use seqlock when changing task's nodemask
+     Subject: mm: kmemleak: factor object reference updating out of scan_block()
 has been removed from the -mm tree.  Its filename was
-     mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask.patch
+     mm-kmemleak-factor-object-reference-updating-out-of-scan_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, cpuset: always use seqlock when changing task's nodemask
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: factor object reference updating out of scan_block()
 
-When updating task's mems_allowed and rebinding its mempolicy due to
-cpuset's mems being changed, we currently only take the seqlock for
-writing when either the task has a mempolicy, or the new mems has no
-intersection with the old mems.  This should be enough to prevent a
-parallel allocation seeing no available nodes, but the optimization is
-IMHO unnecessary (cpuset updates should not be frequent), and we still
-potentially risk issues if the intersection of new and old nodes has
-limited amount of free/reclaimable memory.  Let's just use the seqlock for
-all tasks.
+scan_block() updates the number of references (pointers) to objects,
+adding them to the gray_list when object->min_count is reached.  The patch
+factors out this functionality into a separate update_refs() function.
 
-Link: http://lkml.kernel.org/r/20170517081140.30654-6-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1495726937-23557-3-git-send-email-catalin.marinas@arm.com
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cpuset.c |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ mm/kmemleak.c |   43 +++++++++++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 18 deletions(-)
 
-diff -puN kernel/cgroup/cpuset.c~mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask kernel/cgroup/cpuset.c
---- a/kernel/cgroup/cpuset.c~mm-cpuset-always-use-seqlock-when-changing-tasks-nodemask
-+++ a/kernel/cgroup/cpuset.c
-@@ -1038,38 +1038,25 @@ static void cpuset_post_attach(void)
-  * @tsk: the task to change
-  * @newmems: new nodes that the task will be set
-  *
-- * In order to avoid seeing no nodes if the old and new nodes are disjoint,
-- * we structure updates as setting all new allowed nodes, then clearing newly
-- * disallowed ones.
-+ * We use the mems_allowed_seq seqlock to safely update both tsk->mems_allowed
-+ * and rebind an eventual tasks' mempolicy. If the task is allocating in
-+ * parallel, it might temporarily see an empty intersection, which results in
-+ * a seqlock check and retry before OOM or allocation failure.
-  */
- static void cpuset_change_task_nodemask(struct task_struct *tsk,
- 					nodemask_t *newmems)
- {
--	bool need_loop;
--
- 	task_lock(tsk);
--	/*
--	 * Determine if a loop is necessary if another thread is doing
--	 * read_mems_allowed_begin().  If at least one node remains unchanged and
--	 * tsk does not have a mempolicy, then an empty nodemask will not be
--	 * possible when mems_allowed is larger than a word.
--	 */
--	need_loop = task_has_mempolicy(tsk) ||
--			!nodes_intersects(*newmems, tsk->mems_allowed);
- 
--	if (need_loop) {
--		local_irq_disable();
--		write_seqcount_begin(&tsk->mems_allowed_seq);
--	}
-+	local_irq_disable();
-+	write_seqcount_begin(&tsk->mems_allowed_seq);
- 
- 	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
- 	mpol_rebind_task(tsk, newmems);
- 	tsk->mems_allowed = *newmems;
- 
--	if (need_loop) {
--		write_seqcount_end(&tsk->mems_allowed_seq);
--		local_irq_enable();
--	}
-+	write_seqcount_end(&tsk->mems_allowed_seq);
-+	local_irq_enable();
- 
- 	task_unlock(tsk);
+diff -puN mm/kmemleak.c~mm-kmemleak-factor-object-reference-updating-out-of-scan_block mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-factor-object-reference-updating-out-of-scan_block
++++ a/mm/kmemleak.c
+@@ -1188,6 +1188,30 @@ static bool update_checksum(struct kmeml
  }
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock.patch
-
+ 
+ /*
++ * Update an object's references. object->lock must be held by the caller.
++ */
++static void update_refs(struct kmemleak_object *object)
++{
++	if (!color_white(object)) {
++		/* non-orphan, ignored or new */
++		return;
++	}
++
++	/*
++	 * Increase the object's reference count (number of pointers to the
++	 * memory block). If this count reaches the required minimum, the
++	 * object's color will become gray and it will be added to the
++	 * gray_list.
++	 */
++	object->count++;
++	if (color_gray(object)) {
++		/* put_object() called when removing from gray_list */
++		WARN_ON(!get_object(object));
++		list_add_tail(&object->gray_list, &gray_list);
++	}
++}
++
++/*
+  * Memory scanning is a long process and it needs to be interruptable. This
+  * function checks whether such interrupt condition occurred.
+  */
+@@ -1259,24 +1283,7 @@ static void scan_block(void *_start, voi
+ 		 * enclosed by scan_mutex.
+ 		 */
+ 		spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
+-		if (!color_white(object)) {
+-			/* non-orphan, ignored or new */
+-			spin_unlock(&object->lock);
+-			continue;
+-		}
