@@ -1,103 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-zeroing-hash-tables-in-allocator.patch removed
- from -mm tree
-Date: Fri, 07 Jul 2017 12:10:07 -0700
-Message-ID: <20170707191007.tZe56mIRt%akpm@linux-foundation.org>
+Subject: [merged]
+ powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc.patch removed from
+ -mm tree
+Date: Fri, 07 Jul 2017 12:10:01 -0700
+Message-ID: <20170707191001.DPaDsB7eb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33664 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750941AbdGGTKI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:08 -0400
+        with ESMTP id S1750941AbdGGTKK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: babu.moger@oracle.com, davem@davemloft.net, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, viro@zeniv.linux.org.uk
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, kravetz@us.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: mm: zero hash tables in allocator
+     Subject: powerpc/mm/hugetlb: remove follow_huge_addr for powerpc
 has been removed from the -mm tree.  Its filename was
-     mm-zeroing-hash-tables-in-allocator.patch
+     powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Subject: mm: zero hash tables in allocator
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: powerpc/mm/hugetlb: remove follow_huge_addr for powerpc
 
-Add a new flag HASH_ZERO which when provided grantees that the hash table
-that is returned by alloc_large_system_hash() is zeroed.  In most cases
-that is what is needed by the caller.  Use page level allocator's
-__GFP_ZERO flags to zero the memory.  It is using memset() which is
-efficient method to zero memory and is optimized for most platforms.
+With generic code now handling hugetlb entries at pgd level and also
+supporting hugepage directory format, we can now remove the powerpc
+sepcific follow_huge_addr implementation.
 
-Link: http://lkml.kernel.org/r/1488432825-92126-3-git-send-email-pasha.tatashin@oracle.com
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Babu Moger <babu.moger@oracle.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1494926612-23928-9-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mike Kravetz <kravetz@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 +
- mm/page_alloc.c         |   12 +++++++++---
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |   64 --------------------------------
+ 1 file changed, 64 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-zeroing-hash-tables-in-allocator include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-zeroing-hash-tables-in-allocator
-+++ a/include/linux/bootmem.h
-@@ -358,6 +358,7 @@ extern void *alloc_large_system_hash(con
- #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
- #define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
- 					 * shift passed via *_hash_shift */
-+#define HASH_ZERO	0x00000004	/* Zero allocated hash table */
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-mm-hugetlb-remove-follow_huge_addr-for-powerpc
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -619,11 +619,6 @@ void hugetlb_free_pgd_range(struct mmu_g
+ 	} while (addr = next, addr != end);
+ }
  
- /* Only NUMA needs hash distribution. 64bit NUMA architectures have
-  * sufficient vmalloc space.
-diff -puN mm/page_alloc.c~mm-zeroing-hash-tables-in-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~mm-zeroing-hash-tables-in-allocator
-+++ a/mm/page_alloc.c
-@@ -7198,6 +7198,7 @@ void *__init alloc_large_system_hash(con
- 	unsigned long long max = high_limit;
- 	unsigned long log2qty, size;
- 	void *table = NULL;
-+	gfp_t gfp_flags;
+-/*
+- * 64 bit book3s use generic follow_page_mask
+- */
+-#ifdef CONFIG_PPC_BOOK3S_64
+-
+ struct page *follow_huge_pd(struct vm_area_struct *vma,
+ 			    unsigned long address, hugepd_t hpd,
+ 			    int flags, int pdshift)
+@@ -657,65 +652,6 @@ retry:
+ 	return page;
+ }
  
- 	/* allow the kernel cmdline to have a say */
- 	if (!numentries) {
-@@ -7242,12 +7243,17 @@ void *__init alloc_large_system_hash(con
- 
- 	log2qty = ilog2(numentries);
- 
-+	/*
-+	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
-+	 * currently not used when HASH_EARLY is specified.
-+	 */
-+	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
- 	do {
- 		size = bucketsize << log2qty;
- 		if (flags & HASH_EARLY)
- 			table = memblock_virt_alloc_nopanic(size, 0);
- 		else if (hashdist)
--			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
-+			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
- 		else {
- 			/*
- 			 * If bucketsize is not a power-of-two, we may free
-@@ -7255,8 +7261,8 @@ void *__init alloc_large_system_hash(con
- 			 * alloc_pages_exact() automatically does
- 			 */
- 			if (get_order(size) < MAX_ORDER) {
--				table = alloc_pages_exact(size, GFP_ATOMIC);
--				kmemleak_alloc(table, size, 1, GFP_ATOMIC);
-+				table = alloc_pages_exact(size, gfp_flags);
-+				kmemleak_alloc(table, size, 1, gfp_flags);
- 			}
- 		}
- 	} while (!table && size > PAGE_SIZE && --log2qty);
-_
-
-Patches currently in -mm which might be from pasha.tatashin@oracle.com are
-
-sparc64-ng4-memset-32-bits-overflow.patch
-
+-#else /* !CONFIG_PPC_BOOK3S_64 */
+-
+-/*
+- * We are holding mmap_sem, so a parallel huge page collapse cannot run.
+- * To prevent hugepage split, disable irq.
+- */
+-struct page *
+-follow_huge_addr(struct mm_struct *mm, unsigned long address, int write)
+-{
+-	bool is_thp;
+-	pte_t *ptep, pte;
+-	unsigned shift;
+-	unsigned long mask, flags;
+-	struct page *page = ERR_PTR(-EINVAL);
+-
+-	local_irq_save(flags);
+-	ptep = find_linux_pte_or_hugepte(mm->pgd, address, &is_thp, &shift);
+-	if (!ptep)
+-		goto no_page;
+-	pte = READ_ONCE(*ptep);
+-	/*
+-	 * Verify it is a huge page else bail.
+-	 * Transparent hugepages are handled by generic code. We can skip them
+-	 * here.
+-	 */
+-	if (!shift || is_thp)
+-		goto no_page;
+-
+-	if (!pte_present(pte)) {
+-		page = NULL;
+-		goto no_page;
+-	}
+-	mask = (1UL << shift) - 1;
+-	page = pte_page(pte);
+-	if (page)
+-		page += (address & mask) / PAGE_SIZE;
+-
+-no_page:
+-	local_irq_restore(flags);
+-	return page;
+-}
+-
+-struct page *
+-follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-		pmd_t *pmd, int write)
+-{
+-	BUG();
+-	return NULL;
+-}
+-
+-struct page *
+-follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-		pud_t *pud, int write)
+-{
+-	BUG();
+-	return NULL;
+-}
+-#endif
