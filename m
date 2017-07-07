@@ -1,100 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch removed from -mm
+ mm-drop-null-return-check-of-pte_offset_map_lock.patch removed from -mm
  tree
-Date: Fri, 07 Jul 2017 12:10:16 -0700
-Message-ID: <20170707191016.ZVHOTGUB7%akpm@linux-foundation.org>
+Date: Fri, 07 Jul 2017 12:10:20 -0700
+Message-ID: <20170707191020.xzcJ-AjUC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34148 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752572AbdGGTK1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:27 -0400
+        with ESMTP id S1751659AbdGGTKk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au
+To: aarcange@redhat.com, hannes@cmpxchg.org, mgorman@suse.de, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: powerpc/mm/hugetlb: add support for 1G huge pages
+     Subject: mm: drop NULL return check of pte_offset_map_lock()
 has been removed from the -mm tree.  Its filename was
-     powerpc-mm-hugetlb-add-support-for-1g-huge-pages.patch
+     mm-drop-null-return-check-of-pte_offset_map_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc/mm/hugetlb: add support for 1G huge pages
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: drop NULL return check of pte_offset_map_lock()
 
-POWER9 supports hugepages of size 2M and 1G in radix MMU mode.  This patch
-enables the usage of 1G page size for hugetlbfs.  This also update the
-helper such we can do 1G page allocation at runtime.
+pte_offset_map_lock() finds and takes ptl, and returns pte.  But some
+callers return without unlocking the ptl when pte == NULL, which seems
+weird.
 
-We still don't enable 1G page size on DD1 version.  This is to avoid doing
-workaround mentioned in commit: 6d3a0379ebdc8 ("powerpc/mm: Add
-radix__tlb_flush_pte_p9_dd1()").
+Git history said that !pte check in change_pte_range() was introduced in
+commit 1ad9f620c3a2 ("mm: numa: recheck for transhuge pages under lock
+during protection changes") and still remains after commit 175ad4f1e7a2
+("mm: mprotect: use pmd_trans_unstable instead of taking the pmd_lock")
+which partially reverts 1ad9f620c3a2.  So I think that it's just dead
+code.
 
-Link: http://lkml.kernel.org/r/1494995292-4443-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Many other caller of pte_offset_map_lock() never check NULL return, so
+let's do likewise.
+
+Link: http://lkml.kernel.org/r/1495089737-1292-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/hugetlb.h |   10 ++++++++++
- arch/powerpc/mm/hugetlbpage.c                |    7 +++++--
- arch/powerpc/platforms/Kconfig.cputype       |    1 +
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ mm/memory.c   |    2 --
+ mm/mprotect.c |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/hugetlb.h~powerpc-mm-hugetlb-add-support-for-1g-huge-pages arch/powerpc/include/asm/book3s/64/hugetlb.h
---- a/arch/powerpc/include/asm/book3s/64/hugetlb.h~powerpc-mm-hugetlb-add-support-for-1g-huge-pages
-+++ a/arch/powerpc/include/asm/book3s/64/hugetlb.h
-@@ -50,4 +50,14 @@ static inline pte_t arch_make_huge_pte(p
- 	else
- 		return entry;
- }
-+
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
-+static inline bool gigantic_page_supported(void)
-+{
-+	if (radix_enabled())
-+		return true;
-+	return false;
-+}
-+#endif
-+
- #endif
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-mm-hugetlb-add-support-for-1g-huge-pages arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-mm-hugetlb-add-support-for-1g-huge-pages
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -742,8 +742,11 @@ static int __init add_huge_page_size(uns
- 	 * Hash: 16M and 16G
+diff -puN mm/memory.c~mm-drop-null-return-check-of-pte_offset_map_lock mm/memory.c
+--- a/mm/memory.c~mm-drop-null-return-check-of-pte_offset_map_lock
++++ a/mm/memory.c
+@@ -4014,8 +4014,6 @@ static int __follow_pte_pmd(struct mm_st
+ 		goto out;
+ 
+ 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
+-	if (!ptep)
+-		goto out;
+ 	if (!pte_present(*ptep))
+ 		goto unlock;
+ 	*ptepp = ptep;
+diff -puN mm/mprotect.c~mm-drop-null-return-check-of-pte_offset_map_lock mm/mprotect.c
+--- a/mm/mprotect.c~mm-drop-null-return-check-of-pte_offset_map_lock
++++ a/mm/mprotect.c
+@@ -58,8 +58,6 @@ static unsigned long change_pte_range(st
+ 	 * reading.
  	 */
- 	if (radix_enabled()) {
--		if (mmu_psize != MMU_PAGE_2M)
--			return -EINVAL;
-+		if (mmu_psize != MMU_PAGE_2M) {
-+			if (cpu_has_feature(CPU_FTR_POWER9_DD1) ||
-+			    (mmu_psize != MMU_PAGE_1G))
-+				return -EINVAL;
-+		}
- 	} else {
- 		if (mmu_psize != MMU_PAGE_16M && mmu_psize != MMU_PAGE_16G)
- 			return -EINVAL;
-diff -puN arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-hugetlb-add-support-for-1g-huge-pages arch/powerpc/platforms/Kconfig.cputype
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-hugetlb-add-support-for-1g-huge-pages
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -344,6 +344,7 @@ config PPC_STD_MMU_64
- config PPC_RADIX_MMU
- 	bool "Radix MMU Support"
- 	depends on PPC_BOOK3S_64
-+	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
- 	default y
- 	help
- 	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	if (!pte)
+-		return 0;
+ 
+ 	/* Get target node for single threaded private VMAs */
+ 	if (prot_numa && !(vma->vm_flags & VM_SHARED) &&
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
+mm-hugetlb-prevent-reuse-of-hwpoisoned-free-hugepages.patch
+mm-hugetlb-return-immediately-for-hugetlb-page-in-__delete_from_page_cache.patch
+mm-hwpoison-change-pagehwpoison-behavior-on-hugetlb-pages.patch
+mm-soft-offline-dissolve-free-hugepage-if-soft-offlined.patch
+mm-hwpoison-introduce-memory_failure_hugetlb.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error.patch
+mm-hugetlb-delete-dequeue_hwpoisoned_huge_page.patch
+mm-hwpoison-introduce-idenfity_page_state.patch
 
