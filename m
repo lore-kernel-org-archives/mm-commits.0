@@ -1,61 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?sh-intc-delete-an-error-message-for-a-failed-memory-allocati?=
- =?US-ASCII?Q?on-in-add=5Fvirq=5Fto=5Fpirq.patch?= removed from -mm tree
-Date: Fri, 07 Jul 2017 12:07:31 -0700
-Message-ID: <20170707190731.GgzspcV-V%akpm@linux-foundation.org>
+Subject: [merged] module-use-linux-set_memoryh.patch removed from
+ -mm tree
+Date: Fri, 07 Jul 2017 12:07:27 -0700
+Message-ID: <20170707190727.BJE3CamEQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60612 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbdGGTHc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:32 -0400
+        with ESMTP id S1750938AbdGGTH2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elfring@users.sourceforge.net, mm-commits@vger.kernel.org
+To: daniel@iogearbox.net, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au
 
 
 The patch titled
-     Subject: drivers/sh/intc/virq.c: delete an error message for a failed memory allocation in add_virq_to_pirq()
+     Subject: kernel/module.c: use linux/set_memory.h
 has been removed from the -mm tree.  Its filename was
-     sh-intc-delete-an-error-message-for-a-failed-memory-allocation-in-add_virq_to_pirq.patch
+     module-use-linux-set_memoryh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: drivers/sh/intc/virq.c: delete an error message for a failed memory allocation in add_virq_to_pirq()
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: kernel/module.c: use linux/set_memory.h
 
-This issue was detected by using the Coccinelle software.
+This header always exists, so doesn't require an ifdef around its
+inclusion.  When CONFIG_ARCH_HAS_SET_MEMORY=y it includes the asm header,
+otherwise it provides empty versions of the set_memory_xx() routines.
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
-Link: http://lkml.kernel.org/r/54e30d61-5183-9911-cf35-1410fb78da5a@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+The usages of set_memory_xx() are still guarded by
+CONFIG_STRICT_MODULE_RWX.
+
+Link: http://lkml.kernel.org/r/1498717781-29151-3-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Laura Abbott <labbott@redhat.com>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sh/intc/virq.c |    4 +---
+ kernel/module.c |    4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/sh/intc/virq.c~sh-intc-delete-an-error-message-for-a-failed-memory-allocation-in-add_virq_to_pirq drivers/sh/intc/virq.c
---- a/drivers/sh/intc/virq.c~sh-intc-delete-an-error-message-for-a-failed-memory-allocation-in-add_virq_to_pirq
-+++ a/drivers/sh/intc/virq.c
-@@ -94,10 +94,8 @@ static int add_virq_to_pirq(unsigned int
- 	}
- 
- 	entry = kzalloc(sizeof(struct intc_virq_list), GFP_ATOMIC);
--	if (!entry) {
--		pr_err("can't allocate VIRQ mapping for %d\n", virq);
-+	if (!entry)
- 		return -ENOMEM;
--	}
- 
- 	entry->irq = virq;
- 
+diff -puN kernel/module.c~module-use-linux-set_memoryh kernel/module.c
+--- a/kernel/module.c~module-use-linux-set_memoryh
++++ a/kernel/module.c
+@@ -49,9 +49,7 @@
+ #include <linux/rculist.h>
+ #include <linux/uaccess.h>
+ #include <asm/cacheflush.h>
+-#ifdef CONFIG_STRICT_MODULE_RWX
+-#include <asm/set_memory.h>
+-#endif
++#include <linux/set_memory.h>
+ #include <asm/mmu_context.h>
+ #include <linux/license.h>
+ #include <asm/sections.h>
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
 
