@@ -1,126 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?compiler-clang-always-inline-when-config=5Foptimize=5Finlini?=
- =?US-ASCII?Q?ng-is-disabled.patch?= removed from -mm tree
-Date: Fri, 07 Jul 2017 12:07:00 -0700
-Message-ID: <20170707190700.zpZAPnkKF%akpm@linux-foundation.org>
+ kernel-extablec-mark-core_kernel_text-notrace.patch removed from -mm tree
+Date: Fri, 07 Jul 2017 12:07:06 -0700
+Message-ID: <20170707190706.qDMlSUEtk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60520 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbdGGTHB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:01 -0400
+        with ESMTP id S1751089AbdGGTHH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, mark.rutland@arm.com, mingo@kernel.org, mka@chromium.org, mm-commits@vger.kernel.org, peterz@infradead.org, psodagud@codeaurora.org, rientjes@google.com, stable@vger.kernel.org, will.deacon@arm.com
+To: daniel@iogearbox.net, marcin.nowakowski@imgtec.com, mhiramat@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, peterz@infradead.org, rostedt@goodmis.org, stable@vger.kernel.org, tglx@linutronix.de, thomas@m3y3r.de
 
 
 The patch titled
-     Subject: compiler, clang: always inline when CONFIG_OPTIMIZE_INLINING is disabled
+     Subject: kernel/extable.c: mark core_kernel_text notrace
 has been removed from the -mm tree.  Its filename was
-     compiler-clang-always-inline-when-config_optimize_inlining-is-disabled.patch
+     kernel-extablec-mark-core_kernel_text-notrace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: compiler, clang: always inline when CONFIG_OPTIMIZE_INLINING is disabled
+From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Subject: kernel/extable.c: mark core_kernel_text notrace
 
-The motivation of abb2ea7dfd82 ("compiler, clang: suppress warning for
-unused static inline functions") is to suppress clang's warnings about
-unused static inline functions.
+core_kernel_text is used by MIPS in its function graph trace processing,
+so having this method traced leads to an infinite set of recursive calls
+such as:
 
-For configs without CONFIG_OPTIMIZE_INLINING enabled, such as any non-x86
-architecture, `inline' in the kernel implies that
-__attribute__((always_inline)) is used.
+[    2.972075] Call Trace:
+[    2.972111]
+[    2.976731] [<80506584>] ftrace_return_to_handler+0x50/0x128
+[    2.983379] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    2.989146] [<804119b8>] prepare_ftrace_return+0x6c/0x114
+[    2.995402] [<80411b2c>] ftrace_graph_caller+0x20/0x44
+[    3.001362] [<80411b60>] return_to_handler+0x10/0x30
+[    3.007159] [<80411b50>] return_to_handler+0x0/0x30
+[    3.012827] [<80411b50>] return_to_handler+0x0/0x30
+[    3.018621] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
+[    3.024602] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.030377] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.036140] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.041915] [<804e589c>] ftrace_ops_no_ops+0x114/0x1bc
+[    3.047923] [<8045478c>] core_kernel_text+0x10/0x1b8
+[    3.053682] [<804119b8>] prepare_ftrace_return+0x6c/0x114
+[    3.059938] [<80411b2c>] ftrace_graph_caller+0x20/0x44
+(...)
 
-Some code depends on that behavior, see
-https://lkml.org/lkml/2017/6/13/918:
+Mark the function notrace to avoid it being traced.
 
-net/built-in.o: In function `__xchg_mb':
-arch/arm64/include/asm/cmpxchg.h:99: undefined reference to `__compiletime_assert_99'
-arch/arm64/include/asm/cmpxchg.h:99: undefined reference to `__compiletime_assert_99
-
-The full fix would be to identify these breakages and annotate the
-functions with __always_inline instead of `inline'.  But since we are late
-in the 4.12-rc cycle, simply carry forward the forced inlining behavior
-and work toward moving arm64, and other architectures, toward
-CONFIG_OPTIMIZE_INLINING behavior.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1706261552200.1075@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Sodagudi Prasad <psodagud@codeaurora.org>
-Tested-by: Sodagudi Prasad <psodagud@codeaurora.org>
-Tested-by: Matthias Kaehlcke <mka@chromium.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Link: http://lkml.kernel.org/r/1498028607-6765-1-git-send-email-marcin.nowakowski@imgtec.com
+Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Reviewed-by: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Meyer <thomas@m3y3r.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-clang.h |    8 --------
- include/linux/compiler-gcc.h   |   18 +++++++++++-------
- 2 files changed, 11 insertions(+), 15 deletions(-)
+ kernel/extable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-clang.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled include/linux/compiler-clang.h
---- a/include/linux/compiler-clang.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled
-+++ a/include/linux/compiler-clang.h
-@@ -15,11 +15,3 @@
-  * with any version that can compile the kernel
-  */
- #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
--
--/*
-- * GCC does not warn about unused static inline functions for
-- * -Wunused-function.  This turns out to avoid the need for complex #ifdef
-- * directives.  Suppress the warning in clang as well.
-- */
--#undef inline
--#define inline inline __attribute__((unused)) notrace
-diff -puN include/linux/compiler-gcc.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-clang-always-inline-when-config_optimize_inlining-is-disabled
-+++ a/include/linux/compiler-gcc.h
-@@ -66,18 +66,22 @@
+diff -puN kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace kernel/extable.c
+--- a/kernel/extable.c~kernel-extablec-mark-core_kernel_text-notrace
++++ a/kernel/extable.c
+@@ -69,7 +69,7 @@ static inline int init_kernel_text(unsig
+ 	return 0;
+ }
  
- /*
-  * Force always-inline if the user requests it so via the .config,
-- * or if gcc is too old:
-+ * or if gcc is too old.
-+ * GCC does not warn about unused static inline functions for
-+ * -Wunused-function.  This turns out to avoid the need for complex #ifdef
-+ * directives.  Suppress the warning in clang as well by using "unused"
-+ * function attribute, which is redundant but not harmful for gcc.
-  */
- #if !defined(CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING) ||		\
-     !defined(CONFIG_OPTIMIZE_INLINING) || (__GNUC__ < 4)
--#define inline		inline		__attribute__((always_inline)) notrace
--#define __inline__	__inline__	__attribute__((always_inline)) notrace
--#define __inline	__inline	__attribute__((always_inline)) notrace
-+#define inline inline		__attribute__((always_inline,unused)) notrace
-+#define __inline__ __inline__	__attribute__((always_inline,unused)) notrace
-+#define __inline __inline	__attribute__((always_inline,unused)) notrace
- #else
- /* A lot of inline functions can cause havoc with function tracing */
--#define inline		inline		notrace
--#define __inline__	__inline__	notrace
--#define __inline	__inline	notrace
-+#define inline inline		__attribute__((unused)) notrace
-+#define __inline__ __inline__	__attribute__((unused)) notrace
-+#define __inline __inline	__attribute__((unused)) notrace
- #endif
- 
- #define __always_inline	inline __attribute__((always_inline))
+-int core_kernel_text(unsigned long addr)
++int notrace core_kernel_text(unsigned long addr)
+ {
+ 	if (addr >= (unsigned long)_stext &&
+ 	    addr < (unsigned long)_etext)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from marcin.nowakowski@imgtec.com are
 
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch
-mm-vmpressure-pass-through-notification-support.patch
-mm-hugetlb-schedule-when-potentially-allocating-many-hugepages.patch
-fs-epoll-short-circuit-fetching-events-if-thread-has-been-killed.patch
 
