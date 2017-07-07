@@ -1,228 +1,153 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-follow_page_mask-split-follow_page_mask-to-smaller-functions.patch
+ mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
  removed from -mm tree
-Date: Fri, 07 Jul 2017 12:09:44 -0700
-Message-ID: <20170707190944.XAGdB0fAu%akpm@linux-foundation.org>
+Date: Fri, 07 Jul 2017 12:09:39 -0700
+Message-ID: <20170707190939.6_8rDR7zG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33232 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752552AbdGGTJp (ORCPT
+        with ESMTP id S1752561AbdGGTJp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, kravetz@us.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com
+To: aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: mm/follow_page_mask: split follow_page_mask to smaller functions.
+     Subject: mm/madvise: enable (soft|hard) offline of HugeTLB pages at PGD level
 has been removed from the -mm tree.  Its filename was
-     mm-follow_page_mask-split-follow_page_mask-to-smaller-functions.patch
+     mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/follow_page_mask: split follow_page_mask to smaller functions.
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: mm/madvise: enable (soft|hard) offline of HugeTLB pages at PGD level
 
-Makes code reading easy.  No functional changes in this patch.  In a
-followup patch, we will be updating the follow_page_mask to handle hugetlb
-hugepd format so that archs like ppc64 can switch to the generic version. 
-This split helps in doing that nicely.
+Though migrating gigantic HugeTLB pages does not sound much like real
+world use case, they can be affected by memory errors.  Hence migration at
+the PGD level HugeTLB pages should be supported just to enable soft and
+hard offline use cases.
 
-Link: http://lkml.kernel.org/r/1494926612-23928-3-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Mike Kravetz <kravetz@us.ibm.com>
+While allocating the new gigantic HugeTLB page, it should not matter
+whether new page comes from the same node or not.  There would be very few
+gigantic pages on the system afterall, we should not be bothered about
+node locality when trying to save a big page from crashing.
+
+This change renames dequeu_huge_page_node() function as dequeue_huge
+_page_node_exact() preserving it's original functionality.  Now the new
+dequeue_huge_page_node() function scans through all available online nodes
+to allocate a huge page for the NUMA_NO_NODE case and just falls back
+calling dequeu_huge_page_node_exact() for all other cases.
+
+[arnd@arndb.de: make hstate_is_gigantic() inline]
+  Link: http://lkml.kernel.org/r/20170522124748.3911296-1-arnd@arndb.de
+Link: http://lkml.kernel.org/r/20170516100509.20122-1-khandual@linux.vnet.ibm.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  148 ++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 91 insertions(+), 57 deletions(-)
+ include/linux/hugetlb.h |   11 ++++++++++-
+ mm/hugetlb.c            |   18 +++++++++++++++++-
+ mm/memory-failure.c     |   13 +++++++++----
+ 3 files changed, 36 insertions(+), 6 deletions(-)
 
-diff -puN mm/gup.c~mm-follow_page_mask-split-follow_page_mask-to-smaller-functions mm/gup.c
---- a/mm/gup.c~mm-follow_page_mask-split-follow_page_mask-to-smaller-functions
-+++ a/mm/gup.c
-@@ -208,68 +208,16 @@ no_page:
- 	return no_page_table(vma, flags);
+diff -puN include/linux/hugetlb.h~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
++++ a/include/linux/hugetlb.h
+@@ -466,7 +466,11 @@ extern int dissolve_free_huge_pages(unsi
+ static inline bool hugepage_migration_supported(struct hstate *h)
+ {
+ #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+-	return huge_page_shift(h) == PMD_SHIFT;
++	if ((huge_page_shift(h) == PMD_SHIFT) ||
++		(huge_page_shift(h) == PGDIR_SHIFT))
++		return true;
++	else
++		return false;
+ #else
+ 	return false;
+ #endif
+@@ -518,6 +522,11 @@ struct hstate {};
+ #define vma_mmu_pagesize(v) PAGE_SIZE
+ #define huge_page_order(h) 0
+ #define huge_page_shift(h) PAGE_SHIFT
++static inline bool hstate_is_gigantic(struct hstate *h)
++{
++	return false;
++}
++
+ static inline unsigned int pages_per_huge_page(struct hstate *h)
+ {
+ 	return 1;
+diff -puN mm/hugetlb.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
++++ a/mm/hugetlb.c
+@@ -867,7 +867,7 @@ static void enqueue_huge_page(struct hst
+ 	h->free_huge_pages_node[nid]++;
  }
  
--/**
-- * follow_page_mask - look up a page descriptor from a user-virtual address
-- * @vma: vm_area_struct mapping @address
-- * @address: virtual address to look up
-- * @flags: flags modifying lookup behaviour
-- * @page_mask: on output, *page_mask is set according to the size of the page
-- *
-- * @flags can have FOLL_ flags set, defined in <linux/mm.h>
-- *
-- * Returns the mapped (struct page *), %NULL if no mapping exists, or
-- * an error pointer if there is a mapping to something not represented
-- * by a page descriptor (see also vm_normal_page()).
-- */
--struct page *follow_page_mask(struct vm_area_struct *vma,
--			      unsigned long address, unsigned int flags,
--			      unsigned int *page_mask)
-+static struct page *follow_pmd_mask(struct vm_area_struct *vma,
-+				    unsigned long address, pud_t *pudp,
-+				    unsigned int flags, unsigned int *page_mask)
+-static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
++static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
  {
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	spinlock_t *ptl;
  	struct page *page;
- 	struct mm_struct *mm = vma->vm_mm;
  
--	*page_mask = 0;
--
--	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
--	if (!IS_ERR(page)) {
--		BUG_ON(flags & FOLL_GET);
--		return page;
--	}
--
--	pgd = pgd_offset(mm, address);
--	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
--		return no_page_table(vma, flags);
--	p4d = p4d_offset(pgd, address);
--	if (p4d_none(*p4d))
--		return no_page_table(vma, flags);
--	BUILD_BUG_ON(p4d_huge(*p4d));
--	if (unlikely(p4d_bad(*p4d)))
--		return no_page_table(vma, flags);
--	pud = pud_offset(p4d, address);
--	if (pud_none(*pud))
--		return no_page_table(vma, flags);
--	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
--		page = follow_huge_pud(mm, address, pud, flags);
--		if (page)
--			return page;
--		return no_page_table(vma, flags);
--	}
--	if (pud_devmap(*pud)) {
--		ptl = pud_lock(mm, pud);
--		page = follow_devmap_pud(vma, address, pud, flags);
--		spin_unlock(ptl);
--		if (page)
--			return page;
--	}
--	if (unlikely(pud_bad(*pud)))
--		return no_page_table(vma, flags);
--
--	pmd = pmd_offset(pud, address);
-+	pmd = pmd_offset(pudp, address);
- 	if (pmd_none(*pmd))
- 		return no_page_table(vma, flags);
- 	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
-@@ -319,13 +267,99 @@ struct page *follow_page_mask(struct vm_
- 		return ret ? ERR_PTR(ret) :
- 			follow_page_pte(vma, address, pmd, flags);
- 	}
--
- 	page = follow_trans_huge_pmd(vma, address, pmd, flags);
- 	spin_unlock(ptl);
- 	*page_mask = HPAGE_PMD_NR - 1;
+@@ -887,6 +887,22 @@ static struct page *dequeue_huge_page_no
  	return page;
  }
  
-+
-+static struct page *follow_pud_mask(struct vm_area_struct *vma,
-+				    unsigned long address, p4d_t *p4dp,
-+				    unsigned int flags, unsigned int *page_mask)
++static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
 +{
-+	pud_t *pud;
-+	spinlock_t *ptl;
 +	struct page *page;
-+	struct mm_struct *mm = vma->vm_mm;
++	int node;
 +
-+	pud = pud_offset(p4dp, address);
-+	if (pud_none(*pud))
-+		return no_page_table(vma, flags);
-+	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
-+		page = follow_huge_pud(mm, address, pud, flags);
-+		if (page)
-+			return page;
-+		return no_page_table(vma, flags);
-+	}
-+	if (pud_devmap(*pud)) {
-+		ptl = pud_lock(mm, pud);
-+		page = follow_devmap_pud(vma, address, pud, flags);
-+		spin_unlock(ptl);
++	if (nid != NUMA_NO_NODE)
++		return dequeue_huge_page_node_exact(h, nid);
++
++	for_each_online_node(node) {
++		page = dequeue_huge_page_node_exact(h, node);
 +		if (page)
 +			return page;
 +	}
-+	if (unlikely(pud_bad(*pud)))
-+		return no_page_table(vma, flags);
-+
-+	return follow_pmd_mask(vma, address, pud, flags, page_mask);
++	return NULL;
 +}
 +
+ /* Movability of hugepages depends on migration support. */
+ static inline gfp_t htlb_alloc_mask(struct hstate *h)
+ {
+diff -puN mm/memory-failure.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
++++ a/mm/memory-failure.c
+@@ -1492,11 +1492,16 @@ EXPORT_SYMBOL(unpoison_memory);
+ static struct page *new_page(struct page *p, unsigned long private, int **x)
+ {
+ 	int nid = page_to_nid(p);
+-	if (PageHuge(p))
+-		return alloc_huge_page_node(page_hstate(compound_head(p)),
+-						   nid);
+-	else
++	if (PageHuge(p)) {
++		struct hstate *hstate = page_hstate(compound_head(p));
 +
-+static struct page *follow_p4d_mask(struct vm_area_struct *vma,
-+				    unsigned long address, pgd_t *pgdp,
-+				    unsigned int flags, unsigned int *page_mask)
-+{
-+	p4d_t *p4d;
++		if (hstate_is_gigantic(hstate))
++			return alloc_huge_page_node(hstate, NUMA_NO_NODE);
 +
-+	p4d = p4d_offset(pgdp, address);
-+	if (p4d_none(*p4d))
-+		return no_page_table(vma, flags);
-+	BUILD_BUG_ON(p4d_huge(*p4d));
-+	if (unlikely(p4d_bad(*p4d)))
-+		return no_page_table(vma, flags);
-+
-+	return follow_pud_mask(vma, address, p4d, flags, page_mask);
-+}
-+
-+/**
-+ * follow_page_mask - look up a page descriptor from a user-virtual address
-+ * @vma: vm_area_struct mapping @address
-+ * @address: virtual address to look up
-+ * @flags: flags modifying lookup behaviour
-+ * @page_mask: on output, *page_mask is set according to the size of the page
-+ *
-+ * @flags can have FOLL_ flags set, defined in <linux/mm.h>
-+ *
-+ * Returns the mapped (struct page *), %NULL if no mapping exists, or
-+ * an error pointer if there is a mapping to something not represented
-+ * by a page descriptor (see also vm_normal_page()).
-+ */
-+struct page *follow_page_mask(struct vm_area_struct *vma,
-+			      unsigned long address, unsigned int flags,
-+			      unsigned int *page_mask)
-+{
-+	pgd_t *pgd;
-+	struct page *page;
-+	struct mm_struct *mm = vma->vm_mm;
-+
-+	*page_mask = 0;
-+
-+	/* make this handle hugepd */
-+	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
-+	if (!IS_ERR(page)) {
-+		BUG_ON(flags & FOLL_GET);
-+		return page;
++		return alloc_huge_page_node(hstate, nid);
++	} else {
+ 		return __alloc_pages_node(nid, GFP_HIGHUSER_MOVABLE, 0);
 +	}
-+
-+	pgd = pgd_offset(mm, address);
-+
-+	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
-+		return no_page_table(vma, flags);
-+
-+	return follow_p4d_mask(vma, address, pgd, flags, page_mask);
-+}
-+
- static int get_gate_page(struct mm_struct *mm, unsigned long address,
- 		unsigned int gup_flags, struct vm_area_struct **vma,
- 		struct page **page)
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
 
+mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
+mm-cma-warn-if-the-cma-area-could-not-be-activated.patch
 
