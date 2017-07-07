@@ -1,304 +1,136 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets.patch
+ mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
  removed from -mm tree
-Date: Fri, 07 Jul 2017 12:10:57 -0700
-Message-ID: <20170707191057.NsXzVsvUJ%akpm@linux-foundation.org>
+Date: Fri, 07 Jul 2017 12:10:51 -0700
+Message-ID: <20170707191051.7bFiyTjfn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34550 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34362 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752452AbdGGTLC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:11:02 -0400
+        with ESMTP id S1752446AbdGGTK7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, cl@linux.com, hughd@google.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, lizefan@huawei.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, sivanich@sgi.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, mempolicy: simplify rebinding mempolicies when updating cpusets
+     Subject: mm, mempolicy: stop adjusting current->il_next in mpol_rebind_nodemask()
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets.patch
+     mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, mempolicy: simplify rebinding mempolicies when updating cpusets
+Subject: mm, mempolicy: stop adjusting current->il_next in mpol_rebind_nodemask()
 
-Commit c0ff7453bb5c ("cpuset,mm: fix no node to alloc memory when changing
-cpuset's mems") has introduced a two-step protocol when rebinding task's
-mempolicy due to cpuset update, in order to avoid a parallel allocation
-seeing an empty effective nodemask and failing.  Later, commit
-cc9a6c877661 ("cpuset: mm: reduce large amounts of memory barrier related
-damage v3") introduced a seqlock protection and removed the
-synchronization point between the two update steps.  At that point (or
-perhaps later), the two-step rebinding became unnecessary.  Currently it
-only makes sure that the update first adds new nodes in step 1 and then
-removes nodes in step 2.  Without memory barriers the effects are
-questionable, and even then this cannot prevent a parallel zonelist
-iteration checking the nodemask at each step to observe all nodes as
-unusable for allocation.  We now fully rely on the seqlock to prevent
-premature OOMs and allocation failures.
+The task->il_next variable stores the next allocation node id for task's
+MPOL_INTERLEAVE policy.  mpol_rebind_nodemask() updates interleave and
+bind mempolicies due to changing cpuset mems.  Currently it also tries to
+make sure that current->il_next is valid within the updated nodemask. 
+This is bogus, because 1) we are updating potentially any task's
+mempolicy, not just current, and 2) we might be updating a per-vma
+mempolicy, not task one.
 
-We can thus remove the two-step update parts and simplify the code.
+The interleave_nodes() function that uses il_next can cope fine with the
+value not being within the currently allowed nodes, so this hasn't
+manifested as an actual issue.
 
-Link: http://lkml.kernel.org/r/20170517081140.30654-5-vbabka@suse.cz
+We can remove the need for updating il_next completely by changing it to
+il_prev and store the node id of the previous interleave allocation
+instead of the next id.  Then interleave_nodes() can calculate the next id
+using the current nodemask and also store it as il_prev, except when
+querying the next node via do_get_mempolicy().
+
+Link: http://lkml.kernel.org/r/20170517081140.30654-3-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dimitri Sivanich <sivanich@sgi.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Li Zefan <lizefan@huawei.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h      |    6 -
- include/uapi/linux/mempolicy.h |    8 --
- kernel/cgroup/cpuset.c         |    4 -
- mm/mempolicy.c                 |  102 +++++--------------------------
- 4 files changed, 21 insertions(+), 99 deletions(-)
+ include/linux/sched.h |    2 +-
+ mm/mempolicy.c        |   22 +++++++---------------
+ 2 files changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
-+++ a/include/linux/mempolicy.h
-@@ -142,8 +142,7 @@ bool vma_policy_mof(struct vm_area_struc
- 
- extern void numa_default_policy(void);
- extern void numa_policy_init(void);
--extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
--				enum mpol_rebind_step step);
-+extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new);
- extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
- 
- extern int huge_node(struct vm_area_struct *vma,
-@@ -260,8 +259,7 @@ static inline void numa_default_policy(v
- }
- 
- static inline void mpol_rebind_task(struct task_struct *tsk,
--				const nodemask_t *new,
--				enum mpol_rebind_step step)
-+				const nodemask_t *new)
- {
- }
- 
-diff -puN include/uapi/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets include/uapi/linux/mempolicy.h
---- a/include/uapi/linux/mempolicy.h~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
-+++ a/include/uapi/linux/mempolicy.h
-@@ -24,13 +24,6 @@ enum {
- 	MPOL_MAX,	/* always last member of enum */
- };
- 
--enum mpol_rebind_step {
--	MPOL_REBIND_ONCE,	/* do rebind work at once(not by two step) */
--	MPOL_REBIND_STEP1,	/* first step(set all the newly nodes) */
--	MPOL_REBIND_STEP2,	/* second step(clean all the disallowed nodes)*/
--	MPOL_REBIND_NSTEP,
--};
--
- /* Flags for set_mempolicy */
- #define MPOL_F_STATIC_NODES	(1 << 15)
- #define MPOL_F_RELATIVE_NODES	(1 << 14)
-@@ -65,7 +58,6 @@ enum mpol_rebind_step {
-  */
- #define MPOL_F_SHARED  (1 << 0)	/* identify shared policies */
- #define MPOL_F_LOCAL   (1 << 1)	/* preferred local allocation */
--#define MPOL_F_REBINDING (1 << 2)	/* identify policies in rebinding */
- #define MPOL_F_MOF	(1 << 3) /* this policy wants migrate on fault */
- #define MPOL_F_MORON	(1 << 4) /* Migrate On protnone Reference On Node */
- 
-diff -puN kernel/cgroup/cpuset.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets kernel/cgroup/cpuset.c
---- a/kernel/cgroup/cpuset.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
-+++ a/kernel/cgroup/cpuset.c
-@@ -1063,9 +1063,7 @@ static void cpuset_change_task_nodemask(
- 	}
- 
- 	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
--	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
--
--	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP2);
-+	mpol_rebind_task(tsk, newmems);
- 	tsk->mems_allowed = *newmems;
- 
- 	if (need_loop) {
-diff -puN mm/mempolicy.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-simplify-rebinding-mempolicies-when-updating-cpusets
+diff -puN include/linux/sched.h~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask include/linux/sched.h
+--- a/include/linux/sched.h~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask
++++ a/include/linux/sched.h
+@@ -904,7 +904,7 @@ struct task_struct {
+ #ifdef CONFIG_NUMA
+ 	/* Protected by alloc_lock: */
+ 	struct mempolicy		*mempolicy;
+-	short				il_next;
++	short				il_prev;
+ 	short				pref_node_fork;
+ #endif
+ #ifdef CONFIG_NUMA_BALANCING
+diff -puN mm/mempolicy.c~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-stop-adjusting-current-il_next-in-mpol_rebind_nodemask
 +++ a/mm/mempolicy.c
-@@ -146,22 +146,7 @@ struct mempolicy *get_task_policy(struct
- 
- static const struct mempolicy_operations {
- 	int (*create)(struct mempolicy *pol, const nodemask_t *nodes);
--	/*
--	 * If read-side task has no lock to protect task->mempolicy, write-side
--	 * task will rebind the task->mempolicy by two step. The first step is
--	 * setting all the newly nodes, and the second step is cleaning all the
--	 * disallowed nodes. In this way, we can avoid finding no node to alloc
--	 * page.
--	 * If we have a lock to protect task->mempolicy in read-side, we do
--	 * rebind directly.
--	 *
--	 * step:
--	 * 	MPOL_REBIND_ONCE - do rebind work at once
--	 * 	MPOL_REBIND_STEP1 - set all the newly nodes
--	 * 	MPOL_REBIND_STEP2 - clean all the disallowed nodes
--	 */
--	void (*rebind)(struct mempolicy *pol, const nodemask_t *nodes,
--			enum mpol_rebind_step step);
-+	void (*rebind)(struct mempolicy *pol, const nodemask_t *nodes);
- } mpol_ops[MPOL_MAX];
- 
- static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
-@@ -304,19 +289,11 @@ void __mpol_put(struct mempolicy *p)
- 	kmem_cache_free(policy_cache, p);
- }
- 
--static void mpol_rebind_default(struct mempolicy *pol, const nodemask_t *nodes,
--				enum mpol_rebind_step step)
-+static void mpol_rebind_default(struct mempolicy *pol, const nodemask_t *nodes)
- {
- }
- 
--/*
-- * step:
-- * 	MPOL_REBIND_ONCE  - do rebind work at once
-- * 	MPOL_REBIND_STEP1 - set all the newly nodes
-- * 	MPOL_REBIND_STEP2 - clean all the disallowed nodes
-- */
--static void mpol_rebind_nodemask(struct mempolicy *pol, const nodemask_t *nodes,
--				 enum mpol_rebind_step step)
-+static void mpol_rebind_nodemask(struct mempolicy *pol, const nodemask_t *nodes)
- {
- 	nodemask_t tmp;
- 
-@@ -325,35 +302,19 @@ static void mpol_rebind_nodemask(struct
- 	else if (pol->flags & MPOL_F_RELATIVE_NODES)
- 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
- 	else {
--		/*
--		 * if step == 1, we use ->w.cpuset_mems_allowed to cache the
--		 * result
--		 */
--		if (step == MPOL_REBIND_ONCE || step == MPOL_REBIND_STEP1) {
--			nodes_remap(tmp, pol->v.nodes,
--					pol->w.cpuset_mems_allowed, *nodes);
--			pol->w.cpuset_mems_allowed = step ? tmp : *nodes;
--		} else if (step == MPOL_REBIND_STEP2) {
--			tmp = pol->w.cpuset_mems_allowed;
--			pol->w.cpuset_mems_allowed = *nodes;
--		} else
--			BUG();
-+		nodes_remap(tmp, pol->v.nodes,pol->w.cpuset_mems_allowed,
-+								*nodes);
-+		pol->w.cpuset_mems_allowed = tmp;
- 	}
- 
- 	if (nodes_empty(tmp))
- 		tmp = *nodes;
- 
--	if (step == MPOL_REBIND_STEP1)
--		nodes_or(pol->v.nodes, pol->v.nodes, tmp);
--	else if (step == MPOL_REBIND_ONCE || step == MPOL_REBIND_STEP2)
--		pol->v.nodes = tmp;
--	else
--		BUG();
-+	pol->v.nodes = tmp;
+@@ -349,12 +349,6 @@ static void mpol_rebind_nodemask(struct
+ 		pol->v.nodes = tmp;
+ 	else
+ 		BUG();
+-
+-	if (!node_isset(current->il_next, tmp)) {
+-		current->il_next = next_node_in(current->il_next, tmp);
+-		if (current->il_next >= MAX_NUMNODES)
+-			current->il_next = numa_node_id();
+-	}
  }
  
  static void mpol_rebind_preferred(struct mempolicy *pol,
--				  const nodemask_t *nodes,
--				  enum mpol_rebind_step step)
-+						const nodemask_t *nodes)
- {
- 	nodemask_t tmp;
- 
-@@ -379,42 +340,19 @@ static void mpol_rebind_preferred(struct
- /*
-  * mpol_rebind_policy - Migrate a policy to a different set of nodes
-  *
-- * If read-side task has no lock to protect task->mempolicy, write-side
-- * task will rebind the task->mempolicy by two step. The first step is
-- * setting all the newly nodes, and the second step is cleaning all the
-- * disallowed nodes. In this way, we can avoid finding no node to alloc
-- * page.
-- * If we have a lock to protect task->mempolicy in read-side, we do
-- * rebind directly.
-- *
-- * step:
-- * 	MPOL_REBIND_ONCE  - do rebind work at once
-- * 	MPOL_REBIND_STEP1 - set all the newly nodes
-- * 	MPOL_REBIND_STEP2 - clean all the disallowed nodes
-+ * Per-vma policies are protected by mmap_sem. Allocations using per-task
-+ * policies are protected by task->mems_allowed_seq to prevent a premature
-+ * OOM/allocation failure due to parallel nodemask modification.
-  */
--static void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask,
--				enum mpol_rebind_step step)
-+static void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask)
- {
- 	if (!pol)
- 		return;
--	if (!mpol_store_user_nodemask(pol) && step == MPOL_REBIND_ONCE &&
-+	if (!mpol_store_user_nodemask(pol) &&
- 	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
- 		return;
- 
--	if (step == MPOL_REBIND_STEP1 && (pol->flags & MPOL_F_REBINDING))
--		return;
--
--	if (step == MPOL_REBIND_STEP2 && !(pol->flags & MPOL_F_REBINDING))
--		BUG();
--
--	if (step == MPOL_REBIND_STEP1)
--		pol->flags |= MPOL_F_REBINDING;
--	else if (step == MPOL_REBIND_STEP2)
--		pol->flags &= ~MPOL_F_REBINDING;
--	else if (step >= MPOL_REBIND_NSTEP)
--		BUG();
--
--	mpol_ops[pol->mode].rebind(pol, newmask, step);
-+	mpol_ops[pol->mode].rebind(pol, newmask);
- }
- 
- /*
-@@ -424,10 +362,9 @@ static void mpol_rebind_policy(struct me
-  * Called with task's alloc_lock held.
-  */
- 
--void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
--			enum mpol_rebind_step step)
-+void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new)
- {
--	mpol_rebind_policy(tsk->mempolicy, new, step);
-+	mpol_rebind_policy(tsk->mempolicy, new);
- }
- 
- /*
-@@ -442,7 +379,7 @@ void mpol_rebind_mm(struct mm_struct *mm
- 
- 	down_write(&mm->mmap_sem);
- 	for (vma = mm->mmap; vma; vma = vma->vm_next)
--		mpol_rebind_policy(vma->vm_policy, new, MPOL_REBIND_ONCE);
-+		mpol_rebind_policy(vma->vm_policy, new);
- 	up_write(&mm->mmap_sem);
- }
- 
-@@ -2101,10 +2038,7 @@ struct mempolicy *__mpol_dup(struct memp
- 
- 	if (current_cpuset_is_being_rebound()) {
- 		nodemask_t mems = cpuset_mems_allowed(current);
--		if (new->flags & MPOL_F_REBINDING)
--			mpol_rebind_policy(new, &mems, MPOL_REBIND_STEP2);
--		else
--			mpol_rebind_policy(new, &mems, MPOL_REBIND_ONCE);
-+		mpol_rebind_policy(new, &mems);
+@@ -812,9 +806,8 @@ static long do_set_mempolicy(unsigned sh
  	}
- 	atomic_set(&new->refcnt, 1);
- 	return new;
+ 	old = current->mempolicy;
+ 	current->mempolicy = new;
+-	if (new && new->mode == MPOL_INTERLEAVE &&
+-	    nodes_weight(new->v.nodes))
+-		current->il_next = first_node(new->v.nodes);
++	if (new && new->mode == MPOL_INTERLEAVE)
++		current->il_prev = MAX_NUMNODES-1;
+ 	task_unlock(current);
+ 	mpol_put(old);
+ 	ret = 0;
+@@ -916,7 +909,7 @@ static long do_get_mempolicy(int *policy
+ 			*policy = err;
+ 		} else if (pol == current->mempolicy &&
+ 				pol->mode == MPOL_INTERLEAVE) {
+-			*policy = current->il_next;
++			*policy = next_node_in(current->il_prev, pol->v.nodes);
+ 		} else {
+ 			err = -EINVAL;
+ 			goto out;
+@@ -1697,14 +1690,13 @@ static struct zonelist *policy_zonelist(
+ /* Do dynamic interleaving for a process */
+ static unsigned interleave_nodes(struct mempolicy *policy)
+ {
+-	unsigned nid, next;
++	unsigned next;
+ 	struct task_struct *me = current;
+ 
+-	nid = me->il_next;
+-	next = next_node_in(nid, policy->v.nodes);
++	next = next_node_in(me->il_prev, policy->v.nodes);
+ 	if (next < MAX_NUMNODES)
+-		me->il_next = next;
+-	return nid;
++		me->il_prev = next;
++	return next;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
