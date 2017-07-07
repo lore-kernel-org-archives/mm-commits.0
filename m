@@ -1,77 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mn10300-use-generic-fbh.patch removed from -mm
- tree
-Date: Fri, 07 Jul 2017 12:07:11 -0700
-Message-ID: <20170707190711.-PxsMKEB0%akpm@linux-foundation.org>
+Subject: [merged] tile-provide-default-ioremap-declaration.patch
+ removed from -mm tree
+Date: Fri, 07 Jul 2017 12:07:13 -0700
+Message-ID: <20170707190713.DUPqI26RT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60554 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751438AbdGGTHQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:16 -0400
+        with ESMTP id S1751438AbdGGTHO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org, tklauser@distanz.ch
+To: cmetcalf@mellanox.com, hannes@cmpxchg.org, logang@deltatee.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, sbates@raithlin.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     Subject: mn10300: use generic fb.h
+     Subject: tile: provide default ioremap declaration
 has been removed from the -mm tree.  Its filename was
-     mn10300-use-generic-fbh.patch
+     tile-provide-default-ioremap-declaration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: mn10300: use generic fb.h
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: tile: provide default ioremap declaration
 
-The arch uses a verbatim copy of the asm-generic version and does not add
-any own implementations to the header, so use asm-generic/fb.h instead of
-duplicating code.
+Add a default ioremap function which was not provided in all
+circumstances.  (Only when CONFIG_PCI and CONFIG_TILEGX was set).
 
-Link: http://lkml.kernel.org/r/20170517083348.1815-1-tklauser@distanz.ch
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Reviewed-by: David Howells <dhowells@redhat.com>
+I have designs to use them in scatterlist.c where they'd likely never be
+called with this architecture, but it is needed to compile.  Thus, if the
+function is ever hit it returns NULL.
+
+Link: http://lkml.kernel.org/r/1495726904-27380-1-git-send-email-logang@deltatee.com
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Stephen Bates <sbates@raithlin.com>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/Kbuild |    1 +
- arch/mn10300/include/asm/fb.h   |   23 -----------------------
- 2 files changed, 1 insertion(+), 23 deletions(-)
+ arch/tile/mm/pgtable.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN arch/mn10300/include/asm/Kbuild~mn10300-use-generic-fbh arch/mn10300/include/asm/Kbuild
---- a/arch/mn10300/include/asm/Kbuild~mn10300-use-generic-fbh
-+++ a/arch/mn10300/include/asm/Kbuild
-@@ -4,6 +4,7 @@ generic-y += clkdev.h
- generic-y += device.h
- generic-y += exec.h
- generic-y += extable.h
-+generic-y += fb.h
- generic-y += irq_work.h
- generic-y += mcs_spinlock.h
- generic-y += mm-arch-hooks.h
-diff -puN arch/mn10300/include/asm/fb.h~mn10300-use-generic-fbh /dev/null
---- a/arch/mn10300/include/asm/fb.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/* MN10300 Frame buffer stuff
-- *
-- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-- * Written by David Howells (dhowells@redhat.com)
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public Licence
-- * as published by the Free Software Foundation; either version
-- * 2 of the Licence, or (at your option) any later version.
-- */
--#ifndef _ASM_FB_H
--#define _ASM_FB_H
--
--#include <linux/fb.h>
--
--#define fb_pgprotect(...) do {} while (0)
--
--static inline int fb_is_primary_device(struct fb_info *info)
--{
--	return 0;
--}
+diff -puN arch/tile/mm/pgtable.c~tile-provide-default-ioremap-declaration arch/tile/mm/pgtable.c
+--- a/arch/tile/mm/pgtable.c~tile-provide-default-ioremap-declaration
++++ a/arch/tile/mm/pgtable.c
+@@ -503,6 +503,17 @@ void __iomem *ioremap_prot(resource_size
+ }
+ EXPORT_SYMBOL(ioremap_prot);
+ 
++#if !defined(CONFIG_PCI) || !defined(CONFIG_TILEGX)
++/* ioremap is conditionally declared in pci_gx.c */
++
++void __iomem *ioremap(resource_size_t phys_addr, unsigned long size)
++{
++	return NULL;
++}
++EXPORT_SYMBOL(ioremap);
++
++#endif
++
+ /* Unmap an MMIO VA mapping. */
+ void iounmap(volatile void __iomem *addr_in)
+ {
+_
+
+Patches currently in -mm which might be from logang@deltatee.com are
+
+kfifo-cleanup-example-to-not-use-page_link.patch
+
