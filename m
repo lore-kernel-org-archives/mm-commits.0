@@ -1,153 +1,255 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
- removed from -mm tree
-Date: Fri, 07 Jul 2017 12:09:39 -0700
-Message-ID: <20170707190939.6_8rDR7zG%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memory=5Fhotplug-replace-for=5Fdevice-by-want=5Fmemblock-?=
+ =?US-ASCII?Q?in-arch=5Fadd=5Fmemory.patch?= removed from -mm tree
+Date: Fri, 07 Jul 2017 12:09:27 -0700
+Message-ID: <20170707190927.-Rx-fn8iV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33148 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752561AbdGGTJp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:45 -0400
+        with ESMTP id S1750848AbdGGTJo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
+To: aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com
 
 
 The patch titled
-     Subject: mm/madvise: enable (soft|hard) offline of HugeTLB pages at PGD level
+     Subject: mm, memory_hotplug: replace for_device by want_memblock in arch_add_memory
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level.patch
+     mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/madvise: enable (soft|hard) offline of HugeTLB pages at PGD level
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: replace for_device by want_memblock in arch_add_memory
 
-Though migrating gigantic HugeTLB pages does not sound much like real
-world use case, they can be affected by memory errors.  Hence migration at
-the PGD level HugeTLB pages should be supported just to enable soft and
-hard offline use cases.
+arch_add_memory gets for_device argument which then controls whether we
+want to create memblocks for created memory sections.  Simplify the logic
+by telling whether we want memblocks directly rather than going through
+pointless negation.  This also makes the api easier to understand because
+it is clear what we want rather than nothing telling for_device which can
+mean anything.
 
-While allocating the new gigantic HugeTLB page, it should not matter
-whether new page comes from the same node or not.  There would be very few
-gigantic pages on the system afterall, we should not be bothered about
-node locality when trying to save a big page from crashing.
+This shouldn't introduce any functional change.
 
-This change renames dequeu_huge_page_node() function as dequeue_huge
-_page_node_exact() preserving it's original functionality.  Now the new
-dequeue_huge_page_node() function scans through all available online nodes
-to allocate a huge page for the NUMA_NO_NODE case and just falls back
-calling dequeu_huge_page_node_exact() for all other cases.
-
-[arnd@arndb.de: make hstate_is_gigantic() inline]
-  Link: http://lkml.kernel.org/r/20170522124748.3911296-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/20170516100509.20122-1-khandual@linux.vnet.ibm.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20170515085827.16474-13-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Tested-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Tobias Regnery <tobias.regnery@gmail.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   11 ++++++++++-
- mm/hugetlb.c            |   18 +++++++++++++++++-
- mm/memory-failure.c     |   13 +++++++++----
- 3 files changed, 36 insertions(+), 6 deletions(-)
+ arch/ia64/mm/init.c            |    4 ++--
+ arch/powerpc/mm/mem.c          |    4 ++--
+ arch/s390/mm/init.c            |    4 ++--
+ arch/sh/mm/init.c              |    4 ++--
+ arch/x86/mm/init_32.c          |    4 ++--
+ arch/x86/mm/init_64.c          |    4 ++--
+ include/linux/memory_hotplug.h |    2 +-
+ kernel/memremap.c              |    2 +-
+ mm/memory_hotplug.c            |    2 +-
+ 9 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
-+++ a/include/linux/hugetlb.h
-@@ -466,7 +466,11 @@ extern int dissolve_free_huge_pages(unsi
- static inline bool hugepage_migration_supported(struct hstate *h)
+diff -puN arch/ia64/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/arch/ia64/mm/init.c
+@@ -646,13 +646,13 @@ mem_init (void)
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
  {
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
--	return huge_page_shift(h) == PMD_SHIFT;
-+	if ((huge_page_shift(h) == PMD_SHIFT) ||
-+		(huge_page_shift(h) == PGDIR_SHIFT))
-+		return true;
-+	else
-+		return false;
- #else
- 	return false;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
+-	ret = __add_pages(nid, start_pfn, nr_pages, !for_device);
++	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
+ 	if (ret)
+ 		printk("%s: Problem encountered in __add_pages() as ret=%d\n",
+ 		       __func__,  ret);
+diff -puN arch/powerpc/mm/mem.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/arch/powerpc/mm/mem.c
+@@ -126,7 +126,7 @@ int __weak remove_section_mapping(unsign
+ 	return -ENODEV;
+ }
+ 
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+@@ -143,7 +143,7 @@ int arch_add_memory(int nid, u64 start,
+ 		return -EFAULT;
+ 	}
+ 
+-	return __add_pages(nid, start_pfn, nr_pages, !for_device);
++	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff -puN arch/s390/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/arch/s390/mm/init.c
+@@ -166,7 +166,7 @@ unsigned long memory_block_size_bytes(vo
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
+ {
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long size_pages = PFN_DOWN(size);
+@@ -176,7 +176,7 @@ int arch_add_memory(int nid, u64 start,
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = __add_pages(nid, start_pfn, size_pages, !for_device);
++	rc = __add_pages(nid, start_pfn, size_pages, want_memblock);
+ 	if (rc)
+ 		vmem_remove_mapping(start, size);
+ 	return rc;
+diff -puN arch/sh/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/arch/sh/mm/init.c
+@@ -485,14 +485,14 @@ void free_initrd_mem(unsigned long start
  #endif
-@@ -518,6 +522,11 @@ struct hstate {};
- #define vma_mmu_pagesize(v) PAGE_SIZE
- #define huge_page_order(h) 0
- #define huge_page_shift(h) PAGE_SHIFT
-+static inline bool hstate_is_gigantic(struct hstate *h)
-+{
-+	return false;
-+}
-+
- static inline unsigned int pages_per_huge_page(struct hstate *h)
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
  {
- 	return 1;
-diff -puN mm/hugetlb.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level mm/hugetlb.c
---- a/mm/hugetlb.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
-+++ a/mm/hugetlb.c
-@@ -867,7 +867,7 @@ static void enqueue_huge_page(struct hst
- 	h->free_huge_pages_node[nid]++;
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
+-	ret = __add_pages(nid, start_pfn, nr_pages, !for_device);
++	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
+ 	if (unlikely(ret))
+ 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
+ 
+diff -puN arch/x86/mm/init_32.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/arch/x86/mm/init_32.c
+@@ -823,12 +823,12 @@ void __init mem_init(void)
  }
  
--static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
-+static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
  {
- 	struct page *page;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
  
-@@ -887,6 +887,22 @@ static struct page *dequeue_huge_page_no
- 	return page;
+-	return __add_pages(nid, start_pfn, nr_pages, !for_device);
++	return __add_pages(nid, start_pfn, nr_pages, want_memblock);
  }
  
-+static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
-+{
-+	struct page *page;
-+	int node;
-+
-+	if (nid != NUMA_NO_NODE)
-+		return dequeue_huge_page_node_exact(h, nid);
-+
-+	for_each_online_node(node) {
-+		page = dequeue_huge_page_node_exact(h, node);
-+		if (page)
-+			return page;
-+	}
-+	return NULL;
-+}
-+
- /* Movability of hugepages depends on migration support. */
- static inline gfp_t htlb_alloc_mask(struct hstate *h)
- {
-diff -puN mm/memory-failure.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level mm/memory-failure.c
---- a/mm/memory-failure.c~mm-madvise-enable-softhard-offline-of-hugetlb-pages-at-pgd-level
-+++ a/mm/memory-failure.c
-@@ -1492,11 +1492,16 @@ EXPORT_SYMBOL(unpoison_memory);
- static struct page *new_page(struct page *p, unsigned long private, int **x)
- {
- 	int nid = page_to_nid(p);
--	if (PageHuge(p))
--		return alloc_huge_page_node(page_hstate(compound_head(p)),
--						   nid);
--	else
-+	if (PageHuge(p)) {
-+		struct hstate *hstate = page_hstate(compound_head(p));
-+
-+		if (hstate_is_gigantic(hstate))
-+			return alloc_huge_page_node(hstate, NUMA_NO_NODE);
-+
-+		return alloc_huge_page_node(hstate, nid);
-+	} else {
- 		return __alloc_pages_node(nid, GFP_HIGHUSER_MOVABLE, 0);
-+	}
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff -puN arch/x86/mm/init_64.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/arch/x86/mm/init_64.c
+@@ -772,7 +772,7 @@ static void  update_end_of_memory_vars(u
+ 	}
  }
  
- /*
+-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
++int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+@@ -780,7 +780,7 @@ int arch_add_memory(int nid, u64 start,
+ 
+ 	init_memory_mapping(start, start + size);
+ 
+-	ret = __add_pages(nid, start_pfn, nr_pages, !for_device);
++	ret = __add_pages(nid, start_pfn, nr_pages, want_memblock);
+ 	WARN_ON_ONCE(ret);
+ 
+ 	/* update max_pfn, max_low_pfn and high_memory */
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/include/linux/memory_hotplug.h
+@@ -298,7 +298,7 @@ extern int add_memory(int nid, u64 start
+ extern int add_memory_resource(int nid, struct resource *resource, bool online);
+ extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+ 		bool for_device);
+-extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
++extern int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock);
+ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+ 		unsigned long nr_pages);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+diff -puN kernel/memremap.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory kernel/memremap.c
+--- a/kernel/memremap.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/kernel/memremap.c
+@@ -358,7 +358,7 @@ void *devm_memremap_pages(struct device
+ 		goto err_pfn_remap;
+ 
+ 	mem_hotplug_begin();
+-	error = arch_add_memory(nid, align_start, align_size, true);
++	error = arch_add_memory(nid, align_start, align_size, false);
+ 	if (!error)
+ 		move_pfn_range_to_zone(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
+ 					align_start >> PAGE_SHIFT,
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-replace-for_device-by-want_memblock-in-arch_add_memory
++++ a/mm/memory_hotplug.c
+@@ -1448,7 +1448,7 @@ int __ref add_memory_resource(int nid, s
+ 	}
+ 
+ 	/* call arch's memory hotadd */
+-	ret = arch_add_memory(nid, start, size, false);
++	ret = arch_add_memory(nid, start, size, true);
+ 
+ 	if (ret < 0)
+ 		goto error;
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
-mm-cma-warn-if-the-cma-area-could-not-be-activated.patch
+mm-make-pr_set_thp_disable-immediately-active.patch
+mm-memory_hotplug-simplify-empty-node-mask-handling-in-new_node_page.patch
+hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration.patch
+mm-unify-new_node_page-and-alloc_migrate_target.patch
+mm-memcg-fix-potential-undefined-behavior-in-mem_cgroup_event_ratelimit.patch
+mm-hugetlb-unclutter-hugetlb-allocation-layers.patch
+hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
+mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration.patch
+mm-document-highmem_is_dirtyable-sysctl.patch
+mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack.patch
+mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch
+lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+netfilter-use-kvmalloc-xt_alloc_table_info.patch
+mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
+xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
+mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+drm-i915-use-__gfp_retry_mayfail.patch
+mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
