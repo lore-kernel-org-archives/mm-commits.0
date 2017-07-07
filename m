@@ -1,53 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch removed from
- -mm tree
-Date: Fri, 07 Jul 2017 12:08:27 -0700
-Message-ID: <20170707190827.fU4aOWIpU%akpm@linux-foundation.org>
+ ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+ removed from -mm tree
+Date: Fri, 07 Jul 2017 12:08:30 -0700
+Message-ID: <20170707190830.c7TIQ0uTH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60880 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751032AbdGGTI2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:28 -0400
+        with ESMTP id S1751032AbdGGTIb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, arjan@linux.intel.com, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, dave@stgolabs.net, ederevea@redhat.com, gavin.guo@canonical.com, hughd@google.com, jay.vosburgh@canonical.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, pholasek@redhat.com
 
 
 The patch titled
-     Subject: ksm: swap the two output parameters of chain/chain_prune
+     Subject: ksm: optimize refile of stable_node_dup at the head of the chain
 has been removed from the -mm tree.  Its filename was
-     ksm-swap-the-two-output-parameters-of-chain-chain_prune.patch
+     ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: swap the two output parameters of chain/chain_prune
+Subject: ksm: optimize refile of stable_node_dup at the head of the chain
 
-Some static checker complains if chain/chain_prune returns a potentially
-stale pointer.
+If a candidate stable_node_dup has been found and it can accept further
+merges it can be refiled to the head of the list to speedup next searches
+without altering which dup is found and how the dups accumulate in the
+chain.
 
-There are two output parameters to chain/chain_prune, one is tree_page the
-other is stable_node_dup.  Like in get_ksm_page the caller has to check
-tree_page is NULL before touching the stable_node.  Similarly in
-chain/chain_prune the caller has to check tree_page before touching the
-stable_node_dup returned or the original stable_node passed as parameter.
+We already refiled it back to the head in the prune_stale_stable_nodes
+case, but we didn't refile it if not pruning (which is more common).  And
+we also refiled it when it was already at the head which is unnecessary
+(in the prune_stale_stable_nodes case, nr > 1 means there's more than one
+dup in the chain, it doesn't mean it's not already at the head of the
+chain).
 
-Because the tree_page is never returned as a stale pointer, it may be more
-intuitive to return tree_page and to pass stable_node_dup for reference
-instead of the reverse.
+The stable_node_chain list is single threaded and there's no SMP locking
+contention so it should be faster to refile it to the head of the list
+also if prune_stale_stable_nodes is false.
 
-This patch purely swaps the two output parameters of chain/chain_prune as
-a cleanup for the static checker and to mimic the get_ksm_page behavior
-more closely.  There's no change to the caller at all except the swap,
-it's purely a cleanup and it is a noop from the caller point of view.
+Profiling shows the refile happens 1.9% of the time when a dup is found
+with a max_page_sharing limit setting of 3 (with max_page_sharing of 2 the
+refile never happens of course as there's never space for one more merge)
+which is reasonably low.  At higher max_page_sharing values it should be
+much less frequent.
 
-Link: http://lkml.kernel.org/r/20170518173721.22316-3-aarcange@redhat.com
+This is just an optimization.
+
+Link: http://lkml.kernel.org/r/20170518173721.22316-4-aarcange@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Tested-by: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: Evgheni Dereveanchin <ederevea@redhat.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Petr Holasek <pholasek@redhat.com>
@@ -57,157 +61,66 @@ Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Gavin Guo <gavin.guo@canonical.com>
 Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   78 +++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 26 deletions(-)
+ mm/ksm.c |   35 +++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN mm/ksm.c~ksm-swap-the-two-output-parameters-of-chain-chain_prune mm/ksm.c
---- a/mm/ksm.c~ksm-swap-the-two-output-parameters-of-chain-chain_prune
+diff -puN mm/ksm.c~ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain mm/ksm.c
+--- a/mm/ksm.c~ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain
 +++ a/mm/ksm.c
-@@ -1313,14 +1313,14 @@ bool is_page_sharing_candidate(struct st
- 	return __is_page_sharing_candidate(stable_node, 0);
- }
- 
--static struct stable_node *stable_node_dup(struct stable_node **_stable_node,
--					   struct page **tree_page,
--					   struct rb_root *root,
--					   bool prune_stale_stable_nodes)
-+struct page *stable_node_dup(struct stable_node **_stable_node_dup,
-+			     struct stable_node **_stable_node,
-+			     struct rb_root *root,
-+			     bool prune_stale_stable_nodes)
- {
- 	struct stable_node *dup, *found = NULL, *stable_node = *_stable_node;
- 	struct hlist_node *hlist_safe;
--	struct page *_tree_page;
-+	struct page *_tree_page, *tree_page = NULL;
- 	int nr = 0;
- 	int found_rmap_hlist_len;
- 
-@@ -1353,14 +1353,14 @@ static struct stable_node *stable_node_d
- 			if (!found ||
- 			    dup->rmap_hlist_len > found_rmap_hlist_len) {
- 				if (found)
--					put_page(*tree_page);
-+					put_page(tree_page);
- 				found = dup;
- 				found_rmap_hlist_len = found->rmap_hlist_len;
--				*tree_page = _tree_page;
-+				tree_page = _tree_page;
- 
-+				/* skip put_page for found dup */
- 				if (!prune_stale_stable_nodes)
- 					break;
--				/* skip put_page */
- 				continue;
- 			}
- 		}
-@@ -1417,7 +1417,8 @@ static struct stable_node *stable_node_d
- 		}
+@@ -1367,13 +1367,14 @@ struct page *stable_node_dup(struct stab
+ 		put_page(_tree_page);
  	}
  
--	return found;
-+	*_stable_node_dup = found;
-+	return tree_page;
- }
- 
- static struct stable_node *stable_node_dup_any(struct stable_node *stable_node,
-@@ -1433,35 +1434,60 @@ static struct stable_node *stable_node_d
- 			   typeof(*stable_node), hlist_dup);
- }
- 
--static struct stable_node *__stable_node_chain(struct stable_node **_stable_node,
--					       struct page **tree_page,
--					       struct rb_root *root,
--					       bool prune_stale_stable_nodes)
-+/*
-+ * Like for get_ksm_page, this function can free the *_stable_node and
-+ * *_stable_node_dup if the returned tree_page is NULL.
-+ *
-+ * It can also free and overwrite *_stable_node with the found
-+ * stable_node_dup if the chain is collapsed (in which case
-+ * *_stable_node will be equal to *_stable_node_dup like if the chain
-+ * never existed). It's up to the caller to verify tree_page is not
-+ * NULL before dereferencing *_stable_node or *_stable_node_dup.
-+ *
-+ * *_stable_node_dup is really a second output parameter of this
-+ * function and will be overwritten in all cases, the caller doesn't
-+ * need to initialize it.
-+ */
-+static struct page *__stable_node_chain(struct stable_node **_stable_node_dup,
-+					struct stable_node **_stable_node,
-+					struct rb_root *root,
-+					bool prune_stale_stable_nodes)
- {
- 	struct stable_node *stable_node = *_stable_node;
- 	if (!is_stable_node_chain(stable_node)) {
- 		if (is_page_sharing_candidate(stable_node)) {
--			*tree_page = get_ksm_page(stable_node, false);
--			return stable_node;
-+			*_stable_node_dup = stable_node;
-+			return get_ksm_page(stable_node, false);
- 		}
+-	/*
+-	 * nr is relevant only if prune_stale_stable_nodes is true,
+-	 * otherwise we may break the loop at nr == 1 even if there
+-	 * are multiple entries.
+-	 */
+-	if (prune_stale_stable_nodes && found) {
+-		if (nr == 1) {
++	if (found) {
 +		/*
-+		 * _stable_node_dup set to NULL means the stable_node
-+		 * reached the ksm_max_page_sharing limit.
++		 * nr is counting all dups in the chain only if
++		 * prune_stale_stable_nodes is true, otherwise we may
++		 * break the loop at nr == 1 even if there are
++		 * multiple entries.
 +		 */
-+		*_stable_node_dup = NULL;
- 		return NULL;
- 	}
--	return stable_node_dup(_stable_node, tree_page, root,
-+	return stable_node_dup(_stable_node_dup, _stable_node, root,
- 			       prune_stale_stable_nodes);
- }
- 
--static __always_inline struct stable_node *chain_prune(struct stable_node **s_n,
--						       struct page **t_p,
--						       struct rb_root *root)
-+static __always_inline struct page *chain_prune(struct stable_node **s_n_d,
-+						struct stable_node **s_n,
-+						struct rb_root *root)
- {
--	return __stable_node_chain(s_n, t_p, root, true);
-+	return __stable_node_chain(s_n_d, s_n, root, true);
- }
- 
--static __always_inline struct stable_node *chain(struct stable_node *s_n,
--						 struct page **t_p,
--						 struct rb_root *root)
-+static __always_inline struct page *chain(struct stable_node **s_n_d,
-+					  struct stable_node *s_n,
-+					  struct rb_root *root)
- {
--	return __stable_node_chain(&s_n, t_p, root, false);
-+	struct stable_node *old_stable_node = s_n;
-+	struct page *tree_page;
-+
-+	tree_page = __stable_node_chain(s_n_d, &s_n, root, false);
-+	/* not pruning dups so s_n cannot have changed */
-+	VM_BUG_ON(s_n != old_stable_node);
-+	return tree_page;
- }
- 
- /*
-@@ -1502,7 +1528,7 @@ again:
- 		cond_resched();
- 		stable_node = rb_entry(*new, struct stable_node, node);
- 		stable_node_any = NULL;
--		stable_node_dup = chain_prune(&stable_node, &tree_page, root);
-+		tree_page = chain_prune(&stable_node_dup, &stable_node,	root);
- 		/*
- 		 * NOTE: stable_node may have been freed by
- 		 * chain_prune() if the returned stable_node_dup is
-@@ -1743,7 +1769,7 @@ again:
- 		cond_resched();
- 		stable_node = rb_entry(*new, struct stable_node, node);
- 		stable_node_any = NULL;
--		stable_node_dup = chain(stable_node, &tree_page, root);
-+		tree_page = chain(&stable_node_dup, stable_node, root);
- 		if (!stable_node_dup) {
++		if (prune_stale_stable_nodes && nr == 1) {
  			/*
- 			 * Either all stable_node dups were full in
+ 			 * If there's not just one entry it would
+ 			 * corrupt memory, better BUG_ON. In KSM
+@@ -1404,12 +1405,22 @@ struct page *stable_node_dup(struct stab
+ 			 * time.
+ 			 */
+ 			stable_node = NULL;
+-		} else if (__is_page_sharing_candidate(found, 1)) {
++		} else if (stable_node->hlist.first != &found->hlist_dup &&
++			   __is_page_sharing_candidate(found, 1)) {
+ 			/*
+-			 * Refile our candidate at the head
+-			 * after the prune if our candidate
+-			 * can accept one more future sharing
+-			 * in addition to the one underway.
++			 * If the found stable_node dup can accept one
++			 * more future merge (in addition to the one
++			 * that is underway) and is not at the head of
++			 * the chain, put it there so next search will
++			 * be quicker in the !prune_stale_stable_nodes
++			 * case.
++			 *
++			 * NOTE: it would be inaccurate to use nr > 1
++			 * instead of checking the hlist.first pointer
++			 * directly, because in the
++			 * prune_stale_stable_nodes case "nr" isn't
++			 * the position of the found dup in the chain,
++			 * but the total number of dups in the chain.
+ 			 */
+ 			hlist_del(&found->hlist_dup);
+ 			hlist_add_head(&found->hlist_dup,
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
