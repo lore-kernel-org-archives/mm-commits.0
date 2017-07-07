@@ -1,64 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] module-use-linux-set_memoryh.patch removed from
- -mm tree
-Date: Fri, 07 Jul 2017 12:07:27 -0700
-Message-ID: <20170707190727.BJE3CamEQ%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-a-static-checker-warning.patch removed
+ from -mm tree
+Date: Fri, 07 Jul 2017 12:07:33 -0700
+Message-ID: <20170707190733.KpalHgIEa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60632 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750938AbdGGTH2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:28 -0400
+        with ESMTP id S1752153AbdGGTHe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@iogearbox.net, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au
+To: ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@versity.com, mm-commits@vger.kernel.org, zren@suse.com
 
 
 The patch titled
-     Subject: kernel/module.c: use linux/set_memory.h
+     Subject: ocfs2: fix a static checker warning
 has been removed from the -mm tree.  Its filename was
-     module-use-linux-set_memoryh.patch
+     ocfs2-fix-a-static-checker-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: kernel/module.c: use linux/set_memory.h
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: fix a static checker warning
 
-This header always exists, so doesn't require an ifdef around its
-inclusion.  When CONFIG_ARCH_HAS_SET_MEMORY=y it includes the asm header,
-otherwise it provides empty versions of the set_memory_xx() routines.
+Fix a static code checker warning:
 
-The usages of set_memory_xx() are still guarded by
-CONFIG_STRICT_MODULE_RWX.
+fs/ocfs2/inode.c:179 ocfs2_iget()
+warn: passing zero to 'ERR_PTR'
 
-Link: http://lkml.kernel.org/r/1498717781-29151-3-git-send-email-mpe@ellerman.id.au
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Laura Abbott <labbott@redhat.com>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
+Fixes: d56a8f32e4c6 ("ocfs2: check/fix inode block for online file check")
+Link: http://lkml.kernel.org/r/1495516634-1952-1-git-send-email-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
+Reviewed-by: Joseph Qi <jiangqi903@gmail.com>
+Reviewed-by: Eric Ren <zren@suse.com>
+Cc: Mark Fasheh <mfasheh@versity.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ocfs2/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/module.c~module-use-linux-set_memoryh kernel/module.c
---- a/kernel/module.c~module-use-linux-set_memoryh
-+++ a/kernel/module.c
-@@ -49,9 +49,7 @@
- #include <linux/rculist.h>
- #include <linux/uaccess.h>
- #include <asm/cacheflush.h>
--#ifdef CONFIG_STRICT_MODULE_RWX
--#include <asm/set_memory.h>
--#endif
-+#include <linux/set_memory.h>
- #include <asm/mmu_context.h>
- #include <linux/license.h>
- #include <asm/sections.h>
+diff -puN fs/ocfs2/inode.c~ocfs2-fix-a-static-checker-warning fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-fix-a-static-checker-warning
++++ a/fs/ocfs2/inode.c
+@@ -136,7 +136,7 @@ struct inode *ocfs2_ilookup(struct super
+ struct inode *ocfs2_iget(struct ocfs2_super *osb, u64 blkno, unsigned flags,
+ 			 int sysfile_type)
+ {
+-	int rc = 0;
++	int rc = -ESTALE;
+ 	struct inode *inode = NULL;
+ 	struct super_block *sb = osb->sb;
+ 	struct ocfs2_find_inode_args args;
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from ghe@suse.com are
 
+ocfs2-get-rid-of-ocfs2_is_o2cb_active-function.patch
+ocfs2-give-an-obvious-tip-for-dismatch-cluster-names.patch
+ocfs2-give-an-obvious-tip-for-dismatch-cluster-names-v2.patch
+ocfs2-move-some-definitions-to-header-file.patch
+ocfs2-fix-some-small-problems.patch
+ocfs2-add-kobject-for-online-file-check.patch
+ocfs2-add-duplicative-ino-number-check.patch
 
