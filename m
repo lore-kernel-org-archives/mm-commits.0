@@ -1,59 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch removed from -mm
- tree
-Date: Fri, 07 Jul 2017 12:10:04 -0700
-Message-ID: <20170707191004.z6RTYUnOx%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-cleanup-arch_has_gigantic_page.patch
+ removed from -mm tree
+Date: Fri, 07 Jul 2017 12:10:14 -0700
+Message-ID: <20170707191014.xN9LY2gue%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33736 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33920 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750941AbdGGTKN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:13 -0400
+        with ESMTP id S1752571AbdGGTKX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, kravetz@us.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, n-horiguchi@ah.jp.nec.com
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au
 
 
 The patch titled
-     Subject: powerpc/hugetlb: enable hugetlb migration for ppc64
+     Subject: mm/hugetlb: clean up ARCH_HAS_GIGANTIC_PAGE
 has been removed from the -mm tree.  Its filename was
-     powerpc-hugetlb-enable-hugetlb-migration-for-ppc64.patch
+     mm-hugetlb-cleanup-arch_has_gigantic_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc/hugetlb: enable hugetlb migration for ppc64
+Subject: mm/hugetlb: clean up ARCH_HAS_GIGANTIC_PAGE
 
-Link: http://lkml.kernel.org/r/1494926612-23928-10-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+This moves the #ifdef in C code to a Kconfig dependency.  Also we move the
+gigantic_page_supported() function to be arch specific.  This gives arch
+to conditionally enable runtime allocation of gigantic huge page. 
+Architectures like ppc64 supports different gigantic huge page size (16G
+and 1G) based on the translation mode selected.  This provides an
+opportunity for ppc64 to enable runtime allocation only w.r.t 1G hugepage.
+
+No functional change in this patch.
+
+Link: http://lkml.kernel.org/r/1494995292-4443-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Mike Kravetz <kravetz@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/Kconfig.cputype |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm64/Kconfig               |    2 +-
+ arch/arm64/include/asm/hugetlb.h |    4 ++++
+ arch/s390/Kconfig                |    2 +-
+ arch/s390/include/asm/hugetlb.h  |    3 +++
+ arch/x86/Kconfig                 |    2 +-
+ arch/x86/include/asm/hugetlb.h   |    4 ++++
+ mm/hugetlb.c                     |    7 ++-----
+ 7 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN arch/powerpc/platforms/Kconfig.cputype~powerpc-hugetlb-enable-hugetlb-migration-for-ppc64 arch/powerpc/platforms/Kconfig.cputype
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-hugetlb-enable-hugetlb-migration-for-ppc64
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -350,6 +350,11 @@ config PPC_RADIX_MMU
- 	  is only implemented by IBM Power9 CPUs, if you don't have one of them
- 	  you can probably disable this.
+diff -puN arch/arm64/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page
++++ a/arch/arm64/Kconfig
+@@ -13,7 +13,7 @@ config ARM64
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_HAS_GIGANTIC_PAGE
++	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_SET_MEMORY
+ 	select ARCH_HAS_SG_CHAIN
+diff -puN arch/arm64/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page arch/arm64/include/asm/hugetlb.h
+--- a/arch/arm64/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page
++++ a/arch/arm64/include/asm/hugetlb.h
+@@ -83,4 +83,8 @@ extern void huge_ptep_set_wrprotect(stru
+ extern void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 				  unsigned long addr, pte_t *ptep);
  
-+config ARCH_ENABLE_HUGEPAGE_MIGRATION
-+	def_bool y
-+	depends on PPC_BOOK3S_64 && HUGETLB_PAGE && MIGRATION
++#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
++static inline bool gigantic_page_supported(void) { return true; }
++#endif
 +
-+
- config PPC_MMU_NOHASH
+ #endif /* __ASM_HUGETLB_H */
+diff -puN arch/s390/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page arch/s390/Kconfig
+--- a/arch/s390/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page
++++ a/arch/s390/Kconfig
+@@ -68,7 +68,7 @@ config S390
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_HAS_GIGANTIC_PAGE
++	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_SET_MEMORY
+ 	select ARCH_HAS_SG_CHAIN
+diff -puN arch/s390/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page arch/s390/include/asm/hugetlb.h
+--- a/arch/s390/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page
++++ a/arch/s390/include/asm/hugetlb.h
+@@ -112,4 +112,7 @@ static inline pte_t huge_pte_modify(pte_
+ 	return pte_modify(pte, newprot);
+ }
+ 
++#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
++static inline bool gigantic_page_supported(void) { return true; }
++#endif
+ #endif /* _ASM_S390_HUGETLB_H */
+diff -puN arch/x86/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page
++++ a/arch/x86/Kconfig
+@@ -22,7 +22,7 @@ config X86_64
  	def_bool y
- 	depends on !PPC_STD_MMU
+ 	depends on 64BIT
+ 	# Options that are inherently 64-bit kernel only:
+-	select ARCH_HAS_GIGANTIC_PAGE
++	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+ 	select ARCH_SUPPORTS_INT128
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select HAVE_ARCH_SOFT_DIRTY
+diff -puN arch/x86/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page arch/x86/include/asm/hugetlb.h
+--- a/arch/x86/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page
++++ a/arch/x86/include/asm/hugetlb.h
+@@ -85,4 +85,8 @@ static inline void arch_clear_hugepage_f
+ {
+ }
+ 
++#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
++static inline bool gigantic_page_supported(void) { return true; }
++#endif
++
+ #endif /* _ASM_X86_HUGETLB_H */
+diff -puN mm/hugetlb.c~mm-hugetlb-cleanup-arch_has_gigantic_page mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-cleanup-arch_has_gigantic_page
++++ a/mm/hugetlb.c
+@@ -1040,9 +1040,7 @@ static int hstate_next_node_to_free(stru
+ 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
+ 		nr_nodes--)
+ 
+-#if defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE) && \
+-	((defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || \
+-	defined(CONFIG_CMA))
++#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+ static void destroy_compound_gigantic_page(struct page *page,
+ 					unsigned int order)
+ {
+@@ -1174,8 +1172,7 @@ static int alloc_fresh_gigantic_page(str
+ 	return 0;
+ }
+ 
+-static inline bool gigantic_page_supported(void) { return true; }
+-#else
++#else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
+ static inline bool gigantic_page_supported(void) { return false; }
+ static inline void free_gigantic_page(struct page *page, unsigned int order) { }
+ static inline void destroy_compound_gigantic_page(struct page *page,
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
