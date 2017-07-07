@@ -1,40 +1,53 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-slub-remove-a-redundant-assignment-in-___slab_alloc.patch removed from
- -mm tree
-Date: Fri, 07 Jul 2017 12:07:48 -0700
-Message-ID: <20170707190748.Jo0IO-_e9%akpm@linux-foundation.org>
+ mm-slub-pack-red_left_pad-with-another-int-to-save-a-word.patch removed
+ from -mm tree
+Date: Fri, 07 Jul 2017 12:07:54 -0700
+Message-ID: <20170707190754.jnJPmWPXV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60726 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751916AbdGGTHt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:49 -0400
+        with ESMTP id S1751100AbdGGTHz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, richard.weiyang@gmail.com, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/slub.c: remove a redundant assignment in ___slab_alloc()
+     Subject: mm/slub.c: pack red_left_pad with another int to save a word
 has been removed from the -mm tree.  Its filename was
-     mm-slub-remove-a-redundant-assignment-in-___slab_alloc.patch
+     mm-slub-pack-red_left_pad-with-another-int-to-save-a-word.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/slub.c: remove a redundant assignment in ___slab_alloc()
+Subject: mm/slub.c: pack red_left_pad with another int to save a word
 
-When the code comes to this point, there are two cases:
-1. cpu_slab is deactivated
-2. cpu_slab is empty
+Patch series "try to save some memory for kmem_cache in some cases", v2.
 
-In both cased, cpu_slab->freelist is NULL at this moment.
+kmem_cache is a frequently used data in kernel.  During the code reading,
+I found maybe we could save some space in some cases.
 
-This patch removes the redundant assignment of cpu_slab->freelist.
+1. On 64bit arch, type int will occupy a word if it doesn't sit well.
 
-Link: http://lkml.kernel.org/r/20170507031215.3130-1-richard.weiyang@gmail.com
+2. cpu_slab->partial is just used when CONFIG_SLUB_CPU_PARTIAL is set
+
+3. cpu_partial is just used when CONFIG_SLUB_CPU_PARTIAL is set, while
+   just save some space on 32bit arch.
+
+
+This patch (of 3):
+
+On 64bit arch, struct is 8-bytes aligned, so int will occupy a word if it
+doesn't sit well.
+
+This patch pack red_left_pad with reserved to save 8 bytes for struct
+kmem_cache on a 64bit arch.
+
+Link: http://lkml.kernel.org/r/20170502144533.10729-2-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
@@ -43,20 +56,23 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/slub_def.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~mm-slub-remove-a-redundant-assignment-in-___slab_alloc mm/slub.c
---- a/mm/slub.c~mm-slub-remove-a-redundant-assignment-in-___slab_alloc
-+++ a/mm/slub.c
-@@ -2572,7 +2572,6 @@ new_slab:
- 		page = c->page = c->partial;
- 		c->partial = page->next;
- 		stat(s, CPU_PARTIAL_ALLOC);
--		c->freelist = NULL;
- 		goto redo;
- 	}
- 
+diff -puN include/linux/slub_def.h~mm-slub-pack-red_left_pad-with-another-int-to-save-a-word include/linux/slub_def.h
+--- a/include/linux/slub_def.h~mm-slub-pack-red_left_pad-with-another-int-to-save-a-word
++++ a/include/linux/slub_def.h
+@@ -79,9 +79,9 @@ struct kmem_cache {
+ 	int inuse;		/* Offset to metadata */
+ 	int align;		/* Alignment */
+ 	int reserved;		/* Reserved bytes at the end of slabs */
++	int red_left_pad;	/* Left redzone padding size */
+ 	const char *name;	/* Name (only for display!) */
+ 	struct list_head list;	/* List of slab caches */
+-	int red_left_pad;	/* Left redzone padding size */
+ #ifdef CONFIG_SYSFS
+ 	struct kobject kobj;	/* For sysfs */
+ 	struct work_struct kobj_remove_work;
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
