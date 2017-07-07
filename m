@@ -1,37 +1,41 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch removed
- from -mm tree
-Date: Fri, 07 Jul 2017 12:09:10 -0700
-Message-ID: <20170707190910.nAButO26t%akpm@linux-foundation.org>
+ mm-__first_valid_page-skip-over-offline-pages.patch removed from -mm tree
+Date: Fri, 07 Jul 2017 12:09:13 -0700
+Message-ID: <20170707190913.GPtMF08ig%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33034 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751659AbdGGTJM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:12 -0400
+        with ESMTP id S1752500AbdGGTJO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, bsingharora@gmail.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, heiko.carstens@de.ibm.com, imammedo@redhat.com, isimatu.yasuaki@jp.fujitsu.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, schwidefsky@de.ibm.com, tobias.regnery@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com
 
 
 The patch titled
-     Subject: mm, compaction: skip over holes in __reset_isolation_suitable
+     Subject: mm: __first_valid_page skip over offline pages
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-skip-over-holes-in-__reset_isolation_suitable.patch
+     mm-__first_valid_page-skip-over-offline-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, compaction: skip over holes in __reset_isolation_suitable
+Subject: mm: __first_valid_page skip over offline pages
 
-__reset_isolation_suitable walks the whole zone pfn range and it tries to
-jump over holes by checking the zone for each page.  It might still
-stumble over offline pages, though.  Skip those by checking
-pfn_to_online_page()
+__first_valid_page skips over invalid pfns in the range but it might still
+stumble over offline pages.  At least start_isolate_page_range will mark
+those set_migratetype_isolate.  This doesn't represent any immediate
+AFAICS because alloc_contig_range will fail to isolate those pages but it
+relies on not fully initialized page which will become a problem later
+when we stop associating offline pages to zones.  Use pfn_to_online_page
+to handle this.
 
-Link: http://lkml.kernel.org/r/20170515085827.16474-9-mhocko@kernel.org
+This is more a preparatory patch than a fix.
+
+Link: http://lkml.kernel.org/r/20170515085827.16474-10-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -55,25 +59,52 @@ Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/page_isolation.c |   26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-skip-over-holes-in-__reset_isolation_suitable mm/compaction.c
---- a/mm/compaction.c~mm-compaction-skip-over-holes-in-__reset_isolation_suitable
-+++ a/mm/compaction.c
-@@ -236,10 +236,9 @@ static void __reset_isolation_suitable(s
- 
- 		cond_resched();
- 
--		if (!pfn_valid(pfn))
-+		page = pfn_to_online_page(pfn);
+diff -puN mm/page_isolation.c~mm-__first_valid_page-skip-over-offline-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-__first_valid_page-skip-over-offline-pages
++++ a/mm/page_isolation.c
+@@ -138,12 +138,18 @@ static inline struct page *
+ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+ {
+ 	int i;
+-	for (i = 0; i < nr_pages; i++)
+-		if (pfn_valid_within(pfn + i))
+-			break;
+-	if (unlikely(i == nr_pages))
+-		return NULL;
+-	return pfn_to_page(pfn + i);
++
++	for (i = 0; i < nr_pages; i++) {
++		struct page *page;
++
++		if (!pfn_valid_within(pfn + i))
++			continue;
++		page = pfn_to_online_page(pfn + i);
 +		if (!page)
- 			continue;
--
--		page = pfn_to_page(pfn);
- 		if (zone != page_zone(page))
- 			continue;
++			continue;
++		return page;
++	}
++	return NULL;
+ }
  
+ /*
+@@ -184,8 +190,12 @@ int start_isolate_page_range(unsigned lo
+ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+-	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
++	     pfn += pageblock_nr_pages) {
++		struct page *page = pfn_to_online_page(pfn);
++		if (!page)
++			continue;
++		unset_migratetype_isolate(page, migratetype);
++	}
+ 
+ 	return -EBUSY;
+ }
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
