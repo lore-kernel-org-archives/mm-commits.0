@@ -1,128 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+Subject: [merged] zram-count-same-page-write-as-page_stored.patch
  removed from -mm tree
-Date: Fri, 07 Jul 2017 12:08:30 -0700
-Message-ID: <20170707190830.c7TIQ0uTH%akpm@linux-foundation.org>
+Date: Fri, 07 Jul 2017 12:08:33 -0700
+Message-ID: <20170707190833.LxT5XtnjN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60914 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751032AbdGGTIb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:31 -0400
+        with ESMTP id S1751032AbdGGTIe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, arjan@linux.intel.com, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, dave@stgolabs.net, ederevea@redhat.com, gavin.guo@canonical.com, hughd@google.com, jay.vosburgh@canonical.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, pholasek@redhat.com
+To: iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: ksm: optimize refile of stable_node_dup at the head of the chain
+     Subject: zram: count same page write as page_stored
 has been removed from the -mm tree.  Its filename was
-     ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain.patch
+     zram-count-same-page-write-as-page_stored.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: optimize refile of stable_node_dup at the head of the chain
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: count same page write as page_stored
 
-If a candidate stable_node_dup has been found and it can accept further
-merges it can be refiled to the head of the list to speedup next searches
-without altering which dup is found and how the dups accumulate in the
-chain.
+Regardless of whether it is same page or not, it's surely write and stored
+to zram so we should increase pages_stored stat.  Otherwise, user can see
+zero value via mm_stats although he writes a lot of pages to zram.
 
-We already refiled it back to the head in the prune_stale_stable_nodes
-case, but we didn't refile it if not pruning (which is more common).  And
-we also refiled it when it was already at the head which is unnecessary
-(in the prune_stale_stable_nodes case, nr > 1 means there's more than one
-dup in the chain, it doesn't mean it's not already at the head of the
-chain).
-
-The stable_node_chain list is single threaded and there's no SMP locking
-contention so it should be faster to refile it to the head of the list
-also if prune_stale_stable_nodes is false.
-
-Profiling shows the refile happens 1.9% of the time when a dup is found
-with a max_page_sharing limit setting of 3 (with max_page_sharing of 2 the
-refile never happens of course as there's never space for one more merge)
-which is reasonably low.  At higher max_page_sharing values it should be
-much less frequent.
-
-This is just an optimization.
-
-Link: http://lkml.kernel.org/r/20170518173721.22316-4-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Evgheni Dereveanchin <ederevea@redhat.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Petr Holasek <pholasek@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Gavin Guo <gavin.guo@canonical.com>
-Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Link: http://lkml.kernel.org/r/1494834068-27004-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   35 +++++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/ksm.c~ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain mm/ksm.c
---- a/mm/ksm.c~ksm-optimize-refile-of-stable_node_dup-at-the-head-of-the-chain
-+++ a/mm/ksm.c
-@@ -1367,13 +1367,14 @@ struct page *stable_node_dup(struct stab
- 		put_page(_tree_page);
+diff -puN drivers/block/zram/zram_drv.c~zram-count-same-page-write-as-page_stored drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-count-same-page-write-as-page_stored
++++ a/drivers/block/zram/zram_drv.c
+@@ -469,6 +469,7 @@ static bool zram_same_page_write(struct
+ 		zram_slot_unlock(zram, index);
+ 
+ 		atomic64_inc(&zram->stats.same_pages);
++		atomic64_inc(&zram->stats.pages_stored);
+ 		return true;
+ 	}
+ 	kunmap_atomic(mem);
+@@ -524,6 +525,7 @@ static void zram_free_page(struct zram *
+ 		zram_clear_flag(zram, index, ZRAM_SAME);
+ 		zram_set_element(zram, index, 0);
+ 		atomic64_dec(&zram->stats.same_pages);
++		atomic64_dec(&zram->stats.pages_stored);
+ 		return;
  	}
  
--	/*
--	 * nr is relevant only if prune_stale_stable_nodes is true,
--	 * otherwise we may break the loop at nr == 1 even if there
--	 * are multiple entries.
--	 */
--	if (prune_stale_stable_nodes && found) {
--		if (nr == 1) {
-+	if (found) {
-+		/*
-+		 * nr is counting all dups in the chain only if
-+		 * prune_stale_stable_nodes is true, otherwise we may
-+		 * break the loop at nr == 1 even if there are
-+		 * multiple entries.
-+		 */
-+		if (prune_stale_stable_nodes && nr == 1) {
- 			/*
- 			 * If there's not just one entry it would
- 			 * corrupt memory, better BUG_ON. In KSM
-@@ -1404,12 +1405,22 @@ struct page *stable_node_dup(struct stab
- 			 * time.
- 			 */
- 			stable_node = NULL;
--		} else if (__is_page_sharing_candidate(found, 1)) {
-+		} else if (stable_node->hlist.first != &found->hlist_dup &&
-+			   __is_page_sharing_candidate(found, 1)) {
- 			/*
--			 * Refile our candidate at the head
--			 * after the prune if our candidate
--			 * can accept one more future sharing
--			 * in addition to the one underway.
-+			 * If the found stable_node dup can accept one
-+			 * more future merge (in addition to the one
-+			 * that is underway) and is not at the head of
-+			 * the chain, put it there so next search will
-+			 * be quicker in the !prune_stale_stable_nodes
-+			 * case.
-+			 *
-+			 * NOTE: it would be inaccurate to use nr > 1
-+			 * instead of checking the hlist.first pointer
-+			 * directly, because in the
-+			 * prune_stale_stable_nodes case "nr" isn't
-+			 * the position of the found dup in the chain,
-+			 * but the total number of dups in the chain.
- 			 */
- 			hlist_del(&found->hlist_dup);
- 			hlist_add_head(&found->hlist_dup,
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 
