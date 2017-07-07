@@ -1,153 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-cleanup-arch_has_gigantic_page.patch
- removed from -mm tree
-Date: Fri, 07 Jul 2017 12:10:14 -0700
-Message-ID: <20170707191014.xN9LY2gue%akpm@linux-foundation.org>
+Subject: [merged] mm-adaptive-hash-table-scaling.patch removed from
+ -mm tree
+Date: Fri, 07 Jul 2017 12:10:12 -0700
+Message-ID: <20170707191012.jgZmn163z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33856 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752571AbdGGTKX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:23 -0400
+        with ESMTP id S1752572AbdGGTKY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au
+To: babu.moger@oracle.com, davem@davemloft.net, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@oracle.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/hugetlb: clean up ARCH_HAS_GIGANTIC_PAGE
+     Subject: mm: adaptive hash table scaling
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-cleanup-arch_has_gigantic_page.patch
+     mm-adaptive-hash-table-scaling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/hugetlb: clean up ARCH_HAS_GIGANTIC_PAGE
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Subject: mm: adaptive hash table scaling
 
-This moves the #ifdef in C code to a Kconfig dependency.  Also we move the
-gigantic_page_supported() function to be arch specific.  This gives arch
-to conditionally enable runtime allocation of gigantic huge page. 
-Architectures like ppc64 supports different gigantic huge page size (16G
-and 1G) based on the translation mode selected.  This provides an
-opportunity for ppc64 to enable runtime allocation only w.r.t 1G hugepage.
+Allow hash tables to scale with memory but at slower pace, when HASH_ADAPT
+is provided every time memory quadruples the sizes of hash tables will
+only double instead of quadrupling as well.  This algorithm starts working
+only when memory size reaches a certain point, currently set to 64G.
 
-No functional change in this patch.
+This is example of dentry hash table size, before and after four various
+memory configurations:
 
-Link: http://lkml.kernel.org/r/1494995292-4443-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+MEMORY	   SCALE	 HASH_SIZE
+	old	new	old	new
+    8G	 13	 13      8M      8M
+   16G	 13	 13     16M     16M
+   32G	 13	 13     32M     32M
+   64G	 13	 13     64M     64M
+  128G	 13	 14    128M     64M
+  256G	 13	 14    256M    128M
+  512G	 13	 15    512M    128M
+ 1024G	 13	 15   1024M    256M
+ 2048G	 13	 16   2048M    256M
+ 4096G	 13	 16   4096M    512M
+ 8192G	 13	 17   8192M    512M
+16384G	 13	 17  16384M   1024M
+32768G	 13	 18  32768M   1024M
+65536G	 13	 18  65536M   2048M
+
+The effect of this change on runtime is undetectable as filesystem
+growth is not proportional to machine memory size as is currently
+assumed.  The change effects only large memory machine.  Additional
+tuning might be needed, but that can be done by the clients of the
+kmem_cache_create interface, not the generic cache allocator itself.
+
+The adaptive hashing is disabled on 32 bit systems to avoid confusion of
+whether base should be different for smaller systems, and to avoid
+overflows.
+
+[mhocko@suse.com: drop HASH_ADAPT]
+  Link: http://lkml.kernel.org/r/20170509094607.GG6481@dhcp22.suse.cz
+[pasha.tatashin@oracle.com: UL -> ULL fix]
+  Link: http://lkml.kernel.org/r/1495300013-653283-2-git-send-email-pasha.tatashin@oracle.com
+[pasha.tatashin@oracle.com: disable adaptive hash on 32 bit systems]
+  Link: http://lkml.kernel.org/r/1495469329-755807-2-git-send-email-pasha.tatashin@oracle.com
+Link: http://lkml.kernel.org/r/1488432825-92126-5-git-send-email-pasha.tatashin@oracle.com
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Babu Moger <babu.moger@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig               |    2 +-
- arch/arm64/include/asm/hugetlb.h |    4 ++++
- arch/s390/Kconfig                |    2 +-
- arch/s390/include/asm/hugetlb.h  |    3 +++
- arch/x86/Kconfig                 |    2 +-
- arch/x86/include/asm/hugetlb.h   |    4 ++++
- mm/hugetlb.c                     |    7 ++-----
- 7 files changed, 16 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN arch/arm64/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page
-+++ a/arch/arm64/Kconfig
-@@ -13,7 +13,7 @@ config ARM64
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
--	select ARCH_HAS_GIGANTIC_PAGE
-+	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
- 	select ARCH_HAS_KCOV
- 	select ARCH_HAS_SET_MEMORY
- 	select ARCH_HAS_SG_CHAIN
-diff -puN arch/arm64/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page arch/arm64/include/asm/hugetlb.h
---- a/arch/arm64/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page
-+++ a/arch/arm64/include/asm/hugetlb.h
-@@ -83,4 +83,8 @@ extern void huge_ptep_set_wrprotect(stru
- extern void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 				  unsigned long addr, pte_t *ptep);
+diff -puN mm/page_alloc.c~mm-adaptive-hash-table-scaling mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-adaptive-hash-table-scaling
++++ a/mm/page_alloc.c
+@@ -7180,6 +7180,21 @@ static unsigned long __init arch_reserve
+ #endif
  
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
-+static inline bool gigantic_page_supported(void) { return true; }
+ /*
++ * Adaptive scale is meant to reduce sizes of hash tables on large memory
++ * machines. As memory size is increased the scale is also increased but at
++ * slower pace.  Starting from ADAPT_SCALE_BASE (64G), every time memory
++ * quadruples the scale is increased by one, which means the size of hash table
++ * only doubles, instead of quadrupling as well.
++ * Because 32-bit systems cannot have large physical memory, where this scaling
++ * makes sense, it is disabled on such platforms.
++ */
++#if __BITS_PER_LONG > 32
++#define ADAPT_SCALE_BASE	(64ul << 30)
++#define ADAPT_SCALE_SHIFT	2
++#define ADAPT_SCALE_NPAGES	(ADAPT_SCALE_BASE >> PAGE_SHIFT)
 +#endif
 +
- #endif /* __ASM_HUGETLB_H */
-diff -puN arch/s390/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page arch/s390/Kconfig
---- a/arch/s390/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page
-+++ a/arch/s390/Kconfig
-@@ -68,7 +68,7 @@ config S390
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
--	select ARCH_HAS_GIGANTIC_PAGE
-+	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
- 	select ARCH_HAS_KCOV
- 	select ARCH_HAS_SET_MEMORY
- 	select ARCH_HAS_SG_CHAIN
-diff -puN arch/s390/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page arch/s390/include/asm/hugetlb.h
---- a/arch/s390/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page
-+++ a/arch/s390/include/asm/hugetlb.h
-@@ -112,4 +112,7 @@ static inline pte_t huge_pte_modify(pte_
- 	return pte_modify(pte, newprot);
- }
++/*
+  * allocate a large system hash table from bootmem
+  * - it is assumed that the hash table must contain an exact power-of-2
+  *   quantity of entries
+@@ -7210,6 +7225,16 @@ void *__init alloc_large_system_hash(con
+ 		if (PAGE_SHIFT < 20)
+ 			numentries = round_up(numentries, (1<<20)/PAGE_SIZE);
  
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
-+static inline bool gigantic_page_supported(void) { return true; }
-+#endif
- #endif /* _ASM_S390_HUGETLB_H */
-diff -puN arch/x86/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-hugetlb-cleanup-arch_has_gigantic_page
-+++ a/arch/x86/Kconfig
-@@ -22,7 +22,7 @@ config X86_64
- 	def_bool y
- 	depends on 64BIT
- 	# Options that are inherently 64-bit kernel only:
--	select ARCH_HAS_GIGANTIC_PAGE
-+	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
- 	select ARCH_SUPPORTS_INT128
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select HAVE_ARCH_SOFT_DIRTY
-diff -puN arch/x86/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page arch/x86/include/asm/hugetlb.h
---- a/arch/x86/include/asm/hugetlb.h~mm-hugetlb-cleanup-arch_has_gigantic_page
-+++ a/arch/x86/include/asm/hugetlb.h
-@@ -85,4 +85,8 @@ static inline void arch_clear_hugepage_f
- {
- }
- 
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
-+static inline bool gigantic_page_supported(void) { return true; }
++#if __BITS_PER_LONG > 32
++		if (!high_limit) {
++			unsigned long adapt;
++
++			for (adapt = ADAPT_SCALE_NPAGES; adapt < numentries;
++			     adapt <<= ADAPT_SCALE_SHIFT)
++				scale++;
++		}
 +#endif
 +
- #endif /* _ASM_X86_HUGETLB_H */
-diff -puN mm/hugetlb.c~mm-hugetlb-cleanup-arch_has_gigantic_page mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-cleanup-arch_has_gigantic_page
-+++ a/mm/hugetlb.c
-@@ -1040,9 +1040,7 @@ static int hstate_next_node_to_free(stru
- 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
- 		nr_nodes--)
- 
--#if defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE) && \
--	((defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || \
--	defined(CONFIG_CMA))
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
- static void destroy_compound_gigantic_page(struct page *page,
- 					unsigned int order)
- {
-@@ -1174,8 +1172,7 @@ static int alloc_fresh_gigantic_page(str
- 	return 0;
- }
- 
--static inline bool gigantic_page_supported(void) { return true; }
--#else
-+#else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
- static inline bool gigantic_page_supported(void) { return false; }
- static inline void free_gigantic_page(struct page *page, unsigned int order) { }
- static inline void destroy_compound_gigantic_page(struct page *page,
+ 		/* limit to 1 bucket per 2^scale bytes of low memory */
+ 		if (scale > PAGE_SHIFT)
+ 			numentries >>= (scale - PAGE_SHIFT);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from pasha.tatashin@oracle.com are
 
+sparc64-ng4-memset-32-bits-overflow.patch
 
