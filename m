@@ -1,103 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?clarify-help-text-that-compression-applies-to-ramfs-as-well?=
- =?US-ASCII?Q?-as-legacy-ramdisk.patch?= removed from -mm tree
-Date: Fri, 07 Jul 2017 12:07:18 -0700
-Message-ID: <20170707190718.ppP3_lZ5D%akpm@linux-foundation.org>
+Subject: [merged] pm-hibernate-use-linux-set_memoryh.patch removed
+ from -mm tree
+Date: Fri, 07 Jul 2017 12:07:25 -0700
+Message-ID: <20170707190725.hkWuTaQpA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60602 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751438AbdGGTHT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:19 -0400
+        with ESMTP id S1750938AbdGGTH0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:07:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, mm-commits@vger.kernel.org, rob@landley.net
+To: daniel@iogearbox.net, keescook@chromium.org, labbott@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au
 
 
 The patch titled
-     Subject: ramfs: clarify help text that compression applies to ramfs as well as legacy ramdisk.
+     Subject: kernel/power/snapshot.c: use linux/set_memory.h
 has been removed from the -mm tree.  Its filename was
-     clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk.patch
+     pm-hibernate-use-linux-set_memoryh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rob Landley <rob@landley.net>
-Subject: ramfs: clarify help text that compression applies to ramfs as well as legacy ramdisk.
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: kernel/power/snapshot.c: use linux/set_memory.h
 
-Clarify help text that compression applies to ramfs as well as legacy ramdisk.
+This header always exists, so doesn't require an ifdef around its
+inclusion.  When CONFIG_ARCH_HAS_SET_MEMORY=y it includes the asm header,
+otherwise it provides empty versions of the set_memory_xx() routines.
 
-Link: http://lkml.kernel.org/r/f206a960-5a61-cf59-f27c-e9f34872063c@landley.net
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: http://lkml.kernel.org/r/1498717781-29151-2-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Laura Abbott <labbott@redhat.com>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ kernel/power/snapshot.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN usr/Kconfig~clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk usr/Kconfig
---- a/usr/Kconfig~clarify-help-text-that-compression-applies-to-ramfs-as-well-as-legacy-ramdisk
-+++ a/usr/Kconfig
-@@ -52,7 +52,7 @@ config INITRAMFS_ROOT_GID
- 	  If you are not sure, leave it set to "0".
+diff -puN kernel/power/snapshot.c~pm-hibernate-use-linux-set_memoryh kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~pm-hibernate-use-linux-set_memoryh
++++ a/kernel/power/snapshot.c
+@@ -30,15 +30,13 @@
+ #include <linux/slab.h>
+ #include <linux/compiler.h>
+ #include <linux/ktime.h>
++#include <linux/set_memory.h>
  
- config RD_GZIP
--	bool "Support initial ramdisks compressed using gzip"
-+	bool "Support initial ramdisk/ramfs compressed using gzip"
- 	depends on BLK_DEV_INITRD
- 	default y
- 	select DECOMPRESS_GZIP
-@@ -61,7 +61,7 @@ config RD_GZIP
- 	  If unsure, say Y.
+ #include <linux/uaccess.h>
+ #include <asm/mmu_context.h>
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <asm/io.h>
+-#ifdef CONFIG_ARCH_HAS_SET_MEMORY
+-#include <asm/set_memory.h>
+-#endif
  
- config RD_BZIP2
--	bool "Support initial ramdisks compressed using bzip2"
-+	bool "Support initial ramdisk/ramfs compressed using bzip2"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_BZIP2
-@@ -70,7 +70,7 @@ config RD_BZIP2
- 	  If unsure, say N.
+ #include "power.h"
  
- config RD_LZMA
--	bool "Support initial ramdisks compressed using LZMA"
-+	bool "Support initial ramdisk/ramfs compressed using LZMA"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZMA
-@@ -79,7 +79,7 @@ config RD_LZMA
- 	  If unsure, say N.
- 
- config RD_XZ
--	bool "Support initial ramdisks compressed using XZ"
-+	bool "Support initial ramdisk/ramfs compressed using XZ"
- 	depends on BLK_DEV_INITRD
- 	default y
- 	select DECOMPRESS_XZ
-@@ -88,7 +88,7 @@ config RD_XZ
- 	  If unsure, say N.
- 
- config RD_LZO
--	bool "Support initial ramdisks compressed using LZO"
-+	bool "Support initial ramdisk/ramfs compressed using LZO"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZO
-@@ -97,7 +97,7 @@ config RD_LZO
- 	  If unsure, say N.
- 
- config RD_LZ4
--	bool "Support initial ramdisks compressed using LZ4"
-+	bool "Support initial ramdisk/ramfs compressed using LZ4"
- 	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZ4
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
 
