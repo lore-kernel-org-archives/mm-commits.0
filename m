@@ -1,93 +1,145 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-drop-null-return-check-of-pte_offset_map_lock.patch removed from -mm
- tree
-Date: Fri, 07 Jul 2017 12:10:20 -0700
-Message-ID: <20170707191020.xzcJ-AjUC%akpm@linux-foundation.org>
+ arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch removed from
+ -mm tree
+Date: Fri, 07 Jul 2017 12:10:26 -0700
+Message-ID: <20170707191026.bRrRQc1Zz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34148 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34346 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751659AbdGGTKk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:40 -0400
+        with ESMTP id S1751032AbdGGTKv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hannes@cmpxchg.org, mgorman@suse.de, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, vbabka@suse.cz
+To: aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, dwoods@mellanox.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, punit.agrawal@arm.com, steve.capper@arm.com
 
 
 The patch titled
-     Subject: mm: drop NULL return check of pte_offset_map_lock()
+     Subject: arm64: hugetlb: remove spurious calls to huge_ptep_offset()
 has been removed from the -mm tree.  Its filename was
-     mm-drop-null-return-check-of-pte_offset_map_lock.patch
+     arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: drop NULL return check of pte_offset_map_lock()
+From: Steve Capper <steve.capper@arm.com>
+Subject: arm64: hugetlb: remove spurious calls to huge_ptep_offset()
 
-pte_offset_map_lock() finds and takes ptl, and returns pte.  But some
-callers return without unlocking the ptl when pte == NULL, which seems
-weird.
+We don't need to call huge_ptep_offset as our accessors are already
+supplied with the pte_t *.  This patch removes those spurious calls.
 
-Git history said that !pte check in change_pte_range() was introduced in
-commit 1ad9f620c3a2 ("mm: numa: recheck for transhuge pages under lock
-during protection changes") and still remains after commit 175ad4f1e7a2
-("mm: mprotect: use pmd_trans_unstable instead of taking the pmd_lock")
-which partially reverts 1ad9f620c3a2.  So I think that it's just dead
-code.
-
-Many other caller of pte_offset_map_lock() never check NULL return, so
-let's do likewise.
-
-Link: http://lkml.kernel.org/r/1495089737-1292-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
+[punit.agrawal@arm.com: resolve rebase conflicts due to patch re-ordering]
+Link: http://lkml.kernel.org/r/20170524115409.31309-3-punit.agrawal@arm.com
+Signed-off-by: Steve Capper <steve.capper@arm.com>
+Signed-off-by: Punit Agrawal <punit.agrawal@arm.com>
+Cc: David Woods <dwoods@mellanox.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c   |    2 --
- mm/mprotect.c |    2 --
- 2 files changed, 4 deletions(-)
+ arch/arm64/mm/hugetlbpage.c |   37 ++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
-diff -puN mm/memory.c~mm-drop-null-return-check-of-pte_offset_map_lock mm/memory.c
---- a/mm/memory.c~mm-drop-null-return-check-of-pte_offset_map_lock
-+++ a/mm/memory.c
-@@ -4014,8 +4014,6 @@ static int __follow_pte_pmd(struct mm_st
- 		goto out;
+diff -puN arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset arch/arm64/mm/hugetlbpage.c
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-remove-spurious-calls-to-huge_ptep_offset
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -183,21 +183,19 @@ pte_t huge_ptep_get_and_clear(struct mm_
+ 	if (pte_cont(*ptep)) {
+ 		int ncontig, i;
+ 		size_t pgsize;
+-		pte_t *cpte;
+ 		bool is_dirty = false;
  
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
--	if (!ptep)
--		goto out;
- 	if (!pte_present(*ptep))
- 		goto unlock;
- 	*ptepp = ptep;
-diff -puN mm/mprotect.c~mm-drop-null-return-check-of-pte_offset_map_lock mm/mprotect.c
---- a/mm/mprotect.c~mm-drop-null-return-check-of-pte_offset_map_lock
-+++ a/mm/mprotect.c
-@@ -58,8 +58,6 @@ static unsigned long change_pte_range(st
- 	 * reading.
- 	 */
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
--	if (!pte)
--		return 0;
+-		cpte = huge_pte_offset(mm, addr);
+-		ncontig = find_num_contig(mm, addr, cpte, &pgsize);
++		ncontig = find_num_contig(mm, addr, ptep, &pgsize);
+ 		/* save the 1st pte to return */
+-		pte = ptep_get_and_clear(mm, addr, cpte);
++		pte = ptep_get_and_clear(mm, addr, ptep);
+ 		for (i = 1, addr += pgsize; i < ncontig; ++i, addr += pgsize) {
+ 			/*
+ 			 * If HW_AFDBM is enabled, then the HW could
+ 			 * turn on the dirty bit for any of the page
+ 			 * in the set, so check them all.
+ 			 */
+-			++cpte;
+-			if (pte_dirty(ptep_get_and_clear(mm, addr, cpte)))
++			++ptep;
++			if (pte_dirty(ptep_get_and_clear(mm, addr, ptep)))
+ 				is_dirty = true;
+ 		}
+ 		if (is_dirty)
+@@ -213,8 +211,6 @@ int huge_ptep_set_access_flags(struct vm
+ 			       unsigned long addr, pte_t *ptep,
+ 			       pte_t pte, int dirty)
+ {
+-	pte_t *cpte;
+-
+ 	if (pte_cont(pte)) {
+ 		int ncontig, i, changed = 0;
+ 		size_t pgsize = 0;
+@@ -224,12 +220,11 @@ int huge_ptep_set_access_flags(struct vm
+ 			__pgprot(pte_val(pfn_pte(pfn, __pgprot(0))) ^
+ 				 pte_val(pte));
  
- 	/* Get target node for single threaded private VMAs */
- 	if (prot_numa && !(vma->vm_flags & VM_SHARED) &&
+-		cpte = huge_pte_offset(vma->vm_mm, addr);
+-		pfn = pte_pfn(*cpte);
+-		ncontig = find_num_contig(vma->vm_mm, addr, cpte,
++		pfn = pte_pfn(pte);
++		ncontig = find_num_contig(vma->vm_mm, addr, ptep,
+ 					  &pgsize);
+-		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize) {
+-			changed |= ptep_set_access_flags(vma, addr, cpte,
++		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize) {
++			changed |= ptep_set_access_flags(vma, addr, ptep,
+ 							pfn_pte(pfn,
+ 								hugeprot),
+ 							dirty);
+@@ -246,13 +241,11 @@ void huge_ptep_set_wrprotect(struct mm_s
+ {
+ 	if (pte_cont(*ptep)) {
+ 		int ncontig, i;
+-		pte_t *cpte;
+ 		size_t pgsize = 0;
+ 
+-		cpte = huge_pte_offset(mm, addr);
+-		ncontig = find_num_contig(mm, addr, cpte, &pgsize);
+-		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize)
+-			ptep_set_wrprotect(mm, addr, cpte);
++		ncontig = find_num_contig(mm, addr, ptep, &pgsize);
++		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize)
++			ptep_set_wrprotect(mm, addr, ptep);
+ 	} else {
+ 		ptep_set_wrprotect(mm, addr, ptep);
+ 	}
+@@ -263,14 +256,12 @@ void huge_ptep_clear_flush(struct vm_are
+ {
+ 	if (pte_cont(*ptep)) {
+ 		int ncontig, i;
+-		pte_t *cpte;
+ 		size_t pgsize = 0;
+ 
+-		cpte = huge_pte_offset(vma->vm_mm, addr);
+-		ncontig = find_num_contig(vma->vm_mm, addr, cpte,
++		ncontig = find_num_contig(vma->vm_mm, addr, ptep,
+ 					  &pgsize);
+-		for (i = 0; i < ncontig; ++i, ++cpte, addr += pgsize)
+-			ptep_clear_flush(vma, addr, cpte);
++		for (i = 0; i < ncontig; ++i, ++ptep, addr += pgsize)
++			ptep_clear_flush(vma, addr, ptep);
+ 	} else {
+ 		ptep_clear_flush(vma, addr, ptep);
+ 	}
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from steve.capper@arm.com are
 
-mm-hugetlb-prevent-reuse-of-hwpoisoned-free-hugepages.patch
-mm-hugetlb-return-immediately-for-hugetlb-page-in-__delete_from_page_cache.patch
-mm-hwpoison-change-pagehwpoison-behavior-on-hugetlb-pages.patch
-mm-soft-offline-dissolve-free-hugepage-if-soft-offlined.patch
-mm-hwpoison-introduce-memory_failure_hugetlb.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error.patch
-mm-hugetlb-delete-dequeue_hwpoisoned_huge_page.patch
-mm-hwpoison-introduce-idenfity_page_state.patch
 
