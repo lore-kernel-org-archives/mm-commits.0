@@ -1,140 +1,282 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrol-account-slab-stats-per-lruvec.patch
+Subject: [merged] mm-memory_hotplug-drop-config_movable_node.patch
  removed from -mm tree
-Date: Fri, 07 Jul 2017 12:11:38 -0700
-Message-ID: <20170707191138.6S8D33ufm%akpm@linux-foundation.org>
+Date: Fri, 07 Jul 2017 12:11:44 -0700
+Message-ID: <20170707191144.JTdEoYttS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34834 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751034AbdGGTLj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:11:39 -0400
+        with ESMTP id S1750848AbdGGTLp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:11:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, josef@toxicpanda.com, mhocko@suse.com, mm-commits@vger.kernel.org, riel@redhat.com, vdavydov.dev@gmail.com
+To: aarcange@redhat.com, ak@linux.intel.com, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, imammedo@redhat.com, jglisse@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
 
 
 The patch titled
-     Subject: mm: memcontrol: account slab stats per lruvec
+     Subject: mm, memory_hotplug: drop CONFIG_MOVABLE_NODE
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-account-slab-stats-per-lruvec.patch
+     mm-memory_hotplug-drop-config_movable_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: account slab stats per lruvec
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: drop CONFIG_MOVABLE_NODE
 
-Josef's redesign of the balancing between slab caches and the page cache
-requires slab cache statistics at the lruvec level.
+20b2f52b73fe ("numa: add CONFIG_MOVABLE_NODE for movable-dedicated node")
+has introduced CONFIG_MOVABLE_NODE without a good explanation on why it is
+actually useful.  It makes a lot of sense to make movable node semantic
+opt in but we already have that because the feature has to be explicitly
+enabled on the kernel command line.  A config option on top only makes the
+configuration space larger without a good reason.  It also adds an
+additional ifdefery that pollutes the code.  Just drop the config option
+and make it de-facto always enabled.  This shouldn't introduce any change
+to the semantic.
 
-Link: http://lkml.kernel.org/r/20170530181724.27197-7-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@redhat.com>
+Link: http://lkml.kernel.org/r/20170529114141.536-3-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Kani Toshimitsu <toshi.kani@hpe.com>
+Cc: Chen Yucong <slaoub@gmail.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   12 ++++--------
- mm/slab.h |   18 +-----------------
- mm/slub.c |    4 ++--
- 3 files changed, 7 insertions(+), 27 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    7 ++-
+ drivers/base/node.c                             |    4 --
+ include/linux/memblock.h                        |   18 ---------
+ include/linux/nodemask.h                        |    4 --
+ mm/Kconfig                                      |   26 --------------
+ mm/memblock.c                                   |    2 -
+ mm/memory_hotplug.c                             |    4 --
+ mm/page_alloc.c                                 |    2 -
+ 8 files changed, 5 insertions(+), 62 deletions(-)
 
-diff -puN mm/slab.c~mm-memcontrol-account-slab-stats-per-lruvec mm/slab.c
---- a/mm/slab.c~mm-memcontrol-account-slab-stats-per-lruvec
-+++ a/mm/slab.c
-@@ -1425,11 +1425,9 @@ static struct page *kmem_getpages(struct
+diff -puN Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-drop-config_movable_node Documentation/admin-guide/kernel-parameters.txt
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-drop-config_movable_node
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2303,8 +2303,11 @@
+ 			that the amount of memory usable for all allocations
+ 			is not too small.
  
- 	nr_pages = (1 << cachep->gfporder);
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
--		add_node_page_state(page_pgdat(page),
--			NR_SLAB_RECLAIMABLE, nr_pages);
-+		mod_lruvec_page_state(page, NR_SLAB_RECLAIMABLE, nr_pages);
- 	else
--		add_node_page_state(page_pgdat(page),
--			NR_SLAB_UNRECLAIMABLE, nr_pages);
-+		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE, nr_pages);
+-	movable_node	[KNL] Boot-time switch to enable the effects
+-			of CONFIG_MOVABLE_NODE=y. See mm/Kconfig for details.
++	movable_node	[KNL] Boot-time switch to make hotplugable memory
++			NUMA nodes to be movable. This means that the memory
++			of such nodes will be usable only for movable
++			allocations which rules out almost all kernel
++			allocations. Use with caution!
  
- 	__SetPageSlab(page);
- 	/* Record if ALLOC_NO_WATERMARKS was set when allocating the slab */
-@@ -1459,11 +1457,9 @@ static void kmem_freepages(struct kmem_c
- 	kmemcheck_free_shadow(page, order);
+ 	MTD_Partition=	[MTD]
+ 			Format: <name>,<region-number>,<size>,<offset>
+diff -puN drivers/base/node.c~mm-memory_hotplug-drop-config_movable_node drivers/base/node.c
+--- a/drivers/base/node.c~mm-memory_hotplug-drop-config_movable_node
++++ a/drivers/base/node.c
+@@ -639,9 +639,7 @@ static struct node_attr node_state_attr[
+ #ifdef CONFIG_HIGHMEM
+ 	[N_HIGH_MEMORY] = _NODE_ATTR(has_high_memory, N_HIGH_MEMORY),
+ #endif
+-#ifdef CONFIG_MOVABLE_NODE
+ 	[N_MEMORY] = _NODE_ATTR(has_memory, N_MEMORY),
+-#endif
+ 	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
+ };
  
- 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
--		sub_node_page_state(page_pgdat(page),
--				NR_SLAB_RECLAIMABLE, nr_freed);
-+		mod_lruvec_page_state(page, NR_SLAB_RECLAIMABLE, -nr_freed);
- 	else
--		sub_node_page_state(page_pgdat(page),
--				NR_SLAB_UNRECLAIMABLE, nr_freed);
-+		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE, -nr_freed);
+@@ -652,9 +650,7 @@ static struct attribute *node_state_attr
+ #ifdef CONFIG_HIGHMEM
+ 	&node_state_attr[N_HIGH_MEMORY].attr.attr,
+ #endif
+-#ifdef CONFIG_MOVABLE_NODE
+ 	&node_state_attr[N_MEMORY].attr.attr,
+-#endif
+ 	&node_state_attr[N_CPU].attr.attr,
+ 	NULL
+ };
+diff -puN include/linux/memblock.h~mm-memory_hotplug-drop-config_movable_node include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-memory_hotplug-drop-config_movable_node
++++ a/include/linux/memblock.h
+@@ -57,10 +57,8 @@ struct memblock {
  
- 	BUG_ON(!PageSlab(page));
- 	__ClearPageSlabPfmemalloc(page);
-diff -puN mm/slab.h~mm-memcontrol-account-slab-stats-per-lruvec mm/slab.h
---- a/mm/slab.h~mm-memcontrol-account-slab-stats-per-lruvec
-+++ a/mm/slab.h
-@@ -274,22 +274,11 @@ static __always_inline int memcg_charge_
- 					     gfp_t gfp, int order,
- 					     struct kmem_cache *s)
+ extern struct memblock memblock;
+ extern int memblock_debug;
+-#ifdef CONFIG_MOVABLE_NODE
+ /* If movable_node boot option specified */
+ extern bool movable_node_enabled;
+-#endif /* CONFIG_MOVABLE_NODE */
+ 
+ #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
+ #define __init_memblock __meminit
+@@ -169,7 +167,6 @@ void __next_reserved_mem_region(u64 *idx
+ 	     i != (u64)ULLONG_MAX;					\
+ 	     __next_reserved_mem_region(&i, p_start, p_end))
+ 
+-#ifdef CONFIG_MOVABLE_NODE
+ static inline bool memblock_is_hotpluggable(struct memblock_region *m)
  {
--	int ret;
--
- 	if (!memcg_kmem_enabled())
- 		return 0;
- 	if (is_root_cache(s))
- 		return 0;
--
--	ret = memcg_kmem_charge_memcg(page, gfp, order, s->memcg_params.memcg);
--	if (ret)
--		return ret;
--
--	mod_memcg_page_state(page,
--			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
--			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
--			     1 << order);
--	return 0;
-+	return memcg_kmem_charge_memcg(page, gfp, order, s->memcg_params.memcg);
- }
- 
- static __always_inline void memcg_uncharge_slab(struct page *page, int order,
-@@ -297,11 +286,6 @@ static __always_inline void memcg_unchar
+ 	return m->flags & MEMBLOCK_HOTPLUG;
+@@ -179,16 +176,6 @@ static inline bool __init_memblock movab
  {
- 	if (!memcg_kmem_enabled())
- 		return;
--
--	mod_memcg_page_state(page,
--			     (s->flags & SLAB_RECLAIM_ACCOUNT) ?
--			     NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
--			     -(1 << order));
- 	memcg_kmem_uncharge(page, order);
+ 	return movable_node_enabled;
  }
+-#else
+-static inline bool memblock_is_hotpluggable(struct memblock_region *m)
+-{
+-	return false;
+-}
+-static inline bool movable_node_is_enabled(void)
+-{
+-	return false;
+-}
+-#endif
  
-diff -puN mm/slub.c~mm-memcontrol-account-slab-stats-per-lruvec mm/slub.c
---- a/mm/slub.c~mm-memcontrol-account-slab-stats-per-lruvec
-+++ a/mm/slub.c
-@@ -1615,7 +1615,7 @@ out:
- 	if (!page)
- 		return NULL;
+ static inline bool memblock_is_mirror(struct memblock_region *m)
+ {
+@@ -296,7 +283,6 @@ phys_addr_t memblock_alloc_try_nid(phys_
  
--	mod_node_page_state(page_pgdat(page),
-+	mod_lruvec_page_state(page,
- 		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
- 		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
- 		1 << oo_order(oo));
-@@ -1655,7 +1655,7 @@ static void __free_slab(struct kmem_cach
+ phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
  
- 	kmemcheck_free_shadow(page, compound_order(page));
+-#ifdef CONFIG_MOVABLE_NODE
+ /*
+  * Set the allocation direction to bottom-up or top-down.
+  */
+@@ -314,10 +300,6 @@ static inline bool memblock_bottom_up(vo
+ {
+ 	return memblock.bottom_up;
+ }
+-#else
+-static inline void __init memblock_set_bottom_up(bool enable) {}
+-static inline bool memblock_bottom_up(void) { return false; }
+-#endif
  
--	mod_node_page_state(page_pgdat(page),
-+	mod_lruvec_page_state(page,
- 		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
- 		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
- 		-pages);
+ /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
+ #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
+diff -puN include/linux/nodemask.h~mm-memory_hotplug-drop-config_movable_node include/linux/nodemask.h
+--- a/include/linux/nodemask.h~mm-memory_hotplug-drop-config_movable_node
++++ a/include/linux/nodemask.h
+@@ -387,11 +387,7 @@ enum node_states {
+ #else
+ 	N_HIGH_MEMORY = N_NORMAL_MEMORY,
+ #endif
+-#ifdef CONFIG_MOVABLE_NODE
+ 	N_MEMORY,		/* The node has memory(regular, high, movable) */
+-#else
+-	N_MEMORY = N_HIGH_MEMORY,
+-#endif
+ 	N_CPU,		/* The node has one or more cpus */
+ 	NR_NODE_STATES
+ };
+diff -puN mm/Kconfig~mm-memory_hotplug-drop-config_movable_node mm/Kconfig
+--- a/mm/Kconfig~mm-memory_hotplug-drop-config_movable_node
++++ a/mm/Kconfig
+@@ -149,32 +149,6 @@ config NO_BOOTMEM
+ config MEMORY_ISOLATION
+ 	bool
+ 
+-config MOVABLE_NODE
+-	bool "Enable to assign a node which has only movable memory"
+-	depends on HAVE_MEMBLOCK
+-	depends on NO_BOOTMEM
+-	depends on X86_64 || OF_EARLY_FLATTREE || MEMORY_HOTPLUG
+-	depends on NUMA
+-	default n
+-	help
+-	  Allow a node to have only movable memory.  Pages used by the kernel,
+-	  such as direct mapping pages cannot be migrated.  So the corresponding
+-	  memory device cannot be hotplugged.  This option allows the following
+-	  two things:
+-	  - When the system is booting, node full of hotpluggable memory can
+-	  be arranged to have only movable memory so that the whole node can
+-	  be hot-removed. (need movable_node boot option specified).
+-	  - After the system is up, the option allows users to online all the
+-	  memory of a node as movable memory so that the whole node can be
+-	  hot-removed.
+-
+-	  Users who don't use the memory hotplug feature are fine with this
+-	  option on since they don't specify movable_node boot option or they
+-	  don't online memory as movable.
+-
+-	  Say Y here if you want to hotplug a whole node.
+-	  Say N here if you want kernel to use memory on all nodes evenly.
+-
+ #
+ # Only be set on architectures that have completely implemented memory hotplug
+ # feature. If you are not sure, don't touch it.
+diff -puN mm/memblock.c~mm-memory_hotplug-drop-config_movable_node mm/memblock.c
+--- a/mm/memblock.c~mm-memory_hotplug-drop-config_movable_node
++++ a/mm/memblock.c
+@@ -54,9 +54,7 @@ struct memblock memblock __initdata_memb
+ };
+ 
+ int memblock_debug __initdata_memblock;
+-#ifdef CONFIG_MOVABLE_NODE
+ bool movable_node_enabled __initdata_memblock = false;
+-#endif
+ static bool system_has_some_mirror __initdata_memblock = false;
+ static int memblock_can_resize __initdata_memblock;
+ static int memblock_memory_in_slab __initdata_memblock = 0;
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-drop-config_movable_node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-config_movable_node
++++ a/mm/memory_hotplug.c
+@@ -1572,11 +1572,7 @@ check_pages_isolated(unsigned long start
+ 
+ static int __init cmdline_parse_movable_node(char *p)
+ {
+-#ifdef CONFIG_MOVABLE_NODE
+ 	movable_node_enabled = true;
+-#else
+-	pr_warn("movable_node option not supported\n");
+-#endif
+ 	return 0;
+ }
+ early_param("movable_node", cmdline_parse_movable_node);
+diff -puN mm/page_alloc.c~mm-memory_hotplug-drop-config_movable_node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory_hotplug-drop-config_movable_node
++++ a/mm/page_alloc.c
+@@ -113,9 +113,7 @@ nodemask_t node_states[NR_NODE_STATES] _
+ #ifdef CONFIG_HIGHMEM
+ 	[N_HIGH_MEMORY] = { { [0] = 1UL } },
+ #endif
+-#ifdef CONFIG_MOVABLE_NODE
+ 	[N_MEMORY] = { { [0] = 1UL } },
+-#endif
+ 	[N_CPU] = { { [0] = 1UL } },
+ #endif	/* NUMA */
+ };
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-make-pr_set_thp_disable-immediately-active.patch
+mm-memory_hotplug-simplify-empty-node-mask-handling-in-new_node_page.patch
+hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration.patch
+mm-unify-new_node_page-and-alloc_migrate_target.patch
+mm-memcg-fix-potential-undefined-behavior-in-mem_cgroup_event_ratelimit.patch
+mm-hugetlb-unclutter-hugetlb-allocation-layers.patch
+hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask.patch
+mm-hugetlb-soft_offline-use-new_page_nodemask-for-soft-offline-migration.patch
+mm-document-highmem_is_dirtyable-sysctl.patch
+mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack.patch
+mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it.patch
+lib-rhashtablec-use-kvzalloc-in-bucket_table_alloc-when-possible.patch
+netfilter-use-kvmalloc-xt_alloc_table_info.patch
+mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
+xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
+mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+drm-i915-use-__gfp_retry_mayfail.patch
+mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
