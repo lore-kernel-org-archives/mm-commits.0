@@ -1,59 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-fix-mmop_online_keep-behavior.patch removed from -mm tree
-Date: Fri, 07 Jul 2017 12:09:21 -0700
-Message-ID: <20170707190921.vG2GNCrIt%akpm@linux-foundation.org>
+ mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone.patch
+ removed from -mm tree
+Date: Fri, 07 Jul 2017 12:09:24 -0700
+Message-ID: <20170707190924.lc6B63uN0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33110 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33120 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752114AbdGGTJ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:27 -0400
+        with ESMTP id S1752509AbdGGTJa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2017 15:09:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arbab@linux.vnet.ibm.com, dan.j.williams@intel.com, heiko.carstens@de.ibm.com, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, memory_hotplug: fix MMOP_ONLINE_KEEP behavior
+     Subject: mm, memory_hotplug: do not assume ZONE_NORMAL is default kernel zone
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-fix-mmop_online_keep-behavior.patch
+     mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, memory_hotplug: fix MMOP_ONLINE_KEEP behavior
+Subject: mm, memory_hotplug: do not assume ZONE_NORMAL is default kernel zone
 
-Heiko Carstens has noticed that the MMOP_ONLINE_KEEP is broken currently
-$ grep . memory3?/valid_zones
-memory34/valid_zones:Normal Movable
-memory35/valid_zones:Normal Movable
-memory36/valid_zones:Normal Movable
-memory37/valid_zones:Normal Movable
+Heiko Carstens has noticed that he can generate overlapping zones for
+ZONE_DMA and ZONE_NORMAL:
 
-$ echo online_movable > memory34/state
-$ grep . memory3?/valid_zones
-memory34/valid_zones:Movable
-memory35/valid_zones:Movable
-memory36/valid_zones:Movable
-memory37/valid_zones:Movable
+DMA      [mem 0x0000000000000000-0x000000007fffffff]
+Normal   [mem 0x0000000080000000-0x000000017fffffff]
 
-$ echo online > memory36/state
-$ grep . memory3?/valid_zones
-memory34/valid_zones:Movable
-memory36/valid_zones:Normal
-memory37/valid_zones:Movable
+$ cat /sys/devices/system/memory/block_size_bytes
+10000000
+$ cat /sys/devices/system/memory/memory5/valid_zones
+DMA
+$ echo 0 > /sys/devices/system/memory/memory5/online
+$ cat /sys/devices/system/memory/memory5/valid_zones
+Normal
+$ echo 1 > /sys/devices/system/memory/memory5/online
+Normal
 
-so we have effectively punched a hole into the movable zone.  The problem
-is that move_pfn_range() check for MMOP_ONLINE_KEEP is wrong.  It only
-checks whether the given range is already part of the movable zone which
-is not the case here as only memory34 is in the zone.  Fix this by using
-allow_online_pfn_range(..., MMOP_ONLINE_KERNEL) if that is false then we
-can be sure that movable onlining is the right thing to do.
+$ cat /proc/zoneinfo
+Node 0, zone      DMA
+spanned  524288        <-----
+present  458752
+managed  455078
+start_pfn:           0 <-----
+
+Node 0, zone   Normal
+spanned  720896
+present  589824
+managed  571648
+start_pfn:           327680 <-----
+
+The reason is that we assume that the default zone for kernel onlining is
+ZONE_NORMAL.  This was a simplification introduced by the memory hotplug
+rework and it is easily fixable by checking the range overlap in the zone
+order and considering the first matching zone as the default one.  If
+there is no such zone then assume ZONE_NORMAL as we have been doing so
+far.
 
 Fixes: "mm, memory_hotplug: do not associate hotadded memory to zones until online"
-Link: http://lkml.kernel.org/r/20170601083746.4924-2-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20170601083746.4924-3-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Tested-by: Heiko Carstens <heiko.carstens@de.ibm.com>
@@ -63,29 +73,91 @@ Cc: Reza Arbab <arbab@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/base/memory.c          |    2 +-
+ include/linux/memory_hotplug.h |    2 ++
+ mm/memory_hotplug.c            |   27 ++++++++++++++++++++++++---
+ 3 files changed, 27 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-fix-mmop_online_keep-behavior mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-mmop_online_keep-behavior
+diff -puN drivers/base/memory.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone
++++ a/drivers/base/memory.c
+@@ -419,7 +419,7 @@ static ssize_t show_valid_zones(struct d
+ 
+ 	nid = pfn_to_nid(start_pfn);
+ 	if (allow_online_pfn_range(nid, start_pfn, nr_pages, MMOP_ONLINE_KERNEL)) {
+-		strcat(buf, NODE_DATA(nid)->node_zones[ZONE_NORMAL].name);
++		strcat(buf, default_zone_for_pfn(nid, start_pfn, nr_pages)->name);
+ 		append = true;
+ 	}
+ 
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone
++++ a/include/linux/memory_hotplug.h
+@@ -311,4 +311,6 @@ extern struct page *sparse_decode_mem_ma
+ 					  unsigned long pnum);
+ extern bool allow_online_pfn_range(int nid, unsigned long pfn, unsigned long nr_pages,
+ 		int online_type);
++extern struct zone *default_zone_for_pfn(int nid, unsigned long pfn,
++		unsigned long nr_pages);
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-do-not-assume-zone_normal-is-default-kernel-zone
 +++ a/mm/memory_hotplug.c
-@@ -1115,11 +1115,12 @@ static struct zone * __meminit move_pfn_
+@@ -1028,7 +1028,7 @@ bool allow_online_pfn_range(int nid, uns
+ {
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+ 	struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
+-	struct zone *normal_zone =  &pgdat->node_zones[ZONE_NORMAL];
++	struct zone *default_zone = default_zone_for_pfn(nid, pfn, nr_pages);
+ 
+ 	/*
+ 	 * TODO there shouldn't be any inherent reason to have ZONE_NORMAL
+@@ -1042,7 +1042,7 @@ bool allow_online_pfn_range(int nid, uns
+ 			return true;
+ 		return movable_zone->zone_start_pfn >= pfn + nr_pages;
+ 	} else if (online_type == MMOP_ONLINE_MOVABLE) {
+-		return zone_end_pfn(normal_zone) <= pfn;
++		return zone_end_pfn(default_zone) <= pfn;
+ 	}
+ 
+ 	/* MMOP_ONLINE_KEEP will always succeed and inherits the current zone */
+@@ -1103,6 +1103,27 @@ void move_pfn_range_to_zone(struct zone
+ }
+ 
+ /*
++ * Returns a default kernel memory zone for the given pfn range.
++ * If no kernel zone covers this pfn range it will automatically go
++ * to the ZONE_NORMAL.
++ */
++struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
++		unsigned long nr_pages)
++{
++	struct pglist_data *pgdat = NODE_DATA(nid);
++	int zid;
++
++	for (zid = 0; zid <= ZONE_NORMAL; zid++) {
++		struct zone *zone = &pgdat->node_zones[zid];
++
++		if (zone_intersects(zone, start_pfn, nr_pages))
++			return zone;
++	}
++
++	return &pgdat->node_zones[ZONE_NORMAL];
++}
++
++/*
+  * Associates the given pfn range with the given node and the zone appropriate
+  * for the given online type.
+  */
+@@ -1110,7 +1131,7 @@ static struct zone * __meminit move_pfn_
+ 		unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+-	struct zone *zone = &pgdat->node_zones[ZONE_NORMAL];
++	struct zone *zone = default_zone_for_pfn(nid, start_pfn, nr_pages);
+ 
  	if (online_type == MMOP_ONLINE_KEEP) {
  		struct zone *movable_zone = &pgdat->node_zones[ZONE_MOVABLE];
- 		/*
--		 * MMOP_ONLINE_KEEP inherits the current zone which is
--		 * ZONE_NORMAL by default but we might be within ZONE_MOVABLE
--		 * already.
-+		 * MMOP_ONLINE_KEEP defaults to MMOP_ONLINE_KERNEL but use
-+		 * movable zone if that is not possible (e.g. we are within
-+		 * or past the existing movable zone)
- 		 */
--		if (zone_intersects(movable_zone, start_pfn, nr_pages))
-+		if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
-+					MMOP_ONLINE_KERNEL))
- 			zone = movable_zone;
- 	} else if (online_type == MMOP_ONLINE_MOVABLE) {
- 		zone = &pgdat->node_zones[ZONE_MOVABLE];
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
