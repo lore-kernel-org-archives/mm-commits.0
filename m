@@ -1,54 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [patch 100/115] checkpatch: fix stepping through
- statements with $stat and ctx_statement_block
-Date: Mon, 10 Jul 2017 15:52:13 -0700
-Message-ID: <20170710225213.CRqJ_aSoL%akpm@linux-foundation.org>
+Subject: [patch 101/115] checkpatch: remove false warning for
+ commit reference
+Date: Mon, 10 Jul 2017 15:52:16 -0700
+Message-ID: <20170710225216.5paFquaJz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43544 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754106AbdGJWwO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:14 -0400
+        with ESMTP id S1754106AbdGJWwR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, xypron.glpk@gmx.de
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix stepping through statements with $stat and ctx_statement_block
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: checkpatch: remove false warning for commit reference
 
-Fix the off-by-one in the suppression of lines in a statement block.
+Checkpatch warns of an incorrect commit reference style for any
+hexadecimal number of 12 digits and more.
 
-This means that for multiple line statements like
+Numbers of 12 digits are not necessarily commit ids.
 
-	foo(bar,
-	    baz,
-	    qux);
+For an example provoking the problem see
+https://patchwork.kernel.org/patch/9170897/
 
-$stat has been inspected first correctly for the entire statement,
-and subsequently incorrectly just for
+Checkpatch should only warn if the number refers to an existing commit.
 
-	    qux);
-
-This fix will help make tracking appropriate indentation a little easier.
-
-Link: http://lkml.kernel.org/r/71b25979c90412133c717084036c9851cd2b7bcb.1496862585.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20170607184008.5869-1-xypron.glpk@gmx.de
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block
+diff -puN scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference
 +++ a/scripts/checkpatch.pl
-@@ -3219,7 +3219,7 @@ sub process {
- 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next,
- 		    $realline_next);
- #print "LINE<$line>\n";
--		if ($linenr >= $suppress_statement &&
-+		if ($linenr > $suppress_statement &&
- 		    $realcnt && $sline =~ /.\s*\S/) {
- 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
- 				ctx_statement_block($linenr, $realcnt, 0);
+@@ -867,6 +867,7 @@ sub git_commit_info {
+ #		    echo "commit $(cut -c 1-12,41-)"
+ #		done
+ 	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./) {
++		$id = undef;
+ 	} else {
+ 		$id = substr($lines[0], 0, 12);
+ 		$desc = substr($lines[0], 41);
+@@ -2606,7 +2607,8 @@ sub process {
+ 			($id, $description) = git_commit_info($orig_commit,
+ 							      $id, $orig_desc);
+ 
+-			if ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens) {
++			if (defined($id) &&
++			   ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens)) {
+ 				ERROR("GIT_COMMIT_ID",
+ 				      "Please use git commit description style 'commit <12+ chars of sha1> (\"<title line>\")' - ie: '${init_char}ommit $id (\"$description\")'\n" . $herecurr);
+ 			}
 _
