@@ -1,237 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 040/115] hugetlb: add support for preferred node to
- alloc_huge_page_nodemask
-Date: Mon, 10 Jul 2017 15:49:11 -0700
-Message-ID: <20170710224911._wKG2eabO%akpm@linux-foundation.org>
+Subject: [patch 048/115] include/linux/backing-dev.h: simplify
+ wb_stat_sum
+Date: Mon, 10 Jul 2017 15:49:35 -0700
+Message-ID: <20170710224935.jjbb1Efe6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42846 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932142AbdGJWtW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:22 -0400
+        with ESMTP id S1754963AbdGJWth (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@suse.de, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, axboe@fb.com, jack@suse.cz, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tj@kernel.org, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: hugetlb: add support for preferred node to alloc_huge_page_nodemask
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: include/linux/backing-dev.h: simplify wb_stat_sum
 
-alloc_huge_page_nodemask tries to allocate from any numa node in the
-allowed node mask starting from lower numa nodes.  This might lead to
-filling up those low NUMA nodes while others are not used.  We can reduce
-this risk by introducing a concept of the preferred node similar to what
-we have in the regular page allocator.  We will start allocating from the
-preferred nid and then iterate over all allowed nodes in the zonelist
-order until we try them all.
+wb_stat_sum() disables interrupts and calls __wb_stat_sum() which
+eventually calls __percpu_counter_sum().  However, the percpu routine is
+already irq-safe.  Simplify the code a bit by making wb_stat_sum()
+directly call percpu_counter_sum_positive() and not disable interrupts. 
+Also remove the now-uneeded __wb_stat_sum() which was just a wrapper over
+percpu_counter_sum_positive().
 
-This is mimicing the page allocator logic except it operates on per-node
-mempools.  dequeue_huge_page_vma already does this so distill the zonelist
-logic into a more generic dequeue_huge_page_nodemask and use it in
-alloc_huge_page_nodemask.
-
-This will allow us to use proper per numa distance fallback also for
-alloc_huge_page_node which can use alloc_huge_page_nodemask now and we can
-get rid of alloc_huge_page_node helper which doesn't have any user
-anymore.
-
-Link: http://lkml.kernel.org/r/20170622193034.28972-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Tested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Link: http://lkml.kernel.org/r/1498230681-29103-1-git-send-email-nborisov@suse.com
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +-
- include/linux/migrate.h |    2 
- mm/hugetlb.c            |   88 +++++++++++++++++++-------------------
- 3 files changed, 48 insertions(+), 47 deletions(-)
+ include/linux/backing-dev.h |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/include/linux/hugetlb.h
-@@ -349,7 +349,8 @@ struct page *alloc_huge_page(struct vm_a
- struct page *alloc_huge_page_node(struct hstate *h, int nid);
- struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
--struct page *alloc_huge_page_nodemask(struct hstate *h, nodemask_t *nmask);
-+struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-+				nodemask_t *nmask);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
- 
-@@ -525,7 +526,7 @@ static inline void set_huge_swap_pte_at(
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
- #define alloc_huge_page_node(h, nid) NULL
--#define alloc_huge_page_nodemask(h, nmask) NULL
-+#define alloc_huge_page_nodemask(h, preferred_nid, nmask) NULL
- #define alloc_huge_page_noerr(v, a, r) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
-diff -puN include/linux/migrate.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask include/linux/migrate.h
---- a/include/linux/migrate.h~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/include/linux/migrate.h
-@@ -38,7 +38,7 @@ static inline struct page *new_page_node
- 
- 	if (PageHuge(page))
- 		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
--				nodemask);
-+				preferred_nid, nodemask);
- 
- 	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
- 		gfp_mask |= __GFP_HIGHMEM;
-diff -puN mm/hugetlb.c~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-support-for-preferred-node-to-alloc_huge_page_nodemask
-+++ a/mm/hugetlb.c
-@@ -887,19 +887,39 @@ static struct page *dequeue_huge_page_no
- 	return page;
+diff -puN include/linux/backing-dev.h~writeback-simplify-wb_stat_sum include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~writeback-simplify-wb_stat_sum
++++ a/include/linux/backing-dev.h
+@@ -104,22 +104,9 @@ static inline s64 wb_stat(struct bdi_wri
+ 	return percpu_counter_read_positive(&wb->stat[item]);
  }
  
--static struct page *dequeue_huge_page_node(struct hstate *h, int nid)
-+static struct page *dequeue_huge_page_nodemask(struct hstate *h, gfp_t gfp_mask, int nid,
-+		nodemask_t *nmask)
- {
--	struct page *page;
--	int node;
-+	unsigned int cpuset_mems_cookie;
-+	struct zonelist *zonelist;
-+	struct zone *zone;
-+	struct zoneref *z;
-+	int node = -1;
- 
--	if (nid != NUMA_NO_NODE)
--		return dequeue_huge_page_node_exact(h, nid);
-+	zonelist = node_zonelist(nid, gfp_mask);
-+
-+retry_cpuset:
-+	cpuset_mems_cookie = read_mems_allowed_begin();
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, gfp_zone(gfp_mask), nmask) {
-+		struct page *page;
-+
-+		if (!cpuset_zone_allowed(zone, gfp_mask))
-+			continue;
-+		/*
-+		 * no need to ask again on the same node. Pool is node rather than
-+		 * zone aware
-+		 */
-+		if (zone_to_nid(zone) == node)
-+			continue;
-+		node = zone_to_nid(zone);
- 
--	for_each_online_node(node) {
- 		page = dequeue_huge_page_node_exact(h, node);
- 		if (page)
- 			return page;
- 	}
-+	if (unlikely(read_mems_allowed_retry(cpuset_mems_cookie)))
-+		goto retry_cpuset;
-+
- 	return NULL;
- }
- 
-@@ -917,15 +937,11 @@ static struct page *dequeue_huge_page_vm
- 				unsigned long address, int avoid_reserve,
- 				long chg)
- {
--	struct page *page = NULL;
-+	struct page *page;
- 	struct mempolicy *mpol;
--	nodemask_t *nodemask;
- 	gfp_t gfp_mask;
-+	nodemask_t *nodemask;
- 	int nid;
--	struct zonelist *zonelist;
--	struct zone *zone;
--	struct zoneref *z;
--	unsigned int cpuset_mems_cookie;
- 
- 	/*
- 	 * A child process with MAP_PRIVATE mappings created by their parent
-@@ -940,32 +956,15 @@ static struct page *dequeue_huge_page_vm
- 	if (avoid_reserve && h->free_huge_pages - h->resv_huge_pages == 0)
- 		goto err;
- 
--retry_cpuset:
--	cpuset_mems_cookie = read_mems_allowed_begin();
- 	gfp_mask = htlb_alloc_mask(h);
- 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
--	zonelist = node_zonelist(nid, gfp_mask);
+-static inline s64 __wb_stat_sum(struct bdi_writeback *wb,
+-				enum wb_stat_item item)
+-{
+-	return percpu_counter_sum_positive(&wb->stat[item]);
+-}
 -
--	for_each_zone_zonelist_nodemask(zone, z, zonelist,
--						MAX_NR_ZONES - 1, nodemask) {
--		if (cpuset_zone_allowed(zone, gfp_mask)) {
--			page = dequeue_huge_page_node(h, zone_to_nid(zone));
--			if (page) {
--				if (avoid_reserve)
--					break;
--				if (!vma_has_reserves(vma, chg))
--					break;
--
--				SetPagePrivate(page);
--				h->resv_huge_pages--;
--				break;
--			}
--		}
-+	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
-+	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
-+		SetPagePrivate(page);
-+		h->resv_huge_pages--;
- 	}
- 
- 	mpol_cond_put(mpol);
--	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
--		goto retry_cpuset;
- 	return page;
- 
- err:
-@@ -1633,7 +1632,7 @@ struct page *alloc_huge_page_node(struct
- 
- 	spin_lock(&hugetlb_lock);
- 	if (h->free_huge_pages - h->resv_huge_pages > 0)
--		page = dequeue_huge_page_node(h, nid);
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, NULL);
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (!page)
-@@ -1642,26 +1641,27 @@ struct page *alloc_huge_page_node(struct
- 	return page;
- }
- 
--struct page *alloc_huge_page_nodemask(struct hstate *h, nodemask_t *nmask)
-+
-+struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-+		nodemask_t *nmask)
+ static inline s64 wb_stat_sum(struct bdi_writeback *wb, enum wb_stat_item item)
  {
- 	gfp_t gfp_mask = htlb_alloc_mask(h);
--	struct page *page = NULL;
--	int node;
- 
- 	spin_lock(&hugetlb_lock);
- 	if (h->free_huge_pages - h->resv_huge_pages > 0) {
--		for_each_node_mask(node, *nmask) {
--			page = dequeue_huge_page_node_exact(h, node);
--			if (page)
--				break;
-+		struct page *page;
-+
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, preferred_nid, nmask);
-+		if (page) {
-+			spin_unlock(&hugetlb_lock);
-+			return page;
- 		}
- 	}
- 	spin_unlock(&hugetlb_lock);
--	if (page)
--		return page;
- 
- 	/* No reservations, try to overcommit */
--	return __alloc_buddy_huge_page(h, gfp_mask, NUMA_NO_NODE, nmask);
-+
-+	return __alloc_buddy_huge_page(h, gfp_mask, preferred_nid, nmask);
- }
- 
- /*
-_
+-	s64 sum;
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	sum = __wb_stat_sum(wb, item);
+-	local_irq_restore(flags);
