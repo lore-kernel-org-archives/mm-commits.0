@@ -1,73 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 089/115] lib/kstrtox.c: use "unsigned int" more
-Date: Mon, 10 Jul 2017 15:51:41 -0700
-Message-ID: <20170710225141.GGgFaybMe%akpm@linux-foundation.org>
+Subject: [patch 092/115] lib/interval_tree_test.c: allow users to
+ limit scope of endpoint
+Date: Mon, 10 Jul 2017 15:51:49 -0700
+Message-ID: <20170710225149.wS3XAWpNh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43474 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754641AbdGJWvm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:51:42 -0400
+        with ESMTP id S1754878AbdGJWvu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:51:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: lib/kstrtox.c: use "unsigned int" more
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: lib/interval_tree_test.c: allow users to limit scope of endpoint
 
-gcc does generates stupid code sign extending data back and forth.  Help
-by using "unsigned int".
+Add a 'max_endpoint' parameter such that users may easily limit the size
+of the intervals that are randomly generated.
 
-	add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-61 (-61)
-	function                                     old     new   delta
-	_parse_integer                               128     123      -5
-
-It _still_ does generate useless MOVSX but I don't know how to delete it:
-
-0000000000000070 <_parse_integer>:
-			...
-  a0:   89 c2                   mov    edx,eax
-  a2:   83 e8 30                sub    eax,0x30
-  a5:   83 f8 09                cmp    eax,0x9
-  a8:   76 11                   jbe    bb <_parse_integer+0x4b>
-  aa:   83 ca 20                or     edx,0x20
-  ad:   0f be c2      ===>      movsx  eax,dl         <===
-			useless
-  b0:   8d 50 9f                lea    edx,[rax-0x61]
-  b3:   83 fa 05                cmp    edx,0x5
-
-Patch also helps on embedded archs which generally only like "int".
-On arm "and 0xff" is generated which is waste because all values used in
-comparisons are positive.
-
-Link: http://lkml.kernel.org/r/20170514194720.GB32563@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/20170518174936.20265-4-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/interval_tree_test.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN lib/kstrtox.c~kstrtox-use-unsigned-int-more lib/kstrtox.c
---- a/lib/kstrtox.c~kstrtox-use-unsigned-int-more
-+++ a/lib/kstrtox.c
-@@ -52,12 +52,14 @@ unsigned int _parse_integer(const char *
- 	res = 0;
- 	rv = 0;
- 	while (1) {
-+		unsigned int c = *s;
-+		unsigned int lc = c | 0x20; /* don't tolower() this line */
- 		unsigned int val;
+diff -puN lib/interval_tree_test.c~lib-interval_tree_test-allow-users-to-limit-scope-of-endpoint lib/interval_tree_test.c
+--- a/lib/interval_tree_test.c~lib-interval_tree_test-allow-users-to-limit-scope-of-endpoint
++++ a/lib/interval_tree_test.c
+@@ -16,6 +16,7 @@ __param(int, perf_loops, 100000, "Number
+ __param(int, nsearches, 100, "Number of searches to the interval tree");
+ __param(int, search_loops, 10000, "Number of iterations searching the tree");
  
--		if ('0' <= *s && *s <= '9')
--			val = *s - '0';
--		else if ('a' <= _tolower(*s) && _tolower(*s) <= 'f')
--			val = _tolower(*s) - 'a' + 10;
-+		if ('0' <= c && c <= '9')
-+			val = c - '0';
-+		else if ('a' <= lc && lc <= 'f')
-+			val = lc - 'a' + 10;
- 		else
- 			break;
++__param(uint, max_endpoint, ~0, "Largest value for the interval's endpoint");
  
+ static struct rb_root root = RB_ROOT;
+ static struct interval_tree_node *nodes = NULL;
+@@ -40,18 +41,20 @@ static void init(void)
+ 	int i;
+ 
+ 	for (i = 0; i < nnodes; i++) {
+-		u32 a = prandom_u32_state(&rnd);
+-		u32 b = prandom_u32_state(&rnd);
+-		if (a <= b) {
+-			nodes[i].start = a;
+-			nodes[i].last = b;
+-		} else {
+-			nodes[i].start = b;
+-			nodes[i].last = a;
+-		}
++		u32 b = (prandom_u32_state(&rnd) >> 4) % max_endpoint;
++		u32 a = (prandom_u32_state(&rnd) >> 4) % b;
++
++		nodes[i].start = a;
++		nodes[i].last = b;
+ 	}
++
++	/*
++	 * Limit the search scope to what the user defined.
++	 * Otherwise we are merely measuring empty walks,
++	 * which is pointless.
++	 */
+ 	for (i = 0; i < nsearches; i++)
+-		queries[i] = prandom_u32_state(&rnd);
++		queries[i] = (prandom_u32_state(&rnd) >> 4) % max_endpoint;
+ }
+ 
+ static int interval_tree_test_init(void)
 _
