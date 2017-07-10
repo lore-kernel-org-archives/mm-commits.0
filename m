@@ -1,55 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [patch 026/115] include/linux/page_ref.h: ensure
- page_ref_unfreeze is ordered against prior accesses
-Date: Mon, 10 Jul 2017 15:48:28 -0700
-Message-ID: <20170710224828.sGxV-u1rp%akpm@linux-foundation.org>
+Subject: [patch 022/115] mm/hugetlb.c: warn the user when issues
+ arise on boot due to hugepages
+Date: Mon, 10 Jul 2017 15:48:15 -0700
+Message-ID: <20170710224815.2W73W8HIh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42214 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754897AbdGJWs3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:29 -0400
+        with ESMTP id S1755084AbdGJWsh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mgorman@suse.de, mm-commits@vger.kernel.org, steve.capper@arm.com, torvalds@linux-foundation.org, vbabka@suse.cz, will.deacon@arm.com
+To: aarcange@redhat.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, Liam.Howlett@Oracle.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, zhongjiang@huawei.com
 
-From: Will Deacon <will.deacon@arm.com>
-Subject: include/linux/page_ref.h: ensure page_ref_unfreeze is ordered against prior accesses
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mm/hugetlb.c: warn the user when issues arise on boot due to hugepages
 
-page_ref_freeze and page_ref_unfreeze are designed to be used as a pair,
-wrapping a critical section where struct pages can be modified without
-having to worry about consistency for a concurrent fast-GUP.
+When the user specifies too many hugepages or an invalid
+default_hugepagesz the communication to the user is implicit in the
+allocation message.  This patch adds a warning when the desired page count
+is not allocated and prints an error when the default_hugepagesz is
+invalid on boot.
 
-Whilst page_ref_freeze has full barrier semantics due to its use of
-atomic_cmpxchg, page_ref_unfreeze is implemented using atomic_set, which
-doesn't provide any barrier semantics and allows the operation to be
-reordered with respect to page modifications in the critical section.
+During boot hugepages will allocate until there is a fraction of the
+hugepage size left.  That is, we allocate until either the request is
+satisfied or memory for the pages is exhausted.  When memory for the pages
+is exhausted, it will most likely lead to the system failing with the OOM
+manager not finding enough (or anything) to kill (unless you're using
+really big hugepages in the order of 100s of MB or in the GBs).  The user
+will most likely see the OOM messages much later in the boot sequence than
+the implicitly stated message.  Worse yet, you may even get an OOM for
+each processor which causes many pages of OOMs on modern systems. 
+Although these messages will be printed earlier than the OOM messages, at
+least giving the user errors and warnings will highlight the configuration
+as an issue.  I'm trying to point the user in the right direction by
+providing a more robust statement of what is failing.
 
-This patch ensures that page_ref_unfreeze is ordered after any critical
-section updates, by invoking smp_mb() prior to the atomic_set.
+During the sysctl or echo command, the user can check the results much
+easier than if the system hangs during boot and the scenario of having
+nothing to OOM for kernel memory is highly unlikely.
 
-Link: http://lkml.kernel.org/r/1497349722-6731-3-git-send-email-will.deacon@arm.com
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Acked-by: Steve Capper <steve.capper@arm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Mike said:
+
+: Before sending out this patch, I asked Liam off list why he was doing
+: it.  Was it something he just thought would be useful?  Or, was there
+: some type of user situation/need.  He said that he had been called in
+: to assist on several occasions when a system OOMed during boot.  In
+: almost all of these situations, the user had grossly misconfigured huge
+: pages.  DB users want to pre-allocate just the right amount of huge
+: pages, but sometimes they can be really off.  In such situations, the
+: huge page init code just allocates as many huge pages as it can and
+: reports the number allocated.  There is no indication that it quit
+: allocating because it ran out of memory.  Of course, a user could
+: compare the number in the message to what they requested on the command
+: line to determine if they got all the huge pages they requested.  The
+: thought was that it would be useful to at least flag this situation. 
+: That way, the user might be able to better relate the huge page
+: allocation failure to the OOM.
+: 
+: I'm not sure if the e-mail discussion made it obvious that this is
+: something he has seen on several occasions.
+: 
+: I see Michal's point that this will only flag the situation where
+: someone configures huge pages very badly.  And, a more extensive look
+: at the situation of misconfiguring huge pages might be in order.  But,
+: this has happened on several occasions which led to the creation of
+: this patch.
+
+[akpm@linux-foundation.org: reposition memfmt() to avoid forward declaration]
+Link: http://lkml.kernel.org/r/20170603005413.10380-1-Liam.Howlett@Oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: zhongjiang <zhongjiang@huawei.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ref.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |   36 ++++++++++++++++++++++++------------
+ 1 file changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/page_ref.h~mm-page_ref-ensure-page_ref_unfreeze-is-ordered-against-prior-accesses include/linux/page_ref.h
---- a/include/linux/page_ref.h~mm-page_ref-ensure-page_ref_unfreeze-is-ordered-against-prior-accesses
-+++ a/include/linux/page_ref.h
-@@ -174,6 +174,7 @@ static inline void page_ref_unfreeze(str
- 	VM_BUG_ON_PAGE(page_count(page) != 0, page);
- 	VM_BUG_ON(count == 0);
+diff -puN mm/hugetlb.c~mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages
++++ a/mm/hugetlb.c
+@@ -70,6 +70,17 @@ struct mutex *hugetlb_fault_mutex_table
+ /* Forward declaration */
+ static int hugetlb_acct_memory(struct hstate *h, long delta);
  
-+	smp_mb();
- 	atomic_set(&page->_refcount, count);
- 	if (page_ref_tracepoint_active(__tracepoint_page_ref_unfreeze))
- 		__page_ref_unfreeze(page, count);
-_
++static char * __init memfmt(char *buf, unsigned long n)
++{
++	if (n >= (1UL << 30))
++		sprintf(buf, "%lu GB", n >> 30);
++	else if (n >= (1UL << 20))
++		sprintf(buf, "%lu MB", n >> 20);
++	else
++		sprintf(buf, "%lu KB", n >> 10);
++	return buf;
++}
++
+ static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
+ {
+ 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
+@@ -2212,7 +2223,14 @@ static void __init hugetlb_hstate_alloc_
+ 					 &node_states[N_MEMORY]))
+ 			break;
+ 	}
+-	h->max_huge_pages = i;
++	if (i < h->max_huge_pages) {
++		char buf[32];
++
++		memfmt(buf, huge_page_size(h)),
++		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
++			h->max_huge_pages, buf, i);
++		h->max_huge_pages = i;
++	}
+ }
+ 
+ static void __init hugetlb_init_hstates(void)
+@@ -2230,17 +2248,6 @@ static void __init hugetlb_init_hstates(
+ 	VM_BUG_ON(minimum_order == UINT_MAX);
+ }
+ 
+-static char * __init memfmt(char *buf, unsigned long n)
+-{
+-	if (n >= (1UL << 30))
+-		sprintf(buf, "%lu GB", n >> 30);
+-	else if (n >= (1UL << 20))
+-		sprintf(buf, "%lu MB", n >> 20);
+-	else
+-		sprintf(buf, "%lu KB", n >> 10);
+-	return buf;
+-}
