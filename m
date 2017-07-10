@@ -1,113 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/115] mm: always enable thp for dax mappings
-Date: Mon, 10 Jul 2017 15:48:25 -0700
-Message-ID: <20170710224825.8riu9ck_4%akpm@linux-foundation.org>
+Subject: [patch 027/115] mm/migrate.c: stabilise page count when
+ migrating transparent hugepages
+Date: Mon, 10 Jul 2017 15:48:31 -0700
+Message-ID: <20170710224831.RrvMFTfYN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:42258 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755048AbdGJWsb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:31 -0400
+        with ESMTP id S1755079AbdGJWsc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mgorman@suse.de, mm-commits@vger.kernel.org, steve.capper@arm.com, torvalds@linux-foundation.org, vbabka@suse.cz, will.deacon@arm.com
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: always enable thp for dax mappings
+From: Will Deacon <will.deacon@arm.com>
+Subject: mm/migrate.c: stabilise page count when migrating transparent hugepages
 
-The madvise policy for transparent huge pages is meant to avoid unwanted
-allocations of transparent huge pages.  It allows a policy of disabling
-the extra memory pressure and effort to arrange for a huge page when it is
-not needed.
+When migrating a transparent hugepage, migrate_misplaced_transhuge_page
+guards itself against a concurrent fastgup of the page by checking that
+the page count is equal to 2 before and after installing the new pmd.
 
-DAX by definition never incurs this overhead since it is statically
-allocated.  The policy choice makes even less sense for device-dax which
-tries to guarantee a given tlb-fault size.  Specifically, the following
-setting:
+If the page count changes, then the pmd is reverted back to the original
+entry, however there is a small window where the new (possibly writable)
+pmd is installed and the underlying page could be written by userspace. 
+Restoring the old pmd could therefore result in loss of data.
 
-	echo never > /sys/kernel/mm/transparent_hugepage/enabled
+This patch fixes the problem by freezing the page count whilst updating
+the page tables, which protects against a concurrent fastgup without the
+need to restore the old pmd in the failure case (since the page count can
+no longer change under our feet).
 
-...violates that guarantee and silently disables all device-dax instances
-with a 2M or 1G alignment.  So, let's avoid that non-obvious side effect
-by force enabling thp for dax mappings in all cases.
-
-It is worth noting that the reason this uses vma_is_dax(), and the
-resulting header include changes, is that previous attempts to add a
-VM_DAX flag were NAKd.
-
-Link: http://lkml.kernel.org/r/149739531127.20686.15813586620597484283.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1497349722-6731-4-git-send-email-will.deacon@arm.com
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dax.h     |    5 -----
- include/linux/fs.h      |    6 ++++++
- include/linux/huge_mm.h |    5 +++++
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ mm/migrate.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/dax.h~mm-always-enable-thp-for-dax-mappings include/linux/dax.h
---- a/include/linux/dax.h~mm-always-enable-thp-for-dax-mappings
-+++ a/include/linux/dax.h
-@@ -154,11 +154,6 @@ static inline unsigned int dax_radix_ord
- #endif
- int dax_pfn_mkwrite(struct vm_fault *vmf);
+diff -puN mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages
++++ a/mm/migrate.c
+@@ -1916,7 +1916,6 @@ int migrate_misplaced_transhuge_page(str
+ 	int page_lru = page_is_file_cache(page);
+ 	unsigned long mmun_start = address & HPAGE_PMD_MASK;
+ 	unsigned long mmun_end = mmun_start + HPAGE_PMD_SIZE;
+-	pmd_t orig_entry;
  
--static inline bool vma_is_dax(struct vm_area_struct *vma)
--{
--	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
--}
--
- static inline bool dax_mapping(struct address_space *mapping)
- {
- 	return mapping->host && IS_DAX(mapping->host);
-diff -puN include/linux/fs.h~mm-always-enable-thp-for-dax-mappings include/linux/fs.h
---- a/include/linux/fs.h~mm-always-enable-thp-for-dax-mappings
-+++ a/include/linux/fs.h
-@@ -18,6 +18,7 @@
- #include <linux/bug.h>
- #include <linux/mutex.h>
- #include <linux/rwsem.h>
-+#include <linux/mm_types.h>
- #include <linux/capability.h>
- #include <linux/semaphore.h>
- #include <linux/fcntl.h>
-@@ -3127,6 +3128,11 @@ static inline bool io_is_direct(struct f
- 	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
- }
+ 	/*
+ 	 * Rate-limit the amount of data that is being migrated to a node.
+@@ -1959,8 +1958,7 @@ int migrate_misplaced_transhuge_page(str
+ 	/* Recheck the target PMD */
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	ptl = pmd_lock(mm, pmd);
+-	if (unlikely(!pmd_same(*pmd, entry) || page_count(page) != 2)) {
+-fail_putback:
++	if (unlikely(!pmd_same(*pmd, entry) || !page_ref_freeze(page, 2))) {
+ 		spin_unlock(ptl);
+ 		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
  
-+static inline bool vma_is_dax(struct vm_area_struct *vma)
-+{
-+	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
-+}
-+
- static inline int iocb_flags(struct file *file)
- {
- 	int res = 0;
-diff -puN include/linux/huge_mm.h~mm-always-enable-thp-for-dax-mappings include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-always-enable-thp-for-dax-mappings
-+++ a/include/linux/huge_mm.h
-@@ -3,6 +3,8 @@
+@@ -1982,7 +1980,6 @@ fail_putback:
+ 		goto out_unlock;
+ 	}
  
- #include <linux/sched/coredump.h>
+-	orig_entry = *pmd;
+ 	entry = mk_huge_pmd(new_page, vma->vm_page_prot);
+ 	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
  
-+#include <linux/fs.h> /* only for vma_is_dax() */
-+
- extern int do_huge_pmd_anonymous_page(struct vm_fault *vmf);
- extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
-@@ -103,6 +105,9 @@ static inline bool transparent_hugepage_
- 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
- 		return true;
+@@ -1999,15 +1996,7 @@ fail_putback:
+ 	set_pmd_at(mm, mmun_start, pmd, entry);
+ 	update_mmu_cache_pmd(vma, address, &entry);
  
-+	if (vma_is_dax(vma))
-+		return true;
-+
- 	if (transparent_hugepage_flags &
- 				(1 << TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
- 		return !!(vma->vm_flags & VM_HUGEPAGE);
-_
+-	if (page_count(page) != 2) {
+-		set_pmd_at(mm, mmun_start, pmd, orig_entry);
+-		flush_pmd_tlb_range(vma, mmun_start, mmun_end);
+-		mmu_notifier_invalidate_range(mm, mmun_start, mmun_end);
+-		update_mmu_cache_pmd(vma, address, &entry);
+-		page_remove_rmap(new_page, true);
+-		goto fail_putback;
+-	}
