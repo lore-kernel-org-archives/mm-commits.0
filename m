@@ -1,52 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 070/115] frv: remove wrapper header for
- asm/device.h
-Date: Mon, 10 Jul 2017 15:50:43 -0700
-Message-ID: <20170710225043.Qn_ejYKPV%akpm@linux-foundation.org>
+Subject: [patch 072/115] frv: cmpxchg: implement cmpxchg64()
+Date: Mon, 10 Jul 2017 15:50:49 -0700
+Message-ID: <20170710225049.trPrbyD6U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43160 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754864AbdGJWuo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:44 -0400
+        with ESMTP id S1754963AbdGJWuu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org, tklauser@distanz.ch, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, fengguang.wu@intel.com, joro@8bytes.org, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, robin.murphy@arm.com, torvalds@linux-foundation.org, will.deacon@arm.com
 
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: frv: remove wrapper header for asm/device.h
+From: Will Deacon <will.deacon@arm.com>
+Subject: frv: cmpxchg: implement cmpxchg64()
 
-frv's asm/device.h is merely including asm-generic/device.h.  Thus, the
-arch specific header can be omitted and the generic header can be used
-directly.
+FRV supports 64-bit cmpxchg, which is provided by the arch code as
+__cmpxchg_64 and subsequently used to implement atomic64_cmpxchg.
 
-Link: http://lkml.kernel.org/r/20170517124915.26904-1-tklauser@distanz.ch
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Reviewed-by: David Howells <dhowells@redhat.com>
+This patch hooks up the generic cmpxchg64 API using the same function,
+which also provides default definitions of the relaxed, acquire and
+release variants.  This fixes the build when COMPILE_TEST=y and
+IOMMU_IO_PGTABLE_LPAE=y.
+
+Link: http://lkml.kernel.org/r/1499084670-6996-1-git-send-email-will.deacon@arm.com
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/Kbuild   |    1 +
- arch/frv/include/asm/device.h |    7 -------
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ arch/frv/include/asm/cmpxchg.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/frv/include/asm/Kbuild~frv-remove-wrapper-header-for-asm-deviceh arch/frv/include/asm/Kbuild
---- a/arch/frv/include/asm/Kbuild~frv-remove-wrapper-header-for-asm-deviceh
-+++ a/arch/frv/include/asm/Kbuild
-@@ -1,5 +1,6 @@
+diff -puN arch/frv/include/asm/cmpxchg.h~frv-cmpxchg-implement-cmpxchg64 arch/frv/include/asm/cmpxchg.h
+--- a/arch/frv/include/asm/cmpxchg.h~frv-cmpxchg-implement-cmpxchg64
++++ a/arch/frv/include/asm/cmpxchg.h
+@@ -76,6 +76,7 @@ extern uint32_t __xchg_32(uint32_t i, vo
+  * - if (*ptr != test) then orig = *ptr;
+  */
+ extern uint64_t __cmpxchg_64(uint64_t test, uint64_t new, volatile uint64_t *v);
++#define cmpxchg64(p, o, n)	__cmpxchg_64((o), (n), (p))
  
- generic-y += clkdev.h
-+generic-y += device.h
- generic-y += exec.h
- generic-y += extable.h
- generic-y += irq_work.h
-diff -puN arch/frv/include/asm/device.h~frv-remove-wrapper-header-for-asm-deviceh /dev/null
---- a/arch/frv/include/asm/device.h
-+++ /dev/null
-@@ -1,7 +0,0 @@
--/*
-- * Arch specific extensions to struct device
-- *
-- * This file is released under the GPLv2
-- */
--#include <asm-generic/device.h>
+ #ifndef CONFIG_FRV_OUTOFLINE_ATOMIC_OPS
+ 
+_
