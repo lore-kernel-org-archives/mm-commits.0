@@ -1,64 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch removed from -mm tree
-Date: Mon, 10 Jul 2017 15:33:58 -0700
-Message-ID: <596400d6.f1Vd2VOCwTMAEv9E%akpm@linux-foundation.org>
+ mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch removed from -mm
+ tree
+Date: Mon, 10 Jul 2017 15:34:29 -0700
+Message-ID: <596400f5.DpoLTofahjJUkdsL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41304 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754864AbdGJWd7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:33:59 -0400
+        with ESMTP id S1754848AbdGJWea (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:34:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haolee.swjtu@gmail.com, huang.ying.caritas@gmail.com, linux@rasmusvillemoes.dk, mhocko@suse.com, vbabka@suse.cz, weiyang@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jmarchan@redhat.com, minchan@kernel.org, opensource.ganesh@gmail.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix
+     Subject: mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
+     mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
 
-This patch was dropped because it was folded into mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback.patch
+This patch was dropped because it was folded into mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix
+Subject: mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix
 
-fix up reject fixupping
+use min_t
 
-Cc: Hao Lee <haolee.swjtu@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <weiyang@gmail.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ mm/zsmalloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix
-+++ a/mm/page_alloc.c
-@@ -2212,7 +2212,7 @@ static bool unreserve_highatomic_pageblo
-  * condition simpler.
-  */
- static inline bool
--__rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
-+__rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- {
- 	struct free_area *area;
- 	int current_order;
+diff -puN mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix
++++ a/mm/zsmalloc.c
+@@ -548,7 +548,7 @@ static int get_size_class_index(int size
+ 		idx = DIV_ROUND_UP(size - ZS_MIN_ALLOC_SIZE,
+ 				ZS_SIZE_CLASS_DELTA);
+ 
+-	return min((int)ZS_SIZE_CLASSES - 1, idx);
++	return min_t(int, ZS_SIZE_CLASSES - 1, idx);
+ }
+ 
+ static inline void zs_stat_inc(struct size_class *class,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback.patch
-mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
+mm-zsmalloc-simplify-zs_max_alloc_size-handling.patch
 signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
 
