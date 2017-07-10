@@ -1,138 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [patch 031/115] hugetlb, memory_hotplug: prefer to use
- reserved pages for migration
-Date: Mon, 10 Jul 2017 15:48:44 -0700
-Message-ID: <20170710224844.W9K8O03A0%akpm@linux-foundation.org>
+Subject: [patch 020/115] vmalloc: show lazy-purged vma info in
+ vmallocinfo
+Date: Mon, 10 Jul 2017 15:48:09 -0700
+Message-ID: <20170710224809.FocV52-fE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42344 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42184 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755099AbdGJWsp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:45 -0400
+        with ESMTP id S1755038AbdGJWsP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, js1304@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, torvalds@linux-foundation.org, vbabka@suse.cz, zhongjiang@huawei.com
+To: akpm@linux-foundation.org, guohanjun@huawei.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, xieyisheng1@huawei.com, zijun_hu@htc.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: hugetlb, memory_hotplug: prefer to use reserved pages for migration
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: vmalloc: show lazy-purged vma info in vmallocinfo
 
-new_node_page will try to use the origin's next NUMA node as the migration
-destination for hugetlb pages.  If such a node doesn't have any
-preallocated pool it falls back to __alloc_buddy_huge_page_no_mpol to
-allocate a surplus page instead.  This is quite subotpimal for any
-configuration when hugetlb pages are no distributed to all NUMA nodes
-evenly.  Say we have a hotplugable node 4 and spare hugetlb pages are node
-0
+When ioremap a 67112960 bytes vm_area with the vmallocinfo:
+ [..]
+ 0xec79b000-0xec7fa000  389120 ftl_add_mtd+0x4d0/0x754 pages=94 vmalloc
+ 0xec800000-0xecbe1000 4067328 kbox_proc_mem_write+0x104/0x1c4 phys=8b520000 ioremap
 
-/sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages:10000
-/sys/devices/system/node/node1/hugepages/hugepages-2048kB/nr_hugepages:0
-/sys/devices/system/node/node2/hugepages/hugepages-2048kB/nr_hugepages:0
-/sys/devices/system/node/node3/hugepages/hugepages-2048kB/nr_hugepages:0
-/sys/devices/system/node/node4/hugepages/hugepages-2048kB/nr_hugepages:10000
-/sys/devices/system/node/node5/hugepages/hugepages-2048kB/nr_hugepages:0
-/sys/devices/system/node/node6/hugepages/hugepages-2048kB/nr_hugepages:0
-/sys/devices/system/node/node7/hugepages/hugepages-2048kB/nr_hugepages:0
+we get the result:
+ 0xf1000000-0xf5001000 67112960 devm_ioremap+0x38/0x7c phys=40000000 ioremap
 
-Now we consume the whole pool on node 4 and try to offline this node.  All
-the allocated pages should be moved to node0 which has enough preallocated
-pages to hold them.  With the current implementation offlining very likely
-fails because hugetlb allocations during runtime are much less reliable.
+For the align for ioremap must be less than '1 << IOREMAP_MAX_ORDER':
+	if (flags & VM_IOREMAP)
+		align = 1ul << clamp_t(int, get_count_order_long(size),
+			PAGE_SHIFT, IOREMAP_MAX_ORDER);
 
-Fix this by reusing the nodemask which excludes migration source and try
-to find a first node which has a page in the preallocated pool first and
-fall back to __alloc_buddy_huge_page_no_mpol only when the whole pool is
-consumed.
+So it makes idiot like me a litte puzzled why this was a jump the vm_area from
 
-[akpm@linux-foundation.org: remove bogus arg from alloc_huge_page_nodemask() stub]
-Link: http://lkml.kernel.org/r/20170608074553.22152-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: zhong jiang <zhongjiang@huawei.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
+0xec800000-0xecbe1000 to 0xf1000000-0xf5001000, and leaving
+0xed000000-0xf1000000 as a big hole.
+
+This patch is to show all of vm_area, including vmas which are freeing but
+still in the vmap_area_list, to make it more clear about why we will get
+0xf1000000-0xf5001000 in the above case.  And we will get a vmallocinfo
+like:
+
+ [..]
+ 0xec79b000-0xec7fa000  389120 ftl_add_mtd+0x4d0/0x754 pages=94 vmalloc
+ 0xec800000-0xecbe1000 4067328 kbox_proc_mem_write+0x104/0x1c4 phys=8b520000 ioremap
+ [..]
+ 0xece7c000-0xece7e000    8192 unpurged vm_area
+ 0xece7e000-0xece83000   20480 vm_map_ram
+ 0xf0099000-0xf00aa000   69632 vm_map_ram
+after apply this patch.
+
+Link: http://lkml.kernel.org/r/1496649682-20710-1-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: zijun_hu <zijun_hu@htc.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 ++
- mm/hugetlb.c            |   27 +++++++++++++++++++++++++++
- mm/memory_hotplug.c     |    9 ++-------
- 3 files changed, 31 insertions(+), 7 deletions(-)
+ mm/vmalloc.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration
-+++ a/include/linux/hugetlb.h
-@@ -349,6 +349,7 @@ struct page *alloc_huge_page(struct vm_a
- struct page *alloc_huge_page_node(struct hstate *h, int nid);
- struct page *alloc_huge_page_noerr(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
-+struct page *alloc_huge_page_nodemask(struct hstate *h, const nodemask_t *nmask);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
+diff -puN mm/vmalloc.c~vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify
++++ a/mm/vmalloc.c
+@@ -325,6 +325,7 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
  
-@@ -524,6 +525,7 @@ static inline void set_huge_swap_pte_at(
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
- #define alloc_huge_page_node(h, nid) NULL
-+#define alloc_huge_page_nodemask(h, nmask) NULL
- #define alloc_huge_page_noerr(v, a, r) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
-diff -puN mm/hugetlb.c~hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration
-+++ a/mm/hugetlb.c
-@@ -1723,6 +1723,33 @@ struct page *alloc_huge_page_node(struct
- 	return page;
- }
+ /*** Global kva allocator ***/
  
-+struct page *alloc_huge_page_nodemask(struct hstate *h, const nodemask_t *nmask)
-+{
-+	struct page *page = NULL;
-+	int node;
++#define VM_LAZY_FREE	0x02
+ #define VM_VM_AREA	0x04
+ 
+ static DEFINE_SPINLOCK(vmap_area_lock);
+@@ -1497,6 +1498,7 @@ struct vm_struct *remove_vm_area(const v
+ 		spin_lock(&vmap_area_lock);
+ 		va->vm = NULL;
+ 		va->flags &= ~VM_VM_AREA;
++		va->flags |= VM_LAZY_FREE;
+ 		spin_unlock(&vmap_area_lock);
+ 
+ 		vmap_debug_free_range(va->va_start, va->va_end);
+@@ -2704,8 +2706,14 @@ static int s_show(struct seq_file *m, vo
+ 	 * s_show can encounter race with remove_vm_area, !VM_VM_AREA on
+ 	 * behalf of vmap area is being tear down or vm_map_ram allocation.
+ 	 */
+-	if (!(va->flags & VM_VM_AREA))
++	if (!(va->flags & VM_VM_AREA)) {
++		seq_printf(m, "0x%pK-0x%pK %7ld %s\n",
++			(void *)va->va_start, (void *)va->va_end,
++			va->va_end - va->va_start,
++			va->flags & VM_LAZY_FREE ? "unpurged vm_area" : "vm_map_ram");
 +
-+	spin_lock(&hugetlb_lock);
-+	if (h->free_huge_pages - h->resv_huge_pages > 0) {
-+		for_each_node_mask(node, *nmask) {
-+			page = dequeue_huge_page_node_exact(h, node);
-+			if (page)
-+				break;
-+		}
+ 		return 0;
 +	}
-+	spin_unlock(&hugetlb_lock);
-+	if (page)
-+		return page;
-+
-+	/* No reservations, try to overcommit */
-+	for_each_node_mask(node, *nmask) {
-+		page = __alloc_buddy_huge_page_no_mpol(h, node);
-+		if (page)
-+			return page;
-+	}
-+
-+	return NULL;
-+}
-+
- /*
-  * Increase the hugetlb pool such that it can accommodate a reservation
-  * of size 'delta'.
-diff -puN mm/memory_hotplug.c~hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration
-+++ a/mm/memory_hotplug.c
-@@ -1446,14 +1446,9 @@ static struct page *new_node_page(struct
- 	if (nodes_empty(nmask))
- 		node_set(nid, nmask);
  
--	/*
--	 * TODO: allocate a destination hugepage from a nearest neighbor node,
--	 * accordance with memory policy of the user process if possible. For
--	 * now as a simple work-around, we use the next node for destination.
--	 */
- 	if (PageHuge(page))
--		return alloc_huge_page_node(page_hstate(compound_head(page)),
--					next_node_in(nid, nmask));
-+		return alloc_huge_page_nodemask(
-+				page_hstate(compound_head(page)), &nmask);
+ 	v = va->vm;
  
- 	if (PageHighMem(page)
- 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
 _
