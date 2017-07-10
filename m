@@ -1,87 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [patch 084/115] lib/test_bitmap.c: add optimisation tests
-Date: Mon, 10 Jul 2017 15:51:26 -0700
-Message-ID: <20170710225126.2XCKmcYi_%akpm@linux-foundation.org>
+Subject: [patch 085/115] bitmap: optimise bitmap_set and
+ bitmap_clear of a single bit
+Date: Mon, 10 Jul 2017 15:51:29 -0700
+Message-ID: <20170710225129.cgE8OPUhX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43346 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754867AbdGJWv1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:51:27 -0400
+        with ESMTP id S1754936AbdGJWva (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:51:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, torvalds@linux-foundation.org, willy@infradead.org
 
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: lib/test_bitmap.c: add optimisation tests
+Subject: bitmap: optimise bitmap_set and bitmap_clear of a single bit
 
-Patch series "Bitmap optimisations", v2.
+We have eight users calling bitmap_clear for a single bit and seventeen
+calling bitmap_set for a single bit.  Rather than fix all of them to call
+__clear_bit or __set_bit, turn bitmap_clear and bitmap_set into inline
+functions and make this special case efficient.
 
-These three bitmap patches use more efficient specialisations when the
-compiler can figure out that it's safe to do so.  Thanks to Rasmus's eagle
-eyes, a nasty bug in v1 was avoided, and I've added a test case which
-would have caught it.
-
-This patch (of 4):
-
-This version of the test is actually a no-op; the next patch will
-enable it.
-
-Link: http://lkml.kernel.org/r/20170628153221.11322-2-willy@infradead.org
+Link: http://lkml.kernel.org/r/20170628153221.11322-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ include/linux/bitmap.h |   23 ++++++++++++++++++++---
+ lib/bitmap.c           |    8 ++++----
+ lib/test_bitmap.c      |    3 ---
+ 3 files changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN lib/test_bitmap.c~test_bitmap-add-optimisation-tests lib/test_bitmap.c
---- a/lib/test_bitmap.c~test_bitmap-add-optimisation-tests
+diff -puN include/linux/bitmap.h~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
++++ a/include/linux/bitmap.h
+@@ -112,9 +112,8 @@ extern int __bitmap_intersects(const uns
+ extern int __bitmap_subset(const unsigned long *bitmap1,
+ 			const unsigned long *bitmap2, unsigned int nbits);
+ extern int __bitmap_weight(const unsigned long *bitmap, unsigned int nbits);
+-
+-extern void bitmap_set(unsigned long *map, unsigned int start, int len);
+-extern void bitmap_clear(unsigned long *map, unsigned int start, int len);
++extern void __bitmap_set(unsigned long *map, unsigned int start, int len);
++extern void __bitmap_clear(unsigned long *map, unsigned int start, int len);
+ 
+ extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
+ 						    unsigned long size,
+@@ -315,6 +314,24 @@ static __always_inline int bitmap_weight
+ 	return __bitmap_weight(src, nbits);
+ }
+ 
++static __always_inline void bitmap_set(unsigned long *map, unsigned int start,
++		unsigned int nbits)
++{
++	if (__builtin_constant_p(nbits) && nbits == 1)
++		__set_bit(start, map);
++	else
++		__bitmap_set(map, start, nbits);
++}
++
++static __always_inline void bitmap_clear(unsigned long *map, unsigned int start,
++		unsigned int nbits)
++{
++	if (__builtin_constant_p(nbits) && nbits == 1)
++		__clear_bit(start, map);
++	else
++		__bitmap_clear(map, start, nbits);
++}
++
+ static inline void bitmap_shift_right(unsigned long *dst, const unsigned long *src,
+ 				unsigned int shift, int nbits)
+ {
+diff -puN lib/bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
++++ a/lib/bitmap.c
+@@ -251,7 +251,7 @@ int __bitmap_weight(const unsigned long
+ }
+ EXPORT_SYMBOL(__bitmap_weight);
+ 
+-void bitmap_set(unsigned long *map, unsigned int start, int len)
++void __bitmap_set(unsigned long *map, unsigned int start, int len)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
+ 	const unsigned int size = start + len;
+@@ -270,9 +270,9 @@ void bitmap_set(unsigned long *map, unsi
+ 		*p |= mask_to_set;
+ 	}
+ }
+-EXPORT_SYMBOL(bitmap_set);
++EXPORT_SYMBOL(__bitmap_set);
+ 
+-void bitmap_clear(unsigned long *map, unsigned int start, int len)
++void __bitmap_clear(unsigned long *map, unsigned int start, int len)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
+ 	const unsigned int size = start + len;
+@@ -291,7 +291,7 @@ void bitmap_clear(unsigned long *map, un
+ 		*p &= ~mask_to_clear;
+ 	}
+ }
+-EXPORT_SYMBOL(bitmap_clear);
++EXPORT_SYMBOL(__bitmap_clear);
+ 
+ /**
+  * bitmap_find_next_zero_area_off - find a contiguous aligned zero area
+diff -puN lib/test_bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
 +++ a/lib/test_bitmap.c
-@@ -333,10 +333,42 @@ static void __init test_bitmap_u32_array
+@@ -333,9 +333,6 @@ static void __init test_bitmap_u32_array
  	}
  }
  
-+#define __bitmap_set(a, b, c)	bitmap_set(a, b, c)
-+#define __bitmap_clear(a, b, c)	bitmap_clear(a, b, c)
-+
-+static void noinline __init test_mem_optimisations(void)
-+{
-+	DECLARE_BITMAP(bmap1, 1024);
-+	DECLARE_BITMAP(bmap2, 1024);
-+	unsigned int start, nbits;
-+
-+	for (start = 0; start < 1024; start += 8) {
-+		memset(bmap1, 0x5a, sizeof(bmap1));
-+		memset(bmap2, 0x5a, sizeof(bmap2));
-+		for (nbits = 0; nbits < 1024 - start; nbits += 8) {
-+			bitmap_set(bmap1, start, nbits);
-+			__bitmap_set(bmap2, start, nbits);
-+			if (!bitmap_equal(bmap1, bmap2, 1024))
-+				printk("set not equal %d %d\n", start, nbits);
-+			if (!__bitmap_equal(bmap1, bmap2, 1024))
-+				printk("set not __equal %d %d\n", start, nbits);
-+
-+			bitmap_clear(bmap1, start, nbits);
-+			__bitmap_clear(bmap2, start, nbits);
-+			if (!bitmap_equal(bmap1, bmap2, 1024))
-+				printk("clear not equal %d %d\n", start, nbits);
-+			if (!__bitmap_equal(bmap1, bmap2, 1024))
-+				printk("clear not __equal %d %d\n", start,
-+									nbits);
-+		}
-+	}
-+}
-+
- static int __init test_bitmap_init(void)
- {
- 	test_zero_fill_copy();
- 	test_bitmap_u32_array_conversions();
-+	test_mem_optimisations();
- 
- 	if (failed_tests == 0)
- 		pr_info("all %u tests passed\n", total_tests);
-_
+-#define __bitmap_set(a, b, c)	bitmap_set(a, b, c)
+-#define __bitmap_clear(a, b, c)	bitmap_clear(a, b, c)
