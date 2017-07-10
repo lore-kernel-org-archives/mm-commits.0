@@ -1,86 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-overflow-check-in-expand_upwards.patch added to -mm tree
-Date: Mon, 10 Jul 2017 13:34:55 -0700
-Message-ID: <5963e4ef.+uI3rvVPxACrAdxN%akpm__15934.240530669$1499718903$gmane$org@linux-foundation.org>
+Subject: [folded-merged]
+ swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch removed from
+ -mm tree
+Date: Mon, 10 Jul 2017 15:28:08 -0700
+Message-ID: <5963ff78.9j44BmzR220W+9ul%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40844 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754419AbdGJUe4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 16:34:56 -0400
+        with ESMTP id S1754233AbdGJW2J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:28:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, hughd@google.com, joern@purestorage.com, oleg@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, shli@fb.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix overflow check in expand_upwards()
-has been added to the -mm tree.  Its filename is
-     mm-fix-overflow-check-in-expand_upwards.patch
+     Subject: swap-add-block-io-poll-in-swapin-path-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     swap-add-block-io-poll-in-swapin-path-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-overflow-check-in-expand_upwards.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-overflow-check-in-expand_upwards.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into swap-add-block-io-poll-in-swapin-path.patch
 
 ------------------------------------------------------
-From: Helge Deller <deller@gmx.de>
-Subject: mm: fix overflow check in expand_upwards()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: swap-add-block-io-poll-in-swapin-path-checkpatch-fixes
 
-Jörn Engel noticed that the expand_upwards() function might not return
--ENOMEM in case the requested address is (unsigned long)-PAGE_SIZE and if
-the architecture didn't defined TASK_SIZE as multiple of PAGE_SIZE.
+WARNING: function definition argument 'struct page *' should also have an identifier name
+#60: FILE: include/linux/swap.h:334:
++extern int swap_readpage(struct page *, bool do_poll);
 
-Affected architectures are arm, frv, m68k, blackfin, h8300 and xtensa
-which all define TASK_SIZE as 0xffffffff, but since none of those have an
-upwards-growing stack we currently have no actual issue.
+WARNING: line over 80 characters
+#164: FILE: mm/swap_state.c:415:
++			struct vm_area_struct *vma, unsigned long addr, bool do_poll)
 
-Nevertheless let's fix this just in case any of the architectures with an
-upward-growing stack (currently parisc, metag and partly ia64) define
-TASK_SIZE similar.
+total: 0 errors, 2 warnings, 140 lines checked
 
-Link: http://lkml.kernel.org/r/20170702192452.GA11868@p100.box
-Fixes: bd726c90b6b8 ("Allow stack to grow up to address space limit")
-Signed-off-by: Helge Deller <deller@gmx.de>
-Reported-by: Jörn Engel <joern@purestorage.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/swap-add-block-io-poll-in-swapin-path.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |    2 +-
+ mm/swap_state.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-fix-overflow-check-in-expand_upwards mm/mmap.c
---- a/mm/mmap.c~mm-fix-overflow-check-in-expand_upwards
-+++ a/mm/mmap.c
-@@ -2231,7 +2231,7 @@ int expand_upwards(struct vm_area_struct
+diff -puN include/linux/swap.h~swap-add-block-io-poll-in-swapin-path-checkpatch-fixes include/linux/swap.h
+--- a/include/linux/swap.h~swap-add-block-io-poll-in-swapin-path-checkpatch-fixes
++++ a/include/linux/swap.h
+@@ -331,7 +331,7 @@ extern void kswapd_stop(int nid);
+ #include <linux/blk_types.h> /* for bio_end_io_t */
  
- 	/* Guard against exceeding limits of the address space. */
- 	address &= PAGE_MASK;
--	if (address >= TASK_SIZE)
-+	if (address >= (TASK_SIZE & PAGE_MASK))
- 		return -ENOMEM;
- 	address += PAGE_SIZE;
- 
+ /* linux/mm/page_io.c */
+-extern int swap_readpage(struct page *, bool do_poll);
++extern int swap_readpage(struct page *page, bool do_poll);
+ extern int swap_writepage(struct page *page, struct writeback_control *wbc);
+ extern void end_swap_bio_write(struct bio *bio);
+ extern int __swap_writepage(struct page *page, struct writeback_control *wbc,
+diff -puN mm/swap_state.c~swap-add-block-io-poll-in-swapin-path-checkpatch-fixes mm/swap_state.c
+--- a/mm/swap_state.c~swap-add-block-io-poll-in-swapin-path-checkpatch-fixes
++++ a/mm/swap_state.c
+@@ -412,7 +412,7 @@ struct page *__read_swap_cache_async(swp
+  * the swap entry is no longer in use.
+  */
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-			struct vm_area_struct *vma, unsigned long addr, bool do_poll)
++		struct vm_area_struct *vma, unsigned long addr, bool do_poll)
+ {
+ 	bool page_was_allocated;
+ 	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-overflow-check-in-expand_upwards.patch
+swap-add-block-io-poll-in-swapin-path.patch
+mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
+mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
+mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
+hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
+mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
+mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
+signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
 
