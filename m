@@ -1,59 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [patch 101/115] checkpatch: remove false warning for
- commit reference
-Date: Mon, 10 Jul 2017 15:52:16 -0700
-Message-ID: <20170710225216.5paFquaJz%akpm@linux-foundation.org>
+Subject: [patch 102/115] checkpatch: improve tests for multiple
+ line function definitions
+Date: Mon, 10 Jul 2017 15:52:19 -0700
+Message-ID: <20170710225219.3VFL3eHLH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43544 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43552 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754106AbdGJWwR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:17 -0400
+        with ESMTP id S1754848AbdGJWwU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, xypron.glpk@gmx.de
+To: akpm@linux-foundation.org, david.kershner@unisys.com, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: checkpatch: remove false warning for commit reference
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve tests for multiple line function definitions
 
-Checkpatch warns of an incorrect commit reference style for any
-hexadecimal number of 12 digits and more.
+Add a block that identifies multiple line function definitions.
 
-Numbers of 12 digits are not necessarily commit ids.
+Save the function name into $context_function to improve the embedded
+function name test.
 
-For an example provoking the problem see
-https://patchwork.kernel.org/patch/9170897/
+Look for misplaced open brace on the function definition.
+Emit an OPEN_BRACE error when the function definition is similar to
 
-Checkpatch should only warn if the number refers to an existing commit.
+     void foo(int arg1,
+              int arg2) {
 
-Link: http://lkml.kernel.org/r/20170607184008.5869-1-xypron.glpk@gmx.de
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Acked-by: Joe Perches <joe@perches.com>
+Miscellanea:
+
+o Remove the $realfile test in function declaration w/o named arguments test
+o Comment the function declaration w/o named arguments test
+
+Link: http://lkml.kernel.org/r/de620ed6ebab75fdfa323741ada2134a0f545892.1496835238.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Tested-by: David Kershner <david.kershner@unisys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-remove-false-warning-for-commit-reference
+diff -puN scripts/checkpatch.pl~checkpatch-improve-tests-for-multiple-line-function-definitions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-tests-for-multiple-line-function-definitions
 +++ a/scripts/checkpatch.pl
-@@ -867,6 +867,7 @@ sub git_commit_info {
- #		    echo "commit $(cut -c 1-12,41-)"
- #		done
- 	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./) {
-+		$id = undef;
- 	} else {
- 		$id = substr($lines[0], 0, 12);
- 		$desc = substr($lines[0], 41);
-@@ -2606,7 +2607,8 @@ sub process {
- 			($id, $description) = git_commit_info($orig_commit,
- 							      $id, $orig_desc);
+@@ -5899,7 +5899,8 @@ sub process {
+ 			     "externs should be avoided in .c files\n" .  $herecurr);
+ 		}
  
--			if ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens) {
-+			if (defined($id) &&
-+			   ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens)) {
- 				ERROR("GIT_COMMIT_ID",
- 				      "Please use git commit description style 'commit <12+ chars of sha1> (\"<title line>\")' - ie: '${init_char}ommit $id (\"$description\")'\n" . $herecurr);
+-		if ($realfile =~ /\.[ch]$/ && defined $stat &&
++# check for function declarations that have arguments without identifier names
++		if (defined $stat &&
+ 		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*$Ident\s*\(\s*([^{]+)\s*\)\s*;/s &&
+ 		    $1 ne "void") {
+ 			my $args = trim($1);
+@@ -5912,6 +5913,29 @@ sub process {
  			}
+ 		}
+ 
++# check for function definitions
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /^.\s*(?:$Storage\s+)?$Type\s*($Ident)\s*$balanced_parens\s*{/s) {
++			$context_function = $1;
++
++# check for multiline function definition with misplaced open brace
++			my $ok = 0;
++			my $cnt = statement_rawlines($stat);
++			my $herectx = $here . "\n";
++			for (my $n = 0; $n < $cnt; $n++) {
++				my $rl = raw_line($linenr, $n);
++				$herectx .=  $rl . "\n";
++				$ok = 1 if ($rl =~ /^[ \+]\{/);
++				$ok = 1 if ($rl =~ /\{/ && $n == 0);
++				last if $rl =~ /^[ \+].*\{/;
++			}
++			if (!$ok) {
++				ERROR("OPEN_BRACE",
++				      "open brace '{' following function definitions go on the next line\n" . $herectx);
++			}
++		}
++
+ # checks for new __setup's
+ 		if ($rawline =~ /\b__setup\("([^"]*)"/) {
+ 			my $name = $1;
 _
