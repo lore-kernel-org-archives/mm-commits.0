@@ -1,131 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [patch 037/115] userfaultfd: non-cooperative: add
- madvise() event for MADV_FREE request
-Date: Mon, 10 Jul 2017 15:49:02 -0700
-Message-ID: <20170710224902.g-N7dhrsL%akpm@linux-foundation.org>
+Subject: [patch 016/115] mm: hwpoison: introduce
+ idenfity_page_state
+Date: Mon, 10 Jul 2017 15:47:56 -0700
+Message-ID: <20170710224756.VjqkhiXjK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42132 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755124AbdGJWtD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:03 -0400
+        with ESMTP id S1754982AbdGJWr5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, hillf.zj@alibaba-inc.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, xemul@virtuozzo.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: non-cooperative: add madvise() event for MADV_FREE request
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: introduce idenfity_page_state
 
-MADV_FREE is identical to MADV_DONTNEED from the point of view of uffd
-monitor.  The monitor has to stop handling #PF events in the range being
-freed.  We are reusing userfaultfd_remove callback along with the logic
-required to re-get and re-validate the VMA which may change or disappear
-because userfaultfd_remove releases mmap_sem.
+Factoring duplicate code into a function.
 
-Link: http://lkml.kernel.org/r/1497876311-18615-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Link: http://lkml.kernel.org/r/1496305019-5493-10-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   42 ++++++++++++++++++++++--------------------
- 1 file changed, 22 insertions(+), 20 deletions(-)
+ mm/memory-failure.c |   57 ++++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 32 deletions(-)
 
-diff -puN mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request mm/madvise.c
---- a/mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request
-+++ a/mm/madvise.c
-@@ -451,9 +451,6 @@ static int madvise_free_single_vma(struc
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct mmu_gather tlb;
- 
--	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
--		return -EINVAL;
--
- 	/* MADV_FREE works for only anon vma at the moment */
- 	if (!vma_is_anonymous(vma))
- 		return -EINVAL;
-@@ -477,14 +474,6 @@ static int madvise_free_single_vma(struc
- 	return 0;
+diff -puN mm/memory-failure.c~mm-hwpoison-introduce-idenfity_page_state mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-introduce-idenfity_page_state
++++ a/mm/memory-failure.c
+@@ -1022,9 +1022,31 @@ static bool hwpoison_user_mappings(struc
+ 	return unmap_success;
  }
  
--static long madvise_free(struct vm_area_struct *vma,
--			     struct vm_area_struct **prev,
--			     unsigned long start, unsigned long end)
--{
--	*prev = vma;
--	return madvise_free_single_vma(vma, start, end);
--}
--
- /*
-  * Application no longer needs these pages.  If the pages are dirty,
-  * it's OK to just throw them away.  The app will be more careful about
-@@ -504,9 +493,17 @@ static long madvise_free(struct vm_area_
-  * An interface that causes the system to free clean pages and flush
-  * dirty pages is already available as msync(MS_INVALIDATE).
-  */
--static long madvise_dontneed(struct vm_area_struct *vma,
--			     struct vm_area_struct **prev,
--			     unsigned long start, unsigned long end)
-+static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
-+					unsigned long start, unsigned long end)
-+{
-+	zap_page_range(vma, start, end - start);
-+	return 0;
+-static int memory_failure_hugetlb(unsigned long pfn, int trapno, int flags)
++static int identify_page_state(unsigned long pfn, struct page *p,
++				unsigned long page_flags)
+ {
+ 	struct page_state *ps;
++
++	/*
++	 * The first check uses the current page flags which may not have any
++	 * relevant information. The second check with the saved page flags is
++	 * carried out only if the first check can't determine the page status.
++	 */
++	for (ps = error_states;; ps++)
++		if ((p->flags & ps->mask) == ps->res)
++			break;
++
++	page_flags |= (p->flags & (1UL << PG_dirty));
++
++	if (!ps->mask)
++		for (ps = error_states;; ps++)
++			if ((page_flags & ps->mask) == ps->res)
++				break;
++	return page_action(ps, p, pfn);
 +}
 +
-+static long madvise_dontneed_free(struct vm_area_struct *vma,
-+				  struct vm_area_struct **prev,
-+				  unsigned long start, unsigned long end,
-+				  int behavior)
- {
- 	*prev = vma;
- 	if (!can_madv_dontneed_vma(vma))
-@@ -526,7 +523,8 @@ static long madvise_dontneed(struct vm_a
- 			 * is also < vma->vm_end. If start <
- 			 * vma->vm_start it means an hole materialized
- 			 * in the user address space within the
--			 * virtual range passed to MADV_DONTNEED.
-+			 * virtual range passed to MADV_DONTNEED
-+			 * or MADV_FREE.
- 			 */
- 			return -ENOMEM;
- 		}
-@@ -537,7 +535,7 @@ static long madvise_dontneed(struct vm_a
- 			 * Don't fail if end > vma->vm_end. If the old
- 			 * vma was splitted while the mmap_sem was
- 			 * released the effect of the concurrent
--			 * operation may not cause MADV_DONTNEED to
-+			 * operation may not cause madvise() to
- 			 * have an undefined result. There may be an
- 			 * adjacent next vma that we'll walk
- 			 * next. userfaultfd_remove() will generate an
-@@ -549,8 +547,13 @@ static long madvise_dontneed(struct vm_a
- 		}
- 		VM_WARN_ON(start >= end);
++static int memory_failure_hugetlb(unsigned long pfn, int trapno, int flags)
++{
+ 	struct page *p = pfn_to_page(pfn);
+ 	struct page *head = compound_head(p);
+ 	int res;
+@@ -1074,19 +1096,7 @@ static int memory_failure_hugetlb(unsign
+ 		goto out;
  	}
--	zap_page_range(vma, start, end - start);
--	return 0;
-+
-+	if (behavior == MADV_DONTNEED)
-+		return madvise_dontneed_single_vma(vma, start, end);
-+	else if (behavior == MADV_FREE)
-+		return madvise_free_single_vma(vma, start, end);
-+	else
-+		return -EINVAL;
- }
  
- /*
-@@ -656,9 +659,8 @@ madvise_vma(struct vm_area_struct *vma,
- 	case MADV_WILLNEED:
- 		return madvise_willneed(vma, prev, start, end);
- 	case MADV_FREE:
--		return madvise_free(vma, prev, start, end);
- 	case MADV_DONTNEED:
--		return madvise_dontneed(vma, prev, start, end);
-+		return madvise_dontneed_free(vma, prev, start, end, behavior);
- 	default:
- 		return madvise_behavior(vma, prev, start, end, behavior);
+-	res = -EBUSY;
+-
+-	for (ps = error_states;; ps++)
+-		if ((p->flags & ps->mask) == ps->res)
+-			break;
+-
+-	page_flags |= (p->flags & (1UL << PG_dirty));
+-
+-	if (!ps->mask)
+-		for (ps = error_states;; ps++)
+-			if ((page_flags & ps->mask) == ps->res)
+-				break;
+-	res = page_action(ps, p, pfn);
++	res = identify_page_state(pfn, p, page_flags);
+ out:
+ 	unlock_page(head);
+ 	return res;
+@@ -1112,7 +1122,6 @@ out:
+  */
+ int memory_failure(unsigned long pfn, int trapno, int flags)
+ {
+-	struct page_state *ps;
+ 	struct page *p;
+ 	struct page *hpage;
+ 	struct page *orig_head;
+@@ -1273,23 +1282,7 @@ int memory_failure(unsigned long pfn, in
  	}
-_
+ 
+ identify_page_state:
+-	res = -EBUSY;
+-	/*
+-	 * The first check uses the current page flags which may not have any
+-	 * relevant information. The second check with the saved page flagss is
+-	 * carried out only if the first check can't determine the page status.
+-	 */
+-	for (ps = error_states;; ps++)
+-		if ((p->flags & ps->mask) == ps->res)
+-			break;
+-
+-	page_flags |= (p->flags & (1UL << PG_dirty));
