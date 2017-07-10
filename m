@@ -1,200 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 059/115] mm/memory-hotplug: switch locking to a
- percpu rwsem
-Date: Mon, 10 Jul 2017 15:50:09 -0700
-Message-ID: <20170710225009.yZnAjNRFM%akpm@linux-foundation.org>
+Subject: [patch 060/115] mm: disallow early_pfn_to_nid on
+ configurations which do not implement it
+Date: Mon, 10 Jul 2017 15:50:12 -0700
+Message-ID: <20170710225012.gQ1DL1YQf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754715AbdGJWuK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:10 -0400
+        with ESMTP id S1754715AbdGJWuN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dave@stgolabs.net, mhocko@suse.com, mm-commits@vger.kernel.org, peterz@infradead.org, tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz, vdavydov.dev@gmail.com
+To: akpm@linux-foundation.org, js1304@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz, yang.shi@linaro.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: mm/memory-hotplug: switch locking to a percpu rwsem
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: disallow early_pfn_to_nid on configurations which do not implement it
 
-Andrey reported a potential deadlock with the memory hotplug lock and the
-cpu hotplug lock.
+early_pfn_to_nid will return node 0 if both HAVE_ARCH_EARLY_PFN_TO_NID and
+HAVE_MEMBLOCK_NODE_MAP are disabled.  It seems we are safe now because all
+architectures which support NUMA define one of them (with an exception of
+alpha which however has CONFIG_NUMA marked as broken) so this works as
+expected.  It can get silently and subtly broken too easily, though.  Make
+sure we fail the compilation if NUMA is enabled and there is no proper
+implementation for this function.  If that ever happens we know that
+either the specific configuration is invalid and the fix should either
+disable NUMA or enable one of the above configs.
 
-The reason is that memory hotplug takes the memory hotplug lock and then
-calls stop_machine() which calls get_online_cpus().  That's the reverse
-lock order to get_online_cpus(); get_online_mems(); in mm/slub_common.c
-
-The problem has been there forever.  The reason why this was never
-reported is that the cpu hotplug locking had this homebrewn recursive
-reader writer semaphore construct which due to the recursion evaded the
-full lock dep coverage.  The memory hotplug code copied that construct
-verbatim and therefor has similar issues.
-
-Three steps to fix this:
-
-1) Convert the memory hotplug locking to a per cpu rwsem so the potential
-   issues get reported proper by lockdep.
-
-2) Lock the online cpus in mem_hotplug_begin() before taking the memory
-   hotplug rwsem and use stop_machine_cpuslocked() in the page_alloc code
-   to avoid recursive locking.
-
-3) The cpu hotpluck locking in #2 causes a recursive locking of the cpu
-   hotplug lock via __offline_pages() -> lru_add_drain_all(). Solve this by
-   invoking lru_add_drain_all_cpuslocked() instead.
-
-Link: http://lkml.kernel.org/r/20170704093421.506836322@linutronix.de
-Reported-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20170704075803.15979-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   89 +++++++-----------------------------------
- mm/page_alloc.c     |    2 
- 2 files changed, 16 insertions(+), 75 deletions(-)
+ include/linux/mmzone.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
-+++ a/mm/memory_hotplug.c
-@@ -52,32 +52,17 @@ static void generic_online_page(struct p
- static online_page_callback_t online_page_callback = generic_online_page;
- static DEFINE_MUTEX(online_page_callback_lock);
- 
--/* The same as the cpu_hotplug lock, but for memory hotplug. */
--static struct {
--	struct task_struct *active_writer;
--	struct mutex lock; /* Synchronizes accesses to refcount, */
--	/*
--	 * Also blocks the new readers during
--	 * an ongoing mem hotplug operation.
--	 */
--	int refcount;
-+DEFINE_STATIC_PERCPU_RWSEM(mem_hotplug_lock);
- 
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--	struct lockdep_map dep_map;
--#endif
--} mem_hotplug = {
--	.active_writer = NULL,
--	.lock = __MUTEX_INITIALIZER(mem_hotplug.lock),
--	.refcount = 0,
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--	.dep_map = {.name = "mem_hotplug.lock" },
--#endif
--};
-+void get_online_mems(void)
-+{
-+	percpu_down_read(&mem_hotplug_lock);
-+}
- 
--/* Lockdep annotations for get/put_online_mems() and mem_hotplug_begin/end() */
--#define memhp_lock_acquire_read() lock_map_acquire_read(&mem_hotplug.dep_map)
--#define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
--#define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
-+void put_online_mems(void)
-+{
-+	percpu_up_read(&mem_hotplug_lock);
-+}
- 
- bool movable_node_enabled = false;
- 
-@@ -99,60 +84,16 @@ static int __init setup_memhp_default_st
- }
- __setup("memhp_default_state=", setup_memhp_default_state);
- 
--void get_online_mems(void)
--{
--	might_sleep();
--	if (mem_hotplug.active_writer == current)
--		return;
--	memhp_lock_acquire_read();
--	mutex_lock(&mem_hotplug.lock);
--	mem_hotplug.refcount++;
--	mutex_unlock(&mem_hotplug.lock);
--
--}
--
--void put_online_mems(void)
--{
--	if (mem_hotplug.active_writer == current)
--		return;
--	mutex_lock(&mem_hotplug.lock);
--
--	if (WARN_ON(!mem_hotplug.refcount))
--		mem_hotplug.refcount++; /* try to fix things up */
--
--	if (!--mem_hotplug.refcount && unlikely(mem_hotplug.active_writer))
--		wake_up_process(mem_hotplug.active_writer);
--	mutex_unlock(&mem_hotplug.lock);
--	memhp_lock_release();
--
--}
--
--/* Serializes write accesses to mem_hotplug.active_writer. */
--static DEFINE_MUTEX(memory_add_remove_lock);
--
- void mem_hotplug_begin(void)
+diff -puN include/linux/mmzone.h~mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-disallow-early_pfn_to_nid-on-configurations-which-do-not-implement-it
++++ a/include/linux/mmzone.h
+@@ -1055,6 +1055,7 @@ static inline struct zoneref *first_zone
+ 	!defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
+ static inline unsigned long early_pfn_to_nid(unsigned long pfn)
  {
--	mutex_lock(&memory_add_remove_lock);
--
--	mem_hotplug.active_writer = current;
--
--	memhp_lock_acquire();
--	for (;;) {
--		mutex_lock(&mem_hotplug.lock);
--		if (likely(!mem_hotplug.refcount))
--			break;
--		__set_current_state(TASK_UNINTERRUPTIBLE);
--		mutex_unlock(&mem_hotplug.lock);
--		schedule();
--	}
-+	cpus_read_lock();
-+	percpu_down_write(&mem_hotplug_lock);
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_NUMA));
+ 	return 0;
  }
- 
- void mem_hotplug_done(void)
- {
--	mem_hotplug.active_writer = NULL;
--	mutex_unlock(&mem_hotplug.lock);
--	memhp_lock_release();
--	mutex_unlock(&memory_add_remove_lock);
-+	percpu_up_write(&mem_hotplug_lock);
-+	cpus_read_unlock();
- }
- 
- /* add this memory to iomem resource */
-@@ -1725,7 +1666,7 @@ repeat:
- 		goto failed_removal;
- 	ret = 0;
- 	if (drain) {
--		lru_add_drain_all();
-+		lru_add_drain_all_cpuslocked();
- 		cond_resched();
- 		drain_all_pages(zone);
- 	}
-@@ -1746,7 +1687,7 @@ repeat:
- 		}
- 	}
- 	/* drain all zone's lru pagevec, this is asynchronous... */
--	lru_add_drain_all();
-+	lru_add_drain_all_cpuslocked();
- 	yield();
- 	/* drain pcp pages, this is synchronous. */
- 	drain_all_pages(zone);
-diff -puN mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory-hotplug-switch-locking-to-a-percpu-rwsem
-+++ a/mm/page_alloc.c
-@@ -5278,7 +5278,7 @@ void __ref build_all_zonelists(pg_data_t
  #endif
- 		/* we have to stop all cpus to guarantee there is no user
- 		   of zonelist */
--		stop_machine(__build_all_zonelists, pgdat, NULL);
-+		stop_machine_cpuslocked(__build_all_zonelists, pgdat, NULL);
- 		/* cpuset refresh routine should be here */
- 	}
- 	vm_total_pages = nr_free_pagecache_pages();
 _
