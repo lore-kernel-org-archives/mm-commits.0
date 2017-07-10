@@ -1,77 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 103/115] checkpatch: silence perl 5.26.0 unescaped
- left brace warnings
-Date: Mon, 10 Jul 2017 15:52:21 -0700
-Message-ID: <20170710225221.N4ZEvyBxX%akpm@linux-foundation.org>
+Subject: [patch 106/115] checkpatch: improve multi-line alignment
+ test
+Date: Mon, 10 Jul 2017 15:52:30 -0700
+Message-ID: <20170710225230._AZQsrIGt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43584 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754869AbdGJWwX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:23 -0400
+        with ESMTP id S1754867AbdGJWwc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cyrilbur@gmail.com, joe@perches.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Cyril Bur <cyrilbur@gmail.com>
-Subject: checkpatch: silence perl 5.26.0 unescaped left brace warnings
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve multi-line alignment test
 
-As of perl 5, version 26, subversion 0 (v5.26.0) some new warnings have
-occurred when running checkpatch.
+The current test fails to warn about improper alignment with code like
 
-Unescaped left brace in regex is deprecated here (and will be fatal in
-Perl 5.30), passed through in regex; marked by <-- HERE in m/^(.\s*){
-<-- HERE \s*/ at scripts/checkpatch.pl line 3544.
+	foo->bar = func(arg1,
+				arg2);
 
-Unescaped left brace in regex is deprecated here (and will be fatal in
-Perl 5.30), passed through in regex; marked by <-- HERE in m/^(.\s*){
-<-- HERE \s*/ at scripts/checkpatch.pl line 3885.
+because foo->bar is not a single identifier.
 
-Unescaped left brace in regex is deprecated here (and will be fatal in
-Perl 5.30), passed through in regex; marked by <-- HERE in
-m/^(\+.*(?:do|\))){ <-- HERE / at scripts/checkpatch.pl line 4374.
+Convert the $Ident to $Lval which allows for multiple dereferences.
 
-It seems perfectly reasonable to do as the warning suggests and simply
-escape the left brace in these three locations.
-
-Link: http://lkml.kernel.org/r/20170607060135.17384-1-cyrilbur@gmail.com
-Signed-off-by: Cyril Bur <cyrilbur@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/01c35b9b6a12a415e57746d45d589bfaad39952a.1498841563.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-silence-perl-5260-unescaped-left-brace-warnings scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-silence-perl-5260-unescaped-left-brace-warnings
+diff -puN scripts/checkpatch.pl~checkpatch-improve-multi-line-alignment-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-multi-line-alignment-test
 +++ a/scripts/checkpatch.pl
-@@ -3555,7 +3555,7 @@ sub process {
- 				$fixedline =~ s/\s*=\s*$/ = {/;
- 				fix_insert_line($fixlinenr, $fixedline);
- 				$fixedline = $line;
--				$fixedline =~ s/^(.\s*){\s*/$1/;
-+				$fixedline =~ s/^(.\s*)\{\s*/$1/;
- 				fix_insert_line($fixlinenr, $fixedline);
- 			}
- 		}
-@@ -3896,7 +3896,7 @@ sub process {
- 				my $fixedline = rtrim($prevrawline) . " {";
- 				fix_insert_line($fixlinenr, $fixedline);
- 				$fixedline = $rawline;
--				$fixedline =~ s/^(.\s*){\s*/$1\t/;
-+				$fixedline =~ s/^(.\s*)\{\s*/$1\t/;
- 				if ($fixedline !~ /^\+\s*$/) {
- 					fix_insert_line($fixlinenr, $fixedline);
- 				}
-@@ -4385,7 +4385,7 @@ sub process {
- 			if (ERROR("SPACING",
- 				  "space required before the open brace '{'\n" . $herecurr) &&
- 			    $fix) {
--				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\))){/$1 {/;
-+				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\)))\{/$1 {/;
- 			}
- 		}
+@@ -2993,7 +2993,7 @@ sub process {
  
+ # check multi-line statement indentation matches previous line
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|$Ident\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
++		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|(?:\*\s*)*$Lval\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
+ 			$prevline =~ /^\+(\t*)(.*)$/;
+ 			my $oldindent = $1;
+ 			my $rest = $2;
 _
