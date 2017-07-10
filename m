@@ -1,99 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [patch 020/115] vmalloc: show lazy-purged vma info in
- vmallocinfo
-Date: Mon, 10 Jul 2017 15:48:09 -0700
-Message-ID: <20170710224809.FocV52-fE%akpm@linux-foundation.org>
+Subject: [patch 032/115] mm: unify new_node_page and
+ alloc_migrate_target
+Date: Mon, 10 Jul 2017 15:48:47 -0700
+Message-ID: <20170710224847.8T6Qp6Q2Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42460 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755038AbdGJWsP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:15 -0400
+        with ESMTP id S1754930AbdGJWss (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guohanjun@huawei.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, xieyisheng1@huawei.com, zijun_hu@htc.com
+To: akpm@linux-foundation.org, js1304@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, torvalds@linux-foundation.org, vbabka@suse.cz, zhongjiang@huawei.com
 
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: vmalloc: show lazy-purged vma info in vmallocinfo
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: unify new_node_page and alloc_migrate_target
 
-When ioremap a 67112960 bytes vm_area with the vmallocinfo:
- [..]
- 0xec79b000-0xec7fa000  389120 ftl_add_mtd+0x4d0/0x754 pages=94 vmalloc
- 0xec800000-0xecbe1000 4067328 kbox_proc_mem_write+0x104/0x1c4 phys=8b520000 ioremap
+394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node
+when mem-offline") has duplicated a large part of alloc_migrate_target
+with some hotplug specific special casing.  To be more precise it tried to
+enfore the allocation from a different node than the original page.  As a
+result the two function diverged in their shared logic, e.g.  the hugetlb
+allocation strategy.  Let's unify the two and express different NUMA
+requirements by the given nodemask.  new_node_page will simply exclude the
+node it doesn't care about and alloc_migrate_target will use all the
+available nodes.  alloc_migrate_target will then learn to migrate hugetlb
+pages more sanely and use preallocated pool when possible.
 
-we get the result:
- 0xf1000000-0xf5001000 67112960 devm_ioremap+0x38/0x7c phys=40000000 ioremap
+Please note that alloc_migrate_target used to call alloc_page resp. 
+alloc_pages_current so the memory policy of the current context which is
+quite strange when we consider that it is used in the context of
+alloc_contig_range which just tries to migrate pages which stand in the
+way.
 
-For the align for ioremap must be less than '1 << IOREMAP_MAX_ORDER':
-	if (flags & VM_IOREMAP)
-		align = 1ul << clamp_t(int, get_count_order_long(size),
-			PAGE_SHIFT, IOREMAP_MAX_ORDER);
-
-So it makes idiot like me a litte puzzled why this was a jump the vm_area from
-
-0xec800000-0xecbe1000 to 0xf1000000-0xf5001000, and leaving
-0xed000000-0xf1000000 as a big hole.
-
-This patch is to show all of vm_area, including vmas which are freeing but
-still in the vmap_area_list, to make it more clear about why we will get
-0xf1000000-0xf5001000 in the above case.  And we will get a vmallocinfo
-like:
-
- [..]
- 0xec79b000-0xec7fa000  389120 ftl_add_mtd+0x4d0/0x754 pages=94 vmalloc
- 0xec800000-0xecbe1000 4067328 kbox_proc_mem_write+0x104/0x1c4 phys=8b520000 ioremap
- [..]
- 0xece7c000-0xece7e000    8192 unpurged vm_area
- 0xece7e000-0xece83000   20480 vm_map_ram
- 0xf0099000-0xf00aa000   69632 vm_map_ram
-after apply this patch.
-
-Link: http://lkml.kernel.org/r/1496649682-20710-1-git-send-email-xieyisheng1@huawei.com
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: zijun_hu <zijun_hu@htc.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
+Link: http://lkml.kernel.org/r/20170608074553.22152-4-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: zhong jiang <zhongjiang@huawei.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/migrate.h |   16 ++++++++++++++++
+ mm/memory_hotplug.c     |   11 +----------
+ mm/page_isolation.c     |   18 ++----------------
+ 3 files changed, 19 insertions(+), 26 deletions(-)
 
-diff -puN mm/vmalloc.c~vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-show-more-detail-info-in-vmallocinfo-for-clarify
-+++ a/mm/vmalloc.c
-@@ -325,6 +325,7 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
+diff -puN include/linux/migrate.h~mm-unify-new_node_page-and-alloc_migrate_target include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-unify-new_node_page-and-alloc_migrate_target
++++ a/include/linux/migrate.h
+@@ -4,6 +4,7 @@
+ #include <linux/mm.h>
+ #include <linux/mempolicy.h>
+ #include <linux/migrate_mode.h>
++#include <linux/hugetlb.h>
  
- /*** Global kva allocator ***/
+ typedef struct page *new_page_t(struct page *page, unsigned long private,
+ 				int **reason);
+@@ -30,6 +31,21 @@ enum migrate_reason {
+ /* In mm/debug.c; also keep sync with include/trace/events/migrate.h */
+ extern char *migrate_reason_names[MR_TYPES];
  
-+#define VM_LAZY_FREE	0x02
- #define VM_VM_AREA	0x04
- 
- static DEFINE_SPINLOCK(vmap_area_lock);
-@@ -1497,6 +1498,7 @@ struct vm_struct *remove_vm_area(const v
- 		spin_lock(&vmap_area_lock);
- 		va->vm = NULL;
- 		va->flags &= ~VM_VM_AREA;
-+		va->flags |= VM_LAZY_FREE;
- 		spin_unlock(&vmap_area_lock);
- 
- 		vmap_debug_free_range(va->va_start, va->va_end);
-@@ -2704,8 +2706,14 @@ static int s_show(struct seq_file *m, vo
- 	 * s_show can encounter race with remove_vm_area, !VM_VM_AREA on
- 	 * behalf of vmap area is being tear down or vm_map_ram allocation.
- 	 */
--	if (!(va->flags & VM_VM_AREA))
-+	if (!(va->flags & VM_VM_AREA)) {
-+		seq_printf(m, "0x%pK-0x%pK %7ld %s\n",
-+			(void *)va->va_start, (void *)va->va_end,
-+			va->va_end - va->va_start,
-+			va->flags & VM_LAZY_FREE ? "unpurged vm_area" : "vm_map_ram");
++static inline struct page *new_page_nodemask(struct page *page,
++				int preferred_nid, nodemask_t *nodemask)
++{
++	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
 +
- 		return 0;
-+	}
++	if (PageHuge(page))
++		return alloc_huge_page_nodemask(page_hstate(compound_head(page)),
++				nodemask);
++
++	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
++		gfp_mask |= __GFP_HIGHMEM;
++
++	return __alloc_pages_nodemask(gfp_mask, 0, preferred_nid, nodemask);
++}
++
+ #ifdef CONFIG_MIGRATION
  
- 	v = va->vm;
+ extern void putback_movable_pages(struct list_head *l);
+diff -puN mm/memory_hotplug.c~mm-unify-new_node_page-and-alloc_migrate_target mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-unify-new_node_page-and-alloc_migrate_target
++++ a/mm/memory_hotplug.c
+@@ -1433,7 +1433,6 @@ static unsigned long scan_movable_pages(
+ static struct page *new_node_page(struct page *page, unsigned long private,
+ 		int **result)
+ {
+-	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
+ 	int nid = page_to_nid(page);
+ 	nodemask_t nmask = node_states[N_MEMORY];
  
-_
+@@ -1446,15 +1445,7 @@ static struct page *new_node_page(struct
+ 	if (nodes_empty(nmask))
+ 		node_set(nid, nmask);
+ 
+-	if (PageHuge(page))
+-		return alloc_huge_page_nodemask(
+-				page_hstate(compound_head(page)), &nmask);
+-
+-	if (PageHighMem(page)
+-	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+-		gfp_mask |= __GFP_HIGHMEM;
+-
+-	return __alloc_pages_nodemask(gfp_mask, 0, nid, &nmask);
++	return new_page_nodemask(page, nid, &nmask);
+ }
+ 
+ #define NR_OFFLINE_AT_ONCE_PAGES	(256)
+diff -puN mm/page_isolation.c~mm-unify-new_node_page-and-alloc_migrate_target mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-unify-new_node_page-and-alloc_migrate_target
++++ a/mm/page_isolation.c
+@@ -8,6 +8,7 @@
+ #include <linux/memory.h>
+ #include <linux/hugetlb.h>
+ #include <linux/page_owner.h>
++#include <linux/migrate.h>
+ #include "internal.h"
+ 
+ #define CREATE_TRACE_POINTS
+@@ -294,20 +295,5 @@ int test_pages_isolated(unsigned long st
+ struct page *alloc_migrate_target(struct page *page, unsigned long private,
+ 				  int **resultp)
+ {
+-	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
+-
+-	/*
+-	 * TODO: allocate a destination hugepage from a nearest neighbor node,
+-	 * accordance with memory policy of the user process if possible. For
+-	 * now as a simple work-around, we use the next node for destination.
+-	 */
+-	if (PageHuge(page))
+-		return alloc_huge_page_node(page_hstate(compound_head(page)),
+-					    next_node_in(page_to_nid(page),
+-							 node_online_map));
+-
+-	if (PageHighMem(page))
+-		gfp_mask |= __GFP_HIGHMEM;
