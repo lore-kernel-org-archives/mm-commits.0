@@ -1,216 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 014/115] mm: hwpoison: dissolve in-use hugepage in
- unrecoverable memory error
-Date: Mon, 10 Jul 2017 15:47:50 -0700
-Message-ID: <20170710224750.y2KNzHa5t%akpm@linux-foundation.org>
+Subject: [patch 035/115] mm/hugetlb.c: replace memfmt with
+ string_get_size
+Date: Mon, 10 Jul 2017 15:48:56 -0700
+Message-ID: <20170710224856.5pTxAQzJY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42680 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754956AbdGJWrv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:47:51 -0400
+        with ESMTP id S932078AbdGJWtK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lkp@intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, Liam.Howlett@Oracle.com, mawilcox@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org, willy@infradead.org, zhongjiang@huawei.com
 
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm/hugetlb.c: replace memfmt with string_get_size
 
-Currently me_huge_page() relies on dequeue_hwpoisoned_huge_page() to keep
-the error hugepage away from the system, which is OK but not good enough
-because the hugepage still has a refcount and unpoison doesn't work on the
-error hugepage (PageHWPoison flags are cleared but pages are still
-leaked.) And there's "wasting health subpages" issue too.  This patch
-reworks on me_huge_page() to solve these issues.
+The hugetlb code has its own function to report human-readable sizes. 
+Convert it to use the shared string_get_size() function.  This will lead
+to a minor difference in user visible output (MiB/GiB instead of MB/GB),
+but some would argue that's desirable anyway.
 
-For hugetlb file, recently we have truncating code so let's use it
-in hugetlbfs specific ->error_remove_page().
-
-For anonymous hugepage, it's helpful to dissolve the error page after
-freeing it into free hugepage list. Migration entry and PageHWPoison
-in the head page prevent the access to it.
-
-TODO: dissolve_free_huge_page() can fail but we don't considered it
-yet.  It's not critical (and at least no worse that now) because in
-such case the error hugepage just stays in free hugepage list without
-being dissolved.  By virtue of PageHWPoison in head page, it's never
-allocated to processes.
-
-[akpm@linux-foundation.org: fix unused var warnings]
-Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
-Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
-Link: http://lkml.kernel.org/r/1496305019-5493-8-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: kernel test robot <lkp@intel.com>
+Link: http://lkml.kernel.org/r/20170606190350.GA20010@bombadil.infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: zhong jiang <zhongjiang@huawei.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   11 ++++
- mm/memory-failure.c  |   93 +++++++++++++++++++++++------------------
- 2 files changed, 64 insertions(+), 40 deletions(-)
+ mm/hugetlb.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error
-+++ a/fs/hugetlbfs/inode.c
-@@ -851,6 +851,16 @@ static int hugetlbfs_migrate_page(struct
- 	return MIGRATEPAGE_SUCCESS;
- }
+diff -puN mm/hugetlb.c~replace-memfmt-with-string_get_size mm/hugetlb.c
+--- a/mm/hugetlb.c~replace-memfmt-with-string_get_size
++++ a/mm/hugetlb.c
+@@ -20,6 +20,7 @@
+ #include <linux/slab.h>
+ #include <linux/sched/signal.h>
+ #include <linux/rmap.h>
++#include <linux/string_helpers.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+ #include <linux/jhash.h>
+@@ -70,17 +71,6 @@ struct mutex *hugetlb_fault_mutex_table
+ /* Forward declaration */
+ static int hugetlb_acct_memory(struct hstate *h, long delta);
  
-+static int hugetlbfs_error_remove_page(struct address_space *mapping,
-+				struct page *page)
-+{
-+	struct inode *inode = mapping->host;
-+
-+	remove_huge_page(page);
-+	hugetlb_fix_reserve_counts(inode);
-+	return 0;
-+}
-+
- static int hugetlbfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+-static char * __init memfmt(char *buf, unsigned long n)
+-{
+-	if (n >= (1UL << 30))
+-		sprintf(buf, "%lu GB", n >> 30);
+-	else if (n >= (1UL << 20))
+-		sprintf(buf, "%lu MB", n >> 20);
+-	else
+-		sprintf(buf, "%lu KB", n >> 10);
+-	return buf;
+-}
+-
+ static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
  {
- 	struct hugetlbfs_sb_info *sbinfo = HUGETLBFS_SB(dentry->d_sb);
-@@ -966,6 +976,7 @@ static const struct address_space_operat
- 	.write_end	= hugetlbfs_write_end,
- 	.set_page_dirty	= hugetlbfs_set_page_dirty,
- 	.migratepage    = hugetlbfs_migrate_page,
-+	.error_remove_page	= hugetlbfs_error_remove_page,
- };
+ 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
+@@ -2255,7 +2245,7 @@ static void __init hugetlb_hstate_alloc_
+ 	if (i < h->max_huge_pages) {
+ 		char buf[32];
  
+-		memfmt(buf, huge_page_size(h)),
++		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+ 		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
+ 			h->max_huge_pages, buf, i);
+ 		h->max_huge_pages = i;
+@@ -2283,9 +2273,10 @@ static void __init report_hugepages(void
  
-diff -puN mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error
-+++ a/mm/memory-failure.c
-@@ -554,6 +554,39 @@ static int delete_from_lru_cache(struct
- 	return -EIO;
- }
- 
-+static int truncate_error_page(struct page *p, unsigned long pfn,
-+				struct address_space *mapping)
-+{
-+	int ret = MF_FAILED;
+ 	for_each_hstate(h) {
+ 		char buf[32];
 +
-+	if (mapping->a_ops->error_remove_page) {
-+		int err = mapping->a_ops->error_remove_page(mapping, p);
-+
-+		if (err != 0) {
-+			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
-+				pfn, err);
-+		} else if (page_has_private(p) &&
-+			   !try_to_release_page(p, GFP_NOIO)) {
-+			pr_info("Memory failure: %#lx: failed to release buffers\n",
-+				pfn);
-+		} else {
-+			ret = MF_RECOVERED;
-+		}
-+	} else {
-+		/*
-+		 * If the file system doesn't support it just invalidate
-+		 * This fails on dirty or anything with private pages
-+		 */
-+		if (invalidate_inode_page(p))
-+			ret = MF_RECOVERED;
-+		else
-+			pr_info("Memory failure: %#lx: Failed to invalidate\n",
-+				pfn);
-+	}
-+
-+	return ret;
-+}
-+
- /*
-  * Error hit kernel page.
-  * Do nothing, try to be lucky and not touch this instead. For a few cases we
-@@ -578,8 +611,6 @@ static int me_unknown(struct page *p, un
-  */
- static int me_pagecache_clean(struct page *p, unsigned long pfn)
- {
--	int err;
--	int ret = MF_FAILED;
- 	struct address_space *mapping;
- 
- 	delete_from_lru_cache(p);
-@@ -611,30 +642,7 @@ static int me_pagecache_clean(struct pag
- 	 *
- 	 * Open: to take i_mutex or not for this? Right now we don't.
- 	 */
--	if (mapping->a_ops->error_remove_page) {
--		err = mapping->a_ops->error_remove_page(mapping, p);
--		if (err != 0) {
--			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
--				pfn, err);
--		} else if (page_has_private(p) &&
--				!try_to_release_page(p, GFP_NOIO)) {
--			pr_info("Memory failure: %#lx: failed to release buffers\n",
--				pfn);
--		} else {
--			ret = MF_RECOVERED;
--		}
--	} else {
--		/*
--		 * If the file system doesn't support it just invalidate
--		 * This fails on dirty or anything with private pages
--		 */
--		if (invalidate_inode_page(p))
--			ret = MF_RECOVERED;
--		else
--			pr_info("Memory failure: %#lx: Failed to invalidate\n",
--				pfn);
--	}
--	return ret;
-+	return truncate_error_page(p, pfn, mapping);
- }
- 
- /*
-@@ -740,24 +748,29 @@ static int me_huge_page(struct page *p,
- {
- 	int res = 0;
- 	struct page *hpage = compound_head(p);
-+	struct address_space *mapping;
- 
- 	if (!PageHuge(hpage))
- 		return MF_DELAYED;
- 
--	/*
--	 * We can safely recover from error on free or reserved (i.e.
--	 * not in-use) hugepage by dequeuing it from freelist.
--	 * To check whether a hugepage is in-use or not, we can't use
--	 * page->lru because it can be used in other hugepage operations,
--	 * such as __unmap_hugepage_range() and gather_surplus_pages().
--	 * So instead we use page_mapping() and PageAnon().
--	 */
--	if (!(page_mapping(hpage) || PageAnon(hpage))) {
--		res = dequeue_hwpoisoned_huge_page(hpage);
--		if (!res)
--			return MF_RECOVERED;
-+	mapping = page_mapping(hpage);
-+	if (mapping) {
-+		res = truncate_error_page(hpage, pfn, mapping);
-+	} else {
-+		unlock_page(hpage);
-+		/*
-+		 * migration entry prevents later access on error anonymous
-+		 * hugepage, so we can free and dissolve it into buddy to
-+		 * save healthy subpages.
-+		 */
-+		if (PageAnon(hpage))
-+			put_page(hpage);
-+		dissolve_free_huge_page(p);
-+		res = MF_RECOVERED;
-+		lock_page(hpage);
++		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+ 		pr_info("HugeTLB registered %s page size, pre-allocated %ld pages\n",
+-			memfmt(buf, huge_page_size(h)),
+-			h->free_huge_pages);
++			buf, h->free_huge_pages);
  	}
--	return MF_DELAYED;
-+
-+	return res;
  }
  
- /*
-@@ -856,7 +869,7 @@ static int page_action(struct page_state
- 	count = page_count(p) - 1;
- 	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
- 		count--;
--	if (count != 0) {
-+	if (count > 0) {
- 		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
- 		       pfn, action_page_types[ps->type], count);
- 		result = MF_FAILED;
 _
