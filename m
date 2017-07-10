@@ -1,150 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 002/115] mm, page_alloc: fallback to smallest page
- when not stealing whole pageblock
-Date: Mon, 10 Jul 2017 15:47:14 -0700
-Message-ID: <20170710224714.GNcE1pED6%akpm@linux-foundation.org>
+Subject: [patch 003/115] mm/memory.c: convert to
+ DEFINE_DEBUGFS_ATTRIBUTE
+Date: Mon, 10 Jul 2017 15:47:17 -0700
+Message-ID: <20170710224717.ZcTT6rQ4S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42016 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754420AbdGJWrP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:47:15 -0400
+        with ESMTP id S1754657AbdGJWrS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:47:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, y.pronenko@gmail.com
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: fallback to smallest page when not stealing whole pageblock
+From: Yevgen Pronenko <y.pronenko@gmail.com>
+Subject: mm/memory.c: convert to DEFINE_DEBUGFS_ATTRIBUTE
 
-Since commit 3bc48f96cf11 ("mm, page_alloc: split smallest stolen page in
-fallback") we pick the smallest (but sufficient) page of all that have
-been stolen from a pageblock of different migratetype.  However, there are
-cases when we decide not to steal the whole pageblock.  Practically in the
-current implementation it means that we are trying to fallback for a
-MIGRATE_MOVABLE allocation of order X, go through the freelists from
-MAX_ORDER-1 down to X, and find free page of order Y.  If Y is less than
-pageblock_order / 2, we decide not to steal all pages from the pageblock. 
-When Y > X, it means we are potentially splitting a larger page than we
-need, as there might be other pages of order Z, where X <= Z < Y.  Since Y
-is already too small to steal whole pageblock, picking smallest available
-Z will result in the same decision and we avoid splitting a higher-order
-page in a MIGRATE_UNMOVABLE or MIGRATE_RECLAIMABLE pageblock.
+The preferred strategy to define debugfs attributes is to use the
+DEFINE_DEBUGFS_ATTRIBUTE() macro and to use debugfs_create_file_unsafe().
 
-This patch therefore changes the fallback algorithm so that in the
-situation described above, we switch the fallback search strategy to go
-from order X upwards to find the smallest suitable fallback.  In theory
-there shouldn't be a downside of this change wrt fragmentation.
-
-This has been tested with mmtests' stress-highalloc performing GFP_KERNEL
-order-4 allocations, here is the relevant extfrag tracepoint statistics:
-
-                                                      4.12.0-rc2      4.12.0-rc2
-                                                       1-kernel4       2-kernel4
-Page alloc extfrag event                                  25640976    69680977
-Extfrag fragmenting                                       25621086    69661364
-Extfrag fragmenting for unmovable                            74409       73204
-Extfrag fragmenting unmovable placed with movable            69003       67684
-Extfrag fragmenting unmovable placed with reclaim.            5406        5520
-Extfrag fragmenting for reclaimable                           6398        8467
-Extfrag fragmenting reclaimable placed with movable            869         884
-Extfrag fragmenting reclaimable placed with unmov.            5529        7583
-Extfrag fragmenting for movable                           25540279    69579693
-
-Since we force movable allocations to steal the smallest available page
-(which we then practially always split), we steal less per fallback, so
-the number of fallbacks increases and steals potentially happen from
-different pageblocks.  This is however not an issue for movable pages that
-can be compacted.
-
-Importantly, the "unmovable placed with movable" statistics is lower,
-which is the result of less fragmentation in the unmovable pageblocks. 
-The effect on reclaimable allocation is a bit unclear.
-
-Link: http://lkml.kernel.org/r/20170529093947.22618-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/20170528145948.32127-1-y.pronenko@gmail.com
+Signed-off-by: Yevgen Pronenko <y.pronenko@gmail.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   53 ++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 44 insertions(+), 9 deletions(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fallback-to-smallest-page-when-not-stealing-whole-pageblock
-+++ a/mm/page_alloc.c
-@@ -2216,7 +2216,11 @@ __rmqueue_fallback(struct zone *zone, un
- 	int fallback_mt;
- 	bool can_steal;
- 
--	/* Find the largest possible block of pages in the other list */
-+	/*
-+	 * Find the largest available free page in the other list. This roughly
-+	 * approximates finding the pageblock with the most free pages, which
-+	 * would be too costly to do exactly.
-+	 */
- 	for (current_order = MAX_ORDER-1;
- 				current_order >= order && current_order <= MAX_ORDER-1;
- 				--current_order) {
-@@ -2226,19 +2230,50 @@ __rmqueue_fallback(struct zone *zone, un
- 		if (fallback_mt == -1)
- 			continue;
- 
--		page = list_first_entry(&area->free_list[fallback_mt],
--						struct page, lru);
-+		/*
-+		 * We cannot steal all free pages from the pageblock and the
-+		 * requested migratetype is movable. In that case it's better to
-+		 * steal and split the smallest available page instead of the
-+		 * largest available page, because even if the next movable
-+		 * allocation falls back into a different pageblock than this
-+		 * one, it won't cause permanent fragmentation.
-+		 */
-+		if (!can_steal && start_migratetype == MIGRATE_MOVABLE
-+					&& current_order > order)
-+			goto find_smallest;
- 
--		steal_suitable_fallback(zone, page, start_migratetype,
--								can_steal);
-+		goto do_steal;
-+	}
- 
--		trace_mm_page_alloc_extfrag(page, order, current_order,
--			start_migratetype, fallback_mt);
-+	return false;
- 
--		return true;
-+find_smallest:
-+	for (current_order = order; current_order < MAX_ORDER;
-+							current_order++) {
-+		area = &(zone->free_area[current_order]);
-+		fallback_mt = find_suitable_fallback(area, current_order,
-+				start_migratetype, false, &can_steal);
-+		if (fallback_mt != -1)
-+			break;
- 	}
- 
--	return false;
-+	/*
-+	 * This should not happen - we already found a suitable fallback
-+	 * when looking for the largest page.
-+	 */
-+	VM_BUG_ON(current_order == MAX_ORDER);
-+
-+do_steal:
-+	page = list_first_entry(&area->free_list[fallback_mt],
-+							struct page, lru);
-+
-+	steal_suitable_fallback(zone, page, start_migratetype, can_steal);
-+
-+	trace_mm_page_alloc_extfrag(page, order, current_order,
-+		start_migratetype, fallback_mt);
-+
-+	return true;
-+
+diff -puN mm/memory.c~mm-convert-to-define_debugfs_attribute mm/memory.c
+--- a/mm/memory.c~mm-convert-to-define_debugfs_attribute
++++ a/mm/memory.c
+@@ -3262,14 +3262,14 @@ static int fault_around_bytes_set(void *
+ 		fault_around_bytes = PAGE_SIZE; /* rounddown_pow_of_two(0) is undefined */
+ 	return 0;
  }
+-DEFINE_SIMPLE_ATTRIBUTE(fault_around_bytes_fops,
++DEFINE_DEBUGFS_ATTRIBUTE(fault_around_bytes_fops,
+ 		fault_around_bytes_get, fault_around_bytes_set, "%llu\n");
  
- /*
+ static int __init fault_around_debugfs(void)
+ {
+ 	void *ret;
+ 
+-	ret = debugfs_create_file("fault_around_bytes", 0644, NULL, NULL,
++	ret = debugfs_create_file_unsafe("fault_around_bytes", 0644, NULL, NULL,
+ 			&fault_around_bytes_fops);
+ 	if (!ret)
+ 		pr_warn("Failed to create fault_around_bytes in debugfs");
 _
