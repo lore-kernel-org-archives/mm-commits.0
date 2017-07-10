@@ -1,252 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [patch 019/115] mm/memcontrol: exclude @root from checks
- in mem_cgroup_low
-Date: Mon, 10 Jul 2017 15:48:05 -0700
-Message-ID: <20170710224805.cU1qJ6__s%akpm@linux-foundation.org>
+Subject: [patch 018/115] mm: make PR_SET_THP_DISABLE immediately
+ active
+Date: Mon, 10 Jul 2017 15:48:02 -0700
+Message-ID: <20170710224802.YTFc5WBX2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42162 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754888AbdGJWsH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:07 -0400
+        with ESMTP id S1755039AbdGJWsI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bsingharora@gmail.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org, sean.j.christopherson@intel.com, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: aarcange@redhat.com, akpm@linux-foundation.org, arnd@arndb.de, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, vbabka@suse.cz, xemul@virtuozzo.com
 
-From: Sean Christopherson <sean.j.christopherson@intel.com>
-Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: make PR_SET_THP_DISABLE immediately active
 
-Make @root exclusive in mem_cgroup_low; it is never considered low when
-looked at directly and is not checked when traversing the tree.  In
-effect, @root is handled identically to how root_mem_cgroup was previously
-handled by mem_cgroup_low.
+PR_SET_THP_DISABLE has a rather subtle semantic.  It doesn't affect any
+existing mapping because it only updated mm->def_flags which is a template
+for new mappings.  The mappings created after prctl(PR_SET_THP_DISABLE)
+have VM_NOHUGEPAGE flag set.  This can be quite surprising for all those
+applications which do not do prctl(); fork() & exec() and want to control
+their own THP behavior.
 
-If @root is not excluded from the checks, a cgroup underneath @root will
-never be considered low during targeted reclaim of @root, e.g.  due to
-memory.current > memory.high, unless @root is misconfigured to have
-memory.low > memory.high.
+Another usecase when the immediate semantic of the prctl might be useful
+is a combination of pre- and post-copy migration of containers with CRIU. 
+In this case CRIU populates a part of a memory region with data that was
+saved during the pre-copy stage.  Afterwards, the region is registered
+with userfaultfd and CRIU expects to get page faults for the parts of the
+region that were not yet populated.  However, khugepaged collapses the
+pages and the expected page faults do not occur.
 
-Excluding @root enables using memory.low to prioritize memory usage
-between cgroups within a subtree of the hierarchy that is limited by
-memory.high or memory.max, e.g.  when ROOT owns @root's controls but
-delegates the @root directory to a USER so that USER can create and
-administer children of @root.
+In more general case, the prctl(PR_SET_THP_DISABLE) could be used as a
+temporary mechanism for enabling/disabling THP process wide.
 
-For example, given cgroup A with children B and C:
+Implementation wise, a new MMF_DISABLE_THP flag is added.  This flag is
+tested when decision whether to use huge pages is taken either during page
+fault of at the time of THP collapse.
 
-    A
-   / \
-  B   C
+It should be noted, that the new implementation makes PR_SET_THP_DISABLE
+master override to any per-VMA setting, which was not the case previously.
 
-and
-
-  1. A/memory.current > A/memory.high
-  2. A/B/memory.current < A/B/memory.low
-  3. A/C/memory.current >= A/C/memory.low
-
-As 'A' is high, i.e.  triggers reclaim from 'A', and 'B' is low, we should
-reclaim from 'C' until 'A' is no longer high or until we can no longer
-reclaim from 'C'.  If 'A', i.e.  @root, isn't excluded by mem_cgroup_low
-when reclaming from 'A', then 'B' won't be considered low and we will
-reclaim indiscriminately from both 'B' and 'C'.
-
-Here is the test I used to confirm the bug and the patch.
-
-20:00:55@sjchrist-vm ? ~ $ cat ~/.bin/memcg_low_test
-#!/bin/bash
-
-x62mb=$((62<<20))
-x66mb=$((66<<20))
-x94mb=$((94<<20))
-x98mb=$((98<<20))
-
-setup() {
-    set -e
-
-    if [[ -n $DEBUG ]]; then
-        set -x
-    fi
-
-    trap teardown EXIT HUP INT TERM
-
-    if [[ ! -e /mnt/1gb.swap ]]; then
-        sudo fallocate -l 1G /mnt/1gb.swap > /dev/null
-        sudo mkswap /mnt/1gb.swap > /dev/null
-    fi
-    if ! swapon --show=NAME | grep -q "/mnt/1gb.swap"; then
-        sudo swapon /mnt/1gb.swap
-    fi
-
-    if [[ ! -e /cgroup/cgroup.controllers ]]; then
-        sudo mount -t cgroup2 none /cgroup
-    fi
-
-    grep -q memory /cgroup/cgroup.controllers
-
-    sudo sh -c "echo '+memory' > /cgroup/cgroup.subtree_control"
-
-    sudo mkdir /cgroup/A && sudo chown $USER:$USER /cgroup/A
-    sudo sh -c "echo '+memory' > /cgroup/A/cgroup.subtree_control"
-    sudo sh -c "echo '96m' > /cgroup/A/memory.high"
-
-    mkdir /cgroup/A/0
-    mkdir /cgroup/A/1
-
-    echo 64m > /cgroup/A/0/memory.low
-}
-
-teardown() {
-    set +e
-
-    trap - EXIT HUP INT TERM
-
-    if [[ -z $1 ]]; then
-        printf "\n"
-        printf "%0.s*" {1..35}
-        printf "\nFAILED!\n\n"
-        tail /cgroup/A/**/memory.current
-        printf "%0.s*" {1..35}
-        printf "\n\n"
-    fi
-
-    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
-
-    sleep 2
-
-    if [[ -e /cgroup/A/0 ]]; then
-        rmdir /cgroup/A/0
-    fi
-    if [[ -e /cgroup/A/1 ]]; then
-        rmdir /cgroup/A/1
-    fi
-    if [[ -e /cgroup/A ]]; then
-        sudo rmdir /cgroup/A
-    fi
-}
-
-
-stress_test() {
-    sudo sh -c "echo $$ > /cgroup/A/$1/cgroup.procs"
-    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
-
-    sudo sh -c "echo $$ > /cgroup/A/$2/cgroup.procs"
-    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
-
-    sudo sh -c "echo $$ > /cgroup/cgroup.procs"
-
-    sleep 1
-
-    # A/0 should be consuming more memory than A/1
-    [[ $(cat /cgroup/A/0/memory.current) -ge $(cat /cgroup/A/1/memory.current) ]]
-
-    # A/0 should be consuming ~64mb
-    [[ $(cat /cgroup/A/0/memory.current) -ge $x62mb ]] && [[ $(cat /cgroup/A/0/memory.current) -le $x66mb ]]
-
-    # A should cumulatively be consuming ~96mb
-    [[ $(cat /cgroup/A/memory.current) -ge $x94mb ]] && [[ $(cat /cgroup/A/memory.current) -le $x98mb ]]
-
-    # Stop the stressors
-    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
-}
-
-
-teardown 1
-setup
-
-for ((i=1;i<=$1;i++)); do
-    printf "ITERATION $i of $1 - stress_test 0 1"
-    stress_test 0 1
-    printf "\x1b[2K\r"
-
-    printf "ITERATION $i of $1 - stress_test 1 0"
-    stress_test 1 0
-    printf "\x1b[2K\r"
-
-    printf "ITERATION $i of $1 - PASSED\n"
-done
-
-teardown 1
-
-
-echo PASSED!
-
-
-20:11:26@sjchrist-vm ? ~ $ memcg_low_test 10
-
-
-Link: http://lkml.kernel.org/r/1496434412-21005-1-git-send-email-sean.j.christopherson@intel.com
-Signed-off-by: Sean Christopherson <sean.j.christopherson@intel.com>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Fixes: a0715cc22601 ("mm, thp: add VM_INIT_DEF_MASK and PRCTL_THP_DISABLE")
+Link: http://lkml.kernel.org/r/1496415802-30944-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   50 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 32 insertions(+), 18 deletions(-)
+ include/linux/huge_mm.h        |    1 +
+ include/linux/khugepaged.h     |    3 ++-
+ include/linux/sched/coredump.h |    5 ++++-
+ kernel/sys.c                   |    6 +++---
+ mm/khugepaged.c                |    3 ++-
+ mm/shmem.c                     |    8 +++++---
+ 6 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low
-+++ a/mm/memcontrol.c
-@@ -5317,38 +5317,52 @@ struct cgroup_subsys memory_cgrp_subsys
+diff -puN include/linux/huge_mm.h~mm-make-pr_set_thp_disable-immediately-active include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-make-pr_set_thp_disable-immediately-active
++++ a/include/linux/huge_mm.h
+@@ -92,6 +92,7 @@ extern bool is_vma_temporary_stack(struc
+ 	   (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
+ 	   ((__vma)->vm_flags & VM_HUGEPAGE))) &&			\
+ 	 !((__vma)->vm_flags & VM_NOHUGEPAGE) &&			\
++	 !test_bit(MMF_DISABLE_THP, &(__vma)->vm_mm->flags) &&		\
+ 	 !is_vma_temporary_stack(__vma))
+ #define transparent_hugepage_use_zero_page()				\
+ 	(transparent_hugepage_flags &					\
+diff -puN include/linux/khugepaged.h~mm-make-pr_set_thp_disable-immediately-active include/linux/khugepaged.h
+--- a/include/linux/khugepaged.h~mm-make-pr_set_thp_disable-immediately-active
++++ a/include/linux/khugepaged.h
+@@ -48,7 +48,8 @@ static inline int khugepaged_enter(struc
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags))
+ 		if ((khugepaged_always() ||
+ 		     (khugepaged_req_madv() && (vm_flags & VM_HUGEPAGE))) &&
+-		    !(vm_flags & VM_NOHUGEPAGE))
++		    !(vm_flags & VM_NOHUGEPAGE) &&
++		    !test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+ 			if (__khugepaged_enter(vma->vm_mm))
+ 				return -ENOMEM;
+ 	return 0;
+diff -puN include/linux/sched/coredump.h~mm-make-pr_set_thp_disable-immediately-active include/linux/sched/coredump.h
+--- a/include/linux/sched/coredump.h~mm-make-pr_set_thp_disable-immediately-active
++++ a/include/linux/sched/coredump.h
+@@ -68,7 +68,10 @@ static inline int get_dumpable(struct mm
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+ #define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
++#define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
++#define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
  
- /**
-  * mem_cgroup_low - check if memory consumption is below the normal range
-- * @root: the highest ancestor to consider
-+ * @root: the top ancestor of the sub-tree being checked
-  * @memcg: the memory cgroup to check
-  *
-  * Returns %true if memory consumption of @memcg, and that of all
-- * configurable ancestors up to @root, is below the normal range.
-+ * ancestors up to (but not including) @root, is below the normal range.
-+ *
-+ * @root is exclusive; it is never low when looked at directly and isn't
-+ * checked when traversing the hierarchy.
-+ *
-+ * Excluding @root enables using memory.low to prioritize memory usage
-+ * between cgroups within a subtree of the hierarchy that is limited by
-+ * memory.high or memory.max.
-+ *
-+ * For example, given cgroup A with children B and C:
-+ *
-+ *    A
-+ *   / \
-+ *  B   C
-+ *
-+ * and
-+ *
-+ *  1. A/memory.current > A/memory.high
-+ *  2. A/B/memory.current < A/B/memory.low
-+ *  3. A/C/memory.current >= A/C/memory.low
-+ *
-+ * As 'A' is high, i.e. triggers reclaim from 'A', and 'B' is low, we
-+ * should reclaim from 'C' until 'A' is no longer high or until we can
-+ * no longer reclaim from 'C'.  If 'A', i.e. @root, isn't excluded by
-+ * mem_cgroup_low when reclaming from 'A', then 'B' won't be considered
-+ * low and we will reclaim indiscriminately from both 'B' and 'C'.
-  */
- bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg)
+-#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
++#define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
++				 MMF_DISABLE_THP_MASK)
+ 
+ #endif /* _LINUX_SCHED_COREDUMP_H */
+diff -puN kernel/sys.c~mm-make-pr_set_thp_disable-immediately-active kernel/sys.c
+--- a/kernel/sys.c~mm-make-pr_set_thp_disable-immediately-active
++++ a/kernel/sys.c
+@@ -2360,7 +2360,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 	case PR_GET_THP_DISABLE:
+ 		if (arg2 || arg3 || arg4 || arg5)
+ 			return -EINVAL;
+-		error = !!(me->mm->def_flags & VM_NOHUGEPAGE);
++		error = !!test_bit(MMF_DISABLE_THP, &me->mm->flags);
+ 		break;
+ 	case PR_SET_THP_DISABLE:
+ 		if (arg3 || arg4 || arg5)
+@@ -2368,9 +2368,9 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 		if (down_write_killable(&me->mm->mmap_sem))
+ 			return -EINTR;
+ 		if (arg2)
+-			me->mm->def_flags |= VM_NOHUGEPAGE;
++			set_bit(MMF_DISABLE_THP, &me->mm->flags);
+ 		else
+-			me->mm->def_flags &= ~VM_NOHUGEPAGE;
++			clear_bit(MMF_DISABLE_THP, &me->mm->flags);
+ 		up_write(&me->mm->mmap_sem);
+ 		break;
+ 	case PR_MPX_ENABLE_MANAGEMENT:
+diff -puN mm/khugepaged.c~mm-make-pr_set_thp_disable-immediately-active mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-make-pr_set_thp_disable-immediately-active
++++ a/mm/khugepaged.c
+@@ -816,7 +816,8 @@ khugepaged_alloc_page(struct page **hpag
+ static bool hugepage_vma_check(struct vm_area_struct *vma)
  {
- 	if (mem_cgroup_disabled())
+ 	if ((!(vma->vm_flags & VM_HUGEPAGE) && !khugepaged_always()) ||
+-	    (vma->vm_flags & VM_NOHUGEPAGE))
++	    (vma->vm_flags & VM_NOHUGEPAGE) ||
++	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
  		return false;
+ 	if (shmem_file(vma->vm_file)) {
+ 		if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE))
+diff -puN mm/shmem.c~mm-make-pr_set_thp_disable-immediately-active mm/shmem.c
+--- a/mm/shmem.c~mm-make-pr_set_thp_disable-immediately-active
++++ a/mm/shmem.c
+@@ -1977,10 +1977,12 @@ static int shmem_fault(struct vm_fault *
+ 	}
  
--	/*
--	 * The toplevel group doesn't have a configurable range, so
--	 * it's never low when looked at directly, and it is not
--	 * considered an ancestor when assessing the hierarchy.
--	 */
--
--	if (memcg == root_mem_cgroup)
--		return false;
--
--	if (page_counter_read(&memcg->memory) >= memcg->low)
-+	if (!root)
-+		root = root_mem_cgroup;
-+	if (memcg == root)
- 		return false;
+ 	sgp = SGP_CACHE;
+-	if (vma->vm_flags & VM_HUGEPAGE)
+-		sgp = SGP_HUGE;
+-	else if (vma->vm_flags & VM_NOHUGEPAGE)
++
++	if ((vma->vm_flags & VM_NOHUGEPAGE) ||
++	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+ 		sgp = SGP_NOHUGE;
++	else if (vma->vm_flags & VM_HUGEPAGE)
++		sgp = SGP_HUGE;
  
--	while (memcg != root) {
--		memcg = parent_mem_cgroup(memcg);
--
--		if (memcg == root_mem_cgroup)
--			break;
+ 	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, sgp,
+ 				  gfp, vma, vmf, &ret);
+_
