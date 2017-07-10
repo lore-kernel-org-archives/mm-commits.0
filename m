@@ -1,70 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [patch 054/115] mm/mmap.c: expand_downwards: don't require
- the gap if !vm_prev
-Date: Mon, 10 Jul 2017 15:49:54 -0700
-Message-ID: <20170710224954.Qnp6BuTCX%akpm@linux-foundation.org>
+Subject: [patch 053/115] mm/mmap.c: do not blow on PROT_NONE
+ MAP_FIXED holes in the stack
+Date: Mon, 10 Jul 2017 15:49:51 -0700
+Message-ID: <20170710224951.oa3rOnG3D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42912 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932151AbdGJWtz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:55 -0400
+        with ESMTP id S932151AbdGJWtw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, lwoodman@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ben@decadent.org.uk, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org, oleg@redhat.com, riel@redhat.com, torvalds@linux-foundation.org, vbabka@suse.cz, w@1wt.eu
 
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm/mmap.c: do not blow on PROT_NONE MAP_FIXED holes in the stack
 
-expand_stack(vma) fails if address < stack_guard_gap even if there is no
-vma->vm_prev.  I don't think this makes sense, and we didn't do this
-before the recent commit 1be7107fbe18 ("mm: larger stack guard gap,
-between vmas").  We do not need a gap in this case, any address is fine as
-long as security_mmap_addr() doesn't object.
+"mm: enlarge stack guard gap" has introduced a regression in some rust and
+Java environments which are trying to implement their own stack guard
+page.  They are punching a new MAP_FIXED mapping inside the existing stack
+Vma.
 
-This also simplifies the code, we know that address >= prev->vm_end and
-thus underflow is not possible.
+This will confuse expand_{downwards,upwards} into thinking that the stack
+expansion would in fact get us too close to an existing non-stack vma
+which is a correct behavior wrt.  safety.  It is a real regression on the
+other hand.  Let's work around the problem by considering PROT_NONE
+mapping as a part of the stack.  This is a gros hack but overflowing to
+such a mapping would trap anyway an we only can hope that usespace knows
+what it is doing and handle it propely.
 
-Link: http://lkml.kernel.org/r/20170628175258.GA24881@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
+Fixes: 1be7107fbe18 ("mm: larger stack guard gap, between vmas")
+Link: http://lkml.kernel.org/r/20170705182849.GA18027@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Debugged-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ mm/mmap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev mm/mmap.c
---- a/mm/mmap.c~expand_downwards-dont-require-the-gap-if-vm_prev
+diff -puN mm/mmap.c~mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack mm/mmap.c
+--- a/mm/mmap.c~mm-mm-mmap-do-not-blow-on-prot_none-map_fixed-holes-in-the-stack
 +++ a/mm/mmap.c
-@@ -2316,7 +2316,6 @@ int expand_downwards(struct vm_area_stru
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *prev;
--	unsigned long gap_addr;
- 	int error;
+@@ -2244,7 +2244,8 @@ int expand_upwards(struct vm_area_struct
+ 		gap_addr = TASK_SIZE;
  
- 	address &= PAGE_MASK;
-@@ -2325,15 +2324,12 @@ int expand_downwards(struct vm_area_stru
- 		return error;
- 
- 	/* Enforce stack_guard_gap */
--	gap_addr = address - stack_guard_gap;
--	if (gap_addr > address)
--		return -ENOMEM;
- 	prev = vma->vm_prev;
--	if (prev && prev->vm_end > gap_addr &&
-+	/* Check that both stack segments have the same anon_vma? */
-+	if (prev && !(prev->vm_flags & VM_GROWSDOWN) &&
- 			(prev->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
--		if (!(prev->vm_flags & VM_GROWSDOWN))
-+		if (address - prev->vm_end < stack_guard_gap)
+ 	next = vma->vm_next;
+-	if (next && next->vm_start < gap_addr) {
++	if (next && next->vm_start < gap_addr &&
++			(next->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
+ 		if (!(next->vm_flags & VM_GROWSUP))
  			return -ENOMEM;
--		/* Check that both stack segments have the same anon_vma? */
- 	}
- 
- 	/* We must make sure the anon_vma is allocated. */
+ 		/* Check that both stack segments have the same anon_vma? */
+@@ -2328,7 +2329,8 @@ int expand_downwards(struct vm_area_stru
+ 	if (gap_addr > address)
+ 		return -ENOMEM;
+ 	prev = vma->vm_prev;
+-	if (prev && prev->vm_end > gap_addr) {
++	if (prev && prev->vm_end > gap_addr &&
++			(prev->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
+ 		if (!(prev->vm_flags & VM_GROWSDOWN))
+ 			return -ENOMEM;
+ 		/* Check that both stack segments have the same anon_vma? */
 _
