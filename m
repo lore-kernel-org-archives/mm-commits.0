@@ -1,152 +1,235 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Mon, 10 Jul 2017 15:46:34 -0700
-Message-ID: <20170710154634.3ecbf736fc5baa8516977b8b@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 001/115] swap: add block io poll in swapin path
+Date: Mon, 10 Jul 2017 15:47:11 -0700
+Message-ID: <20170710224711.oOEcYMEM5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41988 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754657AbdGJWqi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:46:38 -0400
+        with ESMTP id S1754106AbdGJWrM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:47:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@fb.com, hughd@google.com, mm-commits@vger.kernel.org, shli@fb.com, tim.c.chen@intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-
-- most of the rest of MM
-
-- KASAN updates
-
-- lib/ updates
-
-- checkpatch updates
-
-- some binfmt_elf changes
-
-- various misc bits
-
-
-115 patches, based on 9eb788800510ae1a6bc419636a66071ee4deafd5:
-
+From: Shaohua Li <shli@fb.com>
 Subject: swap: add block io poll in swapin path
-Subject: mm, page_alloc: fallback to smallest page when not stealing whole pageblock
-Subject: mm/memory.c: convert to DEFINE_DEBUGFS_ATTRIBUTE
-Subject: mm, vmscan: avoid thrashing anon lru when free + file is low
-Subject: mm/memory_hotplug.c: add NULL check to avoid potential NULL pointer dereference
-Subject: mm/zsmalloc.c: fix -Wunneeded-internal-declaration warning
-Subject: fs/buffer.c: make bh_lru_install() more efficient
-Subject: mm: hugetlb: prevent reuse of hwpoisoned free hugepages
-Subject: mm: hugetlb: return immediately for hugetlb page in __delete_from_page_cache()
-Subject: mm: hwpoison: change PageHWPoison behavior on hugetlb pages
-Subject: mm: hugetlb: soft-offline: dissolve source hugepage after successful migration
-Subject: mm: soft-offline: dissolve free hugepage if soft-offlined
-Subject: mm: hwpoison: introduce memory_failure_hugetlb()
-Subject: mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error
-Subject: mm: hugetlb: delete dequeue_hwpoisoned_huge_page()
-Subject: mm: hwpoison: introduce idenfity_page_state
-Subject: mm, vmpressure: pass-through notification support
-Subject: mm: make PR_SET_THP_DISABLE immediately active
-Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
-Subject: vmalloc: show lazy-purged vma info in vmallocinfo
-Subject: mm/cma.c: warn if the CMA area could not be activated
-Subject: mm/hugetlb.c: warn the user when issues arise on boot due to hugepages
-Subject: oom, trace: remove ENUM evaluation of COMPACTION_FEEDBACK
-Subject: mm: improve readability of transparent_hugepage_enabled()
-Subject: mm: always enable thp for dax mappings
-Subject: include/linux/page_ref.h: ensure page_ref_unfreeze is ordered against prior accesses
-Subject: mm/migrate.c: stabilise page count when migrating transparent hugepages
-Subject: zram: use __sysfs_match_string() helper
-Subject: mm, memory_hotplug: support movable_node for hotpluggable nodes
-Subject: mm, memory_hotplug: simplify empty node mask handling in new_node_page
-Subject: hugetlb, memory_hotplug: prefer to use reserved pages for migration
-Subject: mm: unify new_node_page and alloc_migrate_target
-Subject: mm, hugetlb: schedule when potentially allocating many hugepages
-Subject: mm, memcg: fix potential undefined behavior in mem_cgroup_event_ratelimit()
-Subject: mm/hugetlb.c: replace memfmt with string_get_size
-Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
-Subject: userfaultfd: non-cooperative: add madvise() event for MADV_FREE request
-Subject: mm/oom_kill.c: add tracepoints for oom reaper-related events
-Subject: mm, hugetlb: unclutter hugetlb allocation layers
-Subject: hugetlb: add support for preferred node to alloc_huge_page_nodemask
-Subject: mm, hugetlb, soft_offline: use new_page_nodemask for soft offline migration
-Subject: mm: avoid taking zone lock in pagetypeinfo_showmixed()
-Subject: mm: drop useless local parameters of __register_one_node()
-Subject: fs/proc/task_mmu.c: remove obsolete comment in show_map_vma()
-Subject: mm/page_alloc.c: eliminate unsigned confusion in __rmqueue_fallback
-Subject: mm/swap_slots.c: don't disable preemption while taking the per-CPU cache
-Subject: include/linux/mmzone.h: remove ancient/ambiguous comment
-Subject: include/linux/backing-dev.h: simplify wb_stat_sum
-Subject: mm: document highmem_is_dirtyable sysctl
-Subject: mm/memory_hotplug.c: remove unused local zone_type from __remove_zone()
-Subject: cma: fix calculation of aligned offset
-Subject: mm/balloon_compaction.c: enqueue zero page to balloon device
-Subject: mm/mmap.c: do not blow on PROT_NONE MAP_FIXED holes in the stack
-Subject: mm/mmap.c: expand_downwards: don't require the gap if !vm_prev
-Subject: mm/list_lru.c: fix list_lru_count_node() to be race free
-Subject: fs/dcache.c: fix spin lockup issue on nlru->lock
-Subject: mm: use dedicated helper to access rlimit value
-Subject: mm: swap: provide lru_add_drain_all_cpuslocked()
-Subject: mm/memory-hotplug: switch locking to a percpu rwsem
-Subject: mm: disallow early_pfn_to_nid on configurations which do not implement it
-Subject: zram: constify attribute_group structures.
-Subject: mm/zsmalloc: simplify zs_max_alloc_size handling
-Subject: mm/kasan/kasan_init.c: use kasan_zero_pud for p4d table
-Subject: mm/kasan: get rid of speculative shadow checks
-Subject: x86/kasan: don't allocate extra shadow memory
-Subject: arm64/kasan: don't allocate extra shadow memory
-Subject: mm/kasan: add support for memory hotplug
-Subject: mm/kasan/kasan.c: rename XXX_is_zero to XXX_is_nonzero
-Subject: kasan: make get_wild_bug_type() static
-Subject: frv: remove wrapper header for asm/device.h
-Subject: frv: use generic fb.h
-Subject: frv: cmpxchg: implement cmpxchg64()
-Subject: fs/proc/generic.c: switch to ida_simple_get/remove
-Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
-Subject: linux/bug.h: correct formatting of block comment
-Subject: linux/bug.h: correct "(foo*)" should be "(foo *)"
-Subject: linux/bug.h: correct "space required before that '-'"
-Subject: bug: split BUILD_BUG stuff out into <linux/build_bug.h>
-Subject: ARM: fix rd_size declaration
-Subject: kernel/ksysfs.c: constify attribute_group structures.
-Subject: kernel/groups.c: use sort library function
-Subject: kernel/kallsyms.c: replace all_var with IS_ENABLED(CONFIG_KALLSYMS_ALL)
-Subject: MAINTAINERS: give proc sysctl some maintainer love
-Subject: lib/test_bitmap.c: add optimisation tests
-Subject: bitmap: optimise bitmap_set and bitmap_clear of a single bit
-Subject: include/linux/bitmap.h: turn bitmap_set and bitmap_clear into memset when possible
-Subject: bitmap: use memcmp optimisation in more situations
-Subject: lib/kstrtox.c: delete end-of-string test
-Subject: lib/kstrtox.c: use "unsigned int" more
-Subject: lib/interval_tree_test.c: allow the module to be compiled-in
-Subject: lib/interval_tree_test.c: make test options module parameters
-Subject: lib/interval_tree_test.c: allow users to limit scope of endpoint
-Subject: lib/interval_tree_test.c: allow full tree search
-Subject: lib/rhashtable.c: use kvzalloc() in bucket_table_alloc() when possible
-Subject: lib/extable.c: use bsearch() library function in search_extable()
-Subject: lib/bsearch.c: micro-optimize pivot position calculation
-Subject: checkpatch: improve the unnecessary OOM message test
-Subject: checkpatch: warn when a MAINTAINERS entry isn't [A-Z]:\t
-Subject: checkpatch: [HLP]LIST_HEAD is also declaration
-Subject: checkpatch: fix stepping through statements with $stat and ctx_statement_block
-Subject: checkpatch: remove false warning for commit reference
-Subject: checkpatch: improve tests for multiple line function definitions
-Subject: checkpatch: silence perl 5.26.0 unescaped left brace warnings
-Subject: checkpatch: change format of --color argument to --color[=WHEN]
-Subject: checkpatch: improve macro reuse test
-Subject: checkpatch: improve multi-line alignment test
-Subject: fs, epoll: short circuit fetching events if thread has been killed
-Subject: binfmt_elf: use ELF_ET_DYN_BASE only for PIE
-Subject: arm: move ELF_ET_DYN_BASE to 4MB
-Subject: arm64: move ELF_ET_DYN_BASE to 4GB / 4MB
-Subject: powerpc: move ELF_ET_DYN_BASE to 4GB / 4MB
-Subject: s390: reduce ELF_ET_DYN_BASE
-Subject: binfmt_elf: safely increment argv pointers
-Subject: kernel/signal.c: avoid undefined behaviour in kill_something_info
-Subject: kernel/exit.c: avoid undefined behaviour when calling wait4()
 
+For fast flash disk, async IO could introduce overhead because of context
+switch.  block-mq now supports IO poll, which improves performance and
+latency a lot.  swapin is a good place to use this technique, because the
+task is waitting for the swapin page to continue execution.
 
+In my virtual machine, directly read 4k data from a NVMe with iopoll is
+about 60% better than that without poll.  With iopoll support in swapin
+patch, my microbenchmark (a task does random memory write) is about 10% ~
+25% faster.  CPU utilization increases a lot though, 2x and even 3x CPU
+utilization.  This will depend on disk speed though.  While iopoll in
+swapin isn't intended for all usage cases, it's a win for latency
+sensistive workloads with high speed swap disk.  block layer has knob to
+control poll in runtime.  If poll isn't enabled in block layer, there
+should be no noticeable change in swapin.
 
+I got a chance to run the same test in a NVMe with DRAM as the media.  In
+simple fio IO test, blkpoll boosts 50% performance in single thread test
+and ~20% in 8 threads test.  So this is the base line.  In above swap
+test, blkpoll boosts ~27% performance in single thread test.  blkpoll uses
+2x CPU time though.  If we enable hybid polling, the performance gain has
+very slight drop but CPU time is only 50% worse than that without blkpoll.
+Also we can adjust parameter of hybid poll, with it, the CPU time
+penality is reduced further.  In 8 threads test, blkpoll doesn't help
+though.  The performance is similar to that without blkpoll, but cpu
+utilization is similar too.  There is lock contention in swap path.  The
+cpu time spending on blkpoll isn't high.  So overall, blkpoll swapin isn't
+worse than that without it.
+
+The swapin readahead might read several pages in in the same time and form
+a big IO request.  Since the IO will take longer time, it doesn't make
+sense to do poll, so the patch only does iopoll for single page swapin.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/070c3c3e40b711e7b1390002c991e86a-b5408f0@7511894063d3764ff01ea8111f5a004d7dd700ed078797c204a24e620ddb965c
+Signed-off-by: Shaohua Li <shli@fb.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/swap.h |    5 +++--
+ mm/madvise.c         |    4 ++--
+ mm/page_io.c         |   23 +++++++++++++++++++++--
+ mm/swap_state.c      |   10 ++++++----
+ mm/swapfile.c        |    2 +-
+ 5 files changed, 33 insertions(+), 11 deletions(-)
+
+diff -puN include/linux/swap.h~swap-add-block-io-poll-in-swapin-path include/linux/swap.h
+--- a/include/linux/swap.h~swap-add-block-io-poll-in-swapin-path
++++ a/include/linux/swap.h
+@@ -331,7 +331,7 @@ extern void kswapd_stop(int nid);
+ #include <linux/blk_types.h> /* for bio_end_io_t */
+ 
+ /* linux/mm/page_io.c */
+-extern int swap_readpage(struct page *);
++extern int swap_readpage(struct page *page, bool do_poll);
+ extern int swap_writepage(struct page *page, struct writeback_control *wbc);
+ extern void end_swap_bio_write(struct bio *bio);
+ extern int __swap_writepage(struct page *page, struct writeback_control *wbc,
+@@ -362,7 +362,8 @@ extern void free_page_and_swap_cache(str
+ extern void free_pages_and_swap_cache(struct page **, int);
+ extern struct page *lookup_swap_cache(swp_entry_t);
+ extern struct page *read_swap_cache_async(swp_entry_t, gfp_t,
+-			struct vm_area_struct *vma, unsigned long addr);
++			struct vm_area_struct *vma, unsigned long addr,
++			bool do_poll);
+ extern struct page *__read_swap_cache_async(swp_entry_t, gfp_t,
+ 			struct vm_area_struct *vma, unsigned long addr,
+ 			bool *new_page_allocated);
+diff -puN mm/madvise.c~swap-add-block-io-poll-in-swapin-path mm/madvise.c
+--- a/mm/madvise.c~swap-add-block-io-poll-in-swapin-path
++++ a/mm/madvise.c
+@@ -205,7 +205,7 @@ static int swapin_walk_pmd_entry(pmd_t *
+ 			continue;
+ 
+ 		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
+-								vma, index);
++							vma, index, false);
+ 		if (page)
+ 			put_page(page);
+ 	}
+@@ -246,7 +246,7 @@ static void force_shm_swapin_readahead(s
+ 		}
+ 		swap = radix_to_swp_entry(page);
+ 		page = read_swap_cache_async(swap, GFP_HIGHUSER_MOVABLE,
+-								NULL, 0);
++							NULL, 0, false);
+ 		if (page)
+ 			put_page(page);
+ 	}
+diff -puN mm/page_io.c~swap-add-block-io-poll-in-swapin-path mm/page_io.c
+--- a/mm/page_io.c~swap-add-block-io-poll-in-swapin-path
++++ a/mm/page_io.c
+@@ -117,6 +117,7 @@ static void swap_slot_free_notify(struct
+ static void end_swap_bio_read(struct bio *bio)
+ {
+ 	struct page *page = bio->bi_io_vec[0].bv_page;
++	struct task_struct *waiter = bio->bi_private;
+ 
+ 	if (bio->bi_status) {
+ 		SetPageError(page);
+@@ -132,7 +133,9 @@ static void end_swap_bio_read(struct bio
+ 	swap_slot_free_notify(page);
+ out:
+ 	unlock_page(page);
++	WRITE_ONCE(bio->bi_private, NULL);
+ 	bio_put(bio);
++	wake_up_process(waiter);
+ }
+ 
+ int generic_swapfile_activate(struct swap_info_struct *sis,
+@@ -329,11 +332,13 @@ out:
+ 	return ret;
+ }
+ 
+-int swap_readpage(struct page *page)
++int swap_readpage(struct page *page, bool do_poll)
+ {
+ 	struct bio *bio;
+ 	int ret = 0;
+ 	struct swap_info_struct *sis = page_swap_info(page);
++	blk_qc_t qc;
++	struct block_device *bdev;
+ 
+ 	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+@@ -372,9 +377,23 @@ int swap_readpage(struct page *page)
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
++	bdev = bio->bi_bdev;
++	bio->bi_private = current;
+ 	bio_set_op_attrs(bio, REQ_OP_READ, 0);
+ 	count_vm_event(PSWPIN);
+-	submit_bio(bio);
++	bio_get(bio);
++	qc = submit_bio(bio);
++	while (do_poll) {
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		if (!READ_ONCE(bio->bi_private))
++			break;
++
++		if (!blk_mq_poll(bdev_get_queue(bdev), qc))
++			break;
++	}
++	__set_current_state(TASK_RUNNING);
++	bio_put(bio);
++
+ out:
+ 	return ret;
+ }
+diff -puN mm/swap_state.c~swap-add-block-io-poll-in-swapin-path mm/swap_state.c
+--- a/mm/swap_state.c~swap-add-block-io-poll-in-swapin-path
++++ a/mm/swap_state.c
+@@ -412,14 +412,14 @@ struct page *__read_swap_cache_async(swp
+  * the swap entry is no longer in use.
+  */
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-			struct vm_area_struct *vma, unsigned long addr)
++		struct vm_area_struct *vma, unsigned long addr, bool do_poll)
+ {
+ 	bool page_was_allocated;
+ 	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
+ 			vma, addr, &page_was_allocated);
+ 
+ 	if (page_was_allocated)
+-		swap_readpage(retpage);
++		swap_readpage(retpage, do_poll);
+ 
+ 	return retpage;
+ }
+@@ -496,11 +496,13 @@ struct page *swapin_readahead(swp_entry_
+ 	unsigned long start_offset, end_offset;
+ 	unsigned long mask;
+ 	struct blk_plug plug;
++	bool do_poll = true;
+ 
+ 	mask = swapin_nr_pages(offset) - 1;
+ 	if (!mask)
+ 		goto skip;
+ 
++	do_poll = false;
+ 	/* Read a page_cluster sized and aligned cluster around offset. */
+ 	start_offset = offset & ~mask;
+ 	end_offset = offset | mask;
+@@ -511,7 +513,7 @@ struct page *swapin_readahead(swp_entry_
+ 	for (offset = start_offset; offset <= end_offset ; offset++) {
+ 		/* Ok, do the async read-ahead now */
+ 		page = read_swap_cache_async(swp_entry(swp_type(entry), offset),
+-						gfp_mask, vma, addr);
++						gfp_mask, vma, addr, false);
+ 		if (!page)
+ 			continue;
+ 		if (offset != entry_offset && likely(!PageTransCompound(page)))
+@@ -522,7 +524,7 @@ struct page *swapin_readahead(swp_entry_
+ 
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ skip:
+-	return read_swap_cache_async(entry, gfp_mask, vma, addr);
++	return read_swap_cache_async(entry, gfp_mask, vma, addr, do_poll);
+ }
+ 
+ int init_swap_address_space(unsigned int type, unsigned long nr_pages)
+diff -puN mm/swapfile.c~swap-add-block-io-poll-in-swapin-path mm/swapfile.c
+--- a/mm/swapfile.c~swap-add-block-io-poll-in-swapin-path
++++ a/mm/swapfile.c
+@@ -1868,7 +1868,7 @@ int try_to_unuse(unsigned int type, bool
+ 		swap_map = &si->swap_map[i];
+ 		entry = swp_entry(type, i);
+ 		page = read_swap_cache_async(entry,
+-					GFP_HIGHUSER_MOVABLE, NULL, 0);
++					GFP_HIGHUSER_MOVABLE, NULL, 0, false);
+ 		if (!page) {
+ 			/*
+ 			 * Either swap_duplicate() failed because entry
+_
