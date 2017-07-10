@@ -1,86 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 027/115] mm/migrate.c: stabilise page count when
- migrating transparent hugepages
-Date: Mon, 10 Jul 2017 15:48:31 -0700
-Message-ID: <20170710224831.RrvMFTfYN%akpm@linux-foundation.org>
+Subject: [patch 028/115] zram: use __sysfs_match_string() helper
+Date: Mon, 10 Jul 2017 15:48:34 -0700
+Message-ID: <20170710224834.MCDSNXbI1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42258 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42290 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755079AbdGJWsc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:32 -0400
+        with ESMTP id S1755084AbdGJWsf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mgorman@suse.de, mm-commits@vger.kernel.org, steve.capper@arm.com, torvalds@linux-foundation.org, vbabka@suse.cz, will.deacon@arm.com
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
 
-From: Will Deacon <will.deacon@arm.com>
-Subject: mm/migrate.c: stabilise page count when migrating transparent hugepages
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: zram: use __sysfs_match_string() helper
 
-When migrating a transparent hugepage, migrate_misplaced_transhuge_page
-guards itself against a concurrent fastgup of the page by checking that
-the page count is equal to 2 before and after installing the new pmd.
+Use __sysfs_match_string() helper instead of open coded variant.
 
-If the page count changes, then the pmd is reverted back to the original
-entry, however there is a small window where the new (possibly writable)
-pmd is installed and the underlying page could be written by userspace. 
-Restoring the old pmd could therefore result in loss of data.
-
-This patch fixes the problem by freezing the page count whilst updating
-the page tables, which protects against a concurrent fastgup without the
-need to restore the old pmd in the failure case (since the page count can
-no longer change under our feet).
-
-Link: http://lkml.kernel.org/r/1497349722-6731-4-git-send-email-will.deacon@arm.com
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20170609120835.22156-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/block/zram/zcomp.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages mm/migrate.c
---- a/mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages
-+++ a/mm/migrate.c
-@@ -1916,7 +1916,6 @@ int migrate_misplaced_transhuge_page(str
- 	int page_lru = page_is_file_cache(page);
- 	unsigned long mmun_start = address & HPAGE_PMD_MASK;
- 	unsigned long mmun_end = mmun_start + HPAGE_PMD_SIZE;
--	pmd_t orig_entry;
+diff -puN drivers/block/zram/zcomp.c~zram-use-__sysfs_match_string-helper drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-use-__sysfs_match_string-helper
++++ a/drivers/block/zram/zcomp.c
+@@ -68,13 +68,11 @@ static struct zcomp_strm *zcomp_strm_all
+ 
+ bool zcomp_available_algorithm(const char *comp)
+ {
+-	int i = 0;
++	int i;
+ 
+-	while (backends[i]) {
+-		if (sysfs_streq(comp, backends[i]))
+-			return true;
+-		i++;
+-	}
++	i = __sysfs_match_string(backends, -1, comp);
++	if (i >= 0)
++		return true;
  
  	/*
- 	 * Rate-limit the amount of data that is being migrated to a node.
-@@ -1959,8 +1958,7 @@ int migrate_misplaced_transhuge_page(str
- 	/* Recheck the target PMD */
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_same(*pmd, entry) || page_count(page) != 2)) {
--fail_putback:
-+	if (unlikely(!pmd_same(*pmd, entry) || !page_ref_freeze(page, 2))) {
- 		spin_unlock(ptl);
- 		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 
-@@ -1982,7 +1980,6 @@ fail_putback:
- 		goto out_unlock;
- 	}
- 
--	orig_entry = *pmd;
- 	entry = mk_huge_pmd(new_page, vma->vm_page_prot);
- 	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 
-@@ -1999,15 +1996,7 @@ fail_putback:
- 	set_pmd_at(mm, mmun_start, pmd, entry);
- 	update_mmu_cache_pmd(vma, address, &entry);
- 
--	if (page_count(page) != 2) {
--		set_pmd_at(mm, mmun_start, pmd, orig_entry);
--		flush_pmd_tlb_range(vma, mmun_start, mmun_end);
--		mmu_notifier_invalidate_range(mm, mmun_start, mmun_end);
--		update_mmu_cache_pmd(vma, address, &entry);
--		page_remove_rmap(new_page, true);
--		goto fail_putback;
--	}
+ 	 * Crypto does not ignore a trailing new line symbol,
+_
