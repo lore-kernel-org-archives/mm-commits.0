@@ -1,126 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [patch 104/115] checkpatch: change format of --color
- argument to --color[=WHEN]
-Date: Mon, 10 Jul 2017 15:52:24 -0700
-Message-ID: <20170710225224.QaI-9NItw%akpm@linux-foundation.org>
+Subject: [patch 103/115] checkpatch: silence perl 5.26.0 unescaped
+ left brace warnings
+Date: Mon, 10 Jul 2017 15:52:21 -0700
+Message-ID: <20170710225221.N4ZEvyBxX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43560 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754888AbdGJWw0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:26 -0400
+        with ESMTP id S1754869AbdGJWwX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, john@fastquake.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cyrilbur@gmail.com, joe@perches.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org
 
-From: John Brooks <john@fastquake.com>
-Subject: checkpatch: change format of --color argument to --color[=WHEN]
+From: Cyril Bur <cyrilbur@gmail.com>
+Subject: checkpatch: silence perl 5.26.0 unescaped left brace warnings
 
-The boolean --color argument did not offer the ability to force colourized
-output even if stdout is not a terminal.  Change the format of the
-argument to the familiar --color[=WHEN] construct as seen in common Linux
-utilities such as git, ls and dmesg, which allows the user to specify
-whether to colourize output "always", "never", or "auto" when the output
-is a terminal.  The default is "auto".
+As of perl 5, version 26, subversion 0 (v5.26.0) some new warnings have
+occurred when running checkpatch.
 
-The old command-line uses of --color and --no-color are unchanged.
+Unescaped left brace in regex is deprecated here (and will be fatal in
+Perl 5.30), passed through in regex; marked by <-- HERE in m/^(.\s*){
+<-- HERE \s*/ at scripts/checkpatch.pl line 3544.
 
-Link: http://lkml.kernel.org/r/efe43bdbad400f39ba691ae663044462493b0773.1496799721.git.joe@perches.com
-Signed-off-by: John Brooks <john@fastquake.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Unescaped left brace in regex is deprecated here (and will be fatal in
+Perl 5.30), passed through in regex; marked by <-- HERE in m/^(.\s*){
+<-- HERE \s*/ at scripts/checkpatch.pl line 3885.
+
+Unescaped left brace in regex is deprecated here (and will be fatal in
+Perl 5.30), passed through in regex; marked by <-- HERE in
+m/^(\+.*(?:do|\))){ <-- HERE / at scripts/checkpatch.pl line 4374.
+
+It seems perfectly reasonable to do as the warning suggests and simply
+escape the left brace in these three locations.
+
+Link: http://lkml.kernel.org/r/20170607060135.17384-1-cyrilbur@gmail.com
+Signed-off-by: Cyril Bur <cyrilbur@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color
+diff -puN scripts/checkpatch.pl~checkpatch-silence-perl-5260-unescaped-left-brace-warnings scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-silence-perl-5260-unescaped-left-brace-warnings
 +++ a/scripts/checkpatch.pl
-@@ -57,7 +57,7 @@ my $codespell = 0;
- my $codespellfile = "/usr/share/codespell/dictionary.txt";
- my $conststructsfile = "$D/const_structs.checkpatch";
- my $typedefsfile = "";
--my $color = 1;
-+my $color = "auto";
- my $allow_c99_comments = 1;
+@@ -3555,7 +3555,7 @@ sub process {
+ 				$fixedline =~ s/\s*=\s*$/ = {/;
+ 				fix_insert_line($fixlinenr, $fixedline);
+ 				$fixedline = $line;
+-				$fixedline =~ s/^(.\s*){\s*/$1/;
++				$fixedline =~ s/^(.\s*)\{\s*/$1/;
+ 				fix_insert_line($fixlinenr, $fixedline);
+ 			}
+ 		}
+@@ -3896,7 +3896,7 @@ sub process {
+ 				my $fixedline = rtrim($prevrawline) . " {";
+ 				fix_insert_line($fixlinenr, $fixedline);
+ 				$fixedline = $rawline;
+-				$fixedline =~ s/^(.\s*){\s*/$1\t/;
++				$fixedline =~ s/^(.\s*)\{\s*/$1\t/;
+ 				if ($fixedline !~ /^\+\s*$/) {
+ 					fix_insert_line($fixlinenr, $fixedline);
+ 				}
+@@ -4385,7 +4385,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space required before the open brace '{'\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\))){/$1 {/;
++				$fixed[$fixlinenr] =~ s/^(\+.*(?:do|\)))\{/$1 {/;
+ 			}
+ 		}
  
- sub help {
-@@ -116,7 +116,8 @@ Options:
-                              (default:/usr/share/codespell/dictionary.txt)
-   --codespellfile            Use this codespell dictionary
-   --typedefsfile             Read additional types from this file
--  --color                    Use colors when output is STDOUT (default: on)
-+  --color[=WHEN]             Use colors 'always', 'never', or only when output
-+                             is a terminal ('auto'). Default is 'auto'.
-   -h, --help, --version      display this help and exit
- 
- When FILE is - read standard input.
-@@ -182,6 +183,14 @@ if (-f $conf) {
- 	unshift(@ARGV, @conf_args) if @conf_args;
- }
- 
-+# Perl's Getopt::Long allows options to take optional arguments after a space.
-+# Prevent --color by itself from consuming other arguments
-+foreach (@ARGV) {
-+	if ($_ eq "--color" || $_ eq "-color") {
-+		$_ = "--color=$color";
-+	}
-+}
-+
- GetOptions(
- 	'q|quiet+'	=> \$quiet,
- 	'tree!'		=> \$tree,
-@@ -212,7 +221,9 @@ GetOptions(
- 	'codespell!'	=> \$codespell,
- 	'codespellfile=s'	=> \$codespellfile,
- 	'typedefsfile=s'	=> \$typedefsfile,
--	'color!'	=> \$color,
-+	'color=s'	=> \$color,
-+	'no-color'	=> \$color,	#keep old behaviors of -nocolor
-+	'nocolor'	=> \$color,	#keep old behaviors of -nocolor
- 	'h|help'	=> \$help,
- 	'version'	=> \$help
- ) or help(1);
-@@ -238,6 +249,18 @@ if ($#ARGV < 0) {
- 	push(@ARGV, '-');
- }
- 
-+if ($color =~ /^[01]$/) {
-+	$color = !$color;
-+} elsif ($color =~ /^always$/i) {
-+	$color = 1;
-+} elsif ($color =~ /^never$/i) {
-+	$color = 0;
-+} elsif ($color =~ /^auto$/i) {
-+	$color = (-t STDOUT);
-+} else {
-+	die "Invalid color mode: $color\n";
-+}
-+
- sub hash_save_array_words {
- 	my ($hashRef, $arrayRef) = @_;
- 
-@@ -1883,7 +1906,7 @@ sub report {
- 		return 0;
- 	}
- 	my $output = '';
--	if (-t STDOUT && $color) {
-+	if ($color) {
- 		if ($level eq 'ERROR') {
- 			$output .= RED;
- 		} elsif ($level eq 'WARNING') {
-@@ -1894,10 +1917,10 @@ sub report {
- 	}
- 	$output .= $prefix . $level . ':';
- 	if ($show_types) {
--		$output .= BLUE if (-t STDOUT && $color);
-+		$output .= BLUE if ($color);
- 		$output .= "$type:";
- 	}
--	$output .= RESET if (-t STDOUT && $color);
-+	$output .= RESET if ($color);
- 	$output .= ' ' . $msg . "\n";
- 
- 	if ($showfile) {
 _
