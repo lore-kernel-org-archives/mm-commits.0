@@ -1,58 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 048/115] include/linux/backing-dev.h: simplify
- wb_stat_sum
-Date: Mon, 10 Jul 2017 15:49:35 -0700
-Message-ID: <20170710224935.jjbb1Efe6%akpm@linux-foundation.org>
+Subject: [patch 046/115] mm/swap_slots.c: don't disable preemption
+ while taking the per-CPU cache
+Date: Mon, 10 Jul 2017 15:49:29 -0700
+Message-ID: <20170710224929.tu6g8j-V2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42824 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754963AbdGJWth (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:37 -0400
+        with ESMTP id S1755038AbdGJWtb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@fb.com, jack@suse.cz, mm-commits@vger.kernel.org, nborisov@suse.com, peterz@infradead.org, tj@kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bigeasy@linutronix.de, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org, tglx@linutronix.de, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Nikolay Borisov <nborisov@suse.com>
-Subject: include/linux/backing-dev.h: simplify wb_stat_sum
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm/swap_slots.c: don't disable preemption while taking the per-CPU cache
 
-wb_stat_sum() disables interrupts and calls __wb_stat_sum() which
-eventually calls __percpu_counter_sum().  However, the percpu routine is
-already irq-safe.  Simplify the code a bit by making wb_stat_sum()
-directly call percpu_counter_sum_positive() and not disable interrupts. 
-Also remove the now-uneeded __wb_stat_sum() which was just a wrapper over
-percpu_counter_sum_positive().
+get_cpu_var() disables preemption and returns the per-CPU version of the
+variable.  Disabling preemption is useful to ensure atomic access to the
+variable within the critical section.
 
-Link: http://lkml.kernel.org/r/1498230681-29103-1-git-send-email-nborisov@suse.com
-Signed-off-by: Nikolay Borisov <nborisov@suse.com>
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@fb.com>
+In this case however, after the per-CPU version of the variable is
+obtained the ->free_lock is acquired.  For that reason it seems the raw
+accessor could be used.  It only seems that ->slots_ret should be retested
+(because with disabled preemption this variable can not be set to NULL
+otherwise).
+
+This popped up during PREEMPT-RT testing because it tries to take
+spinlocks in a preempt disabled section.  In RT, spinlocks can sleep.
+
+Link: http://lkml.kernel.org/r/20170623114755.2ebxdysacvgxzott@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ying Huang <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ mm/swap_slots.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/backing-dev.h~writeback-simplify-wb_stat_sum include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~writeback-simplify-wb_stat_sum
-+++ a/include/linux/backing-dev.h
-@@ -104,22 +104,9 @@ static inline s64 wb_stat(struct bdi_wri
- 	return percpu_counter_read_positive(&wb->stat[item]);
- }
- 
--static inline s64 __wb_stat_sum(struct bdi_writeback *wb,
--				enum wb_stat_item item)
--{
--	return percpu_counter_sum_positive(&wb->stat[item]);
--}
--
- static inline s64 wb_stat_sum(struct bdi_writeback *wb, enum wb_stat_item item)
+diff -puN mm/swap_slots.c~mm-swap-dont-disable-preemption-while-taking-the-per-cpu-cache mm/swap_slots.c
+--- a/mm/swap_slots.c~mm-swap-dont-disable-preemption-while-taking-the-per-cpu-cache
++++ a/mm/swap_slots.c
+@@ -273,11 +273,11 @@ int free_swap_slot(swp_entry_t entry)
  {
--	s64 sum;
--	unsigned long flags;
--
--	local_irq_save(flags);
--	sum = __wb_stat_sum(wb, item);
--	local_irq_restore(flags);
+ 	struct swap_slots_cache *cache;
+ 
+-	cache = &get_cpu_var(swp_slots);
++	cache = raw_cpu_ptr(&swp_slots);
+ 	if (use_swap_slot_cache && cache->slots_ret) {
+ 		spin_lock_irq(&cache->free_lock);
+ 		/* Swap slots cache may be deactivated before acquiring lock */
+-		if (!use_swap_slot_cache) {
++		if (!use_swap_slot_cache || !cache->slots_ret) {
+ 			spin_unlock_irq(&cache->free_lock);
+ 			goto direct_free;
+ 		}
+@@ -297,7 +297,6 @@ int free_swap_slot(swp_entry_t entry)
+ direct_free:
+ 		swapcache_free_entries(&entry, 1);
+ 	}
+-	put_cpu_var(swp_slots);
+ 
+ 	return 0;
+ }
+_
