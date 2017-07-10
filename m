@@ -1,62 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [patch 036/115] mm/truncate.c: fix THP handling in
- invalidate_mapping_pages()
-Date: Mon, 10 Jul 2017 15:48:59 -0700
-Message-ID: <20170710224859.X5rprWr87%akpm@linux-foundation.org>
+Subject: [patch 014/115] mm: hwpoison: dissolve in-use hugepage in
+ unrecoverable memory error
+Date: Mon, 10 Jul 2017 15:47:50 -0700
+Message-ID: <20170710224750.y2KNzHa5t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755129AbdGJWtG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:06 -0400
+        with ESMTP id S1754956AbdGJWrv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:47:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, lkp@intel.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
 
-From: Jan Kara <jack@suse.cz>
-Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: dissolve in-use hugepage in unrecoverable memory error
 
-The condition checking for THP straddling end of invalidated range is
-wrong - it checks 'index' against 'end' but 'index' has been already
-advanced to point to the end of THP and thus the condition can never be
-true.  As a result THP straddling 'end' has been fully invalidated.  Given
-the nature of invalidate_mapping_pages(), this could be only performance
-issue.  In fact, we are lucky the condition is wrong because if it was
-ever true, we'd leave locked page behind.
+Currently me_huge_page() relies on dequeue_hwpoisoned_huge_page() to keep
+the error hugepage away from the system, which is OK but not good enough
+because the hugepage still has a refcount and unpoison doesn't work on the
+error hugepage (PageHWPoison flags are cleared but pages are still
+leaked.) And there's "wasting health subpages" issue too.  This patch
+reworks on me_huge_page() to solve these issues.
 
-Fix the condition checking for THP straddling 'end' and also properly
-unlock the page. Also update the comment before the condition to explain
-why we decide not to invalidate the page as it was not clear to me and I
-had to ask Kirill.
+For hugetlb file, recently we have truncating code so let's use it
+in hugetlbfs specific ->error_remove_page().
 
-Link: http://lkml.kernel.org/r/20170619124723.21656-1-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+For anonymous hugepage, it's helpful to dissolve the error page after
+freeing it into free hugepage list. Migration entry and PageHWPoison
+in the head page prevent the access to it.
+
+TODO: dissolve_free_huge_page() can fail but we don't considered it
+yet.  It's not critical (and at least no worse that now) because in
+such case the error hugepage just stays in free hugepage list without
+being dissolved.  By virtue of PageHWPoison in head page, it's never
+allocated to processes.
+
+[akpm@linux-foundation.org: fix unused var warnings]
+Fixes: 23a003bfd23ea9ea0b7756b920e51f64b284b468 ("mm/madvise: pass return code of memory_failure() to userspace")
+Link: http://lkml.kernel.org/r/20170417055948.GM31394@yexl-desktop
+Link: http://lkml.kernel.org/r/1496305019-5493-8-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |   11 ++++
+ mm/memory-failure.c  |   93 +++++++++++++++++++++++------------------
+ 2 files changed, 64 insertions(+), 40 deletions(-)
 
-diff -puN mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages mm/truncate.c
---- a/mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages
-+++ a/mm/truncate.c
-@@ -530,9 +530,15 @@ unsigned long invalidate_mapping_pages(s
- 			} else if (PageTransHuge(page)) {
- 				index += HPAGE_PMD_NR - 1;
- 				i += HPAGE_PMD_NR - 1;
--				/* 'end' is in the middle of THP */
--				if (index ==  round_down(end, HPAGE_PMD_NR))
-+				/*
-+				 * 'end' is in the middle of THP. Don't
-+				 * invalidate the page as the part outside of
-+				 * 'end' could be still useful.
-+				 */
-+				if (index > end) {
-+					unlock_page(page);
- 					continue;
-+				}
- 			}
+diff -puN fs/hugetlbfs/inode.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error
++++ a/fs/hugetlbfs/inode.c
+@@ -851,6 +851,16 @@ static int hugetlbfs_migrate_page(struct
+ 	return MIGRATEPAGE_SUCCESS;
+ }
  
- 			ret = invalidate_inode_page(page);
++static int hugetlbfs_error_remove_page(struct address_space *mapping,
++				struct page *page)
++{
++	struct inode *inode = mapping->host;
++
++	remove_huge_page(page);
++	hugetlb_fix_reserve_counts(inode);
++	return 0;
++}
++
+ static int hugetlbfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+ 	struct hugetlbfs_sb_info *sbinfo = HUGETLBFS_SB(dentry->d_sb);
+@@ -966,6 +976,7 @@ static const struct address_space_operat
+ 	.write_end	= hugetlbfs_write_end,
+ 	.set_page_dirty	= hugetlbfs_set_page_dirty,
+ 	.migratepage    = hugetlbfs_migrate_page,
++	.error_remove_page	= hugetlbfs_error_remove_page,
+ };
+ 
+ 
+diff -puN mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error
++++ a/mm/memory-failure.c
+@@ -554,6 +554,39 @@ static int delete_from_lru_cache(struct
+ 	return -EIO;
+ }
+ 
++static int truncate_error_page(struct page *p, unsigned long pfn,
++				struct address_space *mapping)
++{
++	int ret = MF_FAILED;
++
++	if (mapping->a_ops->error_remove_page) {
++		int err = mapping->a_ops->error_remove_page(mapping, p);
++
++		if (err != 0) {
++			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
++				pfn, err);
++		} else if (page_has_private(p) &&
++			   !try_to_release_page(p, GFP_NOIO)) {
++			pr_info("Memory failure: %#lx: failed to release buffers\n",
++				pfn);
++		} else {
++			ret = MF_RECOVERED;
++		}
++	} else {
++		/*
++		 * If the file system doesn't support it just invalidate
++		 * This fails on dirty or anything with private pages
++		 */
++		if (invalidate_inode_page(p))
++			ret = MF_RECOVERED;
++		else
++			pr_info("Memory failure: %#lx: Failed to invalidate\n",
++				pfn);
++	}
++
++	return ret;
++}
++
+ /*
+  * Error hit kernel page.
+  * Do nothing, try to be lucky and not touch this instead. For a few cases we
+@@ -578,8 +611,6 @@ static int me_unknown(struct page *p, un
+  */
+ static int me_pagecache_clean(struct page *p, unsigned long pfn)
+ {
+-	int err;
+-	int ret = MF_FAILED;
+ 	struct address_space *mapping;
+ 
+ 	delete_from_lru_cache(p);
+@@ -611,30 +642,7 @@ static int me_pagecache_clean(struct pag
+ 	 *
+ 	 * Open: to take i_mutex or not for this? Right now we don't.
+ 	 */
+-	if (mapping->a_ops->error_remove_page) {
+-		err = mapping->a_ops->error_remove_page(mapping, p);
+-		if (err != 0) {
+-			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
+-				pfn, err);
+-		} else if (page_has_private(p) &&
+-				!try_to_release_page(p, GFP_NOIO)) {
+-			pr_info("Memory failure: %#lx: failed to release buffers\n",
+-				pfn);
+-		} else {
+-			ret = MF_RECOVERED;
+-		}
+-	} else {
+-		/*
+-		 * If the file system doesn't support it just invalidate
+-		 * This fails on dirty or anything with private pages
+-		 */
+-		if (invalidate_inode_page(p))
+-			ret = MF_RECOVERED;
+-		else
+-			pr_info("Memory failure: %#lx: Failed to invalidate\n",
+-				pfn);
+-	}
+-	return ret;
++	return truncate_error_page(p, pfn, mapping);
+ }
+ 
+ /*
+@@ -740,24 +748,29 @@ static int me_huge_page(struct page *p,
+ {
+ 	int res = 0;
+ 	struct page *hpage = compound_head(p);
++	struct address_space *mapping;
+ 
+ 	if (!PageHuge(hpage))
+ 		return MF_DELAYED;
+ 
+-	/*
+-	 * We can safely recover from error on free or reserved (i.e.
+-	 * not in-use) hugepage by dequeuing it from freelist.
+-	 * To check whether a hugepage is in-use or not, we can't use
+-	 * page->lru because it can be used in other hugepage operations,
+-	 * such as __unmap_hugepage_range() and gather_surplus_pages().
+-	 * So instead we use page_mapping() and PageAnon().
+-	 */
+-	if (!(page_mapping(hpage) || PageAnon(hpage))) {
+-		res = dequeue_hwpoisoned_huge_page(hpage);
+-		if (!res)
+-			return MF_RECOVERED;
++	mapping = page_mapping(hpage);
++	if (mapping) {
++		res = truncate_error_page(hpage, pfn, mapping);
++	} else {
++		unlock_page(hpage);
++		/*
++		 * migration entry prevents later access on error anonymous
++		 * hugepage, so we can free and dissolve it into buddy to
++		 * save healthy subpages.
++		 */
++		if (PageAnon(hpage))
++			put_page(hpage);
++		dissolve_free_huge_page(p);
++		res = MF_RECOVERED;
++		lock_page(hpage);
+ 	}
+-	return MF_DELAYED;
++
++	return res;
+ }
+ 
+ /*
+@@ -856,7 +869,7 @@ static int page_action(struct page_state
+ 	count = page_count(p) - 1;
+ 	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
+ 		count--;
+-	if (count != 0) {
++	if (count > 0) {
+ 		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
+ 		       pfn, action_page_types[ps->type], count);
+ 		result = MF_FAILED;
 _
