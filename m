@@ -1,48 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 106/115] checkpatch: improve multi-line alignment
- test
-Date: Mon, 10 Jul 2017 15:52:30 -0700
-Message-ID: <20170710225230._AZQsrIGt%akpm@linux-foundation.org>
+Subject: [patch 105/115] checkpatch: improve macro reuse test
+Date: Mon, 10 Jul 2017 15:52:27 -0700
+Message-ID: <20170710225227.wgEzyQ--U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43576 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754867AbdGJWwc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:32 -0400
+        with ESMTP id S1754835AbdGJWw2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:52:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, joe@perches.com, johannes@sipsolutions.net, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve multi-line alignment test
+Subject: checkpatch: improve macro reuse test
 
-The current test fails to warn about improper alignment with code like
+checkpatch reports a false positive when using token pasting argument
+multiple times in a macro.
 
-	foo->bar = func(arg1,
-				arg2);
+Fix it.
 
-because foo->bar is not a single identifier.
+Miscellanea:
 
-Convert the $Ident to $Lval which allows for multiple dereferences.
+o Make the $tmp variable name used in the macro argument tests
+  a bit more descriptive
 
-Link: http://lkml.kernel.org/r/01c35b9b6a12a415e57746d45d589bfaad39952a.1498841563.git.joe@perches.com
+Link: http://lkml.kernel.org/r/cf434ae7602838388c7cb49d42bca93ab88527e7.1498483044.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-multi-line-alignment-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-multi-line-alignment-test
+diff -puN scripts/checkpatch.pl~checkpatch-improve-macro-reuse-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-macro-reuse-test
 +++ a/scripts/checkpatch.pl
-@@ -2993,7 +2993,7 @@ sub process {
- 
- # check multi-line statement indentation matches previous line
- 		if ($^V && $^V ge 5.10.0 &&
--		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|$Ident\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
-+		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|(?:\*\s*)*$Lval\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
- 			$prevline =~ /^\+(\t*)(.*)$/;
- 			my $oldindent = $1;
- 			my $rest = $2;
+@@ -4940,17 +4940,17 @@ sub process {
+ 			foreach my $arg (@def_args) {
+ 			        next if ($arg =~ /\.\.\./);
+ 			        next if ($arg =~ /^type$/i);
+-				my $tmp = $define_stmt;
+-				$tmp =~ s/\b(typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
+-				$tmp =~ s/\#+\s*$arg\b//g;
+-				$tmp =~ s/\b$arg\s*\#\#//g;
+-				my $use_cnt = $tmp =~ s/\b$arg\b//g;
++				my $tmp_stmt = $define_stmt;
++				$tmp_stmt =~ s/\b(typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
++				$tmp_stmt =~ s/\#+\s*$arg\b//g;
++				$tmp_stmt =~ s/\b$arg\s*\#\#//g;
++				my $use_cnt = $tmp_stmt =~ s/\b$arg\b//g;
+ 				if ($use_cnt > 1) {
+ 					CHK("MACRO_ARG_REUSE",
+ 					    "Macro argument reuse '$arg' - possible side-effects?\n" . "$herectx");
+ 				    }
+ # check if any macro arguments may have other precedence issues
+-				if ($define_stmt =~ m/($Operators)?\s*\b$arg\b\s*($Operators)?/m &&
++				if ($tmp_stmt =~ m/($Operators)?\s*\b$arg\b\s*($Operators)?/m &&
+ 				    ((defined($1) && $1 ne ',') ||
+ 				     (defined($2) && $2 ne ','))) {
+ 					CHK("MACRO_ARG_PRECEDENCE",
 _
