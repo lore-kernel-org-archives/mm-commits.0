@@ -1,71 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch removed
- from -mm tree
-Date: Mon, 10 Jul 2017 15:29:39 -0700
-Message-ID: <5963ffd3.Mszuu0favlvs3bBj%akpm@linux-foundation.org>
+ mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch removed from -mm tree
+Date: Mon, 10 Jul 2017 15:30:07 -0700
+Message-ID: <5963ffef.IFgv2kAREO5bgAZZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41064 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754233AbdGJW3k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:29:40 -0400
+        with ESMTP id S1754041AbdGJWaI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:30:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
+     Subject: mm: hugetlb: replace some macros with inline functions
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix.patch
+     mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch
+This patch was dropped because it was folded into mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: hugetlb: replace some macros with inline functions
 
-fix build
+All users of dissolve_free_huge_page() that ignore the result cause a
+warning when CONFIG_HUGETLB_PAGE is disabled:
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+mm/memory-failure.c: In function 'me_huge_page':
+include/linux/hugetlb.h:556:36: error: statement with no effect [-Werror=unused-value]
+ #define dissolve_free_huge_page(p) 0
+
+We can avoid this by using an inline function instead of the macro, and I
+decided to do the same change for the related helpers as well.
+
+Fixes: mmotm ("mm: hugetlb: soft-offline: dissolve source hugepage after successful migration")
+Link: http://lkml.kernel.org/r/20170609102544.2947326-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb.h |   31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low-fix
-+++ a/mm/vmscan.c
-@@ -2233,7 +2233,7 @@ static void get_scan_count(struct lruvec
- 			 * anonymous pages on the LRU in eligible zones.
- 			 * Otherwise, the small LRU gets thrashed.
- 			 */
--			if (!inactive_list_is_low(lruvec, false, sc, false) &&
-+			if (!inactive_list_is_low(lruvec, false, memcg, sc, false) &&
- 			    lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, sc->reclaim_idx)
- 					>> sc->priority) {
- 				scan_balance = SCAN_ANON;
+diff -puN include/linux/hugetlb.h~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration-fix
++++ a/include/linux/hugetlb.h
+@@ -551,16 +551,37 @@ static inline unsigned int pages_per_hug
+ {
+ 	return 1;
+ }
+-#define hstate_index_to_shift(index) 0
+-#define hstate_index(h) 0
++
++static inline unsigned hstate_index_to_shift(unsigned index)
++{
++	return 0;
++}
++
++static inline int hstate_index(struct hstate *h)
++{
++	return 0;
++}
+ 
+ static inline pgoff_t basepage_index(struct page *page)
+ {
+ 	return page->index;
+ }
+-#define dissolve_free_huge_page(p)	0
+-#define dissolve_free_huge_pages(s, e)	0
+-#define hugepage_migration_supported(h)	false
++
++static inline int dissolve_free_huge_page(struct page *page)
++{
++	return 0;
++}
++
++static inline int dissolve_free_huge_pages(unsigned long start_pfn,
++					   unsigned long end_pfn)
++{
++	return 0;
++}
++
++static inline bool hugepage_migration_supported(struct hstate *h)
++{
++	return false;
++}
+ 
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+ 					   struct mm_struct *mm, pte_t *pte)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch
-mm-hwpoison-dissolve-in-use-hugepage-in-unrecoverable-memory-error-fix.patch
-mm-hugetlb-warn-the-user-when-issues-arise-on-boot-due-to-hugepages-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix.patch
-mm-improve-readability-of-transparent_hugepage_enabled-fix-fix.patch
-hugetlb-memory_hotplug-prefer-to-use-reserved-pages-for-migration-fix.patch
-mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback-fix.patch
-mm-zsmalloc-simplify-zs_max_alloc_size-handling-fix.patch
-signal-avoid-undefined-behaviour-in-kill_something_info-fix.patch
+mm-hugetlb-soft-offline-dissolve-source-hugepage-after-successful-migration.patch
+bitmap-use-memcmp-optimisation-in-more-situations-fix.patch
 
