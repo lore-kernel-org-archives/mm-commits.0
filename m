@@ -1,59 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [patch 033/115] mm, hugetlb: schedule when potentially
- allocating many hugepages
-Date: Mon, 10 Jul 2017 15:48:50 -0700
-Message-ID: <20170710224850.5i7pipftp%akpm@linux-foundation.org>
+Subject: [patch 037/115] userfaultfd: non-cooperative: add
+ madvise() event for MADV_FREE request
+Date: Mon, 10 Jul 2017 15:49:02 -0700
+Message-ID: <20170710224902.g-N7dhrsL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42696 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754696AbdGJWtC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:02 -0400
+        with ESMTP id S1755124AbdGJWtD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:49:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, torvalds@linux-foundation.org
+To: aarcange@redhat.com, akpm@linux-foundation.org, hillf.zj@alibaba-inc.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, xemul@virtuozzo.com
 
-From: David Rientjes <rientjes@google.com>
-Subject: mm, hugetlb: schedule when potentially allocating many hugepages
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: userfaultfd: non-cooperative: add madvise() event for MADV_FREE request
 
-A few hugetlb allocators loop while calling the page allocator and can
-potentially prevent rescheduling if the page allocator slowpath is not
-utilized.
+MADV_FREE is identical to MADV_DONTNEED from the point of view of uffd
+monitor.  The monitor has to stop handling #PF events in the range being
+freed.  We are reusing userfaultfd_remove callback along with the logic
+required to re-get and re-validate the VMA which may change or disappear
+because userfaultfd_remove releases mmap_sem.
 
-Conditionally schedule when large numbers of hugepages can be allocated.
-
-Anshuman: "Fixes a task which was getting hung while writing like 10000
-hugepages (16MB on POWER8) into /proc/sys/vm/nr_hugepages."
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1706091535300.66176@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Tested-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1497876311-18615-1-git-send-email-rppt@linux.vnet.ibm.com
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/madvise.c |   42 ++++++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-schedule-when-potentially-allocating-many-hugepages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-schedule-when-potentially-allocating-many-hugepages
-+++ a/mm/hugetlb.c
-@@ -1781,6 +1781,7 @@ retry:
- 			break;
- 		}
- 		list_add(&page->lru, &surplus_list);
-+		cond_resched();
- 	}
- 	allocated += i;
+diff -puN mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request mm/madvise.c
+--- a/mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request
++++ a/mm/madvise.c
+@@ -451,9 +451,6 @@ static int madvise_free_single_vma(struc
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_gather tlb;
  
-@@ -2249,6 +2250,7 @@ static void __init hugetlb_hstate_alloc_
- 		} else if (!alloc_fresh_huge_page(h,
- 					 &node_states[N_MEMORY]))
- 			break;
-+		cond_resched();
+-	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
+-		return -EINVAL;
+-
+ 	/* MADV_FREE works for only anon vma at the moment */
+ 	if (!vma_is_anonymous(vma))
+ 		return -EINVAL;
+@@ -477,14 +474,6 @@ static int madvise_free_single_vma(struc
+ 	return 0;
+ }
+ 
+-static long madvise_free(struct vm_area_struct *vma,
+-			     struct vm_area_struct **prev,
+-			     unsigned long start, unsigned long end)
+-{
+-	*prev = vma;
+-	return madvise_free_single_vma(vma, start, end);
+-}
+-
+ /*
+  * Application no longer needs these pages.  If the pages are dirty,
+  * it's OK to just throw them away.  The app will be more careful about
+@@ -504,9 +493,17 @@ static long madvise_free(struct vm_area_
+  * An interface that causes the system to free clean pages and flush
+  * dirty pages is already available as msync(MS_INVALIDATE).
+  */
+-static long madvise_dontneed(struct vm_area_struct *vma,
+-			     struct vm_area_struct **prev,
+-			     unsigned long start, unsigned long end)
++static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
++					unsigned long start, unsigned long end)
++{
++	zap_page_range(vma, start, end - start);
++	return 0;
++}
++
++static long madvise_dontneed_free(struct vm_area_struct *vma,
++				  struct vm_area_struct **prev,
++				  unsigned long start, unsigned long end,
++				  int behavior)
+ {
+ 	*prev = vma;
+ 	if (!can_madv_dontneed_vma(vma))
+@@ -526,7 +523,8 @@ static long madvise_dontneed(struct vm_a
+ 			 * is also < vma->vm_end. If start <
+ 			 * vma->vm_start it means an hole materialized
+ 			 * in the user address space within the
+-			 * virtual range passed to MADV_DONTNEED.
++			 * virtual range passed to MADV_DONTNEED
++			 * or MADV_FREE.
+ 			 */
+ 			return -ENOMEM;
+ 		}
+@@ -537,7 +535,7 @@ static long madvise_dontneed(struct vm_a
+ 			 * Don't fail if end > vma->vm_end. If the old
+ 			 * vma was splitted while the mmap_sem was
+ 			 * released the effect of the concurrent
+-			 * operation may not cause MADV_DONTNEED to
++			 * operation may not cause madvise() to
+ 			 * have an undefined result. There may be an
+ 			 * adjacent next vma that we'll walk
+ 			 * next. userfaultfd_remove() will generate an
+@@ -549,8 +547,13 @@ static long madvise_dontneed(struct vm_a
+ 		}
+ 		VM_WARN_ON(start >= end);
  	}
- 	if (i < h->max_huge_pages) {
- 		char buf[32];
+-	zap_page_range(vma, start, end - start);
+-	return 0;
++
++	if (behavior == MADV_DONTNEED)
++		return madvise_dontneed_single_vma(vma, start, end);
++	else if (behavior == MADV_FREE)
++		return madvise_free_single_vma(vma, start, end);
++	else
++		return -EINVAL;
+ }
+ 
+ /*
+@@ -656,9 +659,8 @@ madvise_vma(struct vm_area_struct *vma,
+ 	case MADV_WILLNEED:
+ 		return madvise_willneed(vma, prev, start, end);
+ 	case MADV_FREE:
+-		return madvise_free(vma, prev, start, end);
+ 	case MADV_DONTNEED:
+-		return madvise_dontneed(vma, prev, start, end);
++		return madvise_dontneed_free(vma, prev, start, end, behavior);
+ 	default:
+ 		return madvise_behavior(vma, prev, start, end, behavior);
+ 	}
 _
