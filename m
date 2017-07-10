@@ -1,49 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 090/115] lib/interval_tree_test.c: allow the module
- to be compiled-in
-Date: Mon, 10 Jul 2017 15:51:43 -0700
-Message-ID: <20170710225143.Chuok7ugo%akpm@linux-foundation.org>
+Subject: [patch 089/115] lib/kstrtox.c: use "unsigned int" more
+Date: Mon, 10 Jul 2017 15:51:41 -0700
+Message-ID: <20170710225141.GGgFaybMe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43408 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754641AbdGJWvp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:51:45 -0400
+        with ESMTP id S1754641AbdGJWvm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: adobriyan@gmail.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: lib/interval_tree_test.c: allow the module to be compiled-in
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: lib/kstrtox.c: use "unsigned int" more
 
-Patch series "lib/interval_tree_test: some debugging improvements".
+gcc does generates stupid code sign extending data back and forth.  Help
+by using "unsigned int".
 
-Here are some patches that update the interval_tree_test module allowing
-users to pass finer grained options to run the actual test.
+	add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-61 (-61)
+	function                                     old     new   delta
+	_parse_integer                               128     123      -5
 
+It _still_ does generate useless MOVSX but I don't know how to delete it:
 
-This patch (of 4):
+0000000000000070 <_parse_integer>:
+			...
+  a0:   89 c2                   mov    edx,eax
+  a2:   83 e8 30                sub    eax,0x30
+  a5:   83 f8 09                cmp    eax,0x9
+  a8:   76 11                   jbe    bb <_parse_integer+0x4b>
+  aa:   83 ca 20                or     edx,0x20
+  ad:   0f be c2      ===>      movsx  eax,dl         <===
+			useless
+  b0:   8d 50 9f                lea    edx,[rax-0x61]
+  b3:   83 fa 05                cmp    edx,0x5
 
-It is a tristate after all, and also serves well for quick debugging.
+Patch also helps on embedded archs which generally only like "int".
+On arm "and 0xff" is generated which is waste because all values used in
+comparisons are positive.
 
-Link: http://lkml.kernel.org/r/20170518174936.20265-2-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Link: http://lkml.kernel.org/r/20170514194720.GB32563@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/kstrtox.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN lib/Kconfig.debug~lib-interval_tree_test-allow-the-module-to-be-compiled-in lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-interval_tree_test-allow-the-module-to-be-compiled-in
-+++ a/lib/Kconfig.debug
-@@ -1594,7 +1594,7 @@ config RBTREE_TEST
+diff -puN lib/kstrtox.c~kstrtox-use-unsigned-int-more lib/kstrtox.c
+--- a/lib/kstrtox.c~kstrtox-use-unsigned-int-more
++++ a/lib/kstrtox.c
+@@ -52,12 +52,14 @@ unsigned int _parse_integer(const char *
+ 	res = 0;
+ 	rv = 0;
+ 	while (1) {
++		unsigned int c = *s;
++		unsigned int lc = c | 0x20; /* don't tolower() this line */
+ 		unsigned int val;
  
- config INTERVAL_TREE_TEST
- 	tristate "Interval tree test"
--	depends on m && DEBUG_KERNEL
-+	depends on DEBUG_KERNEL
- 	select INTERVAL_TREE
- 	help
- 	  A benchmark measuring the performance of the interval tree library
+-		if ('0' <= *s && *s <= '9')
+-			val = *s - '0';
+-		else if ('a' <= _tolower(*s) && _tolower(*s) <= 'f')
+-			val = _tolower(*s) - 'a' + 10;
++		if ('0' <= c && c <= '9')
++			val = c - '0';
++		else if ('a' <= lc && lc <= 'f')
++			val = lc - 'a' + 10;
+ 		else
+ 			break;
+ 
 _
