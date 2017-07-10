@@ -1,175 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 064/115] mm/kasan: get rid of speculative shadow
- checks
-Date: Mon, 10 Jul 2017 15:50:24 -0700
-Message-ID: <20170710225024.iX3kpiZBE%akpm@linux-foundation.org>
+Subject: [patch 066/115] arm64/kasan: don't allocate extra shadow
+ memory
+Date: Mon, 10 Jul 2017 15:50:31 -0700
+Message-ID: <20170710225031.D4EIMFBw2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43056 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43092 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754910AbdGJWu0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:26 -0400
+        with ESMTP id S1754867AbdGJWuc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, catalin.marinas@arm.com, dvyukov@google.com, glider@google.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org, will.deacon@arm.com
 
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/kasan: get rid of speculative shadow checks
+Subject: arm64/kasan: don't allocate extra shadow memory
 
-For some unaligned memory accesses we have to check additional byte of the
-shadow memory.  Currently we load that byte speculatively to have only
-single load + branch on the optimistic fast path.
+We used to read several bytes of the shadow memory in advance.  Therefore
+additional shadow memory mapped to prevent crash if speculative load would
+happen near the end of the mapped shadow memory.
 
-However, this approach have some downsides:
- - It's unaligned access, so this prevents porting KASAN on architectures
-    which doesn't support unaligned accesses.
- - We have to map additional shadow page to prevent crash if
-    speculative load happens near the end of the mapped memory.
-    This would significantly complicate upcoming memory hotplug support.
+Now we don't have such speculative loads, so we no longer need to map
+additional shadow memory.
 
-I wasn't able to notice any performance degradation with this patch.  So
-these speculative loads is just a pain with no gain, let's remove them.
-
-Link: http://lkml.kernel.org/r/20170601162338.23540-1-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/20170601162338.23540-3-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   98 +++++++--------------------------------------
- 1 file changed, 16 insertions(+), 82 deletions(-)
+ arch/arm64/mm/kasan_init.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN mm/kasan/kasan.c~mm-kasan-get-rid-of-speculative-shadow-checks mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-get-rid-of-speculative-shadow-checks
-+++ a/mm/kasan/kasan.c
-@@ -134,94 +134,30 @@ static __always_inline bool memory_is_po
- 	return false;
- }
+diff -puN arch/arm64/mm/kasan_init.c~arm64-kasan-dont-allocate-extra-shadow-memory arch/arm64/mm/kasan_init.c
+--- a/arch/arm64/mm/kasan_init.c~arm64-kasan-dont-allocate-extra-shadow-memory
++++ a/arch/arm64/mm/kasan_init.c
+@@ -191,14 +191,8 @@ void __init kasan_init(void)
+ 		if (start >= end)
+ 			break;
  
--static __always_inline bool memory_is_poisoned_2(unsigned long addr)
-+static __always_inline bool memory_is_poisoned_2_4_8(unsigned long addr,
-+						unsigned long size)
- {
--	u16 *shadow_addr = (u16 *)kasan_mem_to_shadow((void *)addr);
--
--	if (unlikely(*shadow_addr)) {
--		if (memory_is_poisoned_1(addr + 1))
--			return true;
--
 -		/*
--		 * If single shadow byte covers 2-byte access, we don't
--		 * need to do anything more. Otherwise, test the first
--		 * shadow byte.
+-		 * end + 1 here is intentional. We check several shadow bytes in
+-		 * advance to slightly speed up fastpath. In some rare cases
+-		 * we could cross boundary of mapped shadow, so we just map
+-		 * some more here.
 -		 */
--		if (likely(((addr + 1) & KASAN_SHADOW_MASK) != 0))
--			return false;
--
--		return unlikely(*(u8 *)shadow_addr);
--	}
--
--	return false;
--}
-+	u8 *shadow_addr = (u8 *)kasan_mem_to_shadow((void *)addr);
+ 		vmemmap_populate((unsigned long)kasan_mem_to_shadow(start),
+-				(unsigned long)kasan_mem_to_shadow(end) + 1,
++				(unsigned long)kasan_mem_to_shadow(end),
+ 				pfn_to_nid(virt_to_pfn(start)));
+ 	}
  
--static __always_inline bool memory_is_poisoned_4(unsigned long addr)
--{
--	u16 *shadow_addr = (u16 *)kasan_mem_to_shadow((void *)addr);
--
--	if (unlikely(*shadow_addr)) {
--		if (memory_is_poisoned_1(addr + 3))
--			return true;
--
--		/*
--		 * If single shadow byte covers 4-byte access, we don't
--		 * need to do anything more. Otherwise, test the first
--		 * shadow byte.
--		 */
--		if (likely(((addr + 3) & KASAN_SHADOW_MASK) >= 3))
--			return false;
-+	/*
-+	 * Access crosses 8(shadow size)-byte boundary. Such access maps
-+	 * into 2 shadow bytes, so we need to check them both.
-+	 */
-+	if (unlikely(((addr + size - 1) & KASAN_SHADOW_MASK) < size - 1))
-+		return *shadow_addr || memory_is_poisoned_1(addr + size - 1);
- 
--		return unlikely(*(u8 *)shadow_addr);
--	}
--
--	return false;
--}
--
--static __always_inline bool memory_is_poisoned_8(unsigned long addr)
--{
--	u16 *shadow_addr = (u16 *)kasan_mem_to_shadow((void *)addr);
--
--	if (unlikely(*shadow_addr)) {
--		if (memory_is_poisoned_1(addr + 7))
--			return true;
--
--		/*
--		 * If single shadow byte covers 8-byte access, we don't
--		 * need to do anything more. Otherwise, test the first
--		 * shadow byte.
--		 */
--		if (likely(IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
--			return false;
--
--		return unlikely(*(u8 *)shadow_addr);
--	}
--
--	return false;
-+	return memory_is_poisoned_1(addr + size - 1);
- }
- 
- static __always_inline bool memory_is_poisoned_16(unsigned long addr)
- {
--	u32 *shadow_addr = (u32 *)kasan_mem_to_shadow((void *)addr);
--
--	if (unlikely(*shadow_addr)) {
--		u16 shadow_first_bytes = *(u16 *)shadow_addr;
--
--		if (unlikely(shadow_first_bytes))
--			return true;
--
--		/*
--		 * If two shadow bytes covers 16-byte access, we don't
--		 * need to do anything more. Otherwise, test the last
--		 * shadow byte.
--		 */
--		if (likely(IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
--			return false;
-+	u16 *shadow_addr = (u16 *)kasan_mem_to_shadow((void *)addr);
- 
--		return memory_is_poisoned_1(addr + 15);
--	}
-+	/* Unaligned 16-bytes access maps into 3 shadow bytes. */
-+	if (unlikely(!IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
-+		return *shadow_addr || memory_is_poisoned_1(addr + 15);
- 
--	return false;
-+	return *shadow_addr;
- }
- 
- static __always_inline unsigned long bytes_is_zero(const u8 *start,
-@@ -292,11 +228,9 @@ static __always_inline bool memory_is_po
- 		case 1:
- 			return memory_is_poisoned_1(addr);
- 		case 2:
--			return memory_is_poisoned_2(addr);
- 		case 4:
--			return memory_is_poisoned_4(addr);
- 		case 8:
--			return memory_is_poisoned_8(addr);
-+			return memory_is_poisoned_2_4_8(addr, size);
- 		case 16:
- 			return memory_is_poisoned_16(addr);
- 		default:
 _
