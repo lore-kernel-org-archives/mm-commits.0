@@ -1,148 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/115] mm, memory_hotplug: support movable_node
- for hotpluggable nodes
-Date: Mon, 10 Jul 2017 15:48:37 -0700
-Message-ID: <20170710224837.1L07EufhC%akpm@linux-foundation.org>
+Subject: [patch 034/115] mm, memcg: fix potential undefined
+ behavior in mem_cgroup_event_ratelimit()
+Date: Mon, 10 Jul 2017 15:48:53 -0700
+Message-ID: <20170710224853.yqDn8_YJy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42308 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42608 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755103AbdGJWst (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:49 -0400
+        with ESMTP id S1754221AbdGJWs4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, ak@linux.intel.com, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, daniel.kiper@oracle.com, imammedo@redhat.com, js1304@gmail.com, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, torvalds@linux-foundation.org, toshi.kani@hpe.com, vbabka@suse.cz, vkuznets@redhat.com, yasu.isimatu@gmail.com
+To: akpm@linux-foundation.org, alicef@gentoo.org, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@kernel.org>
-Subject: mm, memory_hotplug: support movable_node for hotpluggable nodes
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memcg: fix potential undefined behavior in mem_cgroup_event_ratelimit()
 
-movable_node kernel parameter allows making hotpluggable NUMA nodes to put
-all the hotplugable memory into movable zone which allows more or less
-reliable memory hotremove.  At least this is the case for the NUMA nodes
-present during the boot (see find_zone_movable_pfns_for_nodes).
+Alice has reported the following UBSAN splat:
+kernel: UBSAN: Undefined behaviour in mm/memcontrol.c:661:17
+kernel: signed integer overflow:
+kernel: -2147483644 - 2147483525 cannot be represented in type 'long int'
+kernel: CPU: 1 PID: 11758 Comm: mybibtex2filena Tainted: P           O 4.9.25-gentoo #4
+kernel: Hardware name: XXXXXX, BIOS YYYYYY
+kernel: e9a3bd64 d1f444f2 00000007 e9a3bd94 7fffff85 e9a3bd74 d1fc8ffe e9a3bd74
+kernel: d2b4ef1c e9a3bdf8 d1fc934b d28b15c0 e9a3bd98 0000002d e9a3bdc0 d2b4ef1c
+kernel: 0000002d 00000002 3431322d 33383437 00343436 d1700ca2 00000000 ecb4effc
+kernel: Call Trace:
+kernel: [<d1f444f2>] dump_stack+0x59/0x87
+kernel: [<d1fc8ffe>] ubsan_epilogue+0xe/0x40
+kernel: [<d1fc934b>] handle_overflow+0xbb/0xf0
+kernel: [<d1700ca2>] ? update_curr+0xe2/0x500
+kernel: [<d1fc93b2>] __ubsan_handle_sub_overflow+0x12/0x20
+kernel: [<d196a553>] memcg_check_events.isra.36+0x223/0x360
+kernel: [<d1f44281>] ? cpumask_any_but+0x31/0x60
+kernel: [<d19709c5>] mem_cgroup_commit_charge+0x55/0x140
+kernel: [<d1925b42>] ? ptep_clear_flush+0x72/0xb0
+kernel: [<d19017de>] wp_page_copy+0x34e/0xb80
+kernel: [<d19037a6>] do_wp_page+0x1e6/0x1300
+kernel: [<d16f0350>] ? check_preempt_curr+0x110/0x230
+kernel: [<d1695de6>] ? kmap_atomic_prot+0x126/0x210
+kernel: [<d1909b3b>] handle_mm_fault+0x88b/0x1990
+kernel: [<d16a1905>] ? _do_fork+0x155/0x5b0
+kernel: [<d1689e3e>] __do_page_fault+0x2de/0x8a0
+kernel: [<d16a1e27>] ? SyS_clone+0x27/0x30
+kernel: [<d168a400>] ? __do_page_fault+0x8a0/0x8a0
+kernel: [<d168a41a>] do_page_fault+0x1a/0x20
+kernel: [<d265a35b>] error_code+0x67/0x6c
 
-This is not the case for the memory hotplug, though.
+The reason is that we subtract two signed types.  Let's fix this by truly
+mimicing time_after and cast the result of the subtraction.
 
-	echo online > /sys/devices/system/memory/memoryXYZ/state
-
-will default to a kernel zone (usually ZONE_NORMAL) unless the particular
-memblock is already in the movable zone range which is not the case
-normally when onlining the memory from the udev rule context for a freshly
-hotadded NUMA node.  The only option currently is to have a special udev
-rule to echo online_movable to all memblocks belonging to such a node
-which is rather clumsy.  Not to mention this is inconsistent as well
-because what ended up in the movable zone during the boot will end up in a
-kernel zone after hotremove & hotadd without special care.
-
-It would be nice to reuse memblock_is_hotpluggable but the runtime hotplug
-doesn't have that information available because the boot and hotplug paths
-are not shared and it would be really non trivial to make them use the
-same code path because the runtime hotplug doesn't play with the memblock
-allocator at all.
-
-Teach move_pfn_range that MMOP_ONLINE_KEEP can use the movable zone if
-movable_node is enabled and the range doesn't overlap with the existing
-normal zone.  This should provide a reasonable default onlining strategy.
-
-Strictly speaking the semantic is not identical with the boot time
-initialization because find_zone_movable_pfns_for_nodes covers only the
-hotplugable range as described by the BIOS/FW.  From my experience this is
-usually a full node though (except for Node0 which is special and never
-goes away completely).  If this turns out to be a problem in the real life
-we can tweak the code to store hotplug flag into memblocks but let's keep
-this simple now.
-
-Link: http://lkml.kernel.org/r/20170612111227.GI7476@dhcp22.suse.cz
+Link: http://lkml.kernel.org/r/20170616150057.GQ30580@dhcp22.suse.cz
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Cc: <qiuxishi@huawei.com>
-Cc: Kani Toshimitsu <toshi.kani@hpe.com>
-Cc: <slaoub@gmail.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Reported-by: Alice Ferrazzi <alicef@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |   12 +++++++++---
- mm/memory_hotplug.c              |   19 ++++++++++++++++---
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/memory-hotplug.txt~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes
-+++ a/Documentation/memory-hotplug.txt
-@@ -282,20 +282,26 @@ offlined it is possible to change the in
- % echo online > /sys/devices/system/memory/memoryXXX/state
- 
- This onlining will not change the ZONE type of the target memory block,
--If the memory block is in ZONE_NORMAL, you can change it to ZONE_MOVABLE:
-+If the memory block doesn't belong to any zone an appropriate kernel zone
-+(usually ZONE_NORMAL) will be used unless movable_node kernel command line
-+option is specified when ZONE_MOVABLE will be used.
-+
-+You can explicitly request to associate it with ZONE_MOVABLE by
- 
- % echo online_movable > /sys/devices/system/memory/memoryXXX/state
- (NOTE: current limit: this memory block must be adjacent to ZONE_MOVABLE)
- 
--And if the memory block is in ZONE_MOVABLE, you can change it to ZONE_NORMAL:
-+Or you can explicitly request a kernel zone (usually ZONE_NORMAL) by:
- 
- % echo online_kernel > /sys/devices/system/memory/memoryXXX/state
- (NOTE: current limit: this memory block must be adjacent to ZONE_NORMAL)
- 
-+An explicit zone onlining can fail (e.g. when the range is already within
-+and existing and incompatible zone already).
-+
- After this, memory block XXX's state will be 'online' and the amount of
- available memory will be increased.
- 
--Currently, newly added memory is added as ZONE_NORMAL (for powerpc, ZONE_DMA).
- This may be changed in future.
- 
- 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-support-movable_node-for-hotplugable-nodes
-+++ a/mm/memory_hotplug.c
-@@ -934,6 +934,19 @@ struct zone *default_zone_for_pfn(int ni
- 	return &pgdat->node_zones[ZONE_NORMAL];
- }
- 
-+static inline bool movable_pfn_range(int nid, struct zone *default_zone,
-+		unsigned long start_pfn, unsigned long nr_pages)
-+{
-+	if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
-+				MMOP_ONLINE_KERNEL))
-+		return true;
-+
-+	if (!movable_node_is_enabled())
-+		return false;
-+
-+	return !zone_intersects(default_zone, start_pfn, nr_pages);
-+}
-+
- /*
-  * Associates the given pfn range with the given node and the zone appropriate
-  * for the given online type.
-@@ -949,10 +962,10 @@ static struct zone * __meminit move_pfn_
- 		/*
- 		 * MMOP_ONLINE_KEEP defaults to MMOP_ONLINE_KERNEL but use
- 		 * movable zone if that is not possible (e.g. we are within
--		 * or past the existing movable zone)
-+		 * or past the existing movable zone). movable_node overrides
-+		 * this default and defaults to movable zone
- 		 */
--		if (!allow_online_pfn_range(nid, start_pfn, nr_pages,
--					MMOP_ONLINE_KERNEL))
-+		if (movable_pfn_range(nid, zone, start_pfn, nr_pages))
- 			zone = movable_zone;
- 	} else if (online_type == MMOP_ONLINE_MOVABLE) {
- 		zone = &pgdat->node_zones[ZONE_MOVABLE];
+diff -puN mm/memcontrol.c~mm-memcg-fix-potential-undefined-behavior-in-mem_cgroup_event_ratelimit mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-fix-potential-undefined-behavior-in-mem_cgroup_event_ratelimit
++++ a/mm/memcontrol.c
+@@ -631,7 +631,7 @@ static bool mem_cgroup_event_ratelimit(s
+ 	val = __this_cpu_read(memcg->stat->nr_page_events);
+ 	next = __this_cpu_read(memcg->stat->targets[target]);
+ 	/* from time_after() in jiffies.h */
+-	if ((long)next - (long)val < 0) {
++	if ((long)(next - val) < 0) {
+ 		switch (target) {
+ 		case MEM_CGROUP_TARGET_THRESH:
+ 			next = val + THRESHOLDS_EVENTS_TARGET;
 _
