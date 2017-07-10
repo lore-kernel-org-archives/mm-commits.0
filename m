@@ -1,83 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 074/115] asm-generic/bug.h: declare struct pt_regs;
- before function prototype
-Date: Mon, 10 Jul 2017 15:50:55 -0700
-Message-ID: <20170710225055.kJaxgBEvs%akpm@linux-foundation.org>
+Subject: [patch 075/115] linux/bug.h: correct formatting of block
+ comment
+Date: Mon, 10 Jul 2017 15:50:58 -0700
+Message-ID: <20170710225058.tnVCTL21R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43200 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754888AbdGJWu4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:56 -0400
+        with ESMTP id S1754888AbdGJWu7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2017 18:50:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, akpm@linux-foundation.org, arnd@arndb.de, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: abbotti@mev.co.uk, akpm@linux-foundation.org, jakub.kicinski@netronome.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mina86@mina86.com, mm-commits@vger.kernel.org, peterz@infradead.org, rostedt@goodmis.org, torvalds@linux-foundation.org
 
 From: Ian Abbott <abbotti@mev.co.uk>
-Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
+Subject: linux/bug.h: correct formatting of block comment
 
-This series of patches splits BUILD_BUG related macros out of
-"include/linux/bug.h" into new file "include/linux/build_bug.h" (patch 5),
-and changes the pointer type checking in the `container_of()` macro to
-deal with pointers of array type better (patch 6).  Patches 1 to 4 are
-prerequisites.
+Correct these checkpatch.pl warnings:
 
-Patches 2, 3, 4, and 5 have been inserted since the previous version of
-this patch series.  Patch 6 here corresponds to v3 and v4's patch 2.
+|WARNING: Block comments use * on subsequent lines
+|#34: FILE: include/linux/bug.h:34:
+|+/* Force a compilation error if condition is true, but also produce a
+|+   result (of value 0 and type size_t), so the expression can be used
 
-Patch 1 was a prerequisite in v3 of this series to avoid a lot of warnings
-when <linux/bug.h> was included by <linux/kernel.h>.  That is no longer
-relevant for v5 of the series, but I left it in because it was acked by a
-Arnd Bergmann and Michal Nazarewicz.
+|WARNING: Block comments use a trailing */ on a separate line
+|#36: FILE: include/linux/bug.h:36:
+|+   aren't permitted). */
 
-Patches 2, 3, and 4 are some checkpatch clean-ups on "include/linux/bug.h"
-before splitting out the BUILD_BUG stuff in patch 5.
-
-Patch 5 splits the BUILD_BUG related macros out of "include/linux/bug.h"
-into new file "include/linux/build_bug.h" because including <linux/bug.h>
-in "include/linux/kernel.h" would result in build failures due to circular
-dependencies.
-
-Patch 6 changes the pointer type checking by `container_of()` to avoid
-some incompatible pointer warnings when the dereferenced pointer has array
-type.
-
-1) asm-generic/bug.h: declare struct pt_regs; before function prototype
-2) linux/bug.h: correct formatting of block comment
-3) linux/bug.h: correct "(foo*)" should be "(foo *)"
-4) linux/bug.h: correct "space required before that '-'"
-5) bug: split BUILD_BUG stuff out into <linux/build_bug.h>
-6) kernel.h: handle pointers to arrays better in container_of()
-
-
-This patch (of 6):
-
-The declaration of `__warn()` has `struct pt_regs *regs` as one of its
-parameters.  This can result in compiler warnings if `struct regs` is not
-already declared.  Add an empty declaration of `struct pt_regs` to avoid
-the warnings.
-
-Link: http://lkml.kernel.org/r/20170525120316.24473-2-abbotti@mev.co.uk
+Link: http://lkml.kernel.org/r/20170525120316.24473-3-abbotti@mev.co.uk
 Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/bug.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype
-+++ a/include/asm-generic/bug.h
-@@ -97,6 +97,7 @@ extern void warn_slowpath_null(const cha
+diff -puN include/linux/bug.h~linux-bugh-correct-formatting-of-block-comment include/linux/bug.h
+--- a/include/linux/bug.h~linux-bugh-correct-formatting-of-block-comment
++++ a/include/linux/bug.h
+@@ -30,10 +30,12 @@ struct pt_regs;
+ #define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
+ 	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
  
- /* used internally by panic.c */
- struct warn_args;
-+struct pt_regs;
+-/* Force a compilation error if condition is true, but also produce a
+-   result (of value 0 and type size_t), so the expression can be used
+-   e.g. in a structure initializer (or where-ever else comma expressions
+-   aren't permitted). */
++/*
++ * Force a compilation error if condition is true, but also produce a
++ * result (of value 0 and type size_t), so the expression can be used
++ * e.g. in a structure initializer (or where-ever else comma expressions
++ * aren't permitted).
++ */
+ #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+ #define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
  
- void __warn(const char *file, int line, void *caller, unsigned taint,
- 	    struct pt_regs *regs, struct warn_args *args);
 _
