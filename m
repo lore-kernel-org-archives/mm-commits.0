@@ -1,99 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-improve-tests-for-multiple-line-function-definitions.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:27:00 -0700
-Message-ID: <20170711192700.wm33hLt0z%akpm@linux-foundation.org>
+ =?US-ASCII?Q?checkpatch-fix-stepping-through-statements-with-stat-and-c?=
+ =?US-ASCII?Q?tx=5Fstatement=5Fblock.patch?= removed from -mm tree
+Date: Tue, 11 Jul 2017 12:26:56 -0700
+Message-ID: <20170711192656.QGHwtrEIw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48576 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755645AbdGKT1B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:27:01 -0400
+        with ESMTP id S1755645AbdGKT05 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david.kershner@unisys.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve tests for multiple line function definitions
+     Subject: checkpatch: fix stepping through statements with $stat and ctx_statement_block
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-tests-for-multiple-line-function-definitions.patch
+     checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve tests for multiple line function definitions
+Subject: checkpatch: fix stepping through statements with $stat and ctx_statement_block
 
-Add a block that identifies multiple line function definitions.
+Fix the off-by-one in the suppression of lines in a statement block.
 
-Save the function name into $context_function to improve the embedded
-function name test.
+This means that for multiple line statements like
 
-Look for misplaced open brace on the function definition.
-Emit an OPEN_BRACE error when the function definition is similar to
+	foo(bar,
+	    baz,
+	    qux);
 
-     void foo(int arg1,
-              int arg2) {
+$stat has been inspected first correctly for the entire statement,
+and subsequently incorrectly just for
 
-Miscellanea:
+	    qux);
 
-o Remove the $realfile test in function declaration w/o named arguments test
-o Comment the function declaration w/o named arguments test
+This fix will help make tracking appropriate indentation a little easier.
 
-Link: http://lkml.kernel.org/r/de620ed6ebab75fdfa323741ada2134a0f545892.1496835238.git.joe@perches.com
+Link: http://lkml.kernel.org/r/71b25979c90412133c717084036c9851cd2b7bcb.1496862585.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: David Kershner <david.kershner@unisys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-tests-for-multiple-line-function-definitions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-tests-for-multiple-line-function-definitions
+diff -puN scripts/checkpatch.pl~checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block
 +++ a/scripts/checkpatch.pl
-@@ -5899,7 +5899,8 @@ sub process {
- 			     "externs should be avoided in .c files\n" .  $herecurr);
- 		}
- 
--		if ($realfile =~ /\.[ch]$/ && defined $stat &&
-+# check for function declarations that have arguments without identifier names
-+		if (defined $stat &&
- 		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*$Ident\s*\(\s*([^{]+)\s*\)\s*;/s &&
- 		    $1 ne "void") {
- 			my $args = trim($1);
-@@ -5912,6 +5913,29 @@ sub process {
- 			}
- 		}
- 
-+# check for function definitions
-+		if ($^V && $^V ge 5.10.0 &&
-+		    defined $stat &&
-+		    $stat =~ /^.\s*(?:$Storage\s+)?$Type\s*($Ident)\s*$balanced_parens\s*{/s) {
-+			$context_function = $1;
-+
-+# check for multiline function definition with misplaced open brace
-+			my $ok = 0;
-+			my $cnt = statement_rawlines($stat);
-+			my $herectx = $here . "\n";
-+			for (my $n = 0; $n < $cnt; $n++) {
-+				my $rl = raw_line($linenr, $n);
-+				$herectx .=  $rl . "\n";
-+				$ok = 1 if ($rl =~ /^[ \+]\{/);
-+				$ok = 1 if ($rl =~ /\{/ && $n == 0);
-+				last if $rl =~ /^[ \+].*\{/;
-+			}
-+			if (!$ok) {
-+				ERROR("OPEN_BRACE",
-+				      "open brace '{' following function definitions go on the next line\n" . $herectx);
-+			}
-+		}
-+
- # checks for new __setup's
- 		if ($rawline =~ /\b__setup\("([^"]*)"/) {
- 			my $name = $1;
+@@ -3219,7 +3219,7 @@ sub process {
+ 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next,
+ 		    $realline_next);
+ #print "LINE<$line>\n";
+-		if ($linenr >= $suppress_statement &&
++		if ($linenr > $suppress_statement &&
+ 		    $realcnt && $sline =~ /.\s*\S/) {
+ 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
+ 				ctx_statement_block($linenr, $realcnt, 0);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
