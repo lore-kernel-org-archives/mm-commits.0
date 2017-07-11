@@ -1,88 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- exit-avoid-undefined-behaviour-when-call-wait4.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:27:35 -0700
-Message-ID: <20170711192735.H55CKAPn3%akpm@linux-foundation.org>
+Subject: [merged] mm-document-highmem_is_dirtyable-sysctl.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:27:38 -0700
+Message-ID: <20170711192738._tcZ6UPQs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48810 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932836AbdGKT1g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:27:36 -0400
+        with ESMTP id S932836AbdGKT1j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, oleg@redhat.com, qiuxishi@huawei.com, rientjes@google.com, zhongjiang@huawei.com
+To: alkisg@gmail.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/exit.c: avoid undefined behaviour when calling wait4()
+     Subject: mm: document highmem_is_dirtyable sysctl
 has been removed from the -mm tree.  Its filename was
-     exit-avoid-undefined-behaviour-when-call-wait4.patch
+     mm-document-highmem_is_dirtyable-sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zhongjiang <zhongjiang@huawei.com>
-Subject: kernel/exit.c: avoid undefined behaviour when calling wait4()
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: document highmem_is_dirtyable sysctl
 
-wait4(-2147483648, 0x20, 0, 0xdd0000) triggers:
-UBSAN: Undefined behaviour in kernel/exit.c:1651:9
+It seems that there are still people using 32b kernels which a lot of
+memory and the IO tend to suck a lot for them by default.  Mostly because
+writers are throttled too when the lowmem is used.  We have
+highmem_is_dirtyable to work around that issue but it seems we never
+bothered to document it.  Let's do it now, finally.
 
-The related calltrace is as follows:
-
-[518871.435738] negation of -2147483648 cannot be represented in type 'int':
-[518871.442618] CPU: 9 PID: 16482 Comm: zj Tainted: G    B          ---- -------   3.10.0-327.53.58.71.x86_64+ #66
-[518871.452874] Hardware name: Huawei Technologies Co., Ltd. Tecal RH2285          /BC11BTSA              , BIOS CTSAV036 04/27/2011
-[518871.464690]  ffffffff82599190 000000008b740a25 ffff880112447d90 ffffffff81d6eb16
-[518871.472395]  ffff880112447da8 ffffffff81d6ebc9 ffffffff82599180 ffff880112447e98
-[518871.480101]  ffffffff81d6fc99 0000000041b58ab3 ffffffff8228d698 ffffffff81d6fb90
-[518871.487801] Call Trace:
-[518871.490435]  [<ffffffff81d6eb16>] dump_stack+0x19/0x1b
-[518871.495751]  [<ffffffff81d6ebc9>] ubsan_epilogue+0xd/0x50
-[518871.501328]  [<ffffffff81d6fc99>] __ubsan_handle_negate_overflow+0x109/0x14e
-[518871.508548]  [<ffffffff81d6fb90>] ? __ubsan_handle_divrem_overflow+0x1df/0x1df
-[518871.516041]  [<ffffffff8116e0d4>] ? lg_local_lock+0x24/0xb0
-[518871.521785]  [<ffffffff8116e640>] ? lg_local_unlock+0x20/0xd0
-[518871.527708]  [<ffffffff81366fa0>] ? __pmd_alloc+0x180/0x180
-[518871.533458]  [<ffffffff8143f81b>] ? mntput+0x3b/0x70
-[518871.538598]  [<ffffffff8110d7bb>] SyS_wait4+0x1cb/0x1e0
-[518871.543999]  [<ffffffff8110d5f0>] ? SyS_waitid+0x220/0x220
-[518871.549661]  [<ffffffff8123bb57>] ? __audit_syscall_entry+0x1f7/0x2a0
-[518871.556278]  [<ffffffff81d91109>] system_call_fastpath+0x16/0x1b
-
-Exclude the overflow to avoid the UBSAN warning.
-
-Link: http://lkml.kernel.org/r/1497264618-20212-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhongjiang <zhongjiang@huawei.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Link: http://lkml.kernel.org/r/20170626093200.18958-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alkis Georgopoulos <alkisg@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/sysctl/vm.txt |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN kernel/exit.c~exit-avoid-undefined-behaviour-when-call-wait4 kernel/exit.c
---- a/kernel/exit.c~exit-avoid-undefined-behaviour-when-call-wait4
-+++ a/kernel/exit.c
-@@ -1639,6 +1639,10 @@ long kernel_wait4(pid_t upid, int __user
- 			__WNOTHREAD|__WCLONE|__WALL))
- 		return -EINVAL;
+diff -puN Documentation/sysctl/vm.txt~mm-document-highmem_is_dirtyable-sysctl Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-document-highmem_is_dirtyable-sysctl
++++ a/Documentation/sysctl/vm.txt
+@@ -240,6 +240,26 @@ fragmentation index is <= extfrag_thresh
  
-+	/* -INT_MIN is not defined */
-+	if (upid == INT_MIN)
-+		return -ESRCH;
+ ==============================================================
+ 
++highmem_is_dirtyable
 +
- 	if (upid == -1)
- 		type = PIDTYPE_MAX;
- 	else if (upid < 0) {
++Available only for systems with CONFIG_HIGHMEM enabled (32b systems).
++
++This parameter controls whether the high memory is considered for dirty
++writers throttling.  This is not the case by default which means that
++only the amount of memory directly visible/usable by the kernel can
++be dirtied. As a result, on systems with a large amount of memory and
++lowmem basically depleted writers might be throttled too early and
++streaming writes can get very slow.
++
++Changing the value to non zero would allow more memory to be dirtied
++and thus allow writers to write more data which can be flushed to the
++storage more effectively. Note this also comes with a risk of pre-mature
++OOM killer because some writers (e.g. direct block device writes) can
++only use the low memory and they can fill it up with dirty data without
++any throttling.
++
++==============================================================
++
+ hugepages_treat_as_movable
+ 
+ This parameter controls whether we can allocate hugepages from ZONE_MOVABLE
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-page_owner-align-with-pageblock_nr-pages.patch
-mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+netfilter-use-kvmalloc-xt_alloc_table_info.patch
+mips-do-not-use-__gfp_repeat-for-order-0-request.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
+mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
+xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
+mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
+drm-i915-use-__gfp_retry_mayfail.patch
+mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
 
