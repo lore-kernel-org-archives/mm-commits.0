@@ -1,95 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-improve-macro-reuse-test.patch removed
- from -mm tree
-Date: Tue, 11 Jul 2017 12:27:07 -0700
-Message-ID: <20170711192707.djangJ5Ri%akpm@linux-foundation.org>
+Subject: [merged] binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:27:14 -0700
+Message-ID: <20170711192714.MVD0MMW6V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48632 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932895AbdGKT1I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:27:08 -0400
+        with ESMTP id S932836AbdGKT1Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:27:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, johannes@sipsolutions.net, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, catalin.marinas@arm.com, danielmicay@gmail.com, dsafonov@virtuozzo.com, grzegorz.andrejczuk@intel.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.hogan@imgtec.com, keescook@chromium.org, linux@armlinux.org.uk, luto@amacapital.net, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, panand@redhat.com, paulus@samba.org, qsa@qualys.com, riel@redhat.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, tglx@linutronix.de, viro@zeniv.linux.org.uk, will.deacon@arm.com, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: checkpatch: improve macro reuse test
+     Subject: binfmt_elf: use ELF_ET_DYN_BASE only for PIE
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-macro-reuse-test.patch
+     binfmt_elf-use-elf_et_dyn_base-only-for-pie.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve macro reuse test
+From: Kees Cook <keescook@chromium.org>
+Subject: binfmt_elf: use ELF_ET_DYN_BASE only for PIE
 
-checkpatch reports a false positive when using token pasting argument
-multiple times in a macro.
+The ELF_ET_DYN_BASE position was originally intended to keep loaders away
+from ET_EXEC binaries.  (For example, running "/lib/ld-linux.so.2
+/bin/cat" might cause the subsequent load of /bin/cat into where the
+loader had been loaded.) With the advent of PIE (ET_DYN binaries with an
+INTERP Program Header), ELF_ET_DYN_BASE continued to be used since the
+kernel was only looking at ET_DYN.  However, since ELF_ET_DYN_BASE is
+traditionally set at the top 1/3rd of the TASK_SIZE, a substantial portion
+of the address space is unused.
 
-Fix it.
+For 32-bit tasks when RLIMIT_STACK is set to RLIM_INFINITY, programs
+are loaded above the mmap region.  This means they can be made to
+collide (CVE-2017-1000370) or nearly collide (CVE-2017-1000371) with
+pathological stack regions.  Lowering ELF_ET_DYN_BASE solves both by
+moving programs below the mmap region in all cases, and will now
+additionally avoid programs falling back to the mmap region by
+enforcing MAP_FIXED for program loads (i.e.  if it would have collided
+with the stack, now it will fail to load instead of falling back to the
+mmap region).
 
-Miscellanea:
+To allow for a lower ELF_ET_DYN_BASE, loaders (ET_DYN without INTERP) are
+loaded into the mmap region, leaving space available for either an ET_EXEC
+binary with a fixed location or PIE being loaded into mmap by the loader. 
+Only PIE programs are loaded offset from ELF_ET_DYN_BASE, which means
+architectures can now safely lower their values without risk of loaders
+colliding with their subsequently loaded programs.
 
-o Make the $tmp variable name used in the macro argument tests
-  a bit more descriptive
+For 64-bit, ELF_ET_DYN_BASE is best set to 4GB to allow runtimes to use
+the entire 32-bit address space for 32-bit pointers.
 
-Link: http://lkml.kernel.org/r/cf434ae7602838388c7cb49d42bca93ab88527e7.1498483044.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Johannes Berg <johannes@sipsolutions.net>
+Thanks to PaX Team, Daniel Micay, and Rik van Riel for inspiration and
+suggestions on how to implement this solution.
+
+Fixes: d1fd836dcf00 ("mm: split ET_DYN ASLR from mmap ASLR")
+Link: http://lkml.kernel.org/r/20170621173201.GA114489@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Qualys Security Advisory <qsa@qualys.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Pratyush Anand <panand@redhat.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/elf.h |   13 ++++---
+ fs/binfmt_elf.c            |   59 ++++++++++++++++++++++++++++++-----
+ 2 files changed, 58 insertions(+), 14 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-macro-reuse-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-macro-reuse-test
-+++ a/scripts/checkpatch.pl
-@@ -4940,17 +4940,17 @@ sub process {
- 			foreach my $arg (@def_args) {
- 			        next if ($arg =~ /\.\.\./);
- 			        next if ($arg =~ /^type$/i);
--				my $tmp = $define_stmt;
--				$tmp =~ s/\b(typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
--				$tmp =~ s/\#+\s*$arg\b//g;
--				$tmp =~ s/\b$arg\s*\#\#//g;
--				my $use_cnt = $tmp =~ s/\b$arg\b//g;
-+				my $tmp_stmt = $define_stmt;
-+				$tmp_stmt =~ s/\b(typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
-+				$tmp_stmt =~ s/\#+\s*$arg\b//g;
-+				$tmp_stmt =~ s/\b$arg\s*\#\#//g;
-+				my $use_cnt = $tmp_stmt =~ s/\b$arg\b//g;
- 				if ($use_cnt > 1) {
- 					CHK("MACRO_ARG_REUSE",
- 					    "Macro argument reuse '$arg' - possible side-effects?\n" . "$herectx");
- 				    }
- # check if any macro arguments may have other precedence issues
--				if ($define_stmt =~ m/($Operators)?\s*\b$arg\b\s*($Operators)?/m &&
-+				if ($tmp_stmt =~ m/($Operators)?\s*\b$arg\b\s*($Operators)?/m &&
- 				    ((defined($1) && $1 ne ',') ||
- 				     (defined($2) && $2 ne ','))) {
- 					CHK("MACRO_ARG_PRECEDENCE",
+diff -puN arch/x86/include/asm/elf.h~binfmt_elf-use-elf_et_dyn_base-only-for-pie arch/x86/include/asm/elf.h
+--- a/arch/x86/include/asm/elf.h~binfmt_elf-use-elf_et_dyn_base-only-for-pie
++++ a/arch/x86/include/asm/elf.h
+@@ -245,12 +245,13 @@ extern int force_personality32;
+ #define CORE_DUMP_USE_REGSET
+ #define ELF_EXEC_PAGESIZE	4096
+ 
+-/* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
+-   use of this is to invoke "./ld.so someprog" to test out a new version of
+-   the loader.  We need to make sure that it is out of the way of the program
+-   that it will "exec", and that there is sufficient room for the brk.  */
+-
+-#define ELF_ET_DYN_BASE		(TASK_SIZE / 3 * 2)
++/*
++ * This is the base location for PIE (ET_DYN with INTERP) loads. On
++ * 64-bit, this is raised to 4GB to leave the entire 32-bit address
++ * space open for things that want to use the area for 32-bit pointers.
++ */
++#define ELF_ET_DYN_BASE		(mmap_is_ia32() ? 0x000400000UL : \
++						  0x100000000UL)
+ 
+ /* This yields a mask that user programs can use to figure out what
+    instruction set this CPU supports.  This could be done in user space,
+diff -puN fs/binfmt_elf.c~binfmt_elf-use-elf_et_dyn_base-only-for-pie fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-use-elf_et_dyn_base-only-for-pie
++++ a/fs/binfmt_elf.c
+@@ -927,17 +927,60 @@ static int load_elf_binary(struct linux_
+ 		elf_flags = MAP_PRIVATE | MAP_DENYWRITE | MAP_EXECUTABLE;
+ 
+ 		vaddr = elf_ppnt->p_vaddr;
++		/*
++		 * If we are loading ET_EXEC or we have already performed
++		 * the ET_DYN load_addr calculations, proceed normally.
++		 */
+ 		if (loc->elf_ex.e_type == ET_EXEC || load_addr_set) {
+ 			elf_flags |= MAP_FIXED;
+ 		} else if (loc->elf_ex.e_type == ET_DYN) {
+-			/* Try and get dynamic programs out of the way of the
+-			 * default mmap base, as well as whatever program they
+-			 * might try to exec.  This is because the brk will
+-			 * follow the loader, and is not movable.  */
+-			load_bias = ELF_ET_DYN_BASE - vaddr;
+-			if (current->flags & PF_RANDOMIZE)
+-				load_bias += arch_mmap_rnd();
+-			load_bias = ELF_PAGESTART(load_bias);
++			/*
++			 * This logic is run once for the first LOAD Program
++			 * Header for ET_DYN binaries to calculate the
++			 * randomization (load_bias) for all the LOAD
++			 * Program Headers, and to calculate the entire
++			 * size of the ELF mapping (total_size). (Note that
++			 * load_addr_set is set to true later once the
++			 * initial mapping is performed.)
++			 *
++			 * There are effectively two types of ET_DYN
++			 * binaries: programs (i.e. PIE: ET_DYN with INTERP)
++			 * and loaders (ET_DYN without INTERP, since they
++			 * _are_ the ELF interpreter). The loaders must
++			 * be loaded away from programs since the program
++			 * may otherwise collide with the loader (especially
++			 * for ET_EXEC which does not have a randomized
++			 * position). For example to handle invocations of
++			 * "./ld.so someprog" to test out a new version of
++			 * the loader, the subsequent program that the
++			 * loader loads must avoid the loader itself, so
++			 * they cannot share the same load range. Sufficient
++			 * room for the brk must be allocated with the
++			 * loader as well, since brk must be available with
++			 * the loader.
++			 *
++			 * Therefore, programs are loaded offset from
++			 * ELF_ET_DYN_BASE and loaders are loaded into the
++			 * independently randomized mmap region (0 load_bias
++			 * without MAP_FIXED).
++			 */
++			if (elf_interpreter) {
++				load_bias = ELF_ET_DYN_BASE;
++				if (current->flags & PF_RANDOMIZE)
++					load_bias += arch_mmap_rnd();
++				elf_flags |= MAP_FIXED;
++			} else
++				load_bias = 0;
++
++			/*
++			 * Since load_bias is used for all subsequent loading
++			 * calculations, we must lower it by the first vaddr
++			 * so that the remaining calculations based on the
++			 * ELF vaddrs will be correctly offset. The result
++			 * is then page aligned.
++			 */
++			load_bias = ELF_PAGESTART(load_bias - vaddr);
++
+ 			total_size = total_mapping_size(elf_phdata,
+ 							loc->elf_ex.e_phnum);
+ 			if (!total_size) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-checkpatch-improve-the-storage_class-test.patch
-arm-kvm-move-asmlinkage-before-type.patch
-arm-hp-jornada-7xx-move-inline-before-return-type.patch
-cris-gpio-move-inline-before-return-type.patch
-frv-tlbflush-move-asmlinkage-before-return-type.patch
-ia64-move-inline-before-return-type.patch
-ia64-sn-pci-move-inline-before-type.patch
-m68k-coldfire-move-inline-before-return-type.patch
-mips-smp-move-asmlinkage-before-return-type.patch
-sh-move-inline-before-return-type.patch
-x86-efi-move-asmlinkage-before-return-type.patch
-drivers-s390-move-static-and-inline-before-return-type.patch
-drivers-tty-serial-move-inline-before-return-type.patch
-usb-serial-safe_serial-move-__inline__-before-return-type.patch
-video-fbdev-intelfb-move-inline-before-return-type.patch
-video-fbdev-omap-move-inline-before-return-type.patch
-arm-samsung-usb-ohci-move-inline-before-return-type.patch
+random-do-not-ignore-early-device-randomness.patch
+ipc-drop-non-rcu-allocation.patch
+ipc-sem-do-not-use-ipc_rcu_free.patch
+ipc-shm-do-not-use-ipc_rcu_free.patch
+ipc-msg-do-not-use-ipc_rcu_free.patch
+ipc-util-drop-ipc_rcu_free.patch
+ipc-sem-avoid-ipc_rcu_alloc.patch
+ipc-shm-avoid-ipc_rcu_alloc.patch
+ipc-msg-avoid-ipc_rcu_alloc.patch
+ipc-util-drop-ipc_rcu_alloc.patch
+ipc-move-atomic_set-to-where-it-is-needed.patch
+ipc-shm-remove-special-shm_alloc-free.patch
+ipc-msg-remove-special-msg_alloc-free.patch
+ipc-sem-drop-__sem_free.patch
+efi-avoid-fortify-checks-in-efi-stub.patch
+kexec_file-adjust-declaration-of-kexec_purgatory.patch
+ib-rxe-do-not-copy-extra-stack-memory-to-skb.patch
+include-linux-stringh-add-the-option-of-fortified-stringh-functions-fix-2.patch
+sh-mark-end-of-bug-implementation-as-unreachable.patch
 
