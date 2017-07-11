@@ -1,96 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages.patch
+ mm-memory_hotplug-simplify-empty-node-mask-handling-in-new_node_page.patch
  removed from -mm tree
-Date: Tue, 11 Jul 2017 12:23:46 -0700
-Message-ID: <20170711192346.iW32U6Z-m%akpm@linux-foundation.org>
+Date: Tue, 11 Jul 2017 12:23:54 -0700
+Message-ID: <20170711192354.pcobW-721%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47754 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933716AbdGKTXr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:47 -0400
+        with ESMTP id S933716AbdGKTXz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mgorman@suse.de, mm-commits@vger.kernel.org, steve.capper@arm.com, vbabka@suse.cz, will.deacon@arm.com
+To: js1304@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, vbabka@suse.cz, zhongjiang@huawei.com
 
 
 The patch titled
-     Subject: mm/migrate.c: stabilise page count when migrating transparent hugepages
+     Subject: mm, memory_hotplug: simplify empty node mask handling in new_node_page
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages.patch
+     mm-memory_hotplug-simplify-empty-node-mask-handling-in-new_node_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: mm/migrate.c: stabilise page count when migrating transparent hugepages
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: simplify empty node mask handling in new_node_page
 
-When migrating a transparent hugepage, migrate_misplaced_transhuge_page
-guards itself against a concurrent fastgup of the page by checking that
-the page count is equal to 2 before and after installing the new pmd.
+new_node_page tries to allocate the target page on a different NUMA node
+than the source page.  This makes sense in most cases during the hotplug
+because we are likely to offline the whole numa node.  But there are cases
+where there are no other nodes to fallback (e.g.  when offlining parts of
+the only existing node) and we have to fallback to allocating from the
+source node.  The current code does that but it can be simplified by
+checking the nmask and updating it before we even try to allocate rather
+than special casing it.
 
-If the page count changes, then the pmd is reverted back to the original
-entry, however there is a small window where the new (possibly writable)
-pmd is installed and the underlying page could be written by userspace. 
-Restoring the old pmd could therefore result in loss of data.
+This patch shouldn't introduce any functional change.
 
-This patch fixes the problem by freezing the page count whilst updating
-the page tables, which protects against a concurrent fastgup without the
-need to restore the old pmd in the failure case (since the page count can
-no longer change under our feet).
-
-Link: http://lkml.kernel.org/r/1497349722-6731-4-git-send-email-will.deacon@arm.com
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20170608074553.22152-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: zhong jiang <zhongjiang@huawei.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ mm/memory_hotplug.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages mm/migrate.c
---- a/mm/migrate.c~mm-migrate-stabilise-page-count-when-migrating-transparent-hugepages
-+++ a/mm/migrate.c
-@@ -1916,7 +1916,6 @@ int migrate_misplaced_transhuge_page(str
- 	int page_lru = page_is_file_cache(page);
- 	unsigned long mmun_start = address & HPAGE_PMD_MASK;
- 	unsigned long mmun_end = mmun_start + HPAGE_PMD_SIZE;
--	pmd_t orig_entry;
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-simplify-empty-node-mask-handling-in-new_node_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-simplify-empty-node-mask-handling-in-new_node_page
++++ a/mm/memory_hotplug.c
+@@ -1436,7 +1436,15 @@ static struct page *new_node_page(struct
+ 	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
+ 	int nid = page_to_nid(page);
+ 	nodemask_t nmask = node_states[N_MEMORY];
+-	struct page *new_page = NULL;
++
++	/*
++	 * try to allocate from a different node but reuse this node if there
++	 * are no other online nodes to be used (e.g. we are offlining a part
++	 * of the only existing node)
++	 */
++	node_clear(nid, nmask);
++	if (nodes_empty(nmask))
++		node_set(nid, nmask);
  
  	/*
- 	 * Rate-limit the amount of data that is being migrated to a node.
-@@ -1959,8 +1958,7 @@ int migrate_misplaced_transhuge_page(str
- 	/* Recheck the target PMD */
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_same(*pmd, entry) || page_count(page) != 2)) {
--fail_putback:
-+	if (unlikely(!pmd_same(*pmd, entry) || !page_ref_freeze(page, 2))) {
- 		spin_unlock(ptl);
- 		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	 * TODO: allocate a destination hugepage from a nearest neighbor node,
+@@ -1447,18 +1455,11 @@ static struct page *new_node_page(struct
+ 		return alloc_huge_page_node(page_hstate(compound_head(page)),
+ 					next_node_in(nid, nmask));
  
-@@ -1982,7 +1980,6 @@ fail_putback:
- 		goto out_unlock;
- 	}
+-	node_clear(nid, nmask);
+-
+ 	if (PageHighMem(page)
+ 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
  
--	orig_entry = *pmd;
- 	entry = mk_huge_pmd(new_page, vma->vm_page_prot);
- 	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 
-@@ -1999,15 +1996,7 @@ fail_putback:
- 	set_pmd_at(mm, mmun_start, pmd, entry);
- 	update_mmu_cache_pmd(vma, address, &entry);
- 
--	if (page_count(page) != 2) {
--		set_pmd_at(mm, mmun_start, pmd, orig_entry);
--		flush_pmd_tlb_range(vma, mmun_start, mmun_end);
--		mmu_notifier_invalidate_range(mm, mmun_start, mmun_end);
--		update_mmu_cache_pmd(vma, address, &entry);
--		page_remove_rmap(new_page, true);
--		goto fail_putback;
--	}
+-	if (!nodes_empty(nmask))
+-		new_page = __alloc_pages_nodemask(gfp_mask, 0, nid, &nmask);
+-	if (!new_page)
+-		new_page = __alloc_pages(gfp_mask, 0, nid);
