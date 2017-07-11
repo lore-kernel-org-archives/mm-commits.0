@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit.patch removed
+ turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch removed
  from -mm tree
-Date: Tue, 11 Jul 2017 12:26:22 -0700
-Message-ID: <20170711192622.Tnmo-jwt2%akpm@linux-foundation.org>
+Date: Tue, 11 Jul 2017 12:26:24 -0700
+Message-ID: <20170711192624.gcQlnul7a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48434 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48444 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932270AbdGKT0X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:23 -0400
+        with ESMTP id S932270AbdGKT0Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, willy@infradead.org
 
 
 The patch titled
-     Subject: bitmap: optimise bitmap_set and bitmap_clear of a single bit
+     Subject: include/linux/bitmap.h: turn bitmap_set and bitmap_clear into memset when possible
 has been removed from the -mm tree.  Its filename was
-     bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit.patch
+     turn-bitmap_set-and-bitmap_clear-into-memset-when-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: bitmap: optimise bitmap_set and bitmap_clear of a single bit
+Subject: include/linux/bitmap.h: turn bitmap_set and bitmap_clear into memset when possible
 
-We have eight users calling bitmap_clear for a single bit and seventeen
-calling bitmap_set for a single bit.  Rather than fix all of them to call
-__clear_bit or __set_bit, turn bitmap_clear and bitmap_set into inline
-functions and make this special case efficient.
+Several callers have constant 'start' and an 'nbits' that is a multiple of
+8, so we can turn them into calls to memset.  We don't need the entirety
+of 'start' and 'nbits' to be constant, we just need to know whether
+they're divisible by 8.
 
-Link: http://lkml.kernel.org/r/20170628153221.11322-3-willy@infradead.org
+Link: http://lkml.kernel.org/r/20170628153221.11322-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
 Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -39,90 +39,34 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |   23 ++++++++++++++++++++---
- lib/bitmap.c           |    8 ++++----
- lib/test_bitmap.c      |    3 ---
- 3 files changed, 24 insertions(+), 10 deletions(-)
+ include/linux/bitmap.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/bitmap.h~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
+diff -puN include/linux/bitmap.h~turn-bitmap_set-and-bitmap_clear-into-memset-when-possible include/linux/bitmap.h
+--- a/include/linux/bitmap.h~turn-bitmap_set-and-bitmap_clear-into-memset-when-possible
 +++ a/include/linux/bitmap.h
-@@ -112,9 +112,8 @@ extern int __bitmap_intersects(const uns
- extern int __bitmap_subset(const unsigned long *bitmap1,
- 			const unsigned long *bitmap2, unsigned int nbits);
- extern int __bitmap_weight(const unsigned long *bitmap, unsigned int nbits);
--
--extern void bitmap_set(unsigned long *map, unsigned int start, int len);
--extern void bitmap_clear(unsigned long *map, unsigned int start, int len);
-+extern void __bitmap_set(unsigned long *map, unsigned int start, int len);
-+extern void __bitmap_clear(unsigned long *map, unsigned int start, int len);
- 
- extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
- 						    unsigned long size,
-@@ -315,6 +314,24 @@ static __always_inline int bitmap_weight
- 	return __bitmap_weight(src, nbits);
- }
- 
-+static __always_inline void bitmap_set(unsigned long *map, unsigned int start,
-+		unsigned int nbits)
-+{
-+	if (__builtin_constant_p(nbits) && nbits == 1)
-+		__set_bit(start, map);
-+	else
-+		__bitmap_set(map, start, nbits);
-+}
-+
-+static __always_inline void bitmap_clear(unsigned long *map, unsigned int start,
-+		unsigned int nbits)
-+{
-+	if (__builtin_constant_p(nbits) && nbits == 1)
-+		__clear_bit(start, map);
-+	else
-+		__bitmap_clear(map, start, nbits);
-+}
-+
- static inline void bitmap_shift_right(unsigned long *dst, const unsigned long *src,
- 				unsigned int shift, int nbits)
+@@ -319,6 +319,9 @@ static __always_inline void bitmap_set(u
  {
-diff -puN lib/bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit lib/bitmap.c
---- a/lib/bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
-+++ a/lib/bitmap.c
-@@ -251,7 +251,7 @@ int __bitmap_weight(const unsigned long
+ 	if (__builtin_constant_p(nbits) && nbits == 1)
+ 		__set_bit(start, map);
++	else if (__builtin_constant_p(start & 7) && IS_ALIGNED(start, 8) &&
++		 __builtin_constant_p(nbits & 7) && IS_ALIGNED(nbits, 8))
++		memset((char *)map + start / 8, 0xff, nbits / 8);
+ 	else
+ 		__bitmap_set(map, start, nbits);
  }
- EXPORT_SYMBOL(__bitmap_weight);
- 
--void bitmap_set(unsigned long *map, unsigned int start, int len)
-+void __bitmap_set(unsigned long *map, unsigned int start, int len)
+@@ -328,6 +331,9 @@ static __always_inline void bitmap_clear
  {
- 	unsigned long *p = map + BIT_WORD(start);
- 	const unsigned int size = start + len;
-@@ -270,9 +270,9 @@ void bitmap_set(unsigned long *map, unsi
- 		*p |= mask_to_set;
- 	}
+ 	if (__builtin_constant_p(nbits) && nbits == 1)
+ 		__clear_bit(start, map);
++	else if (__builtin_constant_p(start & 7) && IS_ALIGNED(start, 8) &&
++		 __builtin_constant_p(nbits & 7) && IS_ALIGNED(nbits, 8))
++		memset((char *)map + start / 8, 0, nbits / 8);
+ 	else
+ 		__bitmap_clear(map, start, nbits);
  }
--EXPORT_SYMBOL(bitmap_set);
-+EXPORT_SYMBOL(__bitmap_set);
- 
--void bitmap_clear(unsigned long *map, unsigned int start, int len)
-+void __bitmap_clear(unsigned long *map, unsigned int start, int len)
- {
- 	unsigned long *p = map + BIT_WORD(start);
- 	const unsigned int size = start + len;
-@@ -291,7 +291,7 @@ void bitmap_clear(unsigned long *map, un
- 		*p &= ~mask_to_clear;
- 	}
- }
--EXPORT_SYMBOL(bitmap_clear);
-+EXPORT_SYMBOL(__bitmap_clear);
- 
- /**
-  * bitmap_find_next_zero_area_off - find a contiguous aligned zero area
-diff -puN lib/test_bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit lib/test_bitmap.c
---- a/lib/test_bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
-+++ a/lib/test_bitmap.c
-@@ -333,9 +333,6 @@ static void __init test_bitmap_u32_array
- 	}
- }
- 
--#define __bitmap_set(a, b, c)	bitmap_set(a, b, c)
--#define __bitmap_clear(a, b, c)	bitmap_clear(a, b, c)
+_
+
+Patches currently in -mm which might be from mawilcox@microsoft.com are
+
+
