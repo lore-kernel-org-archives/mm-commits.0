@@ -1,87 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-document-highmem_is_dirtyable-sysctl.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:27:38 -0700
-Message-ID: <20170711192738._tcZ6UPQs%akpm@linux-foundation.org>
+Subject: +
+ lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch added to -mm tree
+Date: Tue, 11 Jul 2017 14:43:11 -0700
+Message-ID: <5965466f.FfHa++93iblOmQUw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46846 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932836AbdGKT1j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:27:39 -0400
+        with ESMTP id S933342AbdGKVnR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 17:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alkisg@gmail.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mpe@ellerman.id.au, dougmill@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: document highmem_is_dirtyable sysctl
-has been removed from the -mm tree.  Its filename was
-     mm-document-highmem_is_dirtyable-sysctl.patch
+     Subject: lib/atomic64_test.c: add a test that atomic64_inc_not_zero() returns an int
+has been added to the -mm tree.  Its filename is
+     lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: document highmem_is_dirtyable sysctl
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: lib/atomic64_test.c: add a test that atomic64_inc_not_zero() returns an int
 
-It seems that there are still people using 32b kernels which a lot of
-memory and the IO tend to suck a lot for them by default.  Mostly because
-writers are throttled too when the lowmem is used.  We have
-highmem_is_dirtyable to work around that issue but it seems we never
-bothered to document it.  Let's do it now, finally.
+atomic64_inc_not_zero() returns a "truth value" which in C is
+traditionally an int.  That means callers are likely to expect the result
+will fit in an int.
 
-Link: http://lkml.kernel.org/r/20170626093200.18958-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alkis Georgopoulos <alkisg@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
+If an implementation returns a "true" value which does not fit in an int,
+then there's a possibility that callers will truncate it when they store
+it in an int.  In fact this happened in practice, see commit 966d2b04e070
+("percpu-refcount: fix reference leak during percpu-atomic transition").
+
+So add a test that the result fits in an int, even when the input doesn't.
+This catches the case where an implementation just passes the non-zero
+input value out as the result.
+
+Link: http://lkml.kernel.org/r/1499775133-1231-1-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Douglas Miller <dougmill@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ lib/atomic64_test.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN Documentation/sysctl/vm.txt~mm-document-highmem_is_dirtyable-sysctl Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-document-highmem_is_dirtyable-sysctl
-+++ a/Documentation/sysctl/vm.txt
-@@ -240,6 +240,26 @@ fragmentation index is <= extfrag_thresh
+diff -puN lib/atomic64_test.c~lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int lib/atomic64_test.c
+--- a/lib/atomic64_test.c~lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int
++++ a/lib/atomic64_test.c
+@@ -153,8 +153,10 @@ static __init void test_atomic64(void)
+ 	long long v0 = 0xaaa31337c001d00dLL;
+ 	long long v1 = 0xdeadbeefdeafcafeLL;
+ 	long long v2 = 0xfaceabadf00df001LL;
++	long long v3 = 0x8000000000000000LL;
+ 	long long onestwos = 0x1111111122222222LL;
+ 	long long one = 1LL;
++	int r_int;
  
- ==============================================================
+ 	atomic64_t v = ATOMIC64_INIT(v0);
+ 	long long r = v0;
+@@ -240,6 +242,11 @@ static __init void test_atomic64(void)
+ 	BUG_ON(!atomic64_inc_not_zero(&v));
+ 	r += one;
+ 	BUG_ON(v.counter != r);
++
++	/* Confirm the return value fits in an int, even if the value doesn't */
++	INIT(v3);
++	r_int = atomic64_inc_not_zero(&v);
++	BUG_ON(!r_int);
+ }
  
-+highmem_is_dirtyable
-+
-+Available only for systems with CONFIG_HIGHMEM enabled (32b systems).
-+
-+This parameter controls whether the high memory is considered for dirty
-+writers throttling.  This is not the case by default which means that
-+only the amount of memory directly visible/usable by the kernel can
-+be dirtied. As a result, on systems with a large amount of memory and
-+lowmem basically depleted writers might be throttled too early and
-+streaming writes can get very slow.
-+
-+Changing the value to non zero would allow more memory to be dirtied
-+and thus allow writers to write more data which can be flushed to the
-+storage more effectively. Note this also comes with a risk of pre-mature
-+OOM killer because some writers (e.g. direct block device writes) can
-+only use the low memory and they can fill it up with dirty data without
-+any throttling.
-+
-+==============================================================
-+
- hugepages_treat_as_movable
- 
- This parameter controls whether we can allocate hugepages from ZONE_MOVABLE
+ static __init int test_atomics_init(void)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
-netfilter-use-kvmalloc-xt_alloc_table_info.patch
-mips-do-not-use-__gfp_repeat-for-order-0-request.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic.patch
-mm-tree-wide-replace-__gfp_repeat-by-__gfp_retry_mayfail-with-more-useful-semantic-fix-2.patch
-xfs-map-km_mayfail-to-__gfp_retry_mayfail.patch
-mm-kvmalloc-support-__gfp_retry_mayfail-for-all-sizes.patch
-drm-i915-use-__gfp_retry_mayfail.patch
-mm-migration-do-not-trigger-oom-killer-when-migrating-memory.patch
+lib-atomic64-test-add-a-test-that-atomic64_inc_not_zero-returns-an-int.patch
 
