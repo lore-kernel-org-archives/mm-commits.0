@@ -1,90 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:24:35 -0700
-Message-ID: <20170711192435._jAvTq701%akpm@linux-foundation.org>
+Subject: [merged] obsoleted-comment-in-show_map_vma.patch removed
+ from -mm tree
+Date: Tue, 11 Jul 2017 12:24:33 -0700
+Message-ID: <20170711192433.tSIg62b-g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47932 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933703AbdGKTYg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:36 -0400
+        with ESMTP id S933703AbdGKTYe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haolee.swjtu@gmail.com, linux@rasmusvillemoes.dk, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz, weiyang@gmail.com
+To: hughd@google.com, mm-commits@vger.kernel.org, vvs@virtuozzo.com
 
 
 The patch titled
-     Subject: mm/page_alloc.c: eliminate unsigned confusion in __rmqueue_fallback
+     Subject: fs/proc/task_mmu.c: remove obsolete comment in show_map_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback.patch
+     obsoleted-comment-in-show_map_vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm/page_alloc.c: eliminate unsigned confusion in __rmqueue_fallback
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: fs/proc/task_mmu.c: remove obsolete comment in show_map_vma()
 
-Since current_order starts as MAX_ORDER-1 and is then only decremented,
-the second half of the loop condition seems superfluous.  However, if
-order is 0, we may decrement current_order past 0, making it UINT_MAX. 
-This is obviously too subtle ([1], [2]).
+After 1be7107 ("mm: larger stack guard gap, between vmas") we do not hide
+stack guard page in /proc/<pid>/maps
 
-Since we need to add some comment anyway, change the two variables to
-signed, making the counting-down for loop look more familiar, and
-apparently also making gcc generate slightly smaller code.
-
-[1] https://lkml.org/lkml/2016/6/20/493
-[2] https://lkml.org/lkml/2017/6/19/345
-
-[akpm@linux-foundation.org: fix up reject fixupping]
-Link: http://lkml.kernel.org/r/20170621185529.2265-1-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reported-by: Hao Lee <haolee.swjtu@gmail.com>
-Acked-by: Wei Yang <weiyang@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/211f3c2a-f7ef-7c13-82bf-46fd426f6e1b@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-eliminate-unsigned-confusion-in-__rmqueue_fallback
-+++ a/mm/page_alloc.c
-@@ -2206,12 +2206,16 @@ static bool unreserve_highatomic_pageblo
-  * list of requested migratetype, possibly along with other pages from the same
-  * block, depending on fragmentation avoidance heuristics. Returns true if
-  * fallback was found so that __rmqueue_smallest() can grab it.
-+ *
-+ * The use of signed ints for order and current_order is a deliberate
-+ * deviation from the rest of this file, to make the for loop
-+ * condition simpler.
-  */
- static inline bool
--__rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
-+__rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- {
- 	struct free_area *area;
--	unsigned int current_order;
-+	int current_order;
- 	struct page *page;
- 	int fallback_mt;
- 	bool can_steal;
-@@ -2221,8 +2225,7 @@ __rmqueue_fallback(struct zone *zone, un
- 	 * approximates finding the pageblock with the most free pages, which
- 	 * would be too costly to do exactly.
- 	 */
--	for (current_order = MAX_ORDER-1;
--				current_order >= order && current_order <= MAX_ORDER-1;
-+	for (current_order = MAX_ORDER - 1; current_order >= order;
- 				--current_order) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
+diff -puN fs/proc/task_mmu.c~obsoleted-comment-in-show_map_vma fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~obsoleted-comment-in-show_map_vma
++++ a/fs/proc/task_mmu.c
+@@ -298,7 +298,6 @@ show_map_vma(struct seq_file *m, struct
+ 		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+ 	}
+ 
+-	/* We don't show the stack guard page in /proc/maps */
+ 	start = vma->vm_start;
+ 	end = vma->vm_end;
+ 
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
 
