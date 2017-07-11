@@ -1,358 +1,262 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmpressure-pass-through-notification-support.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:23:17 -0700
-Message-ID: <20170711192317.CY2e74gL3%akpm@linux-foundation.org>
+ mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch removed from
+ -mm tree
+Date: Tue, 11 Jul 2017 12:23:23 -0700
+Message-ID: <20170711192323.LjGfus4qa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47614 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933570AbdGKTXS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:18 -0400
+        with ESMTP id S933694AbdGKTXY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton@enomsg.org, corbet@lwn.net, dan.carpenter@oracle.com, hannes@cmpxchg.org, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
+To: bsingharora@gmail.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org, sean.j.christopherson@intel.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm, vmpressure: pass-through notification support
+     Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
 has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-pass-through-notification-support.patch
+     mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, vmpressure: pass-through notification support
+From: Sean Christopherson <sean.j.christopherson@intel.com>
+Subject: mm/memcontrol: exclude @root from checks in mem_cgroup_low
 
-By default, vmpressure events are not pass-through, i.e.  they propagate
-up through the memcg hierarchy until an event notifier is found for any
-threshold level.
+Make @root exclusive in mem_cgroup_low; it is never considered low when
+looked at directly and is not checked when traversing the tree.  In
+effect, @root is handled identically to how root_mem_cgroup was previously
+handled by mem_cgroup_low.
 
-This presents a difficulty when a thread waiting on a read(2) for a
-vmpressure event cannot distinguish between local memory pressure and
-memory pressure in a descendant memcg, especially when that thread may not
-control the memcg hierarchy.
+If @root is not excluded from the checks, a cgroup underneath @root will
+never be considered low during targeted reclaim of @root, e.g.  due to
+memory.current > memory.high, unless @root is misconfigured to have
+memory.low > memory.high.
 
-Consider a user-controlled child memcg with a smaller limit than a
-top-level memcg controlled by the "Activity Manager" specified in
-Documentation/cgroup-v1/memory.txt.  It may register for memory pressure
-notification for descendant memcgs to make a policy decision: oom kill a
-low priority job, increase the limit, decrease other limits, etc.  If it
-registers for memory pressure notification on the top-level memcg, it
-currently cannot distinguish between memory pressure in its own memcg or a
-descendant memcg, which is user-controlled.
+Excluding @root enables using memory.low to prioritize memory usage
+between cgroups within a subtree of the hierarchy that is limited by
+memory.high or memory.max, e.g.  when ROOT owns @root's controls but
+delegates the @root directory to a USER so that USER can create and
+administer children of @root.
 
-Conversely, if a user registers for memory pressure notification on their
-own descendant memcg, the Activity Manager does not receive any pressure
-notification for that child memcg hierarchy.  Vmpressure events are not
-received for ancestor memcgs if the memcg experiencing pressure have
-notifiers registered, perhaps outside the knowledge of the thread waiting
-on read(2) at the top level.
+For example, given cgroup A with children B and C:
 
-Both of these are consequences of vmpressure notification not being
-pass-through.
+    A
+   / \
+  B   C
 
-This implements a pass-through behavior for vmpressure events.  When
-writing to control.event_control, vmpressure event handlers may optionally
-specify a mode.  There are two new modes:
+and
 
- - "hierarchy": always propagate memory pressure events up the
-   hierarchy regardless if descendant memcgs have their own notifiers
-   registered, and
+  1. A/memory.current > A/memory.high
+  2. A/B/memory.current < A/B/memory.low
+  3. A/C/memory.current >= A/C/memory.low
 
- - "local": only receive notifications when the memcg for which the
-   event is registered experiences memory pressure.
+As 'A' is high, i.e.  triggers reclaim from 'A', and 'B' is low, we should
+reclaim from 'C' until 'A' is no longer high or until we can no longer
+reclaim from 'C'.  If 'A', i.e.  @root, isn't excluded by mem_cgroup_low
+when reclaming from 'A', then 'B' won't be considered low and we will
+reclaim indiscriminately from both 'B' and 'C'.
 
-Of course, processes may register for one notification of "low,local",
-for example, and another for "low".
+Here is the test I used to confirm the bug and the patch.
 
-If no mode is specified, the current behavior is maintained for
-backwards compatibility.
+20:00:55@sjchrist-vm ? ~ $ cat ~/.bin/memcg_low_test
+#!/bin/bash
 
-See the change to Documentation/cgroup-v1/memory.txt for full
-specification.
+x62mb=$((62<<20))
+x66mb=$((66<<20))
+x94mb=$((94<<20))
+x98mb=$((98<<20))
 
-[dan.carpenter@oracle.com: free the same pointer we allocated]
-  Link: http://lkml.kernel.org/r/20170613191820.GA20003@elgon.mountain
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1705311421320.8946@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Anton Vorontsov <anton@enomsg.org>
+setup() {
+    set -e
+
+    if [[ -n $DEBUG ]]; then
+        set -x
+    fi
+
+    trap teardown EXIT HUP INT TERM
+
+    if [[ ! -e /mnt/1gb.swap ]]; then
+        sudo fallocate -l 1G /mnt/1gb.swap > /dev/null
+        sudo mkswap /mnt/1gb.swap > /dev/null
+    fi
+    if ! swapon --show=NAME | grep -q "/mnt/1gb.swap"; then
+        sudo swapon /mnt/1gb.swap
+    fi
+
+    if [[ ! -e /cgroup/cgroup.controllers ]]; then
+        sudo mount -t cgroup2 none /cgroup
+    fi
+
+    grep -q memory /cgroup/cgroup.controllers
+
+    sudo sh -c "echo '+memory' > /cgroup/cgroup.subtree_control"
+
+    sudo mkdir /cgroup/A && sudo chown $USER:$USER /cgroup/A
+    sudo sh -c "echo '+memory' > /cgroup/A/cgroup.subtree_control"
+    sudo sh -c "echo '96m' > /cgroup/A/memory.high"
+
+    mkdir /cgroup/A/0
+    mkdir /cgroup/A/1
+
+    echo 64m > /cgroup/A/0/memory.low
+}
+
+teardown() {
+    set +e
+
+    trap - EXIT HUP INT TERM
+
+    if [[ -z $1 ]]; then
+        printf "\n"
+        printf "%0.s*" {1..35}
+        printf "\nFAILED!\n\n"
+        tail /cgroup/A/**/memory.current
+        printf "%0.s*" {1..35}
+        printf "\n\n"
+    fi
+
+    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
+
+    sleep 2
+
+    if [[ -e /cgroup/A/0 ]]; then
+        rmdir /cgroup/A/0
+    fi
+    if [[ -e /cgroup/A/1 ]]; then
+        rmdir /cgroup/A/1
+    fi
+    if [[ -e /cgroup/A ]]; then
+        sudo rmdir /cgroup/A
+    fi
+}
+
+
+stress_test() {
+    sudo sh -c "echo $$ > /cgroup/A/$1/cgroup.procs"
+    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
+
+    sudo sh -c "echo $$ > /cgroup/A/$2/cgroup.procs"
+    stress --vm 1 --vm-bytes 64M --vm-keep > /dev/null &
+
+    sudo sh -c "echo $$ > /cgroup/cgroup.procs"
+
+    sleep 1
+
+    # A/0 should be consuming more memory than A/1
+    [[ $(cat /cgroup/A/0/memory.current) -ge $(cat /cgroup/A/1/memory.current) ]]
+
+    # A/0 should be consuming ~64mb
+    [[ $(cat /cgroup/A/0/memory.current) -ge $x62mb ]] && [[ $(cat /cgroup/A/0/memory.current) -le $x66mb ]]
+
+    # A should cumulatively be consuming ~96mb
+    [[ $(cat /cgroup/A/memory.current) -ge $x94mb ]] && [[ $(cat /cgroup/A/memory.current) -le $x98mb ]]
+
+    # Stop the stressors
+    ps | grep stress | tr -s ' ' | cut -f 2 -d ' ' | xargs -I % kill %
+}
+
+
+teardown 1
+setup
+
+for ((i=1;i<=$1;i++)); do
+    printf "ITERATION $i of $1 - stress_test 0 1"
+    stress_test 0 1
+    printf "\x1b[2K\r"
+
+    printf "ITERATION $i of $1 - stress_test 1 0"
+    stress_test 1 0
+    printf "\x1b[2K\r"
+
+    printf "ITERATION $i of $1 - PASSED\n"
+done
+
+teardown 1
+
+
+echo PASSED!
+
+
+20:11:26@sjchrist-vm ? ~ $ memcg_low_test 10
+
+
+Link: http://lkml.kernel.org/r/1496434412-21005-1-git-send-email-sean.j.christopherson@intel.com
+Signed-off-by: Sean Christopherson <sean.j.christopherson@intel.com>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroup-v1/memory.txt |   47 +++++++---
- mm/vmpressure.c                    |  122 ++++++++++++++++++++-------
- 2 files changed, 128 insertions(+), 41 deletions(-)
+ mm/memcontrol.c |   50 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 32 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/cgroup-v1/memory.txt~mm-vmpressure-pass-through-notification-support Documentation/cgroup-v1/memory.txt
---- a/Documentation/cgroup-v1/memory.txt~mm-vmpressure-pass-through-notification-support
-+++ a/Documentation/cgroup-v1/memory.txt
-@@ -789,23 +789,46 @@ way to trigger. Applications should do w
- system. It might be too late to consult with vmstat or any other
- statistics, so it's advisable to take an immediate action.
+diff -puN mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-exclude-root-from-checks-in-mem_cgroup_low
++++ a/mm/memcontrol.c
+@@ -5317,38 +5317,52 @@ struct cgroup_subsys memory_cgrp_subsys
  
--The events are propagated upward until the event is handled, i.e. the
--events are not pass-through. Here is what this means: for example you have
--three cgroups: A->B->C. Now you set up an event listener on cgroups A, B
--and C, and suppose group C experiences some pressure. In this situation,
--only group C will receive the notification, i.e. groups A and B will not
--receive it. This is done to avoid excessive "broadcasting" of messages,
--which disturbs the system and which is especially bad if we are low on
--memory or thrashing. So, organize the cgroups wisely, or propagate the
--events manually (or, ask us to implement the pass-through events,
--explaining why would you need them.)
-+By default, events are propagated upward until the event is handled, i.e. the
-+events are not pass-through. For example, you have three cgroups: A->B->C. Now
-+you set up an event listener on cgroups A, B and C, and suppose group C
-+experiences some pressure. In this situation, only group C will receive the
-+notification, i.e. groups A and B will not receive it. This is done to avoid
-+excessive "broadcasting" of messages, which disturbs the system and which is
-+especially bad if we are low on memory or thrashing. Group B, will receive
-+notification only if there are no event listers for group C.
-+
-+There are three optional modes that specify different propagation behavior:
-+
-+ - "default": this is the default behavior specified above. This mode is the
-+   same as omitting the optional mode parameter, preserved by backwards
-+   compatibility.
-+
-+ - "hierarchy": events always propagate up to the root, similar to the default
-+   behavior, except that propagation continues regardless of whether there are
-+   event listeners at each level, with the "hierarchy" mode. In the above
-+   example, groups A, B, and C will receive notification of memory pressure.
-+
-+ - "local": events are pass-through, i.e. they only receive notifications when
-+   memory pressure is experienced in the memcg for which the notification is
-+   registered. In the above example, group C will receive notification if
-+   registered for "local" notification and the group experiences memory
-+   pressure. However, group B will never receive notification, regardless if
-+   there is an event listener for group C or not, if group B is registered for
-+   local notification.
-+
-+The level and event notification mode ("hierarchy" or "local", if necessary) are
-+specified by a comma-delimited string, i.e. "low,hierarchy" specifies
-+hierarchical, pass-through, notification for all ancestor memcgs. Notification
-+that is the default, non pass-through behavior, does not specify a mode.
-+"medium,local" specifies pass-through notification for the medium level.
- 
- The file memory.pressure_level is only used to setup an eventfd. To
- register a notification, an application must:
- 
- - create an eventfd using eventfd(2);
- - open memory.pressure_level;
--- write string like "<event_fd> <fd of memory.pressure_level> <level>"
-+- write string as "<event_fd> <fd of memory.pressure_level> <level[,mode]>"
-   to cgroup.event_control.
- 
- Application will be notified through eventfd when memory pressure is at
-@@ -821,7 +844,7 @@ Test:
-    # cd /sys/fs/cgroup/memory/
-    # mkdir foo
-    # cd foo
--   # cgroup_event_listener memory.pressure_level low &
-+   # cgroup_event_listener memory.pressure_level low,hierarchy &
-    # echo 8000000 > memory.limit_in_bytes
-    # echo 8000000 > memory.memsw.limit_in_bytes
-    # echo $$ > tasks
-diff -puN mm/vmpressure.c~mm-vmpressure-pass-through-notification-support mm/vmpressure.c
---- a/mm/vmpressure.c~mm-vmpressure-pass-through-notification-support
-+++ a/mm/vmpressure.c
-@@ -93,12 +93,25 @@ enum vmpressure_levels {
- 	VMPRESSURE_NUM_LEVELS,
- };
- 
-+enum vmpressure_modes {
-+	VMPRESSURE_NO_PASSTHROUGH = 0,
-+	VMPRESSURE_HIERARCHY,
-+	VMPRESSURE_LOCAL,
-+	VMPRESSURE_NUM_MODES,
-+};
-+
- static const char * const vmpressure_str_levels[] = {
- 	[VMPRESSURE_LOW] = "low",
- 	[VMPRESSURE_MEDIUM] = "medium",
- 	[VMPRESSURE_CRITICAL] = "critical",
- };
- 
-+static const char * const vmpressure_str_modes[] = {
-+	[VMPRESSURE_NO_PASSTHROUGH] = "default",
-+	[VMPRESSURE_HIERARCHY] = "hierarchy",
-+	[VMPRESSURE_LOCAL] = "local",
-+};
-+
- static enum vmpressure_levels vmpressure_level(unsigned long pressure)
- {
- 	if (pressure >= vmpressure_level_critical)
-@@ -141,27 +154,31 @@ out:
- struct vmpressure_event {
- 	struct eventfd_ctx *efd;
- 	enum vmpressure_levels level;
-+	enum vmpressure_modes mode;
- 	struct list_head node;
- };
- 
- static bool vmpressure_event(struct vmpressure *vmpr,
--			     enum vmpressure_levels level)
-+			     const enum vmpressure_levels level,
-+			     bool ancestor, bool signalled)
- {
- 	struct vmpressure_event *ev;
--	bool signalled = false;
-+	bool ret = false;
- 
- 	mutex_lock(&vmpr->events_lock);
--
- 	list_for_each_entry(ev, &vmpr->events, node) {
--		if (level >= ev->level) {
--			eventfd_signal(ev->efd, 1);
--			signalled = true;
--		}
-+		if (ancestor && ev->mode == VMPRESSURE_LOCAL)
-+			continue;
-+		if (signalled && ev->mode == VMPRESSURE_NO_PASSTHROUGH)
-+			continue;
-+		if (level < ev->level)
-+			continue;
-+		eventfd_signal(ev->efd, 1);
-+		ret = true;
- 	}
--
- 	mutex_unlock(&vmpr->events_lock);
- 
--	return signalled;
-+	return ret;
- }
- 
- static void vmpressure_work_fn(struct work_struct *work)
-@@ -170,6 +187,8 @@ static void vmpressure_work_fn(struct wo
- 	unsigned long scanned;
- 	unsigned long reclaimed;
- 	enum vmpressure_levels level;
-+	bool ancestor = false;
-+	bool signalled = false;
- 
- 	spin_lock(&vmpr->sr_lock);
- 	/*
-@@ -194,12 +213,9 @@ static void vmpressure_work_fn(struct wo
- 	level = vmpressure_calc_level(scanned, reclaimed);
- 
- 	do {
--		if (vmpressure_event(vmpr, level))
--			break;
--		/*
--		 * If not handled, propagate the event upward into the
--		 * hierarchy.
--		 */
-+		if (vmpressure_event(vmpr, level, ancestor, signalled))
-+			signalled = true;
-+		ancestor = true;
- 	} while ((vmpr = vmpressure_parent(vmpr)));
- }
- 
-@@ -326,17 +342,40 @@ void vmpressure_prio(gfp_t gfp, struct m
- 	vmpressure(gfp, memcg, true, vmpressure_win, 0);
- }
- 
-+static enum vmpressure_levels str_to_level(const char *arg)
-+{
-+	enum vmpressure_levels level;
-+
-+	for (level = 0; level < VMPRESSURE_NUM_LEVELS; level++)
-+		if (!strcmp(vmpressure_str_levels[level], arg))
-+			return level;
-+	return -1;
-+}
-+
-+static enum vmpressure_modes str_to_mode(const char *arg)
-+{
-+	enum vmpressure_modes mode;
-+
-+	for (mode = 0; mode < VMPRESSURE_NUM_MODES; mode++)
-+		if (!strcmp(vmpressure_str_modes[mode], arg))
-+			return mode;
-+	return -1;
-+}
-+
-+#define MAX_VMPRESSURE_ARGS_LEN	(strlen("critical") + strlen("hierarchy") + 2)
-+
  /**
-  * vmpressure_register_event() - Bind vmpressure notifications to an eventfd
-  * @memcg:	memcg that is interested in vmpressure notifications
-  * @eventfd:	eventfd context to link notifications with
-- * @args:	event arguments (used to set up a pressure level threshold)
-+ * @args:	event arguments (pressure level threshold, optional mode)
+  * mem_cgroup_low - check if memory consumption is below the normal range
+- * @root: the highest ancestor to consider
++ * @root: the top ancestor of the sub-tree being checked
+  * @memcg: the memory cgroup to check
   *
-  * This function associates eventfd context with the vmpressure
-  * infrastructure, so that the notifications will be delivered to the
-- * @eventfd. The @args parameter is a string that denotes pressure level
-- * threshold (one of vmpressure_str_levels, i.e. "low", "medium", or
-- * "critical").
-+ * @eventfd. The @args parameter is a comma-delimited string that denotes a
-+ * pressure level threshold (one of vmpressure_str_levels, i.e. "low", "medium",
-+ * or "critical") and an optional mode (one of vmpressure_str_modes, i.e.
-+ * "hierarchy" or "local").
-  *
-  * To be used as memcg event method.
+  * Returns %true if memory consumption of @memcg, and that of all
+- * configurable ancestors up to @root, is below the normal range.
++ * ancestors up to (but not including) @root, is below the normal range.
++ *
++ * @root is exclusive; it is never low when looked at directly and isn't
++ * checked when traversing the hierarchy.
++ *
++ * Excluding @root enables using memory.low to prioritize memory usage
++ * between cgroups within a subtree of the hierarchy that is limited by
++ * memory.high or memory.max.
++ *
++ * For example, given cgroup A with children B and C:
++ *
++ *    A
++ *   / \
++ *  B   C
++ *
++ * and
++ *
++ *  1. A/memory.current > A/memory.high
++ *  2. A/B/memory.current < A/B/memory.low
++ *  3. A/C/memory.current >= A/C/memory.low
++ *
++ * As 'A' is high, i.e. triggers reclaim from 'A', and 'B' is low, we
++ * should reclaim from 'C' until 'A' is no longer high or until we can
++ * no longer reclaim from 'C'.  If 'A', i.e. @root, isn't excluded by
++ * mem_cgroup_low when reclaming from 'A', then 'B' won't be considered
++ * low and we will reclaim indiscriminately from both 'B' and 'C'.
   */
-@@ -345,28 +384,53 @@ int vmpressure_register_event(struct mem
+ bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg)
  {
- 	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
- 	struct vmpressure_event *ev;
--	int level;
-+	enum vmpressure_modes mode = VMPRESSURE_NO_PASSTHROUGH;
-+	enum vmpressure_levels level = -1;
-+	char *spec, *spec_orig;
-+	char *token;
-+	int ret = 0;
-+
-+	spec_orig = spec = kzalloc(MAX_VMPRESSURE_ARGS_LEN + 1, GFP_KERNEL);
-+	if (!spec) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+	strncpy(spec, args, MAX_VMPRESSURE_ARGS_LEN);
+ 	if (mem_cgroup_disabled())
+ 		return false;
  
--	for (level = 0; level < VMPRESSURE_NUM_LEVELS; level++) {
--		if (!strcmp(vmpressure_str_levels[level], args))
+-	/*
+-	 * The toplevel group doesn't have a configurable range, so
+-	 * it's never low when looked at directly, and it is not
+-	 * considered an ancestor when assessing the hierarchy.
+-	 */
+-
+-	if (memcg == root_mem_cgroup)
+-		return false;
+-
+-	if (page_counter_read(&memcg->memory) >= memcg->low)
++	if (!root)
++		root = root_mem_cgroup;
++	if (memcg == root)
+ 		return false;
+ 
+-	while (memcg != root) {
+-		memcg = parent_mem_cgroup(memcg);
+-
+-		if (memcg == root_mem_cgroup)
 -			break;
-+	/* Find required level */
-+	token = strsep(&spec, ",");
-+	level = str_to_level(token);
-+	if (level == -1) {
-+		ret = -EINVAL;
-+		goto out;
- 	}
- 
--	if (level >= VMPRESSURE_NUM_LEVELS)
--		return -EINVAL;
-+	/* Find optional mode */
-+	token = strsep(&spec, ",");
-+	if (token) {
-+		mode = str_to_mode(token);
-+		if (mode == -1) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+	}
- 
- 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
--	if (!ev)
--		return -ENOMEM;
-+	if (!ev) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
- 
- 	ev->efd = eventfd;
- 	ev->level = level;
-+	ev->mode = mode;
- 
- 	mutex_lock(&vmpr->events_lock);
- 	list_add(&ev->node, &vmpr->events);
- 	mutex_unlock(&vmpr->events_lock);
