@@ -1,87 +1,140 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?checkpatch-fix-stepping-through-statements-with-stat-and-c?=
- =?US-ASCII?Q?tx=5Fstatement=5Fblock.patch?= removed from -mm tree
-Date: Tue, 11 Jul 2017 12:26:56 -0700
-Message-ID: <20170711192656.QGHwtrEIw%akpm@linux-foundation.org>
+ checkpatch-change-format-of-color-argument-to-color.patch removed from -mm
+ tree
+Date: Tue, 11 Jul 2017 12:27:05 -0700
+Message-ID: <20170711192705.u9YUdxXBV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48576 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48598 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755645AbdGKT05 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:57 -0400
+        with ESMTP id S932895AbdGKT1G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, john@fastquake.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix stepping through statements with $stat and ctx_statement_block
+     Subject: checkpatch: change format of --color argument to --color[=WHEN]
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block.patch
+     checkpatch-change-format-of-color-argument-to-color.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix stepping through statements with $stat and ctx_statement_block
+From: John Brooks <john@fastquake.com>
+Subject: checkpatch: change format of --color argument to --color[=WHEN]
 
-Fix the off-by-one in the suppression of lines in a statement block.
+The boolean --color argument did not offer the ability to force colourized
+output even if stdout is not a terminal.  Change the format of the
+argument to the familiar --color[=WHEN] construct as seen in common Linux
+utilities such as git, ls and dmesg, which allows the user to specify
+whether to colourize output "always", "never", or "auto" when the output
+is a terminal.  The default is "auto".
 
-This means that for multiple line statements like
+The old command-line uses of --color and --no-color are unchanged.
 
-	foo(bar,
-	    baz,
-	    qux);
-
-$stat has been inspected first correctly for the entire statement,
-and subsequently incorrectly just for
-
-	    qux);
-
-This fix will help make tracking appropriate indentation a little easier.
-
-Link: http://lkml.kernel.org/r/71b25979c90412133c717084036c9851cd2b7bcb.1496862585.git.joe@perches.com
+Link: http://lkml.kernel.org/r/efe43bdbad400f39ba691ae663044462493b0773.1496799721.git.joe@perches.com
+Signed-off-by: John Brooks <john@fastquake.com>
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-stepping-through-statements-with-stat-and-ctx_statement_block
+diff -puN scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-change-format-of-color-argument-to-color
 +++ a/scripts/checkpatch.pl
-@@ -3219,7 +3219,7 @@ sub process {
- 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next,
- 		    $realline_next);
- #print "LINE<$line>\n";
--		if ($linenr >= $suppress_statement &&
-+		if ($linenr > $suppress_statement &&
- 		    $realcnt && $sline =~ /.\s*\S/) {
- 			($stat, $cond, $line_nr_next, $remain_next, $off_next) =
- 				ctx_statement_block($linenr, $realcnt, 0);
+@@ -57,7 +57,7 @@ my $codespell = 0;
+ my $codespellfile = "/usr/share/codespell/dictionary.txt";
+ my $conststructsfile = "$D/const_structs.checkpatch";
+ my $typedefsfile = "";
+-my $color = 1;
++my $color = "auto";
+ my $allow_c99_comments = 1;
+ 
+ sub help {
+@@ -116,7 +116,8 @@ Options:
+                              (default:/usr/share/codespell/dictionary.txt)
+   --codespellfile            Use this codespell dictionary
+   --typedefsfile             Read additional types from this file
+-  --color                    Use colors when output is STDOUT (default: on)
++  --color[=WHEN]             Use colors 'always', 'never', or only when output
++                             is a terminal ('auto'). Default is 'auto'.
+   -h, --help, --version      display this help and exit
+ 
+ When FILE is - read standard input.
+@@ -182,6 +183,14 @@ if (-f $conf) {
+ 	unshift(@ARGV, @conf_args) if @conf_args;
+ }
+ 
++# Perl's Getopt::Long allows options to take optional arguments after a space.
++# Prevent --color by itself from consuming other arguments
++foreach (@ARGV) {
++	if ($_ eq "--color" || $_ eq "-color") {
++		$_ = "--color=$color";
++	}
++}
++
+ GetOptions(
+ 	'q|quiet+'	=> \$quiet,
+ 	'tree!'		=> \$tree,
+@@ -212,7 +221,9 @@ GetOptions(
+ 	'codespell!'	=> \$codespell,
+ 	'codespellfile=s'	=> \$codespellfile,
+ 	'typedefsfile=s'	=> \$typedefsfile,
+-	'color!'	=> \$color,
++	'color=s'	=> \$color,
++	'no-color'	=> \$color,	#keep old behaviors of -nocolor
++	'nocolor'	=> \$color,	#keep old behaviors of -nocolor
+ 	'h|help'	=> \$help,
+ 	'version'	=> \$help
+ ) or help(1);
+@@ -238,6 +249,18 @@ if ($#ARGV < 0) {
+ 	push(@ARGV, '-');
+ }
+ 
++if ($color =~ /^[01]$/) {
++	$color = !$color;
++} elsif ($color =~ /^always$/i) {
++	$color = 1;
++} elsif ($color =~ /^never$/i) {
++	$color = 0;
++} elsif ($color =~ /^auto$/i) {
++	$color = (-t STDOUT);
++} else {
++	die "Invalid color mode: $color\n";
++}
++
+ sub hash_save_array_words {
+ 	my ($hashRef, $arrayRef) = @_;
+ 
+@@ -1883,7 +1906,7 @@ sub report {
+ 		return 0;
+ 	}
+ 	my $output = '';
+-	if (-t STDOUT && $color) {
++	if ($color) {
+ 		if ($level eq 'ERROR') {
+ 			$output .= RED;
+ 		} elsif ($level eq 'WARNING') {
+@@ -1894,10 +1917,10 @@ sub report {
+ 	}
+ 	$output .= $prefix . $level . ':';
+ 	if ($show_types) {
+-		$output .= BLUE if (-t STDOUT && $color);
++		$output .= BLUE if ($color);
+ 		$output .= "$type:";
+ 	}
+-	$output .= RESET if (-t STDOUT && $color);
++	$output .= RESET if ($color);
+ 	$output .= ' ' . $msg . "\n";
+ 
+ 	if ($showfile) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from john@fastquake.com are
 
-checkpatch-improve-the-storage_class-test.patch
-arm-kvm-move-asmlinkage-before-type.patch
-arm-hp-jornada-7xx-move-inline-before-return-type.patch
-cris-gpio-move-inline-before-return-type.patch
-frv-tlbflush-move-asmlinkage-before-return-type.patch
-ia64-move-inline-before-return-type.patch
-ia64-sn-pci-move-inline-before-type.patch
-m68k-coldfire-move-inline-before-return-type.patch
-mips-smp-move-asmlinkage-before-return-type.patch
-sh-move-inline-before-return-type.patch
-x86-efi-move-asmlinkage-before-return-type.patch
-drivers-s390-move-static-and-inline-before-return-type.patch
-drivers-tty-serial-move-inline-before-return-type.patch
-usb-serial-safe_serial-move-__inline__-before-return-type.patch
-video-fbdev-intelfb-move-inline-before-return-type.patch
-video-fbdev-omap-move-inline-before-return-type.patch
-arm-samsung-usb-ohci-move-inline-before-return-type.patch
 
