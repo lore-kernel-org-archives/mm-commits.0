@@ -1,75 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- linux-bugh-correct-formatting-of-block-comment.patch removed from -mm tree
-Date: Tue, 11 Jul 2017 12:25:54 -0700
-Message-ID: <20170711192554.bjemR32dR%akpm@linux-foundation.org>
+ asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:25:52 -0700
+Message-ID: <20170711192552.srYukz6GD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48304 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48288 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932270AbdGKTZz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:55 -0400
+        with ESMTP id S932270AbdGKTZx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, jakub.kicinski@netronome.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mina86@mina86.com, mm-commits@vger.kernel.org, peterz@infradead.org, rostedt@goodmis.org
+To: abbotti@mev.co.uk, arnd@arndb.de, keescook@chromium.org, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/bug.h: correct formatting of block comment
+     Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
 has been removed from the -mm tree.  Its filename was
-     linux-bugh-correct-formatting-of-block-comment.patch
+     asm-generic-bugh-declare-struct-pt_regs-before-function-prototype.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ian Abbott <abbotti@mev.co.uk>
-Subject: linux/bug.h: correct formatting of block comment
+Subject: asm-generic/bug.h: declare struct pt_regs; before function prototype
 
-Correct these checkpatch.pl warnings:
+This series of patches splits BUILD_BUG related macros out of
+"include/linux/bug.h" into new file "include/linux/build_bug.h" (patch 5),
+and changes the pointer type checking in the `container_of()` macro to
+deal with pointers of array type better (patch 6).  Patches 1 to 4 are
+prerequisites.
 
-|WARNING: Block comments use * on subsequent lines
-|#34: FILE: include/linux/bug.h:34:
-|+/* Force a compilation error if condition is true, but also produce a
-|+   result (of value 0 and type size_t), so the expression can be used
+Patches 2, 3, 4, and 5 have been inserted since the previous version of
+this patch series.  Patch 6 here corresponds to v3 and v4's patch 2.
 
-|WARNING: Block comments use a trailing */ on a separate line
-|#36: FILE: include/linux/bug.h:36:
-|+   aren't permitted). */
+Patch 1 was a prerequisite in v3 of this series to avoid a lot of warnings
+when <linux/bug.h> was included by <linux/kernel.h>.  That is no longer
+relevant for v5 of the series, but I left it in because it was acked by a
+Arnd Bergmann and Michal Nazarewicz.
 
-Link: http://lkml.kernel.org/r/20170525120316.24473-3-abbotti@mev.co.uk
+Patches 2, 3, and 4 are some checkpatch clean-ups on "include/linux/bug.h"
+before splitting out the BUILD_BUG stuff in patch 5.
+
+Patch 5 splits the BUILD_BUG related macros out of "include/linux/bug.h"
+into new file "include/linux/build_bug.h" because including <linux/bug.h>
+in "include/linux/kernel.h" would result in build failures due to circular
+dependencies.
+
+Patch 6 changes the pointer type checking by `container_of()` to avoid
+some incompatible pointer warnings when the dereferenced pointer has array
+type.
+
+1) asm-generic/bug.h: declare struct pt_regs; before function prototype
+2) linux/bug.h: correct formatting of block comment
+3) linux/bug.h: correct "(foo*)" should be "(foo *)"
+4) linux/bug.h: correct "space required before that '-'"
+5) bug: split BUILD_BUG stuff out into <linux/build_bug.h>
+6) kernel.h: handle pointers to arrays better in container_of()
+
+
+This patch (of 6):
+
+The declaration of `__warn()` has `struct pt_regs *regs` as one of its
+parameters.  This can result in compiler warnings if `struct regs` is not
+already declared.  Add an empty declaration of `struct pt_regs` to avoid
+the warnings.
+
+Link: http://lkml.kernel.org/r/20170525120316.24473-2-abbotti@mev.co.uk
 Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bug.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/asm-generic/bug.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/bug.h~linux-bugh-correct-formatting-of-block-comment include/linux/bug.h
---- a/include/linux/bug.h~linux-bugh-correct-formatting-of-block-comment
-+++ a/include/linux/bug.h
-@@ -30,10 +30,12 @@ struct pt_regs;
- #define BUILD_BUG_ON_NOT_POWER_OF_2(n)			\
- 	BUILD_BUG_ON((n) == 0 || (((n) & ((n) - 1)) != 0))
+diff -puN include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~asm-generic-bugh-declare-struct-pt_regs-before-function-prototype
++++ a/include/asm-generic/bug.h
+@@ -97,6 +97,7 @@ extern void warn_slowpath_null(const cha
  
--/* Force a compilation error if condition is true, but also produce a
--   result (of value 0 and type size_t), so the expression can be used
--   e.g. in a structure initializer (or where-ever else comma expressions
--   aren't permitted). */
-+/*
-+ * Force a compilation error if condition is true, but also produce a
-+ * result (of value 0 and type size_t), so the expression can be used
-+ * e.g. in a structure initializer (or where-ever else comma expressions
-+ * aren't permitted).
-+ */
- #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
- #define BUILD_BUG_ON_NULL(e) ((void *)sizeof(struct { int:-!!(e); }))
+ /* used internally by panic.c */
+ struct warn_args;
++struct pt_regs;
  
+ void __warn(const char *file, int line, void *caller, unsigned taint,
+ 	    struct pt_regs *regs, struct warn_args *args);
 _
 
 Patches currently in -mm which might be from abbotti@mev.co.uk are
