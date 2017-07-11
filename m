@@ -1,103 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-improve-readability-of-transparent_hugepage_enabled.patch removed from
- -mm tree
-Date: Tue, 11 Jul 2017 12:23:37 -0700
-Message-ID: <20170711192337.cjjBWUzM-%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Fref-ensure-page=5Fref=5Funfreeze-is-ordered-agai?=
+ =?US-ASCII?Q?nst-prior-accesses.patch?= removed from -mm tree
+Date: Tue, 11 Jul 2017 12:23:43 -0700
+Message-ID: <20170711192343.DJuxyQ4L_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47674 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47698 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933694AbdGKTXi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:38 -0400
+        with ESMTP id S933729AbdGKTXo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:23:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, ross.zwisler@linux.intel.com
+To: kirill.shutemov@linux.intel.com, mark.rutland@arm.com, mgorman@suse.de, mm-commits@vger.kernel.org, steve.capper@arm.com, vbabka@suse.cz, will.deacon@arm.com
 
 
 The patch titled
-     Subject: mm: improve readability of transparent_hugepage_enabled()
+     Subject: include/linux/page_ref.h: ensure page_ref_unfreeze is ordered against prior accesses
 has been removed from the -mm tree.  Its filename was
-     mm-improve-readability-of-transparent_hugepage_enabled.patch
+     mm-page_ref-ensure-page_ref_unfreeze-is-ordered-against-prior-accesses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: improve readability of transparent_hugepage_enabled()
+From: Will Deacon <will.deacon@arm.com>
+Subject: include/linux/page_ref.h: ensure page_ref_unfreeze is ordered against prior accesses
 
-Turn the macro into a static inline and rewrite the condition checks for
-better readability in preparation for adding another condition.
+page_ref_freeze and page_ref_unfreeze are designed to be used as a pair,
+wrapping a critical section where struct pages can be modified without
+having to worry about consistency for a concurrent fast-GUP.
 
-[ross.zwisler@linux.intel.com: fix logic to make conversion equivalent]
-[akpm@linux-foundation.org: resolve vs mm-make-pr_set_thp_disable-immediately-active.patch]
-[akpm@linux-foundation.org: include coredump.h for MMF_DISABLE_THP]
-Link: http://lkml.kernel.org/r/149739530612.20686.14760671150202647861.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
+Whilst page_ref_freeze has full barrier semantics due to its use of
+atomic_cmpxchg, page_ref_unfreeze is implemented using atomic_set, which
+doesn't provide any barrier semantics and allows the operation to be
+reordered with respect to page modifications in the critical section.
+
+This patch ensures that page_ref_unfreeze is ordered after any critical
+section updates, by invoking smp_mb() prior to the atomic_set.
+
+Link: http://lkml.kernel.org/r/1497349722-6731-3-git-send-email-will.deacon@arm.com
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Acked-by: Steve Capper <steve.capper@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   41 ++++++++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ include/linux/page_ref.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/huge_mm.h~mm-improve-readability-of-transparent_hugepage_enabled include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-improve-readability-of-transparent_hugepage_enabled
-+++ a/include/linux/huge_mm.h
-@@ -1,6 +1,8 @@
- #ifndef _LINUX_HUGE_MM_H
- #define _LINUX_HUGE_MM_H
+diff -puN include/linux/page_ref.h~mm-page_ref-ensure-page_ref_unfreeze-is-ordered-against-prior-accesses include/linux/page_ref.h
+--- a/include/linux/page_ref.h~mm-page_ref-ensure-page_ref_unfreeze-is-ordered-against-prior-accesses
++++ a/include/linux/page_ref.h
+@@ -174,6 +174,7 @@ static inline void page_ref_unfreeze(str
+ 	VM_BUG_ON_PAGE(page_count(page) != 0, page);
+ 	VM_BUG_ON(count == 0);
  
-+#include <linux/sched/coredump.h>
-+
- extern int do_huge_pmd_anonymous_page(struct vm_fault *vmf);
- extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
-@@ -85,15 +87,29 @@ extern struct kobj_attribute shmem_enabl
- 
- extern bool is_vma_temporary_stack(struct vm_area_struct *vma);
- 
--#define transparent_hugepage_enabled(__vma)				\
--	((transparent_hugepage_flags &					\
--	  (1<<TRANSPARENT_HUGEPAGE_FLAG) ||				\
--	  (transparent_hugepage_flags &					\
--	   (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG) &&			\
--	   ((__vma)->vm_flags & VM_HUGEPAGE))) &&			\
--	 !((__vma)->vm_flags & VM_NOHUGEPAGE) &&			\
--	 !test_bit(MMF_DISABLE_THP, &(__vma)->vm_mm->flags) &&		\
--	 !is_vma_temporary_stack(__vma))
-+extern unsigned long transparent_hugepage_flags;
-+
-+static inline bool transparent_hugepage_enabled(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_flags & VM_NOHUGEPAGE)
-+		return false;
-+
-+	if (is_vma_temporary_stack(vma))
-+		return false;
-+
-+	if (test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
-+		return false;
-+
-+	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
-+		return true;
-+
-+	if (transparent_hugepage_flags &
-+				(1 << TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
-+		return !!(vma->vm_flags & VM_HUGEPAGE);
-+
-+	return false;
-+}
-+
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
- 	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
-@@ -105,8 +121,6 @@ extern bool is_vma_temporary_stack(struc
- #define transparent_hugepage_debug_cow() 0
- #endif /* CONFIG_DEBUG_VM */
- 
--extern unsigned long transparent_hugepage_flags;
++	smp_mb();
+ 	atomic_set(&page->_refcount, count);
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_unfreeze))
+ 		__page_ref_unfreeze(page, count);
+_
+
+Patches currently in -mm which might be from will.deacon@arm.com are
+
+
