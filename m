@@ -1,99 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-fix-rd_size-declaration.patch removed from
- -mm tree
-Date: Tue, 11 Jul 2017 12:26:06 -0700
-Message-ID: <20170711192606.JGo6HpeZH%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-ksysfs-constify-attribute_group-structures.patch removed from -mm
+ tree
+Date: Tue, 11 Jul 2017 12:26:09 -0700
+Message-ID: <20170711192609.UkgSL7SIK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932270AbdGKT0H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:07 -0400
+        with ESMTP id S932270AbdGKT0K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@kernel.dk, bart.vanassche@sandisk.com, bart.vanassche@wdc.com, jack@suse.cz, miaoxie@huawei.com, mm-commits@vger.kernel.org, rmk+kernel@armlinux.org.uk, yanaijie@huawei.com, zhaohongjiang@huawei.com
+To: arvind.yadav.cs@gmail.com, dyoung@redhat.com, hbathini@linux.vnet.ibm.com, keescook@chromium.org, mm-commits@vger.kernel.org, ptesarik@suse.com, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     Subject: ARM: fix rd_size declaration
+     Subject: kernel/ksysfs.c: constify attribute_group structures.
 has been removed from the -mm tree.  Its filename was
-     arm-fix-rd_size-declaration.patch
+     kernel-ksysfs-constify-attribute_group-structures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: ARM: fix rd_size declaration
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: kernel/ksysfs.c: constify attribute_group structures.
 
-The global variable 'rd_size' is declared as 'int' in source file
-arch/arm/kernel/atags_parse.c and as 'unsigned long' in
-drivers/block/brd.c.  Fix this inconsistency.  Additionally, remove the
-declarations of rd_image_start, rd_prompt and rd_doload from
-parse_tag_ramdisk() since these duplicate existing declarations in
-<linux/initrd.h>.
+attribute_groups are not supposed to change at runtime.  All functions
+working with attribute_groups provided by <linux/sysfs.h> work with const
+attribute_group.  So mark the non-const structs as const.
 
-Link: http://lkml.kernel.org/r/20170627065024.12347-1-bart.vanassche@wdc.com
-Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Yan <yanaijie@huawei.com>
-Cc: Zhaohongjiang <zhaohongjiang@huawei.com>
-Cc: Miao Xie <miaoxie@huawei.com>
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   1120	    544	     16	   1680	    690	kernel/ksysfs.o
+
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+   1160	    480	     16	   1656	    678	kernel/ksysfs.o
+
+Link: http://lkml.kernel.org/r/aa224b3cc923fdbb3edd0c41b2c639c85408c9e8.1498737347.git.arvind.yadav.cs@gmail.com
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
+Cc: Petr Tesarik <ptesarik@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/atags_parse.c |    3 +--
- drivers/block/brd.c           |    1 +
- include/linux/initrd.h        |    3 +++
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ kernel/ksysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/kernel/atags_parse.c~arm-fix-rd_size-declaration arch/arm/kernel/atags_parse.c
---- a/arch/arm/kernel/atags_parse.c~arm-fix-rd_size-declaration
-+++ a/arch/arm/kernel/atags_parse.c
-@@ -18,6 +18,7 @@
-  */
+diff -puN kernel/ksysfs.c~kernel-ksysfs-constify-attribute_group-structures kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kernel-ksysfs-constify-attribute_group-structures
++++ a/kernel/ksysfs.c
+@@ -234,7 +234,7 @@ static struct attribute * kernel_attrs[]
+ 	NULL
+ };
  
- #include <linux/init.h>
-+#include <linux/initrd.h>
- #include <linux/kernel.h>
- #include <linux/fs.h>
- #include <linux/root_dev.h>
-@@ -91,8 +92,6 @@ __tagtable(ATAG_VIDEOTEXT, parse_tag_vid
- #ifdef CONFIG_BLK_DEV_RAM
- static int __init parse_tag_ramdisk(const struct tag *tag)
- {
--	extern int rd_size, rd_image_start, rd_prompt, rd_doload;
--
- 	rd_image_start = tag->u.ramdisk.start;
- 	rd_doload = (tag->u.ramdisk.flags & 1) == 0;
- 	rd_prompt = (tag->u.ramdisk.flags & 2) == 0;
-diff -puN drivers/block/brd.c~arm-fix-rd_size-declaration drivers/block/brd.c
---- a/drivers/block/brd.c~arm-fix-rd_size-declaration
-+++ a/drivers/block/brd.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <linux/init.h>
-+#include <linux/initrd.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/major.h>
-diff -puN include/linux/initrd.h~arm-fix-rd_size-declaration include/linux/initrd.h
---- a/include/linux/initrd.h~arm-fix-rd_size-declaration
-+++ a/include/linux/initrd.h
-@@ -10,6 +10,9 @@ extern int rd_prompt;
- /* starting block # of image */
- extern int rd_image_start;
- 
-+/* size of a single RAM disk */
-+extern unsigned long rd_size;
-+
- /* 1 if it is not an error if initrd_start < memory_start */
- extern int initrd_below_start_ok;
+-static struct attribute_group kernel_attr_group = {
++static const struct attribute_group kernel_attr_group = {
+ 	.attrs = kernel_attrs,
+ };
  
 _
 
-Patches currently in -mm which might be from bart.vanassche@wdc.com are
+Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
 
 
