@@ -1,70 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-ksysfs-constify-attribute_group-structures.patch removed from -mm
- tree
-Date: Tue, 11 Jul 2017 12:26:09 -0700
-Message-ID: <20170711192609.UkgSL7SIK%akpm@linux-foundation.org>
+ kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all.patch
+ removed from -mm tree
+Date: Tue, 11 Jul 2017 12:26:15 -0700
+Message-ID: <20170711192615.GwU8zqg8E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48408 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932270AbdGKT0K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:10 -0400
+        with ESMTP id S932270AbdGKT0Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvind.yadav.cs@gmail.com, dyoung@redhat.com, hbathini@linux.vnet.ibm.com, keescook@chromium.org, mm-commits@vger.kernel.org, ptesarik@suse.com, rmk+kernel@arm.linux.org.uk
+To: ast@kernel.org, daniel@iogearbox.net, davem@davemloft.net, mm-commits@vger.kernel.org, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: kernel/ksysfs.c: constify attribute_group structures.
+     Subject: kernel/kallsyms.c: replace all_var with IS_ENABLED(CONFIG_KALLSYMS_ALL)
 has been removed from the -mm tree.  Its filename was
-     kernel-ksysfs-constify-attribute_group-structures.patch
+     kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: kernel/ksysfs.c: constify attribute_group structures.
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: kernel/kallsyms.c: replace all_var with IS_ENABLED(CONFIG_KALLSYMS_ALL)
 
-attribute_groups are not supposed to change at runtime.  All functions
-working with attribute_groups provided by <linux/sysfs.h> work with const
-attribute_group.  So mark the non-const structs as const.
+'all_var' looks like a variable, but is actually a macro.  Use
+IS_ENABLED(CONFIG_KALLSYMS_ALL) for clarification.
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-   1120	    544	     16	   1680	    690	kernel/ksysfs.o
-
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-   1160	    480	     16	   1656	    678	kernel/ksysfs.o
-
-Link: http://lkml.kernel.org/r/aa224b3cc923fdbb3edd0c41b2c639c85408c9e8.1498737347.git.arvind.yadav.cs@gmail.com
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Petr Tesarik <ptesarik@suse.com>
+Link: http://lkml.kernel.org/r/1497577591-3434-1-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kallsyms.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN kernel/ksysfs.c~kernel-ksysfs-constify-attribute_group-structures kernel/ksysfs.c
---- a/kernel/ksysfs.c~kernel-ksysfs-constify-attribute_group-structures
-+++ a/kernel/ksysfs.c
-@@ -234,7 +234,7 @@ static struct attribute * kernel_attrs[]
- 	NULL
- };
+diff -puN kernel/kallsyms.c~kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all kernel/kallsyms.c
+--- a/kernel/kallsyms.c~kernel-kallsyms-replace-all_var-with-is_enabledconfig_kallsyms_all
++++ a/kernel/kallsyms.c
+@@ -28,12 +28,6 @@
  
--static struct attribute_group kernel_attr_group = {
-+static const struct attribute_group kernel_attr_group = {
- 	.attrs = kernel_attrs,
- };
+ #include <asm/sections.h>
  
+-#ifdef CONFIG_KALLSYMS_ALL
+-#define all_var 1
+-#else
+-#define all_var 0
+-#endif
+-
+ /*
+  * These will be re-linked against their real values
+  * during the second link stage.
+@@ -82,7 +76,7 @@ static inline int is_kernel(unsigned lon
+ 
+ static int is_ksym_addr(unsigned long addr)
+ {
+-	if (all_var)
++	if (IS_ENABLED(CONFIG_KALLSYMS_ALL))
+ 		return is_kernel(addr);
+ 
+ 	return is_kernel_text(addr) || is_kernel_inittext(addr);
+@@ -280,7 +274,7 @@ static unsigned long get_symbol_pos(unsi
+ 	if (!symbol_end) {
+ 		if (is_kernel_inittext(addr))
+ 			symbol_end = (unsigned long)_einittext;
+-		else if (all_var)
++		else if (IS_ENABLED(CONFIG_KALLSYMS_ALL))
+ 			symbol_end = (unsigned long)_end;
+ 		else
+ 			symbol_end = (unsigned long)_etext;
 _
 
-Patches currently in -mm which might be from arvind.yadav.cs@gmail.com are
+Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
 
