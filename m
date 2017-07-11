@@ -1,75 +1,128 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- maintainers-give-proc-sysctl-some-maintainer-love.patch removed from -mm
- tree
-Date: Tue, 11 Jul 2017 12:26:17 -0700
-Message-ID: <20170711192617.ExaLgzWIi%akpm@linux-foundation.org>
+ bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit.patch removed
+ from -mm tree
+Date: Tue, 11 Jul 2017 12:26:22 -0700
+Message-ID: <20170711192622.Tnmo-jwt2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48434 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932270AbdGKT0S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:18 -0400
+        with ESMTP id S932270AbdGKT0X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:26:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mawilcox@microsoft.com, mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, willy@infradead.org
 
 
 The patch titled
-     Subject: MAINTAINERS: give proc sysctl some maintainer love
+     Subject: bitmap: optimise bitmap_set and bitmap_clear of a single bit
 has been removed from the -mm tree.  Its filename was
-     maintainers-give-proc-sysctl-some-maintainer-love.patch
+     bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: MAINTAINERS: give proc sysctl some maintainer love
+From: Matthew Wilcox <mawilcox@microsoft.com>
+Subject: bitmap: optimise bitmap_set and bitmap_clear of a single bit
 
-We poke at proc sysctl enough that really we should declare it maintained.
-We'll just be Cc'd and sending updates / ACK'ing changes through akpm's
-tree.
+We have eight users calling bitmap_clear for a single bit and seventeen
+calling bitmap_set for a single bit.  Rather than fix all of them to call
+__clear_bit or __set_bit, turn bitmap_clear and bitmap_set into inline
+functions and make this special case efficient.
 
-Link: http://lkml.kernel.org/r/20170524231305.8649-1-mcgrof@kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Acked-by: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20170628153221.11322-3-willy@infradead.org
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/linux/bitmap.h |   23 ++++++++++++++++++++---
+ lib/bitmap.c           |    8 ++++----
+ lib/test_bitmap.c      |    3 ---
+ 3 files changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-give-proc-sysctl-some-maintainer-love MAINTAINERS
---- a/MAINTAINERS~maintainers-give-proc-sysctl-some-maintainer-love
-+++ a/MAINTAINERS
-@@ -10559,6 +10559,17 @@ W:	http://wireless.kernel.org/en/users/D
- S:	Obsolete
- F:	drivers/net/wireless/intersil/prism54/
+diff -puN include/linux/bitmap.h~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
++++ a/include/linux/bitmap.h
+@@ -112,9 +112,8 @@ extern int __bitmap_intersects(const uns
+ extern int __bitmap_subset(const unsigned long *bitmap1,
+ 			const unsigned long *bitmap2, unsigned int nbits);
+ extern int __bitmap_weight(const unsigned long *bitmap, unsigned int nbits);
+-
+-extern void bitmap_set(unsigned long *map, unsigned int start, int len);
+-extern void bitmap_clear(unsigned long *map, unsigned int start, int len);
++extern void __bitmap_set(unsigned long *map, unsigned int start, int len);
++extern void __bitmap_clear(unsigned long *map, unsigned int start, int len);
  
-+PROC SYSCTL
-+M:	"Luis R. Rodriguez" <mcgrof@kernel.org>
-+M:	Kees Cook <keescook@chromium.org>
-+L:	linux-kernel@vger.kernel.org
-+L:	linux-fsdevel@vger.kernel.org
-+S:	Maintained
-+F:	fs/proc/proc_sysctl.c
-+F:	include/linux/sysctl.h
-+F:	kernel/sysctl.c
-+F:	tools/testing/selftests/sysctl/
+ extern unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
+ 						    unsigned long size,
+@@ -315,6 +314,24 @@ static __always_inline int bitmap_weight
+ 	return __bitmap_weight(src, nbits);
+ }
+ 
++static __always_inline void bitmap_set(unsigned long *map, unsigned int start,
++		unsigned int nbits)
++{
++	if (__builtin_constant_p(nbits) && nbits == 1)
++		__set_bit(start, map);
++	else
++		__bitmap_set(map, start, nbits);
++}
 +
- PS3 NETWORK SUPPORT
- M:	Geoff Levand <geoff@infradead.org>
- L:	netdev@vger.kernel.org
-_
-
-Patches currently in -mm which might be from mcgrof@kernel.org are
-
-sysctl-fix-lax-sysctl_check_table-sanity-check.patch
-sysctl-kdocify-sysctl_writes_strict.patch
-sysctl-fold-sysctl_writes_strict-checks-into-helper.patch
-sysctl-simplify-unsigned-int-support.patch
-sysctl-add-unsigned-int-range-support.patch
-maintainers-give-kmod-some-maintainer-love.patch
-kmod-add-test-driver-to-stress-test-the-module-loader.patch
-kmod-throttle-kmod-thread-limit.patch
-
++static __always_inline void bitmap_clear(unsigned long *map, unsigned int start,
++		unsigned int nbits)
++{
++	if (__builtin_constant_p(nbits) && nbits == 1)
++		__clear_bit(start, map);
++	else
++		__bitmap_clear(map, start, nbits);
++}
++
+ static inline void bitmap_shift_right(unsigned long *dst, const unsigned long *src,
+ 				unsigned int shift, int nbits)
+ {
+diff -puN lib/bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
++++ a/lib/bitmap.c
+@@ -251,7 +251,7 @@ int __bitmap_weight(const unsigned long
+ }
+ EXPORT_SYMBOL(__bitmap_weight);
+ 
+-void bitmap_set(unsigned long *map, unsigned int start, int len)
++void __bitmap_set(unsigned long *map, unsigned int start, int len)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
+ 	const unsigned int size = start + len;
+@@ -270,9 +270,9 @@ void bitmap_set(unsigned long *map, unsi
+ 		*p |= mask_to_set;
+ 	}
+ }
+-EXPORT_SYMBOL(bitmap_set);
++EXPORT_SYMBOL(__bitmap_set);
+ 
+-void bitmap_clear(unsigned long *map, unsigned int start, int len)
++void __bitmap_clear(unsigned long *map, unsigned int start, int len)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
+ 	const unsigned int size = start + len;
+@@ -291,7 +291,7 @@ void bitmap_clear(unsigned long *map, un
+ 		*p &= ~mask_to_clear;
+ 	}
+ }
+-EXPORT_SYMBOL(bitmap_clear);
++EXPORT_SYMBOL(__bitmap_clear);
+ 
+ /**
+  * bitmap_find_next_zero_area_off - find a contiguous aligned zero area
+diff -puN lib/test_bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit lib/test_bitmap.c
+--- a/lib/test_bitmap.c~bitmap-optimise-bitmap_set-and-bitmap_clear-of-a-single-bit
++++ a/lib/test_bitmap.c
+@@ -333,9 +333,6 @@ static void __init test_bitmap_u32_array
+ 	}
+ }
+ 
+-#define __bitmap_set(a, b, c)	bitmap_set(a, b, c)
+-#define __bitmap_clear(a, b, c)	bitmap_clear(a, b, c)
