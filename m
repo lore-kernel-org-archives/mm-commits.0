@@ -1,145 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request.patch
- removed from -mm tree
-Date: Tue, 11 Jul 2017 12:24:14 -0700
-Message-ID: <20170711192414.lJ1claBmK%akpm@linux-foundation.org>
+ mm-fix-thp-handling-in-invalidate_mapping_pages.patch removed from -mm tree
+Date: Tue, 11 Jul 2017 12:24:12 -0700
+Message-ID: <20170711192412.QjxkHFvTj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47830 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933716AbdGKTYP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:15 -0400
+        with ESMTP id S933716AbdGKTYN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hillf.zj@alibaba-inc.com, mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com, xemul@virtuozzo.com
+To: jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: non-cooperative: add madvise() event for MADV_FREE request
+     Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request.patch
+     mm-fix-thp-handling-in-invalidate_mapping_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Subject: userfaultfd: non-cooperative: add madvise() event for MADV_FREE request
+From: Jan Kara <jack@suse.cz>
+Subject: mm/truncate.c: fix THP handling in invalidate_mapping_pages()
 
-MADV_FREE is identical to MADV_DONTNEED from the point of view of uffd
-monitor.  The monitor has to stop handling #PF events in the range being
-freed.  We are reusing userfaultfd_remove callback along with the logic
-required to re-get and re-validate the VMA which may change or disappear
-because userfaultfd_remove releases mmap_sem.
+The condition checking for THP straddling end of invalidated range is
+wrong - it checks 'index' against 'end' but 'index' has been already
+advanced to point to the end of THP and thus the condition can never be
+true.  As a result THP straddling 'end' has been fully invalidated.  Given
+the nature of invalidate_mapping_pages(), this could be only performance
+issue.  In fact, we are lucky the condition is wrong because if it was
+ever true, we'd leave locked page behind.
 
-Link: http://lkml.kernel.org/r/1497876311-18615-1-git-send-email-rppt@linux.vnet.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
+Fix the condition checking for THP straddling 'end' and also properly
+unlock the page. Also update the comment before the condition to explain
+why we decide not to invalidate the page as it was not clear to me and I
+had to ask Kirill.
+
+Link: http://lkml.kernel.org/r/20170619124723.21656-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   42 ++++++++++++++++++++++--------------------
- 1 file changed, 22 insertions(+), 20 deletions(-)
+ mm/truncate.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request mm/madvise.c
---- a/mm/madvise.c~userfaultfd-non-cooperative-add-madvise-event-for-madv_free-request
-+++ a/mm/madvise.c
-@@ -451,9 +451,6 @@ static int madvise_free_single_vma(struc
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct mmu_gather tlb;
+diff -puN mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages mm/truncate.c
+--- a/mm/truncate.c~mm-fix-thp-handling-in-invalidate_mapping_pages
++++ a/mm/truncate.c
+@@ -530,9 +530,15 @@ unsigned long invalidate_mapping_pages(s
+ 			} else if (PageTransHuge(page)) {
+ 				index += HPAGE_PMD_NR - 1;
+ 				i += HPAGE_PMD_NR - 1;
+-				/* 'end' is in the middle of THP */
+-				if (index ==  round_down(end, HPAGE_PMD_NR))
++				/*
++				 * 'end' is in the middle of THP. Don't
++				 * invalidate the page as the part outside of
++				 * 'end' could be still useful.
++				 */
++				if (index > end) {
++					unlock_page(page);
+ 					continue;
++				}
+ 			}
  
--	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
--		return -EINVAL;
--
- 	/* MADV_FREE works for only anon vma at the moment */
- 	if (!vma_is_anonymous(vma))
- 		return -EINVAL;
-@@ -477,14 +474,6 @@ static int madvise_free_single_vma(struc
- 	return 0;
- }
- 
--static long madvise_free(struct vm_area_struct *vma,
--			     struct vm_area_struct **prev,
--			     unsigned long start, unsigned long end)
--{
--	*prev = vma;
--	return madvise_free_single_vma(vma, start, end);
--}
--
- /*
-  * Application no longer needs these pages.  If the pages are dirty,
-  * it's OK to just throw them away.  The app will be more careful about
-@@ -504,9 +493,17 @@ static long madvise_free(struct vm_area_
-  * An interface that causes the system to free clean pages and flush
-  * dirty pages is already available as msync(MS_INVALIDATE).
-  */
--static long madvise_dontneed(struct vm_area_struct *vma,
--			     struct vm_area_struct **prev,
--			     unsigned long start, unsigned long end)
-+static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
-+					unsigned long start, unsigned long end)
-+{
-+	zap_page_range(vma, start, end - start);
-+	return 0;
-+}
-+
-+static long madvise_dontneed_free(struct vm_area_struct *vma,
-+				  struct vm_area_struct **prev,
-+				  unsigned long start, unsigned long end,
-+				  int behavior)
- {
- 	*prev = vma;
- 	if (!can_madv_dontneed_vma(vma))
-@@ -526,7 +523,8 @@ static long madvise_dontneed(struct vm_a
- 			 * is also < vma->vm_end. If start <
- 			 * vma->vm_start it means an hole materialized
- 			 * in the user address space within the
--			 * virtual range passed to MADV_DONTNEED.
-+			 * virtual range passed to MADV_DONTNEED
-+			 * or MADV_FREE.
- 			 */
- 			return -ENOMEM;
- 		}
-@@ -537,7 +535,7 @@ static long madvise_dontneed(struct vm_a
- 			 * Don't fail if end > vma->vm_end. If the old
- 			 * vma was splitted while the mmap_sem was
- 			 * released the effect of the concurrent
--			 * operation may not cause MADV_DONTNEED to
-+			 * operation may not cause madvise() to
- 			 * have an undefined result. There may be an
- 			 * adjacent next vma that we'll walk
- 			 * next. userfaultfd_remove() will generate an
-@@ -549,8 +547,13 @@ static long madvise_dontneed(struct vm_a
- 		}
- 		VM_WARN_ON(start >= end);
- 	}
--	zap_page_range(vma, start, end - start);
--	return 0;
-+
-+	if (behavior == MADV_DONTNEED)
-+		return madvise_dontneed_single_vma(vma, start, end);
-+	else if (behavior == MADV_FREE)
-+		return madvise_free_single_vma(vma, start, end);
-+	else
-+		return -EINVAL;
- }
- 
- /*
-@@ -656,9 +659,8 @@ madvise_vma(struct vm_area_struct *vma,
- 	case MADV_WILLNEED:
- 		return madvise_willneed(vma, prev, start, end);
- 	case MADV_FREE:
--		return madvise_free(vma, prev, start, end);
- 	case MADV_DONTNEED:
--		return madvise_dontneed(vma, prev, start, end);
-+		return madvise_dontneed_free(vma, prev, start, end, behavior);
- 	default:
- 		return madvise_behavior(vma, prev, start, end, behavior);
- 	}
+ 			ret = invalidate_inode_page(page);
 _
 
-Patches currently in -mm which might be from rppt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
