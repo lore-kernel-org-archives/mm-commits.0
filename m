@@ -1,55 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged] obsoleted-comment-in-show_map_vma.patch removed
- from -mm tree
-Date: Tue, 11 Jul 2017 12:24:33 -0700
-Message-ID: <20170711192433.tSIg62b-g%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-remove-unused-zone_type-variable-from-__remove_zone.patch removed from
+ -mm tree
+Date: Tue, 11 Jul 2017 12:24:46 -0700
+Message-ID: <20170711192446.a76pcgdBy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47980 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933703AbdGKTYe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:34 -0400
+        with ESMTP id S933703AbdGKTYr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:24:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org, vvs@virtuozzo.com
+To: jhubbard@nvidia.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: remove obsolete comment in show_map_vma()
+     Subject: mm/memory_hotplug.c: remove unused local zone_type from __remove_zone()
 has been removed from the -mm tree.  Its filename was
-     obsoleted-comment-in-show_map_vma.patch
+     mm-remove-unused-zone_type-variable-from-__remove_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: fs/proc/task_mmu.c: remove obsolete comment in show_map_vma()
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/memory_hotplug.c: remove unused local zone_type from __remove_zone()
 
-After 1be7107 ("mm: larger stack guard gap, between vmas") we do not hide
-stack guard page in /proc/<pid>/maps
+__remove_zone() sets up up zone_type, but never uses it for anything. 
+This does not cause a warning, due to the (necessary) use of
+-Wno-unused-but-set-variable.  However, it's noise, so just delete it.
 
-Link: http://lkml.kernel.org/r/211f3c2a-f7ef-7c13-82bf-46fd426f6e1b@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20170624043421.24465-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memory_hotplug.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~obsoleted-comment-in-show_map_vma fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~obsoleted-comment-in-show_map_vma
-+++ a/fs/proc/task_mmu.c
-@@ -298,7 +298,6 @@ show_map_vma(struct seq_file *m, struct
- 		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
- 	}
+diff -puN mm/memory_hotplug.c~mm-remove-unused-zone_type-variable-from-__remove_zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-remove-unused-zone_type-variable-from-__remove_zone
++++ a/mm/memory_hotplug.c
+@@ -580,11 +580,8 @@ static void __remove_zone(struct zone *z
+ {
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	int nr_pages = PAGES_PER_SECTION;
+-	int zone_type;
+ 	unsigned long flags;
  
--	/* We don't show the stack guard page in /proc/maps */
- 	start = vma->vm_start;
- 	end = vma->vm_end;
- 
-_
-
-Patches currently in -mm which might be from vvs@virtuozzo.com are
-
-
+-	zone_type = zone - pgdat->node_zones;
