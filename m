@@ -1,83 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch removed from
- -mm tree
-Date: Tue, 11 Jul 2017 12:22:49 -0700
-Message-ID: <20170711192249.jwwJIILXu%akpm@linux-foundation.org>
+ mm-add-null-check-to-avoid-potential-null-pointer-dereference.patch removed
+ from -mm tree
+Date: Tue, 11 Jul 2017 12:22:52 -0700
+Message-ID: <20170711192252.cUt6hCl6F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47510 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933570AbdGKTWu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:22:50 -0400
+        with ESMTP id S933570AbdGKTWx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2017 15:22:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com, rientjes@google.com
+To: garsilva@embeddedor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: avoid thrashing anon lru when free + file is low
+     Subject: mm/memory_hotplug.c: add NULL check to avoid potential NULL pointer dereference
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low.patch
+     mm-add-null-check-to-avoid-potential-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, vmscan: avoid thrashing anon lru when free + file is low
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: mm/memory_hotplug.c: add NULL check to avoid potential NULL pointer dereference
 
-The purpose of the code that commit 623762517e23 ("revert 'mm: vmscan: do
-not swap anon pages just because free+file is low'") reintroduces is to
-prefer swapping anonymous memory rather than trashing the file lru.
+NULL check at line 1226: if (!pgdat), implies that pointer pgdat
+might be NULL.
 
-If the anonymous inactive lru for the set of eligible zones is considered
-low, however, or the length of the list for the given reclaim priority
-does not allow for effective anonymous-only reclaiming, then avoid forcing
-SCAN_ANON.  Forcing SCAN_ANON will end up thrashing the small list and
-leave unreclaimed memory on the file lrus.
+rollback_node_hotadd() dereferences this pointer.  Add NULL check to avoid
+a potential NULL pointer dereference.
 
-If the inactive list is insufficient, fallback to balanced reclaim so the
-file lru doesn't remain untouched.
-
-[akpm@linux-foundation.org: fix build]
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1705011432220.137835@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Rik van Riel <riel@redhat.com>
+Addresses-Coverity-ID: 1369133
+Link: http://lkml.kernel.org/r/20170530212436.GA6195@embeddedgus
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-avoid-thrashing-anon-lru-when-free-file-is-low
-+++ a/mm/vmscan.c
-@@ -2228,8 +2228,17 @@ static void get_scan_count(struct lruvec
- 		}
+diff -puN mm/memory_hotplug.c~mm-add-null-check-to-avoid-potential-null-pointer-dereference mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-add-null-check-to-avoid-potential-null-pointer-dereference
++++ a/mm/memory_hotplug.c
+@@ -1268,7 +1268,7 @@ register_fail:
  
- 		if (unlikely(pgdatfile + pgdatfree <= total_high_wmark)) {
--			scan_balance = SCAN_ANON;
--			goto out;
-+			/*
-+			 * Force SCAN_ANON if there are enough inactive
-+			 * anonymous pages on the LRU in eligible zones.
-+			 * Otherwise, the small LRU gets thrashed.
-+			 */
-+			if (!inactive_list_is_low(lruvec, false, memcg, sc, false) &&
-+			    lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, sc->reclaim_idx)
-+					>> sc->priority) {
-+				scan_balance = SCAN_ANON;
-+				goto out;
-+			}
- 		}
- 	}
+ error:
+ 	/* rollback pgdat allocation and others */
+-	if (new_pgdat)
++	if (new_pgdat && pgdat)
+ 		rollback_node_hotadd(nid, pgdat);
+ 	memblock_remove(start, size);
  
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from garsilva@embeddedor.com are
 
 
